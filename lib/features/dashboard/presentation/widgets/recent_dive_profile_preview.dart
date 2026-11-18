@@ -156,8 +156,7 @@ class _Header extends ConsumerWidget {
             MaterialPageRoute<void>(
               // The dashboard has no lock, so the fullscreen page only
               // reads (issue #4527).
-              builder: (_) =>
-                  FullscreenProfilePage(diveId: dive.id, readOnly: true),
+              builder: (_) => FullscreenProfilePage(diveId: dive.id),
             ),
           ),
         ),

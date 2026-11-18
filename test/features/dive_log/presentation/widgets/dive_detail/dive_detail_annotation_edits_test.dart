@@ -146,11 +146,4 @@ void main() {
       expect(edits.maxSeconds(99), annotationTimeLimits(session).max);
     },
   );
-
-  test('RepositoryAnnotationEdits write at once', () async {
-    final edits = RepositoryAnnotationEdits(repo, diveId);
-    await edits.move(storedId, seconds: 450);
-    expect((await repo.annotationsForDive(diveId)).single.timestamp, 450);
-    expect(edits.maxSeconds(99), 99);
-  });
 }

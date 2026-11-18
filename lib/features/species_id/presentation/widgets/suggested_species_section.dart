@@ -9,7 +9,6 @@ import 'package:submersion/features/marine_life/presentation/species_display.dar
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/presentation/editing/photo_sitting_shown.dart';
-import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_species_sheet.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
@@ -71,10 +70,10 @@ List<TaggedSpecies> shownTaggedSpecies(
   ];
 }
 
-/// Tags the photo with each of [candidates]' species in turn, or holds
-/// them in [sitting]. With [claimTrackId], each species is first recorded
-/// against that animal in a video (issue #4675), so its label follows the
-/// fish the diver tapped.
+/// Holds each of [candidates]' species in turn as tagged in [sitting]; the
+/// identifications are reconciled once the viewer's Save writes the tags.
+/// With [claimTrackId], each species is first recorded against that animal
+/// in a video (issue #4675), so its label follows the fish the diver tapped.
 ///
 /// Everything it needs is read before the first lookup: the sheet or crop
 /// view it was called from may be gone before the lookups finish.
@@ -83,11 +82,10 @@ Future<void> addSuggestedSpecies(
   WidgetRef ref,
   MediaItem item,
   List<PackCandidate> candidates,
-  EditSession<PhotoRecord>? sitting, {
+  EditSession<PhotoRecord> sitting, {
   String? claimTrackId,
 }) async {
   final acceptor = ref.read(suggestionAcceptorProvider);
-  final tagging = ref.read(speciesTaggingServiceProvider);
   final identification = ref.read(mediaIdentificationServiceProvider);
   final messenger = ScaffoldMessenger.maybeOf(context);
   final failed = context.l10n.common_error_tryAgain;
@@ -97,13 +95,8 @@ Future<void> addSuggestedSpecies(
       if (claimTrackId != null) {
         await identification.claim(item.id, claimTrackId, species.id);
       }
-      if (sitting != null) {
-        holdPickedSpecies(sitting, species);
-      } else {
-        await tagging.tagPhoto(mediaId: item.id, speciesId: species.id);
-      }
+      holdPickedSpecies(sitting, species);
     }
-    if (sitting == null) await identification.reconcile(item.id);
   } catch (_) {
     messenger?.showSnackBar(SnackBar(content: Text(failed)));
   }
@@ -113,10 +106,16 @@ Future<void> addSuggestedSpecies(
 /// species the app found, with its crop, to add as a tag or dismiss.
 /// Renders nothing when there is nothing to offer and nothing running.
 class SuggestedSpeciesSection extends ConsumerWidget {
-  const SuggestedSpeciesSection({super.key, required this.item, this.sitting});
+  const SuggestedSpeciesSection({
+    super.key,
+    required this.item,
+    required this.sitting,
+  });
 
   final MediaItem item;
-  final EditSession<PhotoRecord>? sitting;
+
+  /// The photo's sitting: an added suggestion is held in it until Save.
+  final EditSession<PhotoRecord> sitting;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -130,7 +129,7 @@ class SuggestedSpeciesSection extends ConsumerWidget {
     if (suggestions.isEmpty && !busy && progress == null) {
       return const SizedBox.shrink();
     }
-    final ended = sitting?.isDisposed ?? false;
+    final ended = sitting.isDisposed;
     final percent = NumberFormat.percentPattern(
       Localizations.localeOf(context).toString(),
     );
@@ -214,7 +213,7 @@ class _SuggestionRow extends ConsumerWidget {
   final SpeciesSuggestion suggestion;
   final String percent;
   final bool enabled;
-  final EditSession<PhotoRecord>? sitting;
+  final EditSession<PhotoRecord> sitting;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -308,7 +307,7 @@ class SuggestionCropView extends ConsumerWidget {
 
   final MediaItem item;
   final SpeciesSuggestion suggestion;
-  final EditSession<PhotoRecord>? sitting;
+  final EditSession<PhotoRecord> sitting;
   final String? trackId;
 
   @override
@@ -317,7 +316,7 @@ class SuggestionCropView extends ConsumerWidget {
     final percent = NumberFormat.percentPattern(
       Localizations.localeOf(context).toString(),
     );
-    final ended = sitting?.isDisposed ?? false;
+    final ended = sitting.isDisposed;
     return ListView(
       shrinkWrap: true,
       padding: const EdgeInsets.all(16),

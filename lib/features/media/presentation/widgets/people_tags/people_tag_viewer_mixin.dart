@@ -7,7 +7,6 @@ import 'package:video_player/video_player.dart';
 
 import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -23,7 +22,6 @@ import 'package:submersion/features/media/presentation/providers/media_people_pr
 import 'package:submersion/features/media/presentation/widgets/people_tags/add_to_dive_offer.dart';
 import 'package:submersion/features/media/presentation/widgets/people_tags/people_tag_hint.dart';
 import 'package:submersion/features/media/presentation/widgets/people_tags/person_picker_sheet.dart';
-import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 /// Whether a face box can be placed on [item] here (issue #1745). A photo
@@ -65,7 +63,7 @@ class PeopleTagSession {
   final void Function(MediaPersonTag tag, FaceBox box) onMove;
 
   /// The photo's sitting (issue #4527): the boxes and chips show its held
-  /// tags. Null when the viewer is locked or offers no lock.
+  /// tags. Null while the photo is locked.
   final EditSession<PhotoRecord>? sitting;
 
   const PeopleTagSession({
@@ -101,11 +99,10 @@ mixin PeopleTagViewerMixin<T extends ConsumerStatefulWidget>
   FaceBox? pendingPeopleBox(String mediaId) =>
       _pendingMediaId == mediaId ? _pendingBox : null;
 
-  static const _log = LoggerService('PeopleTagViewerMixin');
-
   /// The photo's sitting, where tag mode holds its changes until Save
-  /// (issue #4527). Null writes each change at once, as before.
-  EditSession<PhotoRecord>? get peopleSitting => null;
+  /// (issue #4527). Null while the photo is locked, when tag mode is off and
+  /// a change has nowhere to go.
+  EditSession<PhotoRecord>? get peopleSitting;
 
   /// The tags [mediaId] shows: the sitting's when it is over that photo.
   List<MediaPersonChip> _shownChips(String mediaId) {
@@ -126,23 +123,6 @@ mixin PeopleTagViewerMixin<T extends ConsumerStatefulWidget>
     EditSession<PhotoRecord> session,
     PersonTagEdits Function(PersonTagEdits edits) change,
   ) => session.set(photoPeopleField, change(session.valueOf(photoPeopleField)));
-
-  /// Runs a tag write; a failure is logged and told to the diver rather
-  /// than left as an unhandled async error.
-  Future<bool> _save(String what, Future<void> Function() write) async {
-    try {
-      await write();
-      return true;
-    } catch (e, stackTrace) {
-      _log.error('Failed to $what', error: e, stackTrace: stackTrace);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.media_people_saveFailed)),
-        );
-      }
-      return false;
-    }
-  }
 
   /// Decoded image sizes, which win over a row's unrotated dimensions.
   final Map<String, Size> _decodedSizes = {};
@@ -254,9 +234,10 @@ mixin PeopleTagViewerMixin<T extends ConsumerStatefulWidget>
   Future<void> tagWithoutSpot(MediaItem item) => _tagWith(item);
 
   Future<void> _tagWith(MediaItem item, {FaceBox? box, Duration? at}) async {
-    // Captured first: a sitting that ends while the picker is open must not
-    // turn this into a write at once.
+    // Captured first: a sitting that ends while the picker is open takes
+    // nothing.
     final session = peopleSitting;
+    if (session == null) return;
     final buddies = ref.read(buddyRepositoryProvider);
     if (box != null) {
       setState(() {
@@ -275,49 +256,28 @@ mixin PeopleTagViewerMixin<T extends ConsumerStatefulWidget>
         });
       }
     }
-    if (choice == null || !mounted) return;
-    if (session != null) {
-      if (!_stillOpen(session, item.id)) return;
-      final now = DateTime.now();
-      final chip = MediaPersonChip(
-        tag: MediaPersonTag(
-          id: const Uuid().v4(),
-          mediaId: item.id,
-          buddyId: choice is BuddyChoice ? choice.buddy.id : null,
-          diverId: choice is MeChoice ? choice.diverId : null,
-          box: box,
-          videoPosition: box == null ? null : at,
-          createdAt: now,
-          updatedAt: now,
-        ),
-        buddyName: choice is BuddyChoice ? choice.buddy.name : null,
-      );
-      _holdPeople(
-        session,
-        (edits) => edits.add(
-          chip,
-          stored: session.stored.people,
-          isVideo: item.isVideo,
-        ),
-      );
-      await _offerHeldAdd(session, item, choice, buddies);
-      return;
-    }
-    final saved = await _save(
-      'tag a person',
-      () => ref
-          .read(mediaPeopleRepositoryProvider)
-          .addTag(
-            mediaId: item.id,
-            buddyId: choice is BuddyChoice ? choice.buddy.id : null,
-            diverId: choice is MeChoice ? choice.diverId : null,
-            box: box,
-            // A moment belongs to a box: a tag without a spot has neither.
-            videoPosition: box == null ? null : at,
-          ),
+    if (choice == null || !_stillOpen(session, item.id)) return;
+    final now = DateTime.now();
+    final chip = MediaPersonChip(
+      tag: MediaPersonTag(
+        id: const Uuid().v4(),
+        mediaId: item.id,
+        buddyId: choice is BuddyChoice ? choice.buddy.id : null,
+        diverId: choice is MeChoice ? choice.diverId : null,
+        box: box,
+        // A moment belongs to a box: a tag without a spot has neither.
+        videoPosition: box == null ? null : at,
+        createdAt: now,
+        updatedAt: now,
+      ),
+      buddyName: choice is BuddyChoice ? choice.buddy.name : null,
     );
-    if (!saved || !mounted) return;
-    await offerAddToDive(context, ref, diveId: item.diveId, choice: choice);
+    _holdPeople(
+      session,
+      (edits) =>
+          edits.add(chip, stored: session.stored.people, isVideo: item.isVideo),
+    );
+    await _offerHeldAdd(session, item, choice, buddies);
   }
 
   void selectPeopleTag(MediaPersonTag tag) =>
@@ -333,67 +293,41 @@ mixin PeopleTagViewerMixin<T extends ConsumerStatefulWidget>
     }
   }
 
-  /// Asks who the selected box really is and saves the change.
+  /// Asks who the selected box really is and holds the change.
   Future<void> changeTaggedPerson(MediaItem item, MediaPersonTag tag) async {
     final session = peopleSitting;
+    if (session == null) return;
     final buddies = ref.read(buddyRepositoryProvider);
     final choice = await showPersonPickerSheet(context, diveId: item.diveId);
-    if (choice == null || !mounted) return;
-    if (session != null) {
-      if (!_stillOpen(session, item.id)) return;
-      final changed = MediaPersonChip(
-        tag: tag.copyWith(
-          buddyId: choice is BuddyChoice ? choice.buddy.id : null,
-          diverId: choice is MeChoice ? choice.diverId : null,
-          updatedAt: DateTime.now(),
-        ),
-        buddyName: choice is BuddyChoice ? choice.buddy.name : null,
-      );
-      _holdPeople(
-        session,
-        (edits) => edits.change(changed, stored: session.stored.people),
-      );
-      await _offerHeldAdd(session, item, choice, buddies);
-      return;
-    }
-    final saved = await _save(
-      'change a tagged person',
-      () => ref
-          .read(mediaPeopleRepositoryProvider)
-          .updateTag(
-            tag.copyWith(
-              buddyId: choice is BuddyChoice ? choice.buddy.id : null,
-              diverId: choice is MeChoice ? choice.diverId : null,
-              updatedAt: DateTime.now(),
-            ),
-          ),
+    if (choice == null || !_stillOpen(session, item.id)) return;
+    final changed = MediaPersonChip(
+      tag: tag.copyWith(
+        buddyId: choice is BuddyChoice ? choice.buddy.id : null,
+        diverId: choice is MeChoice ? choice.diverId : null,
+        updatedAt: DateTime.now(),
+      ),
+      buddyName: choice is BuddyChoice ? choice.buddy.name : null,
     );
-    if (!saved || !mounted) return;
-    await offerAddToDive(context, ref, diveId: item.diveId, choice: choice);
+    _holdPeople(
+      session,
+      (edits) => edits.change(changed, stored: session.stored.people),
+    );
+    await _offerHeldAdd(session, item, choice, buddies);
   }
 
   Future<void> removePeopleTag(String tagId) async {
     final session = peopleSitting;
-    if (session != null) {
-      if (session.isDisposed || session.isFrozen) return;
-      _holdPeople(
-        session,
-        (edits) => edits.remove(tagId, stored: session.stored.people),
-      );
-      setState(() => selectedPeopleTagId = null);
-      return;
-    }
-    final saved = await _save(
-      'remove a tag',
-      () => ref.read(mediaPeopleRepositoryProvider).removeTag(tagId),
+    if (session == null || session.isDisposed || session.isFrozen) return;
+    _holdPeople(
+      session,
+      (edits) => edits.remove(tagId, stored: session.stored.people),
     );
-    if (saved && mounted) setState(() => selectedPeopleTagId = null);
+    setState(() => selectedPeopleTagId = null);
   }
 
   Future<void> movePeopleTag(MediaPersonTag tag, FaceBox box) async {
     final session = peopleSitting;
-    if (session == null) return _moveNow(tag, box);
-    if (session.isDisposed || session.isFrozen) return;
+    if (session == null || session.isDisposed || session.isFrozen) return;
     final shown = _shownChips(tag.mediaId).where((c) => c.tag.id == tag.id);
     final buddyName = shown.isEmpty ? null : shown.first.buddyName;
     _holdPeople(
@@ -457,11 +391,4 @@ mixin PeopleTagViewerMixin<T extends ConsumerStatefulWidget>
       }),
     );
   }
-
-  Future<void> _moveNow(MediaPersonTag tag, FaceBox box) => _save(
-    'move a face box',
-    () => ref
-        .read(mediaPeopleRepositoryProvider)
-        .updateTag(tag.copyWith(box: box, updatedAt: DateTime.now())),
-  );
 }

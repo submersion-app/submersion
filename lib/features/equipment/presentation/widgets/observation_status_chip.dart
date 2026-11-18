@@ -26,8 +26,7 @@ class ObservationStatusChip extends ConsumerWidget {
 
   /// Runs the check-in as the page's whole-record operation, so the page
   /// holds still while the sheet is open and reads the dive again after.
-  /// Null opens the sheet directly, as off such a page.
-  final RecordOperationRunner? runAsOperation;
+  final RecordOperationRunner runAsOperation;
 
   const ObservationStatusChip({
     super.key,
@@ -35,7 +34,7 @@ class ObservationStatusChip extends ConsumerWidget {
     required this.dive,
     this.readOnly = false,
     required this.operationReason,
-    this.runAsOperation,
+    required this.runAsOperation,
   });
 
   @override
@@ -79,17 +78,14 @@ class ObservationStatusChip extends ConsumerWidget {
           : () {
               // A check-in is the gear's own record: the dive the page's
               // sitting holds is unchanged, so it has nothing to read again.
-              Future<bool> checkIn() async {
+              runAsOperation(() async {
                 await showEquipmentObservationSheet(
                   context,
                   equipment: equipment,
                   dive: dive,
                 );
                 return false;
-              }
-
-              final run = runAsOperation;
-              run == null ? checkIn() : run(checkIn);
+              });
             },
     );
     // The state is still read out, ahead of why it cannot be changed.

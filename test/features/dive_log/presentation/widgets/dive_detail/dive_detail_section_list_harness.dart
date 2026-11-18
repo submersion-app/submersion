@@ -18,9 +18,6 @@ DiveDetailSectionList sectionListFor(Dive dive) => DiveDetailSectionList(
     splitSource: (_, _) {},
     removeSource: (_, _, _) {},
     separateSegments: (_, _) {},
-    scanGallery: (_) {},
-    addPhotos: (_) {},
-    addDocument: (_) {},
     openDocument: (_) {},
   ),
 );

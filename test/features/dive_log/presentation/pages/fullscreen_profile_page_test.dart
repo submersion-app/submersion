@@ -469,7 +469,8 @@ void main() {
     expect(chart.safetyFindings, isNotNull);
     expect(chart.safetyFindings!.map((f) => f.id), ['f-lane']);
     expect(chart.onSafetyFindingTap, isNotNull);
-    expect(chart.onSafetyFindingDismiss, isNotNull);
+    // Findings are dismissed in the open Safety review card (issue #4527).
+    expect(chart.onSafetyFindingDismiss, isNull);
     expect(chart.onSafetyFindingDetails, isNull); // no section in fullscreen
   });
 

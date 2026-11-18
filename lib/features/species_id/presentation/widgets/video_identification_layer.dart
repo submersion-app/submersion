@@ -93,8 +93,16 @@ class VideoIdentificationLayer extends ConsumerWidget {
           playing: value.isPlaying,
         );
         if (labels.isEmpty) return const SizedBox.shrink();
-        final interactive =
-            editable && !value.isPlaying && !(sitting?.isDisposed ?? false);
+        // A name picked here is held in the video's sitting until Save
+        // (issue #4527): the labels take taps only while it is open.
+        final session = sitting;
+        final holdIn =
+            editable &&
+                !value.isPlaying &&
+                session != null &&
+                !session.isDisposed
+            ? session
+            : null;
         return LayoutBuilder(
           builder: (context, box) {
             final video = containedImageRect(value.size, box.biggest);
@@ -108,7 +116,7 @@ class VideoIdentificationLayer extends ConsumerWidget {
                     byId[label.identificationId]!,
                     species,
                     video,
-                    interactive: interactive,
+                    holdIn: holdIn,
                   ),
               ],
             );
@@ -125,7 +133,7 @@ class VideoIdentificationLayer extends ConsumerWidget {
     MediaIdentification track,
     Map<String, Species> species,
     Rect video, {
-    required bool interactive,
+    required EditSession<PhotoRecord>? holdIn,
   }) {
     final l10n = context.l10n;
     final b = label.box;
@@ -144,20 +152,20 @@ class VideoIdentificationLayer extends ConsumerWidget {
           rect: dotTarget,
           child: _target(
             key: ValueKey('video_label_dot_${label.identificationId}'),
-            label: interactive
+            label: holdIn != null
                 ? l10n.media_species_unnamedFish
                 : l10n.media_species_unnamedFishLocked,
-            onTap: interactive
-                ? () => pickOtherSpecies(
+            onTap: holdIn == null
+                ? null
+                : () => pickOtherSpecies(
                     context,
                     ref,
                     item,
-                    sitting,
+                    holdIn,
                     onPicked: (picked) => ref
                         .read(mediaIdentificationServiceProvider)
                         .claim(item.id, track.id, picked.id),
-                  )
-                : null,
+                  ),
             child: const Center(child: TrackDot()),
           ),
         ),
@@ -191,9 +199,9 @@ class VideoIdentificationLayer extends ConsumerWidget {
           child: _target(
             key: ValueKey('video_label_pill_${label.identificationId}'),
             label: name,
-            onTap: interactive
-                ? () => _openPill(context, ref, label, track)
-                : null,
+            onTap: holdIn == null
+                ? null
+                : () => _openPill(context, ref, label, track, holdIn),
             child: Padding(
               padding: EdgeInsets.symmetric(
                 vertical:
@@ -238,6 +246,7 @@ class VideoIdentificationLayer extends ConsumerWidget {
     WidgetRef ref,
     TrackLabel label,
     MediaIdentification track,
+    EditSession<PhotoRecord> holdIn,
   ) {
     if (label.kind == TrackLabelKind.accepted) {
       final id = label.speciesId;
@@ -260,7 +269,7 @@ class VideoIdentificationLayer extends ConsumerWidget {
           identificationIds: [track.id],
           alternatives: track.candidates.take(suggestionAlternatives).toList(),
         ),
-        sitting: sitting,
+        sitting: holdIn,
         trackId: track.id,
       ),
     );

@@ -19,12 +19,8 @@ class BuddySignaturesSection extends ConsumerWidget {
   final List<BuddyWithRole>? buddies;
   final List<Signature>? signatures;
 
-  /// Whether a buddy can be asked to sign. A page that offers editing asks
-  /// only in the open card.
-  final bool requestShown;
-
-  /// Takes a signature just drawn, in place of saving it: a sitting holds
-  /// it until Save. Null saves it at once, as the dive page always has.
+  /// Takes a signature just drawn: the open card's sitting holds it until
+  /// Save (issue #4527). Null asks no buddy to sign, as on a locked dive.
   final void Function(BuddyWithRole bwr, List<List<Offset>> strokes, Size size)?
   onCaptured;
 
@@ -33,7 +29,6 @@ class BuddySignaturesSection extends ConsumerWidget {
     required this.diveId,
     this.buddies,
     this.signatures,
-    this.requestShown = true,
     this.onCaptured,
   });
 
@@ -143,8 +138,8 @@ class BuddySignaturesSection extends ConsumerWidget {
               return BuddySignatureCard(
                 buddyWithRole: bwr,
                 signature: sig,
-                requestShown: requestShown,
-                onRequestSignature: () => _requestSignature(context, ref, bwr),
+                requestShown: onCaptured != null,
+                onRequestSignature: () => _requestSignature(context, bwr),
                 onViewSignature: sig != null
                     ? () => _viewSignature(context, sig)
                     : null,
@@ -165,47 +160,13 @@ class BuddySignaturesSection extends ConsumerWidget {
     );
   }
 
-  void _requestSignature(
-    BuildContext context,
-    WidgetRef ref,
-    BuddyWithRole bwr,
-  ) {
-    // Captured before the sheet closes: the save outlives it, and reporting
-    // a failure needs a messenger that is still in the tree.
-    final messenger = ScaffoldMessenger.of(context);
-    final l10n = context.l10n;
-
+  void _requestSignature(BuildContext context, BuddyWithRole bwr) {
     final captured = onCaptured;
+    if (captured == null) return;
     showBuddySignatureRequestSheet(
       context: context,
       buddyWithRole: bwr,
-      onSave: (strokes, canvasSize) async {
-        if (captured != null) {
-          captured(bwr, strokes, canvasSize);
-          return;
-        }
-        final notifier = ref.read(buddySignatureSaveNotifierProvider.notifier);
-        // The strokes are in the capture canvas's own coordinates, so the
-        // PNG is rendered at that exact size. A hardcoded size cropped every
-        // signature drawn on a canvas wider than it (issue #1358).
-        final signature = await notifier.saveFromStrokes(
-          diveId: diveId,
-          buddyId: bwr.buddy.id,
-          buddyName: bwr.buddy.name,
-          role: bwr.primaryRole.id,
-          strokes: strokes,
-          width: canvasSize.width,
-          height: canvasSize.height,
-        );
-        // A null result means the save threw. Nothing watches the notifier's
-        // AsyncValue, so without this the diver is shown an unchanged
-        // "Request" button and no reason for it (issue #1358).
-        if (signature == null) {
-          messenger.showSnackBar(
-            SnackBar(content: Text(l10n.signatures_error_saveFailed)),
-          );
-        }
-      },
+      onSave: (strokes, canvasSize) async => captured(bwr, strokes, canvasSize),
     );
   }
 

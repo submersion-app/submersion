@@ -326,7 +326,6 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
                         !pickingWhite) ...[
                       _TopOverlay(
                         onAdjustColor: () => openColorPanel(),
-                        writeControls: !photoLocked,
                         onUnlock:
                             !photoUnlocked &&
                                 canUnlock(currentItem, storedPhoto)
@@ -352,14 +351,15 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
                         // Only an attachment is the site's to categorize; a
                         // dive photo belongs to its dive. The pager keeps
                         // capture-time order, so an edit never moves the
-                        // photo out from under the diver.
+                        // photo out from under the diver. Offered only in
+                        // the editing bar, so the details are always held.
                         onEditDetails:
                             widget.scope == SiteViewerScope.attachments
                             ? () => showAttachmentDetailsSheet(
                                 context,
                                 item: currentItem,
                                 siteId: widget.siteId,
-                                onHold: photoUnlocked ? _holdDetails : null,
+                                onHold: _holdDetails,
                               )
                             : null,
                       ),
@@ -495,9 +495,6 @@ class _TopOverlay extends StatelessWidget {
   final VoidCallback? onEditDetails;
   final VoidCallback onAdjustColor;
 
-  /// Whether Adjust color and Edit details are offered: false while locked.
-  final bool writeControls;
-
   /// Unlocks the photo (issue #4527); null offers no lock.
   final VoidCallback? onUnlock;
 
@@ -506,7 +503,6 @@ class _TopOverlay extends StatelessWidget {
 
   const _TopOverlay({
     required this.onAdjustColor,
-    this.writeControls = true,
     this.onUnlock,
     this.editBar,
     required this.currentIndex,
@@ -516,21 +512,6 @@ class _TopOverlay extends StatelessWidget {
     required this.onShare,
     this.onEditDetails,
   });
-
-  List<Widget> _writeActions(BuildContext context, Color? color) => [
-    IconButton(
-      key: const ValueKey('viewer_adjust_color'),
-      icon: Icon(Icons.palette_outlined, color: color),
-      tooltip: context.l10n.media_color_adjustAction,
-      onPressed: onAdjustColor,
-    ),
-    if (onEditDetails != null)
-      IconButton(
-        icon: Icon(Icons.edit_outlined, color: color),
-        tooltip: context.l10n.media_siteAttachment_editDetails,
-        onPressed: onEditDetails,
-      ),
-  ];
 
   /// The editing bar's actions: Adjust color, Edit details and Share, with
   /// Share kept in the bar longest.
@@ -663,7 +644,6 @@ class _TopOverlay extends StatelessWidget {
                     tooltip: context.l10n.recordEdit_unlockTooltip,
                     onPressed: onUnlock,
                   ),
-                if (writeControls) ..._writeActions(context, Colors.white),
                 _share(context, Colors.white),
               ],
             ),

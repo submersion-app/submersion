@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
-"""Unit tests for manifest.py and the pure parts of candidates.py."""
+"""Unit tests for manifest.py and candidates.py (GBIF replaced by a stub)."""
 
+import contextlib
 import hashlib
 import importlib.util
+import io
 import json
 import os
 import tempfile
 import unittest
+import urllib.parse
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -102,7 +105,16 @@ class NamingForTests(unittest.TestCase):
 
 
 class MeasuredBarsTests(unittest.TestCase):
+    # Pack 2026.11.18.0030: 9,151 candidates, with the surveyed species and
+    # the whole of each GBIF facet.
     MEASURED_PACK = {
+        "candidates.json": "4f0dc61c95ab06de3a0b2ecb1401260e23907c3d2ff09d2da165bd9c8c34d50c",
+        "text_embeddings.f16": "9aa97fc27a4b91039bd8eb9b6ad7be2da0cc97e4818a1ad81bb7f61b111cde33",
+        "regions.bin": "f07736bd1c38fb5321b1900ebf0ab51555a9cf0715af4f364292202d953e4bcd",
+    }
+    # Pack 2026.11.17.1617: 7,646 candidates, photographed species only. Its
+    # bars do not carry over to a pack with a longer list.
+    EARLIER_PACK = {
         "candidates.json": "7e36bbf837c705f2679baf29e120462b35707421c96955403e031d61d3e7accb",
         "text_embeddings.f16": "957f0e7ee016dc7ef99a1b96c81b81130439b5dbb9b9170e0d190839b0e1b20e",
         "regions.bin": "ec2f86088a9bd113b7faa96550168e8672ed7e63f6cb2b6d0d64f43e15ac426f",
@@ -111,8 +123,8 @@ class MeasuredBarsTests(unittest.TestCase):
     def test_the_measured_pack_gets_the_measured_bars(self):
         naming = manifest.naming_for(CFD, BIOCLIP, "centreCrop", self.MEASURED_PACK)
         self.assertIs(naming["provisional"], False)
-        self.assertEqual(naming["minOpenScore"], 0.34)
-        self.assertEqual(naming["suggestScore"], 0.72)
+        self.assertEqual(naming["minOpenScore"], 0.39)
+        self.assertEqual(naming["suggestScore"], 0.64)
         self.assertEqual(naming["suggestScoreNoLocation"], 0.79)
         self.assertEqual(naming["confidentScore"], 1.01)
         self.assertEqual(naming["confidentScoreNoLocation"], 1.01)
@@ -133,6 +145,10 @@ class MeasuredBarsTests(unittest.TestCase):
 
         self.assertIs(build(self.MEASURED_PACK)["naming"]["provisional"], False)
         self.assertIs(build(CONTENTS)["naming"]["provisional"], True)
+
+    def test_the_earlier_pack_now_gets_provisional_bars(self):
+        naming = manifest.naming_for(CFD, BIOCLIP, "centreCrop", self.EARLIER_PACK)
+        self.assertIs(naming["provisional"], True)
 
     def test_the_measured_bars_name_their_findings(self):
         path = os.path.join(_HERE, "..", "..", manifest.NAMING_MEASURED["findings"])
@@ -256,6 +272,129 @@ class ExpansionTests(unittest.TestCase):
         self.assertEqual(candidates.expansion_order_keys(records), set())
 
 
+class SurveyQueryTests(unittest.TestCase):
+    def test_survey_counts_only_present_shallow_human_observations(self):
+        f = dict(candidates.SURVEY_FILTERS)
+        self.assertEqual(f["basis_of_record"], "HUMAN_OBSERVATION")
+        self.assertEqual(f["occurrence_status"], "PRESENT")
+        self.assertEqual(f["depth"], "0,40")
+        self.assertNotIn("media_type", f)
+
+    def test_photo_query_is_unchanged(self):
+        self.assertEqual(
+            candidates.PHOTO_FILTERS,
+            [("media_type", "StillImage"), ("basis_of_record", "HUMAN_OBSERVATION")],
+        )
+
+    def test_photo_cache_is_not_an_earlier_paged_page(self):
+        # Earlier builds paged the photo facet 1,000 at a time and cached
+        # page 0 here; that page must not answer the whole query.
+        path = candidates.facet_cache_path("w", "photographed", [3, 1], candidates.PHOTO_FILTERS, 50, 20000)
+        digest = hashlib.sha256(b"1,3").hexdigest()[:12]
+        self.assertNotEqual(path, os.path.join("w", "facets", f"species_{digest}_50_0.json"))
+
+    def test_survey_cache_differs_from_the_photo_cache(self):
+        photo = candidates.facet_cache_path("w", "photographed", [1], candidates.PHOTO_FILTERS, 50, 20000)
+        survey = candidates.facet_cache_path("w", "surveyed", [1], candidates.SURVEY_FILTERS, 50, 20000)
+        self.assertNotEqual(photo, survey)
+
+    def test_cache_changes_with_filters_taxa_floor_and_limit(self):
+        base = candidates.facet_cache_path("w", "surveyed", [1], candidates.SURVEY_FILTERS, 50, 20000)
+        for other in (
+            candidates.facet_cache_path("w", "surveyed", [1], [("depth", "0,30")], 50, 20000),
+            candidates.facet_cache_path("w", "surveyed", [1, 2], candidates.SURVEY_FILTERS, 50, 20000),
+            candidates.facet_cache_path("w", "surveyed", [1], candidates.SURVEY_FILTERS, 25, 20000),
+            candidates.facet_cache_path("w", "surveyed", [1], candidates.SURVEY_FILTERS, 50, 1000),
+        ):
+            self.assertNotEqual(base, other)
+
+
+class SpeciesFacetTests(unittest.TestCase):
+    """The facet queries, with GBIF replaced by a stub that records each
+    request and answers with `counts`."""
+
+    def fetch(self, fn, counts, **kwargs):
+        calls = []
+
+        def fake_get_json(url, cache_path):
+            calls.append((url, cache_path))
+            return {"facets": [{"field": "SPECIES_KEY", "counts": counts}]}
+
+        real = candidates._get_json
+        candidates._get_json = fake_get_json
+        self.addCleanup(setattr, candidates, "_get_json", real)
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            found = fn([7, 3], "w", **kwargs)
+        return found, calls, stderr.getvalue()
+
+    @staticmethod
+    def params(url):
+        return urllib.parse.parse_qs(urllib.parse.urlsplit(url).query)
+
+    def test_photographed_species_come_from_one_request(self):
+        # GBIF's facet paging repeats and skips species at page boundaries,
+        # so the whole facet is asked for at once.
+        counts = [{"name": "11", "count": 90}, {"name": "12", "count": 60}]
+        found, calls, _ = self.fetch(candidates.fetch_photographed_species, counts, min_images=50)
+        self.assertEqual(found, [(11, 90), (12, 60)])
+        self.assertEqual(len(calls), 1)
+        q = self.params(calls[0][0])
+        self.assertEqual(q["media_type"], ["StillImage"])
+        self.assertEqual(q["basis_of_record"], ["HUMAN_OBSERVATION"])
+        self.assertEqual(q["facetMincount"], ["50"])
+        self.assertEqual(q["facetLimit"], ["20000"])
+        self.assertNotIn("facetOffset", q)
+        self.assertEqual(sorted(q["taxon_key"]), ["3", "7"])
+        self.assertIn(os.path.join("w", "facets", "photographed_"), calls[0][1])
+
+    def test_surveyed_species_ask_for_present_shallow_records(self):
+        counts = [{"name": "21", "count": 900}]
+        found, calls, _ = self.fetch(candidates.fetch_surveyed_species, counts, min_records=50)
+        self.assertEqual(found, [(21, 900)])
+        self.assertEqual(len(calls), 1)
+        q = self.params(calls[0][0])
+        self.assertEqual(q["occurrence_status"], ["PRESENT"])
+        self.assertEqual(q["depth"], ["0,40"])
+        self.assertEqual(q["basis_of_record"], ["HUMAN_OBSERVATION"])
+        self.assertNotIn("media_type", q)
+        self.assertNotIn("facetOffset", q)
+        self.assertIn(os.path.join("w", "facets", "surveyed_"), calls[0][1])
+
+    def test_a_full_answer_warns_that_species_may_be_missing(self):
+        counts = [{"name": "1", "count": 9}, {"name": "2", "count": 8}]
+        _, _, err = self.fetch(candidates.fetch_surveyed_species, counts, min_records=5, limit=2)
+        self.assertIn("GBIF returned 2 surveyed species, the limit", err)
+
+    def test_a_short_answer_does_not_warn(self):
+        _, _, err = self.fetch(candidates.fetch_surveyed_species, [{"name": "1", "count": 9}], min_records=5, limit=2)
+        self.assertEqual(err, "")
+
+
+class WantedKeysTests(unittest.TestCase):
+    def test_photographed_first_then_surveyed(self):
+        self.assertEqual(
+            candidates.wanted_keys([(1, 90), (2, 80)], [(3, 900), (4, 50)], set(), 10), [1, 2, 3, 4]
+        )
+
+    def test_a_species_in_both_is_listed_once_at_its_photographed_place(self):
+        self.assertEqual(
+            candidates.wanted_keys([(1, 90), (2, 80)], [(2, 5000), (3, 60)], set(), 10), [1, 2, 3]
+        )
+
+    def test_species_already_on_the_list_are_skipped(self):
+        self.assertEqual(candidates.wanted_keys([(1, 90), (2, 80)], [(3, 60)], {1, 3}, 10), [2])
+
+    def test_survey_only_species_are_cut_first(self):
+        self.assertEqual(candidates.wanted_keys([(1, 90), (2, 80)], [(3, 900)], set(), 2), [1, 2])
+
+    def test_no_room_adds_nothing(self):
+        self.assertEqual(candidates.wanted_keys([(1, 90)], [(3, 900)], set(), 0), [])
+        self.assertEqual(candidates.wanted_keys([(1, 90)], [(3, 900)], set(), -5), [])
+
+    def test_a_key_repeated_within_a_ranking_counts_once(self):
+        self.assertEqual(candidates.wanted_keys([(1, 90), (1, 90)], [(3, 9), (3, 9)], set(), 10), [1, 3])
+
 
 class PackVersionTests(unittest.TestCase):
     def test_two_builds_on_one_day_get_different_versions(self):
@@ -265,6 +404,19 @@ class PackVersionTests(unittest.TestCase):
         evening = datetime.datetime(2026, 11, 17, 18, 40, tzinfo=datetime.timezone.utc)
         self.assertEqual(build_pack.default_version(morning), "2026.11.17.0905")
         self.assertNotEqual(build_pack.default_version(morning), build_pack.default_version(evening))
+
+
+class BuildOptionsTests(unittest.TestCase):
+    def test_defaults(self):
+        args = build_pack.parse_args(["--out", "x"])
+        self.assertEqual(args.max_candidates, 10000)
+        self.assertEqual(args.min_images, 50)
+        self.assertEqual(args.min_survey_records, 50)
+
+    def test_survey_floor_is_its_own_option(self):
+        args = build_pack.parse_args(["--out", "x", "--min-survey-records", "25"])
+        self.assertEqual(args.min_survey_records, 25)
+        self.assertEqual(args.min_images, 50)
 
 
 if __name__ == "__main__":

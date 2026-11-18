@@ -2843,7 +2843,6 @@
   "diveLog_edit_addCustomField": "إضافة حقل",
   "diveLog_edit_addTank": "إضافة أسطوانة",
   "diveLog_edit_addWeightEntry": "إضافة إدخال أثقال",
-  "diveLog_edit_addedGps": "تمت إضافة GPS إلى {name}",
   "diveLog_edit_appBarNew": "تسجيل غوصة",
   "diveLog_edit_cancel": "إلغاء",
   "diveLog_edit_clearAllEquipment": "مسح الكل",
@@ -3307,7 +3306,6 @@
   "siteSuggestion_assignButton": "تعيين {name}",
   "siteSuggestion_chooseNearbyButton": "اختيار موقع قريب ({count})",
   "siteSuggestion_addLocationButton": "إضافة الموقع إلى {name}",
-  "siteSuggestion_assignedSnack": "تم تعيين {name}",
   "siteTypes_addTooltip": "إضافة نوع موقع",
   "siteTypes_builtIn": "مدمج",
   "siteTypes_custom": "مخصص",
@@ -5979,10 +5977,8 @@
   "media_diveMediaSection_replaceEditedContent": "محتوى هذا الملف يختلف عن الأصل. إعادة الربط ستعيد رفعه إلى مخزن الوسائط الخاص بك.",
   "media_diveMediaSection_replaceEditedTitle": "محتوى الملف مختلف",
   "media_diveMediaSection_unlinkButton": "إلغاء الربط",
-  "media_diveMediaSection_unlinkError": "فشل في إلغاء الربط: {error}",
   "media_diveMediaSection_unlinkSelectedButton": "إلغاء ربط {count}",
   "media_diveMediaSection_unlinkSelectedContent": "يزيل {count} من عناصر الوسائط من مكتبتك، مع نسخها السحابية والصور المصغرة. تبقى العناصر التي لا يزال موقع غوص يستخدمها. لن تتأثر ملفاتك الأصلية.",
-  "media_diveMediaSection_unlinkSelectedSuccess": "تم إلغاء ربط {count} عنصر",
   "media_diveMediaSection_unlinkSelectedTitle": "إلغاء ربط {count} عنصر؟",
   "media_library_unlinkConfirmTitle": "إلغاء ربط {count} عنصر؟",
   "media_siteMediaSection_unlinkError": "فشل في إلغاء الربط: {error}",
@@ -9069,7 +9065,6 @@
   "signatures_drawSignatureSemantics": "رسم التوقيع",
   "signatures_error_drawSignature": "الرجاء رسم توقيع",
   "signatures_error_enterSignerName": "الرجاء إدخال اسم الموقع",
-  "signatures_error_saveFailed": "تعذر حفظ التوقيع. يرجى المحاولة مرة أخرى.",
   "signatures_field_instructorName": "اسم المدرب",
   "signatures_field_instructorNameHint": "أدخل اسم المدرب",
   "signatures_handoff_title": "ناول جهازك إلى",
@@ -10970,14 +10965,6 @@
     }
   },
   "media_diveScan_cancelButton": "إلغاء",
-  "media_diveScan_error": "خطأ في مسح المعرض: {error}",
-  "@media_diveScan_error": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
   "settings_appearance_metricsEnabledCount": "{count} من {total} مفعّل",
   "@settings_appearance_metricsEnabledCount": {
     "placeholders": {
@@ -16624,8 +16611,6 @@
   "media_people_buddyThumbnailLabel": "صورة أو فيديو مع هذا الرفيق",
   "media_people_filterSection": "الأشخاص",
   "media_people_removedBuddy": "رفيق محذوف",
-  "media_people_saveFailed": "تعذر حفظ الوسم. حاول مرة أخرى.",
-  "media_people_addToDiveFailed": "تعذرت إضافة الرفيق إلى هذه الغطسة. حاول مرة أخرى.",
   "media_people_createBuddyFailed": "تعذر إنشاء الرفيق. حاول مرة أخرى.",
   "media_info_fileSection": "الملف",
   "media_info_filename": "اسم الملف",
@@ -17250,7 +17235,6 @@
   "diveLog_reassignSheet_moveTo": "نقل إلى",
   "diveLog_reassignSheet_readings": "{count, plural, =1{قراءة واحدة} two{قراءتان} few{{count} قراءات} many{{count} قراءة} other{{count} قراءة}}",
   "diveLog_reassignSheet_noSeries": "لا توجد سلسلة ضغط",
-  "diveLog_reassignSheet_applied": "تمت إعادة تعيين سلسلة الضغط",
   "universalImport_summary_noticeUnknownTransmitterTitle": "أجهزة إرسال غير معيّنة",
   "universalImport_summary_noticeUnknownTransmitterBody": "جهاز إرسال واحد أو أكثر في هذا التنزيل غير معيّن لأسطوانة. عيّنها لتحصل التنزيلات القادمة على الحجم والدور الصحيحين.",
   "universalImport_summary_noticeAssignTransmitters": "تعيين أجهزة الإرسال",

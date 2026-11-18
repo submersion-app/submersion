@@ -26,6 +26,7 @@ import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/info_sheets.dart';
+import 'dive_card_scope.dart';
 
 const _settings = AppSettings();
 const _units = UnitFormatter(_settings);
@@ -120,12 +121,16 @@ Widget _buildCard({
   List<Transmitter> registry = const [],
   List<dynamic> extraOverrides = const [],
   Locale? locale,
+  bool unlocked = false,
 }) {
-  final card = CylindersCard(
-    dive: dive,
-    units: units,
-    settings: settings,
-    display: display,
+  final card = onDivePage(
+    CylindersCard(
+      dive: dive,
+      units: units,
+      settings: settings,
+      display: display,
+    ),
+    unlocked: unlocked ? dive : null,
   );
   final body = SingleChildScrollView(
     child: visualDensity == null
@@ -1254,7 +1259,11 @@ void main() {
     testWidgets('the chip opens the setup with the serial and its dive', (
       tester,
     ) async {
-      await tester.pumpWidget(_buildCard(dive: diveWithSerial('180777')));
+      // Assign is a whole-record operation: it runs once the dive is
+      // unlocked with nothing to save (issue #4527).
+      await tester.pumpWidget(
+        _buildCard(dive: diveWithSerial('180777'), unlocked: true),
+      );
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Assign transmitter'));
@@ -1264,42 +1273,7 @@ void main() {
     });
   });
 
-  group('reassign pressure series entry point', () {
-    testWidgets('shown when two tanks carry a series', (tester) async {
-      await tester.pumpWidget(
-        _buildCard(
-          dive: _makeDive([_makeTank(id: 'a'), _makeTank(id: 'b')]),
-          tankPressures: {
-            'a': [
-              const TankPressurePoint(tankId: 'a', timestamp: 0, pressure: 200),
-            ],
-            'b': [
-              const TankPressurePoint(tankId: 'b', timestamp: 0, pressure: 210),
-            ],
-          },
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.text('Reassign pressure series'), findsOneWidget);
-    });
-
-    testWidgets('hidden with a single series', (tester) async {
-      await tester.pumpWidget(
-        _buildCard(
-          dive: _makeDive([_makeTank(id: 'a'), _makeTank(id: 'b')]),
-          tankPressures: {
-            'a': [
-              const TankPressurePoint(tankId: 'a', timestamp: 0, pressure: 200),
-            ],
-          },
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.text('Reassign pressure series'), findsNothing);
-    });
-
+  group('trip cylinders', () {
     testWidgets('a linked tank names its trip cylinder and bottle', (
       tester,
     ) async {

@@ -13,8 +13,10 @@ import 'package:submersion/features/dive_log/presentation/pages/fullscreen_profi
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/annotation_marker_layer.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/annotation_placement_banner.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_annotations_sitting.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
@@ -78,6 +80,7 @@ void main() {
   Future<void> pumpPage(
     WidgetTester tester, {
     ValueChanged<String>? onOpenInNotes,
+    EditSession<Dive>? session,
   }) async {
     tester.view.physicalSize = const Size(1200, 800);
     tester.view.devicePixelRatio = 1.0;
@@ -102,6 +105,7 @@ void main() {
                   builder: (_) => FullscreenProfilePage(
                     diveId: diveId,
                     onOpenInNotes: onOpenInNotes,
+                    session: session,
                   ),
                 ),
               ),
@@ -113,6 +117,19 @@ void main() {
     );
     await tester.tap(find.text('open'));
     await settle(tester);
+  }
+
+  /// The open Profile card's sitting, holding the dive's annotations:
+  /// they are changed only in one (issue #4527).
+  Future<EditSession<Dive>> openSitting(WidgetTester tester) async {
+    final dive = (await tester.runAsync(() => repository.getDiveById(diveId)))!;
+    final session = EditSession<Dive>(dive);
+    addTearDown(session.dispose);
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    loadDiveAnnotations(session, container.read);
+    await tester.runAsync(session.settled);
+    return session;
   }
 
   Future<void> tapDot(WidgetTester tester) async {
@@ -150,7 +167,7 @@ void main() {
   testWidgets('opened with no Notes card behind it, as the dashboard does, '
       'the popup offers no Open in Notes', (tester) async {
     await seed();
-    await pumpPage(tester);
+    await pumpPage(tester, session: await openSitting(tester));
 
     await tapDot(tester);
 
@@ -158,9 +175,12 @@ void main() {
     expect(find.text('Open in Notes'), findsNothing);
   });
 
-  testWidgets('draws annotations and can place one', (tester) async {
+  testWidgets('draws annotations and places one in the sitting', (
+    tester,
+  ) async {
     await seed();
-    await pumpPage(tester);
+    final session = await openSitting(tester);
+    await pumpPage(tester, session: session);
     expect(find.byType(AnnotationMarkerLayer), findsOneWidget);
 
     await tester.tap(find.byTooltip('Add annotation'));
@@ -178,10 +198,10 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Add'));
     await settle(tester);
 
-    final all = await rows();
-    expect(all, hasLength(2));
-    expect(all.last.description, 'Lost the buddy');
-    expect(all.last.timestamp, inInclusiveRange(700, 1200));
+    // Held until Save: nothing is written yet.
+    expect(await rows(), hasLength(1));
+    final placed = sittingAnnotations(session)!.placed.single;
+    expect(placed.timestamp, inInclusiveRange(700, 1200));
     expect(find.byType(AnnotationPlacementBanner), findsNothing);
   });
 }

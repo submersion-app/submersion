@@ -70,6 +70,10 @@ class DocumentsSection extends ConsumerWidget {
     final scope = RecordEditScope.maybeOf<Dive>(context);
     final editing = this.editing;
     final session = editing ?? scope?.session;
+    // Read only on the dive page outside the open card. Every other owner's
+    // page (a site, trip, buddy, course, certification, dive centre or gear
+    // item) has no dive lock, and Add there files a document at once, so
+    // that path stays (issue #4673).
     final readOnly = scope != null && editing == null;
     final docs = session == null
         ? stored

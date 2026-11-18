@@ -8,7 +8,6 @@ import 'package:submersion/core/services/media_store/store_keys.dart';
 import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/services/media_repair_types.dart';
-import 'package:submersion/features/media/presentation/providers/media_repair_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
@@ -32,8 +31,9 @@ final mediaLinkFileSourceProvider = Provider<MediaLinkFileSource>(
   (ref) => const MediaLinkFileSource(),
 );
 
-/// Picks a replacement file for [item] and routes the re-link through the
-/// repair engine.
+/// Picks a replacement file for [item] and hands the re-link to [onHold],
+/// which holds it in a sitting until Save applies it through the repair
+/// engine (issue #4527).
 ///
 /// Extracted verbatim from `_DiveMediaSectionState._replaceLink` so the info
 /// panel can offer the same flow. Behaviour is deliberately unchanged: the
@@ -41,9 +41,7 @@ final mediaLinkFileSourceProvider = Provider<MediaLinkFileSource>(
 /// regeneration stays engine-owned, and picking DIFFERENT bytes requires an
 /// explicit confirm because accepting re-uploads them to the media store.
 ///
-/// Returns whether a repair was applied. Refreshing any list is the caller's
-/// concern: the dive section's refresh is dive-scoped and does not belong to
-/// every caller.
+/// Returns whether a re-link was handed to [onHold].
 ///
 /// Photo-only, matching the flow it came from: videos are not supported as
 /// local-file media yet.
@@ -60,16 +58,14 @@ Future<bool> replaceMediaLink(
   /// it through `runAsync` puts the resulting future in a different zone from
   /// the pumps that dismiss the dialog, which deadlocks.
   Future<({String hash, int sizeBytes})> Function(File)? hashFile,
-  void Function(RepairProposal proposal)? onHold,
+  required void Function(RepairProposal proposal) onHold,
 }) async {
   if (!demoSealGuard(context, DemoSealedFeature.mediaImport)) {
     return false;
   }
   // Read before the first await. The picker and the confirm dialog can both
   // outlive this widget, and touching ref afterwards throws once it is
-  // disposed. Capturing here also means a repair the user already confirmed
-  // still lands if they dismiss the sheet while it applies.
-  final repairService = ref.read(mediaRepairServiceProvider);
+  // disposed.
   final source = ref.read(mediaLinkFileSourceProvider);
   final picked = pickPath ?? source.pick;
   final newPath = await picked();
@@ -110,12 +106,7 @@ Future<bool> replaceMediaLink(
       hash: digest.hash,
     ),
   );
-  // A sitting on the dive (issue #4527) applies it at Save.
-  if (onHold != null) {
-    onHold(proposal);
-    return true;
-  }
-  await repairService.apply([proposal]);
+  onHold(proposal);
   return true;
 }
 
