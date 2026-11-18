@@ -11,13 +11,17 @@ mixin _SiteDetailFullscreen
   /// the map armed to place a feature in its sitting (issue #4527).
   Widget _withFeaturePlacement(BuildContext context, Widget body) =>
       SiteFeaturePlacementScope(
-        placeOnMap: (session) => _showFullscreenMap(
-          context,
-          ref,
-          session.working,
-          startPlacing: true,
-          session: session,
-        ),
+        placeOnMap: (session) {
+          // The map is drawn around the site's position: none, no map.
+          if (!session.working.hasCoordinates) return;
+          _showFullscreenMap(
+            context,
+            ref,
+            session.working,
+            startPlacing: true,
+            session: session,
+          );
+        },
         child: body,
       );
 

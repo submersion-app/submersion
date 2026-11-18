@@ -47,12 +47,15 @@ class _SiteTagsCardEditorState extends State<SiteTagsCardEditor>
     final session = widget.session;
     return ListenableBuilder(
       listenable: session,
-      builder: (context, _) => TagFormBlock(
-        label: context.l10n.diveSites_edit_typeTags_tagsLabel,
-        selectedTags: siteTagsList.current(session) ?? const <Tag>[],
-        onTagsChanged: (tags) => siteTagsList.set(session, tags),
-        scope: TagScope.sites,
-      ),
+      // Not before the tags are read: a pick then would have nowhere to go.
+      builder: (context, _) =>
+          sittingListPending(siteTagsList) ??
+          TagFormBlock(
+            label: context.l10n.diveSites_edit_typeTags_tagsLabel,
+            selectedTags: siteTagsList.current(session)!,
+            onTagsChanged: (tags) => siteTagsList.set(session, tags),
+            scope: TagScope.sites,
+          ),
     );
   }
 }
@@ -151,8 +154,9 @@ class _SiteSpeciesCardEditorState extends State<SiteSpeciesCardEditor>
     return ListenableBuilder(
       listenable: session,
       builder: (context, _) {
-        final current = siteSpeciesList.current(session);
-        if (current == null) return const SizedBox.shrink();
+        final pending = sittingListPending(siteSpeciesList);
+        if (pending != null) return pending;
+        final current = siteSpeciesList.current(session)!;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -229,8 +233,9 @@ class _SiteFeaturesCardEditorState extends State<SiteFeaturesCardEditor>
     return ListenableBuilder(
       listenable: session,
       builder: (context, _) {
-        final current = siteFeaturesList.current(session);
-        if (current == null) return const SizedBox.shrink();
+        final pending = sittingListPending(siteFeaturesList);
+        if (pending != null) return pending;
+        final current = siteFeaturesList.current(session)!;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -243,7 +248,8 @@ class _SiteFeaturesCardEditorState extends State<SiteFeaturesCardEditor>
                 openSheet: openSheet,
               ),
             ),
-            if (placeOnMap != null)
+            // Nowhere to place one once the coordinates are cleared.
+            if (placeOnMap != null && session.working.hasCoordinates)
               SiteFeatureAddButton(onPressed: () => placeOnMap(session)),
           ],
         );

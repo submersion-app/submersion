@@ -28,14 +28,17 @@ final siteSpeciesList = SittingList<DiveSite, SiteSpeciesEntry>(
     };
     // Written without a stamp each: the sitting stamps the library once it
     // has committed. It is offered only where this profile may edit.
+    var changed = false;
     for (final id in had.difference(kept)) {
       if (!stored.contains(id)) continue;
       await repository.removeExpectedSpecies(site.id, id, stampLibrary: false);
+      changed = true;
     }
     for (final entry in current) {
       if (had.contains(entry.speciesId) || stored.contains(entry.speciesId)) {
         continue;
       }
+      changed = true;
       await repository.addExpectedSpecies(
         siteId: site.id,
         speciesId: entry.speciesId,
@@ -43,6 +46,7 @@ final siteSpeciesList = SittingList<DiveSite, SiteSpeciesEntry>(
         stampLibrary: false,
       );
     }
+    return changed;
   },
   same: (a, b) => sameIdSets(a, b, (e) => e.speciesId),
 );

@@ -182,7 +182,10 @@ class _SiteHeaderCardEditorState extends ConsumerState<SiteHeaderCardEditor>
               ),
             ),
           ),
-          if (siteTypesList.current(session) case final types?)
+          // The types once read; until then a spinner, or Try again.
+          if (sittingListPending(siteTypesList) case final pending?)
+            pending
+          else if (siteTypesList.current(session) case final types?)
             ListenableBuilder(
               listenable: session,
               builder: (context, _) {

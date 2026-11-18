@@ -40,8 +40,10 @@ class SittingList<T, E> {
 
   /// Writes [current] over [loaded] at Save, inside the save's transaction:
   /// rows in [loaded] missing from [current] go, changed ones are updated,
-  /// new ones added. [record] is the sitting's working record.
-  final Future<void> Function(T record, List<E> loaded, List<E> current) write;
+  /// new ones added. [record] is the sitting's working record. It may answer
+  /// whether it changed any row ([wroteChange]); null says nothing.
+  final Future<Object?> Function(T record, List<E> loaded, List<E> current)
+  write;
 
   /// Whether two lists are the same change. Null is [listEquals].
   final bool Function(List<E> a, List<E> b)? same;
@@ -50,6 +52,7 @@ class SittingList<T, E> {
   String get _currentKey => '$key.current';
   String get _readKey => '$key.read';
   String get _failedKey => '$key.failed';
+  String get _wroteKey => '$key.wrote';
 
   /// Reads the rows unless the diver has changed them in this sitting.
   /// Tracked. A read that answers after the list was changed, after a
@@ -108,6 +111,13 @@ class SittingList<T, E> {
   /// Whether the diver has changed the list in this sitting.
   bool isChanged(EditSession<T> session) => session.isHeld(key);
 
+  /// What the last write said of itself: whether it changed any stored row,
+  /// or null when it has not run or says nothing. A list that ends up as
+  /// stored (a sync made the same change meanwhile) can then be told from
+  /// one that wrote.
+  bool? wroteChange(EditSession<T> session) =>
+      session.isDisposed ? null : session.recall<bool>(_wroteKey);
+
   /// Sets the diver's list. One the same as [loaded] releases the change.
   /// Does nothing before the load, or while the sitting is frozen or has
   /// ended.
@@ -127,11 +137,16 @@ class SittingList<T, E> {
       ..holdChange(
         key,
         cardId: cardId,
-        write: () => write(
-          session.working,
-          loaded(session) ?? const [],
-          current(session) ?? const [],
-        ),
+        write: () async {
+          final wrote = await write(
+            session.working,
+            loaded(session) ?? const [],
+            current(session) ?? const [],
+          );
+          if (!session.isDisposed) {
+            session.remember(_wroteKey, wrote is bool ? wrote : null);
+          }
+        },
       );
   }
 }

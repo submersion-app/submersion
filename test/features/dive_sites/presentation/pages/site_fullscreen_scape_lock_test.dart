@@ -8,11 +8,13 @@ import 'package:submersion/features/bathymetry/application/bathymetry_providers.
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_features_sitting.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_plain_fields.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_edit_save_provider.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/site_scape/presentation/site_features_section.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
@@ -193,5 +195,23 @@ void main() {
       find.byKey(const ValueKey('siteFeatureInfoEditButton')),
       findsNothing,
     );
+  });
+
+  testWidgets('clearing the coordinates keeps the Features card in place '
+      'while another editor is open', (tester) async {
+    await pump(tester);
+    await tester.tap(find.byIcon(Icons.lock_outline));
+    await settle(tester);
+    final controller = RecordEditScope.maybeOf<DiveSite>(
+      tester.element(find.byType(RecordCardFrame<DiveSite>).first),
+    )!;
+    controller.openCard('notes');
+    await settle(tester);
+
+    controller.session!.set(siteLocationField, null);
+    await settle(tester);
+
+    // No card comes or goes above an open editor.
+    expect(find.byType(SiteFeaturesSection), findsOneWidget);
   });
 }

@@ -29,14 +29,17 @@ final siteFeaturesList = SittingList<DiveSite, SiteFeature>(
     final onSite = {
       for (final f in await repository.getFeaturesForSite(site.id)) f.id,
     };
+    var changed = false;
     for (final feature in loaded) {
       if (!currentIds.contains(feature.id) && onSite.contains(feature.id)) {
         await repository.deleteFeature(feature.id, stampLibrary: false);
+        changed = true;
       }
     }
     for (final feature in current) {
       final before = loadedById[feature.id];
       if (before == null) {
+        changed = true;
         await repository.addFeature(
           siteId: site.id,
           typeName: feature.typeName,
@@ -50,8 +53,10 @@ final siteFeaturesList = SittingList<DiveSite, SiteFeature>(
         );
       } else if (before != feature && onSite.contains(feature.id)) {
         await repository.updateFeature(feature, stampLibrary: false);
+        changed = true;
       }
     }
+    return changed;
   },
   same: (a, b) {
     final set = a.toSet();

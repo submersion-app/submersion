@@ -27,6 +27,7 @@ import 'package:submersion/features/site_types/presentation/providers/site_type_
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_form_block.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -328,6 +329,31 @@ void main() {
       expect(siteFeaturesList.current(h.session), isEmpty);
       final stored = await SiteFeatureRepository().getFeaturesForSite('s1');
       expect(stored.single.id, buoy.id);
+    });
+
+    testWidgets('no Add feature once the coordinates are cleared', (
+      tester,
+    ) async {
+      final placed = <EditSession<DiveSite>>[];
+      final h = await pumpSiteEditor(
+        tester,
+        gpsSite,
+        (session) => SiteFeaturePlacementScope(
+          placeOnMap: placed.add,
+          child: SiteFeaturesCardEditor(session: session),
+        ),
+        onStart: siteFeaturesList.load,
+      );
+      expect(
+        find.byKey(const ValueKey('siteFeatureAddButton')),
+        findsOneWidget,
+      );
+
+      // Cleared on the Location card in the same sitting: nowhere to place.
+      h.session.set(siteLocationField, null);
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const ValueKey('siteFeatureAddButton')), findsNothing);
     });
 
     testWidgets('the section shows the features it is given', (tester) async {

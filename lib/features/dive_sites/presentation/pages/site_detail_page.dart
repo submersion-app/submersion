@@ -465,7 +465,9 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
             ),
       // Diver-placed annotations. Placement happens on the map, so the add
       // action opens the fullscreen scape armed to place.
-      SiteDetailSectionId.features: () => site.hasCoordinates
+      // Laid out from the held record: cleared coordinates take the card
+      // away only once no editor is open (issue #4527).
+      SiteDetailSectionId.features: () => laidOut.hasCoordinates
           ? (_) => SiteFeaturesSection(
               siteId: site.id,
               // A library site this profile only reads offers no edits, and

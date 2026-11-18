@@ -91,4 +91,17 @@ void main() {
 
     expect(siteLibraryFields(session), {'siteTypes'});
   });
+
+  test('a write that changes nothing names no library field', () async {
+    await repository.replaceTags('s1', ['t1']);
+    final session = await loaded();
+    siteTagsList.set(session, [tag('t1'), tag('t2')]);
+    // Stored underneath meanwhile: the same tag, by another member.
+    await repository.replaceTags('s1', ['t1', 't2']);
+
+    await session.runHeldWrites();
+
+    // A fresh clock on an unchanged list would beat that member's edit.
+    expect(siteLibraryFields(session), isEmpty);
+  });
 }

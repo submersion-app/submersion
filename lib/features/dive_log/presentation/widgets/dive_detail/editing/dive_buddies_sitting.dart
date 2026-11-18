@@ -51,6 +51,8 @@ final diveBuddiesList = SittingList<Dive, BuddyWithRole>(
       for (final b in current)
         if (!nowIds.contains(b.buddy.id)) b,
     ]);
+    // Whether it changed anything is not asked of a dive's rows.
+    return null;
   },
   same: (a, b) => setEquals(_identities(a), _identities(b)),
 );

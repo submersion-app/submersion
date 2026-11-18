@@ -19,18 +19,25 @@ final siteTypesList = SittingList<DiveSite, SiteTypeEntity>(
   read: (site) => SiteClassificationRepository().getTypesForSite(site.id),
   write: (site, loaded, current) async {
     final repository = SiteClassificationRepository();
-    final now = await repository.getTypesForSite(site.id);
+    final now = [
+      for (final t in await repository.getTypesForSite(site.id)) t.id,
+    ];
+    final merged = mergedIds(
+      stored: now,
+      loaded: [for (final t in loaded) t.id],
+      current: [for (final t in current) t.id],
+    );
+    // Nothing to write when a sync made the same change meanwhile: no
+    // write, and no library clock that would beat another member's edit.
+    if (sameIdSets(merged, now, (id) => id)) return false;
     await repository.replaceTypes(
       site.id,
-      mergedIds(
-        stored: [for (final t in now) t.id],
-        loaded: [for (final t in loaded) t.id],
-        current: [for (final t in current) t.id],
-      ),
+      merged,
       // Stamped once the sitting has committed, and allowed by the
       // sitting being offered at all.
       notify: false,
     );
+    return true;
   },
   same: (a, b) => sameIdSets(a, b, (t) => t.id),
 );
@@ -42,16 +49,19 @@ final siteTagsList = SittingList<DiveSite, Tag>(
   read: (site) => SiteClassificationRepository().getTagsForSite(site.id),
   write: (site, loaded, current) async {
     final repository = SiteClassificationRepository();
-    final now = await repository.getTagsForSite(site.id);
-    await repository.replaceTags(
-      site.id,
-      mergedIds(
-        stored: [for (final t in now) t.id],
-        loaded: [for (final t in loaded) t.id],
-        current: [for (final t in current) t.id],
-      ),
-      notify: false,
+    final now = [
+      for (final t in await repository.getTagsForSite(site.id)) t.id,
+    ];
+    final merged = mergedIds(
+      stored: now,
+      loaded: [for (final t in loaded) t.id],
+      current: [for (final t in current) t.id],
     );
+    // Nothing to write when a sync made the same change meanwhile: no
+    // write, and no library clock that would beat another member's edit.
+    if (sameIdSets(merged, now, (id) => id)) return false;
+    await repository.replaceTags(site.id, merged, notify: false);
+    return true;
   },
   same: (a, b) => sameIdSets(a, b, (t) => t.id),
 );

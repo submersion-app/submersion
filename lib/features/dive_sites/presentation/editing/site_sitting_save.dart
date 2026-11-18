@@ -19,8 +19,6 @@ Future<({DiveSite before, DiveSite after})?> saveSiteSitting(
   SiteEditSaveService service, {
   String? actingDiverId,
 }) async {
-  // Noted afresh by this attempt's held writes.
-  clearSiteLibraryFields(session);
   final result = await undoMediaOnFailure(
     session,
     () => service.save(

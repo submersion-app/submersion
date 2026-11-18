@@ -30,6 +30,7 @@ void main() {
     write: (record, loaded, current) async {
       writes.add((record: record, loaded: loaded, current: current));
       await onWrite?.call();
+      return null;
     },
     same: same,
   );
