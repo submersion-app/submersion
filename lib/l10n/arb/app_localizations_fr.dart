@@ -12340,6 +12340,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveSites_detail_section_description => 'Description';
 
   @override
+  String get diveSites_detail_section_header => 'Site';
+
+  @override
   String get diveSites_detail_section_difficultyLevel => 'Niveau de difficulté';
 
   @override
@@ -12608,6 +12611,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get diveSites_edit_snackbar_lookupFailed =>
       'La recherche de lieu a échoué. Vérifiez votre connexion et réessayez.';
+
+  @override
+  String get diveSites_edit_altitude_foundTooltip =>
+      'Trouvé pour ces coordonnées';
 
   @override
   String get diveSites_edit_lookupReplace_title =>

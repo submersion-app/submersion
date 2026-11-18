@@ -12285,6 +12285,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveSites_detail_section_description => 'Beschreibung';
 
   @override
+  String get diveSites_detail_section_header => 'Tauchplatz';
+
+  @override
   String get diveSites_detail_section_difficultyLevel => 'Schwierigkeitsgrad';
 
   @override
@@ -12553,6 +12556,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveSites_edit_snackbar_lookupFailed =>
       'Ortssuche fehlgeschlagen. Prüfe deine Verbindung und versuche es erneut.';
+
+  @override
+  String get diveSites_edit_altitude_foundTooltip =>
+      'Für diese Koordinaten gefunden';
 
   @override
   String get diveSites_edit_lookupReplace_title => 'Ortsangaben ersetzen?';

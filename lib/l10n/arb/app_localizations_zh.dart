@@ -11693,6 +11693,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_detail_section_description => '描述';
 
   @override
+  String get diveSites_detail_section_header => '潜点';
+
+  @override
   String get diveSites_detail_section_difficultyLevel => '难度等级';
 
   @override
@@ -11947,6 +11950,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveSites_edit_snackbar_lookupFailed => '地点查找失败。请检查网络连接后重试。';
+
+  @override
+  String get diveSites_edit_altitude_foundTooltip => '根据这些坐标找到';
 
   @override
   String get diveSites_edit_lookupReplace_title => '替换地点信息？';

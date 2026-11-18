@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/site_detail_sections.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_plain_fields.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/change_log/record_edit_label.dart';
 import 'package:submersion/core/services/sync/conflict_reference.dart';
@@ -85,6 +86,9 @@ String _recordCardName(AppLocalizations l, String table, String id) =>
       // The dive page's header block is a card but not a section.
       'dives' when id == diveHeaderCardId => l.diveLog_detail_section_header,
       'dives' => _diveSectionsByName[id]?.localizedDisplayName(l) ?? id,
+      // The site page's header block is a card but not a section too.
+      'dive_sites' when id == siteHeaderCardId =>
+        l.diveSites_detail_section_header,
       'dive_sites' => _siteSectionsByName[id]?.localizedDisplayName(l) ?? id,
       _ => id,
     };

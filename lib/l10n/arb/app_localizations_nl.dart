@@ -12217,6 +12217,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveSites_detail_section_description => 'Beschrijving';
 
   @override
+  String get diveSites_detail_section_header => 'Duikstek';
+
+  @override
   String get diveSites_detail_section_difficultyLevel => 'Moeilijkheidsgraad';
 
   @override
@@ -12482,6 +12485,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveSites_edit_snackbar_lookupFailed =>
       'Locatie opzoeken mislukt. Controleer je verbinding en probeer het opnieuw.';
+
+  @override
+  String get diveSites_edit_altitude_foundTooltip =>
+      'Gevonden voor deze coördinaten';
 
   @override
   String get diveSites_edit_lookupReplace_title => 'Locatiegegevens vervangen?';

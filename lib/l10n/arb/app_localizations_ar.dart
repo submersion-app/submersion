@@ -12457,6 +12457,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_detail_section_description => 'الوصف';
 
   @override
+  String get diveSites_detail_section_header => 'الموقع';
+
+  @override
   String get diveSites_detail_section_difficultyLevel => 'مستوى الصعوبة';
 
   @override
@@ -12728,6 +12731,9 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveSites_edit_snackbar_lookupFailed =>
       'فشل البحث عن الموقع. تحقق من الاتصال وحاول مرة أخرى.';
+
+  @override
+  String get diveSites_edit_altitude_foundTooltip => 'وُجد لهذه الإحداثيات';
 
   @override
   String get diveSites_edit_lookupReplace_title => 'استبدال تفاصيل الموقع؟';

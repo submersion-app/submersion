@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_edit_fields.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_header_card_editor.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_location_card_editor.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_markdown_card_editor.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_plain_fields.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
 
@@ -40,4 +43,24 @@ final Map<SiteDetailSectionId, EditCard<DiveSite>> siteEditCards = {
     editorBuilder: (context, session) =>
         SiteMarkdownCardEditor(session: session, field: siteNotesField),
   ),
+  SiteDetailSectionId.location: EditCard<DiveSite>(
+    id: SiteDetailSectionId.location.name,
+    title: (context) => context.l10n.diveSites_detail_section_location,
+    leading: (context) =>
+        Icon(Icons.map, size: 20, color: Theme.of(context).colorScheme.primary),
+    // Always on the page: with nothing set, each row says so.
+    isEmpty: (_) => false,
+    editorBuilder: (context, session) =>
+        SiteLocationCardEditor(session: session),
+  ),
 };
+
+/// The site page's header block as a card: the site's name and its water.
+/// It is not a section, so it is not in [siteEditCards].
+final siteHeaderCard = EditCard<DiveSite>(
+  id: siteHeaderCardId,
+  title: (context) => context.l10n.diveSites_detail_section_header,
+  isEmpty: (_) => false,
+  isValid: siteNameIsValid,
+  editorBuilder: (context, session) => SiteHeaderCardEditor(session: session),
+);

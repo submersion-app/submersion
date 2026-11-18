@@ -268,7 +268,12 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
             _buildMapSection(context, ref, site),
             const SizedBox(height: kSiteDetailCardGap),
           ],
-          SiteDetailHeader(site: site),
+          edit.hosts
+              ? RecordCardFrame<DiveSite>(
+                  card: siteHeaderCard,
+                  child: SiteDetailHeader(site: site),
+                )
+              : SiteDetailHeader(site: site),
           SharedByBanner(
             kind: SharedItemKind.site,
             itemId: site.id,
@@ -409,8 +414,11 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
                 count: count,
               );
       },
-      SiteDetailSectionId.location: () =>
-          watching((context, ref) => _buildLocationSection(context, ref, site)),
+      SiteDetailSectionId.location: () => _framed(
+        SiteDetailSectionId.location,
+        watching((context, ref) => _buildLocationSection(context, ref, site)),
+        editing: editing,
+      ),
       // The terrain needs coordinates to look up. A site whose bathymetry
       // comes back empty keeps the card and shows the pane's no-data state,
       // so the cards below never jump once the lookup finishes.
@@ -1278,15 +1286,11 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Icon(Icons.map, size: 20, color: colorScheme.primary),
-                  const SizedBox(width: 8),
-                  Text(
-                    context.l10n.diveSites_detail_section_location,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ],
+              // The card's title row, which carries the pencil while the
+              // page is unlocked (issue #4527).
+              RecordCardHeader(
+                title: context.l10n.diveSites_detail_section_location,
+                leading: Icon(Icons.map, size: 20, color: colorScheme.primary),
               ),
               const SizedBox(height: 12),
               _buildDetailRow(

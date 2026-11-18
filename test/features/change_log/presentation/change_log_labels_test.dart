@@ -96,6 +96,14 @@ void main() {
       );
     });
 
+    test('a site sitting names the header block', () {
+      final siteNotes = SiteDetailSectionId.notes.localizedDisplayName(l);
+      expect(
+        changeLogStoredLabel(l, 'record_edit:dive_sites:s1:header,notes'),
+        'Edited: ${l.diveSites_detail_section_header}, $siteNotes',
+      );
+    });
+
     test('a site card id with no title is shown as written', () {
       final siteNotes = SiteDetailSectionId.notes.localizedDisplayName(l);
       expect(

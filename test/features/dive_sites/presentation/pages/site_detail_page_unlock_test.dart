@@ -65,7 +65,7 @@ void main() {
     expect(find.byType(RecordPencilIcon), findsNothing);
   });
 
-  testWidgets('unlocking titles the bar and marks Description and Notes', (
+  testWidgets('unlocking titles the bar and marks the editable cards', (
     tester,
   ) async {
     await pumpSitePage(tester);
@@ -73,7 +73,19 @@ void main() {
 
     expect(find.byType(RecordEditBar), findsOneWidget);
     expect(find.text(l.recordEdit_editingTitle('Blue Hole')), findsOneWidget);
-    expect(find.byType(RecordPencilIcon), findsNWidgets(2));
+    // The header block, Description, Location and Notes each have one.
+    for (final title in [
+      l.diveSites_detail_section_header,
+      l.diveSites_detail_section_description,
+      l.diveSites_detail_section_location,
+      l.diveSites_detail_section_notes,
+    ]) {
+      expect(
+        find.byTooltip(l.recordEdit_editCardTooltip(title)),
+        findsOneWidget,
+        reason: title,
+      );
+    }
   });
 
   testWidgets('editing Notes and saving writes one sitting and locks', (
@@ -181,7 +193,7 @@ void main() {
       await unlock(tester);
 
       final pencils = find.byType(RecordFoldPencil);
-      expect(pencils, findsNWidgets(2));
+      expect(pencils, findsNWidgets(3));
       // The Notes row comes after the Description row.
       await tester.ensureVisible(pencils.last);
       await tester.tap(
