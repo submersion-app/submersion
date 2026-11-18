@@ -52,6 +52,49 @@ class MergeTests(unittest.TestCase):
         self.assertEqual(boxes.merge([[box]])[0]["embedding"], [1.0])
 
 
+def plain(box):
+    return {k: box[k] for k in ("x", "y", "w", "h", "score")}
+
+
+class DisagreementTests(unittest.TestCase):
+    RUNS = [[b(0.1, 0.1, 0.3, 0.3, 0.6)], [b(0.11, 0.1, 0.3, 0.3, 0.9), b(0.6, 0.6, 0.2, 0.2, 0.5)]]
+
+    def result(self, merged=None, detections=None):
+        merged = [plain(m) for m in boxes.merge(self.RUNS)] if merged is None else merged
+        return {
+            "detectorBoxes": [[plain(x) for x in run] for run in self.RUNS],
+            "mergedBoxes": merged,
+            "detections": merged if detections is None else detections,
+        }
+
+    def test_the_same_merge_agrees(self):
+        self.assertEqual(boxes.disagreements({"a.jpg": self.result()}), [])
+
+    def test_a_different_merge_is_reported(self):
+        wrong = [plain(x) for x in self.RUNS[0] + self.RUNS[1]]
+        self.assertEqual(boxes.disagreements({"a.jpg": self.result(merged=wrong)}), ["a.jpg"])
+
+    def test_a_different_score_is_reported(self):
+        merged = [dict(m, score=m["score"] + 1e-9) for m in self.result()["mergedBoxes"]]
+        self.assertEqual(boxes.disagreements({"a.jpg": self.result(merged=merged)}), ["a.jpg"])
+
+    def test_a_result_without_detector_boxes_is_reported(self):
+        self.assertEqual(boxes.disagreements({"a.jpg": {"detections": []}}), ["a.jpg"])
+
+    def test_a_detection_that_is_not_a_merged_box_is_reported(self):
+        stray = [dict(plain(b(0.0, 0.0, 0.1, 0.1, 0.99)), embedding=[1.0])]
+        self.assertEqual(boxes.disagreements({"a.jpg": self.result(detections=stray)}), ["a.jpg"])
+
+    def test_a_merged_box_too_small_to_crop_may_be_missing_from_detections(self):
+        merged = self.result()["mergedBoxes"]
+        self.assertEqual(boxes.disagreements({"a.jpg": self.result(detections=merged[1:])}), [])
+
+    def test_the_merge_settings_are_the_packs(self):
+        result = self.result(merged=[plain(m) for m in boxes.merge(self.RUNS, max_boxes=1)])
+        self.assertEqual(boxes.disagreements({"a.jpg": result}, max_boxes=1), [])
+        self.assertEqual(boxes.disagreements({"a.jpg": result}), ["a.jpg"])
+
+
 class BestMatchTests(unittest.TestCase):
     def test_the_box_that_overlaps_most_above_the_floor(self):
         target = (0.1, 0.1, 0.2, 0.2)

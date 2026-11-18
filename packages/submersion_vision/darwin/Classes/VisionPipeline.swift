@@ -214,14 +214,15 @@ final class VisionPipeline {
       "imageWidth": image.width, "imageHeight": image.height, "detections": detections,
       "detectMs": detectMs,
     ]
-    // Each detector's own boxes before the merge, for the accuracy tool's
-    // check that the merge matches the one it measured. The app never asks.
+    // Each detector's own boxes and the merged boxes, before any is
+    // cropped, for the accuracy tool's check that the merge matches the one
+    // it measured. The app never asks.
     if args["withDetectorBoxes"] as? Bool == true {
-      reply["detectorBoxes"] = runs.map { run in
-        run.map { box -> [String: Any] in
-          ["x": box.x, "y": box.y, "w": box.w, "h": box.h, "score": Double(box.score)]
-        }
+      func plain(_ run: [Box]) -> [[String: Any]] {
+        run.map { ["x": $0.x, "y": $0.y, "w": $0.w, "h": $0.h, "score": Double($0.score)] }
       }
+      reply["detectorBoxes"] = runs.map(plain)
+      reply["mergedBoxes"] = plain(boxes)
     }
     return reply
   }

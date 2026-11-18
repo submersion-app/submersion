@@ -42,3 +42,29 @@ def merge(runs, *, iou_threshold=0.5, max_boxes=8):
             if len(kept) == max_boxes:
                 break
     return kept
+
+
+def _plain(box):
+    return (box["x"], box["y"], box["w"], box["h"], box["score"])
+
+
+def disagreements(results, *, iou_threshold=0.5, max_boxes=8):
+    """The photos, sorted, where the app's merged boxes are not `merge` of
+    that same run's per-detector boxes, exactly. `results` maps a photo to
+    the vision tool's result with `detectorBoxes` and `mergedBoxes`; its
+    `detections` must be those merged boxes in order, less any too small to
+    crop."""
+    bad = []
+    for path, result in results.items():
+        runs = result.get("detectorBoxes")
+        merged = result.get("mergedBoxes")
+        if runs is None or merged is None:
+            bad.append(path)
+            continue
+        want = [_plain(b) for b in merge(runs, iou_threshold=iou_threshold, max_boxes=max_boxes)]
+        got = [_plain(b) for b in merged]
+        remaining = iter(got)
+        in_order = all(any(_plain(d) == m for m in remaining) for d in result.get("detections", []))
+        if got != want or not in_order:
+            bad.append(path)
+    return sorted(bad)

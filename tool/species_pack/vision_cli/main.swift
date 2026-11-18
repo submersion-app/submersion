@@ -8,7 +8,8 @@
 // its format; format 1 has one detector block, whose "detectorFormat"
 // ("rfdetr", the default, or "yolo") the tool reads as the app would. Pass
 // one --detector per detector, in the manifest's order. --detector-boxes
-// adds each detector's own boxes before the merge to every result.
+// adds each detector's own boxes and the merged boxes, before cropping, to
+// every result.
 //
 // Reads one image path per line on stdin and writes one JSON line per image
 // on stdout. The pipeline compiles a model package once and deletes it, so
@@ -138,6 +139,7 @@ while let line = readLine() {
       "detections": detections, "detectMs": result["detectMs"] as Any,
     ]
     if let perDetector = result["detectorBoxes"] { line["detectorBoxes"] = perDetector }
+    if let merged = result["mergedBoxes"] { line["mergedBoxes"] = merged }
     emit(line)
   } catch let error as VisionError {
     emit(["path": path, "error": error.message])
