@@ -10684,6 +10684,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_tank_label_he => 'He';
 
   @override
+  String get diveLog_tank_error_impossibleMix =>
+      'O2 和 He 须各在 0 到 100 之间，且总和不超过 100';
+
+  @override
   String get diveLog_tank_label_material => '材质';
 
   @override

@@ -6462,6 +6462,10 @@
   "diveLog_tank_surfaceBreathing_helper": "Minutes on this cylinder after the computer stopped logging, such as oxygen on the boat",
   "diveLog_tank_surfaceBreathing_unit": "min",
   "diveLog_tank_label_he": "He",
+  "diveLog_tank_error_impossibleMix": "O2 and He must each be 0 to 100 and total 100 or less",
+  "@diveLog_tank_error_impossibleMix": {
+    "description": "Error under the tank editor's O2 and He fields when the two describe no gas, such as a typed 1000."
+  },
   "diveLog_tank_label_material": "Material",
   "diveLog_tank_label_mnd": "MND",
   "diveLog_tank_label_n2": "N2",

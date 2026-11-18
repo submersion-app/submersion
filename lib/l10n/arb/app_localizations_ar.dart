@@ -11401,6 +11401,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_tank_label_he => 'He';
 
   @override
+  String get diveLog_tank_error_impossibleMix =>
+      'يجب أن يكون كل من O2 وHe بين 0 و100 وألا يتجاوز مجموعهما 100';
+
+  @override
   String get diveLog_tank_label_material => 'المادة';
 
   @override

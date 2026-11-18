@@ -3572,6 +3572,7 @@
   "diveLog_tank_surfaceBreathing_helper": "Minuten op deze fles nadat de computer stopte met loggen, zoals zuurstof op de boot",
   "diveLog_tank_surfaceBreathing_unit": "min",
   "diveLog_tank_label_he": "He",
+  "diveLog_tank_error_impossibleMix": "O2 en He moeten elk tussen 0 en 100 liggen en samen hoogstens 100 zijn",
   "diveLog_tank_label_material": "Materiaal",
   "diveLog_tank_label_mnd": "MND",
   "diveLog_tank_label_n2": "N2",

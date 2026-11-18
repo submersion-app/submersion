@@ -3446,6 +3446,7 @@
   "diveLog_tank_surfaceBreathing_helper": "Percek ezen a palackon azután, hogy a komputer leállította a naplózást, például oxigén a hajón",
   "diveLog_tank_surfaceBreathing_unit": "perc",
   "diveLog_tank_label_he": "He",
+  "diveLog_tank_error_impossibleMix": "Az O2 és a He értéke 0 és 100 közé essen, összegük legfeljebb 100 lehet",
   "diveLog_tank_label_material": "Anyag",
   "diveLog_tank_label_mnd": "MND",
   "diveLog_tank_label_n2": "N2",

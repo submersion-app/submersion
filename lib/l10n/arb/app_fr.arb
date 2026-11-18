@@ -3446,6 +3446,7 @@
   "diveLog_tank_surfaceBreathing_helper": "Minutes sur ce bloc après l'arrêt de l'enregistrement de l'ordinateur, comme l'oxygène sur le bateau",
   "diveLog_tank_surfaceBreathing_unit": "min",
   "diveLog_tank_label_he": "He",
+  "diveLog_tank_error_impossibleMix": "O2 et He doivent être compris entre 0 et 100 et totaliser 100 au plus",
   "diveLog_tank_label_material": "Matériau",
   "diveLog_tank_label_mnd": "MND",
   "diveLog_tank_label_n2": "N2",

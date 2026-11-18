@@ -3572,6 +3572,7 @@
   "diveLog_tank_surfaceBreathing_helper": "Minutos nesta garrafa depois de o computador parar de registar, como oxigénio no barco",
   "diveLog_tank_surfaceBreathing_unit": "min",
   "diveLog_tank_label_he": "He",
+  "diveLog_tank_error_impossibleMix": "O2 e He devem estar entre 0 e 100 e somar no máximo 100",
   "diveLog_tank_label_material": "Material",
   "diveLog_tank_label_mnd": "MND",
   "diveLog_tank_label_n2": "N2",

@@ -150,6 +150,12 @@ class _CylinderConfigItemEditorState extends State<CylinderConfigItemEditor> {
 
   void _emit(CylinderConfigItem item) => widget.onChanged(item);
 
+  /// Why [o2] and [he] cannot be this cylinder's mix, or null when they can
+  /// (issue #4714). The dive cylinders made from the configuration take it.
+  String? _mixError(double o2, double he) => GasMix(o2: o2, he: he).isPossible
+      ? null
+      : context.l10n.diveLog_tank_error_impossibleMix;
+
   // ---------------------------------------------------------------- size
 
   /// Litres for the volume field's text at [workingPressureBar], or null
@@ -448,11 +454,15 @@ class _CylinderConfigItemEditorState extends State<CylinderConfigItemEditor> {
                       suffixText: '%',
                       isDense: true,
                     ),
+                    check: (o2) => _mixError(o2, item.hePercent),
                     // Only a readable value updates the model: blank, and
                     // transient or mistyped text such as a lone ".", must
-                    // not clobber the stored mix; the field says why.
+                    // not clobber the stored mix; the field says why. So
+                    // must a mix no gas can have, such as 1000% (#4714).
                     onChanged: (read) {
-                      if (read case NumberValue(:final value)) {
+                      if (read case NumberValue(
+                        :final value,
+                      ) when _mixError(value, item.hePercent) == null) {
                         _emitOnLimit(item.copyWith(o2Percent: value));
                       }
                     },
@@ -467,8 +477,11 @@ class _CylinderConfigItemEditorState extends State<CylinderConfigItemEditor> {
                       suffixText: '%',
                       isDense: true,
                     ),
+                    check: (he) => _mixError(item.o2Percent, he),
                     onChanged: (read) {
-                      if (read case NumberValue(:final value)) {
+                      if (read case NumberValue(
+                        :final value,
+                      ) when _mixError(item.o2Percent, value) == null) {
                         _emit(item.copyWith(hePercent: value));
                       }
                     },

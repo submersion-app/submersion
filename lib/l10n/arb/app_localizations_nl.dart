@@ -11184,6 +11184,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_tank_label_he => 'He';
 
   @override
+  String get diveLog_tank_error_impossibleMix =>
+      'O2 en He moeten elk tussen 0 en 100 liggen en samen hoogstens 100 zijn';
+
+  @override
   String get diveLog_tank_label_material => 'Materiaal';
 
   @override

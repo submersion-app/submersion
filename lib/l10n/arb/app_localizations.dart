@@ -17848,6 +17848,12 @@ abstract class AppLocalizations {
   /// **'He'**
   String get diveLog_tank_label_he;
 
+  /// Error under the tank editor's O2 and He fields when the two describe no gas, such as a typed 1000.
+  ///
+  /// In en, this message translates to:
+  /// **'O2 and He must each be 0 to 100 and total 100 or less'**
+  String get diveLog_tank_error_impossibleMix;
+
   /// No description provided for @diveLog_tank_label_material.
   ///
   /// In en, this message translates to:

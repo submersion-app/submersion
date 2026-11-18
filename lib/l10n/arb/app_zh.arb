@@ -3678,6 +3678,7 @@
   "diveLog_tank_surfaceBreathing_helper": "潜水电脑停止记录后在水面使用此气瓶的分钟数，例如在船上吸氧",
   "diveLog_tank_surfaceBreathing_unit": "分钟",
   "diveLog_tank_label_he": "He",
+  "diveLog_tank_error_impossibleMix": "O2 和 He 须各在 0 到 100 之间，且总和不超过 100",
   "diveLog_tank_label_material": "材质",
   "diveLog_tank_label_mnd": "MND",
   "diveLog_tank_label_n2": "N2",

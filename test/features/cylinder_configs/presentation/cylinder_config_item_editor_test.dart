@@ -510,6 +510,40 @@ void main() {
       expect(current.o2Percent, 32);
     });
 
+    // Issue #4714: a configuration's mix becomes the dive cylinders made
+    // from it, so one no gas can have is refused here as in the dive editor.
+    testWidgets('an O2 over 100% says why and keeps the stored mix', (
+      tester,
+    ) async {
+      await tester.pumpWidget(host(item: seed(o2: 32)));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(field('O2'), '1000');
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('O2 and He must each be 0 to 100 and total 100 or less'),
+        findsOneWidget,
+      );
+      expect(current.o2Percent, 32);
+    });
+
+    testWidgets('a helium taking the mix past 100% keeps the stored mix', (
+      tester,
+    ) async {
+      await tester.pumpWidget(host(item: seed(o2: 21, he: 35)));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(field('He'), '90');
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('O2 and He must each be 0 to 100 and total 100 or less'),
+        findsOneWidget,
+      );
+      expect(current.hePercent, 35);
+    });
+
     testWidgets('an unreadable O2 says why and keeps the stored mix (#1900)', (
       tester,
     ) async {

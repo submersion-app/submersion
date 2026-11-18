@@ -3572,6 +3572,7 @@
   "diveLog_tank_surfaceBreathing_helper": "Minutos con esta botella tras detenerse el registro del ordenador, como oxígeno en el barco",
   "diveLog_tank_surfaceBreathing_unit": "min",
   "diveLog_tank_label_he": "He",
+  "diveLog_tank_error_impossibleMix": "O2 y He deben estar entre 0 y 100 y sumar 100 o menos",
   "diveLog_tank_label_material": "Material",
   "diveLog_tank_label_mnd": "MND",
   "diveLog_tank_label_n2": "N2",

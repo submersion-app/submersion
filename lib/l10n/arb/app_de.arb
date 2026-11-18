@@ -3598,6 +3598,7 @@
   "diveLog_tank_surfaceBreathing_helper": "Minuten an dieser Flasche, nachdem der Computer die Aufzeichnung beendet hat, etwa Sauerstoff auf dem Boot",
   "diveLog_tank_surfaceBreathing_unit": "Min.",
   "diveLog_tank_label_he": "He",
+  "diveLog_tank_error_impossibleMix": "O2 und He müssen jeweils 0 bis 100 sein und zusammen höchstens 100 ergeben",
   "diveLog_tank_label_material": "Material",
   "diveLog_tank_label_mnd": "MND",
   "diveLog_tank_label_n2": "N2",

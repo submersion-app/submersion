@@ -3446,6 +3446,7 @@
   "diveLog_tank_surfaceBreathing_helper": "דקות על מכל זה אחרי שהמחשב הפסיק לתעד, למשל חמצן על הסירה",
   "diveLog_tank_surfaceBreathing_unit": "דקות",
   "diveLog_tank_label_he": "He",
+  "diveLog_tank_error_impossibleMix": "O2 ו-He חייבים להיות בין 0 ל-100 וסכומם עד 100",
   "diveLog_tank_label_material": "חומר",
   "diveLog_tank_label_mnd": "MND",
   "diveLog_tank_label_n2": "N2",

@@ -11231,6 +11231,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_tank_label_he => 'He';
 
   @override
+  String get diveLog_tank_error_impossibleMix =>
+      'Az O2 és a He értéke 0 és 100 közé essen, összegük legfeljebb 100 lehet';
+
+  @override
   String get diveLog_tank_label_material => 'Anyag';
 
   @override
