@@ -28476,11 +28476,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_speciesId_entrySubtitle =>
-      'מציאת דגים בתמונות שלך והצעת המין';
+      'מציאת דגים בתמונות ובסרטונים שלך והצעת המין';
 
   @override
   String get settings_speciesId_intro =>
-      'מוצא דגים בתמונות שלך ומציע לאיזה מין הם שייכים. פועל במכשיר הזה. התמונות שלך לא יוצאות ממנו לעולם.';
+      'מוצא דגים בתמונות ובסרטונים שלך ומציע לאיזה מין הם שייכים. פועל במכשיר הזה. התמונות והסרטונים שלך לא יוצאים ממנו לעולם.';
 
   @override
   String get settings_speciesId_model => 'מודל';
@@ -28554,7 +28554,8 @@ class AppLocalizationsHe extends AppLocalizations {
       'המודל הזה דורש גרסה חדשה יותר של Submersion.';
 
   @override
-  String get settings_speciesId_toggle => 'זיהוי דגים כשאני פותח תמונה';
+  String get settings_speciesId_toggle =>
+      'זיהוי דגים כשאני פותח תמונה או סרטון';
 
   @override
   String get settings_speciesId_kept => 'הצעות שנשמרו במכשיר הזה';
@@ -55003,6 +55004,20 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get media_species_identifying => 'מחפש דגים...';
+
+  @override
+  String get media_species_sheetTitleVideo => 'מינים בסרטון זה';
+
+  @override
+  String media_species_scanProgress(String percent) {
+    return 'מחפש דגים, $percent';
+  }
+
+  @override
+  String get media_species_unnamedFish => 'דג ללא שם, הקש כדי לתת שם';
+
+  @override
+  String get media_species_unnamedFishLocked => 'דג ללא שם';
 
   @override
   String get media_species_possibleMatches => 'התאמות אפשריות';

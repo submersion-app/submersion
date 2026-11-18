@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:submersion/features/species_id/domain/entities/video_detections.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
 
 /// Runs a detector and an embedding model over an image, on the device.
@@ -21,6 +22,24 @@ abstract class VisionEngine {
   /// Detects, crops and embeds. Exactly one of [path] and [bytes] is set.
   Future<VisionAnalysis> analyze({String? path, Uint8List? bytes});
 
+  /// Runs the detector over the video at [path] from [startMs] to [endMs],
+  /// one frame every [sampleIntervalMs] (issue #4675). Boxes are
+  /// normalised against the video as the player displays it.
+  Future<VideoDetections> detectVideo({
+    required String path,
+    required int startMs,
+    required int endMs,
+    required int sampleIntervalMs,
+  });
+
+  /// Crops and embeds each of [moments] of the video at [path], in order.
+  /// An entry is null where that frame could not be read or the crop was
+  /// too small.
+  Future<List<VisionMomentCrop?>> embedMoments({
+    required String path,
+    required List<VisionMoment> moments,
+  });
+
   /// Frees the models' memory.
   Future<void> unload();
 
@@ -34,6 +53,13 @@ class VisionEngineException implements Exception {
 
   /// The models are not in memory: never loaded, or freed by the system.
   static const String notLoaded = 'not_loaded';
+
+  /// An iOS app may not use the GPU from the background: a video scan
+  /// stops there and carries on the next time the video is opened.
+  static const String notForeground = 'not_foreground';
+
+  /// The device is too hot to keep scanning a video.
+  static const String tooHot = 'too_hot';
 
   /// [notLoaded], `decode_failed`, `inference_failed`, or another native
   /// code.

@@ -29217,11 +29217,11 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_speciesId_entrySubtitle =>
-      'Trova i pesci nelle tue foto e suggerisci la specie';
+      'Trova i pesci nelle tue foto e nei tuoi video e suggerisci la specie';
 
   @override
   String get settings_speciesId_intro =>
-      'Trova i pesci nelle tue foto e suggerisce la specie. Funziona su questo dispositivo. Le tue foto non lo lasciano mai.';
+      'Trova i pesci nelle tue foto e nei tuoi video e suggerisce la specie. Funziona su questo dispositivo. Le tue foto e i tuoi video non lo lasciano mai.';
 
   @override
   String get settings_speciesId_model => 'Modello';
@@ -29297,7 +29297,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_speciesId_toggle =>
-      'Identifica i pesci quando apro una foto';
+      'Identifica i pesci quando apro una foto o un video';
 
   @override
   String get settings_speciesId_kept =>
@@ -56181,6 +56181,21 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get media_species_identifying => 'Ricerca di pesci...';
+
+  @override
+  String get media_species_sheetTitleVideo => 'Specie in questo video';
+
+  @override
+  String media_species_scanProgress(String percent) {
+    return 'Ricerca di pesci, $percent';
+  }
+
+  @override
+  String get media_species_unnamedFish =>
+      'Pesce senza nome, tocca per dargli un nome';
+
+  @override
+  String get media_species_unnamedFishLocked => 'Pesce senza nome';
 
   @override
   String get media_species_possibleMatches => 'Possibili corrispondenze';

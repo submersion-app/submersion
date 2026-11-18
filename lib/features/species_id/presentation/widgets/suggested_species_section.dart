@@ -39,27 +39,41 @@ List<SpeciesSuggestion> suggestionsShown(
 ) {
   final suggestions = ref.watch(mediaSuggestionsProvider(mediaId)).value;
   if (suggestions == null || suggestions.isEmpty) return const [];
-  final chips = speciesChipsShown(ref, mediaId, sitting);
-  if (chips.isEmpty) return suggestions;
-  final scientificNames = {
-    for (final species in ref.watch(allSpeciesProvider).value ?? const [])
-      species.id: species.scientificName,
-  };
-  final shown = [
-    for (final chip in chips)
-      TaggedSpecies(
-        speciesId: chip.speciesId,
-        scientificName: scientificNames[chip.speciesId],
-      ),
-  ];
+  final shown = shownTaggedSpecies(ref, mediaId, sitting);
+  if (shown.isEmpty) return suggestions;
   return [
     for (final s in suggestions)
       if (!shown.any((t) => candidateMatches(s.top.candidate, t))) s,
   ];
 }
 
-/// Holds each of [candidates]' species in turn as tagged in [sitting]. The
+/// The species tagged on [mediaId] as the viewer shows them: held in
+/// [sitting] when there is one, else stored, each with its scientific
+/// name, as the rules compare them with candidates.
+List<TaggedSpecies> shownTaggedSpecies(
+  WidgetRef ref,
+  String mediaId,
+  EditSession<PhotoRecord>? sitting,
+) {
+  final chips = speciesChipsShown(ref, mediaId, sitting);
+  if (chips.isEmpty) return const [];
+  final scientificNames = {
+    for (final species in ref.watch(allSpeciesProvider).value ?? const [])
+      species.id: species.scientificName,
+  };
+  return [
+    for (final chip in chips)
+      TaggedSpecies(
+        speciesId: chip.speciesId,
+        scientificName: scientificNames[chip.speciesId],
+      ),
+  ];
+}
+
+/// Holds each of [candidates]' species in turn as tagged in [sitting]; the
 /// identifications are reconciled once the viewer's Save writes the tags.
+/// With [claimTrackId], each species is first recorded against that animal
+/// in a video (issue #4675), so its label follows the fish the diver tapped.
 ///
 /// Everything it needs is read before the first lookup: the sheet or crop
 /// view it was called from may be gone before the lookups finish.
@@ -68,14 +82,19 @@ Future<void> addSuggestedSpecies(
   WidgetRef ref,
   MediaItem item,
   List<PackCandidate> candidates,
-  EditSession<PhotoRecord> sitting,
-) async {
+  EditSession<PhotoRecord> sitting, {
+  String? claimTrackId,
+}) async {
   final acceptor = ref.read(suggestionAcceptorProvider);
+  final identification = ref.read(mediaIdentificationServiceProvider);
   final messenger = ScaffoldMessenger.maybeOf(context);
   final failed = context.l10n.common_error_tryAgain;
   try {
     for (final candidate in candidates) {
       final species = await acceptor.resolve(candidate);
+      if (claimTrackId != null) {
+        await identification.claim(item.id, claimTrackId, species.id);
+      }
       holdPickedSpecies(sitting, species);
     }
   } catch (_) {
@@ -104,7 +123,12 @@ class SuggestedSpeciesSection extends ConsumerWidget {
     final suggestions = suggestionsShown(ref, item.id, sitting);
     final busy =
         ref.watch(mediaIdentificationBusyProvider(item.id)).value ?? false;
-    if (suggestions.isEmpty && !busy) return const SizedBox.shrink();
+    final progress = ref
+        .watch(mediaIdentificationProgressProvider(item.id))
+        .value;
+    if (suggestions.isEmpty && !busy && progress == null) {
+      return const SizedBox.shrink();
+    }
     final ended = sitting.isDisposed;
     final percent = NumberFormat.percentPattern(
       Localizations.localeOf(context).toString(),
@@ -120,7 +144,23 @@ class SuggestedSpeciesSection extends ConsumerWidget {
             style: Theme.of(context).textTheme.titleSmall,
           ),
           const SizedBox(height: 8),
-          if (busy && suggestions.isEmpty)
+          // A video's scan takes a while, and finds as it goes: its
+          // progress stays above what it has found so far (issue #4675).
+          if (progress != null)
+            Row(
+              children: [
+                SizedBox.square(
+                  dimension: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    value: progress,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(l10n.media_species_scanProgress(percent.format(progress))),
+              ],
+            )
+          else if (busy && suggestions.isEmpty)
             Row(
               children: [
                 const SizedBox.square(
@@ -203,7 +243,9 @@ class _SuggestionRow extends ConsumerWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              suggestion.count > 1
+              // One fish swimming out of a video and back is two tracks,
+              // so a video shows no count (issue #4675).
+              suggestion.count > 1 && !item.isVideo
                   ? l10n.media_species_suggestedCount(name, suggestion.count)
                   : name,
               maxLines: 2,
@@ -241,21 +283,32 @@ class _SuggestionRow extends ConsumerWidget {
         context: context,
         useSafeArea: true,
         isScrollControlled: true,
-        builder: (sheetContext) =>
-            _CropView(item: item, suggestion: suggestion, sitting: sitting),
+        builder: (sheetContext) => SuggestionCropView(
+          item: item,
+          suggestion: suggestion,
+          sitting: sitting,
+        ),
       );
 }
 
-class _CropView extends ConsumerWidget {
-  const _CropView({
+/// A suggestion's crop shown large, with up to three names to add.
+///
+/// Opened from a fish's pill over a video, with its [trackId] (issue
+/// #4675): every name added is recorded against that fish, and the view
+/// also offers any other species and dismissing the fish.
+class SuggestionCropView extends ConsumerWidget {
+  const SuggestionCropView({
+    super.key,
     required this.item,
     required this.suggestion,
     required this.sitting,
+    this.trackId,
   });
 
   final MediaItem item;
   final SpeciesSuggestion suggestion;
   final EditSession<PhotoRecord> sitting;
+  final String? trackId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -306,9 +359,14 @@ class _CropView extends ConsumerWidget {
                             // Started before the pop: it reads what it
                             // needs at once, and outlives this view.
                             unawaited(
-                              addSuggestedSpecies(context, ref, item, [
-                                alternative.candidate,
-                              ], sitting),
+                              addSuggestedSpecies(
+                                context,
+                                ref,
+                                item,
+                                [alternative.candidate],
+                                sitting,
+                                claimTrackId: trackId,
+                              ),
                             );
                             Navigator.of(context).pop();
                           },
@@ -318,6 +376,51 @@ class _CropView extends ConsumerWidget {
               ),
             ),
           ),
+        if (trackId case final track?) ...[
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  key: const ValueKey('video_label_other'),
+                  icon: const Icon(Icons.search),
+                  label: Text(l10n.media_species_otherSpecies),
+                  onPressed: ended
+                      ? null
+                      : () => pickOtherSpecies(
+                          context,
+                          ref,
+                          item,
+                          sitting,
+                          onPicked: (species) async {
+                            await ref
+                                .read(mediaIdentificationServiceProvider)
+                                .claim(item.id, track, species.id);
+                            if (context.mounted) Navigator.of(context).pop();
+                          },
+                        ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              TextButton.icon(
+                key: const ValueKey('video_label_dismiss'),
+                icon: const Icon(Icons.close),
+                label: Text(l10n.media_species_dismiss),
+                onPressed: ended
+                    ? null
+                    : () {
+                        unawaited(
+                          ref.read(mediaIdentificationServiceProvider).reject(
+                            item.id,
+                            [track],
+                          ),
+                        );
+                        Navigator.of(context).pop();
+                      },
+              ),
+            ],
+          ),
+        ],
       ],
     );
   }

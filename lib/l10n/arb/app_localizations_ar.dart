@@ -29493,11 +29493,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_speciesId_entrySubtitle =>
-      'اعثر على الأسماك في صورك واقترح أنواعها';
+      'اعثر على الأسماك في صورك ومقاطع الفيديو واقترح أنواعها';
 
   @override
   String get settings_speciesId_intro =>
-      'يعثر على الأسماك في صورك ويقترح أنواعها. يعمل على هذا الجهاز. لا تغادر صورك الجهاز أبدًا.';
+      'يعثر على الأسماك في صورك ومقاطع الفيديو ويقترح أنواعها. يعمل على هذا الجهاز. لا تغادر صورك ومقاطع الفيديو الجهاز أبدًا.';
 
   @override
   String get settings_speciesId_model => 'النموذج';
@@ -29571,7 +29571,8 @@ class AppLocalizationsAr extends AppLocalizations {
       'يتطلب هذا النموذج إصدارًا أحدث من Submersion.';
 
   @override
-  String get settings_speciesId_toggle => 'التعرّف على الأسماك عند فتح صورة';
+  String get settings_speciesId_toggle =>
+      'التعرّف على الأسماك عند فتح صورة أو مقطع فيديو';
 
   @override
   String get settings_speciesId_kept => 'الاقتراحات المحفوظة على هذا الجهاز';
@@ -56977,6 +56978,20 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get media_species_identifying => 'جارٍ البحث عن الأسماك...';
+
+  @override
+  String get media_species_sheetTitleVideo => 'الأنواع في هذا الفيديو';
+
+  @override
+  String media_species_scanProgress(String percent) {
+    return 'جارٍ البحث عن الأسماك، $percent';
+  }
+
+  @override
+  String get media_species_unnamedFish => 'سمكة بلا اسم، اضغط لتسميتها';
+
+  @override
+  String get media_species_unnamedFishLocked => 'سمكة بلا اسم';
 
   @override
   String get media_species_possibleMatches => 'تطابقات محتملة';

@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
+import 'package:submersion/features/species_id/domain/entities/track_sample.dart';
 
 /// What the diver made of one of the app's identifications.
 enum IdentificationDecision { undecided, accepted, rejected }
@@ -69,6 +70,13 @@ class MediaIdentification extends Equatable {
     this.decidedSpeciesId,
     this.decidedAt,
     required this.createdAt,
+    this.startMs,
+    this.endMs,
+    this.bestMs,
+    this.path = const [],
+    this.claimedSpeciesId,
+    this.confident = false,
+    this.specific = false,
   });
 
   final String id;
@@ -95,9 +103,40 @@ class MediaIdentification extends Equatable {
   final DateTime? decidedAt;
   final DateTime createdAt;
 
+  /// Video only (issue #4675): when the animal was first and last seen,
+  /// and the moment the box, crop and pixel size are from, in milliseconds
+  /// from the start of the video. Null on a photo.
+  final int? startMs;
+  final int? endMs;
+  final int? bestMs;
+
+  /// Video only: the box at each sample, oldest first.
+  final List<TrackSample> path;
+
+  /// The species the diver gave this animal from the frame, before the tag
+  /// is written. It wins over the name rules.
+  final String? claimedSpeciesId;
+
+  /// Whether it passed the confident bar when it was last named.
+  final bool confident;
+
+  /// Whether its open score passed the floor when it was last named: it
+  /// looks like something in particular, not a hand or open water.
+  final bool specific;
+
   NamedCandidate? get top => candidates.isEmpty ? null : candidates.first;
 
   int get boxShorterSide => math.min(boxPixelWidth, boxPixelHeight);
+
+  /// One animal followed through a video, not a detection on a photo.
+  bool get isTrack => startMs != null;
+
+  /// A track a scan kept without a name when it stopped, so it is not
+  /// lost: it has a path but no crop, embedding or candidates yet, shows
+  /// no label, and is named when the scan resumes.
+  bool get isPending => isTrack && bestMs == null;
+
+  int get durationMs => isTrack ? (endMs ?? startMs!) - startMs! : 0;
 
   MediaIdentification copyWith({
     String? id,
@@ -114,6 +153,13 @@ class MediaIdentification extends Equatable {
     String? decidedSpeciesId,
     DateTime? decidedAt,
     DateTime? createdAt,
+    int? Function()? startMs,
+    int? Function()? endMs,
+    int? Function()? bestMs,
+    List<TrackSample>? path,
+    String? Function()? claimedSpeciesId,
+    bool? confident,
+    bool? specific,
   }) => MediaIdentification(
     id: id ?? this.id,
     mediaId: mediaId ?? this.mediaId,
@@ -129,6 +175,15 @@ class MediaIdentification extends Equatable {
     decidedSpeciesId: decidedSpeciesId ?? this.decidedSpeciesId,
     decidedAt: decidedAt ?? this.decidedAt,
     createdAt: createdAt ?? this.createdAt,
+    startMs: startMs == null ? this.startMs : startMs(),
+    endMs: endMs == null ? this.endMs : endMs(),
+    bestMs: bestMs == null ? this.bestMs : bestMs(),
+    path: path ?? this.path,
+    claimedSpeciesId: claimedSpeciesId == null
+        ? this.claimedSpeciesId
+        : claimedSpeciesId(),
+    confident: confident ?? this.confident,
+    specific: specific ?? this.specific,
   );
 
   @override
@@ -147,6 +202,13 @@ class MediaIdentification extends Equatable {
     decidedSpeciesId,
     decidedAt,
     createdAt,
+    startMs,
+    endMs,
+    bestMs,
+    path,
+    claimedSpeciesId,
+    confident,
+    specific,
   ];
 }
 
@@ -162,6 +224,8 @@ class MediaIdentificationRun extends Equatable {
     required this.imageWidth,
     required this.imageHeight,
     required this.detectionCount,
+    this.scannedMs,
+    this.videoDurationMs,
   });
 
   final String mediaId;
@@ -178,11 +242,22 @@ class MediaIdentificationRun extends Equatable {
   final int imageHeight;
   final int detectionCount;
 
+  /// Video only (issue #4675): how far the scan has got, and the video's
+  /// length as the engine read it, in milliseconds. Null for a photo.
+  final int? scannedMs;
+  final int? videoDurationMs;
+
+  /// Whether a video's scan has reached its end.
+  bool get scanComplete =>
+      videoDurationMs != null && (scannedMs ?? 0) >= videoDurationMs!;
+
   MediaIdentificationRun copyWith({
     String? packVersion,
     int? Function()? locationCell,
     DateTime? analysedAt,
     int? detectionCount,
+    int? Function()? scannedMs,
+    int? Function()? videoDurationMs,
   }) => MediaIdentificationRun(
     mediaId: mediaId,
     packVersion: packVersion ?? this.packVersion,
@@ -193,6 +268,10 @@ class MediaIdentificationRun extends Equatable {
     imageWidth: imageWidth,
     imageHeight: imageHeight,
     detectionCount: detectionCount ?? this.detectionCount,
+    scannedMs: scannedMs == null ? this.scannedMs : scannedMs(),
+    videoDurationMs: videoDurationMs == null
+        ? this.videoDurationMs
+        : videoDurationMs(),
   );
 
   @override
@@ -206,6 +285,8 @@ class MediaIdentificationRun extends Equatable {
     imageWidth,
     imageHeight,
     detectionCount,
+    scannedMs,
+    videoDurationMs,
   ];
 }
 

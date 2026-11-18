@@ -28711,11 +28711,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_speciesId_entrySubtitle =>
-      'Find fish in your photos and suggest what they are';
+      'Find fish in your photos and videos and suggest what they are';
 
   @override
   String get settings_speciesId_intro =>
-      'Finds fish in your photos and suggests what they are. Runs on this device. Your photos never leave it.';
+      'Finds fish in your photos and videos and suggests what they are. Runs on this device. Your photos and videos never leave it.';
 
   @override
   String get settings_speciesId_model => 'Model';
@@ -28790,7 +28790,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'This model needs a newer version of Submersion.';
 
   @override
-  String get settings_speciesId_toggle => 'Identify fish when I open a photo';
+  String get settings_speciesId_toggle =>
+      'Identify fish when I open a photo or video';
 
   @override
   String get settings_speciesId_kept => 'Suggestions kept on this device';
@@ -55305,6 +55306,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get media_species_identifying => 'Looking for fish...';
+
+  @override
+  String get media_species_sheetTitleVideo => 'Species in this video';
+
+  @override
+  String media_species_scanProgress(String percent) {
+    return 'Looking for fish, $percent';
+  }
+
+  @override
+  String get media_species_unnamedFish => 'Unnamed fish, tap to name';
+
+  @override
+  String get media_species_unnamedFishLocked => 'Unnamed fish';
 
   @override
   String get media_species_possibleMatches => 'Possible matches';

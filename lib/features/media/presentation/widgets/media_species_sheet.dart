@@ -89,7 +89,9 @@ class MediaSpeciesSheet extends ConsumerWidget {
       padding: const EdgeInsets.all(16),
       children: [
         Text(
-          l10n.media_species_sheetTitle,
+          item.isVideo
+              ? l10n.media_species_sheetTitleVideo
+              : l10n.media_species_sheetTitle,
           style: Theme.of(context).textTheme.titleLarge,
         ),
         const SizedBox(height: 16),
@@ -150,34 +152,47 @@ class MediaSpeciesSheet extends ConsumerWidget {
           key: const ValueKey('media_species_other'),
           icon: const Icon(Icons.search),
           label: Text(l10n.media_species_otherSpecies),
-          onPressed: ended ? null : () => _pickOther(context),
+          onPressed: ended
+              ? null
+              : () => pickOtherSpecies(context, ref, item, sitting),
         ),
       ],
     );
   }
+}
 
-  Future<void> _pickOther(BuildContext context) async {
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (sheetContext) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (_, controller) => SpeciesPickerSheet(
-          scrollController: controller,
-          // A tag needs only the species; a sighting it creates is Seen.
-          showAbundance: false,
-          onSpeciesSelected: (species, _, _) async {
-            Navigator.of(sheetContext).pop();
-            holdPickedSpecies(sitting, species);
-          },
-        ),
+/// The species picker for [item]: the species picked is held in [sitting]
+/// until the viewer's Save (issue #4527). [onPicked] runs first, with the
+/// species, before it is held: a fish named from a video's frame is
+/// recorded against that fish there (issue #4675).
+Future<void> pickOtherSpecies(
+  BuildContext context,
+  WidgetRef ref,
+  MediaItem item,
+  EditSession<PhotoRecord> sitting, {
+  Future<void> Function(Species species)? onPicked,
+}) async {
+  await showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    builder: (sheetContext) => DraggableScrollableSheet(
+      initialChildSize: 0.7,
+      minChildSize: 0.5,
+      maxChildSize: 0.95,
+      expand: false,
+      builder: (_, controller) => SpeciesPickerSheet(
+        scrollController: controller,
+        // A tag needs only the species; a sighting it creates is Seen.
+        showAbundance: false,
+        onSpeciesSelected: (species, _, _) async {
+          Navigator.of(sheetContext).pop();
+          await onPicked?.call(species);
+          holdPickedSpecies(sitting, species);
+        },
       ),
-    );
-  }
+    ),
+  );
 }
 
 /// Holds [chip] tagged or untagged in [session]. Does nothing once the

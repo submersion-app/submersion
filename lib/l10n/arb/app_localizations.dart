@@ -46465,13 +46465,13 @@ abstract class AppLocalizations {
   /// No description provided for @settings_speciesId_entrySubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Find fish in your photos and suggest what they are'**
+  /// **'Find fish in your photos and videos and suggest what they are'**
   String get settings_speciesId_entrySubtitle;
 
   /// No description provided for @settings_speciesId_intro.
   ///
   /// In en, this message translates to:
-  /// **'Finds fish in your photos and suggests what they are. Runs on this device. Your photos never leave it.'**
+  /// **'Finds fish in your photos and videos and suggests what they are. Runs on this device. Your photos and videos never leave it.'**
   String get settings_speciesId_intro;
 
   /// No description provided for @settings_speciesId_model.
@@ -46585,7 +46585,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_speciesId_toggle.
   ///
   /// In en, this message translates to:
-  /// **'Identify fish when I open a photo'**
+  /// **'Identify fish when I open a photo or video'**
   String get settings_speciesId_toggle;
 
   /// No description provided for @settings_speciesId_kept.
@@ -88133,6 +88133,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Looking for fish...'**
   String get media_species_identifying;
+
+  /// No description provided for @media_species_sheetTitleVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Species in this video'**
+  String get media_species_sheetTitleVideo;
+
+  /// No description provided for @media_species_scanProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Looking for fish, {percent}'**
+  String media_species_scanProgress(String percent);
+
+  /// No description provided for @media_species_unnamedFish.
+  ///
+  /// In en, this message translates to:
+  /// **'Unnamed fish, tap to name'**
+  String get media_species_unnamedFish;
+
+  /// No description provided for @media_species_unnamedFishLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Unnamed fish'**
+  String get media_species_unnamedFishLocked;
 
   /// No description provided for @media_species_possibleMatches.
   ///

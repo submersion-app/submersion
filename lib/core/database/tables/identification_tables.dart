@@ -46,6 +46,15 @@ class MediaIdentificationRuns extends Table {
   /// How many identifications were stored, possibly zero.
   IntColumn get detectionCount => integer()();
 
+  /// Video only (issue #4675): how far the scan has got, in milliseconds
+  /// from the start. Null for a photo. The scan is complete when it reaches
+  /// video_duration_ms.
+  IntColumn get scannedMs => integer().nullable()();
+
+  /// Video only: the video's length in milliseconds, as the engine read
+  /// it. Null for a photo.
+  IntColumn get videoDurationMs => integer().nullable()();
+
   @override
   Set<Column> get primaryKey => {mediaId};
 }
@@ -93,6 +102,34 @@ class MediaIdentifications extends Table {
   /// Epoch milliseconds.
   IntColumn get decidedAt => integer().nullable()();
   IntColumn get createdAt => integer()();
+
+  /// Video only (issue #4675), where one row is one animal followed
+  /// through the video: when it was first seen, in milliseconds from the
+  /// start. Null for a photo.
+  IntColumn get startMs => integer().nullable()();
+
+  /// Video only: when the animal was last seen, in milliseconds from the
+  /// start.
+  IntColumn get endMs => integer().nullable()();
+
+  /// Video only: the moment, in milliseconds from the start, whose box,
+  /// crop and pixel size the box columns hold.
+  IntColumn get bestMs => integer().nullable()();
+
+  /// Video only: the box at each sample, packed (track_path_codec.dart).
+  BlobColumn get trackPath => blob().nullable()();
+
+  /// The species the diver gave this animal from the frame (a dot or a
+  /// pill), held until the tag is written. It wins over the name rules.
+  TextColumn get claimedSpeciesId => text().nullable()();
+
+  /// Whether it passed the confident bar when it was last named. Stored so
+  /// the labels over a video keep working after the model is removed.
+  BoolColumn get confident => boolean().withDefault(const Constant(false))();
+
+  /// Whether its open score passed the floor when it was last named: it
+  /// looks like something in particular, not a hand or open water.
+  BoolColumn get specific => boolean().withDefault(const Constant(false))();
 
   @override
   Set<Column> get primaryKey => {id};

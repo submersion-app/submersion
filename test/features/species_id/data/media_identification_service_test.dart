@@ -16,97 +16,11 @@ import 'package:submersion/features/species_id/data/repositories/media_identific
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
 import 'package:submersion/features/species_id/data/services/media_identification_service.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
-import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
-import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
-import 'package:submersion/features/species_id/domain/services/region_grid.dart';
-import 'package:submersion/core/constants/app_enums.dart';
 
 import '../../../helpers/temp_dir.dart';
-import '../domain/manifest_fixture.dart';
 import 'fake_vision_engine.dart';
-
-const _parrotfish = PackCandidate(
-  gbifKey: 1,
-  scientificName: 'Scarus vetula',
-  commonName: 'Queen Parrotfish',
-  category: SpeciesCategory.fish,
-  catalogId: 'sp_queen_parrotfish',
-);
-const _chromis = PackCandidate(
-  gbifKey: 2,
-  scientificName: 'Chromis multilineata',
-  commonName: 'Brown Chromis',
-  category: SpeciesCategory.fish,
-);
-const _tang = PackCandidate(
-  gbifKey: 3,
-  scientificName: 'Acanthurus coeruleus',
-  commonName: 'Blue Tang',
-  category: SpeciesCategory.fish,
-);
-
-/// A pack of three candidates with axis text embeddings, all recorded
-/// everywhere, so a location never removes one.
-LoadedPack pack({
-  String version = '2026.11.1',
-  String detector = 'det-a',
-  String classifier = 'clf-a',
-  String? cropFit,
-}) {
-  final manifest = SpeciesPackManifest.parse(
-    manifestJson((m) {
-      m['packVersion'] = version;
-      (m['detector']! as Map)['id'] = detector;
-      final c = m['classifier']! as Map;
-      c['id'] = classifier;
-      c['embeddingSize'] = 3;
-      if (cropFit != null) c['cropFit'] = cropFit;
-      (m['naming']! as Map)['minAllowedCandidates'] = 1;
-    }),
-  );
-  final grid = RegionGrid(cellDegrees: manifest.region.cellDegrees);
-  final rowBytes = (grid.cellCount + 7) ~/ 8;
-  return LoadedPack(
-    pack: InstalledPack(
-      manifest: manifest,
-      directory: '/pack/$version',
-      detectorPath: '/pack/$version/detector/detector.mlpackage',
-      classifierPath: '/pack/$version/classifier/classifier.mlpackage',
-    ),
-    candidates: const [_parrotfish, _chromis, _tang],
-    textEmbeddings: Float32List.fromList([1, 0, 0, 0, 1, 0, 0, 0, 1]),
-    regions: RegionTable(
-      grid: grid,
-      bits: Uint8List(3 * rowBytes)..fillRange(0, 3 * rowBytes, 0xFF),
-      candidateCount: 3,
-    ),
-  );
-}
-
-/// Calls [onRead] after each read of a photo's identifications: where a
-/// logbook switch would land between a read and the write after it.
-class _ReadHookRepository extends MediaIdentificationRepository {
-  _ReadHookRepository(AppDatabase database, this.onRead)
-    : super(database: database);
-
-  final void Function() onRead;
-
-  @override
-  Future<List<MediaIdentification>> forMedia(String mediaId) async {
-    final found = await super.forMedia(mediaId);
-    onRead();
-    return found;
-  }
-}
-
-MediaItem photo(String id, {MediaType type = MediaType.photo}) => MediaItem(
-  id: id,
-  mediaType: type,
-  takenAt: DateTime.utc(2026, 5, 7, 12),
-  createdAt: DateTime.utc(2026, 5, 7, 12),
-  updatedAt: DateTime.utc(2026, 5, 7, 12),
-);
+import 'media_identification_service_fixtures.dart';
 
 void main() {
   late AppDatabase library;
@@ -120,6 +34,7 @@ void main() {
   late bool enabled;
   late List<TaggedSpecies> tagged;
   late IdentificationImage? Function(MediaItem item) imageFor;
+  late bool videoReadable;
   late MediaIdentificationService service;
   var ids = 0;
   var packLoads = 0;
@@ -141,6 +56,7 @@ void main() {
     enabled = true;
     tagged = [];
     imageFor = (item) => IdentificationImage.path('/photos/${item.id}.jpeg');
+    videoReadable = true;
     ids = 0;
     packLoads = 0;
     generation = 0;
@@ -156,6 +72,11 @@ void main() {
       embeddings: embeddings,
       crops: crops,
       resolveImage: (item) async => imageFor(item),
+      resolveVideo: (item) async {
+        if (!videoReadable) return null;
+        return <T>(Future<T> Function(String path) read) =>
+            read('/videos/${item.id}.mp4');
+      },
       taggedSpecies: (_) async {
         tagsAsked++;
         await tagsGate?.future;
@@ -183,9 +104,11 @@ void main() {
       expect(engine.analysed, isEmpty);
     });
 
-    test('for a video', () async {
-      await service.request(photo('m1', type: MediaType.video));
+    test('for a video with no file to read', () async {
+      videoReadable = false;
+      await service.request(photo('v1', type: MediaType.video));
       expect(engine.analysed, isEmpty);
+      expect(await identifications.runFor('v1'), isNull);
     });
 
     test('when the engine is not available here', () async {
@@ -232,7 +155,7 @@ void main() {
     expect(run.imageWidth, 4000);
     expect(run.detectionCount, 2);
     final found = await identifications.forMedia('m1');
-    expect(found.map((i) => i.top!.candidate), [_parrotfish, _chromis]);
+    expect(found.map((i) => i.top!.candidate), [parrotfish, chromis]);
     expect(found.every((i) => i.suggestable), isTrue);
     expect(found.first.locationLimited, isTrue);
     expect(found.first.boxPixelWidth, 800);
@@ -260,6 +183,24 @@ void main() {
       expect(engine.analysed, hasLength(1));
     },
   );
+
+  test('an analysis stores whether each fish is confident and specific '
+      '(issue #4675)', () async {
+    await service.request(photo('m1'), location: const GeoPoint(12.1, -68.3));
+    final found = (await identifications.forMedia('m1')).single;
+    expect(found.confident, isTrue);
+    expect(found.specific, isTrue);
+  });
+
+  test('a rename keeps the flags up to date', () async {
+    await service.request(photo('m1'));
+    installed = pack(version: '2026.12.1');
+    await service.packChanged();
+    await service.request(photo('m1'));
+    final found = (await identifications.forMedia('m1')).single;
+    expect(found.confident, isTrue);
+    expect(found.specific, isTrue);
+  });
 
   test('nothing changed means no second analysis', () async {
     await service.request(photo('m1'));
@@ -557,7 +498,7 @@ void main() {
     final switching = MediaIdentificationService(
       engine: engine,
       loadPack: () async => installed,
-      identifications: _ReadHookRepository(library, () => generation++),
+      identifications: ReadHookRepository(library, () => generation++),
       embeddings: embeddings,
       crops: crops,
       resolveImage: (item) async => imageFor(item),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/providers/provider.dart';
 
@@ -7,6 +8,7 @@ import 'package:submersion/features/marine_life/presentation/species_display.dar
 import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
 import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/presentation/editing/photo_sitting_shown.dart';
+import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 import 'package:submersion/features/species_id/presentation/widgets/suggested_species_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
@@ -49,7 +51,12 @@ class MediaSpeciesChipsRow extends ConsumerWidget {
     final suggestions = marineLifeIdEnabled
         ? suggestionsShown(ref, mediaId, sitting)
         : const [];
-    if (chips.isEmpty && suggestions.isEmpty) return const SizedBox.shrink();
+    final progress = marineLifeIdEnabled
+        ? ref.watch(mediaIdentificationProgressProvider(mediaId)).value
+        : null;
+    if (chips.isEmpty && suggestions.isEmpty && progress == null) {
+      return const SizedBox.shrink();
+    }
     final outline = Theme.of(context).colorScheme.outline;
 
     return Semantics(
@@ -92,8 +99,40 @@ class MediaSpeciesChipsRow extends ConsumerWidget {
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 visualDensity: VisualDensity.compact,
               ),
+            // A video being scanned (issue #4675).
+            if (progress != null) _ScanProgressChip(progress: progress),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// How far a video's scan has got: a small ring and a percentage.
+class _ScanProgressChip extends StatelessWidget {
+  const _ScanProgressChip({required this.progress});
+
+  final double progress;
+
+  @override
+  Widget build(BuildContext context) {
+    final percent = NumberFormat.percentPattern(
+      Localizations.localeOf(context).toString(),
+    ).format(progress);
+    return Semantics(
+      container: true,
+      label: context.l10n.media_species_scanProgress(percent),
+      excludeSemantics: true,
+      child: Chip(
+        avatar: SizedBox.square(
+          dimension: 14,
+          child: CircularProgressIndicator(strokeWidth: 2, value: progress),
+        ),
+        label: Text(percent),
+        backgroundColor: Colors.transparent,
+        side: BorderSide(color: Theme.of(context).colorScheme.outline),
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        visualDensity: VisualDensity.compact,
       ),
     );
   }

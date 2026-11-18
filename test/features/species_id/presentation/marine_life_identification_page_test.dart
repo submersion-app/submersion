@@ -17,6 +17,7 @@ import 'package:submersion/features/species_id/presentation/providers/species_pa
 
 import '../../../helpers/mock_providers.dart';
 import '../../../helpers/test_app.dart';
+import 'species_id_fakes.dart';
 
 class _Controller extends SpeciesPackController {
   _Controller(this.initial);
@@ -43,6 +44,14 @@ class _Controller extends SpeciesPackController {
   Future<void> remove() async => removals++;
 }
 
+/// Every settle and clear, in order.
+final _order = <String>[];
+
+class _SettlingService extends RecordingIdentificationService {
+  @override
+  Future<void> settleAll() async => _order.add('settle');
+}
+
 class _Cleanup extends IdentificationCleanup {
   _Cleanup()
     : super(
@@ -57,6 +66,7 @@ class _Cleanup extends IdentificationCleanup {
   @override
   Future<void> clearAll() async {
     if (failure != null) throw failure!;
+    _order.add('clear');
     cleared++;
   }
 }
@@ -87,6 +97,9 @@ void main() {
           ...overrides,
           speciesPackControllerProvider.overrideWith(() => controller),
           identificationCleanupProvider.overrideWithValue(cleanup),
+          mediaIdentificationServiceProvider.overrideWithValue(
+            _SettlingService(),
+          ),
           identificationCountProvider.overrideWith((ref) async => 214),
           identificationCropBytesProvider.overrideWith((ref) async => 6100000),
           ...extra,
@@ -250,9 +263,12 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Clear all suggestions?'), findsOneWidget);
     expect(cleanup.cleared, 0);
+    _order.clear();
     await tester.tap(find.byKey(const ValueKey('species_id_clear_confirm')));
     await tester.pumpAndSettle();
     expect(cleanup.cleared, 1);
+    // A scan still running would write back what was cleared.
+    expect(_order, ['settle', 'clear']);
   });
 
   testWidgets('the switch writes the device preference', (tester) async {

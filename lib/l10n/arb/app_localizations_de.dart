@@ -29143,11 +29143,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_speciesId_entrySubtitle =>
-      'Fische in deinen Fotos finden und Arten vorschlagen';
+      'Fische in deinen Fotos und Videos finden und Arten vorschlagen';
 
   @override
   String get settings_speciesId_intro =>
-      'Findet Fische in deinen Fotos und schlägt vor, welche Art es ist. Läuft auf diesem Gerät. Deine Fotos verlassen es nie.';
+      'Findet Fische in deinen Fotos und Videos und schlägt vor, welche Art es ist. Läuft auf diesem Gerät. Deine Fotos und Videos verlassen es nie.';
 
   @override
   String get settings_speciesId_model => 'Modell';
@@ -29223,7 +29223,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_speciesId_toggle =>
-      'Fische beim Öffnen eines Fotos erkennen';
+      'Fische beim Öffnen eines Fotos oder Videos erkennen';
 
   @override
   String get settings_speciesId_kept =>
@@ -56054,6 +56054,21 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get media_species_identifying => 'Suche nach Fischen...';
+
+  @override
+  String get media_species_sheetTitleVideo => 'Arten in diesem Video';
+
+  @override
+  String media_species_scanProgress(String percent) {
+    return 'Suche nach Fischen, $percent';
+  }
+
+  @override
+  String get media_species_unnamedFish =>
+      'Unbenannter Fisch, zum Benennen tippen';
+
+  @override
+  String get media_species_unnamedFishLocked => 'Unbenannter Fisch';
 
   @override
   String get media_species_possibleMatches => 'Mögliche Treffer';
