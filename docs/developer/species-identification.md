@@ -36,8 +36,12 @@ Two things must hold before its default changes:
    other pack, a rebuilt candidate list included, is marked `provisional`
    until the scorer is run on it.
 
-Only iPhone, iPad and Mac can run it so far. Phones and tablets need at
-least 6 GB of memory.
+Only iPhone, iPad and Mac can run it so far, and it is on by default there
+(`marineLifeIdEnabled` in `lib/core/constants/feature_flags.dart`); the web,
+Android, Windows and Linux hide it. Phones and tablets need 8 GB of memory
+at launch: the floor is `MemoryFloor` in `MemoryReading.swift`, 6.5 GiB as
+the device reports it, checked by `tool/species_pack/vision_cli/check_floor.sh`
+([release gate](../design/specs/2026-11-18-marine-life-release-gate-design.md)).
 
 ## How it fits together
 
