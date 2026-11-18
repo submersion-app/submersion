@@ -49,6 +49,13 @@ mixin RecordOpenUnlocked<W extends ConsumerStatefulWidget, T>
     _openedUnlocked = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      // By now the page may no longer be asked, or may hold another record
+      // (a stale read, another record handed to it): a record not its own
+      // is not opened, and the page's own may be once it has it.
+      if (!openUnlockedOf(widget) || recordIdOf(stored) != hostRecordId) {
+        _openedUnlocked = false;
+        return;
+      }
       final controller = editController;
       if (controller.isUnlocked) return;
       controller.unlock(shownRecord(stored));

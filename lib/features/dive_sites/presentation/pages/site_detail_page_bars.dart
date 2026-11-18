@@ -63,10 +63,11 @@ extension _SiteDetailBars on _SiteDetailContentState {
     DiveSite site, {
     required bool historyItem,
     required bool hosts,
+    MenuController? controller,
   }) {
     final ownership = hosts ? _watchOwnership(ref, site) : null;
     return SiteDetailPropertiesMenu(
-      controller: _displayOptionsMenu,
+      controller: controller ?? _displayOptionsMenu,
       child: PopupMenuButton<String>(
         onSelected: (value) => _handleMenuAction(context, ref, value, site),
         itemBuilder: (context) => _siteMenuItems(
@@ -205,8 +206,10 @@ extension _SiteDetailBars on _SiteDetailContentState {
   }) {
     final colorScheme = Theme.of(context).colorScheme;
     final ownership = _watchOwnership(ref, site);
-    final menu = SiteDetailPropertiesMenu(
-      controller: _displayOptionsMenu,
+    // One per row, each with its own controller: while unlocked both rows
+    // are mounted, the locked one unseen under the other.
+    Widget menuWith(MenuController controller) => SiteDetailPropertiesMenu(
+      controller: controller,
       child: PopupMenuButton<String>(
         icon: const Icon(Icons.more_vert, size: 20),
         onSelected: (value) => _handleMenuAction(context, ref, value, site),
@@ -279,13 +282,18 @@ extension _SiteDetailBars on _SiteDetailContentState {
                   : () => _openPaneEditMode(context),
             ),
           ..._libraryButtons(context, ref, site),
-          menu,
+          menuWith(_displayOptionsMenu),
         ],
       ),
     );
     return RecordPaneRow(
       locked: locked,
-      unlocked: isSittingOpen ? editingPaneRow(widget.site, menu: menu) : null,
+      unlocked: isSittingOpen
+          ? editingPaneRow(
+              widget.site,
+              menu: menuWith(_unlockedDisplayOptionsMenu),
+            )
+          : null,
     );
   }
 }

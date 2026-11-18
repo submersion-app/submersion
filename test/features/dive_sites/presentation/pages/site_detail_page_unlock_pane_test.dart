@@ -121,6 +121,33 @@ void main() {
     expect(uri.queryParameters['mode'], 'edit');
   });
 
+  // The locked row stays laid out, unseen, under the unlocked one: each has
+  // its own display-options anchor, so the menu in view opens its panel,
+  // unlocked and locked again alike.
+  testWidgets('Display options opens from the pane menu in view, unlocked '
+      'and locked again', (tester) async {
+    await pumpSitePage(tester, embedded: true);
+
+    Future<void> openDisplayOptions() async {
+      await tester.tap(find.byIcon(Icons.more_vert).hitTestable().first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l.diveLog_detail_displayOptions_tooltip));
+      await tester.pumpAndSettle();
+      expect(find.byType(ReorderableListView), findsOneWidget);
+      // A tap outside the panel closes it.
+      await tester.tapAt(const Offset(4, 1396));
+      await tester.pumpAndSettle();
+      expect(find.byType(ReorderableListView), findsNothing);
+    }
+
+    await openDisplayOptions();
+    await unlock(tester);
+    await openDisplayOptions();
+    await tester.tap(find.text(l.forms_cancel));
+    await tester.pumpAndSettle();
+    await openDisplayOptions();
+  });
+
   group('on a device that attaches media', () {
     final attaches = [
       deviceCapabilitiesProvider.overrideWithValue(

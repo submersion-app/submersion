@@ -328,9 +328,14 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
     super.onEditChanged();
   }
 
-  /// Opens the display-options panel from the overflow menu. One controller
-  /// serves both headers, since only one of them is ever built.
+  /// Opens the display-options panel from the overflow menu: the locked
+  /// header's. A controller follows one anchor, and in the pane the locked
+  /// row stays laid out, unseen, under the unlocked one, so the unlocked
+  /// header's menu has its own ([_unlockedDisplayOptionsMenu]).
   final MenuController _displayOptionsMenu = MenuController();
+
+  /// The display-options panel of the unlocked header's menu.
+  final MenuController _unlockedDisplayOptionsMenu = MenuController();
 
   /// Every card on this page pads to the same inset. Tighter than Material's
   /// usual 16 because this page stacks well over a dozen cards, and at 16 the
@@ -453,7 +458,13 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
         // The menu stays while unlocked, as a dive's: its whole-record
         // actions run from it with nothing to save.
         unlockedActions: [
-          _siteMenu(context, site, historyItem: true, hosts: true),
+          _siteMenu(
+            context,
+            site,
+            historyItem: true,
+            hosts: true,
+            controller: _unlockedDisplayOptionsMenu,
+          ),
         ],
       );
     }
@@ -920,7 +931,10 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
       return false;
     }
     if (action == 'displayOptions') {
-      _displayOptionsMenu.open();
+      // The menu it was chosen from: the unlocked header's while a sitting
+      // is open.
+      (isSittingOpen ? _unlockedDisplayOptionsMenu : _displayOptionsMenu)
+          .open();
       return false;
     }
     if (action == kDuplicateSiteAction) {

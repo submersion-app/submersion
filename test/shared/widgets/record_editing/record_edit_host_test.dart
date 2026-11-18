@@ -468,6 +468,34 @@ void main() {
       expect(find.byType(RecordEditBar), findsOneWidget);
     });
 
+    // The unlock comes after the frame: a record that is not the page's
+    // own by then (a stale read, another record handed to the page) is not
+    // opened, and the page's own opens once it has it.
+    testWidgets('a record not the page\'s own is not opened', (tester) async {
+      probe = _Probe();
+      probe.notes['n2'] = const _Note('n1', 'First', 'Calm');
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [_probeProvider.overrideWithValue(probe)],
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: _Host(page: _NotePage(noteId: 'n2', openUnlocked: true)),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(RecordEditBar), findsNothing);
+
+      probe.notes['n2'] = const _Note('n2', 'Second', 'Flat');
+      ProviderScope.containerOf(
+        tester.element(find.byType(_Host)),
+      ).invalidate(_noteProvider('n2'));
+      await tester.pumpAndSettle();
+      expect(find.text('Editing Second'), findsOneWidget);
+    });
+
     testWidgets('a leave the app asked about is not told', (tester) async {
       var ended = 0;
       await pump(
