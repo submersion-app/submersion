@@ -143,16 +143,16 @@ class SiteSuggestionCard extends ConsumerWidget {
         editing is! SiteSuggestionLocked &&
         applies &&
         !(session?.isFrozen ?? false);
-    // The suggestion describes what is persisted, but an edit form can hold a
+    // The suggestion describes what is persisted, but a sitting can hold a
     // site the diver has not saved yet. If that one already has coordinates,
     // or is simply a different site, the banner would offer to place a site
-    // it is not actually going to write to. Wait until the form and the
+    // it is not actually going to write to. Wait until the sitting and the
     // database agree again.
     if (currentSite?.hasCoordinates == true) return const SizedBox.shrink();
     if (currentSite?.id != proposal.dive.site?.id) {
       return const SizedBox.shrink();
     }
-    // Past the guard the form and the database agree, so the shown site is
+    // Past the guard the sitting and the database agree, so the shown site is
     // the persisted one; no fallback to proposal.dive.site is reachable.
     final hasSite = currentSite != null;
     final recommended = proposal.recommendedCandidateId == null

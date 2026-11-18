@@ -713,9 +713,9 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                                   ? null
                                   : finding;
                             },
-                            // Findings are dismissed in the open Safety
-                            // review card (issue #4527).
-                            onSafetyFindingDismiss: null,
+                            // No onSafetyFindingDismiss: findings are
+                            // dismissed in the open Safety review card
+                            // (issue #4527).
                             // Time, not sample index: the surface lead-in
                             // before the first sample reports 0, so playback
                             // and the tooltip agree on 00:00.
