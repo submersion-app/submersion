@@ -90,6 +90,7 @@ import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
 import 'package:submersion/shared/widgets/record_editing/record_fold_pencil.dart';
 
@@ -1460,13 +1461,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
     return content;
   }
 
-  bool _hasAccessInfo(DiveSite site) {
-    return (site.accessNotes != null && site.accessNotes!.isNotEmpty) ||
-        (site.mooringNumber != null && site.mooringNumber!.isNotEmpty) ||
-        (site.parkingInfo != null && site.parkingInfo!.isNotEmpty) ||
-        site.entryMethods.isNotEmpty ||
-        site.exitMethods.isNotEmpty;
-  }
+  bool _hasAccessInfo(DiveSite site) => siteHasAccessInfo(site);
 
   /// The site's depth: what it is rated for, and what dives actually found.
   ///
@@ -2135,11 +2130,18 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
               children: [
                 Icon(Icons.warning_amber, size: 20, color: colorScheme.error),
                 const SizedBox(width: 8),
-                Text(
-                  context.l10n.diveSites_detail_section_hazards,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleMedium?.copyWith(color: colorScheme.error),
+                Expanded(
+                  child: Text(
+                    context.l10n.diveSites_detail_section_hazards,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleMedium?.copyWith(color: colorScheme.error),
+                  ),
+                ),
+                // The card keeps its warning colour, so it draws its own
+                // title and only takes the pencil (issue #4527).
+                RecordCardPencil(
+                  cardTitle: context.l10n.diveSites_detail_section_hazards,
                 ),
               ],
             ),
@@ -2160,15 +2162,13 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(Icons.directions, size: 20, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(
-                  context.l10n.diveSites_detail_section_access,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
+            RecordCardHeader(
+              title: context.l10n.diveSites_detail_section_access,
+              leading: Icon(
+                Icons.directions,
+                size: 20,
+                color: colorScheme.primary,
+              ),
             ),
             const SizedBox(height: 12),
             if (site.parkingInfo != null && site.parkingInfo!.isNotEmpty) ...[

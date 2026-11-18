@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_edit_fields.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_access_card_editors.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_header_card_editor.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_location_card_editor.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_markdown_card_editor.dart';
@@ -100,6 +101,30 @@ final Map<SiteDetailSectionId, EditCard<DiveSite>> siteEditCards = {
     isEmpty: (_) => false,
     editorBuilder: (context, session) => SiteRatingCardEditor(session: session),
   ),
+  SiteDetailSectionId.hazards: EditCard<DiveSite>(
+    id: SiteDetailSectionId.hazards.name,
+    title: (context) => context.l10n.diveSites_detail_section_hazards,
+    leading: (context) => Icon(
+      Icons.warning_amber,
+      size: 20,
+      color: Theme.of(context).colorScheme.error,
+    ),
+    isEmpty: (site) => site.hazards?.isNotEmpty != true,
+    editorBuilder: (context, session) =>
+        SiteHazardsCardEditor(session: session),
+  ),
+  SiteDetailSectionId.access: EditCard<DiveSite>(
+    id: SiteDetailSectionId.access.name,
+    title: (context) => context.l10n.diveSites_detail_section_access,
+    leading: (context) => Icon(
+      Icons.directions,
+      size: 20,
+      color: Theme.of(context).colorScheme.primary,
+    ),
+    // As the page decides whether to show the card.
+    isEmpty: (site) => !siteHasAccessInfo(site),
+    editorBuilder: (context, session) => SiteAccessCardEditor(session: session),
+  ),
 };
 
 /// The site page's header block as a card: the site's name and its water.
@@ -111,3 +136,12 @@ final siteHeaderCard = EditCard<DiveSite>(
   isValid: siteNameIsValid,
   editorBuilder: (context, session) => SiteHeaderCardEditor(session: session),
 );
+
+/// Whether [site] has anything for its Access card to show: the rule the
+/// page leaves the card out by, shared with the card's emptiness.
+bool siteHasAccessInfo(DiveSite site) =>
+    (site.parkingInfo?.isNotEmpty ?? false) ||
+    (site.accessNotes?.isNotEmpty ?? false) ||
+    (site.mooringNumber?.isNotEmpty ?? false) ||
+    site.entryMethods.isNotEmpty ||
+    site.exitMethods.isNotEmpty;

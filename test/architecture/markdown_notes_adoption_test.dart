@@ -40,6 +40,9 @@ void main() {
     // A site's Description and Notes cards edited in place (issue #4527).
     'lib/features/dive_sites/presentation/editing/site_markdown_card_editor.dart':
         'MarkdownNotesField(',
+    // A site's Access card edited in place (issue #4527).
+    'lib/features/dive_sites/presentation/editing/site_access_card_editors.dart':
+        'markdown: true',
     'lib/features/dive_sites/presentation/widgets/edit_sections/access_safety_section.dart':
         'markdown: true',
     'lib/features/dive_sites/presentation/widgets/edit_sections/identity_section.dart':
