@@ -299,6 +299,10 @@ class SacTimeColumns extends StatelessWidget {
                                   ? Border.all(
                                       color: colorScheme.onSurface,
                                       width: _selectedOutlineWidth,
+                                      // Outside, so a short or narrow column
+                                      // keeps its color inside the outline.
+                                      strokeAlign:
+                                          BorderSide.strokeAlignOutside,
                                     )
                                   : null,
                               borderRadius: const BorderRadius.vertical(

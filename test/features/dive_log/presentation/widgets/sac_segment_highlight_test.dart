@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/core/theme/contrast_ratio.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/sac_segment_colors.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/sac_segment_table.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/sac_time_columns.dart';
@@ -97,6 +98,8 @@ void main() {
       final side = (columnDecoration(tester, 1).border! as Border).top;
       expect(side.color, schemeOf(tester).onSurface);
       expect(side.width, greaterThanOrEqualTo(2));
+      // Outside the column, so a short one keeps its color within it.
+      expect(side.strokeAlign, BorderSide.strokeAlignOutside);
     });
   });
 
@@ -165,27 +168,46 @@ void main() {
         );
         final name = '${preset.id} ${brightness.name}';
 
-        for (final phase in DivePhase.values) {
-          final full = SacSegmentColors.forPhase(phase, brightness);
+        final phases = {
+          for (final phase in DivePhase.values)
+            phase.name: SacSegmentColors.forPhase(phase, brightness),
+        };
+        final columnHues = {...phases, 'primary': scheme.primary};
+        final rowHues = {
+          ...columnHues,
+          'air': GasColors.air,
+          'nitrox': GasColors.nitrox,
+          'oxygen': GasColors.oxygen,
+          'trimix': GasColors.trimix,
+        };
+
+        for (final MapEntry(key: hue, value: full) in columnHues.entries) {
           final faded = Color.alphaBlend(
             full.withValues(alpha: SacTimeColumns.unpickedAlpha),
             card,
           );
+
+          test('a faded $hue column still shows on $name', () {
+            expect(contrastRatio(faded, card), greaterThan(1.1));
+          });
+
+          test('a picked $hue column stands out on $name', () {
+            expect(contrastRatio(full, faded), greaterThan(1.3));
+          });
+        }
+
+        for (final MapEntry(key: hue, value: full) in rowHues.entries) {
           final tinted = Color.alphaBlend(
             full.withValues(alpha: SacSegmentTable.selectedTintAlpha),
             card,
           );
 
-          test('a faded ${phase.name} column still shows on $name', () {
-            expect(contrastRatio(faded, card), greaterThan(1.1));
-          });
-
-          test('a picked ${phase.name} column stands out on $name', () {
-            expect(contrastRatio(full, faded), greaterThan(1.3));
-          });
-
-          test('a picked ${phase.name} row reads on $name', () {
+          test('a picked $hue row reads on $name', () {
             expect(contrastRatio(scheme.onSurface, tinted), greaterThan(4.5));
+            expect(
+              contrastRatio(scheme.onSurfaceVariant, tinted),
+              greaterThan(4.5),
+            );
           });
         }
       }
