@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -289,6 +291,42 @@ void main() {
     await tester.tap(find.text(l.forms_cancel));
     await tester.pumpAndSettle();
     expect(ended, 1);
+  });
+
+  // A role reload that fails says nothing of a lost right, so the sitting
+  // stays open though the page no longer offers editing: its operations
+  // still wait for Save or Cancel, never writing beside the held changes.
+  testWidgets('a sitting kept through a failed role reload still gates the '
+      'record actions', (tester) async {
+    Completer<SharedLibraryRole>? reload;
+    final (page, _) = await pump(
+      tester,
+      site: harnessSite.copyWith(sharedLibraryId: 'L'),
+      extra: [
+        libraryRoleProvider('L').overrideWith(
+          (ref) => reload?.future ?? Future.value(SharedLibraryRole.editor),
+        ),
+        libraryConnectedHereProvider('L').overrideWith((ref) async => true),
+        siteLibraryStateProvider('s1').overrideWith((ref) async => null),
+        libraryMemberNamesProvider('L').overrideWith((ref) async => const {}),
+      ],
+    );
+    await unlock(tester);
+    await tester.ensureVisible(find.text(l.diveSites_detail_section_notes));
+    await tester.tap(find.text(l.diveSites_detail_section_notes));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextFormField).last, 'Choppy');
+    await tester.pumpAndSettle();
+
+    final waiting = reload = Completer<SharedLibraryRole>();
+    page.container.invalidate(libraryRoleProvider('L'));
+    await tester.pump();
+    waiting.completeError(StateError('offline'));
+    await tester.pumpAndSettle();
+    expect(find.byType(RecordEditBar), findsOneWidget);
+
+    await openMenu(tester);
+    expect(find.text(l.recordEdit_saveOrCancelFirst), findsOneWidget);
   });
 
   testWidgets('with the switch off the menu is as today', (tester) async {

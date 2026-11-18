@@ -26,16 +26,22 @@ mixin _SiteDetailPageOperations
         ConsumerState<_SiteDetailContent>,
         RecordEditHost<_SiteDetailContent, DiveSite>,
         _SiteDetailPageEditing {
+  /// Whether the operations go through the sitting: while the page offers
+  /// editing, and while a sitting stays open after it stopped (a role
+  /// reload that failed, a withdrawal still waiting on a save or the end
+  /// of the frame), so they never write beside held changes.
+  bool get _operationsThroughSitting => _offersEditingNow() || isSittingOpen;
+
   /// Whether the operations may run now; null where the page offers no
-  /// editing.
+  /// editing and holds no sitting.
   RecordOperationBlock? get siteOperationBlock =>
-      recordOperationBlockOf(_offersEditingNow() ? editController : null);
+      recordOperationBlockOf(_operationsThroughSitting ? editController : null);
 
   /// Runs [operation], which answers whether it wrote: through the sitting
-  /// while the page offers editing, which refuses while locked or with
-  /// unsaved changes (the menu says so beforehand), else at once.
+  /// while the page offers editing or holds one, which refuses while locked
+  /// or with unsaved changes (the menu says so beforehand), else at once.
   Future<void> _runSiteOperation(Future<bool> Function() operation) async {
-    if (!_offersEditingNow()) {
+    if (!_operationsThroughSitting) {
       await operation();
       return;
     }
