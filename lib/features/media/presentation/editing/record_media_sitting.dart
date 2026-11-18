@@ -1,7 +1,5 @@
 import 'package:flutter/foundation.dart';
 
-import 'package:submersion/core/constants/dive_detail_sections.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
 import 'package:submersion/features/media/data/services/media_import_service.dart';
 import 'package:submersion/features/media/data/services/media_unlink_service.dart';
@@ -18,10 +16,11 @@ import 'package:submersion/features/media_store/presentation/providers/media_sto
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/held_write_undo.dart';
 
-/// The held change of the Media card.
+/// The held change of the Media card, on a dive or a site (issue #4527).
 const String mediaKey = 'media';
 
 const String _noteKey = 'media.held';
+const String _cardKey = 'media.card';
 const String _writersKey = 'media.writers';
 const String _createdKey = 'media.created';
 const String _afterKey = 'media.after';
@@ -47,7 +46,7 @@ class SittingMediaWriters {
   /// it is used: a sitting starts on every unlock, and most never write
   /// media. [read] must outlive the page (the provider container's), since
   /// a save can finish after the page has gone.
-  factory SittingMediaWriters.read(ProviderRead read) => SittingMediaWriters(
+  factory SittingMediaWriters.forDive(ProviderRead read) => SittingMediaWriters(
     writeRows: (prepared) async => [
       for (final row in await read(
         mediaImportServiceProvider,
@@ -65,6 +64,31 @@ class SittingMediaWriters {
     replace: (proposals, afterCommit, onRollback) async => read(
       mediaRepairServiceProvider,
     ).apply(proposals, afterCommit: afterCommit, onRollback: onRollback),
+    drainDeletes: () =>
+        read(mediaDeletionCoordinatorProvider).drainHeldDeletes(),
+    enqueueUpload: (mediaId) => read(mediaStoreEnqueueProvider)(mediaId),
+  );
+
+  /// A site's (issue #4527, phase 2): as [SittingMediaWriters.forDive],
+  /// unlinking from the site.
+  factory SittingMediaWriters.forSite(ProviderRead read) => SittingMediaWriters(
+    writeRows: (prepared) async => [
+      for (final row in await read(
+        mediaImportServiceProvider,
+      ).writePrepared(prepared))
+        row.id,
+    ],
+    insertNetwork: (requests) =>
+        read(networkFetchPipelineProvider).insertResolved(requests),
+    unlink: (ids) async => MediaUnlinkService(
+      repository: read(mediaRepositoryProvider),
+      deleteMedia: (ids) => read(
+        mediaDeletionCoordinatorProvider,
+      ).deleteMultipleMedia(ids, holdRemoteDelete: true),
+    ).unlinkFromSite(ids),
+    // A site's attachments are not relinked from a sitting.
+    replace: (_, _, _) async =>
+        throw UnsupportedError('a site sitting relinks no media'),
     drainDeletes: () =>
         read(mediaDeletionCoordinatorProvider).drainHeldDeletes(),
     enqueueUpload: (mediaId) => read(mediaStoreEnqueueProvider)(mediaId),
@@ -111,11 +135,17 @@ class SittingMedia {
 }
 
 /// Keeps the writers the held write uses.
-void holdSittingMedia(EditSession<Dive> session, SittingMediaWriters writers) {
-  session.remember(_writersKey, writers);
+void holdSittingMedia<T>(
+  EditSession<T> session,
+  SittingMediaWriters writers, {
+  required String cardId,
+}) {
+  session
+    ..remember(_writersKey, writers)
+    ..remember(_cardKey, cardId);
 }
 
-SittingMedia sittingMedia(EditSession<Dive> session) =>
+SittingMedia sittingMedia<T>(EditSession<T> session) =>
     (session.isDisposed ? null : session.recall<SittingMedia>(_noteKey)) ??
     const SittingMedia();
 
@@ -136,7 +166,7 @@ String? _sameFileKey(MediaItem m) => m.platformAssetId != null
 /// Adds what a picker handed the sitting. One the sitting already holds
 /// (the gallery scan finding photos Add photos just picked, a file dropped
 /// and then picked) is left out: the pickers check only what is stored.
-void addMediaToSitting(EditSession<Dive> session, List<HeldMediaAdd> adds) {
+void addMediaToSitting<T>(EditSession<T> session, List<HeldMediaAdd> adds) {
   final held = sittingMedia(session);
   final seen = {for (final a in held.added) ?_sameFileKey(a.preview)};
   final fresh = [
@@ -159,7 +189,7 @@ void addMediaToSitting(EditSession<Dive> session, List<HeldMediaAdd> adds) {
 }
 
 /// Unlinks [ids] in the sitting; one added in it is simply dropped.
-void unlinkMediaInSitting(EditSession<Dive> session, Set<String> ids) {
+void unlinkMediaInSitting<T>(EditSession<T> session, Set<String> ids) {
   final held = sittingMedia(session);
   final addedIds = {for (final a in held.added) a.preview.id};
   _set(
@@ -179,8 +209,8 @@ void unlinkMediaInSitting(EditSession<Dive> session, Set<String> ids) {
 }
 
 /// Replaces stored media [id]'s link with [proposal]'s, at Save.
-void replaceLinkInSitting(
-  EditSession<Dive> session,
+void replaceLinkInSitting<T>(
+  EditSession<T> session,
   String id,
   RepairProposal proposal,
 ) {
@@ -195,10 +225,11 @@ void replaceLinkInSitting(
   );
 }
 
-void _set(EditSession<Dive> session, SittingMedia next) {
+void _set<T>(EditSession<T> session, SittingMedia next) {
   if (session.isDisposed || session.isFrozen) return;
   final writers = session.recall<SittingMediaWriters>(_writersKey);
-  if (writers == null) return;
+  final cardId = session.recall<String>(_cardKey);
+  if (writers == null || cardId == null) return;
   session.remember(_noteKey, next);
   if (next.isEmpty) {
     session.releaseWrite(mediaKey);
@@ -206,7 +237,7 @@ void _set(EditSession<Dive> session, SittingMedia next) {
   }
   session.holdChange(
     mediaKey,
-    cardId: DiveDetailSectionId.media.name,
+    cardId: cardId,
     write: () => _write(session, writers),
   );
 }
@@ -216,7 +247,7 @@ void _set(EditSession<Dive> session, SittingMedia next) {
 /// is deleted, its remote copy marked for deletion: a mark for a row that a
 /// failed save keeps does nothing, by the media store's own rule), then the
 /// replaced links. Uploads wait for the commit ([mediaAfterCommit]).
-Future<void> _write(EditSession<Dive> session, SittingMediaWriters w) async {
+Future<void> _write<T>(EditSession<T> session, SittingMediaWriters w) async {
   final undo = <Future<void> Function()>[];
   session
     ..remember(_createdKey, null)
@@ -253,7 +284,7 @@ Future<void> _write(EditSession<Dive> session, SittingMediaWriters w) async {
 /// queued for each row it wrote, the remote deletes its unlinks held, and
 /// the uploads and cache drops of its relinks. Empty before a write went
 /// through.
-List<Future<void> Function()> mediaAfterCommit(EditSession<Dive> session) {
+List<Future<void> Function()> mediaAfterCommit<T>(EditSession<T> session) {
   final created = session.recall<List<String>>(_createdKey);
   final writers = session.recall<SittingMediaWriters>(_writersKey);
   if (created == null || writers == null) return const [];
@@ -267,9 +298,9 @@ List<Future<void> Function()> mediaAfterCommit(EditSession<Dive> session) {
 /// sitting's media write did outside the database (a relink's new
 /// bookmark), then lets the failure through. Each undo is on its own: one
 /// that fails is logged and the rest still run.
-Future<T> undoMediaOnFailure<T>(
-  EditSession<Dive> session,
-  Future<T> Function() write,
+Future<R> undoMediaOnFailure<T, R>(
+  EditSession<T> session,
+  Future<R> Function() write,
 ) => undoHeldWritesOnFailure(
   write,
   takeUndo: () {
@@ -283,8 +314,8 @@ Future<T> undoMediaOnFailure<T>(
 
 /// [stored] as the sitting has it: unlinked ones gone, added ones in, in
 /// the order the grid shows them (taken at, oldest first).
-List<MediaItem> mediaInSitting(
-  EditSession<Dive> session,
+List<MediaItem> mediaInSitting<T>(
+  EditSession<T> session,
   List<MediaItem> stored,
 ) {
   final held = sittingMedia(session);

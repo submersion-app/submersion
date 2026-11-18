@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_attachment_card_editors.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_classification_sitting.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_collection_card_editors.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_edit_fields.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_access_card_editors.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_header_card_editor.dart';
@@ -125,6 +128,48 @@ final Map<SiteDetailSectionId, EditCard<DiveSite>> siteEditCards = {
     // As the page decides whether to show the card.
     isEmpty: (site) => !site.hasAccessInfo,
     editorBuilder: (context, session) => SiteAccessCardEditor(session: session),
+  ),
+  SiteDetailSectionId.features: EditCard<DiveSite>(
+    id: SiteDetailSectionId.features.name,
+    title: (context) => context.l10n.siteFeature_sectionTitle,
+    // On the page wherever the site has coordinates, with or without
+    // features; there is nowhere to place one without them.
+    isEmpty: (site) => !site.hasCoordinates,
+    offeredWhenEmpty: (session) => session.working.hasCoordinates,
+    editorBuilder: (context, session) =>
+        SiteFeaturesCardEditor(session: session),
+  ),
+  SiteDetailSectionId.marineLife: EditCard<DiveSite>(
+    id: SiteDetailSectionId.marineLife.name,
+    title: (context) => context.l10n.marineLife_siteSection_title,
+    // Always on the page: empty, it says there are none.
+    isEmpty: (_) => false,
+    editorBuilder: (context, session) =>
+        SiteSpeciesCardEditor(session: session),
+  ),
+  SiteDetailSectionId.media: EditCard<DiveSite>(
+    id: SiteDetailSectionId.media.name,
+    title: (context) => context.l10n.media_siteMediaSection_title,
+    // Always on the page: empty, it says there are none.
+    isEmpty: (_) => false,
+    editorBuilder: (context, session) => SiteMediaCardEditor(session: session),
+  ),
+  SiteDetailSectionId.documents: EditCard<DiveSite>(
+    id: SiteDetailSectionId.documents.name,
+    title: (context) => context.l10n.documents_section_title,
+    isEmpty: (_) => false,
+    editorBuilder: (context, session) =>
+        SiteDocumentsCardEditor(session: session),
+  ),
+  SiteDetailSectionId.tags: EditCard<DiveSite>(
+    id: SiteDetailSectionId.tags.name,
+    title: (context) => context.l10n.diveLog_detail_section_tags,
+    // Its rows are not columns of the site: locked, the card decides for
+    // itself; unlocked, from the sitting's list, once loaded.
+    isEmpty: (_) => false,
+    isEmptyInSitting: (session) =>
+        siteTagsList.current(session)?.isEmpty ?? false,
+    editorBuilder: (context, session) => SiteTagsCardEditor(session: session),
   ),
 };
 

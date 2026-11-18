@@ -2,12 +2,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' show AppDatabase;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_document_links_sitting.dart';
+import 'package:submersion/features/documents/presentation/editing/record_document_links_sitting.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
-import '../../../../../../helpers/test_database.dart';
+import '../../../../helpers/test_database.dart';
 
 /// Documents attached to and detached from a dive in a sitting (issue
 /// #4527, plan 6).
@@ -50,7 +50,12 @@ void main() {
     addTearDown(() {
       if (!session.isDisposed) session.dispose();
     });
-    holdDocumentLinks(session, container.read);
+    holdDocumentLinks(
+      session,
+      container.read,
+      owner: DocumentOwner(DocumentOwnerKind.dive, session.stored.id),
+      cardId: 'documents',
+    );
     return session;
   }
 

@@ -11625,6 +11625,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_edit_editingWithdrawn => '您已无法编辑此潜水点。未保存的更改已被丢弃。';
 
   @override
+  String get diveSites_media_dropUnlockHint => '请先解锁此潜水点，再添加照片。';
+
+  @override
+  String get diveSites_edit_saveRefused => '您已无法编辑此潜水点，因此未保存任何内容。';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return '错误： $error';
   }
@@ -11946,6 +11952,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveSites_edit_altitude_foundTooltip => '根据这些坐标找到';
+
+  @override
+  String get diveSites_edit_catalogueRefused => '目录记录已更改或已关联到另一个潜点。未保存任何内容。';
 
   @override
   String get diveSites_edit_depth_rangeInvalid => '最小深度不能大于最大深度。';

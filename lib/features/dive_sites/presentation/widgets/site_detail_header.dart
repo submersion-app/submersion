@@ -17,6 +17,7 @@ import 'package:submersion/features/site_types/presentation/site_type_display.da
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/country_flag.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
+import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/site_attribution_line.dart';
 
@@ -29,9 +30,27 @@ import 'package:submersion/features/shared_library/presentation/widgets/site_att
 /// card further down (rating, difficulty, site types), so each line is a
 /// summary and is simply left out when the site has no value for it.
 class SiteDetailHeader extends ConsumerWidget {
-  const SiteDetailHeader({super.key, required this.site});
+  const SiteDetailHeader({
+    super.key,
+    required this.site,
+    this.types,
+    this.offerReviewable = true,
+    this.showOffer = true,
+  });
 
   final DiveSite site;
+
+  /// Whether the catalogue offer line offers Review: not on a page that
+  /// edits in place, whose header block's editor reviews (issue #4527).
+  final bool offerReviewable;
+
+  /// Whether the catalogue offer line shows: not once a sitting holds a
+  /// Review of it.
+  final bool showOffer;
+
+  /// The site's types to show in place of those stored: a sitting's, once
+  /// the diver has changed them (issue #4527).
+  final List<SiteTypeEntity>? types;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -42,7 +61,9 @@ class SiteDetailHeader extends ConsumerWidget {
     // A built-in type is stored under its English name, so it reads through
     // the l10n lookup rather than the stored one.
     final types =
-        ref.watch(siteTypesForSiteProvider(site.id)).value ?? const [];
+        this.types ??
+        ref.watch(siteTypesForSiteProvider(site.id)).value ??
+        const [];
     final labels = <String>[
       for (final type in types) type.localizedName(l10n),
       if (site.difficulty != null) site.difficulty!.localizedName(l10n),
@@ -149,7 +170,8 @@ class SiteDetailHeader extends ConsumerWidget {
           if (site.catalogueId != null)
             _CatalogueLine(catalogueId: site.catalogueId!),
           // What the built-in catalogue could still add to this site.
-          SiteCatalogueOfferLine(site: site),
+          if (showOffer)
+            SiteCatalogueOfferLine(site: site, reviewable: offerReviewable),
         ],
       ),
     );

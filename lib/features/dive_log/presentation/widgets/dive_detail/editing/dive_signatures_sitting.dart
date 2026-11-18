@@ -56,6 +56,8 @@ final diveSignaturesList = SittingList<Dive, Signature>(
         );
       }
     }
+    // Whether it changed anything is not asked of a dive's rows.
+    return null;
   },
   same: (a, b) =>
       setEquals({for (final s in a) s.id}, {for (final s in b) s.id}),

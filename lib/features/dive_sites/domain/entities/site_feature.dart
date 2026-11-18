@@ -68,4 +68,32 @@ class SiteFeature {
       notes: notes ?? this.notes,
     );
   }
+
+  /// Equal by value, so a sitting can tell a changed feature from one put
+  /// back as it was (issue #4527).
+  @override
+  bool operator ==(Object other) =>
+      other is SiteFeature &&
+      other.id == id &&
+      other.siteId == siteId &&
+      other.typeName == typeName &&
+      other.name == name &&
+      other.latitude == latitude &&
+      other.longitude == longitude &&
+      other.bearingDeg == bearingDeg &&
+      other.depthMeters == depthMeters &&
+      other.notes == notes;
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    siteId,
+    typeName,
+    name,
+    latitude,
+    longitude,
+    bearingDeg,
+    depthMeters,
+    notes,
+  );
 }

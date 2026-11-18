@@ -12036,6 +12036,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'You can no longer edit this site. Any unsaved changes were discarded.';
 
   @override
+  String get diveSites_media_dropUnlockHint =>
+      'Unlock this site to add photos.';
+
+  @override
+  String get diveSites_edit_saveRefused =>
+      'You can no longer edit this site, so nothing was saved.';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return 'Error: $error';
   }
@@ -12370,6 +12378,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveSites_edit_altitude_foundTooltip =>
       'Found for these coordinates';
+
+  @override
+  String get diveSites_edit_catalogueRefused =>
+      'The catalogue record has changed or is linked to another site. Nothing was saved.';
 
   @override
   String get diveSites_edit_depth_rangeInvalid =>

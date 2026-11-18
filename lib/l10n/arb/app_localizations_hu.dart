@@ -12203,6 +12203,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ezt a helyszínt már nem szerkesztheti. A nem mentett módosítások elvesztek.';
 
   @override
+  String get diveSites_media_dropUnlockHint =>
+      'Oldd fel a helyszín zárolását, hogy fotókat adhass hozzá.';
+
+  @override
+  String get diveSites_edit_saveRefused =>
+      'Ezt a helyszínt már nem szerkesztheti, ezért semmi sem lett mentve.';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return 'Hiba: $error';
   }
@@ -12540,6 +12548,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveSites_edit_altitude_foundTooltip =>
       'Ezekhez a koordinátákhoz találva';
+
+  @override
+  String get diveSites_edit_catalogueRefused =>
+      'A katalógusbejegyzés megváltozott, vagy egy másik merülőhelyhez van kapcsolva. Semmi sem lett mentve.';
 
   @override
   String get diveSites_edit_depth_rangeInvalid =>

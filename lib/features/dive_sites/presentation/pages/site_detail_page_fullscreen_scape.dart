@@ -1,5 +1,56 @@
 part of 'site_detail_page.dart';
 
+/// Opening the site's fullscreen scape from the detail page.
+mixin _SiteDetailFullscreen
+    on
+        ConsumerState<_SiteDetailContent>,
+        RecordEditHost<_SiteDetailContent, DiveSite> {
+  final MapController _fullController = MapController();
+
+  /// [body] under the scope through which the Features card's editor opens
+  /// the map armed to place a feature in its sitting (issue #4527).
+  Widget _withFeaturePlacement(BuildContext context, Widget body) =>
+      SiteFeaturePlacementScope(
+        placeOnMap: (session) {
+          // The map is drawn around the site's position: none, no map.
+          if (!session.working.hasCoordinates) return;
+          _showFullscreenMap(
+            context,
+            ref,
+            session.working,
+            startPlacing: true,
+            session: session,
+          );
+        },
+        child: body,
+      );
+
+  void _showFullscreenMap(
+    BuildContext context,
+    WidgetRef ref,
+    DiveSite site, {
+    bool initialScape3d = false,
+    bool startPlacing = false,
+    EditSession<DiveSite>? session,
+  }) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => _FullscreenSiteScapePage(
+          site: site,
+          controller: _fullController,
+          initialScape3d: initialScape3d,
+          startPlacing: startPlacing,
+          session: session,
+          sittingHost: session == null ? null : maybeEditController,
+          // On a page that holds edits in a sitting, the map changes
+          // features only for the Features card's editor (issue #4527).
+          readOnly: hostsEditing && session == null,
+        ),
+      ),
+    );
+  }
+}
+
 /// Fullscreen morphable site scape pushed from the detail page: the same
 /// single-pin map the embedded card shows, with the 2D/3D toggle, and it
 /// can open directly in 3D (the app-bar terrain action).
@@ -11,11 +62,27 @@ class _FullscreenSiteScapePage extends ConsumerStatefulWidget {
   /// Opens armed for feature placement: the next map tap drops a point.
   final bool startPlacing;
 
+  /// The site's sitting, when opened from the Features card's editor: what
+  /// is placed or edited goes to it, held until Save (issue #4527). Once it
+  /// has ended, the map reads only.
+  final EditSession<DiveSite>? session;
+
+  /// What owns [session] and tells when the sitting ends: a session is
+  /// disposed without a word to its listeners.
+  final Listenable? sittingHost;
+
+  /// Places nothing and offers no Edit: opened on a page that holds edits
+  /// in a sitting, from anywhere but the Features card's editor.
+  final bool readOnly;
+
   const _FullscreenSiteScapePage({
     required this.site,
     required this.controller,
     required this.initialScape3d,
     this.startPlacing = false,
+    this.session,
+    this.sittingHost,
+    this.readOnly = false,
   });
 
   @override
@@ -28,13 +95,44 @@ class _FullscreenSiteScapePageState
   late SiteScapeMode _mode = widget.initialScape3d
       ? SiteScapeMode.terrain3d
       : SiteScapeMode.map2d;
-  late bool _placing = widget.startPlacing;
+  late bool _placing = widget.startPlacing && !widget.readOnly;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.session?.addListener(_onSession);
+    widget.sittingHost?.addListener(_onSession);
+  }
+
+  @override
+  void dispose() {
+    widget.sittingHost?.removeListener(_onSession);
+    final session = widget.session;
+    if (session != null && !session.isDisposed) {
+      session.removeListener(_onSession);
+    }
+    super.dispose();
+  }
+
+  void _onSession() {
+    if (mounted) setState(() {});
+  }
+
+  /// The sitting while it lasts; null without one, or once it has ended.
+  EditSession<DiveSite>? get _sitting {
+    final session = widget.session;
+    return session == null || session.isDisposed ? null : session;
+  }
+
+  /// Whether nothing on the map may change: told so, or its sitting ended.
+  bool get _writesNothing =>
+      widget.readOnly || (widget.session != null && _sitting == null);
 
   /// Drops a feature at the tapped point: depth pre-samples from the
   /// cached bathymetry grid, then the sheet collects the rest. Placement
   /// disarms on the first tap whether or not the diver saves.
   Future<void> _onMapTap(BuildContext context, LatLng latLng) async {
-    if (!_placing) return;
+    if (!_placing || _writesNothing) return;
     setState(() => _placing = false);
     final site = widget.site;
     final grid = ref
@@ -51,6 +149,26 @@ class _FullscreenSiteScapePageState
       initialDepthMeters: sampled,
     );
     if (result is! SiteFeatureSheetSave) return;
+    if (widget.session != null) {
+      // Held until Save, under an id of its own until then.
+      final sitting = _sitting;
+      if (sitting == null) return;
+      addFeatureInSitting(
+        sitting,
+        SiteFeature(
+          id: const Uuid().v4(),
+          siteId: site.id,
+          typeName: result.typeName,
+          latitude: latLng.latitude,
+          longitude: latLng.longitude,
+          bearingDeg: result.bearingDeg,
+          depthMeters: result.depthMeters,
+          name: result.name,
+          notes: result.notes,
+        ),
+      );
+      return;
+    }
     final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
     await ref
         .read(siteFeatureRepositoryProvider)
@@ -109,7 +227,7 @@ class _FullscreenSiteScapePageState
                     ),
                   ),
                   BathymetryDepthOverlayLayer(location: site.location),
-                  SiteFeatureMarkerLayer(siteId: site.id),
+                  _markers(context, site),
                   MarkerLayer(
                     markers: [
                       Marker(
@@ -197,5 +315,22 @@ class _FullscreenSiteScapePageState
         ),
       ),
     );
+  }
+
+  /// The site's features: the sitting's, editable in it, while it lasts;
+  /// read only once it has ended or when the map writes nothing.
+  Widget _markers(BuildContext context, DiveSite site) {
+    final sitting = _sitting;
+    if (widget.session != null) {
+      return SiteFeatureMarkerLayer(
+        siteId: site.id,
+        features: sitting == null ? null : siteFeaturesList.current(sitting),
+        readOnly: sitting == null,
+        onEdit: sitting == null
+            ? null
+            : (feature) => editFeatureInSitting(context, sitting, feature),
+      );
+    }
+    return SiteFeatureMarkerLayer(siteId: site.id, readOnly: widget.readOnly);
   }
 }

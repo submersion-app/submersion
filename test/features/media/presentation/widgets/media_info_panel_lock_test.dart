@@ -7,7 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/open_dive_sitting_provider.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_media_sitting.dart';
+import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
 import 'package:submersion/features/media/data/services/media_item_verifier.dart';
 import 'package:submersion/features/media/domain/services/media_repair_types.dart';
 import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
@@ -304,6 +304,7 @@ void main() {
           drainDeletes: () async {},
           enqueueUpload: (_) {},
         ),
+        cardId: 'media',
       );
       replaceLinkInSitting(
         dive,

@@ -9,7 +9,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/ed
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_buddies_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_compare_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_custom_fields_card_editor.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_document_links_sitting.dart';
+import 'package:submersion/features/documents/presentation/editing/record_document_links_sitting.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_details_card_editor.dart';
@@ -17,7 +17,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/ed
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_equipment_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_nav_track_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_media_card_editor.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_media_sitting.dart';
+import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_notes_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_route_links_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_plan_link_sitting.dart';
@@ -40,6 +40,7 @@ import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_fade.dart';
+import 'package:submersion/shared/widgets/record_editing/sitting_list.dart';
 
 /// The dive's notes, edited on the Notes card.
 final diveNotesField = EditField<Dive, String>(
@@ -59,11 +60,7 @@ final diveTagsField = EditField<Dive, List<Tag>>(
   equals: _sameTagIds,
 );
 
-bool _sameTagIds(List<Tag> a, List<Tag> b) {
-  final ids = {for (final tag in a) tag.id};
-  final others = {for (final tag in b) tag.id};
-  return ids.length == others.length && ids.containsAll(others);
-}
+bool _sameTagIds(List<Tag> a, List<Tag> b) => sameIdSets(a, b, (tag) => tag.id);
 
 /// What a sitting on a dive needs as it starts, before any card is open.
 ///
@@ -82,8 +79,17 @@ void startDiveSitting(EditSession<Dive> session, ProviderRead read) {
   holdSafetyDismissals(session, read);
   loadDiveRouteLinks(session, read);
   loadDivePlanLink(session, read);
-  holdDocumentLinks(session, read);
-  holdSittingMedia(session, SittingMediaWriters.read(read));
+  holdDocumentLinks(
+    session,
+    read,
+    owner: DocumentOwner(DocumentOwnerKind.dive, session.stored.id),
+    cardId: DiveDetailSectionId.documents.name,
+  );
+  holdSittingMedia(
+    session,
+    SittingMediaWriters.forDive(read),
+    cardId: DiveDetailSectionId.media.name,
+  );
 }
 
 /// The held writes that are the dive's own rows (its gas switches, the
@@ -282,7 +288,7 @@ final Map<DiveDetailSectionId, EditCard<Dive>> diveEditCards = {
     title: (context) => context.l10n.documents_section_title,
     // Always on the page: with none, it says so.
     isEmpty: (_) => false,
-    editorBuilder: (context, session) => DocumentsSection(
+    editorBuilder: (context, session) => DocumentsSection<Dive>(
       owner: DocumentOwner(DocumentOwnerKind.dive, session.stored.id),
       editing: session,
     ),

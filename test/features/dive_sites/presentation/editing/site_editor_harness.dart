@@ -27,9 +27,12 @@ Future<SiteEditorHarness> pumpSiteEditor(
   List<Override> overrides = const [],
   List<DiveSite> allSites = const [],
   AppSettings settings = const AppSettings(),
+  void Function(EditSession<DiveSite> session)? onStart,
 }) async {
-  final controller = RecordEditController<DiveSite>(onSave: (_) async {})
-    ..unlock(site);
+  final controller = RecordEditController<DiveSite>(
+    onSave: (_) async {},
+    onStart: onStart,
+  )..unlock(site);
   addTearDown(controller.dispose);
   final harness = SiteEditorHarness(controller);
   await tester.pumpWidget(

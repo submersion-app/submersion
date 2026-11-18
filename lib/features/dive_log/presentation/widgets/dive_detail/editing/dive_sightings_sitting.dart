@@ -46,6 +46,8 @@ final diveSightingsList = SittingList<Dive, Sighting>(
         await repository.updateSighting(sighting);
       }
     }
+    // Whether it changed anything is not asked of a dive's rows.
+    return null;
   },
   same: (a, b) => setEquals(a.toSet(), b.toSet()),
 );

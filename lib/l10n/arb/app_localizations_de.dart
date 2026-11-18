@@ -12218,6 +12218,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Du kannst diesen Tauchplatz nicht mehr bearbeiten. Ungespeicherte Änderungen wurden verworfen.';
 
   @override
+  String get diveSites_media_dropUnlockHint =>
+      'Entsperre diesen Tauchplatz, um Fotos hinzuzufügen.';
+
+  @override
+  String get diveSites_edit_saveRefused =>
+      'Du kannst diesen Tauchplatz nicht mehr bearbeiten, daher wurde nichts gespeichert.';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return 'Fehler: $error';
   }
@@ -12554,6 +12562,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveSites_edit_altitude_foundTooltip =>
       'Für diese Koordinaten gefunden';
+
+  @override
+  String get diveSites_edit_catalogueRefused =>
+      'Der Katalogeintrag hat sich geändert oder ist mit einem anderen Tauchplatz verknüpft. Es wurde nichts gespeichert.';
 
   @override
   String get diveSites_edit_depth_rangeInvalid =>

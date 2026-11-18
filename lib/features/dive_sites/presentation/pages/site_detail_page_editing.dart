@@ -101,6 +101,65 @@ mixin _SiteDetailPageEditing
         );
   }
 
+  /// Where a file dropped on the window finds this page (issue #4527),
+  /// read in [initState] so it can still be cleared once the page has gone.
+  StateController<SiteEditingPage?>? _dropSlot;
+
+  /// What this page last told [siteEditingPageProvider].
+  SiteEditingPage? _toldDrop;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!hostsEditing) return;
+    _dropSlot = ref.read(siteEditingPageProvider.notifier);
+    _tellDrop();
+  }
+
+  @override
+  void onEditChanged() {
+    _tellDrop();
+    super.onEditChanged();
+  }
+
+  @override
+  void disposeEditing() {
+    _tellDrop(gone: true);
+    super.disposeEditing();
+  }
+
+  /// Tells a drop that this page edits [widget]'s site in place, with its
+  /// sitting while unlocked, or that the page has gone. Set after the
+  /// frame's work, since a lock can come while the page is being built.
+  void _tellDrop({bool gone = false}) {
+    final slot = _dropSlot;
+    if (slot == null) return;
+    final told = _toldDrop;
+    final session = gone ? null : maybeEditController?.session;
+    if (!gone &&
+        told != null &&
+        told.siteId == widget.siteId &&
+        identical(told.session, session)) {
+      return;
+    }
+    final page = gone
+        ? null
+        : SiteEditingPage(
+            siteId: widget.siteId,
+            session: session,
+            showMediaCard: () =>
+                maybeEditController?.addCard(SiteDetailSectionId.media.name),
+          );
+    _toldDrop = page;
+    Future.microtask(() {
+      // The app (its provider scope) may have gone with the page.
+      if (!slot.mounted) return;
+      // Only this page's own: another page may have told since.
+      if (page == null && !identical(slot.state, told)) return;
+      slot.state = page;
+    });
+  }
+
   /// Ends a sitting this profile may no longer save, and says so: the
   /// diver's typing goes with it. A save still running ends it once it
   /// returns, and the page is built, and asks, again then.
@@ -122,6 +181,12 @@ mixin _SiteDetailPageEditing
     siteHeaderCard,
     ...siteEditCards.values,
   ];
+
+  @override
+  void onSittingStart(
+    EditSession<DiveSite> session,
+    ProviderContainer container,
+  ) => startSiteSitting(session, container.read);
 
   @override
   DiveSite? get storedForUnlock => ref.read(siteProvider(widget.siteId)).value;
@@ -146,10 +211,9 @@ mixin _SiteDetailPageEditing
     final actingDiver = ref.read(validatedCurrentDiverIdProvider.future);
     final siteId = session.stored.id;
     final shownId = widget.siteId;
-    final result = await service.save(
-      siteId: siteId,
-      apply: session.applyTo,
-      changedCardIds: session.changedCardIds,
+    final result = await saveSiteSitting(
+      session,
+      service,
       actingDiverId: await actingDiver,
     );
     if (result == null) return;
@@ -201,6 +265,54 @@ mixin _SiteDetailPageEditing
             changed: changed.contains(card.id),
           ),
     ];
+  }
+
+  /// [list] as the sitting has it, once the diver has changed it; null
+  /// while it is as stored, or with no sitting, so the card reads its own.
+  List<E>? _heldList<E>(SittingList<DiveSite, E> list) {
+    final session = maybeEditController?.session;
+    if (session == null || !list.isChanged(session)) return null;
+    return list.current(session);
+  }
+
+  /// "Shared with" under the header, for the owner of a site shared with
+  /// other profiles (issue #4527, phase 2), offered where the header
+  /// block's editor offers sharing: never on a library site, and only with
+  /// two or more divers. While the header block is open its editor shows
+  /// the field instead.
+  Widget? _sharedWithLine(BuildContext context, DiveSite site) {
+    if (site.isLibrarySite) return null;
+    final controller = maybeEditController;
+    if (controller?.openCardIds.contains(siteHeaderCardId) ?? false) {
+      return null;
+    }
+    final divers = ref.watch(allDiversProvider).value ?? const [];
+    if (divers.length < 2) return null;
+    final isOwner = canDestroySharedItemOnceKnown(
+      ref.watch(validatedCurrentDiverIdProvider),
+      ownerId: site.diverId,
+    );
+    if (isOwner != true) return null;
+    final session = controller?.session;
+    final sharing =
+        (session == null ? null : siteSharingInSitting(session)) ??
+        ref
+            .watch(
+              itemSharingProvider((kind: SharedItemKind.site, id: site.id)),
+            )
+            .value;
+    if (sharing == null || !sharing.isShared) return null;
+    return SharingTile(
+      summary: sharingSummary(sharing, {
+        for (final d in divers) d.id: d.name,
+      }, context.l10n),
+    );
+  }
+
+  /// Whether the sitting holds a Review of the catalogue offer.
+  bool _catalogueReviewed() {
+    final session = maybeEditController?.session;
+    return session != null && siteCatalogueReviewed(session);
   }
 
   /// The sections whose cards are open, held unfolded in the list layout.

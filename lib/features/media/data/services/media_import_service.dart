@@ -447,6 +447,65 @@ class MediaImportService {
     );
   }
 
+  /// What [importPhotosForSite] would write for [selectedAssets], for a
+  /// sitting on the site that holds it until Save (issue #4527, phase 2):
+  /// the photos already on the site left out the same way, each row under a
+  /// fresh id of its own, with no enrichment. Writes nothing.
+  ///
+  /// [ignoringMediaIds] are rows the sitting has unlinked: not on the site
+  /// once it is saved, so a pick of the same photo is taken back.
+  Future<List<PreparedMedia>> prepareForSite({
+    required List<AssetInfo> selectedAssets,
+    required String siteId,
+    Set<String> ignoringMediaIds = const {},
+  }) async {
+    final newAssets = await _unlinkedOwnedAssets(
+      selectedAssets,
+      galleryLinks: () async => [
+        for (final row in await _mediaRepository.getGalleryLinksForSite(siteId))
+          if (!ignoringMediaIds.contains(row.id)) row,
+      ],
+      localPaths: ignoringMediaIds.isEmpty
+          ? () => _mediaRepository.getLinkedLocalPathsForSite(siteId)
+          : () async => {
+              for (final row in await _mediaRepository.getMediaForSite(siteId))
+                if (!ignoringMediaIds.contains(row.id)) ?row.localPath,
+            },
+    );
+    final cloudIds = await _cloudIdsFor(newAssets);
+    return [
+      for (final asset in newAssets)
+        (
+          item: _createMediaItemFromAsset(
+            asset,
+            cloudAssetId: cloudIds[asset.id],
+          ).copyWith(id: const Uuid().v4(), siteId: siteId),
+          enrichment: null,
+        ),
+    ];
+  }
+
+  /// The dive import's two-key dedupe for an owner: gallery picks against
+  /// the owner's linked rows, desktop picks on the path.
+  Future<List<AssetInfo>> _unlinkedOwnedAssets(
+    List<AssetInfo> selectedAssets, {
+    required Future<List<MediaItem>> Function() galleryLinks,
+    required Future<Set<String>> Function() localPaths,
+  }) async {
+    bool hasPath(AssetInfo a) => a.filePath != null && a.filePath!.isNotEmpty;
+    final gallery = selectedAssets.where((a) => !hasPath(a)).toList();
+    final newGalleryIds = gallery.isEmpty
+        ? const <String>{}
+        : await _unlinkedGalleryIds(gallery, await galleryLinks());
+    final existingPaths = selectedAssets.any(hasPath)
+        ? await localPaths()
+        : const <String>{};
+    return selectedAssets.where((a) {
+      if (hasPath(a)) return !existingPaths.contains(a.filePath);
+      return newGalleryIds.contains(a.id);
+    }).toList();
+  }
+
   /// The shared body of an import owned outright by one entity (a site or a
   /// gear item): the dive import's two-key dedupe (gallery picks against the
   /// owner's linked rows, desktop picks on the path), then one linked row per
@@ -462,18 +521,11 @@ class MediaImportService {
     final Map<String, String> failures = {};
     _log.info('Starting import of ${selectedAssets.length} assets for $owner');
 
-    bool hasPath(AssetInfo a) => a.filePath != null && a.filePath!.isNotEmpty;
-    final gallery = selectedAssets.where((a) => !hasPath(a)).toList();
-    final newGalleryIds = gallery.isEmpty
-        ? const <String>{}
-        : await _unlinkedGalleryIds(gallery, await galleryLinks());
-    final existingPaths = selectedAssets.any(hasPath)
-        ? await localPaths()
-        : const <String>{};
-    final newAssets = selectedAssets.where((a) {
-      if (hasPath(a)) return !existingPaths.contains(a.filePath);
-      return newGalleryIds.contains(a.id);
-    }).toList();
+    final newAssets = await _unlinkedOwnedAssets(
+      selectedAssets,
+      galleryLinks: galleryLinks,
+      localPaths: localPaths,
+    );
     final skippedCount = selectedAssets.length - newAssets.length;
 
     final cloudIds = await _cloudIdsFor(newAssets);

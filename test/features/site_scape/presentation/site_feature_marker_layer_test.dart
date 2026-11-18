@@ -82,11 +82,15 @@ class _RecordingFeatureRepository implements SiteFeatureRepository {
   Future<void> updateFeature(
     SiteFeature feature, {
     String? actingDiverId,
+    bool stampLibrary = true,
   }) async => updated.add(feature);
 
   @override
-  Future<void> deleteFeature(String id, {String? actingDiverId}) async =>
-      deleted.add(id);
+  Future<void> deleteFeature(
+    String id, {
+    String? actingDiverId,
+    bool stampLibrary = true,
+  }) async => deleted.add(id);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

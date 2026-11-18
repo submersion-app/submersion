@@ -347,6 +347,19 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
     return (rows: rows, leftOut: leftOut);
   }
 
+  /// The rows [commit] would write for the site [siteId]: every staged
+  /// file, each under a fresh id, built and not written, for a sitting on
+  /// the site that holds them until Save (issue #4527, phase 2). Clears the
+  /// staged files.
+  Future<List<MediaItem>> heldSiteRows(String siteId) async {
+    final rows = <MediaItem>[
+      for (final file in state.files)
+        await _itemFor(file, id: const Uuid().v4(), siteId: siteId),
+    ];
+    clear();
+    return rows;
+  }
+
   /// Reverses a prior [commit] by deleting each row by id. Bookmark blobs
   /// in the keychain are intentionally not cleaned up — see class doc.
   Future<void> undoCommit(List<String> ids) async {

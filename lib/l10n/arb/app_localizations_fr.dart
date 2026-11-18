@@ -12273,6 +12273,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Vous ne pouvez plus modifier ce site. Les modifications non enregistrées ont été abandonnées.';
 
   @override
+  String get diveSites_media_dropUnlockHint =>
+      'Déverrouillez ce site pour y ajouter des photos.';
+
+  @override
+  String get diveSites_edit_saveRefused =>
+      'Vous ne pouvez plus modifier ce site, rien n\'a donc été enregistré.';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return 'Erreur : $error';
   }
@@ -12609,6 +12617,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get diveSites_edit_altitude_foundTooltip =>
       'Trouvé pour ces coordonnées';
+
+  @override
+  String get diveSites_edit_catalogueRefused =>
+      'La fiche du catalogue a changé ou est liée à un autre site. Rien n\'a été enregistré.';
 
   @override
   String get diveSites_edit_depth_rangeInvalid =>

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart' hide DiveSite;
+import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
@@ -68,6 +69,22 @@ class _RecordingSites extends SiteRepository {
     stamps.add((before: before.notes, after: after.notes));
     stampedAfter.add(after);
     await onStamp?.call();
+  }
+}
+
+/// Records the library fields stamped, and fails each stamp: a stamp made
+/// inside the sitting's transaction would roll the sitting back with it.
+class _FailingStamper extends LibraryEditStamper {
+  final stamped = <Set<String>>[];
+
+  @override
+  Future<void> stamp(
+    String siteId,
+    Set<String> fields, {
+    String? actingDiverId,
+  }) async {
+    stamped.add(fields);
+    throw StateError('the library store is out of reach');
   }
 }
 
@@ -178,6 +195,28 @@ void main() {
     expect(recording.actingDiverIds, ['me']);
   });
 
+  // The right to edit, lost after the sitting began: the site's own write
+  // would keep only the private notes and rating, and the held writes would
+  // go through, so the whole Save is refused instead.
+  test('a profile that may no longer edit the site saves nothing', () async {
+    var heldWrites = 0;
+    final refusing = SiteEditSaveService(sites, stamper: _MayNotEdit());
+
+    await expectLater(
+      refusing.save(
+        siteId: 's1',
+        apply: notes('Choppy'),
+        changedCardIds: const ['notes'],
+        alsoWrite: () async => heldWrites++,
+      ),
+      throwsA(isA<SiteEditRefused>()),
+    );
+
+    expect((await stored()).notes, 'Calm');
+    expect(heldWrites, 0);
+    expect(await operations(), isEmpty);
+  });
+
   test('a library stamp waits for the sitting to commit', () async {
     final recording = _RecordingSites();
     await SiteEditSaveService(recording).save(
@@ -189,6 +228,60 @@ void main() {
     // Not stamped inside the transaction, but once it has committed.
     expect(recording.stampedWithUpdate, [false]);
     expect(recording.stamps, [(before: 'Calm', after: 'Choppy')]);
+  });
+
+  test('held writes run in the sitting\'s transaction', () async {
+    await expectLater(
+      service.save(
+        siteId: 's1',
+        apply: notes('Choppy'),
+        changedCardIds: const ['notes'],
+        alsoWrite: () async {
+          await db.customStatement(
+            "UPDATE dive_sites SET name = 'Held' WHERE id = 's1'",
+          );
+          throw StateError('refused');
+        },
+      ),
+      throwsStateError,
+    );
+
+    final site = await stored();
+    expect(site.name, 'Lake');
+    expect(site.notes, 'Calm');
+  });
+
+  test('held library fields are stamped after the commit', () async {
+    final stamper = _FailingStamper();
+    final result = await SiteEditSaveService(sites, stamper: stamper).save(
+      siteId: 's1',
+      apply: notes('Choppy'),
+      changedCardIds: const ['notes'],
+      heldLibraryFields: () => {'features'},
+    );
+
+    expect(stamper.stamped, [
+      {'features'},
+    ]);
+    // The stamp failed once the sitting had committed: the save stands.
+    expect(result, isNotNull);
+    expect((await stored()).notes, 'Choppy');
+  });
+
+  test('a failed save stamps no held library fields', () async {
+    final stamper = _FailingStamper();
+    await expectLater(
+      SiteEditSaveService(sites, stamper: stamper).save(
+        siteId: 's1',
+        apply: notes('Choppy'),
+        changedCardIds: const ['notes'],
+        heldLibraryFields: () => {'features'},
+        alsoWrite: () async => throw StateError('refused'),
+      ),
+      throwsStateError,
+    );
+
+    expect(stamper.stamped, isEmpty);
   });
 
   test('the stamp is the committed write, not a later reread', () async {
@@ -230,6 +323,9 @@ void main() {
     // for once it is there, not only from inside the transaction.
     expect(toldAtStamp, isNonNegative);
     expect(told, greaterThan(toldAtStamp));
+    // Once, after the stamps: not also from inside the save, before them.
+    expect(toldAtStamp, 0);
+    expect(told, 1);
   });
 
   test('a sitting that rolls back leaves no library stamp', () async {
@@ -247,4 +343,10 @@ void main() {
     expect(recording.stamps, isEmpty);
     expect((await stored()).notes, 'Calm');
   });
+}
+
+/// Says this profile may not edit the site.
+class _MayNotEdit extends LibraryEditStamper {
+  @override
+  Future<bool> mayEdit(String siteId, {String? actingDiverId}) async => false;
 }

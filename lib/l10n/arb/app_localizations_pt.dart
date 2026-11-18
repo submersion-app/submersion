@@ -12224,6 +12224,14 @@ class AppLocalizationsPt extends AppLocalizations {
       'Você não pode mais editar este ponto. As alterações não salvas foram descartadas.';
 
   @override
+  String get diveSites_media_dropUnlockHint =>
+      'Desbloqueie este ponto para adicionar fotos.';
+
+  @override
+  String get diveSites_edit_saveRefused =>
+      'Você não pode mais editar este ponto, então nada foi salvo.';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return 'Erro: $error';
   }
@@ -12561,6 +12569,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diveSites_edit_altitude_foundTooltip =>
       'Encontrado para estas coordenadas';
+
+  @override
+  String get diveSites_edit_catalogueRefused =>
+      'O registo do catálogo foi alterado ou está associado a outro local. Nada foi guardado.';
 
   @override
   String get diveSites_edit_depth_rangeInvalid =>

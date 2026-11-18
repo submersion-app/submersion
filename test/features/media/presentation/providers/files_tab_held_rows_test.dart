@@ -75,4 +75,31 @@ void main() {
     expect(row.originalFilename, 'a.jpg');
     verifyNever(repo.createMedia(any));
   });
+
+  test(
+    "heldSiteRows builds every staged file as the site's, writes none",
+    () async {
+      final notifier = container.read(filesTabNotifierProvider.notifier);
+      final a = _ef('/a.jpg');
+      final b = _ef('/b.jpg');
+      // A site has no dives: the matcher's grouping is ignored, as commit
+      // ignores it for a site.
+      notifier.setFiles(
+        [a, b],
+        match: MatchedSelection(
+          matched: {
+            'd1': [a],
+          },
+          unmatched: [b],
+        ),
+      );
+
+      final rows = await notifier.heldSiteRows('s1');
+
+      expect(rows.map((r) => r.originalFilename), ['a.jpg', 'b.jpg']);
+      expect(rows.every((r) => r.siteId == 's1' && r.diveId == null), isTrue);
+      expect(rows.every((r) => r.id.isNotEmpty), isTrue);
+      verifyNever(repo.createMedia(any));
+    },
+  );
 }

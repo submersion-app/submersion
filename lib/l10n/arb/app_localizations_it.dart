@@ -12229,6 +12229,14 @@ class AppLocalizationsIt extends AppLocalizations {
       'Non puoi più modificare questo sito. Le modifiche non salvate sono state scartate.';
 
   @override
+  String get diveSites_media_dropUnlockHint =>
+      'Sblocca questo sito per aggiungervi foto.';
+
+  @override
+  String get diveSites_edit_saveRefused =>
+      'Non puoi più modificare questo sito, quindi non è stato salvato nulla.';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return 'Errore: $error';
   }
@@ -12569,6 +12577,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get diveSites_edit_altitude_foundTooltip =>
       'Trovato per queste coordinate';
+
+  @override
+  String get diveSites_edit_catalogueRefused =>
+      'La voce del catalogo è cambiata o è collegata a un altro sito. Non è stato salvato nulla.';
 
   @override
   String get diveSites_edit_depth_rangeInvalid =>

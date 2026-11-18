@@ -12390,6 +12390,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'لم يعد بإمكانك تعديل هذا الموقع. تم تجاهل أي تغييرات غير محفوظة.';
 
   @override
+  String get diveSites_media_dropUnlockHint =>
+      'افتح قفل هذا الموقع لإضافة صور إليه.';
+
+  @override
+  String get diveSites_edit_saveRefused =>
+      'لم يعد بإمكانك تعديل هذا الموقع، لذا لم يُحفظ شيء.';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return 'خطأ: $error';
   }
@@ -12728,6 +12736,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveSites_edit_altitude_foundTooltip => 'وُجد لهذه الإحداثيات';
+
+  @override
+  String get diveSites_edit_catalogueRefused =>
+      'تغيّر سجل الدليل أو أصبح مرتبطًا بموقع آخر. لم يُحفظ أي شيء.';
 
   @override
   String get diveSites_edit_depth_rangeInvalid =>

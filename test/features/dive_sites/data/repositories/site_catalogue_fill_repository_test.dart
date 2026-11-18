@@ -516,11 +516,14 @@ void main() {
       fills = SiteCatalogueFillRepository(stamper: _Stamper(allow: false));
       await clearPendingMarks(db);
 
-      await fills.updateAnswers(
+      final written = await fills.updateAnswers(
         'club',
         (current) => current.withNotSame('r1'),
         actingDiverId: 'd1',
       );
+
+      // Said, so an editing sitting can refuse the Save.
+      expect(written, isFalse);
 
       expect(
         (await stored('club')).catalogueAnswers,

@@ -64,13 +64,32 @@ const double _featureTapZoom = 17.0;
 class SiteFeatureMarkerLayer extends ConsumerWidget {
   final String? siteId;
 
-  const SiteFeatureMarkerLayer({super.key, required this.siteId});
+  /// The features to draw in place of those stored: a sitting's (issue
+  /// #4527).
+  final List<domain.SiteFeature>? features;
+
+  /// No Edit in the info sheet, whatever the profile may do: a page that
+  /// holds edits in a sitting edits features only from its open card.
+  final bool readOnly;
+
+  /// What the info sheet's Edit does in place of writing at once
+  /// ([editSiteFeature]): hold the change in a sitting.
+  final ValueChanged<domain.SiteFeature>? onEdit;
+
+  const SiteFeatureMarkerLayer({
+    super.key,
+    required this.siteId,
+    this.features,
+    this.readOnly = false,
+    this.onEdit,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final id = siteId;
     if (id == null) return const SizedBox.shrink();
-    final features = ref.watch(siteFeaturesProvider(id)).valueOrNull;
+    final features =
+        this.features ?? ref.watch(siteFeaturesProvider(id)).valueOrNull;
     // Kept loaded for the marker sheet, which reads it on a tap.
     ref.watch(siteEditableProvider(id));
     if (features == null || features.isEmpty) return const SizedBox.shrink();
@@ -112,15 +131,22 @@ class SiteFeatureMarkerLayer extends ConsumerWidget {
       target,
       math.max(MapCamera.of(context).zoom, _featureTapZoom),
     );
-    // A shared library site the active profile only reads: the sheet
-    // shows the feature without an edit.
+    // A shared library site the active profile only reads, or a page that
+    // edits features only in a sitting: the sheet shows the feature
+    // without an edit.
     final editable =
-        ref.read(siteEditableProvider(feature.siteId)).valueOrNull ?? false;
+        !readOnly &&
+        (ref.read(siteEditableProvider(feature.siteId)).valueOrNull ?? false);
+    final edit = onEdit;
     showSiteFeatureInfoSheet(
       context,
       ref,
       feature,
-      onEdit: editable ? () => editSiteFeature(context, ref, feature) : null,
+      onEdit: !editable
+          ? null
+          : edit != null
+          ? () => edit(feature)
+          : () => editSiteFeature(context, ref, feature),
     );
   }
 }

@@ -21,7 +21,7 @@ const notASittingValue = <String, String>{
   'catalogue_id': 'set by adoption, import and the catalogue fill only',
   'catalogue_answers': 'set by the catalogue fill only',
   'shared_library_id': 'set by the shared library only',
-  'is_shared': 'sharing, a card of plan 3',
+  'is_shared': 'written by the sharing held change (site_sharing_sitting)',
 };
 
 /// The columns each sitting field writes, by field id, where they differ

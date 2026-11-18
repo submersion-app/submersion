@@ -1,6 +1,7 @@
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/change_log/record_edit_label.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 
 /// Runs [body], the writes of one editing sitting on the record [recordId]
 /// of [table] (issue #4527), in one change log operation and one database
@@ -11,6 +12,10 @@ import 'package:submersion/core/services/database_service.dart';
 /// the cards the sitting changed ([RecordEditLabel]). The scope goes outside
 /// the transaction it covers, as [ChangeLogScope] requires; an operation
 /// that ends with no events is removed when the log settles.
+///
+/// Sync is told of the sitting once, after the commit, and not at all when
+/// it rolls back ([SyncEventBus.holdNotices]): the writes inside it hold
+/// their notices.
 Future<R> runRecordSitting<R>({
   required String table,
   required String recordId,
@@ -24,7 +29,11 @@ Future<R> runRecordSitting<R>({
     id: recordId,
     cardIds: changedCardIds,
   ),
-  body: () => DatabaseService.instance.database.transaction(body),
+  // Sync hears of the sitting once it has committed, not of each write
+  // inside it: a write a later one rolls back was never saved.
+  body: () => SyncEventBus.holdNotices(
+    () => DatabaseService.instance.database.transaction(body),
+  ),
 );
 
 /// Writes one editing sitting on the record [recordId] of [table], inside

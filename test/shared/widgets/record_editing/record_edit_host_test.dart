@@ -13,6 +13,7 @@ import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart'
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
+import 'package:submersion/shared/widgets/record_editing/record_sitting_refusal.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_pane_header.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_shortcuts.dart';
 
@@ -62,6 +63,7 @@ class _Probe {
   };
   final saves = <Set<String>>[];
   bool failSave = false;
+  Object? refuseWith;
 }
 
 final _probeProvider = Provider<_Probe>((ref) => throw UnimplementedError());
@@ -114,6 +116,7 @@ class _NotePageState extends ConsumerState<_NotePage>
     final probe = ref.read(_probeProvider);
     probe.saves.add(session.changedCardIds);
     if (probe.failSave) throw StateError('the save failed');
+    if (probe.refuseWith case final refusal?) throw refusal;
     justSavedRecord = session.working;
   }
 
@@ -286,6 +289,20 @@ void main() {
     expect(find.text(l.recordEdit_saveFailed), findsOneWidget);
     expect(find.byType(RecordEditBar), findsOneWidget);
     expect(find.text('Choppy'), findsOneWidget);
+  });
+
+  testWidgets('a refused held write shows its own message', (tester) async {
+    await pump(tester, const _NotePage(noteId: 'n1'));
+    await unlock(tester);
+    await editText(tester, 'Choppy');
+    probe.refuseWith = RecordSittingRefusal((_) => 'Refused here');
+
+    await tester.tap(find.text(l.forms_save));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Refused here'), findsOneWidget);
+    expect(find.text(l.recordEdit_saveFailed), findsNothing);
+    expect(find.byType(RecordEditBar), findsOneWidget);
   });
 
   testWidgets('Back with changes asks, and discarding locks', (tester) async {

@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' show Variable;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/change_log/record_sitting_writer.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 
 import '../../../helpers/test_database.dart';
@@ -143,6 +146,83 @@ void main() {
     );
 
     expect(await name(), 'Lake');
+  });
+
+  // A write inside the sitting tells sync of its change; the sitting tells
+  // it once it has committed, and not at all when it rolls back, so nothing
+  // reacts to rows that were never saved.
+  group('sync is told', () {
+    late int told;
+    setUp(() {
+      told = 0;
+      final listening = SyncEventBus.changes.listen((_) => told++);
+      addTearDown(listening.cancel);
+    });
+
+    Future<void> delivered() => Future<void>.delayed(Duration.zero);
+
+    test('once, after the commit', () async {
+      var toldInside = -1;
+      await save(
+        apply: (_) => 'Pond',
+        write: (_, merged) async {
+          await writeName(merged);
+          SyncEventBus.notifyLocalChange();
+          SyncEventBus.notifyLocalChange();
+        },
+        alsoWrite: () async {
+          await delivered();
+          toldInside = told;
+        },
+      );
+      await delivered();
+
+      expect(toldInside, 0);
+      expect(told, 1);
+    });
+
+    test('not at all when the sitting rolls back', () async {
+      await expectLater(
+        save(
+          apply: (_) => 'Pond',
+          write: (_, merged) async {
+            await writeName(merged);
+            SyncEventBus.notifyLocalChange();
+          },
+          alsoWrite: () async => throw StateError('refused'),
+        ),
+        throwsStateError,
+      );
+      await delivered();
+
+      expect(told, 0);
+    });
+
+    test('by work the sitting started, once it has ended', () async {
+      final later = Completer<void>();
+      await save(
+        apply: (_) => 'Pond',
+        write: (_, merged) async {
+          await writeName(merged);
+          // A timer started during the sitting outlives it.
+          Timer(const Duration(milliseconds: 1), () {
+            SyncEventBus.notifyLocalChange();
+            later.complete();
+          });
+        },
+      );
+      await later.future;
+      await delivered();
+
+      expect(told, 1);
+    });
+
+    test('outside a sitting, at once', () async {
+      SyncEventBus.notifyLocalChange();
+      await delivered();
+
+      expect(told, 1);
+    });
   });
 
   test('a record that has gone throws', () async {

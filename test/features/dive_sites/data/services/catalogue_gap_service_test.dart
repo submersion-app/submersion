@@ -697,6 +697,7 @@ class _ThrowsFor extends SiteCatalogueFillRepository {
     Set<CatalogueGapField> declined = const {},
     String? bodyOfWater,
     String? actingDiverId,
+    bool stampLibrary = true,
   }) {
     if (siteId == this.siteId) throw StateError('disk full');
     return super.applyFill(
@@ -706,6 +707,7 @@ class _ThrowsFor extends SiteCatalogueFillRepository {
       declined: declined,
       bodyOfWater: bodyOfWater,
       actingDiverId: actingDiverId,
+      stampLibrary: stampLibrary,
     );
   }
 }

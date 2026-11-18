@@ -11960,6 +11960,14 @@ class AppLocalizationsHe extends AppLocalizations {
       'כבר אין לך הרשאה לערוך את האתר הזה. שינויים שלא נשמרו בוטלו.';
 
   @override
+  String get diveSites_media_dropUnlockHint =>
+      'בטל את נעילת האתר כדי להוסיף לו תמונות.';
+
+  @override
+  String get diveSites_edit_saveRefused =>
+      'כבר אין לך הרשאה לערוך את האתר הזה, ולכן דבר לא נשמר.';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return 'שגיאה: $error';
   }
@@ -12290,6 +12298,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get diveSites_edit_altitude_foundTooltip =>
       'נמצא עבור הקואורדינטות האלה';
+
+  @override
+  String get diveSites_edit_catalogueRefused =>
+      'רשומת הקטלוג השתנתה או מקושרת לאתר אחר. דבר לא נשמר.';
 
   @override
   String get diveSites_edit_depth_rangeInvalid =>

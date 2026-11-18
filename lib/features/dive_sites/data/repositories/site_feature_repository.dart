@@ -15,9 +15,12 @@ import 'package:submersion/core/services/shared_library/library_edit_stamper.dar
 /// house write ritual: write the row, mark it pending (which stamps its
 /// HLC), bump and mark the parent site, then notify the sync bus.
 class SiteFeatureRepository {
+  SiteFeatureRepository({LibraryEditStamper? stamper})
+    : _libraryStamper = stamper ?? LibraryEditStamper();
+
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();
-  final LibraryEditStamper _libraryStamper = LibraryEditStamper();
+  final LibraryEditStamper _libraryStamper;
   final _uuid = const Uuid();
 
   /// Emits whenever the `site_features` table changes so providers can
@@ -35,9 +38,14 @@ class SiteFeatureRepository {
     String name = '',
     String notes = '',
     String? actingDiverId,
+    bool stampLibrary = true,
   }) async {
-    // A library site [actingDiverId] may not edit (issue #2567).
-    if (!await _libraryStamper.mayEdit(siteId, actingDiverId: actingDiverId)) {
+    // A library site [actingDiverId] may not edit (issue #2567). An editing
+    // sitting ([stampLibrary] false) was offered only to a profile that may,
+    // and names none here: asked with no profile, every local one would
+    // have to be able to.
+    if (stampLibrary &&
+        !await _libraryStamper.mayEdit(siteId, actingDiverId: actingDiverId)) {
       throw StateError('site $siteId is not this profile to edit');
     }
     final now = DateTime.now().millisecondsSinceEpoch;
@@ -53,7 +61,13 @@ class SiteFeatureRepository {
       notes: notes,
     );
     await _insertFeature(feature, now);
-    await _markPendingAndBumpSite(feature.id, siteId, now, actingDiverId);
+    await _markPendingAndBumpSite(
+      feature.id,
+      siteId,
+      now,
+      actingDiverId,
+      stampLibrary: stampLibrary,
+    );
     return feature;
   }
 
@@ -177,14 +191,22 @@ class SiteFeatureRepository {
 
   /// [actingDiverId] as for [addFeature]; a feature of a library site that
   /// profile may not edit is left as it is.
+  ///
+  /// [stampLibrary] false, here and on [addFeature] and [deleteFeature],
+  /// leaves the library stamp, and the permission, to the caller: an editing sitting writes
+  /// inside its own transaction and stamps once that has committed, since
+  /// the stamp goes to the shared library store, which a rollback would not
+  /// undo (issue #4527).
   Future<void> updateFeature(
     domain.SiteFeature feature, {
     String? actingDiverId,
+    bool stampLibrary = true,
   }) async {
-    if (!await _libraryStamper.mayEdit(
-      feature.siteId,
-      actingDiverId: actingDiverId,
-    )) {
+    if (stampLibrary &&
+        !await _libraryStamper.mayEdit(
+          feature.siteId,
+          actingDiverId: actingDiverId,
+        )) {
       return;
     }
     final now = DateTime.now().millisecondsSinceEpoch;
@@ -207,28 +229,36 @@ class SiteFeatureRepository {
       feature.siteId,
       now,
       actingDiverId,
+      stampLibrary: stampLibrary,
     );
   }
 
-  /// [actingDiverId] as for [updateFeature].
-  Future<void> deleteFeature(String id, {String? actingDiverId}) async {
+  /// [actingDiverId] and [stampLibrary] as for [updateFeature].
+  Future<void> deleteFeature(
+    String id, {
+    String? actingDiverId,
+    bool stampLibrary = true,
+  }) async {
     final row = await (_db.select(
       _db.siteFeatures,
     )..where((t) => t.id.equals(id))).getSingleOrNull();
     if (row == null ||
-        !await _libraryStamper.mayEdit(
-          row.siteId,
-          actingDiverId: actingDiverId,
-        )) {
+        (stampLibrary &&
+            !await _libraryStamper.mayEdit(
+              row.siteId,
+              actingDiverId: actingDiverId,
+            ))) {
       return;
     }
     await (_db.delete(_db.siteFeatures)..where((t) => t.id.equals(id))).go();
     final now = DateTime.now().millisecondsSinceEpoch;
     await _syncRepository.logDeletion(entityType: 'siteFeatures', recordId: id);
     await _bumpSite(row.siteId, now);
-    await _libraryStamper.stamp(row.siteId, {
-      'features',
-    }, actingDiverId: actingDiverId);
+    if (stampLibrary) {
+      await _libraryStamper.stamp(row.siteId, {
+        'features',
+      }, actingDiverId: actingDiverId);
+    }
     SyncEventBus.notifyLocalChange();
   }
 
@@ -236,17 +266,20 @@ class SiteFeatureRepository {
     String id,
     String siteId,
     int now,
-    String? actingDiverId,
-  ) async {
+    String? actingDiverId, {
+    bool stampLibrary = true,
+  }) async {
     await _syncRepository.markRecordPending(
       entityType: 'siteFeatures',
       recordId: id,
       localUpdatedAt: now,
     );
     await _bumpSite(siteId, now);
-    await _libraryStamper.stamp(siteId, {
-      'features',
-    }, actingDiverId: actingDiverId);
+    if (stampLibrary) {
+      await _libraryStamper.stamp(siteId, {
+        'features',
+      }, actingDiverId: actingDiverId);
+    }
     SyncEventBus.notifyLocalChange();
   }
 

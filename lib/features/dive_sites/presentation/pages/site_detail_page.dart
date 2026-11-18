@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:uuid/uuid.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart';
 import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
@@ -82,14 +84,27 @@ import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart'
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_classification_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_edit_cards.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_sitting_save.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_sitting_start.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_catalogue_sitting.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_features_sitting.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_sharing_sitting.dart';
+import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
+import 'package:submersion/shared/widgets/shared_items/item_sharing_field.dart';
+import 'package:submersion/shared/widgets/shared_items/share_target_dialog.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_plain_fields.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_species_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/unlock_site_editing_flag.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_edit_save_provider.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_editing_page_provider.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_fade.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
+import 'package:submersion/shared/widgets/record_editing/sitting_list.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
@@ -224,7 +239,10 @@ class _SiteDetailContent extends ConsumerStatefulWidget {
 }
 
 class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
-    with RecordEditHost<_SiteDetailContent, DiveSite>, _SiteDetailPageEditing {
+    with
+        RecordEditHost<_SiteDetailContent, DiveSite>,
+        _SiteDetailPageEditing,
+        _SiteDetailFullscreen {
   /// Opens the display-options panel from the overflow menu. One controller
   /// serves both headers, since only one of them is ever built.
   final MenuController _displayOptionsMenu = MenuController();
@@ -234,8 +252,6 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
   /// padding alone cost more vertical space than several of the cards' own
   /// content.
   static const _cardPadding = EdgeInsets.all(12);
-
-  final MapController _fullController = MapController();
 
   @override
   void dispose() {
@@ -273,9 +289,16 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
           edit.hosts
               ? RecordCardFrame<DiveSite>(
                   card: siteHeaderCard,
-                  child: SiteDetailHeader(site: site),
+                  child: SiteDetailHeader(
+                    site: site,
+                    types: _heldList(siteTypesList),
+                    // The header block's editor reviews the offer.
+                    offerReviewable: false,
+                    showOffer: !_catalogueReviewed(),
+                  ),
                 )
               : SiteDetailHeader(site: site),
+          if (edit.hosts) ?_sharedWithLine(context, site),
           SharedByBanner(
             kind: SharedItemKind.site,
             itemId: site.id,
@@ -359,7 +382,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
         record: widget.site,
         shown: site,
         lockedBar: appBar,
-        content: body,
+        content: _withFeaturePlacement(context, body),
       );
     }
     return Scaffold(appBar: appBar, body: body);
@@ -446,11 +469,15 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
       ),
       // Diver-placed annotations. Placement happens on the map, so the add
       // action opens the fullscreen scape armed to place.
-      SiteDetailSectionId.features: () => site.hasCoordinates
+      // Laid out from the held record: cleared coordinates take the card
+      // away only once no editor is open (issue #4527).
+      SiteDetailSectionId.features: () => laidOut.hasCoordinates
           ? (_) => SiteFeaturesSection(
               siteId: site.id,
-              // A library site this profile only reads offers no edits.
-              onAddFeature: _canEditSite(ref, site)
+              // A library site this profile only reads offers no edits, and
+              // a page that holds edits in a sitting edits them only in the
+              // card's editor (issue #4527).
+              onAddFeature: !editing && _canEditSite(ref, site)
                   ? () => _showFullscreenMap(
                       context,
                       ref,
@@ -458,6 +485,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
                       startPlacing: true,
                     )
                   : null,
+              features: _heldList(siteFeaturesList),
             )
           : null,
       // A quarry or lake has no tides, and a nearby ocean station must not
@@ -473,8 +501,10 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
       SiteDetailSectionId.marineLife: () =>
           (_) => SiteMarineLifeSection(
             siteId: site.id,
-            readOnly: !_canEditSite(ref, site),
+            // Hosting editing, the card's pencil edits them, held.
+            readOnly: editing || !_canEditSite(ref, site),
             location: site.location,
+            species: _heldList(siteSpeciesList),
           ),
       // Attachments and dive photos.
       SiteDetailSectionId.media: () =>
@@ -500,10 +530,15 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
       // Tags (issue #1765), after media as on a dive. Shown only when the
       // site has some, decided here so an empty card leaves no gap and, in
       // the list layout, no empty header.
-      SiteDetailSectionId.tags: () =>
-          (ref.watch(tagsForSiteProvider(site.id)).value ?? const []).isEmpty
-          ? null
-          : (_) => SiteTagsCard(siteId: site.id),
+      SiteDetailSectionId.tags: () {
+        // A sitting's tags, once changed, decide as the stored ones do.
+        final held = _heldList(siteTagsList);
+        final tags =
+            held ?? ref.watch(tagsForSiteProvider(site.id)).value ?? const [];
+        return tags.isEmpty
+            ? null
+            : (_) => SiteTagsCard(siteId: site.id, tags: held);
+      },
       SiteDetailSectionId.difficulty: () => _shownWhileLaidOut(
         SiteDetailSectionId.difficulty,
         laidOut: laidOut,
@@ -526,8 +561,9 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
       ),
       SiteDetailSectionId.notes: () =>
           (context) => _buildNotesSection(context, site),
+      // Typed by the site, so a page that edits in place reads it only.
       SiteDetailSectionId.documents: () =>
-          (context) => DocumentsSection(
+          (context) => DocumentsSection<DiveSite>(
             owner: DocumentOwner(DocumentOwnerKind.site, site.id),
           ),
     };
@@ -1137,7 +1173,12 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
                     ),
                   ),
                   BathymetryDepthOverlayLayer(location: site.location),
-                  SiteFeatureMarkerLayer(siteId: site.id),
+                  SiteFeatureMarkerLayer(
+                    siteId: site.id,
+                    // The page edits features only in their open card.
+                    readOnly: hostsEditing,
+                    features: _heldList(siteFeaturesList),
+                  ),
                   MarkerLayer(
                     markers: [
                       Marker(
@@ -1203,25 +1244,6 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
             // No map style switcher on the locked preview: the fullscreen map
             // carries one.
           ],
-        ),
-      ),
-    );
-  }
-
-  void _showFullscreenMap(
-    BuildContext context,
-    WidgetRef ref,
-    DiveSite site, {
-    bool initialScape3d = false,
-    bool startPlacing = false,
-  }) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => _FullscreenSiteScapePage(
-          site: site,
-          controller: _fullController,
-          initialScape3d: initialScape3d,
-          startPlacing: startPlacing,
         ),
       ),
     );

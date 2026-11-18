@@ -164,7 +164,7 @@ extension _DiveDetailSectionContent on DiveDetailSectionList {
           onAnnotationTap: actions.openAnnotation,
         );
       case DiveDetailSectionId.documents:
-        return DocumentsSection(
+        return DocumentsSection<Dive>(
           owner: DocumentOwner(DocumentOwnerKind.dive, dive.id),
         );
       case DiveDetailSectionId.customFields:

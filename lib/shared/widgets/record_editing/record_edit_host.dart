@@ -13,6 +13,7 @@ import 'package:submersion/shared/widgets/record_editing/record_edit_controller.
 import 'package:submersion/shared/widgets/record_editing/record_edit_leave_guard.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_pane_header.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_shortcuts.dart';
+import 'package:submersion/shared/widgets/record_editing/record_sitting_refusal.dart';
 import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blocker.dart';
 
 /// In-place editing for a record page (issue #4527): what every record page
@@ -275,7 +276,12 @@ mixin RecordEditHost<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
       controller.lock();
     }
     if (error == null) return;
-    messenger.showSnackBar(SnackBar(content: Text(l10n.recordEdit_saveFailed)));
+    // A held write the database refused says what it was; anything else is
+    // a save that failed.
+    final message = error is RecordSittingRefusal
+        ? error.message(l10n)
+        : l10n.recordEdit_saveFailed;
+    messenger.showSnackBar(SnackBar(content: Text(message)));
   }
 
   /// Cancels the sitting, asking first when it has changes, or leaves a

@@ -7,6 +7,8 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_edit_cards.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_header_card_editor.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_plain_fields.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
 import 'site_editor_harness.dart';
@@ -67,5 +69,44 @@ void main() {
     await tester.tap(find.text(WaterType.fresh.localizedName(l)));
     await tester.pump();
     expect(h.session.valueOf(siteWaterTypeField), WaterType.fresh);
+  });
+
+  group('sharing', () {
+    final at = DateTime.utc(2026);
+    final me = Diver(id: 'me', name: 'Me', createdAt: at, updatedAt: at);
+    final ana = Diver(id: 'ana', name: 'Ana', createdAt: at, updatedAt: at);
+    const owned = DiveSite(id: 's1', diverId: 'me', name: 'Blue Hole');
+
+    Future<void> pumpWith(
+      WidgetTester tester,
+      DiveSite s,
+      List<Diver> divers,
+    ) => pumpSiteEditor(
+      tester,
+      s,
+      (session) => SiteHeaderCardEditor(session: session),
+      overrides: [
+        allDiversProvider.overrideWith((_) async => divers),
+        validatedCurrentDiverIdProvider.overrideWith((_) async => 'me'),
+      ],
+    );
+
+    testWidgets('offered with two or more divers', (tester) async {
+      await pumpWith(tester, owned, [me, ana]);
+      expect(find.text(l.sharedItems_sharedWith_label), findsOneWidget);
+    });
+
+    testWidgets('not offered with one diver', (tester) async {
+      await pumpWith(tester, owned, [me]);
+      expect(find.text(l.sharedItems_sharedWith_label), findsNothing);
+    });
+
+    testWidgets('not offered for a library site', (tester) async {
+      await pumpWith(tester, owned.copyWith(sharedLibraryId: 'lib-1'), [
+        me,
+        ana,
+      ]);
+      expect(find.text(l.sharedItems_sharedWith_label), findsNothing);
+    });
   });
 }

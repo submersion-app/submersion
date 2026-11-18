@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_media_sitting.dart';
+import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/services/media_repair_types.dart';
 import 'package:submersion/features/media/presentation/helpers/media_hold.dart';
@@ -54,6 +54,7 @@ void main() {
         drainDeletes: () async => calls.add('drain deletes'),
         enqueueUpload: queued.add,
       ),
+      cardId: 'media',
     );
     return session;
   }
@@ -195,6 +196,7 @@ void main() {
           drainDeletes: () async {},
           enqueueUpload: (_) {},
         ),
+        cardId: 'media',
       );
       relink(session);
 
@@ -248,7 +250,7 @@ void main() {
       throw StateError('read at unlock');
     }
 
-    SittingMediaWriters.read(reading);
+    SittingMediaWriters.forDive(reading);
     expect(read, isEmpty);
   });
 }

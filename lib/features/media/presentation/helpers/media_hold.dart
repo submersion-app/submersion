@@ -6,8 +6,8 @@ import 'package:submersion/features/media/data/services/network_fetch_pipeline.d
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 
-/// What a picker hands a sitting on a dive in place of writing (issue
-/// #4527, plan 6): the rows it would write, shown as tiles until Save.
+/// What a picker hands a sitting on a dive or a site in place of writing
+/// (issue #4527, plan 6): the rows it would write, shown as tiles until Save.
 sealed class HeldMediaAdd {
   const HeldMediaAdd();
 
@@ -48,6 +48,7 @@ MediaItem networkPreview(NetworkInsertRequest request) {
   return MediaItem(
     id: const Uuid().v4(),
     diveId: request.diveId,
+    siteId: request.siteId,
     mediaType: MediaType.photo,
     sourceType: MediaSourceType.networkUrl,
     url: media.result?.url ?? media.uri.toString(),

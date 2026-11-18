@@ -30,6 +30,7 @@ void main() {
     write: (record, loaded, current) async {
       writes.add((record: record, loaded: loaded, current: current));
       await onWrite?.call();
+      return null;
     },
     same: same,
   );
@@ -200,5 +201,12 @@ void main() {
     expect(writes.map((w) => w.current), [
       ['a'],
     ]);
+  });
+
+  test('sameIdSets compares by id, in any order', () {
+    String id(String s) => s.split(':').first;
+    expect(sameIdSets(['a:1', 'b:2'], ['b:9', 'a:8'], id), isTrue);
+    expect(sameIdSets(['a:1'], ['a:1', 'b:2'], id), isFalse);
+    expect(sameIdSets(['a:1', 'a:2'], ['a:3', 'b:4'], id), isFalse);
   });
 }

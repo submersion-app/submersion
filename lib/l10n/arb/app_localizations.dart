@@ -19426,6 +19426,18 @@ abstract class AppLocalizations {
   /// **'You can no longer edit this site. Any unsaved changes were discarded.'**
   String get diveSites_edit_editingWithdrawn;
 
+  /// Snack bar when a file is dropped on a site whose page edits in place while the site is locked: unlock it first
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock this site to add photos.'**
+  String get diveSites_media_dropUnlockHint;
+
+  /// Snack bar when Save is refused because this profile may no longer edit the site (its library role was taken away since editing began), so nothing was saved
+  ///
+  /// In en, this message translates to:
+  /// **'You can no longer edit this site, so nothing was saved.'**
+  String get diveSites_edit_saveRefused;
+
   /// No description provided for @diveSites_detail_error_body.
   ///
   /// In en, this message translates to:
@@ -19984,6 +19996,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Found for these coordinates'**
   String get diveSites_edit_altitude_foundTooltip;
+
+  /// Snack bar when a held catalogue link is refused at Save (the record changed or another site claimed it), so nothing was saved
+  ///
+  /// In en, this message translates to:
+  /// **'The catalogue record has changed or is linked to another site. Nothing was saved.'**
+  String get diveSites_edit_catalogueRefused;
 
   /// Under the Depth card's rows, and why Save is refused, when the minimum depth is deeper than the maximum
   ///

@@ -12150,6 +12150,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'Je kunt deze stek niet meer bewerken. Niet-opgeslagen wijzigingen zijn verwijderd.';
 
   @override
+  String get diveSites_media_dropUnlockHint =>
+      'Ontgrendel deze stek om er foto\'s aan toe te voegen.';
+
+  @override
+  String get diveSites_edit_saveRefused =>
+      'Je kunt deze stek niet meer bewerken, dus er is niets opgeslagen.';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return 'Fout: $error';
   }
@@ -12483,6 +12491,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveSites_edit_altitude_foundTooltip =>
       'Gevonden voor deze coördinaten';
+
+  @override
+  String get diveSites_edit_catalogueRefused =>
+      'Het catalogusitem is gewijzigd of aan een andere duiklocatie gekoppeld. Er is niets opgeslagen.';
 
   @override
   String get diveSites_edit_depth_rangeInvalid =>

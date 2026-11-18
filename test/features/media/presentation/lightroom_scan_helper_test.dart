@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/lightroom/adobe_ims_auth_manager.dart';
@@ -14,7 +15,7 @@ import 'package:submersion/features/media/data/services/lightroom_scan_service.d
 import 'package:submersion/features/media/data/services/media_import_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_media_sitting.dart';
+import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
@@ -176,6 +177,7 @@ void main() {
           drainDeletes: () async {},
           enqueueUpload: (_) {},
         ),
+        cardId: DiveDetailSectionId.media.name,
       );
       return session;
     }
