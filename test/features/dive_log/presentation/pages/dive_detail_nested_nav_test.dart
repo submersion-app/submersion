@@ -96,5 +96,43 @@ void main() {
         expect(closed, isTrue);
       },
     );
+
+    // The site unlocks in place in the dive's pane, where Delete and Remove
+    // run: a site gone returns the pane to the dive, as its back arrow does.
+    testWidgets('a site deleted from the pane returns to the dive', (
+      tester,
+    ) async {
+      final overrides = await getBaseOverrides();
+      var closed = 0;
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            diveProvider(diveId).overrideWith((ref) async => dive),
+            siteProvider(siteId).overrideWith((ref) async => site),
+            siteDiveCountProvider(siteId).overrideWith((ref) async => 0),
+          ].cast<Override>(),
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: DiveDetailPage(
+              diveId: diveId,
+              embedded: true,
+              embeddedSiteId: siteId,
+              onCloseEmbeddedSite: () => closed++,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final onDeleted = tester
+          .widget<SiteDetailPage>(find.byType(SiteDetailPage))
+          .onDeleted;
+      expect(onDeleted, isNotNull);
+      onDeleted!();
+      expect(closed, 1);
+    });
   });
 }

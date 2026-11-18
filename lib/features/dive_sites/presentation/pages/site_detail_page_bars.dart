@@ -112,18 +112,13 @@ extension _SiteDetailBars on _SiteDetailContentState {
       ),
     );
     final own = ownership;
-    return [
-      if (historyItem)
-        changeLogHistoryMenuItem(
-          context,
-          rootTable: 'dive_sites',
-          rootId: site.id,
-        ),
-      openInConnectionsMenuItem(context),
-      duplicateSiteMenuItem(context),
-      displayOptionsMenuItem(context, 'displayOptions'),
-      if (reason != null) recordOperationCaption<String>(context, reason),
-      ..._libraryMenuItems(context, ref, site, operationsEnabled: enabled),
+    final library = _libraryMenuItems(
+      context,
+      ref,
+      site,
+      operationsEnabled: enabled,
+    );
+    final owned = [
       if (own != null)
         // Delete for the owner; another profile only removes the shared
         // site from itself (issue #2594); neither while the profile is
@@ -147,6 +142,29 @@ extension _SiteDetailBars on _SiteDetailContentState {
             Icons.visibility_off_outlined,
             context.l10n.sharedItems_removeAction,
           ),
+    ];
+    // The reason only over record actions the menu shows.
+    final offersRecordAction =
+        owned.isNotEmpty ||
+        library.any(
+          (e) =>
+              e is PopupMenuItem<String> &&
+              kSiteRecordActions.contains(e.value),
+        );
+    return [
+      if (historyItem)
+        changeLogHistoryMenuItem(
+          context,
+          rootTable: 'dive_sites',
+          rootId: site.id,
+        ),
+      openInConnectionsMenuItem(context),
+      duplicateSiteMenuItem(context),
+      displayOptionsMenuItem(context, 'displayOptions'),
+      if (reason != null && offersRecordAction)
+        recordOperationCaption<String>(context, reason),
+      ...library,
+      ...owned,
     ];
   }
 

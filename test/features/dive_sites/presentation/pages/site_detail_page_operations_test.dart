@@ -10,6 +10,7 @@ import 'package:submersion/core/services/shared_library/shared_library_models.da
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/core/services/shared_library/shared_site_publisher.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -47,6 +48,7 @@ void main() {
     List<String> divers = const ['me'],
     bool openUnlocked = false,
     VoidCallback? onSittingEnded,
+    ItemSharing sharing = ItemSharing.all,
     List<Override> extra = const [],
   }) async {
     final sites = _RecordingSites();
@@ -66,7 +68,7 @@ void main() {
           _FakeHides(hidden: hidden),
         ),
         itemSharesRepositoryProvider.overrideWithValue(
-          FakeItemShares({site.id: ItemSharing.all}),
+          FakeItemShares({site.id: sharing}),
         ),
         ...extra,
       ],
@@ -207,6 +209,29 @@ void main() {
     expect(find.byType(TextFormField), findsWidgets);
   });
 
+  // Another profile's site that does not reach this one offers no record
+  // action: the menu gives no reason for actions it does not show.
+  testWidgets('with no record action to offer, the menu gives no reason', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      site: harnessSite.copyWith(diverId: 'other'),
+      divers: const ['me', 'other'],
+      sharing: ItemSharing.none,
+    );
+    await openMenu(tester);
+
+    expect(
+      find.byWidgetPredicate(
+        (w) =>
+            w is PopupMenuItem<String> && kSiteRecordActions.contains(w.value),
+      ),
+      findsNothing,
+    );
+    expect(find.text(l.recordEdit_unlockToUseThese), findsNothing);
+  });
+
   testWidgets('the full page menu offers Delete to the owner', (tester) async {
     await pump(tester);
     await openMenu(tester);
@@ -309,6 +334,18 @@ void main() {
         libraryConnectedHereProvider('L').overrideWith((ref) async => true),
         siteLibraryStateProvider('s1').overrideWith((ref) async => null),
         libraryMemberNamesProvider('L').overrideWith((ref) async => const {}),
+        // A member here, so the menu offers Remove.
+        currentMembershipProvider('L').overrideWith(
+          (ref) async => const SharedLibraryMembership(
+            id: 'm1',
+            diverId: 'me',
+            libraryId: 'L',
+            memberId: 'mem1',
+            displayName: 'Me',
+            libraryName: 'Club',
+            backendKind: 'folder',
+          ),
+        ),
       ],
     );
     await unlock(tester);
@@ -326,6 +363,7 @@ void main() {
     expect(find.byType(RecordEditBar), findsOneWidget);
 
     await openMenu(tester);
+    expect(menuItem(tester, 'remove').enabled, isFalse);
     expect(find.text(l.recordEdit_saveOrCancelFirst), findsOneWidget);
   });
 

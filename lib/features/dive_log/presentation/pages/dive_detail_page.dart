@@ -444,6 +444,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
         siteId: embeddedSiteId,
         embedded: true,
         onClose: widget.onCloseEmbeddedSite,
+        // Deleted or removed from here (it unlocks in place), the site is
+        // gone: back to the dive, as the back arrow goes.
+        onDeleted: widget.onCloseEmbeddedSite,
       );
     }
 

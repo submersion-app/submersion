@@ -168,10 +168,20 @@ class _SiteDetailPageState extends ConsumerState<SiteDetailPage> {
     // Ended on a window that has since widened: the page moves now.
     if (!open) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) setState(() {});
+        if (mounted && _movesIntoPane()) setState(() {});
       });
     }
   }
+
+  /// Whether a root visit on this window moves into the master-detail
+  /// split, and has not yet.
+  bool _movesIntoPane() =>
+      !_hasRedirected &&
+      shouldRedirectToMasterDetail(
+        context,
+        embedded: widget.embedded,
+        viewMode: ref.read(siteListViewModeProvider),
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -181,13 +191,7 @@ class _SiteDetailPageState extends ConsumerState<SiteDetailPage> {
     // master-detail split. A pushed page, opened from a dive's details
     // say, stays put: the redirect's go() would erase the page under it
     // and its back arrow (#3292).
-    if (!_hasRedirected &&
-        !_sittingOpen &&
-        shouldRedirectToMasterDetail(
-          context,
-          embedded: widget.embedded,
-          viewMode: ref.read(siteListViewModeProvider),
-        )) {
+    if (!_sittingOpen && _movesIntoPane()) {
       _hasRedirected = true;
       // An edit address the page has not opened yet keeps asking for edit
       // mode in the pane, which opens the site unlocked there (issue

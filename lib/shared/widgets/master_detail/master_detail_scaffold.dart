@@ -293,7 +293,6 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
 
     if (ResponsiveBreakpoints.isMasterDetail(context)) {
       // Desktop: Update URL with query param, preserving map view state
-      final key = widget.queryParamKey;
       if (itemId != null) {
         if (_isMapView) {
           // Preserve map view when selecting from map
