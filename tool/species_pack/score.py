@@ -368,7 +368,7 @@ def _junk_records(name, results_by_photo, junk_rows, namer, work, fish_cells):
     return records
 
 
-def evaluate(name, results_by_photo, animals, junk_rows, namer, work, min_side, tune):
+def evaluate(name, results_by_photo, animals, junk_rows, namer, work, min_side, tune, published=None):
     """Every number for one detector (or merged pair) and fitting.
     `results_by_photo` maps a photo path to its detections, each tagged
     with the detector (`source`) that found it."""
@@ -428,23 +428,27 @@ def evaluate(name, results_by_photo, animals, junk_rows, namer, work, min_side, 
             "junk named": metrics.rate(sum(junk), len(junk)).__dict__,
         }
 
-    # The naming levels under the gated bars (issue #4721), surest first,
-    # each chosen on the tune half and kept only if it stands held out.
+    # The naming levels (issue #4721), surest first, each chosen on the tune
+    # half and kept only if it stands held out. They are measured under the
+    # bars the pack ships with when it has measured ones (`published`), so
+    # a run whose own bars come out slightly different never states an
+    # accuracy the app does not name at; otherwise under this run's.
+    surer = published or gated
     levels = []
-    ceiling = gated
+    ceiling = surer
     for level_id, target in bar_search.LEVEL_TARGETS:
         level = bar_search.level_bars(
             [c["with"] for c in tune_nat],
             [c["without"] for c in tune_nat],
             [c["with"] for c in tune_junk],
             [c["without"] for c in tune_junk],
-            surer=gated,
+            surer=surer,
             ceiling=ceiling,
             min_side=min_side,
             target=target,
         )
         if level is None or not bar_search.level_gate(
-            level, gated, [c["with"] for c in held_nat], [c["without"] for c in held_nat], min_side=min_side, target=target
+            level, surer, [c["with"] for c in held_nat], [c["without"] for c in held_nat], min_side=min_side, target=target
         ):
             continue
         levels.append({"id": level_id, "target": target, "bars": level.__dict__, "held-out": level_rates(level)})
@@ -510,20 +514,18 @@ def evaluate(name, results_by_photo, animals, junk_rows, namer, work, min_side, 
                 "precision": sum(s.correct for s in picked) / len(picked) if picked else None,
             }
         )
-    held_summary = summary(held_nat)
+    surer_precision = level_rates(surer)["precision"]
     return {
         "detector": name,
         "bars chosen on tune": chosen.__dict__,
         "bars after held-out gate": gated.__dict__,
         "switched off": switched_off,
-        # None when the gated bars name nothing held out: no precision to show.
-        "surer precision": (
-            held_summary["suggested"]["with location"]["precision"]["value"]
-            if held_summary["suggested"]["with location"]["precision"]["n"]
-            else None
-        ),
+        "levels measured under": {"bars": surer.__dict__, "published": published is not None},
+        # Held out, at the bars the levels sit under; None when they name
+        # nothing held out: no precision to show.
+        "surer precision": surer_precision["value"] if surer_precision["n"] else None,
         "levels": levels,
-        "held-out natural": held_summary,
+        "held-out natural": summary(held_nat),
         "held-out natural, detection": {
             "photos": len(held_natural_rows),
             **recall(held_natural_rows),
@@ -612,7 +614,9 @@ def _measured_entry(evaluation, manifest, detector_ids, crop_fit):
     with the precision measured at them and the naming levels under them
     (issue #4721)."""
     naming = manifest["naming"]
-    bars = evaluation["bars after held-out gate"]
+    # The bars the levels and precision were measured under: the published
+    # pack's when it has measured ones, so the entry is always consistent.
+    bars = evaluation["levels measured under"]["bars"]
     levels = [
         {
             "id": level["id"],
@@ -732,7 +736,24 @@ def main(argv=None):
         for name, by_photo in runs.items():
             key = f"{name} {fit}"
             print(f"scoring {key}", flush=True)
-            kept[key] = evaluate(name, by_photo, animals, junk_rows, namer, args.work, min_side, tune)
+            # The bars this exact pack ships with, when it has measured ones.
+            published = bar_search.published_bars(
+                pack_manifest.naming_for(
+                    ids[name],
+                    runner.manifest["classifier"]["id"],
+                    fit,
+                    pack_manifest.contents_of(runner.manifest["files"]),
+                )
+            )
+            kept[key] = evaluate(
+                name, by_photo, animals, junk_rows, namer, args.work, min_side, tune, published=published
+            )
+            if published is not None and kept[key]["bars after held-out gate"] != published.__dict__:
+                print(
+                    f"warning: {key} bars came out {kept[key]['bars after held-out gate']}, not the published "
+                    f"{published.__dict__}; its levels are measured under the published bars",
+                    flush=True,
+                )
 
     for name in (cfd, mega, BOTH):
         results.setdefault("fitting comparison", {})[name] = _paired(

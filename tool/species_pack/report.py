@@ -8,6 +8,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import bars as bar_search  # noqa: E402
+import manifest as pack_manifest  # noqa: E402
 
 
 def _pct(rate):
@@ -46,6 +47,17 @@ def write_report(results, path):
                 f"{_bar(b['suggest_no_location'])} | {_pct(h['precision'])} | {_pct(h['coverage'])} | "
                 f"{_pct(h['junk named'])} |"
             )
+    lines.append("")
+    for key, e in results["evaluations"].items():
+        under = e.get("levels measured under")
+        if under:
+            source = "the published pack's bars" if under["published"] else "this run's bars"
+            lines.append(f"- {key}: levels measured under {source}")
+    # What the app would show a diver must read sensibly before it is
+    # published (manifest.level_problems, which relevel_manifest.py enforces).
+    for entry in results.get("measured", []):
+        for problem in pack_manifest.level_problems(entry["naming"]):
+            lines.append(f"- warning: {'+'.join(entry['detectorIds'])}: {problem}")
     lines += ["", "## Held-out natural sample", ""]
     lines += [
         "| Run | photos | any box | largest named right | top-1 / top-3 with location | "

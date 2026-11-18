@@ -218,6 +218,31 @@ class LevelTests(unittest.TestCase):
         self.assertEqual(bars.LEVEL_TARGETS, (("balanced", 0.75), ("eager", 0.65)))
 
 
+class PublishedBarsTests(unittest.TestCase):
+    """Levels are measured under the bars the pack ships with, not bars a
+    later run re-derives (issue #4721)."""
+
+    NAMING = {
+        "provisional": False,
+        "minCropSide": 64,
+        "minOpenScore": 0.44,
+        "suggestScore": 0.74,
+        "confidentScore": 1.01,
+        "suggestScoreNoLocation": 0.81,
+        "confidentScoreNoLocation": 1.01,
+    }
+
+    def test_measured_naming_gives_its_bars(self):
+        self.assertEqual(bars.published_bars(self.NAMING), bars.Bars(0.44, 0.74, 0.81, 1.01, 1.01))
+
+    def test_provisional_naming_gives_none(self):
+        self.assertIsNone(bars.published_bars({**self.NAMING, "provisional": True}))
+
+    def test_a_missing_no_location_confident_bar_follows_the_confident_bar(self):
+        naming = {k: v for k, v in self.NAMING.items() if k != "confidentScoreNoLocation"}
+        self.assertEqual(bars.published_bars({**naming, "confidentScore": 0.95}).confident_no_location, 0.95)
+
+
 class LevelGateTests(unittest.TestCase):
     SURER = LevelTests.SURER
     LEVEL = bars.Bars(0.5, 0.55, 0.80, NEVER, NEVER)

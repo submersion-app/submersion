@@ -277,7 +277,9 @@ LEVEL_KEYS = ("precision", "levels")
 def level_problems(naming):
     """What is wrong with a naming block's levels, as messages; empty when
     nothing is. Each level is a known id, in order, with each bar no higher
-    than the level above it (Surer first) and a precision in (0, 1]."""
+    than the level above it (Surer first) and at least one lower, and a
+    precision in (0, 1] no higher than the level above's: a diver must
+    never read that more names are more often right."""
     problems = []
     precision = naming.get("precision")
     if precision is not None and not 0 < precision <= 1:
@@ -287,13 +289,22 @@ def level_problems(naming):
     if ids != [i for i in LEVEL_IDS if i in ids] or len(set(ids)) != len(ids):
         problems.append(f"levels {ids} are not a subset of {list(LEVEL_IDS)} in order")
     above = (naming["suggestScore"], naming["suggestScoreNoLocation"])
+    above_precision = precision
     for level in levels:
         bars = (level.get("suggestScore"), level.get("suggestScoreNoLocation"))
         if not all(isinstance(b, (int, float)) and 0 <= b <= a for b, a in zip(bars, above)):
             problems.append(f"{level.get('id')} bars {bars} are not at or below {above}")
-        if not 0 < level.get("precision", 0) <= 1:
-            problems.append(f"{level.get('id')} precision {level.get('precision')} is not in (0, 1]")
+        elif bars == above:
+            problems.append(f"{level.get('id')} bars {bars} name nothing more than the level above")
+        level_precision = level.get("precision", 0)
+        if not 0 < level_precision <= 1:
+            problems.append(f"{level.get('id')} precision {level_precision} is not in (0, 1]")
+        elif above_precision is not None and level_precision > above_precision:
+            problems.append(
+                f"{level.get('id')} precision {level_precision} is above the level above's {above_precision}"
+            )
         above = bars
+        above_precision = level_precision
     return problems
 
 

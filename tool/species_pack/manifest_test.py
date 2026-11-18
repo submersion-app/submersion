@@ -305,6 +305,15 @@ class LevelProblemsTests(unittest.TestCase):
         self.assertTrue(self.problems([self.EAGER, self.BALANCED]))
         self.assertTrue(self.problems([{**self.BALANCED, "id": "surer"}]))
 
+    def test_a_level_no_lower_than_the_one_above(self):
+        same = {**self.BALANCED, "suggestScore": 0.74, "suggestScoreNoLocation": 0.81}
+        self.assertTrue(self.problems([same]))
+        self.assertTrue(self.problems([self.BALANCED, {**self.EAGER, "suggestScore": 0.6, "suggestScoreNoLocation": 0.7}]))
+
+    def test_accuracy_rising_with_more_names(self):
+        self.assertTrue(self.problems([self.BALANCED, {**self.EAGER, "precision": 0.85}], precision=0.897))
+        self.assertTrue(self.problems([{**self.BALANCED, "precision": 0.9}], precision=0.897))
+
     def test_precision_out_of_range(self):
         self.assertTrue(self.problems([{**self.BALANCED, "precision": 0}]))
         self.assertTrue(self.problems([self.BALANCED], precision=1.2))

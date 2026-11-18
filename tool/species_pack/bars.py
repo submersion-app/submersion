@@ -157,6 +157,21 @@ def choose_bars(
     return Bars(OPEN_GRID[-1], NEVER, NEVER, NEVER, NEVER)
 
 
+def published_bars(naming):
+    """The bars a manifest's naming block names at, or None for
+    provisional bars. Levels and their precision are measured under these,
+    the bars the app uses, rather than bars a later run derives again."""
+    if naming.get("provisional", True):
+        return None
+    return Bars(
+        min_open=naming["minOpenScore"],
+        suggest=naming["suggestScore"],
+        suggest_no_location=naming["suggestScoreNoLocation"],
+        confident=naming["confidentScore"],
+        confident_no_location=naming.get("confidentScoreNoLocation", naming["confidentScore"]),
+    )
+
+
 # The naming levels below the pack's own bars (issue #4721), surest first:
 # each is the lowest bar whose precision meets its target, as the pack's
 # suggest bars meet 0.85.
