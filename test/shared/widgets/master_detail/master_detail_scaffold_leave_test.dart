@@ -20,12 +20,15 @@ void main() {
     );
   });
 
-  Future<void> pump(WidgetTester tester) async {
+  Future<void> pump(
+    WidgetTester tester, {
+    String initialLocation = '/test?selected=a',
+  }) async {
     tester.view.physicalSize = const Size(1200, 800);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     router = GoRouter(
-      initialLocation: '/test?selected=a',
+      initialLocation: initialLocation,
       routes: [
         GoRoute(
           path: '/test',
@@ -127,6 +130,30 @@ void main() {
 
     expect(asked, 0);
     expect(router.state.uri.toString(), '/test?selected=a');
+  });
+
+  // The row already shown, while the pane shows something else in its
+  // place (a dive list's pane showing a site, `&site=`): choosing the row
+  // leaves that, so its unsaved work is asked about (issue #4527).
+  testWidgets('the row already shown asks when the pane shows something else '
+      'in its place', (tester) async {
+    var asked = 0;
+    guard.hold(
+      AppExitBlocker(
+        hasUnsavedWork: () => true,
+        confirmLeaving: () async {
+          asked++;
+          return false;
+        },
+      ),
+    );
+    await pump(tester, initialLocation: '/test?selected=a&site=x');
+
+    await tester.tap(find.text('Row a'));
+    await tester.pumpAndSettle();
+
+    expect(asked, 1);
+    expect(router.state.uri.toString(), '/test?selected=a&site=x');
   });
 
   testWidgets('with nothing held selection changes at once', (tester) async {
