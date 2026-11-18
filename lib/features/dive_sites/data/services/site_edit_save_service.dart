@@ -1,5 +1,6 @@
 import 'package:submersion/core/services/change_log/record_sitting_writer.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
@@ -78,6 +79,9 @@ class SiteEditSaveService {
         stackTrace: stackTrace,
       );
     }
+    // The stamp marks the library's copy for the next sync, after the
+    // update's own notice: as updateSite stamps, then notifies.
+    SyncEventBus.notifyLocalChange();
     return result;
   }
 }

@@ -3723,6 +3723,7 @@
   "diveSites_detail_diveCount_zero": "Még nincs rögzített merülés",
   "diveSites_detail_editTooltip": "Helyszín szerkesztése",
   "diveSites_detail_editTooltipShort": "Szerkesztés",
+  "diveSites_edit_editingWithdrawn": "Ezt a helyszínt már nem szerkesztheti. A nem mentett módosítások elvesztek.",
   "diveSites_detail_error_body": "Hiba: {error}",
   "diveSites_detail_error_title": "Hiba",
   "diveSites_detail_loading_title": "Betöltés...",

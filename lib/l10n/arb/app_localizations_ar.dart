@@ -12396,6 +12396,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_detail_editTooltipShort => 'تعديل';
 
   @override
+  String get diveSites_edit_editingWithdrawn =>
+      'لم يعد بإمكانك تعديل هذا الموقع. تم تجاهل أي تغييرات غير محفوظة.';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return 'خطأ: $error';
   }
