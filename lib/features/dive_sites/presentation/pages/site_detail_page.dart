@@ -82,6 +82,7 @@ import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart'
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_classification_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_edit_cards.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_sitting_start.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/unlock_site_editing_flag.dart';
@@ -91,6 +92,7 @@ import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_fade.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
+import 'package:submersion/shared/widgets/record_editing/sitting_list.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
@@ -274,7 +276,10 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
           edit.hosts
               ? RecordCardFrame<DiveSite>(
                   card: siteHeaderCard,
-                  child: SiteDetailHeader(site: site),
+                  child: SiteDetailHeader(
+                    site: site,
+                    types: _heldList(siteTypesList),
+                  ),
                 )
               : SiteDetailHeader(site: site),
           SharedByBanner(
@@ -498,10 +503,15 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
       // Tags (issue #1765), after media as on a dive. Shown only when the
       // site has some, decided here so an empty card leaves no gap and, in
       // the list layout, no empty header.
-      SiteDetailSectionId.tags: () =>
-          (ref.watch(tagsForSiteProvider(site.id)).value ?? const []).isEmpty
-          ? null
-          : (_) => SiteTagsCard(siteId: site.id),
+      SiteDetailSectionId.tags: () {
+        // A sitting's tags, once changed, decide as the stored ones do.
+        final held = _heldList(siteTagsList);
+        final tags =
+            held ?? ref.watch(tagsForSiteProvider(site.id)).value ?? const [];
+        return tags.isEmpty
+            ? null
+            : (_) => SiteTagsCard(siteId: site.id, tags: held);
+      },
       SiteDetailSectionId.difficulty: () => laidOut.difficulty == null
           ? null
           : site.difficulty == null

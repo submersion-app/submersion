@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/built_ins/built_in_catalog.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_classification_sitting.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/site_type_chips.dart';
+import 'package:submersion/features/settings/presentation/providers/hidden_built_ins_provider.dart';
+import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
+import 'package:submersion/features/site_types/presentation/providers/site_type_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -46,11 +53,35 @@ class _SiteHeaderCardEditorState extends ConsumerState<SiteHeaderCardEditor> {
   );
 
   @override
+  void initState() {
+    super.initState();
+    _loadTypes();
+  }
+
+  @override
   void didUpdateWidget(SiteHeaderCardEditor oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.session == widget.session) return;
     _name.dispose();
     _name = _bindName();
+    _loadTypes();
+  }
+
+  /// Reads the site's types afresh unless the diver has changed them, and
+  /// draws them once read: keeping them does not notify the sitting.
+  void _loadTypes() {
+    siteTypesList.load(widget.session).then((_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  /// Holds [ids] as the site's types, each as [allTypes] has it.
+  void _setTypes(Set<String> ids, List<SiteTypeEntity> allTypes) {
+    final byId = {
+      for (final t in [...?siteTypesList.current(widget.session), ...allTypes])
+        t.id: t,
+    };
+    siteTypesList.set(widget.session, [for (final id in ids) ?byId[id]]);
   }
 
   @override
@@ -91,6 +122,29 @@ class _SiteHeaderCardEditorState extends ConsumerState<SiteHeaderCardEditor> {
               ),
             ),
           ),
+          if (siteTypesList.current(session) case final types?)
+            ListenableBuilder(
+              listenable: session,
+              builder: (context, _) {
+                final all = ref.watch(siteTypesProvider).value ?? const [];
+                final current = siteTypesList.current(session) ?? types;
+                return SiteTypeChips(
+                  allTypes: all,
+                  hiddenTypeIds: ref.watch(
+                    hiddenBuiltInIdsProvider(BuiltInCatalog.siteTypes),
+                  ),
+                  keepTypeIds: {
+                    for (final t in siteTypesList.loaded(session) ?? types)
+                      t.id,
+                  },
+                  selectedTypeIds: {for (final t in current) t.id},
+                  onTypesChanged: (ids) => _setTypes(ids, all),
+                  // Created there exist at once, and outlive a cancelled
+                  // sitting, as a type made from the form's link does.
+                  onManageTypes: () => context.push('/site-types'),
+                );
+              },
+            ),
           SiteEnumChipsRow<WaterType>(
             session: session,
             field: siteWaterTypeField,

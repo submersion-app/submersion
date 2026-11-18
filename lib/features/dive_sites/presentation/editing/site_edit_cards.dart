@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_classification_sitting.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_collection_card_editors.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_edit_fields.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_access_card_editors.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_header_card_editor.dart';
@@ -124,6 +126,16 @@ final Map<SiteDetailSectionId, EditCard<DiveSite>> siteEditCards = {
     // As the page decides whether to show the card.
     isEmpty: (site) => !site.hasAccessInfo,
     editorBuilder: (context, session) => SiteAccessCardEditor(session: session),
+  ),
+  SiteDetailSectionId.tags: EditCard<DiveSite>(
+    id: SiteDetailSectionId.tags.name,
+    title: (context) => context.l10n.diveLog_detail_section_tags,
+    // Its rows are not columns of the site: locked, the card decides for
+    // itself; unlocked, from the sitting's list, once loaded.
+    isEmpty: (_) => false,
+    isEmptyInSitting: (session) =>
+        siteTagsList.current(session)?.isEmpty ?? false,
+    editorBuilder: (context, session) => SiteTagsCardEditor(session: session),
   ),
 };
 

@@ -183,6 +183,14 @@ mixin _SiteDetailPageEditing
     ];
   }
 
+  /// [list] as the sitting has it, once the diver has changed it; null
+  /// while it is as stored, or with no sitting, so the card reads its own.
+  List<E>? _heldList<E>(SittingList<DiveSite, E> list) {
+    final session = maybeEditController?.session;
+    if (session == null || !list.isChanged(session)) return null;
+    return list.current(session);
+  }
+
   /// The sections whose cards are open, held unfolded in the list layout.
   Set<SiteDetailSectionId> _sectionsOpenForSitting() {
     final open = maybeEditController?.openCardIds ?? const <String>{};
