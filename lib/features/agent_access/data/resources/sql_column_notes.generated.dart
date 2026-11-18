@@ -611,6 +611,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'location_cell': 'The region grid cell naming used, or null when the media had no location',
     'pack_version': 'The model pack that analysed or last named this media',
     'scanned_ms': 'Video only: how far the scan has got, in milliseconds from the start',
+    'scanned_ranges': 'Video only: the stretches scanned, packed (scanned_ranges_codec.dart)',
     'video_duration_ms': 'Video only: the video\'s length in milliseconds, as the engine read it',
   },
   'media_identifications': {

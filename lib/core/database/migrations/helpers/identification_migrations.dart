@@ -37,4 +37,13 @@ extension IdentificationMigrations on AppDatabase {
       );
     }
   }
+
+  /// v377: the stretches of a video already scanned (issue #4709). Column
+  /// only, nothing to backfill: a null reads as one stretch from 0 to
+  /// scanned_ms. Idempotent.
+  Future<void> _assertIdentificationScannedRanges() => _addColumnIfMissing(
+    'media_identification_runs',
+    'scanned_ranges',
+    'BLOB',
+  );
 }

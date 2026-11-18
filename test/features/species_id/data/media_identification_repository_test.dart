@@ -6,6 +6,7 @@ import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/domain/entities/scanned_ranges.dart';
 
 import 'identification_fixtures.dart';
 
@@ -207,6 +208,44 @@ void main() {
       final stored = (await repo.runFor('v1'))!;
       expect(stored.scannedMs, 10000);
       expect(stored.videoDurationMs, 25000);
+    });
+
+    test("a run's scanned stretches round trip (issue #4709)", () async {
+      final ranges = const ScannedRanges().add(0, 12000).add(30000, 40000);
+      await repo.storeRun(
+        videoRun().copyWith(scannedRanges: () => ranges),
+        insert: const [],
+        deleteIds: const [],
+      );
+      expect((await repo.runFor('v1'))!.scannedRanges, ranges);
+    });
+
+    test('a run stored without stretches reads its mark as one '
+        'stretch', () async {
+      await repo.storeRun(
+        videoRun(scannedMs: 12000),
+        insert: const [],
+        deleteIds: const [],
+      );
+      final stored = (await repo.runFor('v1'))!;
+      expect(stored.scannedRanges, isNull);
+      expect(stored.scanned.stretches, [(startMs: 0, endMs: 12000)]);
+    });
+
+    test('corrupt stretches read as none, so the mark applies', () async {
+      await repo.storeRun(
+        videoRun().copyWith(
+          scannedRanges: () => const ScannedRanges().add(0, 5000),
+        ),
+        insert: const [],
+        deleteIds: const [],
+      );
+      await db.customStatement(
+        "UPDATE media_identification_runs SET scanned_ranges = X'02'",
+      );
+      final stored = (await repo.runFor('v1'))!;
+      expect(stored.scannedRanges, isNull);
+      expect(stored.scanned.stretches, [(startMs: 0, endMs: 10000)]);
     });
 
     test('a photo row keeps null video fields', () async {

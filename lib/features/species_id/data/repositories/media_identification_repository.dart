@@ -8,7 +8,9 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
+import 'package:submersion/features/species_id/domain/entities/scanned_ranges.dart';
 import 'package:submersion/features/species_id/domain/entities/track_sample.dart';
+import 'package:submersion/features/species_id/domain/services/scanned_ranges_codec.dart';
 import 'package:submersion/features/species_id/domain/services/track_path_codec.dart';
 
 /// What the marine life model found on each piece of media, and the diver's
@@ -253,7 +255,20 @@ class MediaIdentificationRepository {
         detectionCount: row.detectionCount,
         scannedMs: row.scannedMs,
         videoDurationMs: row.videoDurationMs,
+        scannedRanges: _ranges(row.scannedRanges),
       );
+
+  /// The stored stretches, or null when there are none or they cannot be
+  /// read: the run's scanned_ms mark then applies.
+  static ScannedRanges? _ranges(Uint8List? bytes) {
+    if (bytes == null) return null;
+    try {
+      return decodeScannedRanges(bytes);
+    } on FormatException catch (e) {
+      _log.warning('Unreadable scanned stretches, using the mark', error: e);
+      return null;
+    }
+  }
 
   static MediaIdentificationRunsCompanion _runToCompanion(
     MediaIdentificationRun run,
@@ -269,6 +284,11 @@ class MediaIdentificationRepository {
     detectionCount: run.detectionCount,
     scannedMs: Value(run.scannedMs),
     videoDurationMs: Value(run.videoDurationMs),
+    scannedRanges: Value(
+      run.scannedRanges == null
+          ? null
+          : encodeScannedRanges(run.scannedRanges!),
+    ),
   );
 
   static MediaIdentification _fromRow(MediaIdentificationRow row) =>

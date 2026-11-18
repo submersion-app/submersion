@@ -163,5 +163,9 @@ extension TableBackstopsFromV217 on AppDatabase {
     // v376 backstop: the identification tables' video columns (issue
     // #4675; local, idempotent). After the tables exist.
     await _assertIdentificationVideoColumns();
+
+    // v377 backstop: the stretches of a video already scanned (issue
+    // #4709; local, idempotent).
+    await _assertIdentificationScannedRanges();
   }
 }
