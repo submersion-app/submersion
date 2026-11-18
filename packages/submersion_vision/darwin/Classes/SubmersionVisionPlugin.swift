@@ -91,6 +91,9 @@ public class SubmersionVisionPlugin: NSObject, FlutterPlugin {
       }
     case "unload":
       run(result) { self.pipeline.unload(); return nil }
+    case "memory":
+      // On the queue, so the reading comes after the stage it follows.
+      run(result) { MemoryReading.current() }
     case "excludeFromBackup":
       run(result) {
         guard let path = args["path"] as? String else {
