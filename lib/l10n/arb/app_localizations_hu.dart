@@ -20665,6 +20665,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_documentViewer_title => 'Dokumentum';
 
   @override
+  String get media_documentViewer_editing => 'Dokumentum szerkesztése';
+
+  @override
   String get media_documentViewer_unavailable =>
       'Ez a dokumentum nem érhető el ezen az eszközön';
 

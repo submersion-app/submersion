@@ -5899,6 +5899,7 @@
   "media_siteMediaSection_unlinkSelectedContent": "Supprime {count} éléments de votre bibliothèque, ainsi que leurs copies cloud et vignettes. Les médias encore utilisés par une plongée sont conservés. Vos fichiers d'origine ne sont pas affectés.",
   "media_siteMediaSection_unlinkSelectedSuccess": "{count} éléments dissocies",
   "media_documentViewer_title": "Document",
+  "media_documentViewer_editing": "Modification du document",
   "media_documentViewer_unavailable": "Ce document n'est pas disponible sur cet appareil",
   "media_documentViewer_availableOnOriginDevice": "Il est disponible sur l'appareil depuis lequel il a été ajouté, ou via un stockage multimédia configuré.",
   "media_documentViewer_attached": "{count} documents attachés",

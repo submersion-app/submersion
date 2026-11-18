@@ -6025,6 +6025,7 @@
   "media_siteMediaSection_unlinkSelectedContent": "Elimina {count} elementos de tu biblioteca, junto con sus copias en la nube y miniaturas. Los medios que un buceo todavía usa se conservan. Tus archivos originales no se ven afectados.",
   "media_siteMediaSection_unlinkSelectedSuccess": "{count} elementos desvinculados",
   "media_documentViewer_title": "Documento",
+  "media_documentViewer_editing": "Editando documento",
   "media_documentViewer_unavailable": "Este documento no está disponible en este dispositivo",
   "media_documentViewer_availableOnOriginDevice": "Está disponible en el dispositivo desde el que se añadió, o mediante un almacén de medios configurado.",
   "media_documentViewer_attached": "Se adjuntaron {count} documentos",

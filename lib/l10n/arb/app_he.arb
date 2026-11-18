@@ -5899,6 +5899,7 @@
   "media_siteMediaSection_unlinkSelectedContent": "מסיר {count} פריטים מהספרייה שלך, יחד עם עותקי הענן והתמונות הממוזערות. מדיה שצלילה עדיין משתמשת בה נשמרת. הקבצים המקוריים שלך אינם מושפעים.",
   "media_siteMediaSection_unlinkSelectedSuccess": "בוטל קישור של {count} פריטים",
   "media_documentViewer_title": "מסמך",
+  "media_documentViewer_editing": "עריכת מסמך",
   "media_documentViewer_unavailable": "מסמך זה אינו זמין במכשיר זה",
   "media_documentViewer_availableOnOriginDevice": "הוא זמין במכשיר שממנו נוסף, או דרך אחסון מדיה מוגדר.",
   "media_documentViewer_attached": "צורפו {count} מסמכים",

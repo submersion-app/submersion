@@ -6025,6 +6025,7 @@
   "media_siteMediaSection_unlinkSelectedContent": "Remove {count} itens da sua biblioteca, junto com as cópias na nuvem e miniaturas. Mídias que um mergulho ainda usa são mantidas. Seus arquivos originais não são afetados.",
   "media_siteMediaSection_unlinkSelectedSuccess": "{count} itens desvinculados",
   "media_documentViewer_title": "Documento",
+  "media_documentViewer_editing": "A editar documento",
   "media_documentViewer_unavailable": "Este documento não está disponível neste dispositivo",
   "media_documentViewer_availableOnOriginDevice": "Ele está disponível no dispositivo em que foi adicionado, ou por meio de um armazenamento de mídia configurado.",
   "media_documentViewer_attached": "{count} documentos anexados",

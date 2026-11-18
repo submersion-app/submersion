@@ -5899,6 +5899,7 @@
   "media_siteMediaSection_unlinkSelectedContent": "Rimuove {count} elementi dalla libreria, insieme alle copie cloud e alle miniature. I media ancora usati da un'immersione vengono conservati. I file originali non vengono toccati.",
   "media_siteMediaSection_unlinkSelectedSuccess": "{count} elementi scollegati",
   "media_documentViewer_title": "Documento",
+  "media_documentViewer_editing": "Modifica del documento",
   "media_documentViewer_unavailable": "Questo documento non è disponibile su questo dispositivo",
   "media_documentViewer_availableOnOriginDevice": "È disponibile sul dispositivo da cui è stato aggiunto, oppure tramite un archivio media configurato.",
   "media_documentViewer_attached": "{count} documenti allegati",

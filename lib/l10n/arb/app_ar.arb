@@ -6025,6 +6025,7 @@
   "media_siteMediaSection_unlinkSelectedContent": "يزيل {count} عنصرًا من مكتبتك مع نسخها السحابية وصورها المصغرة. تُحفظ الوسائط التي لا تزال غطسة تستخدمها. ملفاتك الأصلية لا تتأثر.",
   "media_siteMediaSection_unlinkSelectedSuccess": "تم إلغاء ربط {count} عنصر",
   "media_documentViewer_title": "مستند",
+  "media_documentViewer_editing": "تعديل المستند",
   "media_documentViewer_unavailable": "هذا المستند غير متاح على هذا الجهاز",
   "media_documentViewer_availableOnOriginDevice": "وهو متاح على الجهاز الذي أُضيف منه، أو عبر مخزن وسائط مُهيأ.",
   "media_documentViewer_attached": "تم إرفاق {count} من المستندات",

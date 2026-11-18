@@ -20277,6 +20277,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_documentViewer_title => 'מסמך';
 
   @override
+  String get media_documentViewer_editing => 'עריכת מסמך';
+
+  @override
   String get media_documentViewer_unavailable => 'מסמך זה אינו זמין במכשיר זה';
 
   @override

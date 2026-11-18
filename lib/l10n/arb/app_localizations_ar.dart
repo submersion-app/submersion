@@ -21031,6 +21031,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_documentViewer_title => 'مستند';
 
   @override
+  String get media_documentViewer_editing => 'تعديل المستند';
+
+  @override
   String get media_documentViewer_unavailable =>
       'هذا المستند غير متاح على هذا الجهاز';
 

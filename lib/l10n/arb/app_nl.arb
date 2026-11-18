@@ -6025,6 +6025,7 @@
   "media_siteMediaSection_unlinkSelectedContent": "Verwijdert {count} items uit je bibliotheek, inclusief cloudkopieën en miniaturen. Media die een duik nog gebruikt, blijven bewaard. Je originele bestanden blijven onaangetast.",
   "media_siteMediaSection_unlinkSelectedSuccess": "{count} items ontkoppeld",
   "media_documentViewer_title": "Document",
+  "media_documentViewer_editing": "Document bewerken",
   "media_documentViewer_unavailable": "Dit document is niet beschikbaar op dit apparaat",
   "media_documentViewer_availableOnOriginDevice": "Het is beschikbaar op het apparaat waarmee het is toegevoegd, of via een geconfigureerde mediaopslag.",
   "media_documentViewer_attached": "{count} documenten toegevoegd",

@@ -19698,6 +19698,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_documentViewer_title => '文档';
 
   @override
+  String get media_documentViewer_editing => '正在编辑文档';
+
+  @override
   String get media_documentViewer_unavailable => '此文档在本设备上不可用';
 
   @override

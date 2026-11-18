@@ -5899,6 +5899,7 @@
   "media_siteMediaSection_unlinkSelectedContent": "Eltávolít {count} elemet a könyvtárból, a felhőmásolatokkal és bélyegképekkel együtt. A merülés által még használt médiák megmaradnak. Az eredeti fájlok nem változnak.",
   "media_siteMediaSection_unlinkSelectedSuccess": "{count} elem leválasztva",
   "media_documentViewer_title": "Dokumentum",
+  "media_documentViewer_editing": "Dokumentum szerkesztése",
   "media_documentViewer_unavailable": "Ez a dokumentum nem érhető el ezen az eszközön",
   "media_documentViewer_availableOnOriginDevice": "Azon az eszközön érhető el, amelyről hozzáadták, vagy egy beállított médiatárolón keresztül.",
   "media_documentViewer_attached": "{count} dokumentum csatolva",

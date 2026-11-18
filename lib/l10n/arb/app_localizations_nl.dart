@@ -20603,6 +20603,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_documentViewer_title => 'Document';
 
   @override
+  String get media_documentViewer_editing => 'Document bewerken';
+
+  @override
   String get media_documentViewer_unavailable =>
       'Dit document is niet beschikbaar op dit apparaat';
 

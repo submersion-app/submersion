@@ -6159,6 +6159,7 @@
   "media_siteMediaSection_unlinkSelectedContent": "从媒体库中移除 {count} 个项目及其云端副本和缩略图。仍被潜水使用的媒体会保留。您的原始文件不受影响。",
   "media_siteMediaSection_unlinkSelectedSuccess": "已取消关联 {count} 个项目",
   "media_documentViewer_title": "文档",
+  "media_documentViewer_editing": "正在编辑文档",
   "media_documentViewer_unavailable": "此文档在本设备上不可用",
   "media_documentViewer_availableOnOriginDevice": "它可在添加它的设备上使用，或通过已配置的媒体存储获取。",
   "media_documentViewer_attached": "已附加 {count} 个文档",

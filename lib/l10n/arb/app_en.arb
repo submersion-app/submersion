@@ -12550,6 +12550,10 @@
   },
   "media_siteMediaSection_unlinkSelectedSuccess": "Unlinked {count} items",
   "media_documentViewer_title": "Document",
+  "media_documentViewer_editing": "Editing document",
+  "@media_documentViewer_editing": {
+    "description": "Title of the PDF viewer's bar while a site attachment's details are being edited (the document is unlocked); like media_viewer_editingPhoto."
+  },
   "media_documentViewer_unavailable": "This document is not available on this device",
   "media_documentViewer_availableOnOriginDevice": "It is available on the device it was added from, or via a configured media store.",
   "media_documentViewer_attached": "Attached {count} documents",

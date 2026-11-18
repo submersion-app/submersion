@@ -20723,6 +20723,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get media_documentViewer_title => 'Documento';
 
   @override
+  String get media_documentViewer_editing => 'Editando documento';
+
+  @override
   String get media_documentViewer_unavailable =>
       'Este documento no está disponible en este dispositivo';
 

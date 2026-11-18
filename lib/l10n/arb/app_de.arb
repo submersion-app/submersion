@@ -6151,6 +6151,7 @@
   "media_siteMediaSection_unlinkSelectedContent": "Entfernt {count} Elemente aus deiner Bibliothek, einschließlich Cloud-Kopien und Vorschaubildern. Medien, die ein Tauchgang noch verwendet, bleiben erhalten. Deine Originaldateien sind nicht betroffen.",
   "media_siteMediaSection_unlinkSelectedSuccess": "{count} Elemente getrennt",
   "media_documentViewer_title": "Dokument",
+  "media_documentViewer_editing": "Dokument wird bearbeitet",
   "media_documentViewer_unavailable": "Dieses Dokument ist auf diesem Gerät nicht verfügbar",
   "media_documentViewer_availableOnOriginDevice": "Es ist auf dem Gerät verfügbar, von dem es hinzugefügt wurde, oder über einen konfigurierten Medienspeicher.",
   "media_documentViewer_attached": "{count} Dokumente angehängt",

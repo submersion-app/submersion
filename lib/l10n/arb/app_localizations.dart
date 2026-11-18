@@ -32898,6 +32898,12 @@ abstract class AppLocalizations {
   /// **'Document'**
   String get media_documentViewer_title;
 
+  /// Title of the PDF viewer's bar while a site attachment's details are being edited (the document is unlocked); like media_viewer_editingPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Editing document'**
+  String get media_documentViewer_editing;
+
   /// No description provided for @media_documentViewer_unavailable.
   ///
   /// In en, this message translates to:

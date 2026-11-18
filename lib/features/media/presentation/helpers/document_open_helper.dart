@@ -30,24 +30,69 @@ class DocumentOpenHelper {
   ///
   /// [editableSiteId] names the site a PDF is attached to when its viewer
   /// may offer Edit details (issue #1039); dive and equipment callers leave
-  /// it null.
+  /// it null. With [attachmentLock], a site page that edits in place (issue
+  /// #4527, phase 2), the attachment opens under its own lock.
   static Future<void> open(
     BuildContext context,
     WidgetRef ref,
     MediaItem item, {
     String? editableSiteId,
+    bool attachmentLock = false,
   }) async {
     if (item.isPdf) {
       await Navigator.of(context).push(
         MaterialPageRoute(
           fullscreenDialog: true,
-          builder: (_) =>
-              DocumentViewerPage(item: item, editableSiteId: editableSiteId),
+          builder: (_) => DocumentViewerPage(
+            item: item,
+            editableSiteId: editableSiteId,
+            attachmentLock: attachmentLock,
+          ),
         ),
       );
       return;
     }
     await openExternally(context, ref, item);
+  }
+
+  /// Shares [item]'s file through the platform share sheet, anchored on
+  /// iPad to the button whose [buttonContext] is given; says so when the
+  /// file cannot be produced on this device, or the share fails.
+  static Future<void> share(
+    BuildContext buttonContext,
+    WidgetRef ref,
+    MediaItem item,
+  ) async {
+    if (!demoSealGuard(buttonContext, DemoSealedFeature.share)) {
+      return;
+    }
+    final l10n = buttonContext.l10n;
+    // Resolved before the awaits below: the button is guaranteed mounted now.
+    final anchor = shareAnchorFrom(buttonContext);
+    try {
+      final resolved = await ref.read(mediaBytesProvider(item).future);
+      if (resolved.isUnavailable || resolved.bytes == null) {
+        if (buttonContext.mounted) {
+          ScaffoldMessenger.of(buttonContext).showSnackBar(
+            SnackBar(content: Text(l10n.media_photoViewer_cannotShare)),
+          );
+        }
+        return;
+      }
+      final file = await writeShareTempFile(item, resolved.bytes!);
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(file.path, mimeType: item.shareMimeType)],
+          sharePositionOrigin: anchor,
+        ),
+      );
+    } catch (e) {
+      if (buttonContext.mounted) {
+        ScaffoldMessenger.of(buttonContext).showSnackBar(
+          SnackBar(content: Text(l10n.media_photoViewer_failedToShare('$e'))),
+        );
+      }
+    }
   }
 
   // coverage:ignore-start
