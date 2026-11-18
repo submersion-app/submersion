@@ -62,12 +62,13 @@ DiveQualityContext decoDive({
   TankRole decoRole = TankRole.deco,
   List<QualitySample>? samples,
   bool switchesEdited = false,
+  double decoO2 = 50,
 }) => makeContext(
   dive: makeTestDive(
     diveMode: diveMode,
     tanks: [
       tank(id: 'back', order: 0),
-      tank(id: 'deco', order: 1, o2: 50, role: decoRole),
+      tank(id: 'deco', order: 1, o2: decoO2, role: decoRole),
     ],
   ).copyWith(gasSwitchesEdited: switchesEdited),
   samples: samples ?? profile(3000, (t) => t < 1800 ? 30 : switchDepth),
@@ -106,6 +107,15 @@ void main() {
     expect(first['o2Percent'], 50);
     expect(first['hePercent'], 0);
     expect(finding.params['deepStarts'], isEmpty);
+  });
+
+  // Issue #4714: a mix stored 100 times too high has a MOD of nothing, so
+  // every start on it would read as too deep. The impossible gas mix
+  // finding names it; this check waits for the mix to be put right.
+  test('a dive with an impossible breathing mix is left alone', () {
+    expect(det.detect(decoDive(decoO2: 5000)), isEmpty);
+    // v4 is the bump that retires the findings such a mix produced.
+    expect(det.version, 4);
   });
 
   test('a dive with a logged switch is left to the idle-tank check', () {

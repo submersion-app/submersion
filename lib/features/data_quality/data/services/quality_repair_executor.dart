@@ -8,6 +8,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/data_quality/data/repositories/quality_findings_repository.dart';
+import 'package:submersion/features/data_quality/data/services/hundredfold_gas_mix_repair.dart';
 import 'package:submersion/features/data_quality/data/services/profile_repair_service.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
@@ -66,6 +67,7 @@ class QualityRepairExecutor {
     TankPressureRepository? tankPressureRepository,
     QualityFindingsRepository? findingsRepository,
     ProfileRepairService? profileRepairService,
+    HundredfoldGasMixRepair? gasMixRepair,
     TankRoleRepairRepository? tankRoleRepository,
     TransmitterRepository? transmitterRepository,
     SourceClockRepository? sourceClockRepository,
@@ -82,6 +84,7 @@ class QualityRepairExecutor {
        _tankRepo = tankPressureRepository ?? TankPressureRepository(),
        _findings = findingsRepository ?? QualityFindingsRepository(),
        _profiles = profileRepairService ?? ProfileRepairService(),
+       _gasMixes = gasMixRepair ?? HundredfoldGasMixRepair(),
        _restoreDocuments =
            restoreDocuments ?? DocumentRepository().restoreSnapshot;
 
@@ -102,6 +105,7 @@ class QualityRepairExecutor {
   final TankPressureRepository _tankRepo;
   final QualityFindingsRepository _findings;
   final ProfileRepairService _profiles;
+  final HundredfoldGasMixRepair _gasMixes;
   AppDatabase get _db => DatabaseService.instance.database;
   static const _log = LoggerService('QualityRepairExecutor');
 
@@ -370,6 +374,31 @@ class QualityRepairExecutor {
       _rescan([diveId]);
     });
   }
+
+  /// Divide a cylinder's mix stored 100 times too high back to [mix]
+  /// (issue #4714), while the stored mix still divides to it: the launch
+  /// repair's write for one cylinder that arrived since, say by sync.
+  Future<RepairResult> rescaleGasMix({
+    required String diveId,
+    required String tankId,
+    required domain.GasMix mix,
+    required String findingId,
+  }) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.qualityRepair,
+    body: () async {
+      final prior = await _gasMixes.rescale(
+        diveId: diveId,
+        tankId: tankId,
+        mix: mix,
+      );
+      if (prior == null) return const RepairResult.noChange();
+      await _finish(findingId, [diveId]);
+      // No undo: this is what the launch repair writes anyway, so putting
+      // the impossible mix back would last only until the next launch.
+      return const RepairResult.applied();
+    },
+  );
 
   Future<RepairResult> swapTankRecordPressures({
     required String diveId,

@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/quality_finding_message.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -59,6 +60,7 @@ void main() {
         'temp_anomaly',
         'pressure_anomaly',
         'gas_mod',
+        'impossible_gas_mix',
         'tank_assignment',
         'missing_gas_switch',
         'source_conflict',
@@ -333,6 +335,82 @@ void main() {
         expect(d, isNot(contains('L/min')));
       },
     );
+  });
+
+  group('impossible_gas_mix (#4714)', () {
+    test('names the cylinder, its stored shares and the mix meant', () {
+      final d = detailFor('impossible_gas_mix', {
+        'tankId': 't1',
+        'tankPosition': 1,
+        'o2Percent': 2100.0,
+        'hePercent': 3500.0,
+        'correctedO2Percent': 21.0,
+        'correctedHePercent': 35.0,
+      });
+      expect(d, contains('Cylinder 2'));
+      expect(d, contains('2100% O2'));
+      expect(d, contains('3500% He'));
+      expect(d, contains('Tx 21/35'));
+    });
+
+    test('a corrected air mix is named as air', () {
+      final d = detailFor('impossible_gas_mix', {
+        'tankPosition': 0,
+        'o2Percent': 2100.0,
+        'hePercent': 0.0,
+        'correctedO2Percent': 21.0,
+        'correctedHePercent': 0.0,
+      });
+      expect(d, contains(l10n.gas_air_displayName));
+    });
+
+    test('a fractional stored share keeps its decimals', () {
+      final d = detailFor('impossible_gas_mix', {
+        'tankPosition': 0,
+        'o2Percent': 3212.5,
+        'hePercent': 0.0,
+        'correctedO2Percent': 32.125,
+        'correctedHePercent': 0.0,
+      });
+      expect(d, contains('3212.5% O2'));
+    });
+
+    test('a stored share drops the binary noise of its import', () {
+      final d = detailFor('impossible_gas_mix', {
+        'tankPosition': 0,
+        'o2Percent': 2899.9999999999995,
+        'hePercent': 0.0,
+        'correctedO2Percent': 29.0,
+        'correctedHePercent': 0.0,
+      });
+      expect(d, contains('2900% O2'));
+    });
+
+    test("a stored share uses the locale's decimal separator", () {
+      final previous = Intl.defaultLocale;
+      addTearDown(() => Intl.defaultLocale = previous);
+      Intl.defaultLocale = 'de';
+      final d = detailFor('impossible_gas_mix', {
+        'tankPosition': 0,
+        'o2Percent': 3212.5,
+        'hePercent': 0.0,
+        'correctedO2Percent': 32.125,
+        'correctedHePercent': 0.0,
+      });
+      expect(d, contains('3212,5% O2'));
+    });
+
+    test('without a correction, asks for the mix to be checked', () {
+      final d = detailFor('impossible_gas_mix', {
+        'tankPosition': 0,
+        'o2Percent': 60.0,
+        'hePercent': 50.0,
+      });
+      expect(d, contains('Cylinder 1'));
+      expect(d, contains('60% O2'));
+      expect(d, contains('50% He'));
+      expect(d, isNot(contains('100 times')));
+    });
   });
 
   group('gas_mod', () {

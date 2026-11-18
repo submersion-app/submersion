@@ -128,6 +128,10 @@ class _QualityFindingCardState extends State<QualityFindingCard> {
       ConvertTemperatureRepair() => l10n.dataQuality_repairLabel_convertTemp,
       ConvertWaterTempRepair() => l10n.dataQuality_repairLabel_convertTemp,
       RecomputeMetricsRepair() => l10n.dataQuality_repairLabel_recompute,
+      RescaleGasMixRepair(:final mix) =>
+        l10n.dataQuality_repairLabel_rescaleGasMix(
+          qualityGasLabel(l10n, mix.o2, mix.he),
+        ),
       SwapTankRecordPressuresRepair() =>
         l10n.dataQuality_repairLabel_swapPressures,
       SetTankRecordFromSeriesRepair() =>

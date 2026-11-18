@@ -10684,6 +10684,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_tank_label_he => 'He';
 
   @override
+  String get diveLog_tank_error_impossibleMix =>
+      'O2 和 He 须各在 0 到 100 之间，且总和不超过 100';
+
+  @override
   String get diveLog_tank_label_material => '材质';
 
   @override
@@ -42316,6 +42320,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dataQuality_detector_gas_mod => '气体/MOD 不一致';
 
   @override
+  String get dataQuality_detector_impossible_gas_mix => '不可能的气体混合';
+
+  @override
   String get dataQuality_detector_tank_assignment => '气瓶错误';
 
   @override
@@ -42499,6 +42506,25 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String dataQuality_msg_hypoxic(String gas) {
     return '低氧混合气（$gas）显示在水面处于使用状态';
+  }
+
+  @override
+  String dataQuality_msg_impossibleGasMix(
+    int tankNumber,
+    String o2,
+    String he,
+  ) {
+    return '气瓶 $tankNumber 记录为 $o2% O2 和 $he% He，任何气体都不可能如此。请在潜水中更正混合气。';
+  }
+
+  @override
+  String dataQuality_msg_impossibleGasMixScaled(
+    int tankNumber,
+    String o2,
+    String he,
+    String gas,
+  ) {
+    return '气瓶 $tankNumber 记录为 $o2% O2 和 $he% He，任何气体都不可能如此。很可能是旧版导入将 $gas 存储得高了 100 倍。';
   }
 
   @override
@@ -42777,6 +42803,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_convertTemp => '转换温度';
+
+  @override
+  String dataQuality_repairLabel_rescaleGasMix(String gas) {
+    return '更正为 $gas';
+  }
 
   @override
   String get dataQuality_repairLabel_recompute => '根据剖面重新计算';

@@ -11299,6 +11299,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_tank_label_he => 'He';
 
   @override
+  String get diveLog_tank_error_impossibleMix =>
+      'O2 et He doivent être compris entre 0 et 100 et totaliser 100 au plus';
+
+  @override
   String get diveLog_tank_label_material => 'Matériau';
 
   @override
@@ -45085,6 +45089,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get dataQuality_detector_gas_mod => 'Incohérence gaz/MOD';
 
   @override
+  String get dataQuality_detector_impossible_gas_mix =>
+      'Mélange gazeux impossible';
+
+  @override
   String get dataQuality_detector_tank_assignment => 'Mauvais bloc';
 
   @override
@@ -45277,6 +45285,25 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String dataQuality_msg_hypoxic(String gas) {
     return 'Mélange hypoxique ($gas) indiqué comme utilisé en surface';
+  }
+
+  @override
+  String dataQuality_msg_impossibleGasMix(
+    int tankNumber,
+    String o2,
+    String he,
+  ) {
+    return 'Le bloc $tankNumber est enregistré à $o2% d\'O2 et $he% d\'He, ce qu\'aucun gaz ne peut contenir. Mélange à corriger dans la plongée.';
+  }
+
+  @override
+  String dataQuality_msg_impossibleGasMixScaled(
+    int tankNumber,
+    String o2,
+    String he,
+    String gas,
+  ) {
+    return 'Le bloc $tankNumber est enregistré à $o2% d\'O2 et $he% d\'He, ce qu\'aucun gaz ne peut contenir. Une ancienne importation a très probablement enregistré $gas 100 fois trop haut.';
   }
 
   @override
@@ -45565,6 +45592,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_convertTemp => 'Convertir la température';
+
+  @override
+  String dataQuality_repairLabel_rescaleGasMix(String gas) {
+    return 'Corriger en $gas';
+  }
 
   @override
   String get dataQuality_repairLabel_recompute =>
