@@ -126,4 +126,106 @@ void main() {
       expect(built, isA<SiteEditPage>());
     });
   });
+
+  // Inside the dive list's pane the site's back arrow returns to the dive.
+  // While unlocked the pane header lies over it, so leaving an open sitting
+  // goes through Cancel, which asks first with unsaved changes (issue
+  // #4527).
+  group("the back arrow in the dive list's pane", () {
+    final backArrow = find.byTooltip(l.common_action_back);
+
+    testWidgets('is under the pane header while unlocked', (tester) async {
+      var closed = 0;
+      await pumpSitePage(
+        tester,
+        embedded: true,
+        onClose: () => closed++,
+        openUnlocked: true,
+      );
+
+      expect(backArrow.hitTestable(), findsNothing);
+      expect(closed, 0);
+    });
+
+    testWidgets('with unsaved changes, Cancel asks before the arrow shows', (
+      tester,
+    ) async {
+      var closed = 0;
+      final page = await pumpSitePage(
+        tester,
+        embedded: true,
+        onClose: () => closed++,
+        openUnlocked: true,
+      );
+      await tester.ensureVisible(find.text(l.diveSites_detail_section_notes));
+      await tester.tap(find.text(l.diveSites_detail_section_notes));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextFormField).last, 'Choppy');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text(l.forms_cancel));
+      await tester.pumpAndSettle();
+      expect(find.text(l.forms_discard_title), findsOneWidget);
+      await tester.tap(find.text(l.forms_discard_discard));
+      await tester.pumpAndSettle();
+
+      await tester.tap(backArrow.hitTestable());
+      await tester.pumpAndSettle();
+      expect(closed, 1);
+      expect(page.save.calls, isEmpty);
+    });
+
+    testWidgets('locked goes straight back', (tester) async {
+      var closed = 0;
+      await pumpSitePage(tester, embedded: true, onClose: () => closed++);
+
+      await tester.tap(backArrow.hitTestable());
+      await tester.pumpAndSettle();
+
+      expect(find.text(l.forms_discard_title), findsNothing);
+      expect(closed, 1);
+    });
+  });
+
+  group("the dive list's site pane", () {
+    Widget pane(BuildContext context, {required bool unlockEditing}) =>
+        siteInDivesPane(
+          context,
+          's1',
+          onSaved: (_) {},
+          onCancel: () {},
+          onClose: () {},
+          onDeleted: () {},
+          unlockEditing: unlockEditing,
+        );
+
+    Future<Widget> build(WidgetTester tester, {required bool on}) async {
+      late Widget built;
+      await tester.pumpWidget(
+        Builder(
+          builder: (context) {
+            built = pane(context, unlockEditing: on);
+            return const SizedBox();
+          },
+        ),
+      );
+      return built;
+    }
+
+    testWidgets('with the switch on is the site opened unlocked, its back '
+        'arrow to the dive', (tester) async {
+      final built = await build(tester, on: true);
+
+      expect(built, isA<SiteDetailPage>());
+      final page = built as SiteDetailPage;
+      expect(page.embedded, isTrue);
+      expect(page.openUnlocked, isTrue);
+      expect(page.onClose, isNotNull);
+      expect(page.onSittingEnded, isNotNull);
+    });
+
+    testWidgets('with the switch off is the form', (tester) async {
+      expect(await build(tester, on: false), isA<SiteEditPage>());
+    });
+  });
 }

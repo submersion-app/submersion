@@ -98,6 +98,7 @@ Future<SiteUnlockHarness> pumpSitePage(
   bool embedded = false,
   bool openUnlocked = false,
   VoidCallback? onSittingEnded,
+  VoidCallback? onClose,
   Size size = const Size(600, 1400),
   String? initialLocation,
   List<Override> extra = const [],
@@ -114,6 +115,7 @@ Future<SiteUnlockHarness> pumpSitePage(
     unlockEditing: unlockEditing,
     openUnlocked: openUnlocked,
     onSittingEnded: onSittingEnded,
+    onClose: onClose,
   );
   // At [initialLocation] the page is a route's, as in the app: a desktop
   // root visit moves it into the list pane at `/sites`.
