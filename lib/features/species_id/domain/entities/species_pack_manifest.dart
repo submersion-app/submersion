@@ -490,10 +490,10 @@ class SpeciesPackManifest extends Equatable {
         // Levels and their precision stand only on measured bars.
         precision: naming['provisional'] == true
             ? null
-            : _share(naming['precision']),
+            : measuredShare(naming['precision']),
         levels: naming['provisional'] == true
             ? const []
-            : _levels(
+            : measuredLevels(
                 naming['levels'],
                 _double(naming, 'suggestScore'),
                 _double(naming, 'suggestScoreNoLocation'),
@@ -736,68 +736,6 @@ double _double(Map<String, Object?> map, String key) {
   final value = map[key];
   if (value is num && value.isFinite) return value.toDouble();
   _bad('$key is not a number');
-}
-
-/// [value] when it is a share in (0, 1], else null.
-double? _share(Object? value) =>
-    value is num && value.isFinite && value > 0 && value <= 1
-    ? value.toDouble()
-    : null;
-
-/// A bar in [0, [ceiling]], else null.
-double? _barAtMost(Object? value, double ceiling) =>
-    value is num && value.isFinite && value >= 0 && value <= ceiling
-    ? value.toDouble()
-    : null;
-
-/// The naming levels a pack carries (issue #4721), surest first. They are
-/// optional: an entry that is not a known level below Surer, with bars no
-/// higher than the level above it, at least one of them lower, and a
-/// precision in (0, 1], is dropped, and the pack still reads.
-List<MeasuredNamingLevel> _levels(
-  Object? value,
-  double suggestScore,
-  double suggestScoreNoLocation,
-) {
-  if (value is! List) return const [];
-  final byLevel = <NamingLevel, Map<Object?, Object?>>{};
-  for (final entry in value) {
-    if (entry is! Map) continue;
-    final id = entry['id'];
-    final level = NamingLevel.fromId(id is String ? id : null);
-    if (level == null || level == NamingLevel.surer) continue;
-    byLevel.putIfAbsent(level, () => entry);
-  }
-  final levels = <MeasuredNamingLevel>[];
-  var above = (suggestScore, suggestScoreNoLocation);
-  for (final level in NamingLevel.values) {
-    final entry = byLevel[level];
-    if (entry == null) continue;
-    final suggest = _barAtMost(entry['suggestScore'], above.$1);
-    final noLocation = _barAtMost(entry['suggestScoreNoLocation'], above.$2);
-    final precision = _share(entry['precision']);
-    final target = entry['target'];
-    if (suggest == null ||
-        noLocation == null ||
-        precision == null ||
-        target is! num ||
-        !target.isFinite ||
-        // Bars the level above already names at add nothing.
-        (suggest, noLocation) == above) {
-      continue;
-    }
-    levels.add(
-      MeasuredNamingLevel(
-        level: level,
-        target: target.toDouble(),
-        suggestScore: suggest,
-        suggestScoreNoLocation: noLocation,
-        precision: precision,
-      ),
-    );
-    above = (suggest, noLocation);
-  }
-  return List.unmodifiable(levels);
 }
 
 List<double> _triple(Map<String, Object?> map, String key) {

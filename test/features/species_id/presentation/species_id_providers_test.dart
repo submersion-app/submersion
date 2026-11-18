@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -378,6 +379,46 @@ void main() {
       classifierPath: '/pack/classifier',
     );
 
+    group('awaitLevelInForce, the level the service reconciles at', () {
+      ProviderContainer withPack(Future<InstalledPack?> Function() pack) {
+        final c = ProviderContainer(
+          overrides: [
+            installedSpeciesPackProvider.overrideWith((ref) => pack()),
+            namingLevelNotifierProvider.overrideWith(
+              (ref) => NamingLevelNotifier.unstored(NamingLevel.eager),
+            ),
+          ],
+        );
+        addTearDown(c.dispose);
+        return c;
+      }
+
+      test('waits for a pack still being read', () async {
+        final reading = Completer<InstalledPack?>();
+        final level = awaitLevelInForce(withPack(() => reading.future));
+        reading.complete(levelledPack());
+        expect((await level)?.level, NamingLevel.eager);
+      });
+
+      test('is none at once when the pack cannot be read', () async {
+        final c = withPack(() async => throw StateError('no pack'));
+        // Let the read fail; Riverpod then retries in the background.
+        await pumpEventQueue();
+        expect(
+          await awaitLevelInForce(c).timeout(const Duration(seconds: 2)),
+          isNull,
+        );
+      });
+
+      test('gives up on a read that never ends', () async {
+        final c = withPack(() => Completer<InstalledPack?>().future);
+        expect(
+          await awaitLevelInForce(c, wait: const Duration(milliseconds: 50)),
+          isNull,
+        );
+      });
+    });
+
     /// A container whose pack has been read: the level never waits for it.
     Future<ProviderContainer> levelled(NamingLevel level) async {
       final c = ProviderContainer(
@@ -388,7 +429,7 @@ void main() {
           installedSpeciesPackProvider.overrideWith(
             (ref) async => levelledPack(),
           ),
-          namingLevelProvider.overrideWith(
+          namingLevelNotifierProvider.overrideWith(
             (ref) => NamingLevelNotifier.unstored(level),
           ),
         ],
@@ -445,7 +486,7 @@ void main() {
     test(
       'is Surer by default, remembered, and Surer for an unknown id',
       () async {
-        expect(container.read(namingLevelProvider), NamingLevel.surer);
+        expect(container.read(namingLevelNotifierProvider), NamingLevel.surer);
 
         SharedPreferences.setMockInitialValues({
           SettingsKeys.marineLifeNamingLevel: 'reckless',

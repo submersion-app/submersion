@@ -337,7 +337,7 @@ void main() {
       installed,
       extra: [
         installedSpeciesPackProvider.overrideWith((ref) async => pack),
-        namingLevelProvider.overrideWith(
+        namingLevelNotifierProvider.overrideWith(
           (ref) => NamingLevelNotifier.unstored(chosen),
         ),
       ],
@@ -377,7 +377,7 @@ void main() {
       final container = ProviderScope.containerOf(
         tester.element(find.byType(MarineLifeIdentificationPage)),
       );
-      expect(container.read(namingLevelProvider), NamingLevel.eager);
+      expect(container.read(namingLevelNotifierProvider), NamingLevel.eager);
     });
 
     testWidgets('a level the pack lacks shows the one in force', (

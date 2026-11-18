@@ -451,7 +451,12 @@ def evaluate(name, results_by_photo, animals, junk_rows, namer, work, min_side, 
             level, surer, [c["with"] for c in held_nat], [c["without"] for c in held_nat], min_side=min_side, target=target
         ):
             continue
-        levels.append({"id": level_id, "target": target, "bars": level.__dict__, "held-out": level_rates(level)})
+        rates = level_rates(level)
+        # A level naming nothing held out with a location has no precision
+        # to show, so it is left out as the Surer precision is.
+        if not rates["precision"]["n"]:
+            continue
+        levels.append({"id": level_id, "target": target, "bars": level.__dict__, "held-out": rates})
         ceiling = level
 
     def naming_rates(records, confident=False):

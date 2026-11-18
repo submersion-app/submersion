@@ -24,14 +24,14 @@ class NamingLevelSection extends ConsumerWidget {
     final l10n = context.l10n;
     final inForce = levelInForce(
       manifest,
-      ref.watch(namingLevelProvider),
+      ref.watch(namingLevelNotifierProvider),
     )!.level;
 
     return RadioGroup<NamingLevel>(
       groupValue: inForce,
       onChanged: (level) {
         if (level != null && level != inForce) {
-          ref.read(namingLevelProvider.notifier).setLevel(level);
+          ref.read(namingLevelNotifierProvider.notifier).setLevel(level);
         }
       },
       child: Column(

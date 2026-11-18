@@ -318,6 +318,11 @@ class LevelProblemsTests(unittest.TestCase):
         self.assertTrue(self.problems([{**self.BALANCED, "precision": 0}]))
         self.assertTrue(self.problems([self.BALANCED], precision=1.2))
 
+    def test_malformed_values_are_problems_not_errors(self):
+        broken = {**self.BALANCED, "suggestScore": None, "precision": None}
+        problems = self.problems([broken, self.EAGER], precision="x")
+        self.assertEqual(len(problems), 3)
+
     def test_measured_entries_have_no_problems(self):
         for entry in manifest.NAMING_MEASURED:
             self.assertEqual(manifest.level_problems(entry["naming"]), [], entry["detectorIds"])
