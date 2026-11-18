@@ -3,6 +3,8 @@ import 'dart:typed_data';
 
 import 'package:photo_manager/photo_manager.dart';
 
+import 'package:submersion/core/platform/host_platform.dart';
+
 /// Byte reads and existence checks against the platform photo library, keyed
 /// by the LOCAL asset id `AssetResolutionService` resolved.
 ///
@@ -42,7 +44,7 @@ class PhotoManagerAssetReader implements GalleryAssetReader {
   /// the platform channel instead, and a file would be a new copy on disk.
   @override
   Future<File?> originFile(String assetId) async {
-    if (!Platform.isIOS && !Platform.isMacOS) return null;
+    if (!HostPlatform.isApple) return null;
     final asset = await AssetEntity.fromId(assetId);
     if (asset == null) return null;
     return asset.originFile;
