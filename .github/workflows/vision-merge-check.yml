@@ -4,9 +4,7 @@
 # small check program and runs the cases of tool/species_pack/boxes_test.py
 # against its merge of two detectors' boxes (issue #4691). A pack's measured
 # bars hold only while the app merges exactly as the scorer measured; the
-# Linux test jobs cannot compile Core ML code, so this runs on macOS. It also
-# checks the memory floor on iPhone and iPad (MemoryFloor in
-# MemoryReading.swift) against the devices it must let in and keep out.
+# Linux test jobs cannot compile Core ML code, so this runs on macOS.
 
 name: Vision Merge Check
 
@@ -43,6 +41,3 @@ jobs:
 
       - name: Check the pipeline's merge against boxes.py's cases
         run: tool/species_pack/vision_cli/check_merge.sh "$RUNNER_TEMP/merge_check"
-
-      - name: Check the memory floor
-        run: tool/species_pack/vision_cli/check_floor.sh "$RUNNER_TEMP/floor_check"

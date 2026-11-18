@@ -7,15 +7,26 @@ import Foundation
 // than 6 GiB, while an 8 GB one reports a little under 8 GiB. See
 // docs/design/specs/2026-11-18-marine-life-release-gate-design.md.
 //
-// Assertions use precondition() (not assert(), which the optimizer can
-// elide), so a failure aborts the run even when built with -O.
+// Each case prints `ok` or `FAIL` with its name, and any failure exits 1, so
+// the CI log names the case (a trapped precondition built with -O prints
+// nothing).
 
 @main
 struct FloorCheck {
   static let gib: Double = 1024 * 1024 * 1024
+  static var failures = 0
 
   static func bytes(_ gibibytes: Double) -> UInt64 {
     UInt64(gibibytes * gib)
+  }
+
+  static func check(_ name: String, _ condition: Bool) {
+    if condition {
+      print("ok   \(name)")
+    } else {
+      print("FAIL \(name)")
+      failures += 1
+    }
   }
 
   static func eligible(_ gibibytes: Double) -> Bool {
@@ -23,14 +34,16 @@ struct FloorCheck {
   }
 
   static func main() {
-    precondition(
-      MemoryFloor.minimumMemoryBytes == 6_979_321_856,
-      "the floor is 6.5 GiB")
-    precondition(!eligible(5.5), "a 6 GB phone, as it reports, is kept out")
-    precondition(!eligible(6.0), "the most a 6 GB device can report is kept out")
-    precondition(eligible(6.5), "the floor itself is let in")
-    precondition(eligible(7.0), "an 8 GB device with 1 GiB held back is let in")
-    precondition(eligible(11.5), "a 12 GB phone is let in")
+    check("the floor is 6.5 GiB", MemoryFloor.minimumMemoryBytes == 6_979_321_856)
+    check("a 6 GB phone, as it reports, is kept out", !eligible(5.5))
+    check("the most a 6 GB device can report is kept out", !eligible(6.0))
+    check("the floor itself is let in", eligible(6.5))
+    check("an 8 GB device with 1 GiB held back is let in", eligible(7.0))
+    check("a 12 GB phone is let in", eligible(11.5))
+    if failures > 0 {
+      print("memory floor: \(failures) failed")
+      exit(1)
+    }
     print("memory floor: ok")
   }
 }

@@ -168,6 +168,15 @@ If you would rather not contact them, do not open those features. Maps can
 also be used offline by downloading a region in advance, which avoids further
 tile requests for that area.
 
+### Downloading the marine life identification model
+
+On iPhone, iPad and Mac, opening Marine life identification in Settings asks
+GitHub whether a species model is available, and choosing Download fetches it
+(about 633 MB) from GitHub. Like the update check, this sends nothing about
+you or your diving; GitHub sees a request from your IP address. Identifying
+species in your photos and videos then happens on your device, and they are
+not sent anywhere for it.
+
 ### Services you connect yourself
 
 If you choose to connect one of these accounts, Submersion communicates with

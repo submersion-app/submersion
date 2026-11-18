@@ -197,9 +197,11 @@ The models are an optional download, never bundled **(decided)**.
   part of the app build or CI.
 - An installed pack is excluded from iCloud and computer device backups. It
   is large and can be downloaded again.
-- **Phones and tablets need at least 6 GB of memory at first (decided).** The
-  classifier has not been tried on a phone; the floor is one constant to
-  change once it has.
+- **Phones and tablets need 8 GB of memory at launch (decided 2026-11-18).**
+  An iPhone 17 Pro Max gave the app a 3,376 MiB limit and a 6 GB phone's is
+  unmeasured, so the floor started at 6 GB and rose to 8 GB in the
+  [release gate](2026-11-18-marine-life-release-gate-design.md); it comes
+  back down once a 6 GB phone is measured.
 
 ### Naming rules
 

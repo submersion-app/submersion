@@ -42,23 +42,22 @@ bool lightroomUiEnabled = false;
 /// species in the photo viewer.
 ///
 /// On wherever an engine runs (iPhone, iPad and Mac) and hidden on the web,
-/// Android, Windows and Linux, which have no engine yet. It reads the
-/// platform the same way `ChannelVisionEngine` does, on every read, so the
-/// UI never offers what the engine would refuse. See
+/// Android, Windows and Linux, which have no engine yet. It asks
+/// [visionEngineRuns], as `ChannelVisionEngine` does, on every read, so the UI
+/// never offers it on a platform with no engine. See
 /// docs/design/specs/2026-11-18-marine-life-release-gate-design.md.
 ///
 /// A build passing `--dart-define=MARINE_LIFE_ID=false` turns it off
 /// everywhere. Like [lightroomUiEnabled] it hides UI only. Tests may set it;
 /// a test that does must call [resetMarineLifeIdEnabled] in `tearDown` or
-/// `addTearDown`, which puts the platform default back.
+/// `addTearDown`, which puts the platform default back, and
+/// `applyGlobalTestDefaults` resets it before every test file.
 bool get marineLifeIdEnabled =>
     _marineLifeIdOverride ??
-    (_marineLifeIdDefine &&
-        !kIsWeb &&
-        (defaultTargetPlatform == TargetPlatform.iOS ||
-            defaultTargetPlatform == TargetPlatform.macOS));
+    (_marineLifeIdDefine && visionEngineRuns(defaultTargetPlatform));
 
 /// Overrides the platform default, for tests.
+@visibleForTesting
 set marineLifeIdEnabled(bool value) => _marineLifeIdOverride = value;
 
 /// Drops a test's override, so [marineLifeIdEnabled] follows the platform.
@@ -70,3 +69,11 @@ const _marineLifeIdDefine = bool.fromEnvironment(
   defaultValue: true,
 );
 bool? _marineLifeIdOverride;
+
+/// Whether the on-device vision engine (Core ML) runs on [platform]: iPhone,
+/// iPad and Mac, and never in a browser, where Safari on a Mac still reports
+/// macOS. [marineLifeIdEnabled] and `ChannelVisionEngine` both ask this, so
+/// the UI and the engine cannot disagree about where it runs.
+bool visionEngineRuns(TargetPlatform platform, {bool web = kIsWeb}) =>
+    !web &&
+    (platform == TargetPlatform.iOS || platform == TargetPlatform.macOS);

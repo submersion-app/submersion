@@ -189,6 +189,6 @@ git commit -m "docs(species-id): record the marine life release gate decisions"
 
 ## Before merging (not tasks here)
 
-1. Rebuild the pair pack (or regenerate its manifest) so it carries the new credits.
+1. Regenerate the manifest over the measured pack's files (`2026.11.18.0356`), with `mf.file_entry` on each file and `mf.build_manifest(..., credits=credits_for("both"))`, so it carries the new credits. Do not rebuild: a rebuild fetches GBIF again, and if `candidates.json`, `text_embeddings.f16` or `regions.bin` differ by a byte the pack silently gets provisional bars. Check `naming.provisional` is false and the Community Fish Detector credit reads the new licence before uploading.
 2. On Eric's go: create the `species-pack` release and upload the manifest and pack files. It does not exist yet.
 3. Then the PR can merge (Eric's call). The first release with it on needs the App Review notes from the design.

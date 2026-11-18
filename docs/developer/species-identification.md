@@ -10,38 +10,34 @@ photos and videos on the device and suggests what they are (issues #4668,
 (video), with packs of one or two detectors in
 [the two detectors design](../design/specs/2026-11-17-marine-life-two-detectors-design.md).
 
-The feature is behind a flag and off for divers. This page is for working on
-it.
+The feature is on for divers on iPhone, iPad and Mac. This page is for
+working on it.
 
-## Turning it on
+## Where it is on
 
 The flag is `marineLifeIdEnabled` in `lib/core/constants/feature_flags.dart`.
-A development build turns it on with a build define:
+It is on by default wherever the engine runs (iPhone, iPad and Mac, asked of
+`visionEngineRuns`) and hidden on the web, Android, Windows and Linux, which
+no build define can turn on until they have an engine. A build turns it off
+everywhere with:
 
 ```bash
-flutter run -d macos --dart-define=MARINE_LIFE_ID=true
+flutter run -d macos --dart-define=MARINE_LIFE_ID=false
 ```
 
-Two things must hold before its default changes:
+The [release gate design](../design/specs/2026-11-18-marine-life-release-gate-design.md)
+records why it is on: the first published pack carries both detectors (the
+Community Fish Detector, whose authors leave the terms of its weights to the
+user, and FathomNet's Megalodon, CC BY 4.0 but trained with AGPL code), and
+its confidence bars come from measured accuracy. Each detector set measured
+on the 9,151-candidate list (packs `2026.11.18.0030` and `2026.11.18.0356`)
+is written with its bars; any other pack, a rebuilt candidate list included,
+is marked `provisional` until the scorer is run on it, so a pack to publish
+is checked for `"provisional": false` first.
 
-1. A pack is chosen whose detectors' terms allow shipping it: the
-   Community Fish Detector, FathomNet's Megalodon or both (issue #4691). The
-   Community Fish Detector's authors leave the terms of its weights to the
-   user; Megalodon is CC BY 4.0 but was trained with AGPL code. The
-   [measured accuracy findings](../design/findings/2026-11-17-marine-life-measured-accuracy.md)
-   compare the three and recommend both.
-2. The confidence bars in the pack come from measured accuracy. Each
-   detector set measured on the 9,151-candidate list (packs
-   `2026.11.18.0030` and `2026.11.18.0356`) is written with its bars; any
-   other pack, a rebuilt candidate list included, is marked `provisional`
-   until the scorer is run on it.
-
-Only iPhone, iPad and Mac can run it so far, and it is on by default there
-(`marineLifeIdEnabled` in `lib/core/constants/feature_flags.dart`); the web,
-Android, Windows and Linux hide it. Phones and tablets need 8 GB of memory
-at launch: the floor is `MemoryFloor` in `MemoryReading.swift`, 6.5 GiB as
-the device reports it, checked by `tool/species_pack/vision_cli/check_floor.sh`
-([release gate](../design/specs/2026-11-18-marine-life-release-gate-design.md)).
+Phones and tablets need 8 GB of memory at launch: the floor is `MemoryFloor`
+in `MemoryReading.swift`, 6.5 GiB as the device reports it, checked by
+`tool/species_pack/vision_cli/check_floor.sh` in the Build iOS job.
 
 ## How it fits together
 
@@ -254,7 +250,7 @@ cd build/species_pack && python3.14 -m http.server 8765
 ```
 
 ```bash
-flutter run -d macos --dart-define=MARINE_LIFE_ID=true --dart-define=SPECIES_PACK_MANIFEST_URL=http://localhost:8765/manifest.json
+flutter run -d macos --dart-define=SPECIES_PACK_MANIFEST_URL=http://localhost:8765/manifest.json
 ```
 
 Then open Settings, Data, Photos and videos, Marine life identification,

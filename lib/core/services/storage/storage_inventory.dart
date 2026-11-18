@@ -64,7 +64,7 @@ class StorageInventory {
       group: StorageGroup.appData,
       measure: _measureLocalCache,
     ),
-    // Hidden until the feature ships (issue #4668).
+    // Only where marine life identification runs (issue #4668).
     if (marineLifeIdEnabled) ...[
       StorageCategory(
         id: StorageCategoryId.identificationModel,
