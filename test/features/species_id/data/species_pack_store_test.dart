@@ -185,6 +185,7 @@ void main() {
       manifestJson((m) {
         m['packVersion'] = '2026.11.1';
         (m['classifier']! as Map)['embeddingSize'] = 3;
+        (m['naming']! as Map)['provisional'] = false;
         (m['naming']! as Map)['levels'] = [
           {
             'id': 'balanced',
@@ -211,6 +212,25 @@ void main() {
       isEmpty,
     );
   });
+
+  test(
+    'a manifest that cannot be swapped in leaves no temporary file',
+    () async {
+      final manifest = _manifest('2026.11.1');
+      await stage(manifest);
+      final pack = await store.install(manifest);
+      // A folder where the manifest should be: the rename over it fails.
+      final target = File(p.join(pack.directory, 'manifest.json'));
+      await target.delete();
+      await Directory(target.path).create();
+
+      await expectLater(
+        store.adoptManifest(pack, manifest),
+        throwsA(isA<FileSystemException>()),
+      );
+      expect(File('${target.path}.tmp').existsSync(), isFalse);
+    },
+  );
 
   test('removing clears the pack', () async {
     final manifest = _manifest('2026.11.1');

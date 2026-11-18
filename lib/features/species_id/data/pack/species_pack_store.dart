@@ -165,8 +165,15 @@ class SpeciesPackStore {
   ) async {
     final target = File(p.join(pack.directory, _manifestName));
     final temp = File('${target.path}.tmp');
-    await temp.writeAsString(manifest.source, flush: true);
-    await temp.rename(target.path);
+    try {
+      await temp.writeAsString(manifest.source, flush: true);
+      await temp.rename(target.path);
+    } on FileSystemException {
+      // Nothing half-written is left in the pack, where it would count
+      // toward its size and never be cleared.
+      if (await temp.exists()) await temp.delete();
+      rethrow;
+    }
     return InstalledPack(
       manifest: manifest,
       directory: pack.directory,

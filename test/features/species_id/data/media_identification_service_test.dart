@@ -28,6 +28,25 @@ import 'fake_vision_engine.dart';
 import 'identification_fixtures.dart' show track, videoRun;
 import 'media_identification_service_fixtures.dart';
 
+/// Records which of a media's run and rows were read, in order.
+class _ReadOrderRepository extends MediaIdentificationRepository {
+  _ReadOrderRepository(AppDatabase database) : super(database: database);
+
+  final reads = <String>[];
+
+  @override
+  Future<MediaIdentificationRun?> runFor(String mediaId) {
+    reads.add('run');
+    return super.runFor(mediaId);
+  }
+
+  @override
+  Future<List<MediaIdentification>> forMedia(String mediaId) {
+    reads.add('rows');
+    return super.forMedia(mediaId);
+  }
+}
+
 void main() {
   late AppDatabase library;
   late LocalCacheDatabase local;
@@ -362,6 +381,16 @@ void main() {
       final stored = await reconciled(levelled);
       expect(stored.decision, IdentificationDecision.accepted);
       expect(stored.suggestable, isFalse);
+    });
+
+    test('the run is read before the rows, so a rename between the two '
+        'reads leaves the stored flags', () async {
+      final recording = _ReadOrderRepository(library);
+      identifications = recording;
+      final levelled = build(namingLevel: () async => eager);
+      addTearDown(levelled.dispose);
+      await reconciled(levelled);
+      expect(recording.reads.take(2), ['run', 'rows']);
     });
 
     test('with no level, the pack own bars decide as before', () async {

@@ -568,14 +568,18 @@ void main() {
       'precision': 0.72,
       ...edit,
     };
-    NamingConfig naming(Object? levels, {Object? precision}) =>
-        SpeciesPackManifest.parse(
-          manifestJson((m) {
-            final n = m['naming']! as Map<String, Object?>;
-            if (levels != null) n['levels'] = levels;
-            if (precision != null) n['precision'] = precision;
-          }),
-        ).naming;
+    NamingConfig naming(
+      Object? levels, {
+      Object? precision,
+      bool provisional = false,
+    }) => SpeciesPackManifest.parse(
+      manifestJson((m) {
+        final n = m['naming']! as Map<String, Object?>;
+        n['provisional'] = provisional;
+        if (levels != null) n['levels'] = levels;
+        if (precision != null) n['precision'] = precision;
+      }),
+    ).naming;
     List<NamingLevel> ids(NamingConfig n) => [
       for (final l in n.levels) l.level,
     ];
@@ -664,6 +668,32 @@ void main() {
       expect(ids(naming('levels')), isEmpty);
     });
 
+    test('a provisional pack carries no levels and no precision', () {
+      final n = naming([balanced()], precision: 0.9, provisional: true);
+      expect(n.levels, isEmpty);
+      expect(n.precision, isNull);
+    });
+
+    test('a level that names nothing more than the one above is dropped', () {
+      expect(
+        ids(
+          naming([
+            balanced({'suggestScore': 0.5, 'suggestScoreNoLocation': 0.7}),
+          ]),
+        ),
+        isEmpty,
+      );
+      expect(
+        ids(
+          naming([
+            balanced(),
+            eager({'suggestScore': 0.4, 'suggestScoreNoLocation': 0.6}),
+          ]),
+        ),
+        [NamingLevel.balanced],
+      );
+    });
+
     test('eager above balanced is dropped', () {
       expect(
         ids(
@@ -677,11 +707,27 @@ void main() {
     });
 
     group('a republished manifest is adoptable', () {
-      final installed = SpeciesPackManifest.parse(manifestJson());
+      // Levels are read only from measured bars.
+      void measured(Map<String, Object?> m) =>
+          (m['naming']! as Map<String, Object?>)['provisional'] = false;
+      final installed = SpeciesPackManifest.parse(manifestJson(measured));
       SpeciesPackManifest published(void Function(Map<String, Object?>) edit) =>
-          SpeciesPackManifest.parse(manifestJson(edit));
+          SpeciesPackManifest.parse(
+            manifestJson((m) {
+              measured(m);
+              edit(m);
+            }),
+          );
       void addLevels(Map<String, Object?> m) =>
           (m['naming']! as Map<String, Object?>)['levels'] = [balanced()];
+
+      test('when it withdraws its levels and precision', () {
+        final withLevels = published((m) {
+          addLevels(m);
+          (m['naming']! as Map<String, Object?>)['precision'] = 0.9;
+        });
+        expect(withLevels.adoptableFrom(published((_) {})), isTrue);
+      });
 
       test('when it adds levels, a precision or credits', () {
         expect(installed.adoptableFrom(published(addLevels)), isTrue);

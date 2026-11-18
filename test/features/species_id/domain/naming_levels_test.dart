@@ -33,6 +33,7 @@ SpeciesPackManifest _pack({
 }) => SpeciesPackManifest.parse(
   manifestJson((m) {
     final naming = m['naming']! as Map<String, Object?>;
+    naming['provisional'] = false;
     naming['levels'] = levels;
     if (precision != null) naming['precision'] = precision;
   }),
@@ -105,6 +106,36 @@ void main() {
       )!;
       expect((surer.suggestScore, surer.suggestScoreNoLocation), (0.5, 0.7));
     });
+  });
+
+  test('LevelInForce.copyWith replaces each field and keeps the rest', () {
+    const level = LevelInForce(
+      level: NamingLevel.surer,
+      packVersion: '2026.11.1',
+      minCropSide: 64,
+      minOpenScore: 0.15,
+      suggestScore: 0.5,
+      suggestScoreNoLocation: 0.7,
+    );
+    expect(level.copyWith(), level);
+    expect(
+      level.copyWith(
+        level: NamingLevel.eager,
+        packVersion: '2026.12.1',
+        minCropSide: 32,
+        minOpenScore: 0.2,
+        suggestScore: 0.3,
+        suggestScoreNoLocation: 0.4,
+      ),
+      const LevelInForce(
+        level: NamingLevel.eager,
+        packVersion: '2026.12.1',
+        minCropSide: 32,
+        minOpenScore: 0.2,
+        suggestScore: 0.3,
+        suggestScoreNoLocation: 0.4,
+      ),
+    );
   });
 
   group('offeredLevels', () {

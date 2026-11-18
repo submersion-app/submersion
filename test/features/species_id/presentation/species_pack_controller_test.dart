@@ -379,10 +379,17 @@ void main() {
   });
 
   group('a republished manifest of the installed version (issue #4721)', () {
+    // Levels are read only from measured bars.
+    SpeciesPackManifest measured() => SpeciesPackManifest.parse(
+      manifestJson(
+        (m) => (m['naming']! as Map<String, Object?>)['provisional'] = false,
+      ),
+    );
     SpeciesPackManifest withLevels({double suggestScore = 0.50}) =>
         SpeciesPackManifest.parse(
           manifestJson((m) {
             final naming = m['naming']! as Map<String, Object?>;
+            naming['provisional'] = false;
             naming['suggestScore'] = suggestScore;
             naming['levels'] = [
               {
@@ -400,6 +407,7 @@ void main() {
         );
 
     test('is taken in place, with nothing downloaded', () async {
+      client.manifest = measured();
       await controller().refresh();
       await controller().download();
       await container.read(installedSpeciesPackProvider.future);
@@ -418,6 +426,7 @@ void main() {
     });
 
     test('that changes a bar is not taken', () async {
+      client.manifest = measured();
       await controller().refresh();
       await controller().download();
       client.manifest = withLevels(suggestScore: 0.55);

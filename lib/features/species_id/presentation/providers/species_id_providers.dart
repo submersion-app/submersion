@@ -127,17 +127,23 @@ final levelInForceProvider = Provider<LevelInForce?>((ref) {
   return levelInForce(pack?.manifest, ref.watch(namingLevelProvider));
 });
 
-/// [all] as [level] would suggest them, when the pack in force named
-/// [mediaId] (issue #4721).
+/// [mediaId]'s identifications as [level] would suggest them, when the
+/// pack in force named them (issue #4721). The run is read before the
+/// rows: a rename moves both at once, so rows newer than the run read keep
+/// their stored flags.
 Future<List<MediaIdentification>> _atNamingLevel(
   LevelInForce? level,
   MediaIdentificationRepository repository,
   String mediaId,
-  List<MediaIdentification> all,
 ) async {
-  if (level == null || all.isEmpty) return all;
-  final run = await repository.runFor(mediaId);
-  return applyNamingLevel(all, level: level, namedWithPack: run?.packVersion);
+  final namedWithPack = level == null
+      ? null
+      : (await repository.runFor(mediaId))?.packVersion;
+  return applyNamingLevel(
+    await repository.forMedia(mediaId),
+    level: level,
+    namedWithPack: namedWithPack,
+  );
 }
 
 final mediaIdentificationRepositoryProvider =
@@ -264,12 +270,7 @@ final mediaSuggestionsProvider = FutureProvider.autoDispose
       ref.invalidateSelfWhen(repository.watchTagChanges());
       final level = ref.watch(levelInForceProvider);
       return groupSuggestions(
-        await _atNamingLevel(
-          level,
-          repository,
-          mediaId,
-          await repository.forMedia(mediaId),
-        ),
+        await _atNamingLevel(level, repository, mediaId),
         await repository.taggedSpecies(mediaId),
       );
     });
@@ -293,11 +294,10 @@ final videoTracksProvider = FutureProvider.autoDispose
       final repository = ref.watch(mediaIdentificationRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchChanges());
       final level = ref.watch(levelInForceProvider);
-      final tracks = [
-        for (final i in await repository.forMedia(mediaId))
+      return [
+        for (final i in await _atNamingLevel(level, repository, mediaId))
           if (i.isTrack) i,
       ];
-      return _atNamingLevel(level, repository, mediaId, tracks);
     });
 
 /// Whether the photo is being analysed, or waiting to be.

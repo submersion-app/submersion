@@ -249,6 +249,20 @@ class NamingConfig extends Equatable {
   /// empty when the pack carries none (issue #4721).
   final List<MeasuredNamingLevel> levels;
 
+  /// These bars with no levels and no measured precision: what a pack
+  /// that carries none would read as.
+  NamingConfig get withoutLevels => NamingConfig(
+    provisional: provisional,
+    minCropSide: minCropSide,
+    minOpenScore: minOpenScore,
+    suggestScore: suggestScore,
+    confidentScore: confidentScore,
+    suggestScoreNoLocation: suggestScoreNoLocation,
+    confidentScoreNoLocation: _confidentScoreNoLocation,
+    minAllowedCandidates: minAllowedCandidates,
+    topK: topK,
+  );
+
   NamingConfig copyWith({
     bool? provisional,
     int? minCropSide,
@@ -473,12 +487,17 @@ class SpeciesPackManifest extends Equatable {
             : null,
         minAllowedCandidates: _int(naming, 'minAllowedCandidates'),
         topK: _positiveInt(naming, 'topK'),
-        precision: _share(naming['precision']),
-        levels: _levels(
-          naming['levels'],
-          _double(naming, 'suggestScore'),
-          _double(naming, 'suggestScoreNoLocation'),
-        ),
+        // Levels and their precision stand only on measured bars.
+        precision: naming['provisional'] == true
+            ? null
+            : _share(naming['precision']),
+        levels: naming['provisional'] == true
+            ? const []
+            : _levels(
+                naming['levels'],
+                _double(naming, 'suggestScore'),
+                _double(naming, 'suggestScoreNoLocation'),
+              ),
       ),
       region: RegionConfig(
         cellDegrees: _cellDegrees(region),
@@ -534,14 +553,12 @@ class SpeciesPackManifest extends Equatable {
   bool adoptableFrom(SpeciesPackManifest published) =>
       published.packVersion == packVersion &&
       published != this &&
-      copyWith(
-            naming: naming.copyWith(
-              precision: published.naming.precision,
-              levels: published.naming.levels,
-            ),
-            credits: published.credits,
-          ) ==
-          published;
+      _withoutAdoptable == published._withoutAdoptable;
+
+  /// This manifest without what a republish may change, so a manifest
+  /// that adds levels and one that withdraws them compare alike.
+  SpeciesPackManifest get _withoutAdoptable =>
+      copyWith(naming: naming.withoutLevels, credits: const []);
 
   SpeciesPackManifest copyWith({
     int? formatVersion,
@@ -735,8 +752,8 @@ double? _barAtMost(Object? value, double ceiling) =>
 
 /// The naming levels a pack carries (issue #4721), surest first. They are
 /// optional: an entry that is not a known level below Surer, with bars no
-/// higher than the level above it and a precision in (0, 1], is dropped,
-/// and the pack still reads.
+/// higher than the level above it, at least one of them lower, and a
+/// precision in (0, 1], is dropped, and the pack still reads.
 List<MeasuredNamingLevel> _levels(
   Object? value,
   double suggestScore,
@@ -764,7 +781,9 @@ List<MeasuredNamingLevel> _levels(
         noLocation == null ||
         precision == null ||
         target is! num ||
-        !target.isFinite) {
+        !target.isFinite ||
+        // Bars the level above already names at add nothing.
+        (suggest, noLocation) == above) {
       continue;
     }
     levels.add(

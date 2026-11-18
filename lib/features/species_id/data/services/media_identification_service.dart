@@ -194,20 +194,22 @@ class MediaIdentificationService {
   Future<void> reconcile(String mediaId) async {
     final generation = _databaseGeneration();
     try {
+      // Which animals a tag may accept follows the naming level. The run is
+      // read before the rows: a rename moves both at once, so rows newer
+      // than the run read keep their stored flags rather than taking the
+      // level to another pack's scores. Only decisions are written, so the
+      // level-applied flags stay in memory.
+      final level = await _namingLevel();
+      final namedWithPack = level == null
+          ? null
+          : (await _identifications.runFor(mediaId))?.packVersion;
       final stored = await _identifications.forMedia(mediaId);
       if (stored.isEmpty) return;
-      // Which animals a tag may accept follows the naming level. Only
-      // decisions are written, so the level-applied flags stay in memory.
-      final level = await _namingLevel();
-      final all = level == null
-          ? stored
-          : applyNamingLevel(
-              stored,
-              level: level,
-              namedWithPack: (await _identifications.runFor(
-                mediaId,
-              ))?.packVersion,
-            );
+      final all = applyNamingLevel(
+        stored,
+        level: level,
+        namedWithPack: namedWithPack,
+      );
       final changed = reconcileDecisions(
         all,
         await _taggedSpecies(mediaId),

@@ -303,6 +303,7 @@ void main() {
           manifest: SpeciesPackManifest.parse(
             manifestJson((m) {
               final naming = m['naming']! as Map<String, Object?>;
+              naming['provisional'] = false;
               naming['precision'] = 0.897;
               naming['levels'] = levels;
             }),

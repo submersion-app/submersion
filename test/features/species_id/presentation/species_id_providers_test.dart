@@ -354,6 +354,7 @@ void main() {
     InstalledPack levelledPack() => InstalledPack(
       manifest: SpeciesPackManifest.parse(
         manifestJson((m) {
+          (m['naming']! as Map<String, Object?>)['provisional'] = false;
           (m['naming']! as Map<String, Object?>)['levels'] = [
             {
               'id': 'balanced',
