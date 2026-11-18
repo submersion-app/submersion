@@ -9,11 +9,15 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 import 'package:submersion/features/media_store/data/image_compressor.dart';
+import 'package:submersion/features/media_store/data/image_resize_job.dart';
 import 'package:submersion/features/media_store/data/media_cache_store.dart';
 import 'package:submersion/features/media_store/domain/media_upload_quality.dart';
 import 'support/fake_local_file_resolver.dart';
 
 void main() {
+  // The compressor decodes through Flutter's codecs (issue #4699).
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   late LocalCacheDatabase db;
   late Directory root;
   late MediaCacheStore cache;
@@ -79,6 +83,39 @@ void main() {
       expect(result, isNull);
     },
   );
+
+  test('hands a local photo to the resize step by path, under the level '
+      'ceiling, leaving one already under it untouched (#4699)', () async {
+    // package:image decoded the whole original to make a 2048 px copy:
+    // +565 MiB peak for a 50 MP photo on a Mac, against +145 MiB through
+    // the engine's bounded decode, which is the default resize step.
+    final requests = <ImageResizeRequest>[];
+    final recording = ImageCompressor(
+      registry: MediaSourceResolverRegistry({
+        MediaSourceType.localFile: FakeLocalFileResolver(),
+      }),
+      cache: cache,
+      resize: (request) async {
+        requests.add(request);
+        return const ImageResizeResult(ImageResizeOutcome.underCeiling);
+      },
+    );
+    final source = await stagedPng(4000, 3000);
+
+    final result = await recording.compress(
+      photo(),
+      source,
+      MediaUploadQuality.balanced,
+    );
+
+    expect(result, isNull);
+    final request = requests.single;
+    expect(request.sourcePath, source.path);
+    expect(request.sourceBytes, isNull);
+    expect(request.maxDimension, 2048);
+    expect(request.skipWhenUnderCeiling, isTrue);
+    expect(request.declaredName, 'shot.png');
+  });
 
   test('original level never compresses', () async {
     final result = await compressor.compress(
