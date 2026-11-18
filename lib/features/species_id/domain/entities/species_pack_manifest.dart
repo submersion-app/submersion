@@ -527,6 +527,22 @@ class SpeciesPackManifest extends Equatable {
     return null;
   }
 
+  /// Whether [published] may replace this installed manifest in place,
+  /// with nothing downloaded (issue #4721): the same pack version, and
+  /// nothing changed but the naming levels, the precision measured at the
+  /// suggest bars and the credits. Anything else needs a new version.
+  bool adoptableFrom(SpeciesPackManifest published) =>
+      published.packVersion == packVersion &&
+      published != this &&
+      copyWith(
+            naming: naming.copyWith(
+              precision: published.naming.precision,
+              levels: published.naming.levels,
+            ),
+            credits: published.credits,
+          ) ==
+          published;
+
   SpeciesPackManifest copyWith({
     int? formatVersion,
     String? packVersion,

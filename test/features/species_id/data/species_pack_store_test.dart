@@ -177,6 +177,41 @@ void main() {
     expect((await store.installed())!.manifest.packVersion, '2026.12.1');
   });
 
+  test('a republished manifest is swapped in place (issue #4721)', () async {
+    final manifest = _manifest('2026.11.1');
+    await stage(manifest);
+    final pack = await store.install(manifest);
+    final republished = SpeciesPackManifest.parse(
+      manifestJson((m) {
+        m['packVersion'] = '2026.11.1';
+        (m['classifier']! as Map)['embeddingSize'] = 3;
+        (m['naming']! as Map)['levels'] = [
+          {
+            'id': 'balanced',
+            'target': 0.75,
+            'suggestScore': 0.4,
+            'suggestScoreNoLocation': 0.6,
+            'precision': 0.8,
+          },
+        ];
+      }),
+    );
+
+    final adopted = await store.adoptManifest(pack, republished);
+
+    expect(adopted.directory, pack.directory);
+    expect(adopted.detectorPaths, pack.detectorPaths);
+    expect(adopted.manifest.naming.levels, hasLength(1));
+    final reread = await store.installed();
+    expect(reread!.manifest.naming.levels, hasLength(1));
+    expect(
+      Directory(
+        pack.directory,
+      ).listSync().where((e) => e.path.endsWith('.tmp')),
+      isEmpty,
+    );
+  });
+
   test('removing clears the pack', () async {
     final manifest = _manifest('2026.11.1');
     await stage(manifest);

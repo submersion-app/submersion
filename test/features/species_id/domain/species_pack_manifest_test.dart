@@ -676,6 +676,70 @@ void main() {
       );
     });
 
+    group('a republished manifest is adoptable', () {
+      final installed = SpeciesPackManifest.parse(manifestJson());
+      SpeciesPackManifest published(void Function(Map<String, Object?>) edit) =>
+          SpeciesPackManifest.parse(manifestJson(edit));
+      void addLevels(Map<String, Object?> m) =>
+          (m['naming']! as Map<String, Object?>)['levels'] = [balanced()];
+
+      test('when it adds levels, a precision or credits', () {
+        expect(installed.adoptableFrom(published(addLevels)), isTrue);
+        expect(
+          installed.adoptableFrom(
+            published(
+              (m) => (m['naming']! as Map<String, Object?>)['precision'] = 0.9,
+            ),
+          ),
+          isTrue,
+        );
+        expect(
+          installed.adoptableFrom(published((m) => m['credits'] = [])),
+          isTrue,
+        );
+      });
+
+      test('only when nothing else changes', () {
+        expect(installed.adoptableFrom(published((_) {})), isFalse);
+        expect(
+          installed.adoptableFrom(
+            published((m) {
+              addLevels(m);
+              (m['naming']! as Map<String, Object?>)['suggestScore'] = 0.6;
+            }),
+          ),
+          isFalse,
+        );
+        expect(
+          installed.adoptableFrom(
+            published((m) {
+              addLevels(m);
+              ((m['files']! as List)[2] as Map)['sha256'] = 'b' * 64;
+            }),
+          ),
+          isFalse,
+        );
+        expect(
+          installed.adoptableFrom(
+            published((m) {
+              addLevels(m);
+              m['packVersion'] = '2026.11.2';
+            }),
+          ),
+          isFalse,
+        );
+        expect(
+          installed.adoptableFrom(
+            published((m) {
+              addLevels(m);
+              (m['detector']! as Map)['scoreThreshold'] = 0.4;
+            }),
+          ),
+          isFalse,
+        );
+      });
+    });
+
     test('a precision outside (0, 1] reads as none', () {
       expect(naming(null, precision: 0).precision, isNull);
       expect(naming(null, precision: 1.5).precision, isNull);
