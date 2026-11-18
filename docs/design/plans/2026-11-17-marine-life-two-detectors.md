@@ -38,7 +38,7 @@ Python 3.14 tools (standard library for CI-tested modules).
 - Recommendation floor: a box in at least 70% of held-out photos in every
   group; none eligible means no recommendation.
 - Flag `MARINE_LIFE_ID` stays off; no pack is published.
-- No em-dashes; no mention of Claude or Anthropic in repo or GitHub text.
+- No em-dashes; no tool attribution in repo or GitHub text.
 - Tests run by file path only, never folders.
 
 ## Review Focus
@@ -54,7 +54,8 @@ Python 3.14 tools (standard library for CI-tested modules).
 4. A second detector entry reusing the first's `file`: malformed, or both
    would unpack into one folder. Test in Task 3.
 5. A photo where one detector finds nothing: the pair returns the other's
-   boxes unmerged-but-capped. Test in Task 1 merge check.
+   boxes merged among themselves at `mergeIoU` (as `boxes.py` does) and
+   capped. Test in Task 1 merge check.
 
 ---
 

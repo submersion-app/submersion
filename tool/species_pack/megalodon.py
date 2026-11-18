@@ -204,6 +204,48 @@ def converted_dir(work, name):
     return folder
 
 
+def _stamp(package):
+    """What identifies a converted package: each file's path, size and
+    modification time."""
+    entries = []
+    for root, _, files in os.walk(package):
+        for name in sorted(files):
+            full = os.path.join(root, name)
+            info = os.stat(full)
+            entries.append([os.path.relpath(full, package), info.st_size, info.st_mtime_ns])
+    return sorted(entries)
+
+
+def tool_model(work, name):
+    """Megalodon's model to hand the vision tool, which compiles a model
+    package once and deletes it: a copy of the converted package (or the
+    copy's compiled model), so the package itself stays for build_pack.py.
+    A folder converted before copies were made holds only a compiled model,
+    which is handed over as it is."""
+    folder = converted_dir(work, name)
+    package = os.path.join(folder, "detector.mlpackage")
+    if not os.path.exists(package):
+        return os.path.join(folder, "detector.mlmodelc")
+    copy_dir = os.path.join(work, "models", f"{name}-tool")
+    stamp_path = os.path.join(copy_dir, "source.json")
+    stamp = _stamp(package)
+    stored = None
+    if os.path.exists(stamp_path):
+        with open(stamp_path, encoding="utf-8") as fh:
+            stored = json.load(fh)
+    if stored != stamp and os.path.exists(copy_dir):
+        shutil.rmtree(copy_dir)
+    compiled = os.path.join(copy_dir, "detector.mlmodelc")
+    copy = os.path.join(copy_dir, "detector.mlpackage")
+    if os.path.exists(compiled):
+        return compiled
+    if not os.path.exists(copy):
+        shutil.copytree(package, copy)
+        with open(stamp_path, "w", encoding="utf-8") as fh:
+            json.dump(stamp, fh)
+    return copy
+
+
 def manifest_for_settings(base):
     """A copy of the pack manifest `base` carrying Megalodon alone, for the
     vision tool."""
@@ -225,15 +267,13 @@ def check(name, tool, manifest_path, classifier, photos, work):
     from PIL import Image, ImageOps
 
     model = load(name)
-    detector = os.path.join(work, "models", name, "detector.mlpackage")
-    compiled = detector[: -len(".mlpackage")] + ".mlmodelc"
     run = subprocess.run(
         [
             tool,
             "--manifest",
             manifest_path,
             "--detector",
-            compiled if os.path.exists(compiled) else detector,
+            tool_model(work, name),
             "--classifier",
             classifier,
             "--crop-fit",

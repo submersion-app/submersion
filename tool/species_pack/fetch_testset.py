@@ -458,13 +458,6 @@ def stage_commons(work):
 # Stage 6: contact sheets of the boxes on the diver photos, for labelling.
 
 
-def _model_path(models_dir, name):
-    """A model's compiled folder when the pipeline has compiled it (it then
-    deletes the package), otherwise its package."""
-    compiled = os.path.join(models_dir, f"{name}.mlmodelc")
-    return compiled if os.path.exists(compiled) else os.path.join(models_dir, f"{name}.mlpackage")
-
-
 def _boxed(image, d):
     """The box with half its size again around it, the box outlined in red,
     so it can be judged in its surroundings."""
@@ -528,7 +521,7 @@ def stage_junk_sheets(work, pack):
         json.dump(megalodon.manifest_for("megalodon-2024", os.path.join(pack, "manifest.json")), fh)
     runs = {
         cfd_id: (cfd_manifest, _model_in(os.path.join(pack_models, cfd["file"]))),
-        megalodon.CHECKPOINTS["megalodon-2024"]["id"]: (mega_manifest, _model_path(mega_dir, "detector")),
+        megalodon.CHECKPOINTS["megalodon-2024"]["id"]: (mega_manifest, megalodon.tool_model(work, "megalodon-2024")),
     }
     classifier_model = _model_in(os.path.join(pack_models, "classifier"))
     paths = "\n".join(_photo_path(work, "commons", f["id"]) for f in chosen) + "\n"

@@ -343,6 +343,11 @@ class PackCredit extends Equatable {
 final _sha256Pattern = RegExp(r'^[0-9a-f]{64}$');
 final _fileNamePattern = RegExp(r'^[A-Za-z0-9][A-Za-z0-9._-]*$');
 
+/// A model's file stem names a folder beside the pack's data files and a
+/// zip beside the others, so it has no dot: it can never be a data file's
+/// name or another model's zip.
+final _modelStemPattern = RegExp(r'^[A-Za-z0-9][A-Za-z0-9_-]*$');
+
 /// A model pack's `manifest.json`.
 class SpeciesPackManifest extends Equatable {
   const SpeciesPackManifest({
@@ -545,7 +550,7 @@ Never _bad(String detail) =>
 ) {
   final maxBoxes = _positiveInt(detector, 'maxBoxes');
   return (
-    [
+    List.unmodifiable([
       DetectorConfig(
         id: _string(detector, 'id'),
         format: DetectorFormat.rfdetr,
@@ -556,7 +561,7 @@ Never _bad(String detail) =>
         scoreThreshold: _double(detector, 'scoreThreshold'),
         maxBoxes: maxBoxes,
       ),
-    ],
+    ]),
     BoxesConfig(
       mergeIoU: 0.5,
       maxBoxes: maxBoxes,
@@ -573,7 +578,9 @@ List<DetectorConfig> _detectors(Map<String, Object?> root) {
   final detectors = [
     for (final entry in entries) _detector(_map(entry, 'detectors entry')),
   ];
-  final files = {for (final d in detectors) d.file};
+  // Folders on a case-insensitive file system (as on Apple devices) would
+  // collide on names that differ only in case.
+  final files = {for (final d in detectors) d.file.toLowerCase()};
   if (files.length != detectors.length) _bad('two detectors share a file');
   return List.unmodifiable(detectors);
 }
@@ -584,8 +591,8 @@ DetectorConfig _detector(Map<String, Object?> map) {
   // A format this app cannot run would give wrong boxes if run as another.
   if (format.isEmpty) _bad('detector format $formatName is not known');
   final file = _string(map, 'file');
-  if (!_fileNamePattern.hasMatch(file) ||
-      file == SpeciesPackManifest.classifierStem) {
+  if (!_modelStemPattern.hasMatch(file) ||
+      file.toLowerCase() == SpeciesPackManifest.classifierStem) {
     _bad('detector file $file is not a safe name');
   }
   return DetectorConfig(

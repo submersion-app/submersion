@@ -3,6 +3,7 @@
 
 import importlib.util
 import os
+import shutil
 import sys
 import tempfile
 import unittest
@@ -27,6 +28,51 @@ class ConvertedDirTests(unittest.TestCase):
                 folder = os.path.join(work, "models", "megalodon-2024")
                 os.makedirs(os.path.join(folder, name))
                 self.assertEqual(megalodon.converted_dir(work, "megalodon-2024"), folder)
+
+
+class ToolModelTests(unittest.TestCase):
+    """The vision tool compiles a model package once and deletes it, so it
+    is handed a copy and the converted package stays for build_pack.py."""
+
+    def converted(self, work):
+        package = os.path.join(work, "models", "megalodon-2024", "detector.mlpackage")
+        os.makedirs(os.path.join(package, "Data"))
+        with open(os.path.join(package, "Data", "weights.bin"), "wb") as fh:
+            fh.write(b"one")
+        return package
+
+    def test_the_tool_gets_a_copy_and_the_package_stays(self):
+        with tempfile.TemporaryDirectory() as work:
+            package = self.converted(work)
+            given = megalodon.tool_model(work, "megalodon-2024")
+            self.assertNotEqual(given, package)
+            self.assertTrue(given.endswith(".mlpackage"))
+            with open(os.path.join(given, "Data", "weights.bin"), "rb") as fh:
+                self.assertEqual(fh.read(), b"one")
+            # What the tool does: compile beside the copy, delete the copy.
+            os.makedirs(given[: -len(".mlpackage")] + ".mlmodelc")
+            shutil.rmtree(given)
+            self.assertTrue(os.path.isdir(package))
+            self.assertTrue(megalodon.tool_model(work, "megalodon-2024").endswith(".mlmodelc"))
+
+    def test_a_new_conversion_replaces_the_compiled_copy(self):
+        with tempfile.TemporaryDirectory() as work:
+            package = self.converted(work)
+            given = megalodon.tool_model(work, "megalodon-2024")
+            os.makedirs(given[: -len(".mlpackage")] + ".mlmodelc")
+            shutil.rmtree(given)
+            with open(os.path.join(package, "Data", "weights.bin"), "wb") as fh:
+                fh.write(b"two, longer")
+            again = megalodon.tool_model(work, "megalodon-2024")
+            self.assertTrue(again.endswith(".mlpackage"))
+            with open(os.path.join(again, "Data", "weights.bin"), "rb") as fh:
+                self.assertEqual(fh.read(), b"two, longer")
+
+    def test_a_folder_with_only_a_compiled_model_uses_it(self):
+        with tempfile.TemporaryDirectory() as work:
+            compiled = os.path.join(work, "models", "megalodon-2024", "detector.mlmodelc")
+            os.makedirs(compiled)
+            self.assertEqual(megalodon.tool_model(work, "megalodon-2024"), compiled)
 
 
 class SettingsTests(unittest.TestCase):

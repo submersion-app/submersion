@@ -108,7 +108,8 @@ class Runner:
         if self.cfd not in in_pack:
             raise SystemExit(f"{pack} does not carry the fish detector, which every comparison measures")
         if self.mega not in in_pack:
-            in_pack[self.mega] = (dict(megalodon.SETTINGS), megalodon.converted_dir(work, MEGALODON))
+            # A copy of the converted package: the tool deletes what it compiles.
+            in_pack[self.mega] = (dict(megalodon.SETTINGS), os.path.dirname(megalodon.tool_model(work, MEGALODON)))
         # Megalodon's checkpoint pins its model when it is not in the pack.
         self.mega_from_pack = self.mega in {d["id"] for d in detectors}
         self.runs = {
@@ -548,6 +549,11 @@ def _merged(a, b, merge_iou, max_boxes):
     return out
 
 
+def _detector_run(pair, index):
+    """One detector's boxes from the pair run, shaped as a single run."""
+    return {path: {"detections": r["detectorBoxes"][index]} for path, r in pair.items()}
+
+
 def _same_boxes(a, b, tolerance=1e-4):
     """How many photos have the same boxes, in order, in runs a and b."""
     def rects(result):
@@ -656,9 +662,12 @@ def write_report(results, path):
     lines.append(f"- recommended by the design's rule: {results['recommendation']}")
     lines += ["", "## The pair's merge", ""]
     for fit, a in results["pair agreement"].items():
+        n = a["photos checked against boxes.py"]
+        each = ", ".join(f"{name} {k}" for name, k in a["per-detector boxes equal to the single run"].items())
         lines.append(
-            f"- {fit}: {a['app merge equals boxes.py']} of {a['photos']} photos merged exactly as boxes.py merges "
-            f"the same run's boxes; {a['equal to merged single runs']} equal to a merge of the single runs"
+            f"- {fit}: all {n} photos merged exactly as boxes.py merges the same run's boxes (the run stops "
+            f"otherwise). Each detector's boxes in the pair run equal its single run on: {each}; the merged boxes "
+            f"equal a merge of the single runs on {a['merged boxes equal to a merge of the single runs']}"
         )
     lines += ["", "## Speed and memory on this Mac", ""]
     lines += ["| Run | detect ms (median, p90) | embed ms per crop (median, p90) | peak memory of the whole run |"]
@@ -736,13 +745,17 @@ def main(argv=None):
                 runs[name] = raw
             else:
                 runs[name] = _labelled(raw, name)
-        # For information: GPU runs need not repeat scores bit for bit, so
-        # the pair's boxes may differ slightly from a merge of the single
-        # runs without anything being wrong.
+        # Every photo passed the check above. For information only: GPU runs
+        # need not repeat scores bit for bit, so the pair run's boxes may
+        # differ slightly from the single runs without anything being wrong.
         results["pair agreement"][fit] = {
-            "photos": len(runs[BOTH]),
-            "app merge equals boxes.py": len(runs[BOTH]),
-            "equal to merged single runs": _same_boxes(runs[BOTH], _merged(runs[cfd], runs[mega], merge_iou, max_boxes)),
+            "photos checked against boxes.py": len(runs[BOTH]),
+            "per-detector boxes equal to the single run": {
+                name: _same_boxes(_detector_run(runs[BOTH], i), runs[name]) for i, name in enumerate((cfd, mega))
+            },
+            "merged boxes equal to a merge of the single runs": _same_boxes(
+                runs[BOTH], _merged(runs[cfd], runs[mega], merge_iou, max_boxes)
+            ),
         }
         for name, by_photo in runs.items():
             key = f"{name} {fit}"

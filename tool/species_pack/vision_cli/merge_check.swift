@@ -56,6 +56,11 @@ enum MergeCheck {
     let only = [box(0.0, 0.0, 0.1, 0.1, 0.9), box(0.5, 0.5, 0.1, 0.1, 0.8)]
     check("one empty run returns the other's boxes", merge([[], only]), only)
     check("one empty run is still capped", merge([[], run], limit: 3), Array(run.prefix(3)))
+    // As boxes.py does: the surviving run's own overlapping boxes are merged
+    // too, where a one-detector pack would keep both.
+    let overlapA = box(0.1, 0.1, 0.3, 0.3, 0.9)
+    let overlapB = box(0.12, 0.1, 0.3, 0.3, 0.8)
+    check("one empty run still merges its own overlapping boxes", merge([[overlapA, overlapB], []]), [overlapA])
 
     let whole = box(0.0, 0.0, 1.0, 1.0, 0.9)
     let half = box(0.0, 0.0, 0.5, 1.0, 0.4)

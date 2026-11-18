@@ -1,0 +1,43 @@
+# Vision Merge Check
+#
+# Builds the marine life vision pipeline (packages/submersion_vision) into a
+# small check program and runs the cases of tool/species_pack/boxes_test.py
+# against its merge of two detectors' boxes (issue #4691). A pack's measured
+# bars hold only while the app merges exactly as the scorer measured; the
+# Linux test jobs cannot compile Core ML code, so this runs on macOS.
+
+name: Vision Merge Check
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'packages/submersion_vision/darwin/**'
+      - 'tool/species_pack/vision_cli/**'
+      - 'tool/species_pack/boxes.py'
+      - '.github/workflows/vision-merge-check.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'packages/submersion_vision/darwin/**'
+      - 'tool/species_pack/vision_cli/**'
+      - 'tool/species_pack/boxes.py'
+      - '.github/workflows/vision-merge-check.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vision-merge-check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  merge-check:
+    name: Vision Merge Check
+    runs-on: macos-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Check the pipeline's merge against boxes.py's cases
+        run: tool/species_pack/vision_cli/check_merge.sh "$RUNNER_TEMP/merge_check"

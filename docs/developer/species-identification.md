@@ -223,9 +223,10 @@ detector ids in order, classifier, fitting and `contents` (the SHA-256 of
 the pack's `candidates.json`, `text_embeddings.f16` and `regions.bin`); a
 pack is written with those bars only when it is that exact pack.
 
-The tool compiles a model package once and deletes it, so build a pack
-that carries Megalodon before scoring with the same converted model, or
-convert again.
+The tool compiles a model package once and deletes it, so the scorer and
+the junk sheets hand it a copy of Megalodon's converted package
+(`<work>/models/megalodon-2024-tool/`), and the package itself stays for
+building a pack.
 
 The pure parts have tests that CI runs, beside the others above:
 `naming_test.py`, `bars_test.py`, `metrics_test.py`, `testset_test.py` and

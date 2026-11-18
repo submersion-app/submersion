@@ -22,6 +22,7 @@ def _load(name):
 
 
 manifest = _load("manifest")
+models = _load("models")
 candidates = _load("candidates")
 build_pack = _load("build_pack")
 
@@ -318,6 +319,15 @@ class PackDetectorsTests(unittest.TestCase):
         self.assertEqual(one["boxes"], manifest.BOXES)
         self.assertEqual(one["classifier"], {"id": BIOCLIP})
         self.assertIn("detector", self.FORMAT_ONE)
+
+
+class ModelIdsTests(unittest.TestCase):
+    def test_the_converted_models_are_the_ones_the_manifest_names(self):
+        # A new checkpoint in models.py must change the pack's detector id,
+        # or measured bars would carry over to a different model.
+        self.assertEqual(models.DETECTOR_ID, manifest.DETECTORS["cfd"]["id"])
+        for entry in manifest.NAMING_MEASURED:
+            self.assertEqual(entry["classifierId"], models.CLASSIFIER_ID)
 
 
 class CreditsTests(unittest.TestCase):

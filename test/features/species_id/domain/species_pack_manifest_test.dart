@@ -365,6 +365,45 @@ void main() {
       );
     });
 
+    test('a format 1 pack cannot gain a detector after parsing', () {
+      final m = SpeciesPackManifest.parse(manifestJson());
+      final more = m.detectors.single.copyWith(id: 'other', file: 'other');
+
+      expect(() => m.detectors.add(more), throwsUnsupportedError);
+    });
+
+    test('a detector file must be a plain name, not a data file', () {
+      for (final file in [
+        'candidates.json',
+        'manifest.json',
+        'regions.bin',
+        'detector.coreml.zip',
+      ]) {
+        expect(
+          () => SpeciesPackManifest.parse(
+            manifestV2Json((m) => detectorsOf(m).last['file'] = file),
+          ),
+          malformed(),
+          reason: file,
+        );
+      }
+    });
+
+    test('detector files differing only in case are malformed', () {
+      expect(
+        () => SpeciesPackManifest.parse(
+          manifestV2Json((m) => detectorsOf(m).last['file'] = 'Detector'),
+        ),
+        malformed(),
+      );
+      expect(
+        () => SpeciesPackManifest.parse(
+          manifestV2Json((m) => detectorsOf(m).last['file'] = 'Classifier'),
+        ),
+        malformed(),
+      );
+    });
+
     test('a detector named like the classifier is malformed', () {
       expect(
         () => SpeciesPackManifest.parse(
