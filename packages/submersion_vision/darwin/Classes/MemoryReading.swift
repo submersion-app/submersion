@@ -32,7 +32,12 @@ enum MemoryReading {
       reading["neuralNotCountedPeak"] = NSNumber(value: info.ledger_tag_neural_nofootprint_peak)
     }
     #if os(iOS)
-    reading["available"] = NSNumber(value: os_proc_available_memory())
+    // 0 means the process has no limit (the Simulator), not that none is
+    // left: a process with nothing left has already been stopped.
+    let available = os_proc_available_memory()
+    if available > 0 {
+      reading["available"] = NSNumber(value: available)
+    }
     #endif
     return reading
   }
