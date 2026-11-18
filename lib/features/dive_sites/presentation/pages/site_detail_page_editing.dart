@@ -118,22 +118,41 @@ mixin _SiteDetailPageEditing
     final actingDiver = ref.read(validatedCurrentDiverIdProvider.future);
     final siteId = session.stored.id;
     final shownId = widget.siteId;
+    final diverId = await actingDiver;
     // Noted afresh by this attempt's held writes.
     clearSiteLibraryFields(session);
-    final result = await service.save(
-      siteId: siteId,
-      apply: session.applyTo,
-      changedCardIds: session.changedCardIds,
-      actingDiverId: await actingDiver,
-      writeFirst: session.hasHeldWritesBeforeRecord
-          ? () => session.runHeldWrites(beforeRecord: true)
-          : null,
-      alsoWrite: session.hasHeldWrites ? session.runHeldWrites : null,
-      alsoWriteIsAChange: session.hasHeldChanges,
-      heldLibraryFields: () => siteLibraryFields(session),
+    // A write that does not commit takes back what the sitting's media
+    // write did outside the database.
+    final result = await undoMediaOnFailure(
+      session,
+      () => service.save(
+        siteId: siteId,
+        apply: session.applyTo,
+        changedCardIds: session.changedCardIds,
+        actingDiverId: diverId,
+        writeFirst: session.hasHeldWritesBeforeRecord
+            ? () => session.runHeldWrites(beforeRecord: true)
+            : null,
+        alsoWrite: session.hasHeldWrites ? session.runHeldWrites : null,
+        alsoWriteIsAChange: session.hasHeldChanges,
+        heldLibraryFields: () => siteLibraryFields(session),
+      ),
     );
     if (result == null) return;
     if (result.after.id == shownId) justSavedRecord = result.after;
+    // What the sitting's media write left for after the commit: uploads,
+    // the remote deletes its unlinks held. Each on its own, guarded.
+    for (final step in mediaAfterCommit(session)) {
+      try {
+        await step();
+      } catch (error, stackTrace) {
+        _editLog.error(
+          'Media follow-up after saving site $siteId failed',
+          error: error,
+          stackTrace: stackTrace,
+        );
+      }
+    }
     // The write is committed. A refresh that fails from here on must not
     // read as a save that failed: the diver would be told nothing was
     // changed and handed the sitting to save a second time.

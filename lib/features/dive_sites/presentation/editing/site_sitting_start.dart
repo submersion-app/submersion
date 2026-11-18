@@ -1,8 +1,12 @@
+import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_classification_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_features_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_species_sitting.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/documents/presentation/editing/record_document_links_sitting.dart';
 import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
+import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 const String _libraryFieldsKey = 'site.libraryFields';
@@ -32,6 +36,17 @@ void startSiteSitting(EditSession<DiveSite> session, ProviderRead read) {
   siteTagsList.load(session);
   siteSpeciesList.load(session);
   siteFeaturesList.load(session);
+  holdSittingMedia(
+    session,
+    SittingMediaWriters.forSite(read),
+    cardId: SiteDetailSectionId.media.name,
+  );
+  holdDocumentLinks(
+    session,
+    read,
+    owner: DocumentOwner(DocumentOwnerKind.site, session.stored.id),
+    cardId: SiteDetailSectionId.documents.name,
+  );
 }
 
 /// Records that a held write touched [fields] of a library site, for the

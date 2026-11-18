@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_attachment_card_editors.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_classification_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_collection_card_editors.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_edit_fields.dart';
@@ -144,6 +145,20 @@ final Map<SiteDetailSectionId, EditCard<DiveSite>> siteEditCards = {
     isEmpty: (_) => false,
     editorBuilder: (context, session) =>
         SiteSpeciesCardEditor(session: session),
+  ),
+  SiteDetailSectionId.media: EditCard<DiveSite>(
+    id: SiteDetailSectionId.media.name,
+    title: (context) => context.l10n.media_siteMediaSection_title,
+    // Always on the page: empty, it says there are none.
+    isEmpty: (_) => false,
+    editorBuilder: (context, session) => SiteMediaCardEditor(session: session),
+  ),
+  SiteDetailSectionId.documents: EditCard<DiveSite>(
+    id: SiteDetailSectionId.documents.name,
+    title: (context) => context.l10n.documents_section_title,
+    isEmpty: (_) => false,
+    editorBuilder: (context, session) =>
+        SiteDocumentsCardEditor(session: session),
   ),
   SiteDetailSectionId.tags: EditCard<DiveSite>(
     id: SiteDetailSectionId.tags.name,

@@ -88,6 +88,7 @@ import 'package:submersion/features/dive_sites/presentation/editing/site_classif
 import 'package:submersion/features/dive_sites/presentation/editing/site_edit_cards.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_sitting_start.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_features_sitting.dart';
+import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_species_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/unlock_site_editing_flag.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_edit_save_provider.dart';
@@ -548,8 +549,9 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
           : null,
       SiteDetailSectionId.notes: () =>
           (context) => _buildNotesSection(context, site),
+      // Typed by the site, so a page that edits in place reads it only.
       SiteDetailSectionId.documents: () =>
-          (context) => DocumentsSection(
+          (context) => DocumentsSection<DiveSite>(
             owner: DocumentOwner(DocumentOwnerKind.site, site.id),
           ),
     };

@@ -276,6 +276,17 @@ class FilesTab extends ConsumerWidget {
       navigator.pop();
       return;
     }
+    // Opened from a sitting on a site (issue #4527, phase 2): every file
+    // is the site's, held until Save.
+    final site = target;
+    if (hold != null && site is SiteAttachTarget) {
+      final rows = await notifier.heldSiteRows(site.siteId);
+      hold([
+        for (final row in rows) HeldMediaRow((item: row, enrichment: null)),
+      ]);
+      navigator.pop();
+      return;
+    }
     // commit() clears the staged state, so snapshot the dives first.
     final diveIds = ref
         .read(filesTabNotifierProvider)

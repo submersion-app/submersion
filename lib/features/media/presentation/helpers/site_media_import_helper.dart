@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
+import 'package:submersion/features/media/presentation/helpers/media_hold.dart';
 import 'package:submersion/features/media/presentation/pages/photo_picker_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
@@ -21,11 +22,16 @@ class SiteMediaImportHelper {
   /// in the picker's Files tab for review.
   ///
   /// Returns true if anything was imported.
+  ///
+  /// With [onHold], opened from a sitting on the site (issue #4527, phase
+  /// 2): the picks are built as the rows the import would write and handed
+  /// to [onHold], held until Save, instead of written.
   static Future<bool> importPhotosForSite({
     required BuildContext context,
     required WidgetRef ref,
     required String siteId,
     List<String>? initialFilePaths,
+    MediaHoldSink? onHold,
   }) async {
     // As this device knows them: a row linked on another device carries that
     // device's asset id (#885).
@@ -56,15 +62,41 @@ class SiteMediaImportHelper {
       alreadyLinkedIds: alreadyLinkedIds,
       target: SiteAttachTarget(siteId),
       initialFilePaths: initialFilePaths,
+      onHold: onHold,
     );
     // coverage:ignore-end
     if (!context.mounted) return false;
+    if (onHold != null) {
+      return holdSelectedAssets(
+        ref: ref,
+        siteId: siteId,
+        selectedAssets: selectedAssets,
+        onHold: onHold,
+      );
+    }
     return linkSelectedAssets(
       context: context,
       ref: ref,
       siteId: siteId,
       selectedAssets: selectedAssets,
     );
+  }
+
+  /// Hands [selectedAssets] to [onHold] as the rows the import would write
+  /// for [siteId], writing none. Returns whether there were any.
+  static Future<bool> holdSelectedAssets({
+    required WidgetRef ref,
+    required String siteId,
+    required List<AssetInfo>? selectedAssets,
+    required MediaHoldSink onHold,
+  }) async {
+    if (selectedAssets == null || selectedAssets.isEmpty) return false;
+    final prepared = await ref
+        .read(mediaImportServiceProvider)
+        .prepareForSite(selectedAssets: selectedAssets, siteId: siteId);
+    if (prepared.isEmpty) return false;
+    onHold([for (final p in prepared) HeldMediaRow(p)]);
+    return true;
   }
 
   /// Persists [selectedAssets] against [siteId], refreshes the site
