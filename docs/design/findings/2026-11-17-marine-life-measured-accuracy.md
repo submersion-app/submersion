@@ -45,10 +45,12 @@ interval where one is given. The bars were chosen on the other half.
    not differ (57 against 42, p = 0.16), so pad-to-square stays for it. The
    fitting is now a manifest setting the app follows, so each pack carries
    the one its bars were measured with.
-4. **Detector: the fish detector alone, if its terms are acceptable;
-   otherwise Megalodon.** With the 7,646 list the rule chose the pair; with
-   the longer list the pair no longer names more animals than the fish
-   detector alone. Details under "Detectors".
+4. **Detector: the fish detector alone or the pair, if the fish detector's
+   terms are acceptable; otherwise Megalodon.** The rule chose the pair with
+   the 7,646 list and the fish detector alone with the 9,011 list, but the
+   measurement does not separate the two: the difference between them is
+   within noise. Megalodon's place behind the fish detector does look real.
+   Details under "Detectors".
 
 ## The candidate list with surveyed species
 
@@ -74,12 +76,20 @@ Fish detector, centre crop, each pack at its own measured bars:
 | Held-out crops of species not on the list | 58 of 942 | 52 of 942 |
 | Held-out junk named | 2 of 35 | 1 of 35 |
 
-The longer list did not cost top-1 accuracy with location, and the bar
-search traded a little precision for more names: 18 more animals named
-right, still above the 85% target. The test set comes from iNaturalist, so
-few of its photos are of surveyed-only species: 12 photos of 9 such
-species, across both halves. All four Swarthy Parrotfish photos are now
-suggested right; the other eight got no suggestion, and none a wrong one.
+The fish detector did not get better: its top-1 accuracy with location is
+54.2% on both lists. The 18 more animals named right come from its
+re-measured suggest bar (0.72 to 0.64), which buys coverage (33.8% to
+36.9%) with precision (89.6% to 87.1%), still above the 85% target. That is
+a move along the same curve, not a gain.
+
+What this test set measures is the fix's cost, not its benefit. It is drawn
+from photographed iNaturalist observations, so the surveyed-only species
+the fix adds are nearly absent from it: 12 photos of 9 such species, across
+both halves. All four Swarthy Parrotfish photos are now suggested right; the
+other eight got no suggestion, and none a wrong one. The cost is the
+precision above: the 1,365 new names compete with the old ones. The benefit
+is the coverage of what divers survey: 88% to 100% in the Caribbean, 77% to
+100% in the Indo-Pacific and 63% to 92% in the Mediterranean.
 
 ## The test set
 
@@ -226,11 +236,22 @@ chosen fitting:
 | Both (pad-to-square) | 275 of 1,076 | fish detector: 84 only the pair, 112 only the fish detector, p = 0.054; Megalodon: p = 0.055 |
 
 With the 7,646 list these were 285, 268 and 317 (the pair at centre crop),
-and the pair beat each detector alone (p = 0.0035 and 0.0002). The pair's
-fitting test now gives p = 0.064 (82 named right only with centre crop, 59
-only with pad-to-square), just short of the 0.05 the rule needs to choose
-centre crop. At centre crop the pair would name 298, still fewer than the
-fish detector's 303.
+and the pair beat each detector alone (p = 0.0035 and 0.0002).
+
+- **The fish detector's 285 to 303 is not an improvement.** Its top-1
+  accuracy with location is 54.2% on both lists; the extra names come from
+  its lower suggest bar, which trades precision for coverage (see "The
+  candidate list with surveyed species").
+- **The pair's 317 to 275 is mostly its fitting rule flipping.** Its
+  centre crop test gives p = 0.064 (82 named right only with centre crop,
+  59 only with pad-to-square), just past the 0.05 cut-off, so the rule took
+  pad-to-square. At centre crop the pair names 298 against the fish
+  detector's 303, and the fish detector against the pair at its chosen
+  fitting is p = 0.054. On this evidence the measurement does not separate
+  the fish detector alone from the pair.
+- **Megalodon's drop looks real.** It fell from a tie with the fish
+  detector (p = 0.28) to behind it (p = 0.0013), and its top-1 with
+  location fell from 55.7% to 54.5%.
 
 ### False boxes
 
@@ -260,26 +281,26 @@ RF-DETR nano.
 
 By the rule fixed before the run (most animals named right at the 85%
 target, junk within 2%, close results to the simpler and explicitly
-licensed choice), which `score.py` applies and records in `results.json`:
+licensed choice), which `score.py` applies and records in `results.json`,
+the 7,646 list gave the pair and the 9,011 list gives the fish detector
+alone. The two recommendations are within noise of each other (above), so
+this is not a change of conclusion:
 
-- **The fish detector alone**, if its terms are acceptable. With the 9,011
-  list it names the most animals right (303, against 275 for the pair and
-  254 for Megalodon), and the pair's lead over it is gone (p = 0.054, in
-  the fish detector's favour). Fish are about three quarters of the
-  natural sample.
+- **The fish detector alone or the pair**, if the fish detector's terms
+  are acceptable. The fish detector alone names 303 at its bars, the pair
+  275 to 298 depending on its fitting; neither separates from the other.
+  The pair finds something in 92 to 98% of photos in every group, so its
+  advantage is in the groups other than fish, at the cost of a second model
+  in the download and about 15 ms more per photo. Neither escapes the fish
+  detector's licence question.
 - **Otherwise, Megalodon alone.** It is explicitly licensed, and names
   octopus, crabs, snails and sea stars about twice as often as the fish
   detector and coral about seven times as often; it finds fish less often
-  (80% of fish photos against 95%), and overall names fewer animals right
-  (254 against 303, p = 0.0013), where with the 7,646 list the two tied
-  (p = 0.28).
+  (80% of fish photos against 95%), and with the 9,011 list names fewer
+  animals right overall (254 against 303, p = 0.0013), where with the 7,646
+  list the two tied (p = 0.28).
 
-With the 7,646 list the rule chose the pair (317 named right). The
-recommendation turns on fish: the longer list lowered the fish detector's
-suggest bar (0.72 to 0.64) and let it name more fish, which the pair, at its
-bars, did not match. The pair still finds something in 92 to 98% of photos in
-every group; its advantage is in the groups other than fish. The choice is
-the maintainer's.
+The choice is the maintainer's.
 
 ### Megalodon's conversion
 
@@ -339,14 +360,16 @@ Stated, not settled:
   that publish no depth still misses out. About a quarter of the 1,365 added
   species come mostly from catch surveys (trawl, seine, longline), so some
   candidates are fish divers rarely meet.
-- The test set comes from iNaturalist, so only 12 of its photos are of
-  surveyed-only species. What the longer list gains, naming the species
-  divers survey but rarely photograph, is measured by coverage of each
-  region's survey records, not by these photos.
-- The detector recommendation changed with the candidate list (the pair
-  with 7,646, the fish detector alone with 9,011), and the pair's fitting
-  test sits near its threshold (p = 0.064). It should be measured again
-  whenever the list or the bars change.
+- The test set is drawn from photographed iNaturalist observations, so
+  only 12 of its photos are of surveyed-only species. It measures the
+  longer list's cost (precision 89.6% to 87.1%), not its benefit; the
+  benefit, naming the species divers survey but rarely photograph, is
+  measured by coverage of each region's survey records.
+- The rule's detector output differs between the lists (the pair with
+  7,646, the fish detector alone with 9,011), within noise: the pair's
+  fitting test sits near its cut-off (p = 0.064), and the fish detector
+  against the pair is p = 0.054. A larger test set would be needed to tell
+  them apart.
 
 ## Reproducing
 
