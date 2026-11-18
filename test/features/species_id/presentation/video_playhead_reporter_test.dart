@@ -187,6 +187,17 @@ void main() {
     expect(service.forgotten, ['v1']);
   });
 
+  testWidgets('the next video is not taken for a seek from where the last '
+      'one was', (tester) async {
+    await pump(tester);
+    at(60000);
+    await tester.pump(const Duration(milliseconds: 600));
+    await pump(tester, id: 'v2');
+    at(0);
+    await tester.pump(const Duration(seconds: 1));
+    expect(service.followed, isEmpty);
+  });
+
   testWidgets('leaving the video forgets its report', (tester) async {
     await pump(tester);
     expect(service.forgotten, isEmpty);

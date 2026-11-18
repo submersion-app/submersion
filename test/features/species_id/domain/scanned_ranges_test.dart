@@ -31,6 +31,15 @@ void main() {
     expect(const ScannedRanges().add(5000, 5000).stretches, isEmpty);
   });
 
+  test('stretches cannot be changed from outside', () {
+    for (final ranges in [ScannedRanges.prefix(5000), gapped]) {
+      expect(
+        () => ranges.stretches.add((startMs: 90000, endMs: 95000)),
+        throwsUnsupportedError,
+      );
+    }
+  });
+
   test('prefix(0) is empty and prefix(25000) is one stretch', () {
     expect(ScannedRanges.prefix(0).stretches, isEmpty);
     expect(ScannedRanges.prefix(25000).stretches, [(startMs: 0, endMs: 25000)]);

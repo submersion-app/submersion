@@ -21,7 +21,7 @@ class ScannedRanges extends Equatable {
   /// stretches were kept reads its single mark. Empty for [endMs] <= 0.
   factory ScannedRanges.prefix(int endMs) => endMs <= 0
       ? const ScannedRanges()
-      : ScannedRanges._([(startMs: 0, endMs: endMs)]);
+      : ScannedRanges._(List.unmodifiable([(startMs: 0, endMs: endMs)]));
 
   final List<ScannedStretch> stretches;
 

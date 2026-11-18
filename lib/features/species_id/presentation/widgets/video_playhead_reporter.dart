@@ -67,9 +67,11 @@ class _VideoPlayheadReporterState extends ConsumerState<VideoPlayheadReporter> {
   void didUpdateWidget(VideoPlayheadReporter oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.item.id != widget.item.id) {
-      // What was settling belongs to the video left.
+      // What was settling, and where it was, belong to the video left.
       _settling?.cancel();
       _seeking = false;
+      _lastMs = null;
+      _wasPlaying = widget.playback.value.isPlaying;
       _service.forgetPlayhead(oldWidget.item.id);
     }
     if (oldWidget.playback != widget.playback) {
