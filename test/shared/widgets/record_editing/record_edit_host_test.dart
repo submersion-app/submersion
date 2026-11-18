@@ -156,7 +156,10 @@ class _NotePageState extends ConsumerState<_NotePage>
       ],
     );
     if (!hostsEditing) {
-      return Scaffold(appBar: AppBar(title: Text(shown.title)), body: content);
+      return Scaffold(
+        appBar: AppBar(title: Text(shown.title)),
+        body: content,
+      );
     }
     if (widget.embedded) {
       final header = isSittingOpen
