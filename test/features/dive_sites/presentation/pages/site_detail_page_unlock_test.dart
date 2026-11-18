@@ -192,13 +192,14 @@ void main() {
       final foldedBefore = page.settings.state.siteDetailSections;
       await unlock(tester);
 
-      final pencils = find.byType(RecordFoldPencil);
-      expect(pencils, findsNWidgets(3));
-      // The Notes row comes after the Description row.
-      await tester.ensureVisible(pencils.last);
-      await tester.tap(
-        find.descendant(of: pencils.last, matching: find.byType(IconButton)),
+      // Every card with an editor has a pencil on its folded row.
+      expect(find.byType(RecordFoldPencil), findsWidgets);
+      final notesPencil = find.byTooltip(
+        l.recordEdit_editCardTooltip(l.diveSites_detail_section_notes),
       );
+      expect(notesPencil, findsOneWidget);
+      await tester.ensureVisible(notesPencil);
+      await tester.tap(notesPencil);
       await tester.pumpAndSettle();
 
       expect(find.byType(TextFormField), findsOneWidget);

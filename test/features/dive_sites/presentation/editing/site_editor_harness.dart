@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
@@ -25,6 +26,7 @@ Future<SiteEditorHarness> pumpSiteEditor(
   Widget Function(EditSession<DiveSite> session) editor, {
   List<Override> overrides = const [],
   List<DiveSite> allSites = const [],
+  AppSettings settings = const AppSettings(),
 }) async {
   final controller = RecordEditController<DiveSite>(onSave: (_) async {})
     ..unlock(site);
@@ -33,7 +35,9 @@ Future<SiteEditorHarness> pumpSiteEditor(
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        ...await getBaseOverrides(),
+        ...await getBaseOverrides(
+          settingsNotifier: MockSettingsNotifier(settings),
+        ),
         sitesProvider.overrideWith((_) async => allSites),
         ...overrides,
       ].cast<Override>(),

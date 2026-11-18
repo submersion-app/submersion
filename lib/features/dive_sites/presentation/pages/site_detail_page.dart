@@ -388,11 +388,8 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
       SiteDetailSectionId.diveStatistics: () => watching(
         (context, ref) => _buildDiveStatisticsSection(context, ref, site),
       ),
-      SiteDetailSectionId.description: () => _framed(
-        SiteDetailSectionId.description,
-        (context) => _buildDescriptionSection(context, site),
-        editing: editing,
-      ),
+      SiteDetailSectionId.description: () =>
+          (context) => _buildDescriptionSection(context, site),
       // Photos from the dives logged here (issue #4502). Decided from a
       // count, so a site without any leaves no gap and no folded header,
       // and the photos themselves load only once the card is laid out.
@@ -414,11 +411,8 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
                 count: count,
               );
       },
-      SiteDetailSectionId.location: () => _framed(
-        SiteDetailSectionId.location,
-        watching((context, ref) => _buildLocationSection(context, ref, site)),
-        editing: editing,
-      ),
+      SiteDetailSectionId.location: () =>
+          watching((context, ref) => _buildLocationSection(context, ref, site)),
       // The terrain needs coordinates to look up. A site whose bathymetry
       // comes back empty keeps the card and shows the pane's no-data state,
       // so the cards below never jump once the lookup finishes.
@@ -507,11 +501,8 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
       SiteDetailSectionId.access: () => _hasAccessInfo(site)
           ? (context) => _buildAccessSection(context, site)
           : null,
-      SiteDetailSectionId.notes: () => _framed(
-        SiteDetailSectionId.notes,
-        (context) => _buildNotesSection(context, site),
-        editing: editing,
-      ),
+      SiteDetailSectionId.notes: () =>
+          (context) => _buildNotesSection(context, site),
       SiteDetailSectionId.documents: () =>
           (context) => DocumentsSection(
             owner: DocumentOwner(DocumentOwnerKind.site, site.id),
@@ -520,7 +511,11 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
     return {
       for (final section in sections)
         if (section.visible || shownForSitting.contains(section.id))
-          section.id: cards[section.id]!(),
+          section.id: _framed(
+            section.id,
+            cards[section.id]!(),
+            editing: editing,
+          ),
     };
   }
 
@@ -1526,19 +1521,13 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.arrow_downward,
-                    size: 20,
-                    color: colorScheme.primary,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    context.l10n.diveSites_detail_section_depthRange,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ],
+              RecordCardHeader(
+                title: context.l10n.diveSites_detail_section_depthRange,
+                leading: Icon(
+                  Icons.arrow_downward,
+                  size: 20,
+                  color: colorScheme.primary,
+                ),
               ),
               const SizedBox(height: 12),
               if (!hasDepthInfo)
@@ -1925,22 +1914,18 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(Icons.terrain, size: 20, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    context.l10n.diveSites_detail_section_altitude,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
-                HeaderInfoButton(
-                  title: context.l10n.diveSites_detail_section_altitude,
-                  content: (context) =>
-                      siteAltitudeInfo(context.l10n, infoUnits(context)),
-                ),
-              ],
+            RecordCardHeader(
+              title: context.l10n.diveSites_detail_section_altitude,
+              leading: Icon(
+                Icons.terrain,
+                size: 20,
+                color: colorScheme.primary,
+              ),
+              trailing: HeaderInfoButton(
+                title: context.l10n.diveSites_detail_section_altitude,
+                content: (context) =>
+                    siteAltitudeInfo(context.l10n, infoUnits(context)),
+              ),
             ),
             const SizedBox(height: 12),
             Row(
@@ -2085,19 +2070,13 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.fitness_center,
-                  size: 20,
-                  color: colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  context.l10n.diveSites_detail_section_difficultyLevel,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
+            RecordCardHeader(
+              title: context.l10n.diveSites_detail_section_difficultyLevel,
+              leading: Icon(
+                Icons.fitness_center,
+                size: 20,
+                color: colorScheme.primary,
+              ),
             ),
             const SizedBox(height: 12),
             Center(
@@ -2316,15 +2295,9 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(Icons.star, size: 20, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(
-                  context.l10n.diveSites_detail_section_rating,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
+            RecordCardHeader(
+              title: context.l10n.diveSites_detail_section_rating,
+              leading: Icon(Icons.star, size: 20, color: colorScheme.primary),
             ),
             const SizedBox(height: 12),
             Center(

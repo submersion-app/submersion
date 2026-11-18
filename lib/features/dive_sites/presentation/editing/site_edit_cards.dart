@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_sites/presentation/editing/site_edit_fi
 import 'package:submersion/features/dive_sites/presentation/editing/site_header_card_editor.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_location_card_editor.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_markdown_card_editor.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_measure_card_editors.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_plain_fields.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
@@ -52,6 +53,52 @@ final Map<SiteDetailSectionId, EditCard<DiveSite>> siteEditCards = {
     isEmpty: (_) => false,
     editorBuilder: (context, session) =>
         SiteLocationCardEditor(session: session),
+  ),
+  SiteDetailSectionId.depth: EditCard<DiveSite>(
+    id: SiteDetailSectionId.depth.name,
+    title: (context) => context.l10n.diveSites_detail_section_depthRange,
+    leading: (context) => Icon(
+      Icons.arrow_downward,
+      size: 20,
+      color: Theme.of(context).colorScheme.primary,
+    ),
+    isEmpty: (_) => false,
+    editorBuilder: (context, session) => SiteDepthCardEditor(session: session),
+  ),
+  SiteDetailSectionId.altitude: EditCard<DiveSite>(
+    id: SiteDetailSectionId.altitude.name,
+    title: (context) => context.l10n.diveSites_detail_section_altitude,
+    leading: (context) => Icon(
+      Icons.terrain,
+      size: 20,
+      color: Theme.of(context).colorScheme.primary,
+    ),
+    isEmpty: (site) => site.altitude == null,
+    editorBuilder: (context, session) =>
+        SiteAltitudeCardEditor(session: session),
+  ),
+  SiteDetailSectionId.difficulty: EditCard<DiveSite>(
+    id: SiteDetailSectionId.difficulty.name,
+    title: (context) => context.l10n.diveSites_detail_section_difficultyLevel,
+    leading: (context) => Icon(
+      Icons.fitness_center,
+      size: 20,
+      color: Theme.of(context).colorScheme.primary,
+    ),
+    isEmpty: (site) => site.difficulty == null,
+    editorBuilder: (context, session) =>
+        SiteDifficultyCardEditor(session: session),
+  ),
+  SiteDetailSectionId.rating: EditCard<DiveSite>(
+    id: SiteDetailSectionId.rating.name,
+    title: (context) => context.l10n.diveSites_detail_section_rating,
+    leading: (context) => Icon(
+      Icons.star,
+      size: 20,
+      color: Theme.of(context).colorScheme.primary,
+    ),
+    isEmpty: (_) => false,
+    editorBuilder: (context, session) => SiteRatingCardEditor(session: session),
   ),
 };
 
