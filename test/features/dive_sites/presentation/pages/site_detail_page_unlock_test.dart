@@ -2,6 +2,15 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
+import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
+import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
+import 'package:submersion/features/media/presentation/providers/photo_editing_providers.dart';
+import 'package:submersion/features/media/presentation/providers/media_bytes_providers.dart';
+import 'package:submersion/features/media/presentation/pages/document_viewer_page.dart';
+import 'package:submersion/features/media/domain/entities/photo_record.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/data/services/asset_resolution_service.dart';
 
 import 'package:submersion/core/app/app_exit_guard.dart';
 import 'package:submersion/core/constants/dive_detail_layout.dart';
@@ -305,6 +314,56 @@ void main() {
     expect(call.apply(page.stored).notes, 'Choppy');
     expect(find.byType(RecordEditBar), findsNothing);
     expect(find.text('Choppy'), findsOneWidget);
+  });
+
+  // Review Focus 2 of plan 4b: an attachment's lock is its own, so a PDF
+  // opened from the site being edited, and closed, leaves the site's
+  // sitting as it was (issue #4527, phase 2).
+  testWidgets('opening a PDF from the site being edited keeps its sitting', (
+    tester,
+  ) async {
+    final at = DateTime.utc(2026);
+    final pdf = MediaItem(
+      id: 'p1',
+      siteId: 's1',
+      mediaType: MediaType.document,
+      originalFilename: 'reef-map.pdf',
+      takenAt: at,
+      createdAt: at,
+      updatedAt: at,
+    );
+    await pumpSitePage(
+      tester,
+      extra: [
+        mediaForSiteProvider('s1').overrideWith((_) async => [pdf]),
+        mediaBytesProvider(pdf).overrideWith(
+          (_) async =>
+              const ResolvedAssetResult(status: ResolutionStatus.unavailable),
+        ),
+        photoRecordProvider('p1').overrideWith(
+          (_) async =>
+              PhotoRecord(item: pdf, species: const [], people: const []),
+        ),
+      ],
+    );
+    await unlock(tester);
+    await openNotes(tester);
+    await typeNotes(tester, 'Choppy');
+
+    await tester.ensureVisible(find.byType(MediaThumbnailTile));
+    await tester.tap(find.byType(MediaThumbnailTile));
+    await tester.pumpAndSettle();
+    final viewer = tester.widget<DocumentViewerPage>(
+      find.byType(DocumentViewerPage),
+    );
+    expect(viewer.attachmentLock, isTrue);
+
+    await tester.tap(find.byType(CloseButton));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(DocumentViewerPage), findsNothing);
+    expect(find.byType(RecordEditBar), findsOneWidget);
+    expect(find.text('Choppy'), findsWidgets);
   });
 
   testWidgets('a failed save stays unlocked and says so', (tester) async {

@@ -29,6 +29,9 @@ class SiteMediaCardEditor extends ConsumerWidget {
           ref,
           item,
           editableSiteId: session.stored.id,
+          // Built only on a page that edits in place: the attachment opens
+          // under its own lock (issue #4527, phase 2).
+          attachmentLock: true,
         ),
       ),
     );
