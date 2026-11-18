@@ -55,16 +55,7 @@ extension _VideoScanning on MediaIdentificationService {
           for (final i in now)
             if (_saidByDiver(i) && (i.endMs ?? 0) > scanned) i,
         ];
-        return _scanVideo(
-          job,
-          pack,
-          cell,
-          reader,
-          from,
-          generation,
-          ahead,
-          stored: now,
-        );
+        return _scanVideo(job, pack, cell, reader, from, generation, ahead);
       case VideoRefreshAction.rescan:
         final reader = await _resolveVideo(job.item);
         if (reader == null) return false;
@@ -124,9 +115,8 @@ extension _VideoScanning on MediaIdentificationService {
     VideoFileReader reader,
     MediaIdentificationRun from,
     int generation,
-    List<MediaIdentification> carry, {
-    List<MediaIdentification> stored = const [],
-  }) async {
+    List<MediaIdentification> carry,
+  ) async {
     // One worker holds the candidate table for the whole scan; without it
     // each chunk's naming copies the table into a new isolate.
     CropNamingWorker? worker;
@@ -151,7 +141,6 @@ extension _VideoScanning on MediaIdentificationService {
       generation: generation,
       resumeFrom: from,
       carry: carry,
-      stored: stored,
       reload: () async {
         _loadedModels = null;
         await _ensureLoaded(pack);
