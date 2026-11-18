@@ -28,10 +28,14 @@ class BackupBookmarkHandler: NSObject, UIDocumentPickerDelegate {
     /// Pending result callback while the folder picker is on screen.
     private var pendingPickerResult: FlutterResult?
 
-    init(messenger: FlutterBinaryMessenger) {
+    /// Owned by the engine; its view controller presents the folder picker.
+    private weak var registrar: FlutterPluginRegistrar?
+
+    init(registrar: FlutterPluginRegistrar) {
+        self.registrar = registrar
         channel = FlutterMethodChannel(
             name: "app.submersion/backup_bookmark",
-            binaryMessenger: messenger
+            binaryMessenger: registrar.messenger()
         )
         super.init()
         channel.setMethodCallHandler { [weak self] call, result in
@@ -110,7 +114,9 @@ class BackupBookmarkHandler: NSObject, UIDocumentPickerDelegate {
     // MARK: - Folder picker
 
     private func pickFolder(result: @escaping FlutterResult) {
-        guard let viewController = UIApplication.shared.windows.first?.rootViewController
+        // The engine's FlutterViewController, found through the registrar rather
+        // than UIApplication.windows, which spans every connected scene.
+        guard let viewController = registrar?.viewController
         else {
             result(
                 FlutterError(
