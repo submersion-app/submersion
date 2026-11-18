@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart' hide DiveSite;
@@ -16,6 +18,24 @@ class _RecordingSites extends SiteRepository {
   final actingDiverIds = <String?>[];
   final stampedWithUpdate = <bool>[];
   final stamps = <({String before, String after})>[];
+  final stampedAfter = <DiveSite>[];
+
+  /// Run before a read of the site made once the sitting's write is done,
+  /// in [callerZone]: outside the transaction, whose body drift runs in a
+  /// zone of its own. A sync landing after the commit.
+  Future<void> Function()? onReadAfterCommit;
+  Zone? callerZone;
+  bool _wrote = false;
+
+  @override
+  Future<DiveSite?> getSiteById(String id) async {
+    final hook = onReadAfterCommit;
+    if (hook != null && _wrote && identical(Zone.current, callerZone)) {
+      onReadAfterCommit = null;
+      await hook();
+    }
+    return super.getSiteById(id);
+  }
 
   @override
   Future<void> updateSite(
@@ -26,6 +46,7 @@ class _RecordingSites extends SiteRepository {
   }) {
     actingDiverIds.add(actingDiverId);
     stampedWithUpdate.add(stampLibrary);
+    _wrote = true;
     return super.updateSite(
       site,
       classification: classification,
@@ -41,6 +62,7 @@ class _RecordingSites extends SiteRepository {
     String? actingDiverId,
   }) async {
     stamps.add((before: before.notes, after: after.notes));
+    stampedAfter.add(after);
   }
 }
 
@@ -162,6 +184,23 @@ void main() {
     // Not stamped inside the transaction, but once it has committed.
     expect(recording.stampedWithUpdate, [false]);
     expect(recording.stamps, [(before: 'Calm', after: 'Choppy')]);
+  });
+
+  test('the stamp is the committed write, not a later reread', () async {
+    final recording = _RecordingSites()
+      ..callerZone = Zone.current
+      ..onReadAfterCommit = () => db.customStatement(
+        "UPDATE dive_sites SET name = 'Synced' WHERE id = 's1'",
+      );
+    await SiteEditSaveService(recording).save(
+      siteId: 's1',
+      apply: notes('Choppy'),
+      changedCardIds: const ['notes'],
+    );
+
+    // A write that landed after the commit is not this diver's edit.
+    expect(recording.stampedAfter.single.notes, 'Choppy');
+    expect(recording.stampedAfter.single.name, 'Lake');
   });
 
   test('a sitting that rolls back leaves no library stamp', () async {
