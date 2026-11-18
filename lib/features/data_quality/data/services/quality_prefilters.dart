@@ -54,12 +54,9 @@ class QualityPrefilters {
     );
     // A cylinder whose mix no gas can have, as GasMix.isPossible reads it
     // (#4714), by the launch repair's own query so the two cannot drift.
-    final impossibleMixes = {
-      for (final m in await TankGasMixRepository(
-        database: _db,
-      ).impossibleMixes())
-        m.diveId,
-    };
+    final impossibleMixes = await TankGasMixRepository(
+      database: _db,
+    ).divesWithImpossibleMixes();
     final multiSource = await ids(
       'SELECT d.id AS id FROM dives d WHERE '
       '(SELECT COUNT(*) FROM dive_data_sources s WHERE s.dive_id = d.id) >= 2',

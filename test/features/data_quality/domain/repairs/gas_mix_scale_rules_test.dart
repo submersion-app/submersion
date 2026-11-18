@@ -25,13 +25,27 @@ void main() {
       );
     });
 
-    test('a share left in range beside an inflated one is not divided', () {
+    test('a share the diver may have put right is not divided again', () {
       // The importers multiplied both shares. A Tx 18/45 stored as 1800/4500
-      // whose helium the diver put right by hand is 1800/45: dividing both
-      // would turn their 45% helium into 0.45%. Left for the diver.
+      // whose helium the diver put right by hand is 1800/45: read that way
+      // it is 18/45, a gas, so dividing both (45% helium to 0.45%) is a
+      // guess the repair must not make. Left for the diver.
       expect(hundredfoldCorrection(const GasMix(o2: 1800, he: 45)), isNull);
-      expect(hundredfoldCorrection(const GasMix(o2: 2100, he: 90)), isNull);
       expect(hundredfoldCorrection(const GasMix(o2: 32, he: 3500)), isNull);
+    });
+
+    test('a small helium share no hand correction explains is divided', () {
+      // `<o2>21</o2><he>1</he>` in a percentage file was stored 2100/100.
+      // Read as a hand correction it would be 21/100, no gas, so the import
+      // multiplied the helium too: Tx 21/1.
+      expect(
+        hundredfoldCorrection(const GasMix(o2: 2100, he: 100)),
+        const GasMix(o2: 21, he: 1),
+      );
+      expect(
+        hundredfoldCorrection(const GasMix(o2: 2100, he: 90)),
+        const GasMix(o2: 21, he: 0.9),
+      );
     });
 
     test('a helium share over 100% is divided with the oxygen', () {

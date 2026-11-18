@@ -23,19 +23,28 @@ class TankGasMixRepository {
 
   /// Every cylinder whose mix no gas can have ([GasMix.isPossible]).
   Future<List<StoredTankMix>> impossibleMixes() async {
-    final rows =
-        await (_db.select(_db.diveTanks)..where(
-              (t) =>
-                  t.o2Percent.isSmallerThanValue(0) |
-                  t.hePercent.isSmallerThanValue(0) |
-                  t.o2Percent.isBiggerThanValue(100) |
-                  t.hePercent.isBiggerThanValue(100) |
-                  (t.o2Percent + t.hePercent).isBiggerThanValue(
-                    100 + GasMix.sumTolerancePercent,
-                  ),
-            ))
-            .get();
+    final rows = await (_db.select(_db.diveTanks)..where(_impossible)).get();
     return [for (final row in rows) _stored(row)];
+  }
+
+  /// The dives [impossibleMixes] would name, read by id alone, for the
+  /// quality scan's prefilter: one rule for both, so they cannot drift.
+  Future<Set<String>> divesWithImpossibleMixes() async {
+    final t = _db.diveTanks;
+    final query = _db.selectOnly(t, distinct: true)
+      ..addColumns([t.diveId])
+      ..where(_impossible(t));
+    return {for (final row in await query.get()) row.read(t.diveId)!};
+  }
+
+  /// [GasMix.isPossible] negated, in SQL.
+  static Expression<bool> _impossible($DiveTanksTable t) {
+    const tolerance = GasMix.tolerancePercent;
+    return t.o2Percent.isSmallerThanValue(-tolerance) |
+        t.hePercent.isSmallerThanValue(-tolerance) |
+        t.o2Percent.isBiggerThanValue(100 + tolerance) |
+        t.hePercent.isBiggerThanValue(100 + tolerance) |
+        (t.o2Percent + t.hePercent).isBiggerThanValue(100 + tolerance);
   }
 
   /// [tankId]'s mix, or null when it is not a cylinder of [diveId].

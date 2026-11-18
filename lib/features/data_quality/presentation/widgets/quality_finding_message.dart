@@ -1,6 +1,6 @@
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/minutes_seconds.dart';
-import 'package:submersion/core/utils/number_display.dart';
+import 'package:submersion/core/utils/gas_percent.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_tank.dart'
     show GasMix;
@@ -351,20 +351,18 @@ String _missingSwitchDetail(
 
 /// "Cylinder {n} is recorded as {o2}% O2 and {he}% He ..." (issue #4714),
 /// naming the mix meant when the finding carries one. The stored shares are
-/// shown to two decimals at most, trailing zeros dropped, in the locale's
-/// convention: 3200 reads 3200, an analysed 3212.5 keeps its half (3212,5
-/// under de), and an import's binary noise (2899.9999999999995) reads 2900.
+/// shown as the app shows any gas percentage, a tenth at most in the
+/// locale's convention: 3200 reads 3200, an analysed 3212.5 keeps its half
+/// (3212,5 under de), and an import's binary noise reads 2900.
 String _impossibleGasMixDetail(AppLocalizations l10n, Map<String, Object?> p) {
   double? n(String key) => switch (p[key]) {
     final num v => v.toDouble(),
     _ => null,
   };
-  String share(String key) {
-    var text = (n(key) ?? 0).toStringAsFixed(2);
-    // Trimmed on the ASCII '.', before the locale's separator replaces it.
-    text = text.replaceFirst(RegExp(r'\.?0+$'), '');
-    return localiseDecimalText(text);
-  }
+  // Rounded to a tenth first, the shared formatter's precision, so an
+  // import's binary noise (2899.9999999999995) reads as a whole 2900.
+  String share(String key) =>
+      formatGasPercentValue(double.parse((n(key) ?? 0).toStringAsFixed(1)));
 
   // Stored 0-based, as the other cylinder findings store it.
   final number = (n('tankPosition')?.toInt() ?? 0) + 1;

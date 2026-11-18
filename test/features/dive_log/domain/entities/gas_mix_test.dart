@@ -38,6 +38,13 @@ void main() {
     test('binary noise on a full mix is still possible', () {
       expect(const GasMix(o2: 21.0000000001, he: 79).isPossible, isTrue);
     });
+
+    test('binary noise on a single share is still possible', () {
+      // Pure oxygen read as 1.0000000000000002 * 100, and a helium share
+      // worked out as 100 - o2 - n2.
+      expect(const GasMix(o2: 100.00000000000003).isPossible, isTrue);
+      expect(const GasMix(o2: 32, he: -1e-14).isPossible, isTrue);
+    });
   });
 
   group('GasMix.name', () {

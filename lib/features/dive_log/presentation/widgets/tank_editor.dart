@@ -276,7 +276,11 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     );
     _lastValidO2 = widget.tank.gasMix.o2;
     _lastValidHe = widget.tank.gasMix.he;
-    if (widget.tank.gasMix.isPossible) _lastPossibleMix = widget.tank.gasMix;
+    // Reset on every read, not only set: a re-read for another tank stored
+    // impossible must not fall back to the previous tank's mix.
+    _lastPossibleMix = widget.tank.gasMix.isPossible
+        ? widget.tank.gasMix
+        : null;
     _volume = LiveNumber(null)..resolve(_volumeController.text);
     _workingPressure = LiveNumber(null)
       ..resolve(_workingPressureController.text);

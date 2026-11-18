@@ -72,6 +72,14 @@ void main() {
     );
   });
 
+  test('names each dive holding such a cylinder once', () async {
+    await tank('a', 'd1', 3200);
+    await tank('b', 'd1', 2100, 3500);
+    await tank('ok', 'd2', 32);
+
+    expect(await repo.divesWithImpossibleMixes(), {'d1'});
+  });
+
   test('reads one cylinder by its dive', () async {
     await tank('stored', 'd1', 3200);
 
