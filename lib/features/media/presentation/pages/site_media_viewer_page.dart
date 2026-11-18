@@ -466,9 +466,11 @@ class _MediaGalleryPager extends StatelessWidget {
       backgroundDecoration: const BoxDecoration(color: Colors.black),
       builder: (context, index) {
         final item = mediaList[index];
-        // A video's still is its poster, sized to the screen's pixels: the
+        // A video's still is its poster, sized to the display's pixels: the
         // poster is fetched at targetSize, so points would make it a third
-        // of the screen's resolution at 3x (issue #4699). Drawn as a photo,
+        // of the screen's resolution at 3x, and the window's size would
+        // fetch it again on every frame of a desktop window resize (issue
+        // #4699). Drawn as a photo,
         // it resolved the original: a photo-library video was read whole
         // into memory, hundreds of MB for a 4K clip, and handed to the image
         // decoder, which cannot read it.
@@ -485,10 +487,7 @@ class _MediaGalleryPager extends StatelessWidget {
             fit: BoxFit.contain,
             showAccessActions: true,
             thumbnail: video,
-            targetSize: video
-                ? MediaQuery.sizeOf(context) *
-                      MediaQuery.devicePixelRatioOf(context)
-                : null,
+            targetSize: video ? View.of(context).display.size : null,
           ),
         );
       },

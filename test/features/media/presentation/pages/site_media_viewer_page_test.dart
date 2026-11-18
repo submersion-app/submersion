@@ -203,6 +203,10 @@ void main() {
   testWidgets('a video page shows its poster, never decodes the original', (
     tester,
   ) async {
+    // A display larger than the window, as on a desktop: the poster follows
+    // the display, so resizing the window never fetches it again.
+    tester.view.display.size = const Size(3456, 2234);
+    addTearDown(tester.view.display.reset);
     final clip = testMediaItem(
       id: 'v1',
       siteId: 'site-1',
@@ -216,10 +220,10 @@ void main() {
     );
     final video = views.singleWhere((v) => v.item.id == 'v1');
     expect(video.thumbnail, isTrue);
-    // The screen in pixels, not points: the poster is asked for at that size,
-    // and a point-sized one is a third of the screen's resolution at 3x.
-    final view = tester.view;
-    expect(video.targetSize, view.physicalSize);
+    // The display in pixels: a point-sized poster is a third of the screen's
+    // resolution at 3x, and a window-sized one would be fetched again on
+    // every frame of a desktop window resize.
+    expect(video.targetSize, const Size(3456, 2234));
     final photo = views.singleWhere((v) => v.item.id == 'm2');
     expect(
       photo.thumbnail,

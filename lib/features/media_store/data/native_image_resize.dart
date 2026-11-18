@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' show min;
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
@@ -75,7 +76,7 @@ Future<ImageResizeResult> resizeToJpegFileNative(
       jpegQuality: request.jpegQuality,
       destinationPath: request.destinationPath,
       exifPath: request.keepJpegMetadata ? request.sourcePath : null,
-      exifBytes: request.keepJpegMetadata ? request.sourceBytes : null,
+      exifBytes: request.keepJpegMetadata ? _head(request.sourceBytes) : null,
     ),
   );
   return ImageResizeResult(ImageResizeOutcome.written, sizeBytes: sizeBytes);
@@ -157,6 +158,12 @@ class _RgbaEncodeJob {
 /// holds it sits at the head of a JPEG and is at most 64 KB, so the rest of a
 /// multi-megabyte original never needs to be read.
 const int _exifHeadBytes = 1 << 20;
+
+/// The first [_exifHeadBytes] of [bytes], as a view: only those can hold
+/// the EXIF, and the rest of the original need not cross to the isolate.
+Uint8List? _head(Uint8List? bytes) => bytes == null
+    ? null
+    : Uint8List.sublistView(bytes, 0, min(bytes.length, _exifHeadBytes));
 
 /// [job]'s source EXIF less its orientation, or null when it has none to
 /// carry: not asked for, not a JPEG, or unreadable.

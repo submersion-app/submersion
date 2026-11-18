@@ -153,6 +153,29 @@ void main() {
       expect(exif.imageIfd['Orientation'], isNull);
     });
 
+    test('is carried over from bytes too', () async {
+      final source = writeJpegWithExif('dated.jpg');
+      final destination = out('rendition.jpg');
+
+      await resizeToJpegFileNative(
+        ImageResizeRequest.fromBytes(
+          bytes: source.readAsBytesSync(),
+          destinationPath: destination,
+          declaredName: 'dated.jpg',
+          maxDimension: 512,
+          jpegQuality: 80,
+          keepJpegMetadata: true,
+        ),
+        fallback: neverFallBack,
+      );
+
+      final exif = img.decodeJpgExif(File(destination).readAsBytesSync())!;
+      expect(
+        exif.exifIfd['DateTimeOriginal']?.toString(),
+        '2026:01:02 03:04:05',
+      );
+    });
+
     test('is left behind for a thumbnail', () async {
       final source = writeJpegWithExif('dated.jpg');
       final destination = out('thumb.jpg');
