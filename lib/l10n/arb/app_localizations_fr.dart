@@ -12617,6 +12617,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Trouvé pour ces coordonnées';
 
   @override
+  String get diveSites_edit_depth_rangeInvalid =>
+      'La profondeur minimale ne peut pas dépasser la profondeur maximale.';
+
+  @override
   String get diveSites_edit_lookupReplace_title =>
       'Remplacer les informations de lieu ?';
 

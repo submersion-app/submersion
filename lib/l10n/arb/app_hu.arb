@@ -3817,6 +3817,7 @@
   "diveSites_edit_snackbar_lookupNoChanges": "A helyadatok már megegyeznek ezekkel a koordinátákkal",
   "diveSites_edit_snackbar_lookupFailed": "A helylekérdezés nem sikerült. Ellenőrizze a kapcsolatot, és próbálja újra.",
   "diveSites_edit_altitude_foundTooltip": "Ezekhez a koordinátákhoz találva",
+  "diveSites_edit_depth_rangeInvalid": "A minimális mélység nem lehet nagyobb a maximálisnál.",
   "diveSites_edit_lookupReplace_title": "Lecseréli a helyadatokat?",
   "diveSites_edit_lookupReplace_body": "A lekérdezés eltérő értékeket talált ezekhez a mezőkhöz:",
   "diveSites_edit_lookupReplace_replace": "Csere",

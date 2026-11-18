@@ -12548,6 +12548,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ezekhez a koordinátákhoz találva';
 
   @override
+  String get diveSites_edit_depth_rangeInvalid =>
+      'A minimális mélység nem lehet nagyobb a maximálisnál.';
+
+  @override
   String get diveSites_edit_lookupReplace_title => 'Lecseréli a helyadatokat?';
 
   @override

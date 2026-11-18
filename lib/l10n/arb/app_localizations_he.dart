@@ -12298,6 +12298,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'נמצא עבור הקואורדינטות האלה';
 
   @override
+  String get diveSites_edit_depth_rangeInvalid =>
+      'העומק המינימלי לא יכול להיות עמוק מהמקסימלי.';
+
+  @override
   String get diveSites_edit_lookupReplace_title => 'להחליף את פרטי המיקום?';
 
   @override

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/constants/site_detail_sections.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_edit_cards.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_measure_card_editors.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_plain_fields.dart';
@@ -154,6 +156,46 @@ void main() {
 
     expect(h.session.valueOf(siteMinDepthField), 5);
     expect(h.session.valueOf(siteMaxDepthField), 40);
+  });
+
+  testWidgets('a minimum deeper than the maximum refuses Save and says why', (
+    tester,
+  ) async {
+    final h = await pumpSiteEditor(
+      tester,
+      site,
+      (session) => SiteDepthCardEditor(session: session),
+    );
+    final depth = siteEditCards[SiteDetailSectionId.depth]!;
+
+    h.session
+      ..set(siteMinDepthField, 40.0)
+      ..set(siteMaxDepthField, 5.0);
+    await tester.pump();
+
+    expect(depth.isValid!(h.session), isFalse);
+    expect(find.text(l.diveSites_edit_depth_rangeInvalid), findsOneWidget);
+
+    // Either alone, or in order, is fine.
+    h.session.set(siteMaxDepthField, null);
+    await tester.pump();
+    expect(depth.isValid!(h.session), isTrue);
+    expect(find.text(l.diveSites_edit_depth_rangeInvalid), findsNothing);
+  });
+
+  testWidgets('a stored range out of order does not block saving another '
+      'card', (tester) async {
+    final h = await pumpSiteEditor(
+      tester,
+      site.copyWith(minDepth: 40.0, maxDepth: 5.0),
+      (session) => SiteDepthCardEditor(session: session),
+    );
+
+    // Not the diver's to fix before saving, say, the notes.
+    expect(
+      siteEditCards[SiteDetailSectionId.depth]!.isValid!(h.session),
+      isTrue,
+    );
   });
 
   testWidgets('difficulty chips set and clear', (tester) async {

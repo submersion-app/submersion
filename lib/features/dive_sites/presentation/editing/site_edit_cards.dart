@@ -64,6 +64,7 @@ final Map<SiteDetailSectionId, EditCard<DiveSite>> siteEditCards = {
       color: Theme.of(context).colorScheme.primary,
     ),
     isEmpty: (_) => false,
+    isValid: siteDepthRangeIsValid,
     editorBuilder: (context, session) => SiteDepthCardEditor(session: session),
   ),
   SiteDetailSectionId.altitude: EditCard<DiveSite>(

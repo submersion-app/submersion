@@ -12562,6 +12562,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Für diese Koordinaten gefunden';
 
   @override
+  String get diveSites_edit_depth_rangeInvalid =>
+      'Die Mindesttiefe darf nicht größer als die Maximaltiefe sein.';
+
+  @override
   String get diveSites_edit_lookupReplace_title => 'Ortsangaben ersetzen?';
 
   @override

@@ -19991,6 +19991,12 @@ abstract class AppLocalizations {
   /// **'Found for these coordinates'**
   String get diveSites_edit_altitude_foundTooltip;
 
+  /// Under the Depth card's rows, and why Save is refused, when the minimum depth is deeper than the maximum
+  ///
+  /// In en, this message translates to:
+  /// **'The minimum depth can\'t be deeper than the maximum.'**
+  String get diveSites_edit_depth_rangeInvalid;
+
   /// No description provided for @diveSites_edit_lookupReplace_title.
   ///
   /// In en, this message translates to:

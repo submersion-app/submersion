@@ -95,6 +95,17 @@ class _SiteAltitudeCardEditorState
   }
 }
 
+/// Whether the sitting's depth range can be saved: the minimum no deeper
+/// than the maximum, or either one left out. A range stored out of order
+/// and unchanged is not the diver's to fix before saving another card.
+bool siteDepthRangeIsValid(EditSession<DiveSite> session) {
+  final min = session.valueOf(siteMinDepthField);
+  final max = session.valueOf(siteMaxDepthField);
+  if (min == null || max == null || min <= max) return true;
+  final stored = session.stored;
+  return min == stored.minDepth && max == stored.maxDepth;
+}
+
 /// The Depth card's editor: the shallowest and deepest points, in the
 /// diver's depth unit.
 class SiteDepthCardEditor extends ConsumerWidget {
@@ -128,6 +139,21 @@ class SiteDepthCardEditor extends ConsumerWidget {
         row(
           siteMaxDepthField,
           l10n.diveSites_edit_depth_maxLabel(units.depthSymbol),
+        ),
+        // Why Save is refused, while the range is out of order.
+        ListenableBuilder(
+          listenable: session,
+          builder: (context, _) => siteDepthRangeIsValid(session)
+              ? const SizedBox.shrink()
+              : Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 0, 14, 8),
+                  child: Text(
+                    l10n.diveSites_edit_depth_rangeInvalid,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                ),
         ),
       ],
     );

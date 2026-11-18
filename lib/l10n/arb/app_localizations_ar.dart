@@ -12736,6 +12736,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_edit_altitude_foundTooltip => 'وُجد لهذه الإحداثيات';
 
   @override
+  String get diveSites_edit_depth_rangeInvalid =>
+      'لا يمكن أن يكون الحد الأدنى للعمق أعمق من الحد الأقصى.';
+
+  @override
   String get diveSites_edit_lookupReplace_title => 'استبدال تفاصيل الموقع؟';
 
   @override

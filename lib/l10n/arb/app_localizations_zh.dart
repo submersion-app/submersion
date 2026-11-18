@@ -11955,6 +11955,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_edit_altitude_foundTooltip => '根据这些坐标找到';
 
   @override
+  String get diveSites_edit_depth_rangeInvalid => '最小深度不能大于最大深度。';
+
+  @override
   String get diveSites_edit_lookupReplace_title => '替换地点信息？';
 
   @override

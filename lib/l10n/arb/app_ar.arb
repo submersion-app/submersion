@@ -3943,6 +3943,7 @@
   "diveSites_edit_snackbar_lookupNoChanges": "تفاصيل الموقع تطابق هذه الإحداثيات بالفعل",
   "diveSites_edit_snackbar_lookupFailed": "فشل البحث عن الموقع. تحقق من الاتصال وحاول مرة أخرى.",
   "diveSites_edit_altitude_foundTooltip": "وُجد لهذه الإحداثيات",
+  "diveSites_edit_depth_rangeInvalid": "لا يمكن أن يكون الحد الأدنى للعمق أعمق من الحد الأقصى.",
   "diveSites_edit_lookupReplace_title": "استبدال تفاصيل الموقع؟",
   "diveSites_edit_lookupReplace_body": "عثر البحث على قيم مختلفة لهذه الحقول:",
   "diveSites_edit_lookupReplace_replace": "استبدال",

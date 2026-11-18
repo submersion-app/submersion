@@ -12378,6 +12378,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Found for these coordinates';
 
   @override
+  String get diveSites_edit_depth_rangeInvalid =>
+      'The minimum depth can\'t be deeper than the maximum.';
+
+  @override
   String get diveSites_edit_lookupReplace_title => 'Replace location details?';
 
   @override

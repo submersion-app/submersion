@@ -3943,6 +3943,7 @@
   "diveSites_edit_snackbar_lookupNoChanges": "De locatiegegevens komen al overeen met deze coördinaten",
   "diveSites_edit_snackbar_lookupFailed": "Locatie opzoeken mislukt. Controleer je verbinding en probeer het opnieuw.",
   "diveSites_edit_altitude_foundTooltip": "Gevonden voor deze coördinaten",
+  "diveSites_edit_depth_rangeInvalid": "De minimale diepte mag niet dieper zijn dan de maximale.",
   "diveSites_edit_lookupReplace_title": "Locatiegegevens vervangen?",
   "diveSites_edit_lookupReplace_body": "Het opzoeken vond andere waarden voor deze velden:",
   "diveSites_edit_lookupReplace_replace": "Vervangen",

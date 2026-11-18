@@ -7699,6 +7699,10 @@
   "@diveSites_edit_altitude_foundTooltip": {
     "description": "Tooltip of the altitude suggested from the site's coordinates on the Altitude card"
   },
+  "diveSites_edit_depth_rangeInvalid": "The minimum depth can't be deeper than the maximum.",
+  "@diveSites_edit_depth_rangeInvalid": {
+    "description": "Under the Depth card's rows, and why Save is refused, when the minimum depth is deeper than the maximum"
+  },
   "diveSites_edit_lookupReplace_title": "Replace location details?",
   "diveSites_edit_lookupReplace_body": "The lookup found different values for these fields:",
   "diveSites_edit_lookupReplace_replace": "Replace",

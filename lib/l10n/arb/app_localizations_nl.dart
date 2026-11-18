@@ -12491,6 +12491,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Gevonden voor deze coördinaten';
 
   @override
+  String get diveSites_edit_depth_rangeInvalid =>
+      'De minimale diepte mag niet dieper zijn dan de maximale.';
+
+  @override
   String get diveSites_edit_lookupReplace_title => 'Locatiegegevens vervangen?';
 
   @override
