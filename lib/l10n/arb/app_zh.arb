@@ -6486,6 +6486,7 @@
   "media_viewer_photoGoneWhileEditing": "此照片已被移除。你的更改未保存。",
   "media_viewer_videoGoneWhileEditing": "此视频已被移除。你的更改未保存。",
   "media_viewer_documentGoneWhileEditing": "此文档已被移除。你的更改未保存。",
+  "media_viewer_documentRemoved": "此文档已被移除。",
   "media_viewer_movedWhileEditing": "自解锁后已移至另一次潜水。请取消，然后重新解锁。",
   "media_viewer_locatedFileChanged": "找到的文件此后已更改或移动。请重新查找，或取消。",
   "media_viewer_exitFullscreen": "退出全屏",

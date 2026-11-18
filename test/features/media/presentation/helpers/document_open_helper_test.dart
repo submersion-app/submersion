@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/features/media/data/services/asset_resolution_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/presentation/helpers/document_open_helper.dart';
 import 'package:submersion/features/media/presentation/pages/attachment_details_page.dart';
 import 'package:submersion/features/media/presentation/pages/document_viewer_page.dart';
@@ -34,8 +35,12 @@ void main() {
             (ref) async =>
                 const ResolvedAssetResult(status: ResolutionStatus.unavailable),
           ),
-          // A page with the attachment's lock reads its stored row.
-          photoRecordProvider(item.id).overrideWith((ref) async => null),
+          // A page with the attachment's lock reads its stored row; one
+          // read as gone would close it.
+          photoRecordProvider(item.id).overrideWith(
+            (ref) async =>
+                PhotoRecord(item: item, species: const [], people: const []),
+          ),
         ],
         home: Scaffold(
           body: Consumer(

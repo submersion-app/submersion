@@ -6345,6 +6345,7 @@
   "media_viewer_photoGoneWhileEditing": "Esta foto se eliminó. Tus cambios no se guardaron.",
   "media_viewer_videoGoneWhileEditing": "Este vídeo se eliminó. Tus cambios no se guardaron.",
   "media_viewer_documentGoneWhileEditing": "Este documento se eliminó. Tus cambios no se guardaron.",
+  "media_viewer_documentRemoved": "Este documento se eliminó.",
   "media_viewer_movedWhileEditing": "Se movió a otra inmersión desde que lo desbloqueaste. Cancela y vuelve a desbloquearlo.",
   "media_viewer_locatedFileChanged": "El archivo encontrado ha cambiado o se ha movido desde entonces. Búscalo de nuevo o cancela.",
   "media_viewer_exitFullscreen": "Salir de pantalla completa",

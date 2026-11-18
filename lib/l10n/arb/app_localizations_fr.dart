@@ -22128,6 +22128,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ce document a été supprimé. Vos modifications n\'ont pas été enregistrées.';
 
   @override
+  String get media_viewer_documentRemoved => 'Ce document a été supprimé.';
+
+  @override
   String get media_viewer_movedWhileEditing =>
       'Déplacé vers une autre plongée depuis le déverrouillage. Annulez, puis déverrouillez à nouveau.';
 

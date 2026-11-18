@@ -22069,6 +22069,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Questo documento è stato rimosso. Le modifiche non sono state salvate.';
 
   @override
+  String get media_viewer_documentRemoved =>
+      'Questo documento è stato rimosso.';
+
+  @override
   String get media_viewer_movedWhileEditing =>
       'Spostato in un\'altra immersione dopo lo sblocco. Annulla, poi sbloccalo di nuovo.';
 

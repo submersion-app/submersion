@@ -34849,6 +34849,12 @@ abstract class AppLocalizations {
   /// **'This document was removed. Your changes were not saved.'**
   String get media_viewer_documentGoneWhileEditing;
 
+  /// Shown on the page below when a site attachment document's own page (PDF viewer or attachment details page) closes because the document was deleted elsewhere while it was open and locked.
+  ///
+  /// In en, this message translates to:
+  /// **'This document was removed.'**
+  String get media_viewer_documentRemoved;
+
   /// Shown when Save is refused because the photo or video being edited was moved to another dive (on another device, or by a sync) after the diver unlocked it. Cancel ends the sitting; unlocking again starts one on the new dive.
   ///
   /// In en, this message translates to:

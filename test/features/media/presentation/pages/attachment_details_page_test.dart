@@ -46,15 +46,32 @@ void main() {
     WidgetTester tester, {
     bool showOpen = true,
     bool browser = false,
+    bool pushed = false,
     List<Override> overrides = const [],
   }) async {
     final item = await stored(tester);
+    final page = AttachmentDetailsPage(
+      item: item,
+      siteId: 's1',
+      showOpen: showOpen,
+    );
     await pumpViewerApp(
       tester,
-      AttachmentDetailsPage(item: item, siteId: 's1', showOpen: showOpen),
+      pushed ? pushedFrom(page) : page,
       browser: browser,
       overrides: overrides,
     );
+    if (pushed) await openPushed(tester);
+  }
+
+  Future<void> removeDocument(WidgetTester tester) async {
+    final db = DatabaseService.instance.database;
+    await tester.runAsync(
+      () => (db.delete(db.media)..where((t) => t.id.equals('doc2'))).go(),
+    );
+    await settleViewer(tester, rounds: 10);
+    // An open sitting ends first, then the page closes: let its route go.
+    await settleViewer(tester, rounds: 10);
   }
 
   Future<void> unlock(WidgetTester tester) async {
@@ -166,22 +183,40 @@ void main() {
   });
 
   // Review Focus 1 on this page: the document goes while unlocked.
+  // The page closes once its document is gone, saying so once.
   testWidgets('a document removed while unlocked ends the sitting in '
-      'document words', (tester) async {
-    await pumpPage(tester);
+      'document words, and the page closes', (tester) async {
+    await pumpPage(tester, pushed: true);
     await unlock(tester);
 
-    final db = DatabaseService.instance.database;
-    await tester.runAsync(
-      () => (db.delete(db.media)..where((t) => t.id.equals('doc2'))).go(),
-    );
-    await settleViewer(tester, rounds: 10);
+    await removeDocument(tester);
 
-    expect(find.byType(RecordEditBar), findsNothing);
+    expect(find.byType(AttachmentDetailsPage), findsNothing);
     expect(
       find.text('This document was removed. Your changes were not saved.'),
       findsOneWidget,
     );
+    expect(find.text('This document was removed.'), findsNothing);
+  });
+
+  testWidgets('a document removed while locked closes the page and says so', (
+    tester,
+  ) async {
+    await pumpPage(tester, pushed: true);
+
+    await removeDocument(tester);
+
+    expect(find.byType(AttachmentDetailsPage), findsNothing);
+    expect(find.text('This document was removed.'), findsOneWidget);
+  });
+
+  testWidgets('a browser closes the page too', (tester) async {
+    await pumpPage(tester, pushed: true, browser: true);
+
+    await removeDocument(tester);
+
+    expect(find.byType(AttachmentDetailsPage), findsNothing);
+    expect(find.text('This document was removed.'), findsOneWidget);
   });
 
   // A browser follows the stored details too, though it never unlocks.

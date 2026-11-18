@@ -6219,6 +6219,7 @@
   "media_viewer_photoGoneWhileEditing": "התמונה הוסרה. השינויים שלך לא נשמרו.",
   "media_viewer_videoGoneWhileEditing": "הסרטון הוסר. השינויים שלך לא נשמרו.",
   "media_viewer_documentGoneWhileEditing": "המסמך הוסר. השינויים שלך לא נשמרו.",
+  "media_viewer_documentRemoved": "המסמך הוסר.",
   "media_viewer_movedWhileEditing": "הועבר לצלילה אחרת מאז ביטול הנעילה. בטל, ואז בטל שוב את הנעילה.",
   "media_viewer_locatedFileChanged": "הקובץ שאותר השתנה או הועבר מאז. אתר אותו שוב או בטל.",
   "media_viewer_exitFullscreen": "יציאה ממסך מלא",

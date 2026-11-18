@@ -7,6 +7,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/presentation/editing/attachment_details_hold.dart';
+import 'package:submersion/features/media/presentation/editing/attachment_page_closes_when_removed.dart';
 import 'package:submersion/features/media/presentation/editing/photo_viewer_editing.dart';
 import 'package:submersion/features/media/presentation/helpers/document_open_helper.dart';
 import 'package:submersion/features/media/presentation/providers/media_bytes_providers.dart';
@@ -46,7 +47,9 @@ class DocumentViewerPage extends ConsumerStatefulWidget {
 }
 
 class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage>
-    with PhotoViewerEditing<DocumentViewerPage> {
+    with
+        PhotoViewerEditing<DocumentViewerPage>,
+        AttachmentPageClosesWhenRemoved<DocumentViewerPage> {
   /// pdfrx needs its one-time Flutter bootstrap before the first PdfViewer
   /// builds; the call is idempotent and cheap afterwards.
   late final Future<void> _engineReady = pdfrxFlutterInitialize();
@@ -67,9 +70,6 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage>
   bool get unlocksDocuments => true;
 
   @override
-  void onPhotoLocked() {}
-
-  @override
   void dispose() {
     disposePhotoEditing();
     super.dispose();
@@ -79,6 +79,8 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage>
   Widget build(BuildContext context) {
     final resolvedAsync = ref.watch(mediaBytesProvider(widget.item));
     final stored = followStoredPhoto(widget.item);
+    // Only where the document has its own lock; today's viewer stays.
+    if (_hasLock) closeWhenRemoved(widget.item.id);
 
     return photoEditScope(
       child: Scaffold(

@@ -21933,6 +21933,9 @@ class AppLocalizationsNl extends AppLocalizations {
       'Dit document is verwijderd. Je wijzigingen zijn niet opgeslagen.';
 
   @override
+  String get media_viewer_documentRemoved => 'Dit document is verwijderd.';
+
+  @override
   String get media_viewer_movedWhileEditing =>
       'Verplaatst naar een andere duik sinds je het ontgrendelde. Annuleer en ontgrendel het opnieuw.';
 

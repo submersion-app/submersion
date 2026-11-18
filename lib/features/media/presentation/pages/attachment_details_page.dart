@@ -6,6 +6,7 @@ import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/editing/attachment_details_hold.dart';
+import 'package:submersion/features/media/presentation/editing/attachment_page_closes_when_removed.dart';
 import 'package:submersion/features/media/presentation/editing/photo_viewer_editing.dart';
 import 'package:submersion/features/media/presentation/helpers/document_open_helper.dart';
 import 'package:submersion/features/media/presentation/providers/photo_editing_providers.dart';
@@ -42,12 +43,11 @@ class AttachmentDetailsPage extends ConsumerStatefulWidget {
 }
 
 class _AttachmentDetailsPageState extends ConsumerState<AttachmentDetailsPage>
-    with PhotoViewerEditing<AttachmentDetailsPage> {
+    with
+        PhotoViewerEditing<AttachmentDetailsPage>,
+        AttachmentPageClosesWhenRemoved<AttachmentDetailsPage> {
   @override
   bool get unlocksDocuments => true;
-
-  @override
-  void onPhotoLocked() {}
 
   @override
   void dispose() {
@@ -59,6 +59,7 @@ class _AttachmentDetailsPageState extends ConsumerState<AttachmentDetailsPage>
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final stored = followStoredPhoto(widget.item);
+    closeWhenRemoved(widget.item.id);
     // Followed whether or not this device edits, so a browser shows a
     // change made elsewhere too.
     final storedItem =

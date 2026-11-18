@@ -43,17 +43,29 @@ void main() {
     String? editableSiteId = 's1',
     bool attachmentLock = true,
     bool browser = false,
+    bool pushed = false,
   }) async {
     final item = await stored(tester);
+    final page = DocumentViewerPage(
+      item: item,
+      editableSiteId: editableSiteId,
+      attachmentLock: attachmentLock,
+    );
     await pumpViewerApp(
       tester,
-      DocumentViewerPage(
-        item: item,
-        editableSiteId: editableSiteId,
-        attachmentLock: attachmentLock,
-      ),
+      pushed ? pushedFrom(page) : page,
       browser: browser,
     );
+    if (pushed) await openPushed(tester);
+  }
+
+  Future<void> removeDocument(WidgetTester tester) async {
+    await tester.runAsync(
+      () => (db.delete(db.media)..where((t) => t.id.equals('doc1'))).go(),
+    );
+    await settleViewer(tester, rounds: 10);
+    // An open sitting ends first, then the page closes: let its route go.
+    await settleViewer(tester, rounds: 10);
   }
 
   RecordEditController<PhotoRecord> controller(WidgetTester tester) =>
@@ -165,20 +177,38 @@ void main() {
 
   // Review Focus 1: the document goes while its lock is open.
   testWidgets('a document removed while unlocked ends the sitting in '
-      'document words', (tester) async {
-    await pumpDocument(tester);
+      'document words, and the viewer closes', (tester) async {
+    await pumpDocument(tester, pushed: true);
     await unlock(tester);
 
-    await tester.runAsync(
-      () => (db.delete(db.media)..where((t) => t.id.equals('doc1'))).go(),
-    );
-    await settleViewer(tester, rounds: 10);
+    await removeDocument(tester);
 
-    expect(find.byType(RecordEditBar), findsNothing);
+    expect(find.byType(DocumentViewerPage), findsNothing);
     expect(
       find.text('This document was removed. Your changes were not saved.'),
       findsOneWidget,
     );
+    expect(find.text('This document was removed.'), findsNothing);
+  });
+
+  testWidgets('a document removed while locked closes the viewer and says '
+      'so', (tester) async {
+    await pumpDocument(tester, pushed: true);
+
+    await removeDocument(tester);
+
+    expect(find.byType(DocumentViewerPage), findsNothing);
+    expect(find.text('This document was removed.'), findsOneWidget);
+  });
+
+  testWidgets('without attachmentLock a removed document leaves the viewer '
+      'as before', (tester) async {
+    await pumpDocument(tester, pushed: true, attachmentLock: false);
+
+    await removeDocument(tester);
+
+    expect(find.byType(DocumentViewerPage), findsOneWidget);
+    expect(find.text('This document was removed.'), findsNothing);
   });
 
   testWidgets('opened from a dive it offers no lock', (tester) async {

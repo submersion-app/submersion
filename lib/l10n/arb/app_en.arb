@@ -13820,6 +13820,10 @@
   "@media_viewer_documentGoneWhileEditing": {
     "description": "Shown when the site attachment document whose details are being edited (PDF viewer or attachment details page) is deleted elsewhere during the editing sitting; the sitting ends without saving."
   },
+  "media_viewer_documentRemoved": "This document was removed.",
+  "@media_viewer_documentRemoved": {
+    "description": "Shown on the page below when a site attachment document's own page (PDF viewer or attachment details page) closes because the document was deleted elsewhere while it was open and locked."
+  },
   "media_viewer_movedWhileEditing": "Moved to another dive since you unlocked it. Cancel, then unlock it again.",
   "@media_viewer_movedWhileEditing": {
     "description": "Shown when Save is refused because the photo or video being edited was moved to another dive (on another device, or by a sync) after the diver unlocked it. Cancel ends the sitting; unlocking again starts one on the new dive."
