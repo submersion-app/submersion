@@ -81,6 +81,19 @@ import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
 import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/dive_sites/data/services/site_edit_save_service.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_edit_cards.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/unlock_site_editing_flag.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_edit_save_provider.dart';
+import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
+
+part 'site_detail_page_editing.dart';
 
 class SiteDetailPage extends ConsumerStatefulWidget {
   final String siteId;
@@ -88,12 +101,17 @@ class SiteDetailPage extends ConsumerStatefulWidget {
   final VoidCallback? onDeleted;
   final VoidCallback? onClose;
 
+  /// Whether the page offers unlock-to-edit (issue #4527, phase 2): off
+  /// until the site page has every card ([kUnlockSiteEditing]).
+  final bool unlockEditing;
+
   const SiteDetailPage({
     super.key,
     required this.siteId,
     this.embedded = false,
     this.onDeleted,
     this.onClose,
+    this.unlockEditing = kUnlockSiteEditing,
   });
 
   @override
@@ -148,6 +166,7 @@ class _SiteDetailPageState extends ConsumerState<SiteDetailPage> {
           embedded: widget.embedded,
           onDeleted: widget.onDeleted,
           onClose: widget.onClose,
+          unlockEditing: widget.unlockEditing,
         );
       },
       loading: () {
@@ -186,6 +205,7 @@ class _SiteDetailContent extends ConsumerStatefulWidget {
   final bool embedded;
   final VoidCallback? onDeleted;
   final VoidCallback? onClose;
+  final bool unlockEditing;
 
   const _SiteDetailContent({
     required this.site,
@@ -193,13 +213,15 @@ class _SiteDetailContent extends ConsumerStatefulWidget {
     required this.embedded,
     this.onDeleted,
     this.onClose,
+    this.unlockEditing = false,
   });
 
   @override
   ConsumerState<_SiteDetailContent> createState() => _SiteDetailContentState();
 }
 
-class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
+class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
+    with RecordEditHost<_SiteDetailContent, DiveSite>, _SiteDetailPageEditing {
   /// Opens the display-options panel from the overflow menu. One controller
   /// serves both headers, since only one of them is ever built.
   final MenuController _displayOptionsMenu = MenuController();
@@ -213,10 +235,25 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
   final MapController _fullController = MapController();
 
   @override
+  void dispose() {
+    disposeEditing();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final site = widget.site;
     final siteId = widget.siteId;
     final embedded = widget.embedded;
+    // The full page of a site this profile may edit unlocks to edit in
+    // place (issue #4527, phase 2), behind the switch.
+    final editing =
+        widget.unlockEditing && !embedded && _canEditSite(ref, widget.site);
+    if (editing) followStored(siteProvider(siteId));
+    // The diver's working copy during a sitting, or the site just saved.
+    final site = editing ? shownRecord(widget.site) : widget.site;
+    final shownForSitting = editing
+        ? _sectionsShownForSitting()
+        : const <SiteDetailSectionId>{};
     final sections = ref.watch(
       settingsProvider.select((s) => s.siteDetailSections),
     );
@@ -247,7 +284,14 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
           SiteDetailSectionList(
             sections: sections,
             layout: layout,
-            cards: _sectionCards(context, site, sections),
+            cards: _sectionCards(
+              context,
+              site,
+              sections,
+              editing: editing,
+              shownForSitting: shownForSitting,
+            ),
+            alsoShown: shownForSitting,
             onFoldChanged: (id, expanded) => ref
                 .read(settingsProvider.notifier)
                 .setSiteDetailSectionExpanded(id, expanded),
@@ -265,46 +309,53 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(site.name),
-        actions: [
-          if (site.hasCoordinates)
-            IconButton(
-              icon: const Icon(Icons.terrain),
-              tooltip: context.l10n.dive3d_seascape_siteTitle,
-              onPressed: () =>
-                  _showFullscreenMap(context, ref, site, initialScape3d: true),
-            ),
-          if (_canEditSite(ref, site))
-            IconButton(
-              icon: const Icon(Icons.edit),
-              tooltip: context.l10n.diveSites_detail_editTooltip,
-              onPressed: () => context.push('/sites/$siteId/edit'),
-            ),
-          ..._libraryButtons(context, ref, site),
-          SiteDetailPropertiesMenu(
-            controller: _displayOptionsMenu,
-            child: PopupMenuButton<String>(
-              onSelected: (value) =>
-                  _handleMenuAction(context, ref, value, site),
-              itemBuilder: (context) => [
-                changeLogHistoryMenuItem(
-                  context,
-                  rootTable: 'dive_sites',
-                  rootId: site.id,
-                ),
-                openInConnectionsMenuItem(context),
-                duplicateSiteMenuItem(context),
-                displayOptionsMenuItem(context, 'displayOptions'),
-                ..._libraryMenuItems(context, ref, site),
-              ],
-            ),
+    final appBar = AppBar(
+      title: Text(site.name),
+      actions: [
+        if (site.hasCoordinates)
+          IconButton(
+            icon: const Icon(Icons.terrain),
+            tooltip: context.l10n.dive3d_seascape_siteTitle,
+            onPressed: () =>
+                _showFullscreenMap(context, ref, site, initialScape3d: true),
           ),
-        ],
-      ),
-      body: body,
+        if (editing) lockButton(site),
+        if (_canEditSite(ref, site))
+          IconButton(
+            icon: const Icon(Icons.edit),
+            tooltip: context.l10n.diveSites_detail_editTooltip,
+            onPressed: () => context.push('/sites/$siteId/edit'),
+          ),
+        ..._libraryButtons(context, ref, site),
+        SiteDetailPropertiesMenu(
+          controller: _displayOptionsMenu,
+          child: PopupMenuButton<String>(
+            onSelected: (value) => _handleMenuAction(context, ref, value, site),
+            itemBuilder: (context) => [
+              changeLogHistoryMenuItem(
+                context,
+                rootTable: 'dive_sites',
+                rootId: site.id,
+              ),
+              openInConnectionsMenuItem(context),
+              duplicateSiteMenuItem(context),
+              displayOptionsMenuItem(context, 'displayOptions'),
+              ..._libraryMenuItems(context, ref, site),
+            ],
+          ),
+        ),
+      ],
     );
+
+    if (editing) {
+      return editScaffold(
+        record: widget.site,
+        shown: site,
+        lockedBar: appBar,
+        content: body,
+      );
+    }
+    return Scaffold(appBar: appBar, body: body);
   }
 
   /// A builder for each card the diver has switched on, keyed by id; null
@@ -316,11 +367,17 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
   /// itself, so an empty card takes no slot. The cards that watch providers
   /// build inside their own [Consumer], so their lookups start only once the
   /// card is mounted, and a hidden or folded card starts none.
+  ///
+  /// While the page offers [editing], the cards that can be edited are
+  /// framed, and a card the diver hid is built when the sitting has brought
+  /// it onto the page ([shownForSitting]).
   Map<SiteDetailSectionId, WidgetBuilder?> _sectionCards(
     BuildContext context,
     DiveSite site,
-    List<SiteDetailSectionConfig> sections,
-  ) {
+    List<SiteDetailSectionConfig> sections, {
+    bool editing = false,
+    Set<SiteDetailSectionId> shownForSitting = const {},
+  }) {
     WidgetBuilder watching(Widget Function(BuildContext, WidgetRef) build) =>
         (_) => Consumer(builder: (context, ref, _) => build(context, ref));
 
@@ -330,8 +387,11 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       SiteDetailSectionId.diveStatistics: () => watching(
         (context, ref) => _buildDiveStatisticsSection(context, ref, site),
       ),
-      SiteDetailSectionId.description: () =>
-          (context) => _buildDescriptionSection(context, site),
+      SiteDetailSectionId.description: () => _framed(
+        SiteDetailSectionId.description,
+        (context) => _buildDescriptionSection(context, site),
+        editing: editing,
+      ),
       // Photos from the dives logged here (issue #4502). Decided from a
       // count, so a site without any leaves no gap and no folded header,
       // and the photos themselves load only once the card is laid out.
@@ -443,8 +503,11 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       SiteDetailSectionId.access: () => _hasAccessInfo(site)
           ? (context) => _buildAccessSection(context, site)
           : null,
-      SiteDetailSectionId.notes: () =>
-          (context) => _buildNotesSection(context, site),
+      SiteDetailSectionId.notes: () => _framed(
+        SiteDetailSectionId.notes,
+        (context) => _buildNotesSection(context, site),
+        editing: editing,
+      ),
       SiteDetailSectionId.documents: () =>
           (context) => DocumentsSection(
             owner: DocumentOwner(DocumentOwnerKind.site, site.id),
@@ -452,7 +515,8 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     };
     return {
       for (final section in sections)
-        if (section.visible) section.id: cards[section.id]!(),
+        if (section.visible || shownForSitting.contains(section.id))
+          section.id: cards[section.id]!(),
     };
   }
 
@@ -649,8 +713,9 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     return (isLibrary: true, connected: connected, role: role);
   }
 
-  bool _canEditSite(WidgetRef ref, DiveSite site) {
-    final access = _libraryAccess(ref, site);
+  @override
+  bool _canEditSite(WidgetRef ref, DiveSite site, {bool watch = true}) {
+    final access = _libraryAccess(ref, site, watch: watch);
     return !access.isLibrary ||
         (access.connected && canEditLibrarySite(access.role));
   }
@@ -1150,15 +1215,15 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(Icons.description, size: 20, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(
-                  context.l10n.diveSites_detail_section_description,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
+            // The card's title row, which carries the pencil while the
+            // page is unlocked (issue #4527).
+            RecordCardHeader(
+              title: context.l10n.diveSites_detail_section_description,
+              leading: Icon(
+                Icons.description,
+                size: 20,
+                color: colorScheme.primary,
+              ),
             ),
             const SizedBox(height: 12),
             if (hasDescription)
@@ -2307,15 +2372,11 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(Icons.notes, size: 20, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(
-                  context.l10n.diveSites_detail_section_notes,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
+            // The card's title row, which carries the pencil while the
+            // page is unlocked (issue #4527).
+            RecordCardHeader(
+              title: context.l10n.diveSites_detail_section_notes,
+              leading: Icon(Icons.notes, size: 20, color: colorScheme.primary),
             ),
             const SizedBox(height: 12),
             if (hasNotes)
