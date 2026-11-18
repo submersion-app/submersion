@@ -318,9 +318,16 @@ others)**:
 
 ## Open risks
 
-- **The detector's licence.** Its weights have no stated licence. Shipping
-  them needs written permission from the maintainers. Until then no pack can
-  be published. This blocks release, not development.
+- **The detectors' licences.** A pack can carry the Community Fish
+  Detector, FathomNet's Megalodon or both
+  ([two detectors design](2026-11-17-marine-life-two-detectors-design.md),
+  issue #4691), so this is now a choice of which pack to publish. The
+  Community Fish Detector's weights have no stated licence, and its authors
+  leave their use to the user (filippovarini/community-fish-detector#8).
+  Megalodon's weights are CC BY 4.0 from MBARI, but it was trained with
+  Ultralytics' AGPL-3.0 code, and whether that reaches the weights is not
+  settled. Until a pack is chosen none is published. This blocks release,
+  not development.
 - **Training data terms.** BioCLIP 2 is published under MIT but was trained
   partly on images with non-commercial terms. Whether that reaches the weights
   is unsettled. Its authors ship it as MIT.
@@ -331,9 +338,12 @@ others)**:
   floor. Unmeasured.
 - **Speed off Apple hardware.** On the CPU path the detector alone took 100 ms
   on a fast laptop. Phones and older laptops will be several times slower.
-- **Fish only.** Turtles, rays that the detector misses, nudibranchs,
-  octopus and mammals are not boxed. Nothing in this program fixes that short
-  of a different detector.
+- **Fish mostly.** The Community Fish Detector rarely boxes coral, crabs,
+  octopus, snails or sea stars. Megalodon finds them far more often, and a
+  pack carrying both finds something in at least 77% of held-out photos in
+  every group measured
+  ([findings](../findings/2026-11-17-marine-life-measured-accuracy.md)).
+  Turtles and marine mammals were not measured.
 
 ## Training later
 
