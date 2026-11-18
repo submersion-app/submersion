@@ -98,8 +98,9 @@ void main() {
       final side = (columnDecoration(tester, 1).border! as Border).top;
       expect(side.color, schemeOf(tester).onSurface);
       expect(side.width, greaterThanOrEqualTo(2));
-      // Outside the column, so a short one keeps its color within it.
-      expect(side.strokeAlign, BorderSide.strokeAlignOutside);
+      // Half inside, so a short column keeps its color within it, and half
+      // in the gap between columns, so no neighbour covers it.
+      expect(side.strokeAlign, BorderSide.strokeAlignCenter);
     });
   });
 
