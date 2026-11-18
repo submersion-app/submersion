@@ -37,11 +37,11 @@ const _record = CatalogueSite(
 void main() {
   late AppDatabase db;
   const site = DiveSite(id: 's1', diverId: 'me', name: 'Thistlegorm');
-  final pair = CataloguePair(
+  const pair = CataloguePair(
     site: site,
     record: _record,
     kind: CataloguePairKind.sure,
-    fields: const {
+    fields: {
       CatalogueGapField.position,
       CatalogueGapField.depth,
       CatalogueGapField.siteTypes,
