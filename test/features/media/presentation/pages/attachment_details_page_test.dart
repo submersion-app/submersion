@@ -7,6 +7,7 @@ import 'package:submersion/features/media/data/services/photo_edit_save_service.
 import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/presentation/providers/photo_editing_providers.dart';
 import 'package:flutter/material.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
@@ -271,6 +272,42 @@ void main() {
 
     expect(find.text('above'), findsNothing);
     expect(find.byType(AttachmentDetailsPage), findsNothing);
+  });
+
+  // Opened on a document already gone (a stale item while a sync lands):
+  // the row is already read as missing when the page starts to follow it.
+  testWidgets('a page opened on a document already removed closes', (
+    tester,
+  ) async {
+    final item = await stored(tester);
+    final db = DatabaseService.instance.database;
+    await tester.runAsync(
+      () => (db.delete(db.media)..where((t) => t.id.equals('doc2'))).go(),
+    );
+    await pumpViewerApp(
+      tester,
+      Column(
+        children: [
+          // Something else already holds the row's read, as missing.
+          Consumer(
+            builder: (context, ref, _) {
+              final read = ref.watch(photoRecordProvider('doc2'));
+              return Text(read.isLoading ? 'reading' : 'read');
+            },
+          ),
+          Expanded(
+            child: pushedFrom(AttachmentDetailsPage(item: item, siteId: 's1')),
+          ),
+        ],
+      ),
+    );
+    expect(find.text('read'), findsOneWidget);
+
+    await openPushed(tester);
+    await settleViewer(tester, rounds: 10);
+
+    expect(find.byType(AttachmentDetailsPage), findsNothing);
+    expect(find.text('This document was removed.'), findsOneWidget);
   });
 
   testWidgets('a browser closes the page too', (tester) async {

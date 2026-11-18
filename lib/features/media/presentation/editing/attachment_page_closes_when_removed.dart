@@ -21,21 +21,29 @@ mixin AttachmentPageClosesWhenRemoved<W extends ConsumerStatefulWidget>
   /// Follows [mediaId]'s stored row as [siteId]'s attachment. Call from
   /// `build`.
   void closeWhenRemoved(String mediaId, {required String siteId}) {
-    ref.listen(photoRecordProvider(mediaId), (_, next) {
-      if (next.isLoading || next.hasError) return;
-      final stored = next.value;
-      final leftSite = stored != null && stored.item.siteId != siteId;
-      if (stored != null && !leftSite) return;
-      _removed = true;
-      if (!photoUnlocked) {
-        _close(say: true);
-        return;
-      }
-      // A deleted row ends its sitting in PhotoViewerEditing, and its lock
-      // closes the page. One that only left the site is ended here, on the
-      // same terms.
-      if (leftSite) _endLeftSite(stored);
-    });
+    final provider = photoRecordProvider(mediaId);
+    ref.listen(provider, (_, next) => _consider(next, siteId));
+    // The read as it is now too: a page opened on a document already gone
+    // (a stale item while a sync lands) has no change to hear.
+    _consider(ref.read(provider), siteId);
+  }
+
+  /// Acts on [next], a read of the document's row, once it shows the
+  /// document is no longer [siteId]'s.
+  void _consider(AsyncValue<PhotoRecord?> next, String siteId) {
+    if (_removed || next.isLoading || next.hasError) return;
+    final stored = next.value;
+    final leftSite = stored != null && stored.item.siteId != siteId;
+    if (stored != null && !leftSite) return;
+    _removed = true;
+    if (!photoUnlocked) {
+      _close(say: true);
+      return;
+    }
+    // A deleted row ends its sitting in PhotoViewerEditing, and its lock
+    // closes the page. One that only left the site is ended here, on the
+    // same terms.
+    if (leftSite) _endLeftSite(stored);
   }
 
   @override
