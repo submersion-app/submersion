@@ -218,6 +218,7 @@ void main() {
       final prefs = await SharedPreferences.getInstance();
       final c = container([
         sharedPreferencesProvider.overrideWithValue(prefs),
+        cloudStorageProviderProvider.overrideWithValue(null),
         lastSyncTimeProvider.overrideWithValue(when),
       ]);
       keep(c, syncRowStatusProvider);
@@ -225,6 +226,29 @@ void main() {
       expect(c.read(syncPeerNamesProvider), ['Lenovo', 'Chrome on Android']);
       final s = c.read(syncRowStatusProvider);
       expect((s.kind, s.count), (DataRowStatusKind.syncWithMany, 2));
+    });
+
+    test('ignores live peers recorded on another backend', () async {
+      SharedPreferences.setMockInitialValues({
+        'sync_peer_device_names': '{"id-9":"New laptop"}',
+        PeerSyncSnapshotStore.key: jsonEncode(
+          PeerSyncSnapshot(
+            takenAt: when,
+            caughtUp: true,
+            providerId: 'old-backend',
+            peers: [PeerPublish(deviceId: 'id-1', publishedAt: when)],
+          ).toJson(),
+        ),
+      });
+      final prefs = await SharedPreferences.getInstance();
+      final c = container([
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        cloudStorageProviderProvider.overrideWithValue(null),
+        lastSyncTimeProvider.overrideWithValue(when),
+      ]);
+      keep(c, syncPeerNamesProvider);
+      await c.read(peerDeviceNamesProvider.future);
+      expect(c.read(syncPeerNamesProvider), ['New laptop']);
     });
 
     test(
@@ -236,6 +260,7 @@ void main() {
         final prefs = await SharedPreferences.getInstance();
         final c = container([
           sharedPreferencesProvider.overrideWithValue(prefs),
+          cloudStorageProviderProvider.overrideWithValue(null),
           lastSyncTimeProvider.overrideWithValue(when),
         ]);
         keep(c, syncPeerNamesProvider);
@@ -252,6 +277,7 @@ void main() {
       final lastSync = StateProvider<DateTime?>((ref) => when);
       final c = container([
         sharedPreferencesProvider.overrideWithValue(prefs),
+        cloudStorageProviderProvider.overrideWithValue(null),
         lastSyncTimeProvider.overrideWith((ref) => ref.watch(lastSync)),
       ]);
       keep(c, syncPeerNamesProvider);

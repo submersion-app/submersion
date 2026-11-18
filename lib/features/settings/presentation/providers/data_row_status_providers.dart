@@ -180,17 +180,27 @@ final backupsRowStatusProvider = Provider.autoDispose<DataRowStatus>((ref) {
 });
 
 /// The other devices the last finished pull found live, or null before a
-/// pull has recorded them.
+/// pull on this backend has recorded them.
 ///
 /// Read from the snapshot each pull leaves for the storage cleanup, which
 /// already leaves out retired devices. Re-read whenever a sync finishes: the
 /// snapshot is written as the pull ends, before the sync time moves.
+///
+/// A snapshot from another backend names that backend's devices. Until the
+/// first pull here replaces it, it would hide every peer the new backend's
+/// pull has just named, so it counts as no snapshot.
 final syncLivePeerIdsProvider = Provider.autoDispose<Set<String>?>((ref) {
   ref.watch(lastSyncTimeProvider);
+  final backendId = ref.watch(
+    cloudStorageProviderProvider.select((p) => p?.providerId),
+  );
   final snapshot = PeerSyncSnapshotStore(
     ref.watch(sharedPreferencesProvider),
   ).read();
-  return snapshot?.peers.map((p) => p.deviceId).toSet();
+  if (snapshot == null) return null;
+  final takenOn = snapshot.providerId;
+  if (takenOn != null && takenOn != backendId) return null;
+  return snapshot.peers.map((p) => p.deviceId).toSet();
 });
 
 /// Names the other live devices on the library have published. While the
