@@ -18,7 +18,7 @@
 - A field the OS does not report is left out of the reply and is null in Dart, never 0.
 - Deployment targets: iOS 15.0, macOS 12.0 (`submersion_vision.podspec`).
 - A reading failure never reaches identification: it is logged at debug level and dropped.
-- No em dashes or spaced hyphens in prose, code comments or the log line. Nothing mentions Claude or Anthropic.
+- No em dashes or spaced hyphens in prose, code comments or the log line. No tool attribution anywhere.
 - Run only the test files listed in each task, by path.
 
 ## Review Focus
