@@ -175,4 +175,62 @@ void main() {
     ]).single;
     expect(bestMoments(track), hasLength(2));
   });
+
+  group('naming in view (issue #4709)', () {
+    test('markStored keeps the track open and counts its points as '
+        'stored', () {
+      final tracker = VideoTracker();
+      for (var k = 0; k < 4; k++) {
+        tracker.add(frame(k * 250, [_box(0.1)]));
+      }
+      final open = tracker.openTracks.single;
+      expect(open.hasNewPoints, isTrue);
+      tracker.markStored(open, storedId: 'r1', namedWorth: 0.5);
+      final stored = tracker.openTracks.single;
+      expect(stored.storedId, 'r1');
+      expect(stored.namedWorth, 0.5);
+      expect(stored.storedLength, 4);
+      expect(stored.hasNewPoints, isFalse);
+      tracker.add(frame(1000, [_box(0.1)]));
+      final later = tracker.openTracks.single;
+      expect(later.hasNewPoints, isTrue);
+      expect(later.storedId, 'r1');
+      expect(later.namedWorth, 0.5);
+    });
+
+    test('openTracks lists the open animals, oldest first', () {
+      final tracker = VideoTracker();
+      tracker.add(frame(0, [_box(0.1)]));
+      tracker.add(frame(250, [_box(0.1), _box(0.7)]));
+      final open = tracker.openTracks;
+      expect(open, hasLength(2));
+      expect(open.first.startMs, 0);
+      expect(open.last.startMs, 250);
+    });
+
+    test('a saved state keeps what was marked stored', () {
+      final tracker = VideoTracker();
+      tracker.add(frame(0, [_box(0.1)]));
+      tracker.add(frame(250, [_box(0.1)]));
+      tracker.markStored(
+        tracker.openTracks.single,
+        storedId: 'r1',
+        namedWorth: 0.2,
+      );
+      final saved = tracker.save();
+      tracker.add(frame(500, [_box(0.1)]));
+      tracker.restore(saved);
+      final back = tracker.openTracks.single;
+      expect(back.points, hasLength(2));
+      expect(back.namedWorth, 0.2);
+      expect(back.hasNewPoints, isFalse);
+    });
+
+    test('momentWorth is detector score times box area', () {
+      expect(
+        momentWorth(DetectedBox(box: _box(0.1, w: 0.5), score: 0.8)),
+        closeTo(0.8 * 0.5 * 0.1, 1e-9),
+      );
+    });
+  });
 }

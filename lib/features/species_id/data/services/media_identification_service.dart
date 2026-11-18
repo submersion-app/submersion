@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:typed_data';
 
+import 'package:meta/meta.dart' show visibleForTesting;
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/services/database_service.dart';
@@ -21,6 +23,7 @@ import 'package:submersion/features/species_id/domain/services/identification_ru
 import 'package:submersion/features/species_id/domain/services/region_grid.dart';
 import 'package:submersion/features/species_id/domain/services/species_namer.dart';
 import 'package:submersion/features/species_id/domain/services/video_identification_rules.dart';
+import 'package:submersion/features/species_id/domain/services/video_scan_order.dart';
 import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 
 part 'media_identification_video.dart';
@@ -57,6 +60,7 @@ class MediaIdentificationService {
     String Function()? newId,
     Duration idleUnload = const Duration(seconds: 60),
     MemoryReadout? memoryReadout,
+    int firstVideoChunkMs = 2000,
   }) : _engine = engine,
        _loadPack = loadPack,
        _identifications = identifications,
@@ -71,7 +75,8 @@ class MediaIdentificationService {
        _now = now ?? DateTime.now,
        _newId = newId ?? const Uuid().v4,
        _idleUnload = idleUnload,
-       _memoryReadout = memoryReadout;
+       _memoryReadout = memoryReadout,
+       _firstVideoChunkMs = firstVideoChunkMs;
 
   final VisionEngine _engine;
   final Future<LoadedPack?> Function() _loadPack;
@@ -108,6 +113,17 @@ class MediaIdentificationService {
 
   /// How far the running video's scan is, 0 to 1.
   double? _videoProgress;
+
+  /// Video in a scan's first chunk after opening or a move (issue #4709).
+  final int _firstVideoChunkMs;
+
+  /// Where the diver last moved the playhead in each video being watched,
+  /// by media id (issue #4709); dropped when the diver leaves the video.
+  final _playheads = <String, PlayheadReport>{};
+  var _playheadSequence = 0;
+
+  /// The [PlayheadReport.sequence] a scan of each video last followed.
+  final _followedPlayheads = <String, int>{};
   final _activity = StreamController<void>.broadcast();
 
   LoadedPack? _pack;
@@ -169,6 +185,40 @@ class MediaIdentificationService {
     }
     return false;
   }
+
+  /// The diver moved the playhead of the video [mediaId] to [positionMs]:
+  /// a seek once it settled, or a pause when [seek] is false (issue #4709).
+  /// A scan of that video follows it, now or when it starts; a report for
+  /// a video not being scanned waits until it is, or until the diver
+  /// leaves it ([forgetPlayhead]).
+  ///
+  /// A pause after a seek the scan has not followed yet keeps it a seek, so
+  /// the move the seek asked for is not lost.
+  void followPlayhead(String mediaId, int positionMs, {required bool seek}) {
+    if (_disposed) return;
+    final previous = _playheads[mediaId];
+    final unfollowedSeek =
+        previous != null &&
+        previous.seek &&
+        previous.sequence > (_followedPlayheads[mediaId] ?? 0);
+    _playheads[mediaId] = PlayheadReport(
+      ms: math.max(0, positionMs),
+      seek: seek || unfollowedSeek,
+      sequence: ++_playheadSequence,
+    );
+  }
+
+  /// The diver left the video [mediaId]: its playhead report is dropped, so
+  /// a later opening starts from the beginning. A page covering the viewer
+  /// stops the scan ([cancelPending]) but keeps the report.
+  void forgetPlayhead(String mediaId) {
+    _playheads.remove(mediaId);
+    _followedPlayheads.remove(mediaId);
+  }
+
+  /// The latest playhead report for the video [mediaId], or null.
+  @visibleForTesting
+  PlayheadReport? playheadOf(String mediaId) => _playheads[mediaId];
 
   bool isBusy(String mediaId) =>
       _running?.item.id == mediaId || _waiting.containsKey(mediaId);

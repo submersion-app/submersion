@@ -180,11 +180,12 @@ void main() {
   Finder pill(String id) => find.byKey(ValueKey('video_label_pill_$id'));
   Finder dot(String id) => find.byKey(ValueKey('video_label_dot_$id'));
 
-  testWidgets('playing shows only the confident pill', (tester) async {
+  testWidgets('playing shows confident and suggestion pills, no dots '
+      '(issue #4709)', (tester) async {
     await pump(tester, playing: true);
     expect(pill('a'), findsOneWidget);
-    expect(find.text('Queen Parrotfish'), findsOneWidget);
-    expect(pill('b'), findsNothing);
+    expect(find.text('Queen Parrotfish'), findsWidgets);
+    expect(pill('b'), findsOneWidget);
     expect(dot('c'), findsNothing);
   });
 

@@ -55,6 +55,11 @@ class MediaIdentificationRuns extends Table {
   /// it. Null for a photo.
   IntColumn get videoDurationMs => integer().nullable()();
 
+  /// Video only (issue #4709): the stretches scanned, packed
+  /// (scanned_ranges_codec.dart). Null for a photo and for a video scanned
+  /// before v377, whose scanned_ms is then one stretch from 0.
+  BlobColumn get scannedRanges => blob().nullable()();
+
   @override
   Set<Column> get primaryKey => {mediaId};
 }
