@@ -295,6 +295,27 @@ void main() {
       expect(c.read(syncPeerNamesProvider), ['New laptop']);
     });
 
+    test('ignores live peers while no backend is selected', () async {
+      SharedPreferences.setMockInitialValues({
+        PeerSyncSnapshotStore.key: jsonEncode(
+          PeerSyncSnapshot(
+            takenAt: when,
+            caughtUp: true,
+            peers: [PeerPublish(deviceId: 'id-1', publishedAt: when)],
+          ).toJson(),
+        ),
+      });
+      final prefs = await SharedPreferences.getInstance();
+      final c = container([
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        cloudStorageProviderProvider.overrideWithValue(null),
+        isSyncingProvider.overrideWithValue(false),
+        lastSyncTimeProvider.overrideWithValue(when),
+      ]);
+      keep(c, syncLivePeerIdsProvider);
+      expect(c.read(syncLivePeerIdsProvider), isNull);
+    });
+
     test('ignores live peers recorded on another backend', () async {
       SharedPreferences.setMockInitialValues({
         'sync_peer_device_names': '{"id-9":"New laptop"}',

@@ -190,7 +190,8 @@ final backupsRowStatusProvider = Provider.autoDispose<DataRowStatus>((ref) {
 /// A snapshot from another backend names that backend's devices. Until the
 /// first pull here replaces it, it would hide every peer the new backend's
 /// pull has just named, so it counts as no snapshot. So does one that does
-/// not say which backend it came from, as the storage cleanup treats it.
+/// not say which backend it came from, as the storage cleanup treats it,
+/// and any snapshot while no backend is selected.
 final syncLivePeerIdsProvider = Provider.autoDispose<Set<String>?>((ref) {
   ref.watch(lastSyncTimeProvider);
   ref.watch(isSyncingProvider);
@@ -200,7 +201,11 @@ final syncLivePeerIdsProvider = Provider.autoDispose<Set<String>?>((ref) {
   final snapshot = PeerSyncSnapshotStore(
     ref.watch(sharedPreferencesProvider),
   ).read();
-  if (snapshot == null || snapshot.providerId != backendId) return null;
+  if (snapshot == null ||
+      backendId == null ||
+      snapshot.providerId != backendId) {
+    return null;
+  }
   return snapshot.peers.map((p) => p.deviceId).toSet();
 });
 
