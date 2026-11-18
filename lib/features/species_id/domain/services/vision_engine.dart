@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:submersion/features/species_id/domain/entities/video_detections.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
+import 'package:submersion/features/species_id/domain/entities/vision_memory.dart';
 
 /// Runs a detector and an embedding model over an image, on the device.
 /// It knows nothing about species: naming is done in Dart, the same on
@@ -42,6 +43,10 @@ abstract class VisionEngine {
 
   /// Frees the models' memory.
   Future<void> unload();
+
+  /// The app's memory now, for the debug log. Fields the platform does not
+  /// report are null.
+  Future<VisionMemory> memory();
 
   /// Marks [directory] as not to be included in device backups.
   Future<void> excludeFromBackup(String directory);
