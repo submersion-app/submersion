@@ -3962,6 +3962,7 @@
   "diveSites_detail_diveCount_zero": "尚未记录潜水",
   "diveSites_detail_editTooltip": "编辑潜水点",
   "diveSites_detail_editTooltipShort": "编辑",
+  "diveSites_edit_editingWithdrawn": "您已无法编辑此潜水点。未保存的更改已被丢弃。",
   "diveSites_detail_error_body": "错误： {error}",
   "diveSites_detail_error_title": "错误",
   "diveSites_detail_loading_title": "加载中...",

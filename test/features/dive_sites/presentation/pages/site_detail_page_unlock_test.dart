@@ -215,7 +215,7 @@ void main() {
   testWidgets('a library site this profile only reads offers no lock', (
     tester,
   ) async {
-    await pumpSitePage(
+    final page = await pumpSitePage(
       tester,
       site: harnessSite.copyWith(sharedLibraryId: 'L'),
       extra: [
@@ -229,6 +229,11 @@ void main() {
     );
 
     expect(find.byIcon(Icons.lock_outline), findsNothing);
+    // Nor do the editing keys act on it.
+    expect(
+      page.container.read(recordEditShortcutTargetsProvider).current,
+      isNull,
+    );
   });
 
   testWidgets('losing the right to edit during a sitting locks the page', (
@@ -257,6 +262,8 @@ void main() {
     expect(find.byIcon(Icons.lock_outline), findsNothing);
     expect(find.text('Calm'), findsOneWidget);
     expect(page.save.calls, isEmpty);
+    // The diver is told why the page locked and the typing went.
+    expect(find.text(l.diveSites_edit_editingWithdrawn), findsOneWidget);
     // Nothing is left open to ask about on the way out.
     final leaving = page.container.read(appExitGuardProvider).mayLeave();
     await tester.pumpAndSettle();

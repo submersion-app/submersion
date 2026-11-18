@@ -63,9 +63,7 @@ mixin _SiteDetailPageEditing
     }
     final offered = _offersEditingNow(watch: true);
     if (!offered && isSittingOpen) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && !offersEditing) maybeEditController?.lock();
-      });
+      WidgetsBinding.instance.addPostFrameCallback((_) => _endWithdrawn());
     }
     followStored(siteProvider(widget.siteId));
     return (
@@ -74,6 +72,20 @@ mixin _SiteDetailPageEditing
       site: shownRecord(widget.site),
       shownForSitting: _sectionsShownForSitting(),
       heldOpen: _sectionsOpenForSitting(),
+    );
+  }
+
+  /// Ends a sitting this profile may no longer save, and says so: the
+  /// diver's typing goes with it. A save still running ends it once it
+  /// returns, and the page is built, and asks, again then.
+  void _endWithdrawn() {
+    final controller = maybeEditController;
+    if (!mounted || offersEditing || controller == null) return;
+    if (!controller.isUnlocked) return;
+    controller.lock();
+    if (controller.isUnlocked) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(context.l10n.diveSites_edit_editingWithdrawn)),
     );
   }
 
