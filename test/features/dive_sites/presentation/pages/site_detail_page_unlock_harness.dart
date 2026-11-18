@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/data/services/site_edit_save_service.dart';
@@ -65,6 +66,9 @@ class SiteUnlockHarness {
   final FakeSiteSave save;
   final MockSettingsNotifier settings;
   late ProviderContainer container;
+
+  /// The router, when the page was pumped at an `initialLocation`.
+  GoRouter? router;
   late DiveSite stored;
 
   /// Stores [site] as if written elsewhere (a sync), and lets the page
@@ -92,10 +96,14 @@ Future<SiteUnlockHarness> pumpSitePage(
   AppSettings settings = const AppSettings(),
   bool unlockEditing = true,
   bool embedded = false,
+  bool openUnlocked = false,
+  VoidCallback? onSittingEnded,
+  Size size = const Size(600, 1400),
+  String? initialLocation,
   List<Override> extra = const [],
 }) async {
   tester.view.devicePixelRatio = 1.0;
-  tester.view.physicalSize = const Size(600, 1400);
+  tester.view.physicalSize = size;
   addTearDown(tester.view.reset);
   final notifier = MockSettingsNotifier(settings);
   final harness = SiteUnlockHarness(FakeSiteSave(site), notifier)
@@ -104,7 +112,24 @@ Future<SiteUnlockHarness> pumpSitePage(
     siteId: site.id,
     embedded: embedded,
     unlockEditing: unlockEditing,
+    openUnlocked: openUnlocked,
+    onSittingEnded: onSittingEnded,
   );
+  // At [initialLocation] the page is a route's, as in the app: a desktop
+  // root visit moves it into the list pane at `/sites`.
+  final router = initialLocation == null
+      ? null
+      : GoRouter(
+          initialLocation: initialLocation,
+          routes: [
+            GoRoute(path: '/root-site', builder: (_, _) => page),
+            GoRoute(
+              path: '/sites',
+              builder: (_, _) => const Scaffold(body: Text('sites pane')),
+            ),
+          ],
+        );
+  harness.router = router;
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
@@ -115,17 +140,26 @@ Future<SiteUnlockHarness> pumpSitePage(
         siteEditSaveServiceProvider.overrideWithValue(harness.save),
         ...extra,
       ].cast<Override>(),
-      child: MaterialApp(
-        locale: const Locale('en'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: embedded ? Scaffold(body: page) : page,
-      ),
+      child: router != null
+          ? MaterialApp.router(
+              locale: const Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              routerConfig: router,
+            )
+          : MaterialApp(
+              locale: const Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: embedded ? Scaffold(body: page) : page,
+            ),
     ),
   );
   await tester.pumpAndSettle();
   harness.container = ProviderScope.containerOf(
-    tester.element(find.byType(SiteDetailPage)),
+    tester.element(
+      find.byType(router == null ? SiteDetailPage : Scaffold).first,
+    ),
   );
   return harness;
 }

@@ -84,6 +84,81 @@ void main() {
     expect(page.container.read(siteEditingPageProvider), isNull);
   });
 
+  // The old edit address opens the page unlocked (issue #4527, phase 2).
+  group('opened unlocked', () {
+    testWidgets('with mode=edit the page is unlocked, and its end is told', (
+      tester,
+    ) async {
+      var ended = 0;
+      await pumpSitePage(
+        tester,
+        openUnlocked: true,
+        onSittingEnded: () => ended++,
+      );
+      expect(find.byType(RecordEditBar), findsOneWidget);
+
+      await tester.tap(find.text(l.forms_cancel));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(RecordEditBar), findsNothing);
+      expect(ended, 1);
+    });
+
+    // On a desktop window a root visit moves into the list pane: an edit
+    // address arrives there still asking for edit mode, once.
+    testWidgets('on desktop, mode=edit moves into the pane still asking to '
+        'unlock', (tester) async {
+      final page = await pumpSitePage(
+        tester,
+        openUnlocked: true,
+        size: const Size(1400, 1000),
+        initialLocation: '/root-site',
+      );
+
+      final landed = page.router!.routerDelegate.currentConfiguration.uri;
+      expect(landed.path, '/sites');
+      expect(landed.queryParameters['selected'], 's1');
+      expect(landed.queryParameters['mode'], 'edit');
+    });
+  });
+
+  // History beside the lock where the bar has room, else in the menu, as
+  // on a dive (issue #4527).
+  group('History', () {
+    final inBar = find.descendant(
+      of: find.byType(AppBar),
+      matching: find.byTooltip(l.changeLog_history),
+    );
+
+    testWidgets('sits beside the lock on a wide window', (tester) async {
+      await pumpSitePage(tester, size: const Size(900, 1400));
+      expect(inBar, findsOneWidget);
+    });
+
+    testWidgets('is in the menu on a narrow window', (tester) async {
+      await pumpSitePage(tester, size: const Size(400, 1400));
+      expect(inBar, findsNothing);
+
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AppBar),
+          matching: find.byType(PopupMenuButton<String>),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text(l.changeLog_history), findsOneWidget);
+    });
+
+    testWidgets('with the switch off the bar is as today', (tester) async {
+      await pumpSitePage(
+        tester,
+        unlockEditing: false,
+        size: const Size(900, 1400),
+      );
+      expect(inBar, findsNothing);
+    });
+  });
+
   testWidgets('locked shows no pencil', (tester) async {
     await pumpSitePage(tester);
 

@@ -108,8 +108,11 @@ import 'package:submersion/shared/widgets/record_editing/sitting_list.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
+import 'package:submersion/shared/widgets/record_editing/record_open_unlocked.dart';
+import 'package:submersion/shared/widgets/record_editing/record_pane_row.dart';
 import 'package:submersion/shared/widgets/record_editing/record_fold_pencil.dart';
 
+part 'site_detail_page_bars.dart';
 part 'site_detail_page_editing.dart';
 part 'site_detail_page_fullscreen_scape.dart';
 
@@ -123,6 +126,14 @@ class SiteDetailPage extends ConsumerStatefulWidget {
   /// until the site page has every card ([kUnlockSiteEditing]).
   final bool unlockEditing;
 
+  /// Opens the page already unlocked, as the old edit addresses ask
+  /// (`/sites/<id>/edit`, a pane's `&mode=edit`).
+  final bool openUnlocked;
+
+  /// Told once when the sitting [openUnlocked] opened has ended: a pane
+  /// opened for editing returns to view mode.
+  final VoidCallback? onSittingEnded;
+
   const SiteDetailPage({
     super.key,
     required this.siteId,
@@ -130,6 +141,8 @@ class SiteDetailPage extends ConsumerStatefulWidget {
     this.onDeleted,
     this.onClose,
     this.unlockEditing = kUnlockSiteEditing,
+    this.openUnlocked = false,
+    this.onSittingEnded,
   });
 
   @override
@@ -139,8 +152,14 @@ class SiteDetailPage extends ConsumerStatefulWidget {
 class _SiteDetailPageState extends ConsumerState<SiteDetailPage> {
   bool _hasRedirected = false;
 
+  /// Whether the page has been built before: an edit address moving into
+  /// the list pane on the first build still asks the pane to unlock.
+  bool _built = false;
+
   @override
   Widget build(BuildContext context) {
+    final firstBuild = !_built;
+    _built = true;
     // Desktop redirect: a root visit (deep link, sidebar) moves into the
     // master-detail split. A pushed page, opened from a dive's details
     // say, stays put: the redirect's go() would erase the page under it
@@ -152,9 +171,13 @@ class _SiteDetailPageState extends ConsumerState<SiteDetailPage> {
           viewMode: ref.read(siteListViewModeProvider),
         )) {
       _hasRedirected = true;
+      // An edit address the page has not opened yet keeps asking for edit
+      // mode in the pane, which opens the site unlocked there (issue
+      // #4527). Moved later (a window widened), the site moves as it is.
+      final mode = widget.openUnlocked && firstBuild ? '&mode=edit' : '';
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          context.go('/sites?selected=${widget.siteId}');
+          context.go('/sites?selected=${widget.siteId}$mode');
         }
       });
     }
@@ -185,6 +208,10 @@ class _SiteDetailPageState extends ConsumerState<SiteDetailPage> {
           onDeleted: widget.onDeleted,
           onClose: widget.onClose,
           unlockEditing: widget.unlockEditing,
+          // A page moving into the list pane leaves the unlock to the
+          // pane's.
+          openUnlocked: widget.openUnlocked && !_hasRedirected,
+          onSittingEnded: widget.onSittingEnded,
         );
       },
       loading: () {
@@ -224,6 +251,8 @@ class _SiteDetailContent extends ConsumerStatefulWidget {
   final VoidCallback? onDeleted;
   final VoidCallback? onClose;
   final bool unlockEditing;
+  final bool openUnlocked;
+  final VoidCallback? onSittingEnded;
 
   const _SiteDetailContent({
     required this.site,
@@ -232,6 +261,8 @@ class _SiteDetailContent extends ConsumerStatefulWidget {
     this.onDeleted,
     this.onClose,
     this.unlockEditing = false,
+    this.openUnlocked = false,
+    this.onSittingEnded,
   });
 
   @override
@@ -242,7 +273,20 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
     with
         RecordEditHost<_SiteDetailContent, DiveSite>,
         _SiteDetailPageEditing,
+        RecordOpenUnlocked<_SiteDetailContent, DiveSite>,
         _SiteDetailFullscreen {
+  @override
+  bool openUnlockedOf(_SiteDetailContent widget) => widget.openUnlocked;
+
+  @override
+  VoidCallback? get onOpenedSittingEnded => widget.onSittingEnded;
+
+  @override
+  void onEditChanged() {
+    noteOpenedSittingEnded();
+    super.onEditChanged();
+  }
+
   /// Opens the display-options panel from the overflow menu. One controller
   /// serves both headers, since only one of them is ever built.
   final MenuController _displayOptionsMenu = MenuController();
@@ -261,10 +305,10 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
 
   @override
   Widget build(BuildContext context) {
-    final siteId = widget.siteId;
     final embedded = widget.embedded;
     // Unlock-to-edit in place (issue #4527, phase 2), behind the switch.
     final edit = _editingInBuild();
+    if (edit.hosts) openUnlockedOnce(widget.site);
     final site = edit.site;
     final sections = ref.watch(
       settingsProvider.select((s) => s.siteDetailSections),
@@ -336,45 +380,11 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
       );
     }
 
-    final appBar = AppBar(
-      title: Text(site.name),
-      actions: [
-        if (site.hasCoordinates)
-          IconButton(
-            icon: const Icon(Icons.terrain),
-            tooltip: context.l10n.dive3d_seascape_siteTitle,
-            onPressed: () =>
-                _showFullscreenMap(context, ref, site, initialScape3d: true),
-          ),
-        if (edit.offered) lockButton(site),
-        // Only on the locked bar: an open sitting's bar replaces this one,
-        // so the old form, which would save over the sitting through a
-        // child route no leave check sees, is never offered over it.
-        if (_canEditSite(ref, site))
-          IconButton(
-            icon: const Icon(Icons.edit),
-            tooltip: context.l10n.diveSites_detail_editTooltip,
-            onPressed: () => context.push('/sites/$siteId/edit'),
-          ),
-        ..._libraryButtons(context, ref, site),
-        SiteDetailPropertiesMenu(
-          controller: _displayOptionsMenu,
-          child: PopupMenuButton<String>(
-            onSelected: (value) => _handleMenuAction(context, ref, value, site),
-            itemBuilder: (context) => [
-              changeLogHistoryMenuItem(
-                context,
-                rootTable: 'dive_sites',
-                rootId: site.id,
-              ),
-              openInConnectionsMenuItem(context),
-              duplicateSiteMenuItem(context),
-              displayOptionsMenuItem(context, 'displayOptions'),
-              ..._libraryMenuItems(context, ref, site),
-            ],
-          ),
-        ),
-      ],
+    final appBar = _lockedBar(
+      context,
+      site,
+      offered: edit.offered,
+      hosts: edit.hosts,
     );
 
     if (edit.hosts) {
@@ -576,168 +586,6 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
             editing: editing,
           ),
     };
-  }
-
-  Widget _buildEmbeddedHeader(
-    BuildContext context,
-    WidgetRef ref,
-    DiveSite site,
-  ) {
-    final colorScheme = Theme.of(context).colorScheme;
-    // Watched, as the trip page does, so the menu follows the profile once
-    // it has loaded (issue #2594); null until then (issue #2682).
-    final canDestroy = canDestroySharedItemOnceKnown(
-      ref.watch(validatedCurrentDiverIdProvider),
-      ownerId: site.diverId,
-      isLibrarySite: site.isLibrarySite,
-    );
-    // A site this profile already removed offers Unhide (issue #2679).
-    final hidden = watchHiddenHere(
-      ref,
-      SharedItemKind.site,
-      site.id,
-      canDestroy: canDestroy != false,
-    );
-    // Remove only while the site reaches this profile (issue #2151).
-    final reachesHere = watchReachesHere(
-      ref,
-      SharedItemKind.site,
-      site.id,
-      libraryId: site.sharedLibraryId,
-    );
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        border: Border(
-          bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
-        ),
-      ),
-      child: Row(
-        children: [
-          if (widget.onClose != null) ...[
-            IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: widget.onClose,
-              tooltip: context.l10n.common_action_back,
-            ),
-            const SizedBox(width: 8),
-          ],
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  site.name,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                if (site.locationString.isNotEmpty)
-                  Text(
-                    site.locationString,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          if (site.hasCoordinates)
-            IconButton(
-              icon: const Icon(Icons.terrain, size: 20),
-              tooltip: context.l10n.dive3d_seascape_siteTitle,
-              onPressed: () =>
-                  _showFullscreenMap(context, ref, site, initialScape3d: true),
-            ),
-          if (_canEditSite(ref, site))
-            IconButton(
-              icon: const Icon(Icons.edit, size: 20),
-              tooltip: context.l10n.diveSites_detail_editTooltipShort,
-              onPressed: () {
-                final state = GoRouterState.of(context);
-                final currentPath = state.uri.path;
-                if (currentPath.startsWith('/dives')) {
-                  // If we're on the /dives path, keep it and just add mode=edit and site parameter.
-                  // The MasterDetailScaffold in DiveListPage will handle showing the site edit panel
-                  // because we'll have both ?site=... and &mode=edit in the query params.
-                  final params = Map<String, String>.from(
-                    state.uri.queryParameters,
-                  );
-                  params['mode'] = 'edit';
-                  // We do NOT change 'selected' here, because 'selected' is used by DiveListPage's
-                  // MasterDetailScaffold to identify the DIVE. If we change it to the siteId,
-                  // the scaffold will try to find a dive with that siteId and fail.
-                  params['site'] = widget.siteId;
-                  // In place, not push: a pushed copy of the Dives list would
-                  // stay behind after save, with a back arrow of its own (#3292).
-                  context.goInPlace(
-                    Uri(path: currentPath, queryParameters: params).toString(),
-                  );
-                } else {
-                  // Default to /sites path for site-related navigation if not on /dives.
-                  context.go('/sites?selected=${widget.siteId}&mode=edit');
-                }
-              },
-            ),
-          ..._libraryButtons(context, ref, site),
-          SiteDetailPropertiesMenu(
-            controller: _displayOptionsMenu,
-            child: PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert, size: 20),
-              onSelected: (value) =>
-                  _handleMenuAction(context, ref, value, site),
-              itemBuilder: (context) => [
-                changeLogHistoryMenuItem(
-                  context,
-                  rootTable: 'dive_sites',
-                  rootId: site.id,
-                ),
-                openInConnectionsMenuItem(context),
-                duplicateSiteMenuItem(context),
-                displayOptionsMenuItem(context, 'displayOptions'),
-                ..._libraryMenuItems(context, ref, site),
-                // Delete for the owner; another profile only removes the
-                // shared site from itself (issue #2594); neither while the
-                // profile is unknown (issue #2682).
-                if (canDestroy == true)
-                  PopupMenuItem(
-                    value: 'delete',
-                    child: ListTile(
-                      leading: const Icon(Icons.delete, color: Colors.red),
-                      title: Text(
-                        context.l10n.diveSites_detail_deleteMenu_label,
-                        style: const TextStyle(color: Colors.red),
-                      ),
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                  )
-                else if (hidden)
-                  PopupMenuItem(
-                    value: 'unhide',
-                    child: ListTile(
-                      leading: const Icon(Icons.visibility_outlined),
-                      title: Text(context.l10n.sharedItems_unhideAction),
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                  )
-                else if (canDestroy == false && reachesHere)
-                  PopupMenuItem(
-                    value: 'remove',
-                    child: ListTile(
-                      leading: const Icon(Icons.visibility_off_outlined),
-                      title: Text(context.l10n.sharedItems_removeAction),
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   /// Role and connection state of a shared site library site (issue #2567). A

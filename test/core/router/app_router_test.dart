@@ -60,6 +60,7 @@ import 'package:submersion/features/import_wizard/presentation/pages/universal_i
 import 'package:submersion/features/import_wizard/presentation/widgets/leave_running_import_dialog.dart';
 import 'package:submersion/features/table_editor/presentation/pages/table_editor_page.dart';
 import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blocker.dart';
+import 'package:submersion/features/dive_sites/presentation/pages/site_edit_routes.dart';
 
 /// Finds a [GoRoute] by name in a route tree recursively.
 GoRoute? _findRouteByName(List<RouteBase> routes, String name) {
@@ -394,6 +395,22 @@ void main() {
 
   // The sidebar leaves with go(), which no PopScope sees (#3422).
   // A site's sitting is asked about before a `go` leaves it (issue #4527).
+  // The old site edit address opens the page unlocked (issue #4527).
+  test('the site edit address opens the page unlocked with the switch on', () {
+    expect(
+      siteEditLocation('s1', const {}, unlockEditing: true),
+      '/sites/s1?mode=edit',
+    );
+    expect(siteEditLocation('s1', const {}, unlockEditing: false), isNull);
+    // A reader's suggestion still opens the form until it has a sitting.
+    expect(
+      siteEditLocation('s1', const {'suggest': '1'}, unlockEditing: true),
+      isNull,
+    );
+    final route = _findRouteByName(router.configuration.routes, 'editSite');
+    expect(route?.redirect, same(siteEditRedirect));
+  });
+
   test('leaving a site page goes through its sitting check', () {
     for (final name in const ['sites', 'siteDetail']) {
       final route = _findRouteByName(router.configuration.routes, name);
