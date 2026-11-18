@@ -4,6 +4,7 @@
 // "Checking..." forever.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/services.dart';
@@ -20,6 +21,7 @@ import 'package:submersion/core/services/accounts/pending_setup_service.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
+import 'package:submersion/core/services/sync/peer_sync_snapshot.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
@@ -167,6 +169,7 @@ void main() {
     test('names the single peer', () async {
       final c = container([
         lastSyncTimeProvider.overrideWithValue(when),
+        syncLivePeerIdsProvider.overrideWithValue(const {'id-1'}),
         peerDeviceNamesProvider.overrideWith(
           (ref) => Stream.value(const {'id-1': "Eric's iPhone"}),
         ),
@@ -193,6 +196,77 @@ void main() {
         ),
       ]);
       expect(c.read(syncPeerNamesProvider), ["Eric's iPhone"]);
+    });
+
+    // Issue #4702: the name store keeps a removed device's name for the
+    // change log, so "in step with" counted 24 removed devices as well.
+    test('counts only the peers the last pull found live', () async {
+      SharedPreferences.setMockInitialValues({
+        'sync_peer_device_names':
+            '{"id-1":"Lenovo","id-2":"Chrome on Android","id-3":"Old phone"}',
+        PeerSyncSnapshotStore.key: jsonEncode(
+          PeerSyncSnapshot(
+            takenAt: when,
+            caughtUp: true,
+            peers: [
+              PeerPublish(deviceId: 'id-1', publishedAt: when),
+              PeerPublish(deviceId: 'id-2', publishedAt: when),
+            ],
+          ).toJson(),
+        ),
+      });
+      final prefs = await SharedPreferences.getInstance();
+      final c = container([
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        lastSyncTimeProvider.overrideWithValue(when),
+      ]);
+      keep(c, syncRowStatusProvider);
+      await c.read(peerDeviceNamesProvider.future);
+      expect(c.read(syncPeerNamesProvider), ['Lenovo', 'Chrome on Android']);
+      final s = c.read(syncRowStatusProvider);
+      expect((s.kind, s.count), (DataRowStatusKind.syncWithMany, 2));
+    });
+
+    test(
+      'counts every named peer before a pull recorded the live ones',
+      () async {
+        SharedPreferences.setMockInitialValues({
+          'sync_peer_device_names': '{"id-1":"Lenovo","id-2":"Old phone"}',
+        });
+        final prefs = await SharedPreferences.getInstance();
+        final c = container([
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          lastSyncTimeProvider.overrideWithValue(when),
+        ]);
+        keep(c, syncPeerNamesProvider);
+        await c.read(peerDeviceNamesProvider.future);
+        expect(c.read(syncPeerNamesProvider), ['Lenovo', 'Old phone']);
+      },
+    );
+
+    test('re-reads the live peers after each sync', () async {
+      SharedPreferences.setMockInitialValues({
+        'sync_peer_device_names': '{"id-1":"Lenovo","id-2":"Old phone"}',
+      });
+      final prefs = await SharedPreferences.getInstance();
+      final lastSync = StateProvider<DateTime?>((ref) => when);
+      final c = container([
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        lastSyncTimeProvider.overrideWith((ref) => ref.watch(lastSync)),
+      ]);
+      keep(c, syncPeerNamesProvider);
+      await c.read(peerDeviceNamesProvider.future);
+      expect(c.read(syncPeerNamesProvider), ['Lenovo', 'Old phone']);
+
+      await PeerSyncSnapshotStore(prefs).write(
+        PeerSyncSnapshot(
+          takenAt: when,
+          caughtUp: true,
+          peers: [PeerPublish(deviceId: 'id-1', publishedAt: when)],
+        ),
+      );
+      c.read(lastSync.notifier).state = when.add(const Duration(minutes: 1));
+      expect(c.read(syncPeerNamesProvider), ['Lenovo']);
     });
   });
 
