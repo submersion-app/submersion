@@ -216,6 +216,14 @@ def _stamp(package):
     return sorted(entries)
 
 
+def converted_stamp(work, name):
+    """What identifies the converted model in `work`: its package's stamp,
+    or the compiled model's when the folder holds only that."""
+    folder = converted_dir(work, name)
+    package = os.path.join(folder, "detector.mlpackage")
+    return _stamp(package if os.path.exists(package) else os.path.join(folder, "detector.mlmodelc"))
+
+
 def tool_model(work, name):
     """Megalodon's model to hand the vision tool, which compiles a model
     package once and deletes it: a copy of the converted package (or the

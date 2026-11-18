@@ -145,6 +145,8 @@ class Runner:
                     fit,
                     self.model_hashes,
                     None if self.mega_from_pack else megalodon.CHECKPOINTS[MEGALODON]["sha256"],
+                    # The converted model itself, so converting again reruns.
+                    None if self.mega_from_pack else megalodon.converted_stamp(self.work, MEGALODON),
                 ]
             ).encode()
         )

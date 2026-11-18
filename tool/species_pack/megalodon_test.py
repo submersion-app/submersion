@@ -68,6 +68,14 @@ class ToolModelTests(unittest.TestCase):
             with open(os.path.join(again, "Data", "weights.bin"), "rb") as fh:
                 self.assertEqual(fh.read(), b"two, longer")
 
+    def test_a_new_conversion_changes_the_stamp(self):
+        with tempfile.TemporaryDirectory() as work:
+            package = self.converted(work)
+            before = megalodon.converted_stamp(work, "megalodon-2024")
+            with open(os.path.join(package, "Data", "weights.bin"), "wb") as fh:
+                fh.write(b"two, longer")
+            self.assertNotEqual(megalodon.converted_stamp(work, "megalodon-2024"), before)
+
     def test_a_folder_with_only_a_compiled_model_uses_it(self):
         with tempfile.TemporaryDirectory() as work:
             compiled = os.path.join(work, "models", "megalodon-2024", "detector.mlmodelc")
