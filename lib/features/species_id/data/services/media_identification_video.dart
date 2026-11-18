@@ -144,6 +144,7 @@ extension _VideoScanning on MediaIdentificationService {
       resumeFrom: from,
       carry: carry,
       playhead: () => _playheads[job.item.id],
+      onFollowed: (sequence) => _followedPlayheads[job.item.id] = sequence,
       firstChunkMs: _firstVideoChunkMs,
       reload: () async {
         _loadedModels = null;

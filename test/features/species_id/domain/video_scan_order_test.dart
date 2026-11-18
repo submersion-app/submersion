@@ -129,6 +129,19 @@ void main() {
       );
     });
 
+    test('a scan just made starts from a remembered pause, even on scanned '
+        'video', () {
+      expect(
+        nextVideoChunk(
+          scanned: _none.add(0, 10000).add(60000, 90000),
+          durationMs: 180000,
+          runEndMs: null,
+          report: _pause(60000),
+        ),
+        (startMs: 90000, endMs: 92000),
+      );
+    });
+
     test('a report beyond the known length carries on from the run', () {
       expect(
         nextVideoChunk(

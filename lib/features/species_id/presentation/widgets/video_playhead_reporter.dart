@@ -10,8 +10,12 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 
 /// Tells the video's scan where the diver is watching (issue #4709): a
-/// seek once the playhead has settled for [settle], and a pause at once.
-/// Nothing during steady playback. Draws nothing.
+/// seek once the playhead has settled for [settle], and a pause once it
+/// has lasted [settle]. Nothing during steady playback. Draws nothing.
+///
+/// A pause waits because the controls bar pauses the player as a scrub
+/// starts: the jump that follows turns it into a seek, reported where the
+/// scrub stops, so scrubbing never moves the scan on its way.
 ///
 /// A seek is a jump forward over [jumpMs], or back over [backMs], between
 /// two player updates: more than playback explains.
@@ -41,6 +45,9 @@ class _VideoPlayheadReporterState extends ConsumerState<VideoPlayheadReporter> {
   var _wasPlaying = false;
   Timer? _settling;
 
+  /// Whether what is settling is a seek; otherwise it is a pause.
+  var _seeking = false;
+
   @override
   void initState() {
     super.initState();
@@ -54,6 +61,7 @@ class _VideoPlayheadReporterState extends ConsumerState<VideoPlayheadReporter> {
     if (oldWidget.playback != widget.playback) {
       oldWidget.playback.removeListener(_changed);
       _settling?.cancel();
+      _seeking = false;
       _lastMs = null;
       _wasPlaying = widget.playback.value.isPlaying;
       widget.playback.addListener(_changed);
@@ -76,17 +84,34 @@ class _VideoPlayheadReporterState extends ConsumerState<VideoPlayheadReporter> {
     _lastMs = ms;
     _wasPlaying = value.isPlaying;
     if (!marineLifeIdEnabled) return;
-    if (last != null &&
-        (ms - last > widget.jumpMs || last - ms > widget.backMs)) {
+    final jumped =
+        last != null &&
+        (ms - last > widget.jumpMs || last - ms > widget.backMs);
+    if (jumped) {
+      _seeking = true;
+      _settle();
+    } else if (_seeking) {
+      // A seek is settling: a pause or play now changes nothing about it.
+    } else if (wasPlaying && !value.isPlaying) {
+      _settle();
+    } else if (!wasPlaying && value.isPlaying) {
+      // Playing again before the pause settled: nothing to report.
       _settling?.cancel();
-      _settling = Timer(widget.settle, _settled);
     }
-    if (wasPlaying && !value.isPlaying) _report(ms, seek: false);
+  }
+
+  void _settle() {
+    _settling?.cancel();
+    _settling = Timer(widget.settle, _settled);
   }
 
   void _settled() {
+    final seek = _seeking;
+    _seeking = false;
     if (!mounted) return;
-    _report(widget.playback.value.position.inMilliseconds, seek: true);
+    final value = widget.playback.value;
+    if (!seek && value.isPlaying) return;
+    _report(value.position.inMilliseconds, seek: seek);
   }
 
   void _report(int ms, {required bool seek}) => ref

@@ -83,6 +83,7 @@ class VideoIdentificationScan {
     MediaIdentificationRun? resumeFrom,
     List<MediaIdentification> carry = const [],
     PlayheadReport? Function()? playhead,
+    void Function(int sequence)? onFollowed,
     Future<void> Function()? reload,
     bool Function()? keepGoing,
     MemoryReadout? memoryReadout,
@@ -104,6 +105,7 @@ class VideoIdentificationScan {
        _reload = reload,
        _keepGoing = keepGoing ?? _always,
        _playhead = playhead ?? _nowhere,
+       _onFollowed = onFollowed,
        _memoryReadout = memoryReadout,
        _generation = generation ?? databaseGeneration(),
        _scanned = resumeFrom?.scanned ?? const ScannedRanges(),
@@ -153,6 +155,9 @@ class VideoIdentificationScan {
 
   /// Where the diver last moved the playhead, if anywhere.
   final PlayheadReport? Function() _playhead;
+
+  /// Told the [PlayheadReport.sequence] of each report the scan follows.
+  final void Function(int sequence)? _onFollowed;
 
   /// The [PlayheadReport.sequence] of the last report followed.
   var _honoured = 0;
@@ -232,7 +237,10 @@ class VideoIdentificationScan {
       chunkMs: chunkMs,
       firstChunkMs: firstChunkMs,
     );
-    if (report != null) _honoured = report.sequence;
+    if (report != null) {
+      _honoured = report.sequence;
+      _onFollowed?.call(report.sequence);
+    }
     if (chunk == null) return false;
     if (chunk.startMs != _runEndMs && !await _startRun(chunk.startMs)) {
       return false;
@@ -423,9 +431,10 @@ class VideoIdentificationScan {
   /// Starts a run of consecutive chunks at [startMs]: the open tracks of
   /// the run before are stored as when the scan stops, and the stored
   /// tracks that end just before [startMs] are taken up again, so an animal
-  /// in view there carries on as the same track. One kept without a name
-  /// is taken up whenever nothing is unscanned between its end and
-  /// [startMs], so that it is named. False when another logbook opened.
+  /// in view there carries on as the same track. Only across scanned video:
+  /// a track is never linked over a stretch not scanned yet. One kept
+  /// without a name is taken up however long before [startMs] it ended, so
+  /// that it is named. False when another logbook opened.
   Future<bool> _startRun(int startMs) async {
     await finish();
     _tracker = VideoTracker();
@@ -441,11 +450,9 @@ class VideoIdentificationScan {
       if (!row.isTrack || row.path.isEmpty || end == null || end > startMs) {
         continue;
       }
+      if (!_scanned.coversRange(end, startMs)) continue;
       final missed = ((startMs - end) / sampleIntervalMs).round() - 1;
-      final near = missed <= _tracker.maxGapSamples;
-      if (!near && !(row.isPending && _scanned.coversRange(end, startMs))) {
-        continue;
-      }
+      if (missed > _tracker.maxGapSamples && !row.isPending) continue;
       _continuing[row.id] = row;
       _tracker.resume(
         TrackedAnimal(
@@ -515,9 +522,10 @@ class VideoIdentificationScan {
 
   /// Stores [named] and the run with [ranges] scanned. Rows already stored
   /// ([rows]) keep what the diver said on them as it is stored now, under
-  /// [keepDecisionOnRename]; [joinedAway] maps a row joined across a seam to
-  /// the earlier row it replaces, which is deleted. False when nothing was
-  /// stored.
+  /// [keepDecisionOnRename], read in the same transaction as the write so a
+  /// decision made meanwhile is never written over; [joinedAway] maps a row
+  /// joined across a seam to the earlier row it replaces, which is deleted
+  /// once the joined row is stored. False when nothing was stored.
   Future<bool> _store(
     List<_Stored> named, {
     required Map<String, MediaIdentification> rows,
@@ -532,84 +540,91 @@ class VideoIdentificationScan {
       for (final n in named)
         if (rows.containsKey(n.identification.id)) n.identification,
     ];
-    var continued = continuing;
-    if (named.isNotEmpty && (_carry.isNotEmpty || continuing.isNotEmpty)) {
-      // As stored now: the diver may have decided or named a fish since
-      // the scan read the rows, or cleared them.
-      final current = {
-        for (final i in await _identifications.forMedia(_item.id)) i.id: i,
-      };
-      _carry = [for (final c in _carry) ?current[c.id]];
-      continued = [
-        for (final c in continuing)
-          if (current[c.id] case final now?)
-            keepDecisionOnRename(
-              before: _sayOf(now, current[joinedAway[c.id]]),
-              renamed: c,
-            ),
-      ];
-    }
-    // A continued track keeps its own row and decision; only the new ones
-    // can take over a decision from a previous scan.
-    final found = carryTrackDecisions(
-      decided: _carry,
-      fresh: [
-        for (final n in named)
-          if (!rows.containsKey(n.identification.id)) n.identification,
-      ],
-    );
-    final away = joinedAway.values.toList();
-    final carried = (
-      insert: [...found.insert, ...continued],
-      deleteIds: [...found.deleteIds, ...away],
-    );
-    _carry = [
-      for (final c in _carry)
-        if (!found.deleteIds.contains(c.id)) c,
-    ];
-    // The rows were read above: another logbook may have opened since.
-    if (_databaseGeneration() != _generation) return false;
     final manifest = _pack.pack.manifest;
-    final run = MediaIdentificationRun(
-      mediaId: _item.id,
-      packVersion: manifest.packVersion,
-      detectorId: manifest.detectorSetId,
-      classifierId: manifest.classifier.embeddingId,
-      locationCell: _cell,
-      analysedAt: _now().toUtc(),
-      imageWidth: width,
-      imageHeight: height,
-      detectionCount: math.max(
-        0,
-        _detectionCount +
-            found.insert.length -
-            found.deleteIds.length -
-            away.length,
-      ),
-      scannedMs: ranges.prefixEndMs,
-      videoDurationMs: duration,
-      scannedRanges: ranges,
+    late List<MediaIdentification> inserted;
+    late List<String> deleted;
+    late List<String> away;
+    late List<MediaIdentification> carryLeft;
+    late MediaIdentificationRun run;
+    final wrote = await _identifications.storeRunAfterReading(
+      _item.id,
+      read: named.isNotEmpty && (_carry.isNotEmpty || continuing.isNotEmpty),
+      build: (stored) async {
+        var carry = _carry;
+        var continued = continuing;
+        if (stored != null) {
+          // As stored now: the diver may have decided or named a fish since
+          // the scan read the rows, or cleared them.
+          final current = {for (final i in stored) i.id: i};
+          carry = [for (final c in carry) ?current[c.id]];
+          continued = [
+            for (final c in continuing)
+              if (current[c.id] case final now?)
+                keepDecisionOnRename(
+                  before: _sayOf(now, current[joinedAway[c.id]]),
+                  renamed: c,
+                ),
+          ];
+        }
+        // A continued track keeps its own row and decision; only the new
+        // ones can take over a decision from a previous scan.
+        final found = carryTrackDecisions(
+          decided: carry,
+          fresh: [
+            for (final n in named)
+              if (!rows.containsKey(n.identification.id)) n.identification,
+          ],
+        );
+        // An earlier part goes only when its joined row is stored.
+        away = [for (final c in continued) ?joinedAway[c.id]];
+        inserted = [...found.insert, ...continued];
+        deleted = [...found.deleteIds, ...away];
+        carryLeft = [
+          for (final c in carry)
+            if (!found.deleteIds.contains(c.id)) c,
+        ];
+        // The rows were read above: another logbook may have opened since.
+        if (_databaseGeneration() != _generation) return null;
+        run = MediaIdentificationRun(
+          mediaId: _item.id,
+          packVersion: manifest.packVersion,
+          detectorId: manifest.detectorSetId,
+          classifierId: manifest.classifier.embeddingId,
+          locationCell: _cell,
+          analysedAt: _now().toUtc(),
+          imageWidth: width,
+          imageHeight: height,
+          detectionCount: math.max(
+            0,
+            _detectionCount +
+                found.insert.length -
+                found.deleteIds.length -
+                away.length,
+          ),
+          scannedMs: ranges.prefixEndMs,
+          videoDurationMs: duration,
+          scannedRanges: ranges,
+        );
+        return (run: run, insert: inserted, deleteIds: deleted);
+      },
     );
-    await _identifications.storeRun(
-      run,
-      insert: carried.insert,
-      deleteIds: carried.deleteIds,
-    );
+    if (!wrote) return false;
+    _carry = carryLeft;
     _scanned = ranges;
     _durationMs = duration;
     _width = width;
     _height = height;
     _detectionCount = run.detectionCount;
-    _settle(named, carried.insert, away);
+    _settle(named, inserted, away);
     // Rows first: a crop or embedding that fails to write leaves a row the
     // next opening sees as incomplete, and scans again.
     final byId = {for (final n in named) n.identification.id: n};
-    await _embeddings.delete(carried.deleteIds);
-    await _crops.delete(_item.id, carried.deleteIds);
+    await _embeddings.delete(deleted);
+    await _crops.delete(_item.id, deleted);
     await _embeddings.put({
-      for (final i in carried.insert) i.id: ?byId[i.id]!.embedding,
+      for (final i in inserted) i.id: ?byId[i.id]!.embedding,
     }, classifierId: manifest.classifier.embeddingId);
-    for (final i in carried.insert) {
+    for (final i in inserted) {
       if (byId[i.id]!.cropJpeg case final jpeg?) {
         await _crops.write(_item.id, i.id, jpeg);
       }
@@ -632,8 +647,8 @@ class VideoIdentificationScan {
   }
 
   /// After a store: the tracks still open that were stored count their
-  /// points as stored, under their rows' ids, and the rows are what they
-  /// continue from now on.
+  /// points as stored, under their rows' ids, and those rows are what they
+  /// continue from now on. Rows of tracks that closed are not kept.
   void _settle(
     List<_Stored> named,
     List<MediaIdentification> inserted,
@@ -643,13 +658,17 @@ class VideoIdentificationScan {
     for (final id in away) {
       _continuing.remove(id);
     }
-    _continuing.addAll(rows);
     final open = _tracker.openTracks;
     for (final n in named) {
       final track = n.track;
       final id = n.identification.id;
-      if (track == null || !rows.containsKey(id)) continue;
-      if (!open.any((t) => identical(t, track))) continue;
+      final row = rows[id];
+      if (track == null || row == null) continue;
+      if (!open.any((t) => identical(t, track))) {
+        _continuing.remove(id);
+        continue;
+      }
+      _continuing[id] = row;
       _tracker.markStored(track, storedId: id, namedWorth: n.worth);
     }
   }

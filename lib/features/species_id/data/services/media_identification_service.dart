@@ -120,6 +120,9 @@ class MediaIdentificationService {
   /// by media id (issue #4709); dropped when the diver leaves the video.
   final _playheads = <String, PlayheadReport>{};
   var _playheadSequence = 0;
+
+  /// The [PlayheadReport.sequence] a scan of each video last followed.
+  final _followedPlayheads = <String, int>{};
   final _activity = StreamController<void>.broadcast();
 
   LoadedPack? _pack;
@@ -166,6 +169,7 @@ class MediaIdentificationService {
   /// it is asked for again, and resumes, when the diver comes back.
   bool cancelPending(String mediaId) {
     _playheads.remove(mediaId);
+    _followedPlayheads.remove(mediaId);
     final job = _waiting.remove(mediaId);
     if (job != null) {
       job.done.complete();
@@ -188,14 +192,25 @@ class MediaIdentificationService {
   /// A scan of that video follows it, now or when it starts; a report for
   /// a video not being scanned waits until it is, or until the diver
   /// leaves it ([cancelPending]).
+  ///
+  /// A pause after a seek the scan has not followed yet keeps it a seek, so
+  /// the move the seek asked for is not lost.
   void followPlayhead(String mediaId, int positionMs, {required bool seek}) {
     if (_disposed) return;
+    final previous = _playheads[mediaId];
+    final unfollowedSeek =
+        previous != null &&
+        previous.seek &&
+        previous.sequence > (_followedPlayheads[mediaId] ?? 0);
     _playheads[mediaId] = PlayheadReport(
       ms: math.max(0, positionMs),
-      seek: seek,
+      seek: seek || unfollowedSeek,
       sequence: ++_playheadSequence,
     );
   }
+
+  /// The latest playhead report for the video [mediaId], or null.
+  PlayheadReport? playheadOf(String mediaId) => _playheads[mediaId];
 
   bool isBusy(String mediaId) =>
       _running?.item.id == mediaId || _waiting.containsKey(mediaId);

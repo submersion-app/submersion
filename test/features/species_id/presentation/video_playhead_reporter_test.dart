@@ -103,13 +103,46 @@ void main() {
     expect(service.followed, [(mediaId: 'v1', ms: 80000, seek: true)]);
   });
 
-  testWidgets('pausing reports where it paused, at once', (tester) async {
+  testWidgets('pausing reports where it paused, once it settles', (
+    tester,
+  ) async {
     await pump(tester);
     at(5000);
     await tester.pump(const Duration(milliseconds: 250));
     at(5250, playing: false);
-    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(service.followed, isEmpty);
+    await tester.pump(const Duration(milliseconds: 100));
     expect(service.followed, [(mediaId: 'v1', ms: 5250, seek: false)]);
+  });
+
+  testWidgets('a scrub that pauses first reports only where it stops', (
+    tester,
+  ) async {
+    await pump(tester);
+    at(60000);
+    await tester.pump(const Duration(milliseconds: 250));
+    // The controls bar pauses the player as a drag starts.
+    at(60000, playing: false);
+    await tester.pump(const Duration(milliseconds: 100));
+    at(90000, playing: false);
+    await tester.pump(const Duration(milliseconds: 100));
+    at(120000, playing: false);
+    await tester.pump(const Duration(seconds: 1));
+    expect(service.followed, [(mediaId: 'v1', ms: 120000, seek: true)]);
+  });
+
+  testWidgets('a pause undone before it settles reports nothing', (
+    tester,
+  ) async {
+    await pump(tester);
+    at(5000);
+    await tester.pump(const Duration(milliseconds: 250));
+    at(5250, playing: false);
+    await tester.pump(const Duration(milliseconds: 200));
+    at(5250);
+    await tester.pump(const Duration(seconds: 1));
+    expect(service.followed, isEmpty);
   });
 
   testWidgets('nothing is reported with the feature off', (tester) async {

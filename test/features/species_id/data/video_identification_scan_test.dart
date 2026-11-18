@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -937,6 +938,84 @@ void main() {
       final run = (await identifications.runFor('v1'))!;
       expect(stretches(run), [(startMs: 0, endMs: 25000)]);
       expect(run.scanComplete, isTrue);
+    });
+
+    test('a fish is never linked across video not yet scanned', () async {
+      engine.videoDurationMs = 30000;
+      // Seen at every sample of both the chunks from 10 s and from 10.4 s.
+      engine.videoFrames = {..._fish(5000, 10400), ..._fish(10400, 15000)};
+      final s = scan();
+      await s.runChunk();
+      // Just past the stretch's end: the 400 ms between are not scanned.
+      seekTo(10400);
+      await runAll(s);
+      expect(engine.detectCalls.last, (10000, 10400));
+      final found = await identifications.forMedia('v1');
+      expect(found, hasLength(1));
+      expect((found.single.startMs, found.single.endMs), (5000, 14900));
+      expect(
+        found.single.path.map((p) => p.ms),
+        containsAll([9750, 10000, 10250, 10400]),
+      );
+    });
+
+    test('an earlier part is kept when its join across a seam could not be '
+        'named', () async {
+      engine.videoDurationMs = 40000;
+      engine.videoFrames = {
+        ..._fish(15000, 30000, width: 0.4),
+        ..._fish(30000, 35000),
+      };
+      seekTo(30000);
+      final s = scan();
+      await s.runChunk();
+      await s.runChunk();
+      await s.runChunk();
+      final rows = await identifications.forMedia('v1');
+      expect(rows, hasLength(2));
+      final earlier = rows.singleWhere((i) => i.startMs == 15000);
+      await identifications.updateDecisions([
+        earlier.copyWith(
+          decision: IdentificationDecision.rejected,
+          decidedAt: fixtureT1,
+        ),
+      ]);
+      // The better view the join is named from gives no crop.
+      engine.cropMissing = (m) => m.box.width > 0.3;
+      await runAll(s);
+      final kept = (await identifications.forMedia(
+        'v1',
+      )).where((i) => i.id == earlier.id);
+      expect(kept, hasLength(1));
+      expect(kept.single.decision, IdentificationDecision.rejected);
+    });
+
+    test('a decision written while a chunk is stored is not '
+        'overwritten', () async {
+      engine.videoFrames = _fish(5000, 25000);
+      final s = scan();
+      await s.runChunk();
+      final fish = (await identifications.forMedia('v1')).single;
+      identifications.afterRead = () {
+        identifications.afterRead = null;
+        // The diver dismisses the fish just as the scan reads its row.
+        Zone.root.run(
+          () => unawaited(
+            identifications.updateDecisions([
+              fish.copyWith(
+                decision: IdentificationDecision.rejected,
+                decidedAt: fixtureT1,
+              ),
+            ]),
+          ),
+        );
+      };
+      await runAll(s);
+      await identifications.updateDecisions(const []);
+      expect(
+        (await identifications.forMedia('v1')).single.decision,
+        IdentificationDecision.rejected,
+      );
     });
 
     test('a fish in view when the scan stopped carries on across '

@@ -134,6 +134,10 @@ class FakeEngine implements VisionEngine {
   /// part-way through pass 2.
   void Function()? onEmbedMoments;
 
+  /// Moments whose crop comes back missing (a box too small or at the
+  /// edge), when set.
+  bool Function(VisionMoment moment)? cropMissing;
+
   @override
   Future<List<VisionMomentCrop?>> embedMoments({
     required String path,
@@ -150,13 +154,16 @@ class FakeEngine implements VisionEngine {
     if (!loaded) throw const VisionEngineException('not_loaded');
     return [
       for (final m in moments)
-        VisionMomentCrop(
-          pixelWidth: (m.box.width * 1920).round(),
-          pixelHeight: (m.box.height * 1080).round(),
-          cropJpeg: Uint8List.fromList([0xFF, 0xD8, m.ms % 256]),
-          embedding:
-              momentEmbeddings[m.box.x] ?? Float32List.fromList([1, 0, 0]),
-        ),
+        if (cropMissing?.call(m) ?? false)
+          null
+        else
+          VisionMomentCrop(
+            pixelWidth: (m.box.width * 1920).round(),
+            pixelHeight: (m.box.height * 1080).round(),
+            cropJpeg: Uint8List.fromList([0xFF, 0xD8, m.ms % 256]),
+            embedding:
+                momentEmbeddings[m.box.x] ?? Float32List.fromList([1, 0, 0]),
+          ),
     ];
   }
 

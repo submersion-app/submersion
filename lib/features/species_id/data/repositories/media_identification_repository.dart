@@ -13,6 +13,13 @@ import 'package:submersion/features/species_id/domain/entities/track_sample.dart
 import 'package:submersion/features/species_id/domain/services/scanned_ranges_codec.dart';
 import 'package:submersion/features/species_id/domain/services/track_path_codec.dart';
 
+/// What [MediaIdentificationRepository.storeRunAfterReading] writes.
+typedef StoreRunWrite = ({
+  MediaIdentificationRun run,
+  List<MediaIdentification> insert,
+  List<String> deleteIds,
+});
+
 /// What the marine life model found on each piece of media, and the diver's
 /// decisions on it (issue #4668). Never synced: the rows are this device's,
 /// and the app derives them; the diver's own record is the species tags.
@@ -88,21 +95,57 @@ class MediaIdentificationRepository {
   }) {
     // One database for the whole write: the one open when it starts.
     final db = _db;
+    return db.transaction(
+      () => _write(db, run, insert: insert, deleteIds: deleteIds),
+    );
+  }
+
+  /// [storeRun], with what to write worked out by [build] from the rows of
+  /// [mediaId] as they are stored, read in the same transaction when
+  /// [read] (issue #4709). A decision or claim written meanwhile waits for
+  /// the transaction, so a write built from an earlier read never lands
+  /// over it. Nothing is written when [build] returns null. Returns whether
+  /// it wrote.
+  Future<bool> storeRunAfterReading(
+    String mediaId, {
+    required bool read,
+    required Future<StoreRunWrite?> Function(List<MediaIdentification>? current)
+    build,
+  }) {
+    final db = _db;
     return db.transaction(() async {
-      await db
-          .into(db.mediaIdentificationRuns)
-          .insertOnConflictUpdate(_runToCompanion(run));
-      if (deleteIds.isNotEmpty) {
-        await (db.delete(
-          db.mediaIdentifications,
-        )..where((r) => r.id.isIn(deleteIds))).go();
-      }
-      for (final identification in insert) {
-        await db
-            .into(db.mediaIdentifications)
-            .insertOnConflictUpdate(_toCompanion(identification));
-      }
+      final current = read ? await forMedia(mediaId) : null;
+      final write = await build(current);
+      if (write == null) return false;
+      await _write(
+        db,
+        write.run,
+        insert: write.insert,
+        deleteIds: write.deleteIds,
+      );
+      return true;
     });
+  }
+
+  Future<void> _write(
+    AppDatabase db,
+    MediaIdentificationRun run, {
+    required List<MediaIdentification> insert,
+    required List<String> deleteIds,
+  }) async {
+    await db
+        .into(db.mediaIdentificationRuns)
+        .insertOnConflictUpdate(_runToCompanion(run));
+    if (deleteIds.isNotEmpty) {
+      await (db.delete(
+        db.mediaIdentifications,
+      )..where((r) => r.id.isIn(deleteIds))).go();
+    }
+    for (final identification in insert) {
+      await db
+          .into(db.mediaIdentifications)
+          .insertOnConflictUpdate(_toCompanion(identification));
+    }
   }
 
   /// Writes the decisions on [changed] (the decision, its species and

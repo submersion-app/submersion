@@ -613,6 +613,21 @@ void main() {
       expect(engine.detectCalls.first, (0, 10000));
     });
 
+    test('a pause does not replace a seek the scan has not followed '
+        'yet', () async {
+      service.followPlayhead('v1', 35000, seek: true);
+      service.followPlayhead('v1', 36000, seek: false);
+      expect(service.playheadOf('v1')!.seek, isTrue);
+      expect(service.playheadOf('v1')!.ms, 36000);
+    });
+
+    test('a pause after a seek the scan followed stays a pause', () async {
+      service.followPlayhead('v1', 30000, seek: true);
+      await service.request(video());
+      service.followPlayhead('v1', 31000, seek: false);
+      expect(service.playheadOf('v1')!.seek, isFalse);
+    });
+
     test('a report for another video changes nothing', () async {
       service.followPlayhead('v2', 30000, seek: true);
       await service.request(video());

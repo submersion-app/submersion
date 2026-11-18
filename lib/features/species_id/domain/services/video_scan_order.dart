@@ -41,8 +41,10 @@ typedef VideoChunk = ({int startMs, int endMs});
 
 /// The next chunk to scan, or null when the whole video is scanned.
 ///
-/// With a [report] it starts at the first gap at or after the playhead
-/// (a pause on scanned video counts as no report). Otherwise it carries on
+/// With a [report] it starts at the first gap at or after the playhead.
+/// A pause on scanned video counts as no report, except for a scan that has
+/// not run a chunk yet ([runEndMs] null), which starts from wherever the
+/// diver last was rather than from the start. Otherwise it carries on
 /// from where the last chunk ended ([runEndMs]), and once nothing is left
 /// after that, fills the first gap from the start. A chunk is [chunkMs]
 /// long when it carries on from [runEndMs], and [firstChunkMs] when the
@@ -58,7 +60,9 @@ VideoChunk? nextVideoChunk({
   int firstChunkMs = 2000,
 }) {
   int? gapFrom(int ms) => scanned.firstGapAtOrAfter(ms, durationMs: durationMs);
-  final heard = report != null && (report.seek || !scanned.covers(report.ms))
+  final heard =
+      report != null &&
+          (report.seek || runEndMs == null || !scanned.covers(report.ms))
       ? report
       : null;
   int? start;
