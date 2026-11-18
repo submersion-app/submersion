@@ -327,8 +327,13 @@ others)**:
 - **Accuracy is not measured.** The spike was judged by eye on one library,
   against the 685-species catalogue and with no table of where species are
   recorded. The measured accuracy piece closes this.
-- **Phone memory.** A 608 MB classifier may be too much even for the 6 GB
-  floor. Unmeasured.
+- **Phone memory.** Measured on a Mac as a stand-in for a phone
+  ([findings](../findings/2026-11-17-marine-life-phone-memory.md)). When Core
+  ML runs the classifier on the GPU, its weights are read from the model
+  files and do not count against the app's limit; the feature's own peak was
+  0.28 GB, from decoding a 50 MP photo and 4K video. On the Neural Engine,
+  0.63 to 0.72 GB more goes to a separate account, and Apple does not say
+  whether a phone's limit includes it. A 6 GB iPhone still has to confirm it.
 - **Speed off Apple hardware.** On the CPU path the detector alone took 100 ms
   on a fast laptop. Phones and older laptops will be several times slower.
 - **Fish only.** Turtles, rays that the detector misses, nudibranchs,
