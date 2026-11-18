@@ -131,6 +131,31 @@ void main() {
     expect(find.text('sites pane'), findsOneWidget);
   });
 
+  // An operation that wrote nothing (its confirmation dismissed) leaves the
+  // sitting as it was: the card the diver had open stays open.
+  testWidgets('a cancelled Delete keeps the open card open', (tester) async {
+    final (_, sites) = await pump(tester);
+    await unlock(tester);
+    await tester.ensureVisible(find.text(l.diveSites_detail_section_notes));
+    await tester.tap(find.text(l.diveSites_detail_section_notes));
+    await tester.pumpAndSettle();
+    expect(find.byType(TextFormField), findsWidgets);
+
+    await openMenu(tester);
+    await tester.tap(find.text(l.diveSites_detail_deleteMenu_label));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text(l.diveSites_detail_deleteDialog_cancel),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(sites.deleted, isEmpty);
+    expect(find.byType(TextFormField), findsWidgets);
+  });
+
   testWidgets('Unhide while unlocked keeps the page unlocked', (tester) async {
     final (_, sites) = await pump(
       tester,

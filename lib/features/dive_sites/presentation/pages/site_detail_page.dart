@@ -287,6 +287,14 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
   @override
   VoidCallback? get onOpenedSittingEnded => widget.onSittingEnded;
 
+  /// Set as the page leaves a site it deleted or removed, so the end of a
+  /// sitting it opened unlocked is not told: the pane has moved on, and
+  /// told it would return to a site that is gone.
+  bool _leftForGood = false;
+
+  @override
+  bool get hasLeftForGood => _leftForGood;
+
   @override
   void onEditChanged() {
     noteOpenedSittingEnded();
@@ -757,13 +765,13 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
     );
   }
 
-  Future<void> _deleteFromLibrary(
+  Future<bool> _deleteFromLibrary(
     BuildContext context,
     WidgetRef ref,
     DiveSite site,
   ) async {
     if (!demoSealGuard(context, DemoSealedFeature.sharedLibrary)) {
-      return;
+      return false;
     }
     final l10n = context.l10n;
     final confirmed = await showDialog<bool>(
@@ -783,9 +791,9 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
         ],
       ),
     );
-    if (confirmed != true) return;
+    if (confirmed != true) return false;
     final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
-    if (diverId == null) return;
+    if (diverId == null) return false;
     try {
       await ref
           .read(sharedSitePublisherProvider)
@@ -796,26 +804,28 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
           SnackBar(content: Text(libraryErrorText(context.l10n, e))),
         );
       }
-      return;
+      return false;
     }
     ref.invalidate(siteProvider(site.id));
     ref.invalidate(sitesProvider);
     ref.invalidate(sitesWithCountsProvider);
-    if (!context.mounted) return;
+    if (!context.mounted) return true;
+    _leftForGood = true;
     if (widget.onClose != null) {
       widget.onClose!();
     } else if (context.canPop()) {
       context.pop();
     }
+    return true;
   }
 
-  Future<void> _addToLibrary(
+  Future<bool> _addToLibrary(
     BuildContext context,
     WidgetRef ref,
     DiveSite site,
   ) async {
     if (!demoSealGuard(context, DemoSealedFeature.sharedLibrary)) {
-      return;
+      return false;
     }
     final library = await pickLibraryToAddTo(
       context,
@@ -823,9 +833,9 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
       siteCount: 1,
       siteName: site.name,
     );
-    if (library == null) return;
+    if (library == null) return false;
     final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
-    if (diverId == null) return;
+    if (diverId == null) return false;
     try {
       await ref
           .read(sharedSitePublisherProvider)
@@ -836,17 +846,18 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
           SnackBar(content: Text(libraryErrorText(context.l10n, e))),
         );
       }
-      return;
+      return false;
     }
     ref.invalidate(siteProvider(site.id));
     ref.invalidate(sitesProvider);
     ref.invalidate(sitesWithCountsProvider);
-    if (!context.mounted) return;
+    if (!context.mounted) return true;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(context.l10n.sharedLibrary_site_added(library.name)),
       ),
     );
+    return true;
   }
 
   /// What a menu entry does: a whole-record action as an operation
@@ -860,13 +871,15 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
     if (!kSiteRecordActions.contains(action)) {
       return _handleSiteAction(context, ref, action, site);
     }
-    return _runSiteOperation(() async {
-      await _handleSiteAction(context, ref, action, site);
-      return true;
-    });
+    return _runSiteOperation(
+      () => _handleSiteAction(context, ref, action, site),
+    );
   }
 
-  Future<void> _handleSiteAction(
+  /// Does [action]; for a whole-record one, answers whether it wrote (a
+  /// confirmation dismissed writes nothing, and the sitting carries on as
+  /// it was).
+  Future<bool> _handleSiteAction(
     BuildContext context,
     WidgetRef ref,
     String action,
@@ -874,31 +887,28 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
   ) async {
     if (action == kOpenInConnectionsAction) {
       openInConnections(context, NodeRef(ConnectionKind.site, site.id));
-      return;
+      return false;
     }
     if (action == 'displayOptions') {
       _displayOptionsMenu.open();
-      return;
+      return false;
     }
     if (action == kDuplicateSiteAction) {
       await openDuplicateSite(context, ref, site.id);
-      return;
+      return false;
     }
     if (action == 'remove') {
-      await _removeFromProfile(context, ref, site);
-      return;
+      return _removeFromProfile(context, ref, site);
     }
     if (action == 'libraryHistory') {
       await showSiteEditHistorySheet(context, site: site);
-      return;
+      return false;
     }
     if (action == 'libraryDelete') {
-      await _deleteFromLibrary(context, ref, site);
-      return;
+      return _deleteFromLibrary(context, ref, site);
     }
     if (action == 'addToLibrary') {
-      await _addToLibrary(context, ref, site);
-      return;
+      return _addToLibrary(context, ref, site);
     }
     if (action == 'unhide') {
       // A failed unhide says so (issue #2677).
@@ -908,13 +918,13 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
         () =>
             ref.read(siteListNotifierProvider.notifier).unhideSites([site.id]),
       );
-      return;
+      return true;
     }
     if (action == 'delete') {
       final divers = await ref.read(allDiversProvider.future);
       final usage = await readSiteDeleteUsage(ref, [site.id]);
       final diverCount = divers.length;
-      if (!context.mounted) return;
+      if (!context.mounted) return false;
       // Shared with everyone or with chosen profiles (issue #2151).
       final shared = diverCount < 2
           ? false
@@ -924,13 +934,13 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
               SharedItemKind.site,
               site.id,
             );
-      if (shared == null) return;
+      if (shared == null) return false;
       final isSharedDelete = shared;
       // The other profiles' dives that lose the site (issue #2594).
       final others = isSharedDelete
           ? (await readDiveLinkCounts(ref, SharedItemKind.site, site.id)).others
           : 0;
-      if (!context.mounted) return;
+      if (!context.mounted) return false;
 
       final confirmed = await showDialog<bool>(
         context: context,
@@ -982,12 +992,13 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
               SnackBar(content: Text(context.l10n.sharedItems_notOwner_site)),
             );
           }
-          return;
+          return false;
         }
         ref.invalidate(sitesWithCountsProvider);
         ref.invalidate(sitesProvider);
 
         if (context.mounted) {
+          _leftForGood = true;
           if (widget.embedded) {
             widget.onDeleted?.call();
           } else {
@@ -999,19 +1010,22 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
             ),
           );
         }
+        return true;
       }
     }
+    return false;
   }
 
   /// Hides another profile's shared site from the active profile only
   /// (issue #2594), with Undo.
-  Future<void> _removeFromProfile(
+  Future<bool> _removeFromProfile(
     BuildContext context,
     WidgetRef ref,
     DiveSite site,
-  ) {
+  ) async {
     final notifier = ref.read(siteListNotifierProvider.notifier);
-    return removeSharedItemFromProfile(
+    var removed = false;
+    await removeSharedItemFromProfile(
       context,
       ref,
       kind: SharedItemKind.site,
@@ -1020,9 +1034,13 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
       ownerId: site.diverId,
       hide: () async => await notifier.hideSites([site.id]) == 1,
       unhide: () => notifier.unhideSites([site.id]),
-      onRemoved: () =>
-          widget.embedded ? widget.onDeleted?.call() : context.go('/sites'),
+      onRemoved: () {
+        removed = true;
+        _leftForGood = true;
+        widget.embedded ? widget.onDeleted?.call() : context.go('/sites');
+      },
     );
+    return removed;
   }
 
   Widget _buildMapSection(BuildContext context, WidgetRef ref, DiveSite site) {
