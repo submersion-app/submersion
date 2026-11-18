@@ -548,6 +548,19 @@ void main() {
       ]);
     });
 
+    test('a photo given as bytes logs a reading after the photo', () async {
+      final bytes = Uint8List.fromList([1, 2, 3]);
+      imageFor = (_) => IdentificationImage.bytes(bytes);
+      await service.request(photo('m1'));
+      expect(engine.analysedBytes, [bytes]);
+      expect(engine.events.take(4), [
+        'load',
+        'memory',
+        'analyze:bytes',
+        'memory',
+      ]);
+    });
+
     test('a failing memory reading leaves the photo identified', () async {
       engine.memoryFailure = const VisionEngineException('unsupported');
       await service.request(photo('m1'));

@@ -16,6 +16,9 @@ class FakeEngine implements VisionEngine {
   Object? failure;
   Completer<void>? gate;
   final analysed = <String>[];
+
+  /// The bytes of each photo analysed from memory rather than a path.
+  final analysedBytes = <Uint8List>[];
   final loads = <VisionModels>[];
   var unloads = 0;
 
@@ -48,6 +51,7 @@ class FakeEngine implements VisionEngine {
     events.add('analyze:${path ?? 'bytes'}');
     if (!loaded) throw const VisionEngineException('not_loaded');
     analysed.add(path ?? 'bytes');
+    if (bytes != null) analysedBytes.add(bytes);
     await gate?.future;
     if (failure != null) throw failure!;
     return VisionAnalysis(
