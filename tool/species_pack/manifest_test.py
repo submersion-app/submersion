@@ -151,6 +151,34 @@ class MeasuredBarsTests(unittest.TestCase):
         self.assertEqual(naming["minAllowedCandidates"], 200)
         self.assertEqual(naming["topK"], 5)
 
+    def test_the_pair_pack_gets_its_own_measured_bars(self):
+        naming = manifest.naming_for([CFD, MEGALODON], BIOCLIP, "centreCrop", self.MEASURED_PACK)
+        self.assertIs(naming["provisional"], False)
+        self.assertEqual(
+            [naming[k] for k in ("minOpenScore", "suggestScore", "suggestScoreNoLocation", "confidentScore", "confidentScoreNoLocation")],
+            [0.44, 0.74, 0.81, 1.01, 1.01],
+        )
+
+    def test_a_megalodon_pack_gets_its_own_measured_bars(self):
+        naming = manifest.naming_for([MEGALODON], BIOCLIP, "padSquare", self.MEASURED_PACK)
+        self.assertIs(naming["provisional"], False)
+        self.assertEqual(
+            [naming[k] for k in ("minOpenScore", "suggestScore", "suggestScoreNoLocation", "confidentScore", "confidentScoreNoLocation")],
+            [0.21, 0.75, 0.70, 1.01, 1.01],
+        )
+
+    def test_build_manifest_writes_the_pairs_bars_for_a_pair_pack(self):
+        built = manifest.build_manifest(
+            pack_version="2026.11.18.0356",
+            detector_set="both",
+            classifier_id=BIOCLIP,
+            embedding_size=768,
+            files=entries(self.MEASURED_PACK),
+            credits=[],
+        )
+        self.assertIs(built["naming"]["provisional"], False)
+        self.assertEqual(built["naming"]["suggestScore"], 0.74)
+
     def test_build_manifest_writes_measured_bars_only_for_that_pack(self):
         def build(contents):
             return manifest.build_manifest(

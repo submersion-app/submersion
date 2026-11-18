@@ -75,9 +75,10 @@ CONTENT_FILES = ("candidates.json", "text_embeddings.f16", "regions.bin")
 # same detectors in the same order, classifier and crop fitting, and the
 # same naming files byte for byte. Any other pack, a rebuilt candidate list
 # of the same size included, gets the provisional bars until the scorer is
-# run on it. A bar of 1.01 is never: no confident names, since no bar
-# proved 95% right. Measured on the pack with surveyed species (9,151
-# candidates); the earlier 7,646 pack's bars no longer apply.
+# run on it. A bar of 1.01 is never: no confident names, since at each
+# set's chosen fitting no bar proved 95% right. Measured on the pack with
+# surveyed species (9,151 candidates); the earlier 7,646 pack's bars no
+# longer apply.
 _MEASURED_CONTENTS = {
     "candidates.json": "4f0dc61c95ab06de3a0b2ecb1401260e23907c3d2ff09d2da165bd9c8c34d50c",
     "text_embeddings.f16": "9aa97fc27a4b91039bd8eb9b6ad7be2da0cc97e4818a1ad81bb7f61b111cde33",
@@ -101,6 +102,46 @@ NAMING_MEASURED = [
         "classifierId": "bioclip-2-vitl14-2957b32",
         "cropFit": "centreCrop",
         "packVersion": "2026.11.18.0030",
+        "contents": _MEASURED_CONTENTS,
+        "findings": _FINDINGS,
+    },
+    # Megalodon alone and both detectors (issue #4691), measured on pack
+    # 2026.11.18.0356, which carries both and the same naming files.
+    {
+        "naming": {
+            "provisional": False,
+            "minCropSide": 64,
+            "minOpenScore": 0.21,
+            "suggestScore": 0.75,
+            "confidentScore": 1.01,
+            "suggestScoreNoLocation": 0.70,
+            "confidentScoreNoLocation": 1.01,
+            "minAllowedCandidates": 200,
+            "topK": 5,
+        },
+        "detectorIds": [DETECTORS["megalodon"]["id"]],
+        "classifierId": "bioclip-2-vitl14-2957b32",
+        "cropFit": "padSquare",
+        "packVersion": "2026.11.18.0356",
+        "contents": _MEASURED_CONTENTS,
+        "findings": _FINDINGS,
+    },
+    {
+        "naming": {
+            "provisional": False,
+            "minCropSide": 64,
+            "minOpenScore": 0.44,
+            "suggestScore": 0.74,
+            "confidentScore": 1.01,
+            "suggestScoreNoLocation": 0.81,
+            "confidentScoreNoLocation": 1.01,
+            "minAllowedCandidates": 200,
+            "topK": 5,
+        },
+        "detectorIds": [DETECTORS["cfd"]["id"], DETECTORS["megalodon"]["id"]],
+        "classifierId": "bioclip-2-vitl14-2957b32",
+        "cropFit": "centreCrop",
+        "packVersion": "2026.11.18.0356",
         "contents": _MEASURED_CONTENTS,
         "findings": _FINDINGS,
     },
