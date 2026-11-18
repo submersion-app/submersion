@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 import 'dart:typed_data';
 
+import 'package:archive/archive.dart' show getCrc32;
 import 'package:path/path.dart' as p;
 
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
@@ -12,17 +14,21 @@ import 'package:submersion/features/species_id/domain/entities/species_pack_mani
 /// Reads each entry's local header in order and stops unpacking at the
 /// central directory, which only repeats them; the zip must still end with
 /// a complete end-of-central-directory record. Entries are stored or
-/// deflated, with
-/// their sizes in the local header or its ZIP64 extra field. A zip written
-/// to a stream, whose sizes follow the data instead, is refused: the pack
-/// builder (`tool/species_pack/models.py`) writes its zips to a file, so
-/// their headers carry the sizes.
+/// deflated, with their sizes in the local header or its ZIP64 extra field.
+/// A zip written to a stream, whose sizes follow the data instead, is
+/// refused: the pack builder (`tool/species_pack/models.py`) writes its zips
+/// to a file, so their headers carry the sizes.
+///
+/// Each file is checked against the size and CRC-32 its header records, so
+/// what lands on disk is what was zipped, and flushed to disk before it is
+/// closed, so a caller that then marks the folder complete can trust it
+/// after a crash.
 ///
 /// Throws [PackManifestException] for a zip it cannot unpack, an entry that
 /// would land outside the folder or a file that does not unpack to its
-/// recorded size, and lets a [FileSystemException] (a full disk) through.
-/// After a failure, [abort] closes the open file; the caller removes the
-/// folder.
+/// recorded size and checksum, and lets a [FileSystemException] (a full
+/// disk) through. After a failure, [abort] closes the open file; the caller
+/// removes the folder.
 class ZipStreamUnpacker {
   ZipStreamUnpacker(String outPath) : _root = p.normalize(p.absolute(outPath));
 
@@ -90,10 +96,12 @@ class ZipStreamUnpacker {
     final entry = _entry;
     _entry = null;
     if (entry == null) return;
-    if (entry.inflating) {
+    final inflater = entry.inflater;
+    entry.inflater = null;
+    if (inflater != null) {
       try {
         // Frees the native inflater now rather than at garbage collection.
-        entry.inflater.close();
+        inflater.close();
       } on Exception {
         // Cut short mid-stream, as expected after a failure.
       }
@@ -166,7 +174,7 @@ class ZipStreamUnpacker {
   /// Moves bytes from [chunk] at [offset] into the header until it holds
   /// [upTo]. Returns where the taken bytes ended.
   int _takeHeader(List<int> chunk, int offset, int upTo) {
-    final take = _min(upTo - _header.length, chunk.length - offset);
+    final take = math.min<int>(upTo - _header.length, chunk.length - offset);
     if (take > 0) _header.add(chunk.sublist(offset, offset + take));
     return offset + take;
   }
@@ -218,6 +226,7 @@ class ZipStreamUnpacker {
       name: name,
       remaining: compressed,
       size: size,
+      crc: _u32(header, 14),
       inflate: method == 8,
     );
     if (name.endsWith('/')) {
@@ -265,14 +274,16 @@ class ZipStreamUnpacker {
   /// Writes [entry]'s data from [chunk] at [offset]. Returns where its
   /// data ended in [chunk].
   Future<int> _readData(_Entry entry, List<int> chunk, int offset) async {
-    final end = offset + _min(entry.remaining, chunk.length - offset);
+    final end = offset + math.min<int>(entry.remaining, chunk.length - offset);
     final out = entry.out;
     if (entry.inflate) {
+      final inflater = entry.inflater ??= ZLibDecoder(
+        raw: true,
+      ).startChunkedConversion(entry.inflated);
       for (var at = offset; at < end; at += _inflateStep) {
-        final stop = _min(at + _inflateStep, end);
-        entry.inflating = true;
+        final stop = math.min<int>(at + _inflateStep, end);
         try {
-          entry.inflater.addSlice(chunk, at, stop, false);
+          inflater.addSlice(chunk, at, stop, false);
         } on FormatException {
           throw _doesNotInflate(entry);
         }
@@ -282,6 +293,12 @@ class ZipStreamUnpacker {
       _checkSize(entry, entry.written + end - offset);
       await out.writeFrom(chunk, offset, end);
       entry.written += end - offset;
+      entry.crcSoFar = getCrc32(
+        chunk is Uint8List
+            ? Uint8List.sublistView(chunk, offset, end)
+            : chunk.sublist(offset, end),
+        entry.crcSoFar,
+      );
     }
     entry.remaining -= end - offset;
     if (entry.remaining == 0) await _finish(entry);
@@ -289,22 +306,36 @@ class ZipStreamUnpacker {
   }
 
   Future<void> _finish(_Entry entry) async {
-    if (entry.inflate) {
-      entry.inflating = false;
+    final inflater = entry.inflater;
+    entry.inflater = null;
+    if (inflater != null) {
       try {
-        entry.inflater.close();
+        inflater.close();
       } on FormatException {
         throw _doesNotInflate(entry);
       }
       await _drain(entry);
     }
-    await entry.out?.close();
+    final out = entry.out;
+    if (out != null) {
+      await out.flush();
+      await out.close();
+    }
     entry.out = null;
     _entry = null;
-    if (!entry.name.endsWith('/') && entry.written != entry.size) {
+    if (entry.name.endsWith('/')) return;
+    if (entry.written != entry.size) {
       throw PackManifestException(
         PackManifestFailure.malformed,
         '${entry.name} did not unpack in full',
+      );
+    }
+    // The raw inflater does not fail on a stream cut before its last
+    // block, so the checksum is what proves a file whole.
+    if (entry.crcSoFar != entry.crc) {
+      throw PackManifestException(
+        PackManifestFailure.malformed,
+        '${entry.name} does not match its checksum',
       );
     }
   }
@@ -316,6 +347,7 @@ class ZipStreamUnpacker {
       _checkSize(entry, entry.written + piece.length);
       if (out != null) await out.writeFrom(piece);
       entry.written += piece.length;
+      entry.crcSoFar = getCrc32(piece, entry.crcSoFar);
     }
     entry.inflated.pieces.clear();
   }
@@ -346,8 +378,6 @@ class ZipStreamUnpacker {
   /// 64-bit ByteData (#4194), and this is exact there up to 2^53.
   static int _u64(List<int> b, int at) =>
       _u32(b, at + 4) * 0x100000000 + _u32(b, at);
-
-  static int _min(int a, int b) => a < b ? a : b;
 }
 
 class _Entry {
@@ -355,6 +385,7 @@ class _Entry {
     required this.name,
     required this.remaining,
     required this.size,
+    required this.crc,
     required this.inflate,
   });
 
@@ -366,20 +397,19 @@ class _Entry {
   /// The unpacked size the zip records.
   final int size;
 
+  /// The CRC-32 of the unpacked file, as the zip records it.
+  final int crc;
+
   /// Deflated, else stored.
   final bool inflate;
   int written = 0;
+  int crcSoFar = 0;
   RandomAccessFile? out;
 
   final inflated = _Pieces();
 
-  /// The inflater is made and not yet closed.
-  bool inflating = false;
-
-  /// Made only for a deflated entry, at its first data.
-  late final ByteConversionSink inflater = ZLibDecoder(
-    raw: true,
-  ).startChunkedConversion(inflated);
+  /// A deflated entry's inflater, from its first data until it is closed.
+  ByteConversionSink? inflater;
 }
 
 /// Collects the inflater's output until it is written.

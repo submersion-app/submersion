@@ -65,6 +65,7 @@ Uint8List _zip64Entry(
   final header = ByteData(30)
     ..setUint32(0, 0x04034b50, Endian.little)
     ..setUint16(4, 45, Endian.little)
+    ..setUint32(14, getCrc32(content), Endian.little)
     ..setUint32(18, 0xFFFFFFFF, Endian.little)
     ..setUint32(22, 0xFFFFFFFF, Endian.little)
     ..setUint16(26, nameBytes.length, Endian.little)
@@ -382,6 +383,49 @@ void main() {
       ...zip.sublist(dataStart + compressed),
     ]);
     await expectLater(unpack(cut), malformed());
+  });
+
+  test('a deflate stream cut before its last block is refused even when '
+      'the header records what did inflate', () async {
+    final zip = _modelZip();
+    final weights = _localHeaders(zip).last;
+    final data = ByteData.sublistView(zip);
+    final compressed = data.getUint32(weights + 18, Endian.little);
+    final dataStart =
+        weights +
+        30 +
+        data.getUint16(weights + 26, Endian.little) +
+        data.getUint16(weights + 28, Endian.little);
+    const cut = 40;
+    // What the shortened stream inflates to, as its new recorded size.
+    final filter = RawZLibFilter.inflateFilter(raw: true)
+      ..process(zip, dataStart, dataStart + compressed - cut);
+    var inflated = 0;
+    for (List<int>? piece; (piece = filter.processed()) != null;) {
+      inflated += piece!.length;
+    }
+    expect(inflated, lessThan(200000));
+    data
+      ..setUint32(weights + 18, compressed - cut, Endian.little)
+      ..setUint32(weights + 22, inflated, Endian.little);
+    final cutZip = Uint8List.fromList([
+      ...zip.sublist(0, dataStart + compressed - cut),
+      ...zip.sublist(dataStart + compressed),
+    ]);
+    await expectLater(unpack(cutZip), malformed());
+  });
+
+  test('a stored file whose bytes changed is refused', () async {
+    final zip = _modelZip(stored: true);
+    final weights = _localHeaders(zip).last;
+    final data = ByteData.sublistView(zip);
+    final dataStart =
+        weights +
+        30 +
+        data.getUint16(weights + 26, Endian.little) +
+        data.getUint16(weights + 28, Endian.little);
+    zip[dataStart + 1000] ^= 0xFF;
+    await expectLater(unpack(zip), malformed());
   });
 
   test('something that is not a zip is refused', () async {
