@@ -59,11 +59,10 @@ class _AttachmentDetailsPageState extends ConsumerState<AttachmentDetailsPage>
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final stored = followStoredPhoto(widget.item);
-    closeWhenRemoved(widget.item.id);
+    closeWhenRemoved(widget.item.id, siteId: widget.siteId);
     // Followed whether or not this device edits, so a browser shows a
     // change made elsewhere too.
     final storedItem =
-        stored?.item ??
         ref.watch(photoRecordProvider(widget.item.id)).value?.item ??
         widget.item;
     final shown = shownItem(storedItem, const []);

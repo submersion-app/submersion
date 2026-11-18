@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' hide Dive;
@@ -196,6 +197,23 @@ void main() {
     await pumpDocument(tester, pushed: true);
 
     await removeDocument(tester);
+
+    expect(find.byType(DocumentViewerPage), findsNothing);
+    expect(find.text('This document was removed.'), findsOneWidget);
+  });
+
+  testWidgets('a document unlinked from the site closes the viewer', (
+    tester,
+  ) async {
+    await pumpDocument(tester, pushed: true);
+
+    await tester.runAsync(
+      () => (db.update(db.media)..where((t) => t.id.equals('doc1'))).write(
+        const MediaCompanion(siteId: Value(null)),
+      ),
+    );
+    await settleViewer(tester, rounds: 10);
+    await settleViewer(tester, rounds: 10);
 
     expect(find.byType(DocumentViewerPage), findsNothing);
     expect(find.text('This document was removed.'), findsOneWidget);

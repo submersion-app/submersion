@@ -84,6 +84,7 @@ void main() {
     tester,
   ) async {
     final pdf = testMediaItem(
+      siteId: 's1',
       mediaType: MediaType.document,
       originalFilename: 'reef-map.pdf',
     );
@@ -119,6 +120,7 @@ void main() {
   testWidgets('a document with no viewer and attachmentLock opens its '
       'details page', (tester) async {
     final doc = testMediaItem(
+      siteId: 's1',
       mediaType: MediaType.document,
       originalFilename: 'briefing.docx',
     );

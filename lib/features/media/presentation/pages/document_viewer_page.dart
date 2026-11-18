@@ -80,7 +80,9 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage>
     final resolvedAsync = ref.watch(mediaBytesProvider(widget.item));
     final stored = followStoredPhoto(widget.item);
     // Only where the document has its own lock; today's viewer stays.
-    if (_hasLock) closeWhenRemoved(widget.item.id);
+    if (_hasLock) {
+      closeWhenRemoved(widget.item.id, siteId: widget.editableSiteId!);
+    }
 
     return photoEditScope(
       child: Scaffold(

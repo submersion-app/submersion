@@ -210,6 +210,69 @@ void main() {
     expect(find.text('This document was removed.'), findsOneWidget);
   });
 
+  /// Unlinks the document from the site, as a site unlink does to a row a
+  /// dive still uses: the row stays, its site link cleared.
+  Future<void> unlinkFromSite(WidgetTester tester) async {
+    final db = DatabaseService.instance.database;
+    await tester.runAsync(
+      () => (db.update(db.media)..where((t) => t.id.equals('doc2'))).write(
+        const MediaCompanion(siteId: Value(null)),
+      ),
+    );
+    await settleViewer(tester, rounds: 10);
+    await settleViewer(tester, rounds: 10);
+  }
+
+  // Left the site, kept for a dive: no longer the site's attachment.
+  testWidgets('a document unlinked from the site closes the page', (
+    tester,
+  ) async {
+    await pumpPage(tester, pushed: true);
+
+    await unlinkFromSite(tester);
+
+    expect(find.byType(AttachmentDetailsPage), findsNothing);
+    expect(find.text('This document was removed.'), findsOneWidget);
+  });
+
+  testWidgets('a document unlinked while unlocked ends the sitting unsaved '
+      'and closes the page', (tester) async {
+    await pumpPage(tester, pushed: true);
+    await unlock(tester);
+    await pickCategory(tester, 'Site map');
+
+    await unlinkFromSite(tester);
+
+    expect(find.byType(AttachmentDetailsPage), findsNothing);
+    expect(
+      find.text('This document was removed. Your changes were not saved.'),
+      findsOneWidget,
+    );
+    final stored = await tester.runAsync(
+      () => MediaRepository().getMediaById('doc2'),
+    );
+    expect(stored!.siteCategory, isNull);
+  });
+
+  // The page closes itself, whatever is open above it.
+  testWidgets('a removed document closes the page under a dialog', (
+    tester,
+  ) async {
+    await pumpPage(tester, pushed: true);
+    unawaited(
+      showDialog<void>(
+        context: tester.element(find.byType(AttachmentDetailsPage)),
+        builder: (_) => const AlertDialog(content: Text('above')),
+      ),
+    );
+    await settleViewer(tester);
+
+    await removeDocument(tester);
+
+    expect(find.text('above'), findsNothing);
+    expect(find.byType(AttachmentDetailsPage), findsNothing);
+  });
+
   testWidgets('a browser closes the page too', (tester) async {
     await pumpPage(tester, pushed: true, browser: true);
 
