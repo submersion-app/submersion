@@ -168,6 +168,74 @@ class GateEvidenceTests(unittest.TestCase):
         self.assertEqual(off, ["confidentScore", "confidentScoreNoLocation"])
 
 
+class LevelTests(unittest.TestCase):
+    """A naming level (issue #4721): lower suggest bars at a lower target,
+    the pack's floor and size held, never above the level above it."""
+
+    SURER = bars.Bars(min_open=0.5, suggest=0.80, suggest_no_location=0.80, confident=NEVER, confident_no_location=NEVER)
+    # 160 of 200 right at 0.55 and below, 100 of 100 above it.
+    FISH = [s(0.6, 0.9, True)] * 100 + [s(0.6, 0.55, True)] * 60 + [s(0.6, 0.55, False)] * 40
+
+    def level(self, fish, junk=(), ceiling=None, target=0.65, no_loc=None):
+        with_loc, without = both(fish)
+        junk_with, junk_without = both(junk)
+        return bars.level_bars(
+            with_loc,
+            without if no_loc is None else no_loc,
+            junk_with,
+            junk_without,
+            surer=self.SURER,
+            ceiling=ceiling or self.SURER,
+            min_side=64,
+            target=target,
+        )
+
+    def test_level_is_lower_than_surer(self):
+        level = self.level(self.FISH)
+        self.assertEqual((level.suggest, level.suggest_no_location), (0.55, 0.55))
+        self.assertEqual(level.min_open, 0.5)
+        self.assertEqual((level.confident, level.confident_no_location), (NEVER, NEVER))
+
+    def test_level_never_above_ceiling(self):
+        ceiling = bars.Bars(0.5, 0.70, 0.80, NEVER, NEVER)
+        _, no_loc = both(self.FISH)
+        level = self.level([s(0.6, 0.95, True)] * 100, ceiling=ceiling, no_loc=no_loc)
+        self.assertEqual(level.suggest, 0.70)
+        self.assertEqual(level.suggest_no_location, 0.55)
+
+    def test_level_equal_to_ceiling_is_none(self):
+        fish = [s(0.6, 0.85, True)] * 100 + [s(0.6, 0.5, False)] * 100
+        self.assertIsNone(self.level(fish))
+
+    def test_junk_raises_the_level(self):
+        level = self.level(self.FISH, junk=[s(0.6, 0.56, False)] * 10)
+        self.assertEqual((level.suggest, level.suggest_no_location), (0.57, 0.57))
+
+    def test_junk_that_cannot_pass_drops_the_level(self):
+        self.assertIsNone(self.level(self.FISH, junk=[s(0.6, 0.79, False)] * 10))
+
+    def test_targets(self):
+        self.assertEqual(bars.LEVEL_TARGETS, (("balanced", 0.75), ("eager", 0.65)))
+
+
+class LevelGateTests(unittest.TestCase):
+    SURER = LevelTests.SURER
+    LEVEL = bars.Bars(0.5, 0.55, 0.80, NEVER, NEVER)
+
+    def gate(self, with_loc):
+        no_loc = [s(0.6, 0.9, True, limited=False)] * 50
+        return bars.level_gate(self.LEVEL, self.SURER, with_loc, no_loc, min_side=64, target=0.65)
+
+    def test_gate_drops_a_level_whose_interval_is_below_target(self):
+        self.assertFalse(self.gate([s(0.6, 0.6, True)] * 10 + [s(0.6, 0.6, False)] * 90))
+
+    def test_gate_keeps_a_level_that_meets_target(self):
+        self.assertTrue(self.gate([s(0.6, 0.6, True)] * 90 + [s(0.6, 0.6, False)] * 10))
+
+    def test_gate_drops_a_level_that_names_nothing(self):
+        self.assertFalse(self.gate([s(0.6, 0.3, True)] * 50))
+
+
 class McNemarTests(unittest.TestCase):
     def test_mcnemar_symmetric_and_exact(self):
         self.assertAlmostEqual(bars.mcnemar_p(0, 6), 2 * 0.5**6, places=12)

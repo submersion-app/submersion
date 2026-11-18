@@ -157,6 +157,72 @@ def choose_bars(
     return Bars(OPEN_GRID[-1], NEVER, NEVER, NEVER, NEVER)
 
 
+# The naming levels below the pack's own bars (issue #4721), surest first:
+# each is the lowest bar whose precision meets its target, as the pack's
+# suggest bars meet 0.85.
+LEVEL_TARGETS = (("balanced", 0.75), ("eager", 0.65))
+
+
+def level_bars(
+    with_location,
+    no_location,
+    junk_with,
+    junk_without,
+    *,
+    surer,
+    ceiling,
+    min_side,
+    target,
+    max_junk_rate=0.02,
+):
+    """A naming level's bars, chosen on the tune half: the pack's own
+    (`surer`) with only its two suggest bars lowered to meet `target`,
+    never above `ceiling` (the level above it). Junk is held to the same
+    cap as the pack's bars: a level naming too much is raised 0.01 at a
+    time. None when the level ends no lower than `ceiling`, so it would
+    add nothing."""
+    limited = [c for c in with_location if c.limited]
+    found = [
+        _best_bar(limited, min_open=surer.min_open, min_side=min_side, target=target)[0],
+        _best_bar(no_location, min_open=surer.min_open, min_side=min_side, target=target)[0],
+    ]
+    tops = [ceiling.suggest, ceiling.suggest_no_location]
+    # No bar meeting the target keeps the level above's bar.
+    level = [top if bar == NEVER else min(bar, top) for bar, top in zip(found, tops)]
+
+    def as_bars(pair):
+        return replace(surer, suggest=pair[0], suggest_no_location=pair[1])
+
+    while junk_rate(junk_with, junk_without, as_bars(level), min_side=min_side) > max_junk_rate:
+        if level == tops:
+            break
+        level = [min(round(bar + 0.01, 2), top) if bar < top else bar for bar, top in zip(level, tops)]
+    if level == tops:
+        return None
+    return as_bars(level)
+
+
+def level_gate(level, surer, with_location, no_location, *, min_side, target):
+    """Whether a level stands on the held-out half: each bar it lowers must
+    name something, and its two-sided 95% interval must not lie wholly
+    below `target`. A level failing either is left out whole."""
+    limited = [c for c in with_location if c.limited]
+    checks = [
+        (level.suggest, surer.suggest, limited),
+        (level.suggest_no_location, surer.suggest_no_location, no_location),
+    ]
+    for bar, top, scored in checks:
+        if bar >= top:
+            continue
+        picked = _suggested(scored, min_open=level.min_open, bar=bar, min_side=min_side)
+        if not picked:
+            return False
+        correct = sum(1 for c in picked if c.correct)
+        if wilson(correct, len(picked), Z_TWO_SIDED)[1] < target:
+            return False
+    return True
+
+
 def held_out_gate(bars, with_location, no_location, *, min_side, suggest_target=0.85, confident_target=0.95):
     """Checks each bar once on the held-out half. A bar whose two-sided 95%
     interval lies wholly below its target is switched off; a confident bar
