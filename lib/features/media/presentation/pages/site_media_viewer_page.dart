@@ -10,8 +10,7 @@ import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/photo_record.dart';
-import 'package:submersion/features/media/domain/entities/site_attachment_category.dart';
-import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
+import 'package:submersion/features/media/presentation/editing/attachment_details_hold.dart';
 import 'package:submersion/features/media/presentation/editing/photo_viewer_editing.dart';
 import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
 import 'package:submersion/features/media/presentation/helpers/media_share_helper.dart';
@@ -84,18 +83,6 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
       _navTargetIndex = index;
       _pageController.jumpToPage(index);
     });
-  }
-
-  /// Edit details in a sitting: the choice is held until Save.
-  void _holdDetails(
-    SiteAttachmentCategory? category,
-    AttachmentDisplaySize? size,
-  ) {
-    final sitting = photoSitting;
-    if (sitting == null || sitting.isDisposed || sitting.isFrozen) return;
-    sitting
-      ..set(photoSiteCategoryField, category)
-      ..set(photoDisplaySizeField, size);
   }
 
   late PageController _pageController;
@@ -359,7 +346,13 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
                                 context,
                                 item: currentItem,
                                 siteId: widget.siteId,
-                                onHold: _holdDetails,
+                                // Held until Save.
+                                onHold: (category, size) =>
+                                    holdAttachmentDetails(
+                                      photoSitting,
+                                      category,
+                                      size,
+                                    ),
                               )
                             : null,
                       ),

@@ -21568,6 +21568,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'הסרטון הוסר. השינויים שלך לא נשמרו.';
 
   @override
+  String get media_viewer_documentGoneWhileEditing =>
+      'המסמך הוסר. השינויים שלך לא נשמרו.';
+
+  @override
   String get media_viewer_movedWhileEditing =>
       'הועבר לצלילה אחרת מאז ביטול הנעילה. בטל, ואז בטל שוב את הנעילה.';
 

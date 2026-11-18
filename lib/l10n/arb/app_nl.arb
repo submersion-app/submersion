@@ -6341,6 +6341,7 @@
   "media_viewer_editingVideo": "Video bewerken",
   "media_viewer_photoGoneWhileEditing": "Deze foto is verwijderd. Je wijzigingen zijn niet opgeslagen.",
   "media_viewer_videoGoneWhileEditing": "Deze video is verwijderd. Je wijzigingen zijn niet opgeslagen.",
+  "media_viewer_documentGoneWhileEditing": "Dit document is verwijderd. Je wijzigingen zijn niet opgeslagen.",
   "media_viewer_movedWhileEditing": "Verplaatst naar een andere duik sinds je het ontgrendelde. Annuleer en ontgrendel het opnieuw.",
   "media_viewer_locatedFileChanged": "Het gevonden bestand is sindsdien gewijzigd of verplaatst. Zoek het opnieuw of annuleer.",
   "media_viewer_exitFullscreen": "Volledig scherm verlaten",

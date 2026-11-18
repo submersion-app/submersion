@@ -34825,6 +34825,12 @@ abstract class AppLocalizations {
   /// **'This video was removed. Your changes were not saved.'**
   String get media_viewer_videoGoneWhileEditing;
 
+  /// Shown when the site attachment document whose details are being edited (PDF viewer or attachment details page) is deleted elsewhere during the editing sitting; the sitting ends without saving.
+  ///
+  /// In en, this message translates to:
+  /// **'This document was removed. Your changes were not saved.'**
+  String get media_viewer_documentGoneWhileEditing;
+
   /// Shown when Save is refused because the photo or video being edited was moved to another dive (on another device, or by a sync) after the diver unlocked it. Cancel ends the sitting; unlocking again starts one on the new dive.
   ///
   /// In en, this message translates to:

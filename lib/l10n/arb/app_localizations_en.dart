@@ -21722,6 +21722,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'This video was removed. Your changes were not saved.';
 
   @override
+  String get media_viewer_documentGoneWhileEditing =>
+      'This document was removed. Your changes were not saved.';
+
+  @override
   String get media_viewer_movedWhileEditing =>
       'Moved to another dive since you unlocked it. Cancel, then unlock it again.';
 

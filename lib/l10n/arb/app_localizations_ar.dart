@@ -22399,6 +22399,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'تمت إزالة هذا الفيديو. لم يتم حفظ تغييراتك.';
 
   @override
+  String get media_viewer_documentGoneWhileEditing =>
+      'تمت إزالة هذا المستند. لم يتم حفظ تغييراتك.';
+
+  @override
   String get media_viewer_movedWhileEditing =>
       'نُقل إلى غطسة أخرى منذ إلغاء القفل. ألغِ، ثم ألغِ القفل مرة أخرى.';
 

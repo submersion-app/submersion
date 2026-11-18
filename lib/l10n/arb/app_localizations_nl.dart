@@ -21920,6 +21920,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Deze video is verwijderd. Je wijzigingen zijn niet opgeslagen.';
 
   @override
+  String get media_viewer_documentGoneWhileEditing =>
+      'Dit document is verwijderd. Je wijzigingen zijn niet opgeslagen.';
+
+  @override
   String get media_viewer_movedWhileEditing =>
       'Verplaatst naar een andere duik sinds je het ontgrendelde. Annuleer en ontgrendel het opnieuw.';
 

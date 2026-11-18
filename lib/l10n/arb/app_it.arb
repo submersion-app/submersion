@@ -6215,6 +6215,7 @@
   "media_viewer_editingVideo": "Modifica del video",
   "media_viewer_photoGoneWhileEditing": "Questa foto è stata rimossa. Le modifiche non sono state salvate.",
   "media_viewer_videoGoneWhileEditing": "Questo video è stato rimosso. Le modifiche non sono state salvate.",
+  "media_viewer_documentGoneWhileEditing": "Questo documento è stato rimosso. Le modifiche non sono state salvate.",
   "media_viewer_movedWhileEditing": "Spostato in un'altra immersione dopo lo sblocco. Annulla, poi sbloccalo di nuovo.",
   "media_viewer_locatedFileChanged": "Il file trovato è stato modificato o spostato nel frattempo. Trovalo di nuovo o annulla.",
   "media_viewer_exitFullscreen": "Esci da schermo intero",

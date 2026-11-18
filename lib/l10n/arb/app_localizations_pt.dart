@@ -22056,6 +22056,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Este vídeo foi removido. As suas alterações não foram guardadas.';
 
   @override
+  String get media_viewer_documentGoneWhileEditing =>
+      'Este documento foi removido. As suas alterações não foram guardadas.';
+
+  @override
   String get media_viewer_movedWhileEditing =>
       'Movido para outro mergulho desde que o desbloqueou. Cancele e desbloqueie-o novamente.';
 

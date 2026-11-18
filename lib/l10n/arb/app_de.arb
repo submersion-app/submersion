@@ -6467,6 +6467,7 @@
   "media_viewer_editingVideo": "Video wird bearbeitet",
   "media_viewer_photoGoneWhileEditing": "Dieses Foto wurde entfernt. Deine Änderungen wurden nicht gespeichert.",
   "media_viewer_videoGoneWhileEditing": "Dieses Video wurde entfernt. Deine Änderungen wurden nicht gespeichert.",
+  "media_viewer_documentGoneWhileEditing": "Dieses Dokument wurde entfernt. Deine Änderungen wurden nicht gespeichert.",
   "media_viewer_movedWhileEditing": "Seit dem Entsperren in einen anderen Tauchgang verschoben. Brich ab und entsperre erneut.",
   "media_viewer_locatedFileChanged": "Die gefundene Datei wurde seitdem geändert oder verschoben. Suche sie erneut oder brich ab.",
   "media_viewer_exitFullscreen": "Vollbild beenden",

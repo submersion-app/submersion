@@ -21981,6 +21981,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ezt a videót eltávolították. A módosításaid nem lettek mentve.';
 
   @override
+  String get media_viewer_documentGoneWhileEditing =>
+      'Ezt a dokumentumot eltávolították. A módosításaid nem lettek mentve.';
+
+  @override
   String get media_viewer_movedWhileEditing =>
       'A feloldás óta egy másik merülésre került. Válaszd a Mégse gombot, majd oldd fel újra.';
 

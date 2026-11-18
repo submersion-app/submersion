@@ -6215,6 +6215,7 @@
   "media_viewer_editingVideo": "Videó szerkesztése",
   "media_viewer_photoGoneWhileEditing": "Ezt a fotót eltávolították. A módosításaid nem lettek mentve.",
   "media_viewer_videoGoneWhileEditing": "Ezt a videót eltávolították. A módosításaid nem lettek mentve.",
+  "media_viewer_documentGoneWhileEditing": "Ezt a dokumentumot eltávolították. A módosításaid nem lettek mentve.",
   "media_viewer_movedWhileEditing": "A feloldás óta egy másik merülésre került. Válaszd a Mégse gombot, majd oldd fel újra.",
   "media_viewer_locatedFileChanged": "A megtalált fájl azóta megváltozott vagy máshová került. Keresd meg újra, vagy válaszd a Mégse gombot.",
   "media_viewer_exitFullscreen": "Kilépés a teljes képernyőből",

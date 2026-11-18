@@ -146,11 +146,18 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
     );
   }
 
+  /// Whether this page edits a document's details: the PDF viewer and the
+  /// attachment details page, opened from a site (issue #4527, phase 2).
+  /// A photo viewer unlocks no document.
+  bool get unlocksDocuments => false;
+
   /// Whether [item] can be unlocked here: the viewer offers editing, the
   /// item has a stored row ([stored] from [followStoredPhoto]) and is not a
-  /// document.
+  /// document, unless this page edits a document's details.
   bool canUnlock(MediaItem item, PhotoRecord? stored) =>
-      editingOffered && stored != null && !item.isDocument;
+      editingOffered &&
+      stored != null &&
+      (unlocksDocuments || !item.isDocument);
 
   /// The dive the sitting's photo was on when it was unlocked.
   ({String? id})? _diveAtUnlock;
@@ -177,7 +184,10 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
   void _lockAsGone(RecordEditController<PhotoRecord> controller) {
     final messenger = ScaffoldMessenger.maybeOf(context);
     final l10n = context.l10n;
-    final message = controller.session?.stored.item.isVideo ?? false
+    final item = controller.session?.stored.item;
+    final message = item?.isDocument ?? false
+        ? l10n.media_viewer_documentGoneWhileEditing
+        : item?.isVideo ?? false
         ? l10n.media_viewer_videoGoneWhileEditing
         : l10n.media_viewer_photoGoneWhileEditing;
     controller.lock();
