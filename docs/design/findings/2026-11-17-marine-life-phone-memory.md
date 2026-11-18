@@ -34,9 +34,11 @@ app's memory limit, unless a line says otherwise.
    `task_info(TASK_VM_INFO)`. The physical footprint stays under 200 MiB.
    That is macOS; whether iOS tags it the same way is for the phone to show.
    Phones whose Core ML prefers the Neural Engine are the case to test.
-4. **No first-load spike in the app.** Compiling the models for the GPU took
-   2.7 s with a 37 MiB peak; for the Neural Engine it took 8.3 s, done by the
-   system's compiler service, with a 35 MiB peak in the app.
+4. **No first-load spike while the models load,** in the harness.
+   Compiling them for the GPU took 2.7 s with a 37 MiB peak; for the Neural
+   Engine it took 8.3 s, done by the system's compiler service, with a
+   35 MiB peak in the harness process. The app was not measured while it
+   loaded them (see "The app's own figure").
 5. **Against an iPhone's limit.** Apple does not publish the per-app limit;
    developers commonly report about half the memory, roughly 3 GB on a 6 GB
    phone. The feature's own share is about 0.3 GB on the GPU path, and
