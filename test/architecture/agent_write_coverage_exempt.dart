@@ -42,8 +42,14 @@ final exempt = <String, String>{
       'a cache',
   'lib/features/insights/data/repositories/deco_classification_cache.dart:*':
       'a cache',
+  'lib/features/insights/data/repositories/vertical_distance_cache.dart:*':
+      'a cache',
   'lib/features/insights/data/repositories/dive_deco_status_repository.dart:*':
       'verdicts derived from dive analysis, recomputed from the dives',
+  'lib/features/species_id/data/repositories/media_identification_repository.dart:*':
+      'what the on-device model found; derived by the app, never the diver',
+  'lib/features/species_id/data/repositories/identification_embedding_repository.dart:*':
+      'a cache',
   'lib/features/insights/data/repositories/observation_dismissals_repository.dart:*':
       'the state of derived findings, recomputed from records',
   'lib/features/data_quality/data/repositories/quality_findings_repository.dart:*':
@@ -136,6 +142,7 @@ final exempt = <String, String>{
     'lib/features/dive_log/data/repositories/stored_tank_serial_fill.dart:writeStoredTankSerial',
     'lib/features/dive_sites/data/repositories/site_repository_impl.dart:applyImportedMetadata',
     'lib/features/dive_sites/data/repositories/site_repository_impl.dart:applyLocationDetails',
+    'lib/features/dive_sites/data/repositories/site_repository_impl.dart:fillSiteAltitudeIfEmpty',
     'lib/features/dive_sites/data/repositories/site_repository_impl.dart:updateSiteAltitude',
     'lib/features/dive_sites/data/repositories/site_repository_impl.dart:updateSiteCoordinates',
     'lib/features/dive_sites/data/repositories/site_repository_impl.dart:updateSiteWithImportedMetadata',
@@ -172,6 +179,12 @@ final exempt = <String, String>{
   ])
     method:
         'written by an import, a download, a device or the app\'s own derivation, not a diver\'s edit',
+  // A site's editing sitting stamps its library edit once it has committed
+  // (issue #4527): the same stamp updateSite makes after its own write.
+  'lib/features/dive_sites/data/repositories/'
+          'site_repository_impl.dart:stampLibraryEdit':
+      'shared library bookkeeping after a site write, which sites covers '
+      'through updateSite; it changes no record of the diver\'s diving',
   // Filling an existing site from the built-in catalogue (issue #4514).
   for (final method in const ['applyFill', 'updateAnswers'])
     'lib/features/dive_sites/data/repositories/'
@@ -290,6 +303,16 @@ final exempt = <String, String>{
       'the set editor\'s "From now on" answer: logged dives keep their gear '
       'and stop naming the set (issue #4500); an agent\'s set edit leaves '
       'logged dives alone (issue #4283)',
+  'lib/features/documents/data/repositories/document_repository.dart:setDiveOwner':
+      'the dive page files documents under the dive at Save (issue #4527): '
+      'one added there was just created, as an agent creates one with '
+      'owner_kind dive; owner_kind and owner_id are create-only for an '
+      'agent, so moving an existing document between owners is done in '
+      'the app',
+  'lib/features/documents/data/repositories/document_repository.dart:setOwner':
+      'a record page (a dive, a site) files documents under the record at '
+      'Save (issue #4527, phase 2), as setDiveOwner, which calls it; '
+      'owner_kind and owner_id are create-only for an agent',
   // Planned dives.
   for (final method in const [
     'lib/features/dive_log/data/repositories/dive_repository_impl.dart:createPlannedDive',

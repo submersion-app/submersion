@@ -11,6 +11,7 @@ import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.da
 import 'package:submersion/core/services/cloud_storage/headless_cloud_provider.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/headless_file_logging.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/security/database_security_service.dart';
 import 'package:submersion/core/services/notification_service.dart';
@@ -149,12 +150,14 @@ bool backgroundWorkBlockedByDemoMode(DemoPaths paths) =>
 /// Callback for Workmanager background tasks
 @pragma('vm:entry-point')
 void callbackDispatcher() {
-  Workmanager().executeTask((task, inputData) async {
+  Future<bool> runTask(String task, Map<String, dynamic>? inputData) async {
     const log = LoggerService('BackgroundService');
-    log.info('Background task started: $task');
 
     try {
       final prefs = await SharedPreferences.getInstance();
+      // First, so everything below reaches the debug log (issue #4572).
+      await attachHeadlessFileLogging(prefs);
+      log.info('Background task started: $task');
 
       // Demo mode (issue #3708): the open database may be the sample logbook,
       // and nothing in it may be backed up or raise a reminder. Checked before
@@ -216,7 +219,9 @@ void callbackDispatcher() {
       );
       return false;
     }
-  });
+  }
+
+  Workmanager().executeTask(flushingLogs(runTask));
 }
 
 Future<void> _refreshNotifications(LoggerService log) async {

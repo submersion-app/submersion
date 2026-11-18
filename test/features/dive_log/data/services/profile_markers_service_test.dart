@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/data/services/profile_markers_service.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 void main() {
@@ -30,6 +31,46 @@ void main() {
       expect(markers, isNotEmpty);
       final types = markers.map((m) => m.type).toSet();
       expect(types, contains(ProfileMarkerType.pressureHalf));
+    });
+
+    // An Avelo Hydrotank's pressure moves with the water pumped in, so its
+    // thirds are no gas reserve (issue #4657); a pony beside it keeps its own.
+    test('draws no reserve markers for an Avelo Hydrotank', () {
+      const hydrotank = DiveTank(
+        id: 'h',
+        volume: 10,
+        startPressure: 200.0,
+        endPressure: 50.0,
+        role: TankRole.hydrotank,
+      );
+      const pony = DiveTank(
+        id: 'p',
+        volume: 3,
+        startPressure: 200.0,
+        endPressure: 50.0,
+        role: TankRole.pony,
+      );
+
+      final estimated = ProfileMarkersService.getPressureThresholdMarkers(
+        profile: profile,
+        tanks: [hydrotank, pony],
+      );
+      final fromSeries = ProfileMarkersService.getPressureThresholdMarkers(
+        profile: profile,
+        tanks: [hydrotank, pony],
+        tankPressures: {
+          for (final id in ['h', 'p'])
+            id: [
+              TankPressurePoint(tankId: id, timestamp: 0, pressure: 200),
+              TankPressurePoint(tankId: id, timestamp: 1200, pressure: 50),
+            ],
+        },
+      );
+
+      for (final markers in [estimated, fromSeries]) {
+        expect(markers.map((m) => m.tankId), isNot(contains('h')));
+        expect(markers.map((m) => m.tankId), contains('p'));
+      }
     });
 
     test('returns empty when tanks have no start pressure', () {

@@ -2,6 +2,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/planner/domain/entities/plan_series.dart';
 import 'package:submersion/features/planner/domain/entities/series_follow.dart';
+import 'package:submersion/features/planner/domain/entities/stored_series.dart';
 
 /// Edits to a repetitive series (issue #3565). Each returns a new series;
 /// none mutates the one it is given.
@@ -139,16 +140,14 @@ PlanSeries removeDive(PlanSeries series, int index) {
 PlanSeries selectDive(PlanSeries series, int index) =>
     series.copyWith(selectedIndex: index.clamp(0, series.dives.length - 1));
 
-/// Names the dive at [index]. The name is trimmed; a blank one clears it.
+/// Names the dive at [index], as [StoredSeriesDive.nameOf] keeps a name:
+/// trimmed, and a blank one clears it.
 PlanSeries renameDive(PlanSeries series, int index, String name) {
-  final dive = series.dives[index];
-  final trimmed = name.trim();
+  final kept = StoredSeriesDive.nameOf(name);
   return _replace(
     series,
     index,
-    trimmed.isEmpty
-        ? dive.copyWith(clearName: true)
-        : dive.copyWith(name: trimmed),
+    series.dives[index].copyWith(name: kept, clearName: kept == null),
   );
 }
 

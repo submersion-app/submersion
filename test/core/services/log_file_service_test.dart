@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 
@@ -162,6 +163,53 @@ void main() {
       // Should still contain the most recent entries
       final content = await logFile.readAsString();
       expect(content, contains('number 19'));
+    });
+
+    // Issue #4572: the background isolate appends to the app's file; only the
+    // app trims it, so two isolates never rewrite one file at once.
+    test('an instance that does not rotate only appends', () async {
+      final appendOnly = LogFileService(
+        logDirectory: tempDir.path,
+        maxFileSizeBytes: 200,
+        rotates: false,
+      );
+      await appendOnly.initialize();
+
+      for (var i = 0; i < 20; i++) {
+        await appendOnly.writeLine('Log message number $i with some padding');
+      }
+
+      final content = await File(
+        p.join(tempDir.path, 'submersion.log'),
+      ).readAsString();
+      expect(content.length, greaterThan(200));
+      expect(content, contains('number 0 '));
+      expect(content, contains('number 19'));
+    });
+
+    // Android can run scheduled backups for weeks without the app opening, so
+    // the background instance trims an oversized file once, before it writes,
+    // or nothing would bound the file in that time.
+    test('an instance that does not rotate trims an oversized file when it '
+        'starts', () async {
+      final logFile = File(p.join(tempDir.path, 'submersion.log'));
+      await logFile.writeAsString(
+        [for (var i = 0; i < 20; i++) 'Old line $i with some padding\n'].join(),
+      );
+      final appendOnly = LogFileService(
+        logDirectory: tempDir.path,
+        maxFileSizeBytes: 200,
+        rotates: false,
+      );
+      await appendOnly.initialize();
+
+      final trimmed = await logFile.readAsString();
+      expect(trimmed.length, lessThan(200));
+      expect(trimmed, isNot(contains('Old line 0 ')));
+      expect(trimmed, contains('Old line 19'));
+
+      await appendOnly.writeLine('New line');
+      expect(await logFile.readAsString(), '${trimmed}New line\n');
     });
 
     // The file is now written for every user, not only in debug mode (#1826),

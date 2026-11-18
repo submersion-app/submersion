@@ -27,6 +27,7 @@ import 'package:submersion/core/theme/display_zoom.dart';
 import 'package:submersion/core/theme/display_zoom_shortcuts.dart';
 import 'package:submersion/core/router/app_router.dart';
 import 'package:submersion/features/gps_log/presentation/dive_mark_action_bridge.dart';
+import 'package:submersion/features/notifications/presentation/providers/notification_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_gc_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/display_zoom_menu_channel.dart';
 import 'package:submersion/features/settings/presentation/providers/display_zoom_provider.dart';
@@ -52,6 +53,7 @@ import 'package:submersion/core/services/suunto_cloud/suunto_json_file_reader.da
 import 'package:submersion/features/import_wizard/presentation/suunto_file_import_navigation.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 import 'package:submersion/features/agent_access/presentation/providers/agent_access_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/nearby_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
@@ -197,6 +199,9 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     // through a relation. The keeper runs each cache writer while a filter
     // names its field, and leaves the engines idle otherwise (#2365, #4461).
     ref.listenManual(queryCachesKeeperProvider, (_, _) {});
+    // A delete that takes a diver's current medical clearance, on any path,
+    // hands its reminders back to the one it superseded (#4609).
+    ref.listenManual(clearanceDeleteRearmProvider, (_, _) {});
     // Nearby Bluetooth sync (issue #3731): the switch re-decides whether the
     // radio is on.
     ref.listenManual<bool>(
@@ -216,6 +221,11 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       _republishOwnedMedia();
       _convertGearFiles();
       _importSiteCatalogue();
+      unawaited(
+        sweepIdentificationOrphansAtLaunch(
+          ref.read(identificationCleanupProvider),
+        ),
+      );
       _fileShareHandler.initialize();
       _passportLinks.start();
       _buddyCardLinks.start();

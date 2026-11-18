@@ -63,7 +63,13 @@ class KeyboardListNavigator extends StatefulWidget {
     this.onExpand,
     this.onCollapse,
     this.onLoadRest,
+    this.resync,
   });
+
+  /// Told when the list refused a keyboard move (unsaved work in a split
+  /// view's pane that the diver kept, issue #4527): the cursor goes back to
+  /// [currentKey], which did not change, so the next key moves from there.
+  final Listenable? resync;
 
   /// The debug label of the list's focus node, for tests.
   static const focusDebugLabel = 'KeyboardListNavigator';
@@ -160,8 +166,23 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
   bool _pageSettling = false;
 
   @override
+  void initState() {
+    super.initState();
+    widget.resync?.addListener(_resyncCursor);
+  }
+
+  void _resyncCursor() {
+    _unconfirmedMoves.clear();
+    _cursor = widget.currentKey;
+  }
+
+  @override
   void didUpdateWidget(KeyboardListNavigator oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.resync != widget.resync) {
+      oldWidget.resync?.removeListener(_resyncCursor);
+      widget.resync?.addListener(_resyncCursor);
+    }
     final current = widget.currentKey;
     if (current == oldWidget.currentKey) return;
     final now = _now;
@@ -183,6 +204,7 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
 
   @override
   void dispose() {
+    widget.resync?.removeListener(_resyncCursor);
     _focusNode.dispose();
     super.dispose();
   }

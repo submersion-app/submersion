@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/export/models/uddf_export_options.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
@@ -20,6 +21,9 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/equipment/data/repositories/equipment_component_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
+import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
+import 'package:submersion/features/marine_life/domain/entities/species.dart';
+import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/site_types/data/repositories/site_type_repository.dart';
 import 'package:submersion/features/site_types/presentation/providers/site_type_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -166,6 +170,22 @@ class _TankPressures extends Fake implements TankPressureRepository {
   }
 }
 
+const _dragon = Species(
+  id: 'sp-1',
+  commonName: 'Blue Dragon',
+  category: SpeciesCategory.invertebrate,
+);
+
+class _Species extends Fake implements SpeciesRepository {
+  final calls = <List<String>>[];
+
+  @override
+  Future<List<Species>> getSpeciesSightedOnDives(List<String> diveIds) async {
+    calls.add(diveIds);
+    return const [_dragon];
+  }
+}
+
 void main() {
   test('fetches participants and components by default', () async {
     final buddies = _Buddies();
@@ -240,8 +260,26 @@ void main() {
     expect(extras.diveGasSwitches, _switches);
   });
 
+  test('fetches the species the dives\' sightings name (#4578)', () async {
+    final species = _Species();
+    final extras = await resolveDivesExtras(
+      _Buddies(),
+      _Components(),
+      _Roles(),
+      'diver-1',
+      ['d1'],
+      const UddfExportOptions(includeParticipants: false, includeGear: false),
+      species: species,
+    );
+    expect(species.calls, [
+      ['d1'],
+    ]);
+    expect(extras.species, [_dragon]);
+  });
+
   test('the provider reads every repository for the active diver', () async {
     final roles = _Roles();
+    final species = _Species();
     final pressures = _TankPressures();
     final dives = _Dives();
     final classification = _Classification();
@@ -255,6 +293,7 @@ void main() {
         validatedCurrentDiverIdProvider.overrideWith((ref) async => 'diver-1'),
         siteClassificationRepositoryProvider.overrideWithValue(classification),
         siteTypeRepositoryProvider.overrideWithValue(_SiteTypes()),
+        speciesRepositoryProvider.overrideWithValue(species),
       ],
     );
     addTearDown(container.dispose);
@@ -272,6 +311,7 @@ void main() {
     expect(classification.siteQueries, [
       ['d1'],
     ]);
+    expect(extras.species, [_dragon]);
   });
 
   test('empty holds nothing', () {
@@ -279,5 +319,6 @@ void main() {
     expect(extras.diveBuddies, isEmpty);
     expect(extras.components, isEmpty);
     expect(extras.diveRoles, isEmpty);
+    expect(extras.species, isEmpty);
   });
 }

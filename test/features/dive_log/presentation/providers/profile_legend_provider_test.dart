@@ -868,4 +868,55 @@ void main() {
       expect(state.decoStopSource, MetricDataSource.calculated);
     });
   });
+
+  group('buoyancy line (issue #4593)', () {
+    ProviderContainer makeContainer(AppSettings settings) {
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith(
+            (ref) => _StubSettingsNotifier(settings),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      // Keep the autoDispose provider alive between reads, like a mounted chart.
+      final sub = container.listen(profileLegendProvider, (_, _) {});
+      addTearDown(sub.close);
+      return container;
+    }
+
+    test('defaults to off', () {
+      expect(const ProfileLegendState().showBuoyancy, isFalse);
+    });
+
+    test('counts as an active overlay', () {
+      const off = ProfileLegendState();
+      expect(
+        off.copyWith(showBuoyancy: true).activeSecondaryCount,
+        off.activeSecondaryCount + 1,
+      );
+    });
+
+    test('participates in copyWith, equality and hashCode', () {
+      const off = ProfileLegendState();
+      final on = off.copyWith(showBuoyancy: true);
+      expect(on.showBuoyancy, isTrue);
+      expect(on, isNot(equals(off)));
+      expect(on.hashCode, isNot(equals(off.hashCode)));
+    });
+
+    test('toggleBuoyancy flips the state', () {
+      final c = makeContainer(const AppSettings());
+      expect(c.read(profileLegendProvider).showBuoyancy, isFalse);
+      c.read(profileLegendProvider.notifier).toggleBuoyancy();
+      expect(c.read(profileLegendProvider).showBuoyancy, isTrue);
+    });
+
+    test('seeds from defaultShowBuoyancy', () {
+      final on = makeContainer(const AppSettings(defaultShowBuoyancy: true));
+      expect(on.read(profileLegendProvider).showBuoyancy, isTrue);
+      final off = makeContainer(const AppSettings());
+      expect(off.read(profileLegendProvider).showBuoyancy, isFalse);
+    });
+  });
 }

@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
@@ -57,8 +57,12 @@ class _FakeSites extends SiteRepository {
   final wrote = <(String, double)>[];
 
   @override
-  Future<void> updateSiteAltitude(String siteId, double altitudeMeters) async {
+  Future<bool> fillSiteAltitudeIfEmpty(
+    String siteId,
+    double altitudeMeters,
+  ) async {
     wrote.add((siteId, altitudeMeters));
+    return true;
   }
 }
 
@@ -68,6 +72,15 @@ const _cardId = 'altitude';
 void main() {
   final bare = Dive(id: 'dive', dateTime: DateTime(2024, 6, 1, 10));
   final high = bare.copyWith(altitude: 1200, surfacePressure: 0.87);
+
+  // The ranges group digits by the process-wide Intl.defaultLocale, which
+  // another test may have changed. Pin English so "2,953" keeps its comma.
+  late String? previousLocale;
+  setUp(() {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en';
+  });
+  tearDown(() => Intl.defaultLocale = previousLocale);
 
   const lakeNoAltitude = DiveSite(
     id: 'site-1',
@@ -283,6 +296,40 @@ void main() {
       expect(find.text('Altitude Group 3'), findsOneWidget);
     });
 
+    // Unreadable text never reaches the sitting, which keeps the last
+    // altitude that could be read. The banner follows the row the diver
+    // reads, not that value, so it names no group while the row has none.
+    testWidgets('an unreadable altitude shows no group banner', (tester) async {
+      await pumpEditor(tester, bare.copyWith(altitude: 2500));
+      AltitudeGroupBanner banner() =>
+          tester.widget(find.byType(AltitudeGroupBanner));
+      expect(banner().group, AltitudeGroup.group3);
+
+      await tester.tap(find.text('2500 m'));
+      await tester.pump();
+      await tester.enterText(find.byType(TextFormField), '1.2.3');
+      await tester.pump();
+
+      expect(banner().group, AltitudeGroup.seaLevel);
+      expect(find.text('Altitude Group 3'), findsNothing);
+
+      await tester.enterText(find.byType(TextFormField), '1500');
+      await tester.pump();
+
+      expect(banner().group, AltitudeGroup.fromAltitude(1500));
+    });
+
+    // An imperial diver saw "300-900m (984-2953ft)": metres first, and a
+    // unit they did not choose.
+    testWidgets('the banner gives its range in the diver\'s unit', (
+      tester,
+    ) async {
+      await pumpEditor(tester, high, settings: imperial);
+
+      expect(find.text('Altitude Group 2'), findsOneWidget);
+      expect(find.text('2,953-5,906 ft'), findsOneWidget);
+    });
+
     testWidgets('at sea level the banner takes no room', (tester) async {
       await pumpEditor(tester, bare.copyWith(altitude: 100));
 
@@ -323,6 +370,45 @@ void main() {
       await controller.session!.runHeldWrites();
 
       expect(sites.wrote, [('site-1', 512.0)]);
+    });
+
+    // The lookup was made because the site had no altitude. One it gained
+    // before the sitting was saved (typed on the site page, or brought in
+    // by a sync) is newer than the lookup and is kept.
+    testWidgets('a held site altitude does not overwrite one the site gained '
+        'meanwhile', (tester) async {
+      final sites = SiteRepository();
+      await tester.runAsync(() => sites.createSite(lakeNoAltitude));
+      final controller = await pumpEditor(
+        tester,
+        bare.copyWith(site: lakeNoAltitude),
+        elevation: _FakeElevation(result: 512),
+        sites: sites,
+      );
+      expect(controller.session!.hasHeldWrites, isTrue);
+
+      await tester.runAsync(() => sites.updateSiteAltitude('site-1', 300));
+      await tester.runAsync(() => controller.session!.runHeldWrites());
+
+      final stored = await tester.runAsync(() => sites.getSiteById('site-1'));
+      expect(stored!.altitude, 300);
+    });
+
+    testWidgets('a held site altitude is written while the site still has '
+        'none', (tester) async {
+      final sites = SiteRepository();
+      await tester.runAsync(() => sites.createSite(lakeNoAltitude));
+      final controller = await pumpEditor(
+        tester,
+        bare.copyWith(site: lakeNoAltitude),
+        elevation: _FakeElevation(result: 512),
+        sites: sites,
+      );
+
+      await tester.runAsync(() => controller.session!.runHeldWrites());
+
+      final stored = await tester.runAsync(() => sites.getSiteById('site-1'));
+      expect(stored!.altitude, 512);
     });
 
     testWidgets('an altitude that is set is not looked up', (tester) async {
@@ -505,7 +591,7 @@ void main() {
       );
       expect(banner.group, AltitudeGroup.group3);
       expect(find.text('Altitude Group 3'), findsOneWidget);
-      expect(find.text('1800-2700m (5906-8858ft)'), findsOneWidget);
+      expect(find.text('1,800-2,700 m'), findsOneWidget);
     });
 
     testWidgets('unlocked, it gains the pencil and keeps its icon and info '
@@ -545,7 +631,7 @@ void main() {
       final controller = unlocked(dive);
       await pumpCard(
         tester,
-        DiveAltitudeMismatchNote(dive: dive),
+        const DiveAltitudeMismatchNote(),
         controller: controller,
       );
 
@@ -557,48 +643,28 @@ void main() {
       expect(find.byType(DiveAltitudeCardEditor), findsOneWidget);
     });
 
-    testWidgets('locked, the mismatch note goes to the edit page as before', (
+    // A locked page reads only (issue #4527, plan 11).
+    testWidgets('locked, the mismatch note has no tap and no edit icon', (
       tester,
     ) async {
-      final dive = bare.copyWith(site: lakeAt900);
       final locked = RecordEditController<Dive>(onSave: (_) async {});
       addTearDown(locked.dispose);
-      final router = GoRouter(
-        routes: [
-          GoRoute(
-            path: '/',
-            builder: (context, state) => Scaffold(
-              body: RecordEditScope<Dive>(
-                controller: locked,
-                child: RecordCardFrame<Dive>(
-                  card: diveEditCards[DiveDetailSectionId.altitude]!,
-                  child: DiveAltitudeMismatchNote(dive: dive),
-                ),
-              ),
-            ),
-          ),
-          GoRoute(
-            path: '/dives/:id/edit',
-            builder: (context, state) =>
-                Scaffold(body: Text('EDIT ${state.pathParameters['id']}')),
-          ),
-        ],
-      );
-      addTearDown(router.dispose);
       await tester.pumpWidget(
-        MaterialApp.router(
-          routerConfig: router,
+        MaterialApp(
           locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: RecordEditScope<Dive>(
+              controller: locked,
+              child: const DiveAltitudeMismatchNote(),
+            ),
+          ),
         ),
       );
 
-      await tester.tap(find.byType(ListTile));
-      await tester.pumpAndSettle();
-
-      expect(find.text('EDIT dive'), findsOneWidget);
-      expect(locked.openCardIds, isEmpty);
+      expect(tester.widget<ListTile>(find.byType(ListTile)).onTap, isNull);
+      expect(find.byIcon(Icons.edit_outlined), findsNothing);
     });
   });
 }

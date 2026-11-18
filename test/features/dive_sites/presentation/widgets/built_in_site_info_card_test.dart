@@ -62,7 +62,46 @@ Future<void> _pump(
   await tester.pumpAndSettle();
 }
 
+const _explanation =
+    'Gathered from published sources, not from a survey. Check the '
+    'position locally before you rely on it.';
+
 void main() {
+  group('a researched record', () {
+    testWidgets('is marked Not verified with its explanation', (tester) async {
+      await _pump(
+        tester,
+        BuiltInSiteInfoCard(
+          site: const CatalogueSite(
+            id: 'research_id_usat_liberty',
+            name: 'USAT Liberty',
+            source: 'research',
+            trust: CatalogueTrust.researched,
+          ),
+          actionLabel: 'Add to my sites',
+          onAction: () async {},
+        ),
+      );
+
+      expect(find.text('Not verified'), findsOneWidget);
+      expect(find.text(_explanation), findsOneWidget);
+    });
+
+    testWidgets('a verified record carries neither', (tester) async {
+      await _pump(
+        tester,
+        BuiltInSiteInfoCard(
+          site: _full,
+          actionLabel: 'Add to my sites',
+          onAction: () async {},
+        ),
+      );
+
+      expect(find.text('Not verified'), findsNothing);
+      expect(find.text(_explanation), findsNothing);
+    });
+  });
+
   testWidgets('shows what the catalogue knows about the site', (tester) async {
     await _pump(
       tester,

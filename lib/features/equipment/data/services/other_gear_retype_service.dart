@@ -1,5 +1,6 @@
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
@@ -24,9 +25,7 @@ class OtherGearRetypeService {
     final items = await _repository.getAllEquipment(diverId: diverId);
     final candidates = [for (final item in items) ?candidateFor(item)];
     return candidates..sort((a, b) {
-      final byName = a.item.name.toLowerCase().compareTo(
-        b.item.name.toLowerCase(),
-      );
+      final byName = compareTextForSort(a.item.name, b.item.name);
       return byName != 0 ? byName : a.item.id.compareTo(b.item.id);
     });
   }

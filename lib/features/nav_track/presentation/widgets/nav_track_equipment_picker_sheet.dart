@@ -153,7 +153,7 @@ class NavTrackEquipmentPickerSheet extends ConsumerWidget {
                         context,
                       ).colorScheme.surfaceContainerHighest,
                       child: Icon(
-                        equipmentTypeIcon(item.type),
+                        equipmentItemIcon(item),
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),

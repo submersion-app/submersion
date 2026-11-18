@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/planner/presentation/planner_navigation.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_log_links.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 
 /// Shown above the header of a planned dive (issue #2002): awaiting dive
 /// computer data, with the promote action for a dive made without one, and
@@ -12,10 +13,15 @@ class PlannedDiveBanner extends ConsumerWidget {
   final String diveId;
   final VoidCallback onMarkLogged;
 
+  /// Why Mark as logged is unavailable on a page that offers editing (it
+  /// acts on the whole dive at once, issue #4527), or null when it is.
+  final String? operationReason;
+
   const PlannedDiveBanner({
     super.key,
     required this.diveId,
     required this.onMarkLogged,
+    required this.operationReason,
   });
 
   @override
@@ -63,9 +69,13 @@ class PlannedDiveBanner extends ConsumerWidget {
               alignment: MainAxisAlignment.end,
               overflowAlignment: OverflowBarAlignment.end,
               children: [
-                TextButton(
+                RecordOperationButton(
+                  reason: operationReason,
                   onPressed: onMarkLogged,
-                  child: Text(context.l10n.diveLog_detail_menu_markLogged),
+                  builder: (onPressed) => TextButton(
+                    onPressed: onPressed,
+                    child: Text(context.l10n.diveLog_detail_menu_markLogged),
+                  ),
                 ),
                 if (planId != null)
                   TextButton(

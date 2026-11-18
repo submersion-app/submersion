@@ -5,7 +5,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
-import 'package:submersion/shared/widgets/record_editing/unlock_editing_flag.dart';
 
 @immutable
 class _Rec {
@@ -48,10 +47,6 @@ RecordEditController<_Rec> _controller({
 }
 
 void main() {
-  test('the switch is off unless the build turns it on', () {
-    expect(kUnlockEditing, isFalse);
-  });
-
   test('starts locked with no session', () {
     final controller = _controller();
 
@@ -328,6 +323,77 @@ void main() {
     expect(await saving, isTrue);
   });
 
+  // The page can go while its save is writing (a tap on the navigation
+  // rail): the held writes still read the sitting, so it ends only once
+  // the write has.
+  test('a controller disposed while saving keeps the sitting until the write '
+      'ends', () async {
+    final gate = Completer<void>();
+    late EditSession<_Rec> writing;
+    var disposedDuringWrite = true;
+    final controller = RecordEditController<_Rec>(
+      onSave: (session) async {
+        writing = session;
+        await gate.future;
+        disposedDuringWrite = session.isDisposed;
+      },
+    )..unlock(const _Rec());
+    controller.session!.set(_notes, 'b');
+
+    final saving = controller.save();
+    controller.dispose();
+    gate.complete();
+
+    expect(await saving, isTrue);
+    expect(disposedDuringWrite, isFalse);
+    expect(writing.isDisposed, isTrue);
+  });
+
+  // Code review: the page can go before the write starts, while the save
+  // still waits for tracked work; the sitting must still end.
+  test('a controller disposed while a save waits for tracked work ends the '
+      'sitting, and writes nothing', () async {
+    var wrote = false;
+    final controller = RecordEditController<_Rec>(
+      onSave: (_) async => wrote = true,
+    )..unlock(const _Rec());
+    final session = controller.session!..set(_notes, 'b');
+    final gate = Completer<void>();
+    session.track(gate.future);
+
+    final saving = controller.save();
+    await Future<void>.delayed(Duration.zero);
+    controller.dispose();
+    gate.complete();
+
+    expect(await saving, isFalse);
+    expect(wrote, isFalse);
+    expect(session.isDisposed, isTrue);
+  });
+
+  test(
+    'a controller disposed while a save fails ends the sitting after it',
+    () async {
+      final gate = Completer<void>();
+      late EditSession<_Rec> writing;
+      final controller = RecordEditController<_Rec>(
+        onSave: (session) async {
+          writing = session;
+          await gate.future;
+        },
+      )..unlock(const _Rec());
+      controller.session!.set(_notes, 'b');
+
+      final saving = controller.save();
+      controller.dispose();
+      expect(writing.isDisposed, isFalse);
+      gate.completeError(StateError('gone'));
+
+      expect(await saving, isFalse);
+      expect(writing.isDisposed, isTrue);
+    },
+  );
+
   test('a controller disposed while a save fails finishes quietly', () async {
     final gate = Completer<void>();
     final controller = RecordEditController<_Rec>(onSave: (_) => gate.future)
@@ -412,5 +478,97 @@ void main() {
 
     expect(built, isTrue);
     expect(found, isNull);
+  });
+
+  // Work the sitting started that a save depends on, such as the dive types
+  // a picked site adds: the save writes what it brings (issue #4527, plan 4).
+  test('save waits for tracked work before freezing', () async {
+    _Rec? saved;
+    final controller = _controller(
+      onSave: (session) async => saved = session.working,
+    )..unlock(const _Rec());
+    final session = controller.session!..set(_notes, 'typed');
+    final gate = Completer<void>();
+    session.track(gate.future.then((_) => session.set(_depth, 12)));
+
+    final saving = controller.save();
+    await Future<void>.delayed(Duration.zero);
+    expect(controller.isSaving, isTrue);
+    expect(saved, isNull);
+
+    gate.complete();
+    expect(await saving, isTrue);
+    expect(saved, const _Rec(notes: 'typed', depth: 12));
+  });
+
+  // Code review: a page that drew the sitting during the wait must hear
+  // that it is now frozen, or it shows live controls through the write.
+  test(
+    'after waiting for tracked work, listeners hear the frozen sitting',
+    () async {
+      final writing = Completer<void>();
+      final controller = _controller(onSave: (_) => writing.future)
+        ..unlock(const _Rec());
+      final session = controller.session!..set(_notes, 'typed');
+      final gate = Completer<void>();
+      session.track(gate.future);
+      final frozenWhenTold = <bool>[];
+      controller.addListener(() => frozenWhenTold.add(session.isFrozen));
+
+      final saving = controller.save();
+      await Future<void>.delayed(Duration.zero);
+      gate.complete();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(frozenWhenTold, contains(true));
+      writing.complete();
+      expect(await saving, isTrue);
+    },
+  );
+
+  // Code review: tracked work that never answers must not hold the page
+  // saving, with every input blocked, for ever.
+  test('save stops waiting for tracked work after its time limit', () async {
+    _Rec? saved;
+    final controller = RecordEditController<_Rec>(
+      onSave: (session) async => saved = session.working,
+      trackedWorkTimeout: const Duration(milliseconds: 20),
+    )..unlock(const _Rec());
+    addTearDown(controller.dispose);
+    controller.session!
+      ..set(_notes, 'typed')
+      ..track(Completer<void>().future);
+
+    expect(await controller.save(), isTrue);
+    expect(saved, const _Rec(notes: 'typed'));
+  });
+
+  test('a sitting whose only change is held is saved', () async {
+    var saves = 0;
+    final controller = _controller(onSave: (_) async => saves++)
+      ..unlock(const _Rec());
+    controller.session!.holdChange('k', cardId: 'header', write: () async {});
+
+    expect(controller.isDirty, isTrue);
+    expect(await controller.save(), isTrue);
+    expect(saves, 1);
+  });
+
+  test('a sitting ended while its save waits is not saved', () async {
+    var saves = 0;
+    // Disposed by the test itself: the page went away mid-save.
+    final controller = RecordEditController<_Rec>(onSave: (_) async => saves++)
+      ..unlock(const _Rec());
+    final session = controller.session!..set(_notes, 'typed');
+    final gate = Completer<void>();
+    session.track(gate.future);
+
+    final saving = controller.save();
+    await Future<void>.delayed(Duration.zero);
+    controller.dispose();
+    gate.complete();
+
+    expect(await saving, isFalse);
+    expect(saves, 0);
   });
 }

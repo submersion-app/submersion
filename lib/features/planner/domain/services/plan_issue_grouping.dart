@@ -18,7 +18,7 @@ class GroupedPlanIssue {
 /// Collapses issues the engine raised once per segment (gas density, END,
 /// ppO2 and so on) into one row per type and severity, keeping the
 /// first-seen order and the worst value: the deepest END, the highest
-/// density, the lowest hypoxic ppO2. A diver reads "gas density 7.3 g/L over
+/// density, the lowest hypoxic ppO2 or pressure left. A diver reads "gas density 7.3 g/L over
 /// the hard limit, 4 legs" once instead of scrolling past the same line four
 /// times.
 List<GroupedPlanIssue> groupPlanIssues(List<PlanIssue> issues) {
@@ -41,10 +41,12 @@ List<GroupedPlanIssue> groupPlanIssues(List<PlanIssue> issues) {
 }
 
 bool _isWorse(PlanIssue candidate, PlanIssue current) {
+  if (candidate.type.ranksByThreshold) {
+    return (candidate.threshold ?? 0) > (current.threshold ?? 0);
+  }
   final a = candidate.value;
   final b = current.value;
   if (a == null) return false;
   if (b == null) return true;
-  // A hypoxic ppO2 is worse the further it falls below its limit.
-  return candidate.type == PlanIssueType.hypoxicGas ? a < b : a > b;
+  return candidate.type.lowerValueIsWorse ? a < b : a > b;
 }

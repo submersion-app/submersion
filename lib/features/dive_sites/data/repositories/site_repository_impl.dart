@@ -15,6 +15,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/geocoding/place_lookup.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
 import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_parent_links.dart';
@@ -251,15 +252,60 @@ class SiteRepository {
   /// Without one the junctions are never touched: several callers pass a
   /// partially loaded site (#1187), and none of them may clear its types or
   /// tags.
+  ///
+  /// [stampLibrary] false leaves a library site's edit stamp to the caller
+  /// ([stampLibraryEdit]): an editing sitting writes the site inside its own
+  /// transaction, and stamps only once that has committed, since the stamp
+  /// goes to the shared library store, which a rollback would not undo.
   Future<void> updateSite(
     domain.DiveSite site, {
     SiteClassification? classification,
     String? actingDiverId,
+    bool stampLibrary = true,
   }) => _writeSiteUpdate(
     site,
     classification: classification,
     actingDiverId: actingDiverId,
+    stampLibrary: stampLibrary,
   );
+
+  /// Records which fields a write changed on a library site, and the
+  /// profile's private notes and rating, as [updateSite] does after its own
+  /// write (issue #2567): for a write made with `stampLibrary: false`.
+  /// [before] is the site as it was, [after] as it is now stored. Does
+  /// nothing for a site in no library.
+  Future<void> stampLibraryEdit(
+    domain.DiveSite before,
+    domain.DiveSite after, {
+    String? actingDiverId,
+  }) async {
+    if (!before.isLibrarySite) return;
+    await _stampLibraryEdit(
+      before,
+      after,
+      LibraryEditStamper.changedFields(before, after),
+      actingDiverId: actingDiverId,
+    );
+  }
+
+  Future<void> _stampLibraryEdit(
+    domain.DiveSite before,
+    domain.DiveSite site,
+    Set<String> changed, {
+    String? actingDiverId,
+  }) async {
+    await _libraryStamper.stamp(site.id, changed, actingDiverId: actingDiverId);
+    // The profile's private notes and rating: never in the library, kept
+    // for personal sync to carry to its other devices.
+    if (before.notes != site.notes || before.rating != site.rating) {
+      await _libraryStamper.keepPrivate(
+        site.id,
+        notes: site.notes,
+        rating: site.rating,
+        actingDiverId: actingDiverId,
+      );
+    }
+  }
 
   /// Update an existing site and, in the same statement, apply importer-only
   /// columns that do not flow through the [domain.DiveSite] entity.
@@ -282,6 +328,7 @@ class SiteRepository {
     DiveSitesCompanion? metadataPatch,
     SiteClassification? classification,
     String? actingDiverId,
+    bool stampLibrary = true,
   }) async {
     try {
       _log.info('Updating site: ${site.id}');
@@ -401,7 +448,7 @@ class SiteRepository {
       if (before?.waterType?.name != companion.waterType.value) {
         DerivedMetricsScheduler.instance.scheduleStaleSweep();
       }
-      if (libraryEdit && before != null) {
+      if (stampLibrary && libraryEdit && before != null) {
         final changed = LibraryEditStamper.changedFields(before, site);
         if (classification != null) {
           if (classification.typeIds.toSet() != typesBefore) {
@@ -409,21 +456,12 @@ class SiteRepository {
           }
           if (classification.tagIds.toSet() != tagsBefore) changed.add('tags');
         }
-        await _libraryStamper.stamp(
-          site.id,
+        await _stampLibraryEdit(
+          before,
+          site,
           changed,
           actingDiverId: actingDiverId,
         );
-        // The profile's private notes and rating: never in the library,
-        // kept for personal sync to carry to its other devices.
-        if (before.notes != site.notes || before.rating != site.rating) {
-          await _libraryStamper.keepPrivate(
-            site.id,
-            notes: site.notes,
-            rating: site.rating,
-            actingDiverId: actingDiverId,
-          );
-        }
       }
       SyncEventBus.notifyLocalChange();
       _log.info('Updated site: ${site.id}');
@@ -465,6 +503,30 @@ class SiteRepository {
         siteId,
         DiveSitesCompanion(altitude: Value(altitudeMeters)),
       );
+
+  /// Stores a looked-up altitude for [siteId] only while the site still has
+  /// none. A sitting holds the copy of a lookup it made because the site had
+  /// no altitude, and writes it when it is saved; an altitude the site
+  /// gained meanwhile (typed on the site page, or brought in by a sync) is
+  /// newer than that lookup and is kept (issue #4527). Returns true when the
+  /// altitude was stored: read back, as the write declines a shared library
+  /// site this profile may not edit without saying so.
+  ///
+  /// One transaction, so an altitude stored between the read and the write
+  /// (a sync landing while the lookup's answer is written) is not
+  /// overwritten.
+  Future<bool> fillSiteAltitudeIfEmpty(String siteId, double altitudeMeters) =>
+      _db.transaction(() async {
+        final row = await (_db.select(
+          _db.diveSites,
+        )..where((t) => t.id.equals(siteId))).getSingleOrNull();
+        if (row == null || row.altitude != null) return false;
+        await updateSiteAltitude(siteId, altitudeMeters);
+        final stored = await (_db.select(
+          _db.diveSites,
+        )..where((t) => t.id.equals(siteId))).getSingleOrNull();
+        return stored?.altitude == altitudeMeters;
+      });
 
   /// Stores coordinates (and optionally an altitude) for [siteId] without
   /// touching any other column.
@@ -1500,7 +1562,7 @@ class SiteRepository {
   }) async {
     try {
       return await PerfTimer.measure('searchSites', () async {
-        final needle = query.toLowerCase();
+        final needle = foldForSearch(query);
         final countryCodes = countryCodesMatching(query);
         final uncodedCountries = countryCodes.isEmpty
             ? const <String>[]
@@ -1508,12 +1570,12 @@ class SiteRepository {
         final searchQuery = _db.select(_db.diveSites)
           ..where(
             (t) => [
-              t.name.unicodeLower().contains(needle),
-              t.country.unicodeLower().contains(needle),
-              t.region.unicodeLower().contains(needle),
-              t.city.unicodeLower().contains(needle),
-              t.island.unicodeLower().contains(needle),
-              t.bodyOfWater.unicodeLower().contains(needle),
+              t.name.searchFold().contains(needle),
+              t.country.searchFold().contains(needle),
+              t.region.searchFold().contains(needle),
+              t.city.searchFold().contains(needle),
+              t.island.searchFold().contains(needle),
+              t.bodyOfWater.searchFold().contains(needle),
               if (countryCodes.isNotEmpty) t.countryCode.isIn(countryCodes),
               if (uncodedCountries.isNotEmpty) t.country.isIn(uncodedCountries),
             ].reduce((a, b) => a | b),

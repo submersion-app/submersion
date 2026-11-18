@@ -134,6 +134,14 @@ enum ProfileRightAxisMetric {
     color: Color(0xFF2E7D32),
     unitSuffix: 'min',
     category: ProfileMetricCategory.gasAnalysis,
+  ),
+  buoyancy(
+    displayName: 'Buoyancy',
+    shortName: 'Buoyancy',
+    // The buoyant side's colour; the line itself is two-coloured (#4593).
+    color: Color(0xFF00936B),
+    unitSuffix: null, // Uses unit formatter (kg or lbs)
+    category: ProfileMetricCategory.other,
   );
 
   final String displayName;

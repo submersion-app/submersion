@@ -89,6 +89,12 @@ List<double>? combineMultiTankPressures({
 }) {
   if (tankPressures.isEmpty || tanks.isEmpty) return null;
 
+  // A breathed Avelo Hydrotank's pressure rises with the water pumped in
+  // (issue #4657), and leaving it out would let a pony's curve stand in for
+  // the whole dive, near zero while the diver is on the Hydrotank. No curve,
+  // as there is no whole-dive SAC.
+  if (breathesUnmeasuredTank(tanks)) return null;
+
   // A suit inflation bottle's pressure is not breathing (issue #4243): its
   // series never joins the curve, even as an orphan of unknown volume.
   final notBreathed = {

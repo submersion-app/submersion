@@ -161,6 +161,67 @@ void main() {
     }
   });
 
+  test('every opt-in column exists on its table, an opt-in table', () {
+    final columns = _columnsByTable(db);
+    for (final entry in changeLogOptInUpdateColumns.entries) {
+      expect(changeLogOptInUpdateTables, contains(entry.key));
+      for (final column in entry.value) {
+        expect(columns[entry.key], contains(column), reason: entry.key);
+      }
+    }
+  });
+
+  // A shown column on a table whose updates are never recorded, or one the
+  // update trigger leaves out, would make an entry silently list nothing.
+  test('every shown machine column is a recordable column of an opt-in '
+      'machine table', () {
+    final columns = _columnsByTable(db);
+    for (final MapEntry(key: table, value: shown)
+        in changeLogShownMachineColumns.entries) {
+      expect(changeLogTables[table], ChangeLogClass.deleteCopyOnly);
+      expect(changeLogOptInUpdateTables, contains(table));
+      final only = changeLogOptInUpdateColumns[table];
+      for (final column in shown) {
+        final name = '$table.$column';
+        expect(columns[table], contains(column), reason: name);
+        expect(changeLogIgnoredColumns(table), isNot(contains(column)));
+        if (only != null) expect(only, contains(column), reason: name);
+      }
+    }
+    expect(
+      changeLogShownMachineColumns.keys,
+      containsAll(changeLogRevertsWithEntryOnly),
+    );
+  });
+
+  test('an opted-in operation keeps delete copies only of tables whose '
+      'opt-in is not limited to some columns', () {
+    expect(changeLogOptInKeepsDeletes('tank_pressure_series'), isTrue);
+    expect(changeLogOptInKeepsDeletes('dive_profile_series'), isTrue);
+    expect(changeLogOptInKeepsDeletes('dive_safety_findings'), isFalse);
+    expect(changeLogOptInKeepsDeletes('dives'), isFalse);
+  });
+
+  test('a sitting opts in to machine rows; a free manual label does not', () {
+    expect(
+      changeLogOptsInMachineRows(
+        label: 'record_edit:dives:dive:tanks',
+        source: 'manual',
+      ),
+      isTrue,
+    );
+    expect(
+      changeLogOptsInMachineRows(label: 'record_editor', source: 'manual'),
+      isFalse,
+    );
+    expect(changeLogOptsInMachineRows(label: null, source: 'manual'), isFalse);
+    expect(
+      changeLogOptsInMachineRows(label: 'remove_source', source: 'manual'),
+      isTrue,
+    );
+    expect(changeLogOptsInMachineRows(label: 'x', source: 'agent'), isTrue);
+  });
+
   test('a device-local settings key is filtered out of the triggers', () {
     expect(
       changeLogRowGuard('settings', 'NEW'),

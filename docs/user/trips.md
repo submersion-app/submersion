@@ -58,9 +58,17 @@ Every trip, whatever its type, has six tabs: **Overview**, **Itinerary**, **Gear
 
 Before the first day, the Overview is a preparation page: a countdown to the trip, one summary card whose rows (itinerary, plan, gear, checklist) open the other tabs, and your notes.
 
-From the first day on, it becomes the trip's story: a header with the trip's numbers, then one chapter per day, each with its own map of that day's dives and a strip showing when you dived. Days with no dives show as surface days, and planned dives appear on the days they are planned for. While the trip is under way and you have entered a return flight, a card counts down to it.
+From the first day on, it becomes the trip's story, one day at a time. A strip across the top draws the whole trip: one tile per day, with that day's dives hanging down from a line for the surface. Each shape is one dive, as deep as it went and as wide as it was long, so the deep day and the easy days show at a glance. A dashed outline is a dive whose shape is not recorded: one you have planned but not dived yet, a draft, or a dive logged without a dive computer profile, drawn from its depth and time. On a long trip the strip scrolls sideways.
 
-Both versions end with your notes, then the trip's **Documents** card, where you add and open the trip's paperwork.
+Tap a tile to see that day and nothing else: its map, a strip showing when you dived, your dive cards, then that day's photos and the species you saw. On a wide window the map sits beside the dives. Days with no dives show as surface days, and planned dives appear on the days they are planned for.
+
+The first tile, **Trip**, shows the whole trip instead: its dates and totals, a line for every day (tap one to open it), and for a liveaboard its vessel. A finished trip opens here; a trip that is under way opens on today.
+
+With a keyboard, Tab reaches the strip and the left and right arrow keys move from one tile to the next.
+
+While the trip is under way, today's page and the **Trip** page both show how full your cylinders are and, if you have entered a return flight, a card counting down to it.
+
+The preparation page and the **Trip** page both end with your notes, then the trip's **Documents** card, where you add and open the trip's paperwork.
 
 ### Itinerary
 
@@ -106,7 +114,7 @@ Check or uncheck dives, then tap **Add**. **Find matching dives** runs the same 
 
 ### From the dive
 
-You can also put a dive on a trip from the dive's own form, in its **Trip** section. When a trip's dates cover the dive, Submersion suggests it. To move many dives at once, select them in the dive list and use **Edit Selected**. See [Dive Logging](dive-logging.md).
+You can also put a dive on a trip from the dive's own page: unlock it (**Unlock to edit**) and set **Trip** on its **Details** card. When a trip's dates cover the dive, Submersion suggests it; tap **Use** to accept. To move many dives at once, select them in the dive list and use **Edit Selected**. See [Dive Logging](dive-logging.md).
 
 Imported dives that have no trip of their own join the trip whose dates cover them (see [Import & Export](import-export.md)).
 

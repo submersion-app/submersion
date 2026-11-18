@@ -22,6 +22,9 @@ enum NameTarget {
   courseId,
   diveTypeId,
 
+  /// A role the diver held on a dive (#4409).
+  diveRoleId,
+
   /// A row of any other subject a relation can point at (a certification
   /// behind `buddies.certifications`): typed refs and saved queries only.
   row;
@@ -47,6 +50,7 @@ NameTarget rowTargetFor(QuerySubject subject) => switch (subject) {
   QuerySubject.siteTypes => NameTarget.siteTypeId,
   QuerySubject.courses => NameTarget.courseId,
   QuerySubject.diveTypes => NameTarget.diveTypeId,
+  QuerySubject.diveRoles => NameTarget.diveRoleId,
   _ => NameTarget.row,
 };
 

@@ -389,6 +389,85 @@ void main() {
     expect(enqueued, [item.id]);
   });
 
+  group('prepared for a sitting on the dive (issue #4527)', () {
+    Future<Dive> diveWithProfile() async {
+      final created = await createDive(
+        entry: DateTime.utc(2026, 7, 1, 10),
+        exit: DateTime.utc(2026, 7, 1, 11),
+      );
+      await ProfileSeriesRepository().insertSeries(
+        diveId: created.id,
+        samples: [
+          for (final (ts, depth) in const [(0, 0.0), (1800, 18.0), (3600, 0.0)])
+            ProfileSample(timestamp: ts, depth: depth),
+        ],
+      );
+      // As the sitting holds it: with its profile.
+      return (await diveRepository.getDiveById(created.id))!;
+    }
+
+    test('builds and places a match, and writes nothing', () async {
+      final dive = await diveWithProfile();
+      final api = _FakeLightroomApi(
+        assets: [
+          LightroomAsset(
+            id: 'lr1',
+            subtype: 'image',
+            captureDate: DateTime.utc(2026, 7, 1, 10, 30),
+            fileName: 'reef.jpg',
+          ),
+        ],
+      );
+
+      final scan = await service(
+        api,
+      ).prepareForDive(account: account, dive: dive, state: state);
+
+      expect(scan.summary.attached, 1);
+      final row = scan.rows.single;
+      expect(row.item.id, isNotEmpty);
+      expect(row.item.diveId, dive.id);
+      expect(row.item.sourceType, MediaSourceType.serviceConnector);
+      expect(row.item.remoteAssetId, 'lr1');
+      expect(row.item.connectorAccountId, 'acct1');
+      expect(row.enrichment!.mediaId, row.item.id);
+      expect(row.enrichment!.depthMeters, 18.0);
+      // Save writes the rows and queues their uploads.
+      expect(await mediaRepository.getMediaForDive(dive.id), isEmpty);
+      expect(enqueued, isEmpty);
+    });
+
+    test('skips an asset already linked, and one outside the dive', () async {
+      final dive = await diveWithProfile();
+      await mediaRepository.createMedia(
+        domain.MediaItem(
+          id: '',
+          diveId: dive.id,
+          mediaType: domain.MediaType.photo,
+          takenAt: DateTime.utc(2026, 7, 1, 10, 20),
+          sourceType: MediaSourceType.serviceConnector,
+          connectorAccountId: account.id,
+          remoteAssetId: 'linked',
+          createdAt: DateTime.utc(2026, 7, 1),
+          updatedAt: DateTime.utc(2026, 7, 1),
+        ),
+      );
+      final api = _FakeLightroomApi(
+        assets: [
+          image('linked', DateTime.utc(2026, 7, 1, 10, 20)),
+          image('later', DateTime.utc(2026, 7, 3, 10)),
+        ],
+      );
+
+      final scan = await service(
+        api,
+      ).prepareForDive(account: account, dive: dive, state: state);
+
+      expect(scan.rows, isEmpty);
+      expect(scan.summary.skippedExisting, 1);
+    });
+  });
+
   // Issue #4539: the dive is logged at 10:00:00, its computer began at
   // 10:00:30, and the camera runs 30 seconds ahead. A shot stamped 10:31:00
   // was taken at the computer's 10:30:30, 1800 s into the profile.

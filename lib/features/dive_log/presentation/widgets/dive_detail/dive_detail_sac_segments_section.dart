@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -20,7 +19,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/collapsible_se
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_analysis_retention.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/sac_segments_no_pressure_note.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/sac_segments_view.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/sac_volume_hint.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_volume_hint.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
@@ -204,10 +203,7 @@ class DiveSacSegmentsSection extends ConsumerWidget {
             ),
             if (lacksVolume) ...[
               const SizedBox(height: 8),
-              SacVolumeHint(
-                volumeSymbol: units.volumeSymbol,
-                onTap: () => context.push('/dives/${dive.id}/edit'),
-              ),
+              DiveVolumeHint(volumeSymbol: units.volumeSymbol),
             ],
           ],
         ),

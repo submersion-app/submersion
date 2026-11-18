@@ -1,6 +1,7 @@
 import 'package:clock/clock.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -33,8 +34,7 @@ final tripGearProvider = FutureProvider.family<List<EquipmentItem>, String>((
     ids = (await equipment.visibleIdsAmong(ids, diverId)).toList();
   }
   final items = await equipment.getEquipmentByIds(ids);
-  return [...items]
-    ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+  return [...items]..sort((a, b) => compareTextForSort(a.name, b.name));
 });
 
 /// A trip an item is on: packed through `trip_equipment`, a trip gas slot,

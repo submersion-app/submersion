@@ -152,6 +152,7 @@ String attributeChoiceLabel(
   'cylinder_use_breathing_gas' => l10n.attrChoice_cylinder_use_breathing_gas,
   'cylinder_use_suit_inflation' => l10n.attrChoice_cylinder_use_suit_inflation,
   'worn_as_back' => l10n.attrChoice_worn_as_back,
+  'worn_as_twin_set' => l10n.attrChoice_worn_as_twin_set,
   'worn_as_sidemount_left' => l10n.attrChoice_worn_as_sidemount_left,
   'worn_as_sidemount_right' => l10n.attrChoice_worn_as_sidemount_right,
   'worn_as_stage' => l10n.attrChoice_worn_as_stage,

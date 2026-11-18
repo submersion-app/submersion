@@ -198,10 +198,89 @@ void main() {
     },
   );
 
-  test('the opt-in labels are the removal labels', () {
+  test('a series update in an agent operation records old and new values, '
+      'whatever its label', () async {
+    await ChangeLogScope.run(
+      db,
+      source: ChangeLogSource.agent,
+      label: 'Write Saturday to the log',
+      body: editSeries,
+    );
+    await repository.settleAll();
+
+    final events = await logEvents(db);
+    expect(events.map((e) => (e['table_name'], e['action'])), [
+      ('dive_profile_series', 'U'),
+    ]);
+    final fields = await logFields(db, events.single['id']! as int);
+    expect(fields['samples']!.$1, [1, 2, 3]);
+  });
+
+  test('a series update in a manual operation with a free label records '
+      'nothing', () async {
+    await ChangeLogScope.run(
+      db,
+      source: ChangeLogSource.manual,
+      label: 'Write Saturday to the log',
+      body: editSeries,
+    );
+    await repository.settleAll();
+
+    expect(await logEvents(db), isEmpty);
+  });
+
+  test(
+    'an agent series delete survives settling while its dive lives',
+    () async {
+      await ChangeLogScope.run(
+        db,
+        source: ChangeLogSource.agent,
+        label: 'anything',
+        body: () => db.customStatement(
+          "DELETE FROM dive_profile_series WHERE id = 'series'",
+        ),
+      );
+
+      await repository.settleAll();
+
+      expect((await logEvents(db)).map((e) => e['action']), ['D']);
+    },
+  );
+
+  test('revert restores an agent samples edit', () async {
+    String? operationId;
+    await ChangeLogScope.run(
+      db,
+      source: ChangeLogSource.agent,
+      label: 'anything',
+      body: () async {
+        operationId = ChangeLogScope.currentOperationId;
+        await editSeries();
+      },
+    );
+    await repository.settleAll();
+
+    final plan = await service.planOperation(operationId!);
+    expect(plan.hasChangedSince, isFalse);
+    await service.execute(plan);
+
+    final row = await seriesRow();
+    expect(row['samples'], [1, 2, 3]);
+    expect(row['is_primary'], 0);
+  });
+
+  test('the opt-in sources are the agent and a revert', () {
+    expect(changeLogSeriesUpdateSources, {
+      ChangeLogSource.agent.name,
+      ChangeLogSource.revert.name,
+    });
+  });
+
+  test('the opt-in labels are the removals and the planned dives update', () {
     expect(changeLogSeriesUpdateLabels, {
       ChangeLogLabels.removeSource,
       ChangeLogLabels.removeDuplicateCylinders,
+      ChangeLogLabels.updatePlannedDives,
     });
   });
 

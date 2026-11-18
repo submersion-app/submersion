@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
+import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/services/storage/cache_location.dart';
 import 'package:submersion/core/services/storage/storage_category.dart';
 import 'package:submersion/core/services/storage/storage_inventory.dart';
@@ -76,6 +77,8 @@ void main() {
       inventory.categories.firstWhere((c) => c.id == id);
 
   test('exposes exactly the fifteen documented categories', () {
+    marineLifeIdEnabled = false;
+    addTearDown(resetMarineLifeIdEnabled);
     final ids = build().categories.map((c) => c.id).toList();
 
     expect(ids, hasLength(15));
@@ -83,6 +86,46 @@ void main() {
     expect(ids, contains(StorageCategoryId.database));
     expect(ids, contains(StorageCategoryId.exports));
     expect(ids, contains(StorageCategoryId.importedFiles));
+  });
+
+  group('marine life identification (issue #4668)', () {
+    tearDown(resetMarineLifeIdEnabled);
+
+    test('its two categories are hidden while the feature is off', () {
+      marineLifeIdEnabled = false;
+      final ids = build().categories.map((c) => c.id).toList();
+      expect(ids, isNot(contains(StorageCategoryId.identificationModel)));
+      expect(ids, isNot(contains(StorageCategoryId.identificationCrops)));
+    });
+
+    test('with the feature on there are seventeen, measuring the model and '
+        'the crops', () async {
+      marineLifeIdEnabled = true;
+      final inventory = build();
+      expect(inventory.categories, hasLength(17));
+      await writeFile(
+        p.join(support.path, 'species_id', 'pack', '1', 'detector.bin'),
+        700,
+      );
+      await writeFile(
+        p.join(support.path, 'species_id', 'crops', 'm1', 'i1.jpg'),
+        30,
+      );
+      expect(
+        await categoryFor(
+          inventory,
+          StorageCategoryId.identificationModel,
+        ).measure(),
+        700,
+      );
+      expect(
+        await categoryFor(
+          inventory,
+          StorageCategoryId.identificationCrops,
+        ).measure(),
+        30,
+      );
+    });
   });
 
   test('the database category counts the file and its sidecars', () async {

@@ -62,6 +62,19 @@ void main() {
     expect(imperialBody, isNot(contains('m/min')));
   });
 
+  test("VO2 uses the diver's volume unit (#4660)", () {
+    const imperial = UnitFormatter(
+      AppSettings(volumeUnit: VolumeUnit.cubicFeet),
+    );
+    final metricBody = diveTermEntry(en, metric, DiveTerm.vo2).body;
+    final imperialBody = diveTermEntry(en, imperial, DiveTerm.vo2).body;
+
+    expect(metricBody, contains('1.30 L/min'));
+    expect(imperialBody, contains('cuft/min'));
+    expect(imperialBody, isNot(contains('L/min')));
+    expect(imperialBody, isNot(contains('litres')));
+  });
+
   test('diveTermEntries keeps order and drops duplicates', () {
     final entries = diveTermEntries(en, metric, const [
       DiveTerm.otu,

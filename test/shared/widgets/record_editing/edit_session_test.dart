@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
@@ -360,5 +362,177 @@ void main() {
 
     expect(session.valueOf(_notes), 'a');
     expect(session.isDirty, isFalse);
+  });
+
+  // A write to another table can be the diver's change in its own right: a
+  // dismissed suggestion, a location added to a site. No record value moves,
+  // yet the sitting has something to save (issue #4527, plan 4).
+  group('held changes', () {
+    test('make the session dirty and name their card', () {
+      final session = EditSession(const _Rec())
+        ..holdChange('k', cardId: 'header', write: () async {});
+
+      expect(session.isDirty, isTrue);
+      expect(session.changedCardIds, {'header'});
+      expect(session.isHeld('k'), isTrue);
+      expect(session.hasHeldChanges, isTrue);
+      expect(session.hasHeldWrites, isTrue);
+    });
+
+    test('move their card, so a closed card is redrawn', () {
+      final session = EditSession(const _Rec());
+      var told = 0;
+      session.addListener(() => told++);
+
+      session.holdChange('k', cardId: 'header', write: () async {});
+
+      expect(told, 1);
+      expect(session.revisionOf('header'), 1);
+    });
+
+    test('released, leave the session clean, and notify', () {
+      final session = EditSession(const _Rec())
+        ..holdChange('k', cardId: 'header', write: () async {});
+      var told = 0;
+      session.addListener(() => told++);
+
+      session.releaseWrite('k');
+
+      expect(session.isDirty, isFalse);
+      expect(session.changedCardIds, isEmpty);
+      expect(session.isHeld('k'), isFalse);
+      expect(told, 1);
+    });
+
+    test('run with held writes, in the order first held', () async {
+      final ran = <String>[];
+      final session = EditSession(const _Rec())
+        ..holdWrite('a', () async => ran.add('a'))
+        ..holdChange('b', cardId: 'header', write: () async => ran.add('b'))
+        ..holdWrite('c', () async => ran.add('c'));
+
+      await session.runHeldWrites();
+
+      expect(ran, ['a', 'b', 'c']);
+    });
+
+    test('none is taken or released while frozen', () {
+      final session = EditSession(const _Rec())
+        ..holdChange('k', cardId: 'header', write: () async {})
+        ..freeze();
+
+      session
+        ..holdChange('other', cardId: 'header', write: () async {})
+        ..releaseWrite('k');
+
+      expect(session.isHeld('k'), isTrue);
+      expect(session.isHeld('other'), isFalse);
+    });
+
+    test('a disposed session takes none', () {
+      final session = EditSession(const _Rec())..dispose();
+
+      session.holdChange('k', cardId: 'header', write: () async {});
+
+      expect(session.isHeld('k'), isFalse);
+    });
+
+    // Code review: a release arriving after the sitting ended must not
+    // notify a disposed session.
+    test('a disposed session releases nothing, and does not notify', () {
+      final session = EditSession(const _Rec())
+        ..holdChange('k', cardId: 'header', write: () async {})
+        ..dispose();
+
+      expect(() => session.releaseWrite('k'), returnsNormally);
+    });
+  });
+
+  test('a change held before the record runs only in its own phase', () async {
+    final ran = <String>[];
+    final s = EditSession(const _Rec())
+      ..holdChange(
+        'after',
+        cardId: 'tanks',
+        write: () async => ran.add('after'),
+      )
+      ..holdChange(
+        'before',
+        cardId: 'tanks',
+        beforeRecord: true,
+        write: () async => ran.add('before'),
+      );
+
+    expect(s.hasHeldWritesBeforeRecord, isTrue);
+    await s.runHeldWrites(beforeRecord: true);
+    expect(ran, ['before']);
+    await s.runHeldWrites();
+    expect(ran, ['before', 'after']);
+  });
+
+  test('a released held write is not run at save', () async {
+    final ran = <String>[];
+    final session = EditSession(const _Rec())
+      ..holdWrite('a', () async => ran.add('a'))
+      ..holdWrite('b', () async => ran.add('b'))
+      ..releaseWrite('a');
+
+    await session.runHeldWrites();
+
+    expect(ran, ['b']);
+    expect(session.isHeld('a'), isFalse);
+  });
+
+  test('releasing a held write does not notify', () {
+    final session = EditSession(const _Rec())..holdWrite('a', () async {});
+    var told = 0;
+    session.addListener(() => told++);
+
+    session
+      ..releaseWrite('a')
+      ..releaseWrite('never held');
+
+    expect(told, 0);
+  });
+
+  test('a note is recalled, is no change, and does not notify', () {
+    final session = EditSession(const _Rec());
+    var told = 0;
+    session.addListener(() => told++);
+
+    session.remember('siteAdded', <String>{'wreck'});
+
+    expect(session.recall<Set<String>>('siteAdded'), {'wreck'});
+    expect(session.recall<Object>('missing'), isNull);
+    expect(session.isDirty, isFalse);
+    expect(told, 0);
+  });
+
+  group('tracked work', () {
+    test('settled waits for it', () async {
+      final session = EditSession(const _Rec());
+      final gate = Completer<void>();
+      session.track(gate.future);
+
+      var done = false;
+      unawaited(session.settled().then((_) => done = true));
+      await Future<void>.delayed(Duration.zero);
+      expect(done, isFalse);
+
+      gate.complete();
+      await Future<void>.delayed(Duration.zero);
+      expect(done, isTrue);
+    });
+
+    test('an error in it does not escape settled', () async {
+      final session = EditSession(const _Rec())
+        ..track(Future<void>.error(StateError('lookup failed')));
+
+      await expectLater(session.settled(), completes);
+    });
+
+    test('with none, settled completes at once', () async {
+      await expectLater(EditSession(const _Rec()).settled(), completes);
+    });
   });
 }

@@ -72,4 +72,20 @@ void main() {
     expect(pick(const [airSuit, back], const [], 60), 'back');
     expect(pick(const [airSuit], const [], 60), isNull);
   });
+
+  test('switches in time order, two on one second ordered by id', () {
+    final late = switchTo('deco', 600);
+    final b = switchTo('back', 300);
+    final a = GasSwitch(
+      id: 'a',
+      diveId: 'dive-1',
+      timestamp: 300,
+      tankId: 'deco',
+      createdAt: DateTime(2026),
+    );
+    final given = [late, b, a];
+
+    expect(gasSwitchesInTimeOrder(given), [a, b, late]);
+    expect(given, [late, b, a]);
+  });
 }

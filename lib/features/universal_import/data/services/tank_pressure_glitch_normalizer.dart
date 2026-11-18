@@ -1,3 +1,4 @@
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/profile/tank_pressure_glitches.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/services/payload_dive_rewrite.dart';
@@ -21,6 +22,14 @@ import 'package:submersion/features/universal_import/data/services/payload_dive_
 ImportPayload replaceGlitchedTankPressures(ImportPayload payload) =>
     rewriteDives(payload, deglitchDiveTankPressures);
 
+/// The role an imported tank map carries, as a [TankRole] or its stored
+/// name; back gas when it carries none.
+TankRole _roleOf(Object? role) => switch (role) {
+  final TankRole r => r,
+  final String name => TankRole.fromName(name),
+  _ => TankRole.backGas,
+};
+
 /// [replaceGlitchedTankPressures] for one dive map.
 Map<String, dynamic> deglitchDiveTankPressures(Map<String, dynamic> dive) {
   final tanks = dive['tanks'];
@@ -42,7 +51,12 @@ Map<String, dynamic> deglitchDiveTankPressures(Map<String, dynamic> dive) {
     final readings = readingsByTank[i] ?? const <PressureReading>[];
     final start = (tank['startPressure'] as num?)?.toDouble();
     final end = (tank['endPressure'] as num?)?.toDouble();
-    final glitches = scanPressureGlitches(readings);
+    final scanned = scanPressureGlitches(readings);
+    // An Avelo Hydrotank's early pump-in or a purge is no lead-in or misread
+    // (issue #4657): only a reading no cylinder holds is a glitch on it.
+    final glitches = _roleOf(tank['role']).isUnmeasuredBreathingGas
+        ? impossibleReadingGlitchesOnly(readings, scanned)
+        : scanned;
     final deglitchedStart = replaceGlitchedEndpoint(
       reportedBar: start,
       readings: readings,

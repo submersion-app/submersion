@@ -3,10 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
+import 'package:submersion/features/media/presentation/helpers/media_hold.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/helpers/offer_site_review_after_import.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 /// Runs a Lightroom scan over [dives] with progress and summary snackbars.
 /// Writes/clears the connector's last-error state (the settings page's
@@ -52,6 +55,53 @@ Future<void> runLightroomScan(
     if (context.mounted) {
       await offerSiteReviewAfterImport(context, ref, dives.map((d) => d.id));
     }
+  } on Exception catch (e) {
+    final message = e is CloudStorageException
+        ? e.displayMessage
+        : e.toString();
+    await state.setLastError(message);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(SnackBar(content: Text(message)));
+  }
+}
+
+/// The open Media card's Lightroom scan (issue #4527): the photos the
+/// catalog holds for the dive of [session] are found and placed as a scan
+/// does, then held in it until Save, which writes them and queues their
+/// uploads, instead of linked at once. No-op when Lightroom is not
+/// connected.
+Future<void> runLightroomScanInSitting(
+  BuildContext context,
+  WidgetRef ref,
+  EditSession<Dive> session,
+) async {
+  final account = await ref.read(lightroomAccountProvider.future);
+  if (account == null || !context.mounted) return;
+  final state = ref.read(lightroomConnectorStateProvider(account.id));
+  final service = ref.read(lightroomScanServiceProvider);
+  final messenger = ScaffoldMessenger.of(context);
+  final l10n = context.l10n;
+
+  messenger.showSnackBar(
+    SnackBar(content: Text(l10n.settings_lightroom_scan_running)),
+  );
+  try {
+    final scan = await service.prepareForDive(
+      account: account,
+      dive: session.working,
+      state: state,
+    );
+    await state.setLastError(null);
+    messenger.hideCurrentSnackBar();
+    if (scan.rows.isEmpty) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.media_diveScan_noPhotosFound)),
+      );
+      return;
+    }
+    // A sitting that ended while the catalog was read takes nothing.
+    if (session.isDisposed || session.isFrozen) return;
+    addMediaToSitting(session, [for (final r in scan.rows) HeldMediaRow(r)]);
   } on Exception catch (e) {
     final message = e is CloudStorageException
         ? e.displayMessage

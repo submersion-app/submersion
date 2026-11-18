@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
 import 'package:submersion/features/safety/domain/entities/chamber_listing.dart';
 import 'package:submersion/features/safety/presentation/providers/emergency_providers.dart';
 import 'package:submersion/features/safety/presentation/widgets/chamber_tile.dart';
@@ -102,13 +103,14 @@ class _ChambersDirectoryPageState extends ConsumerState<ChambersDirectoryPage> {
 
   /// Case-insensitive substring match across name, city, and country.
   List<ChamberListing> _filter(List<ChamberListing> listings, String query) {
-    final needle = query.trim().toLowerCase();
+    final needle = foldForSearch(query.trim());
     if (needle.isEmpty) return listings;
     return listings.where((listing) {
       final chamber = listing.chamber;
-      return chamber.name.toLowerCase().contains(needle) ||
-          (chamber.city?.toLowerCase().contains(needle) ?? false) ||
-          chamber.country.toLowerCase().contains(needle);
+      return foldForSearch(chamber.name).contains(needle) ||
+          (chamber.city != null &&
+              foldForSearch(chamber.city!).contains(needle)) ||
+          foldForSearch(chamber.country).contains(needle);
     }).toList();
   }
 

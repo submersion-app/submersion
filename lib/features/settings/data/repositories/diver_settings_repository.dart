@@ -408,6 +408,10 @@ class DiverSettingsRepository {
                 defaultShowCounterdiffusion: Value(
                   s.defaultShowCounterdiffusion,
                 ),
+                defaultShowBuoyancy: Value(s.defaultShowBuoyancy),
+                favouriteDiveTypeIds: Value(
+                  _encodeDisabledRules(s.favouriteDiveTypeIds),
+                ),
                 defaultShowEstimatedTankPressure: Value(
                   s.defaultShowEstimatedTankPressure,
                 ),
@@ -451,6 +455,9 @@ class DiverSettingsRepository {
                   s.plannerBatteryReserveFraction,
                 ),
                 plannerWalkSpeedMps: Value(s.plannerWalkSpeedMps),
+                plannerScrInjectionRate: Value(s.plannerScrInjectionRate),
+                plannerScrVo2: Value(s.plannerScrVo2),
+                plannerPscrVo2: Value(s.plannerPscrVo2),
                 plannerTurnPressureRule: Value(s.plannerTurnPressureRule?.name),
                 plannerTurnPressureFraction: Value(
                   s.plannerTurnPressureFraction,
@@ -805,6 +812,10 @@ class DiverSettingsRepository {
       defaultShowGasTimeline: Value(settings.defaultShowGasTimeline),
       defaultShowO2CellMv: Value(settings.defaultShowO2CellMv),
       defaultShowCounterdiffusion: Value(settings.defaultShowCounterdiffusion),
+      defaultShowBuoyancy: Value(settings.defaultShowBuoyancy),
+      favouriteDiveTypeIds: Value(
+        _encodeDisabledRules(settings.favouriteDiveTypeIds),
+      ),
       defaultShowEstimatedTankPressure: Value(
         settings.defaultShowEstimatedTankPressure,
       ),
@@ -844,6 +855,9 @@ class DiverSettingsRepository {
         settings.plannerBatteryReserveFraction,
       ),
       plannerWalkSpeedMps: Value(settings.plannerWalkSpeedMps),
+      plannerScrInjectionRate: Value(settings.plannerScrInjectionRate),
+      plannerScrVo2: Value(settings.plannerScrVo2),
+      plannerPscrVo2: Value(settings.plannerPscrVo2),
       plannerTurnPressureRule: Value(settings.plannerTurnPressureRule?.name),
       plannerTurnPressureFraction: Value(settings.plannerTurnPressureFraction),
       plannerAirBreakO2Seconds: Value(settings.plannerAirBreakO2Seconds),
@@ -1086,6 +1100,8 @@ class DiverSettingsRepository {
       defaultShowGasTimeline: row.defaultShowGasTimeline,
       defaultShowO2CellMv: row.defaultShowO2CellMv,
       defaultShowCounterdiffusion: row.defaultShowCounterdiffusion,
+      defaultShowBuoyancy: row.defaultShowBuoyancy,
+      favouriteDiveTypeIds: _decodeDisabledRules(row.favouriteDiveTypeIds),
       defaultShowEstimatedTankPressure: row.defaultShowEstimatedTankPressure,
       defaultShowAscentRateLine: row.defaultShowAscentRateLine,
       notificationsEnabled: row.notificationsEnabled,
@@ -1119,6 +1135,9 @@ class DiverSettingsRepository {
       plannerDeviationTimeMinutes: row.plannerDeviationTimeMinutes,
       plannerBatteryReserveFraction: row.plannerBatteryReserveFraction,
       plannerWalkSpeedMps: row.plannerWalkSpeedMps,
+      plannerScrInjectionRate: row.plannerScrInjectionRate,
+      plannerScrVo2: row.plannerScrVo2,
+      plannerPscrVo2: row.plannerPscrVo2,
       plannerTurnPressureRule: domain.TurnPressureRule.values
           .asNameMap()[row.plannerTurnPressureRule],
       plannerTurnPressureFraction: row.plannerTurnPressureFraction,

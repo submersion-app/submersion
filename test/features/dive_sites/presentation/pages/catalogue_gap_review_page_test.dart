@@ -163,6 +163,42 @@ void main() {
     );
   });
 
+  testWidgets('a researched record is marked Not verified on its row', (
+    tester,
+  ) async {
+    const researched = CataloguePair(
+      site: DiveSite(
+        id: 's9',
+        name: 'Liberty',
+        location: GeoPoint(-8.27, 115.59),
+      ),
+      record: CatalogueSite(
+        id: 'research_id_usat_liberty',
+        name: 'USAT Liberty',
+        location: GeoPoint(-8.2703, 115.59),
+        maxDepth: 30,
+        source: 'research',
+        trust: CatalogueTrust.researched,
+      ),
+      kind: CataloguePairKind.nearby,
+      fields: {CatalogueGapField.depth},
+      distanceMeters: 33,
+    );
+    await pump(tester, pairs: [_saltPier, researched]);
+
+    expect(
+      find.descendant(
+        of: find.ancestor(
+          of: find.text('Liberty'),
+          matching: find.byType(ListTile),
+        ),
+        matching: find.text('Not verified'),
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Not verified'), findsOneWidget);
+  });
+
   testWidgets('a section with nothing in it is not shown', (tester) async {
     await pump(tester, pairs: [_saltPier]);
 

@@ -235,5 +235,52 @@ extension RungsFromV340 on AppDatabase {
     // 365 for #4537, 367 for #4539 and 368 for #4544.
     if (from < 369) await _assertSiteCatalogueAnswersColumns();
     if (from < 369) await reportProgress();
+
+    // v370: diver_settings.default_show_buoyancy, the default visibility of
+    // the net buoyancy line on the dive profile (issue #4593). Column only,
+    // defaulted off; re-asserted in beforeOpen.
+    if (from < 370) await _assertDefaultShowBuoyancyColumn();
+    if (from < 370) await reportProgress();
+
+    // v371: diver_settings.favourite_dive_type_ids, the dive types a diver
+    // starred to list first in the pickers (issue #4413). Nullable, no
+    // backfill, so the floor does not move; re-asserted in beforeOpen.
+    if (from < 371) await _assertFavouriteDiveTypeIdsColumn();
+    if (from < 371) await reportProgress();
+
+    // v372: buddies.country and buddies.country_code, where a buddy is from
+    // and the ISO code read from it (issue #4457). Nullable, nothing to
+    // backfill, so the floor does not move. Re-asserted in beforeOpen.
+    // Renumbered from 371, which main took for #4413.
+    if (from < 372) await _assertBuddyCountryColumns();
+    if (from < 372) await reportProgress();
+
+    // v373: dive_centers.logo, a center's logo as a square JPEG (issue
+    // #4460). Nullable, no backfill, so the floor does not move.
+    // Re-asserted in beforeOpen. Renumbered twice: main took 371 for #4413
+    // and 372 for #4457.
+    if (from < 373) await _assertDiveCenterLogoColumn();
+    if (from < 373) await reportProgress();
+
+    // v374: a plan's own SCR injection rate, SCR VO2 and pSCR VO2
+    // (dive_plans, nullable: null follows the diver) and the diver's
+    // defaults for them (diver_settings, defaulted to the figures every plan
+    // used before) (issue #4660). Columns only, no backfill, so the floor
+    // does not move. Re-asserted in beforeOpen.
+    if (from < 374) await _assertScrFlowColumns();
+    if (from < 374) await reportProgress();
+
+    // v375: media_identification_runs and media_identifications (issue
+    // #4668). Table-only rung, nothing to backfill: the app fills them as
+    // photos are analysed. Never synced. Re-asserted in beforeOpen.
+    // Renumbered from 374, which main took for #4660.
+    if (from < 375) await _assertMediaIdentificationTables();
+    if (from < 375) await reportProgress();
+
+    // v376: a video's scan progress and length on the run, and each
+    // identification's time range, path, claim and label flags (issue
+    // #4675). Columns only, no backfill.
+    if (from < 376) await _assertIdentificationVideoColumns();
+    if (from < 376) await reportProgress();
   }
 }

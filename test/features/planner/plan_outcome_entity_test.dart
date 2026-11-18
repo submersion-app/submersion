@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_tank.dart';
 import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 
@@ -26,7 +27,26 @@ void main() {
         threshold: 1.4,
       );
       expect(a, equals(b));
-      expect(a.props, hasLength(9));
+      expect(a.props, hasLength(10));
+      // The supply an SCR flow issue names (#4660) takes part in equality.
+      expect(
+        a,
+        isNot(
+          equals(
+            const PlanIssue(
+              type: PlanIssueType.ppO2High,
+              severity: PlanIssueSeverity.warning,
+              message: 'high',
+              atRuntime: 120,
+              atDepth: 40,
+              segmentId: 's1',
+              gasMix: GasMix(o2: 32),
+              value: 1.5,
+              threshold: 1.4,
+            ),
+          ),
+        ),
+      );
       expect(
         a,
         isNot(
@@ -159,7 +179,11 @@ void main() {
       expect(usage.usedPressure, isNull);
       expect(usage.turnPressureGap, isNull);
       expect(usage.minGasGap, isNull);
-      expect(usage.props, hasLength(11));
+      expect(usage.minGasAscentBar, isNull);
+      expect(usage.bottomEndPressure, isNull);
+      expect(usage.problemSolvingLiters, 0);
+      expect(usage.problemSolvingPressure, isNull);
+      expect(usage.props, hasLength(15));
     });
 
     test('usedPressure is start minus remaining, clamped to the fill', () {

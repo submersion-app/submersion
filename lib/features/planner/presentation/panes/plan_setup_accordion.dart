@@ -17,6 +17,7 @@ import 'package:submersion/features/planner/presentation/widgets/ccr_settings_se
 import 'package:submersion/features/planner/presentation/widgets/contingency_settings_section.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_setting_scope.dart';
 import 'package:submersion/features/planner/presentation/widgets/pscr_settings_section.dart';
+import 'package:submersion/features/planner/presentation/widgets/scr_settings_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
@@ -98,6 +99,8 @@ class _PlanSetupAccordionState extends ConsumerState<PlanSetupAccordion> {
       ),
       if (mode == domain.PlanMode.ccr)
         ('ccr', 'CCR', const CcrSettingsSection()),
+      if (mode == domain.PlanMode.scr)
+        ('scr', 'SCR', const ScrSettingsSection()),
       if (mode == domain.PlanMode.pscr)
         ('pscr', 'pSCR', const PscrSettingsSection()),
       (

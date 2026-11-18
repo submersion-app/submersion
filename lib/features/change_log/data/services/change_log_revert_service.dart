@@ -15,12 +15,15 @@ import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/change_log/data/services/change_log_dependencies.dart';
 import 'package:submersion/features/change_log/data/services/change_log_record_planner.dart';
+import 'package:submersion/features/change_log/data/services/change_log_revert_documents.dart';
 import 'package:submersion/features/change_log/domain/change_log_entities.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_event.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_revert_plan.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/data/repositories/trip_cylinder_links.dart';
+import 'package:submersion/features/documents/data/repositories/document_repository.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/gps_log/data/repositories/track_geometry_cache_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
@@ -41,6 +44,8 @@ class ChangeLogRevertService {
     void Function(Iterable<String> diveIds)? afterDiveWrites,
     MediaDeletionCoordinator? mediaDeletionCoordinator,
     Future<void> Function(String trackId)? evictTrackGeometry,
+    DocumentRepository? documents,
+    Future<void> Function(Iterable<Document> documents)? rearmDocuments,
   }) : _repository = repository ?? ChangeLogRepository(),
        _sync = sync ?? SyncRepository(),
        _rewrittenColumns = rewrittenColumns,
@@ -53,7 +58,11 @@ class ChangeLogRevertService {
              queue: () => MediaTransferQueueRepository(),
            ),
        _evictTrackGeometry =
-           evictTrackGeometry ?? TrackGeometryCacheRepository().invalidate;
+           evictTrackGeometry ?? TrackGeometryCacheRepository().invalidate,
+       _documents = ChangeLogRevertDocuments(
+         documents: documents,
+         rearm: rearmDocuments,
+       );
 
   static final _log = LoggerService.forClass(ChangeLogRevertService);
 
@@ -64,13 +73,24 @@ class ChangeLogRevertService {
   final void Function(Iterable<String> diveIds) _afterDiveWrites;
   final MediaDeletionCoordinator _media;
   final Future<void> Function(String trackId) _evictTrackGeometry;
+  final ChangeLogRevertDocuments _documents;
 
   AppDatabase get _db => DatabaseService.instance.database;
 
+  /// Undoing one field of the record [eventId] changed. A row of
+  /// [changeLogRevertsWithEntryOnly] goes back only with its whole entry,
+  /// so it is refused.
   Future<ChangeLogRevertPlan> planField(int eventId, String column) async {
     final event = await _repository.getEvent(eventId);
     if (event == null) {
       throw ArgumentError.value(eventId, 'eventId', 'No such change log event');
+    }
+    if (changeLogRevertsWithEntryOnly.contains(event.table)) {
+      throw ArgumentError.value(
+        eventId,
+        'eventId',
+        '${event.table} goes back only with its whole entry',
+      );
     }
     // Every save to this field in the entry, not just this one: a Revert
     // goes back to what the entry found.
@@ -95,15 +115,25 @@ class ChangeLogRevertService {
     );
   }
 
-  Future<ChangeLogRevertPlan> planOperation(String operationId) async {
+  /// Undoing the entry [operationId], or as a diver who sees only
+  /// [onlyRoots] of it ([ChangeLogOperation.shownRoots]) the rows about
+  /// those. Only a revert of every row marks the entry reverted.
+  Future<ChangeLogRevertPlan> planOperation(
+    String operationId, {
+    Set<ChangeLogRoot>? onlyRoots,
+  }) async {
     final events = await _repository.getEvents(
       operationId,
       includeMachineRows: true,
+      onlyRoots: onlyRoots,
     );
     return ChangeLogRevertPlan(
       operationId: operationId,
       items: await _plan(events),
-      wholeOperation: true,
+      wholeOperation:
+          onlyRoots == null ||
+          (await _repository.getOperation(operationId))?.eventCount ==
+              events.length,
     );
   }
 
@@ -123,17 +153,21 @@ class ChangeLogRevertService {
         if (!item.isBlocked)
           changeLogRecordKey(item.event.table, item.event.recordId),
     };
+    final edits = await _planEdits(
+      [
+        for (final event in events)
+          if (!created.contains((event.table, event.recordId))) event,
+      ],
+      dependencies: dependencies,
+      restoring: restoring,
+    );
     return [
       ...restores,
-      ...await _planEdits(
-        [
-          for (final event in events)
-            if (!created.contains((event.table, event.recordId))) event,
-        ],
-        dependencies: dependencies,
-        restoring: restoring,
+      ...edits,
+      ...await planner.planRemovals(
+        events,
+        releasing: ChangeLogRecordPlanner.releasedLinks(edits),
       ),
-      ...await planner.planRemovals(events),
     ];
   }
 
@@ -270,10 +304,15 @@ class ChangeLogRevertService {
     // Skipping a record can leave what it uses in use, and a plan can be
     // older than the data, so removals are checked again here.
     final dependencies = await ChangeLogDependencyIndex.load(_db);
-    final removals = await _plannerWith(dependencies).settleRemovals([
-      for (final item in plan.items)
-        if (item.removesRecord && applies(item)) item,
-    ]);
+    final removals = await _plannerWith(dependencies).settleRemovals(
+      [
+        for (final item in plan.items)
+          if (item.removesRecord && applies(item)) item,
+      ],
+      releasing: ChangeLogRecordPlanner.releasedLinks(
+        plan.items.where((item) => item.column != null && applies(item)),
+      ),
+    );
     final decided = [
       for (final item in plan.items)
         if (!item.removesRecord || !applies(item)) item,
@@ -289,6 +328,7 @@ class ChangeLogRevertService {
       );
     }
 
+    final removedDocuments = await _documents.removing(applying);
     final operationId = await ChangeLogScope.run(
       _db,
       source: ChangeLogSource.revert,
@@ -313,6 +353,7 @@ class ChangeLogRevertService {
           ], dependencies);
         });
         await _evictTrackGeometryOf(applying);
+        await _documents.afterRevert(applying, removedDocuments);
         await _repairRestoredMedia(applying);
         return ChangeLogScope.currentOperationId;
       },

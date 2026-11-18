@@ -1,8 +1,10 @@
+import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' show Size;
 
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
@@ -65,6 +67,42 @@ void main() {
     final data = await resolver.resolve(row('A-1'));
     expect(data, isA<BytesData>());
     expect((data as BytesData).bytes, bytes);
+  });
+
+  test('serves the original as its file where the library has one, '
+      'reading no bytes (#4699)', () async {
+    // On iOS and macOS photo_manager reads an original by exporting it to a
+    // file and reading that back; the read put a 4K video's hundreds of MB
+    // in memory to stage an upload, and held each viewer page's original.
+    final dir = Directory.systemTemp.createTempSync('gallery_origin');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File(p.join(dir.path, 'IMG_0002.MOV'))
+      ..writeAsBytesSync(bytes);
+    gallery
+      ..originalsAsFiles = true
+      ..add(
+        FakeGalleryAsset(id: 'A-2', bytes: bytes, takenAt: taken, file: file),
+      );
+
+    final data = await resolver.resolve(row('A-2', filename: 'IMG_0002.MOV'));
+
+    expect(data, isA<FileData>());
+    expect((data as FileData).file.path, file.path);
+    expect(data.servedFrom, ServedFrom.platformGallery);
+    expect(data.isPoster, isFalse);
+    expect(gallery.originBytesReads, 0);
+  });
+
+  test('where the library keeps originals as files, an export that fails '
+      'is not tried again as bytes (#4699)', () async {
+    // On iOS and macOS originBytes is the same export read back, so a
+    // second try (an iCloud download that failed) can only fail again.
+    gallery.originalsAsFiles = true;
+
+    final data = await resolver.resolve(row('A-1'));
+
+    expect(data, isA<UnavailableData>());
+    expect(gallery.originBytesReads, 0);
   });
 
   test('verify answers available through the reader', () async {

@@ -19,6 +19,8 @@ import 'package:submersion/features/media/domain/value_objects/media_source_data
 import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
 import 'package:submersion/features/media_store/data/media_cache_store.dart';
 
+import '../../../../helpers/wait_until.dart';
+
 class _BlobBookmarkStorage extends LocalBookmarkStorage {
   _BlobBookmarkStorage() : super(storage: null as dynamic);
 
@@ -133,6 +135,16 @@ void main() {
   Future<void> waitForVerdict() =>
       verdictArrived.future.timeout(const Duration(seconds: 5));
 
+  /// Time for a deferred check that should not happen to show itself.
+  ///
+  /// Only for asserting that nothing arrives. A slow runner can then make a
+  /// test pass when it should fail, never fail when it should pass. Something
+  /// that does arrive is waited for by name, with [waitForVerdict] or
+  /// [waitUntil]: the deferred check does file and database work, which has
+  /// no upper bound on a loaded machine (issue #4581).
+  Future<void> quietWindow() =>
+      Future<void>.delayed(const Duration(milliseconds: 50));
+
   test('the first request makes the thumbnail and serves it', () async {
     final source = writePng('reef.png');
 
@@ -198,7 +210,7 @@ void main() {
       await waitForVerdict();
       await resolver.resolveThumbnail(item(source), target: tile);
       await resolver.resolveThumbnail(item(source), target: tile);
-      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await quietWindow();
 
       expect(verdicts, [('m1', VerifyResult.notFound)]);
     });
@@ -217,7 +229,7 @@ void main() {
       final source = writePng('reef.png');
 
       await resolver.resolveThumbnail(item(source), target: tile);
-      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await quietWindow();
 
       expect(verdicts, isEmpty);
     });
@@ -230,8 +242,11 @@ void main() {
 
       await resolver.resolveThumbnail(media, target: tile);
       await waitForVerdict();
-      // The eviction follows the verdict on the same deferred task.
-      await Future<void>.delayed(const Duration(milliseconds: 50));
+      // The eviction follows the verdict on the same deferred task, after
+      // more file and database work, and the drop is reported once it is
+      // done. So the report is what to wait for, not a guess at how long
+      // that work takes.
+      await waitUntil(() async => dropped.isNotEmpty);
 
       expect(await thumbnails.cached(media), isNull);
       // So the stale decode of the old thumbnail leaves memory with it.
@@ -244,7 +259,7 @@ void main() {
 
       await resolver.resolveThumbnail(item(source), target: tile);
       await waitForVerdict();
-      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await quietWindow();
 
       expect(dropped, isEmpty);
     });

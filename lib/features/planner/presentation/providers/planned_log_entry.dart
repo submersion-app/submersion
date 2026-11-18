@@ -38,11 +38,21 @@ class PlannedLogEntry {
   final List<DiveProfilePoint> profile;
   final double avgDepth;
 
+  /// The semi-closed loop the plan breathes, as the log records it (issue
+  /// #4660): the loop type, the CMF injection rate (SCR only) and the VO2,
+  /// resolved against the diver's Settings. All null off a semi-closed loop.
+  final ScrType? scrType;
+  final double? scrInjectionRate;
+  final double? assumedVo2;
+
   const PlannedLogEntry({
     required this.name,
     required this.outcome,
     required this.profile,
     required this.avgDepth,
+    this.scrType,
+    this.scrInjectionRate,
+    this.assumedVo2,
   });
 
   /// The state's segments stop at the bottom; the engine computes the
@@ -54,14 +64,28 @@ class PlannedLogEntry {
     required String? name,
     required PlanEngineConfig config,
   }) {
+    final plan = divePlanFromState(result.state);
     final canvas = buildCanvasSeries(
-      plan: divePlanFromState(result.state),
+      plan: plan,
       outcome: result.outcome,
       config: config,
     );
+    final loop = config.resolvedFor(plan);
+    final mode = result.state.mode;
     return PlannedLogEntry(
       name: name,
       outcome: result.outcome,
+      scrType: switch (mode) {
+        PlanMode.scr => ScrType.cmf,
+        PlanMode.pscr => ScrType.pascr,
+        PlanMode.oc || PlanMode.ccr => null,
+      },
+      scrInjectionRate: mode == PlanMode.scr ? loop.scrInjectionRateLpm : null,
+      assumedVo2: switch (mode) {
+        PlanMode.scr => loop.scrVo2Lpm,
+        PlanMode.pscr => loop.pscrVo2Lpm,
+        PlanMode.oc || PlanMode.ccr => null,
+      },
       profile: sampledPlanProfile([
         for (final point in canvas.profile)
           DiveProfilePoint(
@@ -94,6 +118,9 @@ class PlannedLogEntry {
     setpointLow: _onLoop(state) ? state.setpointLow : null,
     setpointHigh: _onLoop(state) ? state.setpointHigh : null,
     diluentGas: _diluent(state),
+    scrType: scrType,
+    scrInjectionRate: scrInjectionRate,
+    assumedVo2: assumedVo2,
     isPlanned: true,
   );
 
@@ -120,6 +147,12 @@ class PlannedLogEntry {
         clearSetpoints: !_onLoop(state),
         diluentGas: _diluent(state),
         clearDiluentGas: _diluent(state) == null,
+        scrType: scrType,
+        clearScrType: scrType == null,
+        scrInjectionRate: scrInjectionRate,
+        clearScrInjectionRate: scrInjectionRate == null,
+        assumedVo2: assumedVo2,
+        clearAssumedVo2: assumedVo2 == null,
         tanks: _tanksFor(existing, state),
       );
 
@@ -149,6 +182,9 @@ class PlannedLogEntry {
         existing.setpointLow == (_onLoop(state) ? state.setpointLow : null) &&
         existing.setpointHigh == (_onLoop(state) ? state.setpointHigh : null) &&
         existing.diluentGas == _diluent(state) &&
+        existing.scrType == scrType &&
+        existing.scrInjectionRate == scrInjectionRate &&
+        existing.assumedVo2 == assumedVo2 &&
         _sameTanks(existing.tanks, state.tanks) &&
         _sameProfile(storedProfile, profile);
   }
@@ -219,10 +255,20 @@ bool _onLoop(DivePlanState state) => state.mode == PlanMode.ccr;
 
 /// A rebreather plan's diluent, the first diluent cylinder's mix, which the
 /// log's deco model and gas timeline breathe on the loop.
+///
+/// A semi-closed plan with no cylinder flagged still breathes its first loop
+/// leg's gas as the supply, as the engine does whatever the flag, and the
+/// log's loop model needs that supply beside the injection rate (#4660).
 GasMix? _diluent(DivePlanState state) {
   if (state.mode == PlanMode.oc) return null;
   for (final tank in state.tanks) {
     if (tank.role == TankRole.diluent) return tank.gasMix;
+  }
+  if (state.mode == PlanMode.ccr) return null;
+  for (final segment in state.segments) {
+    if ((segment.diveModeOverride ?? state.mode) != PlanMode.oc) {
+      return segment.gasMix;
+    }
   }
   return null;
 }

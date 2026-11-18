@@ -22,6 +22,9 @@ class _FakeNotificationService implements NotificationService {
   Future<Set<String>> pendingDraftReminderIds() async => pending;
 
   @override
+  Future<Map<String, String?>> pendingDocumentReminders() async => const {};
+
+  @override
   Future<int> scheduleDraftReminder({
     required String diveId,
     required DateTime at,

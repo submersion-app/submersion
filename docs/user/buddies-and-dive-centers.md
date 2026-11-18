@@ -22,6 +22,7 @@ Tap the **+** button (or **Add Buddy** on desktop) to open the edit form. The fi
 | **Name** | Required. |
 | **Email** | Optional. Tapping it on the detail page opens your mail app. |
 | **Phone** | Optional. Tapping it on the detail page opens your phone dialer. |
+| **Country** | Optional. Where the buddy is from, typed freely; it suggests countries you have already used on buddies and sites, then every country. The detail page shows its flag beside it (unless country flags are turned off in **Settings > Appearance**). You can also add Country to the buddy list's rows and table, sort by it, and search for it. |
 | **Leave out of buddy rankings** | Optional. See [Leaving a buddy out of the rankings](#leaving-a-buddy-out-of-the-rankings). |
 | **Certifications** | Tap **Add certification** for each card the buddy holds, with its agency and level. A buddy with an instructor-level certification is offered first when you pick an instructor. |
 | **Notes** | Free text. |
@@ -34,7 +35,7 @@ On iOS and Android, instead of typing a buddy in, choose **Import from Contacts*
 
 ### Assigning a buddy to a dive
 
-When you log or edit a dive, the **Buddies** section in the dive form shows a buddy picker. Tap **Add** to open a searchable list of your buddies (**Select Buddies**). For each buddy you choose a **role** on this dive, and a person can hold more than one role at once (a divemaster who is also the dive guide, for example). The built-in roles are:
+When you log a dive, or unlock one to edit it, the dive's **Buddies** card has a buddy picker. Tap **Add** to open a searchable list of your buddies (**Select Buddies**). For each buddy you choose a **role** on this dive, and a person can hold more than one role at once (a divemaster who is also the dive guide, for example). The built-in roles are:
 
 - **Buddy**
 - **Dive Guide**
@@ -50,7 +51,7 @@ When you log or edit a dive, the **Buddies** section in the dive form shows a bu
 
 Your own role on the dive is set the same way, with **Set my role** (shown as **Me** in the picker).
 
-Selected buddies appear as chips on the dive form, each showing the person's name and roles. Tap a chip to change the roles; tap the X to remove the buddy from the dive. **Add New Buddy** creates a buddy record without leaving the dive form.
+Selected buddies appear as chips on the **Buddies** card, each showing the person's name and roles. Tap a chip to change the roles; tap the X to remove the buddy from the dive. **Add New Buddy** creates a buddy record without leaving the dive.
 
 > [!TIP]
 > Set your role to **Solo** when you dive without a buddy. This keeps the field accurate for your statistics rather than leaving it blank.
@@ -149,7 +150,7 @@ Centers without saved coordinates do not appear on the map. Add latitude and lon
 
 ### Linking a dive center to a dive
 
-When logging or editing a dive, the dive form includes a **Dive Center** picker. Select one of your saved centers, or create a new one without leaving the form. The linked center appears on the dive detail page and is counted in the center's dive history.
+When logging a dive, or with a dive unlocked, its **Details** card includes a **Dive center** picker. Select one of your saved centers, or create a new one without leaving the dive. The linked center appears on the dive detail page and is counted in the center's dive history.
 
 ### Dive center statistics
 

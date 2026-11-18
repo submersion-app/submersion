@@ -56,6 +56,21 @@ Future<void> _open(WidgetTester tester) async {
 }
 
 void main() {
+  testWidgets('says it is a what-if that leaves the logged dive alone', (
+    tester,
+  ) async {
+    // "Adjust this dive" read as an edit of the logged dive, but the sheet
+    // saves nothing (issue #4585).
+    await _open(tester);
+
+    expect(find.text('What if you changed your weighting?'), findsOneWidget);
+    expect(
+      find.text('Nothing you try here changes your logged dive.'),
+      findsOneWidget,
+    );
+    expect(find.text('Adjust this dive'), findsNothing);
+  });
+
   testWidgets('adjusting lead updates the value and reset restores it', (
     tester,
   ) async {

@@ -3,22 +3,60 @@
 /// statistics, the query language and the dive overview agree on one dive.
 library;
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/features/dive_log/data/sql/gas_use_sql.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 
-const String _sidemountRolesSql = "('sidemountLeft', 'sidemountRight')";
+/// [roles] as a SQL list of their stored names, so every role list here is
+/// derived from the Dart rule it mirrors rather than spelled again.
+String _rolesSql(Iterable<TankRole> roles) =>
+    "(${roles.map((r) => "'${r.name}'").join(', ')})";
 
-/// The SQL form of `backmountRoles`: back gas or a twin set (issue #3374).
-const String _backmountRolesSql = "('backGas', 'twinSet')";
+final String _sidemountRolesSql = _rolesSql(sidemountRoles);
+
+/// The SQL form of `backmountRoles`: back gas, a twin set (issue #3374) or
+/// an Avelo Hydrotank (issue #4657).
+final String _backmountRolesSql = _rolesSql(backmountRoles);
+
+/// The roles that hold no breathing gas, the roles whose pressure is no gas
+/// used, and the breathed roles whose pressure is no gas used, each as a SQL
+/// list built once.
+final String _notBreathingRolesSql = _rolesSql(
+  TankRole.values.where((r) => !r.isBreathingGas),
+);
+final String _unmeasuredRolesSql = _rolesSql(
+  TankRole.values.where((r) => !r.pressureMeasuresGasUse),
+);
+final String _unmeasuredBreathingRolesSql = _rolesSql(
+  TankRole.values.where((r) => r.isUnmeasuredBreathingGas),
+);
 
 /// Whether the `dive_tanks` row aliased [alias] holds breathing gas: every
 /// row but a suit inflation bottle (issue #4243). The SQL form of
 /// `TankRole.isBreathingGas`. A row with no role stays in, since
 /// `NULL <> 'x'` is NULL rather than true.
 String breathingTankSql(String alias) =>
-    "($alias.tank_role IS NULL OR $alias.tank_role <> 'suitInflation')";
+    '($alias.tank_role IS NULL OR $alias.tank_role NOT IN '
+    '$_notBreathingRolesSql)';
+
+/// Whether the fall in the pressure of the `dive_tanks` row aliased [alias]
+/// is gas used: every row but a suit inflation bottle and an Avelo Hydrotank,
+/// whose pressure rises with the water pumped in (issue #4657). The SQL form
+/// of `TankRole.pressureMeasuresGasUse`. A row with no role stays in.
+String gasUseTankSql(String alias) =>
+    '($alias.tank_role IS NULL OR $alias.tank_role NOT IN '
+    '$_unmeasuredRolesSql)';
+
+/// Whether the `dives` row aliased [dive] breathes a cylinder whose pressure
+/// is not the gas used, an Avelo Hydrotank (issue #4657). Its total gas is
+/// then unknown, so it has no whole-dive SAC or RMV: the SQL form of the
+/// guard in `Dive.rmvFor`.
+String diveBreathesUnmeasuredTankSql(String dive) =>
+    '(EXISTS (SELECT 1 FROM dive_tanks unm_t '
+    'WHERE unm_t.dive_id = $dive.id AND unm_t.tank_role IN '
+    '$_unmeasuredBreathingRolesSql))';
 
 /// The consumption volume of the `dive_tanks` row aliased [tank], in
 /// liters: its own volume, else the volume of the first other cylinder of
@@ -83,7 +121,9 @@ String diveAmbientBarSql(String dive, String depth) =>
 /// volume, or one to one when a size is missing and the two are a matched
 /// pair (both sidemount, both twin set, or both back gas on the same gas). A reference that did not fall adds
 /// zero, since only breathed cylinders are summed (#3974). A suit inflation
-/// bottle is neither summed nor the reference (issue #4243). NULL on a
+/// bottle is neither summed nor the reference (issue #4243). An Avelo
+/// Hydrotank (issue #4657) is the reference but never measured, so a dive
+/// with one has NULL. NULL on a
 /// rebreather dive, whose cylinders do not drain with the diver's breathing
 /// (issue #3673), when the reference has no pressures logged, since it must
 /// join, and when nothing adds up to a drop; the caller guards the runtime
@@ -101,13 +141,16 @@ String diveSacPressureSql(String dive) {
       "sac_t.tank_role = 'backGas' AS back_gas, "
       'sac_t.o2_percent AS o2, sac_t.he_percent AS he '
       'FROM dive_tanks sac_t WHERE sac_t.dive_id = $dive.id '
-      'AND ${breathingTankSql('sac_t')} AND $where)';
+      'AND ${gasUseTankSql('sac_t')} AND $where)';
   final breathed = cylinders('sac_t.start_pressure > sac_t.end_pressure');
   final measured = cylinders(
     'sac_t.start_pressure IS NOT NULL AND sac_t.end_pressure IS NOT NULL',
   );
+  // A breathed Avelo Hydrotank leaves the dive's total gas unknown (issue
+  // #4657), whichever cylinder is the reference, as in `Dive.sac`.
   return "(CASE WHEN COALESCE($dive.dive_mode, 'oc') "
       'IN ${DiveStatsScope.rebreatherModesSql} '
+      'OR ${diveBreathesUnmeasuredTankSql(dive)} '
       'THEN NULL ELSE '
       '((SELECT NULLIF(SUM(sac_c.pressure_drop * CASE '
       'WHEN sac_c.id = sac_r.id THEN 1.0 '

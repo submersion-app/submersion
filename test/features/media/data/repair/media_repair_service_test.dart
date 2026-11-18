@@ -45,6 +45,7 @@ void main() {
   MediaRepairService service({
     Future<Uint8List> Function(String path)? createBookmark,
     Future<void> Function(String ref, Uint8List blob)? writeBookmark,
+    Future<void> Function(String ref)? deleteBookmark,
     CloudIdentifierSource? cloudIdentifiers,
     LocalAssetCacheRepository? assetCache,
     Future<String?> Function()? attachedStoreId,
@@ -53,6 +54,7 @@ void main() {
     queue: queue,
     createBookmark: createBookmark,
     writeBookmark: writeBookmark,
+    deleteBookmark: deleteBookmark,
     cloudIdentifiers: cloudIdentifiers,
     assetCache: assetCache,
     attachedStoreId: attachedStoreId ?? () async => 'store-b',
@@ -176,6 +178,187 @@ void main() {
         )
         .get();
     expect(queued.map((r) => r.read<String>('media_id')), contains('a'));
+  });
+
+  // A photo's sitting draws a held relink as the repair will write it
+  // (issue #4527): one rule, so the drawing cannot drift from the write.
+  group('relinkedToFile describes the row a file relink writes', () {
+    // Every column but the bookmark, which the repair makes at Save where
+    // the platform has bookmarks and the rule cannot name before then.
+    Object? facts(MediaItem m) => (
+      m.localPath,
+      m.platformAssetId,
+      m.sourceType,
+      m.isOrphaned,
+      m.contentHash,
+      m.contentSizeBytes,
+      m.remoteUploadedAt,
+      m.remoteThumbUploadedAt,
+      m.remoteCompressedUploadedAt,
+      m.originDeviceId,
+      m.lastVerifiedAt,
+    );
+
+    Future<void> check(RepairConfidence confidence, String contents) async {
+      final (file, hash) = await tempFile('a.jpg', contents);
+      final item = (await repo.getMediaById('a'))!;
+      final candidate = RepairCandidate.file(
+        path: file.path,
+        sizeBytes: contents.length,
+        hash: hash,
+      );
+
+      final report = await service().apply([
+        RepairProposal(
+          item: item,
+          confidence: confidence,
+          candidate: candidate,
+        ),
+      ]);
+
+      expect(report.relinked, 1);
+      final repaired = (await repo.getMediaById('a'))!;
+      expect(
+        facts(
+          relinkedToFile(
+            item,
+            candidate,
+            originDeviceId: repaired.originDeviceId,
+            verifiedAt: repaired.lastVerifiedAt,
+          ),
+        ),
+        facts(repaired),
+      );
+    }
+
+    test('the same bytes', () async {
+      final (_, hash) = await tempFile('seed.jpg', 'SAME');
+      await seed('a', contentHash: hash, stampRemote: true);
+      await check(RepairConfidence.exact, 'SAME');
+    });
+
+    test('other bytes', () async {
+      await seed('a', contentHash: 'OLD-HASH', stampRemote: true);
+      await check(RepairConfidence.edited, 'NEW BYTES');
+    });
+
+    test('a row with no hash takes the file as its own', () async {
+      await seed('a', stampRemote: true);
+      await check(RepairConfidence.exact, 'ANY');
+    });
+  });
+
+  // A relink held in a dive's sitting is applied inside the save's
+  // transaction, which a later write can still roll back (issue #4527).
+  test('applied for a sitting: the row\'s bookmark is never overwritten, and '
+      'the upload waits for the after-commit steps', () async {
+    final (file, _) = await tempFile('a.jpg', 'NEW BYTES');
+    await seed('a', contentHash: 'OLD-HASH', stampRemote: true);
+    final item = (await repo.getMediaById(
+      'a',
+    ))!.copyWith(bookmarkRef: 'old-ref');
+    final written = <String>[];
+    final afterCommit = <Future<void> Function()>[];
+
+    await service(
+      createBookmark: (path) async => Uint8List(1),
+      writeBookmark: (ref, blob) async => written.add(ref),
+    ).apply([
+      RepairProposal(
+        item: item,
+        confidence: RepairConfidence.edited,
+        candidate: RepairCandidate.file(path: file.path, sizeBytes: 9),
+      ),
+    ], afterCommit: afterCommit);
+
+    expect(written, hasLength(1));
+    expect(written.single, isNot('old-ref'));
+    expect((await repo.getMediaById('a'))!.bookmarkRef, written.single);
+    Future<int> uploads() async =>
+        (await cacheDb
+                .customSelect(
+                  "SELECT media_id FROM media_transfer_queue "
+                  "WHERE direction = 'upload'",
+                )
+                .get())
+            .length;
+    expect(await uploads(), 0);
+
+    for (final step in afterCommit) {
+      await step();
+    }
+    expect(await uploads(), 1);
+  });
+
+  // Code review (#4527): the new bookmark is written before the commit, so
+  // a write that rolls back must take it away again.
+  group('applied for a sitting, the undo for a rolled-back write', () {
+    Future<
+      ({
+        List<String> written,
+        List<String> deleted,
+        List<Future<void> Function()> onRollback,
+      })
+    >
+    relink({required bool rollsBack}) async {
+      final (file, _) = await tempFile('a.jpg', 'NEW BYTES');
+      await seed('a', contentHash: 'OLD-HASH', stampRemote: true);
+      final item = (await repo.getMediaById(
+        'a',
+      ))!.copyWith(bookmarkRef: 'old-ref');
+      final written = <String>[];
+      final deleted = <String>[];
+      final onRollback = <Future<void> Function()>[];
+      Future<void> apply() =>
+          service(
+            createBookmark: (path) async => Uint8List(1),
+            writeBookmark: (ref, blob) async => written.add(ref),
+            deleteBookmark: (ref) async => deleted.add(ref),
+          ).apply(
+            [
+              RepairProposal(
+                item: item,
+                confidence: RepairConfidence.edited,
+                candidate: RepairCandidate.file(path: file.path, sizeBytes: 9),
+              ),
+            ],
+            afterCommit: [],
+            onRollback: onRollback,
+          );
+      if (rollsBack) {
+        await expectLater(
+          db.transaction(() async {
+            await apply();
+            throw StateError('a later card failed');
+          }),
+          throwsStateError,
+        );
+      } else {
+        await db.transaction(apply);
+      }
+      return (written: written, deleted: deleted, onRollback: onRollback);
+    }
+
+    test('deletes the new bookmark, which no row refers to', () async {
+      final (:written, :deleted, :onRollback) = await relink(rollsBack: true);
+      expect((await repo.getMediaById('a'))!.bookmarkRef, isNot(written));
+
+      for (final step in onRollback) {
+        await step();
+      }
+      expect(deleted, written);
+      expect(deleted, isNot(contains('old-ref')));
+    });
+
+    test('deletes nothing when the write committed after all', () async {
+      final (:written, :deleted, :onRollback) = await relink(rollsBack: false);
+      expect((await repo.getMediaById('a'))!.bookmarkRef, written.single);
+
+      for (final step in onRollback) {
+        await step();
+      }
+      expect(deleted, isEmpty);
+    });
   });
 
   test('store proposal converts to cloud-backed', () async {

@@ -43,18 +43,10 @@ class _FailingSites extends SiteListNotifier {
 void main() {
   setUp(setUpTestDatabase);
   tearDown(tearDownTestDatabase);
-
-  testWidgets('switch off: the page has no lock', (tester) async {
-    await pumpPage(tester, unlockEditing: false);
-
-    expect(find.text('Calm'), findsOneWidget);
-    expect(find.byTooltip('Unlock to edit'), findsNothing);
-  });
-
-  testWidgets('in the list pane the page has no lock yet', (tester) async {
+  testWidgets('in the list pane the page has the lock too', (tester) async {
     await pumpPage(tester, embedded: true, size: const Size(1200, 900));
 
-    expect(find.byTooltip('Unlock to edit'), findsNothing);
+    expect(find.byTooltip('Unlock to edit'), findsOneWidget);
   });
 
   testWidgets('unlock swaps the bar and moves nothing in the page', (
@@ -301,7 +293,7 @@ void main() {
     final page = await pumpPage(tester);
     await unlock(tester);
 
-    await tester.tap(find.byKey(const ValueKey('addStrip_tags')));
+    await tapStripChip(tester, 'tags');
     await settle(tester);
     expect(find.byType(TagFormBlock), findsOneWidget);
     expect(find.byKey(const ValueKey('addStrip_tags')), findsNothing);
@@ -376,7 +368,7 @@ void main() {
   ) async {
     final page = await pumpPage(tester);
     await unlock(tester);
-    await tester.tap(find.byKey(const ValueKey('addStrip_tags')));
+    await tapStripChip(tester, 'tags');
     await settle(tester);
 
     // A sync changes the notes underneath while the diver is on Tags.
@@ -645,7 +637,7 @@ void main() {
       visible: const {DiveDetailSectionId.notes},
     );
     await unlock(tester);
-    await tester.tap(find.byKey(const ValueKey('addStrip_tags')));
+    await tapStripChip(tester, 'tags');
     await settle(tester);
 
     tester
@@ -694,7 +686,7 @@ void main() {
     await pumpPage(tester, size: const Size(700, height));
     await unlock(tester);
 
-    await tester.tap(find.byKey(const ValueKey('addStrip_tags')));
+    await tapStripChip(tester, 'tags');
     await tester.pumpAndSettle();
 
     final editor = tester.getRect(find.byType(TagFormBlock));

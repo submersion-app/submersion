@@ -13,6 +13,7 @@ import 'package:submersion/features/documents/domain/entities/document_page.dart
 import 'package:submersion/features/documents/presentation/pages/document_detail_page.dart';
 import 'package:submersion/features/documents/presentation/pages/document_edit_page.dart';
 import 'package:submersion/features/documents/presentation/pages/documents_page.dart';
+import 'package:submersion/features/documents/presentation/widgets/documents_expiring_strip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -147,6 +148,67 @@ void main() {
     expect(find.text('Personal'), findsOneWidget);
     expect(find.text('Trips'), findsOneWidget);
     expect(find.textContaining('Bonaire'), findsWidgets);
+  });
+
+  testWidgets('a clearance a later one supersedes needs no attention '
+      '(#4541)', (t) async {
+    await _save(
+      'Old clearance',
+      DocumentType.medicalClearance,
+      expiry: day(-400),
+    );
+    await _save(
+      'New clearance',
+      DocumentType.medicalClearance,
+      expiry: day(300),
+    );
+    await pump(t, '/documents');
+    expect(find.text('Old clearance'), findsOneWidget);
+    expect(find.text('Needs attention'), findsNothing);
+  });
+
+  test('due leaves out a clearance superseded among all entries, even one '
+      'a filter hides', () async {
+    DocumentListEntry entry(String id, DateTime expiry) => DocumentListEntry(
+      Document(
+        id: id,
+        diverId: 'd1',
+        owner: const DocumentOwner.personal(),
+        type: DocumentType.medicalClearance,
+        expiryDate: expiry,
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      ),
+      null,
+      0,
+    );
+    final old = entry('old', day(-400));
+    final renewal = entry('new', day(300));
+    expect(DocumentsExpiringStrip.due([old], now), hasLength(1));
+    expect(
+      DocumentsExpiringStrip.due([old], now, among: [old, renewal]),
+      isEmpty,
+    );
+  });
+
+  testWidgets('a search that hides the renewal does not bring the old '
+      'clearance back into Needs attention', (t) async {
+    await _save(
+      'Old clearance',
+      DocumentType.medicalClearance,
+      expiry: day(-400),
+    );
+    await _save(
+      'New clearance',
+      DocumentType.medicalClearance,
+      expiry: day(300),
+    );
+    await pump(t, '/documents');
+    await t.enterText(find.byType(TextField), 'old');
+    await t.pumpAndSettle();
+    expect(find.text('Old clearance'), findsOneWidget);
+    expect(find.text('New clearance'), findsNothing);
+    expect(find.text('Needs attention'), findsNothing);
   });
 
   testWidgets('search matches title, issuer and number', (t) async {

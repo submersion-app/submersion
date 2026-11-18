@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip_layout.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 
 /// One card an unlocked page is leaving out, offered in the [AddStrip].
 @immutable
@@ -10,6 +11,7 @@ class AddStripEntry {
     required this.cardId,
     required this.label,
     this.hidden = false,
+    this.changed = false,
   });
 
   final String cardId;
@@ -20,6 +22,11 @@ class AddStripEntry {
   /// True when the diver has hidden the card, as opposed to it being left
   /// out for having nothing to show.
   final bool hidden;
+
+  /// True when the sitting has changed the card: emptied and closed, it is
+  /// back on the strip, and carries the dot that marked it on the page
+  /// (issue #4527).
+  final bool changed;
 }
 
 /// The row of chips pinned under the top bar of an unlocked page, one per
@@ -87,7 +94,16 @@ class _AddChip extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final chip = ActionChip(
       key: ValueKey('addStrip_${entry.cardId}'),
-      label: Text(entry.label),
+      label: entry.changed
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(entry.label),
+                const SizedBox(width: 6),
+                const RecordChangedDot(),
+              ],
+            )
+          : Text(entry.label),
       onPressed: () => onAdd(entry.cardId),
       // Shrunk to the visible pill, so the dashed outline below traces the
       // chip and not its tap padding.

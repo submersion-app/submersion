@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
@@ -297,6 +298,79 @@ void main() {
             .map((r) => r.trackId)
             .toSet(),
         {'track-live'},
+      );
+    });
+
+    test('deletes vertical distance rows whose dive is gone', () async {
+      await addDive('dive-live');
+      for (final id in ['dive-live', 'dive-gone']) {
+        await local
+            .into(local.diveVerticalDistanceCache)
+            .insert(
+              DiveVerticalDistanceCacheCompanion.insert(
+                diveId: id,
+                meters: 20,
+                inputsHash: 'h',
+                computedAt: 0,
+              ),
+            );
+      }
+
+      final report = await sweep().run(now: now);
+
+      expect(report.verticalDistanceRows, 1);
+      expect(report.rowsDeleted, 1);
+      expect(
+        (await local.select(local.diveVerticalDistanceCache).get()).map(
+          (r) => r.diveId,
+        ),
+        ['dive-live'],
+      );
+    });
+
+    test('deletes crop embeddings whose identification is gone', () async {
+      await library
+          .into(library.mediaIdentifications)
+          .insert(
+            MediaIdentificationsCompanion.insert(
+              id: 'ident-live',
+              mediaId: 'media-1',
+              boxX: 0,
+              boxY: 0,
+              boxWidth: 0.5,
+              boxHeight: 0.5,
+              boxPixelWidth: 100,
+              boxPixelHeight: 100,
+              detectorScore: 0.9,
+              openScore: 0.4,
+              candidatesJson: '[]',
+              locationLimited: false,
+              suggestable: false,
+              decision: 'undecided',
+              createdAt: 0,
+            ),
+          );
+      for (final id in ['ident-live', 'ident-gone']) {
+        await local
+            .into(local.identificationEmbeddings)
+            .insert(
+              IdentificationEmbeddingsCompanion.insert(
+                identificationId: id,
+                classifierId: 'clf',
+                embedding: Uint8List(4),
+              ),
+            );
+      }
+
+      final report = await sweep().run(now: now);
+
+      expect(report.identificationEmbeddingRows, 1);
+      expect(report.rowsDeleted, 1);
+      expect(
+        (await local.select(local.identificationEmbeddings).get()).map(
+          (r) => r.identificationId,
+        ),
+        ['ident-live'],
       );
     });
 

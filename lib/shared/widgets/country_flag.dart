@@ -87,6 +87,20 @@ class CountryFlag extends StatelessWidget {
   }
 }
 
+/// The flag to draw for a record's [country] text and stored [code]: null
+/// when the diver hides flags, the record names no country, or no flag
+/// exists for it, so the caller shows its own fallback. Watches the flags
+/// setting, so the caller rebuilds when it changes.
+String? shownFlagCode(
+  WidgetRef ref, {
+  required String? country,
+  required String? code,
+}) {
+  if (!ref.watch(showCountryFlagsProvider)) return null;
+  final resolved = siteFlagCode(country: country, code: code);
+  return resolved != null && CountryFlag.canDraw(resolved) ? resolved : null;
+}
+
 /// A location line with the flag of [country] before it, when the diver
 /// shows flags and the country is recognised; otherwise [fallbackLeading]
 /// (or nothing) before it.
@@ -124,10 +138,8 @@ class LocationWithFlag extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final code = ref.watch(showCountryFlagsProvider)
-        ? siteFlagCode(country: country, code: countryCode)
-        : null;
-    final leading = code != null && CountryFlag.canDraw(code)
+    final code = shownFlagCode(ref, country: country, code: countryCode);
+    final leading = code != null
         ? CountryFlag(code: code, height: flagHeight)
         : fallbackLeading;
     if (leading == null) return text;

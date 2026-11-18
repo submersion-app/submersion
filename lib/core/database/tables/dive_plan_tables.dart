@@ -122,6 +122,18 @@ class DivePlans extends Table {
   RealColumn get setpointHigh => real().nullable()();
   RealColumn get setpointSwitchDepth => real().nullable()();
 
+  /// CMF semi-closed loop supply injection rate, surface L/min (issue
+  /// #4660). Null = use the diver's Settings default.
+  RealColumn get scrInjectionRate => real().nullable()();
+
+  /// Diver VO2 on a CMF semi-closed loop, surface L/min (issue #4660).
+  /// Null = use the diver's Settings default.
+  RealColumn get scrVo2 => real().nullable()();
+
+  /// Diver VO2 on a passive (pSCR) loop, surface L/min (issue #4660). Null =
+  /// use the diver's Settings default.
+  RealColumn get pscrVo2 => real().nullable()();
+
   /// Contingency config (Phase 5 UI). Null = use the diver's Settings
   /// default (issue #3552).
   RealColumn get deviationDepthDelta => real().nullable()();

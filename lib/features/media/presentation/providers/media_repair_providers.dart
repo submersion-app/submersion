@@ -191,6 +191,7 @@ final mediaRepairServiceProvider = Provider<MediaRepairService>((ref) {
     queue: ref.watch(mediaTransferQueueRepositoryProvider),
     createBookmark: platform.createBookmark,
     writeBookmark: storage.write,
+    deleteBookmark: storage.delete,
     log: ref.watch(mediaRepairLogRepositoryProvider),
     cloudIdentifiers: const PhotoManagerCloudIdentifierSource(),
     assetCache: ref.watch(localAssetCacheRepositoryProvider),

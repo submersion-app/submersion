@@ -59,6 +59,11 @@ domain.DivePlan _plan({
   gfLow: 30,
   gfHigh: 70,
   problemSolvingMinutes: 0,
+  // The 20 L/min SAC these loop cases were written against: since #4660 a
+  // pSCR loop's O2 drop reads the plan's bottom SAC (default 15 L/min, a
+  // larger drop) instead of a fixed 20 L/min. These tests pin stop
+  // placement and de-duplication, not the SAC, so they keep the old one.
+  sacBottom: 20,
   tanks: tanks,
   segments: segments ?? _segments(),
 );

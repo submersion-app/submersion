@@ -24,12 +24,52 @@ typedef RecordSave<T> = Future<void> Function(EditSession<T> session);
 /// change to what it shows (a rule that spans cards, or a value it shows
 /// that an open card owns) does notify.
 class RecordEditController<T> extends ChangeNotifier {
-  RecordEditController({required this.onSave});
+  RecordEditController({
+    required this.onSave,
+    this.trackedWorkTimeout = const Duration(seconds: 10),
+    this.invalidCards,
+    this.onStart,
+    this.reread,
+    this.creating = false,
+  });
+
+  /// Whether this controller's sittings create their record (issue #4527):
+  /// the stored record is a seed ([EditSession.isNew]). A clean sitting has
+  /// nothing to create, so [save] keeps it rather than ending it.
+  final bool creating;
+
+  /// See [creating].
+  bool get isCreating => creating;
 
   final RecordSave<T> onSave;
 
+  /// Told of each sitting as [unlock] starts it, before any card opens:
+  /// what the record's cards need before they are checked (the dive's gas
+  /// switches) is asked for here, whichever way the page was unlocked.
+  final void Function(EditSession<T> session)? onStart;
+
+  /// Reads the record as it is stored now, after a whole-record operation
+  /// ([runOperation]) has written it; null when it no longer exists.
+  final Future<T?> Function(T stored)? reread;
+
+  /// The cards whose own check fails for the sitting, in page order. Asked
+  /// of every card at [save], open or not: a value one card changes can
+  /// leave another, closed, card unable to save. Such a card is opened and
+  /// shown instead, and stays open until it passes ([closeCard]).
+  final List<String> Function(EditSession<T> session)? invalidCards;
+
+  /// How long [save] waits for work the sitting tracks
+  /// ([EditSession.track]) before it writes without it. The page takes no
+  /// input while it waits, so the wait must end.
+  final Duration trackedWorkTimeout;
+
   EditSession<T>? _session;
   bool _isSaving = false;
+
+  /// The sitting a whole-record operation has frozen while it runs, if
+  /// any. It belongs to that sitting: ending it ends the operating state.
+  EditSession<T>? _operatingOn;
+  bool _disposed = false;
   Object? _saveError;
   final Set<String> _openCardIds = {};
   final Set<String> _addedCardIds = {};
@@ -42,6 +82,9 @@ class RecordEditController<T> extends ChangeNotifier {
   Map<String, int> _toldRevisions = {};
 
   T? _layoutRecord;
+
+  /// What [layoutAnswer] was told while the layout has been held.
+  final Map<String, bool> _layoutAnswers = {};
 
   /// Fields holding text that cannot be read as a value, by card id, in the
   /// order each card first got one.
@@ -68,6 +111,12 @@ class RecordEditController<T> extends ChangeNotifier {
 
   bool get isSaving => _isSaving;
 
+  /// A whole-record operation is running ([runOperation]).
+  bool get isOperating => _operatingOn != null;
+
+  /// Saving, or running an operation: the page takes no input meanwhile.
+  bool get isBusy => _isSaving || isOperating;
+
   /// The last failed save. Cleared by the next save and by [lock].
   Object? get saveError => _saveError;
 
@@ -85,6 +134,16 @@ class RecordEditController<T> extends ChangeNotifier {
   /// would push it down the page under the diver's hands, so cards come and
   /// go only once the last editor has closed.
   T? get layoutRecord => _layoutRecord;
+
+  /// What [ask] answers about the page's layout, asked once under [key] for
+  /// as long as the layout is held ([layoutRecord]) and every time while it
+  /// is not. For what a page lays itself out from that is not on the
+  /// record, such as whether a card's own rows are empty: like a value of
+  /// the record, it must not bring a card in above an open editor.
+  bool layoutAnswer(String key, bool Function() ask) {
+    if (_layoutRecord == null) return ask();
+    return _layoutAnswers.putIfAbsent(key, ask);
+  }
 
   /// Cards holding input that cannot be read as a value, such as `1.2.3` in
   /// a number field. Such text never reaches the [session], so a card that
@@ -139,12 +198,24 @@ class RecordEditController<T> extends ChangeNotifier {
   void _requestRevealOfInvalid(String cardId) =>
       _requestReveal(cardId, fieldId: _invalidFields[cardId]?.first);
 
-  void unlock(T stored) {
+  /// Starts a sitting on [stored]. Each card of [laidOut] is open from the
+  /// first notification, brought in as [addCard] brings a card in but not
+  /// scrolled to: a new record's starter cards (issue #4527).
+  void unlock(T stored, {Iterable<String> laidOut = const []}) {
     if (isUnlocked) return;
     _toldChangedCardIds = const {};
     _toldRevisions = {};
-    _session = EditSession<T>(stored)..addListener(_onSessionChanged);
+    final session = _session = EditSession<T>(stored, isNew: creating)
+      ..addListener(_onSessionChanged);
+    for (final cardId in laidOut) {
+      _holdLayoutFor(session);
+      _addedCardIds.add(cardId);
+      _openCardIds.add(cardId);
+      _toldRevisions[cardId] = session.revisionOf(cardId);
+    }
+    // Told first, so the page shows the sitting whatever [onStart] does.
     notifyListeners();
+    onStart?.call(session);
   }
 
   /// Ends the sitting and discards whatever it held. Refused while a save
@@ -166,8 +237,12 @@ class RecordEditController<T> extends ChangeNotifier {
     _refusedForInvalidInput = false;
     _revealRequest = null;
     _layoutRecord = null;
+    _layoutAnswers.clear();
     _saveError = null;
     _isSaving = false;
+    // An operation running on the sitting carries on, but the page is no
+    // longer held for it: what it finds afterwards is not its sitting.
+    _operatingOn = null;
     _storedDuringSave = null;
     notifyListeners();
   }
@@ -175,14 +250,17 @@ class RecordEditController<T> extends ChangeNotifier {
   /// Fixes the page's layout as the first card opens. Call before the card
   /// is added to the open ones.
   void _holdLayoutFor(EditSession<T> session) {
-    if (_openCardIds.isEmpty) _layoutRecord = session.working;
+    if (_openCardIds.isEmpty) {
+      _layoutRecord = session.working;
+      _layoutAnswers.clear();
+    }
   }
 
   /// Opens [cardId]'s editor. Like every change to the cards, it is
   /// refused while a save is running.
   void openCard(String cardId) {
     final session = _session;
-    if (session == null || _isSaving) return;
+    if (session == null || isBusy) return;
     if (_openCardIds.contains(cardId)) return;
     _holdLayoutFor(session);
     _openCardIds.add(cardId);
@@ -195,9 +273,14 @@ class RecordEditController<T> extends ChangeNotifier {
   /// and is asked to show itself instead ([revealRequest]).
   void closeCard(String cardId) {
     final session = _session;
-    if (session == null || _isSaving) return;
+    if (session == null || isBusy) return;
     if (_invalidFields.containsKey(cardId)) {
       _requestRevealOfInvalid(cardId);
+      notifyListeners();
+      return;
+    }
+    if (invalidCards?.call(session).contains(cardId) ?? false) {
+      _requestReveal(cardId);
       notifyListeners();
       return;
     }
@@ -207,10 +290,26 @@ class RecordEditController<T> extends ChangeNotifier {
         _addedCardIds.remove(cardId);
     if (!wasOpen && !wasAdded) return;
     // With the last editor closed the page follows the record again.
-    if (_openCardIds.isEmpty) _layoutRecord = null;
+    if (_openCardIds.isEmpty) {
+      _layoutRecord = null;
+      _layoutAnswers.clear();
+    }
     // What was typed while it was open is drawn by this notification.
     _toldRevisions[cardId] = session.revisionOf(cardId);
     notifyListeners();
+  }
+
+  /// Opens [cardId], bringing it in as [addCard] does when the page was
+  /// leaving it out, and asks for it to be shown: a card that cannot be
+  /// saved as it stands.
+  void _openToShow(EditSession<T> session, String cardId) {
+    if (!_openCardIds.contains(cardId)) {
+      _holdLayoutFor(session);
+      _addedCardIds.add(cardId);
+      _openCardIds.add(cardId);
+      _toldRevisions[cardId] = session.revisionOf(cardId);
+    }
+    _requestReveal(cardId);
   }
 
   /// Brings in a card the page was leaving out, already open, and asks for
@@ -218,7 +317,7 @@ class RecordEditController<T> extends ChangeNotifier {
   /// the page's order, which may be below what is on screen.
   void addCard(String cardId) {
     final session = _session;
-    if (session == null || _isSaving) return;
+    if (session == null || isBusy) return;
     if (_addedCardIds.contains(cardId) && _openCardIds.contains(cardId)) {
       return;
     }
@@ -284,7 +383,7 @@ class RecordEditController<T> extends ChangeNotifier {
   /// while it ran ([storedChanged]).
   Future<bool> save() async {
     final session = _session;
-    if (session == null || _isSaving) return false;
+    if (session == null || isBusy) return false;
     _refusedForInvalidInput = false;
     if (_invalidFields.isNotEmpty) {
       _refusedForInvalidInput = true;
@@ -292,34 +391,183 @@ class RecordEditController<T> extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+    // A sitting with nothing to write ends: a value stored failing a card's
+    // check is not the diver's to fix before they can close the page.
     if (!session.isDirty) {
+      // A record being created has nothing to create yet: the page stays.
+      if (creating) return false;
       lock();
       return true;
+    }
+    final failing = invalidCards?.call(session) ?? const [];
+    if (failing.isNotEmpty) {
+      _refusedForInvalidInput = true;
+      _openToShow(session, failing.first);
+      notifyListeners();
+      return false;
     }
     _isSaving = true;
     _saveError = null;
     _storedDuringSave = null;
+    notifyListeners();
+    // Work the sitting started that the save depends on, such as the dive
+    // types a picked site adds, lands first. The page takes no input
+    // meanwhile: it reads [isSaving]. With nothing running the write starts
+    // at once, as it always has. Work that has not answered within
+    // [trackedWorkTimeout] is written without: the diver can set it again.
+    final waited = !session.isSettled;
+    if (waited) {
+      await session.settled().timeout(trackedWorkTimeout, onTimeout: () {});
+      // The page went away, or the sitting was discarded, while it waited:
+      // nothing was written, and a sitting dispose kept for the write ends.
+      if (_droppedWhileSaving(session)) return false;
+      if (!identical(_session, session)) return false;
+      // What landed meanwhile (switches read from the database, a set's
+      // cylinders) is checked as the rest was.
+      final failing = invalidCards?.call(session) ?? const [];
+      if (failing.isNotEmpty) {
+        _isSaving = false;
+        _refusedForInvalidInput = true;
+        // A record stored while it waited was kept for after the save.
+        _followStoredDuringSave(session);
+        _openToShow(session, failing.first);
+        notifyListeners();
+        return false;
+      }
+    }
     // What is written is what the diver saw when they asked for it.
     session.freeze();
-    notifyListeners();
+    // Whatever was drawn during the wait drew the sitting as it could
+    // still change: tell it that it no longer can.
+    if (waited) notifyListeners();
     try {
       await onSave(session);
     } catch (error) {
       // The page went away, or the sitting was discarded, while the write
       // was running: there is no one left to tell.
+      if (_droppedWhileSaving(session)) return false;
       if (!identical(_session, session)) return false;
       session.thaw();
       _saveError = error;
       _isSaving = false;
-      final missed = _storedDuringSave;
-      _storedDuringSave = null;
-      if (missed != null) session.rebase(missed.stored);
-      _rememberTold(session);
+      _followStoredDuringSave(session);
       notifyListeners();
       return false;
     }
+    if (_droppedWhileSaving(session)) return true;
     _endSitting();
     return true;
+  }
+
+  /// Runs a whole-record operation (delete, re-parse and the like), which
+  /// writes the record at once as its own History entry (issue #4527).
+  ///
+  /// Refused, returning false without running it, unless the page is
+  /// unlocked with nothing to save and no save or other operation running.
+  /// While it runs the sitting is frozen and the page takes no input
+  /// ([isBusy]). [operation] answers whether it wrote anything. When it did,
+  /// the record is read again ([reread]) and a fresh sitting starts on it
+  /// ([retake]), or the page locks when the record is gone. When it did not,
+  /// or throws, the sitting carries on as it was; a throw is passed on. A
+  /// read that throws after a write locks the page and is passed on too: the
+  /// sitting's copy is from before the write, and a Save from it would put
+  /// the old record back.
+  /// False also when the controller was disposed meanwhile.
+  Future<bool> runOperation(Future<bool> Function() operation) async {
+    final session = _session;
+    if (session == null || isBusy || session.isDirty || _disposed) {
+      return false;
+    }
+    _operatingOn = session;
+    session.freeze();
+    notifyListeners();
+    try {
+      final wrote = await operation();
+      if (_disposed) return false;
+      final reread = this.reread;
+      if (!wrote || reread == null || !identical(_session, session)) {
+        return true;
+      }
+      final T? fresh;
+      try {
+        fresh = await reread(session.stored);
+      } catch (_) {
+        if (!_disposed && identical(_session, session)) _endSitting();
+        rethrow;
+      }
+      if (_disposed) return false;
+      if (!identical(_session, session)) return true;
+      _operatingOn = null;
+      session.thaw();
+      if (fresh == null) {
+        _endSitting();
+      } else {
+        _restart(fresh);
+      }
+      return true;
+    } finally {
+      // Only this operation's own hold: a lock may have ended it, and a
+      // later sitting may be running an operation of its own.
+      if (identical(_operatingOn, session)) {
+        _operatingOn = null;
+        if (!session.isDisposed) session.thaw();
+        if (!_disposed) notifyListeners();
+      }
+    }
+  }
+
+  /// Starts a fresh sitting on [stored] in place of the current one, which
+  /// has nothing to save. The page stays unlocked throughout: it is never
+  /// told it locked. Refused while locked, with unsaved changes, or busy.
+  void retake(T stored) {
+    final session = _session;
+    if (session == null || session.isDirty || isBusy) return;
+    _restart(stored);
+  }
+
+  void _restart(T stored) {
+    final old = _session;
+    if (old != null) {
+      old
+        ..removeListener(_onSessionChanged)
+        ..dispose();
+    }
+    _openCardIds.clear();
+    _addedCardIds.clear();
+    _invalidFields.clear();
+    _refusedForInvalidInput = false;
+    _revealRequest = null;
+    _layoutRecord = null;
+    _layoutAnswers.clear();
+    _saveError = null;
+    _storedDuringSave = null;
+    _toldChangedCardIds = const {};
+    _toldRevisions = {};
+    final session = _session = EditSession<T>(stored, isNew: creating)
+      ..addListener(_onSessionChanged);
+    notifyListeners();
+    onStart?.call(session);
+  }
+
+  /// The sitting of a controller disposed while [session] was being
+  /// written: kept until the write ended, since its held writes read it.
+  EditSession<T>? _endsAfterSave;
+
+  /// Ends [session] if the controller was disposed while it was written.
+  bool _droppedWhileSaving(EditSession<T> session) {
+    if (!identical(_endsAfterSave, session)) return false;
+    _endsAfterSave = null;
+    session.dispose();
+    return true;
+  }
+
+  /// A save that did not go through gives the sitting the record stored
+  /// while it ran ([storedChanged]), which it could not follow then.
+  void _followStoredDuringSave(EditSession<T> session) {
+    final missed = _storedDuringSave;
+    _storedDuringSave = null;
+    if (missed != null) session.rebase(missed.stored);
+    _rememberTold(session);
   }
 
   void _dropSession(EditSession<T> session) {
@@ -331,8 +579,16 @@ class RecordEditController<T> extends ChangeNotifier {
 
   @override
   void dispose() {
+    _disposed = true;
     final session = _session;
-    if (session != null) _dropSession(session);
+    if (session != null && _isSaving) {
+      // Its write is running and still reads it: it ends when that does.
+      session.removeListener(_onSessionChanged);
+      _session = null;
+      _endsAfterSave = session;
+    } else if (session != null) {
+      _dropSession(session);
+    }
     super.dispose();
   }
 }
@@ -350,4 +606,12 @@ class RecordEditScope<T> extends InheritedNotifier<RecordEditController<T>> {
   static RecordEditController<T>? maybeOf<T>(BuildContext context) => context
       .dependOnInheritedWidgetOfExactType<RecordEditScope<T>>()
       ?.notifier;
+
+  /// The controller of the nearest scope for [T], for a widget built only on
+  /// a page that offers editing. Rebuilds the caller when it changes.
+  static RecordEditController<T> of<T>(BuildContext context) {
+    final controller = maybeOf<T>(context);
+    assert(controller != null, 'No RecordEditScope<$T> above this widget');
+    return controller!;
+  }
 }

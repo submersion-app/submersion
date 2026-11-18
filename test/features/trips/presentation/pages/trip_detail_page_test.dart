@@ -21,7 +21,9 @@ import 'package:submersion/features/trips/presentation/providers/liveaboard_prov
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
-import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_card.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_day_picker.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_page.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_trip_page.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/checklists/presentation/widgets/trip_checklists_panel.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -247,7 +249,9 @@ void main() {
     // The overview tab renders the interactive trip story. Its content is
     // covered in depth by trip_overview_tab_test.dart and the story widget
     // tests; here we only verify the page wires the story in.
-    testWidgets('overview renders the trip story day chapters', (tester) async {
+    testWidgets('overview renders the trip story, one day at a time', (
+      tester,
+    ) async {
       _setMobileTestSurfaceSize(tester);
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
@@ -290,7 +294,9 @@ void main() {
 
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
-      expect(find.byType(TripStoryDayCard), findsWidgets);
+      // A finished trip opens on its Trip page, under the day picker.
+      expect(find.byType(TripDayPicker), findsOneWidget);
+      expect(find.byType(TripStoryTripPage), findsOneWidget);
     });
 
     // Exercises the overflow-menu scan actions and the Lightroom item, which
@@ -767,6 +773,113 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text("Couldn't load the trip."), findsOneWidget);
       expect(find.textContaining('embedded-boom'), findsNothing);
+    });
+  });
+
+  group('TripDetailPage day note (#4625)', () {
+    final now = DateTime.now();
+    final pastTrip = Trip(
+      id: 'past-trip',
+      name: 'Bonaire',
+      startDate: DateTime(now.year - 1, 3, 7),
+      endDate: DateTime(now.year - 1, 3, 9),
+      createdAt: DateTime(2026, 1, 1),
+      updatedAt: DateTime(2026, 1, 1),
+    );
+
+    /// Pumps a trip already over, opens its first day from the picker, taps
+    /// Add note, and returns where the router ends up.
+    Future<String> pump(WidgetTester tester, {required bool embedded}) async {
+      _setMobileTestSurfaceSize(tester);
+      final story = buildTripStory(
+        trip: pastTrip,
+        dives: const [],
+        itineraryDays: const [],
+        mediaByDiveId: const {},
+        sightingsByDiveId: const {},
+        checklistItems: const [],
+        today: now,
+      );
+      final router = GoRouter(
+        initialLocation: embedded
+            ? '/trips?selected=${pastTrip.id}'
+            : '/trips/${pastTrip.id}',
+        routes: [
+          GoRoute(
+            path: '/trips',
+            builder: (context, state) => Scaffold(
+              body: TripDetailPage(tripId: pastTrip.id, embedded: true),
+            ),
+            routes: [
+              GoRoute(
+                path: ':id',
+                builder: (context, state) =>
+                    TripDetailPage(tripId: state.pathParameters['id']!),
+                routes: [
+                  GoRoute(
+                    path: 'edit',
+                    builder: (context, state) =>
+                        const Scaffold(body: Text('EDIT_PAGE')),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            tripWithStatsProvider(pastTrip.id).overrideWith(
+              (ref) async => TripWithStats(trip: pastTrip, diveCount: 0),
+            ),
+            diveIdsForTripProvider(
+              pastTrip.id,
+            ).overrideWith((ref) async => <String>[]),
+            tripStoryProvider(pastTrip.id).overrideWith((ref) async => story),
+            itineraryDaysProvider(
+              pastTrip.id,
+            ).overrideWith((ref) async => const []),
+            tripListNotifierProvider.overrideWith(
+              (ref) => _MockTripListNotifier([]),
+            ),
+            settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+            ..._tabOverrides(pastTrip.id),
+          ],
+          child: MaterialApp.router(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(TripDayPicker.dayTileKey(1)));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(TripStoryDayPage.editNoteKey));
+      await tester.pumpAndSettle();
+      return router.state.uri.toString();
+    }
+
+    String dayQuery() =>
+        'section=notes&noteDate=${pastTrip.startDate.year}-03-07&noteDay=1';
+
+    testWidgets('in the pane, edits the day note in the pane', (tester) async {
+      final location = await pump(tester, embedded: true);
+      expect(
+        location,
+        '/trips?selected=${pastTrip.id}&mode=edit&${dayQuery()}',
+      );
+      expect(find.text('EDIT_PAGE'), findsNothing);
+    });
+
+    testWidgets('as a page, opens the edit page at the day note', (
+      tester,
+    ) async {
+      final location = await pump(tester, embedded: false);
+      expect(location, '/trips/${pastTrip.id}/edit?${dayQuery()}');
+      expect(find.text('EDIT_PAGE'), findsOneWidget);
     });
   });
 

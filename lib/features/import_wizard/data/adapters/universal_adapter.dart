@@ -2191,6 +2191,8 @@ class UniversalAdapter implements ImportSourceAdapter {
       currencyRules: _metadataRows(payload, ImportPayload.currencyRulesKey),
       currencyPrefs: _metadataRows(payload, ImportPayload.currencyPrefsKey),
       currencyEvents: _metadataRows(payload, ImportPayload.currencyEventsKey),
+      // The species catalogue (issue #4578), metadata for the same reason.
+      species: _metadataRows(payload, ImportPayload.speciesKey),
     );
   }
 

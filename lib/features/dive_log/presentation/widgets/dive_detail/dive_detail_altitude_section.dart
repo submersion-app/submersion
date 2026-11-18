@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -14,24 +13,23 @@ import 'package:submersion/shared/widgets/record_editing/record_card_header.dart
 /// Informational note shown when the site records a meaningful altitude
 /// but the dive itself has none, so deco replay ran at sea-level pressure.
 class DiveAltitudeMismatchNote extends StatelessWidget {
-  const DiveAltitudeMismatchNote({super.key, required this.dive});
-
-  final Dive dive;
+  const DiveAltitudeMismatchNote({super.key});
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    // Unlocked, the note sits in the Altitude card's frame and opens it.
+    // Locked, it reads only (issue #4527).
+    final open = RecordCardFrameScope.maybeOf(context)?.onOpen;
     return Card(
       child: ListTile(
         leading: Icon(Icons.terrain, color: colorScheme.onSurfaceVariant),
         title: Text(context.l10n.diveLog_detail_altitudeMismatch_title),
         subtitle: Text(context.l10n.diveLog_detail_altitudeMismatch_subtitle),
-        trailing: const Icon(Icons.edit_outlined, size: 18),
-        // Unlocked, the note sits in the Altitude card's frame and opens
-        // it. Locked, it goes where it always has.
-        onTap:
-            RecordCardFrameScope.maybeOf(context)?.onOpen ??
-            () => context.push('/dives/${dive.id}/edit'),
+        trailing: open == null
+            ? null
+            : const Icon(Icons.edit_outlined, size: 18),
+        onTap: open,
       ),
     );
   }
@@ -139,15 +137,16 @@ class DiveAltitudeSection extends ConsumerWidget {
 
 /// The coloured banner naming an altitude group and its range, shared by
 /// the Altitude card and its editor. Draws nothing at sea level.
-class AltitudeGroupBanner extends StatelessWidget {
+class AltitudeGroupBanner extends ConsumerWidget {
   const AltitudeGroupBanner({super.key, required this.group});
 
   final AltitudeGroup group;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (group == AltitudeGroup.seaLevel) return const SizedBox.shrink();
 
+    final units = ref.watch(unitFormatterProvider);
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final (background, foreground, icon) = switch (group.warningLevel) {
@@ -201,7 +200,7 @@ class AltitudeGroupBanner extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  group.localizedRange(context.l10n),
+                  group.localizedRange(context.l10n, units),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: foreground.withValues(alpha: 0.8),
                   ),

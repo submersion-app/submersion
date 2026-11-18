@@ -1,19 +1,14 @@
-import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_lab/presentation/widgets/link_plan_sheet.dart';
-import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
-import '../../../../helpers/pump_until.dart';
 import '../../../../helpers/test_app.dart';
-import '../../../../helpers/test_database.dart';
 
 void main() {
   domain.DivePlanSummary summary(
@@ -138,7 +133,13 @@ void main() {
         locale: const Locale('en'),
         child: Consumer(
           builder: (context, ref, _) => TextButton(
-            onPressed: () => pickPlanAndLink(context, ref, diveId: 'dive-1'),
+            onPressed: () => showModalBottomSheet<String>(
+              context: context,
+              showDragHandle: true,
+              isScrollControlled: true,
+              useSafeArea: true,
+              builder: (_) => const LinkPlanSheet(diveId: 'dive-1'),
+            ),
             child: const Text('go'),
           ),
         ),
@@ -156,109 +157,5 @@ void main() {
     await pump(tester, const []);
 
     expect(find.text('No saved plans yet'), findsOneWidget);
-  });
-
-  group('picking', () {
-    late AppDatabase db;
-    late DivePlanRepository repository;
-
-    setUp(() async {
-      db = await setUpTestDatabase();
-      repository = DivePlanRepository();
-    });
-    tearDown(tearDownTestDatabase);
-
-    Future<void> seedDive(String id) => db
-        .into(db.dives)
-        .insert(
-          DivesCompanion(
-            id: Value(id),
-            diveDateTime: const Value(1000),
-            createdAt: const Value(1000),
-            updatedAt: const Value(1000),
-          ),
-        );
-
-    Future<void> seedPlan(String id, {String? linkedDiveId}) =>
-        repository.savePlan(
-          domain.DivePlan(
-            id: id,
-            name: 'Plan $id',
-            gfLow: 30,
-            gfHigh: 70,
-            linkedDiveId: linkedDiveId,
-            createdAt: DateTime(2026),
-            updatedAt: DateTime(2026),
-          ),
-        );
-
-    /// What the pick returned, filled when the link has landed. Waiting on
-    /// this rather than reading the plan: the write runs in a transaction the
-    /// test's frames drive, so a read awaited meanwhile would never return.
-    late List<bool> results;
-
-    Future<void> openSheet(WidgetTester tester) async {
-      results = [];
-      await tester.pumpWidget(
-        testApp(
-          overrides: [
-            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
-          ],
-          locale: const Locale('en'),
-          child: Consumer(
-            builder: (context, ref, _) => TextButton(
-              onPressed: () async => results.add(
-                await pickPlanAndLink(context, ref, diveId: 'dive-1'),
-              ),
-              child: const Text('go'),
-            ),
-          ),
-        ),
-      );
-      await tester.tap(find.text('go'));
-      await pumpUntilRealAsync(
-        tester,
-        () => find.text('Plan plan-1').evaluate().isNotEmpty,
-      );
-      await tester.pumpAndSettle();
-    }
-
-    testWidgets('picking a free plan links it', (tester) async {
-      await tester.runAsync(() async {
-        await seedDive('dive-1');
-        await seedPlan('plan-1');
-      });
-
-      await openSheet(tester);
-      await tester.tap(find.text('Plan plan-1'));
-      await pumpUntilRealAsync(tester, () => results.isNotEmpty);
-
-      expect(results, [true]);
-      final plan = await tester.runAsync(() => repository.getPlan('plan-1'));
-      expect(plan!.linkedDiveId, 'dive-1');
-    });
-
-    testWidgets('picking a linked plan confirms the move', (tester) async {
-      await tester.runAsync(() async {
-        await seedDive('dive-1');
-        await seedDive('dive-2');
-        await seedPlan('plan-1', linkedDiveId: 'dive-2');
-      });
-
-      await openSheet(tester);
-      await tester.tap(find.text('Plan plan-1'));
-      await pumpUntilRealAsync(
-        tester,
-        () => find.byType(AlertDialog).evaluate().isNotEmpty,
-      );
-      await tester.pumpAndSettle();
-      expect(find.text("Move this plan's link?"), findsOneWidget);
-
-      await tester.tap(find.text('Link'));
-      await pumpUntilRealAsync(tester, () => results.isNotEmpty);
-
-      final plan = await tester.runAsync(() => repository.getPlan('plan-1'));
-      expect(plan!.linkedDiveId, 'dive-1');
-    });
   });
 }

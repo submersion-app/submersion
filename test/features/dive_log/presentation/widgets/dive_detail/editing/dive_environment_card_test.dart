@@ -274,6 +274,20 @@ void main() {
       expect(find.text('21 °C'), findsOneWidget);
     });
 
+    // The read card shows "18 km/h"; the row showed "18.0 km/h" beside it.
+    testWidgets('a whole wind speed shows no decimals', (tester) async {
+      await pumpEditor(tester, full.copyWith(windSpeed: 5));
+
+      expect(find.text('18 km/h'), findsOneWidget);
+    });
+
+    // A wind speed with a decimal keeps it, so the row can still round it.
+    testWidgets('a wind speed with a decimal keeps it', (tester) async {
+      await pumpEditor(tester, full);
+
+      expect(find.text('14.4 km/h'), findsOneWidget);
+    });
+
     testWidgets('typing an air temperature in Fahrenheit stores Celsius', (
       tester,
     ) async {
@@ -332,6 +346,26 @@ void main() {
 
       expect(find.widgetWithText(FormRow, label), findsOneWidget);
       expect(fieldOf(label), findsNothing);
+      expect(controller.isDirty, isFalse);
+    });
+
+    // The pressure is edited on the Altitude card, so its row here leads
+    // there: the card is opened, brought in from the Add strip if the page
+    // was leaving it out, and asked to scroll into view.
+    testWidgets('the surface pressure row opens the Altitude card', (
+      tester,
+    ) async {
+      final controller = await pumpEditor(
+        tester,
+        full.copyWith(surfacePressure: 0.87),
+      );
+
+      await tester.tap(find.text('870 mbar'));
+      await tester.pump();
+
+      final altitude = diveSurfacePressureField.cardId;
+      expect(controller.openCardIds, containsAll([_cardId, altitude]));
+      expect(controller.revealRequest?.cardId, altitude);
       expect(controller.isDirty, isFalse);
     });
 
@@ -501,6 +535,37 @@ void main() {
       expect(controller.session!.working.exitMethod, EntryMethod.shore);
     });
 
+    // The direct edit belongs to the sitting, not to the editor: closing
+    // the card and opening it again does not link the two (plan 4).
+    testWidgets('an exit picked equal to the entry stays the diver\'s after '
+        'a reopen', (tester) async {
+      final stored = bare.copyWith(
+        entryMethod: EntryMethod.shore,
+        exitMethod: EntryMethod.boat,
+      );
+      final controller = await pumpEditor(tester, stored);
+      final l10n = l10nOf(tester);
+
+      await tester.tap(find.text(l10n.diveLog_edit_label_exitMethod));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(ListTile, 'Shore'));
+      await tester.pumpAndSettle();
+      await pumpEditor(
+        tester,
+        stored,
+        controller: controller,
+        showEditor: false,
+      );
+      await pumpEditor(tester, stored, controller: controller);
+      await tester.tap(find.text(l10n.diveLog_edit_label_entryMethod));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(ListTile, 'Ladder'));
+      await tester.pumpAndSettle();
+
+      expect(controller.session!.working.entryMethod, EntryMethod.ladder);
+      expect(controller.session!.working.exitMethod, EntryMethod.shore);
+    });
+
     testWidgets('picking an entry method carries a linked exit with it', (
       tester,
     ) async {
@@ -579,7 +644,7 @@ void main() {
 
         expect(find.text('Weather data loaded'), findsOneWidget);
         // 5 m/s is 18 km/h.
-        expect(find.text('18.0 km/h'), findsOneWidget);
+        expect(find.text('18 km/h'), findsOneWidget);
         expect(find.text('24 °C'), findsOneWidget);
         expect(find.text('70 %'), findsOneWidget);
         expect(find.text('1009 mbar'), findsOneWidget);

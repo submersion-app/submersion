@@ -740,6 +740,9 @@ class TripCylinderRepository {
           breathing: TankRole.fromName(
             r.readNullable<String>('tank_role'),
           ).isBreathingGas,
+          measuresGasUse: TankRole.fromName(
+            r.readNullable<String>('tank_role'),
+          ).pressureMeasuresGasUse,
         ),
     ];
   }

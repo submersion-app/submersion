@@ -8,6 +8,7 @@ import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
 import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart'
     as domain;
@@ -102,7 +103,7 @@ class DiveCenterRepository {
     String query, {
     String? diverId,
   }) async {
-    final searchTerm = '%${query.toLowerCase()}%';
+    final searchTerm = '%${foldForSearch(query)}%';
     final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
     final variables = [
       Variable.withString(searchTerm),
@@ -113,9 +114,9 @@ class DiveCenterRepository {
 
     final results = await _db.customSelect('''
       SELECT * FROM dive_centers
-      WHERE (unicode_lower(name) LIKE ?
-         OR unicode_lower(city) LIKE ?
-         OR unicode_lower(country) LIKE ?)
+      WHERE (search_fold(name) LIKE ?
+         OR search_fold(city) LIKE ?
+         OR search_fold(country) LIKE ?)
       $diverFilter
       ORDER BY name COLLATE NOCASE ASC
     ''', variables: variables).get();
@@ -189,6 +190,7 @@ class DiveCenterRepository {
               fillOpensAt: Value(center.fillOpensAt),
               fillClosesAt: Value(center.fillClosesAt),
               isPermanentlyClosed: Value(center.isPermanentlyClosed),
+              logo: Value(center.logo),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
@@ -312,6 +314,7 @@ class DiveCenterRepository {
           fillOpensAt: Value(center.fillOpensAt),
           fillClosesAt: Value(center.fillClosesAt),
           isPermanentlyClosed: Value(center.isPermanentlyClosed),
+          logo: Value(center.logo),
           updatedAt: Value(now),
         ),
       );
@@ -501,6 +504,7 @@ class DiveCenterRepository {
       fillOpensAt: row.fillOpensAt,
       fillClosesAt: row.fillClosesAt,
       isPermanentlyClosed: row.isPermanentlyClosed,
+      logo: row.logo,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
     );
@@ -527,6 +531,7 @@ class DiveCenterRepository {
       fillClosesAt: row.data['fill_closes_at'] as int?,
       isPermanentlyClosed:
           (row.data['is_permanently_closed'] as int? ?? 0) == 1,
+      logo: row.data['logo'] as Uint8List?,
       createdAt: DateTime.fromMillisecondsSinceEpoch(
         row.data['created_at'] as int,
       ),

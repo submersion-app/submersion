@@ -4,6 +4,7 @@ import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
@@ -18,6 +19,7 @@ import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.
 import 'package:submersion/features/maps/presentation/widgets/world_copies.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/shared/widgets/map_list_layout/map_info_card.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_avatar.dart';
 
 /// Map content widget for displaying dive centers on a map.
 ///
@@ -301,7 +303,7 @@ class _DiveCenterMapContentState extends ConsumerState<DiveCenterMapContent>
     }
     if (center.rating != null) {
       subtitle += subtitle.isNotEmpty ? ' \u2022 ' : '';
-      subtitle += '\u2605 ${center.rating!.toStringAsFixed(1)}';
+      subtitle += '\u2605 ${formatRatingForDisplay(center.rating!)}';
     }
     if (center.affiliations.isNotEmpty) {
       subtitle += subtitle.isNotEmpty ? ' \u2022 ' : '';
@@ -311,9 +313,10 @@ class _DiveCenterMapContentState extends ConsumerState<DiveCenterMapContent>
     return MapInfoCard(
       title: center.name,
       subtitle: subtitle.isNotEmpty ? subtitle : null,
-      leading: CircleAvatar(
-        backgroundColor: colorScheme.primaryContainer,
-        child: Icon(Icons.store, color: colorScheme.primary),
+      leading: DiveCenterAvatar(
+        logo: center.logo,
+        iconColor: colorScheme.primary,
+        iconSize: 24,
       ),
       onDetailsTap: widget.onDetailsTap != null
           ? () => widget.onDetailsTap!(center.id)
@@ -346,11 +349,15 @@ class _DiveCenterMapContentState extends ConsumerState<DiveCenterMapContent>
           ),
         ],
       ),
+      // The logo sits inside the rating colour, leaving a 4 px band of it
+      // showing; with none, the store icon sits on it as before (#4460).
+      // Markers are 50 or 40 wide with a 2 px border.
       child: Center(
-        child: Icon(
-          Icons.store,
-          size: isSelected ? 24 : 20,
-          color: isSelected ? colorScheme.onPrimary : Colors.white,
+        child: DiveCenterMarkerGlyph(
+          logo: center.logo,
+          radius: DiveCenterMarkerGlyph.radiusFor(isSelected ? 50 : 40),
+          iconColor: isSelected ? colorScheme.onPrimary : Colors.white,
+          iconSize: isSelected ? 24 : 20,
         ),
       ),
     );

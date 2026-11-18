@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/data_quality/data/services/quality_repair_executor.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/reassign_tank_picker.dart';
@@ -15,12 +14,14 @@ import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 /// Lets the diver move a transmitter's pressure series to another cylinder
 /// (issue #1314). Two tanks get a Swap; more get a per-row Move to. The
 /// change is an exchange of the rows' computer bundles, so it survives
-/// re-parse and is undone by the snackbar action.
+/// re-parse. [onExchange] holds it in the open Tanks card's sitting until
+/// Save (issue #4527).
 Future<void> showTankSeriesReassignSheet(
   BuildContext context,
   WidgetRef ref, {
   required Dive dive,
   required Map<String, List<TankPressurePoint>> tankPressures,
+  required Future<void> Function(String tankIdA, String tankIdB) onExchange,
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -29,44 +30,9 @@ Future<void> showTankSeriesReassignSheet(
     builder: (sheetContext) => _ReassignSheet(
       dive: dive,
       tankPressures: tankPressures,
-      onExchange: (a, b) => _exchange(context, dive.id, a, b),
+      onExchange: onExchange,
     ),
   );
-}
-
-Future<void> _exchange(
-  BuildContext context,
-  String diveId,
-  String tankIdA,
-  String tankIdB,
-) async {
-  final l10n = context.l10n;
-  final messenger = ScaffoldMessenger.of(context);
-  try {
-    final result = await QualityRepairExecutor().exchangeTankSources(
-      diveId: diveId,
-      tankIdA: tankIdA,
-      tankIdB: tankIdB,
-    );
-    final undo = result.undo;
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(l10n.diveLog_reassignSheet_applied),
-        duration: const Duration(seconds: 5),
-        persist: false,
-        action: undo == null
-            ? null
-            : SnackBarAction(
-                label: l10n.dataQuality_action_undo,
-                onPressed: () => unawaited(undo()),
-              ),
-      ),
-    );
-  } catch (e) {
-    messenger.showSnackBar(
-      SnackBar(content: Text('${l10n.common_label_error}: $e')),
-    );
-  }
 }
 
 class _ReassignSheet extends ConsumerWidget {
@@ -167,6 +133,7 @@ class _ReassignSheet extends ConsumerWidget {
                       ref,
                       diveId: dive.id,
                       excludeTankId: tank.id,
+                      tanks: dive.tanks,
                     );
                     if (target == null || !context.mounted) return;
                     Navigator.of(context).pop();

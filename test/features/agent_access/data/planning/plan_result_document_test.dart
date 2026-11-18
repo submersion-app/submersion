@@ -71,6 +71,15 @@ void main() {
     final usage = (doc['tank_usage']! as List).cast<Map>();
     expect(usage.map((u) => u['tank']), [0, 1]);
     expect(usage.first['litres_used'], greaterThan(0));
+    // The problem-solving allowance is its own figure, on the bottom gas
+    // only, and minimum gas is read where the bottom ends (#4475).
+    expect(usage.first['problem_solving_litres'], greaterThan(0));
+    expect(usage.last['problem_solving_litres'], 0);
+    expect(usage.first['bottom_end_pressure_bar'], isA<double>());
+    expect(
+      usage.first['min_gas_ascent_bar'],
+      lessThan(usage.first['min_gas_bar']! as double),
+    );
     expect(doc['cns_end_percent'], greaterThan(0));
     expect(doc['otu_total'], greaterThan(0));
     expect(doc['issues'], isA<List>());
@@ -134,7 +143,7 @@ void main() {
       'value': config.ascentRate,
       'source': 'settings',
     });
-    // The problem-solving allowance litres_used includes.
+    // The problem-solving allowance tank_usage reports on its own.
     expect(settings['problem_solving_minutes'], {
       'value': config.problemSolvingMinutes,
       'source': 'settings',
@@ -190,6 +199,57 @@ void main() {
       'value': config.ccrSetpointHigh,
       'source': 'settings',
     });
+  });
+
+  test('an SCR plan reports its loop flow and where it came from (#4660)', () {
+    final built = storedSeriesFor(
+      parsePlanRequest({
+        'dives': [
+          {
+            'mode': 'scr',
+            'scr_injection_rate_l_min': 7.5,
+            'tanks': [
+              {'volume_l': 7, 'o2_fraction': 0.5, 'role': 'diluent'},
+            ],
+            'bottom': {'depth_m': 18, 'time_s': 1800},
+          },
+        ],
+      }, settings: config),
+      follow: null,
+      now: DateTime.utc(2026, 11, 14),
+    );
+    final settings = effectiveSettings(built.stored.dives.single.plan, config);
+    expect(settings['scr_injection_rate_l_min'], {
+      'value': 7.5,
+      'source': 'plan',
+    });
+    expect(settings['scr_vo2_l_min'], {
+      'value': config.scrVo2Lpm,
+      'source': 'settings',
+    });
+    expect(settings.containsKey('pscr_vo2_l_min'), isFalse);
+  });
+
+  test('a pSCR plan reports its VO2 and no injection rate (#4660)', () {
+    final built = storedSeriesFor(
+      parsePlanRequest({
+        'dives': [
+          {
+            'mode': 'pscr',
+            'pscr_vo2_l_min': 0.9,
+            'tanks': [
+              {'volume_l': 7, 'o2_fraction': 0.32, 'role': 'diluent'},
+            ],
+            'bottom': {'depth_m': 18, 'time_s': 1800},
+          },
+        ],
+      }, settings: config),
+      follow: null,
+      now: DateTime.utc(2026, 11, 14),
+    );
+    final settings = effectiveSettings(built.stored.dives.single.plan, config);
+    expect(settings['pscr_vo2_l_min'], {'value': 0.9, 'source': 'plan'});
+    expect(settings.containsKey('scr_injection_rate_l_min'), isFalse);
   });
 
   test('settings name the salinity, deco layers and air breaks used', () {

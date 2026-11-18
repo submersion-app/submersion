@@ -1,0 +1,10 @@
+coremltools==9.1.dev1
+huggingface_hub==2.4.0
+numpy==2.5.5
+open_clip_torch==4.2.2
+pillow==13.0.0
+rfdetr==1.12.1
+safetensors==0.8.0
+supervision==0.31.7
+torch==2.15.0
+torchvision==0.29.2

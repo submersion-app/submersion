@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/features/media/data/repositories/local_asset_cache_repository.dart';
 import 'package:submersion/features/media/data/resolvers/platform_gallery_resolver.dart';
 import 'package:submersion/features/media/data/services/asset_resolution_service.dart';
@@ -101,6 +103,34 @@ void main() {
     final data = await resolver(service).resolve(row());
 
     expect((data as BytesData).bytes, [5]);
+  });
+
+  test('a cached photo re-found under a new id is served as its file where '
+      'the library keeps one (#4699)', () async {
+    final dir = Directory.systemTemp.createTempSync('gallery_stale');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File(p.join(dir.path, 'IMG_0002.MOV'))..writeAsBytesSync([5]);
+    library
+      ..originalsAsFiles = true
+      ..add(
+        FakeGalleryAsset(
+          id: 'B-2',
+          bytes: Uint8List.fromList([5]),
+          takenAt: DateTime(2024),
+          file: file,
+        ),
+      );
+    final service = _StaleCacheService(
+      const ResolutionResult(
+        localAssetId: 'B-2',
+        status: ResolutionStatus.resolved,
+      ),
+    );
+
+    final data = await resolver(service).resolve(row());
+
+    expect((data as FileData).file.path, file.path);
+    expect(library.originBytesReads, 0);
   });
 
   test('a cached photo the search cannot find is still missing', () async {

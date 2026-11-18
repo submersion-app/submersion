@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_p
 import 'package:submersion/features/dive_sites/presentation/catalogue_gap_display.dart';
 import 'package:submersion/features/dive_sites/presentation/catalogue_site_display.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/not_verified_label.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// What the diver did with a comparison.
@@ -182,6 +183,15 @@ class _ComparisonState extends ConsumerState<_Comparison> {
                   Text(
                     l10n.diveSites_catalogue_credit(credit.credit),
                     style: muted,
+                  ),
+                ],
+                if (record.isResearched) ...[
+                  const SizedBox(height: 8),
+                  const NotVerifiedLabel(),
+                  const SizedBox(height: 4),
+                  Text(
+                    notVerifiedExplanation(context),
+                    style: theme.textTheme.bodySmall,
                   ),
                 ],
               ],

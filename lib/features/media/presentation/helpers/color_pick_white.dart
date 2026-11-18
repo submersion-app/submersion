@@ -14,6 +14,9 @@ import 'package:submersion/features/media/presentation/providers/color_correctio
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media/presentation/providers/video_color_track_provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/media/domain/entities/photo_record.dart';
+import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 final _log = LoggerService.forClass(WhitePoint);
 
@@ -131,14 +134,27 @@ Future<void> applyPickedWhite(
   BuildContext context,
   WidgetRef ref,
   MediaItem item,
-  WhitePoint? sample,
-) async {
+  WhitePoint? sample, {
+  EditSession<PhotoRecord>? sitting,
+}) async {
   final messenger = ScaffoldMessenger.maybeOf(context);
   final l10n = context.l10n;
   if (sample == null) {
     messenger?.showSnackBar(
       SnackBar(content: Text(l10n.media_color_pickWhiteFailed)),
     );
+    return;
+  }
+  // In a sitting the white point is held, and drawn from it (issue #4527).
+  if (sitting != null) {
+    if (sitting.isDisposed ||
+        sitting.isFrozen ||
+        sitting.stored.item.id != item.id) {
+      return;
+    }
+    final current = sitting.valueOf(photoColorField) ?? const ColorAdjustment();
+    sitting.set(photoColorField, current.copyWith(whitePoint: sample));
+    ref.read(colorAdjustmentDraftNotifierProvider(item.id).notifier).clear();
     return;
   }
   final draft = ref.read(

@@ -221,7 +221,12 @@ _ResolvedCylinders _resolveCylinders(
     // the cylinder's pressure (#2441).
     final ofTank = tankReadings[tank.index];
     final readings = ofTank?.readings ?? const <PressureReading>[];
-    final glitches = ofTank?.scan ?? PressureGlitchScan.none;
+    final scanned = ofTank?.scan ?? PressureGlitchScan.none;
+    // An Avelo Hydrotank's early pump-in or a purge is no lead-in or misread
+    // (issue #4657): only a reading no cylinder holds is a glitch on it.
+    final glitches = TankRole.fromName(role).isUnmeasuredBreathingGas
+        ? impossibleReadingGlitchesOnly(readings, scanned)
+        : scanned;
     result.add(
       DownloadedTank(
         index: tank.index,
@@ -324,10 +329,10 @@ TankRoleSource? _roleSourceOf(
 const double _decoMinO2Percent = 41.0;
 
 /// Infer a cylinder [TankRole] (returned as its `.name`). The computer's tank
-/// [usage] (libdivecomputer `dc_usage_t`: 1=oxygen, 2=diluent) is authoritative
-/// when present; otherwise fall back to an open-circuit gas heuristic where a
-/// mix of [_decoMinO2Percent] O2 or more is a deco gas. Everything else is
-/// back gas.
+/// [usage] (libdivecomputer `dc_usage_t`: 1=oxygen, 2=diluent, 4=the Avelo
+/// Hydrotank, a fork extension) is authoritative when present; otherwise fall
+/// back to an open-circuit gas heuristic where a mix of [_decoMinO2Percent]
+/// O2 or more is a deco gas. Everything else is back gas.
 ///
 /// Helium does not change the answer: an accelerated-deco gas is often a
 /// trimix such as 50/20, blended to soften the helium swing at the switch,
@@ -338,6 +343,8 @@ String _inferRole(int? usage, double o2Percent) {
       return TankRole.oxygenSupply.name;
     case 2: // DC_USAGE_DILUENT
       return TankRole.diluent.name;
+    case 4: // DC_USAGE_HYDROTANK, a fork extension (issue #4657)
+      return TankRole.hydrotank.name;
   }
   return openCircuitGasRole(o2Percent);
 }

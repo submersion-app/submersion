@@ -96,7 +96,7 @@ class ChildrenCard extends ConsumerWidget {
                     for (final child in children)
                       ListTile(
                         contentPadding: EdgeInsets.zero,
-                        leading: Icon(equipmentTypeIcon(child.type)),
+                        leading: Icon(equipmentItemIcon(child)),
                         title: Text(_title(l10n, child)),
                         subtitle: Text(_installedLine(l10n, units, child)),
                         trailing: Row(

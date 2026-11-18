@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/models/source_diver.dart';
@@ -167,6 +168,41 @@ void main() {
         identical(result.entitiesOf(ImportEntityType.dives).single, source),
         isTrue,
       );
+    });
+  });
+
+  // An Avelo Hydrotank (issue #4657) pumped up early in the descent rises
+  // from its purged start: real on a Hydrotank, so its start stands.
+  group('Avelo Hydrotank', () {
+    Map<String, dynamic> pumpedEarly(Object? role) => {
+      'tanks': <Map<String, dynamic>>[
+        {
+          'order': 0,
+          'startPressure': 200.0,
+          'endPressure': 211.2,
+          'role': ?role,
+        },
+      ],
+      'profile': <Map<String, dynamic>>[
+        point(0, 200),
+        point(10, 200),
+        for (var t = 20; t <= 2400; t += 10) point(t, 216 - t * 0.002),
+      ],
+    };
+
+    double? start(Object? role) =>
+        firstTank(
+              replaceGlitchedTankPressures(payloadWith(pumpedEarly(role))),
+            )['startPressure']
+            as double?;
+
+    test('back gas reads the early rise as a lead-in', () {
+      expect(start(null), isNot(200.0));
+    });
+
+    test('a Hydrotank, by name or by role, keeps its purged start', () {
+      expect(start('hydrotank'), 200.0);
+      expect(start(TankRole.hydrotank), 200.0);
     });
   });
 }

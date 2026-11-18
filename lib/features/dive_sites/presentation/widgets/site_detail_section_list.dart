@@ -27,7 +27,10 @@ const double kSiteDetailCardGap = 12;
 /// In the detailed layout, a pair from [kSiteDetailSectionPairs] renders
 /// side by side whenever both halves are shown, wherever they sit in the
 /// order: the row takes the slot of whichever half comes first. Left and
-/// right come from the pair definition.
+/// right come from the pair definition. The card right after the pair moves
+/// up into the space under the shorter half when it fits there at half width,
+/// unless it is one of [kSiteDetailFullWidthSections] or forms a pair of its
+/// own (issue #4583).
 class SiteDetailSectionList extends StatelessWidget {
   const SiteDetailSectionList({
     super.key,
@@ -35,6 +38,9 @@ class SiteDetailSectionList extends StatelessWidget {
     required this.layout,
     required this.cards,
     required this.onFoldChanged,
+    this.alsoShown = const {},
+    this.heldOpen = const {},
+    this.foldTrailing,
   });
 
   /// The diver's card configuration, in order.
@@ -49,12 +55,27 @@ class SiteDetailSectionList extends StatelessWidget {
   /// requested new state.
   final void Function(SiteDetailSectionId id, bool expanded) onFoldChanged;
 
+  /// Sections the diver hid that are shown all the same: brought onto the
+  /// page by an editing sitting (issue #4527).
+  final Set<SiteDetailSectionId> alsoShown;
+
+  /// Sections held unfolded in the list layout whatever is saved, such as a
+  /// card open for editing; a tap on their row changes nothing meanwhile.
+  final Set<SiteDetailSectionId> heldOpen;
+
+  /// A control for a section's folded row in the list layout, such as the
+  /// pencil that opens its card while the site is unlocked; null for none.
+  final Widget? Function(SiteDetailSectionId id)? foldTrailing;
+
   @override
   Widget build(BuildContext context) {
     final shown = [
       for (final section in sections)
-        if (section.visible && cards[section.id] != null) section.id,
+        if ((section.visible || alsoShown.contains(section.id)) &&
+            cards[section.id] != null)
+          section.id,
     ];
+
     final shownIds = shown.toSet();
     final unfolded = {
       for (final section in sections)
@@ -64,20 +85,32 @@ class SiteDetailSectionList extends StatelessWidget {
     final children = <Widget>[];
     final consumed = <SiteDetailSectionId>{};
 
-    for (final id in shown) {
-      // The trailing half of a pair already rendered at the leading half's
-      // slot.
+    bool pairs(SiteDetailSectionId id) {
+      final pair = layout.pairsSections ? siteDetailSectionPairFor(id) : null;
+      return pair != null && shownIds.contains(pair.partnerOf(id));
+    }
+
+    for (final (index, id) in shown.indexed) {
+      // The trailing half of a pair, or the card that moved up beside it,
+      // already rendered at the pair's slot.
       if (consumed.contains(id)) continue;
 
       if (layout.foldsSections) {
         // Each folded row draws its own divider, so rows take no gap.
+        // Held unfolded: not the diver's saved choice, so a tap here could
+        // only change that choice unseen. It does nothing meanwhile.
+        final held = heldOpen.contains(id);
         children.add(
           SectionFold(
             key: ValueKey('siteSectionFold_${id.name}'),
             title: id.localizedDisplayName(context.l10n),
             icon: id.icon,
-            isExpanded: unfolded.contains(id),
-            onToggle: (expanded) => onFoldChanged(id, expanded),
+            isExpanded: unfolded.contains(id) || held,
+            trailing: foldTrailing?.call(id),
+            onToggle: (expanded) {
+              if (held) return;
+              onFoldChanged(id, expanded);
+            },
             contentBuilder: cards[id]!,
           ),
         );
@@ -88,17 +121,25 @@ class SiteDetailSectionList extends StatelessWidget {
         children.add(const SizedBox(height: kSiteDetailCardGap));
       }
 
-      final pair = layout.pairsSections ? siteDetailSectionPairFor(id) : null;
-      if (pair != null && shownIds.contains(pair.partnerOf(id))) {
+      if (pairs(id)) {
+        final pair = siteDetailSectionPairFor(id)!;
+        consumed.addAll([pair.left, pair.right]);
+        final next = shown.skip(index + 1).where((n) => !consumed.contains(n));
+        final candidate = next.isEmpty ? null : next.first;
+        final slots =
+            candidate != null &&
+            !kSiteDetailFullWidthSections.contains(candidate) &&
+            !pairs(candidate);
+        if (slots) consumed.add(candidate);
         children.add(
           ResponsiveSectionPair(
             first: cards[pair.left]!(context),
             second: cards[pair.right]!(context),
             minRowWidth: pair.minRowWidth,
             stackGap: kSiteDetailCardGap,
+            slot: slots ? cards[candidate]!(context) : null,
           ),
         );
-        consumed.addAll([pair.left, pair.right]);
         continue;
       }
 

@@ -62,6 +62,7 @@ EquipmentItem _tank(
   double? volumeL,
   double? workingPressureBar,
   String? material,
+  String? wornAs,
   EquipmentStatus status = EquipmentStatus.active,
 }) => EquipmentItem(
   id: '',
@@ -89,6 +90,13 @@ EquipmentItem _tank(
         equipmentId: '',
         key: EquipmentAttrKeys.tankMaterial,
         valueText: material,
+      ),
+    if (wornAs != null)
+      EquipmentAttribute(
+        id: '',
+        equipmentId: '',
+        key: EquipmentAttrKeys.wornAs,
+        valueText: wornAs,
       ),
   ],
 );
@@ -486,5 +494,95 @@ void main() {
     await pick(tester, doubles);
     expect(changed!.volume, 24);
     expect(changed!.role, TankRole.twinSet);
+  });
+
+  group('a gear item worn as a twin set (issue #4641)', () {
+    Future<EquipmentItem> d12(WidgetTester tester) async =>
+        (await tester.runAsync(
+          () => EquipmentRepository().createEquipment(
+            _tank(
+              'D12',
+              volumeL: 24,
+              workingPressureBar: 232,
+              wornAs: kWornAsTwinSet,
+            ),
+          ),
+        ))!;
+
+    testWidgets('picking it sets the Twin Set role', (tester) async {
+      final item = await d12(tester);
+      DiveTank? changed;
+      await pump(
+        tester,
+        gear: [item],
+        onChanged: (t) => changed = t,
+        onOwnCylinderUsed: (_) async {},
+      );
+      await pick(tester, item);
+      expect(changed!.volume, 24);
+      expect(changed!.role, TankRole.twinSet);
+    });
+
+    testWidgets('a tank already Twin Set keeps it', (tester) async {
+      final item = await d12(tester);
+      DiveTank? changed;
+      await pump(
+        tester,
+        gear: [item],
+        tank: const DiveTank(id: 'tank-1', role: TankRole.twinSet),
+        onChanged: (t) => changed = t,
+        onOwnCylinderUsed: (_) async {},
+      );
+      await pick(tester, item);
+      expect(changed!.role, TankRole.twinSet);
+    });
+
+    testWidgets('a tank that held a linked pair becomes this twin set', (
+      tester,
+    ) async {
+      final item = await d12(tester);
+      DiveTank? changed;
+      await pump(
+        tester,
+        gear: [item],
+        tank: const DiveTank(
+          id: 'tank-1',
+          role: TankRole.twinSet,
+          passportId: 'p-a',
+          twinPassportId: 'p-b',
+        ),
+        onChanged: (t) => changed = t,
+        onOwnCylinderUsed: (_) async {},
+      );
+      await pick(tester, item);
+      expect(changed!.role, TankRole.twinSet);
+      expect(changed!.twinPassportId, isNull);
+      expect(changed!.volume, 24);
+    });
+
+    testWidgets('a linked cylinder picked alone stays back gas even when '
+        'worn as a twin set: the pairing question decides', (tester) async {
+      final marked = a.copyWith(
+        attributes: [
+          ...a.attributes,
+          EquipmentAttribute.curated(
+            equipmentId: a.id,
+            key: EquipmentAttrKeys.wornAs,
+            valueText: kWornAsTwinSet,
+          ),
+        ],
+      );
+      DiveTank? changed;
+      final l10n = await pump(
+        tester,
+        gear: [marked, b],
+        onChanged: (t) => changed = t,
+        onOwnCylinderUsed: (_) async {},
+      );
+      await pick(tester, marked);
+      await choose(tester, l10n.twinSet_choiceSingle('Faber 12 A'));
+      expect(changed!.volume, 12);
+      expect(changed!.role, TankRole.backGas);
+    });
   });
 }

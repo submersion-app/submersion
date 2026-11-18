@@ -162,7 +162,7 @@ void main() {
 
     final operation = (await operations()).single;
     expect(operation['source'], 'manual');
-    expect(operation['label'], 'record_edit:dives:notes,tags');
+    expect(operation['label'], 'record_edit:dives:dive:notes,tags');
   });
 
   test('changes are applied to the dive as stored at save time', () async {
@@ -332,6 +332,93 @@ void main() {
       );
 
       expect((await stored()).notes, 'Calm');
+      expect(await siteAltitude(), isNull);
+      expect(await logEvents(db), isEmpty);
+    });
+
+    // A dismissed suggestion or a location added to the site changes no
+    // dive value: the held write is the change (issue #4527, plan 4).
+    test(
+      'a held change with no dive change is written, in one entry',
+      () async {
+        final result = await service.save(
+          diveId: 'dive',
+          apply: (dive) => dive,
+          changedCardIds: ['header'],
+          alsoWrite: () => dives.setSiteSuggestionDismissed('dive', true),
+          alsoWriteIsAChange: true,
+        );
+
+        expect(result, isNotNull);
+        expect(result!.before, result.after);
+        expect(result.tripDateStretches, isEmpty);
+        final row = await db
+            .customSelect(
+              "SELECT site_suggestion_dismissed_at AS at FROM dives "
+              "WHERE id = 'dive'",
+            )
+            .getSingle();
+        expect(row.data['at'], isNotNull);
+        final operation = (await operations()).single;
+        expect(operation['label'], 'record_edit:dives:dive:header');
+        final events = await logEvents(db);
+        expect(events, isNotEmpty);
+        expect({for (final e in events) e['operation_id']}, {operation['id']});
+      },
+    );
+
+    // A reassign moves readings between cylinder rows that must both still
+    // exist: it runs before the dive's rows are written (issue #4527).
+    test(
+      'writeFirst runs before the dive is written, in the same entry',
+      () async {
+        String? notesSeen;
+
+        await service.save(
+          diveId: 'dive',
+          apply: (dive) => dive.copyWith(notes: 'Changed'),
+          changedCardIds: ['tanks'],
+          writeFirst: () async =>
+              notesSeen = (await dives.getDiveById('dive'))!.notes,
+        );
+
+        expect(notesSeen, 'Calm');
+        expect((await stored()).notes, 'Changed');
+      },
+    );
+
+    test('writeFirst alone, with no dive change, is written', () async {
+      var ran = 0;
+
+      final result = await service.save(
+        diveId: 'dive',
+        apply: (dive) => dive,
+        changedCardIds: ['tanks'],
+        writeFirst: () async => ran++,
+        alsoWriteIsAChange: true,
+      );
+
+      expect(result, isNotNull);
+      expect(ran, 1);
+    });
+
+    test('a held change that throws leaves everything as it was', () async {
+      final sites = SiteRepository();
+
+      await expectLater(
+        service.save(
+          diveId: 'dive',
+          apply: (dive) => dive,
+          changedCardIds: ['header'],
+          alsoWrite: () async {
+            await sites.updateSiteAltitude('site', 512);
+            throw StateError('no');
+          },
+          alsoWriteIsAChange: true,
+        ),
+        throwsStateError,
+      );
+
       expect(await siteAltitude(), isNull);
       expect(await logEvents(db), isEmpty);
     });

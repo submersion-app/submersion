@@ -33,8 +33,23 @@ class ChangeLogValueFormatter {
   /// Foreign keys resolved ahead of time, by [changeLogReferenceKey].
   final Map<String, List<ConflictReference>> references;
 
-  String label(String table, String column) =>
-      conflictFieldFor(columnJsonKey(table), columnJsonKey(column)).label(l10n);
+  /// A column's name. One the field catalogue does not name, but which
+  /// points at another record, is named as the conflict dialog names such a
+  /// reference ("Dive", "Tank"), rather than spelled from its column name.
+  String label(String table, String column) {
+    final entity = changeLogEntityType(table);
+    final key = columnJsonKey(column);
+    final named = conflictFieldNamed(entity, key);
+    if (named != null) return named.label(l10n);
+    final target = ConflictReferenceResolver.targetTypeFor(entity, key);
+    if (target != null) {
+      return conflictReferenceLabel(
+        l10n,
+        ConflictReference(field: key, targetType: target, recordId: ''),
+      );
+    }
+    return conflictFieldFor(entity, key).label(l10n);
+  }
 
   String value(String table, String column, Object? value, {int? clip}) {
     if (value == null || value == '') return l10n.settings_conflict_notSet;

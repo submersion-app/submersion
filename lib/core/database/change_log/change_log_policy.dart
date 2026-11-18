@@ -4,6 +4,7 @@
 /// to the log, or kept out of it, here and nowhere else.
 library;
 
+import 'package:submersion/core/services/change_log/record_edit_label.dart';
 import 'package:submersion/core/services/sync/child_column_clears.dart';
 import 'package:submersion/core/services/sync/device_local_fields.dart';
 import 'package:submersion/core/services/sync/sync_fact_groups.dart';
@@ -170,6 +171,8 @@ const Map<String, ChangeLogClass> changeLogTables = {
   'gps_track_points_local': ChangeLogClass.excluded,
   'local_publish_states': ChangeLogClass.excluded,
   'media_fetch_diagnostics': ChangeLogClass.excluded,
+  'media_identification_runs': ChangeLogClass.excluded,
+  'media_identifications': ChangeLogClass.excluded,
   'media_repair_log': ChangeLogClass.excluded,
   'media_subscription_state': ChangeLogClass.excluded,
   'nearby_peers': ChangeLogClass.excluded,
@@ -516,7 +519,8 @@ const Set<String> _displaySettingsKeys = {
 const Set<String> changeLogDeviceLocalTables = {'dive_profile_series_history'};
 
 /// Machine tables whose updates are recorded, but only inside an operation
-/// labelled with one of [changeLogSeriesUpdateLabels] (issue #4393).
+/// labelled with one of [changeLogSeriesUpdateLabels] (issue #4393), or one
+/// from one of [changeLogSeriesUpdateSources].
 ///
 /// Removing a source or a duplicate cylinder re-zeroes, promotes or moves
 /// series rows in place. Without their old values a revert would bring back
@@ -525,19 +529,90 @@ const Set<String> changeLogDeviceLocalTables = {'dive_profile_series_history'};
 /// time and nothing the diver did, so they stay out of the log. A promotion
 /// also shifts photo placements along the re-zeroed timeline, so
 /// media_enrichment is here too.
+///
+/// An editing sitting opts in as well (issue #4527): it moves readings
+/// between cylinders, and dismisses safety findings, which are machine rows
+/// the diver changes. Its History entry must revert every one, so
+/// dive_safety_findings is here, limited by [changeLogOptInUpdateColumns].
 const Set<String> changeLogOptInUpdateTables = {
   'dive_profile_series',
+  'dive_safety_findings',
   'media_enrichment',
   'tank_pressure_series',
 };
 
+/// Opt-in tables whose update records only these columns. A finding is
+/// written once by the safety review, except dismissed_at, which the diver
+/// toggles; a review recomputed while a sitting is being saved must not log
+/// its other columns.
+const Map<String, Set<String>> changeLogOptInUpdateColumns = {
+  'dive_safety_findings': {'dismissed_at'},
+};
+
+/// Whether an opted-in operation keeps the delete copies of [table]'s rows
+/// while their record lives, as well as its updates. A table whose opt-in
+/// is limited to some columns ([changeLogOptInUpdateColumns]) keeps its
+/// updates only: a review deleting a finding that stopped firing is a
+/// sweep, not the diver's change.
+bool changeLogOptInKeepsDeletes(String table) =>
+    changeLogOptInUpdateTables.contains(table) &&
+    !changeLogOptInUpdateColumns.containsKey(table);
+
+/// Machine columns an entry lists, for any operation: what a diver changes
+/// on a machine row (issue #4527). Every other machine row and column stays
+/// out of the entry and is kept only for a revert or a restore.
+const Map<String, Set<String>> changeLogShownMachineColumns = {
+  'dive_safety_findings': {'dismissed_at'},
+  'tank_pressure_series': {'tank_id'},
+};
+
+/// Tables of [changeLogShownMachineColumns] whose rows go back only with
+/// the whole entry, never one field at a time: readings move between
+/// cylinders in pairs, so reverting one series alone would leave both on
+/// one cylinder and none on the other.
+const Set<String> changeLogRevertsWithEntryOnly = {'tank_pressure_series'};
+
+/// The start of an editing sitting's label, `RecordEditLabel.prefix` and its
+/// separator.
+const String changeLogRecordEditLabelStart = '${RecordEditLabel.prefix}:';
+
+/// Whether an operation with [label] from [source] records updates to
+/// [changeLogOptInUpdateTables]: one of [changeLogSeriesUpdateLabels], one
+/// of [changeLogSeriesUpdateSources], or an editing sitting.
+bool changeLogOptsInMachineRows({
+  required String? label,
+  required String source,
+}) =>
+    changeLogSeriesUpdateLabels.contains(label) ||
+    changeLogSeriesUpdateSources.contains(source) ||
+    (label?.startsWith(changeLogRecordEditLabelStart) ?? false);
+
 /// The operation labels that record updates to [changeLogOptInUpdateTables].
-/// Kept equal to `ChangeLogLabels.removeSource` and
-/// `ChangeLogLabels.removeDuplicateCylinders`, which this file cannot import.
+/// Kept equal to `ChangeLogLabels.removeSource`,
+/// `ChangeLogLabels.removeDuplicateCylinders` and
+/// `ChangeLogLabels.updatePlannedDives`, which this file cannot import. The
+/// planner's Update planned dives rewrites a planned entry's profile in
+/// place, so its revert needs the old samples too (issue #4203).
 const Set<String> changeLogSeriesUpdateLabels = {
   'remove_source',
   'remove_duplicate_cylinders',
+  'update_planned_dives',
 };
+
+/// The operation sources that record updates to [changeLogOptInUpdateTables]
+/// whatever their label. An agent's change set is labelled with its own free
+/// text, so no label could opt it in, and rewriting a planned entry's
+/// profile in place must revert with the rest of the set (issue #4203).
+///
+/// A revert too (issue #4527): it writes back only what was logged, so the
+/// machine rows it puts back are exactly those an opted-in operation
+/// recorded, and its own entry must hold them to be reverted in turn. A
+/// sitting that only dismissed a finding would otherwise leave a revert
+/// with no events, which the settler deletes.
+///
+/// Kept equal to `ChangeLogSource.agent.name` and `ChangeLogSource.revert
+/// .name`, which this file cannot import.
+const Set<String> changeLogSeriesUpdateSources = {'agent', 'revert'};
 
 /// Machine tables whose row belongs to another row besides its root, by
 /// column and that row's table. Such a row's delete copy is kept when that

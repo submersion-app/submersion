@@ -211,10 +211,14 @@ In practice you name the first dive of a trip by searching, and the rest of the 
 
 The built-in catalogue holds two kinds of record:
 
-- **Dive sites**: places people dive, from OpenStreetMap, the Florida Keys National Marine Sanctuary's mooring buoys, Wikidata and a small list researched for Submersion.
+- **Dive sites**: places people dive, from OpenStreetMap, the Florida Keys National Marine Sanctuary's mooring buoys, Wikidata, and sites researched for Submersion from published sources.
 - **Charted wrecks and artificial reefs**: records from registers of what lies on the seabed. Wrecks come from the UK Hydrographic Office, NOAA, Ireland's National Monuments Service, OpenStreetMap and Wikidata; reefs from the reef programs of Florida, New Jersey, North Carolina and other US states.
 
 A register record is a charted position, not a dive guide: its position and depth are the register's own, and nothing says the wreck is worth diving or open to divers. A wreck is included only with a position its register stands behind, and never when its register says it shows above water, lies deeper than 60 m (197 ft), or is closed to divers. Not every register states a depth, so a record with no depth can lie deeper. Wrecks from OpenStreetMap and Wikidata are also left out when they lie on dry land (a crashed aircraft on a hillside, a hull in a museum). Where a register notes a restriction or a protection, it is shown as the site's hazards; check before you dive.
+
+A site researched for Submersion is marked **Not verified** wherever you can choose it: in the picker, on its card and its page, on the Import page, in the review of your own sites and in GPS match review. Its facts were read from published sources (local dive operators, marine parks, survey records, dive guides, a wreck register, an encyclopedia), and nobody checked them on site. The first researched sites each rest on a single page. Every later one is named by at least two independent pages, and its position is either written on a page or read off a page's own map; the Submersion source repository cites each page. A position read off a map can be up to 2 km (1.2 mi) out, so GPS matching offers such a site for a dive up to 2 km away. GPS matching never selects a researched site for you. Once you add it, it is a site of yours like any other.
+
+If a researched site turns out to be wrong, a later version of the app withdraws it. A site you added from it stays as it is, and its page says **Built-in record withdrawn** and why, with a link to the corrected site when there is one.
 
 The catalogue contains information from OpenStreetMap, which is made available under the Open Database License (ODbL). Every source and its licence is on the licenses page (**Settings > About > Open Source Licenses**, under **Dive site data**), and a site you added from the catalogue shows its source at the top of its page. The data is not for navigation.
 

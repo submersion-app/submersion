@@ -3,6 +3,8 @@ import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/registry/query_relation.dart';
 import 'package:submersion/features/dive_log/query/dive_aggregate_fields.dart';
+import 'package:submersion/features/dive_sites/query/site_query_entity.dart'
+    show dartWhitespaceSqlChars;
 
 /// A counted dive the buddy was on.
 const _buddyDiveLink =
@@ -15,11 +17,12 @@ final buddyQueryEntity = QueryEntity(
   subject: QuerySubject.buddies,
   table: 'buddies',
   diverScopeColumn: 'diver_id',
-  // The buddy search route's columns (name, email, phone).
+  // The buddy search route's columns (name, email, phone, country).
   textSearchSql: const [
-    "unicode_lower({r}.name) LIKE ? ESCAPE '\\'",
-    "unicode_lower({r}.email) LIKE ? ESCAPE '\\'",
-    "unicode_lower({r}.phone) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.name) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.email) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.phone) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.country) LIKE ? ESCAPE '\\'",
   ],
   fields: [
     const QueryField(
@@ -42,6 +45,17 @@ final buddyQueryEntity = QueryEntity(
       sql: '{r}.phone',
       emptySql: "({r}.phone IS NULL OR TRIM({r}.phone) = '')",
       labelKey: 'query_buddies_phone',
+    ),
+    // Trimmed, as a site's country is (issue #4457): a value with stray
+    // whitespace still matches, and one that is only whitespace is empty.
+    const QueryField(
+      key: 'country',
+      type: FieldType.text,
+      sql: 'TRIM({r}.country, $dartWhitespaceSqlChars)',
+      emptySql:
+          '({r}.country IS NULL OR '
+          "TRIM({r}.country, $dartWhitespaceSqlChars) = '')",
+      labelKey: 'query_buddies_country',
     ),
     const QueryField(
       key: 'notes',

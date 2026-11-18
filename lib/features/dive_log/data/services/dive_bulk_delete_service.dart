@@ -44,18 +44,15 @@ class DiveBulkDeleteService {
     required ChangeLogRevertService revert,
     required Future<void> Function(List<DocumentSnapshotEntry>)
     restoreDocuments,
-    required Future<void> Function(Iterable<Document>) rearmDocuments,
   }) : _dives = dives,
        _changeLog = changeLog,
        _revert = revert,
-       _restoreDocuments = restoreDocuments,
-       _rearmDocuments = rearmDocuments;
+       _restoreDocuments = restoreDocuments;
 
   final DiveRepository _dives;
   final ChangeLogRepository _changeLog;
   final ChangeLogRevertService _revert;
   final Future<void> Function(List<DocumentSnapshotEntry>) _restoreDocuments;
-  final Future<void> Function(Iterable<Document>) _rearmDocuments;
 
   /// Deletes [ids]. The scope opened here is the one
   /// [DiveRepository.bulkDeleteDives] joins, so its entry is known. The media
@@ -83,7 +80,9 @@ class DiveBulkDeleteService {
   }
 
   /// Puts [deleted] back. Returns false when something could not return, so
-  /// the diver is not told a thinner dive was restored whole.
+  /// the diver is not told a thinner dive was restored whole. The revert
+  /// re-arms the reminders of the documents it brings back (#4607); one it
+  /// could not bring back is rebuilt from the snapshot, with its reminders.
   Future<bool> restore(DeletedDives deleted) async {
     final reverted = await _revertDelete(deleted.operationId);
     final rebuilt = await _rebuildMissingDives(deleted.dives);
@@ -91,10 +90,6 @@ class DiveBulkDeleteService {
     final db = DatabaseService.instance.database;
     final returned = await existingRowIds(db, db.documents, [
       for (final entry in deleted.documents) entry.document.id,
-    ]);
-    await _rearmDocuments([
-      for (final entry in deleted.documents)
-        if (returned.contains(entry.document.id)) entry.document,
     ]);
     await _restoreDocuments([
       for (final entry in deleted.documents)

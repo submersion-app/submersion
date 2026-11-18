@@ -119,6 +119,15 @@ class _BuoyancyWhatIfSheetState extends State<_BuoyancyWhatIfSheet> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(l10n.buoyancy_whatIfTitle, style: theme.textTheme.titleMedium),
+          const SizedBox(height: 4),
+          // Says outright that this is scratch work: nothing here is saved
+          // to the dive (#4585).
+          Text(
+            l10n.buoyancy_whatIfNote,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
           const SizedBox(height: 16),
           _leadRow(context),
           const SizedBox(height: 16),

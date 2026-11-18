@@ -20,7 +20,14 @@ class ActiveLegendEntry {
   final String label;
   final Color color;
 
-  const ActiveLegendEntry({required this.label, required this.color});
+  /// The second colour of a line drawn in two (the buoyancy line, #4593).
+  final Color? secondColor;
+
+  const ActiveLegendEntry({
+    required this.label,
+    required this.color,
+    this.secondColor,
+  });
 }
 
 /// The metrics currently drawn on the chart, in the order the options dialog
@@ -55,9 +62,17 @@ List<ActiveLegendEntry> activeLegendEntries(
   );
 
   /// A metric drawn only for the active source.
-  void add(bool present, bool active, String label, Color color) {
+  void add(
+    bool present,
+    bool active,
+    String label,
+    Color color, {
+    Color? secondColor,
+  }) {
     if (present && active) {
-      entries.add(ActiveLegendEntry(label: label, color: color));
+      entries.add(
+        ActiveLegendEntry(label: label, color: color, secondColor: secondColor),
+      );
     }
   }
 
@@ -151,6 +166,14 @@ List<ActiveLegendEntry> activeLegendEntries(
     state.showSac,
     l10n.diveLog_legend_label_sacRate,
     palette.colorOf(ProfileMetric.sac),
+  );
+  // One entry for the two-coloured line (#4593).
+  add(
+    config.hasBuoyancyLine,
+    state.showBuoyancy,
+    l10n.diveLog_legend_label_buoyancy,
+    ProfileMetricColors.buoyancyBuoyant,
+    secondColor: ProfileMetricColors.buoyancyHeavy,
   );
   add(
     config.hasAscentRates,

@@ -31,11 +31,17 @@ const kSiteCatalogueMetaVersion = 'version';
 /// fails until this goes up.
 ///
 /// 2: each site's sea is named from the sea table and joins its search
-/// text. 3: the search text marks where the name ends.
-const kSiteCatalogueImportRevision = 3;
+/// text. 3: the search text marks where the name ends. 4: the file's
+/// withdrawn records are stored (`kSiteCatalogueMetaWithdrawn`). 5: the
+/// search text folds Latin Extended-A letters and drops combining accents
+/// (#4498), as the picker's needle now does.
+const kSiteCatalogueImportRevision = 5;
 
 /// The meta row holding the catalogue's sources, as JSON.
 const kSiteCatalogueMetaSources = 'sources';
+
+/// The meta key under which the catalogue's withdrawn records are stored.
+const kSiteCatalogueMetaWithdrawn = 'withdrawn';
 
 const _log = LoggerService('SiteCatalogueImporter');
 
@@ -171,6 +177,10 @@ class SiteCatalogueImporter {
             SiteCatalogueMetaCompanion.insert(
               key: kSiteCatalogueMetaSources,
               value: built.sources,
+            ),
+            SiteCatalogueMetaCompanion.insert(
+              key: kSiteCatalogueMetaWithdrawn,
+              value: built.withdrawn,
             ),
           ], mode: InsertMode.insertOrReplace);
         });

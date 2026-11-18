@@ -12,6 +12,7 @@ import 'package:submersion/features/change_log/domain/entities/change_log_filter
 import 'package:submersion/features/change_log/domain/entities/change_log_operation.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_revert_plan.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 const int kChangeLogPageSize = 50;
@@ -22,8 +23,13 @@ final changeLogRepositoryProvider = Provider<ChangeLogRepository>(
   (ref) => ChangeLogRepository(),
 );
 
+/// Every revert in the app goes through this service, so it re-arms the
+/// reminders of the documents a revert restores or edits (#4607).
 final changeLogRevertServiceProvider = Provider<ChangeLogRevertService>(
-  (ref) => ChangeLogRevertService(),
+  (ref) => ChangeLogRevertService(
+    rearmDocuments: (documents) =>
+        ref.read(documentMutationsProvider).rearmReminders(documents),
+  ),
 );
 
 final changeLogMaintenanceProvider = Provider<ChangeLogMaintenance>((ref) {
@@ -129,7 +135,7 @@ class ChangeLogFeedNotifier extends AsyncNotifier<ChangeLogFeedState> {
     );
     final previews = await repository.getPreviewFields([
       for (final operation in page)
-        if (!operation.isBulk) operation.id,
+        if (!operation.isBulk) operation,
     ]);
     final references = await repository.resolveReferences([
       for (final preview in previews.values) ...preview.fields,
@@ -198,6 +204,7 @@ class ChangeLogEntryDetail {
     required this.rootExists,
     required this.eventCount,
     this.plan,
+    this.namingFields = const {},
   });
 
   final ChangeLogOperation operation;
@@ -217,6 +224,50 @@ class ChangeLogEntryDetail {
   /// field shows its own state, and left for a bulk action until it is asked
   /// for, since it can touch thousands of records.
   final ChangeLogRevertPlan? plan;
+
+  /// By event id, the field that says which record an added or deleted
+  /// link row was ([changeLogNamingColumns]): from nothing to it for an
+  /// addition, from it to nothing for a deletion.
+  final Map<int, ChangeLogFieldChange> namingFields;
+}
+
+/// For a row that only links two records, the column naming the record it
+/// links. Adding such a row records no field and its delete copy changes no
+/// one field, so without it an entry's child row said only that a row was
+/// added, not which dive type.
+const changeLogNamingColumns = <String, String>{
+  'dive_dive_types': 'dive_type_id',
+};
+
+Future<Map<int, ChangeLogFieldChange>> _namingFields(
+  ChangeLogRepository repository,
+  List<ChangeLogEvent> events,
+) async {
+  final fields = <int, ChangeLogFieldChange>{};
+  for (final event in events) {
+    final column = changeLogNamingColumns[event.table];
+    if (column == null) continue;
+    final deleted = event.action == ChangeLogAction.delete;
+    final value = switch (event.action) {
+      ChangeLogAction.update => null,
+      ChangeLogAction.delete =>
+        event.fields.where((f) => f.column == column).firstOrNull?.oldValue,
+      // Null once the row has gone again: nothing is left to name it by.
+      ChangeLogAction.insert => await repository.liveValue(
+        event.table,
+        event.recordId,
+        column,
+      ),
+    };
+    if (value == null) continue;
+    fields[event.id] = ChangeLogFieldChange(
+      table: event.table,
+      column: column,
+      oldValue: deleted ? value : null,
+      newValue: deleted ? null : value,
+    );
+  }
+  return fields;
 }
 
 final changeLogEntryDetailProvider = FutureProvider.autoDispose
@@ -228,22 +279,27 @@ final changeLogEntryDetailProvider = FutureProvider.autoDispose
       if (diverId == null) return null;
       final operation = await repository.getVisibleOperation(id, diverId);
       if (operation == null) return null;
+      final shown = operation.shownRoots;
       final events = await repository.getEvents(
         id,
         limit: kChangeLogDetailLimit,
+        onlyRoots: shown,
       );
       final rootTable = operation.rootTable;
       final rootId = operation.rootId;
       final plan = operation.isBulk || operation.isSummary
           ? null
-          : await service.planOperation(id);
+          : await service.planOperation(id, onlyRoots: shown);
+      final namingFields = await _namingFields(repository, events);
       return ChangeLogEntryDetail(
         operation: operation,
         events: events,
         references: await repository.resolveReferences([
           for (final event in events)
             if (event.action == ChangeLogAction.update) ...event.fields,
+          ...namingFields.values,
         ]),
+        namingFields: namingFields,
         rootNames: operation.isBulk
             ? await repository.describeRoots({
                 for (final event in events) event.root,
@@ -253,7 +309,7 @@ final changeLogEntryDetailProvider = FutureProvider.autoDispose
             rootTable != null &&
             rootId != null &&
             await repository.recordExists(rootTable, rootId),
-        eventCount: await repository.countEvents(id),
+        eventCount: await repository.countEvents(id, onlyRoots: shown),
         plan: plan,
       );
     });

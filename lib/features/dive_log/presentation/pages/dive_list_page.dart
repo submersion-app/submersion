@@ -26,7 +26,7 @@ import 'package:submersion/features/dive_log/presentation/formatters/dive_type_l
 import 'package:submersion/features/data_quality/presentation/providers/data_quality_providers.dart';
 import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
-import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
+import 'package:submersion/features/dive_log/presentation/pages/dive_create_builder.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/card_photo_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_list_count_providers.dart';
@@ -65,6 +65,7 @@ import 'package:submersion/shared/widgets/master_detail/remembered_selection.dar
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/record_list_card.dart';
 import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
+import 'package:submersion/shared/widgets/record_list_chevron.dart';
 
 /// Compute a single map tile URL for the given lat/lng at [zoom], via the
 /// shared slippy-map conversion.
@@ -120,7 +121,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
         if (isDesktop && viewMode != ListViewMode.table) {
           final state = GoRouterState.of(context);
           final currentPath = state.uri.path;
-          context.goInPlace('$currentPath?mode=new');
+          context.goInPlaceGuarded('$currentPath?mode=new');
         } else {
           context.push('/dives/new');
         }
@@ -150,16 +151,17 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
     if (_isMapView) {
       // Switch back to detail view
       if (selectedId != null) {
-        context.goInPlace('$currentPath?selected=$selectedId');
+        context.goInPlaceGuarded('$currentPath?selected=$selectedId');
       } else {
-        context.goInPlace(currentPath);
+        context.goInPlaceGuarded(currentPath);
       }
     } else {
-      // Switch to map view
+      // Switch to map view, which replaces the pane's dive: a sitting
+      // there is asked about first (issue #4527).
       if (selectedId != null) {
-        context.goInPlace('$currentPath?selected=$selectedId&view=map');
+        context.goInPlaceGuarded('$currentPath?selected=$selectedId&view=map');
       } else {
-        context.goInPlace('$currentPath?view=map');
+        context.goInPlaceGuarded('$currentPath?view=map');
       }
     }
   }
@@ -234,14 +236,9 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
           );
         },
         summaryBuilder: (context) => const DiveSummaryWidget(),
-        editBuilder: (context, id, onSaved, onCancel) => DiveEditPage(
-          diveId: id,
-          embedded: true,
-          onSaved: onSaved,
-          onCancel: onCancel,
-        ),
-        createBuilder: (context, onSaved, onCancel) =>
-            DiveEditPage(embedded: true, onSaved: onSaved, onCancel: onCancel),
+        editBuilder: (context, id, onSaved, onCancel) =>
+            unlockedDivePane(context, id, onCancel),
+        createBuilder: newDivePaneBuilder(),
         mapContent: DiveMapContent(
           selectedId: ref.watch(highlightedDiveIdProvider),
           onItemSelected: (diveId) {
@@ -427,7 +424,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
             // Exit map view and show detail pane for the selected dive
             final state = GoRouterState.of(context);
             final currentPath = state.uri.path;
-            context.goInPlace('$currentPath?selected=$diveId');
+            context.goInPlaceGuarded('$currentPath?selected=$diveId');
           },
         ),
         editBuilder: (context, id, onSaved, onCancel) {
@@ -475,15 +472,9 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
               },
             );
           }
-          return DiveEditPage(
-            diveId: id,
-            embedded: true,
-            onSaved: onSaved,
-            onCancel: onCancel,
-          );
+          return unlockedDivePane(context, id, onCancel);
         },
-        createBuilder: (context, onSaved, onCancel) =>
-            DiveEditPage(embedded: true, onSaved: onSaved, onCancel: onCancel),
+        createBuilder: newDivePaneBuilder(),
         floatingActionButton: fab,
         onFabPressed: () => _showAddDiveSheet(context),
       );
@@ -813,301 +804,301 @@ class DiveListTile extends ConsumerWidget {
               : (availableWidth * 0.20).clamp(80.0, 120.0);
           final titleStyle = Theme.of(context).textTheme.titleMedium;
 
+          // The chevron takes a column of its own at the card's end, centred
+          // on the whole card, so every line ends at one edge (#4639).
           return Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Top row: avatar/checkbox, text info, chart, chevron
-                Row(
-                  children: [
-                    // Dive number badge, with the selection checkbox ahead
-                    // of it in selection mode (never in place of it).
-                    SelectionLeading(
-                      isSelectionMode: isSelectionMode,
-                      isChecked: isChecked,
-                      onChanged: (_) => onTap?.call(),
-                      child: SizedBox(
-                        width: 40,
-                        height: 40,
-                        child: CircleAvatar(
-                          backgroundColor: colorScheme.primaryContainer,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4),
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              // A planned dive holds no number, and the list
-                              // passes its position as a fallback, so the
-                              // badge would show a number that belongs to
-                              // another dive (issue #2002).
-                              child: unfilledState != null
-                                  ? Icon(
-                                      unfilledDiveIcon(unfilledState),
-                                      size: 18,
-                                      color: colorScheme.onPrimaryContainer,
-                                    )
-                                  : Text(
-                                      '#$diveNumber',
-                                      maxLines: 1,
-                                      style: TextStyle(
-                                        color: colorScheme.onPrimaryContainer,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    // Main text content (site, location, date)
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Site name with favorite and rating
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  buildTitleText(),
-                                  // Same ink-centering fix as DiveModeBadge
-                                  // and the header's rating number, but
-                                  // without shrinking the space this line
-                                  // occupies: strutStyle pins the reserved
-                                  // line height to titleMedium's own natural
-                                  // value (so the date line below doesn't
-                                  // shift up) while textHeightBehavior only
-                                  // repositions the ink within that space.
-                                  // No ellipsis: a long title wraps, like the
-                                  // trip and equipment cards, so the full
-                                  // name is always visible.
-                                  style: titleStyle
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.w600,
-                                        color: primaryTextColor,
-                                      )
-                                      .inkCentered,
-                                  textHeightBehavior:
-                                      inkCenteredTextHeightBehavior,
-                                  strutStyle: titleStyle?.preservingStrut,
-                                ),
+            padding: const EdgeInsets.all(kRecordCardDetailedPadding),
+            child: RecordListChevronRow(
+              chevronColor: secondaryTextColor,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Top row: avatar/checkbox, text info, chart
+                  Row(
+                    children: [
+                      // Dive number badge, with the selection checkbox ahead
+                      // of it in selection mode (never in place of it).
+                      SelectionLeading(
+                        isSelectionMode: isSelectionMode,
+                        isChecked: isChecked,
+                        onChanged: (_) => onTap?.call(),
+                        child: SizedBox(
+                          width: 40,
+                          height: 40,
+                          child: CircleAvatar(
+                            backgroundColor: colorScheme.primaryContainer,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
                               ),
-                              // A plan or draft awaiting its computer data
-                              // (issues #2002 and #637).
-                              if (chipState != null) ...[
-                                const SizedBox(width: 6),
-                                UnfilledDiveChip(state: chipState),
-                              ],
-                              if (isFavorite) ...[
-                                const SizedBox(width: 4),
-                                const ExcludeSemantics(
-                                  child: Icon(
-                                    Icons.favorite,
-                                    size: 18,
-                                    color: AppColors.favorite,
-                                  ),
-                                ),
-                              ],
-                              // Statistics exclusion (#526 / #1272). Explains
-                              // why this dive is missing from the totals
-                              // without the diver having to open it.
-                              if (summary?.excludedFromStats == true ||
-                                  summary?.excludedFromGasStats == true) ...[
-                                const SizedBox(width: 6),
-                                Tooltip(
-                                  key: const Key('dive-excluded-badge'),
-                                  message: summary!.excludedFromStats
-                                      ? context
-                                            .l10n
-                                            .diveLog_badge_excludedFromStats
-                                      : context
-                                            .l10n
-                                            .diveLog_badge_excludedFromGasStats,
-                                  child: Icon(
-                                    summary!.excludedFromStats
-                                        ? Icons.bar_chart_outlined
-                                        : Icons.local_gas_station_outlined,
-                                    size: 16,
-                                    color: colorScheme.outline,
-                                  ),
-                                ),
-                              ],
-                              if ((summary?.safetyFindingCount ?? 0) > 0 &&
-                                  ref.watch(safetyReviewEnabledProvider)) ...[
-                                const SizedBox(width: 6),
-                                SafetyFindingBadge(
-                                  count: summary!.safetyFindingCount,
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
-                              ],
-                              if (rating != null) ...[
-                                const SizedBox(width: 8),
-                                ExcludeSemantics(
-                                  child: Icon(
-                                    Icons.star,
-                                    size: 16,
-                                    color: Colors.amber.shade600,
-                                  ),
-                                ),
-                                const SizedBox(width: 2),
-                                Text(
-                                  '$rating',
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.w500,
-                                        color: primaryTextColor,
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                // A planned dive holds no number, and the list
+                                // passes its position as a fallback, so the
+                                // badge would show a number that belongs to
+                                // another dive (issue #2002).
+                                child: unfilledState != null
+                                    ? Icon(
+                                        unfilledDiveIcon(unfilledState),
+                                        size: 18,
+                                        color: colorScheme.onPrimaryContainer,
+                                      )
+                                    : Text(
+                                        '#$diveNumber',
+                                        maxLines: 1,
+                                        style: TextStyle(
+                                          color: colorScheme.onPrimaryContainer,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                        ),
                                       ),
-                                ),
-                              ],
-                            ],
-                          ),
-                          // Site location (country/region)
-                          if (siteLocation != null &&
-                              siteLocation!.isNotEmpty) ...[
-                            const SizedBox(height: 2),
-                            Text(
-                              siteLocation!,
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(color: secondaryTextColor),
-                              overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                          ],
-                          const SizedBox(height: 4),
-                          // Date/subtitle line (configurable via 'date' slot)
-                          Text(
-                            buildDateText(),
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(color: secondaryTextColor),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Dive profile mini chart (right side)
-                    if (profile.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsetsDirectional.only(start: 8),
-                        child: SizedBox(
-                          width: chartWidth,
-                          height: 50,
-                          child: DiveProfileMiniChart(
-                            profile: profile,
-                            height: 50,
-                            color: accentColor,
-                          ),
-                        ),
-                      )
-                    else if (estimate != null)
-                      Padding(
-                        padding: const EdgeInsetsDirectional.only(start: 8),
-                        child: SizedBox(
-                          width: chartWidth,
-                          height: 50,
-                          child: EstimatedProfileMiniChart(
-                            profile: estimate,
-                            height: 50,
-                            color: accentColor,
                           ),
                         ),
                       ),
-                    // Chevron
-                    ExcludeSemantics(
-                      child: Icon(
-                        Icons.chevron_right,
-                        color: secondaryTextColor,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                // Stat row plus the dive-type badges and the dive mode badge,
-                // right-aligned on the same line with the mode last.
-                // DiveCardStatRow reserves the badges' narrowest width first
-                // (types collapsed to "+N", mode at full width), so at a narrow
-                // pane the stats ellipsize instead of overflowing. Tags get
-                // their own line below.
-                SelectionInset(
-                  isSelectionMode: isSelectionMode,
-                  start: 52,
-                  child: DiveCardStatRow(
-                    stats: [
-                      for (final field in [stat1Field, stat2Field])
-                        _buildStat(
-                          field,
-                          summary,
-                          units,
-                          context,
-                          accentColor,
-                          secondaryTextColor,
-                        ),
-                    ],
-                    diveTypeLabels: diveTypeLabels,
-                    diveMode: summary?.diveMode ?? DiveMode.oc,
-                  ),
-                ),
-                // Tags, on their own line so a long tag name never competes
-                // with the stat row or the type badges for width (each chip
-                // is itself capped with an ellipsis as a defensive backstop).
-                if (tags.isNotEmpty && detailedConfig.showTags) ...[
-                  const SizedBox(height: 4),
-                  SelectionInset(
-                    isSelectionMode: isSelectionMode,
-                    start: 52,
-                    child: TagChips(tags: tags, maxTags: 3),
-                  ),
-                ],
-                // Extra configurable fields area
-                if (extraFields.isNotEmpty &&
-                    (fullDive != null || summary != null)) ...[
-                  const SizedBox(height: 4),
-                  SelectionInset(
-                    isSelectionMode: isSelectionMode,
-                    start: 52,
-                    child: LayoutBuilder(
-                      builder: (context, innerConstraints) {
-                        final useOneColumn = innerConstraints.maxWidth < 250;
-                        return Wrap(
-                          spacing: 16,
-                          runSpacing: 4,
-                          children: extraFields.map((field) {
-                            final value = _slotValue(field, summary, units);
-                            final formatted = field.formatValue(value, units);
-                            return SizedBox(
-                              width: useOneColumn
-                                  ? innerConstraints.maxWidth
-                                  : (innerConstraints.maxWidth - 16) / 2,
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    '${field.localizedShortLabel(context.l10n)}: ',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: secondaryTextColor,
-                                      fontWeight: FontWeight.w500,
-                                    ),
+                      const SizedBox(width: 12),
+                      // Main text content (site, location, date)
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Site name with favorite and rating
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    buildTitleText(),
+                                    // Same ink-centering fix as DiveModeBadge
+                                    // and the header's rating number, but
+                                    // without shrinking the space this line
+                                    // occupies: strutStyle pins the reserved
+                                    // line height to titleMedium's own natural
+                                    // value (so the date line below doesn't
+                                    // shift up) while textHeightBehavior only
+                                    // repositions the ink within that space.
+                                    // No ellipsis: a long title wraps, like the
+                                    // trip and equipment cards, so the full
+                                    // name is always visible.
+                                    style: titleStyle
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.w600,
+                                          color: primaryTextColor,
+                                        )
+                                        .inkCentered,
+                                    textHeightBehavior:
+                                        inkCenteredTextHeightBehavior,
+                                    strutStyle: titleStyle?.preservingStrut,
                                   ),
-                                  Flexible(
-                                    child: Text(
-                                      formatted,
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color: primaryTextColor,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
+                                ),
+                                // A plan or draft awaiting its computer data
+                                // (issues #2002 and #637).
+                                if (chipState != null) ...[
+                                  const SizedBox(width: 6),
+                                  UnfilledDiveChip(state: chipState),
+                                ],
+                                if (isFavorite) ...[
+                                  const SizedBox(width: 4),
+                                  const ExcludeSemantics(
+                                    child: Icon(
+                                      Icons.favorite,
+                                      size: 18,
+                                      color: AppColors.favorite,
                                     ),
                                   ),
                                 ],
+                                // Statistics exclusion (#526 / #1272). Explains
+                                // why this dive is missing from the totals
+                                // without the diver having to open it.
+                                if (summary?.excludedFromStats == true ||
+                                    summary?.excludedFromGasStats == true) ...[
+                                  const SizedBox(width: 6),
+                                  Tooltip(
+                                    key: const Key('dive-excluded-badge'),
+                                    message: summary!.excludedFromStats
+                                        ? context
+                                              .l10n
+                                              .diveLog_badge_excludedFromStats
+                                        : context
+                                              .l10n
+                                              .diveLog_badge_excludedFromGasStats,
+                                    child: Icon(
+                                      summary!.excludedFromStats
+                                          ? Icons.bar_chart_outlined
+                                          : Icons.local_gas_station_outlined,
+                                      size: 16,
+                                      color: colorScheme.outline,
+                                    ),
+                                  ),
+                                ],
+                                if ((summary?.safetyFindingCount ?? 0) > 0 &&
+                                    ref.watch(safetyReviewEnabledProvider)) ...[
+                                  const SizedBox(width: 6),
+                                  SafetyFindingBadge(
+                                    count: summary!.safetyFindingCount,
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                ],
+                                if (rating != null) ...[
+                                  const SizedBox(width: 8),
+                                  ExcludeSemantics(
+                                    child: Icon(
+                                      Icons.star,
+                                      size: 16,
+                                      color: Colors.amber.shade600,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 2),
+                                  Text(
+                                    '$rating',
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.w500,
+                                          color: primaryTextColor,
+                                        ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                            // Site location (country/region)
+                            if (siteLocation != null &&
+                                siteLocation!.isNotEmpty) ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                siteLocation!,
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(color: secondaryTextColor),
+                                overflow: TextOverflow.ellipsis,
                               ),
-                            );
-                          }).toList(),
-                        );
-                      },
+                            ],
+                            const SizedBox(height: 4),
+                            // Date/subtitle line (configurable via 'date' slot)
+                            Text(
+                              buildDateText(),
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(color: secondaryTextColor),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Dive profile mini chart (right side)
+                      if (profile.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsetsDirectional.only(start: 8),
+                          child: SizedBox(
+                            width: chartWidth,
+                            height: 50,
+                            child: DiveProfileMiniChart(
+                              profile: profile,
+                              height: 50,
+                              color: accentColor,
+                            ),
+                          ),
+                        )
+                      else if (estimate != null)
+                        Padding(
+                          padding: const EdgeInsetsDirectional.only(start: 8),
+                          child: SizedBox(
+                            width: chartWidth,
+                            height: 50,
+                            child: EstimatedProfileMiniChart(
+                              profile: estimate,
+                              height: 50,
+                              color: accentColor,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  // Stat row plus the dive-type badges and the dive mode badge,
+                  // right-aligned on the same line with the mode last.
+                  // DiveCardStatRow reserves the badges' narrowest width first
+                  // (types collapsed to "+N", mode at full width), so at a narrow
+                  // pane the stats ellipsize instead of overflowing. Tags get
+                  // their own line below.
+                  SelectionInset(
+                    isSelectionMode: isSelectionMode,
+                    start: 52,
+                    child: DiveCardStatRow(
+                      stats: [
+                        for (final field in [stat1Field, stat2Field])
+                          _buildStat(
+                            field,
+                            summary,
+                            units,
+                            context,
+                            accentColor,
+                            secondaryTextColor,
+                          ),
+                      ],
+                      diveTypeLabels: diveTypeLabels,
+                      diveMode: summary?.diveMode ?? DiveMode.oc,
                     ),
                   ),
+                  // Tags, on their own line so a long tag name never competes
+                  // with the stat row or the type badges for width (each chip
+                  // is itself capped with an ellipsis as a defensive backstop).
+                  if (tags.isNotEmpty && detailedConfig.showTags) ...[
+                    const SizedBox(height: 4),
+                    SelectionInset(
+                      isSelectionMode: isSelectionMode,
+                      start: 52,
+                      child: TagChips(tags: tags, maxTags: 3),
+                    ),
+                  ],
+                  // Extra configurable fields area
+                  if (extraFields.isNotEmpty &&
+                      (fullDive != null || summary != null)) ...[
+                    const SizedBox(height: 4),
+                    SelectionInset(
+                      isSelectionMode: isSelectionMode,
+                      start: 52,
+                      child: LayoutBuilder(
+                        builder: (context, innerConstraints) {
+                          final useOneColumn = innerConstraints.maxWidth < 250;
+                          return Wrap(
+                            spacing: 16,
+                            runSpacing: 4,
+                            children: extraFields.map((field) {
+                              final value = _slotValue(field, summary, units);
+                              final formatted = field.formatValue(value, units);
+                              return SizedBox(
+                                width: useOneColumn
+                                    ? innerConstraints.maxWidth
+                                    : (innerConstraints.maxWidth - 16) / 2,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      '${field.localizedShortLabel(context.l10n)}: ',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: secondaryTextColor,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    Flexible(
+                                      child: Text(
+                                        formatted,
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: primaryTextColor,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
           );
         },

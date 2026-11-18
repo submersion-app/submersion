@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:google_fonts/google_fonts.dart';
+import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
@@ -37,6 +38,9 @@ import 'blocked_network.dart';
 ///
 /// Demo mode is off, so no engine method refuses to run (issue #3708).
 ///
+/// Marine life identification follows the platform again, with no test's
+/// override left over.
+///
 /// Network access is limited to this machine (test/helpers/blocked_network.dart):
 /// a request or socket to any other host fails with the URL or host, the same
 /// way in a file run alone and in a bundle.
@@ -49,4 +53,5 @@ void applyGlobalTestDefaults() {
   DemoModeGate.instance.debugActive = false;
   HttpOverrides.global = blockedNetworkHttpOverrides;
   IOOverrides.global = blockedNetworkIOOverrides;
+  resetMarineLifeIdEnabled();
 }

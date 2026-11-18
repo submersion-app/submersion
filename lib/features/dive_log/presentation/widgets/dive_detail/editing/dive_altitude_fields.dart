@@ -30,6 +30,15 @@ final diveSurfacePressureField = EditField<Dive, double?>(
   ),
 );
 
+/// The key the copy of a looked-up altitude to [siteId] is held under, so
+/// that picking another site can release it (`releaseWrite`).
+String siteAltitudeWriteKey(String siteId) => 'siteAltitude:$siteId';
+
+/// The note of the altitude a lookup set in this sitting, and for which
+/// site: `({String? siteId, double meters})`. A change of site takes that
+/// altitude back, while the diver has not changed it since.
+const String altitudeFillNoteKey = 'altitudeFill';
+
 /// Looks the altitude up when the sitting has none, and sets it.
 ///
 /// The dive's own GPS comes first, then its site's stored altitude, then a
@@ -37,7 +46,9 @@ final diveSurfacePressureField = EditField<Dive, double?>(
 /// is what answered, the altitude belongs on the site as well: the write is
 /// held on [session] and made by [writeSiteAltitude] when the sitting is
 /// saved, so cancelling leaves the site as it was. It is made only if the
-/// dive still has that altitude by then.
+/// dive still has that altitude by then, and [writeSiteAltitude] is the
+/// write that keeps an altitude the site gained meanwhile
+/// (`SiteRepository.fillSiteAltitudeIfEmpty`).
 ///
 /// It never replaces an altitude: one set before the call, or typed while
 /// the lookup ran, stays. A result that arrives after the sitting ended,
@@ -82,9 +93,10 @@ Future<void> fillAltitudeIfEmpty(
   if (meters == null || session.valueOf(diveAltitudeField) != null) return;
 
   session.set(diveAltitudeField, meters);
+  session.remember(altitudeFillNoteKey, (siteId: asked.siteId, meters: meters));
   final writeBack = resolution.siteAltitudeWriteBack;
   if (writeBack != null) {
-    session.holdWrite('siteAltitude:${writeBack.siteId}', () async {
+    session.holdWrite(siteAltitudeWriteKey(writeBack.siteId), () async {
       // Asked as the sitting is saved: a diver who has since typed another
       // altitude, or taken this one out, has not accepted the lookup, and
       // the site must not be given it.

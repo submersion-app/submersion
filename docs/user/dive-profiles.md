@@ -61,6 +61,7 @@ grouped into sections:
 | **Events** | Event markers (see [Event markers](#event-markers)); **Computed events** adds the ones Submersion detected itself. |
 | **Heart Rate** | Beats per minute, when your computer recorded a heart-rate belt. |
 | **Consumption** | Your gas consumption normalised to the surface (SAC), derived from tank-pressure change. Always shown as pressure per minute (bar/min or psi/min). See [Glossary](glossary.md). |
+| **Buoyancy** | Your net buoyancy through the dive, from the same model as the Buoyancy card, drawn green while you are buoyant and magenta while you are heavy, with a dashed line at neutral. On a dive logged by two computers it is modelled on the computer the chart is showing. Offered when the dive has a tank or an exposure suit. Off by default; Settings > Appearance > Default Visible Metrics turns it on for every dive. |
 | **Ascent Rate** | Colours the depth line by how fast you were ascending: green within limits, orange at the warning threshold, red past the critical threshold. See [Ascent-rate thresholds](#ascent-rate-thresholds) below. **Ascent Rate Line** draws the rate as its own curve instead. |
 | **Gases** | A thin **gas timeline** strip drawn between the plot and the time axis, coloured by the gas in use (air, nitrox, oxygen, trimix) across the dive. |
 

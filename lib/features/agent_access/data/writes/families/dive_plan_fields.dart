@@ -1,6 +1,7 @@
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart' show TankRole, WaterType;
+import 'package:submersion/core/deco/scr_calculator.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/utils/gas_percent.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
@@ -38,6 +39,22 @@ const planNumberFields = {
   'reserve_pressure_bar': FieldCodec.number(min: 0, max: 300, nullable: true),
   'ppo2_bottom_bar': FieldCodec.number(min: 0.16, max: 2, nullable: true),
   'ppo2_deco_bar': FieldCodec.number(min: 0.16, max: 2, nullable: true),
+  // A semi-closed loop's flow, surface L/min (issue #4660).
+  'scr_injection_rate_l_min': FieldCodec.number(
+    min: ScrCalculator.minLoopFlowLpm,
+    max: 60,
+    nullable: true,
+  ),
+  'scr_vo2_l_min': FieldCodec.number(
+    min: ScrCalculator.minLoopFlowLpm,
+    max: 5,
+    nullable: true,
+  ),
+  'pscr_vo2_l_min': FieldCodec.number(
+    min: ScrCalculator.minLoopFlowLpm,
+    max: 5,
+    nullable: true,
+  ),
 };
 
 /// The settings a plan can hold its own value for, by document key: an
@@ -118,6 +135,35 @@ final Map<String, FieldCodec> planComputeFields = {
   'tanks': planTanksField,
   'segments': planSegmentsField,
 };
+
+/// The tanks and segments of a `dive_plans` [document] in the shape
+/// [planTanksField] and [planSegmentsField] take them: each tank by the
+/// fields an agent writes, each segment naming its tank by place. Shared by
+/// the write family, which compares a change against it, and a recalled
+/// plan's `resolved_inputs`, which compute it again (issue #4203).
+Map<String, Object?> planPartsAsWritten(Map<String, Object?> document) {
+  final tanks = [
+    for (final t in document['tanks'] as List? ?? const [])
+      (t as Map).cast<String, Object?>(),
+  ];
+  final place = {for (final (i, t) in tanks.indexed) t['id']: i};
+  return {
+    'tanks': [
+      for (final t in tanks)
+        {for (final key in planTanksField.keys.keys) key: t[key]},
+    ],
+    'segments': [
+      for (final s in document['segments'] as List? ?? const [])
+        {
+          'target_depth_m': (s as Map)['target_depth_m'],
+          'duration_s': s['duration_s'],
+          'tank': place[s['tank_id']],
+          'setpoint_bar': s['setpoint_bar'],
+          'split_at_configured_rate': s['split_at_configured_rate'],
+        },
+    ],
+  };
+}
 
 String? _tankRule(Map<String, Object?> tank) =>
     (tank['o2_fraction']! as num) + (tank['he_fraction']! as num) > 1
@@ -243,6 +289,12 @@ DivePlan applyPlanValues(
     clearPpO2Bottom: clears('ppo2_bottom_bar'),
     ppO2Deco: number('ppo2_deco_bar'),
     clearPpO2Deco: clears('ppo2_deco_bar'),
+    scrInjectionRate: number('scr_injection_rate_l_min'),
+    clearScrInjectionRate: clears('scr_injection_rate_l_min'),
+    scrVo2: number('scr_vo2_l_min'),
+    clearScrVo2: clears('scr_vo2_l_min'),
+    pscrVo2: number('pscr_vo2_l_min'),
+    clearPscrVo2: clears('pscr_vo2_l_min'),
     tanks: tanks,
     segments: segments,
   );

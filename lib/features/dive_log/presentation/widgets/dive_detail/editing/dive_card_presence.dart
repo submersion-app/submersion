@@ -4,6 +4,8 @@ import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_section_gates.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_edit_cards.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 /// Whether the dive page has something to show in [id]'s card for [dive],
 /// apart from the diver having hidden it.
@@ -24,9 +26,10 @@ bool diveCardIsShown(
   DiveDetailSectionId id,
   Dive dive, {
   Dive? satelliteFor,
+  EditSession<Dive>? session,
 }) {
   final card = diveEditCards[id];
-  if (card == null || !card.isEmpty(dive)) return true;
+  if (card == null || !card.isEmptyDuring(dive, session)) return true;
   return id == DiveDetailSectionId.environment &&
       watchSatelliteWaterConditions(ref, satelliteFor ?? dive) != null;
 }
@@ -46,6 +49,15 @@ bool diveCardIsShown(
 /// Asked of [working], picking it would take the Environment card off the
 /// page under an open editor.
 ///
+/// [stored], during a sitting, is the dive as stored: what a card works out
+/// is asked of it instead, so that a site or a date changed in the sitting
+/// does not rework it before Save (issue #4527, plan 4).
+///
+/// [edit], during a sitting, is the page's controller. A card whose rows
+/// are its own (`EditCard.isEmptyInSitting`) is asked of the sitting, and
+/// while an editor is open by the answer it gave when the first one opened
+/// (`RecordEditController.layoutAnswer`), as a record card is by [layout].
+///
 /// The section list and the Add strip both ask this, so a card is always
 /// either on the page or offered in the strip, never neither.
 ///
@@ -55,8 +67,22 @@ bool diveCardIsOnPage(
   DiveDetailSectionId id, {
   required Dive layout,
   required Dive working,
+  Dive? stored,
+  RecordEditController<Dive>? edit,
 }) {
-  if (!diveCardIsShown(ref, id, layout)) return false;
+  final session = edit?.session;
+  final card = diveEditCards[id];
+  if (session != null && card?.isEmptyInSitting != null) {
+    // Rows of the card's own, not values of the dive: what they were when
+    // the first editor opened stands for the held layout.
+    final emptyNow = card!.isEmptyDuring(working, session);
+    final emptyAtLayout = edit!.layoutAnswer(
+      'empty:${id.name}',
+      () => emptyNow,
+    );
+    return !emptyNow && !emptyAtLayout;
+  }
+  if (!diveCardIsShown(ref, id, layout, satelliteFor: stored)) return false;
   return identical(layout, working) ||
-      diveCardIsShown(ref, id, working, satelliteFor: layout);
+      diveCardIsShown(ref, id, working, satelliteFor: stored ?? layout);
 }

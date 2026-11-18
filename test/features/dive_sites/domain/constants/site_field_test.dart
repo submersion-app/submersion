@@ -240,6 +240,10 @@ void main() {
       expect(adapter.formatValue(SiteField.rating, 4.5, units), equals('4.5'));
     });
 
+    test('formats a whole-star rating without a decimal (#4573)', () {
+      expect(adapter.formatValue(SiteField.rating, 4.0, units), equals('4'));
+    });
+
     test('formats latitude/longitude in the diver-selected notation', () {
       expect(
         adapter.formatValue(SiteField.latitude, 36.04270, units),

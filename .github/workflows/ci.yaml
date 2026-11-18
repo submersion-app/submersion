@@ -587,6 +587,7 @@ jobs:
             test/features/safety/presentation/providers/flight_window_providers_test.dart
             test/features/safety/presentation/widgets/flight_window_card_test.dart
             test/features/dive_log/presentation/widgets/flight_window_warning_banner_test.dart
+            test/features/dive_log/presentation/pages/dive_detail_page_unlock_flight_window_test.dart
             test/features/planner/follow_dive_test.dart
           )
           # Guard against a rename silently emptying the list: with no paths,
@@ -693,7 +694,7 @@ jobs:
       - name: Run Python guard tests with coverage
         run: |
           mkdir -p coverage
-          guards='scripts/check_proguard_serial_keep.py,scripts/check_apk_signing_cert.py,scripts/check_native_libs_present.py,scripts/check_bundled_native_assets.py,scripts/check_glibc_floor.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/check_ci_success_gate.py,scripts/check_flutter_setup_retried.py,scripts/check_pr_issue_link.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/bundle_tests.py,scripts/filter_trivial_coverage.py,scripts/beta_failure_alert.py,scripts/release/play_beta_cooldown.py,scripts/report_inherited_failures.py,scripts/export_support_matrix_catalog.py,scripts/check_no_skipped_tests.py,scripts/check_docs_links.py,scripts/check_dependabot_gemfiles.py,scripts/dependabot_failure_alert.py,scripts/check_ruby_versions.py,scripts/demo_data/fetch_demo_db.py,scripts/curated_sites.py,scripts/site_catalogue_format.py,scripts/site_country_resolver.py,scripts/demo_package_age_alert.py,scripts/demo_data/fetch_published_manifest.py,scripts/snapshot_downloads.py,scripts/check_web_bundle.py,scripts/web/check_sqlite3_wasm_lock.py,scripts/web/check_junit_ran.py,scripts/web/serve_bundle.py,scripts/web/stage_hosted_site.py,scripts/wiki_howto_index.py,scripts/geography/generate_country_names.py,scripts/site_catalogue/records.py,scripts/site_catalogue/snapshots.py,scripts/site_catalogue/places.py,scripts/site_catalogue/src_ukho.py,scripts/site_catalogue/src_awois.py,scripts/site_catalogue/src_ireland.py,scripts/site_catalogue/grouping.py,scripts/site_catalogue/src_reefs.py,scripts/site_catalogue/src_osm.py,scripts/site_catalogue/src_wikidata.py,scripts/site_catalogue/overlap.py,scripts/site_catalogue/merge.py'
+          guards='scripts/check_proguard_serial_keep.py,scripts/check_apk_signing_cert.py,scripts/check_native_libs_present.py,scripts/check_bundled_native_assets.py,scripts/check_glibc_floor.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/check_ci_success_gate.py,scripts/check_flutter_setup_retried.py,scripts/check_pr_issue_link.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/bundle_tests.py,scripts/filter_trivial_coverage.py,scripts/beta_failure_alert.py,scripts/release/play_beta_cooldown.py,scripts/report_inherited_failures.py,scripts/export_support_matrix_catalog.py,scripts/check_no_skipped_tests.py,scripts/check_docs_links.py,scripts/check_dependabot_gemfiles.py,scripts/dependabot_failure_alert.py,scripts/check_ruby_versions.py,scripts/demo_data/fetch_demo_db.py,scripts/demo_package_age_alert.py,scripts/demo_data/fetch_published_manifest.py,scripts/snapshot_downloads.py,scripts/check_web_bundle.py,scripts/web/check_sqlite3_wasm_lock.py,scripts/web/check_junit_ran.py,scripts/web/serve_bundle.py,scripts/web/stage_hosted_site.py,scripts/wiki_howto_index.py,scripts/geography/generate_country_names.py,scripts/site_catalogue_intake.py,tool/species_pack/region_grid.py,tool/species_pack/manifest.py,tool/species_pack/naming.py,tool/species_pack/bars.py,tool/species_pack/metrics.py,tool/species_pack/testset.py,tool/species_pack/boxes.py'
           python3 -m coverage run --include="$guards" \
             scripts/check_proguard_serial_keep_test.py
           python3 -m coverage run --append --include="$guards" \
@@ -745,12 +746,6 @@ jobs:
           python3 -m coverage run --append --include="$guards" \
             scripts/demo_data/fetch_demo_db_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/curated_sites_test.py
-          python3 -m coverage run --append --include="$guards" \
-            scripts/site_catalogue_format_test.py
-          python3 -m coverage run --append --include="$guards" \
-            scripts/site_country_resolver_test.py
-          python3 -m coverage run --append --include="$guards" \
             scripts/demo_package_age_alert_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/demo_data/fetch_published_manifest_test.py
@@ -771,31 +766,23 @@ jobs:
           python3 -m coverage run --append --include="$guards" \
             scripts/geography/generate_country_names_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/site_catalogue/records_test.py
+            scripts/site_catalogue_intake_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/site_catalogue/snapshots_test.py
+            tool/species_pack/region_grid_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/site_catalogue/places_test.py
+            tool/species_pack/manifest_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/site_catalogue/src_ukho_test.py
+            tool/species_pack/naming_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/site_catalogue/src_awois_test.py
+            tool/species_pack/bars_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/site_catalogue/src_ireland_test.py
+            tool/species_pack/metrics_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/site_catalogue/grouping_test.py
+            tool/species_pack/testset_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/site_catalogue/src_reefs_test.py
+            tool/species_pack/boxes_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/site_catalogue/src_osm_test.py
-          python3 -m coverage run --append --include="$guards" \
-            scripts/site_catalogue/src_wikidata_test.py
-          python3 -m coverage run --append --include="$guards" \
-            scripts/site_catalogue/overlap_test.py
-          python3 -m coverage run --append --include="$guards" \
-            scripts/site_catalogue/merge_test.py
-          python3 -m coverage run --append --include="$guards" \
-            scripts/site_catalogue/fetch_test.py
+            tool/species_pack/megalodon_test.py
           python3 -m coverage report -m --include="$guards"
           python3 -m coverage xml --include="$guards" \
             -o coverage/scripts.xml
@@ -1586,6 +1573,13 @@ jobs:
         uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: 'latest-stable'
+
+      # The memory floor for marine life identification on iPhone and iPad
+      # (MemoryFloor in MemoryReading.swift) must keep 6 GB devices out. It
+      # runs here, a few seconds of swiftc, because this job is under CI
+      # Success, so a broken floor blocks the merge.
+      - name: Check the marine life memory floor
+        run: tool/species_pack/vision_cli/check_floor.sh "$RUNNER_TEMP/floor_check"
 
       - uses: ./.github/actions/setup-flutter
         id: setup-flutter

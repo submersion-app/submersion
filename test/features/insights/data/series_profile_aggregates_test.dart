@@ -94,9 +94,25 @@ void main() {
         const ProfileSample(timestamp: 3640, depth: 45.0),
       ];
       final r = timeAtDepthRanges({('d1', null): samples});
-      expect(r.single.lowerDepth, 40);
-      expect(r.single.upperDepth, isNull);
-      expect(r.single.minutes, ((40 + 2912) / 60).round());
+      // Every band down to the 45 m one shows, the shallower ones as zero.
+      expect(r.map((b) => b.minutes).take(4), [0, 0, 0, 0]);
+      expect(r.last.lowerDepth, 40);
+      expect(r.last.upperDepth, 50);
+      expect(r.last.minutes, ((40 + 2912) / 60).round());
+    });
+
+    test('a sample with no usable depth is skipped, not thrown on', () {
+      final r = timeAtDepthRanges({
+        ('d1', null): const [
+          ProfileSample(timestamp: 0, depth: 5.0),
+          ProfileSample(timestamp: 60, depth: double.nan),
+          ProfileSample(timestamp: 120, depth: double.infinity),
+          ProfileSample(timestamp: 180, depth: 5.0),
+          ProfileSample(timestamp: 240, depth: 5.0),
+        ],
+      });
+      // Only the first and last intervals start at a real depth.
+      expect(r, [(lowerDepth: 0, upperDepth: 10, minutes: 2)]);
     });
 
     test('a stream with a single sample contributes nothing', () {
@@ -116,7 +132,7 @@ void main() {
           const ProfileSample(timestamp: 120, depth: 5.0),
         ],
       });
-      expect(r.map((b) => b.lowerDepth), [0, 30]);
+      expect(r.map((b) => b.lowerDepth), [0, 10, 20, 30]);
     });
   });
 
@@ -176,4 +192,55 @@ void main() {
       expect(r, ascentDescentRates({('d1', 'c1'): descent}));
     },
   );
+
+  group('verticalDistanceByDiveFromBlobs', () {
+    const codec = ProfileSeriesCodec();
+    SeriesBlob blob(String dive, String? computer, List<(int, double)> s) =>
+        SeriesBlob(
+          diveId: dive,
+          computerId: computer,
+          samples: codec.encode([
+            for (final (t, d) in s) ProfileSample(timestamp: t, depth: d),
+          ]).bytes,
+        );
+
+    test('each dive gets its own figure', () {
+      final r = verticalDistanceByDiveFromBlobs([
+        blob('d1', 'c1', [(0, 0), (60, 20), (120, 0)]),
+        // 0 -> 30, up to 12, down to 18, up: 30 + 6.
+        blob('d2', null, [(0, 0), (60, 30), (120, 12), (180, 18), (240, 0)]),
+      ]);
+      expect(r, {'d1': 20.0, 'd2': 36.0});
+    });
+
+    test('a stream stored as two series rows is interleaved, not counted '
+        'twice', () {
+      // Read separately, each piece would count 20 on its own (40 in all).
+      final r = verticalDistanceByDiveFromBlobs([
+        blob('d1', 'c1', [(0, 0), (30, 10), (60, 20)]),
+        blob('d1', 'c1', [(90, 10), (120, 0)]),
+      ]);
+      expect(r, {'d1': 20.0});
+    });
+
+    test('two computers on one dive: the larger figure wins', () {
+      final r = verticalDistanceByDiveFromBlobs([
+        blob('d1', 'c1', [(0, 0), (60, 20), (120, 0)]),
+        blob('d1', 'c2', [(0, 0), (60, 21), (120, 0)]),
+      ]);
+      expect(r, {'d1': 21.0});
+    });
+
+    test('a dive whose only blob is corrupt is absent', () {
+      final r = verticalDistanceByDiveFromBlobs([
+        blob('d1', 'c1', [(0, 0), (60, 20), (120, 0)]),
+        SeriesBlob(
+          diveId: 'd2',
+          computerId: 'c1',
+          samples: Uint8List.fromList([1, 2, 3]),
+        ),
+      ]);
+      expect(r, {'d1': 20.0});
+    });
+  });
 }

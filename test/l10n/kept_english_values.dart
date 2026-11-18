@@ -29,10 +29,27 @@ const _speciesName =
     'Species common name, which this locale writes the same way';
 const _germanSerial =
     'S/N is the usual German abbreviation for a serial number';
+const _placeName =
+    'Proper name of a place, wreck or structure, written the same way in this language';
 
 const Map<String, String> keptEnglishValues = {
+  'insights_landmark_benNevis': _placeName,
+  'insights_landmark_burjKhalifa': _placeName,
+  'insights_landmark_craterLake': _placeName,
+  'insights_landmark_deansBlueHole': _placeName,
+  'insights_landmark_dragonHole': _placeName,
+  'insights_landmark_empireStateBuilding': _placeName,
+  'insights_landmark_everest': _placeName,
+  'insights_landmark_greatBlueHole': _placeName,
+  'insights_landmark_montBlanc': _placeName,
+  'insights_landmark_mountKosciuszko': _placeName,
+  'insights_landmark_olympusMons': _placeName,
   'info_term_degreeHeatingWeeks_label@de': _brand,
   'info_term_nitrox_label': _abbreviation,
+  // VO2 and the loop type in brackets are measurement and mode
+  // abbreviations (issue #4660).
+  'plannerCanvas_scr_vo2': _abbreviation,
+  'plannerCanvas_pscr_vo2': _abbreviation,
   'info_term_rockBottom_label': _method,
   'settings_agentAccess_claudeCode': _brand,
   'settings_agentAccess_claudeDesktop': _brand,
@@ -83,7 +100,6 @@ const Map<String, String> keptEnglishValues = {
   'diveLog_detail_weatherSourceOpenMeteo@nl': _sameWord,
   'diveLog_detail_weatherSourceOpenMeteo@pt': _sameWord,
   'diveLog_edit_label_weightName@de': _sameWord,
-  'diveLog_edit_summary_items@nl': _dutchItem,
   'diveLog_equipmentSetPicker_itemsSummary@nl': _dutchItem,
   'diveLog_export_uddfDescription@de': _technology,
   'diveLog_export_uddfDescription@it': _technology,
@@ -97,11 +113,6 @@ const Map<String, String> keptEnglishValues = {
   'diveLog_tooltip_extraDeco@nl': _loanword,
   'diveSites_list_count@fr': _sameWord,
   'diveSites_summary_stat_totalSites@fr': _sameWord,
-  'enum_altitudeGroup_extreme_range': _units,
-  'enum_altitudeGroup_group1_range': _units,
-  'enum_altitudeGroup_group2_range': _units,
-  'enum_altitudeGroup_group3_range': _units,
-  'enum_altitudeGroup_seaLevel_range': _units,
   'enum_certificationLevel_advancedNitrox': _course,
   'enum_certificationLevel_advancedOpenWater': _course,
   'enum_certificationLevel_advancedTrimix': _course,

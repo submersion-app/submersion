@@ -68,7 +68,12 @@ class MediaLibraryTile extends StatelessWidget {
       ],
     );
     if (selection == 'info' && context.mounted) {
-      await showMediaInfoSheet(context, entry.item);
+      await showMediaInfoSheet(
+        context,
+        entry.item,
+        // A photo is changed only in the viewer, unlocked (issue #4527).
+        readOnly: true,
+      );
     }
   }
   // coverage:ignore-end

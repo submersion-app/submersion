@@ -9,9 +9,11 @@ import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/providers/entity_card_config_providers.dart';
 import 'package:submersion/shared/widgets/country_flag.dart';
+import 'package:submersion/shared/widgets/record_list_chevron.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
+import '../../../../helpers/record_chevron_expectations.dart';
 
 const _config = EntityCardViewConfig<SiteField>(
   slots: [
@@ -63,7 +65,9 @@ void main() {
       expect(find.text('Palau, Micronesia'), findsOneWidget);
       expect(find.text('12 dives'), findsOneWidget);
       expect(find.text('10-30m'), findsOneWidget);
-      expect(find.text('4.0'), findsOneWidget);
+      // A whole-star rating reads like a dive's, not "4.0" (#4573).
+      expect(find.text('4'), findsOneWidget);
+      expect(find.text('4.0'), findsNothing);
     });
 
     testWidgets('shows checkbox in selection mode', (tester) async {
@@ -146,5 +150,23 @@ void main() {
       await pumpTile(tester, flags: false);
       expect(find.byType(CountryFlag), findsNothing);
     });
+  });
+
+  testWidgets('chevron ends one card padding from the edge (#4639)', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: await _overrides(),
+        child: CompactSiteListTile(entry: _entry, onTap: () {}),
+      ),
+    );
+    await tester.pump();
+
+    expectChevronAtEndPadding(
+      tester,
+      bounds: recordCardBounds(tester),
+      padding: kRecordCardCompactPadding,
+    );
   });
 }

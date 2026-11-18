@@ -26,6 +26,8 @@ void main() {
       "updated_at) VALUES ('ann', 'me', 'Ann', 1, $now, $now), "
       "('bob', 'me', 'Bob', 0, $now, $now)",
     );
+    // Issue #4457: Bob is from Italy, written with stray spaces.
+    await sql("UPDATE buddies SET country = ' Italy ' WHERE id = 'bob'");
     SharedPreferences.setMockInitialValues({currentDiverIdKey: 'me'});
     final prefs = await SharedPreferences.getInstance();
     container = ProviderContainer(
@@ -62,5 +64,30 @@ void main() {
       const BoolValue(true),
     );
     expect(await visible(), ['ann']);
+  });
+
+  group('country (issue #4457)', () {
+    test('the text search finds a buddy by country', () async {
+      container.read(buddyQueryProvider.notifier).state = TextNode(['ital']);
+      expect(await visible(), ['bob']);
+    });
+
+    test('a country condition matches the trimmed text', () async {
+      container.read(buddyQueryProvider.notifier).state = ConditionNode(
+        FieldPath(['country']),
+        QueryOp.eq,
+        const StringValue('Italy'),
+      );
+      expect(await visible(), ['bob']);
+    });
+
+    test('an empty country condition finds buddies without one', () async {
+      container.read(buddyQueryProvider.notifier).state = ConditionNode(
+        FieldPath(['country']),
+        QueryOp.isEmpty,
+        null,
+      );
+      expect(await visible(), ['ann']);
+    });
   });
 }

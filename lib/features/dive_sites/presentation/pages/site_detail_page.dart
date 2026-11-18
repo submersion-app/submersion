@@ -3,6 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:uuid/uuid.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
@@ -80,6 +83,35 @@ import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
 import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_classification_sitting.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_edit_cards.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_sitting_save.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_sitting_start.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_catalogue_sitting.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_features_sitting.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_sharing_sitting.dart';
+import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
+import 'package:submersion/shared/widgets/shared_items/item_sharing_field.dart';
+import 'package:submersion/shared/widgets/shared_items/share_target_dialog.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_plain_fields.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_species_sitting.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/unlock_site_editing_flag.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_edit_save_provider.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_editing_page_provider.dart';
+import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_fade.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
+import 'package:submersion/shared/widgets/record_editing/sitting_list.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
+import 'package:submersion/shared/widgets/record_editing/record_fold_pencil.dart';
+
+part 'site_detail_page_editing.dart';
+part 'site_detail_page_fullscreen_scape.dart';
 
 class SiteDetailPage extends ConsumerStatefulWidget {
   final String siteId;
@@ -87,12 +119,17 @@ class SiteDetailPage extends ConsumerStatefulWidget {
   final VoidCallback? onDeleted;
   final VoidCallback? onClose;
 
+  /// Whether the page offers unlock-to-edit (issue #4527, phase 2): off
+  /// until the site page has every card ([kUnlockSiteEditing]).
+  final bool unlockEditing;
+
   const SiteDetailPage({
     super.key,
     required this.siteId,
     this.embedded = false,
     this.onDeleted,
     this.onClose,
+    this.unlockEditing = kUnlockSiteEditing,
   });
 
   @override
@@ -147,6 +184,7 @@ class _SiteDetailPageState extends ConsumerState<SiteDetailPage> {
           embedded: widget.embedded,
           onDeleted: widget.onDeleted,
           onClose: widget.onClose,
+          unlockEditing: widget.unlockEditing,
         );
       },
       loading: () {
@@ -185,6 +223,7 @@ class _SiteDetailContent extends ConsumerStatefulWidget {
   final bool embedded;
   final VoidCallback? onDeleted;
   final VoidCallback? onClose;
+  final bool unlockEditing;
 
   const _SiteDetailContent({
     required this.site,
@@ -192,13 +231,18 @@ class _SiteDetailContent extends ConsumerStatefulWidget {
     required this.embedded,
     this.onDeleted,
     this.onClose,
+    this.unlockEditing = false,
   });
 
   @override
   ConsumerState<_SiteDetailContent> createState() => _SiteDetailContentState();
 }
 
-class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
+class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
+    with
+        RecordEditHost<_SiteDetailContent, DiveSite>,
+        _SiteDetailPageEditing,
+        _SiteDetailFullscreen {
   /// Opens the display-options panel from the overflow menu. One controller
   /// serves both headers, since only one of them is ever built.
   final MenuController _displayOptionsMenu = MenuController();
@@ -209,13 +253,19 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
   /// content.
   static const _cardPadding = EdgeInsets.all(12);
 
-  final MapController _fullController = MapController();
+  @override
+  void dispose() {
+    disposeEditing();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final site = widget.site;
     final siteId = widget.siteId;
     final embedded = widget.embedded;
+    // Unlock-to-edit in place (issue #4527, phase 2), behind the switch.
+    final edit = _editingInBuild();
+    final site = edit.site;
     final sections = ref.watch(
       settingsProvider.select((s) => s.siteDetailSections),
     );
@@ -236,7 +286,19 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
             _buildMapSection(context, ref, site),
             const SizedBox(height: kSiteDetailCardGap),
           ],
-          SiteDetailHeader(site: site),
+          edit.hosts
+              ? RecordCardFrame<DiveSite>(
+                  card: siteHeaderCard,
+                  child: SiteDetailHeader(
+                    site: site,
+                    types: _heldList(siteTypesList),
+                    // The header block's editor reviews the offer.
+                    offerReviewable: false,
+                    showOffer: !_catalogueReviewed(),
+                  ),
+                )
+              : SiteDetailHeader(site: site),
+          if (edit.hosts) ?_sharedWithLine(context, site),
           SharedByBanner(
             kind: SharedItemKind.site,
             itemId: site.id,
@@ -246,7 +308,17 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
           SiteDetailSectionList(
             sections: sections,
             layout: layout,
-            cards: _sectionCards(context, site, sections),
+            cards: _sectionCards(
+              context,
+              site,
+              sections,
+              editing: edit.hosts,
+              shownForSitting: edit.shownForSitting,
+              presence: edit.presence,
+            ),
+            alsoShown: edit.shownForSitting,
+            heldOpen: edit.heldOpen,
+            foldTrailing: edit.hosts ? _foldPencil : null,
             onFoldChanged: (id, expanded) => ref
                 .read(settingsProvider.notifier)
                 .setSiteDetailSectionExpanded(id, expanded),
@@ -264,46 +336,56 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(site.name),
-        actions: [
-          if (site.hasCoordinates)
-            IconButton(
-              icon: const Icon(Icons.terrain),
-              tooltip: context.l10n.dive3d_seascape_siteTitle,
-              onPressed: () =>
-                  _showFullscreenMap(context, ref, site, initialScape3d: true),
-            ),
-          if (_canEditSite(ref, site))
-            IconButton(
-              icon: const Icon(Icons.edit),
-              tooltip: context.l10n.diveSites_detail_editTooltip,
-              onPressed: () => context.push('/sites/$siteId/edit'),
-            ),
-          ..._libraryButtons(context, ref, site),
-          SiteDetailPropertiesMenu(
-            controller: _displayOptionsMenu,
-            child: PopupMenuButton<String>(
-              onSelected: (value) =>
-                  _handleMenuAction(context, ref, value, site),
-              itemBuilder: (context) => [
-                changeLogHistoryMenuItem(
-                  context,
-                  rootTable: 'dive_sites',
-                  rootId: site.id,
-                ),
-                openInConnectionsMenuItem(context),
-                duplicateSiteMenuItem(context),
-                displayOptionsMenuItem(context, 'displayOptions'),
-                ..._libraryMenuItems(context, ref, site),
-              ],
-            ),
+    final appBar = AppBar(
+      title: Text(site.name),
+      actions: [
+        if (site.hasCoordinates)
+          IconButton(
+            icon: const Icon(Icons.terrain),
+            tooltip: context.l10n.dive3d_seascape_siteTitle,
+            onPressed: () =>
+                _showFullscreenMap(context, ref, site, initialScape3d: true),
           ),
-        ],
-      ),
-      body: body,
+        if (edit.offered) lockButton(site),
+        // Only on the locked bar: an open sitting's bar replaces this one,
+        // so the old form, which would save over the sitting through a
+        // child route no leave check sees, is never offered over it.
+        if (_canEditSite(ref, site))
+          IconButton(
+            icon: const Icon(Icons.edit),
+            tooltip: context.l10n.diveSites_detail_editTooltip,
+            onPressed: () => context.push('/sites/$siteId/edit'),
+          ),
+        ..._libraryButtons(context, ref, site),
+        SiteDetailPropertiesMenu(
+          controller: _displayOptionsMenu,
+          child: PopupMenuButton<String>(
+            onSelected: (value) => _handleMenuAction(context, ref, value, site),
+            itemBuilder: (context) => [
+              changeLogHistoryMenuItem(
+                context,
+                rootTable: 'dive_sites',
+                rootId: site.id,
+              ),
+              openInConnectionsMenuItem(context),
+              duplicateSiteMenuItem(context),
+              displayOptionsMenuItem(context, 'displayOptions'),
+              ..._libraryMenuItems(context, ref, site),
+            ],
+          ),
+        ),
+      ],
     );
+
+    if (edit.hosts) {
+      return editScaffold(
+        record: widget.site,
+        shown: site,
+        lockedBar: appBar,
+        content: _withFeaturePlacement(context, body),
+      );
+    }
+    return Scaffold(appBar: appBar, body: body);
   }
 
   /// A builder for each card the diver has switched on, keyed by id; null
@@ -315,15 +397,25 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
   /// itself, so an empty card takes no slot. The cards that watch providers
   /// build inside their own [Consumer], so their lookups start only once the
   /// card is mounted, and a hidden or folded card starts none.
+  ///
+  /// While the page offers [editing], the cards that can be edited are
+  /// framed, and a card the diver hid is built when the sitting has brought
+  /// it onto the page ([shownForSitting]).
   Map<SiteDetailSectionId, WidgetBuilder?> _sectionCards(
     BuildContext context,
     DiveSite site,
-    List<SiteDetailSectionConfig> sections,
-  ) {
+    List<SiteDetailSectionConfig> sections, {
+    bool editing = false,
+    Set<SiteDetailSectionId> shownForSitting = const {},
+    DiveSite? presence,
+  }) {
+    // Whether a card the diver edits has anything to show is read from the
+    // record the page lays itself out from while an editor is open, so no
+    // card comes or goes above it; what it shows is [site] (issue #4527).
+    final laidOut = presence ?? site;
     WidgetBuilder watching(Widget Function(BuildContext, WidgetRef) build) =>
         (_) => Consumer(builder: (context, ref, _) => build(context, ref));
 
-    final hasHazards = site.hazards != null && site.hazards!.isNotEmpty;
     final cards = <SiteDetailSectionId, WidgetBuilder? Function()>{
       // The count and the aggregates derived from the dives at this site.
       SiteDetailSectionId.diveStatistics: () => watching(
@@ -367,18 +459,25 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
           : null,
       SiteDetailSectionId.depth: () =>
           watching((context, ref) => _buildDepthSection(context, ref, site)),
-      SiteDetailSectionId.altitude: () => site.altitude != null
-          ? watching(
-              (context, ref) => _buildAltitudeSection(context, ref, site),
-            )
-          : null,
+      SiteDetailSectionId.altitude: () => _shownWhileLaidOut(
+        SiteDetailSectionId.altitude,
+        laidOut: laidOut,
+        site: site,
+        build: watching(
+          (context, ref) => _buildAltitudeSection(context, ref, site),
+        ),
+      ),
       // Diver-placed annotations. Placement happens on the map, so the add
       // action opens the fullscreen scape armed to place.
-      SiteDetailSectionId.features: () => site.hasCoordinates
+      // Laid out from the held record: cleared coordinates take the card
+      // away only once no editor is open (issue #4527).
+      SiteDetailSectionId.features: () => laidOut.hasCoordinates
           ? (_) => SiteFeaturesSection(
               siteId: site.id,
-              // A library site this profile only reads offers no edits.
-              onAddFeature: _canEditSite(ref, site)
+              // A library site this profile only reads offers no edits, and
+              // a page that holds edits in a sitting edits them only in the
+              // card's editor (issue #4527).
+              onAddFeature: !editing && _canEditSite(ref, site)
                   ? () => _showFullscreenMap(
                       context,
                       ref,
@@ -386,6 +485,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                       startPlacing: true,
                     )
                   : null,
+              features: _heldList(siteFeaturesList),
             )
           : null,
       // A quarry or lake has no tides, and a nearby ocean station must not
@@ -401,8 +501,10 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       SiteDetailSectionId.marineLife: () =>
           (_) => SiteMarineLifeSection(
             siteId: site.id,
-            readOnly: !_canEditSite(ref, site),
+            // Hosting editing, the card's pencil edits them, held.
+            readOnly: editing || !_canEditSite(ref, site),
             location: site.location,
+            species: _heldList(siteSpeciesList),
           ),
       // Attachments and dive photos.
       SiteDetailSectionId.media: () =>
@@ -428,30 +530,51 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       // Tags (issue #1765), after media as on a dive. Shown only when the
       // site has some, decided here so an empty card leaves no gap and, in
       // the list layout, no empty header.
-      SiteDetailSectionId.tags: () =>
-          (ref.watch(tagsForSiteProvider(site.id)).value ?? const []).isEmpty
-          ? null
-          : (_) => SiteTagsCard(siteId: site.id),
-      SiteDetailSectionId.difficulty: () => site.difficulty != null
-          ? (context) => _buildDifficultySection(context, site)
-          : null,
+      SiteDetailSectionId.tags: () {
+        // A sitting's tags, once changed, decide as the stored ones do.
+        final held = _heldList(siteTagsList);
+        final tags =
+            held ?? ref.watch(tagsForSiteProvider(site.id)).value ?? const [];
+        return tags.isEmpty
+            ? null
+            : (_) => SiteTagsCard(siteId: site.id, tags: held);
+      },
+      SiteDetailSectionId.difficulty: () => _shownWhileLaidOut(
+        SiteDetailSectionId.difficulty,
+        laidOut: laidOut,
+        site: site,
+        build: (context) => _buildDifficultySection(context, site),
+      ),
       SiteDetailSectionId.rating: () =>
           (context) => _buildRatingSection(context, site),
-      SiteDetailSectionId.hazards: () =>
-          hasHazards ? (context) => _buildHazardsSection(context, site) : null,
-      SiteDetailSectionId.access: () => _hasAccessInfo(site)
-          ? (context) => _buildAccessSection(context, site)
-          : null,
+      SiteDetailSectionId.hazards: () => _shownWhileLaidOut(
+        SiteDetailSectionId.hazards,
+        laidOut: laidOut,
+        site: site,
+        build: (context) => _buildHazardsSection(context, site),
+      ),
+      SiteDetailSectionId.access: () => _shownWhileLaidOut(
+        SiteDetailSectionId.access,
+        laidOut: laidOut,
+        site: site,
+        build: (context) => _buildAccessSection(context, site),
+      ),
       SiteDetailSectionId.notes: () =>
           (context) => _buildNotesSection(context, site),
+      // Typed by the site, so a page that edits in place reads it only.
       SiteDetailSectionId.documents: () =>
-          (context) => DocumentsSection(
+          (context) => DocumentsSection<DiveSite>(
             owner: DocumentOwner(DocumentOwnerKind.site, site.id),
           ),
     };
     return {
       for (final section in sections)
-        if (section.visible) section.id: cards[section.id]!(),
+        if (section.visible || shownForSitting.contains(section.id))
+          section.id: _framed(
+            section.id,
+            cards[section.id]!(),
+            editing: editing,
+          ),
     };
   }
 
@@ -648,8 +771,9 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     return (isLibrary: true, connected: connected, role: role);
   }
 
-  bool _canEditSite(WidgetRef ref, DiveSite site) {
-    final access = _libraryAccess(ref, site);
+  @override
+  bool _canEditSite(WidgetRef ref, DiveSite site, {bool watch = true}) {
+    final access = _libraryAccess(ref, site, watch: watch);
     return !access.isLibrary ||
         (access.connected && canEditLibrarySite(access.role));
   }
@@ -1049,7 +1173,12 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                     ),
                   ),
                   BathymetryDepthOverlayLayer(location: site.location),
-                  SiteFeatureMarkerLayer(siteId: site.id),
+                  SiteFeatureMarkerLayer(
+                    siteId: site.id,
+                    // The page edits features only in their open card.
+                    readOnly: hostsEditing,
+                    features: _heldList(siteFeaturesList),
+                  ),
                   MarkerLayer(
                     markers: [
                       Marker(
@@ -1120,25 +1249,6 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     );
   }
 
-  void _showFullscreenMap(
-    BuildContext context,
-    WidgetRef ref,
-    DiveSite site, {
-    bool initialScape3d = false,
-    bool startPlacing = false,
-  }) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => _FullscreenSiteScapePage(
-          site: site,
-          controller: _fullController,
-          initialScape3d: initialScape3d,
-          startPlacing: startPlacing,
-        ),
-      ),
-    );
-  }
-
   Widget _buildDescriptionSection(BuildContext context, DiveSite site) {
     final colorScheme = Theme.of(context).colorScheme;
     final hasDescription = site.description.isNotEmpty;
@@ -1149,15 +1259,15 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(Icons.description, size: 20, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(
-                  context.l10n.diveSites_detail_section_description,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
+            // The card's title row, which carries the pencil while the
+            // page is unlocked (issue #4527).
+            RecordCardHeader(
+              title: context.l10n.diveSites_detail_section_description,
+              leading: Icon(
+                Icons.description,
+                size: 20,
+                color: colorScheme.primary,
+              ),
             ),
             const SizedBox(height: 12),
             if (hasDescription)
@@ -1216,15 +1326,11 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Icon(Icons.map, size: 20, color: colorScheme.primary),
-                  const SizedBox(width: 8),
-                  Text(
-                    context.l10n.diveSites_detail_section_location,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ],
+              // The card's title row, which carries the pencil while the
+              // page is unlocked (issue #4527).
+              RecordCardHeader(
+                title: context.l10n.diveSites_detail_section_location,
+                leading: Icon(Icons.map, size: 20, color: colorScheme.primary),
               ),
               const SizedBox(height: 12),
               _buildDetailRow(
@@ -1399,14 +1505,6 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     return content;
   }
 
-  bool _hasAccessInfo(DiveSite site) {
-    return (site.accessNotes != null && site.accessNotes!.isNotEmpty) ||
-        (site.mooringNumber != null && site.mooringNumber!.isNotEmpty) ||
-        (site.parkingInfo != null && site.parkingInfo!.isNotEmpty) ||
-        site.entryMethods.isNotEmpty ||
-        site.exitMethods.isNotEmpty;
-  }
-
   /// The site's depth: what it is rated for, and what dives actually found.
   ///
   /// [DiveSite.minDepth]/[DiveSite.maxDepth] are entered by hand and describe
@@ -1460,19 +1558,13 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.arrow_downward,
-                    size: 20,
-                    color: colorScheme.primary,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    context.l10n.diveSites_detail_section_depthRange,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ],
+              RecordCardHeader(
+                title: context.l10n.diveSites_detail_section_depthRange,
+                leading: Icon(
+                  Icons.arrow_downward,
+                  size: 20,
+                  color: colorScheme.primary,
+                ),
               ),
               const SizedBox(height: 12),
               if (!hasDepthInfo)
@@ -1859,22 +1951,18 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(Icons.terrain, size: 20, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    context.l10n.diveSites_detail_section_altitude,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
-                HeaderInfoButton(
-                  title: context.l10n.diveSites_detail_section_altitude,
-                  content: (context) =>
-                      siteAltitudeInfo(context.l10n, infoUnits(context)),
-                ),
-              ],
+            RecordCardHeader(
+              title: context.l10n.diveSites_detail_section_altitude,
+              leading: Icon(
+                Icons.terrain,
+                size: 20,
+                color: colorScheme.primary,
+              ),
+              trailing: HeaderInfoButton(
+                title: context.l10n.diveSites_detail_section_altitude,
+                content: (context) =>
+                    siteAltitudeInfo(context.l10n, infoUnits(context)),
+              ),
             ),
             const SizedBox(height: 12),
             Row(
@@ -1963,7 +2051,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                                 ),
                           ),
                           Text(
-                            altitudeGroup.rangeDescription,
+                            altitudeGroup.localizedRange(context.l10n, units),
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(
                                   color: getGroupForeground(
@@ -2019,19 +2107,13 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.fitness_center,
-                  size: 20,
-                  color: colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  context.l10n.diveSites_detail_section_difficultyLevel,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
+            RecordCardHeader(
+              title: context.l10n.diveSites_detail_section_difficultyLevel,
+              leading: Icon(
+                Icons.fitness_center,
+                size: 20,
+                color: colorScheme.primary,
+              ),
             ),
             const SizedBox(height: 12),
             Center(
@@ -2090,11 +2172,18 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
               children: [
                 Icon(Icons.warning_amber, size: 20, color: colorScheme.error),
                 const SizedBox(width: 8),
-                Text(
-                  context.l10n.diveSites_detail_section_hazards,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleMedium?.copyWith(color: colorScheme.error),
+                Expanded(
+                  child: Text(
+                    context.l10n.diveSites_detail_section_hazards,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleMedium?.copyWith(color: colorScheme.error),
+                  ),
+                ),
+                // The card keeps its warning colour, so it draws its own
+                // title and only takes the pencil (issue #4527).
+                RecordCardPencil(
+                  cardTitle: context.l10n.diveSites_detail_section_hazards,
                 ),
               ],
             ),
@@ -2115,15 +2204,13 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(Icons.directions, size: 20, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(
-                  context.l10n.diveSites_detail_section_access,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
+            RecordCardHeader(
+              title: context.l10n.diveSites_detail_section_access,
+              leading: Icon(
+                Icons.directions,
+                size: 20,
+                color: colorScheme.primary,
+              ),
             ),
             const SizedBox(height: 12),
             if (site.parkingInfo != null && site.parkingInfo!.isNotEmpty) ...[
@@ -2250,15 +2337,9 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(Icons.star, size: 20, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(
-                  context.l10n.diveSites_detail_section_rating,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
+            RecordCardHeader(
+              title: context.l10n.diveSites_detail_section_rating,
+              leading: Icon(Icons.star, size: 20, color: colorScheme.primary),
             ),
             const SizedBox(height: 12),
             Center(
@@ -2281,7 +2362,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
               child: Text(
                 hasRating
                     ? context.l10n.diveSites_detail_rating_value(
-                        rating.toStringAsFixed(1),
+                        formatRatingForDisplay(rating),
                       )
                     : context.l10n.diveSites_detail_rating_notRated,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -2306,15 +2387,11 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(Icons.notes, size: 20, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(
-                  context.l10n.diveSites_detail_section_notes,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
+            // The card's title row, which carries the pencil while the
+            // page is unlocked (issue #4527).
+            RecordCardHeader(
+              title: context.l10n.diveSites_detail_section_notes,
+              leading: Icon(Icons.notes, size: 20, color: colorScheme.primary),
             ),
             const SizedBox(height: 12),
             if (hasNotes)
@@ -2325,206 +2402,6 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                   fontStyle: FontStyle.italic,
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Fullscreen morphable site scape pushed from the detail page: the same
-/// single-pin map the embedded card shows, with the 2D/3D toggle, and it
-/// can open directly in 3D (the app-bar terrain action).
-class _FullscreenSiteScapePage extends ConsumerStatefulWidget {
-  final DiveSite site;
-  final MapController controller;
-  final bool initialScape3d;
-
-  /// Opens armed for feature placement: the next map tap drops a point.
-  final bool startPlacing;
-
-  const _FullscreenSiteScapePage({
-    required this.site,
-    required this.controller,
-    required this.initialScape3d,
-    this.startPlacing = false,
-  });
-
-  @override
-  ConsumerState<_FullscreenSiteScapePage> createState() =>
-      _FullscreenSiteScapePageState();
-}
-
-class _FullscreenSiteScapePageState
-    extends ConsumerState<_FullscreenSiteScapePage> {
-  late SiteScapeMode _mode = widget.initialScape3d
-      ? SiteScapeMode.terrain3d
-      : SiteScapeMode.map2d;
-  late bool _placing = widget.startPlacing;
-
-  /// Drops a feature at the tapped point: depth pre-samples from the
-  /// cached bathymetry grid, then the sheet collects the rest. Placement
-  /// disarms on the first tap whether or not the diver saves.
-  Future<void> _onMapTap(BuildContext context, LatLng latLng) async {
-    if (!_placing) return;
-    setState(() => _placing = false);
-    final site = widget.site;
-    final grid = ref
-        .read(
-          bathymetryGridProvider(BathymetryRepository.quantize(site.location!)),
-        )
-        .valueOrNull;
-    final sampled = grid == null
-        ? null
-        : sampleGridDepth(grid, latLng.latitude, latLng.longitude);
-    if (!context.mounted) return;
-    final result = await showSiteFeatureSheet(
-      context,
-      initialDepthMeters: sampled,
-    );
-    if (result is! SiteFeatureSheetSave) return;
-    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
-    await ref
-        .read(siteFeatureRepositoryProvider)
-        .addFeature(
-          actingDiverId: diverId,
-          siteId: site.id,
-          typeName: result.typeName,
-          latitude: latLng.latitude,
-          longitude: latLng.longitude,
-          bearingDeg: result.bearingDeg,
-          depthMeters: result.depthMeters,
-          name: result.name,
-          notes: result.notes,
-        );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final site = widget.site;
-    final colorScheme = Theme.of(context).colorScheme;
-    final siteLocation = LatLng(
-      site.location!.latitude,
-      site.location!.longitude,
-    );
-    return Scaffold(
-      appBar: AppBar(title: Text(site.name)),
-      body: SiteScapeView(
-        mode: _mode,
-        onModeChanged: (m) => setState(() => _mode = m),
-        selectedSiteId: site.id,
-        selectedSiteLocation: site.location,
-        mapController: widget.controller,
-        mapBuilder: (context) => Stack(
-          children: [
-            TrackpadZoomMap(
-              controller: widget.controller,
-              child: FlutterMap(
-                mapController: widget.controller,
-                options: MapOptions(
-                  initialCenter: siteLocation,
-                  initialZoom: 14.0,
-                  minZoom: 2.0,
-                  maxZoom: 18.0,
-                  interactionOptions: const InteractionOptions(
-                    flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
-                  ),
-                  onTap: (_, latLng) => _onMapTap(context, latLng),
-                ),
-                children: [
-                  TileLayer(
-                    urlTemplate: ref.watch(mapTileUrlProvider),
-                    userAgentPackageName: 'app.submersion',
-                    maxZoom: ref.watch(mapTileMaxZoomProvider),
-                    tileProvider: TileCacheService.instance.tileProviderFor(
-                      urlTemplate: ref.watch(mapTileUrlProvider),
-                    ),
-                  ),
-                  BathymetryDepthOverlayLayer(location: site.location),
-                  SiteFeatureMarkerLayer(siteId: site.id),
-                  MarkerLayer(
-                    markers: [
-                      Marker(
-                        point: siteLocation,
-                        width: 50,
-                        height: 50,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: colorScheme.primary,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: colorScheme.onPrimary,
-                              width: 2,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.3),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Center(
-                            child: Icon(
-                              Icons.scuba_diving,
-                              size: 24,
-                              color: colorScheme.onPrimary,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const MapAttribution(),
-                ],
-              ),
-            ),
-            // Map style switcher. No compass: this map does not rotate.
-            const Positioned(top: 8, right: 8, child: MapCornerControls()),
-            // Stops short of the right edge so the style switcher stays
-            // reachable while placing a feature.
-            if (_placing)
-              Positioned(
-                top: 8,
-                left: 56,
-                right: 60,
-                child: Material(
-                  key: const ValueKey('siteFeaturePlaceBanner'),
-                  color: colorScheme.secondaryContainer,
-                  borderRadius: BorderRadius.circular(8),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.add_location_alt_outlined,
-                          size: 18,
-                          color: colorScheme.onSecondaryContainer,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            context.l10n.siteFeature_placeHint,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: colorScheme.onSecondaryContainer,
-                                ),
-                          ),
-                        ),
-                        IconButton(
-                          key: const ValueKey('siteFeaturePlaceCancel'),
-                          icon: const Icon(Icons.close, size: 18),
-                          tooltip: context.l10n.common_action_cancel,
-                          onPressed: () => setState(() => _placing = false),
-                        ),
-                      ],
-                    ),
-                  ),
                 ),
               ),
           ],

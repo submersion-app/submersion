@@ -1,5 +1,6 @@
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_bounds.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
+import 'package:submersion/features/dive_sites/domain/entities/catalogue_withdrawal.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
 /// The built-in site catalogue, as every screen reads it.
@@ -12,11 +13,17 @@ abstract interface class SiteCatalogue {
   ///
   /// With [kind], only records of that kind, and [limit] counts those
   /// alone: the picker lists dive sites and register records apart.
+  ///
+  /// With [mapPlacedOnly], only records whose position was read off a map
+  /// ([CatalogueSite.positionFromMap]), and [limit] counts those alone:
+  /// matching reads them further out than the rest, where nearer records
+  /// would otherwise fill the limit first.
   Future<List<CatalogueSite>> near(
     GeoPoint point, {
     required double radiusMeters,
     int limit = 500,
     CatalogueKind? kind,
+    bool mapPlacedOnly = false,
   });
 
   /// How many records of [kind] lie within [radiusMeters] of [point],
@@ -69,4 +76,8 @@ abstract interface class SiteCatalogue {
 
   /// The source a record names in its `source`.
   Future<CatalogueSource?> source(String key);
+
+  /// Why the record [id] was withdrawn from the catalogue, or null when
+  /// the catalogue lists no withdrawal for it.
+  Future<CatalogueWithdrawal?> withdrawal(String id);
 }

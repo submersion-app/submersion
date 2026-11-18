@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_text_suggestion_field.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_altitude_fields.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_environment_fields.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_site_assignment.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/suggested_text_row.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -24,6 +25,7 @@ import 'package:submersion/shared/widgets/forms/form_row.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/field_text_binding.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 import 'package:submersion/shared/widgets/record_editing/record_number_row.dart';
 
 const _log = LoggerService('DiveEnvironmentCardEditor');
@@ -49,16 +51,14 @@ class _DiveEnvironmentCardEditorState
   );
   bool _fetching = false;
 
-  /// Whether the exit method still mirrors the entry method: true until the
-  /// diver edits the exit directly. Settled as the editor opens, in
-  /// [initState]: a late initializer would run at the first change of entry
-  /// method instead, after the dive may have changed underneath.
-  late bool _exitFollows;
-
   @override
   void initState() {
     super.initState();
-    _exitFollows = exitFollowsEntry(widget.session.working);
+    // Whether the exit mirrors the entry is settled the first time the
+    // sitting is asked (see [exitFollows]), as the card opens at the latest:
+    // asked first at the change of entry method, it would be worked out
+    // from a dive that may have changed underneath meanwhile.
+    exitFollows(widget.session);
   }
 
   /// A free-text row: blank is no value.
@@ -93,7 +93,7 @@ class _DiveEnvironmentCardEditorState
     _surfaceConditions.dispose();
     _description = _describe();
     _surfaceConditions = _words(diveSurfaceConditionsField);
-    _exitFollows = exitFollowsEntry(widget.session.working);
+    exitFollows(widget.session);
   }
 
   @override
@@ -185,7 +185,7 @@ class _DiveEnvironmentCardEditorState
         fillAltitudeIfEmpty(
           session,
           resolver: resolver,
-          writeSiteAltitude: sites.updateSiteAltitude,
+          writeSiteAltitude: sites.fillSiteAltitudeIfEmpty,
           stillWanted: () => mounted,
         ),
       );
@@ -266,11 +266,17 @@ class _DiveEnvironmentCardEditorState
         fractionDigits: 1,
         trimZeros: true,
       ),
-      // Shown here as on the read card, and edited on the Altitude card.
+      // Shown here as on the read card, and edited on the Altitude card, so
+      // a tap leads there: the card opens, brought in from the Add strip if
+      // the page was leaving it out, and scrolls into view (issue #4527).
       if (pressure != null)
-        FormRow.display(
+        FormRow.picker(
           label: l10n.diveLog_edit_label_surfacePressure,
           value: units.formatSurfacePressure(pressure),
+          // The editor is only ever open in a sitting, under its scope.
+          onTap: () => RecordEditScope.maybeOf<Dive>(
+            context,
+          )?.addCard(diveSurfacePressureField.cardId),
         ),
       RecordNumberRow<Dive>(
         session: session,
@@ -279,7 +285,10 @@ class _DiveEnvironmentCardEditorState
         suffixText: units.windSpeedSymbol,
         toDisplay: units.convertWindSpeed,
         fromDisplay: units.windSpeedToMs,
+        // As the read card shows it when whole; a decimal stays so the row
+        // can still round the value.
         fractionDigits: 1,
+        trimZeros: true,
         allowNegative: false,
       ),
       EnumPickerRow<CurrentDirection>(
@@ -365,7 +374,7 @@ class _DiveEnvironmentCardEditorState
         // A dive with no entry method of its own shows its site's.
         hint: session.working.site?.soleEntryMethod?.localizedName(l10n),
         onChanged: (value) =>
-            setEntryMethod(session, value, exitFollows: _exitFollows),
+            setEntryMethod(session, value, exitFollows: exitFollows(session)),
       ),
       EnumPickerRow<EntryMethod>(
         label: l10n.diveLog_edit_label_exitMethod,
@@ -373,8 +382,9 @@ class _DiveEnvironmentCardEditorState
         values: EntryMethod.values,
         displayName: (value) => value.localizedName(l10n),
         onChanged: (value) {
-          // Edited directly: from here on it no longer mirrors the entry.
-          _exitFollows = false;
+          // Edited directly: for the rest of the sitting it no longer
+          // mirrors the entry, however often the card is opened.
+          exitEditedDirectly(session);
           session.set(diveExitMethodField, value);
         },
       ),

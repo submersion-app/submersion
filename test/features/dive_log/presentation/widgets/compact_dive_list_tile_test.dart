@@ -354,7 +354,9 @@ void main() {
       expect(find.text('#7'), findsOneWidget);
     });
 
-    group('the default Bottom Time slot', () {
+    // The second stat defaults to the runtime, as the detailed card does
+    // (issue #4640): the dive time, not the derived bottom time.
+    group('the default Runtime slot', () {
       Widget tile({Duration? runtime, Duration? bottomTime}) => testApp(
         overrides: [
           settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
@@ -376,21 +378,72 @@ void main() {
         ),
       );
 
-      testWidgets('shows the bottom time, not the runtime', (tester) async {
+      testWidgets('shows the runtime, not the bottom time', (tester) async {
         await tester.pumpWidget(
           tile(
             bottomTime: const Duration(minutes: 37),
             runtime: const Duration(minutes: 52),
           ),
         );
-        expect(find.textContaining('37'), findsOneWidget);
-        expect(find.textContaining('52'), findsNothing);
+        expect(find.textContaining('52'), findsOneWidget);
+        expect(find.textContaining('37'), findsNothing);
       });
 
-      testWidgets('is empty for a dive with no bottom time', (tester) async {
-        await tester.pumpWidget(tile(runtime: const Duration(minutes: 52)));
-        expect(find.textContaining('52'), findsNothing);
+      // A bottom-only dive reports no runtime (issue #3304): the slot stays
+      // empty rather than showing the bottom time under a Runtime icon.
+      testWidgets('is empty for a dive with no runtime', (tester) async {
+        await tester.pumpWidget(tile(bottomTime: const Duration(minutes: 37)));
+        expect(find.textContaining('37'), findsNothing);
       });
+
+      testWidgets('reads the duration parameter when there is no summary', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          testApp(
+            overrides: [
+              settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+            ],
+            child: CompactDiveListTile(
+              diveId: 'legacy-1',
+              diveNumber: 8,
+              dateTime: DateTime(2026, 3, 15),
+              duration: const Duration(minutes: 52),
+              onTap: () {},
+            ),
+          ),
+        );
+        expect(find.textContaining('52'), findsOneWidget);
+      });
+    });
+
+    testWidgets('an explicit Bottom Time slot still shows the bottom time', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: CompactDiveListTile(
+            diveId: 'sum-2',
+            diveNumber: 9,
+            dateTime: DateTime(2026, 3, 15),
+            duration: const Duration(minutes: 52),
+            summary: DiveSummary(
+              id: 'sum-2',
+              dateTime: DateTime(2026, 3, 15),
+              bottomTime: const Duration(minutes: 37),
+              runtime: const Duration(minutes: 52),
+              sortTimestamp: 0,
+            ),
+            stat2Field: DiveField.bottomTime,
+            onTap: () {},
+          ),
+        ),
+      );
+      expect(find.textContaining('37'), findsOneWidget);
+      expect(find.textContaining('52'), findsNothing);
     });
 
     testWidgets('renders with selected state applying container color', (
@@ -472,13 +525,15 @@ void main() {
             duration: const Duration(minutes: 25),
             summary: summary,
             stat1Field: DiveField.ratingStars,
-            stat2Field: DiveField.runtime,
+            stat2Field: DiveField.bottomTime,
             onTap: () {},
           ),
         ),
       );
 
       expect(find.text('#15'), findsOneWidget);
+      // The non-default Bottom Time slot reads the summary's bottom time.
+      expect(find.textContaining('25'), findsOneWidget);
     });
 
     testWidgets('renders stat slot without icon using label:value format', (
@@ -523,7 +578,8 @@ void main() {
       'renders stat fallback when summary null and non-default field',
       (tester) async {
         // Exercise the fallback path in _buildStatText when summary is null
-        // and the field is neither maxDepth nor bottomTime.
+        // and the field is neither maxDepth nor a duration field (runtime or
+        // bottom time).
         await tester.pumpWidget(
           testApp(
             overrides: [

@@ -14,6 +14,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/page_scroll_forwarder.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_profile_strip.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_geometry.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_painter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_plot_frame.dart';
 
 /// Builds a live copy of the profile card that fills the height it is given,
@@ -37,9 +38,11 @@ typedef SquashedCardBuilder =
 ///    copy of it ([squashedCard]) pins there, laid out to exactly the height
 ///    of the card still on screen. The header and footer keep their size and
 ///    the chart gets shorter, with its axes, grid and every line intact.
-/// 2. Hand-over. Once the chart is down to its last [kSquashRange], the strip
-///    fades in over the copy with its depth line exactly on the copy's, then
-///    condenses into place. Only one depth line is ever seen.
+/// 2. Hand-over. Part way into the squash, the strip fades in over the copy's
+///    plot with its depth line exactly on the copy's, then condenses into
+///    place, settling as the plot reaches the top. Only one depth line is
+///    ever seen. The rest of the copy below its plot (its axis and legend)
+///    then slides up under the settled strip, as the page does (#4579).
 ///
 /// Whatever is drawn always covers all of the card still on screen, so the
 /// real card never shows around it, and nothing here takes space in the
@@ -287,9 +290,9 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
       final covers = coversTopAt(pixels);
       // Only a scroll that pins, moves or unpins the card needs a build; one
       // with nothing drawn either side (or the strip off), or with the strip
-      // settled in place either side, just records it.
-      if ((wasIdle && !covers) ||
-          (_handOverAt(_pixels) >= 1 && _handOverAt(pixels) >= 1)) {
+      // settled and the card gone from under it either side, just records
+      // it.
+      if ((wasIdle && !covers) || (_restingAt(_pixels) && _restingAt(pixels))) {
         _pixels = pixels;
       } else {
         setState(() => _pixels = pixels);
@@ -319,18 +322,40 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
     return false;
   }
 
+  /// The scroll past the card's top at which its plot reaches the top of the
+  /// page: the squash and slide are done, and so is the hand-over.
+  ///
+  /// Until the copy has reported its plot, where that sits is unknown, and
+  /// taking it as the card's top settled the strip for a frame on a first
+  /// jump into the hand-over. The hand-over is then taken to run on until
+  /// the card has all but left, so it never settles early.
+  double get _plotAtTop {
+    final plot = _copyPlot;
+    if (plot != null) return _squashRange + plot.top;
+    final card = _cardInContent;
+    return card == null
+        ? _squashRange
+        : math.max(_squashRange, card.height - kPinnedStripHeight);
+  }
+
   /// The scroll past the card's top at which the strip starts to fade in
   /// over the pinned copy.
-  double get _handOverStart =>
-      (_squashRange + (_copyPlot?.top ?? 0)) * kHandOverOverlap;
+  double get _handOverStart => _plotAtTop * kHandOverOverlap;
 
   /// The hand-over's progress with the page scrolled to [pixels], 0 when
-  /// nothing is pinned. At 1 the strip is settled: what is drawn no longer
-  /// depends on the scroll.
+  /// nothing is pinned. At 1 the strip is settled.
   double _handOverAt(double pixels) {
     final card = _cardInContent?.shift(Offset(0, -pixels));
     if (!widget.enabled || card == null || card.top >= 0) return 0;
-    return condenseProgress(card: card, start: _handOverStart);
+    return condenseProgress(card: card, start: _handOverStart, end: _plotAtTop);
+  }
+
+  /// Whether, with the page scrolled to [pixels], the strip is settled and
+  /// none of the card is left on screen below it: what is drawn no longer
+  /// depends on the scroll.
+  bool _restingAt(double pixels) {
+    final card = _cardInContent?.shift(Offset(0, -pixels));
+    return card != null && card.bottom <= 0 && _handOverAt(pixels) >= 1;
   }
 
   @override
@@ -385,9 +410,17 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
             rect: drawn?.box ?? Rect.zero,
             // It lies over the page, not in its scroll view: vertical drags
             // and wheel scrolls on it go on to the page.
-            child: PageScrollForwarder(
-              position: () => _pagePosition,
-              child: drawn?.child ?? const SizedBox.shrink(),
+            // A semantics container of its own while something is pinned:
+            // the copy in it is rebuilt as the page reads the dive again
+            // (after Set as primary, say), and merged into the page's node
+            // it tripped the framework's `node.built` check (issue #4527).
+            // Empty, it adds no node.
+            child: Semantics(
+              container: drawn != null,
+              child: PageScrollForwarder(
+                position: () => _pagePosition,
+                child: drawn?.child ?? const SizedBox.shrink(),
+              ),
             ),
           ),
         ],
@@ -396,9 +429,9 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
   }
 
   /// What is pinned over the page for [card]: the [box] it all covers, on
-  /// the overlay, and the [child] drawn in it. [layers] are the card layers
+  /// the overlay, and the [child] drawn in it. [animated] are the card layers
   /// the strip draws, and how far it has grown for them.
-  ({Rect box, Widget child}) _pinned(Rect card, StripLayerState layers) {
+  ({Rect box, Widget child}) _pinned(Rect card, StripLayerState animated) {
     // One motion: the squash and the slide share the scroll, finishing
     // together as the plot reaches the top, and the strip starts to fade in
     // before they do, so no step starts or stops on its own.
@@ -406,16 +439,19 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
     final plotTop = _copyPlot?.top ?? 0;
     final squash = squashDepth(card: card, range: range, plotTop: plotTop);
     _layoutSquash = squash;
-    final start = _handOverStart;
-    final t = condenseProgress(card: card, start: start);
-    // The full chart is gone by the time its plot reaches the top, so none of
-    // its data is seen leaving the view.
-    final fadeEnd = condenseFadeEnd(
-      start: start,
-      plotAtTop: range + plotTop,
-      cardHeight: card.height,
+    final t = condenseProgress(
+      card: card,
+      start: _handOverStart,
+      end: _plotAtTop,
     );
+    // The full chart is covered well before its plot reaches the top, so
+    // none of its data is seen leaving the view.
+    const fadeEnd = kCondenseFadeEnd;
     final morph = condenseMorphProgress(t, fadeEnd: fadeEnd);
+    // What is left of the strip's growth runs with the morph, so however
+    // fast the page is scrolled it is complete as the strip settles, and the
+    // strip never grows after (#4579).
+    final layers = animated.condensedBy(morph);
     // The copy, on the page: at the card's place, slid up by its share of
     // the scroll.
     final copyOrigin = Offset(
@@ -440,32 +476,43 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
           Directionality.of(context),
         );
     final plotOnPage = copy?.rect.shift(copyOrigin);
+    // Only the plot becomes the strip: it starts on the plot, held in view,
+    // and the card below the plot (its axis and legend) is never under it,
+    // so the strip is never a tall, mostly empty box (#4579). Without a
+    // plot from the copy, it covers the card to its bottom instead.
+    final keptPlot = copy?.shift(copyOrigin).keptInView().rect;
+    // Across, it starts on the plot too, inside the chart's axes, and widens
+    // with its curve: a surface at the card's width from the start showed as
+    // blank bands beside the curve. It stays within the card's margin.
+    final innerLeft = card.left + margin.left;
+    final innerRight = card.right - margin.right;
     final from = Rect.fromLTRB(
-      card.left + margin.left,
+      math.max(innerLeft, plotOnPage?.left ?? innerLeft),
       math.max(0, plotOnPage?.top ?? 0),
-      card.right - margin.right,
-      math.max(card.bottom - margin.bottom, 0),
+      math.min(innerRight, plotOnPage?.right ?? innerRight),
+      keptPlot?.bottom ?? math.max(card.bottom - margin.bottom, 0),
     );
-    // It keeps the card's width throughout, so pinned it is only as wide as
-    // the other cards on the page (#4488): the condense only moves its top
-    // up to the page's and its bottom up to the strip's height.
-    // Its line layers grow it, only ever once it has settled (issue #4562).
+    // Pinned, it is the card's width, so it is only as wide as the other
+    // cards on the page (#4488): the condense moves its top up to the
+    // page's, its sides out to the card's margin and its bottom to the
+    // strip's height.
+    // Its line layers grow it (issue #4562), already while it condenses, so
+    // it heads straight for the height it settles at (#4579).
     final stripHeight =
         kPinnedStripHeight +
         layers.grow * (kPinnedStripGrownHeight - kPinnedStripHeight);
     final toward = Rect.lerp(
       from,
-      Rect.fromLTRB(from.left, 0, from.right, stripHeight),
+      Rect.fromLTRB(innerLeft, 0, innerRight, stripHeight),
       morph,
     )!;
-    // Its bottom never rises above the card's own while any card is left,
-    // or the bottom of the card would show beneath it; the card leaves at
-    // the strip's height, where the two meet.
+    // Its bottom never rises above the copy's plot, or the full chart would
+    // show beneath it as it shrinks; the plot slides up under it instead.
     final stripBox = Rect.fromLTRB(
       toward.left,
       toward.top,
       toward.right,
-      math.max(toward.bottom, card.bottom - margin.bottom),
+      math.max(toward.bottom, plotOnPage?.bottom ?? toward.bottom),
     );
 
     // Everything drawn, which always covers all of the card still on screen.
@@ -489,8 +536,10 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
           // sliding up at its squashed height, header first, as the card
           // itself would; it keeps the card's width while the strip takes
           // over on top of it. It is the card the reader sees, so it is
-          // the one they use: it takes taps and hovers itself.
-          if (t < 1)
+          // the one they use: it takes taps and hovers itself. It stays
+          // while any of the card is on screen, sliding up under the
+          // settled strip.
+          if (card.bottom > 0)
             Positioned(
               key: const ValueKey('pinnedSquashedCard'),
               left: copyAt.dx,
@@ -517,18 +566,31 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
                     t,
                     fadeEnd: fadeEnd,
                   ),
-                  // The copy's line, in the strip's own coordinates; once
-                  // the copy slides its plot past the top, held at the top
-                  // instead, so the line never leaves the view.
+                  // Where the strip's line starts: the copy's, once the copy
+                  // slides its plot past the top held at the top instead,
+                  // so the line never leaves the view; handed so the
+                  // painter's blend keeps it on the box's edges as the box
+                  // widens ([morphStartFor]).
                   // Settled, the strip draws its own curve alone, so it
                   // does not repaint for a mapping that moves with the
                   // scroll but is no longer used.
-                  morphFrom: morph >= 1
+                  morphFrom: morph >= 1 || copy == null
                       ? null
-                      : copy
-                            ?.shift(copyOrigin)
-                            .keptInView()
-                            .shift(-box.topLeft - stripAt.topLeft),
+                      : morphStartFor(
+                          start: copy.shift(copyOrigin).keptInView(),
+                          // Where the strip's own curve area ends up, on the
+                          // page: across the pinned strip, under the top.
+                          end: pinnedStripCurveRect(
+                            Size(innerRight - innerLeft, stripHeight),
+                            curveHeight: stripHeight,
+                          ).shift(Offset(innerLeft, 0)),
+                          box: stripBox,
+                          own: pinnedStripCurveRect(
+                            stripBox.size,
+                            curveHeight: stripHeight,
+                          ),
+                          morph: morph,
+                        ),
                 ),
               ),
             ),

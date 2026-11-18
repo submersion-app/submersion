@@ -18,7 +18,12 @@ typedef StagedRouteFileUpdate = ({
 /// [toUnlink], [updates] and [toLink] are applied. Immutable: every change
 /// returns a new draft.
 class DiveRouteLinkDraft {
-  const DiveRouteLinkDraft._(this.original, this.current, this.updates);
+  const DiveRouteLinkDraft._(
+    this.original,
+    this.current,
+    this.updates, [
+    this.primaryId,
+  ]);
 
   /// A draft for a dive whose routes are [linked] right now (empty for a
   /// new dive).
@@ -61,8 +66,27 @@ class DiveRouteLinkDraft {
   List<String> get toUnlink =>
       List.unmodifiable([for (final r in removed) r.id]);
 
+  /// The route the diver made primary, or null for as linked (issue
+  /// #4527: set primary is held in a sitting, like unlink).
+  final String? primaryId;
+
+  /// The route [original] has as primary, if any.
+  String? get _originalPrimaryId =>
+      original.where((r) => r.isPrimary).firstOrNull?.id;
+
+  /// Whether [primaryId] changes which route is primary.
+  bool get changesPrimary =>
+      primaryId != null && primaryId != _originalPrimaryId;
+
   bool get hasChanges =>
-      toLink.isNotEmpty || toUnlink.isNotEmpty || updates.isNotEmpty;
+      toLink.isNotEmpty ||
+      toUnlink.isNotEmpty ||
+      updates.isNotEmpty ||
+      changesPrimary;
+
+  /// [routeId] made the dive's primary route, written after the links.
+  DiveRouteLinkDraft withPrimary(String routeId) =>
+      DiveRouteLinkDraft._(original, current, updates, routeId);
 
   DiveRouteLinkDraft add(NavTrack route) => contains(route.id)
       ? this
@@ -70,6 +94,7 @@ class DiveRouteLinkDraft {
           original,
           List.unmodifiable([...current, route]),
           updates,
+          primaryId,
         );
 
   /// Takes [routeId] off the dive, and drops any update staged for it: a
@@ -81,6 +106,7 @@ class DiveRouteLinkDraft {
       for (final entry in updates.entries)
         if (entry.key != routeId) entry.key: entry.value,
     }),
+    primaryId == routeId ? null : primaryId,
   );
 
   /// [route] read again from a file: it is on the dive (added when it was
@@ -91,6 +117,7 @@ class DiveRouteLinkDraft {
       original,
       withRoute.current,
       Map.unmodifiable({...updates, route.id: update}),
+      primaryId,
     );
   }
 }

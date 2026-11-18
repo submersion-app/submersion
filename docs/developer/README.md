@@ -19,6 +19,7 @@ Welcome to the Submersion developer documentation. This section covers architect
 - [Play Production Access](play-production-access.md): Google Play access record and Data safety declaration
 - [Reference](reference/README.md): Entities, enums and file formats
 - [Species Catalog](species-catalog.md): Maintaining the bundled species catalog
+- [Species Identification](species-identification.md): The on-device marine life model pack: building, serving and turning the feature on
 
 ## Technology Stack
 

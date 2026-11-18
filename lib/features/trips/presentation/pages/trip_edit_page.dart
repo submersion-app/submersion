@@ -12,9 +12,11 @@ import 'package:submersion/features/trips/data/repositories/itinerary_day_reposi
 import 'package:submersion/features/trips/data/repositories/liveaboard_details_repository.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/liveaboard_details.dart';
+import 'package:submersion/features/trips/domain/services/trip_day_notes.dart';
 import 'package:submersion/features/trips/domain/services/trip_draft.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/helpers/trip_day_note_editing.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/dive_assignment_dialog.dart';
@@ -48,6 +50,10 @@ class TripEditPage extends ConsumerStatefulWidget {
   /// (issue #3658). Only for a new trip.
   final TripDraft? draft;
 
+  /// The day whose note the Notes field opens at (#4625): its heading is
+  /// added when the Notes have none, and the caret goes under it.
+  final TripNoteDay? noteDay;
+
   const TripEditPage({
     super.key,
     this.tripId,
@@ -56,6 +62,7 @@ class TripEditPage extends ConsumerStatefulWidget {
     this.onCancel,
     this.initialSection,
     this.draft,
+    this.noteDay,
   });
 
   @override
@@ -65,6 +72,12 @@ class TripEditPage extends ConsumerStatefulWidget {
 class _TripEditPageState extends ConsumerState<TripEditPage> {
   final _formKey = GlobalKey<FormState>();
   final _planningKey = GlobalKey();
+  final _notesKey = GlobalKey();
+  final _notesFocusNode = FocusNode();
+
+  /// Where Add note put the day's note (#4625): the heading it appended, if
+  /// it did, so a save can leave it out while nothing is under it.
+  DayNotePlacement? _dayNote;
   final _nameController = TextEditingController();
   final _locationController = TextEditingController();
   final _resortController = TextEditingController();
@@ -176,24 +189,37 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
         );
       });
     }
-    _nameController.addListener(_onFieldChanged);
-    _locationController.addListener(_onFieldChanged);
-    _resortController.addListener(_onFieldChanged);
-    _liveaboardController.addListener(_onFieldChanged);
-    _notesController.addListener(_onFieldChanged);
-    _expectedDivesController.addListener(_onFieldChanged);
-    _expectedRuntimeController.addListener(_onFieldChanged);
-    _diversSharingController.addListener(_onFieldChanged);
-    _divesPerDayController.addListener(_onFieldChanged);
-    _vesselNameController.addListener(_onFieldChanged);
-    _operatorController.addListener(_onFieldChanged);
-    _cabinTypeController.addListener(_onFieldChanged);
-    _capacityController.addListener(_onFieldChanged);
-    _embarkPortController.addListener(_onFieldChanged);
-    _disembarkPortController.addListener(_onFieldChanged);
+    for (final controller in [
+      _nameController,
+      _locationController,
+      _resortController,
+      _liveaboardController,
+      _notesController,
+      _expectedDivesController,
+      _expectedRuntimeController,
+      _diversSharingController,
+      _divesPerDayController,
+      _vesselNameController,
+      _operatorController,
+      _cabinTypeController,
+      _capacityController,
+      _embarkPortController,
+      _disembarkPortController,
+    ]) {
+      _seenText[controller] = controller.text;
+      controller.addListener(() => _onFieldChanged(controller));
+    }
   }
 
-  void _onFieldChanged() {
+  /// Each field's text as its listener last saw it. A controller notifies
+  /// when only its caret or selection moves too (a tap, or the caret a day
+  /// note opens at), and that is not an edit.
+  final _seenText = <TextEditingController, String>{};
+
+  void _onFieldChanged(TextEditingController controller) {
+    final text = controller.text;
+    if (_seenText[controller] == text) return;
+    _seenText[controller] = text;
     if (!_hasChanges && !_isLoading) {
       setState(() => _hasChanges = true);
     }
@@ -233,7 +259,13 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
         _locationController.text = trip.location ?? '';
         _resortController.text = trip.resortName ?? '';
         _liveaboardController.text = trip.liveaboardName ?? '';
-        _notesController.text = trip.notes;
+        // Set while still loading, so the field's listener counts neither
+        // the Notes nor an added day heading as a change.
+        final noteDay = widget.noteDay;
+        _dayNote = noteDay == null
+            ? null
+            : placeDayNoteIn(trip.notes, noteDay, context.l10n);
+        _notesController.text = _dayNote?.text ?? trip.notes;
         _expectedDivesController.text = trip.expectedDives?.toString() ?? '';
         _expectedRuntimeController.text =
             trip.expectedRuntimeMinutes?.toString() ?? '';
@@ -272,6 +304,9 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
             final planning = _planningKey.currentContext;
             if (planning != null) Scrollable.ensureVisible(planning);
           });
+        } else if (_dayNote != null ||
+            widget.initialSection == TripEditSection.notes) {
+          WidgetsBinding.instance.addPostFrameCallback((_) => _openNotes());
         }
       }
     } catch (e, stackTrace) {
@@ -287,8 +322,22 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
     }
   }
 
+  /// Brings the Notes into view; at a day's note, with the caret there.
+  void _openNotes() {
+    if (!mounted) return;
+    final notes = _notesKey.currentContext;
+    if (notes != null) Scrollable.ensureVisible(notes);
+    final dayNote = _dayNote;
+    if (dayNote == null) return;
+    _notesFocusNode.requestFocus();
+    _notesController.selection = TextSelection.collapsed(
+      offset: dayNote.cursor,
+    );
+  }
+
   @override
   void dispose() {
+    _notesFocusNode.dispose();
     _nameController.dispose();
     _locationController.dispose();
     _resortController.dispose();
@@ -692,7 +741,9 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
 
                   // Notes field
                   MarkdownNotesField(
+                    key: _notesKey,
                     controller: _notesController,
+                    focusNode: _notesFocusNode,
                     decoration: InputDecoration(
                       labelText: context.l10n.trips_edit_label_notes,
                       prefixIcon: const Icon(Icons.notes),
@@ -1041,6 +1092,13 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
         NumberValue() || NumberBlank() || NumberInvalid() => null,
       };
 
+  /// The Notes as saved: what opening at a day's note added is left out
+  /// while nothing was written there ([DayNotePlacement.toSave]).
+  String _savedNotes() {
+    final text = _notesController.text;
+    return (_dayNote?.toSave(text) ?? text).trim();
+  }
+
   Future<void> _saveTrip() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -1068,7 +1126,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
             ? null
             : _liveaboardController.text.trim(),
         tripType: _tripType,
-        notes: _notesController.text.trim(),
+        notes: _savedNotes(),
         isShared: _sharing.everyone,
         parentTripId: _parentTripId,
         returnFlightAt: _returnFlightAt,

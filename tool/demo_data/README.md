@@ -82,10 +82,10 @@ The story:
   each year, and 6 to 8 trips a year, about half of them to the Caribbean,
   the rest worldwide, with their dive centres. The diver logs in US units.
 
-The New Jersey sites come from `scripts/dive_sites_curated.json`, which the
-catalogue merge writes into `assets/data/site_catalogue.json` on every run
-(`scripts/site_catalogue/merge.py`), because OpenStreetMap has no New Jersey
-ocean sites. The catalogue's register records (charted wrecks and reef
+The New Jersey sites are the catalogue's curated sites (the `curated_nj_`
+records in `assets/data/site_catalogue.json`, from the curated file in
+https://github.com/submersion-app/site-catalogue), because OpenStreetMap has
+no New Jersey ocean sites. The catalogue's register records (charted wrecks and reef
 structures, `"kind": "register"`) are left out: a trip is planned around dive
 sites.
 

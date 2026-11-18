@@ -108,6 +108,35 @@ void main() {
     },
   );
 
+  test('includePressures false swaps serial, source index and readings, '
+      'not pressures', () async {
+    await seed();
+    await tankRepo.exchangeTankSources(
+      diveId: 'd1',
+      tankIdA: 'tA',
+      tankIdB: 'tB',
+      includePressures: false,
+    );
+
+    expect(await row('tA'), {
+      'src': 1,
+      'serial': '222',
+      'start': 200.0,
+      'end': 170.0,
+      'name': 'O2',
+    });
+    expect(await row('tB'), {
+      'src': 0,
+      'serial': '111',
+      'start': 210.0,
+      'end': 120.0,
+      'name': 'Dil',
+    });
+    final byTank = await tankRepo.getTankPressuresForDive('d1');
+    expect(byTank['tA']!.map((p) => p.pressure), [210.0]);
+    expect(byTank['tB']!.map((p) => p.pressure), [200.0, 170.0]);
+  });
+
   test('a swap drops a role read off the transmitter name (#2595)', () async {
     // The flag names the row's old transmitter; after the swap it would
     // let the other transmitter's registry entry rewrite this row's role.

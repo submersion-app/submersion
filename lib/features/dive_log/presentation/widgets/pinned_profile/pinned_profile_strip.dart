@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/dive_log/presentation/utils/chart_drag_crossing.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -293,10 +294,10 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
                     // Colour follows the scroll frame by frame already; the
                     // surface's own ease would lag a fast scroll and flash.
                     animationDuration: Duration.zero,
-                    // It starts across the card at the plot's top and pins
-                    // flush under the header at the card's width, so only its
-                    // bottom corners round, like the card's own, condensing and
-                    // pinned alike (#4488).
+                    // It starts on the card's plot and pins flush under the
+                    // header at the card's width, so only its bottom corners
+                    // round, like the card's own, condensing and pinned alike
+                    // (#4488).
                     shape: RoundedRectangleBorder(borderRadius: card.corners),
                     clipBehavior: Clip.antiAlias,
                     child: CustomPaint(
@@ -319,7 +320,11 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
                         child: MouseRegion(
                           onHover: (e) =>
                               _scrubTo(e.localPosition.dx, width, profile),
-                          onExit: (_) => _write(null),
+                          // A scrub that strays off the strip goes on until
+                          // its drag ends, which clears the cursor (#4611).
+                          onExit: (e) {
+                            if (!isDragCrossing(e)) _write(null);
+                          },
                           child: GestureDetector(
                             behavior: HitTestBehavior.opaque,
                             onTapDown: (d) =>

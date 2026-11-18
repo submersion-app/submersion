@@ -62,10 +62,10 @@ import 'package:submersion/features/data_quality/presentation/pages/data_quality
 import 'package:submersion/features/data_quality/presentation/pages/data_quality_settings_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
+import 'package:submersion/features/dive_log/presentation/pages/dive_create_builder.dart';
 import 'package:submersion/features/ocr_import/presentation/pages/ocr_scan_page.dart';
 import 'package:submersion/features/dive_3d/presentation/pages/compare_dives_3d_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/bulk_dive_edit_page.dart';
-import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_search_providers.dart';
 import 'package:submersion/features/dive_log/presentation/pages/profile_editor_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_editor_provider.dart';
@@ -134,11 +134,14 @@ import 'package:submersion/features/settings/presentation/pages/connected_accoun
 import 'package:submersion/features/settings/presentation/pages/account_detail_page.dart';
 import 'package:submersion/features/settings/presentation/pages/lightroom_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/fix_dive_times_page.dart';
+import 'package:submersion/features/settings/presentation/pages/raw_dive_data_page.dart';
 import 'package:submersion/features/settings/presentation/pages/reparse_dives_page.dart';
 import 'package:submersion/features/settings/presentation/pages/link_buddy_names_page.dart';
 import 'package:submersion/features/settings/presentation/pages/retype_other_gear_page.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/features/settings/presentation/settings_legacy_links.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_shortcuts.dart';
+import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blocker.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/settings/presentation/pages/appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/home_appearance_page.dart';
@@ -265,6 +268,7 @@ import 'package:submersion/features/demo_mode/presentation/pages/demo_unavailabl
 import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/router/web_unavailable_routes.dart';
 import 'package:submersion/shared/widgets/web_unavailable_page.dart';
+import 'package:submersion/features/species_id/presentation/pages/marine_life_identification_page.dart';
 
 /// Root navigator key, so app-wide modals (e.g. the replaced-library adopt
 /// dialog surfaced from the app root) can be shown above the shell.
@@ -339,7 +343,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ShellRoute(
         builder: (context, state, child) => CallbackShortcuts(
           bindings: AppShortcuts.globalBindings(context),
-          child: Focus(autofocus: true, child: MainScaffold(child: child)),
+          child: Focus(
+            autofocus: true,
+            // Unlock, Save and Cancel for the record page in view (#4527).
+            child: RecordEditShortcuts(child: MainScaffold(child: child)),
+          ),
         ),
         routes: [
           GoRoute(
@@ -525,6 +533,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/dives',
             name: 'dives',
+            // A dive's sitting in the list pane, or on a page pushed above
+            // it, is asked about before a tab or a link goes (issue #4527).
+            onExit: confirmLeaveRecordSitting,
             pageBuilder: (context, state) => NoTransitionPage(
               key: state.pageKey,
               // Set when openDiveList pushed this list: what to put back
@@ -545,6 +556,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newDive',
+                // A new dive with something entered asks before a `go`
+                // leaves it, as a dive's sitting does (issue #4527, plan 8).
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => newDivePage(state),
               ),
               GoRoute(
@@ -620,14 +634,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: ':diveId',
                 name: 'diveDetail',
-                builder: (context, state) =>
-                    DiveDetailPage(diveId: state.pathParameters['diveId']!),
+                onExit: confirmLeaveRecordSitting,
+                builder: (context, state) => DiveDetailPage(
+                  diveId: state.pathParameters['diveId']!,
+                  openUnlocked: state.uri.queryParameters['mode'] == 'edit',
+                ),
                 routes: [
                   GoRoute(
                     path: 'edit',
                     name: 'editDive',
-                    builder: (context, state) =>
-                        DiveEditPage(diveId: state.pathParameters['diveId']),
+                    redirect: (context, state) =>
+                        '/dives/${state.pathParameters['diveId']}?mode=edit',
                   ),
                   GoRoute(
                     path: 'edit-profile',
@@ -658,6 +675,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/sites',
             name: 'sites',
+            // A site's sitting, or one on a page pushed above the list, is
+            // asked about before a tab or a link goes (issue #4527).
+            onExit: confirmLeaveRecordSitting,
             pageBuilder: (context, state) => NoTransitionPage(
               key: state.pageKey,
               child: const SiteListPage(),
@@ -713,6 +733,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: ':siteId',
                 name: 'siteDetail',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) =>
                     SiteDetailPage(siteId: state.pathParameters['siteId']!),
                 routes: [
@@ -1184,6 +1205,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                       initialSection: TripEditSection.fromQuery(
                         state.uri.queryParameters['section'],
                       ),
+                      noteDay: tripNoteDayFromQuery(state.uri.queryParameters),
                     ),
                   ),
                   GoRoute(
@@ -1728,6 +1750,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) => const OfflineMapsPage(),
               ),
               GoRoute(
+                path: 'marine-life-identification',
+                name: 'marineLifeIdentification',
+                builder: (context, state) =>
+                    const MarineLifeIdentificationPage(),
+              ),
+              GoRoute(
                 path: 'wearable-import',
                 name: 'wearableImport',
                 onExit: confirmLeaveRunningImport,
@@ -1894,6 +1922,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'reparse-dives',
                 name: 'reparseDives',
                 builder: (context, state) => const ReparseDivesPage(),
+              ),
+              GoRoute(
+                path: 'raw-dive-data',
+                name: 'rawDiveData',
+                builder: (context, state) => const RawDiveDataPage(),
               ),
               GoRoute(
                 path: 'link-buddy-names',
@@ -2667,8 +2700,9 @@ bool parseForceFullQueryParam(String? value) => value == 'true';
 
 /// The new-dive page for [state]: a prefill passed as `extra` (the OCR scan,
 /// a passport tag), and the board's Log dive shortcut as the `tripId` and
-/// `tripCylinderId` query parameters.
-DiveEditPage newDivePage(GoRouterState state) => DiveEditPage(
+/// `tripCylinderId` query parameters, on the dive page opened unlocked
+/// ([newDiveRoutePage]).
+Widget newDivePage(GoRouterState state) => newDiveRoutePage(
   prefill: state.extra as DivePrefill?,
   tripId: state.uri.queryParameters['tripId'],
   tripCylinderId: state.uri.queryParameters['tripCylinderId'],

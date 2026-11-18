@@ -97,6 +97,51 @@ void main() {
     );
   });
 
+  test('a reference column is named as the conflict dialog names it', () {
+    expect(formatter().label('tank_pressure_series', 'tank_id'), 'Tank');
+    expect(formatter().label('dive_plans', 'linked_dive_id'), 'Linked dive');
+    expect(formatter().label('documents', 'dive_id'), 'Dive');
+    // Catalogued: unchanged.
+    expect(formatter().label('dives', 'max_depth'), 'Max Depth');
+  });
+
+  // A newer peer's column, neither catalogued nor a reference.
+  test('a column the catalogue does not know is spelled from its name', () {
+    expect(formatter().label('dives', 'brand_new_column'), 'Brand New Column');
+  });
+
+  test('a dismissal reads as the moment it was made', () {
+    const ms = 1794825060000;
+    const units = UnitFormatter(AppSettings());
+
+    expect(
+      formatter().value('dive_safety_findings', 'dismissed_at', ms),
+      units.formatDateTime(DateTime.fromMillisecondsSinceEpoch(ms), l10n: l10n),
+    );
+  });
+
+  // A route's link mode is stored as its wire value ('auto', 'manual'),
+  // which no diver should read, in any language.
+  test('how a route was linked reads in the diver\'s language', () {
+    expect(
+      formatter().value('nav_tracks', 'link_mode', 'auto'),
+      'Automatically',
+    );
+    expect(formatter().value('nav_tracks', 'link_mode', 'manual'), 'Manually');
+    expect(formatter().label('nav_tracks', 'link_mode'), 'Linked');
+
+    final german = ChangeLogValueFormatter(
+      l10n: lookupAppLocalizations(const Locale('de')),
+      units: const UnitFormatter(AppSettings()),
+    );
+    expect(german.value('nav_tracks', 'link_mode', 'manual'), 'Manuell');
+  });
+
+  // A newer peer may link a route some way this build has never heard of.
+  test('a link mode this build does not know is shown as stored', () {
+    expect(formatter().value('nav_tracks', 'link_mode', 'shared'), 'shared');
+  });
+
   test('a foreign key reads as the record it points at', () {
     final text = formatter(
       references: const {

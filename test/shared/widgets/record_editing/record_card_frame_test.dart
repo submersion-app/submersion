@@ -183,6 +183,46 @@ void main() {
     expect(find.text('Done'), findsNothing);
   });
 
+  testWidgets(
+    'an open card keeps the gap a self-spacing read card places above itself',
+    (tester) async {
+      final controller = _controller()..unlock(const _Rec());
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: RecordEditScope<_Rec>(
+              controller: controller,
+              child: Column(
+                children: [
+                  RecordCardFrame<_Rec>(
+                    key: const ValueKey('frame'),
+                    card: _card,
+                    topGap: 24,
+                    child: const SizedBox(height: 40),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+      controller.openCard(_card.id);
+      await tester.pumpAndSettle();
+
+      final frameTop = tester.getTopLeft(find.byKey(const ValueKey('frame')));
+      final cardTop = tester.getTopLeft(
+        find.descendant(
+          of: find.byKey(const ValueKey('frame')),
+          matching: find.byType(Card),
+        ),
+      );
+      expect(cardTop.dy - frameTop.dy, 24);
+    },
+  );
+
   testWidgets('locked: the card reads as before', (tester) async {
     await tester.pumpWidget(_host(_controller()));
 
@@ -585,6 +625,26 @@ void main() {
 
       final row = tester.getSemantics(find.text('Notes'));
       expect(row.flagsCollection.isButton, isTrue);
+
+      semantics.dispose();
+    });
+
+    // The header is a button of its own: in the Card it would otherwise
+    // merge into the card's node, and the whole card would be one button
+    // named for everything it says (issue #4527).
+    testWidgets('unlocked, the header button leaves the card body its own', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      final controller = _controller()..unlock(const _Rec());
+      await tester.pumpWidget(_host(controller));
+
+      final row = tester.getSemantics(find.text('Notes'));
+      expect(row.label, isNot(contains('READ')));
+      expect(
+        tester.getSemantics(find.text('READ')).flagsCollection.isButton,
+        isFalse,
+      );
 
       semantics.dispose();
     });

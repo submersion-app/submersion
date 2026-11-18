@@ -3,38 +3,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/features/media/data/repositories/media_repair_log_repository.dart';
-import 'package:submersion/features/media/data/services/repair/media_repair_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/services/media_repair_types.dart';
 import 'package:submersion/features/media/presentation/helpers/media_link_replacer.dart';
-import 'package:submersion/features/media/presentation/providers/media_repair_providers.dart';
 
 import '../../../../helpers/l10n_test_helpers.dart';
-
-class _CapturingRepairService implements MediaRepairService {
-  final List<List<RepairProposal>> applied = [];
-
-  @override
-  Future<RepairApplyReport> apply(
-    List<RepairProposal> accepted, {
-    RepairLogSource source = RepairLogSource.manual,
-  }) async {
-    applied.add(accepted);
-    return const RepairApplyReport(
-      relinked: 1,
-      cloudBacked: 0,
-      reuploadsQueued: 0,
-      failed: 0,
-      skipped: 0,
-    );
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) =>
-      throw UnimplementedError('${invocation.memberName} is not stubbed');
-}
 
 const _pickedPath = '/tmp/new-reef.jpg';
 const _pickedHash = 'aaaa1111';
@@ -53,10 +27,12 @@ MediaItem _item({String? contentHash}) => MediaItem(
 Future<({String hash, int sizeBytes})> _fakeHash(File _) async =>
     (hash: _pickedHash, sizeBytes: 4);
 
+/// Locate and Replace link hold the re-link they find in a sitting until
+/// Save applies it (issue #4527).
 void main() {
-  late _CapturingRepairService repair;
+  late List<RepairProposal> held;
 
-  setUp(() => repair = _CapturingRepairService());
+  setUp(() => held = []);
 
   /// Pumps a host tree and hands back its context and ref.
   ///
@@ -71,7 +47,6 @@ void main() {
     late WidgetRef capturedRef;
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [mediaRepairServiceProvider.overrideWithValue(repair)],
         child: localizedMaterialApp(
           locale: const Locale('en'),
           home: Consumer(
@@ -99,19 +74,20 @@ void main() {
       item,
       pickPath: () async => pick,
       hashFile: _fakeHash,
+      onHold: held.add,
     );
     await tester.pumpAndSettle();
     return pending;
   }
 
-  testWidgets('applies an exact proposal when the bytes match the row hash', (
+  testWidgets('holds an exact proposal when the bytes match the row hash', (
     tester,
   ) async {
     final outcome = await call(tester, _item(contentHash: _pickedHash));
 
     expect(outcome, isTrue);
-    expect(repair.applied.single.single.confidence, RepairConfidence.exact);
-    expect(repair.applied.single.single.candidate!.path, _pickedPath);
+    expect(held.single.confidence, RepairConfidence.exact);
+    expect(held.single.candidate!.path, _pickedPath);
   });
 
   testWidgets('a row with no hash is treated as an exact match', (
@@ -121,19 +97,19 @@ void main() {
     final outcome = await call(tester, _item());
 
     expect(outcome, isTrue);
-    expect(repair.applied.single.single.confidence, RepairConfidence.exact);
+    expect(held.single.confidence, RepairConfidence.exact);
   });
 
-  testWidgets('a cancelled picker applies nothing', (tester) async {
+  testWidgets('a cancelled picker holds nothing', (tester) async {
     final outcome = await call(tester, _item(), pick: null);
 
     expect(outcome, isFalse);
-    expect(repair.applied, isEmpty);
+    expect(held, isEmpty);
   });
 
   // Accepting different bytes re-uploads them to the media store, which is
   // why the flow demands an explicit confirm rather than silently relinking.
-  testWidgets('different bytes are not applied when the confirm is declined', (
+  testWidgets('different bytes are not held when the confirm is declined', (
     tester,
   ) async {
     final h = await host(tester);
@@ -143,6 +119,7 @@ void main() {
       _item(contentHash: 'a-different-hash'),
       pickPath: () async => _pickedPath,
       hashFile: _fakeHash,
+      onHold: held.add,
     );
     await tester.pumpAndSettle();
 
@@ -151,10 +128,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(await pending, isFalse);
-    expect(repair.applied, isEmpty);
+    expect(held, isEmpty);
   });
 
-  testWidgets('different bytes are applied once the confirm is accepted', (
+  testWidgets('different bytes are held once the confirm is accepted', (
     tester,
   ) async {
     final h = await host(tester);
@@ -164,6 +141,7 @@ void main() {
       _item(contentHash: 'a-different-hash'),
       pickPath: () async => _pickedPath,
       hashFile: _fakeHash,
+      onHold: held.add,
     );
     await tester.pumpAndSettle();
 
@@ -173,6 +151,6 @@ void main() {
     expect(await pending, isTrue);
     // Recorded as edited rather than exact, so the store knows these are new
     // bytes and does not deduplicate the re-upload against the old hash.
-    expect(repair.applied.single.single.confidence, RepairConfidence.edited);
+    expect(held.single.confidence, RepairConfidence.edited);
   });
 }

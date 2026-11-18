@@ -60,5 +60,15 @@ extension BeforeOpenSettingsColumns on AppDatabase {
     // v366 backstop: diver_settings.default_show_counterdiffusion (issue
     // #4530).
     await _assertDefaultShowCounterdiffusionColumn();
+
+    // v370 backstop: diver_settings.default_show_buoyancy (issue #4593).
+    await _assertDefaultShowBuoyancyColumn();
+
+    // v371 backstop: diver_settings.favourite_dive_type_ids (issue #4413).
+    await _assertFavouriteDiveTypeIdsColumn();
+
+    // v374 backstop: the planner's SCR injection rate and VO2 columns on
+    // dive_plans and diver_settings (issue #4660).
+    await _assertScrFlowColumns();
   }
 }

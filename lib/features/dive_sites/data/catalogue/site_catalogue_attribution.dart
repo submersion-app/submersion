@@ -16,8 +16,8 @@ abstract final class SiteCatalogueAttribution {
   /// records are named apart, as not part of the ODbL database.
   ///
   /// The sources and their licences are the ones the catalogue file
-  /// declares (`metadata.sources`, written by
-  /// scripts/site_catalogue_format.py); a test fails when the file
+  /// declares (`metadata.sources`, written by the site catalogue
+  /// repository's pipeline); a test fails when the file
   /// declares one this text does not credit. Called once from `main()`.
   static void registerLicense() {
     LicenseRegistry.addLicense(() async* {
@@ -41,12 +41,21 @@ https://opendatacommons.org/licenses/odbl/1-0/
 
 The built-in dive site data is a database compiled from OpenStreetMap and
 the sources below, and is made available under the same licence. It is
-published, with the scripts that produce it, in the Submersion source
-repository:
-https://github.com/submersion-app/submersion
+published, with the scripts that produce it, in the Submersion site
+catalogue repository:
+https://github.com/submersion-app/site-catalogue
 
-Sites added by the Submersion project (scripts/dive_sites_curated.json),
+Sites added by the Submersion project (curated/dive_sites_curated.json),
 under the Open Database License 1.0.
+
+Submersion site research: dive sites researched by the Submersion
+project, under the Open Database License 1.0. Each of their facts cites
+the published pages it was read from, in the site catalogue repository
+(research/sites.json); no wording from those pages is kept.
+
+The researched sites and the sites added by the Submersion project are
+gathered from published sources and are marked "Not verified" in the
+app: check their positions locally before relying on them.
 
 UK Hydrographic Office Wrecks and Obstructions. Contains public sector
 information, licensed under the Open Government Licence v3.0, from the UK
@@ -64,7 +73,12 @@ https://www.arcgis.com/home/item.html?id=eb2bfd225149405bba23604f20159f56
 
 MarineCadastre Artificial Reefs, NOAA Office for Coastal Management and
 Bureau of Ocean Energy Management, compiled from the reef programs of the
-states. Public domain.
+states. United States Government data, published with no licence and no
+restriction on reuse stated; its metadata gives its use as coastal and
+ocean planning. Its Maryland records are derived from data of the State of
+Maryland, Department of Natural Resources. Maryland's metadata for that
+data ships with the app, unmodified
+(assets/data/site_catalogue_md_dnr_metadata.xml).
 https://www.fisheries.noaa.gov/inport/item/54191
 
 Florida Keys National Marine Sanctuary buoys, NOAA Florida Keys National
@@ -97,9 +111,8 @@ Division of Aquatic Resources. Copyright State of Hawaii. These records
 may not be used commercially.
 https://portal.ehawaii.gov/page/terms-of-use/
 
-Texas artificial reefs, Texas Parks and Wildlife Department. Copyright
-Texas Parks and Wildlife Department. These records may not be used
-commercially or sold.
+Texas artificial reefs. Information courtesy Texas Parks and Wildlife
+Department © 2022. These records may not be used commercially or sold.
 https://tpwd.texas.gov/site/policies/copyright-policy
 
 North Carolina Artificial Reef Guide, N.C. Division of Marine Fisheries.

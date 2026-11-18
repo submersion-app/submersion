@@ -81,6 +81,7 @@ class AgentToolRegistry {
           loader: loader,
           settings: settings,
           followOf: followOf,
+          records: records,
           caveat: planCaveat,
         ),
         PreviewChangesTool(
@@ -90,11 +91,7 @@ class AgentToolRegistry {
           writes: writes.catalog,
         ),
         ApplyChangesTool(store: writes.plans, applier: writes.applier),
-        RevertOperationTool(
-          revert: writes.revert,
-          changeLog: writes.changeLog,
-          rearmDocuments: writes.rearmDocuments,
-        ),
+        RevertOperationTool(revert: writes.revert, changeLog: writes.changeLog),
       ],
       resources: [
         QueryLanguageResource(),

@@ -620,11 +620,15 @@ class _FormRowState extends State<FormRow> {
         );
 
       case _RowKind.toggle:
-        return _shell(
-          context,
-          trailing: Switch(
-            value: widget.boolValue!,
-            onChanged: widget.enabled ? widget.onBoolChanged : null,
+        // One node, as a SwitchListTile is: the switch is named by the row's
+        // label (and help), not heard as an unnamed switch.
+        return MergeSemantics(
+          child: _shell(
+            context,
+            trailing: Switch(
+              value: widget.boolValue!,
+              onChanged: widget.enabled ? widget.onBoolChanged : null,
+            ),
           ),
         );
 

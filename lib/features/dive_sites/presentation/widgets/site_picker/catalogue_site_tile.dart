@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/presentation/catalogue_site_display.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/not_verified_label.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// One built-in catalogue site in the site picker.
@@ -41,18 +42,28 @@ class CatalogueSiteTile extends ConsumerWidget {
       context.l10n,
     );
 
+    final researched = site.isResearched;
+
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: colorScheme.surfaceContainerHighest,
         child: Icon(Icons.travel_explore, color: colorScheme.onSurfaceVariant),
       ),
       title: Text(site.name),
-      subtitle: summary.isEmpty && distanceText == null
+      subtitle: summary.isEmpty && distanceText == null && !researched
           ? null
           : Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (summary.isNotEmpty) Text(summary),
+                if (summary.isNotEmpty || researched)
+                  Wrap(
+                    spacing: 8,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      if (summary.isNotEmpty) Text(summary),
+                      if (researched) const NotVerifiedLabel(),
+                    ],
+                  ),
                 if (distanceText != null)
                   Text(
                     distanceText!,

@@ -38,6 +38,7 @@ void main() {
       'noRole',
       'weekday',
       'diveType',
+      'myRole',
       'sac',
       'sacTrend',
       'sacChange',

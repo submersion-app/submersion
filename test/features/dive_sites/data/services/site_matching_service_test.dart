@@ -163,6 +163,38 @@ void main() {
       expect(proposal.candidates.map((c) => c.id), ['wreck', 'site']);
     });
 
+    test('a lone researched record near the dive is offered, never '
+        'recommended', () async {
+      catalogue.sites = [
+        CatalogueSite(
+          id: 'research_id_liberty',
+          name: 'USAT Liberty',
+          location: _eastMeters(40),
+          source: 'research',
+          trust: CatalogueTrust.researched,
+        ),
+      ];
+
+      final proposal = (await service().computeProposals([
+        _diveAt('d1', const GeoPoint(0, 0)),
+      ])).single;
+
+      expect(proposal.status, ProposalStatus.review);
+      expect(proposal.recommendedCandidateId, isNull);
+      expect(proposal.candidates.single.id, 'research_id_liberty');
+      expect(proposal.candidates.single.isResearched, isTrue);
+    });
+
+    test('a verified record is not marked researched', () async {
+      catalogue.sites = [record('site', 60, CatalogueKind.site)];
+
+      final proposal = (await service().computeProposals([
+        _diveAt('d1', const GeoPoint(0, 0)),
+      ])).single;
+
+      expect(proposal.candidates.single.isResearched, isFalse);
+    });
+
     test('a lone charted wreck near the dive is recommended', () async {
       catalogue.sites = [record('wreck', 60, CatalogueKind.register)];
 

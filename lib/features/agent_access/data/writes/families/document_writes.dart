@@ -231,12 +231,15 @@ class DocumentWrites extends WritableEntry {
   Future<void> afterApply(List<AppliedChange> changes, ApplyRun run) async {
     final rearm = _rearm;
     if (rearm == null) return;
+    // A delete needs nothing here: the repository names the diver of a
+    // deleted clearance, and the app re-arms the one it superseded (#4609).
     final saved = [
       for (final c in changes)
         if (c.kind != ChangeKind.delete) ?await _r.documents.getById(c.id),
     ];
+    if (saved.isEmpty) return;
     try {
-      if (saved.isNotEmpty) await rearm(saved);
+      await rearm(saved);
     } catch (e, stackTrace) {
       _log.warning(
         'Document reminders not re-armed',

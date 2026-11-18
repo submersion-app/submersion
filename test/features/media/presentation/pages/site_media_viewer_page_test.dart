@@ -16,6 +16,8 @@ import 'package:submersion/features/media/presentation/providers/resolved_asset_
 import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/media/domain/entities/photo_record.dart';
+import 'package:submersion/features/media/presentation/providers/photo_editing_providers.dart';
 
 import '../support/media_widget_harness.dart';
 
@@ -98,6 +100,15 @@ void main() {
   );
 
   /// The viewer under an attachments-scoped site with [first] and [second].
+  /// The photos as stored, for their lock (issue #4527).
+  List<riverpod.Override> stored(List<MediaItem> items) => [
+    for (final item in items)
+      photoRecordProvider(item.id).overrideWith(
+        (ref) async =>
+            PhotoRecord(item: item, species: const [], people: const []),
+      ),
+  ];
+
   Future<void> pumpViewer(
     WidgetTester tester, {
     String initialMediaId = 'm1',
@@ -111,6 +122,7 @@ void main() {
           mediaForSiteProvider(
             'site-1',
           ).overrideWith((ref) async => items ?? [first, second]),
+          ...stored(items ?? [first, second]),
           ...extraOverrides,
         ],
         home: SiteMediaViewerPage(
@@ -125,8 +137,17 @@ void main() {
 
   // Issue #1039: an attachment can be renamed or recategorized from here;
   // a dive photo belongs to its dive, not the site, so it cannot.
+  // Edit details changes the attachment, so it is offered unlocked
+  // (issue #4527).
+  Future<void> unlock(WidgetTester tester) async {
+    await tester.tap(find.byKey(const ValueKey('viewer_unlock')));
+    await tester.pumpAndSettle();
+  }
+
   testWidgets('the attachments viewer offers Edit details', (tester) async {
     await pumpViewer(tester);
+    expect(find.byTooltip('Edit details'), findsNothing);
+    await unlock(tester);
     expect(find.byTooltip('Edit details'), findsOneWidget);
   });
 
@@ -134,6 +155,7 @@ void main() {
     tester,
   ) async {
     await pumpViewer(tester, initialMediaId: 'm2');
+    await unlock(tester);
     await tester.tap(find.byTooltip('Edit details'));
     await tester.pumpAndSettle();
     expect(find.text('Attachment details'), findsOneWidget);
@@ -172,6 +194,42 @@ void main() {
     final views = tester.widgetList<MediaItemView>(find.byType(MediaItemView));
     expect(views, isNotEmpty);
     expect(views.every((v) => v.showAccessActions), isTrue);
+  });
+
+  // Issue #4699: the pager drew a video page through the photo path, which
+  // resolves the ORIGINAL. A photo-library video was read whole into memory
+  // (a 4K clip is hundreds of MB) and handed to the image decoder, which
+  // failed with "Invalid image data". Its poster is the still to show.
+  testWidgets('a video page shows its poster, never decodes the original', (
+    tester,
+  ) async {
+    // A display larger than the window, as on a desktop: the poster follows
+    // the display, so resizing the window never fetches it again.
+    tester.view.display.size = const Size(3456, 2234);
+    addTearDown(tester.view.display.reset);
+    final clip = testMediaItem(
+      id: 'v1',
+      siteId: 'site-1',
+      mediaType: MediaType.video,
+      originalFilename: 'clip.mov',
+    );
+    await pumpViewer(tester, initialMediaId: 'v1', items: [clip, second]);
+
+    final views = tester.widgetList<MediaItemView>(
+      find.byType(MediaItemView, skipOffstage: false),
+    );
+    final video = views.singleWhere((v) => v.item.id == 'v1');
+    expect(video.thumbnail, isTrue);
+    // The display in pixels: a point-sized poster is a third of the screen's
+    // resolution at 3x, and a window-sized one would be fetched again on
+    // every frame of a desktop window resize.
+    expect(video.targetSize, const Size(3456, 2234));
+    final photo = views.singleWhere((v) => v.item.id == 'm2');
+    expect(
+      photo.thumbnail,
+      isFalse,
+      reason: 'a photo keeps its zoomable full-screen decode',
+    );
   });
 
   // Issue #3298: a neighbour built only once it slides into view arrives as
@@ -847,10 +905,12 @@ void main() {
       shrink(const []);
       await tester.pumpAndSettle();
       expect(find.text('No photos available'), findsOneWidget);
-      final popScope = tester.widget<PopScope<Object?>>(
+      // Fullscreen's scope and the lock's guard both let Back through.
+      final scopes = tester.widgetList<PopScope<Object?>>(
         find.byWidgetPredicate((w) => w is PopScope),
       );
-      expect(popScope.canPop, isTrue);
+      expect(scopes, isNotEmpty);
+      expect(scopes.every((s) => s.canPop), isTrue);
     });
   });
 }

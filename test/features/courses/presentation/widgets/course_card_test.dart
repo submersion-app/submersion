@@ -3,9 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/widgets/course_card.dart';
+import 'package:submersion/shared/widgets/record_list_chevron.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
+import '../../../../helpers/record_chevron_expectations.dart';
 
 final _course = Course(
   id: 'c1',
@@ -106,5 +108,26 @@ void main() {
       final decoration = box.decoration! as BoxDecoration;
       expect(decoration.borderRadius, BorderRadius.circular(8));
     });
+  });
+
+  // The status badge keeps the trailing slot and the chevron follows it, one
+  // card padding from the edge like every other list (#4639).
+  testWidgets('a chevron follows the status badge at the card edge', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: await getBaseOverrides(),
+        locale: const Locale('en'),
+        child: CourseCard(course: _course, onTap: () {}),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expectChevronAtEndPadding(
+      tester,
+      bounds: recordCardBounds(tester),
+      padding: kRecordCardDetailedPadding,
+    );
   });
 }

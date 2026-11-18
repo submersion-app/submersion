@@ -37,6 +37,7 @@ void main() {
   final all = <EditField<Dive, Object?>>[
     diveTypeIdsField,
     diveTripField,
+    diveTripIdField,
     diveCenterField,
     diveOperatorField,
     diveBoatNameField,
@@ -49,17 +50,22 @@ void main() {
   ];
 
   test('every field belongs to the Details card, under an id of its own', () {
-    expect(all, hasLength(11));
+    expect(all, hasLength(12));
     expect({for (final field in all) field.cardId}, {'details'});
-    expect({for (final field in all) field.id}, hasLength(11));
+    expect({for (final field in all) field.id}, hasLength(12));
   });
 
-  test('no other card shows a Details value', () {
+  test('only the header shows a Details value: the dive types', () {
     // The Tide card and the Environment card's satellite conditions follow
     // the water type, but they are laid out from the dive the page's layout
-    // is held to, not redrawn as it is picked.
+    // is held to, not redrawn as it is picked. The header block draws the
+    // dive's types from the sitting (issue #4527, plan 4).
     for (final field in all) {
-      expect(field.alsoShownOn, isEmpty, reason: field.id);
+      expect(
+        field.alsoShownOn,
+        field == diveTypeIdsField ? {'header'} : isEmpty,
+        reason: field.id,
+      );
     }
   });
 
@@ -80,6 +86,32 @@ void main() {
       final dive = diveTripField.write(onTrip, _trip('b'));
       expect((dive.trip?.id, dive.tripId), ('b', 'b'));
     });
+
+    // The trip id alone, for a dive whose trip did not load (issue #4527).
+    test('the trip id reads the id, or the carried trip\'s', () {
+      expect(diveTripIdField.read(bare.copyWith(tripId: 'gone')), 'gone');
+      expect(diveTripIdField.read(bare.copyWith(trip: tripA)), 'a');
+      expect(diveTripIdField.read(bare), isNull);
+    });
+
+    test('writing no trip id clears the id and any trip', () {
+      final dive = diveTripIdField.write(
+        bare.copyWith(trip: tripA, tripId: 'a'),
+        null,
+      );
+      expect((dive.trip, dive.tripId), (null, null));
+    });
+
+    test(
+      'writing another trip id drops the trip that no longer matches it',
+      () {
+        final onTrip = bare.copyWith(trip: tripA, tripId: 'a');
+        final moved = diveTripIdField.write(onTrip, 'b');
+        expect((moved.trip, moved.tripId), (null, 'b'));
+        final kept = diveTripIdField.write(onTrip, 'a');
+        expect((kept.trip?.id, kept.tripId), ('a', 'a'));
+      },
+    );
 
     test('the same trip with other dates is not a change', () {
       final later = _trip('a', end: DateTime(2024, 3, 9));

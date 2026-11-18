@@ -32,6 +32,15 @@ class _FileBundle extends AssetBundle {
 /// The sources that ship on their own terms, outside the ODbL database.
 const _ownTermsSources = {'njdep', 'hi_dar', 'tpwd', 'nc_dmf'};
 
+// Floors under the shipped catalogue's size. Each catalogue release
+// reaches the app by an intake PR; these catch a release that lost a
+// source, without pinning counts every release changes. The catalogue
+// of 2026-11-17 holds 20,988 records: 16,999 register records and
+// 3,989 dive sites.
+const _minSites = 20000;
+const _minRegisters = 16000;
+const _minDiveSites = 3900;
+
 void main() {
   final catalogueFile = File(p.join('assets', 'data', 'site_catalogue.json'));
   final versionFile = File(p.join('assets', 'data', 'site_catalogue.version'));
@@ -47,7 +56,7 @@ void main() {
   test('the metadata names the format, the notice and the sources', () {
     final metadata = doc['metadata'] as Map<String, dynamic>;
 
-    expect(metadata['format'], 2);
+    expect(metadata['format'], kSupportedCatalogueFormat);
     expect(metadata['notice'], contains('Open Database License'));
     expect(
       metadata['notice'],
@@ -58,6 +67,7 @@ void main() {
     expect(sources.keys.toSet(), {
       'osm',
       'curated',
+      'research',
       'ukho',
       'awois',
       'fwc',
@@ -72,6 +82,21 @@ void main() {
       expect(source['licence'], isNotEmpty);
       expect(source['credit'], isNotEmpty);
     }
+  });
+
+  test('the shipped file carries the Texas credit line and the federal '
+      "reef file's stated terms", () {
+    final metadata = doc['metadata'] as Map<String, dynamic>;
+    final sources = metadata['sources'] as Map<String, dynamic>;
+    const texasLine =
+        'Information courtesy Texas Parks and Wildlife Department © 2022';
+
+    expect((sources['tpwd'] as Map)['credit'], texasLine);
+    expect(
+      (sources['noaa_reefs'] as Map)['licence'],
+      'US Government data, no restriction stated',
+    );
+    expect(metadata['notice'], contains(texasLine));
   });
 
   test('the sources outside the ODbL database say so, and only they', () {
@@ -103,17 +128,51 @@ void main() {
     expect(metadata.readAsStringSync(), contains('<metadata'));
   });
 
+  test("Maryland's metadata ships beside the federal file's records", () {
+    // Maryland's reef data "can be freely distributed as long as the
+    // metadata entry is not modified or deleted".
+    expect(
+      sites.where((s) => '${s['id']}'.startsWith('usreef_md_')),
+      isNotEmpty,
+    );
+    final metadata = File(
+      p.join('assets', 'data', 'site_catalogue_md_dnr_metadata.xml'),
+    );
+    expect(metadata.existsSync(), isTrue);
+    expect(
+      metadata.readAsStringSync(),
+      contains(
+        'freely distributed as long as the metadata entry is not modified '
+        'or deleted',
+      ),
+    );
+  });
+
+  test('no Massachusetts reef ships: its terms forbid copying', () {
+    expect(sites.where((s) => '${s['id']}'.startsWith('usreef_ma_')), isEmpty);
+  });
+
   test('every record is complete, unique and from a declared source', () {
     final sources = (doc['metadata'] as Map<String, dynamic>)['sources'] as Map;
     final ids = <String>{};
 
-    expect(sites, hasLength(20931));
+    // A release whose record count collapses (a source dropped upstream)
+    // fails here, in its intake PR.
+    expect(sites.length, greaterThanOrEqualTo(_minSites));
     for (final site in sites) {
       final id = site['id'] as String;
       expect(ids.add(id), isTrue, reason: 'duplicate id $id');
       expect(site['name'], isNotEmpty, reason: id);
       expect(sources.containsKey(site['source']), isTrue, reason: id);
-      expect(site['trust'], 'verified', reason: id);
+      // Gathered by research (curated and researched sites) or read from
+      // a register: the app marks the first "Not verified".
+      expect(
+        site['trust'],
+        const {'curated', 'research'}.contains(site['source'])
+            ? 'researched'
+            : 'verified',
+        reason: id,
+      );
       expect(site.containsKey('lat'), site.containsKey('lon'), reason: id);
       // Empty values are left out, never written as null.
       expect(site.values, everyElement(isNotNull), reason: id);
@@ -145,14 +204,14 @@ void main() {
       }
     }
     final registers = sites.where((s) => s['kind'] == 'register').length;
-    expect(registers, 17000);
-    expect(sites.length - registers, 3931);
+    expect(registers, greaterThanOrEqualTo(_minRegisters));
+    expect(sites.length - registers, greaterThanOrEqualTo(_minDiveSites));
   });
 
   test('no dive site a diver may hold was lost to a register', () {
     // Every curated site ships, and none of them as a register record.
     final curated = sites.where((s) => s['source'] == 'curated').toList();
-    expect(curated, hasLength(55));
+    expect(curated.length, greaterThanOrEqualTo(55));
     expect(curated.map((s) => s['kind']), everyElement(isNull));
     // One wreck, three sources: it ships once, as the dive site.
     final thistlegorm = sites
@@ -327,7 +386,7 @@ void main() {
       const CatalogueBounds(south: -90, west: -180, north: 90, east: 180),
       limit: 1000000,
     );
-    expect(located.sites, hasLength(20931));
+    expect(located.sites, hasLength(sites.length));
     expect(located.truncated, isFalse);
     // Salt Pier, by name and by place.
     final found = await catalogue.search('salt pier');
@@ -355,7 +414,7 @@ void main() {
     // If this fails because sea_areas.json changed: raise
     // kSiteCatalogueImportRevision, then put the new revision and hash here.
     const pinned = (
-      revision: 3,
+      revision: 5,
       seaTable:
           '184175e914bbc5cdde973767181c50a75af59b49b1f5def95ff845eb89e659a6',
     );

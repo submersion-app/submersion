@@ -5,6 +5,7 @@ import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/legacy_buddy_text_section.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_buddies_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/logged_with_tiles.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_roles/presentation/dive_role_list_display.dart';
@@ -14,6 +15,8 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/divers/presentation/widgets/dive_owner_avatar.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 /// The Buddies card.
 class DiveBuddiesSection extends ConsumerWidget {
@@ -23,7 +26,15 @@ class DiveBuddiesSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final buddiesAsync = ref.watch(buddiesForDiveProvider(dive.id));
+    final stored = ref.watch(buddiesForDiveProvider(dive.id));
+    // During a sitting that changed them, the sitting's buddies (issue
+    // #4527); otherwise the stored ones.
+    final edit = RecordEditScope.maybeOf<Dive>(context);
+    final session = edit?.session;
+    final held = session != null && diveBuddiesList.isChanged(session)
+        ? diveBuddiesList.current(session)
+        : null;
+    final buddiesAsync = held == null ? stored : AsyncValue.data(held);
     // Only the own-role row needs the dive's owner; it draws a placeholder
     // while the owner loads rather than holding back the whole card.
     final ownerAsync = dive.diverRoleIds.isEmpty
@@ -46,27 +57,30 @@ class DiveBuddiesSection extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      context.l10n.diveLog_detail_section_buddies,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    if (buddies.isNotEmpty)
-                      Text(
-                        context.l10n.diveLog_detail_buddyCount(buddies.length),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                // Its pencil, while the dive is unlocked.
+                RecordCardHeader(
+                  title: context.l10n.diveLog_detail_section_buddies,
+                  trailing: buddies.isEmpty
+                      ? null
+                      : Text(
+                          context.l10n.diveLog_detail_buddyCount(
+                            buddies.length,
+                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
                         ),
-                      ),
-                  ],
                 ),
                 const Divider(),
                 if (ownerAsync != null)
                   _buildMyRoleTile(context, ref, ownerAsync),
                 if (showLegacyText)
-                  LegacyBuddyTextSection(dive: dive)
+                  // On a page that offers editing, linking is done in the
+                  // open card, where the sitting holds it.
+                  LegacyBuddyTextSection(dive: dive, linkShown: edit == null)
                 else if (buddies.isEmpty && dive.diverRoleIds.isEmpty)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),

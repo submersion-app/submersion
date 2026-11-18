@@ -592,6 +592,13 @@ class DivePlanState extends Equatable {
   /// Depth below which the high setpoint is in force; null = default 10 m.
   final double? setpointSwitchDepth;
 
+  /// Semi-closed loop flow, surface L/min (issue #4660): the CMF supply
+  /// injection rate and VO2, and the passive (pSCR) loop's VO2. Null = use
+  /// the diver's Settings default, resolved by `PlanEngineConfig.resolvedFor`.
+  final double? scrInjectionRate;
+  final double? scrVo2;
+  final double? pscrVo2;
+
   /// Contingency deviation deltas (Phase 5). Null = use the diver's
   /// Settings default (issue #3552).
   final double? deviationDepthDelta;
@@ -746,6 +753,9 @@ class DivePlanState extends Equatable {
     this.setpointLow,
     this.setpointHigh,
     this.setpointSwitchDepth,
+    this.scrInjectionRate,
+    this.scrVo2,
+    this.pscrVo2,
     this.deviationDepthDelta,
     this.deviationTimeMinutes,
     this.turnPressureRule,
@@ -858,6 +868,12 @@ class DivePlanState extends Equatable {
     bool clearSetpointHigh = false,
     double? setpointSwitchDepth,
     bool clearSetpointSwitchDepth = false,
+    double? scrInjectionRate,
+    bool clearScrInjectionRate = false,
+    double? scrVo2,
+    bool clearScrVo2 = false,
+    double? pscrVo2,
+    bool clearPscrVo2 = false,
     double? deviationDepthDelta,
     bool clearDeviationDepthDelta = false,
     int? deviationTimeMinutes,
@@ -978,6 +994,11 @@ class DivePlanState extends Equatable {
       setpointSwitchDepth: clearSetpointSwitchDepth
           ? null
           : (setpointSwitchDepth ?? this.setpointSwitchDepth),
+      scrInjectionRate: clearScrInjectionRate
+          ? null
+          : (scrInjectionRate ?? this.scrInjectionRate),
+      scrVo2: clearScrVo2 ? null : (scrVo2 ?? this.scrVo2),
+      pscrVo2: clearPscrVo2 ? null : (pscrVo2 ?? this.pscrVo2),
       deviationDepthDelta: clearDeviationDepthDelta
           ? null
           : (deviationDepthDelta ?? this.deviationDepthDelta),
@@ -1083,6 +1104,9 @@ class DivePlanState extends Equatable {
     setpointLow,
     setpointHigh,
     setpointSwitchDepth,
+    scrInjectionRate,
+    scrVo2,
+    pscrVo2,
     deviationDepthDelta,
     deviationTimeMinutes,
     turnPressureRule,

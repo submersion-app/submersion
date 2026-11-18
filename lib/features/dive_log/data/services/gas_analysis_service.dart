@@ -399,8 +399,10 @@ class GasAnalysisService {
     ).window;
 
     for (final tank in dive.tanks) {
-      // A suit inflation bottle is not breathed, so it has no SAC (#4243).
-      if (!tank.role.isBreathingGas) continue;
+      // A suit inflation bottle is not breathed, so it has no SAC (#4243),
+      // and an Avelo Hydrotank's pressure is no measure of the gas used
+      // (#4657).
+      if (!tank.role.pressureMeasuresGasUse) continue;
       // Its own size, else its matched partner's (issue #3109).
       final volume = consumptionVolume(tank, dive.tanks);
       // When, how long and how deep this tank was breathed: shared with the
@@ -634,6 +636,10 @@ class GasAnalysisService {
     required List<TankUsageWindow> prorationWindows,
     required DiveEnvironment environment,
   }) {
+    // An Avelo Hydrotank's pressure rises with the water pumped in, so no
+    // segment of it has a SAC (issue #4657).
+    if (!tank.role.pressureMeasuresGasUse) return null;
+
     final durationSec = endTime - startTime;
     if (durationSec < minSegmentDuration) return null;
 

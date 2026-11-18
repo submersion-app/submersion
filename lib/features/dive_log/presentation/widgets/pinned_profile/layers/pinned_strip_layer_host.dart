@@ -90,10 +90,12 @@ class _PinnedStripLayerHostState extends ConsumerState<PinnedStripLayerHost> {
     final inputs = _watchInputs();
     final style = _style(context);
     final from = _builtFrom;
-    // While the strip condenses no layer can show yet, and the data built
-    // last (or none) serves; it is rebuilt once the strip settles.
+    // Rebuilt whenever what it is made of changes, while the strip condenses
+    // too: no layer shows until it settles, but the data decides how tall
+    // it condenses to, and data from an earlier pass would leave it to grow
+    // or shrink again on settling (#4579).
     final stale = from == null || !from.sameAs(inputs) || _builtWith != style;
-    if (stale && (from == null || widget.settled)) {
+    if (stale) {
       _builtFrom = inputs;
       _builtWith = style;
       _data = buildStripLayerData(inputs, style);
@@ -135,7 +137,7 @@ class _PinnedStripLayerHostState extends ConsumerState<PinnedStripLayerHost> {
       // Named as the full chart's tooltip names a tank.
       tankLabel: (tank, index) => DiveProfileChart.tankTooltipLabel(
         tank,
-        l10n.diveLog_tank_title(index + 1),
+        DiveProfileChart.tankDefaultLabel(l10n, tank, index),
       ),
     );
   }

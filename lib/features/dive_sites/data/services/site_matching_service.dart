@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/geo_math.dart';
@@ -40,6 +42,9 @@ class MatchCandidateView {
   final List<String> features; // bundled: the source's tags (drift, sharks)
   final String? description;
 
+  /// A built-in record gathered by research, shown "Not verified".
+  final bool isResearched;
+
   const MatchCandidateView({
     required this.id,
     required this.name,
@@ -56,6 +61,7 @@ class MatchCandidateView {
     this.typeIds = const [],
     this.features = const [],
     this.description,
+    this.isResearched = false,
   });
 }
 
@@ -174,7 +180,7 @@ class SiteMatchingService {
   List<DiveSite> _userSites = const [];
   final Map<String, Map<String, _CandidateRef>> _refsByDive = {};
   // Reset at the start of each applyConfirmed pass (batch dedup).
-  final Map<String, String> _createdByExternalId = {};
+  final Map<String, DiveSite> _createdByExternalId = {};
   // Point each proposal was computed against (the current-site apply needs it).
   final Map<String, GeoPoint> _pointByDive = {};
   // Sites that gained coordinates in this pass and still lack an altitude.
@@ -219,10 +225,25 @@ class SiteMatchingService {
       final point = resolved.point;
       _pointByDive[dive.id] = point;
 
-      final bundled = await _catalogue.near(
+      // Map-placed records are offered from further out than the rest,
+      // and are always read on their own: in a shared read, the records
+      // nearer the dive could fill its limit first, even when the outer
+      // radius is already as wide as the map-placed reach.
+      final inRadius = await _catalogue.near(
         point,
         radiusMeters: thresholds.outerRadiusMeters,
       );
+      final mapPlaced = await _catalogue.near(
+        point,
+        radiusMeters: mapPlacedReachMeters(thresholds),
+        mapPlacedOnly: true,
+      );
+      final inRadiusIds = {for (final b in inRadius) b.id};
+      final bundled = [
+        ...inRadius,
+        for (final b in mapPlaced)
+          if (!inRadiusIds.contains(b.id)) b,
+      ];
 
       final refs = <String, _CandidateRef>{};
       final candidates = <MatchCandidate>[];
@@ -259,6 +280,8 @@ class SiteMatchingService {
             location: location,
             isExisting: false,
             isRegister: b.kind == CatalogueKind.register,
+            isResearched: b.isResearched,
+            isMapPlaced: b.isResearched && b.positionFromMap,
           ),
         );
       }
@@ -268,7 +291,9 @@ class SiteMatchingService {
       // decision so distances are computed a single time per dive/site pair.
       final ranked = rankCandidates(point, candidates);
       final views = ranked
-          .where((r) => r.distanceMeters <= thresholds.outerRadiusMeters)
+          .where(
+            (r) => r.distanceMeters <= reachMeters(r.candidate, thresholds),
+          )
           .map(
             (r) =>
                 _viewFor(r.candidate, refs[r.candidate.id]!, r.distanceMeters),
@@ -382,6 +407,7 @@ class SiteMatchingService {
       typeIds: b.typeIds,
       features: b.features,
       description: b.description,
+      isResearched: b.isResearched,
     );
   }
 
@@ -407,7 +433,7 @@ class SiteMatchingService {
       divesLinked: linked,
       sitesCreated: created,
       sitesLocated: located,
-      createdSiteIds: _createdByExternalId.values.toList(),
+      createdSiteIds: [for (final site in _createdByExternalId.values) site.id],
     );
   }
 
@@ -434,11 +460,12 @@ class SiteMatchingService {
 
   /// Best-effort altitude for every site that gained coordinates in this
   /// pass. Runs after the transaction commits so a network stall can never
-  /// hold a DB lock, and never throws.
+  /// hold a DB lock, and never throws. The sites are read before the first
+  /// lookup, so a call left running is not disturbed by the next pass.
   Future<void> _fillAltitudes() async {
     final fetch = fetchElevation;
     if (fetch == null) return;
-    for (final entry in _locatedThisPass.entries) {
+    for (final entry in Map.of(_locatedThisPass).entries) {
       try {
         final meters = await fetch(entry.value);
         if (meters != null) {
@@ -454,6 +481,67 @@ class SiteMatchingService {
     }
   }
 
+  /// The site [candidateId] stands for, for [diveId], without linking the
+  /// dive (issue #4527): an existing site, or a catalogue site adopted as
+  /// the diver's, through the same dedup, adoption lookup and coincidence
+  /// guard as [applyConfirmed]. An adopted site is created at once, in a
+  /// transaction, and its altitude filled best effort once this has
+  /// answered, so the answer never waits on the network. Creating a
+  /// record is outside an editing sitting; only the dive's link waits for
+  /// its Save.
+  ///
+  /// Throws [ArgumentError] for the dive's own site (giving it coordinates
+  /// is a write to that site, held by the sitting instead), and
+  /// [StateError] for a candidate the last proposals did not offer.
+  Future<({DiveSite site, List<String> createdSiteIds})> resolveCandidate(
+    String diveId,
+    String candidateId,
+  ) async {
+    final ref = _refsByDive[diveId]?[candidateId];
+    if (ref == null) {
+      throw StateError('No candidate $candidateId for dive $diveId');
+    }
+    if (ref.currentSite != null) {
+      throw ArgumentError.value(
+        candidateId,
+        'candidateId',
+        'the dive\'s own site is not a site to resolve',
+      );
+    }
+    _createdByExternalId.clear();
+    _locatedThisPass.clear();
+    late ({DiveSite site, _ApplyOutcome outcome}) chosen;
+    await _runInTransaction(() async {
+      chosen = await _siteFor(ref);
+    });
+    // The site exists now: a sitting waiting for it does not also wait on
+    // the network for its altitude.
+    unawaited(_fillAltitudes());
+    return (
+      site: chosen.site,
+      createdSiteIds: [
+        if (chosen.outcome == _ApplyOutcome.created) chosen.site.id,
+      ],
+    );
+  }
+
+  /// Creates [site] for this diver, with no link, and fills its altitude
+  /// best effort once this has answered. What the site suggestion's "Create site" does during an
+  /// editing sitting, which holds the dive's link until its Save.
+  Future<DiveSite> createSite(DiveSite site) async {
+    final created = await _siteRepository.createSite(
+      site.copyWith(diverId: diverId),
+    );
+    _locatedThisPass.clear();
+    final point = created.location;
+    if (point != null && created.altitude == null) {
+      _locatedThisPass[created.id] = point;
+    }
+    // As in [resolveCandidate]: the altitude lands after the answer.
+    unawaited(_fillAltitudes());
+    return created;
+  }
+
   /// Applies one dive's chosen candidate. Mirrors the original apply logic
   /// (dedup + coincidence guard) minus the rollback bookkeeping.
   Future<_ApplyOutcome> _applyOne(String diveId, _CandidateRef ref) async {
@@ -467,21 +555,28 @@ class SiteMatchingService {
       if (site.altitude == null) _locatedThisPass[site.id] = point;
       return _ApplyOutcome.located;
     }
+    final chosen = await _siteFor(ref);
+    await _diveRepository.setSite(diveId, chosen.site.id);
+    return chosen.outcome;
+  }
 
-    if (ref.existing != null) {
-      await _diveRepository.setSite(diveId, ref.existing!.id);
-      return _ApplyOutcome.linked;
+  /// The site an existing or catalogue candidate stands for, adopting the
+  /// catalogue site when no site of the diver's already is it. Links
+  /// nothing.
+  Future<({DiveSite site, _ApplyOutcome outcome})> _siteFor(
+    _CandidateRef ref,
+  ) async {
+    final existing = ref.existing;
+    if (existing != null) {
+      return (site: existing, outcome: _ApplyOutcome.linked);
     }
 
     final bundled = ref.bundled!;
     final point = bundled.location!;
 
     // Batch dedup: this bundled site already materialised in this pass?
-    final dedupId = _createdByExternalId[bundled.id];
-    if (dedupId != null) {
-      await _diveRepository.setSite(diveId, dedupId);
-      return _ApplyOutcome.linked;
-    }
+    final dedup = _createdByExternalId[bundled.id];
+    if (dedup != null) return (site: dedup, outcome: _ApplyOutcome.linked);
 
     // Already adopted, wherever the diver has since moved it? The link is a
     // surer sign of the same site than the distance guard below.
@@ -490,35 +585,32 @@ class SiteMatchingService {
       diverId: diverId,
     );
     if (adopted != null) {
-      await _diveRepository.setSite(diveId, adopted.id);
-      return _ApplyOutcome.linked;
+      return (site: adopted, outcome: _ApplyOutcome.linked);
     }
 
     // Coincidence guard: an existing user site essentially here?
     for (final s in _userSites) {
       if (distanceMeters(point, s.location!) <= _coincidenceMeters) {
-        await _diveRepository.setSite(diveId, s.id);
-        return _ApplyOutcome.linked;
+        return (site: s, outcome: _ApplyOutcome.linked);
       }
     }
 
     // Adopt the catalogue site through the one adoption path, so it gets
-    // the same details and link as a site picked anywhere else, then link.
-    // Altitude is filled by [_fillAltitudes] once the transaction commits.
+    // the same details and link as a site picked anywhere else. Altitude is
+    // filled by [_fillAltitudes] once the transaction commits.
     final adoption = await _adoption.adopt(
       bundled,
       diverId: diverId,
       fillAltitude: false,
     );
     final site = adoption.site;
-    await _diveRepository.setSite(diveId, site.id);
     // Another screen adopted this record after the lookup above: the site
     // is the diver's already, and whoever made it sees to its altitude and
     // its rules. Reporting it as created would run those rules again, over
     // whatever the diver has changed since.
-    if (!adoption.created) return _ApplyOutcome.linked;
-    _createdByExternalId[bundled.id] = site.id;
+    if (!adoption.created) return (site: site, outcome: _ApplyOutcome.linked);
+    _createdByExternalId[bundled.id] = site;
     if (site.altitude == null) _locatedThisPass[site.id] = point;
-    return _ApplyOutcome.created;
+    return (site: site, outcome: _ApplyOutcome.created);
   }
 }

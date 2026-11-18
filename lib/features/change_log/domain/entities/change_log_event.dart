@@ -181,6 +181,10 @@ class ChangeLogPreview extends Equatable {
 /// How a record is told apart from every other, across tables.
 String changeLogRecordKey(String table, Object id) => '$table|$id';
 
+/// One column of one record, as a link a revert sets back is keyed.
+String changeLogLinkKey(String table, Object id, String column) =>
+    '$table|$id|$column';
+
 /// Where a resolved foreign key is kept, by sync entity and JSON key.
 String changeLogReferenceKey(String entity, String key, Object value) =>
     '$entity|$key|$value';

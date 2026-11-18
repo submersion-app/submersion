@@ -40,6 +40,7 @@ void main() {
     await tester.pumpWidget(
       _harness(
         SourceBar(
+          operationReason: null,
           sources: [
             _item(sourceId: 'src-a', label: 'Kiyans Teric', isActive: true),
           ],
@@ -59,6 +60,7 @@ void main() {
     await tester.pumpWidget(
       _harness(
         SourceBar(
+          operationReason: null,
           sources: [
             _item(
               sourceId: 'src-a',
@@ -87,6 +89,7 @@ void main() {
     await tester.pumpWidget(
       _harness(
         SourceBar(
+          operationReason: null,
           sources: [
             _item(
               sourceId: 'src-a',
@@ -114,6 +117,7 @@ void main() {
     await tester.pumpWidget(
       _harness(
         SourceBar(
+          operationReason: null,
           sources: [
             _item(
               sourceId: 'src-a',
@@ -140,6 +144,7 @@ void main() {
     await tester.pumpWidget(
       _harness(
         SourceBar(
+          operationReason: null,
           sources: [
             _item(
               sourceId: 'src-a',
@@ -166,6 +171,7 @@ void main() {
     await tester.pumpWidget(
       _harness(
         SourceBar(
+          operationReason: null,
           sources: [
             _item(
               sourceId: 'src-a',
@@ -198,6 +204,7 @@ void main() {
     await tester.pumpWidget(
       _harness(
         SourceBar(
+          operationReason: null,
           sources: [
             _item(
               sourceId: 'src-a',
@@ -222,6 +229,7 @@ void main() {
     await tester.pumpWidget(
       _harness(
         SourceBar(
+          operationReason: null,
           sources: [
             _item(
               sourceId: 'src-a',
@@ -242,5 +250,43 @@ void main() {
       find.widgetWithIcon(IconButton, Icons.visibility_off_outlined),
     );
     expect(eye.onPressed, isNull);
+  });
+
+  testWidgets('with a reason the chip menu lists Set as primary disabled '
+      'under it', (tester) async {
+    final promoted = <String>[];
+    await tester.pumpWidget(
+      _harness(
+        SourceBar(
+          sources: [
+            _item(
+              sourceId: 'src-a',
+              label: 'Kiyans Teric',
+              isActive: true,
+              isPrimary: true,
+            ),
+            _item(sourceId: 'src-b', label: 'Erics Teric'),
+          ],
+          onActivate: (_) {},
+          onToggleOverlay: (_, _) {},
+          onSetPrimary: promoted.add,
+          operationReason: 'Unlock to use this',
+        ),
+      ),
+    );
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Unlock to use this'), findsOneWidget);
+    final item = tester.widget<PopupMenuItem<void>>(
+      find.ancestor(
+        of: find.text('Set as primary'),
+        matching: find.byWidgetPredicate((w) => w is PopupMenuItem<void>),
+      ),
+    );
+    expect(item.enabled, isFalse);
+    await tester.tap(find.text('Set as primary'), warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(promoted, isEmpty);
   });
 }

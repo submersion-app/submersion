@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/unfilled_dive_chip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 
 /// Shown above the header of a draft dive (issue #637): marked at the site,
 /// waiting for its dive computer readings. It says how long the taps put the
@@ -16,6 +17,7 @@ class DraftDiveBanner extends StatelessWidget {
     required this.onMarkComplete,
     required this.onDownload,
     this.onSurfaced,
+    required this.operationReason,
   });
 
   final Dive dive;
@@ -24,6 +26,11 @@ class DraftDiveBanner extends StatelessWidget {
 
   /// Shown only while the draft is open (no exit time yet).
   final VoidCallback? onSurfaced;
+
+  /// Why Surfaced and Mark as complete are unavailable on a page that
+  /// offers editing (each acts on the whole dive at once, issue #4527), or
+  /// null when they are. Download now is a download, outside the lock.
+  final String? operationReason;
 
   @override
   Widget build(BuildContext context) {
@@ -77,9 +84,13 @@ class DraftDiveBanner extends StatelessWidget {
               overflowAlignment: OverflowBarAlignment.end,
               children: [
                 if (open && onSurfaced != null)
-                  FilledButton.tonal(
-                    onPressed: onSurfaced,
-                    child: Text(l10n.diveLog_draft_surfaced),
+                  RecordOperationButton(
+                    reason: operationReason,
+                    onPressed: onSurfaced!,
+                    builder: (onPressed) => FilledButton.tonal(
+                      onPressed: onPressed,
+                      child: Text(l10n.diveLog_draft_surfaced),
+                    ),
                   ),
                 TextButton(
                   onPressed: onDownload,
@@ -89,9 +100,13 @@ class DraftDiveBanner extends StatelessWidget {
                 // log a dive with no end, and no-fly would count it from the
                 // entry (issue #637).
                 if (!open)
-                  TextButton(
+                  RecordOperationButton(
+                    reason: operationReason,
                     onPressed: onMarkComplete,
-                    child: Text(l10n.diveLog_draft_markComplete),
+                    builder: (onPressed) => TextButton(
+                      onPressed: onPressed,
+                      child: Text(l10n.diveLog_draft_markComplete),
+                    ),
                   ),
               ],
             ),

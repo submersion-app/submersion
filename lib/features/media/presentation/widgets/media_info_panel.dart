@@ -31,9 +31,19 @@ import 'package:submersion/features/media_store/presentation/providers/media_sto
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/media/domain/entities/photo_record.dart';
+import 'package:submersion/features/dive_log/presentation/providers/open_dive_sitting_provider.dart';
+import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
+import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
+import 'package:submersion/features/media/presentation/editing/photo_held_writes.dart';
+import 'package:submersion/features/media/presentation/editing/photo_sitting_shown.dart';
+import 'package:submersion/features/media/presentation/providers/media_repair_providers.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/utils/byte_format.dart';
 import 'package:submersion/shared/utils/file_reveal.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
+
+part 'media_info_file_section.dart';
 
 /// Everything the app knows about where one media item came from, whether it
 /// is backed up, and where its bytes are being served from right now.
@@ -43,15 +53,44 @@ import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
 /// machinery that already exists; the only capability added for the panel is
 /// checking a single item's source.
 class MediaInfoPanel extends ConsumerWidget {
-  const MediaInfoPanel({super.key, required this.item, this.scrollController});
+  const MediaInfoPanel({
+    super.key,
+    required this.item,
+    this.scrollController,
+    this.readOnly = false,
+    this.sitting,
+  });
 
   final MediaItem item;
+
+  /// No action that changes the photo's record (Set time, Locate): the photo
+  /// is locked, or shown where it has no lock of its own (issue #4527).
+  final bool readOnly;
+
+  /// The photo's sitting: Edit tags, Set time and Locate hold what they
+  /// change in it until Save, and are offered only while it is over the
+  /// photo.
+  final EditSession<PhotoRecord>? sitting;
 
   /// Supplied when hosted in a DraggableScrollableSheet, which owns scrolling.
   final ScrollController? scrollController;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // The sheet is a route of its own, which the viewer's redraws do not
+    // reach: it follows the sitting itself, for a relink held by Locate. One
+    // shape with or without a sitting, so the sheet keeps its place (its
+    // scroll, a check in progress) when the sitting ends under it.
+    final session = sitting;
+    return ListenableBuilder(
+      listenable: session == null || session.isDisposed
+          ? const NoSittingChanges()
+          : session,
+      builder: (context, _) => _panel(context, ref),
+    );
+  }
+
+  Widget _panel(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     // Re-read the row rather than rendering the snapshot handed to the sheet.
     // mediaProvenanceProvider is keyed by the MediaItem VALUE and derives
@@ -59,7 +98,31 @@ class MediaInfoPanel extends ConsumerWidget {
     // same stale object: Check now would write isOrphaned to the database and
     // the Status row would never move. The passed item is the seed and the
     // fallback for the frame before the read lands.
-    final live = ref.watch(mediaByIdProvider(item.id)).value ?? item;
+    final row = ref.watch(mediaByIdProvider(item.id));
+    final stored = row.value ?? item;
+    // A photo held only in a dive's sitting has no row yet: nothing can be
+    // checked, backed up or relinked until the dive is saved.
+    final rowless = noStoredRow(row);
+    final session = sitting;
+    final inSitting = sittingIsOver(session, stored.id);
+    // The dive's own sitting already relinks this photo (its Media card's
+    // Replace link): a second relink held here would be written over by the
+    // dive's Save.
+    final open = ref.watch(openDiveSittingProvider);
+    final relinkedOnDive =
+        open != null &&
+        sittingMedia(open.session).replaced.containsKey(stored.id);
+    // In a sitting the origin is the file a held relink found.
+    final live = inSitting
+        ? withHeldRelink(
+            session!,
+            stored,
+            thisDevice: ref.watch(currentDeviceIdProvider).value,
+          )
+        : stored;
+    // A relink held for Save queues the upload its bytes need when it is
+    // written; one asked for now would send the stored (old) file.
+    final relinkHeld = inSitting && heldRelink(session!) != null;
     final provenance = ref.watch(mediaProvenanceProvider(live));
     final units = ref.watch(unitFormatterProvider);
 
@@ -69,13 +132,33 @@ class MediaInfoPanel extends ConsumerWidget {
       children: [
         Text(l10n.media_info_title, style: _titleStyle(context)),
         const SizedBox(height: 16),
-        MediaInfoTagsSection(item: live),
+        MediaInfoTagsSection(item: live, readOnly: readOnly, sitting: sitting),
         const SizedBox(height: 12),
-        _FileSection(item: live, units: units),
+        _FileSection(
+          item: live,
+          units: units,
+          readOnly: readOnly,
+          sitting: sitting,
+        ),
         const SizedBox(height: 12),
-        _OriginSection(item: live, origin: provenance.origin, units: units),
+        _OriginSection(
+          item: live,
+          origin: provenance.origin,
+          units: units,
+          // Locate's relink is held in the sitting until Save.
+          locateIn: !readOnly && !rowless && !relinkedOnDive && inSitting
+              ? session
+              : null,
+          canCheck: !rowless,
+          stored: stored,
+        ),
         const SizedBox(height: 12),
-        _BackupSection(item: live, backup: provenance.backup, units: units),
+        _BackupSection(
+          item: live,
+          backup: provenance.backup,
+          units: units,
+          canUpload: !rowless && !relinkHeld,
+        ),
         const SizedBox(height: 12),
         _ServingSection(item: live),
       ],
@@ -129,139 +212,30 @@ class _Section extends StatelessWidget {
   }
 }
 
-class _FileSection extends ConsumerWidget {
-  const _FileSection({required this.item, required this.units});
-
-  final MediaItem item;
-  final UnitFormatter units;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = context.l10n;
-    final unknown = l10n.media_info_unknown;
-    // The dive's profile decides whether the stored position is inside the
-    // dive window and gives the Set-time dialog its range (issue #1090).
-    final diveId = item.diveId;
-    final profile = diveId == null
-        ? const <DiveProfilePoint>[]
-        : ref.watch(diveProvider(diveId)).value?.profile ??
-              const <DiveProfilePoint>[];
-    final profileLength = MediaDiveWindow.profileLengthSeconds(profile);
-    final enrichment = item.enrichment;
-    final positioned = enrichment?.isWithinDiveWindow(profileLength) ?? false;
-    final String timeInDive;
-    if (!positioned) {
-      timeInDive = unknown;
-    } else {
-      final formatted = formatElapsedMmSs(enrichment!.elapsedSeconds!);
-      timeInDive = enrichment.isManual
-          ? l10n.media_timeInDive_manual(formatted)
-          : formatted;
-    }
-    final width = item.width;
-    final height = item.height;
-    final size = item.contentSizeBytes;
-    final lat = item.latitude;
-    final lon = item.longitude;
-    // A browser reads the media facts and changes none (issue #4121).
-    final canEdit = ref.watch(deviceCapabilitiesProvider).mediaAttach;
-
-    return _Section(
-      title: l10n.media_info_fileSection,
-      actions: [
-        // Pinning needs a profile to pin against.
-        if (diveId != null && profile.isNotEmpty && canEdit)
-          _SetTimeButton(
-            item: item,
-            profile: profile,
-            initialElapsedSeconds: setTimeSeedFor(
-              item,
-              profileLengthSeconds: profileLength,
-            ),
-          ),
-      ],
-      children: [
-        DiveDetailRow(
-          label: l10n.media_info_filename,
-          value: item.originalFilename ?? unknown,
-        ),
-        DiveDetailRow(
-          label: l10n.media_info_type,
-          value: mediaTypeLabel(l10n, item.mediaType),
-        ),
-        DiveDetailRow(
-          label: l10n.media_info_dimensions,
-          // Pixels are unit-system invariant, so this is one of the few
-          // displayed quantities the diver's unit settings do not touch.
-          value: (width != null && height != null)
-              ? '$width x $height'
-              : unknown,
-        ),
-        DiveDetailRow(
-          label: l10n.media_info_size,
-          value: size == null ? unknown : formatBytes(size),
-        ),
-        DiveDetailRow(
-          label: l10n.media_info_taken,
-          // takenAt is non-nullable on the row, so there is no unknown case.
-          value: units.formatDateTime(item.takenAt, l10n: l10n),
-        ),
-        if (diveId != null)
-          DiveDetailRow(label: l10n.media_timeInDive_label, value: timeInDive),
-        if (lat != null && lon != null)
-          DiveDetailRow(
-            label: l10n.media_info_coordinates,
-            value: '${lat.toStringAsFixed(5)}, ${lon.toStringAsFixed(5)}',
-          ),
-      ],
-    );
-  }
-}
-
-/// Opens the Set-time dialog and applies the diver's choice (issue #1090).
-class _SetTimeButton extends ConsumerWidget {
-  const _SetTimeButton({
-    required this.item,
-    required this.profile,
-    required this.initialElapsedSeconds,
-  });
-
-  final MediaItem item;
-  final List<DiveProfilePoint> profile;
-  final int initialElapsedSeconds;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return TextButton.icon(
-      icon: const Icon(Icons.push_pin_outlined),
-      label: Text(context.l10n.media_timeInDive_setAction),
-      onPressed: () async {
-        final pinner = ref.read(mediaTimePinnerProvider);
-        final choice = await showSetMediaTimeDialog(
-          context,
-          profile: profile,
-          initialElapsedSeconds: initialElapsedSeconds,
-          isPinned: item.manualElapsedSeconds != null,
-          settings: ref.read(settingsProvider),
-          automatic: pinner.automaticTimeFor(item),
-        );
-        if (choice == null || !context.mounted) return;
-        await pinner.apply(item, choice);
-      },
-    );
-  }
-}
-
 class _OriginSection extends ConsumerWidget {
   const _OriginSection({
     required this.item,
     required this.origin,
     required this.units,
+    required this.locateIn,
+    required this.canCheck,
+    required this.stored,
   });
 
   final MediaItem item;
   final OriginFacts origin;
   final UnitFormatter units;
+
+  /// The photo's sitting, which holds what Locate finds until Save; null
+  /// offers no Locate.
+  final EditSession<PhotoRecord>? locateIn;
+
+  /// Whether the photo has a row whose file can be checked.
+  final bool canCheck;
+
+  /// The photo as stored: what Check now checks and Locate relinks, while
+  /// [item] may be drawn with a relink the sitting holds.
+  final MediaItem stored;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -280,11 +254,12 @@ class _OriginSection extends ConsumerWidget {
     final isLocalFile = origin.sourceType == MediaSourceType.localFile;
     // A browser has no file to check or locate (issue #4121).
     final canEdit = ref.watch(deviceCapabilitiesProvider).mediaAttach;
+    final locateIn = this.locateIn;
 
     return _Section(
       title: l10n.media_info_originSection,
       actions: [
-        if (canEdit) _CheckNowButton(item: item),
+        if (canEdit && canCheck) _CheckNowButton(item: stored),
         // Under limited photo access a gallery photo may be outside what the
         // user allowed (spec 6.3). Offered whenever access is limited: the
         // panel reads stored facts, not this device's live verdict.
@@ -300,8 +275,11 @@ class _OriginSection extends ConsumerWidget {
         // points at a path, so this is not offered for a missing gallery
         // asset, where picking a file would relink it to the wrong source
         // type.
-        if (origin.health == OriginHealth.missing && isLocalFile && canEdit)
-          _LocateButton(item: item),
+        if (origin.health == OriginHealth.missing &&
+            isLocalFile &&
+            canEdit &&
+            locateIn != null)
+          _LocateButton(item: stored, sitting: locateIn),
         if (pointer != null && isLocalFile && canRevealInFileManager)
           TextButton(
             // Explicitly unawaited: revealInFileManager swallows its own
@@ -378,11 +356,15 @@ class _BackupSection extends ConsumerWidget {
     required this.item,
     required this.backup,
     required this.units,
+    required this.canUpload,
   });
 
   final MediaItem item;
   final BackupFacts backup;
   final UnitFormatter units;
+
+  /// Whether the photo has a row to upload.
+  final bool canUpload;
 
   /// Whether to offer an upload at all.
   ///
@@ -390,6 +372,7 @@ class _BackupSection extends ConsumerWidget {
   /// is already on screen, and a second nudge would only re-enqueue what is
   /// already queued.
   bool get _offerUpload =>
+      canUpload &&
       backup.eligible &&
       backup.storeAttached &&
       backup.tier != BackupTier.full &&
@@ -584,22 +567,30 @@ class _CheckNowButtonState extends ConsumerState<_CheckNowButton> {
   );
 }
 
-/// Picks a replacement file and re-links through the repair engine.
+/// Picks a replacement file through the repair engine and holds the relink
+/// in the photo's sitting until Save (issue #4527).
 class _LocateButton extends ConsumerWidget {
-  const _LocateButton({required this.item});
+  const _LocateButton({required this.item, required this.sitting});
 
   final MediaItem item;
+  final EditSession<PhotoRecord> sitting;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) => TextButton(
     onPressed: () async {
-      final applied = await replaceMediaLink(context, ref, item);
-      // The picker and confirm dialog can outlive the sheet, and ref after
-      // dispose throws, which would turn a plain user-cancel into an error.
-      if (!context.mounted) return;
-      // The repair writes the row, so re-read it: that is what re-keys the
-      // provenance provider and lets the status line stop saying "missing".
-      if (applied) ref.invalidate(mediaByIdProvider(item.id));
+      final service = ref.read(mediaRepairServiceProvider);
+      final files = ref.read(mediaLinkFileSourceProvider);
+      await replaceMediaLink(
+        context,
+        ref,
+        item,
+        onHold: (proposal) {
+          // A sitting that ended while the picker was open takes nothing;
+          // holdRelink also drops it while the sitting is saving.
+          if (!sittingIsOver(sitting, item.id)) return;
+          holdRelink(sitting, proposal, service: service, hashFile: files.hash);
+        },
+      );
     },
     child: Text(context.l10n.media_info_actionLocate),
   );

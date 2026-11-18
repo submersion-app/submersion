@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 
 Widget _host(List<AddStripEntry> entries, {ValueChanged<String>? onAdd}) {
   return MaterialApp(
@@ -86,6 +87,33 @@ void main() {
     expect(find.bySemanticsLabel(RegExp('Tags, hidden')), findsNothing);
 
     semantics.dispose();
+  });
+
+  // A card whose change emptied it goes back to the strip; the dot that
+  // marked it on the page goes with it (issue #4527).
+  testWidgets('a changed entry carries the unsaved-changes dot', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _host(const [
+        AddStripEntry(cardId: 'tags', label: 'Tags', changed: true),
+        AddStripEntry(cardId: 'buddies', label: 'Buddies', hidden: true),
+        AddStripEntry(
+          cardId: 'notes',
+          label: 'Notes',
+          hidden: true,
+          changed: true,
+        ),
+      ]),
+    );
+
+    Finder dotOn(String cardId) => find.descendant(
+      of: _chip(cardId),
+      matching: find.byType(RecordChangedDot),
+    );
+    expect(dotOn('tags'), findsOneWidget);
+    expect(dotOn('buddies'), findsNothing);
+    expect(dotOn('notes'), findsOneWidget);
   });
 
   testWidgets('the strip scrolls sideways instead of wrapping', (tester) async {

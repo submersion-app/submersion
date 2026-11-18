@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/router/track_locations.dart';
+import 'package:submersion/features/buddies/presentation/widgets/swap/swap_with_buddy_button.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
 
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
@@ -58,6 +59,13 @@ class QuickActionsCard extends StatelessWidget {
                 icon: const Icon(Icons.edit_calendar),
                 label: Text(context.l10n.dashboard_quickActions_planDive),
               ),
+            ),
+            // Swapping cards with a new buddy happens on the boat after a
+            // dive, so it sits high in the list (#4591). Its gap lives inside
+            // it and goes with it where the swap is unavailable (a browser).
+            const SwapWithBuddyActionButton(
+              padding: EdgeInsets.only(top: 8),
+              expand: true,
             ),
             const SizedBox(height: 8),
             SizedBox(

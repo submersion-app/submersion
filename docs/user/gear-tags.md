@@ -57,7 +57,7 @@ happens:
 
 - **Equipment list, Scan a tag:** your own item opens its passport; a
   cylinder opens its cylinder passport.
-- **Dive editor, Equipment section, Scan:** your own item is added to the
+- **Dive page (unlocked), Equipment card, Scan:** your own item is added to the
   dive's gear, with its components, just as if you picked it.
 - **Trip, Gear tab, Add, Scan a tag:** your own item is packed for the trip;
   a cylinder joins the trip's cylinder board.

@@ -195,6 +195,7 @@ List<FigureZone> _zonesForTankRole(TankRole role) => switch (role) {
   TankRole.suitInflation => const [FigureZone.stageLeft, FigureZone.stageRight],
   TankRole.backGas ||
   TankRole.twinSet ||
+  TankRole.hydrotank ||
   TankRole.diluent ||
   TankRole.oxygenSupply => const [FigureZone.backTank],
 };
@@ -202,7 +203,8 @@ List<FigureZone> _zonesForTankRole(TankRole role) => switch (role) {
 /// Two tanks in the back tank zone are one manifolded pair: the first draws
 /// the doubles piece and the second draws nothing (its label still shows).
 /// One tank whose role is Twin Set is that pair logged as one row, so it
-/// draws the doubles piece alone (issue #3374).
+/// draws the doubles piece alone (issue #3374), as does one item worn as a
+/// twin set with no dive role saying otherwise (issue #4641).
 List<PlacedItem> _mergeDoubles(List<PlacedItem> placed) {
   final backTanks = [
     for (final p in placed)
@@ -217,7 +219,7 @@ List<PlacedItem> _mergeDoubles(List<PlacedItem> placed) {
   );
   // A twin set is logged as one cylinder, so one row draws the doubles
   // artwork on its own (issue #3374).
-  if (backTanks.length == 1 && backTanks[0].item.tankRole == TankRole.twinSet) {
+  if (backTanks.length == 1 && _isTwinSet(backTanks[0].item)) {
     return [
       for (final p in placed)
         if (identical(p, backTanks[0]))
@@ -236,4 +238,12 @@ List<PlacedItem> _mergeDoubles(List<PlacedItem> placed) {
       else
         p,
   ];
+}
+
+/// A tank that is a twin set on its own: its dive role is Twin Set, or it has
+/// no dive role and the item is worn as a twin set (issue #4641).
+bool _isTwinSet(FigureItemInput item) {
+  final role = item.tankRole;
+  if (role != null) return role == TankRole.twinSet;
+  return item.attributes[EquipmentAttrKeys.wornAs] == kWornAsTwinSet;
 }

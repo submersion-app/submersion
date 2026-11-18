@@ -13,7 +13,13 @@ extension BackupServicePruning on BackupService {
   /// Keeps the [keepCount] most recent unpinned manual backups and deletes
   /// the rest.
   ///
-  /// The cloud folder is listed first so this device's pin markers can be
+  /// This device's copies go first, before any cloud call (issue #4572): a
+  /// cloud request that stalls, or a background worker the OS stops while it
+  /// waits on one, must not leave old backups piling up on the device. A
+  /// backup kept nowhere else is then gone; one with a copy off the device
+  /// stays, without its local copy, for the cloud steps below.
+  ///
+  /// The cloud folder is then listed so this device's pin markers can be
   /// brought in line with its pins, and a record whose cloud copy another
   /// device has pinned keeps that copy. With "count backups from all
   /// devices" on for this folder, the whole folder is then pruned to
@@ -23,9 +29,15 @@ extension BackupServicePruning on BackupService {
     final eligible = history
         .where((r) => r.type == BackupType.manual && !r.pinned)
         .toList();
-    final toDelete = eligible.length <= keepCount
+    final pruned = eligible.length <= keepCount
         ? const <BackupRecord>[]
         : eligible.sublist(keepCount);
+    if (pruned.isNotEmpty) {
+      // Automatic backups are manual-type records too; only pre-migration
+      // and pinned records are exempt.
+      _log.info('Pruning ${pruned.length} old backups');
+    }
+    final toDelete = await _pruneLocalCopies(pruned);
 
     // The folder is listed only when something needs it: listing a cloud
     // service is a round trip, and on iCloud it can start downloads.
@@ -61,11 +73,62 @@ extension BackupServicePruning on BackupService {
     }
   }
 
+  /// The first step of [pruneOldBackups]: deletes the local copy of each
+  /// of [pruned] without a single cloud call. A backup with no copy off the
+  /// device is removed outright; one with a cloud or extra copy loses its
+  /// local copy and is returned, cloud-only, for the cloud steps. So is one
+  /// whose local copy could not be deleted, unchanged, to be tried again.
+  Future<List<BackupRecord>> _pruneLocalCopies(
+    List<BackupRecord> pruned,
+  ) async {
+    final remaining = <BackupRecord>[];
+    for (final record in pruned) {
+      final offDevice =
+          record.cloudFileId != null || record.extraCloudCopies.isNotEmpty;
+      try {
+        if (!offDevice) {
+          await _deleteBackup(record, deleteCloud: false);
+          continue;
+        }
+        if (record.localPath == null) {
+          remaining.add(record);
+          continue;
+        }
+        await _deleteLocalCopy(record);
+        // Saved per record, not once at the end: [_deleteLocalCopy] reads the
+        // history to see who else uses a path, and a worker stopped mid-way
+        // leaves no record pointing at a file it deleted.
+        final cloudOnly = record.withoutLocalCopy();
+        await _preferences.updateRecord(cloudOnly);
+        remaining.add(cloudOnly);
+      } catch (e, st) {
+        // Best-effort, as below: a backup this platform refuses to delete
+        // stays in history and is retried on every future prune.
+        _log.warning(
+          'Failed to prune local copy of ${record.filename}; will retry',
+          error: e,
+          stackTrace: st,
+        );
+        if (offDevice) remaining.add(record);
+      }
+    }
+    return remaining;
+  }
+
   /// Deletes [record]'s file on this device (a filesystem path or an SAF
-  /// document URI), if it has one.
+  /// document URI), if it has one and no other record in the history uses
+  /// it: backup filenames are only second-precise, so two backups made in
+  /// the same second share one path, and the one kept must keep its file.
   Future<void> _deleteLocalCopy(BackupRecord record) async {
     final ref = record.localPath;
     if (ref == null) return;
+    final shared = _preferences.getHistory().any(
+      (r) => r.id != record.id && r.localPath == ref,
+    );
+    if (shared) {
+      _log.info('Kept local file another backup still uses: $ref');
+      return;
+    }
     if (isSafRef(ref)) {
       await _safPort.delete(ref);
       _log.info('Deleted SAF backup: $ref');
@@ -79,7 +142,8 @@ extension BackupServicePruning on BackupService {
   }
 
   /// [pruneOldBackups] for this device's own history: deletes [toDelete],
-  /// local and cloud copies both, except a cloud copy whose stem is in
+  /// whose local copies [_pruneLocalCopies] has already deleted where it
+  /// could, and their cloud copies, except a cloud copy whose stem is in
   /// [pinnedElsewhere], which stays in the folder. [here] says whether a
   /// record's cloud copy is in this folder. With [holdCloudCopies],
   /// a record with a cloud copy here is left for the next prune. Returns the
@@ -91,38 +155,20 @@ extension BackupServicePruning on BackupService {
     required bool holdCloudCopies,
   }) async {
     if (toDelete.isEmpty) return const {};
-    _log.info('Pruning ${toDelete.length} old manual backups');
     if (holdCloudCopies) {
-      // The local copy still goes, so an unreadable folder (a signed-out
-      // provider) never lets backups pile up on the device; the record stays,
-      // cloud-only, for the next prune to finish.
-      final held = [
-        for (final r in toDelete)
-          if (r.cloudFileId != null && here(r)) r,
-      ];
-      for (final r in held) {
-        if (r.localPath == null) continue;
-        try {
-          await _deleteLocalCopy(r);
-          await _preferences.updateRecord(r.withoutLocalCopy());
-        } catch (e, st) {
-          _log.warning(
-            'Failed to prune local copy of ${r.filename}; will retry',
-            error: e,
-            stackTrace: st,
-          );
-        }
-      }
+      // Their local copies are gone already ([_pruneLocalCopies]), so an
+      // unreadable folder (a signed-out provider) never lets backups pile up
+      // on the device; the records stay, cloud-only, for the next prune.
       toDelete = [
         for (final r in toDelete)
-          if (!held.contains(r)) r,
+          if (r.cloudFileId == null || !here(r)) r,
       ];
     }
 
-    // Cloud copies first, pushed in one batch on a backend that defers
+    // Cloud copies next, pushed in one batch on a backend that defers
     // deletes (Git). A record goes only after that push: if it fails, the
-    // records whose cloud copy it covered stay, local copy and all, and the
-    // next prune deletes them again.
+    // records whose cloud copy it covered stay, cloud-only, and the next
+    // prune deletes them again.
     final provider = _cloudProvider;
     var cloudPushed = true;
     final deleted = <String>{};

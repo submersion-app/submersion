@@ -19,6 +19,7 @@ class _Host extends StatefulWidget {
     this.moveLag,
     this.echoMoves = true,
     this.rowHeight,
+    this.resync,
     super.key,
   });
 
@@ -39,6 +40,9 @@ class _Host extends StatefulWidget {
 
   /// Each row's height by index; 40 for every row when null.
   final double Function(int index)? rowHeight;
+
+  /// Told when the host refused a move, so the cursor goes back.
+  final Listenable? resync;
   final String? initial;
   final List<String>? log;
   final ValueChanged<String>? onExpand;
@@ -80,6 +84,7 @@ class _HostState extends State<_Host> {
                 onActivate: (key) => widget.log?.add('activate:$key'),
                 onExpand: widget.onExpand,
                 onCollapse: widget.onCollapse,
+                resync: widget.resync,
                 child: ListView(
                   children: [
                     for (final (index, key) in widget.keys.indexed)
@@ -139,6 +144,36 @@ final Matcher _paintsNoOutline = allOf([
 ]);
 
 void main() {
+  // A split view can refuse a move (unsaved work in its pane, the diver
+  // keeps it): the cursor goes back to the row that stayed current
+  // (issue #4527).
+  testWidgets('a refused move takes the cursor back to the current key', (
+    tester,
+  ) async {
+    final log = <String>[];
+    final resync = ChangeNotifier();
+    addTearDown(resync.dispose);
+    await tester.pumpWidget(
+      _Host(
+        keys: const ['a', 'b', 'c'],
+        log: log,
+        initial: 'a',
+        echoMoves: false,
+        resync: resync,
+      ),
+    );
+    await _focusList(tester);
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pumpAndSettle();
+    // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+    resync.notifyListeners();
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pumpAndSettle();
+
+    expect(log, ['move:b', 'move:b']);
+  });
+
   testWidgets('Down and Up move from the current key and report it', (
     tester,
   ) async {

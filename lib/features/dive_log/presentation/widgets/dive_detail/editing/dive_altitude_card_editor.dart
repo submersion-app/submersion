@@ -36,6 +36,11 @@ class _DiveAltitudeCardEditorState
     extends ConsumerState<DiveAltitudeCardEditor> {
   static const _lookupKey = 'altitudeLookup';
 
+  /// Whether the altitude row holds text that is not a number. The sitting
+  /// keeps the last altitude that could be read, and the group banner must
+  /// not name that one's group beside text that has none (issue #4527).
+  bool _altitudeUnreadable = false;
+
   @override
   void initState() {
     super.initState();
@@ -60,7 +65,7 @@ class _DiveAltitudeCardEditorState
         resolver: AltitudeResolver(
           elevationService: ref.read(elevationServiceProvider),
         ),
-        writeSiteAltitude: sites.updateSiteAltitude,
+        writeSiteAltitude: sites.fillSiteAltitudeIfEmpty,
         stillWanted: () => mounted,
       ),
     );
@@ -75,7 +80,9 @@ class _DiveAltitudeCardEditorState
       listenable: session,
       builder: (context, _) {
         final altitude = session.valueOf(diveAltitudeField);
-        final group = AltitudeGroup.fromAltitude(altitude);
+        final group = AltitudeGroup.fromAltitude(
+          _altitudeUnreadable ? null : altitude,
+        );
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
@@ -87,6 +94,9 @@ class _DiveAltitudeCardEditorState
               suffixText: units.altitudeSymbol,
               toDisplay: units.convertAltitude,
               fromDisplay: units.altitudeToMeters,
+              onUnreadableChanged: (unreadable) {
+                if (mounted) setState(() => _altitudeUnreadable = unreadable);
+              },
             ),
             // Always here, so the rows around it keep their place as the
             // altitude crosses into and out of a group.

@@ -342,7 +342,7 @@ void main() {
     );
 
     // A helper handed the whole dive reads fields the scan above cannot see.
-    // These three read only compared fields; a new one needs the same check.
+    // These read only compared fields; a new one needs the same check.
     expect(
       {
         for (final match in RegExp(
@@ -354,6 +354,9 @@ void main() {
         'DiveChartInputs',
         'calculateSacNormalizationFactor',
         'watchChartProfile',
+        // The section's own build, split so the open card can follow its
+        // sitting: its body is in the section, scanned above.
+        '_build',
       },
     );
   });

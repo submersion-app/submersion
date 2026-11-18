@@ -64,6 +64,7 @@ void main() {
     WidgetTester tester,
     MediaItem item, {
     Object? failWith,
+    void Function(SiteAttachmentCategory?, AttachmentDisplaySize?)? onHold,
   }) async {
     await tester.pumpWidget(
       await mediaTestApp(
@@ -79,6 +80,7 @@ void main() {
                 context,
                 item: item,
                 siteId: 's1',
+                onHold: onHold,
               ),
               child: const Text('open'),
             ),
@@ -117,6 +119,23 @@ void main() {
     expect(edit.category!.value, SiteAttachmentCategory.siteMap);
     expect(edit.displaySize, isNull);
     expect(result!.siteCategory, SiteAttachmentCategory.siteMap);
+    expect(find.text('Attachment details'), findsNothing);
+  });
+
+  // In the site viewer's sitting the sheet writes nothing: its choice is
+  // held until the viewer is saved (issue #4527).
+  testWidgets('with onHold: Done hands over the choice; nothing written', (
+    tester,
+  ) async {
+    final held = <(SiteAttachmentCategory?, AttachmentDisplaySize?)>[];
+    await open(tester, pdf, onHold: (c, d) => held.add((c, d)));
+    expect(find.text('Save'), findsNothing);
+    await chooseCategory(tester, 'Site map');
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+
+    expect(saves, isEmpty);
+    expect(held, [(SiteAttachmentCategory.siteMap, null)]);
     expect(find.text('Attachment details'), findsNothing);
   });
 

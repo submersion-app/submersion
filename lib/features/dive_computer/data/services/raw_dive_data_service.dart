@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
@@ -7,12 +8,26 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/text/text_sort.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
+    as domain;
 
 /// How much raw dive computer data the library holds.
 ///
 /// [diveCount] counts dives, not `dive_data_sources` rows: a dive recorded by
 /// two computers, or a Combine's two halves, keeps a row per source.
 typedef RawDiveDataUsage = ({int diveCount, int storedBytes});
+
+/// One computer's share of the raw data, for the Raw dive computer data page
+/// (issue #4590). [computerId] and [name] are null for sources whose
+/// computer has no row on this device: deleted (the FK nulls the id) or not
+/// synced yet.
+typedef ComputerRawDiveDataUsage = ({
+  String? computerId,
+  String? name,
+  int diveCount,
+  int storedBytes,
+});
 
 /// The raw bytes libdivecomputer returned for each download, kept on the
 /// `dive_data_sources` row so a later parser fix can re-parse the dive
@@ -48,6 +63,47 @@ class RawDiveDataService {
       diveCount: row.read<int>('dives'),
       storedBytes: row.read<int>('bytes'),
     );
+  }
+
+  /// [getUsage] per computer: known computers by name, ignoring case, then
+  /// one row for every source whose computer has no row. A dive recorded by
+  /// two computers counts under each.
+  Future<List<ComputerRawDiveDataUsage>> getUsageByComputer() async {
+    // Grouped on the joined row, not s.computer_id, so a null id and an id
+    // with no computer row fold into the one unknown row.
+    final rows = await db
+        .customSelect(
+          'SELECT c.id AS id, c.name AS name, c.manufacturer AS manufacturer, '
+          'c.model AS model, COUNT(DISTINCT s.dive_id) AS dives, '
+          'COALESCE(SUM(LENGTH(s.raw_data)), 0) AS bytes '
+          'FROM dive_data_sources s '
+          'LEFT JOIN dive_computers c ON c.id = s.computer_id '
+          'WHERE s.raw_data IS NOT NULL '
+          'GROUP BY c.id',
+          readsFrom: {db.diveDataSources, db.diveComputers},
+        )
+        .get();
+    final usage = [
+      for (final r in rows)
+        (
+          computerId: r.readNullable<String>('id'),
+          name: r.readNullable<String>('id') == null
+              ? null
+              : domain.DiveComputer.displayNameOf(
+                  r.readNullable<String>('name') ?? '',
+                  r.readNullable<String>('manufacturer'),
+                  r.readNullable<String>('model'),
+                ),
+          diveCount: r.read<int>('dives'),
+          storedBytes: r.read<int>('bytes'),
+        ),
+    ];
+    return usage.sorted((a, b) {
+      if (a.name == null || b.name == null) {
+        return (a.name == null ? 1 : 0) - (b.name == null ? 1 : 0);
+      }
+      return compareTextForSort(a.name!, b.name!);
+    });
   }
 
   /// Clears the raw bytes of [computerId]'s sources, or of every source when

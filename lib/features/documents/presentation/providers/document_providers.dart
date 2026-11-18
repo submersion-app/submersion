@@ -139,7 +139,8 @@ final documentFirstPageProvider = FutureProvider.autoDispose
     });
 
 /// Non-insurance documents of the active diver that are expired or due,
-/// expired first, then soonest. Insurance has its own home chip.
+/// expired first, then soonest. Insurance has its own home chip, and a
+/// medical clearance a later one supersedes needs no attention (#4541).
 final attentionDocumentsProvider =
     FutureProvider<List<(Document, DocumentExpiryStatus)>>((ref) async {
       final repo = ref.watch(documentRepositoryProvider);
@@ -176,9 +177,11 @@ class DocumentMutations {
     return saved;
   }
 
-  /// Deletes [id]; the repository cancels its reminders on every delete.
-  /// A document can hold tens of MB of pages, so a delete is when the next
-  /// launch may be worth a compaction.
+  /// Deletes [id]; the repository cancels its reminders on every delete,
+  /// and names the diver of a deleted medical clearance so the one it
+  /// superseded reminds again (#4541, #4609). A document can hold tens of
+  /// MB of pages, so a delete is when the next launch may be worth a
+  /// compaction.
   Future<void> delete(String id) async {
     await _repo.delete(id);
     unawaited(_ref.read(databaseCompactionMonitorProvider)());
@@ -192,9 +195,15 @@ class DocumentMutations {
   }
 
   /// Re-arms the reminders of [documents] that came back without going
-  /// through [save] (a restore inside another feature's undo).
+  /// through [save] (a restore inside another feature's undo). A medical
+  /// clearance re-arms its diver's whole set (#4541), so once per diver.
   Future<void> rearmReminders(Iterable<Document> documents) async {
+    final clearanceDivers = <String>{};
     for (final document in documents) {
+      if (document.type == DocumentType.medicalClearance &&
+          !clearanceDivers.add(document.diverId)) {
+        continue;
+      }
       await _rearm(document);
     }
   }

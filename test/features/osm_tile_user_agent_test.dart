@@ -24,6 +24,7 @@ import 'package:submersion/features/maps/presentation/providers/heat_map_provide
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/services/trip_story_builder.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_day_picker.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_overview_tab.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -316,6 +317,11 @@ void main() {
         ),
       );
       // Avoid pumpAndSettle: the FlutterMap tile layer animates indefinitely.
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      // A finished trip opens on its Trip page, which has no map: the map
+      // belongs to a day, so pick the day that was dived.
+      await tester.tap(find.byKey(TripDayPicker.dayTileKey(1)));
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
 

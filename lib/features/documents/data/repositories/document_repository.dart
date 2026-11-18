@@ -13,6 +13,8 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/documents/data/repositories/document_owner_options_repository.dart';
 import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/features/documents/data/repositories/document_row_mapper.dart';
+import 'package:submersion/features/documents/data/services/clearance_delete_events.dart';
+import 'package:submersion/features/documents/domain/clearance_supersession.dart';
 import 'package:submersion/features/documents/domain/document_ids.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
@@ -20,6 +22,8 @@ import 'package:submersion/core/services/notification_service.dart';
 import 'package:submersion/features/tags/data/repositories/tag_link_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart'
     show TagScope;
+
+part 'document_clearance_queries.dart';
 
 /// A document as the global list shows it.
 class DocumentListEntry {
@@ -73,16 +77,23 @@ typedef DocumentSnapshotEntry = ({
 /// The documents store (issue #2613): documents, their pages, and the two
 /// read models other features build on (a diver's primary insurance and
 /// latest clearance, a certification's card images).
-class DocumentRepository {
+class DocumentRepository with _DocumentClearanceQueries {
   /// [cancelReminders] cancels a deleted document's expiry reminders; it
   /// defaults to the platform notifications (a no-op on desktop).
+  /// [clearancesDeleted] gets the medical clearances a delete took, by
+  /// diver (#4609), so the one each superseded can remind again; it
+  /// defaults to [ClearanceDeleteEvents], which the app re-arms from.
   DocumentRepository({
     Future<void> Function(String documentId)? cancelReminders,
+    void Function(Map<String, Set<String>> deletedByDiver)? clearancesDeleted,
   }) : _cancelReminders =
            cancelReminders ??
-           NotificationService.instance.cancelDocumentReminders;
+           NotificationService.instance.cancelDocumentReminders,
+       _clearancesDeleted = clearancesDeleted ?? ClearanceDeleteEvents.notify;
 
   final Future<void> Function(String documentId) _cancelReminders;
+  final void Function(Map<String, Set<String>> deletedByDiver)
+  _clearancesDeleted;
 
   /// Cancels the reminders of documents a caller deleted without going
   /// through this repository (the diver delete's raw steps).
@@ -100,6 +111,7 @@ class DocumentRepository {
     }
   }
 
+  @override
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
@@ -165,7 +177,7 @@ class DocumentRepository {
           .customSelect(
             'SELECT * FROM documents WHERE $column = ? '
             '${diverId == null ? '' : 'AND diver_id = ? '}'
-            'ORDER BY type, title, created_at',
+            'ORDER BY ${_documentOrder()}',
             variables: [
               Variable.withString(owner.id!),
               if (diverId != null) Variable.withString(diverId),
@@ -187,11 +199,7 @@ class DocumentRepository {
             t.buddyId.isNull() &
             t.diveCenterId.isNull(),
       )
-      ..orderBy([
-        (t) => OrderingTerm(expression: t.type),
-        (t) => OrderingTerm(expression: t.title),
-        (t) => OrderingTerm(expression: t.createdAt),
-      ]);
+      ..orderBy(_documentOrderTerms);
     if (diverId != null) q.where((t) => t.diverId.equals(diverId));
     return (await q.get()).map(documentFromRow).toList();
   }
@@ -241,7 +249,7 @@ class DocumentRepository {
           'LEFT JOIN dives dv ON dv.id = d.dive_id '
           'LEFT JOIN dive_sites dvs ON dvs.id = dv.site_id '
           'WHERE $where '
-          'ORDER BY d.type, d.title, d.created_at',
+          'ORDER BY ${_documentOrder('d.')}',
           variables: [for (final arg in args) Variable.withString(arg)],
           readsFrom: {_db.documents, _db.documentPages},
         )
@@ -536,6 +544,8 @@ class DocumentRepository {
 
   Future<void> _deleteIds(List<String> ids) async {
     if (ids.isEmpty) return;
+    // Read before the rows go: afterwards nothing says whose they were.
+    final clearances = await _clearancesByDiverOf(ids);
     final pageIds = <String>[];
     for (final chunk in ids.slices(_inListChunk)) {
       pageIds.addAll(
@@ -558,7 +568,8 @@ class DocumentRepository {
     );
     await _syncRepository.logDeletions(entityType: _docEntity, recordIds: ids);
     // Every delete path comes through here, owner deletes included, so a
-    // deleted permit can never still announce its expiry.
+    // deleted permit can never still announce its expiry, and a deleted
+    // clearance always hands its reminders back to the one it superseded.
     for (final id in ids) {
       try {
         await _cancelReminders(id);
@@ -569,6 +580,16 @@ class DocumentRepository {
           stackTrace: stackTrace,
         );
       }
+    }
+    if (clearances.isEmpty) return;
+    try {
+      _clearancesDeleted(clearances);
+    } catch (e, stackTrace) {
+      _log.warning(
+        'Could not re-arm the clearances of ${clearances.keys}',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 
@@ -591,6 +612,42 @@ class DocumentRepository {
     DocumentOwnerKind kind,
     Map<String, String> owners,
   ) => _setOwners(kind, owners);
+
+  /// Files each of [documentIds] under the dive [diveId], or as Personal
+  /// for null ([setOwner]).
+  Future<void> setDiveOwner(List<String> documentIds, String? diveId) =>
+      setOwner(DocumentOwnerKind.dive, documentIds, diveId);
+
+  /// Files each of [documentIds] under the [kind] record [ownerId], or as
+  /// Personal for null, marking each pending (issue #4527: a sitting on the
+  /// record holds the link until Save). A document has one owner, so filing
+  /// it under the record moves it from wherever it was.
+  Future<void> setOwner(
+    DocumentOwnerKind kind,
+    List<String> documentIds,
+    String? ownerId,
+  ) async {
+    if (documentIds.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final columns = {for (final c in kDocumentOwnerColumns.values) c};
+    final ownerColumn = kDocumentOwnerColumns[kind]!;
+    final assignments = [
+      for (final c in columns) c == ownerColumn ? '$c = ?' : '$c = NULL',
+    ].join(', ');
+    await _db.transaction(() async {
+      for (final id in documentIds) {
+        await _db.customStatement(
+          'UPDATE documents SET $assignments, updated_at = ? WHERE id = ?',
+          [ownerId, now, id],
+        );
+        await _syncRepository.markRecordPending(
+          entityType: _docEntity,
+          recordId: id,
+          localUpdatedAt: now,
+        );
+      }
+    });
+  }
 
   Future<Map<String, String>> _ownersOf(
     DocumentOwnerKind kind,
@@ -733,28 +790,6 @@ class DocumentRepository {
     return row != null;
   }
 
-  /// The latest medical clearance expiry per diver.
-  Future<Map<String, DateTime>> latestClearanceExpiryByDiver({
-    String? diverId,
-  }) async {
-    final rows = await _db
-        .customSelect(
-          'SELECT diver_id, MAX(expiry_date) AS e FROM documents '
-          "WHERE type = 'medicalClearance' AND expiry_date IS NOT NULL "
-          '${diverId == null ? '' : 'AND diver_id = ? '}'
-          'GROUP BY diver_id',
-          variables: [if (diverId != null) Variable.withString(diverId)],
-          readsFrom: {_db.documents},
-        )
-        .get();
-    return {
-      for (final r in rows)
-        r.read<String>('diver_id'): DateTime.fromMillisecondsSinceEpoch(
-          r.read<int>('e'),
-        ),
-    };
-  }
-
   /// The front and back images of each certification's card document.
   Future<Map<String, CardImages>> cardImagesFor(
     List<String> certificationIds,
@@ -854,18 +889,5 @@ class DocumentRepository {
       if (back != null) side(DocumentPageSide.back, back),
       ...extras,
     ], notify: notify);
-  }
-
-  /// [diverId]'s documents that can remind: an expiry date, not a card.
-  Future<List<Document>> getRemindingForDiver(String diverId) async {
-    final rows =
-        await (_db.select(_db.documents)..where(
-              (t) =>
-                  t.diverId.equals(diverId) &
-                  t.expiryDate.isNotNull() &
-                  t.type.equals(DocumentType.certificationCard.storage).not(),
-            ))
-            .get();
-    return rows.map(documentFromRow).toList();
   }
 }

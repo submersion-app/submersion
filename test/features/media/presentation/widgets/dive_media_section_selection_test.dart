@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/media/data/services/media_unlink_service.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/dive_media_section.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/drag_select_grid_view.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/selection_contract.dart';
@@ -27,42 +31,31 @@ MediaItem _item(String id) => MediaItem(
 /// re-sort or a sync would.
 final _mediaProvider = StateProvider<List<MediaItem>>((ref) => const []);
 
-/// Captures the ids an unlink actually acts on, which is the only place the
-/// difference between id-based and index-based selection becomes observable.
-///
-/// Both entry points are captured on purpose. This surface's Unlink used to
-/// call [deleteMultipleMedia] -- a hard delete behind copy that promised the
-/// files were kept -- so recording the two separately lets a test assert not
-/// just which ids were acted on but that the row was unlinked rather than
-/// destroyed.
-class _CapturingMediaListNotifier
-    extends StateNotifier<AsyncValue<List<MediaItem>>>
-    implements MediaListNotifier {
-  _CapturingMediaListNotifier() : super(const AsyncValue.data(<MediaItem>[]));
-
-  List<String>? unlinkedIds;
-  List<String>? deletedIds;
-
-  @override
-  Future<UnlinkOutcome> unlinkMultipleMedia(List<String> ids) async {
-    unlinkedIds = List<String>.from(ids);
-    return UnlinkOutcome(deleted: ids.length, keptLinked: 0);
-  }
-
-  @override
-  Future<void> deleteMultipleMedia(List<String> ids) async {
-    deletedIds = List<String>.from(ids);
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
 void main() {
-  Widget host(
-    List<MediaItem> media, {
-    _CapturingMediaListNotifier? listNotifier,
-  }) {
+  /// The open card's sitting: selection and Unlink belong to it alone
+  /// (issue #4673). [unlinkWrites] collects what the held write would
+  /// unlink at Save, which nothing in these tests reaches.
+  EditSession<Dive> openSitting({List<List<String>>? unlinkWrites}) {
+    final controller = RecordEditController<Dive>(onSave: (_) async {})
+      ..unlock(Dive(id: 'dive-1', dateTime: DateTime.utc(2026)));
+    addTearDown(controller.dispose);
+    final session = controller.session!;
+    holdSittingMedia(
+      session,
+      SittingMediaWriters(
+        writeRows: (_) async => const [],
+        insertNetwork: (_) async => const [],
+        unlink: (ids) async => unlinkWrites?.add(ids),
+        replace: (_, _, _) async {},
+        drainDeletes: () async {},
+        enqueueUpload: (_) {},
+      ),
+      cardId: DiveDetailSectionId.media.name,
+    );
+    return session;
+  }
+
+  Widget host(List<MediaItem> media, {required EditSession<Dive> editing}) {
     return testApp(
       locale: const Locale('en'),
       overrides: [
@@ -71,13 +64,9 @@ void main() {
         mediaForDiveProvider(
           'dive-1',
         ).overrideWith((ref) async => ref.watch(_mediaProvider)),
-        if (listNotifier != null)
-          mediaListNotifierProvider(
-            'dive-1',
-          ).overrideWith((ref) => listNotifier),
       ],
-      child: const SingleChildScrollView(
-        child: DiveMediaSection(diveId: 'dive-1'),
+      child: SingleChildScrollView(
+        child: DiveMediaSection(diveId: 'dive-1', editing: editing),
       ),
     );
   }
@@ -87,10 +76,11 @@ void main() {
       final a = _item('a');
       final b = _item('b');
       final c = _item('c');
+      final session = openSitting();
 
       await verifySelectionContract(
         tester,
-        build: () => host([a, b, c]),
+        build: () => host([a, b, c], editing: session),
         selectButton: find.byKey(const ValueKey('enter_selection')),
         // The grid's own keyed detector for the first thumbnail.
         firstRow: find
@@ -115,7 +105,9 @@ void main() {
 
   group('DiveMediaSection selection', () {
     testWidgets('exposes a visible Select affordance', (tester) async {
-      await tester.pumpWidget(host([_item('a'), _item('b'), _item('c')]));
+      await tester.pumpWidget(
+        host([_item('a'), _item('b'), _item('c')], editing: openSitting()),
+      );
       await tester.pumpAndSettle();
 
       expect(
@@ -129,7 +121,7 @@ void main() {
       tester,
     ) async {
       final a = _item('a');
-      await tester.pumpWidget(host([a, _item('b')]));
+      await tester.pumpWidget(host([a, _item('b')], editing: openSitting()));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('enter_selection')));
       await tester.pumpAndSettle();
@@ -147,7 +139,9 @@ void main() {
     });
 
     testWidgets('the Select button enters selection mode', (tester) async {
-      await tester.pumpWidget(host([_item('a'), _item('b'), _item('c')]));
+      await tester.pumpWidget(
+        host([_item('a'), _item('b'), _item('c')], editing: openSitting()),
+      );
       await tester.pumpAndSettle();
 
       await tester.tap(find.byKey(const ValueKey('enter_selection')));
@@ -160,7 +154,9 @@ void main() {
     testWidgets('omits the delete control, since unlink is not a delete', (
       tester,
     ) async {
-      await tester.pumpWidget(host([_item('a'), _item('b')]));
+      await tester.pumpWidget(
+        host([_item('a'), _item('b')], editing: openSitting()),
+      );
       await tester.pumpAndSettle();
 
       await tester.tap(find.byKey(const ValueKey('enter_selection')));
@@ -174,7 +170,9 @@ void main() {
     });
 
     testWidgets('select all checks every media id', (tester) async {
-      await tester.pumpWidget(host([_item('a'), _item('b'), _item('c')]));
+      await tester.pumpWidget(
+        host([_item('a'), _item('b'), _item('c')], editing: openSitting()),
+      );
       await tester.pumpAndSettle();
 
       await tester.tap(find.byKey(const ValueKey('enter_selection')));
@@ -191,9 +189,10 @@ void main() {
       final a = _item('a');
       final b = _item('b');
       final c = _item('c');
-      final notifier = _CapturingMediaListNotifier();
+      final unlinkWrites = <List<String>>[];
+      final session = openSitting(unlinkWrites: unlinkWrites);
 
-      await tester.pumpWidget(host([a, b, c], listNotifier: notifier));
+      await tester.pumpWidget(host([a, b, c], editing: session));
       await tester.pumpAndSettle();
 
       await tester.tap(find.byKey(const ValueKey('enter_selection')));
@@ -228,20 +227,22 @@ void main() {
       await tester.tap(find.text('Unlink'));
       await tester.pumpAndSettle();
 
-      expect(notifier.unlinkedIds, [
+      expect(sittingMedia(session).unlinked, {
         'c',
-      ], reason: 'unlink must act on the checked id, not the checked position');
+      }, reason: 'unlink must act on the checked id, not the checked position');
       expect(
-        notifier.deletedIds,
-        isNull,
-        reason: 'unlink must clear the link, never destroy the row',
+        unlinkWrites,
+        isEmpty,
+        reason: 'the unlink is held in the sitting until Save',
       );
     });
 
     testWidgets('an explicit entry survives unchecking the last thumbnail', (
       tester,
     ) async {
-      await tester.pumpWidget(host([_item('a'), _item('b')]));
+      await tester.pumpWidget(
+        host([_item('a'), _item('b')], editing: openSitting()),
+      );
       await tester.pumpAndSettle();
 
       await tester.tap(find.byKey(const ValueKey('enter_selection')));
@@ -272,7 +273,9 @@ void main() {
     testWidgets('a long-press on a thumbnail does not enter selection mode', (
       tester,
     ) async {
-      await tester.pumpWidget(host([_item('a'), _item('b')]));
+      await tester.pumpWidget(
+        host([_item('a'), _item('b')], editing: openSitting()),
+      );
       await tester.pumpAndSettle();
 
       final thumb = find
@@ -298,7 +301,7 @@ void main() {
       final a = _item('a');
       final b = _item('b');
       final c = _item('c');
-      await tester.pumpWidget(host([a, b, c]));
+      await tester.pumpWidget(host([a, b, c], editing: openSitting()));
       await tester.pumpAndSettle();
 
       await tester.tap(find.byKey(const ValueKey('enter_selection')));

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/agent_access/data/diver_context.dart';
 import 'package:submersion/features/agent_access/data/tools/compute_plan_tool.dart';
+import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
@@ -59,6 +60,7 @@ void main() {
       ),
       settings: settings,
       followOf: (id) async => followed[id],
+      records: RecordRepositories(),
       caveat: () => 'Check every number yourself.',
       now: () => now,
     );
@@ -177,8 +179,16 @@ void main() {
         ((result['schedule']! as List).last as Map)['duration_s']! as int;
     expect(surfacingSeconds(baseline), 180);
     expect(surfacingSeconds(own), 20);
-    // No problem-solving allowance at 40 m.
-    expect(backGasLitres(own), lessThan(backGasLitres(baseline)));
+    // No problem-solving allowance at 40 m. litres_used never holds it
+    // (#4475), and the faster last leg is breathed on the deco gas, so the
+    // back gas uses the same either way.
+    expect(backGasLitres(own), closeTo(backGasLitres(baseline), 1e-6));
+    double backGasProblemSolving(Map result) =>
+        ((result['tank_usage']! as List).first
+                as Map)['problem_solving_litres']!
+            as double;
+    expect(backGasProblemSolving(baseline), greaterThan(0));
+    expect(backGasProblemSolving(own), 0);
     final settings = own['effective_settings']! as Map;
     expect(settings['final_ascent_rate_m_min'], {'value': 9, 'source': 'plan'});
     expect(settings['problem_solving_minutes'], {'value': 0, 'source': 'plan'});

@@ -11,16 +11,22 @@ import 'package:submersion/shared/widgets/sheet_messenger_scope.dart';
 
 /// Opens Edit details for site attachment [item] (issue #1039). Resolves to
 /// the saved item, or null when the diver cancels.
+///
+/// With [onHold] the sheet writes nothing: its button reads Done and hands
+/// the chosen category and size over, to be held in the viewer's sitting
+/// until it is saved (issue #4527).
 Future<MediaItem?> showAttachmentDetailsSheet(
   BuildContext context, {
   required MediaItem item,
   required String siteId,
+  void Function(SiteAttachmentCategory? category, AttachmentDisplaySize? size)?
+  onHold,
 }) => showModalBottomSheet<MediaItem>(
   context: context,
   isScrollControlled: true,
   useSafeArea: true,
   builder: (_) => SheetMessengerScope(
-    child: AttachmentDetailsSheet(item: item, siteId: siteId),
+    child: AttachmentDetailsSheet(item: item, siteId: siteId, onHold: onHold),
   ),
 );
 
@@ -36,10 +42,18 @@ class AttachmentDetailsSheet extends ConsumerStatefulWidget {
     super.key,
     required this.item,
     required this.siteId,
+    this.onHold,
   });
 
   final MediaItem item;
   final String siteId;
+
+  /// Takes the choice instead of saving it (issue #4527).
+  final void Function(
+    SiteAttachmentCategory? category,
+    AttachmentDisplaySize? size,
+  )?
+  onHold;
 
   @override
   ConsumerState<AttachmentDetailsSheet> createState() =>
@@ -63,6 +77,12 @@ class _AttachmentDetailsSheetState
   };
 
   Future<void> _save() async {
+    final hold = widget.onHold;
+    if (hold != null) {
+      hold(_category, _override);
+      Navigator.of(context).pop();
+      return;
+    }
     final edit = diffAttachmentDetails(
       widget.item,
       category: _category,
@@ -196,7 +216,11 @@ class _AttachmentDetailsSheetState
               ),
               FilledButton(
                 onPressed: _saving ? null : _save,
-                child: Text(l10n.common_action_save),
+                child: Text(
+                  widget.onHold == null
+                      ? l10n.common_action_save
+                      : l10n.common_action_done,
+                ),
               ),
             ],
           ),

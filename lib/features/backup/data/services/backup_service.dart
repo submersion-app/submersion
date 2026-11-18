@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
@@ -182,6 +183,15 @@ class BackupService {
   /// Moves a browser's other tabs onto the restored library and deletes the
   /// one it replaced.
   final Future<void> Function(String replacedPath) _retireLibrary;
+
+  /// How long a prune waits for the cloud backup folder's listing before it
+  /// carries on without one (issue #4572). Injectable for tests.
+  final Duration _cloudListingTimeout;
+
+  /// The default for [_cloudListingTimeout]: generous for a slow mobile
+  /// network, and well inside the 10 minutes Android gives a background
+  /// worker after its upload.
+  static const Duration defaultCloudListingTimeout = Duration(seconds: 60);
   final _log = LoggerService.forClass(BackupService);
   final _uuid = const Uuid();
 
@@ -209,6 +219,7 @@ class BackupService {
     })?
     restoreImage,
     Future<void> Function(String replacedPath)? retireLibrary,
+    Duration cloudListingTimeout = defaultCloudListingTimeout,
   }) : _dbAdapter = dbAdapter,
        _preferences = preferences,
        _cloudProvider = cloudProvider,
@@ -225,7 +236,8 @@ class BackupService {
        _extraCopies = List.unmodifiable(extraCopies),
        _restoreImage = restoreImage ?? DatabaseService.instance.restoreImage,
        _retireLibrary =
-           retireLibrary ?? DatabaseService.instance.retireWebLibrary;
+           retireLibrary ?? DatabaseService.instance.retireWebLibrary,
+       _cloudListingTimeout = cloudListingTimeout;
 
   // ===========================================================================
   // Backup

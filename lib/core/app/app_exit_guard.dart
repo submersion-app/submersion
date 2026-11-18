@@ -20,9 +20,14 @@ class AppExitBlocker {
   /// go ahead.
   final Future<bool> Function() confirmLeaving;
 
+  /// The page holding the work, as its route's page key, or null when it
+  /// is not tied to one. A leaving scoped to another page passes it by.
+  final Object? Function()? page;
+
   const AppExitBlocker({
     required this.hasUnsavedWork,
     required this.confirmLeaving,
+    this.page,
   });
 }
 
@@ -118,14 +123,18 @@ class AppExitGuard {
 
   /// Whether a held page may be left inside the app: the same question a quit
   /// asks, for a way out the page itself cannot stop (`GoRoute.onExit`).
-  Future<bool> mayLeave() async {
-    final blocker = _blockerWithWork();
+  ///
+  /// With [page], only the work that page holds is asked about: a route
+  /// popped from above another leaves the one beneath, and its work, alone.
+  Future<bool> mayLeave({Object? page}) async {
+    final blocker = _blockerWithWork(page: page);
     return blocker == null || await _confirm(blocker);
   }
 
-  AppExitBlocker? _blockerWithWork() {
+  AppExitBlocker? _blockerWithWork({Object? page}) {
     try {
       for (final blocker in _blockers) {
+        if (page != null && blocker.page?.call() != page) continue;
         if (blocker.hasUnsavedWork()) return blocker;
       }
     } catch (error, stackTrace) {

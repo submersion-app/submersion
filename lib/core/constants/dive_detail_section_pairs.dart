@@ -23,11 +23,12 @@ class DiveDetailSectionPair {
   /// At or above this available width the two cards sit side by side.
   final double minRowWidth;
 
-  /// Whether the two columns stretch to a shared height in row mode.
+  /// Whether the row shares its height through an `IntrinsicHeight`.
   ///
-  /// True only where a card is built to fill the height it is given -- the
-  /// deco column pads itself against the taller tissue card so the pair reads
-  /// as one block.
+  /// Every pair's cards end level in row mode (issue #4583). True only where
+  /// a card holds `Expanded` children and so cannot first be laid out at its
+  /// natural height: the deco column pads itself against the taller tissue
+  /// card so the pair reads as one block. See `ResponsiveSectionPair.stretch`.
   final bool stretch;
 
   /// The other half of the pair, or null when [id] is not part of it.
@@ -82,3 +83,20 @@ DiveDetailSectionPair? diveDetailSectionPairFor(DiveDetailSectionId id) {
   }
   return null;
 }
+
+/// Sections whose card never moves up into the space a pair leaves under its
+/// shorter half: charts, maps, galleries and tables, which want the page's
+/// full width (issue #4583). Any other card that comes straight after a pair
+/// does, when it fits there at half width.
+const Set<DiveDetailSectionId> kDiveDetailFullWidthSections = {
+  DiveDetailSectionId.profile,
+  DiveDetailSectionId.decoStatus,
+  DiveDetailSectionId.tissueLoading,
+  DiveDetailSectionId.sacSegments,
+  DiveDetailSectionId.surfaceGps,
+  DiveDetailSectionId.navTrack,
+  DiveDetailSectionId.media,
+  DiveDetailSectionId.documents,
+  DiveDetailSectionId.diveLab,
+  DiveDetailSectionId.dataSources,
+};

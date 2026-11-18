@@ -205,7 +205,9 @@ void main() {
     expect(hintIn(sacCard(tester)), findsNothing);
   });
 
-  testWidgets('tapping the card\'s hint opens the dive editor', (tester) async {
+  testWidgets('on a locked page the card\'s hint reads only (issue #4527)', (
+    tester,
+  ) async {
     final dive = diveWithProfile(tanks: const [backGasNoVolume]);
     final base = await getBaseOverrides(
       // The hint is scrolled to the top and tapped, where the pinned profile
@@ -280,7 +282,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
 
-    expect(find.text('EDIT_STUB ${dive.id}'), findsOneWidget);
+    expect(find.text('EDIT_STUB ${dive.id}'), findsNothing);
   });
 
   testWidgets('does not borrow a stage bottle\'s volume for the back gas', (

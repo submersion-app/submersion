@@ -8,6 +8,9 @@ import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dar
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/active_filter_chip_labels.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_date_chip_label.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/features/dive_roles/presentation/dive_role_display.dart';
+import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
@@ -246,11 +249,25 @@ List<Widget> activeDiveFilterChips(
     );
   }
 
-  if (filter.noRoleOnly == true) {
+  // The diver's own role (#4409): Not set is one more choice on the axis.
+  final roleChoices =
+      filter.diverRoleIds.length + (filter.noRoleOnly == true ? 1 : 0);
+  if (roleChoices > 0) {
+    final String label;
+    if (roleChoices > 1) {
+      label = context.l10n.diveLog_filterChip_roleCount(roleChoices);
+    } else if (filter.noRoleOnly == true) {
+      label = context.l10n.diveLog_filterChip_noRole;
+    } else {
+      final id = filter.diverRoleIds.single;
+      final role = ref.watch(diveRoleMapProvider).value?[id];
+      label = (role ?? DiveRole.synthetic(id)).localizedName(context.l10n);
+    }
     chips.add(
-      axisChip(context.l10n.diveLog_filterChip_noRole, () {
+      axisChip(label, () {
         ref.read(filterProvider.notifier).state = filter.copyWith(
           clearNoRoleOnly: true,
+          clearDiverRoleIds: true,
         );
       }),
     );

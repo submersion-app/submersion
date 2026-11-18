@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/buddies/domain/entities/legacy_buddy_conversion.dart';
 import 'package:submersion/features/buddies/domain/services/legacy_name_parser.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -31,12 +33,16 @@ class _BuddyCandidatePickerSheetState extends State<BuddyCandidatePickerSheet> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final key = legacyNameKey(_query);
+    // Folded for the search, not by legacyNameKey: that key matches names
+    // ignoring case only, and the search also ignores accents (#4498).
+    final key = foldForSearch(legacyNameKey(_query));
+    final collator = TextCollator();
     final sorted = [...widget.candidates]
-      ..sort((a, b) => legacyNameKey(a.name).compareTo(legacyNameKey(b.name)));
+      ..sort((a, b) => collator.compare(a.name, b.name));
     final shown = [
       for (final c in sorted)
-        if (key.isEmpty || legacyNameKey(c.name).contains(key)) c,
+        if (key.isEmpty || foldForSearch(legacyNameKey(c.name)).contains(key))
+          c,
     ];
     return ConstrainedBox(
       constraints: BoxConstraints(

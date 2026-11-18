@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
 import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -46,6 +47,8 @@ import 'package:submersion/features/query/presentation/widgets/query_filter_shee
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_list_count_provider.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_closed_tag.dart';
 import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_avatar.dart';
+import 'package:submersion/shared/widgets/record_list_chevron.dart';
 
 /// Content widget for the dive center list, used in master-detail layout.
 class DiveCenterListContent extends ConsumerStatefulWidget {
@@ -894,25 +897,19 @@ class DiveCenterListTile extends ConsumerWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(kRecordCardDetailedPadding),
           child: Row(
             children: [
-              // Store icon, which becomes the checkbox in selection mode.
+              // Logo or store icon, which becomes the checkbox in selection
+              // mode.
               SelectionLeading(
                 isSelectionMode: isSelectionMode,
                 isChecked: isChecked,
                 onChanged: onCheckChanged,
-                child: Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    Icons.store,
-                    color: theme.colorScheme.onPrimaryContainer,
-                  ),
+                child: DiveCenterAvatar(
+                  logo: center.logo,
+                  radius: 24,
+                  shape: DiveCenterAvatarShape.roundedSquare,
                 ),
               ),
               const SizedBox(width: 16),
@@ -975,7 +972,7 @@ class DiveCenterListTile extends ConsumerWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          center.rating!.toStringAsFixed(1),
+                          formatRatingForDisplay(center.rating!),
                           style: theme.textTheme.bodySmall?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -999,13 +996,7 @@ class DiveCenterListTile extends ConsumerWidget {
                   ),
                 ],
               ),
-              const SizedBox(width: 8),
-              ExcludeSemantics(
-                child: Icon(
-                  Icons.chevron_right,
-                  color: theme.colorScheme.outline,
-                ),
-              ),
+              RecordListChevron(color: theme.colorScheme.outline),
             ],
           ),
         ),

@@ -7,6 +7,7 @@ import 'package:submersion/core/buoyancy/weight_prediction_engine.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_lead.dart';
 import 'package:submersion/features/equipment/domain/services/gear_feature_mapper.dart';
@@ -43,6 +44,18 @@ class RigTerms {
 /// model. Pure data assembly; no database or Riverpod dependency, so it is
 /// unit-testable and can run inside a `compute` isolate boundary.
 class BuoyancyTwinAssembler {
+  /// Whether [dive] has anything to model: a tank or an exposure suit.
+  /// [assemble] returns null exactly when this is false. Cheap, so a surface
+  /// can offer the buoyancy line without running the simulation (#4593).
+  ///
+  /// Never on a dive that breathes an Avelo Hydrotank (issue #4657): its
+  /// pressure is the water pumped in, not gas mass, and that water ballast,
+  /// which sets the diver's buoyancy, is not modelled, so there is no line
+  /// rather than a wrong one, as for the dive's SAC.
+  static bool isModelable(Dive dive) =>
+      !breathesUnmeasuredTank(dive.tanks) &&
+      (dive.tanks.isNotEmpty || _exposureSuit(dive.equipment) != null);
+
   /// Returns null when there is nothing to model (no tanks and no exposure
   /// suit -- e.g. an apnea dive).
   static TwinInput? assemble({
@@ -51,8 +64,7 @@ class BuoyancyTwinAssembler {
     required FittedWeightModel model,
     required double? bodyWeightKg,
   }) {
-    final suitItem = _exposureSuit(dive.equipment);
-    if (dive.tanks.isEmpty && suitItem == null) return null;
+    if (!isModelable(dive)) return null;
 
     final tanks = <TwinTankInput>[];
     for (final t in dive.tanks) {
@@ -254,7 +266,10 @@ class BuoyancyTwinAssembler {
       }
       return sum + gear;
     }
-    final legacy = dive.weightAmount ?? 0.0;
+    // A non-positive legacy scalar is no lead, as in [Dive.recordedWeightKg],
+    // so it is no droppable lead either.
+    final scalar = dive.weightAmount;
+    final legacy = scalar != null && scalar > 0 ? scalar : 0.0;
     final type = dive.weightType;
     return ((type == null || EquipmentLead.isDroppable(type)) ? legacy : 0.0) +
         gear;
@@ -321,12 +336,10 @@ class BuoyancyTwinAssembler {
   /// weighted backplate are different lead. Gear only contributes when it
   /// declares a mass, so rigs that list weights without numbers are
   /// unaffected. See [EquipmentLead].
-  static double _carriedLead(Dive dive) {
-    final typed = dive.weights.isNotEmpty
-        ? dive.weights.fold(0.0, (sum, w) => sum + w.amountKg)
-        : (dive.weightAmount ?? 0.0);
-    return typed + EquipmentLead.totalKg(GearTree.leafItems(dive.gear));
-  }
+  ///
+  /// The same total the dive page's Weights card and every weight statistic
+  /// read ([Dive.recordedWeightKg], issue #4442).
+  static double _carriedLead(Dive dive) => dive.recordedWeightKg ?? 0.0;
 
   static EquipmentItem? _exposureSuit(List<EquipmentItem> items) {
     for (final item in items) {

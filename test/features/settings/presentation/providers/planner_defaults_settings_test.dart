@@ -41,6 +41,28 @@ void main() {
     expect(changed.plannerSacDeco, settings.plannerSacDeco);
   });
 
+  test('SCR and pSCR loop defaults are the old fixed figures (#4660)', () {
+    const settings = AppSettings();
+    expect(settings.plannerScrInjectionRate, 12.0);
+    expect(settings.plannerScrVo2, 1.3);
+    expect(settings.plannerPscrVo2, 0.72);
+  });
+
+  test('copyWith carries each SCR and pSCR loop default on its own', () {
+    const settings = AppSettings();
+    final rate = settings.copyWith(plannerScrInjectionRate: 7.5);
+    expect(rate.plannerScrInjectionRate, 7.5);
+    expect(rate.plannerScrVo2, 1.3);
+    expect(rate.plannerPscrVo2, 0.72);
+    final scrVo2 = settings.copyWith(plannerScrVo2: 2.0);
+    expect(scrVo2.plannerScrVo2, 2.0);
+    expect(scrVo2.plannerScrInjectionRate, 12.0);
+    expect(scrVo2.plannerPscrVo2, 0.72);
+    final pscrVo2 = settings.copyWith(plannerPscrVo2: 0.9);
+    expect(pscrVo2.plannerPscrVo2, 0.9);
+    expect(pscrVo2.plannerScrVo2, 1.3);
+  });
+
   test('sacDeco and sacBottom are independent globals', () {
     const settings = AppSettings();
     final changed = settings.copyWith(plannerSacBottom: 20.0);

@@ -115,6 +115,189 @@ void main() {
       },
     );
 
+    test('siteLocations lists each distinct site location once, in dive '
+        'order, and skips sites with none', () {
+      const marsaAlam = DiveSite(
+        id: 'site-1',
+        name: 'Elphinstone',
+        city: 'Marsa Alam',
+        region: 'Red Sea',
+        country: 'Egypt',
+      );
+      const abuDabab = DiveSite(
+        id: 'site-2',
+        name: 'Abu Dabab',
+        city: 'Marsa Alam',
+        region: 'Red Sea',
+        country: 'Egypt',
+      );
+      const unplaced = DiveSite(id: 'site-3', name: 'House Reef');
+      const blank = DiveSite(id: 'site-4', name: 'Jetty', country: '  ');
+      const quseir = DiveSite(
+        id: 'site-5',
+        name: 'Brothers',
+        city: 'El Quseir',
+        country: 'Egypt',
+      );
+      final day = TripStoryDay(
+        date: date,
+        dayNumber: 2,
+        kind: TripStoryDayKind.past,
+        dives: [
+          _dive(id: 'd1', dateTime: DateTime(2026, 3, 8, 7), site: marsaAlam),
+          _dive(id: 'd2', dateTime: DateTime(2026, 3, 8, 9), site: unplaced),
+          _dive(id: 'd3', dateTime: DateTime(2026, 3, 8, 11), site: abuDabab),
+          _dive(id: 'd4', dateTime: DateTime(2026, 3, 8, 13), site: blank),
+          _dive(id: 'd5', dateTime: DateTime(2026, 3, 8, 15), site: quseir),
+          _dive(id: 'd6', dateTime: DateTime(2026, 3, 8, 17)),
+        ],
+      );
+
+      expect(day.siteLocations, [
+        'Marsa Alam · Red Sea, Egypt',
+        'El Quseir · Egypt',
+      ]);
+    });
+
+    test('siteLocations leaves out an area a finer location already names', () {
+      const town = DiveSite(
+        id: 'site-1',
+        name: 'Elphinstone',
+        city: 'Marsa Alam',
+        region: 'Red Sea',
+        country: 'Egypt',
+      );
+      const region = DiveSite(
+        id: 'site-2',
+        name: 'Daedalus',
+        region: 'Red Sea',
+        country: 'Egypt',
+      );
+      const country = DiveSite(
+        id: 'site-3',
+        name: 'Brothers',
+        country: 'Egypt',
+      );
+      const elsewhere = DiveSite(
+        id: 'site-4',
+        name: 'Ras Mohammed',
+        country: 'South Sinai Egypt',
+      );
+      final day = TripStoryDay(
+        date: date,
+        dayNumber: 2,
+        kind: TripStoryDayKind.past,
+        dives: [
+          _dive(id: 'd1', dateTime: DateTime(2026, 3, 8, 7), site: region),
+          _dive(id: 'd2', dateTime: DateTime(2026, 3, 8, 9), site: country),
+          _dive(id: 'd3', dateTime: DateTime(2026, 3, 8, 11), site: town),
+          _dive(id: 'd4', dateTime: DateTime(2026, 3, 8, 13), site: elsewhere),
+        ],
+      );
+
+      // "Egypt" is a whole part of the others; "South Sinai Egypt" only
+      // ends with the same letters, so it stays.
+      expect(day.siteLocations, [
+        'Marsa Alam · Red Sea, Egypt',
+        'South Sinai Egypt',
+      ]);
+    });
+
+    test('siteLocations leaves out a town or a region alone that a fuller '
+        'location names, and keeps one that differs', () {
+      const full = DiveSite(
+        id: 'site-1',
+        name: 'Elphinstone',
+        city: 'Marsa Alam',
+        region: 'Red Sea',
+        country: 'Egypt',
+      );
+      const townOnly = DiveSite(
+        id: 'site-2',
+        name: 'Abu Dabab',
+        city: 'Marsa Alam',
+      );
+      const regionOnly = DiveSite(
+        id: 'site-3',
+        name: 'Daedalus',
+        region: 'Red Sea',
+      );
+      const islandOnly = DiveSite(
+        id: 'site-4',
+        name: 'Zabargad',
+        island: 'Zabargad',
+      );
+      const otherTown = DiveSite(
+        id: 'site-5',
+        name: 'Brothers',
+        city: 'El Quseir',
+        region: 'Red Sea',
+        country: 'Egypt',
+      );
+      final day = TripStoryDay(
+        date: date,
+        dayNumber: 2,
+        kind: TripStoryDayKind.past,
+        dives: [
+          _dive(id: 'd1', dateTime: DateTime(2026, 3, 8, 7), site: townOnly),
+          _dive(id: 'd2', dateTime: DateTime(2026, 3, 8, 9), site: regionOnly),
+          _dive(id: 'd3', dateTime: DateTime(2026, 3, 8, 11), site: full),
+          _dive(id: 'd4', dateTime: DateTime(2026, 3, 8, 13), site: islandOnly),
+          _dive(id: 'd5', dateTime: DateTime(2026, 3, 8, 15), site: otherTown),
+        ],
+      );
+
+      // "Red Sea" alone is in both full locations; each town is its own.
+      expect(day.siteLocations, [
+        'Marsa Alam · Red Sea, Egypt',
+        'Zabargad',
+        'El Quseir · Red Sea, Egypt',
+      ]);
+    });
+
+    test('siteLocations reads one area typed in two cases as one', () {
+      const saved = DiveSite(
+        id: 'site-1',
+        name: 'Elphinstone',
+        region: 'Red Sea',
+        country: 'Egypt',
+      );
+      const imported = DiveSite(
+        id: 'site-2',
+        name: 'Abu Dabab',
+        region: 'Red sea',
+        country: 'egypt',
+      );
+      const town = DiveSite(
+        id: 'site-3',
+        name: 'Marsa Shona',
+        city: 'Marsa Alam',
+        region: 'RED SEA',
+        country: 'EGYPT',
+      );
+      final day = TripStoryDay(
+        date: date,
+        dayNumber: 2,
+        kind: TripStoryDayKind.past,
+        dives: [
+          _dive(id: 'd1', dateTime: DateTime(2026, 3, 8, 7), site: saved),
+          _dive(id: 'd2', dateTime: DateTime(2026, 3, 8, 9), site: imported),
+        ],
+      );
+      expect(day.siteLocations, ['Red Sea, Egypt']);
+
+      final withTown = TripStoryDay(
+        date: date,
+        dayNumber: 2,
+        kind: TripStoryDayKind.past,
+        dives: [
+          _dive(id: 'd1', dateTime: DateTime(2026, 3, 8, 7), site: saved),
+          _dive(id: 'd3', dateTime: DateTime(2026, 3, 8, 11), site: town),
+        ],
+      );
+      expect(withTown.siteLocations, ['Marsa Alam · RED SEA, EGYPT']);
+    });
+
     test('empty day has no content and null maxDepth', () {
       final day = TripStoryDay(
         date: date,
@@ -125,6 +308,7 @@ void main() {
       expect(day.totalRuntime, Duration.zero);
       expect(day.maxDepth, isNull);
       expect(day.siteNames, isEmpty);
+      expect(day.siteLocations, isEmpty);
       expect(day.hasContent, isFalse);
     });
 

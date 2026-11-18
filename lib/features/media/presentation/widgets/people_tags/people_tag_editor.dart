@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/domain/entities/media_person_tag.dart';
 import 'package:submersion/features/media/presentation/helpers/face_box_geometry.dart';
-import 'package:submersion/features/media/presentation/providers/media_people_providers.dart';
+import 'package:submersion/features/media/domain/entities/photo_record.dart';
+import 'package:submersion/features/media/presentation/editing/photo_sitting_shown.dart';
 import 'package:submersion/features/media/presentation/widgets/people_tags/face_box_layer.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 /// Tag mode's layer over one photo or paused video frame (issue #1745),
 /// laid out over the media drawn contain-fit in the same box.
@@ -28,6 +30,9 @@ class PeopleTagEditor extends ConsumerStatefulWidget {
   final ValueChanged<MediaPersonTag> onSelect;
   final void Function(MediaPersonTag tag, FaceBox box) onMove;
 
+  /// The photo's sitting, whose held tags are drawn (issue #4527).
+  final EditSession<PhotoRecord>? sitting;
+
   const PeopleTagEditor({
     super.key,
     required this.mediaId,
@@ -39,6 +44,7 @@ class PeopleTagEditor extends ConsumerStatefulWidget {
     required this.onPlace,
     required this.onSelect,
     required this.onMove,
+    this.sitting,
   });
 
   @override
@@ -127,9 +133,7 @@ class _PeopleTagEditorState extends ConsumerState<PeopleTagEditor> {
 
   @override
   Widget build(BuildContext context) {
-    final chips =
-        ref.watch(mediaPeopleChipsProvider(widget.mediaId)).value ??
-        const <MediaPersonChip>[];
+    final chips = peopleChipsShown(ref, widget.mediaId, widget.sitting);
     final shown = [
       for (final chip in chips)
         if (chip.tag.box != null && isTagAtMoment(chip.tag, widget.showAt))

@@ -8,6 +8,7 @@ import 'package:submersion/core/database/change_log/change_log_policy.dart';
 import 'package:submersion/core/database/change_log/change_log_trigger_sql.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
+import 'package:submersion/core/services/change_log/record_edit_label.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_event.dart';
 
 /// Manual saves on one record this close together are one entry.
@@ -82,9 +83,10 @@ class _Operation {
     required this.startedAt,
     required this.endedAt,
     required this.hasEvents,
+    this.pinned,
   });
 
-  _Operation.fromRow(Map<String, Object?> row)
+  _Operation.fromRow(Map<String, Object?> row, {ChangeLogRoot? pinned})
     : this(
         id: row['id']! as String,
         source: row['source']! as String,
@@ -99,6 +101,7 @@ class _Operation {
         startedAt: row['started_at']! as int,
         endedAt: row['ended_at']! as int,
         hasEvents: (row['event_count']! as int) > 0,
+        pinned: pinned,
       );
 
   final String id;
@@ -112,6 +115,12 @@ class _Operation {
   /// False until the first event, which is what tells "no root yet" from
   /// "touched several roots", both of which leave [root] empty.
   final bool hasEvents;
+
+  /// The record this operation is about whatever else it touches (issue
+  /// #4527): an editing sitting's record, and that of the sitting a revert
+  /// undoes. Null for every other operation, whose root is the one record
+  /// all its events share, if any.
+  final ChangeLogRoot? pinned;
 
   /// A save with no scope. A labelled bulk action is manual too, but it is
   /// over when it ends, so the next save does not join it.
@@ -136,6 +145,7 @@ class _Operation {
     startedAt: startedAt ?? this.startedAt,
     endedAt: endedAt ?? this.endedAt,
     hasEvents: hasEvents ?? this.hasEvents,
+    pinned: pinned,
   );
 }
 
@@ -146,6 +156,12 @@ class _SettlePass {
   final Map<String, ChangeLogTableSpec> _specs;
 
   final _operations = <String, _Operation>{};
+
+  /// The pinned record of each operation read for its pin alone (the one a
+  /// revert undoes, up the chain), by id. Kept apart from [_operations],
+  /// which are written back when the pass ends, though nothing about these
+  /// changed.
+  final _pins = <String, ChangeLogRoot?>{};
 
   /// The newest plain save of each root, by operation id.
   final _latestManual = <ChangeLogRoot, String>{};
@@ -236,18 +252,22 @@ class _SettlePass {
   ) async {
     final operation = _operations[operationId]!;
     final first = !operation.hasEvents;
-    final label = first ? await _labelOf(root) : null;
+    // A pinned operation is about its record whichever record this event
+    // changed, so it takes that record's name and owner.
+    final pinned = operation.pinned;
+    final about = pinned ?? root;
+    final label = first ? await _labelOf(about) : null;
     final later = event.changedAt > operation.endedAt || operation.isPlainSave;
     _operations[operationId] = operation.copyWith(
-      diverId: operation.diverId ?? owner,
+      diverId: await _scopeOwnerOf(operation) ?? owner,
       root: first
           ? (
-              table: root.table,
-              id: root.id,
+              table: about.table,
+              id: about.id,
               label: label?.label,
               ordinal: label?.ordinal,
             )
-          : (operation.hasRoot(root) ? null : _noRoot),
+          : (pinned != null || operation.hasRoot(root) ? null : _noRoot),
       startedAt: first ? event.changedAt : null,
       endedAt: later ? event.changedAt : null,
       hasEvents: true,
@@ -300,8 +320,15 @@ class _SettlePass {
 
   /// A feed shows one diver's entries, so a scope that touched two divers'
   /// records, as a sync pull can, is filed as one operation each.
+  ///
+  /// A pinned scope is the exception: a sitting is one entry about its
+  /// record, listed and reverted whole, whoever owns the other records it
+  /// wrote (issue #4527). The owner of such a record sees that record's rows
+  /// of it (`ChangeLogRepository.getFeed`).
   Future<_Operation> _forOwner(_Operation scope, String? owner) async {
-    if (owner == null || scope.diverId == null || scope.diverId == owner) {
+    if (scope.pinned != null) return scope;
+    final scopeOwner = scope.diverId;
+    if (owner == null || scopeOwner == null || scopeOwner == owner) {
       return scope;
     }
     final id = '${scope.id}:$owner';
@@ -318,6 +345,14 @@ class _SettlePass {
     return (await _loadOperation(id))!;
   }
 
+  /// Who [operation] belongs to: its owner so far, or before its first event
+  /// the owner of the record it is pinned to, if any.
+  Future<String?> _scopeOwnerOf(_Operation operation) async {
+    final pinned = operation.pinned;
+    return operation.diverId ??
+        (pinned == null ? null : await _ownerOf(pinned));
+  }
+
   Future<_Operation?> _loadOperation(String id) async {
     final cached = _operations[id];
     if (cached != null) return cached;
@@ -328,7 +363,45 @@ class _SettlePass {
         )
         .getSingleOrNull();
     if (row == null) return null;
-    return _operations[id] = _Operation.fromRow(row.data);
+    final pinned = await _pinnedRootOf(row.data);
+    return _operations[id] = _Operation.fromRow(row.data, pinned: pinned);
+  }
+
+  /// The record an operation row is about whatever else it touches: the
+  /// record a diver's editing sitting names in its label, or for a revert
+  /// the pinned record of the operation it reverts, up the chain. Null for a
+  /// part split off for another owner, which only an unpinned scope makes
+  /// ([_forOwner]) and which is about that owner's record, and for every
+  /// other operation. An agent's label is its
+  /// own free text, so one that happens to read like a sitting's pins
+  /// nothing.
+  Future<ChangeLogRoot?> _pinnedRootOf(Map<String, Object?> row) async {
+    if ((row['id']! as String).contains(':')) return null;
+    final revertOf = row['revert_of_id'] as String?;
+    if (revertOf != null) return _pinOf(revertOf);
+    final label = row['label'] as String?;
+    if (label == null || row['source'] != ChangeLogSource.manual.name) {
+      return null;
+    }
+    final edit = RecordEditLabel.decode(label);
+    final id = edit?.id;
+    return edit == null || id == null ? null : (table: edit.table, id: id);
+  }
+
+  /// The pinned record of the operation [id], read without loading it into
+  /// [_operations].
+  Future<ChangeLogRoot?> _pinOf(String id) async {
+    final loaded = _operations[id];
+    if (loaded != null) return loaded.pinned;
+    if (_pins.containsKey(id)) return _pins[id];
+    final row = await _db
+        .customSelect(
+          'SELECT id, source, label, revert_of_id FROM change_log_operations '
+          'WHERE id = ?',
+          variables: [Variable.withString(id)],
+        )
+        .getSingleOrNull();
+    return _pins[id] = row == null ? null : await _pinnedRootOf(row.data);
   }
 
   Future<_Operation?> _loadLatestManual(ChangeLogRoot root) async {
@@ -536,16 +609,19 @@ class _SettlePass {
   }
 
   /// Whether [event] was recorded inside an operation that keeps its machine
-  /// rows: a series table of [changeLogOptInUpdateTables] under one of
-  /// [changeLogSeriesUpdateLabels].
+  /// rows: a table [changeLogOptInKeepsDeletes] names, in an operation
+  /// [changeLogOptsInMachineRows] accepts.
   Future<bool> _optedInMachineRows(_Event event) async {
     final operationId = event.operationId;
-    if (operationId == null ||
-        !changeLogOptInUpdateTables.contains(event.table)) {
+    if (operationId == null || !changeLogOptInKeepsDeletes(event.table)) {
       return false;
     }
     final operation = await _loadOperation(operationId);
-    return changeLogSeriesUpdateLabels.contains(operation?.label);
+    if (operation == null) return false;
+    return changeLogOptsInMachineRows(
+      label: operation.label,
+      source: operation.source,
+    );
   }
 
   /// Whether the row a machine row belongs to, other than its root, has gone.

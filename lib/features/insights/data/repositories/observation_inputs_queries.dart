@@ -39,7 +39,11 @@ class ObservationInputsQueries {
             variables: variables,
             readsFrom: {
               _db.dives,
+              // What recordedWeightKgSql reads (issue #4442).
               _db.diveWeights,
+              _db.diveEquipment,
+              _db.equipment,
+              _db.equipmentAttributes,
               _db.diveSites,
               _db.diveProfileSeries,
             },

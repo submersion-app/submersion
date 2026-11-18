@@ -111,7 +111,8 @@ dive:
 | **Gas** | **Bottom RMV** (15 L/min, with an offer to use your logged average), **Reserve** (50 bar, or 500 psi), and **Gas options**: deco RMV, a stress factor and problem-solving time for minimum-gas sums, the ppO₂ limits, and whether to treat oxygen as narcotic for this plan |
 | **Environment** | Altitude, **Water type** (salt, fresh, or a custom salinity), and **Treat O₂ as narcotic**, which here changes your setting for every plan and calculator (the switch under **Gas options** applies to this plan only) |
 | **CCR** | Low and high setpoints (0.7 and 1.3 bar from your settings) and the depth to switch between them (10 m) |
-| **pSCR** | The pSCR ratio |
+| **SCR** | **Injection rate** and **VO₂** (12 and 1.3 L/min from your settings; leave a box empty to follow them), with the loop oxygen they give at that VO₂, at rest and at hard work |
+| **pSCR** | The pSCR ratio and **VO₂** (0.72 L/min from your settings), with the loop's ppO₂ drop at the plan's bottom RMV |
 | **Contingencies** | **Extra depth** (5 m), **Extra minutes** (5), and a **Turn pressure rule**: none, all usable, halves, thirds or custom |
 | **Gear & Weights** | The gear for the dive and a predicted lead weight; see [Weight Planner](weight-planner.md) |
 
@@ -124,7 +125,7 @@ On a series of dives, the first dive's settings are the series'. Changing
 the first dive changes them on every later dive that hasn't set its own.
 Changing one on a later dive makes it that dive's own, and the section says
 **This dive only**, with **Reset to series** and **Apply to all dives**. CCR,
-pSCR and Gear & Weights are always each dive's own.
+SCR, pSCR and Gear & Weights are always each dive's own.
 
 Tanks work the same way: a later dive takes the first dive's tanks and gases
 until you change its own. A tank starts with what was left in it after the

@@ -37,7 +37,105 @@ Future<void> _pump(
   ),
 );
 
+const _researched = CatalogueSite(
+  id: 'research_id_usat_liberty',
+  name: 'USAT Liberty',
+  maxDepth: 30,
+  typeIds: ['wreck'],
+  entryMethods: [EntryMethod.shore],
+  source: 'research',
+  trust: CatalogueTrust.researched,
+);
+
 void main() {
+  group('the Not verified label', () {
+    testWidgets('shows for a researched record', (tester) async {
+      await _pump(
+        tester,
+        CatalogueSiteTile(
+          site: _researched,
+          distanceText: '40 m away',
+          onTap: () {},
+          onDetails: () {},
+        ),
+      );
+
+      expect(find.text('Not verified'), findsOneWidget);
+      // Read with the row, not as a separate stop.
+      final semantics = tester.ensureSemantics();
+      final label = tester.getSemantics(find.byType(ListTile)).label;
+      expect(label, contains('USAT Liberty'));
+      expect(label, contains('Not verified'));
+      semantics.dispose();
+    });
+
+    testWidgets('shows nothing for a verified record', (tester) async {
+      await _pump(
+        tester,
+        CatalogueSiteTile(
+          site: _site,
+          distanceText: null,
+          onTap: () {},
+          onDetails: () {},
+        ),
+      );
+
+      expect(find.text('Not verified'), findsNothing);
+    });
+
+    testWidgets('shows for a researched record with no summary', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        CatalogueSiteTile(
+          site: const CatalogueSite(
+            id: 'r',
+            name: 'Bare',
+            source: 'research',
+            trust: CatalogueTrust.researched,
+          ),
+          distanceText: null,
+          onTap: () {},
+          onDetails: () {},
+        ),
+      );
+
+      expect(find.text('Not verified'), findsOneWidget);
+    });
+
+    testWidgets('a long name at large text on a narrow screen does not '
+        'overflow, and the label stays', (tester) async {
+      tester.view.physicalSize = const Size(320, 640);
+      tester.view.devicePixelRatio = 1;
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.view.reset);
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+      await _pump(
+        tester,
+        CatalogueSiteTile(
+          site: const CatalogueSite(
+            id: 'r',
+            name: 'The Very Long Name Of A Coral Garden Off The Point',
+            maxDepth: 30,
+            typeIds: ['wreck', 'reef'],
+            entryMethods: [EntryMethod.shore],
+            island: 'Bali',
+            source: 'research',
+            trust: CatalogueTrust.researched,
+          ),
+          distanceText: '1.2 km away',
+          onTap: () {},
+          onDetails: () {},
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Not verified'), findsOneWidget);
+    });
+  });
+
   testWidgets('shows the name, a one-line summary and the distance', (
     tester,
   ) async {

@@ -1,9 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/dive_log/data/repositories/annotation_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
+import 'package:submersion/features/dive_log/presentation/providers/annotation_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_annotations_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_text_sections.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_edit_cards.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_notes_card_editor.dart';
@@ -13,10 +20,20 @@ import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_form_block.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 import '../../../../../../helpers/mock_providers.dart';
 import '../../../../../../helpers/test_database.dart';
+
+/// Answers the annotation read when the test says.
+class _GatedAnnotations extends AnnotationRepository {
+  _GatedAnnotations(this.answer);
+  final Future<List<ProfileEvent>> answer;
+
+  @override
+  Future<List<ProfileEvent>> annotationsForDive(String diveId) => answer;
+}
 
 Tag _tag(String id, String name) => Tag(
   id: id,
@@ -35,14 +52,52 @@ void main() {
   group('the dive cards', () {
     // A card registered here gains a pencil on the dive page. Naming them
     // makes adding one a deliberate change to this test.
-    test('are Notes, Tags, Altitude, Environment and Details', () {
+    test('are the cards with something to edit', () {
       expect(diveEditCards.keys, {
+        DiveDetailSectionId.profile,
+        DiveDetailSectionId.safetyReview,
         DiveDetailSectionId.notes,
         DiveDetailSectionId.tags,
         DiveDetailSectionId.altitude,
         DiveDetailSectionId.environment,
         DiveDetailSectionId.details,
+        DiveDetailSectionId.tanks,
+        DiveDetailSectionId.weights,
+        DiveDetailSectionId.equipment,
+        DiveDetailSectionId.navTrack,
+        DiveDetailSectionId.buddies,
+        DiveDetailSectionId.signatures,
+        DiveDetailSectionId.sightings,
+        DiveDetailSectionId.media,
+        DiveDetailSectionId.documents,
+        DiveDetailSectionId.diveLab,
+        DiveDetailSectionId.customFields,
       });
+    });
+
+    test('Equipment is left out of a dive with no gear', () {
+      final equipment = diveEditCards[DiveDetailSectionId.equipment]!;
+      expect(equipment.isEmpty(dive.copyWith(gear: const [])), isTrue);
+    });
+
+    test('Weight is left out of a dive with no weight', () {
+      final weights = diveEditCards[DiveDetailSectionId.weights]!;
+      expect(weights.isEmpty(dive.copyWith(weights: const [])), isTrue);
+      expect(weights.isEmpty(dive.copyWith(weightAmount: 4)), isFalse);
+    });
+
+    test('Cylinders is left out of a gauge dive and of one with none', () {
+      final tanks = diveEditCards[DiveDetailSectionId.tanks]!;
+      const tank = DiveTank(id: 't');
+      expect(tanks.isEmpty(dive.copyWith(tanks: const [])), isTrue);
+      expect(tanks.isEmpty(dive.copyWith(tanks: const [tank])), isFalse);
+      expect(
+        tanks.isEmpty(
+          dive.copyWith(tanks: const [tank], diveMode: DiveMode.gauge),
+        ),
+        isTrue,
+      );
+      expect(tanks.isValid, isNotNull);
     });
 
     test('Details is never left out: the page always shows it', () {
@@ -187,6 +242,31 @@ void main() {
       expect(find.text('Mine'), findsOneWidget);
       expect(find.text('Theirs'), findsNothing);
       expect(session.valueOf(diveNotesField), 'Mine');
+    });
+
+    testWidgets('the Notes editor offers annotate once the sitting holds '
+        'the annotations, not before', (tester) async {
+      final reading = Completer<List<ProfileEvent>>();
+      final container = ProviderContainer(
+        overrides: [
+          annotationRepositoryProvider.overrideWithValue(
+            _GatedAnnotations(reading.future),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      final session = sessionOver(dive.copyWith(notes: 'Calm'));
+      loadDiveAnnotations(session, container.read);
+      await tester.pumpWidget(harness(DiveNotesCardEditor(session: session)));
+      await tester.pump();
+      MarkdownNotesField field() =>
+          tester.widget<MarkdownNotesField>(find.byType(MarkdownNotesField));
+      expect(field().onAnnotate, isNull);
+
+      reading.complete(const []);
+      await tester.pump();
+      await tester.pump();
+      expect(field().onAnnotate, isNotNull);
     });
 
     testWidgets('the Tags editor shows the tags and reports a change', (

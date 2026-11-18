@@ -5,6 +5,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/text/fuzzy_match.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_parser.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
+import 'package:submersion/features/dive_sites/domain/entities/catalogue_withdrawal.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
 String _file(List<Object?> sites, {Map<String, Object?>? sources}) =>
@@ -165,6 +166,27 @@ void main() {
       expect(parsed.sites.single.trust, CatalogueTrust.researched);
     });
 
+    test('a researched record placed from a map is read as such', () {
+      final parsed = parseSiteCatalogue(
+        _file([
+          _site({'trust': 'researched', 'position_from': 'map'}),
+        ]),
+      );
+
+      expect(parsed.sites.single.positionFromMap, isTrue);
+    });
+
+    test('any other value or none reads as not placed from a map', () {
+      final parsed = parseSiteCatalogue(
+        _file([
+          _site({'id': 'a', 'trust': 'researched', 'position_from': 'guess'}),
+          _site({'id': 'b', 'trust': 'researched'}),
+        ]),
+      );
+
+      expect(parsed.sites.map((s) => s.positionFromMap), [false, false]);
+    });
+
     test('a record without an id or a name is skipped', () {
       final parsed = parseSiteCatalogue(
         _file([
@@ -236,6 +258,45 @@ void main() {
       );
 
       expect(parsed.sites.single.location, isNull);
+    });
+
+    test('reads the withdrawn records the file lists', () {
+      final json = jsonDecode(_file([_site()])) as Map<String, dynamic>;
+      (json['metadata'] as Map<String, dynamic>)['withdrawn'] = {
+        'research_my_south_point': {
+          'reason': 'position',
+          'date': '2026-12-02',
+          'replaced_by': 'research_my_south_point_2',
+        },
+        'curated_x': {'reason': 'not_a_site', 'date': '2026-12-03'},
+        'research_id_y': {'reason': 'boredom', 'date': '2026-12-04'},
+        'research_id_z': 'not an object',
+      };
+
+      final parsed = parseSiteCatalogue(jsonEncode(json));
+
+      expect(parsed.withdrawn, const [
+        CatalogueWithdrawal(
+          id: 'research_my_south_point',
+          reason: CatalogueWithdrawalReason.position,
+          date: '2026-12-02',
+          replacedBy: 'research_my_south_point_2',
+        ),
+        CatalogueWithdrawal(
+          id: 'curated_x',
+          reason: CatalogueWithdrawalReason.notASite,
+          date: '2026-12-03',
+        ),
+        CatalogueWithdrawal(
+          id: 'research_id_y',
+          reason: CatalogueWithdrawalReason.other,
+          date: '2026-12-04',
+        ),
+      ]);
+    });
+
+    test('a file without a withdrawn list has none', () {
+      expect(parseSiteCatalogue(_file([_site()])).withdrawn, isEmpty);
     });
 
     test('a source without a name is skipped', () {

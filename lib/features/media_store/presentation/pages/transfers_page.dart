@@ -19,10 +19,17 @@ import 'package:submersion/shared/selection/selection_state.dart';
 
 /// Queue visibility (design spec section 9): active, waiting, and failed
 /// transfers with per-entry retry, a clear-completed action, and bulk
-/// selection. The list itself lives in [TransfersView], shared with the Media
-/// console; this page owns the selection state and passes it down.
+/// selection. The list itself lives in [TransfersView]; this page owns the
+/// selection state and passes it down.
+///
+/// Settings opens it as Uploads, its own name for the queue. The Media
+/// section's Transfers button opens it with [title] set, so the page is
+/// called what the button that opened it says (#4587).
 class TransfersPage extends ConsumerStatefulWidget {
-  const TransfersPage({super.key});
+  const TransfersPage({super.key, this.title});
+
+  /// The app bar's title when not selecting; null shows Uploads.
+  final String? title;
 
   @override
   ConsumerState<TransfersPage> createState() => _TransfersPageState();
@@ -115,7 +122,7 @@ class _TransfersPageState extends ConsumerState<TransfersPage> {
                   onDelete: () => _confirmAndDelete(rows),
                 )
               : AppBar(
-                  title: Text(l10n.settings_photos_uploads),
+                  title: Text(widget.title ?? l10n.settings_photos_uploads),
                   actions: [
                     IconButton(
                       key: const ValueKey('enter_selection'),
@@ -134,12 +141,10 @@ class _TransfersPageState extends ConsumerState<TransfersPage> {
                     ),
                   ],
                 ),
-          // The notice lives here rather than inside TransfersView: this
-          // page builds the runtime deliberately (see initState), while the
-          // Media console embeds the bare view, and watching the runtime
-          // from there would construct it - and kick a drain, a queue
-          // reclaim and the opportunistic verify sweep - just because a tab
-          // was selected.
+          // The notice lives here rather than inside TransfersView: it
+          // watches the runtime, which this page builds deliberately (see
+          // initState), so the view stays a plain list that starts no drain,
+          // queue reclaim or verify sweep on its own.
           body: Column(
             children: [
               const MediaTransfersSuspendedNotice(),

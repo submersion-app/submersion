@@ -6,6 +6,8 @@ import 'package:submersion/features/media/domain/color/color_adjustment.dart';
 import 'package:submersion/features/media/presentation/helpers/color_pick_white.dart';
 import 'package:submersion/features/media/presentation/widgets/color_adjust/color_adjust_layout.dart';
 import 'package:submersion/features/media/presentation/widgets/color_adjust/color_adjust_panel.dart';
+import 'package:submersion/features/media/domain/entities/photo_record.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 /// The Adjust color wiring a media viewer shares (issue #3520): whether the
 /// panel is open, the "Pick white" mode, the boundary around the gallery a
@@ -26,6 +28,16 @@ mixin ColorAdjustViewerMixin<T extends ConsumerStatefulWidget>
 
   void openColorPanel() => setState(() => colorPanelOpen = true);
 
+  /// The photo's sitting, where the panel and Pick white hold their changes
+  /// (issue #4527). Null while the photo is locked: nothing is changed.
+  EditSession<PhotoRecord>? get colorSitting => null;
+
+  /// Closes the panel and leaves Pick white: the photo was locked.
+  void closeColorEditing() => setState(() {
+    colorPanelOpen = false;
+    pickingWhite = false;
+  });
+
   /// Enters "Pick white", or cancels it when it is already waiting.
   void togglePickWhite() => setState(() => pickingWhite = !pickingWhite);
 
@@ -42,9 +54,15 @@ mixin ColorAdjustViewerMixin<T extends ConsumerStatefulWidget>
     Future<WhitePoint?> Function() sample,
   ) async {
     setState(() => pickingWhite = false);
+    // Captured first: a sitting that ends while the sample is read must not
+    // turn it into a write.
+    final held = colorSitting;
     final white = await sample();
     if (!mounted) return;
-    await applyPickedWhite(context, ref, item, white);
+    // The viewers have the photo's lock: with no sitting (one that ended
+    // meanwhile, or a device that cannot unlock) the colour stays as it is.
+    if (held == null) return;
+    await applyPickedWhite(context, ref, item, white, sitting: held);
   }
 
   /// [child] (the viewer) with the panel for [item] beside it while open,
@@ -62,6 +80,7 @@ mixin ColorAdjustViewerMixin<T extends ConsumerStatefulWidget>
       layout: layout,
       pickWhiteAvailable: pickWhiteAvailable,
       onPickWhite: onPickWhite,
+      sitting: colorSitting,
       onDone: () => setState(() {
         colorPanelOpen = false;
         pickingWhite = false;

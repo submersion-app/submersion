@@ -97,10 +97,11 @@ void main() {
     Future<Uint8List?> Function()? pickFile,
     Future<BuddyCard?> Function()? card,
     Completer<void>? holdStart,
+    double width = 500,
   }) async {
     session = _FakeSession(availability)..holdStart = holdStart;
     tester.view.devicePixelRatio = 1.0;
-    tester.view.physicalSize = const Size(500, 1200);
+    tester.view.physicalSize = Size(width, 1200);
     addTearDown(tester.view.reset);
     final router = GoRouter(
       initialLocation: '/buddies/swap',
@@ -174,7 +175,8 @@ void main() {
     await settle(tester);
     expect(find.text('Sam Rivera wants to swap cards'), findsOneWidget);
     expect(find.textContaining("You'll send:"), findsOneWidget);
-    await tester.tap(find.text('Swap'));
+    // The nearby rows say Swap too; the sheet's answer is the filled one.
+    await tester.tap(find.widgetWithText(FilledButton, 'Swap'));
     await settle(tester);
     expect(answer, isTrue);
   });
@@ -210,13 +212,13 @@ void main() {
     expect(find.text('Sam Rivera declined the swap'), findsOneWidget);
   });
 
-  testWidgets('the sharing line lists what is shared and opens the sheet', (
+  testWidgets('your card lists what is shared and Edit opens the sheet', (
     tester,
   ) async {
     await pump(tester);
-    expect(find.textContaining('Advanced Open Water Diver'), findsOneWidget);
-    expect(find.textContaining('342 dives'), findsOneWidget);
-    await tester.tap(find.text('Change'));
+    expect(find.text('Advanced Open Water Diver'), findsOneWidget);
+    expect(find.text('342 dives'), findsOneWidget);
+    await tester.tap(find.text('Edit'));
     await settle(tester);
     expect(find.text('What you share'), findsOneWidget);
   });
@@ -232,8 +234,8 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Show my code'), findsOneWidget);
-    expect(find.text('Scan code'), findsOneWidget);
-    expect(find.text('Send file'), findsOneWidget);
+    expect(find.text('Scan their code'), findsOneWidget);
+    expect(find.text('Send as a file'), findsOneWidget);
   });
 
   testWidgets('Tap an Android phone shows on iOS', (tester) async {
@@ -252,20 +254,20 @@ void main() {
     await pump(tester);
     expect(
       find.text(
-        "Don't see your buddy? Both of you need this screen open and "
+        'Looking for divers. Your buddy needs this screen open and '
         'Submersion 1.8.4 or later.',
       ),
       findsOneWidget,
     );
   });
 
-  testWidgets('Open card file opens the preview', (tester) async {
+  testWidgets('Open a card file opens the preview', (tester) async {
     await pump(
       tester,
       pickFile: () async =>
           BuddyCardCodec.encodeFull(const BuddyCard(id: 'x', name: 'Alex')),
     );
-    await tester.tap(find.text('Open card file'));
+    await tester.tap(find.text('Open a card file'));
     await settle(tester);
     expect(find.text('PREVIEW Alex'), findsOneWidget);
   });
@@ -338,13 +340,78 @@ void main() {
     expect(session.stops, greaterThan(0));
   });
 
-  testWidgets('a card that cannot be built says so and still offers scan', (
-    tester,
-  ) async {
+  testWidgets('a card that cannot be built says so, hides nearby and give, '
+      'and still offers get', (tester) async {
     await pump(tester, card: () => Future.error(StateError('no diver')));
     expect(find.text('Your buddy card could not be built.'), findsOneWidget);
-    expect(find.text('Scan code'), findsOneWidget);
-    expect(find.text('Open card file'), findsOneWidget);
+    expect(find.text('Scan their code'), findsOneWidget);
+    expect(find.text('Open a card file'), findsOneWidget);
+    expect(find.text('Nearby'), findsNothing);
+    expect(find.text('Show my code'), findsNothing);
+    expect(session.starts, 0);
+  });
+
+  testWidgets('no current diver shows the card failure, not a spinner', (
+    tester,
+  ) async {
+    await pump(tester, card: () async => null);
+    expect(find.text('Your buddy card could not be built.'), findsOneWidget);
+    expect(find.text('Scan their code'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+  });
+
+  testWidgets('a card that fails to rebuild drops the old card', (
+    tester,
+  ) async {
+    var builds = 0;
+    await pump(
+      tester,
+      card: () async {
+        builds++;
+        if (builds > 1) throw StateError('database gone');
+        return _me;
+      },
+    );
+    expect(find.text('Jordan Blake'), findsOneWidget);
+    ProviderScope.containerOf(
+      tester.element(find.byType(BuddySwapPage)),
+    ).invalidate(myBuddyCardProvider);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await settle(tester);
+    expect(builds, 2);
+    expect(find.text('Your buddy card could not be built.'), findsOneWidget);
+    expect(find.text('Jordan Blake'), findsNothing);
+    expect(find.text('Show my code'), findsNothing);
+  });
+
+  testWidgets('two columns share no primary scroll controller', (tester) async {
+    await pump(tester, width: 800);
+    // Read above the columns: a primary list hides the controller below it.
+    final primary = PrimaryScrollController.of(
+      tester.element(
+        find
+            .ancestor(
+              of: find.text('Nearby'),
+              matching: find.byType(LayoutBuilder),
+            )
+            .first,
+      ),
+    );
+    expect(primary.positions.length, lessThanOrEqualTo(1));
+  }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
+
+  testWidgets('719 wide is one column, 720 is two', (tester) async {
+    await pump(tester, width: 719);
+    expect(
+      tester.getTopLeft(find.text('Give your card')).dx,
+      tester.getTopLeft(find.text('Nearby')).dx,
+    );
+    await pump(tester, width: 720);
+    expect(
+      tester.getTopLeft(find.text('Give your card')).dx,
+      greaterThan(tester.getTopLeft(find.text('Nearby')).dx),
+    );
   });
 
   testWidgets('a card too long for a code says so', (tester) async {
@@ -360,7 +427,9 @@ void main() {
     await tester.tap(find.text('Show my code'));
     await settle(tester);
     expect(
-      find.text('Your card is too long for a code. Try Send file instead.'),
+      find.text(
+        'Your card is too long for a code. Try Send as a file instead.',
+      ),
       findsOneWidget,
     );
   });
@@ -402,7 +471,8 @@ void main() {
     await settle(tester);
     expect(find.text('Sam Rivera wants to swap cards'), findsNothing);
     expect(find.text('Alex Kim wants to swap cards'), findsOneWidget);
-    await tester.tap(find.text('Swap'));
+    // The nearby rows say Swap too; the sheet's answer is the filled one.
+    await tester.tap(find.widgetWithText(FilledButton, 'Swap'));
     await settle(tester);
     expect(alexAnswer, isTrue);
   });
@@ -433,8 +503,8 @@ void main() {
     await settle(tester);
     expect(
       find.text(
-        'Could not look for nearby divers. The other ways to swap below '
-        'still work.',
+        'Could not look for nearby divers. The other ways to swap still '
+        'work.',
       ),
       findsOneWidget,
     );

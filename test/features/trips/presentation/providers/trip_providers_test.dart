@@ -13,6 +13,8 @@ import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_participant_names.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -357,6 +359,44 @@ void main() {
       expect(dives.single.resolvedBuddyNames, 'Ana Reyes');
     });
 
+    test('divesForTripProvider refreshes when a dive\'s site is edited, which '
+        'writes no dive row (#4624)', () async {
+      final siteRepo = SiteRepository();
+      final site = await siteRepo.createSite(
+        const DiveSite(id: '', name: 'Elphinstone'),
+      );
+      final trip = await tripRepo.createTrip(_makeTrip(name: 'Sites'));
+      await diveRepo.createDive(
+        Dive(
+          id: '',
+          dateTime: DateTime(2024, 6, 1),
+          tripId: trip.id,
+          site: site,
+        ),
+      );
+
+      final container = makeContainer();
+      addTearDown(container.dispose);
+      final sub = container.listen(divesForTripProvider(trip.id), (_, _) {});
+      addTearDown(sub.close);
+      final initial = await container.read(
+        divesForTripProvider(trip.id).future,
+      );
+      expect(initial.single.site?.locationString, isEmpty);
+
+      await siteRepo.updateSite(
+        site.copyWith(city: 'Marsa Alam', region: 'Red Sea', country: 'Egypt'),
+      );
+
+      final dives = await _pollUntilSettled(
+        () => container.read(divesForTripProvider(trip.id).future),
+        (dives) => dives.single.site?.country == 'Egypt',
+        awaiting: 'divesForTripProvider to pick up the edited site',
+        describe: (dives) => 'site ${dives.single.site?.locationString}',
+      );
+      expect(dives.single.site?.locationString, 'Marsa Alam · Red Sea, Egypt');
+    });
+
     test('divesForTripProvider lists the active diver\'s dives, side trips '
         'included and newest first, without reading their samples '
         '(#3831)', () async {
@@ -457,9 +497,10 @@ void main() {
 
       // getTripWithStats aggregates straight over the dives table, so a merge
       // changes the counts without touching the trip row -- and the trip detail
-      // page renders these in TripStatStrip directly above the itinerary that
-      // divesForTripProvider feeds. Without the dives-table subscription the
-      // header would still read "2 dives / 42m" over a list of one 18m dive.
+      // page renders these as the Trip page's totals directly above the day
+      // lines that divesForTripProvider feeds. Without the dives-table
+      // subscription the totals would still read "2 dives / 42m" over a day
+      // line of one 18m dive.
       //
       // Transaction-wrapped for the same reason as the divesForTripProvider
       // test above: it is the tick shape the merge/consolidate services emit.

@@ -3,6 +3,7 @@ import 'package:submersion/core/services/geocoding/sea_area_service.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/local_site_catalogue.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_importer.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
+import 'package:submersion/features/dive_sites/domain/entities/catalogue_withdrawal.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_area_anchor_repository.dart';
 import 'package:submersion/features/dive_sites/data/services/catalogue_adoption_service.dart';
 import 'package:submersion/features/dive_sites/domain/repositories/site_catalogue.dart';
@@ -76,6 +77,14 @@ final catalogueSourceProvider = FutureProvider.family<CatalogueSource?, String>(
     return ref.watch(siteCatalogueProvider).source(key);
   },
 );
+
+/// Why a catalogue record was withdrawn, or null when it was not.
+// no-tick: local cache data with no change tick, as catalogueSiteProvider.
+final catalogueWithdrawalProvider =
+    FutureProvider.family<CatalogueWithdrawal?, String>((ref, id) {
+      ref.watch(siteCatalogueRevisionProvider);
+      return ref.watch(siteCatalogueProvider).withdrawal(id);
+    });
 
 /// The one path that makes a diver's site from a catalogue record.
 // no-tick: a service that writes; it holds no data.

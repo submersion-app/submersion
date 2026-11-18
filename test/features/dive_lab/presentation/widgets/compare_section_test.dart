@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_plan_link_sitting.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/presentation/widgets/chart_zoom_controls.dart';
 import 'package:submersion/core/database/database.dart' as db;
@@ -21,7 +23,6 @@ import 'package:submersion/features/dive_lab/presentation/providers/lab_draft_pr
 import 'package:submersion/features/dive_lab/presentation/providers/lab_request_inputs_provider.dart';
 import 'package:submersion/features/dive_lab/presentation/widgets/compare_section.dart';
 import 'package:submersion/features/dive_lab/presentation/widgets/compare_table.dart';
-import 'package:submersion/features/dive_lab/presentation/widgets/link_plan_sheet.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
@@ -40,6 +41,7 @@ import '../../../../helpers/pump_until.dart';
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/test_database.dart';
 import '../../domain/support/synthetic_dives.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 const _diveId = 'd';
 const _air = GasMix(o2: 21);
@@ -141,6 +143,7 @@ void main() {
     CompareColumn dived = _dived,
     Future<LinkedPlanComparison?>? linkedLater,
     void Function()? onLabInputs,
+    RecordEditController<Dive>? lockable,
   }) async {
     tester.view.physicalSize = Size(width, 900);
     tester.view.devicePixelRatio = 1.0;
@@ -157,6 +160,9 @@ void main() {
       testApp(
         overrides: [
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          divePlanRepositoryProvider.overrideWithValue(
+            _Plans(linked: 'plan-0'),
+          ),
           divePlanSummariesProvider.overrideWith(
             (ref) async => const <domain.DivePlanSummary>[],
           ),
@@ -190,8 +196,13 @@ void main() {
           labDefaultBranchProvider.overrideWith((ref, id) async => 0),
         ],
         locale: const Locale('en'),
-        child: const SingleChildScrollView(
-          child: CompareSection(diveId: _diveId),
+        child: SingleChildScrollView(
+          child: lockable == null
+              ? const CompareSection(diveId: _diveId)
+              : RecordEditScope<Dive>(
+                  controller: lockable,
+                  child: const CompareSection(diveId: _diveId),
+                ),
         ),
       ),
     );
@@ -319,12 +330,14 @@ void main() {
     expect(find.byType(ChartZoomControls), findsNothing);
   });
 
-  testWidgets('the empty state offers both ways in', (tester) async {
+  // A plan is linked in the open card (issue #4527): the read card offers
+  // only a what-if.
+  testWidgets('the empty state offers a what-if and no Link', (tester) async {
     await pump(tester);
 
     expect(find.text('Nothing to compare yet'), findsOneWidget);
     expect(find.text('Ask a what-if'), findsOneWidget);
-    expect(find.text('Link a plan'), findsOneWidget);
+    expect(find.text('Link a plan'), findsNothing);
     expect(find.byType(CompareTable), findsNothing);
   });
 
@@ -354,33 +367,13 @@ void main() {
     expect(assembled, isFalse);
   });
 
-  testWidgets('a dive with what-ifs and no plan can still link one', (
+  testWidgets('a dive with what-ifs and no plan offers no Link', (
     tester,
   ) async {
     await pump(tester, scenarios: [_scenario('s1', 'Slower', DateTime(2026))]);
 
-    expect(find.text('Link a plan'), findsOneWidget);
     expect(find.text('Nothing to compare yet'), findsNothing);
-  });
-
-  testWidgets('Link a plan opens the plan picker', (tester) async {
-    await pump(tester);
-
-    await tester.tap(find.text('Link a plan'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
-
-    expect(find.byType(LinkPlanSheet), findsOneWidget);
-  });
-
-  testWidgets('the chip row links a plan too', (tester) async {
-    await pump(tester, scenarios: [_scenario('s1', 'Slower', DateTime(2026))]);
-
-    await tester.tap(find.widgetWithText(ActionChip, 'Link a plan'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
-
-    expect(find.byType(LinkPlanSheet), findsOneWidget);
+    expect(find.text('Link a plan'), findsNothing);
   });
 
   testWidgets('Ask a what-if opens the Compare page', (tester) async {
@@ -426,21 +419,6 @@ void main() {
     expect(find.byType(CompareTable), findsNothing);
     expect(find.text('Ask a what-if'), findsNothing);
     expect(find.text('Link a plan'), findsNothing);
-  });
-
-  testWidgets('a planned dive with no plan can still link one', (tester) async {
-    await pump(
-      tester,
-      dive: Dive(
-        id: _diveId,
-        dateTime: DateTime.utc(2026),
-        isPlanned: true,
-        profile: _profile(),
-      ),
-    );
-
-    expect(find.text('Waiting for the dive'), findsOneWidget);
-    expect(find.text('Link a plan'), findsOneWidget);
   });
 
   testWidgets('tapping the title opens the Compare page', (tester) async {
@@ -597,4 +575,76 @@ void main() {
     expect(find.textContaining('Surface GF'), findsWidgets);
     expect(find.textContaining('NDL (no-decompression limit)'), findsOneWidget);
   });
+
+  testWidgets('locked under the dive page, no Link; Ask a what-if stays', (
+    tester,
+  ) async {
+    final controller = RecordEditController<Dive>(onSave: (_) async {});
+    addTearDown(controller.dispose);
+    await pump(tester, lockable: controller);
+
+    expect(find.text('Link a plan'), findsNothing);
+    expect(find.text('Ask a what-if'), findsOneWidget);
+  });
+
+  group('a plan link held in a sitting (issue #4527)', () {
+    Future<RecordEditController<Dive>> heldTo(String? planId) async {
+      final controller = RecordEditController<Dive>(onSave: (_) async {})
+        ..unlock(Dive(id: _diveId, dateTime: DateTime.utc(2026)));
+      addTearDown(controller.dispose);
+      final session = controller.session!;
+      final container = ProviderContainer(
+        overrides: [
+          divePlanRepositoryProvider.overrideWithValue(
+            _Plans(linked: 'plan-0'),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      loadDivePlanLink(session, container.read);
+      await session.settled();
+      setPlanLink(session, planId);
+      return controller;
+    }
+
+    testWidgets('linked: the closed card names the plan Save links, not the '
+        'stored comparison', (tester) async {
+      final controller = await tester.runAsync(() => heldTo('plan-1'));
+      await pump(tester, comparison: _comparison(), lockable: controller);
+      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+      await tester.pump();
+
+      expect(find.text('Reef plan is linked at Save.'), findsOneWidget);
+      expect(find.byType(CompareTable), findsNothing);
+    });
+
+    testWidgets('unlinked: the closed card says so', (tester) async {
+      final controller = await tester.runAsync(() => heldTo(null));
+      await pump(tester, comparison: _comparison(), lockable: controller);
+
+      expect(find.text('The plan is unlinked at Save.'), findsOneWidget);
+      expect(find.byType(CompareTable), findsNothing);
+    });
+  });
+}
+
+class _Plans extends DivePlanRepository {
+  _Plans({required this.linked});
+
+  final String linked;
+
+  @override
+  Future<domain.DivePlan?> getPlanByLinkedDiveId(String diveId) async =>
+      _plan(linked, 'Old plan');
+
+  @override
+  Future<domain.DivePlan?> getPlan(String id) async =>
+      _plan(id, id == 'plan-1' ? 'Reef plan' : 'Old plan');
+
+  domain.DivePlan _plan(String id, String name) => domain.DivePlan(
+    id: id,
+    name: name,
+    createdAt: DateTime.utc(2026),
+    updatedAt: DateTime.utc(2026),
+  );
 }

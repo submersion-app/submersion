@@ -7,7 +7,14 @@ import 'package:submersion/features/media/data/repositories/local_asset_cache_re
 import 'package:submersion/features/media/data/services/asset_resolution_service.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
 import 'package:submersion/features/media/data/services/metadata_write_service.dart';
+import 'package:submersion/features/media/domain/color/color_adjustment.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/photo_record.dart';
+import 'package:submersion/features/media/presentation/providers/media_providers.dart';
+import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
+import 'package:submersion/features/media/presentation/providers/photo_editing_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/media_viewer_toolbar.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/services/media_source_resolver.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
@@ -136,6 +143,12 @@ void main() {
             assetResolutionServiceProvider.overrideWithValue(
               _FixedResolution(resolution, error: resolutionError),
             ),
+            // The photo as stored, for its lock (issue #4527).
+            photoRecordProvider(media.id).overrideWith(
+              (ref) async =>
+                  PhotoRecord(item: media, species: const [], people: const []),
+            ),
+            mediaByIdProvider(media.id).overrideWith((ref) async => media),
             mediaSourceResolverRegistryProvider.overrideWithValue(
               MediaSourceResolverRegistry({
                 MediaSourceType.platformGallery: _UnavailableResolver(),
@@ -157,7 +170,14 @@ void main() {
     });
   }
 
+  /// Opens the write's confirmation. Writing to the file is a whole-record
+  /// operation, so a locked photo is unlocked first (issue #4527).
   Future<void> openDialog(WidgetTester tester) async {
+    final unlock = find.byKey(const ValueKey('viewer_unlock'));
+    if (unlock.evaluate().isNotEmpty) {
+      await tester.tap(unlock);
+      await tester.pump();
+    }
     await tester.tap(find.byIcon(Icons.edit_note));
     await tester.pumpAndSettle();
   }
@@ -224,7 +244,13 @@ void main() {
     await pump(tester, item());
     await openDialog(tester);
 
-    await tester.tap(find.text('Cancel'));
+    // The dialog's Cancel, not the unlocked bar's.
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text('Cancel'),
+      ),
+    );
     await tester.pumpAndSettle();
 
     expect(nativeCalls, isEmpty);
@@ -404,5 +430,65 @@ void main() {
       findsOneWidget,
     );
     expect(find.byType(CircularProgressIndicator), findsNothing);
+  });
+  group('a whole-record operation (issue #4527)', () {
+    IconButton action(WidgetTester tester) => tester.widget<IconButton>(
+      find.descendant(
+        of: find.byKey(const ValueKey('viewer_write_metadata')),
+        matching: find.byType(IconButton),
+      ),
+    );
+
+    RecordEditController<PhotoRecord> controller(WidgetTester tester) =>
+        RecordEditScope.maybeOf<PhotoRecord>(
+          tester.element(find.byType(MediaViewerToolbar)),
+        )!;
+
+    Future<void> unlock(WidgetTester tester) async {
+      await tester.tap(find.byKey(const ValueKey('viewer_unlock')));
+      await tester.pump();
+    }
+
+    testWidgets('locked: disabled, "Unlock to use this"; no dialog on tap', (
+      tester,
+    ) async {
+      await pump(tester, item());
+
+      expect(action(tester).onPressed, isNull);
+      expect(find.byTooltip('Unlock to use this'), findsOneWidget);
+      await tester.tap(find.byIcon(Icons.edit_note), warnIfMissed: false);
+      await tester.pumpAndSettle();
+      expect(find.text('Write Dive Data to Photo'), findsNothing);
+    });
+
+    testWidgets('unlocked with no changes: confirms and writes at once; still '
+        'unlocked and clean', (tester) async {
+      await pump(tester, item());
+      await unlock(tester);
+
+      await openDialog(tester);
+      await confirmWrite(tester);
+
+      expect(nativeCalls.single.method, 'writeMetadata');
+      expect(controller(tester).isUnlocked, isTrue);
+      expect(controller(tester).isDirty, isFalse);
+    });
+
+    testWidgets('unlocked with a change: disabled, "Save or cancel your '
+        'changes first"', (tester) async {
+      await pump(tester, item());
+      await unlock(tester);
+
+      controller(
+        tester,
+      ).session!.set(photoColorField, const ColorAdjustment(warmth: 0.3));
+      await tester.pump();
+
+      expect(action(tester).onPressed, isNull);
+      expect(
+        find.byTooltip('Save or cancel your changes first'),
+        findsOneWidget,
+      );
+    });
   });
 }

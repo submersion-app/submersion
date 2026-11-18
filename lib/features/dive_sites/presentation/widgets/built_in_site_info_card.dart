@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.da
 import 'package:submersion/features/dive_sites/presentation/catalogue_site_display.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/catalogue_page/catalogue_page_card.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/not_verified_label.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Everything the built-in catalogue knows about one site, with one action:
@@ -86,6 +87,7 @@ class _BuiltInSiteInfoCardState extends ConsumerState<BuiltInSiteInfoCard> {
     ];
     final website = catalogueWebsiteUri(site.website);
     final hasLinks = widget.onDetails != null || website != null;
+    final researched = site.isResearched;
 
     return Card(
       child: Padding(
@@ -94,7 +96,15 @@ class _BuiltInSiteInfoCardState extends ConsumerState<BuiltInSiteInfoCard> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(site.name, style: theme.textTheme.titleMedium),
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(site.name, style: theme.textTheme.titleMedium),
+                if (researched) const NotVerifiedLabel(),
+              ],
+            ),
             if (location.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 2),
@@ -137,6 +147,14 @@ class _BuiltInSiteInfoCardState extends ConsumerState<BuiltInSiteInfoCard> {
                 child: Text(
                   site.description!,
                   style: theme.textTheme.bodyMedium,
+                ),
+              ),
+            if (researched)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  notVerifiedExplanation(context),
+                  style: theme.textTheme.bodySmall,
                 ),
               ),
             if (source != null)

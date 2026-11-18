@@ -47,7 +47,7 @@ void main() {
   test('breathingTankSql keeps rows with no role', () {
     expect(
       breathingTankSql('t'),
-      "(t.tank_role IS NULL OR t.tank_role <> 'suitInflation')",
+      "(t.tank_role IS NULL OR t.tank_role NOT IN ('suitInflation'))",
     );
   });
 

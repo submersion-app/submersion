@@ -18,6 +18,7 @@ import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/test_database.dart';
 import '../../document_repository_doubles.dart';
+import 'package:submersion/features/documents/presentation/widgets/document_owner_field.dart';
 
 DocumentPageCapture _files(PickedBytes picked) => DocumentPageCapture(
   pickFile: (_) async => picked,
@@ -67,6 +68,7 @@ void main() {
     VoidCallback? onCancel,
     DocumentOwner? pickedOwner,
     DocumentRepository? repository,
+    bool ownerFixed = false,
   }) async {
     t.view.physicalSize = const Size(900, 1600);
     t.view.devicePixelRatio = 1;
@@ -91,6 +93,7 @@ void main() {
           onCancel: onCancel ?? () {},
           capture: capture,
           pickOwner: (_, _) async => pickedOwner,
+          ownerFixed: ownerFixed,
         ),
       ),
     );
@@ -491,5 +494,13 @@ void main() {
         const DocumentOwner(DocumentOwnerKind.certification, 'c1'),
       );
     });
+  });
+
+  testWidgets('ownerFixed hides the owner field (issue #4527)', (t) async {
+    await pumpEditor(t);
+    expect(find.byType(DocumentOwnerField), findsOneWidget);
+
+    await pumpEditor(t, ownerFixed: true);
+    expect(find.byType(DocumentOwnerField), findsNothing);
   });
 }

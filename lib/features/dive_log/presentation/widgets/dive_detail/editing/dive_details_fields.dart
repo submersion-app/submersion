@@ -6,6 +6,7 @@ import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/core/text/blank_text.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_header_fields.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/visibility_input/visibility_entry.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
@@ -20,6 +21,8 @@ final String _card = DiveDetailSectionId.details.name;
 final diveTypeIdsField = EditField<Dive, List<String>>(
   id: 'diveTypeIds',
   cardId: _card,
+  // The header block draws the dive's types too.
+  alsoShownOn: {diveHeaderCardId},
   read: (dive) => dive.diveTypeIds,
   write: (dive, ids) => dive.copyWith(diveTypeIds: List.unmodifiable(ids)),
   equals: listEquals,
@@ -41,6 +44,20 @@ final diveTripField = EditField<Dive, Trip?>(
       ? dive.copyWith(clearTrip: true, clearTripId: true)
       : dive.copyWith(trip: trip, tripId: trip.id),
   equals: (a, b) => a?.id == b?.id,
+);
+
+/// The id of the trip the dive is on, written only to clear one whose trip
+/// did not load: a `tripId` that names no trip the dive carries (deleted on
+/// another device, say). [diveTripField] reads null for such a dive, the
+/// same as for a dive on no trip, so clearing through it is no change and
+/// Save would keep the id (issue #4527).
+final diveTripIdField = EditField<Dive, String?>(
+  id: 'tripId',
+  cardId: _card,
+  read: (dive) => dive.tripId ?? dive.trip?.id,
+  write: (dive, id) => id == null
+      ? dive.copyWith(clearTrip: true, clearTripId: true)
+      : dive.copyWith(tripId: id, clearTrip: dive.trip?.id != id),
 );
 
 /// The dive center the dive was made with. Compared by which center it is.

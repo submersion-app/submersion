@@ -5,6 +5,7 @@ import 'package:submersion/features/divers/data/repositories/item_shares_reposit
 import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     show PlanMode;
+import 'package:submersion/features/planner/domain/entities/plan_log_state.dart';
 import 'package:submersion/features/planner/domain/entities/plan_series.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/domain/services/plan_gas_switches.dart';
@@ -21,6 +22,14 @@ String? plannedEntryName(
   int index,
   SeriesDiveResult result,
 ) => series.isSeries ? series.dives[index].name : result.state.name;
+
+/// Whether "Update planned dives" must ask for the first dive's start: a
+/// series where some dive still to write has none to lay it out on. A dived
+/// dive starts when it did, and the dives after it carry from that, so a
+/// series begun by one needs none.
+bool seriesNeedsFirstStart(PlanSeries series, List<SeriesDiveResult> results) =>
+    series.isSeries &&
+    results.any((r) => r.actual == null && r.state.startDateTime == null);
 
 /// What "Create / Update planned dives" does with one dive of a plan
 /// (issue #3565).
@@ -194,7 +203,7 @@ class PlannedDivesWriter {
       // A single plan whose dived link moves gets a new entry for [diverId].
       // Read for any dived dive: a dive removed while these lookups run can
       // leave a series a single plan by the time it is decided on.
-      if (entry != null && !entry.isPlanned) await add(id, diverId);
+      if (PlanLogState.of(entry) == PlanLogState.dived) await add(id, diverId);
     }
     return PlannedDivesLookups(
       entries: entries,
@@ -217,10 +226,9 @@ class PlannedDivesWriter {
       for (final dive in series.dives)
         dive.state.id: lookups.entries[dive.state.id],
     };
-    bool dived(int i) {
-      final entry = entries[series.dives[i].state.id];
-      return entry != null && !entry.isPlanned;
-    }
+    bool dived(int i) =>
+        PlanLogState.of(entries[series.dives[i].state.id]) ==
+        PlanLogState.dived;
 
     if (!series.isSeries && dived(0)) {
       if (!moveDivedLink) return const PlannedDivesPlan(needsLinkMove: true);
@@ -261,11 +269,11 @@ class PlannedDivesWriter {
     return PlannedDiveStep(
       index: index,
       planId: series.dives[index].state.id,
-      action: entry == null
-          ? PlannedDiveAction.create
-          : entry.isPlanned
-          ? PlannedDiveAction.update
-          : PlannedDiveAction.skipDived,
+      action: switch (PlanLogState.of(entry)) {
+        PlanLogState.planned => PlannedDiveAction.create,
+        PlanLogState.loggedAsPlanned => PlannedDiveAction.update,
+        PlanLogState.dived => PlannedDiveAction.skipDived,
+      },
       entry: entry,
       result: result,
       name: plannedEntryName(series, index, result),

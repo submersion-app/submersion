@@ -84,5 +84,7 @@ class ProfileMetricPalette {
     ProfileRightAxisMetric.gtr => colorOf(ProfileMetric.gtr),
     ProfileRightAxisMetric.ascentRate ||
     ProfileRightAxisMetric.o2CellMv => metric.color ?? temperatureAuto,
+    // Two fixed colours that carry meaning; the axis takes the buoyant one.
+    ProfileRightAxisMetric.buoyancy => ProfileMetricColors.buoyancyBuoyant,
   };
 }

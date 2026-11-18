@@ -4,6 +4,7 @@ import 'package:submersion/core/text/fuzzy_match.dart';
 import 'package:submersion/shared/widgets/forms/autocomplete_options_list.dart';
 import 'package:submersion/shared/widgets/forms/form_field_semantics.dart';
 import 'package:submersion/shared/widgets/forms/form_style.dart';
+import 'package:submersion/shared/widgets/forms/suggestion_matching.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 
 /// Row-styled autocomplete text field: label left, always-mounted bare
@@ -67,13 +68,8 @@ class _SuggestionFormRowState extends State<SuggestionFormRow> {
 
   Iterable<String> _optionsFor(String text) {
     final query = text.trim();
-    if (query.isEmpty) return const Iterable<String>.empty();
-    final lower = query.toLowerCase();
-
-    final substring = widget.suggestions
-        .where((s) => s.toLowerCase().contains(lower))
-        .toList();
-    if (!widget.enableFuzzy) return substring;
+    final substring = suggestionsContaining(widget.suggestions, query);
+    if (query.isEmpty || !widget.enableFuzzy) return substring;
 
     final substringSet = substring.map((s) => s.toLowerCase()).toSet();
     final fuzzy =

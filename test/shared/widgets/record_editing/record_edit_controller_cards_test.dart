@@ -40,8 +40,12 @@ final _depth = EditField<_Rec, int>(
 
 RecordEditController<_Rec> _controller({
   Future<void> Function(EditSession<_Rec> session)? onSave,
+  List<String> Function(EditSession<_Rec> session)? invalidCards,
 }) {
-  final controller = RecordEditController<_Rec>(onSave: onSave ?? (_) async {});
+  final controller = RecordEditController<_Rec>(
+    onSave: onSave ?? (_) async {},
+    invalidCards: invalidCards,
+  );
   addTearDown(controller.dispose);
   return controller;
 }
@@ -371,6 +375,168 @@ void main() {
   });
 
   // The write takes a moment. Nothing about the sitting may move under it.
+  // A card's own check, asked of every card at Save whether it is open or
+  // not: a value another card changed can leave a closed card invalid.
+  group('a card that fails its own check', () {
+    List<String> negativeDepth(EditSession<_Rec> s) => [
+      if (s.valueOf(_depth) < 0) 'details',
+    ];
+
+    test('save refuses while a closed card is invalid, opens it and asks '
+        'for its reveal', () async {
+      var saves = 0;
+      final c = _controller(
+        onSave: (_) async => saves++,
+        invalidCards: negativeDepth,
+      )..unlock(const _Rec());
+      c.session!.set(_depth, -1);
+
+      expect(await c.save(), isFalse);
+      expect(saves, 0);
+      expect(c.refusedForInvalidInput, isTrue);
+      expect(c.openCardIds, contains('details'));
+      expect(c.revealRequest?.cardId, 'details');
+      expect(c.revealRequest?.fieldId, isNull);
+      expect(c.isUnlocked, isTrue);
+    });
+
+    test('save goes through once the card is valid again', () async {
+      var saves = 0;
+      final c = _controller(
+        onSave: (_) async => saves++,
+        invalidCards: negativeDepth,
+      )..unlock(const _Rec());
+      c.session!.set(_depth, -1);
+      await c.save();
+      c.session!.set(_depth, 4);
+
+      expect(await c.save(), isTrue);
+      expect(saves, 1);
+      expect(c.refusedForInvalidInput, isFalse);
+    });
+
+    test('Done refuses for a card whose own check fails', () {
+      final c = _controller(invalidCards: negativeDepth)
+        ..unlock(const _Rec())
+        ..openCard('details');
+      c.session!.set(_depth, -1);
+
+      c.closeCard('details');
+
+      expect(c.openCardIds, contains('details'));
+      expect(c.revealRequest?.cardId, 'details');
+    });
+
+    test('Done closes a card whose check passes', () {
+      final c = _controller(invalidCards: negativeDepth)
+        ..unlock(const _Rec())
+        ..openCard('notes');
+      c.session!.set(_depth, -1);
+
+      c.closeCard('notes');
+
+      expect(c.openCardIds, isNot(contains('notes')));
+    });
+
+    test('work that lands while save waits for it is checked too', () async {
+      var saves = 0;
+      final c = _controller(
+        onSave: (_) async => saves++,
+        invalidCards: negativeDepth,
+      )..unlock(const _Rec());
+      final s = c.session!..set(_notes, 'x');
+      final gate = Completer<void>();
+      s.track(gate.future.then((_) => s.set(_depth, -1)));
+
+      final saving = c.save();
+      gate.complete();
+
+      expect(await saving, isFalse);
+      expect(saves, 0);
+      expect(c.refusedForInvalidInput, isTrue);
+      expect(c.isSaving, isFalse);
+      expect(c.openCardIds, contains('details'));
+      expect(s.isFrozen, isFalse);
+    });
+
+    test(
+      'a record stored while save waited, then refused, is followed',
+      () async {
+        final c = _controller(invalidCards: negativeDepth)
+          ..unlock(const _Rec(notes: 'old'));
+        final s = c.session!..set(_depth, 3);
+        final gate = Completer<void>();
+        s.track(gate.future.then((_) => s.set(_depth, -1)));
+
+        final saving = c.save();
+        // A sync lands while the save waits: the sitting is kept frozen out
+        // of it until the save is done.
+        c.storedChanged(const _Rec(notes: 'synced'));
+        gate.complete();
+
+        expect(await saving, isFalse);
+        expect(s.stored.notes, 'synced');
+        expect(s.valueOf(_notes), 'synced');
+        expect(s.valueOf(_depth), -1);
+      },
+    );
+
+    test('onStart is told of each sitting as unlock starts it', () {
+      final started = <EditSession<_Rec>>[];
+      final c = RecordEditController<_Rec>(
+        onSave: (_) async {},
+        onStart: started.add,
+      );
+      addTearDown(c.dispose);
+
+      c.unlock(const _Rec());
+      c.unlock(const _Rec(depth: 2));
+
+      expect(started, [same(c.session)]);
+      c.lock();
+      c.unlock(const _Rec(depth: 3));
+      expect(started, hasLength(2));
+      expect(started.last, same(c.session));
+    });
+
+    test('the page is told of the sitting even when onStart fails', () {
+      var told = 0;
+      final c = RecordEditController<_Rec>(
+        onSave: (_) async {},
+        onStart: (_) => throw StateError('no repository'),
+      )..addListener(() => told++);
+      addTearDown(c.dispose);
+
+      expect(() => c.unlock(const _Rec()), throwsStateError);
+
+      expect(c.isUnlocked, isTrue);
+      expect(told, 1);
+    });
+
+    test('a sitting with no changes locks though a stored value fails a '
+        'check: there is nothing to write', () async {
+      var saves = 0;
+      final c = _controller(
+        onSave: (_) async => saves++,
+        invalidCards: negativeDepth,
+      )..unlock(const _Rec(depth: -1));
+
+      expect(await c.save(), isTrue);
+      expect(saves, 0);
+      expect(c.refusedForInvalidInput, isFalse);
+      expect(c.isUnlocked, isFalse);
+    });
+
+    test('with no invalidCards, save is as before', () async {
+      var saves = 0;
+      final c = _controller(onSave: (_) async => saves++)..unlock(const _Rec());
+      c.session!.set(_depth, -1);
+
+      expect(await c.save(), isTrue);
+      expect(saves, 1);
+    });
+  });
+
   group('while a save is running', () {
     test('the sitting cannot change', () async {
       final gate = Completer<void>();

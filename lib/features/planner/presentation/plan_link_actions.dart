@@ -24,34 +24,64 @@ Future<bool> linkPlanWithConfirm(
 }) async {
   final repository = ref.read(divePlanRepositoryProvider);
   final planner = ref.read(divePlanNotifierProvider.notifier);
+  if (!await confirmPlanLink(context, ref, planId: planId, diveId: diveId)) {
+    return false;
+  }
   final plan = await repository.getPlan(planId);
   if (plan == null) return false;
   if (plan.linkedDiveId == diveId) return true;
-  final holder = await repository.getPlanByLinkedDiveId(diveId);
-  final displaced = holder != null && holder.id != planId ? holder : null;
-  final moving = plan.linkedDiveId != null && plan.linkedDiveId != diveId;
-  if (moving || displaced != null) {
-    if (!context.mounted) return false;
-    final l10n = context.l10n;
-    final confirmed = await _confirm(
-      context,
-      title: displaced == null
-          ? l10n.diveLab_link_moveTitle
-          : l10n.diveLab_link_replaceTitle,
-      body: [
-        if (moving) l10n.diveLab_link_moveBody,
-        if (displaced != null) l10n.diveLab_link_replaceBody(displaced.name),
-      ].join('\n\n'),
-      action: l10n.diveLab_link_confirm,
-    );
-    if (!confirmed) return false;
-  }
   final result = await repository.linkPlanToDive(planId, diveId);
   planner.adoptLink(planId, diveId);
   for (final id in result.displacedPlanIds) {
     planner.adoptLink(id, null);
   }
   return true;
+}
+
+/// Asks what [linkPlanWithConfirm] asks before linking plan [planId] to dive
+/// [diveId] (moving it off another dive, or taking the dive from another
+/// plan), and writes nothing: a sitting on the dive holds the link until it
+/// is saved (issue #4527). True to go ahead, and when there is nothing to
+/// ask; false for a plan that no longer exists, or when the diver cancels.
+Future<bool> confirmPlanLink(
+  BuildContext context,
+  WidgetRef ref, {
+  required String planId,
+  required String diveId,
+}) async {
+  final repository = ref.read(divePlanRepositoryProvider);
+  final plan = await repository.getPlan(planId);
+  if (plan == null) return false;
+  if (plan.linkedDiveId == diveId) return true;
+  final holder = await repository.getPlanByLinkedDiveId(diveId);
+  final displaced = holder != null && holder.id != planId ? holder : null;
+  final moving = plan.linkedDiveId != null && plan.linkedDiveId != diveId;
+  if (!moving && displaced == null) return true;
+  if (!context.mounted) return false;
+  final l10n = context.l10n;
+  return _confirm(
+    context,
+    title: displaced == null
+        ? l10n.diveLab_link_moveTitle
+        : l10n.diveLab_link_replaceTitle,
+    body: [
+      if (moving) l10n.diveLab_link_moveBody,
+      if (displaced != null) l10n.diveLab_link_replaceBody(displaced.name),
+    ].join('\n\n'),
+    action: l10n.diveLab_link_confirm,
+  );
+}
+
+/// Asks before unlinking a plan from its dive, as [unlinkPlanWithConfirm]
+/// does, and writes nothing. True to go ahead.
+Future<bool> confirmPlanUnlink(BuildContext context) {
+  final l10n = context.l10n;
+  return _confirm(
+    context,
+    title: l10n.diveLab_link_unlinkTitle,
+    body: l10n.diveLab_link_unlinkBody,
+    action: l10n.diveLab_link_unlinkConfirm,
+  );
 }
 
 /// Asks before a step that moves a plan's link off the dive it names. [action]
@@ -74,14 +104,7 @@ Future<bool> unlinkPlanWithConfirm(
 }) async {
   final repository = ref.read(divePlanRepositoryProvider);
   final planner = ref.read(divePlanNotifierProvider.notifier);
-  final l10n = context.l10n;
-  final confirmed = await _confirm(
-    context,
-    title: l10n.diveLab_link_unlinkTitle,
-    body: l10n.diveLab_link_unlinkBody,
-    action: l10n.diveLab_link_unlinkConfirm,
-  );
-  if (!confirmed) return false;
+  if (!await confirmPlanUnlink(context)) return false;
   for (final id in await repository.unlinkPlan(planId)) {
     planner.adoptLink(id, null);
   }

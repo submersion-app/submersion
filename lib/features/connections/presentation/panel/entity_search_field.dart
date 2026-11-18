@@ -1,10 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/connection_node.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/presentation/connection_labels.dart';
+import 'package:submersion/features/dive_types/domain/favourite_dive_types.dart';
 import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
@@ -75,7 +78,13 @@ class _EntitySearchFieldState extends ConsumerState<EntitySearchField> {
         if (hits != null)
           if (hits.isLoading || (extra?.isLoading ?? false))
             const LinearProgressIndicator()
-          else if (_merge(hits.value, extra?.value) case final nodes)
+          else if (_merge(
+                hits.value,
+                extra?.value,
+                // Hiding wins: a hidden built-in is not lifted (#4413).
+                ref.watch(liftedFavouriteDiveTypeIdsProvider),
+              )
+              case final nodes)
             nodes.isEmpty
                 ? Padding(
                     padding: const EdgeInsets.all(8),
@@ -118,10 +127,10 @@ class _EntitySearchFieldState extends ConsumerState<EntitySearchField> {
   /// [query] but whose stored name does not (those the SQL search already
   /// finds), sorted and comma-joined so the provider key is stable.
   String _translatedMatches(AppLocalizations l10n, String query) {
-    final q = query.toLowerCase();
+    final q = foldForSearch(query);
     bool hit(String translated, String stored) =>
-        translated.toLowerCase().contains(q) &&
-        !stored.toLowerCase().contains(q);
+        foldForSearch(translated).contains(q) &&
+        !foldForSearch(stored).contains(q);
     final species = ref.watch(allSpeciesProvider).value ?? const [];
     final types = ref.watch(diveTypesProvider).value ?? const [];
     final wires = <String>[
@@ -136,17 +145,26 @@ class _EntitySearchFieldState extends ConsumerState<EntitySearchField> {
   }
 
   /// Search hits and translated-name hits, without duplicates, busiest
-  /// first.
+  /// first, except that a dive type the diver starred leads (issue #4413).
   static List<ConnectionNode> _merge(
     List<ConnectionNode>? hits,
     List<ConnectionNode>? extra,
+    Set<String> favouriteDiveTypeIds,
   ) {
     final byRef = <NodeRef, ConnectionNode>{
       for (final n in [...?hits, ...?extra]) n.ref: n,
     };
-    return byRef.values.toList()..sort((a, b) {
-      final byDives = b.diveCount.compareTo(a.diveCount);
-      return byDives != 0 ? byDives : a.label.compareTo(b.label);
-    });
+    final busiestFirst = byRef.values.toList()
+      ..sort((a, b) {
+        final byDives = b.diveCount.compareTo(a.diveCount);
+        return byDives != 0 ? byDives : compareTextForSort(a.label, b.label);
+      });
+    // Only dive type nodes can be starred: a site or species sharing a
+    // starred id (or a blank one from corrupt data) keeps its place.
+    return favouritesFirst(
+      busiestFirst,
+      favouriteDiveTypeIds,
+      idOf: (n) => n.ref.kind == ConnectionKind.diveType ? n.ref.id : null,
+    );
   }
 }

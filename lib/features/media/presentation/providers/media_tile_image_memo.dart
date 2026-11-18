@@ -34,25 +34,58 @@ class MediaTileImageMemo {
 
   /// The provider a tile draws [file] with at [cacheWidth]. One definition,
   /// so the key a tile caches under and the key looked up here cannot drift.
-  static ImageProvider providerFor(File file, int? cacheWidth) =>
-      ResizeImage.resizeIfNeeded(cacheWidth, null, FileImage(file));
+  static ImageProvider providerFor(
+    File file,
+    int? cacheWidth, {
+    bool longEdge = false,
+  }) => bounded(FileImage(file), cacheWidth, longEdge: longEdge);
 
-  /// Notes that [item]'s tile drew [file] at [cacheWidth].
+  /// [base] decoded no larger than [bound] pixels, or as it is with no bound.
+  ///
+  /// A tile bounds the width alone, which keeps the short edge its cover fit
+  /// needs. A full-screen view bounds the [longEdge] instead (issue #4699):
+  /// by width alone a portrait 50 MP photo decoded at 5736 x 7648 on an
+  /// iPhone 17 Pro Max, nearly its full size, where a landscape one got
+  /// 5736 x 4302. Fitting inside a [bound] square keeps the aspect, so both
+  /// get the same detail, and a smaller photo is never enlarged.
+  static ImageProvider bounded(
+    ImageProvider base,
+    int? bound, {
+    bool longEdge = false,
+  }) {
+    if (bound == null || !longEdge) {
+      return ResizeImage.resizeIfNeeded(bound, null, base);
+    }
+    return ResizeImage(
+      base,
+      width: bound,
+      height: bound,
+      policy: ResizeImagePolicy.fit,
+    );
+  }
+
+  /// Notes that [item]'s tile drew [file] at [cacheWidth], bounded on its
+  /// [longEdge] or its width.
   void remember(
     MediaItem item, {
     required bool thumbnail,
     required int cacheWidth,
     required File file,
+    bool longEdge = false,
   }) {
     final drawn = _drawn.remove(item.id) ?? <_Drawn>[];
     drawn.removeWhere(
-      (d) => d.thumbnail == thumbnail && d.cacheWidth == cacheWidth,
+      (d) =>
+          d.thumbnail == thumbnail &&
+          d.cacheWidth == cacheWidth &&
+          d.longEdge == longEdge,
     );
     drawn.add(
       _Drawn(
         pointer: _pointerOf(item),
         thumbnail: thumbnail,
         cacheWidth: cacheWidth,
+        longEdge: longEdge,
         path: file.path,
       ),
     );
@@ -71,6 +104,7 @@ class MediaTileImageMemo {
     MediaItem item, {
     required bool thumbnail,
     required int cacheWidth,
+    bool longEdge = false,
   }) {
     final drawn = _drawn[item.id];
     if (drawn == null) return null;
@@ -78,10 +112,15 @@ class MediaTileImageMemo {
     for (final d in drawn) {
       if (d.thumbnail != thumbnail ||
           d.cacheWidth != cacheWidth ||
+          d.longEdge != longEdge ||
           d.pointer != pointer) {
         continue;
       }
-      final provider = providerFor(File(d.path), cacheWidth);
+      final provider = providerFor(
+        File(d.path),
+        cacheWidth,
+        longEdge: longEdge,
+      );
       final status = PaintingBinding.instance.imageCache.statusForKey(
         _keyOf(provider),
       );
@@ -100,7 +139,7 @@ class MediaTileImageMemo {
       if (drawn == null) continue;
       for (final d in drawn) {
         final file = File(d.path);
-        await providerFor(file, d.cacheWidth).evict();
+        await providerFor(file, d.cacheWidth, longEdge: d.longEdge).evict();
         // The undecorated key too, in case anything drew the file unsized.
         await FileImage(file).evict();
       }
@@ -115,8 +154,11 @@ class MediaTileImageMemo {
     return key;
   }
 
+  /// The asset id too: a photo-library row draws from the file its asset
+  /// exports (#4699), and a re-link changes only the id.
   static String _pointerOf(MediaItem item) =>
-      '${item.sourceType.name}\u0000${item.localPath ?? ''}'
+      '${item.sourceType.name}\u0000${item.platformAssetId ?? ''}'
+      '\u0000${item.localPath ?? ''}'
       '\u0000${item.filePath ?? ''}\u0000${item.bookmarkRef ?? ''}'
       '\u0000${item.contentHash ?? ''}';
 }
@@ -126,6 +168,7 @@ class _Drawn {
     required this.pointer,
     required this.thumbnail,
     required this.cacheWidth,
+    required this.longEdge,
     required this.path,
   });
 
@@ -133,6 +176,9 @@ class _Drawn {
   final String pointer;
   final bool thumbnail;
   final int cacheWidth;
+
+  /// Whether [cacheWidth] bounded the long edge rather than the width.
+  final bool longEdge;
   final String path;
 }
 

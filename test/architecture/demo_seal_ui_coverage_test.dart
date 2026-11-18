@@ -64,7 +64,7 @@ const _guardedHandlers = <(String, String)>[
   ),
   (
     'lib/features/dive_log/presentation/pages/dive_detail_page_actions.dart',
-    'Future<void> _resyncDive(',
+    'Future<bool> _resyncDive(',
   ),
   (
     'lib/features/dive_lab/presentation/pages/dive_lab_page.dart',
@@ -93,12 +93,12 @@ const _guardedHandlers = <(String, String)>[
   // Photo and document imports that reach a gated service through a
   // helper, so no picker call in their own file would flag them.
   (
-    'lib/features/media/presentation/pages/photo_picker_page.dart',
+    'lib/features/media/presentation/pages/photo_picker_launch.dart',
     'Future<List<AssetInfo>?> showPhotoPicker(',
   ),
   (
-    'lib/features/dive_log/presentation/pages/dive_detail_page_actions.dart',
-    'Future<void> _scanGalleryForDive(',
+    'lib/features/media/presentation/helpers/dive_gallery_scan_in_sitting.dart',
+    'Future<void> scanGalleryInSitting(',
   ),
   (
     'lib/features/trips/presentation/pages/trip_gallery_page.dart',

@@ -27,13 +27,21 @@ void main() {
         'MarkdownNotesField(',
     'lib/features/dive_centers/presentation/pages/dive_center_edit_page.dart':
         'MarkdownNotesField(',
-    // The bulk notes field and the save-as-set description.
-    'lib/features/dive_log/presentation/pages/dive_edit_page.dart':
+    // The bulk notes field.
+    'lib/features/dive_log/presentation/pages/bulk_dive_edit_page_form.dart':
         'MarkdownNotesField(',
     // The Notes card edited in place on the dive page (issue #4527).
     'lib/features/dive_log/presentation/widgets/dive_detail/editing/dive_notes_card_editor.dart':
         'MarkdownNotesField(',
-    'lib/features/dive_log/presentation/widgets/edit_sections/experience_section.dart':
+    // The save-as-set description, shared by the dive form and the
+    // Equipment card (issue #4527).
+    'lib/features/dive_log/presentation/widgets/save_gear_as_set_dialog.dart':
+        'MarkdownNotesField(',
+    // A site's Description and Notes cards edited in place (issue #4527).
+    'lib/features/dive_sites/presentation/editing/site_markdown_card_editor.dart':
+        'MarkdownNotesField(',
+    // A site's Access card edited in place (issue #4527).
+    'lib/features/dive_sites/presentation/editing/site_access_card_editors.dart':
         'markdown: true',
     'lib/features/dive_sites/presentation/widgets/edit_sections/access_safety_section.dart':
         'markdown: true',
@@ -71,8 +79,6 @@ void main() {
   /// shared editor or view must appear, so one of them going plain fails
   /// even while another still uses the shared widget.
   const atLeast = <String, int>{
-    // The bulk notes field and the save-as-set description.
-    'lib/features/dive_log/presentation/pages/dive_edit_page.dart': 2,
     // Description, notes and (through _buildAccessRow) access notes.
     'lib/features/dive_sites/presentation/pages/site_detail_page.dart': 3,
   };
@@ -95,7 +101,7 @@ void main() {
     'lib/features/site_scape/presentation/site_feature_info_sheet.dart',
     'lib/features/trips/presentation/widgets/overview/trip_prepare_overview.dart',
     'lib/features/trips/presentation/widgets/story/trip_story_day_plan.dart',
-    'lib/features/trips/presentation/widgets/story/trip_story_view.dart',
+    'lib/features/trips/presentation/widgets/story/trip_story_trip_page.dart',
   ];
 
   /// Truncated previews, table columns and exports that need plain words.
@@ -136,8 +142,8 @@ void main() {
     'lib/features/dive_log/presentation/widgets/dive_sighting_row.dart '
             'sighting.notes':
         'sighting notes are a short log entry',
-    'lib/features/dive_log/presentation/pages/dive_edit_page.dart '
-            'sighting.notes':
+    'lib/features/dive_log/presentation/widgets/edit_sections/'
+            'sightings_editor.dart sighting.notes':
         'sighting notes are a short log entry',
     'lib/features/equipment/presentation/widgets/service_history_section.dart '
             'record.notes':

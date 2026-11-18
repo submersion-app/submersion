@@ -1,9 +1,15 @@
 import 'package:drift/drift.dart';
 
+import 'package:submersion/core/database/local_cache_identification_table.dart';
 import 'package:submersion/core/database/local_cache_site_catalogue_tables.dart';
+import 'package:submersion/core/database/local_cache_vertical_distance_table.dart';
 
+export 'package:submersion/core/database/local_cache_identification_table.dart'
+    show IdentificationEmbeddings;
 export 'package:submersion/core/database/local_cache_site_catalogue_tables.dart'
     show SiteCatalogueEntries, SiteCatalogueMeta;
+export 'package:submersion/core/database/local_cache_vertical_distance_table.dart'
+    show DiveVerticalDistanceCache;
 
 part 'local_cache_database.g.dart';
 
@@ -345,13 +351,15 @@ class RecentQueries extends Table {
     RecentQueries,
     SiteCatalogueEntries,
     SiteCatalogueMeta,
+    DiveVerticalDistanceCache,
+    IdentificationEmbeddings,
   ],
 )
 class LocalCacheDatabase extends _$LocalCacheDatabase {
   LocalCacheDatabase(super.e);
 
   @override
-  int get schemaVersion => 22;
+  int get schemaVersion => 25;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -547,8 +555,14 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
       // v22: a catalogue record's kind (dive site or register record), and
       // the index that reads one kind near a point.
       if (from < 22) {
-        await _addSiteCatalogueKind();
+        await addSiteCatalogueKind(this);
       }
+      // v23: each dive's vertical distance (issue #4569).
+      if (from < 23) await m.createTable(diveVerticalDistanceCache);
+      // v24: where a researched catalogue record's position came from.
+      if (from < 24) await addSiteCataloguePositionFrom(this);
+      // v25: marine life crop embeddings (issue #4668).
+      if (from < 25) await m.createTable(identificationEmbeddings);
     },
     beforeOpen: (details) async {
       // Ladder-collision self-heal: a parallel branch that also claimed v7
@@ -712,25 +726,14 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
       await customStatement(kCreateSiteCatalogueMetaTableSql);
       await _createSiteCatalogueIndex();
       // v22 mirror, for a database a colliding branch stamped at v22 first.
-      await _addSiteCatalogueKind();
+      await addSiteCatalogueKind(this);
+      // v23 mirror, for a database a colliding branch stamped at v23 first.
+      await customStatement(kCreateDiveVerticalDistanceCacheSql);
+      await customStatement(kCreateIdentificationEmbeddingsSql);
+      // v24 mirror, for a database a colliding branch stamped at v24 first.
+      await addSiteCataloguePositionFrom(this);
     },
   );
-
-  /// Idempotent, so the v22 rung and the open backstop share it: adds the
-  /// kind column to a catalogue table created without it, then its index.
-  /// A table v21 has not created yet is left for the backstop, which
-  /// creates it with the column.
-  Future<void> _addSiteCatalogueKind() async {
-    final columns = await customSelect(
-      "SELECT name FROM pragma_table_info('site_catalogue')",
-    ).get();
-    final names = columns.map((c) => c.read<String>('name')).toSet();
-    if (names.isEmpty) return;
-    if (!names.contains('kind')) {
-      await customStatement(kAddSiteCatalogueKindSql);
-    }
-    await customStatement(kCreateSiteCatalogueKindIndexSql);
-  }
 
   /// Idempotent, so the v21 rung and the open backstop (which also covers
   /// a fresh create) share it.

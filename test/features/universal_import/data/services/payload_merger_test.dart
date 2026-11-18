@@ -195,6 +195,33 @@ void main() {
       expect([for (final k in kinds) (k as Map)['id']], ['k1', 'k2', 'k3']);
     });
 
+    test('keeps every file\'s species catalogue (#4578)', () {
+      ImportPayload withSpecies(String name) => ImportPayload(
+        entities: const {},
+        metadata: {
+          ImportPayload.speciesKey: [
+            {'uddfId': 'species_s1', 'commonName': name},
+          ],
+        },
+      );
+
+      final merged = merger.merge([
+        FilePayload(
+          fileId: 'f0',
+          fileName: 'a.uddf',
+          payload: withSpecies('A'),
+        ),
+        FilePayload(
+          fileId: 'f1',
+          fileName: 'b.uddf',
+          payload: withSpecies('B'),
+        ),
+      ]);
+
+      final species = merged.metadata[ImportPayload.speciesKey] as List;
+      expect([for (final s in species) (s as Map)['commonName']], ['A', 'B']);
+    });
+
     test('namespaces currency certificationRefs like the certifications', () {
       // Issue #2267: a pref names its certification by uddfId, which the
       // merge prefixes per file, so the ref must take the same prefix or no

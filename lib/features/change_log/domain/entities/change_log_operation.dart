@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
+import 'package:submersion/features/change_log/domain/entities/change_log_event.dart';
 
 /// One entry in the change log: a save, an import, a sync, a revert.
 class ChangeLogOperation extends Equatable {
@@ -21,6 +22,7 @@ class ChangeLogOperation extends Equatable {
     this.summaryCount,
     this.revertOfId,
     this.revertedById,
+    this.shownRoots,
   });
 
   final String id;
@@ -53,11 +55,47 @@ class ChangeLogOperation extends Equatable {
   final String? revertOfId;
   final String? revertedById;
 
+  /// For a diver who does not own the entry, the records of it they own or
+  /// that are shared with them: they see only the rows about these, and the
+  /// entry is titled with one of them. Null shows every row.
+  final Set<ChangeLogRoot>? shownRoots;
+
   bool get isSummary => summaryCount != null;
   bool get isReverted => revertedById != null;
   bool get isBulk => rootId == null;
 
-  ChangeLogOperation copyWith({String? revertedById}) => ChangeLogOperation(
+  ChangeLogOperation copyWith({String? revertedById}) => _with(
+    rootTable: rootTable,
+    rootId: rootId,
+    rootLabel: rootLabel,
+    rootOrdinal: rootOrdinal,
+    revertedById: revertedById ?? this.revertedById,
+    shownRoots: shownRoots,
+  );
+
+  /// The entry as a diver who sees only [shown] of it reads it: titled with
+  /// [root], one of them, named [label].
+  ChangeLogOperation restrictedTo(
+    Set<ChangeLogRoot> shown, {
+    required ChangeLogRoot root,
+    required String? label,
+  }) => _with(
+    rootTable: root.table,
+    rootId: root.id,
+    rootLabel: label,
+    rootOrdinal: null,
+    revertedById: revertedById,
+    shownRoots: shown,
+  );
+
+  ChangeLogOperation _with({
+    required String? rootTable,
+    required String? rootId,
+    required String? rootLabel,
+    required int? rootOrdinal,
+    required String? revertedById,
+    required Set<ChangeLogRoot>? shownRoots,
+  }) => ChangeLogOperation(
     id: id,
     source: source,
     label: label,
@@ -73,7 +111,8 @@ class ChangeLogOperation extends Equatable {
     eventCount: eventCount,
     summaryCount: summaryCount,
     revertOfId: revertOfId,
-    revertedById: revertedById ?? this.revertedById,
+    revertedById: revertedById,
+    shownRoots: shownRoots,
   );
 
   @override
@@ -94,5 +133,6 @@ class ChangeLogOperation extends Equatable {
     summaryCount,
     revertOfId,
     revertedById,
+    shownRoots,
   ];
 }

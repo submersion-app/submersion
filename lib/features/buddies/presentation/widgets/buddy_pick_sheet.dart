@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -40,10 +41,10 @@ class _BuddyPickState extends ConsumerState<_BuddyPick> {
     final l10n = context.l10n;
     final loaded = ref.watch(allBuddiesProvider).value;
     final everyone = loaded ?? const <Buddy>[];
-    final query = _search.trim().toLowerCase();
+    final query = foldForSearch(_search.trim());
     final buddies = [
       for (final b in everyone)
-        if (query.isEmpty || b.name.toLowerCase().contains(query)) b,
+        if (query.isEmpty || foldForSearch(b.name).contains(query)) b,
     ];
     return SafeArea(
       child: Column(

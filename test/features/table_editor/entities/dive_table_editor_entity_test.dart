@@ -1,7 +1,8 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/dive_field.dart';
-import 'package:submersion/core/constants/enums.dart' show WeightType;
+import 'package:submersion/core/constants/enums.dart'
+    show EquipmentType, WeightType;
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -13,6 +14,10 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart'
     as domain;
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/table_editor/domain/table_draft.dart';
 import 'package:submersion/features/table_editor/domain/table_editor_column.dart';
@@ -110,6 +115,50 @@ void main() {
     expect(column.readOnlyReason(r['d1']!, AppLocalizationsEn()), isNotNull);
     expect(column.isEditable(r['d2']!), isTrue);
   });
+
+  // The cell shows the dive's total, which adds the lead carried as weights
+  // gear; typing that total into the one row would count the gear twice
+  // (#4442).
+  test(
+    'weight column is read-only on a dive that carries lead as gear',
+    () async {
+      final e = await entity();
+      final column = e.columnFor(DiveField.totalWeight)!;
+      final l10n = AppLocalizationsEn();
+      const plate = EquipmentItem(
+        id: 'plate',
+        name: 'Weighted backplate',
+        type: EquipmentType.weights,
+        attributes: [
+          EquipmentAttribute(
+            id: 'plate-dry',
+            equipmentId: 'plate',
+            key: EquipmentAttrKeys.dryWeightKg,
+            valueNum: 2.5,
+          ),
+        ],
+      );
+      // Weights gear that declares no mass carries no lead.
+      const vest = EquipmentItem(
+        id: 'vest',
+        name: 'Weight vest',
+        type: EquipmentType.weights,
+      );
+      final belt = domain.Dive(
+        id: 'd1',
+        dateTime: DateTime(2026, 1, 1),
+        weights: [weight(4.5)],
+      );
+      final carried = belt.copyWith(gear: looseGear([plate]));
+      final massless = belt.copyWith(gear: looseGear([vest]));
+
+      expect(column.isEditable(carried), isFalse);
+      expect(column.readOnlyReason(carried, l10n), l10n.tableEditor_weightGear);
+      expect(column.isEditable(massless), isTrue);
+      expect(column.readOnlyReason(massless, l10n), isNull);
+      expect(column.isEditable(belt), isTrue);
+    },
+  );
 
   test('save writes one dive\'s visibility and weight and leaves the other '
       'dive alone', () async {

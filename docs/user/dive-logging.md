@@ -1,24 +1,27 @@
 # Logging Dives
 
 Every dive you record lives in the **Dives** tab. This page covers logging a dive
-by hand in the dive form, every field you can fill in, and how to find,
-sort, filter, and bulk-edit dives once you have a few in your log.
+by hand, every field you can fill in on the dive's page, and how to find, sort,
+filter, and bulk-edit dives once you have a few in your log.
 
 > [!NOTE]
 > **Where to find it:** Open the **Dives** tab, then tap the **Log Dive** button
 > (the **+** floating button) and choose **Log Dive Manually**. To edit an existing
-> dive, open it from the list and tap **Edit**. To pull dives off a dive computer
-> instead, choose **Import from Computer** (see [Dive Computers](dive-computer.md)).
+> dive, open it from the list and tap the lock (**Unlock to edit**). To pull dives
+> off a dive computer instead, choose **Import from Computer** (see
+> [Dive Computers](dive-computer.md)).
 
-<!-- screenshot: images/dive-logging/entry-form.png: dive entry form -->
+<!-- screenshot: images/dive-logging/entry-form.png: a new dive's page, ready to edit -->
 
 ## The quick version
 
 You do not have to fill in everything. A useful dive entry takes only a few
 seconds:
 
-1. In the **Dives** tab, tap **Log Dive** &rarr; **Log Dive Manually**.
-2. In the first section, **The Dive**, fill in **Max Depth** and **Bottom Time**.
+1. In the **Dives** tab, tap **Log Dive** &rarr; **Log Dive Manually**. The dive's
+   page opens ready to edit, under the title **Log Dive**.
+2. Tap the pencil on the **Dive** card at the top and fill in **Max Depth** and
+   **Bottom Time**.
 3. Tap **Entry** to set the date and time you went in.
 4. Tap **Site** and pick (or create) the [dive site](dive-sites.md).
 5. Tap **Save**.
@@ -26,64 +29,78 @@ seconds:
 Everything else (gas, conditions, buddies, photos) is optional and can be added
 now or later. The dive number is filled in for you automatically.
 
-## How the dive form is organised
+## Editing a dive
 
-The form is split into collapsible **sections** of labelled rows. This is the
-same layout used across Submersion's editors, so once you learn one form you
-know them all.
+A dive's page is where you read the dive and where you change it. It opens
+**locked**, so nothing changes by accident.
 
-The sections, in order, are:
+1. Tap the lock (**Unlock to edit**) in the bar, or press Cmd+L (Ctrl+L on
+   Windows and Linux). The bar now holds **Cancel**, a title such as
+   *Editing Punta Venado*, and **Save**.
+2. Every card you can change gains a pencil. Tap a card's title row, or its
+   pencil, to open its editor in place; tap **Done** to close it again. On the
+   **Dive** card at the top, use the pencil.
+3. Change as many cards as you like. A dot beside a card's title marks changes
+   not yet saved.
+4. Tap **Save** (or press Cmd+S / Ctrl+S) to write everything at once. **Save**
+   stays greyed out until something has changed.
 
-| Section | What it holds |
-|---------|---------------|
-| **The Dive** | Name and number, entry and exit, depth and time, dive site, dive types, and the profile. Always open. |
-| **Gas & Gear** | Dive mode, tanks and gas mixes, equipment, and weights. |
-| **Conditions** | Water and air temperature, visibility, current, surface conditions, water type, weather. |
-| **Trip** | The [trip](trips.md) and [dive center](buddies-and-dive-centers.md) for this dive, and the operator, boat and captain. |
-| **Buddies** | The people you dived with and their roles. |
-| **Experience** | Star rating, marine-life sightings, notes, and tags. |
-| **Statistics** | Whether this dive counts in your statistics. Opens by itself when the dive is excluded. |
-| **Training Course** | Links the dive to a [course](certifications-and-courses.md). Hidden until added. |
-| **Custom Fields** | Your own named fields. Hidden until added. |
+To leave without saving, tap **Cancel** (or press Esc). If you changed
+something, Submersion asks first (**Discard changes?**), with **Keep editing**
+and **Discard**. It asks the same when you go back, pick another dive in the
+list, switch tabs or quit with changes unsaved. After a save or a cancel the
+dive is locked again. While it is unlocked, the arrows to the previous and next
+dive do nothing.
 
-Each section behaves the same way:
+Cards that Submersion works out or imports, such as **Deco Status**, **Tissue
+Loading** and **Tide**, have no editor. While the dive is unlocked they fade and
+say **Calculated** or **Imported**.
 
-- **Open** sections show every field, with a chevron to collapse them.
-- **Collapsed** sections that contain data show a one-line summary (for example,
-  `Salt Water · 24°C · Good`), so you can see what is inside at a glance.
-- **Collapsed and empty** sections show a faint invitation such as
-  *"Add conditions - water, visibility, weather"*; tap it to open and fill in.
-- A section with an invalid value gets a coloured edge and an issue count, and
-  re-opens automatically if you try to save.
+### Cards that are not on the page yet
 
-When you start a **new** dive, **The Dive** and **Gas & Gear** open first. When
-you edit an existing dive, only **The Dive** opens, and you expand the others as
-you need them.
+A card with nothing in it, or one you hid, is not shown. While the dive is
+unlocked, the **Add** strip under the bar offers each of them as a chip: tap one
+to put its card on the page. A card you hid has a dashed outline. A few chips
+use a shorter or longer name than their card: **Weights** adds the **Weight**
+card, **Species Sightings** the **Species** card, **Media** the
+**Photos & Video** card, and **Altitude** the **Altitude Dive** card.
 
-> [!TIP]
-> The **Training Course** and **Custom Fields** sections are tucked behind an
-> **+ Add** row at the bottom of the form until you need them. Tap **+ Add** to
-> reveal either one.
+A new dive starts with the **Dive**, **Cylinders**, **Buddies** and **Notes**
+cards on the page; the rest wait in the **Add** strip.
 
-## The Dive: depth, time, and site
+### Actions on the whole dive
 
-This section is always open and owns the core facts of the dive.
+Some actions change the dive as a whole rather than one card: **Edit profile**
+and the profile's outliers button on the **Dive Profile** card, and **Delete**,
+**Re-parse raw data**, **Draw a profile** and the like in the dive's menu. They
+work only while the dive is unlocked and has nothing unsaved. On a locked dive
+they are greyed out under **Unlock to use these**; with changes pending, under
+**Save or cancel your changes first**.
 
-The rows, in order:
+## The Dive card: depth, time, and site
+
+The card at the top of the page holds the core facts of the dive. Its editor
+has these rows:
 
 | Row | Notes |
 |-----|-------|
-| **Name** | An optional name for the dive. |
 | **Dive #** | The dive's sequential number. Filled in automatically (see below); editable. |
+| **Name** | An optional name for the dive. |
+| **Site** | The [dive site](dive-sites.md). Tap to pick an existing site or create a new one. |
 | **Entry** | The date and time you entered the water. Tap to pick. |
 | **Exit** | The date and time you left the water. Optional; with both entry and exit set, Submersion fills in **Runtime**. |
-| **Surface interval** | Time on the surface since your previous dive, calculated from the dive before this one. Shown when editing. |
+| **Rating** | A one-to-five star rating for the dive. |
 | **Max Depth** | The deepest point of the dive, in m or ft. |
 | **Avg Depth** | Your average depth over the whole dive. |
-| **Bottom Time** | Time from leaving the surface to the start of your final ascent, in minutes: the descent counts, the ascent and shallow stops do not. |
 | **Runtime** | Total dive time, entry to exit, in minutes. |
-| **Site** | The [dive site](dive-sites.md). Tap to pick an existing site or create a new one. |
-| **Dive Types** | One or more [dive types](#tags-and-dive-types). Picking a site can add types the site usually brings. |
+| **Bottom Time** | Time from leaving the surface to the start of your final ascent, in minutes: the descent counts, the ascent and shallow stops do not. |
+| **Water Temp** | The water temperature. |
+| **Favorite** | Marks the dive as one of your favorites. |
+| **Planned dive** | Marks the dive as one you plan to make. A planned dive has no number until it is logged. |
+
+The dive's types and mode show on this card too; change them on the
+[Details](#details-dive-types-trip-visibility-and-statistics) and
+[Cylinders](#cylinders-dive-mode-tanks-and-gas) cards.
 
 > [!NOTE]
 > **Bottom Time vs. Runtime.** Submersion treats these as two different things.
@@ -137,29 +154,31 @@ If the dive already has **photos** with GPS tags, Submersion can offer to create
 site from that location, or add the coordinates to the site you picked. See
 [Marine Life & Photos](marine-life-and-photos.md) for photo handling.
 
-### The dive profile
-
-The bottom of this section shows the **dive profile**, the depth-over-time
-graph. If the dive came from a computer it already has a profile and shows the
-number of recorded points, with an **Edit Profile** button. A dive logged by hand
-has no profile, but you can tap **Draw a profile** to sketch one. If Submersion spots
-suspicious depth spikes, it surfaces a *"potential outlier"* chip that jumps
-straight into cleanup. Profiles, decompression data, and tissue loading are
-covered in depth on [Dive Profiles & Deco](dive-profiles.md).
-
 > [!TIP]
 > When a dive has a profile, the depth and time rows show a small suggestion with
 > the value calculated from the profile. Tap it to copy that value into the field,
 > which is handy if you typed a rough number and later attached the real data.
 
-## Gas & Gear: tanks, gas, equipment, and weights
+## The Dive Profile card
 
-<!-- screenshot: images/dive-logging/tanks-gas.png: tanks & gas section -->
+The **Dive Profile** card shows the depth-over-time graph. A dive from a
+computer arrives with a profile. A dive logged by hand has none, but you can
+choose **Draw a profile** in the dive's menu to sketch one. **Edit profile** on
+the card's toolbar opens the profile editor. If Submersion spots suspicious
+depth spikes, a warning button with their count appears beside it and opens the
+editor straight into outlier cleanup. On a narrow screen, **3D View** and
+**3D Seascape** move into the toolbar's **More** menu. Profiles, decompression
+data, and tissue loading are covered in depth on
+[Dive Profiles & Deco](dive-profiles.md).
+
+## Cylinders: dive mode, tanks, and gas
+
+<!-- screenshot: images/dive-logging/tanks-gas.png: the Cylinders card open -->
 
 ### Dive mode
 
-At the top, a four-way selector sets the **dive mode**, which changes how
-Submersion calculates oxygen exposure and gas use:
+At the top of the card's editor, a four-way selector sets the **dive mode**,
+which changes how Submersion calculates oxygen exposure and gas use:
 
 | Mode | Full name | Meaning |
 |------|-----------|---------|
@@ -173,13 +192,13 @@ Choosing **CCR** or **SCR** reveals a dedicated settings panel (see
 
 ### Tanks
 
-Each dive starts with one tank. Every tank rests as a compact card showing its
-**Pressure** (start &rarr; end), **Mix**, and **Volume**, with its number and role
-underneath. Tap **Edit** on a card to expand the full editor in place, and **Done**
-to collapse it. Tap **Add Tank** to add another cylinder; remove an extra tank
-with the trash icon (the last tank cannot be removed).
+Each dive starts with one tank. Under **Tanks**, each one rests as a compact row
+showing its number and role over its mix, volume and pressures (start &rarr;
+end). Tap a tank's row to open its editor in place, and **Done** to close it.
+Tap **Add Tank** to add another cylinder; remove an extra tank with the trash
+icon (the last tank cannot be removed).
 
-The expanded tank editor holds:
+The tank editor holds:
 
 | Field | Notes |
 |-------|-------|
@@ -230,7 +249,8 @@ your working ppO₂ limit, 1.4 by default) and **MND** for the mix.
 
 ### Tanks or equipment?
 
-Gas & Gear has two lists that can both hold a cylinder. They do different jobs:
+The **Cylinders** and **Equipment** cards can both hold a cylinder. They do
+different jobs:
 
 | List | What it records | What uses it |
 |------|-----------------|--------------|
@@ -239,20 +259,22 @@ Gas & Gear has two lists that can both hold a cylinder. They do different jobs:
 
 A cylinder in **Equipment** adds no gas data to the dive: adding a Tank item from
 your gear catalog, on its own or through a set, does not create a tank. To get
-graphs and consumption for it, add it under **Tanks** as well. For a cylinder you
+graphs and consumption for it, add it on the **Cylinders** card as well. For a cylinder you
 own, being in both lists is the normal case. The tank copies the cylinder's
 details when you fill it in and does not stay linked, so later changes to the
 cylinder in your catalog do not rewrite past dives.
 
-### Equipment
+## Equipment
 
-Tap **+ Add** to attach individual gear from your [Equipment](equipment.md) locker, or
-**Use Set** to add a saved kit in one go. Once items are listed you can save the
-current selection as a new set with **Save as Set**, or **Clear All**.
+On the **Equipment** card, tap **Add** to attach individual gear from your
+[Equipment](equipment.md) locker, or **Use Set** to add a saved kit in one go.
+Once items are listed you can save the current selection as a new set with
+**Save as Set**, or **Clear All**.
 
-### Weight
+## Weight
 
-Record how much weight you wore. Each entry has an amount and a **type**: Weight
+On the **Weight** card, tap **Add Weight Entry** to record how much weight you
+wore, or **Use preset** to start from a saved set of weights. Each entry has an amount and a **type**: Weight
 Belt, Integrated Weights, Ankle Weights, Trim Weights, Backplate Weights, or
 Mixed/Combined. Tracking weight per dive helps you dial in your buoyancy across
 exposure suits and water types.
@@ -262,22 +284,32 @@ Each weight row can also have an optional **name**, such as "Top pocket" or
 weights of the same type. The name shows before the type on the dive's details,
 is saved with weight presets, and can be searched with `weights[label ~ "pocket"]`.
 
-## Conditions: water, visibility, current, and weather
+## Details: dive types, trip, visibility, and statistics
 
-This section holds **Water Temp**, **Air Temp** and two groups of fields.
+The **Details** card holds the rest of the dive's facts:
 
-### Environment
-
-| Field | Options |
-|-------|---------|
-| **Visibility** | The distance you could see, in your depth units. Submersion describes it as excellent, good, moderate or poor using the **Visibility scale** you choose in [Settings](settings.md) (Tropical by default). |
+| Field | Notes |
+|-------|-------|
+| **Dive Types** | One or more [dive types](#tags-and-dive-types). Picking a site can add types the site usually brings. |
+| **Trip** | The [trip](trips.md) this dive belongs to. If a trip's dates already cover the dive, Submersion suggests it; tap **Use** to accept. |
+| **Dive center** | The [dive center](buddies-and-dive-centers.md) you dived with. |
+| **Operator** / **Boat** / **Captain** | Who ran the dive, the boat you dived from and its skipper, in your own words. As you type, Submersion suggests the names you have used on earlier dives, newest first. Dives imported from MacDive or a UDDF file arrive with these filled in when the source recorded them. |
+| **Training Courses** | Links the dive to a [course](certifications-and-courses.md). |
+| **Visibility** | The distance you could see, in your depth units, as one value or a range. Submersion describes it as excellent, good, moderate or poor using the **Visibility scale** you choose in [Settings](settings.md) (Tropical by default). |
 | **Water Type** | Salt Water, Fresh Water, or Brackish. |
-| **Current Direction** | A compass direction (North, North-East, East, and so on), Variable, or None. |
-| **Current Strength** | None, Light, Moderate, or Strong. |
-| **Swell Height** | Surface swell, in your depth units. |
-| **Surface Conditions** | The sea state in your own words, such as Calm or Choppy. Values you have used before are suggested as you type. |
-| **Altitude** | Height above sea level, for altitude dives. Entering a value warns you when the site is high enough to need altitude-adjusted decompression. |
-| **Entry Method** / **Exit Method** | How you got in and out: Shore Entry, Boat Entry, Back Roll, Front Roll, Giant Stride, Seated Entry, Ladder, Platform, Jetty/Dock, or Other. |
+| **Surface Interval** | Time on the surface since your previous dive, calculated from the dive before this one. Read only. |
+
+Under **Statistics**, two switches control whether the dive counts in your
+[Insights](statistics.md):
+
+- **Exclude from statistics** keeps the dive in your logbook but leaves it out of
+  every statistic, including your dive count.
+- **Exclude from gas statistics** leaves it out of SAC, RMV and gas mix
+  statistics only. Use it when the gas reading is not representative.
+
+## Environment: weather and conditions
+
+The **Environment** card records the surface weather and the conditions you met.
 
 ### Weather
 
@@ -286,9 +318,10 @@ Record surface weather, either by hand or automatically:
 | Field | Notes |
 |-------|-------|
 | **Fetch Weather** | Pulls historical weather for the dive's date and site from the Open-Meteo service. Enabled once the dive has a site with coordinates. |
+| **Air Temp** | The air temperature. |
 | **Humidity** | Relative humidity, as a percentage. |
 | **Wind Speed** / **Wind Direction** | Surface wind, in your wind-speed units and a compass direction. |
-| **Surface Pressure** | Atmospheric pressure in millibars (mbar). Standard at sea level is 1013 mbar. |
+| **Surface Pressure** | Atmospheric pressure in millibars (mbar). Standard at sea level is 1013 mbar. It is kept on the **Altitude Dive** card, and this row takes you there. |
 | **Cloud Cover** | Clear, Partly Cloudy, Mostly Cloudy, or Overcast. |
 | **Precipitation** | None, Drizzle, Light Rain, Rain, Heavy Rain, Snow, Sleet, or Hail. |
 | **Weather Description** | A free-text note. |
@@ -298,23 +331,26 @@ Record surface weather, either by hand or automatically:
 > plus an internet connection. If weather is already filled in, Submersion asks
 > before replacing it with the fetched values.
 
-## Trip and dive center
+### Dive conditions
 
-Open the **Trip** section to attach the dive to a [Trip](trips.md) and a
-[dive center](buddies-and-dive-centers.md). If a trip's dates already cover this
-dive's date, Submersion suggests it for you; tap **Use** to accept. The
-trip's date range and the dive center's location appear as captions beneath each
-row.
+| Field | Options |
+|-------|---------|
+| **Current Direction** | A compass direction (North, North-East, East, and so on), Variable, or None. |
+| **Current Strength** | None, Light, Moderate, or Strong. |
+| **Swell Height** | Surface swell, in your depth units. |
+| **Surface Conditions** | The sea state in your own words, such as Calm or Choppy. Values you have used before are suggested as you type. |
+| **Entry Method** / **Exit Method** | How you got in and out: Shore Entry, Boat Entry, Back Roll, Front Roll, Giant Stride, Seated Entry, Ladder, Platform, Jetty/Dock, or Other. |
 
-Below the dive center, **Operator**, **Boat** and **Captain** record who ran the
-dive, the boat you dived from and its skipper, in your own words. As you type,
-Submersion suggests the names you have used on earlier dives, newest first.
-Dives imported from MacDive or a UDDF file arrive with these filled in when the
-source recorded them.
+## Altitude Dive
+
+For a dive above sea level, tap **Altitude** in the **Add** strip to add the
+**Altitude Dive** card. It records the **Altitude** (height above sea level) and the
+**Surface Pressure**. Entering an altitude warns you when the site is high
+enough to need altitude-adjusted decompression.
 
 ## Buddies
 
-Open the **Buddies** section and add the people you dived with from your
+On the **Buddies** card, tap **Add** to pick the people you dived with from your
 [Buddies](buddies-and-dive-centers.md) list. Each buddy carries a **role** you can
 change by tapping it:
 
@@ -328,31 +364,19 @@ change by tapping it:
 - **Support Diver**
 - **Safety Diver**
 
-You can add your own roles in **Settings > Manage > Dive Roles**.
+You can add your own roles in **Settings > Manage > Dive Roles**. Use **Set my
+role** to record your own role on the dive.
 
-## Experience: rating, sightings, notes, and tags
+## Species, notes, and tags
 
-| Field | Notes |
-|-------|-------|
-| **Rating** | A one-to-five star rating for the dive. |
-| **Species** | Log species you saw, with a count and notes per sighting. Sightings link to the species catalogue (see [Marine Life & Photos](marine-life-and-photos.md)). |
+| Card | What it holds |
+|------|---------------|
+| **Species** | The species you saw, with a count and notes per sighting. Tap **Add** to record one. Sightings link to the species catalogue (see [Marine Life & Photos](marine-life-and-photos.md)). |
 | **Notes** | Free-text notes about the dive. |
 | **Tags** | Free-form labels (for example `shore`, `training`, `photography`) you can later filter and search by. See [Tags and dive types](#tags-and-dive-types). |
 
-Marking a dive as a **favorite** and managing its photos are handled from the
-dive's detail view; see [Marine Life & Photos](marine-life-and-photos.md) for media.
-
-## Statistics: leaving a dive out
-
-The **Statistics** section controls whether a dive counts in your
-[Insights](statistics.md):
-
-- **Exclude from statistics** keeps the dive in your logbook but leaves it out of
-  every statistic, including your dive count.
-- **Exclude from gas statistics** leaves it out of SAC, RMV and gas mix
-  statistics only. Use it when the gas reading is not representative.
-
-When either is on, the section's summary reads **Excluded** or **Gas excluded**.
+Photos and videos are linked on the **Photos & Video** card; see
+[Marine Life & Photos](marine-life-and-photos.md).
 
 ## Tags and dive types
 
@@ -370,21 +394,31 @@ own in **Settings > Manage > Dive Types** with a name and an optional short name
 Built-in names cannot be changed. For each type you can choose whether its badge
 shows in the dive list and in the dive's header.
 
+Tap the star next to a type to make it a **favorite**. Favorites come first,
+under their own heading, in the dive types checklist, and first in the dive type
+filter and the connections search. You can star a type on the Dive Types page or
+right in the checklist; a type starred in the open checklist moves up the next
+time you open it. Each diver profile keeps its own favorites. Hiding a built-in
+type wins over its star: a hidden type stays out of the checklist and keeps its
+usual place in the filter and the search. The one exception is a dive that
+already has a hidden type: its checklist still offers that type, and lists it
+with your favorites if you starred it.
+
 ## Custom fields
 
 Need to record something Submersion does not have a field for, such as a
-permit number, camera settings, or a guide's name? Tap **+ Add** at the bottom of the form,
-then **Custom Fields**. Each custom field is a **name** and a **value** (for
-example `Camera Settings` = `f/8 ISO400`). Add as many as you like, reorder them by
-dragging, and Submersion remembers the names you have used before to suggest them
-on future dives.
+permit number, camera settings, or a guide's name? Add the **Custom Fields**
+card from the **Add** strip. Each custom field is a **name** and a **value** (for
+example `Camera Settings` = `f/8 ISO400`); tap **Add Field** for each. Add as many
+as you like, reorder them by dragging, and Submersion remembers the names you have
+used before to suggest them on future dives.
 
 ## Technical and rebreather diving
 
 Submersion records the data tech divers expect. Open-circuit divers can carry
 multiple **stage** and **deco** cylinders (see [Tanks](#tanks) above) and log
 **trimix** mixes with helium, MOD, and MND. Choosing **CCR** or **SCR** as the
-dive mode reveals a settings panel.
+dive mode on the **Cylinders** card reveals a settings panel.
 
 > [!NOTE]
 > **Decompression detail lives with the profile.** Gradient factors (GF), the
@@ -392,7 +426,7 @@ dive mode reveals a settings panel.
 > ([CNS](glossary.md), central-nervous-system oxygen toxicity, and
 > [OTU](glossary.md), oxygen tolerance units) come from your dive computer or
 > dive plan and are shown on [Dive Profiles & Deco](dive-profiles.md) rather than
-> typed into this form. The dive form captures the dive's facts; the profile page
+> typed in by hand. The cards you edit capture the dive's facts; the profile
 > does the decompression analysis.
 
 ### CCR settings (closed-circuit rebreather)
@@ -441,14 +475,14 @@ heart rate and GPS.
   probable or possible duplicate and lets you merge the new data (such as a
   heart-rate trace) into the existing dive instead of creating a second copy.
 
-You can open any imported dive in this same form to correct or add details by hand.
+You can open any imported dive and unlock it to correct or add details by hand.
 
 ## The dive list
 
 <!-- screenshot: images/dive-logging/dive-list-table.png: dive list, table view -->
 
-The **Dives** tab lists your whole log. Tap a dive to open its detail view; tap
-**Edit** there to return to the form.
+The **Dives** tab lists your whole log. Tap a dive to open its page; tap the
+lock there (**Unlock to edit**) to change it.
 
 <!-- screenshot: images/dive-logging/dive-detail.png: dive detail page -->
 
@@ -544,7 +578,7 @@ mode, then tap dives to select them (or choose a whole date range with
 |--------|--------------|
 | **Delete** | Removes the selected dives, with an **Undo** option for a few seconds. |
 | **Export Selected** | Saves them as a **PDF Logbook**, **CSV** spreadsheet, or **UDDF** (Universal Dive Data Format) file. See [Import / Export](import-export.md). |
-| **Edit Selected** | Opens the dive form for all of them at once, titled **Edit N dives**. Each field has a switch: turn on the ones to change, and only those are written. Lists such as tags, gear and tanks can be added to, removed from, or replaced; notes can be set or appended. **Apply** asks you to confirm. |
+| **Edit Selected** | Opens one page for all of them at once, titled **Edit N dives**. Each field has a switch: turn on the ones to change, and only those are written. Lists such as tags, gear and tanks can be added to, removed from, or replaced; notes can be set or appended. **Save** asks you to confirm. |
 | **Combine** | Merges dives that are really one dive recorded by different computers. See [Dive Computers](dive-computer.md). |
 
 ### Customising the table columns

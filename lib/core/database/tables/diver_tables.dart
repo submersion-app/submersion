@@ -512,6 +512,13 @@ class DiverSettings extends Table {
   // dive profile (issue #4530).
   BoolColumn get defaultShowCounterdiffusion =>
       boolean().withDefault(const Constant(false))();
+  // v370: default visibility for the net buoyancy line on the dive profile
+  // (issue #4593).
+  BoolColumn get defaultShowBuoyancy =>
+      boolean().withDefault(const Constant(false))();
+  // v371: the dive types this diver starred to list first in the pickers, a
+  // sorted JSON list of ids (issue #4413). Null means none.
+  TextColumn get favouriteDiveTypeIds => text().nullable()();
   // v163: whether synthesized ("(est.)") tank pressure lines are drawn on the
   // profile chart at all (issue #731). Defaults to true, preserving the
   // behavior estimates shipped with. Ignored for coverage for the reason
@@ -673,6 +680,19 @@ class DiverSettings extends Table {
       real().withDefault(const Constant(1.0 / 3.0))();
   RealColumn get plannerWalkSpeedMps =>
       real().withDefault(const Constant(0.8))();
+
+  /// Planner default CMF supply injection rate, surface L/min (v374, issue
+  /// #4660; each loop default is the figure every plan used before).
+  RealColumn get plannerScrInjectionRate =>
+      // Drift copies a default's expression verbatim into database.g.dart, so
+      // these three are literals mirroring ScrCalculator's defaults.
+      real().withDefault(const Constant(12.0))();
+
+  /// Planner default diver VO2 on a CMF loop, surface L/min.
+  RealColumn get plannerScrVo2 => real().withDefault(const Constant(1.3))();
+
+  /// Planner default diver VO2 on a passive (pSCR) loop, surface L/min.
+  RealColumn get plannerPscrVo2 => real().withDefault(const Constant(0.72))();
   // v307: planner air-break and turn-pressure global defaults (issue
   // #3552). Nullable, unlike the v304 columns above: null means "no
   // policy"/"no rule", matching today's behaviour for every diver who has

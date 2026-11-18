@@ -14,12 +14,34 @@ import 'package:submersion/l10n/l10n_extension.dart';
 class BuddySignaturesSection extends ConsumerWidget {
   final String diveId;
 
-  const BuddySignaturesSection({super.key, required this.diveId});
+  /// The dive's buddies and their signatures as a sitting on the dive has
+  /// them (issue #4527); null for each reads the stored ones.
+  final List<BuddyWithRole>? buddies;
+  final List<Signature>? signatures;
+
+  /// Takes a signature just drawn: the open card's sitting holds it until
+  /// Save (issue #4527). Null asks no buddy to sign, as on a locked dive.
+  final void Function(BuddyWithRole bwr, List<List<Offset>> strokes, Size size)?
+  onCaptured;
+
+  const BuddySignaturesSection({
+    super.key,
+    required this.diveId,
+    this.buddies,
+    this.signatures,
+    this.onCaptured,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final buddiesAsync = ref.watch(buddiesForDiveProvider(diveId));
-    final signaturesAsync = ref.watch(buddySignaturesForDiveProvider(diveId));
+    final heldBuddies = buddies;
+    final heldSignatures = signatures;
+    final buddiesAsync = heldBuddies != null
+        ? AsyncValue.data(heldBuddies)
+        : ref.watch(buddiesForDiveProvider(diveId));
+    final signaturesAsync = heldSignatures != null
+        ? AsyncValue.data(heldSignatures)
+        : ref.watch(buddySignaturesForDiveProvider(diveId));
 
     return buddiesAsync.when(
       data: (buddies) {
@@ -116,7 +138,8 @@ class BuddySignaturesSection extends ConsumerWidget {
               return BuddySignatureCard(
                 buddyWithRole: bwr,
                 signature: sig,
-                onRequestSignature: () => _requestSignature(context, ref, bwr),
+                requestShown: onCaptured != null,
+                onRequestSignature: () => _requestSignature(context, bwr),
                 onViewSignature: sig != null
                     ? () => _viewSignature(context, sig)
                     : null,
@@ -137,42 +160,13 @@ class BuddySignaturesSection extends ConsumerWidget {
     );
   }
 
-  void _requestSignature(
-    BuildContext context,
-    WidgetRef ref,
-    BuddyWithRole bwr,
-  ) {
-    // Captured before the sheet closes: the save outlives it, and reporting
-    // a failure needs a messenger that is still in the tree.
-    final messenger = ScaffoldMessenger.of(context);
-    final l10n = context.l10n;
-
+  void _requestSignature(BuildContext context, BuddyWithRole bwr) {
+    final captured = onCaptured;
+    if (captured == null) return;
     showBuddySignatureRequestSheet(
       context: context,
       buddyWithRole: bwr,
-      onSave: (strokes, canvasSize) async {
-        final notifier = ref.read(buddySignatureSaveNotifierProvider.notifier);
-        // The strokes are in the capture canvas's own coordinates, so the
-        // PNG is rendered at that exact size. A hardcoded size cropped every
-        // signature drawn on a canvas wider than it (issue #1358).
-        final signature = await notifier.saveFromStrokes(
-          diveId: diveId,
-          buddyId: bwr.buddy.id,
-          buddyName: bwr.buddy.name,
-          role: bwr.primaryRole.id,
-          strokes: strokes,
-          width: canvasSize.width,
-          height: canvasSize.height,
-        );
-        // A null result means the save threw. Nothing watches the notifier's
-        // AsyncValue, so without this the diver is shown an unchanged
-        // "Request" button and no reason for it (issue #1358).
-        if (signature == null) {
-          messenger.showSnackBar(
-            SnackBar(content: Text(l10n.signatures_error_saveFailed)),
-          );
-        }
-      },
+      onSave: (strokes, canvasSize) async => captured(bwr, strokes, canvasSize),
     );
   }
 

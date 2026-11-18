@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
@@ -85,13 +88,58 @@ void main() {
           'full-frame original is tens of megabytes of bitmap',
     );
     // 400 logical longest side x 3.0 dpr x 2 (the zoom headroom PhotoView's
-    // maxScale needs) = 2400.
+    // maxScale needs) = 2400, on the image's LONG edge (#4699): a width-only
+    // bound let a portrait 50 MP photo decode at 5736 x 7648 on a phone,
+    // nearly its full size, while a landscape one got 5736 x 4302.
     expect((provider as ResizeImage).width, 2400);
+    expect(provider.height, 2400);
     expect(
-      provider.height,
-      isNull,
-      reason: 'both dimensions would decode to exact bounds and distort',
+      provider.policy,
+      ResizeImagePolicy.fit,
+      reason: 'exact bounds on both dimensions would distort the photo',
     );
+  });
+
+  testWidgets('a full-screen file decodes on its long edge too (#4699)', (
+    tester,
+  ) async {
+    useViewport(tester);
+    final dir = Directory.systemTemp.createTempSync('decode_bounds');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File(p.join(dir.path, 'photo.png'))
+      ..writeAsBytesSync(onePixelPng());
+    final base = await getBaseOverrides();
+    final resolver = FakeLocalFileResolver(FileData(file: file));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...base,
+          mediaSourceResolverRegistryProvider.overrideWithValue(
+            MediaSourceResolverRegistry({
+              MediaSourceType.localFile: resolver,
+              MediaSourceType.platformGallery: resolver,
+            }),
+          ),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: MediaItemView(item: testMediaItem(), fit: BoxFit.contain),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    final provider =
+        tester.widget<Image>(find.byType(Image)).image as ResizeImage;
+    expect(provider.width, 2400);
+    expect(provider.height, 2400);
+    expect(provider.policy, ResizeImagePolicy.fit);
+    expect(provider.imageProvider, FileImage(file));
   });
 
   testWidgets('an explicit targetSize still wins over the viewport bound', (
@@ -105,8 +153,10 @@ void main() {
       targetSize: const Size(200, 200),
     );
 
-    // 200 x 3.0 dpr = 600, unchanged by the viewport fallback.
+    // 200 x 3.0 dpr = 600, unchanged by the viewport fallback. Width only:
+    // a tile covers its square, so its short edge must not be shrunk.
     expect((image.image as ResizeImage).width, 600);
+    expect((image.image as ResizeImage).height, isNull);
   });
 
   testWidgets('a sizeless thumbnail decodes to the default thumbnail target', (

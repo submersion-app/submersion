@@ -1,8 +1,27 @@
+import 'dart:math' as math;
+
 import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/matching/match_candidate.dart';
 import 'package:submersion/features/dive_sites/domain/matching/match_thresholds.dart';
 import 'package:submersion/features/dive_sites/domain/matching/site_match_outcome.dart';
+
+/// How far a map-placed researched record is offered from: its position is
+/// only good enough to name the dive (wider sources design, section 5).
+const double kMapPlacedReachMeters = 2000;
+
+/// How far from the dive a map-placed record is in range:
+/// [kMapPlacedReachMeters], or the outer radius when that is wider. The
+/// matching service reads the catalogue out to it, so the two agree.
+double mapPlacedReachMeters(MatchThresholds thresholds) =>
+    math.max(thresholds.outerRadiusMeters, kMapPlacedReachMeters);
+
+/// How far from the dive [candidate] is in range: the outer radius, or
+/// [mapPlacedReachMeters] for a map-placed record.
+double reachMeters(MatchCandidate candidate, MatchThresholds thresholds) =>
+    candidate.isMapPlaced
+    ? mapPlacedReachMeters(thresholds)
+    : thresholds.outerRadiusMeters;
 
 /// Ranks [candidates] by great-circle distance from [point], nearest first.
 /// Computed once and shared by the matcher decision and the UI candidate list,
@@ -18,7 +37,8 @@ List<RankedCandidate> rankCandidates(
 }
 
 /// The confidence rule over pre-ranked candidates, in order:
-/// 1. Keep candidates within the outer radius. None -> [NoMatch].
+/// 1. Keep candidates within the outer radius ([reachMeters]: a map-placed
+///    record reaches further). None -> [NoMatch].
 /// 2. Pool selection: if any existing site is within the inner radius, the
 ///    auto-decision considers only those (existing-site precedence — never
 ///    auto-create a bundled duplicate when the user already has a site here);
@@ -32,23 +52,31 @@ List<RankedCandidate> rankCandidates(
 /// 3. The nearest in the pool is a clear [AutoMatch] when it has no in-pool
 ///    competitor, or the runner-up is farther by at least the separation
 ///    margin. Otherwise -> [Suggested] (all in-range candidates, both pools).
+///    A researched record is never an [AutoMatch]: when it is the nearest
+///    in the pool the diver chooses ([Suggested]). It still counts as a
+///    competitor for the runner-up rule, unless it is map-placed: a
+///    map-placed record is never in the pool and never a competitor, and
+///    is listed whenever anything is [Suggested].
 SiteMatchOutcome matchRanked(
   List<RankedCandidate> ranked,
   MatchThresholds thresholds,
 ) {
   final inRange = ranked
-      .where((r) => r.distanceMeters <= thresholds.outerRadiusMeters)
+      .where((r) => r.distanceMeters <= reachMeters(r.candidate, thresholds))
       .toList();
   if (inRange.isEmpty) return const NoMatch();
+  // A map-placed record is offered, and has no say in the automatic pick:
+  // it is never in the pool and never a competitor.
+  final contenders = inRange.where((r) => !r.candidate.isMapPlaced).toList();
 
-  final innerExisting = inRange
+  final innerExisting = contenders
       .where(
         (r) =>
             r.candidate.isExisting &&
             r.distanceMeters <= thresholds.innerRadiusMeters,
       )
       .toList();
-  final innerAny = inRange
+  final innerAny = contenders
       .where((r) => r.distanceMeters <= thresholds.innerRadiusMeters)
       .toList();
   final innerSites = innerAny.where((r) => !r.candidate.isRegister).toList();
@@ -61,10 +89,11 @@ SiteMatchOutcome matchRanked(
   if (pool.isEmpty) return Suggested(inRange);
 
   final nearest = pool.first;
+  if (nearest.candidate.isResearched) return Suggested(inRange);
   if (nearest.candidate.isRegister) {
     // The pool is register records only. A dive site just outside the
     // inner radius is still too near to say which of the two was dived.
-    final siteCloseBehind = inRange.any(
+    final siteCloseBehind = contenders.any(
       (r) =>
           !r.candidate.isRegister &&
           (r.distanceMeters - nearest.distanceMeters) <

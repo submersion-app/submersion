@@ -277,7 +277,8 @@ final Map<String, ConflictField> siteTripFields = {
   ),
   'linkMode': ConflictField(
     (l) => l.settings_conflict_field_linkMode,
-    FieldKind.shortText,
+    FieldKind.enumValue,
+    enumLabel: navTrackLinkModeLabeler,
   ),
   'liveaboardName': ConflictField(
     (l) => TripField.liveaboardName.localizedDisplayName(l),
@@ -286,6 +287,10 @@ final Map<String, ConflictField> siteTripFields = {
   'location': ConflictField(
     (l) => TripField.location.localizedDisplayName(l),
     FieldKind.shortText,
+  ),
+  'logo': ConflictField(
+    (l) => l.settings_conflict_field_logo,
+    FieldKind.opaque,
   ),
   'lowTideHeight': ConflictField(
     (l) => l.settings_conflict_field_lowTideHeight,

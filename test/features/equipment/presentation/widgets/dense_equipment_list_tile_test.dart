@@ -11,8 +11,10 @@ import 'package:submersion/features/equipment/domain/entities/service_schedule.d
 import 'package:submersion/features/equipment/presentation/providers/condition_badge_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/dense_equipment_list_tile.dart';
+import 'package:submersion/shared/widgets/record_list_chevron.dart';
 
 import '../../../../helpers/test_app.dart';
+import '../../../../helpers/record_chevron_expectations.dart';
 
 EquipmentItem _makeItem({
   String id = 'test-id',
@@ -271,5 +273,26 @@ void main() {
       await tester.tap(find.byType(InkWell));
       expect(tapped, isTrue);
     });
+  });
+
+  testWidgets('chevron ends one row padding from the edge (#4639)', (
+    tester,
+  ) async {
+    final item = _makeItem();
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          equipmentRollupClockProvider.overrideWith((ref) async => {}),
+        ],
+        child: DenseEquipmentListTile(item: item, onTap: () {}),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expectChevronAtEndPadding(
+      tester,
+      bounds: tester.getRect(find.byType(DenseEquipmentListTile)),
+      padding: kRecordRowDenseHorizontalPadding,
+    );
   });
 }

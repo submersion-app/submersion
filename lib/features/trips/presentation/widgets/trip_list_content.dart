@@ -56,6 +56,7 @@ import 'package:submersion/features/trips/presentation/helpers/trip_list_rows.da
 import 'package:submersion/features/trips/presentation/widgets/side_trip_indent.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_country_flags.dart';
 import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
+import 'package:submersion/shared/widgets/record_list_chevron.dart';
 
 /// Content widget for the trip list, used in master-detail layout.
 final _log = LoggerService.forClass(TripListContent);
@@ -1124,132 +1125,135 @@ class TripListTile extends ConsumerWidget {
         color: isSelected
             ? theme.colorScheme.primaryContainer.withValues(alpha: 0.5)
             : null,
-        child: ListTile(
-          onTap: onTap,
-          // ListTile's Material 3 defaults resolve the title to bodyLarge and
-          // the subtitle to bodyMedium. The detailed dive and site cards are
-          // hand-rolled and ask for titleMedium/bodyMedium explicitly, so the
-          // roles are restated here to keep all three lists on the same text
-          // theme roles. Theme presets differ between the title and body roles
-          // (console uses a monospace family for title roles only, minimalist
-          // uses w500 for title roles and w300 for body roles), so inheriting
-          // the default renders trip titles in a different font from the rest
-          // of the app's lists.
-          titleTextStyle: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-          subtitleTextStyle: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-          leading: SelectionLeading(
-            isSelectionMode: isSelectionMode,
-            isChecked: isChecked,
-            onChanged: onCheckChanged,
-            child: Consumer(
-              builder: (context, ref, _) {
-                final accent = resolveFeatureAccent(
-                  context,
-                  ref,
-                  surface: AccentSurface.list,
-                  featureId: 'trips',
-                );
-                return CircleAvatar(
-                  backgroundColor:
-                      accent?.withValues(alpha: 0.15) ??
-                      theme.colorScheme.primaryContainer,
-                  child: Icon(
-                    trip.isLiveaboard ? Icons.sailing : Icons.flight_takeoff,
-                    color: accent ?? theme.colorScheme.onPrimaryContainer,
-                  ),
-                );
-              },
+        child: RecordListChevronOverlay(
+          child: ListTile(
+            onTap: onTap,
+            contentPadding: kRecordListTileContentPadding,
+            // ListTile's Material 3 defaults resolve the title to bodyLarge and
+            // the subtitle to bodyMedium. The detailed dive and site cards are
+            // hand-rolled and ask for titleMedium/bodyMedium explicitly, so the
+            // roles are restated here to keep all three lists on the same text
+            // theme roles. Theme presets differ between the title and body roles
+            // (console uses a monospace family for title roles only, minimalist
+            // uses w500 for title roles and w300 for body roles), so inheriting
+            // the default renders trip titles in a different font from the rest
+            // of the app's lists.
+            titleTextStyle: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
             ),
-          ),
-          title: Row(
-            children: [
-              Expanded(
-                // The flags ride inline after the name's last word, so a name
-                // that wraps keeps them on its last line (issue #4426). With
-                // no flags to show the title stays plain text.
-                child: tripHasFlags(ref, trip.id)
-                    ? Text.rich(
-                        TextSpan(
-                          text: trip.name,
-                          children: [
-                            WidgetSpan(
-                              alignment: PlaceholderAlignment.middle,
-                              child: TripCountryFlags(
-                                tripId: trip.id,
-                                maxFlags: 3,
-                                gap: 6,
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                    : Text(trip.name),
+            subtitleTextStyle: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            leading: SelectionLeading(
+              isSelectionMode: isSelectionMode,
+              isChecked: isChecked,
+              onChanged: onCheckChanged,
+              child: Consumer(
+                builder: (context, ref, _) {
+                  final accent = resolveFeatureAccent(
+                    context,
+                    ref,
+                    surface: AccentSurface.list,
+                    featureId: 'trips',
+                  );
+                  return CircleAvatar(
+                    backgroundColor:
+                        accent?.withValues(alpha: 0.15) ??
+                        theme.colorScheme.primaryContainer,
+                    child: Icon(
+                      trip.isLiveaboard ? Icons.sailing : Icons.flight_takeoff,
+                      color: accent ?? theme.colorScheme.onPrimaryContainer,
+                    ),
+                  );
+                },
               ),
-              if (showSharedBadge) ...[
-                const SizedBox(width: 6),
-                Tooltip(
-                  message: context.l10n.accessibility_label_sharedWithProfiles,
-                  child: Icon(
-                    Icons.people_outline,
-                    size: 16,
-                    color: theme.colorScheme.primary,
+            ),
+            title: Row(
+              children: [
+                Expanded(
+                  // The flags ride inline after the name's last word, so a name
+                  // that wraps keeps them on its last line (issue #4426). With
+                  // no flags to show the title stays plain text.
+                  child: tripHasFlags(ref, trip.id)
+                      ? Text.rich(
+                          TextSpan(
+                            text: trip.name,
+                            children: [
+                              WidgetSpan(
+                                alignment: PlaceholderAlignment.middle,
+                                child: TripCountryFlags(
+                                  tripId: trip.id,
+                                  maxFlags: 3,
+                                  gap: 6,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : Text(trip.name),
+                ),
+                if (showSharedBadge) ...[
+                  const SizedBox(width: 6),
+                  Tooltip(
+                    message:
+                        context.l10n.accessibility_label_sharedWithProfiles,
+                    child: Icon(
+                      Icons.people_outline,
+                      size: 16,
+                      color: theme.colorScheme.primary,
+                    ),
                   ),
+                ],
+              ],
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Date range takes the subtitle role from the ListTile above,
+                // matching the dive card's date line.
+                Text(
+                  '${units.formatDate(trip.startDate)} - ${units.formatDate(trip.endDate)}',
+                ),
+                if (trip.subtitle != null)
+                  Text(
+                    trip.subtitle!,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                const SizedBox(height: 4),
+                // A Wrap, not a Row: the runtime drops onto its own line when a
+                // narrow tile, or the checkbox column in selection mode, leaves
+                // too little width for both.
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 4,
+                  children: [
+                    CardIconLabel(
+                      icon: Icons.scuba_diving,
+                      text: context.l10n.trips_list_tile_diveCount(
+                        tripWithStats.diveCount,
+                      ),
+                      color: theme.colorScheme.primary,
+                    ),
+                    if (tripWithStats.totalRuntime > 0)
+                      CardIconLabel(
+                        icon: Icons.timer,
+                        text: tripWithStats.formattedRuntime,
+                        color: theme.colorScheme.primary,
+                      ),
+                    if (nestingNote != null)
+                      CardIconLabel(
+                        icon: Icons.account_tree_outlined,
+                        text: nestingNote!,
+                        color: theme.colorScheme.primary,
+                      ),
+                  ],
                 ),
               ],
-            ],
+            ),
+            isThreeLine: true,
           ),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Date range takes the subtitle role from the ListTile above,
-              // matching the dive card's date line.
-              Text(
-                '${units.formatDate(trip.startDate)} - ${units.formatDate(trip.endDate)}',
-              ),
-              if (trip.subtitle != null)
-                Text(
-                  trip.subtitle!,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              const SizedBox(height: 4),
-              // A Wrap, not a Row: the runtime drops onto its own line when a
-              // narrow tile, or the checkbox column in selection mode, leaves
-              // too little width for both.
-              Wrap(
-                spacing: 12,
-                runSpacing: 4,
-                children: [
-                  CardIconLabel(
-                    icon: Icons.scuba_diving,
-                    text: context.l10n.trips_list_tile_diveCount(
-                      tripWithStats.diveCount,
-                    ),
-                    color: theme.colorScheme.primary,
-                  ),
-                  if (tripWithStats.totalRuntime > 0)
-                    CardIconLabel(
-                      icon: Icons.timer,
-                      text: tripWithStats.formattedRuntime,
-                      color: theme.colorScheme.primary,
-                    ),
-                  if (nestingNote != null)
-                    CardIconLabel(
-                      icon: Icons.account_tree_outlined,
-                      text: nestingNote!,
-                      color: theme.colorScheme.primary,
-                    ),
-                ],
-              ),
-            ],
-          ),
-          trailing: const Icon(Icons.chevron_right),
-          isThreeLine: true,
         ),
       ),
     );

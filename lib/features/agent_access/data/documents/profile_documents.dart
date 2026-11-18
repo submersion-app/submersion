@@ -74,6 +74,9 @@ const kSettingUnitKeys = <String, String>{
   'planner_best_mix_end_meters': 'planner_best_mix_end_m',
   'planner_deviation_depth_delta': 'planner_deviation_depth_delta_m',
   'planner_walk_speed_mps': 'planner_walk_speed_m_s',
+  'planner_scr_injection_rate': 'planner_scr_injection_rate_l_min',
+  'planner_scr_vo2': 'planner_scr_vo2_l_min',
+  'planner_pscr_vo2': 'planner_pscr_vo2_l_min',
   'planner_reserve_pressure': 'planner_reserve_pressure_bar',
 };
 

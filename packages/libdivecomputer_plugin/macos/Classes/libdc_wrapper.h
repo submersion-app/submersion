@@ -293,7 +293,7 @@ typedef struct {
     double workpressure;       // bar
     double beginpressure;      // bar
     double endpressure;        // bar
-    unsigned int usage;        // dc_usage_t (0=none, 1=oxygen, 2=diluent, 3=sidemount)
+    unsigned int usage;        // dc_usage_t (0=none, 1=oxygen, 2=diluent, 3=sidemount, 4=Avelo Hydrotank)
     unsigned int serial;       // air-integration transmitter serial, 0 when not reported
 } libdc_tank_t;
 
@@ -444,6 +444,10 @@ int libdc_download_run(
 
 // Cancel a running download (thread-safe).
 void libdc_download_cancel(libdc_download_session_t *session);
+
+// Whether libdc_download_cancel has been called on this session (thread-safe).
+// Lets a transport stop a connect wait that runs before libdc_download_run.
+int libdc_download_is_cancelled(const libdc_download_session_t *session);
 
 // After libdc_download_run: the descriptor product and model the device
 // reported about itself, when it differs from the one the download was

@@ -32,7 +32,10 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/di
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_text_sections.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_tide_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_health_section.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_profile_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_card_presence.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_profile_card_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_route_links_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_edit_cards.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_weight_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_safety_summary_section.dart';
@@ -45,10 +48,13 @@ import 'package:submersion/features/nav_track/presentation/widgets/nav_track_sec
 import 'package:submersion/features/safety/domain/services/altitude_flag.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_fade.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
-import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/record_editing/record_fold_pencil.dart';
 import 'package:submersion/shared/widgets/section_fold.dart';
+
+part 'dive_detail_section_list_content.dart';
 
 /// The configurable sections of the dive detail page, in the diver's order.
 ///
@@ -75,6 +81,12 @@ import 'package:submersion/shared/widgets/section_fold.dart';
 ///
 /// [ResponsiveSectionPair] then decides row-vs-stacked from its own measured
 /// width, so narrow panes stay stacked and unchanged.
+///
+/// In a row both halves end level. The card that comes straight after a pair
+/// is laid out with it, and moves up into the space under the shorter half
+/// when it fits there at half width, unless it is one of
+/// [kDiveDetailFullWidthSections] or places its own gap (issue #4583). While
+/// a card is being edited, that card stays where it is.
 class DiveDetailSectionList extends ConsumerWidget {
   const DiveDetailSectionList({
     super.key,
@@ -121,13 +133,29 @@ class DiveDetailSectionList extends ConsumerWidget {
     // gained something to show must not appear above an editor and push it
     // down the page. The cards still draw the dive as it is now.
     final presence = edit?.layoutRecord ?? dive;
+    // A card with no editor draws the dive as stored, and decides from it
+    // whether it shows, for the whole sitting: a site, date or depth typed
+    // into a card must not rework a calculated card before Save, nor bring
+    // one in or take one out (issue #4527, plan 4).
+    final stored = edit?.session?.stored ?? dive;
+
+    // A gauge dive leaves out the cards about gas. With editing offered, a
+    // card with no editor asks the stored dive, so a mode picked in a
+    // sitting does not take one away before Save; the Cylinders card asks
+    // its own emptiness, which counts a gauge dive, so it can be reached
+    // from the Add strip to change the mode back (issue #4527, plan 5).
+    bool gaugeHides(DiveDetailSectionId id) {
+      if (!id.hiddenInGaugeMode) return false;
+      if (edit == null) return dive.isGauge;
+      if (diveEditCards.containsKey(id)) return false;
+      return stored.isGauge;
+    }
 
     // Visible sections in configured order, minus gauge-hidden ones.
     final visible = [
       for (final section in sections)
-        if (section.shownFor(gauge: dive.isGauge) ||
-            (added.contains(section.id.name) &&
-                !(dive.isGauge && section.id.hiddenInGaugeMode)))
+        if ((section.visible || added.contains(section.id.name)) &&
+            !gaugeHides(section.id))
           section.id,
     ];
     final visibleIds = visible.toSet();
@@ -139,6 +167,18 @@ class DiveDetailSectionList extends ConsumerWidget {
     final children = <Widget>[];
     final consumed = <DiveDetailSectionId>{};
 
+    // A pair is held back until the card after it is known, so that card can
+    // move up into the space under the shorter half (issue #4583). Anything
+    // else that comes next puts the pair down first, as it was.
+    Widget Function({Widget? slot})? pendingPair;
+    void flushPair() {
+      final held = pendingPair;
+      if (held == null) return;
+      pendingPair = null;
+      _addSectionGap(children, layout);
+      children.add(held());
+    }
+
     for (final id in visible) {
       // The trailing half of a pair already rendered at the leading half's
       // slot.
@@ -146,9 +186,9 @@ class DiveDetailSectionList extends ConsumerWidget {
 
       final pair = layout.pairsSections ? diveDetailSectionPairFor(id) : null;
       if (pair != null && visibleIds.contains(pair.partnerOf(id)!)) {
-        final cards = _buildPairCards(pair, ref, open, presence);
+        final cards = _buildPairCards(pair, ref, open, presence, stored, edit);
         if (cards != null) {
-          _addSectionGap(children, layout);
+          flushPair();
           // Each side is framed like a card on a row of its own, so a card
           // with an editor gains its pencil and opens where it sits. A pair
           // with no card of its own for a narrow pane has none to frame:
@@ -162,17 +202,18 @@ class DiveDetailSectionList extends ConsumerWidget {
 
           Widget? left(Widget? card) => side(pair.left, card);
           Widget? right(Widget? card) => side(pair.right, card);
-          children.add(
-            ResponsiveSectionPair(
-              key: ValueKey('diveSectionPair_${pair.left.name}'),
-              first: left(cards.first)!,
-              second: right(cards.second)!,
-              stackedFirst: left(cards.stackedFirst),
-              stackedSecond: right(cards.stackedSecond),
-              minRowWidth: pair.minRowWidth,
-              stackGap: layout.sectionGap,
-              stretch: pair.stretch,
-            ),
+          pendingPair = ({Widget? slot}) => ResponsiveSectionPair(
+            key: ValueKey('diveSectionPair_${pair.left.name}'),
+            first: left(cards.first)!,
+            second: right(cards.second)!,
+            stackedFirst: left(cards.stackedFirst),
+            stackedSecond: right(cards.stackedSecond),
+            minRowWidth: pair.minRowWidth,
+            stackGap: layout.sectionGap,
+            stretch: pair.stretch,
+            slot: slot,
+            // While a card is being edited nothing on the page moves.
+            holdSlot: open.isNotEmpty,
           );
           consumed.addAll([pair.left, pair.right]);
           continue;
@@ -180,12 +221,13 @@ class DiveDetailSectionList extends ConsumerWidget {
       }
 
       if (layout.foldsSections) {
+        flushPair();
         // A folded row wants no gap above its content or itself: each row
         // draws its own divider, and the content starts flush under the
         // header.
         final content = _framed(
           id,
-          _sectionContent(ref, id, 0, presence),
+          _sectionContent(ref, id, 0, presence, stored, edit),
           open,
         );
         if (content == null) continue;
@@ -205,28 +247,41 @@ class DiveDetailSectionList extends ConsumerWidget {
         continue;
       }
       final selfSpacing = _selfSpacingSections.contains(id);
+      // A card that places its own gap only learns after build whether it
+      // has anything to show, so it ends a held pair before it is built: the
+      // gap it places depends on what is above it. Any other card is built
+      // first, so an empty one is skipped and the card after it is the next
+      // card instead (issue #4583).
+      if (selfSpacing) flushPair();
+      final gap = selfSpacing && children.isNotEmpty ? layout.sectionGap : 0.0;
       final content = _framed(
         id,
-        _sectionContent(
-          ref,
-          id,
-          selfSpacing && children.isNotEmpty ? layout.sectionGap : 0,
-          presence,
-        ),
+        _sectionContent(ref, id, gap, presence, stored, edit),
         open,
+        topGap: gap,
       );
       if (content == null) continue;
-      if (!selfSpacing) _addSectionGap(children, layout);
       // Keyed so sections coming and going on both sides of this one in the
       // same rebuild move it rather than remounting it, which would drop the
       // state inside.
-      children.add(
-        KeyedSubtree(
-          key: ValueKey('diveSection_${id.name}'),
-          child: _markForStrip(id, content),
-        ),
+      final card = KeyedSubtree(
+        key: ValueKey('diveSection_${id.name}'),
+        child: _markForStrip(id, content),
       );
+      final held = pendingPair;
+      if (held != null &&
+          !selfSpacing &&
+          !kDiveDetailFullWidthSections.contains(id)) {
+        pendingPair = null;
+        _addSectionGap(children, layout);
+        children.add(held(slot: card));
+        continue;
+      }
+      flushPair();
+      if (!selfSpacing) _addSectionGap(children, layout);
+      children.add(card);
     }
+    flushPair();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -241,175 +296,6 @@ class DiveDetailSectionList extends ConsumerWidget {
       kStripLayersByCard.containsKey(id)
       ? PinnedStripCardMarker(id: id, child: card)
       : card;
-
-  /// The widget for section [id], or null when it has nothing to show.
-  ///
-  /// Each case preserves the data-driven visibility conditions of the section,
-  /// and emits no gap of its own: [build] places one gap between consecutive
-  /// sections, so spacing is decided in one place. The exceptions are the
-  /// [_selfSpacingSections], which only learn whether they have anything to
-  /// show after build; they take [topGap], the gap to put above themselves,
-  /// and collapse to nothing when empty.
-  ///
-  /// [presence] is the dive the cards that can be edited in place decide
-  /// their presence from; they draw [dive]. The two differ only while an
-  /// editor is open (see `RecordEditController.layoutRecord`).
-  ///
-  /// A card with no editor that decides for itself whether it shows (Tide,
-  /// Signatures) is handed [presence] as its dive, so that a value typed
-  /// into an open card cannot bring it in or take it out above that card.
-  /// The same goes for a calculated block inside a card that can be edited:
-  /// the Environment card's satellite conditions.
-  Widget? _sectionContent(
-    WidgetRef ref,
-    DiveDetailSectionId id,
-    double topGap,
-    Dive presence,
-  ) {
-    switch (id) {
-      case DiveDetailSectionId.profile:
-        // No recorded profile: an estimated outline when the depth and times
-        // allow one (#4112), else nothing.
-        return dive.profile.isEmpty
-            ? DiveDetailEstimatedProfileSection.forDive(
-                dive,
-                hasStoredSeries: ref
-                    .watch(diveHasProfileSeriesProvider(dive.id))
-                    .value,
-              )
-            : profileSection;
-      case DiveDetailSectionId.decoStatus:
-        if (dive.profile.isEmpty) return null;
-        return DiveDecoStatusSection(
-          dive: dive,
-          retention: retention,
-          stretch: false,
-        );
-      case DiveDetailSectionId.tissueLoading:
-        if (dive.profile.isEmpty) return null;
-        return DiveTissueLoadingSection(
-          dive: dive,
-          retention: retention,
-          expand: false,
-        );
-      case DiveDetailSectionId.safetyReview:
-        // The review and the incidents chip collapse independently, so
-        // neither alone can tell whether the pair has anything to show;
-        // DiveSafetySummarySection decides that, and so owns the one gap
-        // above it, before either half builds.
-        return DiveSafetySummarySection(
-          key: safetyReviewKey,
-          diveId: dive.id,
-          hasProfile: dive.profile.isNotEmpty,
-          topGap: topGap,
-        );
-      case DiveDetailSectionId.sacSegments:
-        if (dive.profile.isEmpty) return null;
-        return DiveSacSegmentsSection(dive: dive, retention: retention);
-      case DiveDetailSectionId.details:
-        return DiveDetailsSection(dive: dive);
-      case DiveDetailSectionId.environment:
-        if (!_onPage(ref, id, presence)) return null;
-        return DiveEnvironmentSection(dive: dive, satelliteFor: presence);
-      case DiveDetailSectionId.altitude:
-        if (!diveCardIsShown(ref, id, presence)) {
-          // Safety phase 2: the site is at altitude but the dive was not
-          // altitude-adjusted: surface an informational note instead of
-          // silently hiding the section.
-          if (needsAltitudeAdjustmentFlag(
-            diveAltitude: presence.altitude,
-            siteAltitude: presence.site?.altitude,
-          )) {
-            return DiveAltitudeMismatchNote(dive: dive);
-          }
-          return null;
-        }
-        // Emptied since the layout was fixed: closed, it has nothing to
-        // draw, and the strip offers it again.
-        if (!diveCardIsShown(ref, id, dive)) return null;
-        return DiveAltitudeSection(dive: dive);
-      case DiveDetailSectionId.tide:
-        // The card decides for itself whether it has tides to show, and a
-        // freshwater dive has none. The water type is edited on the Details
-        // card, so it is asked about the dive the layout is held to.
-        return DiveTideSection(dive: presence, topGap: topGap);
-      case DiveDetailSectionId.health:
-        // Only once a record with something in it has loaded, so no empty
-        // card flashes.
-        final health = ref.watch(diveHealthRecordProvider(dive.id)).value;
-        if (!diveHealthHasContent(health)) return null;
-        return DiveHealthSection(record: health!);
-      case DiveDetailSectionId.surfaceGps:
-        if (!diveHasLocationMap(dive)) return null;
-        return DiveDetailSurfaceGpsSection(dive: dive);
-      case DiveDetailSectionId.navTrack:
-        // Like surfaceGps, only when there is something to show: routes are
-        // linked and imported from the Dive Edit page (spec 2026-10-02,
-        // section 3). Nothing while loading, so no empty card flashes.
-        final hasRoutes = ref.watch(
-          navTracksForDiveProvider(
-            dive.id,
-          ).select((a) => a.value?.isNotEmpty ?? false),
-        );
-        return hasRoutes ? NavTrackSection(dive: dive) : null;
-      case DiveDetailSectionId.weights:
-        if (!diveHasWeights(dive)) return null;
-        return DiveWeightSection(dive: dive);
-      case DiveDetailSectionId.buoyancy:
-        if (!diveHasBuoyancyInputs(dive)) return null;
-        return DiveDetailBuoyancySection(dive: dive);
-      case DiveDetailSectionId.tanks:
-        if (dive.tanks.isEmpty) return null;
-        return DiveDetailCylindersSection(dive: dive);
-      case DiveDetailSectionId.buddies:
-        return DiveBuddiesSection(dive: dive);
-      case DiveDetailSectionId.signatures:
-        // It shows a training signature for a dive with a course, and the
-        // courses are edited on the Details card: the same reasoning.
-        return DiveSignaturesSection(dive: presence);
-      case DiveDetailSectionId.equipment:
-        if (dive.equipment.isEmpty) return null;
-        return DiveEquipmentSection(dive: dive);
-      case DiveDetailSectionId.sightings:
-        return DiveSightingsSection(dive: dive, topGap: topGap);
-      case DiveDetailSectionId.media:
-        return DiveMediaSection(
-          diveId: dive.id,
-          onScanPressed: () => actions.scanGallery(dive),
-          onAddPressed: () => actions.addPhotos(dive),
-          onAddDocumentPressed: () => actions.addDocument(dive),
-          onOpenDocument: actions.openDocument,
-          // Hovering a thumbnail marks its moment on the profile (#4524).
-          onHoverMedia: mediaHoverCursorHandler(ref.container, dive),
-        );
-      case DiveDetailSectionId.tags:
-        if (!_onPage(ref, id, presence)) return null;
-        return DiveTagsSection(dive: dive);
-      case DiveDetailSectionId.notes:
-        return DiveNotesSection(
-          key: notesKey,
-          dive: dive,
-          onAnnotationTap: actions.openAnnotation,
-        );
-      case DiveDetailSectionId.documents:
-        return DocumentsSection(
-          owner: DocumentOwner(DocumentOwnerKind.dive, dive.id),
-        );
-      case DiveDetailSectionId.customFields:
-        if (dive.customFields.isEmpty) return null;
-        return DiveCustomFieldsSection(dive: dive);
-      case DiveDetailSectionId.diveLab:
-        // A dive that cannot branch still has a plan to show when one is
-        // linked. Eligible dives never need the answer, so they skip the read.
-        if (!isDiveLabEligible(dive) &&
-            !ref.watch(hasLinkedPlanProvider(dive.id))) {
-          return null;
-        }
-        return CompareSection(diveId: dive.id);
-      case DiveDetailSectionId.dataSources:
-        return DiveDetailDataSourcesSection(dive: dive, actions: actions);
-    }
-  }
 
   /// Sections that decide whether they render from data that arrives after
   /// build: a tide model, sightings, safety findings.
@@ -435,12 +321,6 @@ class DiveDetailSectionList extends ConsumerWidget {
     children.add(SizedBox(height: layout.sectionGap));
   }
 
-  /// Whether [id]'s card is on the page: the layout held while an editor
-  /// is open ([presence]) and the dive as it is now both have something for
-  /// it. The Add strip asks the same question, so a card is one or the other.
-  bool _onPage(WidgetRef ref, DiveDetailSectionId id, Dive presence) =>
-      diveCardIsOnPage(ref, id, layout: presence, working: dive);
-
   /// [content] wrapped so the section can be edited in place, when it has
   /// a card (see [diveEditCards]); otherwise [content] as it is.
   ///
@@ -449,13 +329,38 @@ class DiveDetailSectionList extends ConsumerWidget {
   /// ([content] is null) is given an empty body while its card is [open]:
   /// the frame then shows the editor in its place. Closed, it draws nothing
   /// and leaves no gap; the Add strip is how it is reached again.
-  Widget? _framed(DiveDetailSectionId id, Widget? content, Set<String> open) {
+  Widget? _framed(
+    DiveDetailSectionId id,
+    Widget? content,
+    Set<String> open, {
+    double topGap = 0,
+  }) {
     final card = diveEditCards[id];
-    if (card == null) return content;
+    if (card == null) {
+      // A card with nothing to edit fades while unlocked. The Tide card
+      // decides for itself whether it has anything to show, so it fades its
+      // own card rather than the empty box it can be.
+      final reason = diveCardFadeReason(id);
+      if (content == null || reason == null || id == DiveDetailSectionId.tide) {
+        return content;
+      }
+      return RecordCardFade<Dive>(reason: reason, child: content);
+    }
     final body =
         content ?? (open.contains(id.name) ? const SizedBox.shrink() : null);
     if (body == null) return null;
-    return RecordCardFrame<Dive>(card: card, child: body);
+    final frame = RecordCardFrame<Dive>(
+      card: card,
+      topGap: topGap,
+      child: body,
+    );
+    if (id != DiveDetailSectionId.profile) return frame;
+    // The open Profile card draws the page's own section over the sitting.
+    final section = profileSection;
+    return DiveProfileEditorSource(
+      section: section is DiveDetailProfileSection ? section : null,
+      child: frame,
+    );
   }
 
   /// One folded row for [id] in the list layout, with [content] behind it.
@@ -489,17 +394,10 @@ class DiveDetailSectionList extends ConsumerWidget {
       icon: id.icon,
       isExpanded: isExpanded,
       trailing: canOpen
-          ? Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (isChanged) const RecordChangedDot(),
-                IconButton(
-                  icon: const Icon(Icons.edit_outlined, size: 18),
-                  color: Theme.of(context).colorScheme.primary,
-                  tooltip: context.l10n.recordEdit_editCardTooltip(title),
-                  onPressed: () => edit.openCard(id.name),
-                ),
-              ],
+          ? RecordFoldPencil(
+              title: title,
+              isChanged: isChanged,
+              onOpen: () => edit.openCard(id.name),
             )
           : null,
       // A card being edited stays unfolded whatever is saved, so a tap here
@@ -518,118 +416,16 @@ class DiveDetailSectionList extends ConsumerWidget {
       ),
     );
   }
-
-  /// The bare cards for [pair] in left-then-right order, or null when either
-  /// half has nothing to show, in which case both sections fall back to
-  /// rendering full-width in their own slots.
-  ///
-  /// The presence gates mirror what each section builder would decide for
-  /// itself: Conditions, Gas consumption by segment, Tide, Buoyancy and
-  /// Signatures all self-erase when empty, so without these checks a pair
-  /// could put a blank column beside a half-width card.
-  ///
-  /// A card counts as present while its editor is [open], whatever it has
-  /// to show: a card must not change place, and lose what is being typed
-  /// into it, because its first value arrived.
-  _PairCards? _buildPairCards(
-    DiveDetailSectionPair pair,
-    WidgetRef ref,
-    Set<String> open,
-    Dive presence,
-  ) {
-    switch (pair.left) {
-      case DiveDetailSectionId.decoStatus:
-        if (dive.profile.isEmpty) return null;
-        Widget decoColumn({required bool stretch}) => DiveDecoStatusSection(
-          dive: dive,
-          retention: retention,
-          stretch: stretch,
-        );
-        Widget tissueCard({required bool expand}) => DiveTissueLoadingSection(
-          dive: dive,
-          retention: retention,
-          expand: expand,
-        );
-        return _PairCards(
-          decoColumn(stretch: true),
-          tissueCard(expand: true),
-          // Stacked in a narrow pane there is no shared height to fill, and
-          // the stretching variants would collapse their flexible parts,
-          // the deco card, the heat map, to nothing. The combined panel
-          // stacked its natural-height cards for the same reason.
-          stackedFirst: decoColumn(stretch: false),
-          stackedSecond: tissueCard(expand: false),
-        );
-
-      case DiveDetailSectionId.details:
-        final hasEnvironment = _onPage(
-          ref,
-          DiveDetailSectionId.environment,
-          presence,
-        );
-        final environmentOpen = open.contains(
-          DiveDetailSectionId.environment.name,
-        );
-        if (!hasEnvironment && !environmentOpen) return null;
-        return _PairCards(
-          DiveDetailsSection(dive: dive),
-          // Open with nothing to show yet: its frame draws the editor.
-          hasEnvironment
-              ? DiveEnvironmentSection(dive: dive, satelliteFor: presence)
-              : const SizedBox.shrink(),
-        );
-
-      case DiveDetailSectionId.surfaceGps:
-        if (!diveHasLocationMap(dive) || !watchHasTide(ref, presence)) {
-          return null;
-        }
-        return _PairCards(
-          DiveDetailSurfaceGpsSection(dive: dive),
-          DiveTideSection(dive: presence),
-        );
-
-      case DiveDetailSectionId.tanks:
-        if (dive.tanks.isEmpty || !watchHasSacSegments(ref, dive, retention)) {
-          return null;
-        }
-        return _PairCards(
-          DiveDetailCylindersSection(dive: dive),
-          DiveSacSegmentsSection(dive: dive, retention: retention),
-        );
-
-      case DiveDetailSectionId.weights:
-        if (!diveHasWeights(dive) || !watchHasBuoyancy(ref, dive)) return null;
-        return _PairCards(
-          DiveWeightSection(dive: dive),
-          DiveDetailBuoyancySection(dive: dive),
-        );
-
-      case DiveDetailSectionId.buddies:
-        // Signatures self-erases unless the dive has buddies or a course. The
-        // read is deferred to here so the list only couples to buddy changes
-        // when the pair can actually form.
-        final hasBuddies = ref.watch(
-          buddiesForDiveProvider(
-            dive.id,
-          ).select((a) => a.valueOrNull?.isNotEmpty ?? false),
-        );
-        if (!hasBuddies && presence.courseIds.isEmpty) return null;
-        return _PairCards(
-          DiveBuddiesSection(dive: dive),
-          DiveSignaturesSection(dive: presence),
-        );
-
-      default:
-        return null;
-    }
-  }
 }
 
 /// The bare cards of a section pair, in left-then-right order.
 ///
-/// [stackedFirst] and [stackedSecond] are the cards to show instead when the
-/// pair stacks in a narrow pane: null where the row-mode card already keeps
-/// its natural height, set where it is built to fill a shared row height.
+/// In a row both cards are given the taller one's height, so each needs a
+/// `Card` at its root to fill it (issue #4583). [stackedFirst] and
+/// [stackedSecond] are the cards to show instead when the pair stacks in a
+/// narrow pane: null for a card that lays out at its natural height first,
+/// set where the row card holds `Expanded` children and needs a bounded
+/// height (the deco column).
 class _PairCards {
   const _PairCards(
     this.first,

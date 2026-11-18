@@ -314,6 +314,29 @@ void main() {
       expect(text, contains('Devil Ray'));
     });
 
+    test('prints an Avelo Hydrotank\'s pressures but no pressure used '
+        '(#4657)', () async {
+      // Water pumped in for buoyancy moves its pressure, so the drop is no
+      // gas used.
+      final avelo = dive.copyWith(
+        tanks: const [
+          DiveTank(
+            id: 't1',
+            name: 'Avelo',
+            volume: 10,
+            startPressure: 200,
+            endPressure: 185,
+            role: TankRole.hydrotank,
+          ),
+        ],
+      );
+
+      final text = pdfVisibleText(await render(avelo));
+      expect(text, contains('Avelo'));
+      expect(text, contains('185'));
+      expect(text, isNot(contains('15 bar')));
+    });
+
     test('renders a cylinder with only one recorded pressure', () async {
       final partial = dive.copyWith(
         tanks: const [DiveTank(id: 't1', name: 'AL80', startPressure: 200)],

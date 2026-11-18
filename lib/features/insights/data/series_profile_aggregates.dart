@@ -4,6 +4,8 @@ import 'package:submersion/core/deco/ascent_rate_calculator.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec_exception.dart';
+import 'package:submersion/features/insights/data/depth_band_scale.dart';
+import 'package:submersion/features/insights/domain/vertical_distance/vertical_distance.dart';
 
 /// Smoothing interval used by [ascentDescentRates], in seconds.
 ///
@@ -45,6 +47,11 @@ const double sustainedTransitThreshold = 3.0;
 const int maxSampleGapFactor = 4;
 
 typedef StreamKey = (String diveId, String? computerId);
+
+/// One bar of the Time at depth chart. [lowerDepth] and [upperDepth] are in
+/// the depth unit of the [DepthBandScale] the bucket was built with (whole
+/// meters or whole feet), and [upperDepth] is null for an open-ended last
+/// band.
 typedef DepthBucket = ({int lowerDepth, int? upperDepth, int minutes});
 
 /// One primary series as it crosses the isolate boundary: identity plus the
@@ -119,14 +126,14 @@ Map<int, double> combineDepthSeconds(Map<int, double> a, Map<int, double> b) =>
 /// chart on the dive.
 void _forEachStream(
   List<SeriesBlob> blobs,
-  void Function(List<ProfileSample> samples) fold,
+  void Function(StreamKey key, List<ProfileSample> samples) fold,
 ) {
   const codec = ProfileSeriesCodec();
   final byStream = <StreamKey, List<SeriesBlob>>{};
   for (final b in blobs) {
     byStream.putIfAbsent((b.diveId, b.computerId), () => []).add(b);
   }
-  for (final rows in byStream.values) {
+  for (final MapEntry(key: key, value: rows) in byStream.entries) {
     List<ProfileSample>? samples;
     for (final b in rows) {
       final List<ProfileSample> decoded;
@@ -140,7 +147,7 @@ void _forEachStream(
           : _mergedByTimestamp(samples, decoded);
     }
     if (samples == null) continue;
-    fold(samples);
+    fold(key, samples);
     // samples falls out of scope here, before the next stream is decoded.
   }
 }
@@ -148,25 +155,55 @@ void _forEachStream(
 /// [ascentDescentRates] over packed blobs, as combinable totals.
 RateTotals ascentDescentTotalsFromBlobs(List<SeriesBlob> blobs) {
   var totals = emptyRateTotals;
-  _forEachStream(blobs, (samples) {
+  _forEachStream(blobs, (_, samples) {
     totals = _foldRates(totals, samples);
   });
   return totals;
 }
 
-/// [timeAtDepthRanges] over packed blobs, as combinable bucket seconds.
-Map<int, double> timeAtDepthSecondsFromBlobs(List<SeriesBlob> blobs) {
+/// [timeAtDepthRanges] over packed blobs, as combinable seconds keyed by
+/// [scale]'s band index.
+Map<int, double> timeAtDepthSecondsFromBlobs(
+  List<SeriesBlob> blobs, {
+  DepthBandScale scale = DepthBandScale.metric,
+}) {
   final seconds = <int, double>{};
-  _forEachStream(blobs, (samples) => _foldDepthSeconds(seconds, samples));
+  _forEachStream(
+    blobs,
+    (_, samples) => _foldDepthSeconds(seconds, samples, scale),
+  );
   return seconds;
+}
+
+/// Each dive's vertical distance from its primary series (issue #4569),
+/// keyed by dive id; see [verticalDistanceMeters].
+///
+/// A stream stored as several series rows is interleaved first, so it counts
+/// once. A dive logged by two primary computers keeps the larger figure: both
+/// recorded the same dive, and the larger one missed less of it. A dive whose
+/// every blob fails to decode is absent, so the caller falls back to its max
+/// depth.
+Map<String, double> verticalDistanceByDiveFromBlobs(List<SeriesBlob> blobs) {
+  final out = <String, double>{};
+  _forEachStream(blobs, (key, samples) {
+    final meters = verticalDistanceMeters(samples.map((s) => s.depth));
+    final previous = out[key.$1];
+    if (previous == null || meters > previous) out[key.$1] = meters;
+  });
+  return out;
 }
 
 ({double? avgAscent, double? avgDescent}) ascentDescentRatesFromBlobs(
   List<SeriesBlob> blobs,
 ) => ratesFromTotals(ascentDescentTotalsFromBlobs(blobs));
 
-List<DepthBucket> timeAtDepthRangesFromBlobs(List<SeriesBlob> blobs) =>
-    bucketsFromSeconds(timeAtDepthSecondsFromBlobs(blobs));
+List<DepthBucket> timeAtDepthRangesFromBlobs(
+  List<SeriesBlob> blobs, {
+  DepthBandScale scale = DepthBandScale.metric,
+}) => bucketsFromSeconds(
+  timeAtDepthSecondsFromBlobs(blobs, scale: scale),
+  scale: scale,
+);
 
 /// Stable interleave of two timestamp-ordered lists (two series of one
 /// stream, in stored order for a timestamp tie).
@@ -264,25 +301,30 @@ RateTotals _foldRates(RateTotals totals, List<ProfileSample> samples) {
 
 /// The legacy SQL, in Dart: per stream with more than one sample, the cadence
 /// cap is `(maxAt - minAt) * maxSampleGapFactor / (n - 1)`; each interval to
-/// the next sample (in stored order after the timestamp sort) is bucketed by
-/// its start depth (`< 10` -> 0, `< 20` -> 10, `< 30` -> 20, `< 40` -> 30,
-/// else 40) and contributes `min(seconds, cap)` when `seconds > 0`. Buckets
-/// come back ascending; empty buckets are absent.
+/// the next sample (in stored order after the timestamp sort) is banded by
+/// its start depth ([DepthBandScale.bandOf]) and contributes
+/// `min(seconds, cap)` when `seconds > 0`. Buckets come back as
+/// [bucketsFromSeconds] shapes them.
 ///
 /// Assumes each stream's samples are already sorted by timestamp, with ties
 /// in stored order.
 List<DepthBucket> timeAtDepthRanges(
-  Map<StreamKey, List<ProfileSample>> samplesByStream,
-) {
+  Map<StreamKey, List<ProfileSample>> samplesByStream, {
+  DepthBandScale scale = DepthBandScale.metric,
+}) {
   final seconds = <int, double>{};
   for (final samples in samplesByStream.values) {
-    _foldDepthSeconds(seconds, samples);
+    _foldDepthSeconds(seconds, samples, scale);
   }
-  return bucketsFromSeconds(seconds);
+  return bucketsFromSeconds(seconds, scale: scale);
 }
 
-/// Adds one stream's intervals to [seconds], keyed by bucket lower edge.
-void _foldDepthSeconds(Map<int, double> seconds, List<ProfileSample> samples) {
+/// Adds one stream's intervals to [seconds], keyed by [scale]'s band index.
+void _foldDepthSeconds(
+  Map<int, double> seconds,
+  List<ProfileSample> samples,
+  DepthBandScale scale,
+) {
   if (samples.length < 2) return;
   final minAt = samples.first.timestamp;
   final maxAt = samples.last.timestamp;
@@ -290,29 +332,58 @@ void _foldDepthSeconds(Map<int, double> seconds, List<ProfileSample> samples) {
   for (var i = 0; i + 1 < samples.length; i++) {
     final gap = samples[i + 1].timestamp - samples[i].timestamp;
     if (gap <= 0) continue;
-    final lo = _bucketLo(samples[i].depth);
-    seconds[lo] = (seconds[lo] ?? 0) + (gap < cap ? gap.toDouble() : cap);
+    final depth = samples[i].depth;
+    // A sample with no usable depth (a corrupt import) says nothing about
+    // where the diver was, and flooring it would throw.
+    if (!depth.isFinite) continue;
+    final band = scale.bandOf(depth);
+    seconds[band] = (seconds[band] ?? 0) + (gap < cap ? gap.toDouble() : cap);
   }
 }
 
-/// The buckets a [timeAtDepthSecondsFromBlobs] total describes: ascending
-/// by lower edge, empty buckets absent, the top one open-ended.
-List<DepthBucket> bucketsFromSeconds(Map<int, double> seconds) {
-  final los = seconds.keys.toList()..sort();
-  return [
-    for (final lo in los)
+/// The bars a [timeAtDepthSecondsFromBlobs] total describes (issue #4600):
+/// one per band from the surface down to the deepest band holding at least
+/// a rounded minute, so a band nobody dived in above it still shows, as zero,
+/// and the depth axis stays continuous.
+///
+/// No more than [maxBars] come back. When time sits deeper than the last of
+/// them, that last bar takes all of it and turns open-ended ([upperDepth]
+/// null). Its minutes are rounded from the summed seconds, not summed from
+/// rounded minutes, so several slivers of deep time are not each rounded
+/// away.
+///
+/// Bars at the deep end that round to no minutes are left off: a depth
+/// spike a few seconds long, common in recorded profiles, would otherwise
+/// stretch the chart with bars reading 0. The first bar always stays.
+List<DepthBucket> bucketsFromSeconds(
+  Map<int, double> seconds, {
+  DepthBandScale scale = DepthBandScale.metric,
+  int maxBars = timeAtDepthMaxBars,
+}) {
+  if (seconds.isEmpty) return const [];
+  final deepest = seconds.keys.reduce((a, b) => a > b ? a : b);
+  final capped = deepest >= maxBars;
+  final last = capped ? maxBars - 1 : deepest;
+  double secondsAt(int band) {
+    if (!capped || band < last) return seconds[band] ?? 0;
+    var total = 0.0;
+    for (final entry in seconds.entries) {
+      if (entry.key >= last) total += entry.value;
+    }
+    return total;
+  }
+
+  final bars = <DepthBucket>[
+    for (var band = 0; band <= last; band++)
       (
-        lowerDepth: lo,
-        upperDepth: lo >= 40 ? null : lo + 10,
-        minutes: (seconds[lo]! / 60).round(),
+        lowerDepth: band * scale.step,
+        upperDepth: capped && band == last ? null : (band + 1) * scale.step,
+        minutes: (secondsAt(band) / 60).round(),
       ),
   ];
-}
-
-int _bucketLo(double depth) {
-  if (depth < 10) return 0;
-  if (depth < 20) return 10;
-  if (depth < 30) return 20;
-  if (depth < 40) return 30;
-  return 40;
+  var length = bars.length;
+  while (length > 1 && bars[length - 1].minutes == 0) {
+    length--;
+  }
+  return bars.sublist(0, length);
 }

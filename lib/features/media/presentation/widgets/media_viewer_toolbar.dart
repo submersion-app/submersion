@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -5,6 +7,7 @@ import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 
 /// Height of [MediaViewerToolbar]'s content below the status bar: its 8 px
 /// vertical padding either side of a default 48 px [IconButton]. The Perdix
@@ -30,6 +33,7 @@ class MediaViewerAction {
     required this.priority,
     required this.onPressed,
     this.iconColor,
+    this.disabledReason,
   });
 
   /// Stable id; also names the widget key (`viewer_<id>`).
@@ -48,6 +52,10 @@ class MediaViewerAction {
 
   /// Tint for state (the Perdix toggle when on); null uses the default.
   final Color? iconColor;
+
+  /// Why the action cannot be used now; non-null draws it disabled, with
+  /// this as its tooltip and as a line under it in the overflow menu.
+  final String? disabledReason;
 }
 
 /// The result of [splitToolbarActions]: both lists in toolbar order.
@@ -82,6 +90,32 @@ ToolbarActionSplit splitToolbarActions(
   );
 }
 
+/// The room the editing bar gives its actions in a bar [width] wide:
+/// Cancel, Save and the title keep about 240 px, and the actions take what
+/// is left, up to half the bar, so a phone still reads the title. Never
+/// less than one button, which holds the overflow menu.
+double editBarActionsWidth(double width) =>
+    math.max(kToolbarButtonExtent, math.min(width - 240, width / 2));
+
+/// What the toolbar draws while the photo is unlocked (issue #4527): the
+/// shared editing bar, with Cancel, [title] and Save.
+@immutable
+class MediaViewerEditBar {
+  const MediaViewerEditBar({
+    required this.title,
+    required this.canSave,
+    required this.isSaving,
+    required this.onCancel,
+    required this.onSave,
+  });
+
+  final String title;
+  final bool canSave;
+  final bool isSaving;
+  final VoidCallback onCancel;
+  final VoidCallback onSave;
+}
+
 /// The viewer's top bar: close, fullscreen, the page indicator, and the
 /// actions, with whatever does not fit in an overflow menu. A [Positioned],
 /// so it goes straight into the viewer's [Stack].
@@ -107,6 +141,10 @@ class MediaViewerToolbar extends ConsumerWidget {
     this.onGoToDive,
     this.onReupload,
     this.onAdjustColor,
+    this.onUnlock,
+    this.writeControls = true,
+    this.writeMetadataDisabledReason,
+    this.editBar,
   });
 
   final MediaItem item;
@@ -151,6 +189,21 @@ class MediaViewerToolbar extends ConsumerWidget {
   /// Opens the Adjust color panel (issue #3520); null hides the action.
   final VoidCallback? onAdjustColor;
 
+  /// Unlocks the photo for editing (issue #4527); null offers no lock.
+  final VoidCallback? onUnlock;
+
+  /// Whether the actions that change the photo (species, people, adjust
+  /// colour) are offered: false while the photo is locked.
+  final bool writeControls;
+
+  /// Why writing dive data to the photo cannot be used now, which draws it
+  /// disabled; null leaves it as [canWriteMetadata] says.
+  final String? writeMetadataDisabledReason;
+
+  /// Non-null while the photo is unlocked: the toolbar is drawn as the
+  /// shared editing bar, with the actions inside it.
+  final MediaViewerEditBar? editBar;
+
   /// [readOnly] drops every action that changes the media or its links:
   /// a browser views and shares, and nothing more (issue #4121).
   List<MediaViewerAction> _actions(
@@ -158,7 +211,17 @@ class MediaViewerToolbar extends ConsumerWidget {
     required bool readOnly,
   }) {
     final l10n = context.l10n;
+    final writes = writeControls && !readOnly;
     return [
+      if (onUnlock != null && !readOnly && editBar == null)
+        MediaViewerAction(
+          id: 'unlock',
+          icon: Icons.lock_outline,
+          label: l10n.recordEdit_unlockTooltip,
+          // Ahead of everything, so a phone always shows the way in.
+          priority: -1,
+          onPressed: (_) => onUnlock!(),
+        ),
       if (onGoToDive != null)
         MediaViewerAction(
           id: 'go_to_dive',
@@ -173,6 +236,7 @@ class MediaViewerToolbar extends ConsumerWidget {
           icon: Icons.edit_note,
           label: l10n.media_photoViewer_writeDiveDataTooltip,
           priority: 6,
+          disabledReason: writeMetadataDisabledReason,
           onPressed: (_) => onWriteMetadata(),
         ),
       if (showPerdixToggle)
@@ -194,7 +258,7 @@ class MediaViewerToolbar extends ConsumerWidget {
           priority: 7,
           onPressed: (_) => onOpenInLightroom!(),
         ),
-      if (!readOnly)
+      if (writes)
         MediaViewerAction(
           id: 'species',
           icon: Icons.sell_outlined,
@@ -202,7 +266,7 @@ class MediaViewerToolbar extends ConsumerWidget {
           priority: 4,
           onPressed: (_) => onTagSpecies(),
         ),
-      if (onTagPeople != null && !readOnly)
+      if (onTagPeople != null && writes)
         MediaViewerAction(
           id: 'people',
           icon: Icons.person_add_alt_1,
@@ -222,7 +286,7 @@ class MediaViewerToolbar extends ConsumerWidget {
         priority: 2,
         onPressed: (_) => onShowInfo(),
       ),
-      if (onAdjustColor != null && !readOnly)
+      if (onAdjustColor != null && writes)
         MediaViewerAction(
           id: 'adjust_color',
           icon: Icons.palette_outlined,
@@ -259,6 +323,8 @@ class MediaViewerToolbar extends ConsumerWidget {
       context,
       readOnly: !ref.watch(deviceCapabilitiesProvider).mediaAttach,
     );
+    final bar = editBar;
+    if (bar != null) return _editingBar(context, bar, actions);
     return Positioned(
       top: 0,
       left: 0,
@@ -314,46 +380,7 @@ class MediaViewerToolbar extends ConsumerWidget {
                         ),
                       ),
                     ),
-                    for (final action in split.visible)
-                      // Builder so the anchor context is the button itself:
-                      // findRenderObject from it descends to the IconButton.
-                      Builder(
-                        key: ValueKey('viewer_${action.id}'),
-                        builder: (anchor) => IconButton(
-                          icon: Icon(
-                            action.icon,
-                            color: action.iconColor ?? Colors.white,
-                          ),
-                          tooltip: action.label,
-                          onPressed: () => action.onPressed(anchor),
-                        ),
-                      ),
-                    if (split.overflow.isNotEmpty)
-                      Builder(
-                        builder: (anchor) => PopupMenuButton<MediaViewerAction>(
-                          key: const ValueKey('viewer_overflow'),
-                          icon: const Icon(
-                            Icons.more_vert,
-                            color: Colors.white,
-                          ),
-                          tooltip: l10n.media_viewer_moreOptions,
-                          onSelected: (action) => action.onPressed(anchor),
-                          itemBuilder: (_) => [
-                            for (final action in split.overflow)
-                              PopupMenuItem<MediaViewerAction>(
-                                key: ValueKey('viewer_menu_${action.id}'),
-                                value: action,
-                                child: Row(
-                                  children: [
-                                    Icon(action.icon, color: action.iconColor),
-                                    const SizedBox(width: 12),
-                                    Flexible(child: Text(action.label)),
-                                  ],
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
+                    ...toolbarActionButtons(context, split, Colors.white),
                   ],
                 );
               },
@@ -363,4 +390,108 @@ class MediaViewerToolbar extends ConsumerWidget {
       ),
     );
   }
+
+  /// The shared editing bar in the toolbar's band, so the photo under it
+  /// does not move on unlock. Its pale tint brings its own foreground: the
+  /// actions take it rather than the dark viewer's white.
+  Widget _editingBar(
+    BuildContext context,
+    MediaViewerEditBar bar,
+    List<MediaViewerAction> actions,
+  ) {
+    return Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      height: MediaQuery.paddingOf(context).top + kMediaViewerToolbarHeight,
+      // A semantics container of its own, so the bar's nodes do not mix
+      // with the viewer's full-screen tap target under it.
+      child: Semantics(
+        container: true,
+        // The bar's own width: Adjust color docked beside the viewer takes
+        // part of the window.
+        child: LayoutBuilder(
+          builder: (context, constraints) => RecordEditBar(
+            title: bar.title,
+            canSave: bar.canSave,
+            isSaving: bar.isSaving,
+            onCancel: bar.onCancel,
+            onSave: bar.onSave,
+            actions: toolbarActionButtons(
+              context,
+              splitToolbarActions(
+                actions,
+                editBarActionsWidth(constraints.maxWidth),
+              ),
+              null,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
+
+/// The icons in [split] that fit, then the overflow menu holding the rest,
+/// for the viewer's toolbar and for the editing bars (issue #4527). [color]
+/// tints icons with no state colour of their own; null takes the bar's.
+List<Widget> toolbarActionButtons(
+  BuildContext context,
+  ToolbarActionSplit split,
+  Color? color,
+) => [
+  for (final action in split.visible)
+    // Builder so the anchor context is the button itself: findRenderObject
+    // from it descends to the IconButton.
+    Builder(
+      key: ValueKey('viewer_${action.id}'),
+      builder: (anchor) => IconButton(
+        icon: Icon(
+          action.icon,
+          color: action.iconColor ?? color,
+          semanticLabel: action.disabledReason == null ? null : action.label,
+        ),
+        tooltip: action.disabledReason ?? action.label,
+        onPressed: action.disabledReason == null
+            ? () => action.onPressed(anchor)
+            : null,
+      ),
+    ),
+  if (split.overflow.isNotEmpty)
+    Builder(
+      builder: (anchor) => PopupMenuButton<MediaViewerAction>(
+        key: const ValueKey('viewer_overflow'),
+        icon: Icon(Icons.more_vert, color: color),
+        tooltip: context.l10n.media_viewer_moreOptions,
+        onSelected: (action) => action.onPressed(anchor),
+        itemBuilder: (_) => [
+          for (final action in split.overflow)
+            PopupMenuItem<MediaViewerAction>(
+              key: ValueKey('viewer_menu_${action.id}'),
+              value: action,
+              enabled: action.disabledReason == null,
+              child: Row(
+                children: [
+                  Icon(action.icon, color: action.iconColor),
+                  const SizedBox(width: 12),
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(action.label),
+                        if (action.disabledReason case final reason?)
+                          Text(
+                            reason,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    ),
+];

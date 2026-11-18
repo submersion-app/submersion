@@ -2,9 +2,11 @@ import 'package:clock/clock.dart';
 
 import 'package:submersion/features/agent_access/data/diver_context.dart';
 import 'package:submersion/features/agent_access/data/documents/document_dates.dart';
+import 'package:submersion/features/agent_access/data/planning/plan_recall.dart';
 import 'package:submersion/features/agent_access/data/planning/plan_request.dart';
 import 'package:submersion/features/agent_access/data/planning/plan_request_series.dart';
 import 'package:submersion/features/agent_access/data/planning/plan_result_document.dart';
+import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/families/dive_plan_fields.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
@@ -21,17 +23,25 @@ class ComputePlanTool implements AgentTool {
     required DiverContextLoader loader,
     required DiverSettingsRepository settings,
     required SeriesFollowReader followOf,
+    required RecordRepositories records,
     required String Function() caveat,
     DateTime Function()? now,
   }) : _loader = loader,
        _settings = settings,
        _followOf = followOf,
+       _recall = PlanRecall(
+         loader: loader,
+         settings: settings,
+         records: records,
+         followOf: followOf,
+       ),
        _caveat = caveat,
        _now = now ?? clock.now;
 
   final DiverContextLoader _loader;
   final DiverSettingsRepository _settings;
   final SeriesFollowReader _followOf;
+  final PlanRecall _recall;
   final String Function() _caveat;
   final DateTime Function() _now;
 
@@ -52,9 +62,12 @@ class ComputePlanTool implements AgentTool {
       'ppo2_bar and end_m are taken at its deeper end, the leg\'s worst), '
       'stops, runtime, NDL and TTS at the bottom (ndl_at_bottom_s is null '
       'and in_deco_at_bottom true once the bottom is in deco), gas use per '
-      'tank (litres_used includes a problem-solving '
+      'tank (litres_used is the dive itself; problem_solving_litres is the '
       'allowance of problem_solving_minutes at the deepest point on bottom '
-      'SAC x sac_factor; set problem_solving_minutes to 0 to leave it out; '
+      'SAC x sac_factor, held back and not part of litres_used; minimum gas '
+      'is checked against bottom_end_pressure_bar, the cylinder as the '
+      'diver leaves the deepest point: under min_gas_ascent_bar is '
+      'critical, under min_gas_bar a warning; '
       'a tank with no volume_l is priced as 11 litres, so give every '
       'tank\'s volume_l for its pressures to mean anything), '
       'CNS and OTU, what it carried in from the '
@@ -68,7 +81,24 @@ class ComputePlanTool implements AgentTool {
       'carries_from_tank, which only this tool takes, saves unchanged '
       'through the dive_plans write family). $kDocumentDateRule Inputs and results are '
       'metric; present them '
-      'in the diver\'s units (see the units resource). Always pass on every '
+      'in the diver\'s units (see the units resource). To recall a saved '
+      'plan, give its plan_id (a dive_plans record in no series) or '
+      'series_id (a dive_plan_series record) instead of dives, with '
+      'overrides for any setting to try on top: it is computed now with '
+      'the diver\'s current Settings and, for a series following a logged '
+      'dive, with that dive as it is now, so say so when the schedule may '
+      'differ from the one saved (see recall_note). Each recalled dive '
+      'also gives its log_state (planned, logged_as_planned or dived) and '
+      'linked_dive_id; a dived dive keeps its planned schedule, and the '
+      'dives after it carry in what the log says it left. A recalled '
+      'dive\'s resolved_inputs compute it again as dives, with '
+      'follow_dive_id set to followed_dive_id when followed_dive_in_log; '
+      'once a dive is dived, the dives after it compute again only as '
+      'planned. A saved plan\'s settings this tool does not take (stop '
+      'minimums, deco ppO2 bands, max O2 depth, setpoints, a segment\'s '
+      'mode override) still compute '
+      'the recall but are not in resolved_inputs; read them from the '
+      'dive_plans record. Always pass on every '
       'issue and the caveat, state the parameters the schedule depends on, '
       'and never present a schedule as safe, verified or guaranteed: it is '
       'a plan for a trained diver to check, not a dive computer.';
@@ -81,7 +111,31 @@ class ComputePlanTool implements AgentTool {
         'type': 'string',
         'description':
             'Whose planner Settings to compute with; omitted means the '
-            'active profile.',
+            'active profile, or for a recalled series its own diver.',
+      },
+      'plan_id': {
+        'type': 'string',
+        'description':
+            'Recall this saved plan (a dive_plans id) instead of giving '
+            'dives. A plan in a series is recalled by its series_id.',
+      },
+      'series_id': {
+        'type': 'string',
+        'description':
+            'Recall this saved series (a dive_plan_series id) instead of '
+            'giving dives.',
+      },
+      'overrides': {
+        'type': 'object',
+        'additionalProperties': false,
+        'description':
+            'With plan_id or series_id: settings written over every dive '
+            'of the recalled plan for this computation only, saving '
+            'nothing; null clears the plan\'s own value so Settings decide.',
+        'properties': {
+          for (final MapEntry(:key, value: codec) in planSettingFields.entries)
+            key: {'description': codec.describe},
+        },
       },
       'follow_dive_id': {
         'type': 'string',
@@ -172,7 +226,6 @@ class ComputePlanTool implements AgentTool {
         },
       },
     },
-    'required': ['dives'],
     'additionalProperties': false,
   };
 
@@ -181,7 +234,11 @@ class ComputePlanTool implements AgentTool {
     Map<String, Object?> args,
     AgentToolContext context,
   ) async {
-    final diverId = await _loader.resolveDiverId(args['diver_id'] as String?);
+    if (PlanRecall.asks(args)) return _recall(args, caveat: _caveat());
+    if (PlanRecall.strayOverrides(args) case final refusal?) throw refusal;
+    final diverId = await _loader.resolveDiverId(
+      optionalIdArg(args, 'diver_id'),
+    );
     final config = planEngineConfigFromSettings(
       await _settings.getSettingsForDiver(diverId) ?? const AppSettings(),
     );

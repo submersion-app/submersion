@@ -65,6 +65,7 @@ void main() {
         ProfileRightAxisMetric.cns: '13',
         ProfileRightAxisMetric.otu: '13',
         ProfileRightAxisMetric.o2CellMv: '13',
+        ProfileRightAxisMetric.buoyancy: '+12.5',
       };
       expect(expected.keys, containsAll(ProfileRightAxisMetric.values));
       for (final MapEntry(key: m, value: label) in expected.entries) {

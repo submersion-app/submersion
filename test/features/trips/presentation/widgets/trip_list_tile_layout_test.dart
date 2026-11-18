@@ -5,8 +5,10 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_list_content.dart';
+import 'package:submersion/shared/widgets/record_list_chevron.dart';
 
 import '../../../../helpers/test_app.dart';
+import '../../../../helpers/record_chevron_expectations.dart';
 
 /// The tile's subtree watches [settingsProvider]; the real notifier reaches for
 /// SharedPreferences, so stand in with a fixed [AppSettings].
@@ -62,4 +64,36 @@ void main() {
       expect(find.byType(Checkbox), selecting ? findsOneWidget : findsNothing);
     });
   }
+
+  // The chevron sits as far from the right edge as the avatar sits from the
+  // left, centred on the card like the other lists' chevrons (#4639).
+  testWidgets('chevron mirrors the start padding and is centred', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        overrides: [
+          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+        ],
+        child: TripListTile(tripWithStats: _trip, onCheckChanged: (_) {}),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final card = recordCardBounds(tester);
+    expectChevronAtEndPadding(
+      tester,
+      bounds: card,
+      padding: kRecordCardDetailedPadding,
+    );
+    expect(
+      tester.getRect(find.byType(CircleAvatar)).left - card.left,
+      kRecordCardDetailedPadding,
+    );
+    expect(
+      tester.getRect(find.byType(RecordListChevron)).center.dy,
+      closeTo(card.center.dy, 0.5),
+    );
+  });
 }

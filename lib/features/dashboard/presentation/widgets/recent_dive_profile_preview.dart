@@ -154,6 +154,8 @@ class _Header extends ConsumerWidget {
           // navigation bar painted under a supposedly fullscreen chart (#811).
           onPressed: () => Navigator.of(context, rootNavigator: true).push(
             MaterialPageRoute<void>(
+              // The dashboard has no lock, so the fullscreen page only
+              // reads (issue #4527).
               builder: (_) => FullscreenProfilePage(diveId: dive.id),
             ),
           ),

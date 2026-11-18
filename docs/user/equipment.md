@@ -287,7 +287,8 @@ Optional settings on a set:
 
 ### Using a set on a dive
 
-In the dive form, under **Equipment**, tap **Use Set** and choose a set. All of
+On the dive's page, unlock it (**Unlock to edit**), open the **Equipment**
+card, tap **Use Set** and choose a set. All of
 its items are added to the dive, and you can still add or remove items after.
 **Save as Set** turns a dive's current equipment into a new set. See
 [Logging Dives](dive-logging.md).

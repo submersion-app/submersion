@@ -9,7 +9,7 @@ import 'package:submersion/features/courses/presentation/providers/course_provid
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
-import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
+import 'package:submersion/features/dive_log/presentation/pages/bulk_dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/visibility_input_mode_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/visibility_input/visibility_entry.dart';
@@ -33,7 +33,7 @@ import '../../../../helpers/test_database.dart';
 import '../../../../helpers/role_sheet.dart';
 
 void main() {
-  group('DiveEditPage bulk mode', () {
+  group('BulkDiveEditPage', () {
     late DiveRepository repository;
     late AppDatabase db;
 
@@ -70,7 +70,7 @@ void main() {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
-              body: DiveEditPage(bulkDiveIds: ['d1', 'd2'], embedded: true),
+              body: BulkDiveEditPage(diveIds: ['d1', 'd2'], embedded: true),
             ),
           ),
         ),
@@ -167,7 +167,7 @@ void main() {
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
               home: Scaffold(
-                body: DiveEditPage(bulkDiveIds: [d1.id], embedded: true),
+                body: BulkDiveEditPage(diveIds: [d1.id], embedded: true),
               ),
             ),
           ),
@@ -244,7 +244,7 @@ void main() {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
-              body: DiveEditPage(bulkDiveIds: [d1.id, d2.id], embedded: true),
+              body: BulkDiveEditPage(diveIds: [d1.id, d2.id], embedded: true),
             ),
           ),
         ),
@@ -305,7 +305,7 @@ void main() {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
-              body: DiveEditPage(bulkDiveIds: [d1.id, d2.id], embedded: true),
+              body: BulkDiveEditPage(diveIds: [d1.id, d2.id], embedded: true),
             ),
           ),
         ),
@@ -407,7 +407,7 @@ void main() {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
-              body: DiveEditPage(bulkDiveIds: ids, embedded: true),
+              body: BulkDiveEditPage(diveIds: ids, embedded: true),
             ),
           ),
         ),
@@ -749,7 +749,7 @@ void main() {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
-              body: DiveEditPage(bulkDiveIds: [d1.id, d2.id], embedded: true),
+              body: BulkDiveEditPage(diveIds: [d1.id, d2.id], embedded: true),
             ),
           ),
         ),
@@ -824,7 +824,7 @@ void main() {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
-              body: DiveEditPage(bulkDiveIds: [d1.id, d2.id], embedded: true),
+              body: BulkDiveEditPage(diveIds: [d1.id, d2.id], embedded: true),
             ),
           ),
         ),
@@ -889,7 +889,7 @@ void main() {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
-              body: DiveEditPage(bulkDiveIds: [d1.id, d2.id], embedded: true),
+              body: BulkDiveEditPage(diveIds: [d1.id, d2.id], embedded: true),
             ),
           ),
         ),
@@ -967,7 +967,7 @@ void main() {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
-              body: DiveEditPage(bulkDiveIds: [d1.id, d2.id], embedded: true),
+              body: BulkDiveEditPage(diveIds: [d1.id, d2.id], embedded: true),
             ),
           ),
         ),
@@ -1038,7 +1038,7 @@ void main() {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
-              body: DiveEditPage(bulkDiveIds: [d1.id], embedded: true),
+              body: BulkDiveEditPage(diveIds: [d1.id], embedded: true),
             ),
           ),
         ),
@@ -1108,7 +1108,7 @@ void main() {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
-              body: DiveEditPage(bulkDiveIds: [d1.id], embedded: true),
+              body: BulkDiveEditPage(diveIds: [d1.id], embedded: true),
             ),
           ),
         ),
@@ -1162,7 +1162,7 @@ void main() {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
-              body: DiveEditPage(bulkDiveIds: [d1.id], embedded: true),
+              body: BulkDiveEditPage(diveIds: [d1.id], embedded: true),
             ),
           ),
         ),
@@ -1224,7 +1224,7 @@ void main() {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
-              body: DiveEditPage(bulkDiveIds: [d1.id], embedded: true),
+              body: BulkDiveEditPage(diveIds: [d1.id], embedded: true),
             ),
           ),
         ),
@@ -1288,7 +1288,7 @@ void main() {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
-              body: DiveEditPage(bulkDiveIds: [d1.id], embedded: true),
+              body: BulkDiveEditPage(diveIds: [d1.id], embedded: true),
             ),
           ),
         ),
@@ -1344,7 +1344,7 @@ void main() {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
-              body: DiveEditPage(bulkDiveIds: [dive.id], embedded: true),
+              body: BulkDiveEditPage(diveIds: [dive.id], embedded: true),
             ),
           ),
         ),
@@ -1408,7 +1408,7 @@ void main() {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
-              body: DiveEditPage(bulkDiveIds: [dive.id], embedded: true),
+              body: BulkDiveEditPage(diveIds: [dive.id], embedded: true),
             ),
           ),
         ),
@@ -1440,6 +1440,131 @@ void main() {
       expect(tanks.single.startPressure, 200);
     });
 
+    // Issue #4412: a sidemount pair gets left and right on every dive whose
+    // tanks line up, and the confirm dialog names the dives that do not.
+    group('tank roles by position', () {
+      const staged = DiveTank(id: '', role: TankRole.stage, startPressure: 200);
+
+      Future<void> pumpForm(WidgetTester tester, List<String> ids) async {
+        final overrides = await getBaseOverrides();
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: buildOverrides(overrides).cast(),
+            child: MaterialApp(
+              locale: const Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Scaffold(
+                body: BulkDiveEditPage(diveIds: ids, embedded: true),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+      }
+
+      Future<void> tapText(WidgetTester tester, Finder finder) async {
+        await tester.ensureVisible(finder);
+        await tester.tap(finder);
+        await tester.pumpAndSettle();
+      }
+
+      Future<List<TankRole>> rolesOf(String id) async => [
+        for (final t in (await repository.getDiveById(id))!.tanks) t.role,
+      ];
+
+      Future<void> tickRoleByPosition(WidgetTester tester) async {
+        await tapText(tester, find.text('Update').first);
+        await tapText(tester, find.widgetWithText(FilterChip, 'Role'));
+        await tapText(tester, find.text('Role by tank position'));
+      }
+
+      testWidgets('sets roles on matching dives and reports the others', (
+        tester,
+      ) async {
+        final pair = await repository.createDive(
+          createTestDiveWithBottomTime().copyWith(id: 'sm-pair'),
+        );
+        final three = await repository.createDive(
+          createTestDiveWithBottomTime().copyWith(id: 'sm-three'),
+        );
+        await repository.bulkAddTanks([pair.id], const [staged, staged]);
+        await repository.bulkAddTanks(
+          [three.id],
+          const [staged, staged, staged],
+        );
+
+        await pumpForm(tester, [pair.id, three.id]);
+        await tickRoleByPosition(tester);
+        await tapText(tester, find.text('Save'));
+
+        expect(
+          find.text(
+            "1 dive doesn't match the tank positions, so its tank roles "
+            'stay as they are.',
+          ),
+          findsOneWidget,
+        );
+        await tapText(tester, find.text('Apply'));
+
+        expect(await rolesOf(pair.id), [
+          TankRole.sidemountLeft,
+          TankRole.sidemountRight,
+        ]);
+        expect(await rolesOf(three.id), [
+          TankRole.stage,
+          TankRole.stage,
+          TankRole.stage,
+        ]);
+        final pairTanks = (await repository.getDiveById(pair.id))!.tanks;
+        expect(pairTanks.map((t) => t.startPressure), [200, 200]);
+      });
+
+      testWidgets('switching back to Same role writes the template role', (
+        tester,
+      ) async {
+        final dive = await repository.createDive(
+          createTestDiveWithBottomTime().copyWith(id: 'sm-same'),
+        );
+        await repository.bulkAddTanks([dive.id], const [staged, staged]);
+
+        await pumpForm(tester, [dive.id]);
+        await tickRoleByPosition(tester);
+        await tapText(tester, find.text('Same role on every tank'));
+        // The template role picker is back, still on its default.
+        await tapText(tester, find.byKey(const ValueKey('tank-role-backGas')));
+        await tapText(tester, find.text('Deco').last);
+        await tapText(tester, find.text('Save'));
+        await tapText(tester, find.text('Apply'));
+
+        expect(await rolesOf(dive.id), [TankRole.deco, TankRole.deco]);
+      });
+
+      testWidgets('unticking Role sends no roles at all', (tester) async {
+        final dive = await repository.createDive(
+          createTestDiveWithBottomTime().copyWith(id: 'sm-untick'),
+        );
+        await repository.bulkAddTanks([dive.id], const [staged, staged]);
+
+        await pumpForm(tester, [dive.id]);
+        await tickRoleByPosition(tester);
+        await tapText(tester, find.widgetWithText(FilterChip, 'Role'));
+        await tapText(tester, find.widgetWithText(FilterChip, 'Name'));
+        await tester.enterText(
+          find.byKey(const ValueKey('bulk-tank-spec-name')),
+          'Left',
+        );
+        await tester.pumpAndSettle();
+        await tapText(tester, find.text('Save'));
+        expect(find.textContaining('tank positions'), findsNothing);
+        await tapText(tester, find.text('Apply'));
+
+        final tanks = (await repository.getDiveById(dive.id))!.tanks;
+        expect(tanks.map((t) => t.name), ['Left', 'Left']);
+        expect(tanks.map((t) => t.role), [TankRole.stage, TankRole.stage]);
+      });
+    });
+
     testWidgets('tank Update with an empty mask still saves other changes', (
       tester,
     ) async {
@@ -1457,7 +1582,7 @@ void main() {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
-              body: DiveEditPage(bulkDiveIds: [dive.id], embedded: true),
+              body: BulkDiveEditPage(diveIds: [dive.id], embedded: true),
             ),
           ),
         ),
@@ -1526,7 +1651,7 @@ void main() {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
-              body: DiveEditPage(bulkDiveIds: [d1.id], embedded: true),
+              body: BulkDiveEditPage(diveIds: [d1.id], embedded: true),
             ),
           ),
         ),

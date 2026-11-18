@@ -9,11 +9,17 @@ import 'package:submersion/features/dive_log/domain/entities/dive_data_source.da
 import 'package:submersion/features/dive_log/domain/services/bottom_time_calculator.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_header_fields.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_hero_header.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
-/// The fixed header card at the top of the page.
+/// The fixed header card at the top of the page. During an editing sitting
+/// [dive] is the sitting's, and a stat the sitting changed shows the dive's
+/// own value over the viewed data source's.
 class DiveDetailHeroSection extends ConsumerWidget {
   const DiveDetailHeroSection({
     super.key,
@@ -40,13 +46,29 @@ class DiveDetailHeroSection extends ConsumerWidget {
               .where((s) => s.id == viewedSourceId && !s.isPrimary)
               .firstOrNull;
     final site = dive.site;
+    final session = RecordEditScope.maybeOf<Dive>(context)?.session;
+    bool changed<V>(EditField<Dive, V> field) =>
+        session != null &&
+        !field.same(session.valueOf(field), field.read(session.stored));
+    final timesChanged =
+        changed(diveRuntimeField) ||
+        changed(diveEntryField) ||
+        changed(diveExitField);
     return DiveHeroHeader(
       dive: dive,
       units: units,
-      maxDepth: activeSource?.maxDepth,
-      waterTemp: activeSource?.waterTemp,
-      runtimeText: _formatRuntimeForSource(activeSource),
-      bottomTimeText: _formatBottomTimeForSource(ref, activeSource),
+      maxDepth: changed(diveMaxDepthField) ? null : activeSource?.maxDepth,
+      waterTemp: changed(diveWaterTempField) ? null : activeSource?.waterTemp,
+      runtimeText: timesChanged
+          ? DiveHeroHeader.formatRuntime(dive)
+          : _formatRuntimeForSource(activeSource),
+      bottomTimeText: changed(diveBottomTimeField)
+          ? DiveHeroHeader.formatBottomTime(dive)
+          : _formatBottomTimeForSource(ref, activeSource),
+      // Draws nothing unless the header is framed as a card and unlocked.
+      titleTrailing: RecordCardPencil(
+        cardTitle: context.l10n.diveLog_detail_section_header,
+      ),
       belowTitle: Consumer(
         builder: (context, ref, _) {
           final count =
@@ -76,7 +98,12 @@ class DiveDetailHeroSection extends ConsumerWidget {
                   state.uri.queryParameters,
                 );
                 params['site'] = site.id;
-                context.goInPlace(
+                // Shown, not edited: from the pane's edit mode the list
+                // would build the site's edit form (issue #4527).
+                params.remove('mode');
+                // The site replaces the dive in the pane: a sitting there
+                // is asked about first (issue #4527).
+                context.goInPlaceGuarded(
                   Uri(path: currentPath, queryParameters: params).toString(),
                 );
               } else {

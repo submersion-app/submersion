@@ -245,6 +245,42 @@ void main() {
       expect(find.text('Red Sea North'), findsNothing);
     });
 
+    // A trip id whose trip did not load (deleted on another device, say)
+    // read as no trip, but Save would keep the id. The row says the trip is
+    // not there and offers the clear, and taking it is a change like any
+    // other.
+    testWidgets('a trip that did not load can be cleared', (tester) async {
+      final controller = await pumpRows(tester, bare.copyWith(tripId: 'gone'));
+
+      expect(find.text(l.diveLog_edit_row_tripNotFound), findsOneWidget);
+      expect(find.byIcon(Icons.clear), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.clear));
+      await tester.pumpAndSettle();
+
+      expect(working(controller).tripId, isNull);
+      expect(working(controller).trip, isNull);
+      expect(controller.isDirty, isTrue);
+      expect(find.byIcon(Icons.clear), findsNothing);
+      expect(find.text(l.diveLog_edit_row_tripNotFound), findsNothing);
+      expect(find.text(l.diveLog_edit_row_notSet), findsNWidgets(2));
+    });
+
+    testWidgets('a trip picked over one that did not load replaces it', (
+      tester,
+    ) async {
+      final controller = await pumpRows(tester, bare.copyWith(tripId: 'gone'));
+
+      await tester.tap(find.byIcon(Icons.clear));
+      await tester.pumpAndSettle();
+      await openTripSheet(tester);
+      await tester.tap(find.text('Red Sea North').last);
+      await tester.pumpAndSettle();
+
+      expect(working(controller).tripId, redSea.id);
+      expect(working(controller).trip?.id, redSea.id);
+    });
+
     testWidgets('picking a trip in the sheet sets it and closes the sheet', (
       tester,
     ) async {

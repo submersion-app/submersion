@@ -3,10 +3,16 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/weight_name_text.dart';
+import 'package:submersion/features/equipment/domain/services/equipment_lead.dart';
 import 'package:submersion/features/weight_planner/presentation/widgets/weight_enum_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 
-/// The Weights card.
+/// The Weights card: the lead typed in the Weights section, then the lead
+/// carried as weights gear, and their total. The two add up, as the buoyancy
+/// model and every weight statistic add them ([Dive.recordedWeightKg]), so
+/// the card shows both and a diver can see when one lead is logged twice
+/// (issue #4442).
 class DiveWeightSection extends ConsumerWidget {
   const DiveWeightSection({super.key, required this.dive});
 
@@ -43,7 +49,29 @@ class DiveWeightSection extends ConsumerWidget {
       );
     }
 
-    final totalWeight = displayWeights.fold(0.0, (sum, w) => sum + w.amount);
+    // Lead built into the rig, marked as equipment so it reads as the same
+    // gear the Equipment card lists rather than another weight entry.
+    for (final item in dive.leadGear) {
+      displayWeights.add(
+        _WeightDisplay(
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(item.name),
+              Text(
+                context.l10n.diveLog_detail_weight_fromEquipment,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+          amount: EquipmentLead.kgFor(item),
+        ),
+      );
+    }
+
+    final totalWeight = dive.recordedWeightKg ?? 0.0;
 
     return Card(
       child: Padding(
@@ -51,20 +79,15 @@ class DiveWeightSection extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  context.l10n.diveLog_detail_section_weight,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                Text(
-                  '${context.l10n.diveLog_detail_label_total} ${units.formatWeight(totalWeight)}',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
-                ),
-              ],
+            // The shared title row: unlocked, it gains the pencil.
+            RecordCardHeader(
+              title: context.l10n.diveLog_detail_section_weight,
+              trailing: Text(
+                '${context.l10n.diveLog_detail_label_total} ${units.formatWeight(totalWeight)}',
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
             ),
             const Divider(),
             ...displayWeights.map(

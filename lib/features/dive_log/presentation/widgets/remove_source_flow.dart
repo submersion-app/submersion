@@ -24,8 +24,13 @@ const Duration _undoWindow = Duration(seconds: 10);
 /// either is logged and never reported as a failed removal, since by then
 /// the removal or its Undo has landed. [undo] is replaceable for tests.
 ///
-/// Every failure is reported here: callers drop the returned Future.
-Future<void> removeSourceWithUndo(
+/// Every failure is reported here: callers drop the returned Future, or
+/// read it as whether the source was removed (false when the diver was told
+/// why not, turned the confirmation down, or the removal failed and rolled
+/// back). [offerUndo] false leaves
+/// the Undo off the snackbar: on a dive page that offers editing the
+/// removal reverts from History instead (issue #4527).
+Future<bool> removeSourceWithUndo(
   BuildContext context,
   WidgetRef ref, {
   required String diveId,
@@ -35,6 +40,7 @@ Future<void> removeSourceWithUndo(
   Future<void> Function()? onRemoved,
   Future<void> Function()? onUndone,
   Future<bool> Function(String operationId) undo = undoChangeLogOperation,
+  bool offerUndo = true,
 }) async {
   final l10n = context.l10n;
   final messenger = ScaffoldMessenger.of(context);
@@ -57,7 +63,7 @@ Future<void> removeSourceWithUndo(
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.diveLog_sources_removeSharedComputer)),
       );
-      return;
+      return false;
     }
   } catch (error, stackTrace) {
     _log.warning(
@@ -68,10 +74,10 @@ Future<void> removeSourceWithUndo(
     messenger.showSnackBar(
       SnackBar(content: Text(l10n.diveLog_sources_removeFailed)),
     );
-    return;
+    return false;
   }
-  if (!context.mounted) return;
-  if (!await confirmRemoveSource(context, source: sourceName)) return;
+  if (!context.mounted) return false;
+  if (!await confirmRemoveSource(context, source: sourceName)) return false;
 
   final String? operationId;
   try {
@@ -88,12 +94,12 @@ Future<void> removeSourceWithUndo(
     messenger.showSnackBar(
       SnackBar(content: Text(l10n.diveLog_sources_removeFailed)),
     );
-    return;
+    return false;
   }
   await quietly(onRemoved, 'After removing source $sourceId');
   afterChange();
 
-  final undoable = operationId;
+  final undoable = offerUndo ? operationId : null;
   messenger.showSnackBar(
     SnackBar(
       duration: _undoWindow,
@@ -116,4 +122,5 @@ Future<void> removeSourceWithUndo(
             ),
     ),
   );
+  return true;
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/lightroom/adobe_ims_auth_manager.dart';
@@ -11,6 +12,11 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/lightroom_connector_state.dart';
 import 'package:submersion/features/media/data/services/lightroom_scan_service.dart';
+import 'package:submersion/features/media/data/services/media_import_service.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
@@ -29,7 +35,26 @@ class _FakeScanService extends LightroomScanService {
       );
 
   int scanCalls = 0;
+  int prepareCalls = 0;
   Object? throwOnScan;
+
+  /// What [prepareForDive] finds for the dive.
+  List<PreparedMedia> found = const [];
+
+  @override
+  Future<({List<PreparedMedia> rows, LightroomScanSummary summary})>
+  prepareForDive({
+    required domain.ConnectedAccount account,
+    required Dive dive,
+    required LightroomConnectorState state,
+  }) async {
+    prepareCalls++;
+    if (throwOnScan != null) throw throwOnScan!;
+    return (
+      rows: found,
+      summary: LightroomScanSummary()..attached = found.length,
+    );
+  }
 
   @override
   Future<LightroomScanSummary> scanDives({
@@ -59,6 +84,7 @@ void main() {
   Future<(_FakeScanService, WidgetTester)> pump(
     WidgetTester tester, {
     domain.ConnectedAccount? withAccount,
+    EditSession<Dive>? sitting,
   }) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
@@ -81,9 +107,11 @@ void main() {
           home: Scaffold(
             body: Consumer(
               builder: (context, ref, _) => ElevatedButton(
-                onPressed: () => runLightroomScan(context, ref, [
-                  Dive(id: 'd1', dateTime: DateTime.utc(2026, 7, 1, 10)),
-                ]),
+                onPressed: () => sitting == null
+                    ? runLightroomScan(context, ref, [
+                        Dive(id: 'd1', dateTime: DateTime.utc(2026, 7, 1, 10)),
+                      ])
+                    : runLightroomScanInSitting(context, ref, sitting),
                 child: const Text('scan'),
               ),
             ),
@@ -130,5 +158,117 @@ void main() {
       accountId: account.id,
     ).lastError();
     expect(lastError, 'Adobe said no');
+  });
+
+  group('in a sitting on the dive (issue #4527)', () {
+    /// The open Media card's sitting, with writers that write nothing.
+    EditSession<Dive> openSitting() {
+      final session = EditSession<Dive>(
+        Dive(id: 'd1', dateTime: DateTime.utc(2026, 7, 1, 10)),
+      );
+      addTearDown(session.dispose);
+      holdSittingMedia(
+        session,
+        SittingMediaWriters(
+          writeRows: (_) async => const [],
+          insertNetwork: (_) async => const [],
+          unlink: (_) async {},
+          replace: (_, _, _) async {},
+          drainDeletes: () async {},
+          enqueueUpload: (_) {},
+        ),
+        cardId: DiveDetailSectionId.media.name,
+      );
+      return session;
+    }
+
+    final found = MediaItem(
+      id: 'm1',
+      diveId: 'd1',
+      mediaType: MediaType.photo,
+      sourceType: MediaSourceType.serviceConnector,
+      connectorAccountId: 'acct1',
+      remoteAssetId: 'lr1',
+      takenAt: DateTime.utc(2026, 7, 1, 10, 30),
+      createdAt: DateTime.utc(2026, 7, 1),
+      updatedAt: DateTime.utc(2026, 7, 1),
+    );
+
+    testWidgets('what the scan finds is held until Save, not written', (
+      tester,
+    ) async {
+      final session = openSitting();
+      final (service, _) = await pump(
+        tester,
+        withAccount: account,
+        sitting: session,
+      );
+      service.found = [(item: found, enrichment: null)];
+
+      await tester.tap(find.text('scan'));
+      await tester.pumpAndSettle();
+
+      expect(service.prepareCalls, 1);
+      expect(service.scanCalls, 0);
+      expect(sittingMedia(session).added.map((a) => a.preview.remoteAssetId), [
+        'lr1',
+      ]);
+    });
+
+    testWidgets('a second scan does not hold the same photo twice', (
+      tester,
+    ) async {
+      final session = openSitting();
+      final (service, _) = await pump(
+        tester,
+        withAccount: account,
+        sitting: session,
+      );
+      // Held rows are not stored yet, so the catalog finds them again.
+      service.found = [(item: found, enrichment: null)];
+
+      await tester.tap(find.text('scan'));
+      await tester.pumpAndSettle();
+      service.found = [(item: found.copyWith(id: 'm2'), enrichment: null)];
+      await tester.tap(find.text('scan'));
+      await tester.pumpAndSettle();
+
+      expect(sittingMedia(session).added, hasLength(1));
+    });
+
+    testWidgets('finding nothing says so and holds nothing', (tester) async {
+      final session = openSitting();
+      await pump(tester, withAccount: account, sitting: session);
+
+      await tester.tap(find.text('scan'));
+      await tester.pumpAndSettle();
+
+      expect(sittingMedia(session).added, isEmpty);
+      expect(find.text('No new photos found near this dive'), findsOneWidget);
+    });
+
+    testWidgets('a sitting that ended during the scan holds nothing', (
+      tester,
+    ) async {
+      final session = EditSession<Dive>(
+        Dive(id: 'd1', dateTime: DateTime.utc(2026, 7, 1, 10)),
+      );
+      final (service, _) = await pump(
+        tester,
+        withAccount: account,
+        sitting: session,
+      );
+      service.found = [(item: found, enrichment: null)];
+      session.dispose();
+
+      await tester.tap(find.text('scan'));
+      await tester.pumpAndSettle();
+
+      // The scan ran and found a photo, and holding it into the ended
+      // sitting neither threw nor said anything.
+      expect(service.prepareCalls, 1);
+      expect(tester.takeException(), isNull);
+      expect(find.byType(SnackBar), findsNothing);
+    });
   });
 }

@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/domain/color/color_adjustment.dart';
 import 'package:submersion/features/media/domain/color/color_correction_policy.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -13,8 +12,9 @@ import 'package:submersion/features/media/presentation/widgets/color_adjust/appl
 import 'package:submersion/features/media/presentation/widgets/color_adjust/color_adjust_sliders.dart';
 import 'package:submersion/features/media/presentation/widgets/color_adjust/color_correction_label.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-
-final _log = LoggerService.forClass(ColorAdjustPanel);
+import 'package:submersion/features/media/domain/entities/photo_record.dart';
+import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 /// The viewers' "Adjust color" panel (issue #3520): Auto, Pick white,
 /// Original (hold), Strength, Warmth, Tint, and Brightness, Contrast and
@@ -32,6 +32,7 @@ class ColorAdjustPanel extends ConsumerStatefulWidget {
     required this.onPickWhite,
     this.pickWhiteAvailable = true,
     this.layout = Axis.horizontal,
+    this.sitting,
   });
 
   final MediaItem item;
@@ -39,6 +40,10 @@ class ColorAdjustPanel extends ConsumerStatefulWidget {
   final VoidCallback onPickWhite;
   final bool pickWhiteAvailable;
   final Axis layout;
+
+  /// The photo's sitting (issue #4527): every change is held in it until
+  /// Save, and drawn from it. Null changes nothing.
+  final EditSession<PhotoRecord>? sitting;
 
   @override
   ConsumerState<ColorAdjustPanel> createState() => _ColorAdjustPanelState();
@@ -145,33 +150,18 @@ class _ColorAdjustPanelState extends ConsumerState<ColorAdjustPanel> {
       .read(colorAdjustmentDraftNotifierProvider(widget.item.id).notifier)
       .set(adjustment);
 
-  /// Saves [adjustment] (null clears it), keeping the draft on the saved
-  /// value so the photo does not flicker back while the row reloads.
-  Future<void> _save(ColorAdjustment? adjustment) async {
-    // The item this save is for: the panel may page on during the write.
-    final mediaId = widget.item.id;
-    _draw(adjustment ?? const ColorAdjustment());
-    final messenger = ScaffoldMessenger.maybeOf(context);
-    final l10n = context.l10n;
-    try {
-      await ref
-          .read(mediaColorAdjustmentRepositoryProvider)
-          .setColorAdjustment(mediaId, adjustment);
-    } catch (e, stackTrace) {
-      _log.error(
-        'Saving a color adjustment failed',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      if (mounted) {
-        ref
-            .read(colorAdjustmentDraftNotifierProvider(mediaId).notifier)
-            .clear();
-      }
-      messenger?.showSnackBar(
-        SnackBar(content: Text(l10n.media_color_saveFailed)),
-      );
-    }
+  /// Holds [adjustment] (null clears it) in the photo's sitting, which the
+  /// viewer draws the colour from, so the live draft goes. With no sitting
+  /// (it ended, or a device that cannot unlock) nothing changes, and the
+  /// draft goes too: a photo's colour changes only in a sitting (issue
+  /// #4527).
+  void _save(ColorAdjustment? adjustment) {
+    ref
+        .read(colorAdjustmentDraftNotifierProvider(widget.item.id).notifier)
+        .clear();
+    final held = widget.sitting;
+    if (held == null || held.isDisposed || held.isFrozen) return;
+    held.set(photoColorField, adjustment);
   }
 
   @override
@@ -329,8 +319,12 @@ class _ColorAdjustPanelState extends ConsumerState<ColorAdjustPanel> {
                 ),
                 if (item.diveId != null)
                   TextButton(
-                    onPressed: () =>
-                        runApplyToDive(context, ref, item, current),
+                    onPressed: () => runApplyToDive(
+                      context,
+                      ref,
+                      item,
+                      sitting: widget.sitting,
+                    ),
                     child: Text(l10n.media_color_applyToDive),
                   ),
                 FilledButton.tonal(

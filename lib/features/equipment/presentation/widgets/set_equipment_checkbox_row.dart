@@ -41,7 +41,7 @@ class SetEquipmentCheckboxRow extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final highlight = flashing ? figureHighlightFor(scheme) : null;
     final icon = Icon(
-      equipmentTypeIcon(item.type),
+      equipmentItemIcon(item),
       color: highlight?.onFill ?? scheme.onSurfaceVariant,
     );
 

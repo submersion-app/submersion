@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
+import 'package:submersion/core/constants/feature_flags.dart';
+
 import 'package:submersion/core/services/storage/cache_location.dart';
 import 'package:submersion/core/services/storage/directory_size.dart';
 import 'package:submersion/core/services/storage/storage_category.dart';
@@ -62,6 +64,19 @@ class StorageInventory {
       group: StorageGroup.appData,
       measure: _measureLocalCache,
     ),
+    // Only where marine life identification runs (issue #4668).
+    if (marineLifeIdEnabled) ...[
+      StorageCategory(
+        id: StorageCategoryId.identificationModel,
+        group: StorageGroup.appData,
+        measure: () => _measureSpeciesId('pack'),
+      ),
+      StorageCategory(
+        id: StorageCategoryId.identificationCrops,
+        group: StorageGroup.appData,
+        measure: () => _measureSpeciesId('crops'),
+      ),
+    ],
     StorageCategory(
       id: StorageCategoryId.mediaCacheOriginals,
       group: StorageGroup.mediaCache,
@@ -136,6 +151,11 @@ class StorageInventory {
       measure: _measureImportedFiles,
     ),
   ];
+
+  /// A folder under `<application support>/species_id`.
+  Future<int?> _measureSpeciesId(String folder) async => measureDirectoryBytes(
+    Directory(p.join((await _supportDirectory()).path, 'species_id', folder)),
+  );
 
   Future<int?> _measureDatabase() async {
     final path = await _databasePath();

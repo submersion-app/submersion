@@ -205,6 +205,10 @@ class UrlTabNotifier extends StateNotifier<UrlTabState> {
     }
   }
 
+  /// Clears the draft once its requests have been handed to a sitting,
+  /// which writes them at Save (issue #4527).
+  void clearDraft() => state = state.copyWith(draftLines: const []);
+
   /// Inserts the decided rows, stamps [UrlTabState.committedIds] for the
   /// undo path, and clears the draft now that it has become rows.
   ///

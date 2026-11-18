@@ -120,6 +120,103 @@ void main() {
     expect(controller.isUnlocked, isFalse);
   });
 
+  // A scope inside the page can refuse Back for a step of its own (the
+  // photo viewer leaving fullscreen first). Every scope is then told the pop
+  // did not happen; the guard did not refuse it, so it must not finish the
+  // pop itself.
+  for (final unlocked in [false, true]) {
+    testWidgets('${unlocked ? 'unlocked, no changes' : 'locked'}: a Back a '
+        'scope inside refuses stays on the page', (tester) async {
+      final controller = RecordEditController<_Rec>(onSave: (_) async {});
+      addTearDown(controller.dispose);
+      if (unlocked) controller.unlock(const _Rec());
+      var refused = 0;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => RecordEditLeaveGuard<_Rec>(
+                    controller: controller,
+                    child: PopScope(
+                      canPop: false,
+                      onPopInvokedWithResult: (didPop, _) => refused++,
+                      child: const Scaffold(body: Text('Record')),
+                    ),
+                  ),
+                ),
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+
+      expect(refused, 1);
+      expect(find.text('Record'), findsOneWidget);
+      expect(controller.isUnlocked, unlocked);
+    });
+  }
+
+  // With changes held, a page that backs out of a step of its own first
+  // (the photo viewer's fullscreen) takes Back for that step: no discard
+  // question, and the page stays.
+  testWidgets('with changes, a step the page backs out of first takes Back', (
+    tester,
+  ) async {
+    final controller = RecordEditController<_Rec>(onSave: (_) async {});
+    addTearDown(controller.dispose);
+    controller.unlock(const _Rec());
+    controller.session!.set(_notes, 'changed');
+    var inStep = true;
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Builder(
+          builder: (context) => TextButton(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => RecordEditLeaveGuard<_Rec>(
+                  controller: controller,
+                  backsOutFirst: () => inStep,
+                  child: PopScope(
+                    canPop: false,
+                    onPopInvokedWithResult: (didPop, _) => inStep = false,
+                    child: const Scaffold(body: Text('Record')),
+                  ),
+                ),
+              ),
+            ),
+            child: const Text('open'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(inStep, isFalse);
+    expect(find.text('Discard changes?'), findsNothing);
+    expect(find.text('Record'), findsOneWidget);
+    expect(controller.isDirty, isTrue);
+
+    // Out of the step, Back asks as it always has.
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.text('Discard changes?'), findsOneWidget);
+  });
+
   testWidgets('unlocked with changes: back asks, and Keep editing stays', (
     tester,
   ) async {
@@ -154,6 +251,37 @@ void main() {
 
     expect(find.text('Record'), findsNothing);
     expect(controller.isUnlocked, isFalse);
+  });
+
+  // The list pane's page is its tab's first page: there is nothing under
+  // it to go back to (issue #4527, plan 7).
+  testWidgets('at the root, Back with changes asks, and Discard locks in '
+      'place', (tester) async {
+    final controller = RecordEditController<_Rec>(onSave: (_) async {});
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: RecordEditLeaveGuard<_Rec>(
+          controller: controller,
+          child: const Scaffold(body: Text('Root record')),
+        ),
+      ),
+    );
+    controller.unlock(const _Rec());
+    controller.session!.set(_notes, 'b');
+    await tester.pump();
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Discard'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Root record'), findsOneWidget);
+    expect(controller.isUnlocked, isFalse);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('cancelSitting with changes asks, and Discard locks in place', (

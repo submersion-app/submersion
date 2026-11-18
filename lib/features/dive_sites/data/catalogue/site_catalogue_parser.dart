@@ -5,6 +5,7 @@ import 'package:submersion/core/database/site_type_seed.dart';
 import 'package:submersion/core/text/fuzzy_match.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/catalogue_enum_names.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
+import 'package:submersion/features/dive_sites/domain/entities/catalogue_withdrawal.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
 /// A catalogue file, read.
@@ -13,12 +14,52 @@ class ParsedSiteCatalogue {
   final List<CatalogueSite> sites;
   final List<CatalogueSource> sources;
 
+  /// The researched records this catalogue no longer ships, and why.
+  final List<CatalogueWithdrawal> withdrawn;
+
   const ParsedSiteCatalogue({
     required this.format,
     required this.sites,
     required this.sources,
+    this.withdrawn = const [],
   });
 }
+
+/// The newest catalogue format this build reads. A catalogue release whose
+/// format contract states a newer one fails the contract test in its intake
+/// PR (site_catalogue_contract_test.dart), before it reaches a build.
+const int kSupportedCatalogueFormat = 2;
+
+/// Every record field [parseSiteCatalogue] reads. A release whose contract
+/// lists a field outside this set fails the contract test: the app would
+/// drop it without a word.
+const Set<String> kParsedCatalogueFields = {
+  'id',
+  'name',
+  'lat',
+  'lon',
+  'country_code',
+  'country',
+  'region',
+  'locality',
+  'island',
+  'body_of_water',
+  'water_type',
+  'max_depth_m',
+  'min_depth_m',
+  'types',
+  'entry',
+  'difficulty',
+  'features',
+  'hazards',
+  'description',
+  'website',
+  'kind',
+  'source',
+  'source_ref',
+  'trust',
+  'position_from',
+};
 
 /// Names the sea at a position, or null when it is inland or unknown.
 typedef SeaNamer = String? Function(double latitude, double longitude);
@@ -67,6 +108,11 @@ ParsedSiteCatalogue parseSiteCatalogue(String json, {SeaNamer? seaAt}) {
         for (final entry in sources.entries)
           if (entry.value case final Map<String, dynamic> raw)
             ?_source(entry.key, raw),
+    ],
+    withdrawn: [
+      if (meta['withdrawn'] case final Map<String, dynamic> withdrawn)
+        for (final entry in withdrawn.entries)
+          ?catalogueWithdrawalFromJson(entry.key, entry.value),
     ],
   );
 }
@@ -133,6 +179,7 @@ CatalogueSite? _site(Map<String, dynamic> raw, SeaNamer? seaAt) {
     // A record is a dive site unless it says it is a register record; a
     // kind this build does not know is read as a dive site too.
     kind: catalogueKindsByName[raw['kind']] ?? CatalogueKind.site,
+    positionFromMap: raw['position_from'] == 'map',
   );
 }
 

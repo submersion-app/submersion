@@ -1,6 +1,8 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/deco/deco_model.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_tank.dart'
+    show GasMix;
 
 /// Severity of a computed plan issue, ordered least to most severe.
 enum PlanIssueSeverity { info, warning, alert, critical }
@@ -30,7 +32,25 @@ enum PlanIssueType {
   /// [PlanIssue.atDepth] is where, and [PlanIssue.value] the inspired ppO2
   /// there, in bar.
   bailoutGasHypoxic,
+
+  /// A constant mass flow SCR loop whose injection rate cannot sustain it at
+  /// the plan's VO2 on a supply (#4660): at or below VO2, or carrying less O2
+  /// than the diver uses. [PlanIssue.value] is the injection rate and
+  /// [PlanIssue.threshold] the least flow with a steady state on that supply,
+  /// both surface L/min; [PlanIssue.tankId] is the supply.
+  scrFlowTooLow,
+
+  /// A back gas leaves the bottom with enough for an emergency ascent but
+  /// not for the problem-solving time as well (#4475). [PlanIssue.value] is
+  /// the pressure as the diver leaves the bottom and [PlanIssue.threshold]
+  /// the full rock-bottom minimum, both in bar.
   minGasViolation,
+
+  /// A back gas leaves the bottom with less than an emergency ascent needs,
+  /// even with no problem-solving time (#4475). [PlanIssue.value] is the
+  /// pressure as the diver leaves the bottom and [PlanIssue.threshold] the
+  /// ascent-only minimum, both in bar.
+  minGasAscentViolation,
 
   /// A back gas whose rock-bottom minimum is at or above its fill, so no
   /// gas is usable before the turn (#3741). [PlanIssue.value] is the
@@ -60,7 +80,31 @@ enum PlanIssueType {
 
   /// A dive of a series deeper than the one before it. [PlanIssue.value] is
   /// its depth and [PlanIssue.threshold] the previous dive's, in meters.
-  reverseProfile,
+  reverseProfile;
+
+  /// Whether a lower [PlanIssue.value] is the worse one: a pressure left in
+  /// a cylinder, a hypoxic ppO2 or a short surface interval. Every other
+  /// value is a limit passed, worse the higher it is.
+  bool get lowerValueIsWorse => switch (this) {
+    hypoxicGas ||
+    bailoutGasHypoxic ||
+    gasReserveViolation ||
+    gasOut ||
+    minGasViolation ||
+    minGasAscentViolation ||
+    shortSurfaceInterval => true,
+    _ => false,
+  };
+
+  /// Whether the issue's grouped row is the one with the highest
+  /// [PlanIssue.threshold] rather than the worst [PlanIssue.value]: every SCR
+  /// flow issue carries the plan's one injection rate as its value, and the
+  /// row must name the supply needing the most flow (issue #4660).
+  bool get ranksByThreshold => this == scrFlowTooLow;
+
+  /// Critical, yet the plan as computed still reaches the surface: a margin
+  /// held back for an emergency is short, not the dive itself (#4475).
+  bool get isMarginShortfall => this == minGasAscentViolation;
 }
 
 /// One issue found while computing a plan.
@@ -83,6 +127,10 @@ class PlanIssue extends Equatable {
 
   /// The cylinder a gas issue is about.
   final String? tankId;
+
+  /// The gas in [tankId], where the warning must name it to be acted on:
+  /// the supply an SCR flow issue is about (#4660).
+  final GasMix? gasMix;
   final double? value;
   final double? threshold;
 
@@ -94,6 +142,7 @@ class PlanIssue extends Equatable {
     this.atDepth,
     this.segmentId,
     this.tankId,
+    this.gasMix,
     this.value,
     this.threshold,
   });
@@ -107,6 +156,7 @@ class PlanIssue extends Equatable {
     atDepth,
     segmentId,
     tankId,
+    gasMix,
     value,
     threshold,
   ];
@@ -236,8 +286,30 @@ class PlanTankUsage extends Equatable {
   /// Turn pressure per the plan's turn-pressure rule (bottom tanks only).
   final double? turnPressureBar;
 
-  /// Rock-bottom minimum gas for a stressed shared ascent (bottom tanks).
+  /// Rock-bottom minimum gas for a stressed shared ascent (bottom tanks):
+  /// the problem-solving time at depth plus the ascent.
   final double? minGasBar;
+
+  /// The ascent share of [minGasBar] alone, with no problem-solving time
+  /// (#4475): leaving the bottom under it is critical, between it and
+  /// [minGasBar] a warning.
+  final double? minGasAscentBar;
+
+  /// Pressure in the cylinder as the diver last leaves the plan's deepest
+  /// point, which is what minimum gas is checked against (#4475); null
+  /// without a start pressure or on a closed-circuit plan. A semi-closed
+  /// plan breathes its cylinders directly, so it has one.
+  final double? bottomEndPressure;
+
+  /// Surface liters the problem-solving time at the deepest point would
+  /// draw from this cylinder, at bottom SAC shared with a buddy (#4475).
+  /// Not part of [litersUsed]: the dive does not always spend it. 0 on
+  /// every cylinder but the one the bottom is breathed from.
+  final double problemSolvingLiters;
+
+  /// [problemSolvingLiters] as bar in this cylinder; null when there is
+  /// none.
+  final double? problemSolvingPressure;
 
   /// Why [turnPressureBar] is null on a cylinder it applies to; null when
   /// it was computed or when the cylinder is not one turn pressure is for.
@@ -259,6 +331,10 @@ class PlanTankUsage extends Equatable {
     this.minGasBar,
     this.turnPressureGap,
     this.minGasGap,
+    this.minGasAscentBar,
+    this.bottomEndPressure,
+    this.problemSolvingLiters = 0,
+    this.problemSolvingPressure,
   });
 
   /// Pressure consumed, in bar; null when start or remaining is unknown.
@@ -295,6 +371,10 @@ class PlanTankUsage extends Equatable {
     minGasBar,
     turnPressureGap,
     minGasGap,
+    minGasAscentBar,
+    bottomEndPressure,
+    problemSolvingLiters,
+    problemSolvingPressure,
   ];
 }
 

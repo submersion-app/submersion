@@ -12,6 +12,7 @@ import 'package:submersion/core/constants/first_day_of_week.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
+import 'package:submersion/features/dive_types/domain/favourite_dive_types.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 import 'package:submersion/features/insights/domain/observations/observation_rule_id.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
@@ -142,6 +143,17 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
         catalog,
         id,
         hidden,
+      ),
+    );
+  }
+
+  @override
+  Future<void> setDiveTypeFavourite(String id, bool favourite) async {
+    state = state.copyWith(
+      favouriteDiveTypeIds: withDiveTypeFavourite(
+        state.favouriteDiveTypeIds,
+        id,
+        favourite,
       ),
     );
   }
@@ -473,6 +485,15 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setPlannerWalkSpeedMps(double value) async =>
       state = state.copyWith(plannerWalkSpeedMps: value);
   @override
+  Future<void> setPlannerScrInjectionRate(double value) async =>
+      state = state.copyWith(plannerScrInjectionRate: value);
+  @override
+  Future<void> setPlannerScrVo2(double value) async =>
+      state = state.copyWith(plannerScrVo2: value);
+  @override
+  Future<void> setPlannerPscrVo2(double value) async =>
+      state = state.copyWith(plannerPscrVo2: value);
+  @override
   Future<void> setPlannerTurnPressureRule(
     domain.TurnPressureRule? value,
   ) async => state = state.copyWith(
@@ -765,6 +786,10 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setDefaultShowCounterdiffusion(bool value) async =>
       state = state.copyWith(defaultShowCounterdiffusion: value);
+
+  @override
+  Future<void> setDefaultShowBuoyancy(bool value) async =>
+      state = state.copyWith(defaultShowBuoyancy: value);
 
   @override
   Future<void> setO2CellUnit(O2CellUnit value) async =>

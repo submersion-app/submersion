@@ -41,7 +41,9 @@ import 'package:submersion/features/settings/presentation/pages/lightroom_settin
 import 'package:submersion/features/shared_library/presentation/pages/connect_shared_library_page.dart';
 import 'package:submersion/features/shared_library/presentation/pages/shared_library_members_page.dart';
 import 'package:submersion/features/settings/presentation/pages/profile_metric_colors_page.dart';
+import 'package:submersion/features/settings/presentation/pages/raw_dive_data_page.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
+import 'package:submersion/features/trips/domain/services/trip_day_notes.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
@@ -51,11 +53,13 @@ import 'package:submersion/features/trips/presentation/navigation/open_trip_list
 import 'package:submersion/features/trips/presentation/pages/trip_list_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/dive_log/presentation/pages/bulk_dive_edit_page.dart';
+import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
 import 'package:submersion/core/router/shortcut_locations.dart';
 import 'package:submersion/features/import_wizard/presentation/pages/universal_import_wizard_route.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/leave_running_import_dialog.dart';
 import 'package:submersion/features/table_editor/presentation/pages/table_editor_page.dart';
+import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blocker.dart';
 
 /// Finds a [GoRoute] by name in a route tree recursively.
 GoRoute? _findRouteByName(List<RouteBase> routes, String name) {
@@ -228,6 +232,17 @@ void main() {
       expect(planning.tripId, 't1');
       expect(planning.initialSection, TripEditSection.planning);
       expect(build('/trips/t1/edit').initialSection, isNull);
+
+      // Add note on a day opens the form at that day's note (#4625).
+      final dayNote = build(
+        '/trips/t1/edit?section=notes&noteDate=2026-11-05&noteDay=3',
+      );
+      expect(dayNote.initialSection, TripEditSection.notes);
+      expect(
+        dayNote.noteDay,
+        TripNoteDay(date: DateTime(2026, 11, 5), dayNumber: 3),
+      );
+      expect(build('/trips/t1/edit').noteDay, isNull);
     });
   });
 
@@ -378,6 +393,14 @@ void main() {
   });
 
   // The sidebar leaves with go(), which no PopScope sees (#3422).
+  // A site's sitting is asked about before a `go` leaves it (issue #4527).
+  test('leaving a site page goes through its sitting check', () {
+    for (final name in const ['sites', 'siteDetail']) {
+      final route = _findRouteByName(router.configuration.routes, name);
+      expect(route?.onExit, same(confirmLeaveRecordSitting), reason: name);
+    }
+  });
+
   test('leaving the table editor goes through its unsaved work check', () {
     final route = _findRouteByName(router.configuration.routes, 'tableEditor');
 
@@ -1030,6 +1053,27 @@ void main() {
       final widget = route!.builder!(capturedContext, state);
       expect(widget.runtimeType.toString(), 'CloudSyncPage');
     });
+  });
+
+  // Settings > Data > Data tools > Raw dive computer data (issue #4590).
+  testWidgets('rawDiveData builds the raw dive computer data page at '
+      '/settings/raw-dive-data', (tester) async {
+    await tester.pumpWidget(const MaterialApp(home: SizedBox()));
+    final context = tester.element(find.byType(SizedBox));
+    final config = router.configuration;
+    final route = _findRouteByName(config.routes, 'rawDiveData');
+    expect(route, isNotNull);
+    expect(route!.path, 'raw-dive-data');
+
+    final state = GoRouterState(
+      config,
+      uri: Uri.parse('/settings/raw-dive-data'),
+      matchedLocation: '/settings/raw-dive-data',
+      fullPath: '/settings/raw-dive-data',
+      pathParameters: const {},
+      pageKey: const ValueKey('/settings/raw-dive-data'),
+    );
+    expect(route.builder!(context, state), isA<RawDiveDataPage>());
   });
 
   group('app_router checklist templates routes', () {
@@ -2241,6 +2285,61 @@ void main() {
     });
   });
 
+  group('the old dive edit address (issue #4527, plan 11)', () {
+    late BuildContext capturedContext;
+
+    GoRouterState stateAt(String location, String fullPath) => GoRouterState(
+      router.configuration,
+      uri: Uri.parse(location),
+      matchedLocation: Uri.parse(location).path,
+      fullPath: fullPath,
+      pathParameters: const {'diveId': 'd1'},
+      pageKey: ValueKey(location),
+    );
+
+    Future<void> capture(WidgetTester tester) => tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) {
+            capturedContext = context;
+            return const SizedBox.shrink();
+          },
+        ),
+      ),
+    );
+
+    testWidgets('/dives/<id>/edit redirects to /dives/<id>?mode=edit', (
+      tester,
+    ) async {
+      await capture(tester);
+      final edit = _findRouteByName(router.configuration.routes, 'editDive')!;
+
+      expect(
+        await edit.redirect!(
+          capturedContext,
+          stateAt('/dives/d1/edit', '/dives/:diveId/edit'),
+        ),
+        '/dives/d1?mode=edit',
+      );
+    });
+
+    testWidgets('/dives/<id>?mode=edit builds the dive page unlocked', (
+      tester,
+    ) async {
+      await capture(tester);
+      final detail = _findRouteByName(
+        router.configuration.routes,
+        'diveDetail',
+      )!;
+      DiveDetailPage pageAt(String location) =>
+          detail.builder!(capturedContext, stateAt(location, '/dives/:diveId'))
+              as DiveDetailPage;
+
+      expect(pageAt('/dives/d1?mode=edit').openUnlocked, isTrue);
+      expect(pageAt('/dives/d1').openUnlocked, isFalse);
+    });
+  });
+
   group('Settings > Data pane (#3467)', () {
     // Every page reached from Settings > Data. The pane builds these from its
     // own table, so each must build the same page the router does.
@@ -2259,6 +2358,7 @@ void main() {
       '/settings/photos-media/uploads',
       '/settings/media-sources',
       '/settings/media-sources/network-sources',
+      '/settings/marine-life-identification',
       '/settings/connected-accounts',
       '/settings/connected-accounts/acct1',
       '/settings/storage',

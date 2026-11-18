@@ -6,6 +6,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_position.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_buoyancy_line.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Every sample with a temperature the chart can draw: the active source's and
@@ -68,6 +69,9 @@ bool hasDataForMetric(
     case ProfileRightAxisMetric.o2CellMv:
       return config.o2CellMvCurves != null &&
           config.o2CellMvCurves!.any((c) => c.any((v) => v != null));
+    case ProfileRightAxisMetric.buoyancy:
+      final curve = config.buoyancyCurve;
+      return curve != null && buoyancyAxisRange(curve) != null;
   }
 }
 
@@ -179,6 +183,11 @@ bool hasDataForMetric(
       final maxMv = o2CellMvMax(curves);
       if (maxMv == null) return null;
       return (min: 0.0, max: maxMv * 1.2);
+
+    case ProfileRightAxisMetric.buoyancy:
+      // Kilograms, always spanning 0 so the neutral rule is on the plot.
+      final curve = config.buoyancyCurve;
+      return curve == null ? null : buoyancyAxisRange(curve);
   }
 }
 
@@ -201,6 +210,8 @@ String rightAxisLabel(
       return '$name (${units.pressureSymbol}/$perMin)';
     case ProfileRightAxisMetric.ascentRate:
       return '$name (${units.depthSymbol}/$perMin)';
+    case ProfileRightAxisMetric.buoyancy:
+      return '$name (${units.weightSymbol})';
     default:
       final suffix = profileMetricUnitSuffix(l10n, metric);
       if (suffix != null) return '$name ($suffix)';
@@ -235,6 +246,7 @@ String profileMetricName(
   ProfileRightAxisMetric.cns => l10n.enum_profileMetric_cns,
   ProfileRightAxisMetric.otu => l10n.enum_profileMetric_otu,
   ProfileRightAxisMetric.o2CellMv => l10n.enum_profileMetric_o2CellMv,
+  ProfileRightAxisMetric.buoyancy => l10n.enum_profileMetric_buoyancy,
 };
 
 /// Localized short name for a right-axis metric, used on the axis itself
@@ -262,6 +274,7 @@ String profileMetricShortName(
   ProfileRightAxisMetric.cns => l10n.enum_profileMetric_cns_short,
   ProfileRightAxisMetric.otu => l10n.enum_profileMetric_otu_short,
   ProfileRightAxisMetric.o2CellMv => l10n.enum_profileMetric_o2CellMv_short,
+  ProfileRightAxisMetric.buoyancy => l10n.enum_profileMetric_buoyancy_short,
 };
 
 /// Localized unit suffix for the metrics whose unit is fixed rather than

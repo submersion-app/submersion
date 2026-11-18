@@ -64,6 +64,11 @@ class TankEditor extends ConsumerStatefulWidget {
   /// (#797), which never writes pressures.
   final bool showPressures;
 
+  /// Hide the role picker, letting the preset take the whole row. Used by the
+  /// bulk spec update when roles are set per tank position (issue #4412),
+  /// where a single template role would read as if it still applied.
+  final bool showRole;
+
   /// Replaces the numbered "Tank N" header with this title and a stacked
   /// icon. Used where the editor is a template written to many tanks, such
   /// as the bulk spec update, where "Tank 1" read as only the first tank
@@ -120,6 +125,7 @@ class TankEditor extends ConsumerStatefulWidget {
     this.onRemove,
     this.canRemove = true,
     this.showPressures = true,
+    this.showRole = true,
     this.headerTitle,
     this.onOwnCylinderUsed,
     this.diveDate,
@@ -166,9 +172,11 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   Duration? _surfaceBreathing;
 
   /// Whether the minutes field shows: only on a breathing cylinder with no
-  /// transmitter log, whose end pressure was read off the gauge (#2930).
+  /// transmitter log, whose end pressure was read off the gauge (#2930), and
+  /// whose pressure measures the gas breathed, which an Avelo Hydrotank's
+  /// does not (#4657).
   bool get _showsSurfaceBreathing =>
-      _role.isBreathingGas && !widget.tank.hasPressureSeries;
+      _role.pressureMeasuresGasUse && !widget.tank.hasPressureSeries;
 
   /// The partner's passport id when this tank is a twin set (issue #4242).
   String? _twinPassportId;
@@ -704,47 +712,52 @@ class _TankEditorState extends ConsumerState<TankEditor> {
             onCylinderChosen: _chooseOwnCylinder,
           ),
         ),
-        const SizedBox(width: 16),
-        // Role dropdown
-        Expanded(
-          child: DropdownButtonFormField<TankRole>(
-            // Keyed by the role, so a role set by a twin set pick (issue
-            // #4242) shows; initialValue is read once per field.
-            key: ValueKey('tank-role-${_role.name}'),
-            initialValue: _role,
-            isExpanded: true,
-            decoration: InputDecoration(
-              labelText: context.l10n.diveLog_tank_label_role,
-              isDense: true,
-            ),
-            items: TankRole.values
-                .map(
-                  (role) => DropdownMenuItem(
-                    value: role,
-                    child: TankRoleOption(role: role),
-                  ),
-                )
-                .toList(),
-            onChanged: (value) {
-              if (value != null) {
-                setState(() {
-                  _role = value;
-                  // A CCR oxygen supply cylinder feeds pure O2 into the loop
-                  // by definition, so there's nothing to analyze -- default
-                  // it instead of making the diver enter 100% by hand (#726).
-                  if (value == TankRole.oxygenSupply) {
-                    _lastValidO2 = 100.0;
-                    _lastValidHe = 0.0;
-                    _o2Controller.text = formatDecimalForInput(_lastValidO2);
-                    _heController.text = formatDecimalForInput(_lastValidHe);
-                  }
-                });
-                _notifyChange();
-              }
-            },
-          ),
-        ),
+        if (widget.showRole) ...[
+          const SizedBox(width: 16),
+          _buildRoleDropdown(),
+        ],
       ],
+    );
+  }
+
+  Widget _buildRoleDropdown() {
+    return Expanded(
+      child: DropdownButtonFormField<TankRole>(
+        // Keyed by the role, so a role set by a twin set pick (issue
+        // #4242) shows; initialValue is read once per field.
+        key: ValueKey('tank-role-${_role.name}'),
+        initialValue: _role,
+        isExpanded: true,
+        decoration: InputDecoration(
+          labelText: context.l10n.diveLog_tank_label_role,
+          isDense: true,
+        ),
+        items: TankRole.values
+            .map(
+              (role) => DropdownMenuItem(
+                value: role,
+                child: TankRoleOption(role: role),
+              ),
+            )
+            .toList(),
+        onChanged: (value) {
+          if (value != null) {
+            setState(() {
+              _role = value;
+              // A CCR oxygen supply cylinder feeds pure O2 into the loop
+              // by definition, so there's nothing to analyze -- default
+              // it instead of making the diver enter 100% by hand (#726).
+              if (value == TankRole.oxygenSupply) {
+                _lastValidO2 = 100.0;
+                _lastValidHe = 0.0;
+                _o2Controller.text = formatDecimalForInput(_lastValidO2);
+                _heController.text = formatDecimalForInput(_lastValidHe);
+              }
+            });
+            _notifyChange();
+          }
+        },
+      ),
     );
   }
 
@@ -1316,7 +1329,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     if (!mounted || choice != _specChoice) return;
     // A pair with a cylinder of unknown size has no volume to log, so it is
     // not offered; the pick is the cylinder alone.
-    if (partner != null && twinPairVolume(item, partner) != null) {
+    final pairOffered =
+        partner != null && twinPairVolume(item, partner) != null;
+    if (pairOffered) {
       final kind = await askTwinSetChoice(
         context,
         ref.read(unitFormatterProvider),
@@ -1351,6 +1366,18 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       material: item.tankMaterial,
       mix: fills.isEmpty ? null : fills.first.gasMix,
     );
+    // Doubles kept as one gear item (issue #4641) default the tank to the
+    // Twin Set role the same way. It runs after the cylinders are named,
+    // since naming one cylinder ends a linked pair's Twin Set (#4242). A
+    // cylinder linked in a pair has just been asked about, and "this
+    // cylinder alone" is the answer to keep.
+    if (item.isWornAsTwinSet &&
+        !item.isSuitInflationCylinder &&
+        !pairOffered &&
+        _role != TankRole.twinSet) {
+      setState(() => _role = TankRole.twinSet);
+      _notifyChange();
+    }
     // The cylinder joins the dive's gear even when it records no spec.
     await widget.onOwnCylinderUsed?.call(item);
     if (filled) {

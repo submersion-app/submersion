@@ -22,6 +22,7 @@ import 'package:submersion/core/database/tables/equipment_location_tables.dart';
 import 'package:submersion/core/database/tables/equipment_service_status_tables.dart';
 import 'package:submersion/core/database/tables/equipment_set_bundle_tables.dart';
 import 'package:submersion/core/database/tables/equipment_tables.dart';
+import 'package:submersion/core/database/tables/identification_tables.dart';
 import 'package:submersion/core/database/tables/marine_life_tables.dart';
 import 'package:submersion/core/database/tables/media_people_tables.dart';
 import 'package:submersion/core/database/tables/media_tables.dart';
@@ -62,6 +63,7 @@ export 'package:submersion/core/database/tables/equipment_location_tables.dart';
 export 'package:submersion/core/database/tables/equipment_service_status_tables.dart';
 export 'package:submersion/core/database/tables/equipment_set_bundle_tables.dart';
 export 'package:submersion/core/database/tables/equipment_tables.dart';
+export 'package:submersion/core/database/tables/identification_tables.dart';
 export 'package:submersion/core/database/tables/marine_life_tables.dart';
 export 'package:submersion/core/database/tables/media_people_tables.dart';
 export 'package:submersion/core/database/tables/media_tables.dart';
@@ -136,6 +138,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     MediaPeople,
     PendingPhotoSuggestions,
     MediaRepairLog,
+    MediaIdentificationRuns,
+    MediaIdentifications,
     MediaSmartAlbums,
     Settings,
     Buddies,
@@ -328,7 +332,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 369;
+  static const int currentSchemaVersion = 376;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1715,6 +1719,35 @@ class AppDatabase extends _$AppDatabase {
     // backfill, so the floor does not move. Renumbered three times: main took
     // 365 for #4537, 367 for #4539 and 368 for #4544.
     369,
+    // v370: diver_settings.default_show_buoyancy, the default visibility of
+    // the net buoyancy line on the dive profile (issue #4593). Additive and
+    // defaulted off; the floor does not move.
+    370,
+    // v371: diver_settings.favourite_dive_type_ids, the dive types a diver
+    // starred to list first in the pickers (issue #4413). Nullable, no
+    // backfill; the floor does not move.
+    371,
+    // v372: buddies.country and buddies.country_code (issue #4457).
+    // Nullable, nothing to backfill; the floor does not move. Renumbered
+    // from 371, which main took for #4413.
+    372,
+    // v373: dive_centers.logo, a dive center's logo (issue #4460). Nullable,
+    // no backfill; the floor does not move. Renumbered twice: main took 371
+    // for #4413 and 372 for #4457.
+    373,
+    // v374: dive_plans.scr_injection_rate/scr_vo2/pscr_vo2 and the diver's
+    // planner_scr_injection_rate/planner_scr_vo2/planner_pscr_vo2 defaults
+    // (issue #4660). Columns only, no backfill; the floor does not move.
+    374,
+    // v375: media_identification_runs and media_identifications, what the
+    // on-device model found on each photo (issue #4668). Tables with no
+    // hlc, never synced, so the floor does not move. Renumbered from 374,
+    // which main took for #4660.
+    375,
+    // v376: video columns on media_identification_runs and
+    // media_identifications (issue #4675). Columns on tables that never
+    // sync, no backfill; the floor does not move.
+    376,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

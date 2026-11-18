@@ -148,7 +148,11 @@ class DiveProfileLegend extends ConsumerWidget {
         children: [
           for (var i = 0; i < entries.length; i++) ...[
             if (i > 0) const SizedBox(width: _itemSpacing),
-            _LegendEntry(label: entries[i].label, color: entries[i].color),
+            _LegendEntry(
+              label: entries[i].label,
+              color: entries[i].color,
+              secondColor: entries[i].secondColor,
+            ),
           ],
         ],
       ),
@@ -289,15 +293,20 @@ TextStyle? legendEntryLabelStyle(BuildContext context) {
 class _LegendEntry extends StatelessWidget {
   final String label;
   final Color color;
+  final Color? secondColor;
 
-  const _LegendEntry({required this.label, required this.color});
+  const _LegendEntry({
+    required this.label,
+    required this.color,
+    this.secondColor,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        LegendSwatch(color: color),
+        LegendSwatch(color: color, secondColor: secondColor),
         const SizedBox(width: 3),
         Text(label, maxLines: 1, style: legendEntryLabelStyle(context)),
       ],
@@ -314,7 +323,11 @@ class _LegendEntry extends StatelessWidget {
 class LegendSwatch extends StatelessWidget {
   final Color color;
 
-  const LegendSwatch({super.key, required this.color});
+  /// A line drawn in two colours (the buoyancy line, #4593) shows both: the
+  /// left half in [color], the right half in this.
+  final Color? secondColor;
+
+  const LegendSwatch({super.key, required this.color, this.secondColor});
 
   /// Diameter. [DiveProfileLegend._entryChromeWidth] is derived from this, so
   /// the row measurement follows any change here.
@@ -325,7 +338,16 @@ class LegendSwatch extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+      decoration: BoxDecoration(
+        color: secondColor == null ? color : null,
+        gradient: secondColor == null
+            ? null
+            : LinearGradient(
+                colors: [color, color, secondColor!, secondColor!],
+                stops: const [0, 0.5, 0.5, 1],
+              ),
+        shape: BoxShape.circle,
+      ),
     );
   }
 }

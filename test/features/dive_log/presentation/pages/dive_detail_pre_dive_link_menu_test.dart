@@ -12,6 +12,7 @@ import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/unlock_for_operation.dart';
 
 /// Issue #1066: PR #913 removed the dive-detail pre-dive card, and with it the
 /// only way to attach a checklist run completed the night before to the dive
@@ -121,6 +122,7 @@ void main() {
   }
 
   Future<void> openMenu(WidgetTester tester) async {
+    await unlockForOperation(tester);
     // The header overflow menu is the last more_vert on the page (a source bar,
     // when present, renders earlier).
     await tester.tap(find.byIcon(Icons.more_vert).last);

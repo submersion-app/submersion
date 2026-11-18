@@ -10,6 +10,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/species_picker_dialog.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 
 /// Section widget displaying marine life at a dive site
 class SiteMarineLifeSection extends ConsumerWidget {
@@ -19,17 +20,25 @@ class SiteMarineLifeSection extends ConsumerWidget {
   /// When present, a "Recorded nearby" tier is shown from online sources.
   final GeoPoint? location;
 
+  /// The expected species to show in place of those stored: a sitting's,
+  /// once the diver has changed them (issue #4527).
+  final List<SiteSpeciesEntry>? species;
+
   const SiteMarineLifeSection({
     super.key,
     required this.siteId,
     this.readOnly = false,
     this.location,
+    this.species,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final spottedAsync = ref.watch(siteSpottedSpeciesProvider(siteId));
-    final expectedAsync = ref.watch(siteExpectedSpeciesProvider(siteId));
+    final held = species;
+    final expectedAsync = held != null
+        ? AsyncValue.data(held)
+        : ref.watch(siteExpectedSpeciesProvider(siteId));
 
     return Card(
       child: Padding(
@@ -54,16 +63,10 @@ class SiteMarineLifeSection extends ConsumerWidget {
 
   Widget _buildHeader(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-
-    return Row(
-      children: [
-        Icon(Icons.water, size: 20, color: colorScheme.primary),
-        const SizedBox(width: 8),
-        Text(
-          context.l10n.marineLife_siteSection_title,
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-      ],
+    // The pencil, while the page is unlocked (issue #4527).
+    return RecordCardHeader(
+      title: context.l10n.marineLife_siteSection_title,
+      leading: Icon(Icons.water, size: 20, color: colorScheme.primary),
     );
   }
 

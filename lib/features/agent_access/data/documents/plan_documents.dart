@@ -3,6 +3,7 @@ import 'package:submersion/features/agent_access/data/documents/dive_document.da
 import 'package:submersion/features/agent_access/data/documents/document_dates.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
+import 'package:submersion/features/planner/domain/entities/plan_log_state.dart';
 import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart';
 import 'package:submersion/features/planner/domain/entities/stored_series.dart';
 
@@ -10,7 +11,14 @@ import 'package:submersion/features/planner/domain/entities/stored_series.dart';
 /// its dives in order, each a dive plan read on its own, with its own name
 /// and which tank of the dive before each of its tanks carries from. What a
 /// dive carries in is worked out by the planner, never stored.
-Map<String, Object?> divePlanSeriesDocument(StoredSeries s) => {
+///
+/// [logged] holds whether each of the dives' entries in the log is still
+/// only planned, by dive id, which says where each dive stands there (see
+/// [planLogFields]).
+Map<String, Object?> divePlanSeriesDocument(
+  StoredSeries s, {
+  required Map<String, bool> logged,
+}) => {
   'id': s.id,
   'name': s.name,
   'diver_id': s.diverId,
@@ -24,13 +32,18 @@ Map<String, Object?> divePlanSeriesDocument(StoredSeries s) => {
         'surface_interval_s': dive.plan.surfaceInterval?.inSeconds,
         'carries_from_tank': dive.sourceTankIds,
         'pinned_tank_ids': dive.pinnedTankIds.toList(),
+        ...planLogFields(dive.plan, logged),
       },
   ],
 };
 
 /// The agent-facing document for a dive plan: its settings, then its tanks,
 /// segments, gear and any scooter mission, which a plan always carries.
-Map<String, Object?> divePlanDocument(DivePlan p) => {
+/// [logged] is as for [divePlanSeriesDocument].
+Map<String, Object?> divePlanDocument(
+  DivePlan p, {
+  required Map<String, bool> logged,
+}) => {
   'id': p.id,
   'name': p.name,
   'notes': p.notes,
@@ -41,7 +54,7 @@ Map<String, Object?> divePlanDocument(DivePlan p) => {
       ? null
       : wallClock(asWallClockUtc(p.startDateTime!)),
   'source_dive_id': p.sourceDiveId,
-  'linked_dive_id': p.linkedDiveId,
+  ...planLogFields(p, logged),
   'altitude_m': p.altitude,
   'water_type': p.waterType?.name,
   'salinity_ppt': p.salinityPpt,
@@ -79,6 +92,10 @@ Map<String, Object?> divePlanDocument(DivePlan p) => {
   'setpoint_low_bar': p.setpointLow,
   'setpoint_high_bar': p.setpointHigh,
   'setpoint_switch_depth_m': p.setpointSwitchDepth,
+  // Null follows the diver's Settings default (issue #4660).
+  'scr_injection_rate_l_min': p.scrInjectionRate,
+  'scr_vo2_l_min': p.scrVo2,
+  'pscr_vo2_l_min': p.pscrVo2,
   'deviation_depth_delta_m': p.deviationDepthDelta,
   'deviation_time_minutes': p.deviationTimeMinutes,
   'turn_pressure_rule': p.turnPressureRule?.name,
@@ -89,6 +106,26 @@ Map<String, Object?> divePlanDocument(DivePlan p) => {
   'tanks': [for (final t in p.tanks) diveTankDocument(t)],
   'segments': [for (final s in p.segments) _segmentDocument(s)],
   'mission': p.mission == null ? null : _missionDocument(p.mission!),
+};
+
+/// Where [plan]'s dive stands in the log (issue #4203), from [logged],
+/// whether each entry there is still only planned, by dive id: `log_state`,
+/// and `linked_dive_id`, the entry it names. A link to a dive no longer in
+/// the log, deleted on another device since, names nothing: the dive reads
+/// as only planned, with no link. A write compares against the stored link
+/// instead (see `DivePlanWrites.stored`), so such a link can be cleared.
+Map<String, Object?> planLogFields(DivePlan plan, Map<String, bool> logged) {
+  final linked = plan.linkedDiveId;
+  final isPlanned = linked == null ? null : logged[linked];
+  return {
+    'linked_dive_id': isPlanned == null ? null : linked,
+    'log_state': PlanLogState.ofPlannedFlag(isPlanned).wireName,
+  };
+}
+
+/// The dive ids [plans] link, to read their entries for [planLogFields].
+Set<String> linkedDiveIds(Iterable<DivePlan> plans) => {
+  for (final plan in plans) ?plan.linkedDiveId,
 };
 
 Map<String, Object?> _segmentDocument(PlanSegment s) => {

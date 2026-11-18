@@ -15,9 +15,9 @@ final diveCenterQueryEntity = QueryEntity(
   diverScopeColumn: 'diver_id',
   // The center search route's columns.
   textSearchSql: const [
-    "unicode_lower({r}.name) LIKE ? ESCAPE '\\'",
-    "unicode_lower({r}.city) LIKE ? ESCAPE '\\'",
-    "unicode_lower({r}.country) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.name) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.city) LIKE ? ESCAPE '\\'",
+    "search_fold({r}.country) LIKE ? ESCAPE '\\'",
   ],
   fields: [
     const QueryField(

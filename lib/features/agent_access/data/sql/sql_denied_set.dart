@@ -41,6 +41,8 @@ const Set<String> kSqlDeniedTables = {
 /// Tables outside the change log that hold what statistics are made of.
 const Set<String> kSqlReadableExcludedTables = {
   'dive_deco_status',
+  'media_identification_runs',
+  'media_identifications',
   'dive_derived_metrics',
   'dive_sensor_summaries',
   'equipment_condition_reviews',

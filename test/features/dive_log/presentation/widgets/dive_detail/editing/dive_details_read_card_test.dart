@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
@@ -133,6 +134,35 @@ void main() {
         findsOneWidget,
       );
       expect(find.byIcon(Icons.edit_outlined), findsNothing);
+    });
+
+    testWidgets('the trip link is a button of its own', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await pumpCard(
+        tester,
+        bare.copyWith(
+          tripId: 't1',
+          trip: Trip(
+            id: 't1',
+            name: 'Red Sea',
+            startDate: DateTime(2024, 6),
+            endDate: DateTime(2024, 6, 8),
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
+          ),
+        ),
+      );
+
+      // Its own node, named first by its action; the row's own text
+      // follows, and nothing else of the card's.
+      final link = find.bySemanticsLabel(
+        RegExp(
+          '^${RegExp.escape(l.diveLog_detail_semantics_viewTrip('Red Sea'))}',
+        ),
+      );
+      expect(link, findsOneWidget);
+      expect(tester.getSemantics(link).flagsCollection.isButton, isTrue);
+      semantics.dispose();
     });
 
     testWidgets('inside an unlocked frame it gains its pencil', (tester) async {
@@ -378,25 +408,16 @@ void main() {
     SacVolumeHint hint(WidgetTester tester) =>
         tester.widget<SacVolumeHint>(find.byType(SacVolumeHint));
 
-    testWidgets('on a page with no editing it is a link', (tester) async {
+    // A locked page reads only: the hint no longer leads to the old edit
+    // form (issue #4527, plan 11).
+    testWidgets('on a page with no editing it reads only', (tester) async {
       await pumpRows(tester);
 
-      expect(hint(tester).onTap, isNotNull);
+      expect(hint(tester).onTap, isNull);
     });
 
-    testWidgets('on a locked page it is a link', (tester) async {
+    testWidgets('on a locked page it reads only', (tester) async {
       final controller = RecordEditController<Dive>(onSave: (_) async {});
-      addTearDown(controller.dispose);
-
-      await pumpRows(tester, controller: controller);
-
-      expect(hint(tester).onTap, isNotNull);
-    });
-
-    testWidgets('during a sitting it is a plain note: the old edit form must '
-        'not open over the sitting', (tester) async {
-      final controller = RecordEditController<Dive>(onSave: (_) async {})
-        ..unlock(noVolume);
       addTearDown(controller.dispose);
 
       await pumpRows(tester, controller: controller);
@@ -404,7 +425,20 @@ void main() {
       expect(hint(tester).onTap, isNull);
     });
 
-    testWidgets('once the sitting ends it is a link again', (tester) async {
+    // Plan 5 gave the Cylinders card an editor: during a sitting the hint
+    // opens it, never the old edit form over the sitting (issue #4527).
+    testWidgets('during a sitting it opens the Cylinders card', (tester) async {
+      final controller = RecordEditController<Dive>(onSave: (_) async {})
+        ..unlock(noVolume);
+      addTearDown(controller.dispose);
+
+      await pumpRows(tester, controller: controller);
+      hint(tester).onTap!();
+
+      expect(controller.openCardIds, contains('tanks'));
+    });
+
+    testWidgets('once the sitting ends it reads only again', (tester) async {
       final controller = RecordEditController<Dive>(onSave: (_) async {})
         ..unlock(noVolume);
       addTearDown(controller.dispose);
@@ -413,7 +447,7 @@ void main() {
       controller.lock();
       await tester.pump();
 
-      expect(hint(tester).onTap, isNotNull);
+      expect(hint(tester).onTap, isNull);
     });
   });
 
@@ -426,7 +460,9 @@ void main() {
       List<BuddyWithRole> buddies = const [],
       List<DiveComputer> computers = const [],
       Duration? interval,
+      bool inCard = false,
     }) async {
+      final rows = DiveDetailsDerivedRows(dive: dive);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -445,7 +481,7 @@ void main() {
             locale: const Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(body: DiveDetailsDerivedRows(dive: dive)),
+            home: Scaffold(body: inCard ? Card(child: rows) : rows),
           ),
         ),
       );
@@ -509,6 +545,39 @@ void main() {
         ),
         findsOneWidget,
       );
+    });
+
+    // A link row is a node of its own: in the Card it would otherwise merge
+    // into the card's, one button named for everything the card says.
+    testWidgets('in a card, the dive computer link is a button of its own', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await pumpDerived(
+        tester,
+        bare,
+        inCard: true,
+        computers: [
+          DiveComputer(
+            id: 'pc',
+            name: 'Perdix 2',
+            serialNumber: 'A1B2',
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
+          ),
+        ],
+      );
+
+      // Its own node, named first by its action; the row's own text
+      // follows, and nothing else of the card's.
+      final link = find.bySemanticsLabel(
+        RegExp(
+          '^${RegExp.escape(l.diveLog_detail_semantics_viewDiveComputer('Perdix 2'))}',
+        ),
+      );
+      expect(link, findsOneWidget);
+      expect(tester.getSemantics(link).flagsCollection.isButton, isTrue);
+      semantics.dispose();
     });
 
     testWidgets('with none imported, the surface interval is worked out', (

@@ -37,6 +37,7 @@ import sqflite_darwin
 import submersion_nl
 import submersion_ocr
 import submersion_transcoder
+import submersion_vision
 import universal_ble
 import url_launcher_macos
 import video_player_avfoundation
@@ -78,6 +79,7 @@ func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   SubmersionNlPlugin.register(with: registry.registrar(forPlugin: "SubmersionNlPlugin"))
   SubmersionOcrPlugin.register(with: registry.registrar(forPlugin: "SubmersionOcrPlugin"))
   SubmersionTranscoderPlugin.register(with: registry.registrar(forPlugin: "SubmersionTranscoderPlugin"))
+  SubmersionVisionPlugin.register(with: registry.registrar(forPlugin: "SubmersionVisionPlugin"))
   UniversalBlePlugin.register(with: registry.registrar(forPlugin: "UniversalBlePlugin"))
   UrlLauncherPlugin.register(with: registry.registrar(forPlugin: "UrlLauncherPlugin"))
   VideoPlayerPlugin.register(with: registry.registrar(forPlugin: "VideoPlayerPlugin"))

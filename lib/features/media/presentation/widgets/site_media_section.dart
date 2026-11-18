@@ -5,6 +5,13 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/utils/unit_formatter_settings.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
+import 'package:submersion/features/media/presentation/helpers/document_open_helper.dart';
+import 'package:submersion/features/media/presentation/helpers/site_media_import_helper.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 import 'package:submersion/features/media/domain/services/site_attachment_layout.dart';
 import 'package:submersion/features/media/presentation/pages/site_media_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
@@ -25,11 +32,19 @@ import 'package:submersion/shared/selection/selection_state.dart';
 ///
 /// Add actions and document opening are injected by the page so this widget
 /// stays free of picker/viewer wiring, mirroring [DiveMediaSection].
+///
+/// On a page that edits the site in place (issue #4527, phase 2) the card
+/// reads only, except for an attachment's own details (its own record), and
+/// [editing], the open card's sitting, holds what it adds and unlinks until
+/// Save.
 class SiteMediaSection extends ConsumerStatefulWidget {
   final String siteId;
   final VoidCallback? onAddPhotosPressed;
   final VoidCallback? onAddDocumentPressed;
   final void Function(MediaItem)? onOpenDocument;
+
+  /// The open Media card's sitting on the site.
+  final EditSession<DiveSite>? editing;
 
   const SiteMediaSection({
     super.key,
@@ -37,6 +52,7 @@ class SiteMediaSection extends ConsumerStatefulWidget {
     this.onAddPhotosPressed,
     this.onAddDocumentPressed,
     this.onOpenDocument,
+    this.editing,
   });
 
   @override
@@ -56,6 +72,14 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
   final SelectionController _selection = SelectionController();
 
   bool get _isSelectionMode => _selection.value.isActive;
+
+  /// A page that edits in place, with no sitting given: nothing may be
+  /// added or unlinked here.
+  bool _readOnly = false;
+
+  /// The ids the sitting has added and not yet written: no file to open,
+  /// no row to check or give details to before Save.
+  Set<String> _heldIds = const {};
 
   @override
   void dispose() {
@@ -97,6 +121,13 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
       ),
     );
 
+    final editing = widget.editing;
+    if (confirmed == true && editing != null) {
+      unlinkMediaInSitting(editing, selectedIds.toSet());
+      return BulkActionOutcome.completed;
+    }
+    // The card closed while the dialog was up: read only now.
+    if (_readOnly) return BulkActionOutcome.cancelled;
     if (confirmed == true && context.mounted) {
       try {
         await ref
@@ -190,6 +221,8 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
   }
 
   void _openItem(BuildContext context, MediaItem item, SiteViewerScope scope) {
+    // Held until Save: there is no row to open yet.
+    if (_heldIds.contains(item.id)) return;
     if (item.isDocument) {
       widget.onOpenDocument?.call(item);
       return;
@@ -208,13 +241,25 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
 
   @override
   Widget build(BuildContext context) {
-    final mediaAsync = ref.watch(mediaForSiteProvider(widget.siteId));
+    final scope = RecordEditScope.maybeOf<DiveSite>(context);
+    _readOnly = scope != null && widget.editing == null;
+    final session = widget.editing ?? scope?.session;
+    final stored = ref.watch(mediaForSiteProvider(widget.siteId));
+    // During a sitting, the media it holds: added ones in, unlinked out.
+    final mediaAsync = session == null
+        ? stored
+        : stored.whenData((media) => mediaInSitting(session, media));
+    _heldIds = session == null
+        ? const {}
+        : {for (final a in sittingMedia(session).added) a.preview.id};
     final settings = ref.watch(unitFormatterProvider).settings;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    final visibleIds =
-        mediaAsync.value?.map((m) => m.id).toList() ?? const <String>[];
+    final visibleIds = [
+      for (final m in mediaAsync.value ?? const <MediaItem>[])
+        if (!_heldIds.contains(m.id)) m.id,
+    ];
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _selection.pruneToSettled(mediaAsync, (rows) => rows.map((m) => m.id));
@@ -239,7 +284,33 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
     ColorScheme colorScheme,
     TextTheme textTheme,
   ) {
-    final selectionMedia = mediaAsync.value ?? const <MediaItem>[];
+    final selectionMedia = [
+      for (final m in mediaAsync.value ?? const <MediaItem>[])
+        if (!_heldIds.contains(m.id)) m,
+    ];
+    // In the open card the adds go to the sitting.
+    final editing = widget.editing;
+    final VoidCallback? onAddPhotos = _readOnly
+        ? null
+        : editing == null
+        ? widget.onAddPhotosPressed
+        : () => SiteMediaImportHelper.importPhotosForSite(
+            context: context,
+            ref: ref,
+            siteId: widget.siteId,
+            onHold: (adds) => addMediaToSitting(editing, adds),
+            unlinkedInSitting: sittingMedia(editing).unlinked,
+          );
+    final VoidCallback? onAddDocument = _readOnly
+        ? null
+        : editing == null
+        ? widget.onAddDocumentPressed
+        : () => DocumentOpenHelper.pickAndAttach(
+            context: context,
+            ref: ref,
+            siteId: widget.siteId,
+            onHold: (adds) => addMediaToSitting(editing, adds),
+          );
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -260,15 +331,16 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
                 // touched. There is no separate delete here.
                 onDelete: null,
                 actions: [
-                  BulkAction(
-                    id: 'unlink',
-                    icon: Icons.link_off,
-                    label: context.l10n
-                        .media_diveMediaSection_unlinkSelectedButton(
-                          _selection.value.count,
-                        ),
-                    onInvoke: () => _unlinkSelected(context, selectionMedia),
-                  ),
+                  if (!_readOnly)
+                    BulkAction(
+                      id: 'unlink',
+                      icon: Icons.link_off,
+                      label: context.l10n
+                          .media_diveMediaSection_unlinkSelectedButton(
+                            _selection.value.count,
+                          ),
+                      onInvoke: () => _unlinkSelected(context, selectionMedia),
+                    ),
                   BulkAction(
                     id: 'setCategory',
                     icon: Icons.label_outline,
@@ -318,8 +390,7 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
                       ) ??
                       const SizedBox.shrink(),
                   if (_canAttach &&
-                      (widget.onAddPhotosPressed != null ||
-                          widget.onAddDocumentPressed != null))
+                      (onAddPhotos != null || onAddDocument != null))
                     PopupMenuButton<String>(
                       icon: Icon(
                         Icons.add_photo_alternate,
@@ -327,22 +398,18 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
                       ),
                       tooltip: context.l10n.media_diveMediaSection_addTooltip,
                       onSelected: (value) {
-                        if (value == 'photos') {
-                          widget.onAddPhotosPressed?.call();
-                        }
-                        if (value == 'document') {
-                          widget.onAddDocumentPressed?.call();
-                        }
+                        if (value == 'photos') onAddPhotos?.call();
+                        if (value == 'document') onAddDocument?.call();
                       },
                       itemBuilder: (context) => [
-                        if (widget.onAddPhotosPressed != null)
+                        if (onAddPhotos != null)
                           PopupMenuItem(
                             value: 'photos',
                             child: Text(
                               context.l10n.media_siteMediaSection_addPhotos,
                             ),
                           ),
-                        if (widget.onAddDocumentPressed != null)
+                        if (onAddDocument != null)
                           PopupMenuItem(
                             value: 'document',
                             child: Text(
@@ -351,6 +418,10 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
                           ),
                       ],
                     ),
+                  // Its pencil, while the site is unlocked (issue #4527).
+                  RecordCardPencil(
+                    cardTitle: context.l10n.media_siteMediaSection_title,
+                  ),
                 ],
               ),
             const SizedBox(height: 16),
@@ -370,11 +441,16 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
                   settings: settings,
                   onOpen: (item) =>
                       _openItem(context, item, SiteViewerScope.attachments),
-                  onEditDetails: (item) => showAttachmentDetailsSheet(
-                    context,
-                    item: item,
-                    siteId: widget.siteId,
-                  ),
+                  // An attachment's details are its own record's; one
+                  // held until Save has none to give yet.
+                  onEditDetails: (item) {
+                    if (_heldIds.contains(item.id)) return;
+                    showAttachmentDetailsSheet(
+                      context,
+                      item: item,
+                      siteId: widget.siteId,
+                    );
+                  },
                 );
               },
               loading: () => const SizedBox(

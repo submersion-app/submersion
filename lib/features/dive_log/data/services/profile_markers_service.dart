@@ -147,9 +147,16 @@ class ProfileMarkersService {
   }) {
     final markers = <ProfileMarker>[];
 
-    // Filter to tanks that have start pressure
+    // Filter to tanks that have start pressure. An Avelo Hydrotank's pressure
+    // moves with the water pumped in, so its thirds are no gas reserve
+    // (issue #4657).
     final tanksWithPressure = tanks
-        .where((t) => t.startPressure != null && t.startPressure! > 0)
+        .where(
+          (t) =>
+              t.startPressure != null &&
+              t.startPressure! > 0 &&
+              !t.role.isUnmeasuredBreathingGas,
+        )
         .toList();
 
     if (tanksWithPressure.isEmpty || profile.isEmpty) {

@@ -129,6 +129,17 @@ void main() {
       expect(find.byType(DiveListTile), findsNothing);
     });
 
+    // The compact card's default second stat is the dive time, so Recent
+    // dives shows the runtime rather than the bottom time (issue #4640).
+    testWidgets('the compact tile shows the runtime, not the bottom time', (
+      tester,
+    ) async {
+      await pumpWithViewMode(tester, ListViewMode.compact);
+
+      expect(find.textContaining('50'), findsOneWidget);
+      expect(find.textContaining('45'), findsNothing);
+    });
+
     testWidgets('renders the detailed tile when view mode is detailed', (
       tester,
     ) async {

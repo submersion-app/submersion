@@ -383,22 +383,11 @@ void main() {
       expect(value(controller), const StoredVisibility(meters: 12));
       expect(controller.isDirty, isFalse);
 
-      // Back in Precise the field shows the sitting's value, not the text
-      // that was dropped. (It is still open for typing: the form row keeps
-      // its state across the switch.)
+      // Back in Precise the row rests on the sitting's value, not the text
+      // that was dropped.
       await switchTo(tester, l.diveLog_edit_visibility_modePrecise);
-      expect(
-        tester
-            .widget<EditableText>(
-              find.descendant(
-                of: find.byType(DiveVisibilityRow),
-                matching: find.byType(EditableText),
-              ),
-            )
-            .controller
-            .text,
-        '12',
-      );
+      expect(find.byType(TextFormField), findsNothing);
+      expect(find.text('12 m'), findsOneWidget);
     });
 
     testWidgets('dropping unreadable text keeps a range picked in this '
@@ -788,6 +777,35 @@ void main() {
       await tester.pump();
 
       expect(value(controller), const StoredVisibility(meters: 18));
+    });
+  });
+
+  // Range and Precise share one form row. After a look at Range, Precise
+  // must come back resting, as it opened, not as an open field.
+  group('switching inputs', () {
+    testWidgets('Precise comes back resting after a look at Range', (
+      tester,
+    ) async {
+      await pumpRow(tester, bare.copyWith(visibilityMeters: 18));
+      expect(find.byType(TextFormField), findsNothing);
+
+      await switchTo(tester, l.diveLog_edit_visibility_modeRange);
+      await switchTo(tester, l.diveLog_edit_visibility_modePrecise);
+
+      expect(find.byType(TextFormField), findsNothing);
+      expect(find.text('18 m'), findsOneWidget);
+    });
+
+    testWidgets('Precise opened for typing comes back resting after a look '
+        'at Range', (tester) async {
+      await pumpRow(tester, bare.copyWith(visibilityMeters: 18));
+      await focus(tester);
+      expect(find.byType(TextFormField), findsOneWidget);
+
+      await switchTo(tester, l.diveLog_edit_visibility_modeRange);
+      await switchTo(tester, l.diveLog_edit_visibility_modePrecise);
+
+      expect(find.byType(TextFormField), findsNothing);
     });
   });
 }

@@ -169,6 +169,8 @@ class CenterWrites extends WritableEntry {
       fillClosesAt: kept('fill_closes_at_min', center.fillClosesAt),
       isPermanentlyClosed:
           v['is_permanently_closed'] as bool? ?? center.isPermanentlyClosed,
+      // Agents cannot set a logo; an edit keeps the one the diver picked.
+      logo: center.logo,
       createdAt: center.createdAt,
       updatedAt: center.updatedAt,
     );

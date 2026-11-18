@@ -103,4 +103,26 @@ void main() {
       storedBytes: 0,
     ));
   });
+
+  // The Raw dive computer data page lists each computer's share (issue
+  // #4590), so it must follow a discard and a rename without a reopen.
+  test('the per-computer usage follows a rename and a discard', () async {
+    final live = ProviderContainer();
+    addTearDown(live.dispose);
+    live.listen(rawDiveDataByComputerProvider, (_, _) {});
+    final before = await live.read(rawDiveDataByComputerProvider.future);
+    expect(before.map((r) => (r.computerId, r.name)), [('c1', 'Perdix')]);
+
+    await (db.update(db.diveComputers)..where((t) => t.id.equals('c1'))).write(
+      const DiveComputersCompanion(name: Value('Perdix 2')),
+    );
+    await pumpEventQueue();
+    final renamed = await live.read(rawDiveDataByComputerProvider.future);
+    expect(renamed.single.name, 'Perdix 2');
+
+    await live.read(rawDiveDataServiceProvider).discard(computerId: 'c1');
+    await pumpEventQueue();
+
+    expect(await live.read(rawDiveDataByComputerProvider.future), isEmpty);
+  });
 }

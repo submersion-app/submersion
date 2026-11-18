@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -269,7 +270,7 @@ class DiveCenterFieldAdapter
     return switch (field) {
       DiveCenterField.affiliations =>
         (value as List<String>).isEmpty ? '--' : value.join(', '),
-      DiveCenterField.rating => (value as double).toStringAsFixed(1),
+      DiveCenterField.rating => formatRatingForDisplay(value as double),
       DiveCenterField.latitude => units.formatLatitude(value as double),
       DiveCenterField.longitude => units.formatLongitude(value as double),
       DiveCenterField.diveCount => value.toString(),

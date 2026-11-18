@@ -13,6 +13,7 @@ import 'package:submersion/features/planner/presentation/providers/plan_log_link
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 import 'package:submersion/shared/widgets/section_properties_menu.dart';
 
 /// The overflow button on the dive detail page, in the standalone app bar or
@@ -29,7 +30,8 @@ class DiveDetailOverflowMenu extends ConsumerWidget {
     required this.menuKey,
     required this.displayOptions,
     required this.onSelected,
-    this.showFavorite = false,
+    required this.operations,
+    this.historyInBar = false,
   });
 
   final Dive dive;
@@ -43,8 +45,11 @@ class DiveDetailOverflowMenu extends ConsumerWidget {
   /// Opens the display-options panel, which hangs off this button.
   final MenuController displayOptions;
 
-  /// Offer the favorite toggle here, for an app bar with no room for its icon.
-  final bool showFavorite;
+  /// Whether the whole-record operations may run (issue #4527).
+  final RecordOperationBlock operations;
+
+  /// The bar shows History beside the lock, so the menu leaves it out.
+  final bool historyInBar;
 
   /// Handed the chosen entry's value, and the pre-dive checklist linked to
   /// this dive for the entries that act on it.
@@ -75,9 +80,6 @@ class DiveDetailOverflowMenu extends ConsumerWidget {
         dive.diverId != null &&
         !(dive.isPlanned && !dive.isDraft) &&
         !(dive.isDraft && dive.exitTime == null);
-    final favoriteLabel = dive.isFavorite
-        ? context.l10n.diveLog_detail_tooltip_removeFromFavorites
-        : context.l10n.diveLog_detail_tooltip_addToFavorites;
 
     return DiveDetailPropertiesMenu(
       isGauge: dive.isGauge,
@@ -87,148 +89,159 @@ class DiveDetailOverflowMenu extends ConsumerWidget {
         icon: embedded ? const Icon(Icons.more_vert, size: 20) : null,
         padding: embedded ? EdgeInsets.zero : const EdgeInsets.all(8),
         onSelected: (value) => onSelected(value, linkedPreDive),
-        itemBuilder: (context) => [
-          changeLogHistoryMenuItem(
+        itemBuilder: (context) {
+          // The whole-record operations follow the items that only read,
+          // under one caption while unavailable, and each is enabled only on
+          // an unlocked page with nothing to save (issue #4527).
+          final free = operations == RecordOperationBlock.none;
+          PopupMenuItem<String> item(
+            String value,
+            IconData icon,
+            String label, {
+            bool operation = false,
+            Color? color,
+          }) => PopupMenuItem(
+            value: value,
+            enabled: !operation || free,
+            child: ListTile(
+              leading: Icon(icon, color: color),
+              title: Text(
+                label,
+                style: color == null ? null : TextStyle(color: color),
+              ),
+              contentPadding: EdgeInsets.zero,
+            ),
+          );
+          final l10n = context.l10n;
+          final history = changeLogHistoryMenuItem<String>(
             context,
             rootTable: 'dives',
             rootId: dive.id,
-          ),
-          if (embedded)
-            PopupMenuItem(
-              value: 'open',
-              child: ListTile(
-                leading: const Icon(Icons.open_in_new),
-                title: Text(context.l10n.diveLog_detail_menu_openFullPage),
-                contentPadding: EdgeInsets.zero,
-              ),
-            ),
-          displayOptionsMenuItem(context, 'displayOptions'),
-          if (showFavorite)
-            PopupMenuItem(
-              value: 'toggleFavorite',
-              child: ListTile(
-                leading: Icon(
-                  dive.isFavorite ? Icons.favorite : Icons.favorite_border,
-                  color: dive.isFavorite ? Colors.red : null,
-                ),
-                title: Text(favoriteLabel),
-                contentPadding: EdgeInsets.zero,
-              ),
-            ),
-          PopupMenuItem(
-            value: 'export',
+          );
+          // One sitting per dive (issue #4527): the full page could be
+          // unlocked too while the pane holds a sitting, so it waits until
+          // the pane is locked again, Save or Cancel.
+          final paneUnlocked = operations != RecordOperationBlock.locked;
+          final open = PopupMenuItem<String>(
+            value: 'open',
+            enabled: !paneUnlocked,
             child: ListTile(
-              leading: const Icon(Icons.download),
-              title: Text(context.l10n.diveLog_detail_menu_export),
+              leading: const Icon(Icons.open_in_new),
+              title: Text(l10n.diveLog_detail_menu_openFullPage),
+              subtitle: paneUnlocked
+                  ? Text(l10n.recordEdit_saveOrCancelFirst)
+                  : null,
               contentPadding: EdgeInsets.zero,
             ),
-          ),
-          PopupMenuItem(
-            value: 'logNearMiss',
-            child: ListTile(
-              leading: const Icon(Icons.flag_outlined),
-              title: Text(context.l10n.diveLog_detail_menu_logNearMiss),
-              contentPadding: EdgeInsets.zero,
-            ),
-          ),
-          if (dive.isPlanned)
-            PopupMenuItem(
-              value: 'markLogged',
-              child: ListTile(
-                leading: const Icon(Icons.event_available_outlined),
-                title: Text(context.l10n.diveLog_detail_menu_markLogged),
-                contentPadding: EdgeInsets.zero,
-              ),
-            ),
+          );
+          final export = item(
+            'export',
+            Icons.download,
+            l10n.diveLog_detail_menu_export,
+          );
+          final nearMiss = item(
+            'logNearMiss',
+            Icons.flag_outlined,
+            l10n.diveLog_detail_menu_logNearMiss,
+          );
+          final markLogged = item(
+            'markLogged',
+            Icons.event_available_outlined,
+            l10n.diveLog_detail_menu_markLogged,
+            operation: true,
+          );
+          final markComplete = item(
+            'markComplete',
+            Icons.task_alt,
+            l10n.diveLog_draft_markComplete,
+            operation: true,
+          );
+          final heartRate = item(
+            'addHeartRate',
+            Icons.monitor_heart_outlined,
+            l10n.diveLog_detail_menu_addHeartRate,
+            operation: true,
+          );
+          final forBuddy = item(
+            'logForBuddy',
+            Icons.people_outline,
+            l10n.diveLog_detail_menu_logForBuddy,
+          );
+          final preDive = _preDiveLinkMenuItem(
+            context,
+            linkedPreDive,
+            enabled: free,
+          );
+          final reparse = item(
+            'reparse',
+            Icons.refresh,
+            l10n.diveLog_detail_menu_reparseRawData,
+            operation: true,
+          );
+          final resync = item(
+            'resync',
+            Icons.sync,
+            l10n.diveLog_detail_menu_resyncImportedFile,
+            operation: true,
+          );
+          final whatIf = item(
+            'whatIf',
+            Icons.tune,
+            l10n.diveLog_detail_menu_whatIf,
+          );
+          final viewInPlanner = item(
+            'viewInPlanner',
+            Icons.route,
+            l10n.diveLog_detail_menu_viewInPlanner,
+          );
+          final planRepetitive = item(
+            'planRepetitive',
+            Icons.add_circle_outline,
+            l10n.diveLog_detail_menu_planRepetitive,
+          );
+          final delete = item(
+            'delete',
+            Icons.delete,
+            l10n.diveLog_detail_menu_delete,
+            operation: true,
+            color: Colors.red,
+          );
+          final canMarkLogged = dive.isPlanned;
           // A draft that will never be downloaded (issue #637), once it is
           // out of the water.
-          if (dive.isDraft && dive.exitTime != null)
-            PopupMenuItem(
-              value: 'markComplete',
-              child: ListTile(
-                leading: const Icon(Icons.task_alt),
-                title: Text(context.l10n.diveLog_draft_markComplete),
-                contentPadding: EdgeInsets.zero,
+          final canMarkComplete = dive.isDraft && dive.exitTime != null;
+          final canPlanRepetitive = !dive.isPlanned;
+          final reason = recordOperationReason(l10n, operations, plural: true);
+          return [
+            if (!historyInBar) history,
+            if (embedded) open,
+            displayOptionsMenuItem(context, 'displayOptions'),
+            export,
+            nearMiss,
+            if (canLogForBuddy) forBuddy,
+            if (dive.profile.isNotEmpty) whatIf,
+            if (linkedPlanId != null) viewInPlanner,
+            if (canPlanRepetitive) planRepetitive,
+            const PopupMenuDivider(),
+            if (reason != null) recordOperationCaption<String>(context, reason),
+            if (canMarkLogged) markLogged,
+            if (canMarkComplete) markComplete,
+            if (canAddHeartRate) heartRate,
+            preDive,
+            // Drawn on its own page, for a dive that has none (issue #4527):
+            // the old edit form was the only way there.
+            if (dive.profile.isEmpty)
+              item(
+                'drawProfile',
+                Icons.draw_outlined,
+                l10n.diveLog_edit_profile_draw,
+                operation: true,
               ),
-            ),
-          if (canAddHeartRate)
-            PopupMenuItem(
-              value: 'addHeartRate',
-              child: ListTile(
-                leading: const Icon(Icons.monitor_heart_outlined),
-                title: Text(context.l10n.diveLog_detail_menu_addHeartRate),
-                contentPadding: EdgeInsets.zero,
-              ),
-            ),
-          if (canLogForBuddy)
-            PopupMenuItem(
-              value: 'logForBuddy',
-              child: ListTile(
-                leading: const Icon(Icons.people_outline),
-                title: Text(context.l10n.diveLog_detail_menu_logForBuddy),
-                contentPadding: EdgeInsets.zero,
-              ),
-            ),
-          _preDiveLinkMenuItem(context, linkedPreDive),
-          if (canReparse)
-            PopupMenuItem(
-              value: 'reparse',
-              child: ListTile(
-                leading: const Icon(Icons.refresh),
-                title: Text(context.l10n.diveLog_detail_menu_reparseRawData),
-                contentPadding: EdgeInsets.zero,
-              ),
-            ),
-          if (hasImportedFile)
-            PopupMenuItem(
-              value: 'resync',
-              child: ListTile(
-                leading: const Icon(Icons.sync),
-                title: Text(
-                  context.l10n.diveLog_detail_menu_resyncImportedFile,
-                ),
-                contentPadding: EdgeInsets.zero,
-              ),
-            ),
-          if (dive.profile.isNotEmpty)
-            PopupMenuItem(
-              value: 'whatIf',
-              child: ListTile(
-                leading: const Icon(Icons.tune),
-                title: Text(context.l10n.diveLog_detail_menu_whatIf),
-                contentPadding: EdgeInsets.zero,
-              ),
-            ),
-          if (linkedPlanId != null)
-            PopupMenuItem(
-              value: 'viewInPlanner',
-              child: ListTile(
-                leading: const Icon(Icons.route),
-                title: Text(context.l10n.diveLog_detail_menu_viewInPlanner),
-                contentPadding: EdgeInsets.zero,
-              ),
-            ),
-          if (!dive.isPlanned)
-            PopupMenuItem(
-              value: 'planRepetitive',
-              child: ListTile(
-                leading: const Icon(Icons.add_circle_outline),
-                title: Text(context.l10n.diveLog_detail_menu_planRepetitive),
-                contentPadding: EdgeInsets.zero,
-              ),
-            ),
-          PopupMenuItem(
-            value: 'delete',
-            child: ListTile(
-              leading: const Icon(Icons.delete, color: Colors.red),
-              title: Text(
-                context.l10n.diveLog_detail_menu_delete,
-                style: const TextStyle(color: Colors.red),
-              ),
-              contentPadding: EdgeInsets.zero,
-            ),
-          ),
-        ],
+            if (canReparse) reparse,
+            if (hasImportedFile) resync,
+            delete,
+          ];
+        },
       ),
     );
   }
@@ -240,10 +253,12 @@ class DiveDetailOverflowMenu extends ConsumerWidget {
   /// "Unlink" only appears when something is attached.
   PopupMenuItem<String> _preDiveLinkMenuItem(
     BuildContext context,
-    PreDiveSession? linked,
-  ) {
+    PreDiveSession? linked, {
+    bool enabled = true,
+  }) {
     return PopupMenuItem(
       value: linked == null ? 'linkPreDive' : 'unlinkPreDive',
+      enabled: enabled,
       child: ListTile(
         leading: Icon(
           linked == null ? Icons.fact_check_outlined : Icons.link_off,

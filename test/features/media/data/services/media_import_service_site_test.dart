@@ -142,4 +142,40 @@ void main() {
       expect(result.skippedDuplicates, 1);
     },
   );
+
+  test('prepareForSite leaves out photos already on the site and writes '
+      'nothing', () async {
+    when(
+      mockMediaRepository.getGalleryLinksForSite('site-1'),
+    ).thenAnswer((_) async => [_siteRow('a1')]);
+
+    final prepared = await service.prepareForSite(
+      selectedAssets: [_testAsset('a1'), _testAsset('a2')],
+      siteId: 'site-1',
+    );
+
+    expect(prepared, hasLength(1));
+    final item = prepared.single.item;
+    expect(item.platformAssetId, 'a2');
+    expect(item.siteId, 'site-1');
+    expect(item.diveId, isNull);
+    expect(item.id, isNotEmpty);
+    expect(prepared.single.enrichment, isNull);
+    verifyNever(mockMediaRepository.createMedia(any));
+  });
+
+  test('prepareForSite takes back a photo the sitting has unlinked', () async {
+    when(
+      mockMediaRepository.getGalleryLinksForSite('site-1'),
+    ).thenAnswer((_) async => [_siteRow('a1')]);
+
+    final prepared = await service.prepareForSite(
+      selectedAssets: [_testAsset('a1')],
+      siteId: 'site-1',
+      // Unlinked in the sitting: not on the site once it is saved.
+      ignoringMediaIds: {'media-a1'},
+    );
+
+    expect(prepared.single.item.platformAssetId, 'a1');
+  });
 }

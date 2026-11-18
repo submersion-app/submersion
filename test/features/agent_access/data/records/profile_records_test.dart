@@ -122,6 +122,14 @@ void main() {
       expect(doc.keys, isNot(contains('default_tank_volume')));
     });
 
+    test('the planner loop defaults read in litres a minute (#4660)', () async {
+      final doc = (await h.one('diver_settings', 'set-a'))!;
+      expect(doc['planner_scr_injection_rate_l_min'], 12.0);
+      expect(doc['planner_scr_vo2_l_min'], 1.3);
+      expect(doc['planner_pscr_vo2_l_min'], 0.72);
+      expect(doc.keys, isNot(contains('planner_scr_vo2')));
+    });
+
     test('another diver\'s settings are missing', () async {
       expect(await h.one('diver_settings', 'set-b'), isNull);
       expect(await h.list('diver_settings'), ['set-a']);

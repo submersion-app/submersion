@@ -119,16 +119,21 @@ List<String> buildChangeLogTriggers(
   ];
 }
 
-/// True while the open operation carries a label that asks for updates to
-/// machine rows to be recorded (see [changeLogOptInUpdateTables]).
+/// True while the open operation carries a label or comes from a source that
+/// asks for updates to machine rows to be recorded (see
+/// [changeLogOptInUpdateTables]): the SQL of [changeLogOptsInMachineRows].
+/// A sitting is matched by the start of its label with `substr`, since
+/// `LIKE` would read the underscore in it as a wildcard.
 String _optInOperation() {
-  final labels = (changeLogSeriesUpdateLabels.toList()..sort())
-      .map((l) => "'$l'")
-      .join(', ');
+  String quoted(Set<String> values) =>
+      (values.toList()..sort()).map((v) => "'$v'").join(', ');
+  const start = changeLogRecordEditLabelStart;
   return 'EXISTS (SELECT 1 FROM change_log_context c '
       'JOIN change_log_operations o ON o.id = c.operation_id '
       'WHERE c.id = 1 AND c.scope_expires_at > $_nowSql '
-      'AND o.label IN ($labels))';
+      'AND (o.label IN (${quoted(changeLogSeriesUpdateLabels)}) '
+      'OR o.source IN (${quoted(changeLogSeriesUpdateSources)}) '
+      "OR substr(o.label, 1, ${start.length}) = '$start'))";
 }
 
 String changeLogTriggersHash(List<String> statements) =>
@@ -175,7 +180,10 @@ String? _updateTrigger(
   bool optInOnly = false,
 }) {
   final ignored = changeLogIgnoredColumns(spec.table);
-  final columns = spec.columns.where((c) => !ignored.contains(c)).toList();
+  final only = changeLogOptInUpdateColumns[spec.table];
+  final columns = spec.columns
+      .where((c) => !ignored.contains(c) && (only?.contains(c) ?? true))
+      .toList();
   if (columns.isEmpty) return null;
 
   final differs = columns.map((c) => 'OLD."$c" IS NOT NEW."$c"').join(' OR ');

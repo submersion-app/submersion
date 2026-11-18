@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
+import 'package:submersion/features/dive_sites/domain/entities/catalogue_withdrawal.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -30,16 +34,26 @@ void main() {
     bool flags = true,
     CatalogueSite? catalogueSite,
     CatalogueSource? catalogueSource,
+    CatalogueWithdrawal? withdrawal,
+    Future<CatalogueWithdrawal?>? withdrawalFuture,
+    Future<CatalogueSite?>? catalogueSiteFuture,
+    List<String>? withdrawalsAsked,
   }) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           siteTypesForSiteProvider(site.id).overrideWith((_) async => types),
           showCountryFlagsProvider.overrideWithValue(flags),
-          catalogueSiteProvider.overrideWith((ref, id) async => catalogueSite),
+          catalogueSiteProvider.overrideWith(
+            (ref, id) => catalogueSiteFuture ?? Future.value(catalogueSite),
+          ),
           catalogueSourceProvider.overrideWith(
             (ref, key) async => catalogueSource,
           ),
+          catalogueWithdrawalProvider.overrideWith((ref, id) {
+            withdrawalsAsked?.add(id);
+            return withdrawalFuture ?? Future.value(withdrawal);
+          }),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -76,7 +90,9 @@ void main() {
 
     expect(find.byIcon(Icons.star), findsNWidgets(4));
     expect(find.byIcon(Icons.star_border), findsOneWidget);
-    expect(find.text('4.0'), findsOneWidget);
+    // A whole-star rating reads like a dive's, not "4.0" (#4573).
+    expect(find.text('4'), findsOneWidget);
+    expect(find.text('4.0'), findsNothing);
   });
 
   testWidgets('a fraction of a star counts the way the Rating card does', (
@@ -270,6 +286,152 @@ void main() {
 
       expect(find.textContaining('built-in site catalogue'), findsOneWidget);
       expect(find.text('Website'), findsNothing);
+    });
+
+    group('a withdrawn record', () {
+      CatalogueWithdrawal withdrawn(
+        CatalogueWithdrawalReason reason, {
+        String? replacedBy,
+      }) => CatalogueWithdrawal(
+        id: 'osm_node_1',
+        reason: reason,
+        date: '2026-12-02',
+        replacedBy: replacedBy,
+      );
+
+      for (final (reason, text) in [
+        (
+          CatalogueWithdrawalReason.position,
+          'Built-in record withdrawn: its position was wrong.',
+        ),
+        (
+          CatalogueWithdrawalReason.notASite,
+          'Built-in record withdrawn: it is not a dive site.',
+        ),
+        (
+          CatalogueWithdrawalReason.duplicate,
+          'Built-in record withdrawn: it listed a site twice.',
+        ),
+        (CatalogueWithdrawalReason.other, 'Built-in record withdrawn.'),
+      ]) {
+        testWidgets('says why: ${reason.name}', (tester) async {
+          await pumpHeader(tester, adopted, withdrawal: withdrawn(reason));
+
+          expect(find.text(text), findsOneWidget);
+          expect(find.text('See the corrected record'), findsNothing);
+          expect(find.textContaining('built-in site catalogue'), findsNothing);
+        });
+      }
+
+      testWidgets('offers the corrected record when there is one', (
+        tester,
+      ) async {
+        await pumpHeader(
+          tester,
+          adopted,
+          withdrawal: withdrawn(
+            CatalogueWithdrawalReason.position,
+            replacedBy: 'research_my_south_point_2',
+          ),
+        );
+
+        expect(find.text('See the corrected record'), findsOneWidget);
+      });
+
+      testWidgets('the corrected record opens its built-in page', (
+        tester,
+      ) async {
+        final router = GoRouter(
+          routes: [
+            GoRoute(
+              path: '/',
+              builder: (context, state) =>
+                  const Scaffold(body: SiteDetailHeader(site: adopted)),
+            ),
+            GoRoute(
+              path: '/sites/catalogue/:id',
+              builder: (context, state) =>
+                  Text('page ${state.pathParameters['id']}'),
+            ),
+          ],
+        );
+        addTearDown(router.dispose);
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              siteTypesForSiteProvider(
+                adopted.id,
+              ).overrideWith((_) async => const []),
+              showCountryFlagsProvider.overrideWithValue(true),
+              catalogueSiteProvider.overrideWith((ref, id) async => null),
+              catalogueSourceProvider.overrideWith((ref, key) async => null),
+              catalogueWithdrawalProvider.overrideWith(
+                (ref, id) async => withdrawn(
+                  CatalogueWithdrawalReason.position,
+                  // Not path-safe: the link keeps it one path segment.
+                  replacedBy: 'research_my_x/2',
+                ),
+              ),
+            ],
+            child: MaterialApp.router(
+              locale: const Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              routerConfig: router,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('See the corrected record'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('page research_my_x/2'), findsOneWidget);
+      });
+
+      testWidgets('a record still in the catalogue shows its credit, not a '
+          'withdrawal', (tester) async {
+        await pumpHeader(
+          tester,
+          adopted,
+          catalogueSite: const CatalogueSite(
+            id: 'osm_node_1',
+            name: 'Salt Pier',
+            source: 'osm',
+          ),
+          catalogueSource: osm,
+          withdrawal: withdrawn(CatalogueWithdrawalReason.position),
+        );
+
+        expect(find.textContaining('built-in site catalogue'), findsOneWidget);
+        expect(find.textContaining('withdrawn'), findsNothing);
+      });
+
+      testWidgets('nothing shows, and nothing throws, while the catalogue is '
+          'still loading', (tester) async {
+        await pumpHeader(
+          tester,
+          adopted,
+          withdrawalFuture: Completer<CatalogueWithdrawal?>().future,
+        );
+
+        expect(tester.takeException(), isNull);
+        expect(find.textContaining('withdrawn'), findsNothing);
+      });
+    });
+
+    testWidgets('does not ask for a withdrawal while the record is still '
+        'loading', (tester) async {
+      final asked = <String>[];
+      await pumpHeader(
+        tester,
+        adopted,
+        catalogueSiteFuture: Completer<CatalogueSite?>().future,
+        withdrawalsAsked: asked,
+      );
+      await tester.pump();
+
+      expect(asked, isEmpty);
     });
 
     testWidgets('shows nothing once the catalogue dropped the record', (

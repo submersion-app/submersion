@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
+import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
 import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
@@ -150,9 +151,9 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
   /// never hold a tag the query has hidden.
   List<TagStatistic> _visibleStats(List<TagStatistic> stats) {
     if (_searchQuery.isEmpty) return stats;
-    final query = _searchQuery.toLowerCase();
+    final query = foldForSearch(_searchQuery);
     return stats
-        .where((stat) => stat.tag.name.toLowerCase().contains(query))
+        .where((stat) => foldForSearch(stat.tag.name).contains(query))
         .toList();
   }
 

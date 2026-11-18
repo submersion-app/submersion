@@ -29,8 +29,14 @@ List<EquipmentItem> cylindersWithSpec(List<EquipmentItem> cylinders) => [
 
 /// Lets the diver choose one of their cylinders to fill a dive tank from
 /// (issue #2599): the gear picker narrowed to cylinders, saying what picking
-/// does. Resolves to the chosen cylinder, or null when dismissed.
-Future<EquipmentItem?> showOwnCylinderPicker(BuildContext context) {
+/// does. Resolves to the chosen cylinder, or null when dismissed. Linking a
+/// tank to a cylinder (issue #4494) passes [hideSpare] false, since a spare
+/// is still a cylinder the tank could be, and its own [hint].
+Future<EquipmentItem?> showOwnCylinderPicker(
+  BuildContext context, {
+  bool hideSpare = true,
+  String? hint,
+}) {
   return showModalBottomSheet<EquipmentItem>(
     context: context,
     isScrollControlled: true,
@@ -46,12 +52,12 @@ Future<EquipmentItem?> showOwnCylinderPicker(BuildContext context) {
         // listed under Equipment is exactly the one a tank should copy.
         selectedEquipmentIds: const {},
         typeFilter: EquipmentType.tank,
-        hideSpare: true,
+        hideSpare: hideSpare,
         // A dive logged after the fact may have used a cylinder since
         // retired or sold (#3210).
         offerLeftKit: true,
         title: context.l10n.diveLog_tank_ownCylinderTitle,
-        hint: context.l10n.diveLog_tank_ownCylinderHint,
+        hint: hint ?? context.l10n.diveLog_tank_ownCylinderHint,
         onEquipmentSelected: (item) => Navigator.of(context).pop(item),
       ),
     ),

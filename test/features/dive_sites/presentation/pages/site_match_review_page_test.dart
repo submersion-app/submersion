@@ -371,6 +371,50 @@ void main() {
     expect(find.textContaining("Couldn't apply"), findsOneWidget);
   });
 
+  testWidgets('a researched candidate is marked Not verified', (tester) async {
+    const researched = MatchCandidateView(
+      id: 'research_id_usat_liberty',
+      name: 'USAT Liberty',
+      isExisting: false,
+      distanceMeters: 40,
+      location: GeoPoint(0, 0.0004),
+      isResearched: true,
+    );
+    const verified = MatchCandidateView(
+      id: 'osm_node_1',
+      name: 'Coral Garden',
+      isExisting: false,
+      distanceMeters: 90,
+      location: GeoPoint(0, 0.0008),
+    );
+    final seeded = SiteMatchReviewState(
+      isLoading: false,
+      proposals: [
+        MatchProposal(
+          dive: _dive(7),
+          status: ProposalStatus.review,
+          candidates: [researched, verified],
+        ),
+      ],
+      focusedDiveId: 'd7',
+      selections: const {},
+    );
+    await tester.pumpWidget(_harness(seeded));
+    await tester.pump();
+
+    expect(find.text('Not verified'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.ancestor(
+          of: find.text('USAT Liberty'),
+          matching: find.byType(Card),
+        ),
+        matching: find.text('Not verified'),
+      ),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('rich card shows rating, difficulty, features, description', (
     tester,
   ) async {

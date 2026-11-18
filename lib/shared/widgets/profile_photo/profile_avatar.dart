@@ -2,6 +2,20 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
+/// The pixel size to decode a stored square avatar image at when it is drawn
+/// [side] logical pixels wide.
+///
+/// Flutter decodes to the image's INTRINSIC size, so a bare MemoryImage on a
+/// 512x512 JPEG holds about 1 MB of bitmap for an avatar drawn at 40 logical
+/// pixels; a list of 200 buddies would hold roughly 200 MB. Capped at 512, the
+/// size `ImageEncodeSpec.avatar` stores, since decoding larger only upscales.
+int storedAvatarDecodeSize(BuildContext context, double side) {
+  final devicePixelRatio = MediaQuery.maybeDevicePixelRatioOf(context) ?? 1.0;
+  // An int, not a num: Dart special-cases clamp so the result is int when the
+  // receiver and both bounds are int, which .round() and the literals satisfy.
+  return (side * devicePixelRatio).round().clamp(1, 512);
+}
+
 /// One avatar for divers and buddies: the stored photo when there is one,
 /// their initials otherwise.
 ///
@@ -48,15 +62,7 @@ class ProfileAvatar extends StatelessWidget {
     final resolvedForeground =
         foregroundColor ?? theme.colorScheme.onPrimaryContainer;
 
-    // Decode at the size actually drawn. Flutter decodes to the image's
-    // INTRINSIC size, so a bare MemoryImage on a 512x512 JPEG holds about 1 MB
-    // of bitmap for an avatar drawn at 40 logical pixels; a list of 200
-    // buddies would hold roughly 200 MB.
-    final devicePixelRatio = MediaQuery.maybeDevicePixelRatioOf(context) ?? 1.0;
-    // `target` is an int, not a num: Dart special-cases clamp so the result is
-    // int when the receiver and both bounds are int, which .round() and the
-    // literals satisfy. No toInt() is needed to satisfy ResizeImage's int?.
-    final int target = (radius * 2 * devicePixelRatio).round().clamp(1, 512);
+    final target = storedAvatarDecodeSize(context, radius * 2);
 
     final avatar = CircleAvatar(
       radius: ringColor == null ? radius : radius - 2,

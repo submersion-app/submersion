@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_p
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_gap_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/catalogue_gap_comparison_sheet.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_catalogue_offer_line.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -61,6 +62,8 @@ void main() {
     WidgetTester tester,
     DiveSite site, {
     required List<CataloguePair> pairs,
+    void Function(CataloguePair, CatalogueComparisonResult)? onReviewed,
+    bool reviewable = true,
   }) async {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = const Size(420, 1200);
@@ -89,7 +92,13 @@ void main() {
           locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(body: SiteCatalogueOfferLine(site: site)),
+          home: Scaffold(
+            body: SiteCatalogueOfferLine(
+              site: site,
+              onReviewed: onReviewed,
+              reviewable: reviewable,
+            ),
+          ),
         ),
       ),
     );
@@ -227,5 +236,31 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Could not apply the changes'), findsOneWidget);
+  });
+
+  testWidgets('with onReviewed the result is handed over and nothing is '
+      'written', (tester) async {
+    final handed = <CatalogueComparisonResult>[];
+    await pump(
+      tester,
+      _unlinkedSite,
+      pairs: [_nearby],
+      onReviewed: (_, result) => handed.add(result),
+    );
+
+    await tester.tap(find.text('Review'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Not the same site'));
+    await tester.pumpAndSettle();
+
+    expect(handed.single, isA<ComparisonNotSame>());
+    expect(service.notSame, isEmpty);
+    expect(service.applied, isEmpty);
+  });
+
+  testWidgets('not reviewable shows the line without Review', (tester) async {
+    await pump(tester, _unlinkedSite, pairs: [_nearby], reviewable: false);
+
+    expect(find.text('Review'), findsNothing);
   });
 }

@@ -11,7 +11,10 @@ final rawDiveDataServiceProvider = Provider<RawDiveDataService>((ref) {
 
 /// Raw dive computer data held across every computer, refreshed whenever a
 /// download, import, reparse, sync or discard writes a data source row.
-final rawDiveDataUsageProvider = FutureProvider<RawDiveDataUsage>((ref) {
+/// Disposed once no page shows it, so writes made meanwhile cost nothing.
+final rawDiveDataUsageProvider = FutureProvider.autoDispose<RawDiveDataUsage>((
+  ref,
+) {
   final service = ref.watch(rawDiveDataServiceProvider);
   ref.invalidateSelfWhen(
     service.db.tableUpdates(
@@ -20,3 +23,20 @@ final rawDiveDataUsageProvider = FutureProvider<RawDiveDataUsage>((ref) {
   );
   return service.getUsage();
 });
+
+/// [rawDiveDataUsageProvider] per computer, for the Raw dive computer data
+/// page (issue #4590). A renamed or deleted computer changes a row's name, so
+/// computer changes refresh it too.
+final rawDiveDataByComputerProvider =
+    FutureProvider.autoDispose<List<ComputerRawDiveDataUsage>>((ref) {
+      final service = ref.watch(rawDiveDataServiceProvider);
+      ref.invalidateSelfWhen(
+        service.db.tableUpdates(
+          TableUpdateQuery.onAllTables([
+            service.db.diveDataSources,
+            service.db.diveComputers,
+          ]),
+        ),
+      );
+      return service.getUsageByComputer();
+    });

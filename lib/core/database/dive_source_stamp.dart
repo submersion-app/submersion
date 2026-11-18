@@ -23,9 +23,10 @@ import 'package:submersion/core/database/database.dart';
 /// (see `Hlc.toString`: a 15-digit physical time, a colon, a 6-digit
 /// counter, the node). Staging a tank for sync stamps a new one, and a
 /// synced copy brings its own, so a tank row that arrives alone still moves
-/// the stamp. A writer that changes a tank without staging it must re-stamp
-/// the dive instead (the dive editor and the bulk tank edits do), or the
-/// stamp does not move. The physical times and the counters are
+/// the stamp. A writer that changes a tank must stage it (the bulk tank
+/// edits do, and since issue #4651 no longer re-stamp the dive), or else
+/// re-stamp the dive (the dive editor does), or the stamp does not move.
+/// The physical times and the counters are
 /// summed apart: packed into one number a tank's clock is near 2e18, and a
 /// few of them would overflow SQLite's 64-bit integers. A tank with no clock
 /// adds nothing.

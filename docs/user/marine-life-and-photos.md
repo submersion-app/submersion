@@ -40,10 +40,11 @@ If you later realize the identification was wrong, open the species and edit it.
 
 ### Logging a sighting on a dive
 
-1. Edit the dive and open its **Experience** section.
-2. Under **Marine Life**, tap **Add** and pick the species (**Select Species**); search by common or scientific name.
-3. Set the **Count** (how many you saw, default 1) and any **Notes** (behavior, size, depth).
-4. Save. The sighting appears in the dive's **Species** section.
+1. Open the dive and tap the lock (**Unlock to edit**).
+2. Open the **Species** card. If the dive has no sightings yet, tap **Species Sightings** in the **Add** strip under the bar first.
+3. Tap **Add** and pick the species (**Select Species**); search by common or scientific name.
+4. Set the **Count** (how many you saw, default 1) and any **Notes** (behavior, size, depth).
+5. Tap **Save**. The sighting appears on the dive's **Species** card.
 
 You can add as many sightings as you like to a single dive.
 

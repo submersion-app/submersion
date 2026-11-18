@@ -4,9 +4,11 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/widgets/compact_trip_list_tile.dart';
+import 'package:submersion/shared/widgets/record_list_chevron.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
+import '../../../../helpers/record_chevron_expectations.dart';
 
 TripWithStats _makeTrip({
   String name = 'Test Trip',
@@ -130,5 +132,22 @@ void main() {
       await tester.tap(find.byType(InkWell).first);
       expect(tapped, isTrue);
     });
+  });
+
+  testWidgets('chevron ends one card padding from the edge (#4639)', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: _settingsOverrides(),
+        child: CompactTripListTile(tripWithStats: _makeTrip(), onTap: () {}),
+      ),
+    );
+
+    expectChevronAtEndPadding(
+      tester,
+      bounds: recordCardBounds(tester),
+      padding: kRecordCardCompactPadding,
+    );
   });
 }

@@ -6,8 +6,8 @@ Scrapes dive shops, clubs and centres from OpenStreetMap using the Overpass
 API and writes the dive centre list the Submersion app ships.
 
 Dive sites are no longer harvested here: the built-in site catalogue is
-built from several sources by scripts/site_catalogue/ (its merge.py writes
-assets/data/site_catalogue.json).
+built from several sources in https://github.com/submersion-app/site-catalogue,
+and each of its releases reaches assets/data/site_catalogue.json by a PR.
 
 Usage:
     python scripts/dive_site_harvester.py

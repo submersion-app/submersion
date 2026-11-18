@@ -23,6 +23,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/unlock_for_operation.dart';
 
 class _RecordingDiveRepository extends Fake implements DiveRepository {
   final setPrimaryCalls = <(String, String)>[];
@@ -241,6 +242,8 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
     FlutterError.onError = originalOnError;
+    // Set as primary, split and separate are whole-record operations.
+    await unlockForOperation(tester);
   }
 
   /// Keeps the dive read alive once the page is gone, as the dive list does,
@@ -537,7 +540,12 @@ void main() {
       expect(find.text('Split into separate dive?'), findsOneWidget);
 
       // Cancel first: no call.
-      await tester.tap(find.text('Cancel'));
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text('Cancel'),
+        ),
+      );
       await tester.pumpAndSettle();
       expect(splitService.calls, isEmpty);
 

@@ -1256,7 +1256,7 @@ class SyncDataSerializer {
       blob: false,
       full: null,
     ),
-    (key: 'diveCenters', table: _db.diveCenters, blob: false, full: null),
+    (key: 'diveCenters', table: _db.diveCenters, blob: true, full: null),
     (
       key: 'diveCenterGearNotes',
       table: _db.diveCenterGearNotes,
@@ -2011,6 +2011,30 @@ class SyncDataSerializer {
       if (maxHlc == null || h.compareTo(maxHlc) > 0) maxHlc = h;
     }
     return maxHlc;
+  }
+
+  /// The dive children a bulk edit writes without restamping the dive
+  /// (issue #4651): tanks, weights, tags, dive types, courses and gear links.
+  /// They arrive here on their own clocks, without the dive row, so applying
+  /// one ticks `dives` as well: many screens, the dive list among them,
+  /// refresh only on a `dives` tick.
+  static const Set<String> diveChildEntitiesThatTickDives = {
+    'diveTanks',
+    'diveWeights',
+    'diveTags',
+    'diveDiveTypes',
+    'diveCourses',
+    'diveEquipment',
+  };
+
+  /// Ticks `dives` after a row of [entityType] was applied, when it is one of
+  /// [diveChildEntitiesThatTickDives]. Inside a transaction the tick is
+  /// delivered on commit, like a write's.
+  void _tickDivesForChild(String entityType) {
+    if (!diveChildEntitiesThatTickDives.contains(entityType)) return;
+    _db.notifyUpdates({
+      TableUpdate.onTable(_db.dives, kind: UpdateKind.update),
+    });
   }
 
   /// Children with no clock of their own whose incremental export selects
@@ -3676,7 +3700,7 @@ class SyncDataSerializer {
         final row = await (_db.select(
           _db.diveCenters,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
-        return row?.toJson();
+        return row?.toJson(serializer: _syncBlobSerializer);
       case 'diveCenterGearNotes':
         final row = await (_db.select(
           _db.diveCenterGearNotes,
@@ -4356,7 +4380,9 @@ class SyncDataSerializer {
         final rows = await (_db.select(
           _db.diveCenters,
         )..where((t) => t.id.isIn(idList))).get();
-        return {for (final r in rows) r.id: r.toJson()};
+        return {
+          for (final r in rows) r.id: r.toJson(serializer: _syncBlobSerializer),
+        };
       case 'diveCenterGearNotes':
         final rows = await (_db.select(
           _db.diveCenterGearNotes,
@@ -5625,6 +5651,15 @@ class SyncDataSerializer {
     String entityType,
     Map<String, dynamic> data,
   ) async {
+    await _upsertRecordApply(entityType, data);
+    _tickDivesForChild(entityType);
+  }
+
+  /// The write behind [upsertRecord].
+  Future<void> _upsertRecordApply(
+    String entityType,
+    Map<String, dynamic> data,
+  ) async {
     await _ensureLegacyDefaultChecklists(entityType, [data]);
     data = _withoutUnsetNulls(
       entityType,
@@ -5902,7 +5937,10 @@ class SyncDataSerializer {
         await _db
             .into(_db.diveCenters)
             .insertOnConflictUpdate(
-              DiveCenter.fromJson(data).toCompanion(false),
+              DiveCenter.fromJson(
+                data,
+                serializer: _syncBlobSerializer,
+              ).toCompanion(false),
             );
         return;
       case 'diveCenterGearNotes':
@@ -6711,6 +6749,15 @@ class SyncDataSerializer {
     List<Map<String, dynamic>> records,
   ) async {
     if (records.isEmpty) return;
+    await _upsertRecordsApply(entityType, records);
+    _tickDivesForChild(entityType);
+  }
+
+  /// The write behind [upsertRecords].
+  Future<void> _upsertRecordsApply(
+    String entityType,
+    List<Map<String, dynamic>> records,
+  ) async {
     await _ensureLegacyDefaultChecklists(entityType, records);
     records = await _withLocalForOmitted(
       entityType,
@@ -7111,7 +7158,12 @@ class SyncDataSerializer {
           (b) => b.insertAllOnConflictUpdate(
             _db.diveCenters,
             records
-                .map((r) => DiveCenter.fromJson(r).toCompanion(false))
+                .map(
+                  (r) => DiveCenter.fromJson(
+                    r,
+                    serializer: _syncBlobSerializer,
+                  ).toCompanion(false),
+                )
                 .toList(),
           ),
         );
@@ -9289,6 +9341,12 @@ class SyncDataSerializer {
   // it later would resurrect what the peer deleted, so the tombstone clears
   // it there. Everything else falls through the switch with no default.
   Future<void> deleteRecord(String entityType, String recordId) async {
+    await _deleteRecordApply(entityType, recordId);
+    _tickDivesForChild(entityType);
+  }
+
+  /// The tombstone apply behind [deleteRecord].
+  Future<void> _deleteRecordApply(String entityType, String recordId) async {
     await deleteStagedLegacyRow(_db, entityType, recordId);
     switch (entityType) {
       case 'divers':
@@ -10615,7 +10673,8 @@ class SyncDataSerializer {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
     final rows = await query.get();
-    return rows.map((r) => r.toJson()).toList();
+    // Dive centers carry the logo BLOB (v373); base64-encode it.
+    return rows.map((r) => r.toJson(serializer: _syncBlobSerializer)).toList();
   }
 
   /// Rental gear notes ride their center: an incremental export re-sends
@@ -12543,6 +12602,9 @@ class SyncDataSerializer {
       // v366: seed it so payloads predating the column hydrate instead of
       // throwing in DiverSetting.fromJson (issue #4530).
       'defaultShowCounterdiffusion': false,
+      // v370: seed it so payloads predating the column hydrate instead of
+      // throwing in DiverSetting.fromJson (issue #4593).
+      'defaultShowBuoyancy': false,
       // v177: GTR settings; seed them so payloads predating the columns
       // hydrate instead of throwing in DiverSetting.fromJson.
       'defaultShowGtr': false,

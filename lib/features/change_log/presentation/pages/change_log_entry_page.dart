@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/database/change_log/change_log_policy.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -93,7 +94,13 @@ class _EntryBody extends ConsumerWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                changeLogSubtitle(l, units, operation, peerNames),
+                changeLogSubtitle(
+                  l,
+                  units,
+                  operation,
+                  peerNames,
+                  rootAction: _rootAction(detail),
+                ),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -151,6 +158,10 @@ class _EntryBody extends ConsumerWidget {
         else if (event.table != rootTable &&
             net.any((change) => change.event.id == event.id))
           _ChildHeader(event: event),
+        // An added or deleted link row says which record it linked. It goes
+        // back only with its whole row, so it has no Revert of its own.
+        if (detail.namingFields[event.id] case final field?)
+          _FieldRow(field: field, formatter: formatter),
         for (final change in net)
           if (change.event.id == event.id)
             _FieldRow(
@@ -168,7 +179,8 @@ class _EntryBody extends ConsumerWidget {
       ?.block;
 
   /// A field's Revert button, or why it has none. A field already back at
-  /// its old value has neither.
+  /// its old value has neither, and nor does a row that goes back only with
+  /// the whole entry ([changeLogRevertsWithEntryOnly]).
   Widget? _fieldRevert(
     BuildContext context,
     WidgetRef ref,
@@ -176,6 +188,7 @@ class _EntryBody extends ConsumerWidget {
     ChangeLogEvent event,
     ChangeLogFieldChange field,
   ) {
+    if (changeLogRevertsWithEntryOnly.contains(event.table)) return null;
     final item = detail.plan?.items
         .where(
           (item) =>
@@ -286,6 +299,22 @@ class _EntryBody extends ConsumerWidget {
   }
 }
 
+/// What the entry did to the record it is titled with, as the feed reads it:
+/// that the record arrived or went outranks any edit around it.
+ChangeLogAction? _rootAction(ChangeLogEntryDetail detail) {
+  final operation = detail.operation;
+  ChangeLogAction? found;
+  for (final event in detail.events) {
+    if (event.table != operation.rootTable ||
+        event.recordId != operation.rootId) {
+      continue;
+    }
+    if (event.action != ChangeLogAction.update) return event.action;
+    found ??= event.action;
+  }
+  return found;
+}
+
 String _actionLabel(AppLocalizations l, ChangeLogAction action) =>
     switch (action) {
       ChangeLogAction.insert => l.changeLog_action_added,
@@ -334,7 +363,10 @@ class _RevertAction extends ConsumerWidget {
             onPressed: () => runChangeLogRevert(
               context,
               ref,
-              plan: (service) => service.planOperation(operation.id),
+              plan: (service) => service.planOperation(
+                operation.id,
+                onlyRoots: operation.shownRoots,
+              ),
               bulk: bulk,
             ),
             child: Text(label),

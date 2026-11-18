@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 
 /// Color palette for multi-source profiles. The primary source is assigned
 /// the first color; overlays cycle through the rest by source order.
@@ -65,6 +66,7 @@ class SourceBar extends StatelessWidget {
     required this.onActivate,
     required this.onToggleOverlay,
     this.onSetPrimary,
+    required this.operationReason,
   });
 
   final List<SourceBarItem> sources;
@@ -75,6 +77,10 @@ class SourceBar extends StatelessWidget {
   /// overflow menu (e.g. the fullscreen chart, where management lives on
   /// the detail page).
   final void Function(String sourceId)? onSetPrimary;
+
+  /// Why Set as primary is unavailable on a page that offers editing (it
+  /// acts on the whole dive at once, issue #4527), or null when it is.
+  final String? operationReason;
 
   @override
   Widget build(BuildContext context) {
@@ -111,6 +117,7 @@ class SourceBar extends StatelessWidget {
                     onSetPrimary: onSetPrimary == null
                         ? null
                         : () => onSetPrimary!(item.sourceId),
+                    operationReason: operationReason,
                   ),
               ],
             ),
@@ -127,12 +134,14 @@ class _SourceChip extends StatelessWidget {
     required this.onActivate,
     required this.onToggleOverlay,
     required this.onSetPrimary,
+    required this.operationReason,
   });
 
   final SourceBarItem item;
   final VoidCallback onActivate;
   final VoidCallback onToggleOverlay;
   final VoidCallback? onSetPrimary;
+  final String? operationReason;
 
   @override
   Widget build(BuildContext context) {
@@ -211,7 +220,10 @@ class _SourceChip extends StatelessWidget {
                 if (showMenu)
                   PopupMenuButton<void>(
                     itemBuilder: (context) => [
+                      if (operationReason case final reason?)
+                        recordOperationCaption<void>(context, reason),
                       PopupMenuItem(
+                        enabled: operationReason == null,
                         onTap: onSetPrimary,
                         child: ListTile(
                           leading: const Icon(Icons.star_outline),

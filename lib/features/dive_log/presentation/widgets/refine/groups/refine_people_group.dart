@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/text/fuzzy_match.dart' show normalize;
+import 'package:submersion/core/text/fuzzy_match.dart'
+    show foldForSearch, normalize;
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/refine/refine_group_tile.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/features/dive_roles/presentation/dive_role_display.dart';
+import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
@@ -15,11 +19,16 @@ import 'package:submersion/shared/widgets/forms/autocomplete_options_list.dart';
 const kRefineBuddyFieldKey = ValueKey('refine-buddy-name');
 const kRefineSpeciesFieldKey = ValueKey('refine-species-search');
 const kRefineNoBuddySwitchKey = ValueKey('refine-no-buddy');
-const kRefineNoRoleSwitchKey = ValueKey('refine-no-role');
+const kRefineRoleNotSetChipKey = ValueKey('refine-my-role-not-set');
+
+/// The My role chip for [roleId] (#4409).
+ValueKey<String> refineRoleChipKey(String roleId) =>
+    ValueKey('refine-my-role-$roleId');
 
 /// The Refine panel's People and life group (#2773): buddy names (several,
-/// comma separated, with suggestions), dives with no buddy, dives where the
-/// diver's own role is not set (#3622), and species sighted.
+/// comma separated, with suggestions), dives with no buddy, the diver's own
+/// roles with Not set as one more choice (#3622, #4409), and species
+/// sighted.
 class RefinePeopleGroup extends ConsumerStatefulWidget {
   const RefinePeopleGroup({
     super.key,
@@ -35,13 +44,14 @@ class RefinePeopleGroup extends ConsumerStatefulWidget {
     'buddyNameFilter',
     'noBuddyOnly',
     'noRoleOnly',
+    'diverRoleIds',
     'speciesIds',
   };
 
   static int activeCount(DiveFilterState f) => [
     f.buddyNameFilter?.isNotEmpty ?? false,
     f.noBuddyOnly == true,
-    f.noRoleOnly == true,
+    f.diverRoleIds.isNotEmpty || f.noRoleOnly == true,
     f.speciesIds.isNotEmpty,
   ].where((active) => active).length;
 
@@ -88,9 +98,9 @@ class _RefinePeopleGroupState extends ConsumerState<RefinePeopleGroup> {
       for (final n in names)
         if (!chosen.contains(n.toLowerCase())) n,
     ];
-    final last = parts.last.toLowerCase();
+    final last = foldForSearch(parts.last);
     if (last.isEmpty) return open;
-    return open.where((n) => n.toLowerCase().contains(last));
+    return open.where((n) => foldForSearch(n).contains(last));
   }
 
   void _pickBuddy(String selection) {
@@ -122,6 +132,18 @@ class _RefinePeopleGroupState extends ConsumerState<RefinePeopleGroup> {
     final allSpecies =
         ref.watch(allSpeciesProvider).valueOrNull ?? const <Species>[];
     final speciesById = {for (final s in allSpecies) s.id: s};
+    // `value`, not `valueOrNull`: a diver change reloads the list, and the
+    // role chips stay until the new one lands.
+    final allRoles =
+        ref.watch(allDiveRolesProvider).value ?? const <DiveRole>[];
+    final knownRoleIds = {for (final r in allRoles) r.id};
+    // A picked role the list no longer holds keeps a chip, so it can be
+    // turned off.
+    final roles = [
+      ...allRoles,
+      for (final id in d.diverRoleIds)
+        if (!knownRoleIds.contains(id)) DiveRole.synthetic(id),
+    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -171,16 +193,39 @@ class _RefinePeopleGroupState extends ConsumerState<RefinePeopleGroup> {
             );
           },
         ),
-        SwitchListTile(
-          key: kRefineNoRoleSwitchKey,
-          contentPadding: EdgeInsets.zero,
-          title: Text(l10n.diveLog_filter_noRoleOnly),
-          subtitle: Text(l10n.diveLog_filter_showOnlyNoRole),
-          secondary: const Icon(Icons.badge_outlined),
-          value: d.noRoleOnly ?? false,
-          onChanged: (v) => widget.onChanged(
-            d.copyWith(noRoleOnly: v ? true : null, clearNoRoleOnly: !v),
-          ),
+        RefineSubLabel(l10n.diveLog_filter_sectionMyRole),
+        Wrap(
+          spacing: 8,
+          runSpacing: 4,
+          children: [
+            for (final role in roles)
+              FilterChip(
+                key: refineRoleChipKey(role.id),
+                label: Text(role.localizedName(l10n)),
+                selected: d.diverRoleIds.contains(role.id),
+                onSelected: (selected) => widget.onChanged(
+                  d.copyWith(
+                    diverRoleIds: selected
+                        ? [...d.diverRoleIds, role.id]
+                        : [
+                            for (final id in d.diverRoleIds)
+                              if (id != role.id) id,
+                          ],
+                  ),
+                ),
+              ),
+            FilterChip(
+              key: kRefineRoleNotSetChipKey,
+              label: Text(l10n.diveLog_filter_myRoleNotSet),
+              selected: d.noRoleOnly ?? false,
+              onSelected: (selected) => widget.onChanged(
+                d.copyWith(
+                  noRoleOnly: selected ? true : null,
+                  clearNoRoleOnly: !selected,
+                ),
+              ),
+            ),
+          ],
         ),
         RefineSubLabel(l10n.diveLog_filter_sectionSpecies),
         if (d.speciesIds.isNotEmpty)

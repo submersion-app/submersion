@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
-import 'package:submersion/features/dive_computer/presentation/widgets/raw_dive_data_discard.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/reparse_batch_dialog.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
@@ -124,19 +123,6 @@ class _RawDataActions extends ConsumerWidget {
                         c.withRawData,
                       ),
                 style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ),
-            Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: TextButton.icon(
-                key: const ValueKey('discard_raw_data_button'),
-                onPressed: () => confirmAndDiscardComputerRawDiveData(
-                  context,
-                  ref,
-                  computer,
-                ),
-                icon: const Icon(Icons.delete_outline),
-                label: Text(context.l10n.diveComputer_rawData_discardButton),
               ),
             ),
           ],

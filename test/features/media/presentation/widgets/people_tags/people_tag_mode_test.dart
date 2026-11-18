@@ -50,6 +50,16 @@ void main() {
       );
     });
     await settle(tester);
+    // Tag mode changes the photo, so it needs the photo unlocked
+    // (issue #4527).
+    await tester.tap(find.byKey(const ValueKey('viewer_unlock')));
+    await settle(tester);
+  }
+
+  /// Tags are held in the photo's sitting until Save (issue #4527).
+  Future<void> save(WidgetTester tester) async {
+    await tester.tap(find.text('Save').last);
+    await settle(tester);
   }
 
   Future<List<MediaPeopleData>> rows(WidgetTester tester) async =>
@@ -83,11 +93,13 @@ void main() {
     await settle(tester);
 
     expect(find.byKey(const ValueKey('pending-face-box')), findsNothing);
+    // Offered while the sitting is open, which ends at Save.
+    expect(find.text("Add Alex to this dive's buddies?"), findsOneWidget);
+    await save(tester);
     final row = (await rows(tester)).single;
     expect(row.buddyId, 'alex');
     expect(row.bboxX! + row.bboxWidth! / 2, closeTo(0.5, 0.01));
     expect(row.bboxY! + row.bboxHeight! / 2, closeTo(0.5, 0.01));
-    expect(find.text("Add Alex to this dive's buddies?"), findsOneWidget);
   });
 
   testWidgets('Tag without a spot saves a tag with no box', (tester) async {
@@ -98,6 +110,7 @@ void main() {
     await settle(tester);
     await tester.tap(find.text('Me'));
     await settle(tester);
+    await save(tester);
 
     final row = (await rows(tester)).single;
     expect(row.diverId, 'A');
@@ -122,6 +135,7 @@ void main() {
     expect(find.text('Change person'), findsOneWidget);
     await tester.tap(find.text('Remove tag'));
     await settle(tester);
+    await save(tester);
 
     expect(await rows(tester), isEmpty);
   });
@@ -174,6 +188,7 @@ void main() {
     expect(find.text('Change person'), findsOneWidget);
     await tester.tap(find.text('Remove tag'));
     await settle(tester);
+    await save(tester);
 
     expect(await rows(tester), isEmpty);
   });

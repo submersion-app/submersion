@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -100,9 +101,9 @@ class _NavShortcutPickerState extends State<NavShortcutPicker> {
 
   bool _matches(AppLocalizations l10n, NavShortcut shortcut) {
     if (_query.isEmpty) return true;
-    final query = _query.toLowerCase();
-    return shortcut.label(l10n).toLowerCase().contains(query) ||
-        shortcut.parentLabel(l10n).toLowerCase().contains(query);
+    final query = foldForSearch(_query);
+    return foldForSearch(shortcut.label(l10n)).contains(query) ||
+        foldForSearch(shortcut.parentLabel(l10n)).contains(query);
   }
 
   @override

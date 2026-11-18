@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/utils/bidi_isolate.dart';
 import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_battery_reading.dart';
@@ -51,10 +52,3 @@ String formatSignedVolts(double volts) {
   final sign = double.parse(magnitude) == 0 ? '' : (volts > 0 ? '+' : '-');
   return '$sign${localiseDecimalText(magnitude)}';
 }
-
-/// [text] kept left to right inside right-to-left text. Without the
-/// isolate, bidi reordering can move a signed number's minus to its end
-/// ("0.12-") in Hebrew or Arabic.
-@visibleForTesting
-String isolateForDirection(String text, TextDirection direction) =>
-    direction == TextDirection.rtl ? '\u2066$text\u2069' : text;

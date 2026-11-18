@@ -1000,6 +1000,12 @@ class UddfImportParsers {
       buddy['phone'] = getElementText(personalElement, 'phone');
     }
 
+    // Where the buddy is from (issue #4457), from the UDDF address.
+    final addressElement = buddyElement.findElements('address').firstOrNull;
+    if (addressElement != null) {
+      buddy['country'] = getElementText(addressElement, 'country');
+    }
+
     final certElement = buddyElement.findElements('certification').firstOrNull;
     if (certElement != null) {
       final level = getElementText(certElement, 'level');

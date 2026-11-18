@@ -128,7 +128,11 @@ own code and writes nothing (issue #4203). It never has a planner of its own:
   Every value it marks as one a plan can set is an input, so an agent can
   override any of them. That includes the ascent rate bands and the
   problem-solving allowance (`problem_solving_minutes` at the deepest point on
-  bottom SAC times `sac_factor`), which `litres_used` includes.
+  bottom SAC times `sac_factor`), reported per tank as
+  `problem_solving_litres` and not included in `litres_used` (#4475).
+  Minimum gas is checked against `bottom_end_pressure_bar`, the cylinder as
+  the diver leaves the deepest point: under `min_gas_ascent_bar` is critical,
+  under `min_gas_bar` a warning.
 - **Following a logged dive** reads it through the planner's
   `seriesFollowProvider`, injected as a `SeriesFollowReader` and wrapped in
   `loggedDivesOnly`, so the carry-in is the planner's own and a planned entry
@@ -141,6 +145,111 @@ own code and writes nothing (issue #4203). It never has a planner of its own:
 
 Every answer carries the planner's caveat in the app's language, and the
 description tells the agent to pass on every issue.
+
+### Planned dives
+
+`planned_dives` (`{delete_removed, move_dived_link}`) is an effect field of
+`dive_plan_series` and `dive_plans`, on create and update, so "save it and put
+it in my log" is one change (`writes/families/planned_dives_effect.dart`). It
+runs the planner's own `PlannedDivesWriter`, as "Create / Update planned
+dives" does: a dive with no entry gets a planned one, a planned entry is
+rewritten in place, a dived one is left alone.
+
+- **Preview.** The saved plan is computed as the planner opens it
+  (`computeStoredSeries` / `computeStoredPlan`) with the owner's settings and
+  decided by the writer, without writing. The item lists new entries in
+  `also_creates`, rewritten ones in `also_changes`, and removed entries it
+  deletes in `also_reaches`, with what goes with each as a delete of the dive
+  counts it (its tanks, profile, documents and media). An update also lists each dive's outcome in the
+  indirect field `planned_dive_entries` (`create`, `update`, `skip_dived`,
+  `delete_removed`, `keep_removed`, with the entry's id). That list is part of
+  the footprint, so an entry dived between preview and apply makes the plan
+  stale. A create has no such list: a new plan or series has no entries yet,
+  so every dive gets one, and `also_creates` counts them. (A create's item
+  carries only the record's own fields, as `createDefaults` fills them.)
+- **What stays current.** The footprint holds what the preview shows: the
+  plan's own record and each entry's outcome, plus a hidden `basis` naming
+  whose log a new entry goes into, so a profile switch between preview and
+  apply makes a plan in no series stale. The profile each entry gets is
+  computed again at apply with the owner's settings as they are then, as the
+  planner's own "Update planned dives" does, so a settings change in between
+  does not make the plan stale.
+- **Cost.** The refusal and the side effects of one change share one
+  computation through the preview's `PlanningPass`, which the planner closes
+  once the preview is made, so the apply's stale check always computes
+  afresh.
+- **Refusals.** A series whose first dive has no `start_date_time`; a dive
+  with no segments or a critical warning; a single plan linked to a dived dive
+  without `move_dived_link`; a plan in a series (the series writes them all);
+  a copy; and a change set where an earlier change writes the plan, links a
+  dive to any plan (which takes it off another), or writes the log: a dive or
+  any record that belongs to one. The planner counts those in
+  `SetSoFar.touched`, a child under its parent, so no entity list is kept by
+  hand. The other way round, the effect names the entries it rewrites or
+  deletes in `SideEffects.rewrites`, and a later change in the set to one of
+  them, or to a record that belongs to one, is refused: it would be planned
+  against values the apply replaces.
+- **Owner.** A series' entries belong to its diver and are computed with that
+  diver's settings; a plan in no series, or a series with no diver, uses the
+  active diver's, as the planner does.
+- **Removed dives.** Only the dives the same update drops through `plan_ids`.
+  Their planned entries are deleted with `delete_removed`, else kept unlinked;
+  a dived one always stays.
+- **Revert.** The writes run inside the apply's transaction, and a write that
+  fails part way is rethrown, so nothing is left half written. The change log
+  records profile series updates for any `agent` operation
+  (`changeLogSeriesUpdateSources`), so a rewritten entry gets its old samples
+  back. The planner's own "Update planned dives" files its entries, the plan's
+  save and the links as one entry labelled `update_planned_dives`, one of
+  `changeLogSeriesUpdateLabels`, so reverting it restores the samples too. A
+  revert does not count a link it takes back itself as a use, so the plan's
+  new link does not keep the new entry.
+
+### Recall
+
+A saved plan stores inputs, not results, so recalling one computes it again
+(`data/planning/plan_recall.dart`).
+
+- **Where each dive stands.** `PlanLogState.of` (planner domain) is the one
+  rule: no entry is `planned`, an entry still planned is `logged_as_planned`,
+  any other is `dived`. `PlannedDivesWriter` decides by it, and the
+  `dive_plans` document and each dive of a `dive_plan_series` document carry
+  it as `log_state` with `linked_dive_id` (`planLogFields`). Only the linked
+  dives' `is_planned` flags are read, in one batch per read
+  (`loggedEntryFlags` in `records/families/plan_record_loads.dart`), so the
+  field is always there, not a block. A link to a dive no longer in the log
+  reads as `planned` with no link; a write still compares against the
+  stored link, so clearing it is a change. `list_records` shows a plan's
+  `log_state`.
+- **`compute_plan` by id.** `plan_id` (a plan in no series) or `series_id`,
+  never with `dives` or `follow_dive_id`. A plan in a series is refused,
+  naming its series, since its carry-in depends on the dives before it. It
+  computes through `computeStoredSeries` / `computeStoredPlan`, as the planner
+  opens a saved plan: with the diver's Settings as they are now, the followed
+  dive as it is in the log now (`followed_dive_in_log` says whether it still
+  is), and each dived dive taken as dived for the dives after it. The answer
+  says so in `recall_note`.
+- **Whose Settings.** `diver_id` if given, else a series' own diver while
+  that profile exists, else the active diver, as the planned dives action
+  chooses.
+- **`overrides`** takes the `planSettingFields` only, written over every dive
+  for that one computation; a null clears the plan's own value so Settings
+  decide. Nothing is saved. Given without an id it is refused, not ignored.
+- **`resolved_inputs`** for a recalled dive is the saved plan read back as
+  `compute_plan` inputs (`stored_plan_inputs.dart`), from its `dive_plans`
+  document: its own settings, tanks, segments, and its start or its
+  interval as the series calculator times it (the default interval when it
+  stores none, and no start on a series without a clock), with
+  `carries_from_tank` (none for a pinned tank, which keeps its own
+  pressure). Given back as `dives`, with `follow_dive_id` set to
+  `followed_dive_id` for a series that still follows its logged dive, the
+  same object computes the same schedule again, with two exceptions. A
+  dived dive's successors carry in what the log says it left, which inputs
+  cannot say, so they compute again only as planned. A plan's settings that
+  `compute_plan` does not take (stop minimums, deco ppO2 bands, setpoints, a
+  segment's mode override)
+  still compute the recall but are not in it, as the tool description says;
+  the `dive_plans` document has them.
 
 ## Writes
 

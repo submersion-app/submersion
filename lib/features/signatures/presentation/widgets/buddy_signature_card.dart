@@ -14,12 +14,17 @@ class BuddySignatureCard extends ConsumerWidget {
   final VoidCallback? onRequestSignature;
   final VoidCallback? onViewSignature;
 
+  /// Whether Request is offered. Hidden, it keeps its room, so the card
+  /// does not change height when its dive is unlocked (issue #4527).
+  final bool requestShown;
+
   const BuddySignatureCard({
     super.key,
     required this.buddyWithRole,
     this.signature,
     this.onRequestSignature,
     this.onViewSignature,
+    this.requestShown = true,
   });
 
   bool get hasSigned => signature != null;
@@ -97,9 +102,15 @@ class BuddySignatureCard extends ConsumerWidget {
                 if (hasSigned && signature != null)
                   _buildSignaturePreview(context, signature!)
                 else
-                  FilledButton.tonal(
-                    onPressed: onRequestSignature,
-                    child: Text(context.l10n.signatures_action_request),
+                  Visibility(
+                    visible: requestShown,
+                    maintainSize: true,
+                    maintainAnimation: true,
+                    maintainState: true,
+                    child: FilledButton.tonal(
+                      onPressed: requestShown ? onRequestSignature : null,
+                      child: Text(context.l10n.signatures_action_request),
+                    ),
                   ),
               ],
             ),

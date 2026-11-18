@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
@@ -29,6 +30,7 @@ import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.
 import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_avatar.dart';
 
 class DiveCenterDetailPage extends ConsumerStatefulWidget {
   final String centerId;
@@ -176,14 +178,10 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage> {
       ),
       child: Row(
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(Icons.store, color: colorScheme.onPrimaryContainer),
+          DiveCenterAvatar(
+            logo: center.logo,
+            shape: DiveCenterAvatarShape.roundedSquare,
+            iconSize: 24,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -213,7 +211,7 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage> {
             Icon(Icons.star, size: 16, color: Colors.amber.shade700),
             const SizedBox(width: 4),
             Text(
-              center.rating!.toStringAsFixed(1),
+              formatRatingForDisplay(center.rating!),
               style: Theme.of(
                 context,
               ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
@@ -331,18 +329,11 @@ class _HeaderSection extends StatelessWidget {
         children: [
           Row(
             children: [
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.store,
-                  size: 32,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                ),
+              DiveCenterAvatar(
+                logo: center.logo,
+                radius: 32,
+                shape: DiveCenterAvatarShape.roundedSquare,
+                cornerRadius: 12,
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -373,7 +364,7 @@ class _HeaderSection extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            center.rating!.toStringAsFixed(1),
+                            formatRatingForDisplay(center.rating!),
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
                         ],
@@ -688,10 +679,11 @@ class _MapSectionState extends ConsumerState<_MapSection> {
                             ],
                           ),
                           child: Center(
-                            child: Icon(
-                              Icons.store,
-                              size: 24,
-                              color: colorScheme.onPrimary,
+                            child: DiveCenterMarkerGlyph(
+                              logo: center.logo,
+                              radius: DiveCenterMarkerGlyph.radiusFor(50),
+                              iconColor: colorScheme.onPrimary,
+                              iconSize: 24,
                             ),
                           ),
                         ),
@@ -787,10 +779,11 @@ class _MapSectionState extends ConsumerState<_MapSection> {
                           ],
                         ),
                         child: Center(
-                          child: Icon(
-                            Icons.store,
-                            size: 24,
-                            color: colorScheme.onPrimary,
+                          child: DiveCenterMarkerGlyph(
+                            logo: center.logo,
+                            radius: DiveCenterMarkerGlyph.radiusFor(50),
+                            iconColor: colorScheme.onPrimary,
+                            iconSize: 24,
                           ),
                         ),
                       ),

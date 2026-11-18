@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/app/app_exit_guard.dart';
 import 'package:submersion/core/router/pushed_route.dart';
 import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -276,7 +277,13 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
   /// URL changes here go through [SectionNavigation.goInPlace]: a pushed list
   /// (a site's dives, say) replaces its own URL and keeps the page it was
   /// opened from, where go() would erase it and the back arrow (#3292).
-  void _onItemSelected(String? itemId) {
+  ///
+  /// Changing the selection leaves the record the pane shows: unsaved work
+  /// held there is asked about first (issue #4527).
+  Future<void> _onItemSelected(String? itemId) async {
+    // The record already shown leaves nothing behind: no need to ask.
+    final leaving = itemId != _selectedId || _mode != DetailPaneMode.view;
+    if (leaving && (!await _mayLeaveShown() || !mounted)) return;
     final currentPath = _ownPath;
 
     if (ResponsiveBreakpoints.isMasterDetail(context)) {
@@ -327,8 +334,13 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
     }
   }
 
+  /// Whether the record the pane shows may be left: true at once unless
+  /// it holds unsaved work and the diver keeps it.
+  Future<bool> _mayLeaveShown() => ref.read(appExitGuardProvider).mayLeave();
+
   /// Navigate to create mode
-  void _onCreate() {
+  Future<void> _onCreate() async {
+    if (!await _mayLeaveShown() || !mounted) return;
     final currentPath = _ownPath;
 
     if (ResponsiveBreakpoints.isMasterDetail(context) &&

@@ -8,6 +8,7 @@ import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/utils/unit_formatter_settings.dart';
+import 'package:submersion/features/dive_log/data/services/estimated_tank_pressure_synthesizer.dart';
 import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
@@ -22,13 +23,14 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/cylinder_block.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tank_series_exchange.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/field_attribution_badge.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_cursor_line.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_figure.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_gear_menu.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_fill_levels.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/tank_series_reassign_sheet.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/observation_status_chip.dart';
 import 'package:submersion/features/planner/domain/services/tank_mod.dart';
@@ -39,8 +41,12 @@ import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_dis
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
+import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 
 /// Unified card showing every cylinder on a dive: each tank drawn as a
 /// figure filled to show the gas left and the gas used, labelled with its
@@ -69,9 +75,20 @@ class CylindersCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // With unlock-to-edit offered (issue #4527) nothing here writes while
+    // the dive is locked: Reassign moves into the open card, a check-in
+    // waits for the unlock, and Assign, which links this and other dives'
+    // cylinders at once, shows only in a sitting with nothing unsaved.
+    final edit = RecordEditScope.of<Dive>(context);
+    final sitting = edit.session;
     // `.value`, not `valueOrNull`, here and below: a reload keeps what is
-    // already shown rather than dropping it from every row.
-    final tankPressures = ref.watch(tankPressuresProvider(dive.id)).value;
+    // already shown rather than dropping it from every row. In a sitting a
+    // held reassign has moved the readings: each cylinder is drawn with
+    // what it holds then, as its pressures already are.
+    final storedPressures = ref.watch(tankPressuresProvider(dive.id)).value;
+    final tankPressures = sitting == null
+        ? storedPressures
+        : tankReadingsInSitting(sitting, storedPressures);
     // Each tank's own series, matched as everywhere else when it is still
     // keyed by an old tank id (#276), so the figure's Start and End read the
     // same series as its cursor line.
@@ -84,7 +101,7 @@ class CylindersCard extends ConsumerWidget {
     // room for its cursor label before the cursor arrives.
     final cursorLines = TankCursorLine.forTanks(
       dive.tanks,
-      watchChartTankSeries(ref, dive.id),
+      _chartSeriesInSitting(sitting, watchChartTankSeries(ref, dive.id)),
     );
     final dataSources =
         ref.watch(diveDataSourcesProvider(dive.id)).value ??
@@ -124,6 +141,21 @@ class CylindersCard extends ConsumerWidget {
 
     final l10n = context.l10n;
     final theme = Theme.of(context);
+    // Assign, the cylinder menu and a check-in each write at once: whole-
+    // record operations, listed but disabled until the page is unlocked
+    // with nothing to save (issue #4527, plan 7).
+    final operationReason = recordOperationReason(
+      l10n,
+      recordOperationBlockOf(edit),
+    );
+    final runAsOperation = recordOperationRunnerOf(edit);
+    // A check-in is for a cylinder the dive is stored with: one only in the
+    // sitting may never be saved.
+    final storedGearIds = {
+      for (final t in (sitting?.stored ?? dive).tanks) ?t.equipmentId,
+    };
+    bool checkInReadOnly(DiveTank tank) =>
+        !storedGearIds.contains(tank.equipmentId);
     final rows = [
       for (final entry in dive.tanks.asMap().entries)
         _tankRow(
@@ -139,6 +171,9 @@ class CylindersCard extends ConsumerWidget {
           knownSerials: knownSerials,
           slotLabel: slotLabels[entry.value.tripCylinderId],
           showRole: showRoles,
+          operationReason: operationReason,
+          runAsOperation: runAsOperation,
+          checkInReadOnly: checkInReadOnly(entry.value),
         ),
     ];
 
@@ -148,21 +183,22 @@ class CylindersCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            InfoTitleRow(
-              title: Text(
-                l10n.diveLog_detail_section_cylinders,
-                style: theme.textTheme.titleMedium,
-              ),
-              label: l10n.diveLog_detail_section_cylinders,
-              info: (context) => cylindersInfo(
-                context.l10n,
-                infoUnits(context),
-                hasNitrox: dive.tanks.any((t) => t.gasMix.isNitrox),
-                hasTrimix: dive.tanks.any((t) => t.gasMix.isTrimix),
-                isRebreather: dive.isRebreather,
-                hasBreathingGas: dive.breathingTanks.isNotEmpty,
-                showsSac: display.showsSac,
-                showsRmv: display.showsRmv,
+            // The shared title row: unlocked, it gains the pencil and the
+            // whole row opens the card, without growing.
+            RecordCardHeader(
+              title: l10n.diveLog_detail_section_cylinders,
+              trailing: HeaderInfoButton(
+                title: l10n.diveLog_detail_section_cylinders,
+                content: (context) => cylindersInfo(
+                  context.l10n,
+                  infoUnits(context),
+                  hasNitrox: dive.tanks.any((t) => t.gasMix.isNitrox),
+                  hasTrimix: dive.tanks.any((t) => t.gasMix.isTrimix),
+                  isRebreather: dive.isRebreather,
+                  hasBreathingGas: dive.breathingTanks.isNotEmpty,
+                  showsSac: display.showsSac,
+                  showsRmv: display.showsRmv,
+                ),
               ),
             ),
             const SizedBox(height: 4),
@@ -188,20 +224,6 @@ class CylindersCard extends ConsumerWidget {
                 ),
               ),
             ],
-            if (_canReassign(dive, tankPressures))
-              Align(
-                alignment: AlignmentDirectional.centerEnd,
-                child: TextButton.icon(
-                  icon: const Icon(Icons.swap_vert),
-                  label: Text(l10n.diveLog_tank_reassignSeries),
-                  onPressed: () => showTankSeriesReassignSheet(
-                    context,
-                    ref,
-                    dive: dive,
-                    tankPressures: tankPressures ?? const {},
-                  ),
-                ),
-              ),
           ],
         ),
       ),
@@ -255,7 +277,7 @@ class CylindersCard extends ConsumerWidget {
 
   /// Two or more of this dive's tanks carry a series from one computer
   /// (issue #1314): only then is there anything to move.
-  static bool _canReassign(
+  static bool canReassignTankSeries(
     Dive dive,
     Map<String, List<TankPressurePoint>>? tankPressures,
   ) {
@@ -266,6 +288,24 @@ class CylindersCard extends ConsumerWidget {
       byComputer[tank.computerId] = (byComputer[tank.computerId] ?? 0) + 1;
     }
     return byComputer.values.any((n) => n >= 2);
+  }
+
+  /// The chart's lines for the figures' cursor labels, moved as [sitting]'s
+  /// held reassign moves the readings ([tankReadingsInSitting]), so a figure
+  /// reads the same series at the cursor as its start and end.
+  static EstimatedTankPressures? _chartSeriesInSitting(
+    EditSession<Dive>? sitting,
+    EstimatedTankPressures? chart,
+  ) {
+    if (sitting == null || chart == null) return chart;
+    if (heldTankSeriesExchanges(sitting).isEmpty) return chart;
+    final estimated = tankReadingsInSitting(sitting, {
+      for (final id in chart.estimatedTankIds) id: true,
+    })!;
+    return EstimatedTankPressures(
+      tankReadingsInSitting(sitting, chart.pressures)!,
+      estimated.keys.toSet(),
+    );
   }
 
   /// Where the profile cursor is, in seconds into the dive. The cursor is an
@@ -289,6 +329,9 @@ class CylindersCard extends ConsumerWidget {
     required Set<String> knownSerials,
     required TripCylinderTankLabel? slotLabel,
     required bool showRole,
+    required String? operationReason,
+    required RecordOperationRunner runAsOperation,
+    required bool checkInReadOnly,
   }) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
@@ -303,6 +346,10 @@ class CylindersCard extends ConsumerWidget {
     // A tank carried but not breathed used 0, which is not missing data;
     // only a rise (a sensor or entry error) has no meaningful figure.
     final hasUsed = pressureUsed != null && pressureUsed > 0;
+    // An Avelo Hydrotank is breathed, but its pressure rises and falls with
+    // the water pumped in for buoyancy (issue #4657): its drop is no gas
+    // used, so the card shows its pressures and says why it has no figures.
+    final waterDriven = tank.role.isUnmeasuredBreathingGas;
 
     // Preset display name, falling back to formatted volume.
     final preset = tank.presetName != null
@@ -341,7 +388,7 @@ class CylindersCard extends ConsumerWidget {
           endLabel: l10n.diveLog_cylinders_figureEnd(
             units.formatPressure(pressures.$2),
           ),
-          usedLabel: pressureUsed != null && pressureUsed >= 0
+          usedLabel: !waterDriven && pressureUsed != null && pressureUsed >= 0
               ? l10n.diveLog_cylinders_figureUsed(
                   units.formatPressure(pressureUsed),
                 )
@@ -412,20 +459,23 @@ class CylindersCard extends ConsumerWidget {
           children: [
             if (sourceName != null)
               FieldAttributionBadge(sourceName: sourceName),
-            if (breathing && hasUsed && gasUsedLiters != null)
+            if (breathing && !waterDriven && hasUsed && gasUsedLiters != null)
               Text(
                 l10n.diveLog_cylinders_gasUsed(
                   '${units.convertVolume(gasUsedLiters).round()} '
                   '${units.volumeSymbol}',
                 ),
               ),
-            if (breathing)
+            if (breathing && !waterDriven)
               if (cylinderSac?.loopRate case final loopRate?)
                 Text(
                   key: Key('tank-loop-use-${tank.id}'),
                   l10n.diveLog_cylinders_loopUse(units.formatRmv(loopRate)),
                 ),
-            if (breathing && cylinderSac != null && cylinderSac.hasValidSac)
+            if (breathing &&
+                !waterDriven &&
+                cylinderSac != null &&
+                cylinderSac.hasValidSac)
               for (final line in _consumptionLines(l10n, cylinderSac))
                 Text(line),
             if (breathing) ...[
@@ -434,6 +484,14 @@ class CylindersCard extends ConsumerWidget {
             ],
           ],
         ),
+        if (waterDriven)
+          Text(
+            l10n.diveLog_cylinders_hydrotankNote,
+            key: Key('tank-hydrotank-note-${tank.id}'),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
         if (slotLabel != null)
           Text(
             tripCylinderTankLine(l10n, slotLabel),
@@ -446,25 +504,46 @@ class CylindersCard extends ConsumerWidget {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Text(l10n.transmitters_serial(serial)),
+              // A whole-record operation: shown at every lock state, so
+              // the line is the same height locked and unlocked, disabled
+              // with its reason until it may run (issue #4527, plan 7).
               if (!serialKnown)
-                TextButton(
-                  style: TextButton.styleFrom(
-                    visualDensity: VisualDensity.compact,
-                    textStyle: theme.textTheme.labelMedium,
+                RecordOperationButton(
+                  reason: operationReason,
+                  onPressed: () {
+                    void assign() => context.push(
+                      Uri(
+                        path: '/transmitters/new',
+                        // The dive lets an unregistered serial get its item.
+                        queryParameters: {'serial': serial, 'dive': dive.id},
+                      ).toString(),
+                    );
+                    // The setup page replaces itself on the way, so its
+                    // answer is not awaited: the sitting starts again at
+                    // once and follows the rows the setup links.
+                    runAsOperation(() async {
+                      assign();
+                      return true;
+                    });
+                  },
+                  builder: (onPressed) => TextButton(
+                    style: TextButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
+                      textStyle: theme.textTheme.labelMedium,
+                    ),
+                    onPressed: onPressed,
+                    child: Text(l10n.diveLog_tank_assignTransmitter),
                   ),
-                  onPressed: () => context.push(
-                    Uri(
-                      path: '/transmitters/new',
-                      // The dive lets an unregistered serial get its item.
-                      queryParameters: {'serial': serial, 'dive': dive.id},
-                    ).toString(),
-                  ),
-                  child: Text(l10n.diveLog_tank_assignTransmitter),
                 ),
             ],
           ),
       ],
-      trailing: _checkInButton(tank),
+      trailing: _trailing(
+        tank,
+        checkInReadOnly: checkInReadOnly,
+        operationReason: operationReason,
+        runAsOperation: runAsOperation,
+      ),
     );
   }
 
@@ -494,18 +573,59 @@ class CylindersCard extends ConsumerWidget {
     );
   }
 
+  /// The check-in of a linked cylinder, then the tank's cylinder menu
+  /// (issue #4494). The menu writes at once, so like Assign it shows only
+  /// where [canAssign] allows; its room is kept while hidden, so the row is
+  /// the same width locked and unlocked.
+  Widget _trailing(
+    DiveTank tank, {
+    required bool checkInReadOnly,
+    required String? operationReason,
+    required RecordOperationRunner runAsOperation,
+  }) {
+    final checkIn = _checkInButton(
+      tank,
+      readOnly: checkInReadOnly,
+      operationReason: operationReason,
+      runAsOperation: runAsOperation,
+    );
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ?checkIn,
+        TankGearMenu(
+          dive: dive,
+          tank: tank,
+          operationReason: operationReason,
+          runAsOperation: runAsOperation,
+        ),
+      ],
+    );
+  }
+
   /// A cylinder that is a gear item (the registry wrote its equipment link)
   /// gets the check-in button at the end of its detail block; any other
   /// cylinder has none. The item loads through its own provider so the row
   /// never blocks on it.
-  Widget? _checkInButton(DiveTank tank) {
+  Widget? _checkInButton(
+    DiveTank tank, {
+    required bool readOnly,
+    required String? operationReason,
+    required RecordOperationRunner runAsOperation,
+  }) {
     final equipmentId = tank.equipmentId;
     if (equipmentId == null) return null;
     return Consumer(
       builder: (context, ref, _) {
         final item = ref.watch(equipmentItemProvider(equipmentId)).value;
         if (item == null) return const SizedBox.shrink();
-        return ObservationStatusChip(equipment: item, dive: dive);
+        return ObservationStatusChip(
+          equipment: item,
+          dive: dive,
+          readOnly: readOnly,
+          operationReason: readOnly ? null : operationReason,
+          runAsOperation: runAsOperation,
+        );
       },
     );
   }

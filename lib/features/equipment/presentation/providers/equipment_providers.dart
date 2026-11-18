@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/enums.dart';
 // The dependency-only module, not dive_providers.dart: that file imports
 // trip_providers.dart, which imports this feature's repository impl.
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/clock_sync_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
@@ -387,7 +388,7 @@ final childEquipmentProvider =
         if (byType != 0) return byType;
         final bySlot = slotOf(a).compareTo(slotOf(b));
         if (bySlot != 0) return bySlot;
-        return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+        return compareTextForSort(a.name, b.name);
       });
     });
 

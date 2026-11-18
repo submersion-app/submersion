@@ -13,6 +13,7 @@ import 'package:submersion/features/media/presentation/helpers/offer_site_review
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
+import 'package:submersion/features/media/presentation/helpers/media_hold.dart';
 
 /// Files tab in the photo picker.
 ///
@@ -255,6 +256,37 @@ class FilesTab extends ConsumerWidget {
     // on the dive-detail view we return to.
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
+    // Opened from a sitting on a dive (issue #4527): its own files are
+    // handed to the sitting, held until Save, and no other dive changes.
+    final hold = MediaHoldScope.maybeOf(context);
+    final dive = target;
+    if (hold != null && dive is DiveAttachTarget) {
+      final held = await notifier.heldRows(dive.diveId);
+      hold([
+        for (final row in held.rows)
+          HeldMediaRow((item: row, enrichment: null)),
+      ]);
+      if (held.leftOut > 0) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(l10n.media_picker_otherDivesLeftOut(held.leftOut)),
+          ),
+        );
+      }
+      navigator.pop();
+      return;
+    }
+    // Opened from a sitting on a site (issue #4527, phase 2): every file
+    // is the site's, held until Save.
+    final site = target;
+    if (hold != null && site is SiteAttachTarget) {
+      final rows = await notifier.heldSiteRows(site.siteId);
+      hold([
+        for (final row in rows) HeldMediaRow((item: row, enrichment: null)),
+      ]);
+      navigator.pop();
+      return;
+    }
     // commit() clears the staged state, so snapshot the dives first.
     final diveIds = ref
         .read(filesTabNotifierProvider)

@@ -1,13 +1,21 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/shared/widgets/paired_cards_row.dart';
+
 /// Renders two dive-detail cards side by side when there is enough horizontal
 /// room, and stacked otherwise.
 ///
-/// At or above [minRowWidth] the cards sit in a top-aligned [Row] of two equal
-/// [Expanded] columns separated by [columnGap], each card keeping its own
-/// intrinsic height. Below it they stack in a [Column] with [stackGap] between
-/// them -- visually identical to rendering the two cards as adjacent stacked
+/// At or above [minRowWidth] the cards sit in two equal columns separated by
+/// [columnGap], and the shorter card grows to the taller one's height, so no
+/// blank space is left under it before the next card (issue #4583). Below it
+/// they stack in a [Column] with [stackGap] between them, each at its own
+/// height: visually identical to rendering the two cards as adjacent stacked
 /// sections.
+///
+/// [slot] is the card that follows the pair. In a row it moves up into the
+/// space under the shorter card when it fits there at half width, and
+/// otherwise sits full width below the row (see [PairedCardsRow]); stacked,
+/// it simply follows the second card.
 ///
 /// The widget measures its own available width with a [LayoutBuilder], so it
 /// behaves correctly both in the full-width standalone detail page and inside
@@ -23,6 +31,8 @@ class ResponsiveSectionPair extends StatelessWidget {
     this.columnGap = 16,
     this.stackGap = 24,
     this.stretch = false,
+    this.slot,
+    this.holdSlot = false,
   });
 
   /// The leading card (left column in row mode, top card when stacked unless
@@ -51,33 +61,63 @@ class ResponsiveSectionPair extends StatelessWidget {
   /// Horizontal gutter between the two columns in row mode.
   final double columnGap;
 
-  /// Vertical gap between the two cards when stacked.
+  /// Vertical gap between the two cards when stacked, and above [slot]
+  /// wherever it goes.
   final double stackGap;
 
-  /// Whether both columns are stretched to the taller one's height in row
-  /// mode, instead of each keeping its intrinsic height.
+  /// The card after the pair, laid out with it; see the class comment.
+  final Widget? slot;
+
+  /// Whether [slot] keeps the place it last had in a row, so that a card
+  /// being edited does not move. See [PairedCardsRow.holdPlacement].
+  final bool holdSlot;
+
+  /// Whether the row shares its height through an [IntrinsicHeight] instead
+  /// of a [PairedCardsRow].
   ///
-  /// Only for pairs whose cards fill the height they are given; a card that
-  /// merely sits at its natural height gains nothing and pays an
-  /// [IntrinsicHeight] layout pass for it.
+  /// Every row gives both cards the taller one's height. Only a pair whose
+  /// cards hold [Expanded] children, and so cannot be laid out at their
+  /// natural height first, needs this: [IntrinsicHeight] measures them
+  /// without laying them out. Its cards must then answer intrinsic size
+  /// queries, so nothing in them may hold a [LayoutBuilder]. The cards fill
+  /// the row with no space left over, so [slot] always goes below it.
   final bool stretch;
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        final slot = this.slot;
         if (constraints.maxWidth >= minRowWidth) {
-          final row = Row(
-            crossAxisAlignment: stretch
-                ? CrossAxisAlignment.stretch
-                : CrossAxisAlignment.start,
+          if (!stretch) {
+            return PairedCardsRow(
+              first: first,
+              second: second,
+              slot: slot,
+              columnGap: columnGap,
+              rowGap: stackGap,
+              holdPlacement: holdSlot,
+            );
+          }
+          final row = IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(child: first),
+                SizedBox(width: columnGap),
+                Expanded(child: second),
+              ],
+            ),
+          );
+          if (slot == null) return row;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(child: first),
-              SizedBox(width: columnGap),
-              Expanded(child: second),
+              row,
+              SizedBox(height: stackGap),
+              slot,
             ],
           );
-          return stretch ? IntrinsicHeight(child: row) : row;
         }
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -85,6 +125,7 @@ class ResponsiveSectionPair extends StatelessWidget {
             stackedFirst ?? first,
             SizedBox(height: stackGap),
             stackedSecond ?? second,
+            if (slot != null) ...[SizedBox(height: stackGap), slot],
           ],
         );
       },

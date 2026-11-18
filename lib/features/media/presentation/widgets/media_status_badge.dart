@@ -61,7 +61,12 @@ class MediaStatusBadge extends ConsumerWidget {
       // explaining the badge the user just aimed at.
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: () => showMediaInfoSheet(context, item),
+        onTap: () => showMediaInfoSheet(
+          context,
+          item,
+          // A photo is changed only in the viewer, unlocked (issue #4527).
+          readOnly: true,
+        ),
         child: CircleAvatar(
           key: const Key('media-status-badge'),
           radius: 10,
@@ -165,7 +170,12 @@ class _ProvenanceBadgeState extends ConsumerState<_ProvenanceBadge> {
       message: mediaSourceLabel(context.l10n, _source),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: () => showMediaInfoSheet(context, widget.item),
+        onTap: () => showMediaInfoSheet(
+          context,
+          widget.item,
+          // A photo is changed only in the viewer, unlocked (issue #4527).
+          readOnly: true,
+        ),
         child: Container(
           key: const Key('media-provenance-badge'),
           padding: const EdgeInsets.all(4),

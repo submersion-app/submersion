@@ -54,6 +54,24 @@ void main() {
     expect(item.isPdf, isTrue);
   });
 
+  // Code review (#4527): a sitting holds prepared rows by their ids (the
+  // grid's keys, selection, unlink), so two documents must not share one.
+  test('prepares each document under a fresh id of its own, writing '
+      'none', () async {
+    final prepared = await service.prepareDocuments(
+      picked: [
+        (path: 'waiver.pdf', filename: 'waiver.pdf', identifier: null),
+        (path: 'plan.pdf', filename: 'plan.pdf', identifier: null),
+      ],
+      diveId: 'dive-1',
+    );
+
+    final ids = [for (final item in prepared) item.id];
+    expect(ids, everyElement(isNotEmpty));
+    expect(ids.toSet(), hasLength(2));
+    verifyNever(mockRepository.createMedia(any));
+  });
+
   test('links to a dive when diveId is given', () async {
     final created = await service.importDocuments(
       picked: [

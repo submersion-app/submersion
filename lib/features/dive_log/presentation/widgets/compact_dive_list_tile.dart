@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/card_color.dart';
@@ -8,6 +10,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_card_stat_row.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_badge.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/unfilled_dive_chip.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/safety_finding_badge.dart';
@@ -16,11 +19,18 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/selection_inset.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
+import 'package:submersion/shared/widgets/record_list_chevron.dart';
+
+/// The most of line 1's text room the date slot may take, once the number
+/// and the badges have theirs. The title takes the rest, so a short date
+/// leaves no gap before the mode badge.
+const double _dateMaxWidthFraction = 0.5;
 
 /// Two-line compact card tile for the dive list.
 ///
-/// Line 1: dive number badge | title slot | date slot | chevron
-/// Line 2: (indented) stat1 slot | stat2 slot
+/// Line 1: dive number badge | title slot | date slot | mode badge
+/// Line 2: (indented) stat1 slot | stat2 slot | type badges
+/// A chevron centred on both lines follows them at the card's end.
 class CompactDiveListTile extends ConsumerWidget {
   final String diveId;
   final int diveNumber;
@@ -106,7 +116,7 @@ class CompactDiveListTile extends ConsumerWidget {
     this.titleField = DiveField.siteName,
     this.dateField = DiveField.dateTime,
     this.stat1Field = DiveField.maxDepth,
-    this.stat2Field = DiveField.bottomTime,
+    this.stat2Field = DiveField.runtime,
     this.diveTypeLabelResolver,
     this.diveTypeShortLabelResolver,
     this.diveTypeListVisibilityPredicate,
@@ -114,6 +124,21 @@ class CompactDiveListTile extends ConsumerWidget {
 
   /// Whether the configurable slots have a source to read from.
   bool get _hasSlotData => fullDive != null || summary != null;
+
+  /// Whether [field] is a duration field that the [duration] parameter fills
+  /// when there is no source to read: the runtime (the default) or bottom
+  /// time.
+  static bool _isDurationField(DiveField field) =>
+      field == DiveField.runtime || field == DiveField.bottomTime;
+
+  /// Whether a stat slot showing [field] has a value. With no source to
+  /// read, only the depth and duration parameters can fill a slot.
+  bool _statHasValue(DiveField field, UnitFormatter units) {
+    if (_hasSlotData) return _extract(field, units) != null;
+    if (field == DiveField.maxDepth) return maxDepth != null;
+    if (_isDurationField(field)) return duration != null;
+    return false;
+  }
 
   /// The raw value of [field] from [fullDive] when there is one, else from
   /// [summary]; null when neither is set. RMV follows the diver's gas model.
@@ -181,45 +206,75 @@ class CompactDiveListTile extends ConsumerWidget {
     }
     // [duration] is either of runtime and bottom time, so with a source to
     // read, the slot reads its own field (issue #3304).
-    if (field == DiveField.bottomTime && !_hasSlotData) {
-      return duration != null ? '${duration!.inMinutes} min' : '--';
+    if (_isDurationField(field) && !_hasSlotData) {
+      return field.formatValue(duration, units);
     }
     // Fallback for any other field value
     final value = _extract(field, units);
     return field.formatValue(value, units);
   }
 
-  /// Builds the icon+value or label:value widget for a stat slot.
+  static const double _statIconSize = 13;
+  static const double _statIconGap = 4;
+  static const double _statGap = 14;
+  static const double _badgeGap = 8;
+
+  /// The text a stat slot shows: the value beside its icon, or the field's
+  /// short label and the value when the field has no icon.
+  String _statSlotText(BuildContext context, DiveField field, String value) =>
+      field.icon != null
+      ? value
+      : '${field.localizedShortLabel(context.l10n)}: $value';
+
+  /// The width a stat slot takes at its natural size.
+  double _naturalStatWidth(
+    BuildContext context,
+    DiveField field,
+    String value,
+    TextStyle style,
+  ) {
+    final painter = TextPainter(
+      text: TextSpan(text: _statSlotText(context, field, value), style: style),
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+      maxLines: 1,
+    )..layout();
+    // Rounded up so a slot measured to fit is never ellipsized by a
+    // sub-pixel difference from the Text's own layout.
+    final width = painter.width.ceilToDouble();
+    painter.dispose();
+    return field.icon == null ? width : _statIconSize + _statIconGap + width;
+  }
+
+  /// Builds the icon+value or label:value widget for a stat slot, [width]
+  /// wide. A slot narrower than its icon and gap drops the icon.
   Widget _buildStatSlot(
     BuildContext context,
     DiveField field,
     String formatted,
     TextStyle style,
     Color iconColor,
+    double width,
   ) {
-    final icon = field.icon;
-    if (icon != null) {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 13, color: iconColor),
-          const SizedBox(width: 4),
-          Flexible(
-            child: Text(
-              formatted,
-              style: style,
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-            ),
-          ),
-        ],
-      );
-    }
-    return Text(
-      '${field.localizedShortLabel(context.l10n)}: $formatted',
+    final text = Text(
+      _statSlotText(context, field, formatted),
       style: style,
       overflow: TextOverflow.ellipsis,
+      softWrap: false,
       maxLines: 1,
+    );
+    final icon = field.icon;
+    return SizedBox(
+      width: width,
+      child: icon == null || width < _statIconSize + _statIconGap
+          ? text
+          : Row(
+              children: [
+                Icon(icon, size: _statIconSize, color: iconColor),
+                const SizedBox(width: _statIconGap),
+                Flexible(child: text),
+              ],
+            ),
     );
   }
 
@@ -242,6 +297,11 @@ class CompactDiveListTile extends ConsumerWidget {
     );
     final colorScheme = Theme.of(context).colorScheme;
     final units = ref.watch(unitFormatterProvider);
+    // Read here rather than in line 1's LayoutBuilder, whose builder runs
+    // during layout, not this widget's build.
+    final showSafetyBadge =
+        (summary?.safetyFindingCount ?? 0) > 0 &&
+        ref.watch(safetyReviewEnabledProvider);
 
     // Card coloring
     final colorAttribute = ref.watch(cardColorAttributeProvider);
@@ -273,7 +333,7 @@ class CompactDiveListTile extends ConsumerWidget {
     final titleText = _buildTitleText(units, context);
     final dateText = _buildDateText(units);
     final stat1Text = _buildStatText(stat1Field, DiveField.maxDepth, units);
-    final stat2Text = _buildStatText(stat2Field, DiveField.bottomTime, units);
+    final stat2Text = _buildStatText(stat2Field, DiveField.runtime, units);
 
     final statStyle = Theme.of(context).textTheme.bodySmall?.copyWith(
       fontWeight: FontWeight.w600,
@@ -285,16 +345,8 @@ class CompactDiveListTile extends ConsumerWidget {
     );
 
     // Determine if stat values are present (non-null raw values)
-    final stat1HasValue = _hasSlotData
-        ? _extract(stat1Field, units) != null
-        : (stat1Field == DiveField.maxDepth
-              ? maxDepth != null
-              : duration != null);
-    final stat2HasValue = _hasSlotData
-        ? _extract(stat2Field, units) != null
-        : (stat2Field == DiveField.bottomTime
-              ? duration != null
-              : maxDepth != null);
+    final stat1HasValue = _statHasValue(stat1Field, units);
+    final stat2HasValue = _statHasValue(stat2Field, units);
 
     final diveTypeLabels = [
       for (final id in summary?.diveTypeIds ?? const <String>[])
@@ -325,130 +377,205 @@ class CompactDiveListTile extends ConsumerWidget {
             borderRadius: BorderRadius.circular(12),
             child: Container(
               key: isHighlighted ? const ValueKey('dive_row_highlight') : null,
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Line 1: dive number, title slot, date slot, chevron
-                  Row(
-                    children: [
-                      SelectionLeading(
-                        isSelectionMode: isSelectionMode,
-                        isChecked: isChecked,
-                        onChanged: (_) => onTap?.call(),
-                        child: SizedBox(
-                          width: 36,
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              alignment: Alignment.centerLeft,
-                              child: unfilledState != null
-                                  ? Icon(
-                                      unfilledDiveIcon(unfilledState),
-                                      size: 14,
-                                      color: accentColor,
-                                    )
-                                  : Text(
-                                      '#$diveNumber',
-                                      maxLines: 1,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 12,
-                                        color: accentColor,
-                                      ),
-                                    ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          titleText,
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: primaryTextColor,
-                              ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if ((summary?.safetyFindingCount ?? 0) > 0 &&
-                          ref.watch(safetyReviewEnabledProvider)) ...[
-                        const SizedBox(width: 6),
-                        SafetyFindingBadge(
-                          count: summary!.safetyFindingCount,
-                          color: secondaryTextColor,
-                        ),
-                      ],
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: Text(
-                          dateText,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: secondaryTextColor),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
-                      ),
-                      if (chipState != null) ...[
-                        const SizedBox(width: 6),
-                        UnfilledDiveChip(state: chipState),
-                      ],
-                      const SizedBox(width: 6),
-                      DiveModeBadge(
-                        mode: summary?.diveMode ?? DiveMode.oc,
-                        dense: true,
-                      ),
-                      ExcludeSemantics(
-                        child: Icon(
-                          Icons.chevron_right,
-                          color: secondaryTextColor,
-                          size: 20,
-                        ),
-                      ),
-                    ],
-                  ),
-                  // Line 2: stat1 and stat2 slots
-                  SelectionInset(
-                    isSelectionMode: isSelectionMode,
-                    start: 44,
-                    child: Row(
+              padding: const EdgeInsets.all(kRecordCardCompactPadding),
+              // The chevron takes a column of its own at the card's end, so
+              // the mode badge on line 1 and the type badges on line 2 end at
+              // one edge (#4639).
+              child: RecordListChevronRow(
+                chevronSize: RecordListChevron.compactSize,
+                chevronColor: secondaryTextColor,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Line 1: dive number, title slot, date slot, mode badge
+                    Row(
                       children: [
-                        ExcludeSemantics(
-                          child: _buildStatSlot(
-                            context,
-                            stat1Field,
-                            stat1Text,
-                            stat1HasValue ? statStyle! : statStyleDim!,
-                            stat1HasValue ? accentColor : secondaryTextColor,
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        ExcludeSemantics(
-                          child: _buildStatSlot(
-                            context,
-                            stat2Field,
-                            stat2Text,
-                            stat2HasValue ? statStyle! : statStyleDim!,
-                            stat2HasValue ? accentColor : secondaryTextColor,
-                          ),
-                        ),
-                        if (diveTypeLabels.isNotEmpty)
-                          Expanded(
+                        SelectionLeading(
+                          isSelectionMode: isSelectionMode,
+                          isChecked: isChecked,
+                          onChanged: (_) => onTap?.call(),
+                          child: SizedBox(
+                            width: 36,
                             child: Align(
-                              alignment: AlignmentDirectional.centerEnd,
-                              child: DiveTypeBadgeRow(
-                                labels: diveTypeLabels,
-                                dense: true,
+                              alignment: Alignment.centerLeft,
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: Alignment.centerLeft,
+                                child: unfilledState != null
+                                    ? Icon(
+                                        unfilledDiveIcon(unfilledState),
+                                        size: 14,
+                                        color: accentColor,
+                                      )
+                                    : Text(
+                                        '#$diveNumber',
+                                        maxLines: 1,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                          color: accentColor,
+                                        ),
+                                      ),
                               ),
                             ),
                           ),
+                        ),
+                        const SizedBox(width: 8),
+                        // The title and the date share what the badges
+                        // leave. The date is capped at a share of that room
+                        // rather than Flexible: a loose Flexible beside the
+                        // Expanded title was allotted half the free width
+                        // whatever the date needed, and the unused part sat
+                        // after the mode badge on a wide pane (#4639).
+                        // Measuring the room left, not the whole line, keeps
+                        // a crowded line from overflowing.
+                        Expanded(
+                          child: LayoutBuilder(
+                            builder: (context, room) => Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    titleText,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.w600,
+                                          color: primaryTextColor,
+                                        ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                if (showSafetyBadge) ...[
+                                  const SizedBox(width: 6),
+                                  SafetyFindingBadge(
+                                    count: summary!.safetyFindingCount,
+                                    color: secondaryTextColor,
+                                  ),
+                                ],
+                                const SizedBox(width: 8),
+                                ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    // Less the gap before it, so the date
+                                    // and its gap never take more than the
+                                    // share together.
+                                    maxWidth:
+                                        math.max(0.0, room.maxWidth - 8) *
+                                        _dateMaxWidthFraction,
+                                  ),
+                                  child: Text(
+                                    dateText,
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(color: secondaryTextColor),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        if (chipState != null) ...[
+                          const SizedBox(width: 6),
+                          UnfilledDiveChip(state: chipState),
+                        ],
+                        const SizedBox(width: 6),
+                        DiveModeBadge(
+                          mode: summary?.diveMode ?? DiveMode.oc,
+                          dense: true,
+                        ),
                       ],
                     ),
-                  ),
-                ],
+                    // Line 2: stat1 and stat2 slots, then the type badges.
+                    // The badges' "+N" width is reserved first and the stats
+                    // ellipsize only when what is left cannot hold them, as
+                    // on the detailed card, so a narrow card (the chevron
+                    // has its own column since #4639) never overflows.
+                    SelectionInset(
+                      isSelectionMode: isSelectionMode,
+                      start: 44,
+                      child: LayoutBuilder(
+                        builder: (context, line2) {
+                          final style1 = stat1HasValue
+                              ? statStyle!
+                              : statStyleDim!;
+                          final style2 = stat2HasValue
+                              ? statStyle!
+                              : statStyleDim!;
+                          final naturals = [
+                            _naturalStatWidth(
+                              context,
+                              stat1Field,
+                              stat1Text,
+                              style1,
+                            ),
+                            _naturalStatWidth(
+                              context,
+                              stat2Field,
+                              stat2Text,
+                              style2,
+                            ),
+                          ];
+                          final badgeReserve = diveTypeLabels.isEmpty
+                              ? 0.0
+                              : _badgeGap +
+                                    DiveTypeBadgeRow.minWidthOf(
+                                      context,
+                                      diveTypeLabels,
+                                      dense: true,
+                                    );
+                          final widths = line2.maxWidth.isFinite
+                              ? DiveCardStatRow.fairShareWidths(
+                                  naturals,
+                                  line2.maxWidth - _statGap - badgeReserve,
+                                )
+                              : naturals;
+                          return Row(
+                            children: [
+                              ExcludeSemantics(
+                                child: _buildStatSlot(
+                                  context,
+                                  stat1Field,
+                                  stat1Text,
+                                  style1,
+                                  stat1HasValue
+                                      ? accentColor
+                                      : secondaryTextColor,
+                                  widths[0],
+                                ),
+                              ),
+                              const SizedBox(width: _statGap),
+                              ExcludeSemantics(
+                                child: _buildStatSlot(
+                                  context,
+                                  stat2Field,
+                                  stat2Text,
+                                  style2,
+                                  stat2HasValue
+                                      ? accentColor
+                                      : secondaryTextColor,
+                                  widths[1],
+                                ),
+                              ),
+                              if (diveTypeLabels.isNotEmpty) ...[
+                                const SizedBox(width: _badgeGap),
+                                Expanded(
+                                  child: Align(
+                                    alignment: AlignmentDirectional.centerEnd,
+                                    child: DiveTypeBadgeRow(
+                                      labels: diveTypeLabels,
+                                      dense: true,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

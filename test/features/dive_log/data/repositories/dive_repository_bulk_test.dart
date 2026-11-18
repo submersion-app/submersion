@@ -424,6 +424,178 @@ void main() {
     });
   });
 
+  // Issue #4412: a sidemount pair gets left and right across many dives.
+  group('bulkUpdateTankSpecs slotRoles', () {
+    const sidemount = [TankRole.sidemountLeft, TankRole.sidemountRight];
+    const staged = domain.DiveTank(
+      id: '',
+      role: TankRole.stage,
+      startPressure: 200,
+      endPressure: 50,
+    );
+    const roleOnly = {TankSpecField.role};
+
+    Future<List<DiveTank>> rowsOf(String diveId) =>
+        (db.select(db.diveTanks)
+              ..where((t) => t.diveId.equals(diveId))
+              ..orderBy([(t) => OrderingTerm.asc(t.tankOrder)]))
+            .get();
+
+    test('gives each tank the role of its position', () async {
+      await seed('d1');
+      await repository.bulkAddTanks(['d1'], const [staged, staged]);
+
+      await repository.bulkUpdateTankSpecs(
+        ['d1'],
+        const domain.DiveTank(id: ''),
+        roleOnly,
+        slotRoles: sidemount,
+      );
+
+      final rows = await rowsOf('d1');
+      expect(rows.map((r) => r.tankRole), ['sidemountLeft', 'sidemountRight']);
+      expect(rows.map((r) => r.startPressure), [200, 200]);
+      expect(rows.map((r) => r.endPressure), [50, 50]);
+    });
+
+    test('leaves the roles of a dive with more tanks alone', () async {
+      await seed('d3');
+      await repository.bulkAddTanks(['d3'], const [staged, staged, staged]);
+
+      await repository.bulkUpdateTankSpecs(
+        ['d3'],
+        const domain.DiveTank(id: ''),
+        roleOnly,
+        slotRoles: sidemount,
+      );
+
+      expect((await rowsOf('d3')).map((r) => r.tankRole), [
+        'stage',
+        'stage',
+        'stage',
+      ]);
+    });
+
+    test('leaves the roles of a dive whose tanks share an order', () async {
+      await seed('tied');
+      await repository.bulkAddTanks(['tied'], const [staged, staged]);
+      await (db.update(db.diveTanks)..where((t) => t.diveId.equals('tied')))
+          .write(const DiveTanksCompanion(tankOrder: Value(0)));
+
+      await repository.bulkUpdateTankSpecs(
+        ['tied'],
+        const domain.DiveTank(id: ''),
+        roleOnly,
+        slotRoles: sidemount,
+      );
+
+      expect((await rowsOf('tied')).map((r) => r.tankRole), ['stage', 'stage']);
+    });
+
+    test('counts only the dives that had a row written', () async {
+      await seed('d1');
+      await seed('d3');
+      await repository.bulkAddTanks(['d1'], const [staged, staged]);
+      await repository.bulkAddTanks(['d3'], const [staged, staged, staged]);
+      await (db.update(db.dives)..where((t) => t.id.equals('d3'))).write(
+        const DivesCompanion(updatedAt: Value(123)),
+      );
+
+      final touched = await repository.bulkUpdateTankSpecs(
+        ['d1', 'd3'],
+        const domain.DiveTank(id: ''),
+        roleOnly,
+        slotRoles: sidemount,
+      );
+
+      expect(touched, 1);
+      final d3 = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals('d3'))).getSingle();
+      expect(d3.updatedAt, 123); // nothing written, so no sync-visible touch
+    });
+
+    test(
+      'still writes the other fields on a dive that does not match',
+      () async {
+        await seed('d3');
+        await repository.bulkAddTanks(['d3'], const [staged, staged, staged]);
+
+        await repository.bulkUpdateTankSpecs(
+          ['d3'],
+          const domain.DiveTank(id: '', volume: 11.1),
+          const {TankSpecField.role, TankSpecField.volume},
+          slotRoles: sidemount,
+        );
+
+        final rows = await rowsOf('d3');
+        expect(rows.map((r) => r.volume), [11.1, 11.1, 11.1]);
+        expect(rows.map((r) => r.tankRole), ['stage', 'stage', 'stage']);
+      },
+    );
+
+    test('ignores the template role when positions are given', () async {
+      await seed('d1');
+      await repository.bulkAddTanks(['d1'], const [staged, staged]);
+
+      await repository.bulkUpdateTankSpecs(
+        ['d1'],
+        const domain.DiveTank(id: '', role: TankRole.deco),
+        roleOnly,
+        slotRoles: sidemount,
+      );
+
+      expect((await rowsOf('d1')).map((r) => r.tankRole), [
+        'sidemountLeft',
+        'sidemountRight',
+      ]);
+    });
+
+    test('clears a role source the transmitter name set', () async {
+      await seed('d1');
+      await repository.bulkAddTanks(['d1'], const [staged, staged]);
+      await (db.update(
+        db.diveTanks,
+      )..where((t) => t.diveId.equals('d1'))).write(
+        const DiveTanksCompanion(roleSource: Value('transmitterName')),
+      );
+
+      await repository.bulkUpdateTankSpecs(
+        ['d1'],
+        const domain.DiveTank(id: ''),
+        roleOnly,
+        slotRoles: sidemount,
+      );
+
+      expect((await rowsOf('d1')).map((r) => r.roleSource), [null, null]);
+    });
+  });
+
+  group('divesWithSlotRoleMismatchCount', () {
+    test('counts dives with tanks that do not line up', () async {
+      await seed('match');
+      await seed('three');
+      await seed('tankless');
+      const bare = domain.DiveTank(id: '');
+      await repository.bulkAddTanks(['match'], const [bare, bare]);
+      await repository.bulkAddTanks(['three'], const [bare, bare, bare]);
+
+      expect(
+        await repository.divesWithSlotRoleMismatchCount(
+          ['match', 'three', 'tankless'],
+          const [TankRole.sidemountLeft, TankRole.sidemountRight],
+        ),
+        1, // tankless is reported by divesWithoutTanksCount instead
+      );
+      expect(
+        await repository.divesWithSlotRoleMismatchCount(const [], const [
+          TankRole.backGas,
+        ]),
+        0,
+      );
+    });
+  });
+
   group('divesWithoutTanksCount', () {
     test('counts only the selected dives that have no tank rows', () async {
       await seed('hasOne');

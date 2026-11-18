@@ -9,8 +9,12 @@ import 'package:submersion/core/utils/coordinates/coordinate_formatter.dart'
 import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/per_minute.dart' as rate;
 import 'package:submersion/core/utils/unit_formatter_settings.dart';
+import 'package:submersion/core/utils/unit_formatter_whole.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+export 'package:submersion/core/utils/unit_formatter_whole.dart'
+    show UnitFormatterWhole;
 
 /// The formatter for the diver's settings, for widgets and providers that
 /// show values.
@@ -418,13 +422,21 @@ class UnitFormatter {
   /// the same reason as [sacDecimals].
   int get rmvDecimals => settings.volumeUnit == VolumeUnit.liters ? 1 : 2;
 
+  /// Decimals a semi-closed loop flow (an SCR injection rate or a VO2) is
+  /// shown and typed with: one place finer than an RMV, since a cuft/min
+  /// step at RMV precision is 0.28 L/min, about 4% of a low-flow nozzle, and
+  /// 1.3 L/min of VO2 would retype as about 1.42 (issue #4660).
+  int get loopFlowDecimals => rmvDecimals + 1;
+
   /// "1.5 bar/min" or "21 psi/min".
   String formatSac(double barPerMin) =>
       '${formatFixedForDisplay(convertSac(barPerMin), sacDecimals)} $sacSymbol';
 
-  /// "16.8 L/min" or "0.59 cuft/min".
-  String formatRmv(double litersPerMin) =>
-      '${formatFixedForDisplay(convertRmv(litersPerMin), rmvDecimals)} $rmvSymbol';
+  /// "16.8 L/min" or "0.59 cuft/min"; [decimals] overrides [rmvDecimals],
+  /// as a loop flow does with [loopFlowDecimals].
+  String formatRmv(double litersPerMin, {int? decimals}) =>
+      '${formatFixedForDisplay(convertRmv(litersPerMin), decimals ?? rmvDecimals)} '
+      '$rmvSymbol';
 
   // ============================================================================
   // Weight
@@ -509,9 +521,13 @@ class UnitFormatter {
   String formatAltitude(double? value, {int decimals = 0}) {
     if (value == null) return '--';
     final converted = AltitudeUnit.meters.convert(value, settings.altitudeUnit);
-    final formatted = NumberFormat('#,##0').format(converted.round());
-    return '$formatted ${settings.altitudeUnit.symbol}';
+    return wholeWithSymbol(converted.round(), settings.altitudeUnit.symbol);
   }
+
+  /// An altitude in metres as the number [formatAltitude] shows, without
+  /// its unit: for a range that names its unit once.
+  String formatAltitudeNumber(double meters) =>
+      NumberFormat('#,##0').format(convertAltitude(meters).round());
 
   /// Format altitude with altitude group label
   String formatAltitudeWithGroup(double? value, {int decimals = 0}) {

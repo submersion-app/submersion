@@ -7,6 +7,7 @@ import 'package:submersion/core/services/geocoding/sea_area_index.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/catalogue_enum_names.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_parser.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
+import 'package:submersion/features/dive_sites/domain/entities/catalogue_withdrawal.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
 /// A catalogue file as the rows the local cache stores.
@@ -15,12 +16,16 @@ class SiteCatalogueRows {
     required this.rows,
     required this.sources,
     required this.seaTableRead,
+    this.withdrawn = '[]',
   });
 
   final List<SiteCatalogueEntriesCompanion> rows;
 
   /// The file's sources, already encoded for the meta table.
   final String sources;
+
+  /// The file's withdrawn records, already encoded for the meta table.
+  final String withdrawn;
 
   /// Whether a sea table was given and could be parsed. False leaves every
   /// site without a sea name; the importer says so in the log.
@@ -42,6 +47,7 @@ SiteCatalogueRows buildSiteCatalogueRows(SiteCatalogueRowsInput input) {
     rows: [for (final site in parsed.sites) catalogueSiteToRow(site)],
     sources: encodeCatalogueSources(parsed.sources),
     seaTableRead: seas != null,
+    withdrawn: encodeCatalogueWithdrawals(parsed.withdrawn),
   );
 }
 
@@ -89,6 +95,7 @@ SiteCatalogueEntriesCompanion catalogueSiteToRow(CatalogueSite site) =>
       sourceRef: Value(site.sourceRef),
       trust: Value(site.trust.name),
       kind: Value(site.kind.name),
+      positionFrom: Value(site.positionFromMap ? 'map' : null),
     );
 
 /// The catalogue site a local cache row holds.
@@ -120,6 +127,7 @@ CatalogueSite catalogueSiteFromRow(SiteCatalogueRow row) => CatalogueSite(
   sourceRef: row.sourceRef,
   trust: catalogueTrustByName[row.trust] ?? CatalogueTrust.verified,
   kind: catalogueKindsByName[row.kind] ?? CatalogueKind.site,
+  positionFromMap: row.positionFrom == 'map',
 );
 
 /// The stored form of the catalogue's sources.
@@ -133,6 +141,35 @@ String encodeCatalogueSources(List<CatalogueSource> sources) => jsonEncode([
       'credit': source.credit,
     },
 ]);
+
+/// The stored form of the catalogue's withdrawn records.
+String encodeCatalogueWithdrawals(List<CatalogueWithdrawal> withdrawn) =>
+    jsonEncode([
+      for (final w in withdrawn)
+        {
+          'id': w.id,
+          'reason': catalogueWithdrawalReasonName(w.reason),
+          'date': w.date,
+          'replaced_by': ?w.replacedBy,
+        },
+    ]);
+
+/// Reads [encodeCatalogueWithdrawals] back. Anything unreadable is none.
+List<CatalogueWithdrawal> decodeCatalogueWithdrawals(String? stored) {
+  if (stored == null) return const [];
+  final Object? decoded;
+  try {
+    decoded = jsonDecode(stored);
+  } on FormatException {
+    return const [];
+  }
+  return [
+    if (decoded is List)
+      for (final raw in decoded)
+        if (raw case {'id': final String id})
+          ?catalogueWithdrawalFromJson(id, raw),
+  ];
+}
 
 /// Reads [encodeCatalogueSources] back. Anything unreadable is no sources.
 List<CatalogueSource> decodeCatalogueSources(String? stored) {

@@ -52,6 +52,29 @@ void main() {
       expect(terms, isNot(contains(DiveTerm.ppHe)));
     });
 
+    test('lists the buoyancy line only when it can be drawn and is on', () {
+      // Issue #4593.
+      const on = ProfileLegendState(showBuoyancy: true);
+      expect(
+        profileOverlayTerms(
+          const ProfileLegendConfig(hasBuoyancyLine: true),
+          on,
+        ),
+        contains(DiveTerm.buoyancyProfile),
+      );
+      expect(
+        profileOverlayTerms(const ProfileLegendConfig(), on),
+        isNot(contains(DiveTerm.buoyancyProfile)),
+      );
+      expect(
+        profileOverlayTerms(
+          const ProfileLegendConfig(hasBuoyancyLine: true),
+          const ProfileLegendState(),
+        ),
+        isNot(contains(DiveTerm.buoyancyProfile)),
+      );
+    });
+
     test('an air dive sheet has no ppHe or setpoint', () {
       const config = ProfileLegendConfig(hasPpO2Data: true, hasNdlData: true);
       const state = ProfileLegendState(
@@ -276,7 +299,7 @@ void main() {
       l10n,
       imperial,
       hasDrysuitGas: false,
-      canAdjust: true,
+      canTryWhatIf: true,
     );
     final ditch = content.terms.firstWhere(
       (e) => e.term == label(DiveTerm.minDitchable),

@@ -39,6 +39,41 @@ class FakeMatchingService extends SiteMatchingService {
     created.add(site);
     return site.copyWith(id: 'created');
   }
+
+  /// Candidates resolved without a link, as (dive, candidate).
+  final resolved = <ConfirmedMatch>[];
+
+  /// What [resolveCandidate] answers, by candidate id.
+  final resolvesTo = <String, DiveSite>{};
+
+  /// What [resolveCandidate] reports as created, by candidate id.
+  final createdBy = <String, List<String>>{};
+
+  /// Sites made with no link.
+  final createdUnlinked = <DiveSite>[];
+
+  /// When set, every write throws it.
+  Object? failWith;
+
+  @override
+  Future<({DiveSite site, List<String> createdSiteIds})> resolveCandidate(
+    String diveId,
+    String candidateId,
+  ) async {
+    if (failWith case final error?) throw error;
+    resolved.add(ConfirmedMatch(diveId, candidateId));
+    return (
+      site: resolvesTo[candidateId] ?? DiveSite(id: candidateId, name: 'Site'),
+      createdSiteIds: createdBy[candidateId] ?? const <String>[],
+    );
+  }
+
+  @override
+  Future<DiveSite> createSite(DiveSite site) async {
+    if (failWith case final error?) throw error;
+    createdUnlinked.add(site);
+    return site.copyWith(id: 'made');
+  }
 }
 
 /// A suggestion for dive `d1` at a fixed photo point.

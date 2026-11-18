@@ -90,4 +90,25 @@ void main() {
       );
     });
   }
+
+  // The My role card joins dive_roles (#4409): a custom role that syncs in
+  // after the dives holding it changes the card without a dive write.
+  test('watchInsightsChanges fires on a dive_roles write', () async {
+    expect(
+      await fires(
+        InsightsRepository().watchInsightsChanges(),
+        () => db
+            .into(db.diveRoles)
+            .insert(
+              DiveRolesCompanion.insert(
+                id: 'custom-role',
+                name: 'Cave Guide',
+                createdAt: now,
+                updatedAt: now,
+              ),
+            ),
+      ),
+      isTrue,
+    );
+  });
 }

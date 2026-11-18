@@ -36,6 +36,7 @@ void main() {
     void Function(SafetyFinding)? onDetails,
     bool showLane = true,
     bool showCallout = true,
+    bool dismissable = true,
   }) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -55,7 +56,7 @@ void main() {
               laneBottomOffset: 36,
               units: const UnitFormatter(AppSettings()),
               onFindingTap: onTap ?? (_) {},
-              onFindingDismiss: onDismiss ?? (_) {},
+              onFindingDismiss: dismissable ? (onDismiss ?? (_) {}) : null,
               onFindingDetails: onDetails,
               showLane: showLane,
               showCallout: showCallout,
@@ -240,5 +241,19 @@ void main() {
       selectedFindingId: 'gone',
     );
     expect(find.byKey(const ValueKey('safetyFindingCallout')), findsNothing);
+  });
+
+  testWidgets('with no dismiss handler the callout offers no Dismiss', (
+    tester,
+  ) async {
+    final f1 = finding('f1', start: 100, end: 200);
+    await pumpOverlay(
+      tester,
+      findings: [f1],
+      selectedFindingId: 'f1',
+      showLane: false,
+      dismissable: false,
+    );
+    expect(find.text('Dismiss'), findsNothing);
   });
 }

@@ -30,6 +30,7 @@ ScenarioRequest _loopRequest(
   List<ScenarioIntervention> interventions = const [],
   double? scrInjectionRate,
   double? scrSupplyO2Percent,
+  double? replanScrVo2,
   ScenarioSettings settings = const ScenarioSettings(),
 }) => ScenarioRequest(
   diveId: 'd',
@@ -52,6 +53,7 @@ ScenarioRequest _loopRequest(
   setpointHigh: mode == DiveMode.ccr ? 1.3 : null,
   scrInjectionRate: scrInjectionRate,
   scrSupplyO2Percent: scrSupplyO2Percent,
+  replanScrVo2: replanScrVo2,
   startCns: 0,
   startOtu: 0,
   settings: settings,
@@ -114,6 +116,59 @@ void main() {
       );
     });
   }
+
+  group('the re-plan VO2 (#4660)', () {
+    double tailPpO2({double? replanScrVo2, required double diverDefault}) {
+      final outcome = const ScenarioEngine().run(
+        _loopRequest(
+          d,
+          mode: DiveMode.scr,
+          branchSeconds: 900,
+          scenarioMode: ScenarioMode.replan,
+          scrInjectionRate: 10,
+          scrSupplyO2Percent: 50,
+          replanScrVo2: replanScrVo2,
+          settings: ScenarioSettings(defaultScrVo2Lpm: diverDefault),
+        ),
+      );
+      final after = outcome.counterfactualTimestamps.indexWhere(
+        (t) => t >= outcome.branch.runtimeSeconds + 60,
+      );
+      return outcome.counterfactual.ppO2Curve[after];
+    }
+
+    test('a dive with no VO2 of its own re-plans at the diver default', () {
+      // EAN50 at 10 L/min: loop FO2 0.425 at VO2 1.3, 0.375 at VO2 2.0.
+      final atDefault13 = tailPpO2(diverDefault: 1.3);
+      final atDefault20 = tailPpO2(diverDefault: 2.0);
+      expect(atDefault20, lessThan(atDefault13 - 0.1));
+    });
+
+    test('a dive with no logged rate still gets an SCR tail', () {
+      // Older SCR dives stored no injection rate; the re-plan breathes the
+      // diver's default, so the tail must show that loop, not zero.
+      final outcome = const ScenarioEngine().run(
+        _loopRequest(
+          d,
+          mode: DiveMode.scr,
+          branchSeconds: 900,
+          scenarioMode: ScenarioMode.replan,
+          scrSupplyO2Percent: 50,
+        ),
+      );
+      final after = outcome.counterfactualTimestamps.indexWhere(
+        (t) => t >= outcome.branch.runtimeSeconds + 60,
+      );
+      expect(outcome.counterfactual.ppO2Curve[after], greaterThan(1.0));
+    });
+
+    test('a dive VO2 of its own wins over the diver default', () {
+      expect(
+        tailPpO2(replanScrVo2: 1.3, diverDefault: 2.0),
+        closeTo(tailPpO2(diverDefault: 1.3), 1e-9),
+      );
+    });
+  });
 
   test('an SCR re-plan keeps the SCR loop ppO2 after the branch', () {
     final outcome = const ScenarioEngine().run(

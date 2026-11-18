@@ -15,6 +15,7 @@ import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/change_log/presentation/providers/change_log_providers.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_custom_field_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/sql/dive_weight_sql.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/data/services/dive_bulk_delete_service.dart';
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
@@ -577,7 +578,6 @@ final diveBulkDeleteServiceProvider = Provider<DiveBulkDeleteService>((ref) {
     changeLog: ref.watch(changeLogRepositoryProvider),
     revert: ref.watch(changeLogRevertServiceProvider),
     restoreDocuments: documents.restoreSnapshot,
-    rearmDocuments: documents.rearmReminders,
   );
 });
 
@@ -613,20 +613,29 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
     // whatever tables the filter names; a write to one of them (a synced
     // buddy link, a weight row) changes the answer without a dives write,
     // so the tick follows the filter's tables beyond `dives` (#1915).
+    //
+    // The table's Total weight reads each dive's weight rows and the lead its
+    // weights gear carries (`Dive.recordedWeightKg`, #4442). A synced weight
+    // row or an edit of a weights item's dry weight writes only those tables,
+    // so they are in the base tick beside `dives`, as one debounced stream.
     final divesTick = FilterAwareTick(
-      plain: _repository.watchDivesChanges,
-      baseTables: const {'dives'},
+      plain: () => _repository.watchTables(_listBaseTables),
+      baseTables: _listBaseTables,
       watchTables: _repository.watchTables,
       onTick: _silentReload,
     );
     Set<String> extra(DiveFilterState f) =>
-        diveFilterTablesTouched(f).difference({'dives'});
+        diveFilterTablesTouched(f).difference(_listBaseTables);
     _ref.listen<DiveFilterState>(diveFilterProvider, (previous, next) {
       divesTick.follow(extra(next));
     });
     divesTick.follow(extra(_ref.read(diveFilterProvider)));
     _ref.onDispose(divesTick.cancel);
   }
+
+  /// What the hydrated list's rows read that a write can change without
+  /// touching `dives`, and that the list ticks on whatever the filter.
+  static const _listBaseTables = {'dives', ...recordedWeightTables};
 
   Future<void> _loadDives() async {
     state = const AsyncValue.loading();
@@ -1357,18 +1366,41 @@ class PaginatedDiveListNotifier
       await _repository.assignMissingDiveNumbers(
         diverId: newDive.diverId ?? diverId,
       );
-      _ref.invalidate(diveNumberingInfoProvider);
     }
 
-    // Optimistic: prepend new summary and bump totalCount. Only onto the list
-    // of the diver this call started for: after a switch the loaded rows are
-    // another diver's (or the same diver's, reloaded, after a switch back), so
-    // reload rather than prepend a dive that does not belong or is already in.
+    // After a switch the loaded rows are another diver's (or the same
+    // diver's, reloaded, after a switch back): reload rather than prepend a
+    // dive that does not belong or is already in.
+    await _showCreated(newDive, reload: _diverSwitches != diverSwitches);
+    return newDive;
+  }
+
+  /// Shows [created] in the list, after it was written by something other
+  /// than [addDive]: a new dive's sitting creates its dive inside its own
+  /// transaction (issue #4527, plan 8) and needs the refresh alone.
+  Future<void> refreshAfterCreate(domain.Dive created) async {
+    // A dive made for another diver than the list's reloads the list, as a
+    // switch during addDive does.
+    await _showCreated(
+      created,
+      reload: created.diverId != null && created.diverId != _currentDiverId,
+    );
+  }
+
+  /// What a create owes the list: the new row, its counts, and every
+  /// provider a new dive changes. [reload] reads the list again instead of
+  /// prepending: the loaded rows belong to another diver than the dive.
+  Future<void> _showCreated(domain.Dive newDive, {required bool reload}) async {
+    // The dive may have been numbered, or have moved the next number.
+    _ref.invalidate(diveNumberingInfoProvider);
+
+    // Optimistic: prepend new summary and bump totalCount, onto the list of
+    // the dive's own diver only.
     //
     // Under a filter the new dive may not match it, so the rows and both
     // counts come from the query instead, without a spinner (#2669).
     final current = state.valueOrNull;
-    if (_diverSwitches != diverSwitches) {
+    if (reload) {
       await loadFirstPage();
     } else if (_loadedUnderFilter) {
       await _silentReloadLoadedPages();
@@ -1387,7 +1419,6 @@ class PaginatedDiveListNotifier
     _invalidateStatistics();
     _invalidateRelatedProviders(newDive);
     _invalidateOldProvider();
-    return newDive;
   }
 
   Future<void> updateDive(domain.Dive dive) async {

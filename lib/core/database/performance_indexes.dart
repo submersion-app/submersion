@@ -646,6 +646,15 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'CREATE INDEX IF NOT EXISTS idx_library_site_notes_site '
         'ON library_site_notes(site_id, updated_at)',
   ),
+  // -- media_identifications -------------------------------------------
+  // The viewer reads a photo's identifications each time it is shown
+  // (issue #4668).
+  (
+    name: 'idx_media_identifications_media',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_media_identifications_media '
+        'ON media_identifications(media_id)',
+  ),
 ];
 
 /// Creates any canonical index missing from [db], returning the names of

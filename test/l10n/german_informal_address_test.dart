@@ -61,14 +61,13 @@ void main() {
   });
 
   /// Keys whose sentence-initial "Sie" or "Ihr..." was checked against the
-  /// English source and means "it", "they", "its" or "their" (or, in
-  /// buddySwap_nearby_hint, the informal plural "ihr"). A new key with a
-  /// sentence-initial capital needs the same check before it joins this list.
+  /// English source and means "it", "they", "its" or "their". A new key with
+  /// a sentence-initial capital needs the same check before it joins this
+  /// list.
   const thirdPersonKeys = {
     'backup_copySheet_deviceLocked',
     'backup_operation_createdLocalOnlyLocked',
     'backup_quarantined_status_unreadable',
-    'buddySwap_nearby_hint',
     'changeLog_clear_body',
     'changeLog_revert_note',
     'checklists_delete_content',

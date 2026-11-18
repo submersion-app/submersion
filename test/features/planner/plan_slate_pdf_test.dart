@@ -56,6 +56,7 @@ final _labels = PlanSlateLabels(
   gas: 'Gas',
   turnAt: 'Turn',
   minGas: 'Min gas',
+  problemSolving: 'Problem solving',
   noTurnRule: 'No rule',
   noStartPressure: 'No start pressure',
   noVolume: 'No size',
@@ -192,6 +193,7 @@ void main() {
         gas: '',
         turnAt: '',
         minGas: '',
+        problemSolving: '',
         noTurnRule: '',
         noStartPressure: '',
         noVolume: '',
@@ -270,6 +272,29 @@ void main() {
 
     test('a cylinder the figure does not apply to keeps the dash', () {
       expect(planSlateGasLimitCell(null, null, units, _labels), '--');
+    });
+  });
+
+  group('problem-solving cell (#4475)', () {
+    test('the gas held back prints in the diver\'s volume unit', () {
+      expect(
+        planSlateProblemSolvingCell(240.4, const UnitFormatter(AppSettings())),
+        '240',
+      );
+      expect(
+        planSlateProblemSolvingCell(
+          283.17,
+          const UnitFormatter(AppSettings(volumeUnit: VolumeUnit.cubicFeet)),
+        ),
+        '10',
+      );
+    });
+
+    test('a cylinder holding none keeps the dash', () {
+      expect(
+        planSlateProblemSolvingCell(0, const UnitFormatter(AppSettings())),
+        '--',
+      );
     });
   });
 }

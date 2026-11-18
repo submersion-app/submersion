@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
@@ -29,12 +28,10 @@ import 'package:submersion/features/dive_lab/presentation/widgets/lab_delta_pane
 import 'package:submersion/features/dive_lab/presentation/widgets/lab_intervention_chips.dart';
 import 'package:submersion/features/dive_lab/presentation/widgets/lab_mode_toggle.dart';
 import 'package:submersion/features/dive_lab/presentation/widgets/lab_saved_scenarios_sheet.dart';
-import 'package:submersion/features/dive_lab/presentation/widgets/link_plan_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/what_if_sheet.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
-import 'package:submersion/features/planner/presentation/plan_link_actions.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_overlay_provider.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_name_dialog.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -342,17 +339,6 @@ class _DiveLabPageState extends ConsumerState<DiveLabPage> {
     // What-if controls need a dive to branch from, and a sketch is not one.
     // value, not valueOrNull: a reload must not take them off the screen.
     final canBranch = inputsAsync.value != null && !isPlanned;
-    final linkEntries = <PopupMenuEntry<String>>[
-      PopupMenuItem(
-        value: 'linkPlan',
-        child: Text(l10n.diveLab_compare_linkPlan),
-      ),
-      if (comparison != null)
-        PopupMenuItem(
-          value: 'unlinkPlan',
-          child: Text(l10n.diveLab_compare_unlinkPlan),
-        ),
-    ];
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.diveLab_title),
@@ -373,84 +359,67 @@ class _DiveLabPageState extends ConsumerState<DiveLabPage> {
                   : () => showLabSavedScenariosSheet(context, diveId: diveId),
             ),
           ],
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert),
-            tooltip: l10n.diveLab_menu_title,
-            enabled: loaded,
-            onSelected: (value) {
-              switch (value) {
-                case 'linkPlan':
-                  logFailure(
-                    pickPlanAndLink(context, ref, diveId: diveId),
-                    DiveLabPage,
-                    'link plan to dive',
-                  );
-                case 'unlinkPlan':
-                  if (comparison == null) return;
-                  logFailure(
-                    unlinkPlanWithConfirm(
-                      context,
-                      ref,
-                      planId: comparison.plan.id,
-                    ),
-                    DiveLabPage,
-                    'unlink plan',
-                  );
-                case 'pdf' || 'file' || 'image':
-                  if (inputs != null) _share(value, inputs);
-                case 'planner':
-                  if (inputs != null) _openInPlanner(inputs);
-                case 'rebuild':
-                  if (inputs != null) _rebuildInPlanner(inputs);
-              }
-            },
-            itemBuilder: (context) {
-              if (!canBranch) return linkEntries;
-              final canShare = draft.isSeeded;
-              final isOc = inputs?.diveMode == DiveMode.oc;
-              return [
-                ...linkEntries,
-                const PopupMenuDivider(),
-                PopupMenuItem(
-                  value: 'pdf',
-                  enabled: canShare,
-                  child: Text(l10n.diveLab_share_pdf),
-                ),
-                PopupMenuItem(
-                  value: 'file',
-                  enabled: canShare,
-                  child: Text(l10n.diveLab_share_file),
-                ),
-                PopupMenuItem(
-                  value: 'image',
-                  enabled: canShare,
-                  child: Text(l10n.diveLab_share_image),
-                ),
-                const PopupMenuDivider(),
-                PopupMenuItem(
-                  value: 'planner',
-                  enabled: canShare && isOc,
-                  child: isOc
-                      ? Text(l10n.diveLab_menu_openInPlanner)
-                      : Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(l10n.diveLab_menu_openInPlanner),
-                            Text(
-                              l10n.diveLab_menu_openInPlanner_loopDisabled,
-                              style: theme.textTheme.bodySmall,
-                            ),
-                          ],
-                        ),
-                ),
-                PopupMenuItem(
-                  value: 'rebuild',
-                  child: Text(l10n.diveLab_menu_rebuildInPlanner),
-                ),
-              ];
-            },
-          ),
+          // Sharing and the planner need a dive to branch from; the plan
+          // link is changed on the dive's Compare card (issue #4527).
+          if (!loaded || canBranch)
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert),
+              tooltip: l10n.diveLab_menu_title,
+              enabled: loaded,
+              onSelected: (value) {
+                switch (value) {
+                  case 'pdf' || 'file' || 'image':
+                    if (inputs != null) _share(value, inputs);
+                  case 'planner':
+                    if (inputs != null) _openInPlanner(inputs);
+                  case 'rebuild':
+                    if (inputs != null) _rebuildInPlanner(inputs);
+                }
+              },
+              itemBuilder: (context) {
+                final canShare = draft.isSeeded;
+                final isOc = inputs?.diveMode == DiveMode.oc;
+                return [
+                  PopupMenuItem(
+                    value: 'pdf',
+                    enabled: canShare,
+                    child: Text(l10n.diveLab_share_pdf),
+                  ),
+                  PopupMenuItem(
+                    value: 'file',
+                    enabled: canShare,
+                    child: Text(l10n.diveLab_share_file),
+                  ),
+                  PopupMenuItem(
+                    value: 'image',
+                    enabled: canShare,
+                    child: Text(l10n.diveLab_share_image),
+                  ),
+                  const PopupMenuDivider(),
+                  PopupMenuItem(
+                    value: 'planner',
+                    enabled: canShare && isOc,
+                    child: isOc
+                        ? Text(l10n.diveLab_menu_openInPlanner)
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(l10n.diveLab_menu_openInPlanner),
+                              Text(
+                                l10n.diveLab_menu_openInPlanner_loopDisabled,
+                                style: theme.textTheme.bodySmall,
+                              ),
+                            ],
+                          ),
+                  ),
+                  PopupMenuItem(
+                    value: 'rebuild',
+                    child: Text(l10n.diveLab_menu_rebuildInPlanner),
+                  ),
+                ];
+              },
+            ),
         ],
       ),
       body: inputsAsync.when(

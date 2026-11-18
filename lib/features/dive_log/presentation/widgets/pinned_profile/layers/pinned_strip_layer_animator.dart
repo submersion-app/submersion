@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/dive_detail_sections.dart';
@@ -17,6 +19,7 @@ class StripLayerState {
     required this.strengths,
     required this.grow,
     required this.active,
+    this.growTarget = 0,
   });
 
   static const none = StripLayerState(
@@ -34,7 +37,31 @@ class StripLayerState {
   /// layer fading out is drawn but not active, so it reads no tooltip row.
   final Set<StripLayer> active;
 
+  /// Where [grow] is heading: 1 while a card in view adds a line, else 0.
+  final double growTarget;
+
   double strengthOf(StripLayer layer) => strengths[layer] ?? 0;
+
+  /// This state for a strip [morph] of the way through its hand-over: what
+  /// is left of the growth runs with the morph, so the strip reaches its
+  /// target height as it settles however fast the page was scrolled, and
+  /// never grows or shrinks after (#4579). Settled ([morph] 1), the growth
+  /// is the animator's own, completed as it settled and eased from there as
+  /// cards come and go.
+  StripLayerState condensedBy(double morph) {
+    if (morph >= 1) return this;
+    final carried = growTarget >= 1
+        ? math.max(grow, morph)
+        : math.min(grow, 1 - morph);
+    if (carried == grow) return this;
+    return StripLayerState(
+      data: data,
+      strengths: strengths,
+      grow: carried,
+      active: active,
+      growTarget: growTarget,
+    );
+  }
 }
 
 /// Eases each card layer of the pinned strip in while its card is in view
@@ -42,7 +69,8 @@ class StripLayerState {
 /// builds with the result.
 ///
 /// A layer heads in when the strip is [settled], its card is one of
-/// [cardsInView] and [data] has something for it. Turning round mid-fade
+/// [cardsInView] and [data] has something for it. The strip grows for such
+/// a line layer whether or not it has settled. Turning round mid-fade
 /// carries on from where it is. With the platform's reduce-motion setting
 /// on, every change applies at once.
 class PinnedStripLayerAnimator extends StatefulWidget {
@@ -69,6 +97,7 @@ class _PinnedStripLayerAnimatorState extends State<PinnedStripLayerAnimator>
   final Map<StripLayer, AnimationController> _layers = {};
   late final AnimationController _grow = _controller();
   Set<StripLayer> _active = const {};
+  bool _growOn = false;
 
   AnimationController _controller() =>
       AnimationController(vsync: this, duration: kStripLayerFade)
@@ -85,17 +114,18 @@ class _PinnedStripLayerAnimatorState extends State<PinnedStripLayerAnimator>
   @override
   void didUpdateWidget(PinnedStripLayerAnimator oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _retarget();
+    _retarget(settling: widget.settled && !oldWidget.settled);
   }
 
-  void _retarget() {
-    final wanted = widget.settled
-        ? stripLayersFor(widget.cardsInView)
-        : const <StripLayer>{};
-    final active = {
-      for (final layer in wanted)
+  /// [settling] is set as the strip settles: the hand-over has carried the
+  /// growth to its target by then ([StripLayerState.condensedBy]), so the
+  /// growth is completed with it rather than left to run on.
+  void _retarget({bool settling = false}) {
+    final available = {
+      for (final layer in stripLayersFor(widget.cardsInView))
         if (widget.data.hasData(layer)) layer,
     };
+    final active = widget.settled ? available : const <StripLayer>{};
     _active = active;
     final instant = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
     for (final layer in StripLayer.values) {
@@ -105,7 +135,11 @@ class _PinnedStripLayerAnimatorState extends State<PinnedStripLayerAnimator>
       _layers[layer] = controller;
       _drive(controller, on: on, instant: instant);
     }
-    _drive(_grow, on: active.any((l) => l.isLine), instant: instant);
+    // The strip grows for the cards in view while it is still condensing,
+    // so it condenses straight to the height it settles at instead of
+    // reaching its normal height and growing again (issue #4579).
+    _growOn = available.any((l) => l.isLine);
+    _drive(_grow, on: _growOn, instant: instant || settling);
   }
 
   void _drive(
@@ -116,9 +150,21 @@ class _PinnedStripLayerAnimatorState extends State<PinnedStripLayerAnimator>
     if (instant) {
       controller.value = on ? 1 : 0;
     } else if (on && controller.status != AnimationStatus.forward) {
-      if (controller.value < 1) controller.forward();
+      // Turned back on before its fade-out has ticked, it is still at 1 but
+      // heading out; forward() from 1 would not stop it, so it is held there.
+      if (controller.value < 1) {
+        controller.forward();
+      } else {
+        controller.value = 1;
+      }
     } else if (!on && controller.status != AnimationStatus.reverse) {
-      if (controller.value > 0) controller.reverse();
+      // Turned off before its fade has ticked, it is still at 0 but heading
+      // in; reverse() from 0 would not stop it, so it is put back at rest.
+      if (controller.value > 0) {
+        controller.reverse();
+      } else {
+        controller.reset();
+      }
     }
   }
 
@@ -144,6 +190,7 @@ class _PinnedStripLayerAnimatorState extends State<PinnedStripLayerAnimator>
       },
       grow: _eased(_grow),
       active: _active,
+      growTarget: _growOn ? 1 : 0,
     ),
   );
 }

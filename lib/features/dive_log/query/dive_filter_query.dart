@@ -121,7 +121,18 @@ extension DiveFilterQuery on DiveFilterState {
       parts.add(c('deco', QueryOp.eq, BoolValue(decoOnly!)));
     }
     if (noBuddyOnly == true) parts.add(c('buddies', QueryOp.isEmpty, null));
-    if (noRoleOnly == true) parts.add(c('role', QueryOp.isEmpty, null));
+    // Not set is one more choice on the role axis (#4409), so it ORs with
+    // the listed roles, as the water type choices do.
+    final roleChoices = <QueryNode>[
+      if (diverRoleIds.isNotEmpty)
+        c('myRole', QueryOp.inList, refs(diverRoleIds)),
+      if (noRoleOnly == true) c('role', QueryOp.isEmpty, null),
+    ];
+    if (roleChoices.isNotEmpty) {
+      parts.add(
+        roleChoices.length == 1 ? roleChoices.single : OrNode(roleChoices),
+      );
+    }
     if (noEntryMethodOnly == true) {
       parts.add(c('entryMethod', QueryOp.isEmpty, null));
     }

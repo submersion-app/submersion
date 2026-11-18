@@ -4,15 +4,14 @@ import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/minutes_seconds.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/dive_log/data/repositories/annotation_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_log/domain/services/annotation_links.dart';
 import 'package:submersion/features/dive_log/presentation/providers/annotation_focus_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/annotation_placement_provider.dart';
-import 'package:submersion/features/dive_log/presentation/providers/annotation_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/annotation_marker_popup.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/annotation_edits.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/annotation_time_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -20,7 +19,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// What the dive detail page (and the fullscreen profile) do with the
 /// chart's annotation callbacks (#4109): placement, the marker popup, Move,
 /// Remove, the typed time and the right-click menu. Chart-side writes go
-/// through the repository at once; the page refreshes from its dive watch.
+/// through [edits], into a sitting on the dive held until Save; without
+/// one, or [readOnly], nowhere (issue #4527).
 class DiveDetailAnnotationActions {
   const DiveDetailAnnotationActions({
     required this.ref,
@@ -28,7 +28,19 @@ class DiveDetailAnnotationActions {
     required this.dive,
     this.onOpenInNotes,
     this.shownProfile = const [],
-  });
+    this.edits,
+    bool readOnly = false,
+  }) : readOnly = readOnly || edits == null;
+
+  /// Where the writes go: the open Profile card's sitting. Null writes
+  /// nothing, as on a locked dive.
+  final AnnotationEdits? edits;
+
+  /// Writes nothing: no pin, no placement, no right-click menu, and a
+  /// popup that only opens the Notes. A locked dive, a closed Profile card
+  /// during a sitting, or a sitting that does not hold the annotations yet.
+  /// Always so without [edits].
+  final bool readOnly;
 
   final WidgetRef ref;
   final BuildContext context;
@@ -54,6 +66,8 @@ class DiveDetailAnnotationActions {
         dive: dive,
         onOpenInNotes: onOpenInNotes,
         shownProfile: profile,
+        edits: edits,
+        readOnly: readOnly,
       );
 
   String get diveId => dive.id;
@@ -64,20 +78,24 @@ class DiveDetailAnnotationActions {
   AnnotationPlacementNotifier get _placement =>
       ref.read(annotationPlacementProvider(diveId).notifier);
 
-  AnnotationRepository get _repository =>
-      ref.read(annotationRepositoryProvider);
+  /// Where a write goes, read when the action starts. Asked only once
+  /// [readOnly] is false, which it never is without [edits].
+  AnnotationEdits get _edits => edits!;
 
   /// The latest second an annotation may fall on: the profile's last sample,
   /// else the runtime, else a day (see [annotationTimeCap]).
   int get maxSeconds {
     final profile = _profile;
-    if (profile.isNotEmpty) return profile.last.timestamp;
-    return annotationTimeCap(dive.effectiveRuntime?.inSeconds);
+    final fallback = profile.isNotEmpty
+        ? profile.last.timestamp
+        : annotationTimeCap(dive.effectiveRuntime?.inSeconds);
+    return edits?.maxSeconds(fallback) ?? fallback;
   }
 
   /// The pin button: enters (or leaves) placement mode; a dive with no
   /// profile to point at goes straight to the sheet, by typed time.
   Future<void> onPinPressed() async {
+    if (readOnly) return;
     if (_profile.isEmpty) {
       _placement.cancel();
       await addAt(0, null);
@@ -89,13 +107,10 @@ class DiveDetailAnnotationActions {
   /// A placement on the chart: moves the annotation being moved, or opens
   /// the sheet for a new one. Placement mode ends either way.
   Future<void> place(int seconds, double? depthMeters) async {
+    if (readOnly) return;
     final moving = ref.read(annotationPlacementProvider(diveId))?.movingId;
     if (moving != null) {
-      await _repository.moveAnnotation(
-        id: moving,
-        timestamp: seconds,
-        depth: depthMeters,
-      );
+      await _edits.move(moving, seconds: seconds, depth: depthMeters);
       if (context.mounted) _placement.cancel();
       return;
     }
@@ -110,7 +125,8 @@ class DiveDetailAnnotationActions {
   /// after: it disposes itself when nothing watches it, which also ends the
   /// mode.
   Future<void> addAt(int seconds, double? depthMeters) async {
-    final repository = _repository;
+    if (readOnly) return;
+    final edits = _edits;
     final result = await showAnnotationTimeSheet(
       context,
       words: null,
@@ -127,9 +143,8 @@ class DiveDetailAnnotationActions {
       }
     }
     if (result == null) return;
-    await repository.addAnnotation(
-      diveId: diveId,
-      timestamp: result.seconds,
+    await edits.add(
+      seconds: result.seconds,
       depth: result.depthMeters,
       words: result.words,
     );
@@ -154,15 +169,16 @@ class DiveDetailAnnotationActions {
       onOpenInNotes: openInNotes == null
           ? null
           : () => openInNotes(annotation.id),
-      onMove: () => _placement.startMove(annotation.id),
-      onEditTime: () => editTime(annotation),
-      onRemove: () => _remove(annotation),
+      onMove: readOnly ? null : () => _placement.startMove(annotation.id),
+      onEditTime: readOnly ? null : () => editTime(annotation),
+      onRemove: readOnly ? null : () => _remove(annotation),
     );
   }
 
   /// The time sheet for an existing annotation; the marker follows on Save.
   Future<void> editTime(ProfileEvent annotation) async {
-    final repository = _repository;
+    if (readOnly) return;
+    final edits = _edits;
     final result = await showAnnotationTimeSheet(
       context,
       words: annotation.description ?? '',
@@ -174,15 +190,15 @@ class DiveDetailAnnotationActions {
       units: units,
     );
     if (result == null) return;
-    await repository.moveAnnotation(
-      id: annotation.id,
-      timestamp: result.seconds,
+    await edits.move(
+      annotation.id,
+      seconds: result.seconds,
       depth: result.depthMeters,
     );
   }
 
   Future<void> _remove(ProfileEvent annotation) async {
-    await _repository.removeAnnotation(diveId: diveId, id: annotation.id);
+    await _edits.remove(annotation.id);
     if (!context.mounted) return;
     ScaffoldMessenger.maybeOf(context)?.showSnackBar(
       SnackBar(content: Text(context.l10n.diveLog_annotation_removed)),
@@ -196,6 +212,7 @@ class DiveDetailAnnotationActions {
     double? depthMeters,
     Offset globalPosition,
   ) async {
+    if (readOnly) return;
     final choice = await showMenu<bool>(
       context: context,
       position: annotationMenuPosition(context, globalPosition),

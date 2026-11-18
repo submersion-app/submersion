@@ -5,8 +5,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 
 /// `copyWith` keeps the old value when it is passed null, so emptying a
-/// field needs a flag of its own. These are the values the Altitude,
-/// Environment and Details cards edit one at a time (issue #4527).
+/// field needs a flag of its own. These are the values the header block,
+/// Altitude, Environment and Details cards edit one at a time (issue #4527).
 void main() {
   final trip = Trip(
     id: 'trip',
@@ -54,6 +54,30 @@ void main() {
     boatName: 'Elite',
     boatCaptain: 'Sam',
     waterType: WaterType.salt,
+    diveNumber: 214,
+    bottomTime: const Duration(minutes: 41),
+    maxDepth: 28.4,
+    avgDepth: 16.2,
+    waterTemp: 24,
+    rating: 4,
+    diveMode: DiveMode.ccr,
+    setpointLow: 0.7,
+    setpointHigh: 1.3,
+    setpointDeco: 1.5,
+    scrType: ScrType.cmf,
+    scrInjectionRate: 8,
+    scrAdditionRatio: 0.33,
+    scrOrificeSize: '40',
+    assumedVo2: 1.3,
+    loopO2Min: 30,
+    loopO2Max: 60,
+    loopO2Avg: 45,
+    loopVolume: 6,
+    scrubber: const ScrubberInfo(type: 'Sofnolime', ratedMinutes: 180),
+    weightingFeedback: WeightingFeedback.overweighted,
+    weightingFeedbackKg: 2,
+    weightAmount: 6,
+    weightType: WeightType.belt,
   );
 
   // Each entry clears one value and reads it back.
@@ -150,10 +174,75 @@ void main() {
       (d) => d.boatCaptain,
     ),
     'waterType': ((d) => d.copyWith(clearWaterType: true), (d) => d.waterType),
+    'diveNumber': (
+      (d) => d.copyWith(clearDiveNumber: true),
+      (d) => d.diveNumber,
+    ),
+    'bottomTime': (
+      (d) => d.copyWith(clearBottomTime: true),
+      (d) => d.bottomTime,
+    ),
+    'maxDepth': ((d) => d.copyWith(clearMaxDepth: true), (d) => d.maxDepth),
+    'avgDepth': ((d) => d.copyWith(clearAvgDepth: true), (d) => d.avgDepth),
+    'waterTemp': ((d) => d.copyWith(clearWaterTemp: true), (d) => d.waterTemp),
+    'rating': ((d) => d.copyWith(clearRating: true), (d) => d.rating),
+    'setpointLow': (
+      (d) => d.copyWith(clearSetpointLow: true),
+      (d) => d.setpointLow,
+    ),
+    'setpointHigh': (
+      (d) => d.copyWith(clearSetpointHigh: true),
+      (d) => d.setpointHigh,
+    ),
+    'setpointDeco': (
+      (d) => d.copyWith(clearSetpointDeco: true),
+      (d) => d.setpointDeco,
+    ),
+    'scrType': ((d) => d.copyWith(clearScrType: true), (d) => d.scrType),
+    'scrInjectionRate': (
+      (d) => d.copyWith(clearScrInjectionRate: true),
+      (d) => d.scrInjectionRate,
+    ),
+    'scrAdditionRatio': (
+      (d) => d.copyWith(clearScrAdditionRatio: true),
+      (d) => d.scrAdditionRatio,
+    ),
+    'scrOrificeSize': (
+      (d) => d.copyWith(clearScrOrificeSize: true),
+      (d) => d.scrOrificeSize,
+    ),
+    'assumedVo2': (
+      (d) => d.copyWith(clearAssumedVo2: true),
+      (d) => d.assumedVo2,
+    ),
+    'loopO2Min': ((d) => d.copyWith(clearLoopO2Min: true), (d) => d.loopO2Min),
+    'loopO2Max': ((d) => d.copyWith(clearLoopO2Max: true), (d) => d.loopO2Max),
+    'loopO2Avg': ((d) => d.copyWith(clearLoopO2Avg: true), (d) => d.loopO2Avg),
+    'loopVolume': (
+      (d) => d.copyWith(clearLoopVolume: true),
+      (d) => d.loopVolume,
+    ),
+    'scrubber': ((d) => d.copyWith(clearScrubber: true), (d) => d.scrubber),
+    'weightingFeedback': (
+      (d) => d.copyWith(clearWeightingFeedback: true),
+      (d) => d.weightingFeedback,
+    ),
+    'weightingFeedbackKg': (
+      (d) => d.copyWith(clearWeightingFeedbackKg: true),
+      (d) => d.weightingFeedbackKg,
+    ),
+    'weightAmount': (
+      (d) => d.copyWith(clearWeightAmount: true),
+      (d) => d.weightAmount,
+    ),
+    'weightType': (
+      (d) => d.copyWith(clearWeightType: true),
+      (d) => d.weightType,
+    ),
   };
 
-  test('the table covers all twenty-nine values', () {
-    expect(cases, hasLength(29));
+  test('the table covers all fifty-two values', () {
+    expect(cases, hasLength(52));
   });
 
   for (final entry in cases.entries) {
@@ -174,6 +263,14 @@ void main() {
     });
   }
 
+  test('clearSetpoints still clears low and high and leaves deco', () {
+    final d = full.copyWith(clearSetpoints: true);
+    expect(
+      (d.setpointLow, d.setpointHigh, d.setpointDeco),
+      (null, null, full.setpointDeco),
+    );
+  });
+
   test('a clear flag wins over a value passed with it', () {
     expect(full.copyWith(altitude: 5, clearAltitude: true).altitude, isNull);
   });
@@ -192,6 +289,10 @@ void main() {
       full.copyWith(waterType: WaterType.fresh, clearWaterType: true).waterType,
       isNull,
     );
+  });
+
+  test('a clear flag wins over a depth passed with it', () {
+    expect(full.copyWith(maxDepth: 30.0, clearMaxDepth: true).maxDepth, isNull);
   });
 
   test('a value passed without the flag still replaces the old one', () {

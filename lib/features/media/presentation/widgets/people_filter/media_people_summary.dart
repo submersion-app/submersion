@@ -1,3 +1,4 @@
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/media/presentation/widgets/people_filter/media_people_selection.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -21,7 +22,7 @@ String mediaPeopleSummary(
   final named = [
     for (final b in buddies ?? const <Buddy>[])
       if (picked.contains(b.id)) b.name,
-  ]..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+  ]..sort((a, b) => compareTextForSort(a, b));
   // Removed buddies all share one label, so it is named once and the
   // rest of them counted, rather than read out as "Removed buddy, Removed
   // buddy".

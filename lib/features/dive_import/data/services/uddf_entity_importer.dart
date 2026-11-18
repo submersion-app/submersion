@@ -101,6 +101,7 @@ import 'package:submersion/features/trips/domain/services/trip_for_dive_date.dar
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/core/text/blank_text.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
+import 'package:submersion/features/marine_life/data/services/species_catalogue_restorer.dart';
 import 'package:submersion/features/marine_life/data/services/imported_species_resolver.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/services/payload_merger.dart';
@@ -917,6 +918,14 @@ class UddfEntityImporter {
             certResolver,
           );
 
+    // The species catalogue (issue #4578) restores with no selection step,
+    // like the currency rules: a species no dive sighted has no other way
+    // back. Before the dives, so their sightings link to the restored rows.
+    final speciesRepository = repositories.speciesRepository;
+    if (speciesRepository != null && !stopped()) {
+      await restoreSpeciesCatalogue(data.species, speciesRepository);
+    }
+
     // Skipped as a whole rather than left to its own loop, which registers
     // the batch's computers before it reaches its first dive.
     final divesResult = stopped()
@@ -1301,6 +1310,8 @@ class UddfEntityImporter {
         name: name,
         email: buddyData['email'] as String?,
         phone: buddyData['phone'] as String?,
+        // The repository reads the country code from the text.
+        country: buddyData['country'] as String?,
         photo: await importedImage(buddyData['photo'], ImageEncodeSpec.avatar),
         notes: buddyData['notes'] as String? ?? '',
         createdAt: now,

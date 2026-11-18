@@ -12,6 +12,11 @@ import 'package:submersion/features/dive_log/presentation/widgets/safety_finding
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_safety_sitting.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 /// Whether [review] has any finding to show, with the review [enabled] and
 /// the diver's [disabled] rules filtered out.
@@ -38,7 +43,12 @@ bool hasVisibleSafetyFindings(
 class SafetyReviewSection extends ConsumerStatefulWidget {
   final String diveId;
 
-  const SafetyReviewSection({required this.diveId, super.key});
+  /// The open Safety review card's sitting (issue #4527): dismissing and
+  /// restoring go there, held until Save. On a page that offers editing
+  /// and with no sitting given, the findings read only.
+  final EditSession<Dive>? editing;
+
+  const SafetyReviewSection({required this.diveId, this.editing, super.key});
 
   @override
   ConsumerState<SafetyReviewSection> createState() =>
@@ -53,7 +63,18 @@ class _SafetyReviewSectionState extends ConsumerState<SafetyReviewSection> {
   Widget build(BuildContext context) {
     final enabled = ref.watch(safetyReviewEnabledProvider);
     final disabled = ref.watch(safetyReviewDisabledRulesProvider);
-    final review = ref.watch(safetyReviewProvider(widget.diveId)).value;
+    final stored = ref.watch(safetyReviewProvider(widget.diveId)).value;
+    final scope = RecordEditScope.maybeOf<Dive>(context);
+    final editing = widget.editing;
+    final session = editing ?? scope?.session;
+    // A page that offers editing changes findings in the open card only;
+    // during a sitting every view shows its dismissals. Off such a page the
+    // card dismisses at once: the planner's logged dive results show it with
+    // no dive lock (issue #4673), so that path stays.
+    final readOnly = scope != null && editing == null;
+    final review = stored == null || session == null
+        ? stored
+        : reviewInSitting(session, stored);
     if (!hasVisibleSafetyFindings(
       review,
       enabled: enabled,
@@ -83,6 +104,11 @@ class _SafetyReviewSectionState extends ConsumerState<SafetyReviewSection> {
           color: Theme.of(context).colorScheme.onSurfaceVariant,
         ),
       ),
+      // Its pencil, while the dive is unlocked: in the header's actions,
+      // which show expanded as well as collapsed.
+      headerActions: RecordCardPencil(
+        cardTitle: l10n.safetyReview_sectionTitle,
+      ),
       isExpanded: _expanded,
       onToggle: (expanded) => setState(() => _expanded = expanded),
       info: (context) => safetyReviewInfo(
@@ -99,8 +125,9 @@ class _SafetyReviewSectionState extends ConsumerState<SafetyReviewSection> {
               units: units,
               selected: selectedFinding?.id == finding.id,
               onTap: _tapHandlerFor(finding),
-              onDismissChanged: (dismissed) =>
-                  _setDismissed(finding, dismissed),
+              onDismissChanged: readOnly
+                  ? null
+                  : (dismissed) => _setDismissed(finding, dismissed),
             ),
           // Footer: the dismissed-findings toggle on the left, the bulk
           // action on the right. The bulk action flips to "restore all"
@@ -125,14 +152,18 @@ class _SafetyReviewSectionState extends ConsumerState<SafetyReviewSection> {
                       l10n.safetyReview_showDismissed(dismissed.length),
                     ),
                   ),
-                TextButton(
-                  onPressed: () => _onBulkPressed(active.isNotEmpty),
-                  child: Text(
-                    active.isNotEmpty
-                        ? l10n.safetyReview_dismissAll
-                        : l10n.safetyReview_restoreAll,
+                if (!readOnly)
+                  TextButton(
+                    onPressed: () => _onBulkPressed(
+                      active.isNotEmpty,
+                      active.isNotEmpty ? active : dismissed,
+                    ),
+                    child: Text(
+                      active.isNotEmpty
+                          ? l10n.safetyReview_dismissAll
+                          : l10n.safetyReview_restoreAll,
+                    ),
                   ),
-                ),
               ],
             ),
           ),
@@ -145,8 +176,9 @@ class _SafetyReviewSectionState extends ConsumerState<SafetyReviewSection> {
                   units: units,
                   selected: selectedFinding?.id == finding.id,
                   onTap: _tapHandlerFor(finding),
-                  onDismissChanged: (dismissed) =>
-                      _setDismissed(finding, dismissed),
+                  onDismissChanged: readOnly
+                      ? null
+                      : (dismissed) => _setDismissed(finding, dismissed),
                 ),
               ),
           const SizedBox(height: 8),
@@ -180,7 +212,13 @@ class _SafetyReviewSectionState extends ConsumerState<SafetyReviewSection> {
     );
   }
 
-  Future<void> _setDismissed(SafetyFinding finding, bool dismissed) {
+  Future<void> _setDismissed(SafetyFinding finding, bool dismissed) async {
+    final editing = widget.editing;
+    if (editing != null) {
+      setFindingDismissed(editing, finding, dismissed: dismissed);
+      return;
+    }
+    // At once: the planner's logged dive results, which have no dive lock.
     return setSafetyFindingDismissed(
       ref,
       finding: finding,
@@ -195,7 +233,12 @@ class _SafetyReviewSectionState extends ConsumerState<SafetyReviewSection> {
   /// The button callback cannot await, so a failed write would otherwise reach
   /// the zone handler with no clue where it came from; logFailure attributes
   /// it. The list simply does not change, which is the user-visible signal.
-  void _onBulkPressed(bool dismissed) {
+  void _onBulkPressed(bool dismissed, List<SafetyFinding> findings) {
+    final editing = widget.editing;
+    if (editing != null) {
+      setAllFindingsDismissed(editing, findings, dismissed: dismissed);
+      return;
+    }
     logFailure(
       setAllSafetyFindingsDismissed(
         ref,
@@ -213,7 +256,9 @@ class _FindingTile extends StatelessWidget {
   final UnitFormatter units;
   final bool selected;
   final VoidCallback? onTap;
-  final ValueChanged<bool> onDismissChanged;
+
+  /// Null reads only: the dive is locked, or the card closed in a sitting.
+  final ValueChanged<bool>? onDismissChanged;
 
   const _FindingTile({
     required this.finding,
@@ -244,17 +289,20 @@ class _FindingTile extends StatelessWidget {
               ),
             )
           : null,
-      trailing: IconButton(
-        icon: Icon(
-          finding.isDismissed ? Icons.undo : Icons.close,
-          size: 18,
-          color: colorScheme.onSurfaceVariant,
+      trailing: switch (onDismissChanged) {
+        null => null,
+        final change => IconButton(
+          icon: Icon(
+            finding.isDismissed ? Icons.undo : Icons.close,
+            size: 18,
+            color: colorScheme.onSurfaceVariant,
+          ),
+          tooltip: finding.isDismissed
+              ? l10n.safetyReview_restore
+              : l10n.safetyReview_dismiss,
+          onPressed: () => change(!finding.isDismissed),
         ),
-        tooltip: finding.isDismissed
-            ? l10n.safetyReview_restore
-            : l10n.safetyReview_dismiss,
-        onPressed: () => onDismissChanged(!finding.isDismissed),
-      ),
+      },
     );
   }
 

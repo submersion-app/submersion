@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:submersion/core/deco/scr_calculator.dart';
 import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/core/deco/schedule_policy.dart' show AirBreakPolicy;
 import 'package:submersion/core/constants/card_color.dart';
@@ -25,6 +26,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
+import 'package:submersion/features/dive_types/domain/favourite_dive_types.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 import 'package:submersion/features/insights/domain/observations/observation_rule_id.dart';
 import 'package:submersion/features/insights/domain/trend_gap_threshold.dart';
@@ -97,6 +99,10 @@ class SettingsKeys {
   /// Device-local: whether library thumbnails draw the people, species and
   /// time-in-dive markers (issue #4218).
   static const String mediaTagBadges = 'media_tag_badges';
+
+  /// Device-local: whether a photo is analysed for marine life when it is
+  /// opened in the viewer (issue #4668).
+  static const String identifyFishOnOpen = 'species_id_identify_on_open';
 
   /// Device-local: whether the fullscreen viewers fill the window or take
   /// the desktop window into OS fullscreen.
@@ -645,6 +651,14 @@ class AppSettings implements UnitFormatterSettings {
   /// profile (issue #4530)
   final bool defaultShowCounterdiffusion;
 
+  /// Default visibility for the net buoyancy line on the dive profile
+  /// (issue #4593)
+  final bool defaultShowBuoyancy;
+
+  /// The dive types this diver starred, listed first in the dive type
+  /// pickers (issue #4413). Ids that match no type are ignored.
+  final Set<String> favouriteDiveTypeIds;
+
   /// Whether synthesized ("(est.)") tank pressure lines are drawn on the dive
   /// profile at all. Off means the estimate is never built, so no legend chip,
   /// tooltip row, or chart-options entry appears for it (issue #731).
@@ -706,6 +720,13 @@ class AppSettings implements UnitFormatterSettings {
   final int plannerDeviationTimeMinutes;
   final double plannerBatteryReserveFraction;
   final double plannerWalkSpeedMps;
+
+  /// The planner's semi-closed loop defaults, surface L/min (issue #4660):
+  /// the CMF supply injection rate and the diver's VO2 on that loop, and the
+  /// diver's VO2 on a passive (pSCR) loop. A plan's own value wins.
+  final double plannerScrInjectionRate;
+  final double plannerScrVo2;
+  final double plannerPscrVo2;
 
   /// Turn-pressure/air-break global defaults (issue #3552, follow-up to
   /// v304-306). Nullable, unlike the fields above: null = no rule/no
@@ -939,6 +960,8 @@ class AppSettings implements UnitFormatterSettings {
     this.defaultShowGasTimeline = false,
     this.defaultShowO2CellMv = false,
     this.defaultShowCounterdiffusion = false,
+    this.defaultShowBuoyancy = false,
+    this.favouriteDiveTypeIds = const {},
     this.defaultShowEstimatedTankPressure = true,
     this.defaultShowAscentRateLine = false,
     // Notification defaults
@@ -968,6 +991,9 @@ class AppSettings implements UnitFormatterSettings {
     this.plannerDeviationTimeMinutes = 5,
     this.plannerBatteryReserveFraction = 1.0 / 3.0,
     this.plannerWalkSpeedMps = 0.8,
+    this.plannerScrInjectionRate = ScrCalculator.defaultInjectionRateLpm,
+    this.plannerScrVo2 = ScrCalculator.defaultVo2,
+    this.plannerPscrVo2 = ScrCalculator.defaultPscrVo2,
     this.plannerTurnPressureRule,
     this.plannerTurnPressureFraction,
     this.plannerAirBreakO2Seconds,
@@ -1175,6 +1201,8 @@ class AppSettings implements UnitFormatterSettings {
     bool? defaultShowGasTimeline,
     bool? defaultShowO2CellMv,
     bool? defaultShowCounterdiffusion,
+    bool? defaultShowBuoyancy,
+    Set<String>? favouriteDiveTypeIds,
     bool? defaultShowEstimatedTankPressure,
     bool? defaultShowAscentRateLine,
     bool? notificationsEnabled,
@@ -1203,6 +1231,9 @@ class AppSettings implements UnitFormatterSettings {
     int? plannerDeviationTimeMinutes,
     double? plannerBatteryReserveFraction,
     double? plannerWalkSpeedMps,
+    double? plannerScrInjectionRate,
+    double? plannerScrVo2,
+    double? plannerPscrVo2,
     domain.TurnPressureRule? plannerTurnPressureRule,
     bool clearPlannerTurnPressureRule = false,
     double? plannerTurnPressureFraction,
@@ -1417,6 +1448,8 @@ class AppSettings implements UnitFormatterSettings {
       defaultShowO2CellMv: defaultShowO2CellMv ?? this.defaultShowO2CellMv,
       defaultShowCounterdiffusion:
           defaultShowCounterdiffusion ?? this.defaultShowCounterdiffusion,
+      defaultShowBuoyancy: defaultShowBuoyancy ?? this.defaultShowBuoyancy,
+      favouriteDiveTypeIds: favouriteDiveTypeIds ?? this.favouriteDiveTypeIds,
       defaultShowEstimatedTankPressure:
           defaultShowEstimatedTankPressure ??
           this.defaultShowEstimatedTankPressure,
@@ -1461,6 +1494,10 @@ class AppSettings implements UnitFormatterSettings {
       plannerBatteryReserveFraction:
           plannerBatteryReserveFraction ?? this.plannerBatteryReserveFraction,
       plannerWalkSpeedMps: plannerWalkSpeedMps ?? this.plannerWalkSpeedMps,
+      plannerScrInjectionRate:
+          plannerScrInjectionRate ?? this.plannerScrInjectionRate,
+      plannerScrVo2: plannerScrVo2 ?? this.plannerScrVo2,
+      plannerPscrVo2: plannerPscrVo2 ?? this.plannerPscrVo2,
       plannerTurnPressureRule: clearPlannerTurnPressureRule
           ? null
           : (plannerTurnPressureRule ?? this.plannerTurnPressureRule),
@@ -2381,6 +2418,14 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     return s.copyWith(hiddenBuiltInIds: next);
   });
 
+  /// Stars or unstars a dive type, which lists it first in the dive type
+  /// pickers (issue #4413).
+  Future<void> setDiveTypeFavourite(String id, bool favourite) => _update((s) {
+    final next = withDiveTypeFavourite(s.favouriteDiveTypeIds, id, favourite);
+    if (identical(next, s.favouriteDiveTypeIds)) return s;
+    return s.copyWith(favouriteDiveTypeIds: next);
+  });
+
   Future<void> setApplyDefaultTankToImports(bool value) =>
       _update((s) => s.copyWith(applyDefaultTankToImports: value));
 
@@ -2817,6 +2862,15 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   Future<void> setPlannerWalkSpeedMps(double value) =>
       _update((s) => s.copyWith(plannerWalkSpeedMps: value));
 
+  Future<void> setPlannerScrInjectionRate(double value) =>
+      _update((s) => s.copyWith(plannerScrInjectionRate: value));
+
+  Future<void> setPlannerScrVo2(double value) =>
+      _update((s) => s.copyWith(plannerScrVo2: value));
+
+  Future<void> setPlannerPscrVo2(double value) =>
+      _update((s) => s.copyWith(plannerPscrVo2: value));
+
   Future<void> setPlannerTurnPressureRule(domain.TurnPressureRule? value) =>
       _update(
         (s) => s.copyWith(
@@ -3173,6 +3227,9 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setDefaultShowCounterdiffusion(bool value) =>
       _update((s) => s.copyWith(defaultShowCounterdiffusion: value));
+
+  Future<void> setDefaultShowBuoyancy(bool value) =>
+      _update((s) => s.copyWith(defaultShowBuoyancy: value));
 
   Future<void> setDefaultShowEstimatedTankPressure(bool value) =>
       _update((s) => s.copyWith(defaultShowEstimatedTankPressure: value));

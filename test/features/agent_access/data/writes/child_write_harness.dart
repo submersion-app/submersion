@@ -23,12 +23,16 @@ class _Allow implements WriteConfirmer {
 /// `d2` for diver B.
 class ChildWriteHarness {
   /// [catalog] swaps in other writers, such as a probe a test watches.
+  /// [activeDiverId] reads the active diver, diver A unless a test switches.
   ChildWriteHarness(
     this.db, {
     WriteCatalog Function(RecordRepositories repositories)? catalog,
+    Future<String?> Function()? activeDiverId,
   }) : records = RecordHarness(db),
        // Diver A is active, as resolveDiver below says.
-       _repositories = RecordRepositories(activeDiverId: () async => kDiverA) {
+       _repositories = RecordRepositories(
+         activeDiverId: activeDiverId ?? () async => kDiverA,
+       ) {
     writes = (catalog ?? WriteCatalog.new)(_repositories);
   }
 

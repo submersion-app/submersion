@@ -132,6 +132,156 @@ void main() {
       expect(difficulty.left, lessThan(rating.left));
     });
 
+    // Issue #4583: a top-aligned row left blank space under the shorter card.
+    testWidgets('paired cards of different heights end level', (tester) async {
+      await _pump(
+        tester,
+        width: 1400,
+        sections: _config(),
+        cards: {
+          ..._allCards(),
+          SiteDetailSectionId.rating: (_) => const Card(
+            child: SizedBox(height: 160, child: Text('CARD_rating')),
+          ),
+        },
+      );
+
+      final difficulty = _rectOf(tester, SiteDetailSectionId.difficulty);
+      final rating = _rectOf(tester, SiteDetailSectionId.rating);
+      expect(difficulty.height, rating.height);
+      expect(difficulty.bottom, rating.bottom);
+    });
+
+    group('the card after a pair', () {
+      // Rating is tall, so Difficulty's column has room under it.
+      Map<SiteDetailSectionId, WidgetBuilder?> tallRating({
+        double depthHeight = 40,
+      }) => {
+        ..._allCards(),
+        SiteDetailSectionId.rating: (_) => const Card(
+          child: SizedBox(height: 200, child: Text('CARD_rating')),
+        ),
+        SiteDetailSectionId.depth: (_) => Card(
+          child: SizedBox(height: depthHeight, child: const Text('CARD_depth')),
+        ),
+      };
+      List<SiteDetailSectionConfig> after(SiteDetailSectionId next) => _config(
+        order: [
+          SiteDetailSectionId.difficulty,
+          SiteDetailSectionId.rating,
+          next,
+          ...SiteDetailSectionId.values.where(
+            (id) =>
+                id != SiteDetailSectionId.difficulty &&
+                id != SiteDetailSectionId.rating &&
+                id != next,
+          ),
+        ],
+      );
+
+      testWidgets('moves up under the shorter half when it fits', (
+        tester,
+      ) async {
+        await _pump(
+          tester,
+          width: 1400,
+          sections: after(SiteDetailSectionId.depth),
+          cards: tallRating(),
+        );
+
+        final difficulty = _rectOf(tester, SiteDetailSectionId.difficulty);
+        final depth = _rectOf(tester, SiteDetailSectionId.depth);
+        final rating = _rectOf(tester, SiteDetailSectionId.rating);
+        expect(depth.left, difficulty.left);
+        expect(depth.width, difficulty.width);
+        expect(depth.top, greaterThan(difficulty.bottom));
+        expect(depth.bottom, rating.bottom);
+      });
+
+      testWidgets('too tall for the space, it stays full width below', (
+        tester,
+      ) async {
+        await _pump(
+          tester,
+          width: 1400,
+          sections: after(SiteDetailSectionId.depth),
+          cards: tallRating(depthHeight: 300),
+        );
+
+        final depth = _rectOf(tester, SiteDetailSectionId.depth);
+        final rating = _rectOf(tester, SiteDetailSectionId.rating);
+        expect(depth.top, greaterThan(rating.bottom));
+        expect(depth.width, greaterThan(rating.width * 2));
+      });
+
+      testWidgets('a full-width card such as the map stays below', (
+        tester,
+      ) async {
+        await _pump(
+          tester,
+          width: 1400,
+          sections: after(SiteDetailSectionId.location),
+          cards: tallRating(),
+        );
+
+        final location = _rectOf(tester, SiteDetailSectionId.location);
+        expect(
+          location.top,
+          greaterThan(_rectOf(tester, SiteDetailSectionId.rating).bottom),
+        );
+        expect(
+          find.descendant(
+            of: find.byType(ResponsiveSectionPair).first,
+            matching: find.text('CARD_location'),
+          ),
+          findsNothing,
+        );
+      });
+
+      testWidgets('a card that forms a pair of its own stays in it', (
+        tester,
+      ) async {
+        await _pump(
+          tester,
+          width: 1400,
+          sections: after(SiteDetailSectionId.hazards),
+          cards: tallRating(),
+        );
+
+        final hazardsPair = find.ancestor(
+          of: find.text('CARD_hazards'),
+          matching: find.byType(ResponsiveSectionPair),
+        );
+        expect(
+          find.descendant(of: hazardsPair, matching: find.text('CARD_access')),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(
+            of: hazardsPair,
+            matching: find.text('CARD_difficulty'),
+          ),
+          findsNothing,
+        );
+      });
+
+      testWidgets('stacked on a narrow pane, it follows the pair', (
+        tester,
+      ) async {
+        await _pump(
+          tester,
+          width: 390,
+          sections: after(SiteDetailSectionId.depth),
+          cards: tallRating(),
+        );
+
+        final rating = _rectOf(tester, SiteDetailSectionId.rating);
+        final depth = _rectOf(tester, SiteDetailSectionId.depth);
+        expect(depth.top - rating.bottom, greaterThanOrEqualTo(12));
+        expect(depth.left, rating.left);
+      });
+    });
+
     testWidgets('the pair stacks on a narrow pane', (tester) async {
       await _pump(tester, width: 390, sections: _config());
 
