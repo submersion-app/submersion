@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_routes.dart';
@@ -80,6 +81,42 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text(l.recordEdit_unlockToUseThese), findsOneWidget);
     expect(page.save.calls, isEmpty);
+  });
+
+  // On a device that attaches media the locked pane's Media card still
+  // offers no Add: the pane holds the sitting's scope, which makes the
+  // card read only until it is unlocked and opened.
+  group('on a device that attaches media', () {
+    final attaches = [
+      deviceCapabilitiesProvider.overrideWithValue(
+        currentDeviceCapabilities().copyWith(mediaAttach: true),
+      ),
+    ];
+    final addMedia = find.byTooltip(l.media_diveMediaSection_addTooltip);
+
+    testWidgets('a locked pane offers no media Add', (tester) async {
+      await pumpSitePage(tester, embedded: true, extra: attaches);
+      await tester.scrollUntilVisible(
+        find.text(l.diveSites_detail_section_notes),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+
+      expect(addMedia, findsNothing);
+    });
+
+    testWidgets('with the switch off the pane offers it as today', (
+      tester,
+    ) async {
+      await pumpSitePage(
+        tester,
+        embedded: true,
+        unlockEditing: false,
+        extra: attaches,
+      );
+
+      expect(addMedia, findsOneWidget);
+    });
   });
 
   group('the list\'s edit pane', () {

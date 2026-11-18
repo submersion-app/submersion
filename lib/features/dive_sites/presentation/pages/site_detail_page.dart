@@ -158,6 +158,21 @@ class _SiteDetailPageState extends ConsumerState<SiteDetailPage> {
   /// the list pane on the first build still asks the pane to unlock.
   bool _built = false;
 
+  /// Whether the site's sitting is open: the page stays where it is while
+  /// it is, since moving into the pane would drop what is being edited.
+  bool _sittingOpen = false;
+
+  void _noteSittingOpen(bool open) {
+    if (open == _sittingOpen) return;
+    _sittingOpen = open;
+    // Ended on a window that has since widened: the page moves now.
+    if (!open) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() {});
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final firstBuild = !_built;
@@ -167,6 +182,7 @@ class _SiteDetailPageState extends ConsumerState<SiteDetailPage> {
     // say, stays put: the redirect's go() would erase the page under it
     // and its back arrow (#3292).
     if (!_hasRedirected &&
+        !_sittingOpen &&
         shouldRedirectToMasterDetail(
           context,
           embedded: widget.embedded,
@@ -217,6 +233,7 @@ class _SiteDetailPageState extends ConsumerState<SiteDetailPage> {
           // pane's.
           openUnlocked: widget.openUnlocked && !_hasRedirected,
           onSittingEnded: widget.onSittingEnded,
+          onSittingOpenChanged: _noteSittingOpen,
         );
       },
       loading: () {
@@ -259,6 +276,9 @@ class _SiteDetailContent extends ConsumerStatefulWidget {
   final bool openUnlocked;
   final VoidCallback? onSittingEnded;
 
+  /// Told whether the sitting is open each time it changes.
+  final ValueChanged<bool>? onSittingOpenChanged;
+
   const _SiteDetailContent({
     required this.site,
     required this.siteId,
@@ -268,6 +288,7 @@ class _SiteDetailContent extends ConsumerStatefulWidget {
     this.unlockEditing = false,
     this.openUnlocked = false,
     this.onSittingEnded,
+    this.onSittingOpenChanged,
   });
 
   @override
@@ -298,6 +319,8 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
   @override
   void onEditChanged() {
     noteOpenedSittingEnded();
+    // A page leaving a site it deleted or removed has nothing to move.
+    if (!_leftForGood) widget.onSittingOpenChanged?.call(isSittingOpen);
     super.onEditChanged();
   }
 
@@ -911,14 +934,16 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
       return _addToLibrary(context, ref, site);
     }
     if (action == 'unhide') {
-      // A failed unhide says so (issue #2677).
-      await runHideChange(
+      // A failed unhide says so (issue #2677) and wrote nothing.
+      final unhidden = await runHideChange(
         ScaffoldMessenger.of(context),
         context.l10n,
-        () =>
-            ref.read(siteListNotifierProvider.notifier).unhideSites([site.id]),
+        () => ref
+            .read(siteListNotifierProvider.notifier)
+            .unhideSites([site.id])
+            .then((_) => true),
       );
-      return true;
+      return unhidden == true;
     }
     if (action == 'delete') {
       final divers = await ref.read(allDiversProvider.future);

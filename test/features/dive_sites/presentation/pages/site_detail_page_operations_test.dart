@@ -174,6 +174,31 @@ void main() {
     expect(find.byType(RecordEditBar), findsOneWidget);
   });
 
+  // A failed unhide wrote nothing: the sitting stays as it was, the card
+  // the diver had open still open.
+  testWidgets('a failed Unhide keeps the open card open', (tester) async {
+    final (_, sites) = await pump(
+      tester,
+      site: harnessSite.copyWith(diverId: 'other'),
+      divers: const ['me', 'other'],
+      hidden: true,
+    );
+    sites.failUnhide = true;
+    await unlock(tester);
+    await tester.ensureVisible(find.text(l.diveSites_detail_section_notes));
+    await tester.tap(find.text(l.diveSites_detail_section_notes));
+    await tester.pumpAndSettle();
+    expect(find.byType(TextFormField), findsWidgets);
+
+    await openMenu(tester);
+    await tester.tap(find.text(l.sharedItems_unhideAction));
+    await tester.pumpAndSettle();
+
+    expect(sites.unhidden, isEmpty);
+    expect(find.text(l.common_error_tryAgain), findsOneWidget);
+    expect(find.byType(TextFormField), findsWidgets);
+  });
+
   testWidgets('the full page menu offers Delete to the owner', (tester) async {
     await pump(tester);
     await openMenu(tester);
@@ -254,6 +279,7 @@ class _RecordingSites extends StateNotifier<AsyncValue<List<DiveSite>>>
   final hidden = <String>[];
   final deleted = <String>[];
   final unhidden = <String>[];
+  bool failUnhide = false;
 
   @override
   Future<int> hideSites(List<String> ids) async {
@@ -268,7 +294,10 @@ class _RecordingSites extends StateNotifier<AsyncValue<List<DiveSite>>>
   }
 
   @override
-  Future<void> unhideSites(List<String> ids) async => unhidden.addAll(ids);
+  Future<void> unhideSites(List<String> ids) async {
+    if (failUnhide) throw StateError('unhide failed');
+    unhidden.addAll(ids);
+  }
 
   @override
   Future<void> refresh() async {}

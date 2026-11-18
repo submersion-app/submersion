@@ -141,6 +141,32 @@ void main() {
     expect(landed.queryParameters.containsKey('mode'), isFalse);
   });
 
+  // A window widened during a sitting keeps the page, and the sitting,
+  // until it ends: the move into the pane would drop what is being edited.
+  testWidgets('a window widened during a sitting moves into the pane only '
+      'once it ends', (tester) async {
+    final page = await pumpSitePage(tester, initialLocation: '/root-site');
+    await unlock(tester);
+    await openNotes(tester);
+    await typeNotes(tester, 'Choppy');
+
+    tester.view.physicalSize = const Size(1400, 1000);
+    addTearDown(tester.view.reset);
+    await tester.pumpAndSettle();
+
+    final router = page.router!.routerDelegate;
+    expect(router.currentConfiguration.uri.path, '/root-site');
+    expect(find.text('Choppy'), findsOneWidget);
+
+    await save(tester);
+
+    expect(page.save.calls, hasLength(1));
+    final landed = router.currentConfiguration.uri;
+    expect(landed.path, '/sites');
+    expect(landed.queryParameters['selected'], 's1');
+    expect(landed.queryParameters.containsKey('mode'), isFalse);
+  });
+
   // A stale edit link on a site this profile only reads opens it locked,
   // not unlocked and then withdrawn.
   testWidgets('a reader asked to open unlocked stays locked', (tester) async {
