@@ -466,15 +466,24 @@ class _MediaGalleryPager extends StatelessWidget {
       backgroundDecoration: const BoxDecoration(color: Colors.black),
       builder: (context, index) {
         final item = mediaList[index];
+        // A video's still is its poster, sized to the screen (issue #4699).
+        // Drawn as a photo, it resolved the original: a photo-library video
+        // was read whole into memory, hundreds of MB for a 4K clip, and
+        // handed to the image decoder, which cannot read it.
+        final video = item.isVideo;
         return PhotoViewGalleryPageOptions.customChild(
           minScale: PhotoViewComputedScale.contained,
-          maxScale: PhotoViewComputedScale.covered * 3.0,
+          maxScale: video
+              ? PhotoViewComputedScale.contained
+              : PhotoViewComputedScale.covered * 3.0,
           // A full-screen pager: a photo outside a limited selection offers
           // the ways back here, as in the dive viewer (spec 6.3).
           child: MediaItemView(
             item: item,
             fit: BoxFit.contain,
             showAccessActions: true,
+            thumbnail: video,
+            targetSize: video ? MediaQuery.sizeOf(context) : null,
           ),
         );
       },
