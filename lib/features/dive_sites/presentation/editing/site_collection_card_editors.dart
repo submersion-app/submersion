@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_classification_sitting.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_features_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_species_sitting.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/species_picker_dialog.dart';
+import 'package:submersion/features/site_scape/presentation/site_features_section.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_form_block.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -171,6 +173,75 @@ class _SiteSpeciesCardEditorState extends State<SiteSpeciesCardEditor> {
               label: Text(l10n.marineLife_siteSection_editExpectedTooltip),
               onPressed: () => _pick(current),
             ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// The Features card's editor: the features, each opening the sheet whose
+/// answer the sitting holds, and "Add feature", which opens the site's map
+/// armed to place one in the sitting (issue #4527, phase 2).
+class SiteFeaturesCardEditor extends StatefulWidget {
+  const SiteFeaturesCardEditor({
+    super.key,
+    required this.session,
+    this.openSheet,
+  });
+
+  final EditSession<DiveSite> session;
+
+  /// Opens the feature sheet; null is the app's own.
+  final SiteFeatureSheetOpener? openSheet;
+
+  @override
+  State<SiteFeaturesCardEditor> createState() => _SiteFeaturesCardEditorState();
+}
+
+class _SiteFeaturesCardEditorState extends State<SiteFeaturesCardEditor> {
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  @override
+  void didUpdateWidget(SiteFeaturesCardEditor oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.session != widget.session) _load();
+  }
+
+  void _load() {
+    siteFeaturesList.load(widget.session).then((_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final session = widget.session;
+    final placeOnMap = SiteFeaturePlacementScope.maybeOf(context);
+    final openSheet = widget.openSheet;
+    return ListenableBuilder(
+      listenable: session,
+      builder: (context, _) {
+        final current = siteFeaturesList.current(session);
+        if (current == null) return const SizedBox.shrink();
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SiteFeatureRows(
+              features: current,
+              onTap: (feature) => editFeatureInSitting(
+                context,
+                session,
+                feature,
+                openSheet: openSheet,
+              ),
+            ),
+            if (placeOnMap != null)
+              SiteFeatureAddButton(onPressed: () => placeOnMap(session)),
           ],
         );
       },

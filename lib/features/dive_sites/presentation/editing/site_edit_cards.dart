@@ -127,6 +127,16 @@ final Map<SiteDetailSectionId, EditCard<DiveSite>> siteEditCards = {
     isEmpty: (site) => !site.hasAccessInfo,
     editorBuilder: (context, session) => SiteAccessCardEditor(session: session),
   ),
+  SiteDetailSectionId.features: EditCard<DiveSite>(
+    id: SiteDetailSectionId.features.name,
+    title: (context) => context.l10n.siteFeature_sectionTitle,
+    // On the page wherever the site has coordinates, with or without
+    // features; there is nowhere to place one without them.
+    isEmpty: (site) => !site.hasCoordinates,
+    offeredWhenEmpty: (session) => session.working.hasCoordinates,
+    editorBuilder: (context, session) =>
+        SiteFeaturesCardEditor(session: session),
+  ),
   SiteDetailSectionId.marineLife: EditCard<DiveSite>(
     id: SiteDetailSectionId.marineLife.name,
     title: (context) => context.l10n.marineLife_siteSection_title,

@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:uuid/uuid.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart';
 import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
@@ -85,6 +87,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_classification_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_edit_cards.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_sitting_start.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_features_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_species_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/unlock_site_editing_flag.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_edit_save_provider.dart';
@@ -363,7 +366,17 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
         record: widget.site,
         shown: site,
         lockedBar: appBar,
-        content: body,
+        // The Features card's editor opens the map to place in its sitting.
+        content: SiteFeaturePlacementScope(
+          placeOnMap: (session) => _showFullscreenMap(
+            context,
+            ref,
+            session.working,
+            startPlacing: true,
+            session: session,
+          ),
+          child: body,
+        ),
       );
     }
     return Scaffold(appBar: appBar, body: body);
@@ -453,8 +466,10 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
       SiteDetailSectionId.features: () => site.hasCoordinates
           ? (_) => SiteFeaturesSection(
               siteId: site.id,
-              // A library site this profile only reads offers no edits.
-              onAddFeature: _canEditSite(ref, site)
+              // A library site this profile only reads offers no edits, and
+              // a page that holds edits in a sitting edits them only in the
+              // card's editor (issue #4527).
+              onAddFeature: !editing && _canEditSite(ref, site)
                   ? () => _showFullscreenMap(
                       context,
                       ref,
@@ -462,6 +477,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
                       startPlacing: true,
                     )
                   : null,
+              features: _heldList(siteFeaturesList),
             )
           : null,
       // A quarry or lake has no tides, and a nearby ocean station must not
@@ -1143,7 +1159,12 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
                     ),
                   ),
                   BathymetryDepthOverlayLayer(location: site.location),
-                  SiteFeatureMarkerLayer(siteId: site.id),
+                  SiteFeatureMarkerLayer(
+                    siteId: site.id,
+                    // The page edits features only in their open card.
+                    readOnly: hostsEditing,
+                    features: _heldList(siteFeaturesList),
+                  ),
                   MarkerLayer(
                     markers: [
                       Marker(
@@ -1220,6 +1241,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
     DiveSite site, {
     bool initialScape3d = false,
     bool startPlacing = false,
+    EditSession<DiveSite>? session,
   }) {
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -1228,6 +1250,11 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
           controller: _fullController,
           initialScape3d: initialScape3d,
           startPlacing: startPlacing,
+          session: session,
+          sittingHost: session == null ? null : maybeEditController,
+          // On a page that holds edits in a sitting, the map changes
+          // features only for the Features card's editor (issue #4527).
+          readOnly: hostsEditing && session == null,
         ),
       ),
     );

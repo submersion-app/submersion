@@ -1,5 +1,6 @@
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_classification_sitting.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_features_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_species_sitting.dart';
 import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
@@ -30,6 +31,7 @@ void startSiteSitting(EditSession<DiveSite> session, ProviderRead read) {
   siteTypesList.load(session);
   siteTagsList.load(session);
   siteSpeciesList.load(session);
+  siteFeaturesList.load(session);
 }
 
 /// Records that a held write touched [fields] of a library site, for the

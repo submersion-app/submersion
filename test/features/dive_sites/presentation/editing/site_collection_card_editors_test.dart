@@ -3,12 +3,15 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart'
-    hide DiveSite, Species, Tag;
+    hide DiveSite, SiteFeature, Species, Tag;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_classification_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_collection_card_editors.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_feature_repository.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_features_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_header_card_editor.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_plain_fields.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_species_sitting.dart';
@@ -17,6 +20,8 @@ import 'package:submersion/features/dive_sites/presentation/widgets/site_tags_ca
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/site_marine_life_section.dart';
+import 'package:submersion/features/site_scape/presentation/site_feature_sheet.dart';
+import 'package:submersion/features/site_scape/presentation/site_features_section.dart';
 import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
 import 'package:submersion/features/site_types/presentation/providers/site_type_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -232,6 +237,93 @@ void main() {
 
       expect(find.text('Manta'), findsOneWidget);
       expect(find.text('Green turtle'), findsNothing);
+    });
+  });
+
+  group('the Features card', () {
+    const gpsSite = DiveSite(
+      id: 's1',
+      name: 'Blue Hole',
+      location: GeoPoint(12, -68),
+    );
+    late SiteFeature buoy;
+
+    setUp(() async {
+      buoy = await SiteFeatureRepository().addFeature(
+        siteId: 's1',
+        typeName: 'mooring',
+        latitude: 12,
+        longitude: -68,
+        name: 'Buoy',
+      );
+    });
+
+    Future<SiteEditorHarness> pumpFeatures(
+      WidgetTester tester,
+      SiteFeatureSheetResult? answer,
+    ) => pumpSiteEditor(
+      tester,
+      gpsSite,
+      (session) => SiteFeaturesCardEditor(
+        session: session,
+        openSheet: (_, {existing, initialDepthMeters}) async => answer,
+      ),
+      onStart: siteFeaturesList.load,
+    );
+
+    testWidgets('editing a feature in the sheet holds it', (tester) async {
+      final h = await pumpFeatures(
+        tester,
+        const SiteFeatureSheetSave(
+          typeName: 'mooring',
+          name: 'Red buoy',
+          bearingDeg: null,
+          depthMeters: 6,
+          notes: '',
+        ),
+      );
+
+      await tester.tap(find.text('Buoy'));
+      await tester.pumpAndSettle();
+
+      expect(h.session.changedCardIds, {'features'});
+      expect(find.text('Red buoy'), findsOneWidget);
+      final stored = await SiteFeatureRepository().getFeaturesForSite('s1');
+      expect(stored.single.name, 'Buoy');
+    });
+
+    testWidgets('removing in the sheet holds it', (tester) async {
+      final h = await pumpFeatures(tester, const SiteFeatureSheetDelete());
+
+      await tester.tap(find.text('Buoy'));
+      await tester.pumpAndSettle();
+
+      expect(siteFeaturesList.current(h.session), isEmpty);
+      final stored = await SiteFeatureRepository().getFeaturesForSite('s1');
+      expect(stored.single.id, buoy.id);
+    });
+
+    testWidgets('the section shows the features it is given', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: (await getBaseOverrides()).cast<Override>(),
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: SiteFeaturesSection(
+                siteId: 's1',
+                onAddFeature: null,
+                features: [buoy.copyWith(name: 'Held buoy')],
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Held buoy'), findsOneWidget);
+      expect(find.text('Buoy'), findsNothing);
     });
   });
 }
