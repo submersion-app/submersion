@@ -124,6 +124,35 @@ void main() {
     expect(find.byType(Image), findsNothing);
   });
 
+  testWidgets('decodes a photo at the card size, not the original (#4699)', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 3.0;
+    addTearDown(tester.view.reset);
+
+    await _pumpCard(
+      tester,
+      file: _ef('/tmp/missing-file.jpg'),
+      targetDiveId: 'd1',
+    );
+
+    final provider = tester.widget<Image>(find.byType(Image)).image;
+    expect(
+      provider,
+      isA<ResizeImage>(),
+      reason:
+          'an unbounded Image.file decodes the whole original for a 48 px '
+          'square: four 50 MP photos held over 1 GB',
+    );
+    // 48 logical x 3.0 dpr x 2, so a landscape photo still fills the square.
+    expect((provider as ResizeImage).width, 288);
+    expect(
+      provider.height,
+      isNull,
+      reason: 'both dimensions would decode to exact bounds and distort',
+    );
+  });
+
   // Note: the `errorBuilder` for `Image.file` in `FileReviewCard` is the
   // broken-image fallback. It is not exercised here because `FileImage`'s
   // load failure is dispatched on the asynchronous decoder isolate and

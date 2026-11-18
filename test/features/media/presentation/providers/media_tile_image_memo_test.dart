@@ -43,10 +43,15 @@ void main() {
 
   /// Puts a decoded image in the image cache under the key a tile showing
   /// [file] at [cacheWidth] uses.
-  Future<Object> seed(File file, int cacheWidth) async {
+  Future<Object> seed(
+    File file,
+    int cacheWidth, {
+    bool longEdge = false,
+  }) async {
     final key = await MediaTileImageMemo.providerFor(
       file,
       cacheWidth,
+      longEdge: longEdge,
     ).obtainKey(ImageConfiguration.empty);
     imageCache.putIfAbsent(
       key,
@@ -120,6 +125,54 @@ void main() {
       ),
       isNull,
     );
+  });
+
+  test('a full-screen decode bounded on its long edge is found only by a '
+      'long-edge lookup, and evicted with the item (#4699)', () async {
+    final memo = MediaTileImageMemo();
+    final file = fileNamed('full2.jpg');
+    memo.remember(
+      item('m1'),
+      thumbnail: false,
+      cacheWidth: 2400,
+      file: file,
+      longEdge: true,
+    );
+    final key = await seed(file, 2400, longEdge: true);
+
+    final provider = memo.cachedProvider(
+      item('m1'),
+      thumbnail: false,
+      cacheWidth: 2400,
+      longEdge: true,
+    );
+    expect(await provider!.obtainKey(ImageConfiguration.empty), key);
+    expect(
+      memo.cachedProvider(item('m1'), thumbnail: false, cacheWidth: 2400),
+      isNull,
+      reason: 'a width-bounded decode of the same width is another image',
+    );
+
+    await memo.evictItems(['m1']);
+    expect(imageCache.containsKey(key), isFalse);
+  });
+
+  test('bounded fits a full-screen decode inside a square, and leaves a '
+      'tile bounded by width', () {
+    final base = FileImage(fileNamed('b.jpg'));
+
+    final full =
+        MediaTileImageMemo.bounded(base, 2400, longEdge: true) as ResizeImage;
+    expect(full.width, 2400);
+    expect(full.height, 2400);
+    expect(full.policy, ResizeImagePolicy.fit);
+    expect(full.allowUpscaling, isFalse);
+
+    final tile = MediaTileImageMemo.bounded(base, 600) as ResizeImage;
+    expect(tile.width, 600);
+    expect(tile.height, isNull);
+
+    expect(MediaTileImageMemo.bounded(base, null, longEdge: true), base);
   });
 
   test('evictItems takes the decoded images out of memory and forgets the '

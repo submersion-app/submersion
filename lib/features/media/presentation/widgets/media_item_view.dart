@@ -485,9 +485,10 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
       thumbnail: widget.thumbnail,
       cacheWidth: cacheWidth,
       file: file,
+      longEdge: _fullScreen,
     );
     return _correctedImage(
-      MediaTileImageMemo.providerFor(file, cacheWidth),
+      MediaTileImageMemo.providerFor(file, cacheWidth, longEdge: _fullScreen),
       resolved: true,
     );
   }
@@ -561,8 +562,11 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
         // Grouped views build every tile of every group eagerly (shrinkWrap),
         // and the library page now stays mounted underneath a pushed dive, so
         // those decodes would otherwise stay resident for the whole visit.
-        // Width only: passing both dimensions decodes to exact bounds and
-        // distorts the aspect ratio.
+        // A tile bounds the width only: passing both dimensions decodes to
+        // exact bounds and distorts the aspect ratio. A full-screen view
+        // bounds the long edge instead, fitting inside a square, so a
+        // portrait photo is not decoded at nearly its full size (#4699; see
+        // MediaTileImageMemo.bounded).
         //
         // With no targetSize this used to pass null, which is the FULL-SCREEN
         // viewer's case: media_viewer_page and site_media_viewer_page both
@@ -603,6 +607,7 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
                   widget.item,
                   thumbnail: widget.thumbnail,
                   cacheWidth: cacheWidth,
+                  longEdge: _fullScreen,
                 );
           if (remembered != null) {
             // Remembered for this very item, so its pixels are its own.
@@ -641,6 +646,10 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
             // The same decode bound as the file and bytes branches: without
             // it a served original decodes at native size, and the viewers
             // keep a neighbour built either side of the current page.
+            // Width only, even full screen: the package takes both
+            // dimensions as exact bounds, and the imageBuilder below must
+            // share its cache entry, so a long-edge bound here would
+            // distort the photo or decode it twice.
             memCacheWidth: cacheWidth,
             // Only the loaded image is colour corrected; the placeholder and
             // the error tile below are drawn as they are (issue #3520). The
@@ -661,7 +670,11 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
             },
           ),
           BytesData(bytes: final b) => _correctedImage(
-            ResizeImage.resizeIfNeeded(cacheWidth, null, MemoryImage(b)),
+            MediaTileImageMemo.bounded(
+              MemoryImage(b),
+              cacheWidth,
+              longEdge: _fullScreen,
+            ),
             resolved: true,
           ),
           UnavailableData(kind: UnavailableKind.stillFetching) =>
