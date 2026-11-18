@@ -4,7 +4,6 @@ import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_feature_repository.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart';
-import 'package:submersion/features/dive_sites/presentation/editing/site_sitting_start.dart';
 import 'package:submersion/features/site_scape/presentation/site_feature_sheet.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/sitting_list.dart';
@@ -19,7 +18,7 @@ import 'package:submersion/shared/widgets/record_editing/sitting_list.dart';
 /// that the sitting never loaded is not touched. The order carries no
 /// meaning.
 final siteFeaturesList = SittingList<DiveSite, SiteFeature>(
-  key: siteFeaturesKey,
+  key: 'site.features',
   cardId: SiteDetailSectionId.features.name,
   read: (site) => SiteFeatureRepository().getFeaturesForSite(site.id),
   write: (site, loaded, current) async {

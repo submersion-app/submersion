@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_feature_repository.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -348,4 +349,42 @@ void main() {
       expect(await repo.getFeaturesForSite('site-2'), isEmpty);
     });
   });
+
+  test('a sitting\'s writes (stampLibrary false) leave the permission to '
+      'the sitting', () async {
+    // Asked with no profile, may-edit reads every local profile: one that
+    // only reads a library site would refuse the editor's own sitting.
+    final denying = SiteFeatureRepository(stamper: _DenyingStamper());
+    final f = await repo.addFeature(
+      siteId: 'site-1',
+      typeName: 'mooring',
+      latitude: 1,
+      longitude: 2,
+      name: 'Buoy',
+    );
+
+    await denying.updateFeature(
+      f.copyWith(name: 'Red buoy'),
+      stampLibrary: false,
+    );
+    expect((await repo.getFeaturesForSite('site-1')).single.name, 'Red buoy');
+
+    await denying.addFeature(
+      siteId: 'site-1',
+      typeName: 'wreck',
+      latitude: 1,
+      longitude: 2,
+      stampLibrary: false,
+    );
+    expect(await repo.getFeaturesForSite('site-1'), hasLength(2));
+
+    await denying.deleteFeature(f.id, stampLibrary: false);
+    expect(await repo.getFeaturesForSite('site-1'), hasLength(1));
+  });
+}
+
+/// A stamper that refuses every edit.
+class _DenyingStamper extends LibraryEditStamper {
+  @override
+  Future<bool> mayEdit(String siteId, {String? actingDiverId}) async => false;
 }

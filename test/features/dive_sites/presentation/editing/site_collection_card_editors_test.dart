@@ -27,6 +27,7 @@ import 'package:submersion/features/site_types/presentation/providers/site_type_
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_form_block.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
@@ -195,6 +196,32 @@ void main() {
       expect(find.text('Manta'), findsOneWidget);
       final stored = await SpeciesRepository().getExpectedSpeciesForSite('s1');
       expect(stored.map((e) => e.speciesId), [turtle.id]);
+    });
+
+    testWidgets('a species lookup that fails changes nothing and says so', (
+      tester,
+    ) async {
+      final h = await pumpSiteEditor(
+        tester,
+        site,
+        (session) => SiteSpeciesCardEditor(
+          session: session,
+          pickSpecies: (_, selected) async => {...selected, manta.id},
+          findSpecies: (_) async => throw StateError('offline'),
+        ),
+        onStart: siteSpeciesList.load,
+      );
+
+      await tester.tap(find.byIcon(Icons.add));
+      await tester.pumpAndSettle();
+
+      expect(h.session.isDirty, isFalse);
+      expect(
+        find.text(
+          AppLocalizationsEn().marineLife_siteSection_errorLoadingExpected,
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('removing a species holds it', (tester) async {

@@ -451,14 +451,26 @@ class MediaImportService {
   /// sitting on the site that holds it until Save (issue #4527, phase 2):
   /// the photos already on the site left out the same way, each row under a
   /// fresh id of its own, with no enrichment. Writes nothing.
+  ///
+  /// [ignoringMediaIds] are rows the sitting has unlinked: not on the site
+  /// once it is saved, so a pick of the same photo is taken back.
   Future<List<PreparedMedia>> prepareForSite({
     required List<AssetInfo> selectedAssets,
     required String siteId,
+    Set<String> ignoringMediaIds = const {},
   }) async {
     final newAssets = await _unlinkedOwnedAssets(
       selectedAssets,
-      galleryLinks: () => _mediaRepository.getGalleryLinksForSite(siteId),
-      localPaths: () => _mediaRepository.getLinkedLocalPathsForSite(siteId),
+      galleryLinks: () async => [
+        for (final row in await _mediaRepository.getGalleryLinksForSite(siteId))
+          if (!ignoringMediaIds.contains(row.id)) row,
+      ],
+      localPaths: ignoringMediaIds.isEmpty
+          ? () => _mediaRepository.getLinkedLocalPathsForSite(siteId)
+          : () async => {
+              for (final row in await _mediaRepository.getMediaForSite(siteId))
+                if (!ignoringMediaIds.contains(row.id)) ?row.localPath,
+            },
     );
     final cloudIds = await _cloudIdsFor(newAssets);
     return [

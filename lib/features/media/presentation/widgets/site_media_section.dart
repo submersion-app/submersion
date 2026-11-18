@@ -299,6 +299,7 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
             ref: ref,
             siteId: widget.siteId,
             onHold: (adds) => addMediaToSitting(editing, adds),
+            unlinkedInSitting: sittingMedia(editing).unlinked,
           );
     final VoidCallback? onAddDocument = _readOnly
         ? null

@@ -12,31 +12,46 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 const String _libraryFieldsKey = 'site.libraryFields';
 
-/// The held changes of a site's rows that are not columns of the site.
-const String siteTypesKey = 'site.types';
-const String siteTagsKey = 'site.tags';
-const String siteSpeciesKey = 'site.species';
-const String siteFeaturesKey = 'site.features';
+/// One of the site's rows that are not columns of the site, held as a
+/// list: how a sitting loads it, and the library fields its write changes.
+typedef SiteHeldList = ({
+  String key,
+  Future<void> Function(EditSession<DiveSite> session) load,
+  Set<String> libraryFields,
+});
 
-/// The library fields each held list changes when it is written. A list's
-/// write sees the record, not the sitting, so it cannot note its field
-/// itself ([noteSiteLibraryFields]): a held list is a write of its field.
-const Map<String, Set<String>> _heldLibraryFields = {
-  siteTypesKey: {'siteTypes'},
-  siteTagsKey: {'tags'},
-  siteSpeciesKey: {'species'},
-  siteFeaturesKey: {'features'},
-};
+/// The site's held lists, in one table: each is loaded as a sitting starts
+/// and, once held, is a write of its library fields. A list's write sees
+/// the record, not the sitting, so it cannot note its fields itself
+/// ([noteSiteLibraryFields]); kept together, a list cannot be loaded here
+/// without naming them.
+final List<SiteHeldList> siteHeldLists = [
+  (
+    key: siteTypesList.key,
+    load: siteTypesList.load,
+    libraryFields: {'siteTypes'},
+  ),
+  (key: siteTagsList.key, load: siteTagsList.load, libraryFields: {'tags'}),
+  (
+    key: siteSpeciesList.key,
+    load: siteSpeciesList.load,
+    libraryFields: {'species'},
+  ),
+  (
+    key: siteFeaturesList.key,
+    load: siteFeaturesList.load,
+    libraryFields: {'features'},
+  ),
+];
 
 /// What a sitting on a site needs as it starts, before any card is open
 /// (issue #4527, phase 2): the site's own rows that are not columns of the
 /// site, read now, so each card's read layout can show the sitting's rows
 /// once they change.
 void startSiteSitting(EditSession<DiveSite> session, ProviderRead read) {
-  siteTypesList.load(session);
-  siteTagsList.load(session);
-  siteSpeciesList.load(session);
-  siteFeaturesList.load(session);
+  for (final list in siteHeldLists) {
+    list.load(session);
+  }
   loadSiteSharing(session, read);
   holdSittingMedia(
     session,
@@ -67,7 +82,8 @@ void noteSiteLibraryFields(EditSession<DiveSite> session, Set<String> fields) {
 Set<String> siteLibraryFields(EditSession<DiveSite> session) {
   if (session.isDisposed) return const {};
   return {
-    for (final key in session.heldKeys) ...?_heldLibraryFields[key],
+    for (final list in siteHeldLists)
+      if (session.isHeld(list.key)) ...list.libraryFields,
     ...?session.recall<Set<String>>(_libraryFieldsKey),
   };
 }

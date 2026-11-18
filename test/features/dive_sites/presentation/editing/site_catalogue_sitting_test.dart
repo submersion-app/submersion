@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/providers/provider.dart';
+
 import 'package:submersion/core/database/database.dart' hide DiveSite;
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
@@ -14,6 +16,8 @@ import 'package:submersion/features/dive_sites/presentation/editing/site_classif
 import 'package:submersion/features/dive_sites/presentation/editing/site_plain_fields.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/catalogue_gap_comparison_sheet.dart';
 import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/site_types/presentation/providers/site_type_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_sitting_refusal.dart';
@@ -216,6 +220,78 @@ void main() {
       'position',
       'depth',
       'siteTypes',
+    });
+  });
+
+  test('site types chosen before the types are read are neither filled nor '
+      'declined', () async {
+    // The types list never read: nothing to add the record's types to.
+    final session = EditSession<DiveSite>(site);
+    addTearDown(session.dispose);
+    holdCatalogueReview(
+      session,
+      pair,
+      const ComparisonApply({
+        CatalogueGapField.depth,
+        CatalogueGapField.siteTypes,
+      }),
+      allTypes: [wreck],
+      actingDiverId: 'me',
+    );
+
+    await save(session);
+
+    final stored = (await SiteRepository().getSiteById('s1'))!;
+    expect(stored.catalogueId, 'r1');
+    // Offered again later, not turned down.
+    expect(stored.catalogueAnswers.declined['r1'], {'position'});
+  });
+
+  group('from the page', () {
+    ProviderContainer container0({Object? typesFail}) {
+      final container = ProviderContainer(
+        overrides: [
+          siteTypesProvider.overrideWith((_) async {
+            if (typesFail != null) throw typesFail;
+            return [wreck];
+          }),
+          validatedCurrentDiverIdProvider.overrideWith((_) async => 'me'),
+        ],
+      );
+      addTearDown(container.dispose);
+      return container;
+    }
+
+    test('reads the types, the diver and the list, then holds', () async {
+      final session = EditSession<DiveSite>(site);
+      addTearDown(session.dispose);
+
+      final held = await holdCatalogueReviewFrom(
+        container0(),
+        session,
+        pair,
+        const ComparisonApply({CatalogueGapField.siteTypes}),
+      );
+
+      expect(held, isTrue);
+      expect(siteTypesList.current(session)!.map((t) => t.id), ['wreck']);
+      expect(siteCatalogueReviewed(session), isTrue);
+    });
+
+    test('a lookup that fails holds nothing and says so', () async {
+      final session = EditSession<DiveSite>(site);
+      addTearDown(session.dispose);
+
+      final held = await holdCatalogueReviewFrom(
+        container0(typesFail: StateError('offline')),
+        session,
+        pair,
+        const ComparisonApply({CatalogueGapField.depth}),
+      );
+
+      expect(held, isFalse);
+      expect(session.isDirty, isFalse);
+      expect(siteCatalogueReviewed(session), isFalse);
     });
   });
 }

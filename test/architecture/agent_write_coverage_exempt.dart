@@ -309,6 +309,10 @@ final exempt = <String, String>{
       'owner_kind dive; owner_kind and owner_id are create-only for an '
       'agent, so moving an existing document between owners is done in '
       'the app',
+  'lib/features/documents/data/repositories/document_repository.dart:setOwner':
+      'a record page (a dive, a site) files documents under the record at '
+      'Save (issue #4527, phase 2), as setDiveOwner, which calls it; '
+      'owner_kind and owner_id are create-only for an agent',
   // Planned dives.
   for (final method in const [
     'lib/features/dive_log/data/repositories/dive_repository_impl.dart:createPlannedDive',

@@ -40,6 +40,7 @@ import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_fade.dart';
+import 'package:submersion/shared/widgets/record_editing/sitting_list.dart';
 
 /// The dive's notes, edited on the Notes card.
 final diveNotesField = EditField<Dive, String>(
@@ -59,11 +60,7 @@ final diveTagsField = EditField<Dive, List<Tag>>(
   equals: _sameTagIds,
 );
 
-bool _sameTagIds(List<Tag> a, List<Tag> b) {
-  final ids = {for (final tag in a) tag.id};
-  final others = {for (final tag in b) tag.id};
-  return ids.length == others.length && ids.containsAll(others);
-}
+bool _sameTagIds(List<Tag> a, List<Tag> b) => sameIdSets(a, b, (tag) => tag.id);
 
 /// What a sitting on a dive needs as it starts, before any card is open.
 ///

@@ -1,5 +1,52 @@
 part of 'site_detail_page.dart';
 
+/// Opening the site's fullscreen scape from the detail page.
+mixin _SiteDetailFullscreen
+    on
+        ConsumerState<_SiteDetailContent>,
+        RecordEditHost<_SiteDetailContent, DiveSite> {
+  final MapController _fullController = MapController();
+
+  /// [body] under the scope through which the Features card's editor opens
+  /// the map armed to place a feature in its sitting (issue #4527).
+  Widget _withFeaturePlacement(BuildContext context, Widget body) =>
+      SiteFeaturePlacementScope(
+        placeOnMap: (session) => _showFullscreenMap(
+          context,
+          ref,
+          session.working,
+          startPlacing: true,
+          session: session,
+        ),
+        child: body,
+      );
+
+  void _showFullscreenMap(
+    BuildContext context,
+    WidgetRef ref,
+    DiveSite site, {
+    bool initialScape3d = false,
+    bool startPlacing = false,
+    EditSession<DiveSite>? session,
+  }) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => _FullscreenSiteScapePage(
+          site: site,
+          controller: _fullController,
+          initialScape3d: initialScape3d,
+          startPlacing: startPlacing,
+          session: session,
+          sittingHost: session == null ? null : maybeEditController,
+          // On a page that holds edits in a sitting, the map changes
+          // features only for the Features card's editor (issue #4527).
+          readOnly: hostsEditing && session == null,
+        ),
+      ),
+    );
+  }
+}
+
 /// Fullscreen morphable site scape pushed from the detail page: the same
 /// single-pin map the embedded card shows, with the 2D/3D toggle, and it
 /// can open directly in 3D (the app-bar terrain action).

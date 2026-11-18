@@ -2,17 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/features/dive_sites/data/services/catalogue_sea_name.dart';
-import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_gap_field.dart';
 import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_pair.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_catalogue_sitting.dart';
-import 'package:submersion/features/dive_sites/presentation/editing/site_location_rules.dart';
-import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_gap_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/catalogue_gap_comparison_sheet.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_catalogue_offer_line.dart';
 import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_sharing_sitting.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_sitting_load_on_open.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/shared/widgets/shared_items/item_sharing_field.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
@@ -56,7 +53,8 @@ class SiteHeaderCardEditor extends ConsumerStatefulWidget {
       _SiteHeaderCardEditorState();
 }
 
-class _SiteHeaderCardEditorState extends ConsumerState<SiteHeaderCardEditor> {
+class _SiteHeaderCardEditorState extends ConsumerState<SiteHeaderCardEditor>
+    with SiteSittingLoadOnOpen<SiteHeaderCardEditor> {
   late FieldTextBinding<DiveSite, String> _name = _bindName();
 
   FieldTextBinding<DiveSite, String> _bindName() => FieldTextBinding(
@@ -67,66 +65,44 @@ class _SiteHeaderCardEditorState extends ConsumerState<SiteHeaderCardEditor> {
   );
 
   @override
-  void initState() {
-    super.initState();
-    _loadTypes();
-  }
-
-  @override
   void didUpdateWidget(SiteHeaderCardEditor oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.session == widget.session) return;
     _name.dispose();
     _name = _bindName();
-    _loadTypes();
   }
 
-  /// Reads the site's types afresh unless the diver has changed them, and
-  /// who it is shared with unless read already, and draws them once read:
-  /// keeping them does not notify the sitting.
-  void _loadTypes() {
-    final session = widget.session;
-    siteTypesList.load(session).then((_) {
-      if (mounted) setState(() {});
-    });
-    if (siteSharingLoaded(session) == null) {
-      loadSiteSharing(session, ref.read).then((_) {
-        if (mounted) setState(() {});
-      });
-    }
-  }
+  @override
+  EditSession<DiveSite> sittingOf(SiteHeaderCardEditor widget) =>
+      widget.session;
 
-  /// Holds what the diver chose for [pair], the record's sea named in the
-  /// diver's language as the fill would name it.
+  /// The site's types afresh unless the diver has changed them, and who it
+  /// is shared with unless read already.
+  @override
+  Future<void> loadSitting(EditSession<DiveSite> session) => Future.wait([
+    siteTypesList.load(session),
+    if (siteSharingLoaded(session) == null) loadSiteSharing(session, ref.read),
+  ]);
+
+  /// Holds what the diver chose for [pair]; says so when what it needed
+  /// could not be read, as the Review said a write that failed.
   Future<void> _holdReview(
     CataloguePair pair,
     CatalogueComparisonResult result,
   ) async {
-    final session = widget.session;
-    final container = ProviderScope.containerOf(context, listen: false);
-    final service = container.read(catalogueGapServiceProvider);
-    final bodyOfWater =
-        result is ComparisonApply &&
-            result.fields.contains(CatalogueGapField.bodyOfWater)
-        ? await catalogueSeaInDiversLanguage(
-            pair.record,
-            loadSeas: service.loadSeas,
-            placeNameLanguage: service.placeNameLanguage,
-          )
-        : null;
-    final allTypes = await container.read(siteTypesProvider.future);
-    final diverId = await container.read(
-      validatedCurrentDiverIdProvider.future,
-    );
-    holdCatalogueReview(
-      session,
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+    final held = await holdCatalogueReviewFrom(
+      ProviderScope.containerOf(context, listen: false),
+      widget.session,
       pair,
       result,
-      allTypes: allTypes,
-      actingDiverId: diverId,
-      bodyOfWater: bodyOfWater,
-      fetchElevation: (point) => fetchSiteElevation(container, point),
     );
+    if (!held) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.diveSites_gapReview_error)),
+      );
+    }
   }
 
   /// "Shared with", as the form offered it: never on a library site, which

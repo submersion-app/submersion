@@ -163,4 +163,19 @@ void main() {
     expect(prepared.single.enrichment, isNull);
     verifyNever(mockMediaRepository.createMedia(any));
   });
+
+  test('prepareForSite takes back a photo the sitting has unlinked', () async {
+    when(
+      mockMediaRepository.getGalleryLinksForSite('site-1'),
+    ).thenAnswer((_) async => [_siteRow('a1')]);
+
+    final prepared = await service.prepareForSite(
+      selectedAssets: [_testAsset('a1')],
+      siteId: 'site-1',
+      // Unlinked in the sitting: not on the site once it is saved.
+      ignoringMediaIds: {'media-a1'},
+    );
+
+    expect(prepared.single.item.platformAssetId, 'a1');
+  });
 }

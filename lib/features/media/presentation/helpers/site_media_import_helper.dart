@@ -32,13 +32,18 @@ class SiteMediaImportHelper {
     required String siteId,
     List<String>? initialFilePaths,
     MediaHoldSink? onHold,
+    Set<String> unlinkedInSitting = const {},
   }) async {
     // As this device knows them: a row linked on another device carries that
-    // device's asset id (#885).
+    // device's asset id (#885). One the sitting has unlinked can be picked
+    // again.
     final mediaRepo = ref.read(mediaRepositoryProvider);
     final alreadyLinkedIds = await ref
         .read(linkedGalleryAssetsProvider)
-        .idsOnThisDevice(await mediaRepo.getGalleryLinksForSite(siteId));
+        .idsOnThisDevice([
+          for (final row in await mediaRepo.getGalleryLinksForSite(siteId))
+            if (!unlinkedInSitting.contains(row.id)) row,
+        ]);
     if (!context.mounted) return false;
 
     // Sites have no dive window: open the picker over all time. buffer is
@@ -72,6 +77,7 @@ class SiteMediaImportHelper {
         siteId: siteId,
         selectedAssets: selectedAssets,
         onHold: onHold,
+        unlinkedInSitting: unlinkedInSitting,
       );
     }
     return linkSelectedAssets(
@@ -89,11 +95,16 @@ class SiteMediaImportHelper {
     required String siteId,
     required List<AssetInfo>? selectedAssets,
     required MediaHoldSink onHold,
+    Set<String> unlinkedInSitting = const {},
   }) async {
     if (selectedAssets == null || selectedAssets.isEmpty) return false;
     final prepared = await ref
         .read(mediaImportServiceProvider)
-        .prepareForSite(selectedAssets: selectedAssets, siteId: siteId);
+        .prepareForSite(
+          selectedAssets: selectedAssets,
+          siteId: siteId,
+          ignoringMediaIds: unlinkedInSitting,
+        );
     if (prepared.isEmpty) return false;
     onHold([for (final p in prepared) HeldMediaRow(p)]);
     return true;

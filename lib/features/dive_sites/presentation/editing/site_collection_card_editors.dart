@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/services/logger_service.dart';
+
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_classification_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_features_sitting.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_sitting_load_on_open.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_species_sitting.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
@@ -13,6 +16,8 @@ import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_form_block.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+
+const _log = LoggerService('SiteCollectionCardEditors');
 
 /// The Tags card's editor: the tag input the form uses, limited to site
 /// tags (issue #4527, phase 2).
@@ -28,24 +33,14 @@ class SiteTagsCardEditor extends StatefulWidget {
   State<SiteTagsCardEditor> createState() => _SiteTagsCardEditorState();
 }
 
-class _SiteTagsCardEditorState extends State<SiteTagsCardEditor> {
+class _SiteTagsCardEditorState extends State<SiteTagsCardEditor>
+    with SiteSittingLoadOnOpen<SiteTagsCardEditor> {
   @override
-  void initState() {
-    super.initState();
-    _load();
-  }
+  EditSession<DiveSite> sittingOf(SiteTagsCardEditor widget) => widget.session;
 
   @override
-  void didUpdateWidget(SiteTagsCardEditor oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.session != widget.session) _load();
-  }
-
-  void _load() {
-    siteTagsList.load(widget.session).then((_) {
-      if (mounted) setState(() {});
-    });
-  }
+  Future<void> loadSitting(EditSession<DiveSite> session) =>
+      siteTagsList.load(session);
 
   @override
   Widget build(BuildContext context) {
@@ -67,6 +62,9 @@ class _SiteTagsCardEditorState extends State<SiteTagsCardEditor> {
 typedef SiteSpeciesPicker =
     Future<Set<String>?> Function(BuildContext context, Set<String> selected);
 
+Future<List<Species>> _findSpecies(List<String> ids) =>
+    SpeciesRepository().getAllSpecies(ids: ids);
+
 Future<Set<String>?> _pickSpecies(BuildContext context, Set<String> selected) =>
     showDialog<Set<String>>(
       context: context,
@@ -81,33 +79,28 @@ class SiteSpeciesCardEditor extends StatefulWidget {
     super.key,
     required this.session,
     this.pickSpecies = _pickSpecies,
+    this.findSpecies = _findSpecies,
   });
 
   final EditSession<DiveSite> session;
   final SiteSpeciesPicker pickSpecies;
 
+  /// Reads the species picked that the list does not have yet.
+  final Future<List<Species>> Function(List<String> ids) findSpecies;
+
   @override
   State<SiteSpeciesCardEditor> createState() => _SiteSpeciesCardEditorState();
 }
 
-class _SiteSpeciesCardEditorState extends State<SiteSpeciesCardEditor> {
+class _SiteSpeciesCardEditorState extends State<SiteSpeciesCardEditor>
+    with SiteSittingLoadOnOpen<SiteSpeciesCardEditor> {
   @override
-  void initState() {
-    super.initState();
-    _load();
-  }
+  EditSession<DiveSite> sittingOf(SiteSpeciesCardEditor widget) =>
+      widget.session;
 
   @override
-  void didUpdateWidget(SiteSpeciesCardEditor oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.session != widget.session) _load();
-  }
-
-  void _load() {
-    siteSpeciesList.load(widget.session).then((_) {
-      if (mounted) setState(() {});
-    });
-  }
+  Future<void> loadSitting(EditSession<DiveSite> session) =>
+      siteSpeciesList.load(session);
 
   Future<void> _pick(List<SiteSpeciesEntry> current) async {
     final session = widget.session;
@@ -120,9 +113,28 @@ class _SiteSpeciesCardEditorState extends State<SiteSpeciesCardEditor> {
       for (final id in picked)
         if (!byId.containsKey(id)) id,
     ];
-    final found = added.isEmpty
-        ? const <Species>[]
-        : await SpeciesRepository().getAllSpecies(ids: added);
+    final List<Species> found;
+    try {
+      found = added.isEmpty
+          ? const <Species>[]
+          : await widget.findSpecies(added);
+    } catch (error, stackTrace) {
+      _log.error(
+        'Reading picked species failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              context.l10n.marineLife_siteSection_errorLoadingExpected,
+            ),
+          ),
+        );
+      }
+      return;
+    }
     if (!mounted) return;
     final siteId = session.stored.id;
     siteSpeciesList.set(session, [
@@ -199,24 +211,15 @@ class SiteFeaturesCardEditor extends StatefulWidget {
   State<SiteFeaturesCardEditor> createState() => _SiteFeaturesCardEditorState();
 }
 
-class _SiteFeaturesCardEditorState extends State<SiteFeaturesCardEditor> {
+class _SiteFeaturesCardEditorState extends State<SiteFeaturesCardEditor>
+    with SiteSittingLoadOnOpen<SiteFeaturesCardEditor> {
   @override
-  void initState() {
-    super.initState();
-    _load();
-  }
+  EditSession<DiveSite> sittingOf(SiteFeaturesCardEditor widget) =>
+      widget.session;
 
   @override
-  void didUpdateWidget(SiteFeaturesCardEditor oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.session != widget.session) _load();
-  }
-
-  void _load() {
-    siteFeaturesList.load(widget.session).then((_) {
-      if (mounted) setState(() {});
-    });
-  }
+  Future<void> loadSitting(EditSession<DiveSite> session) =>
+      siteFeaturesList.load(session);
 
   @override
   Widget build(BuildContext context) {

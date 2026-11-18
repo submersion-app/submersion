@@ -1,3 +1,9 @@
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/dive_sites/data/services/catalogue_sea_name.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_gap_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/site_types/presentation/providers/site_type_providers.dart';
 import 'package:submersion/core/geography/country_code.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_catalogue_fill_repository.dart';
 import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_gap_field.dart';
@@ -12,6 +18,8 @@ import 'package:submersion/features/site_types/domain/entities/site_type_entity.
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_sitting_refusal.dart';
+
+const _log = LoggerService('SiteCatalogueSitting');
 
 /// The held change of the catalogue offer's Review, on the header block
 /// (issue #4527, phase 2).
@@ -57,7 +65,12 @@ void holdCatalogueReview(
     case ComparisonKept():
       return;
     case ComparisonApply(:final fields):
-      final chosen = fields.intersection(pair.fields);
+      // Site types need the sitting's list to join: before it is read they
+      // are neither filled nor turned down, so the record offers them again.
+      final unfillable = {
+        if (siteTypesList.current(session) == null) CatalogueGapField.siteTypes,
+      };
+      final chosen = fields.intersection(pair.fields).difference(unfillable);
       _fill(
         session,
         pair,
@@ -71,7 +84,7 @@ void holdCatalogueReview(
           siteId: siteId,
           record: record,
           fields: const {},
-          declined: pair.fields.difference(chosen),
+          declined: pair.fields.difference(chosen).difference(unfillable),
           actingDiverId: actingDiverId,
           stampLibrary: false,
         );
@@ -101,6 +114,56 @@ void holdCatalogueReview(
           actingDiverId: actingDiverId,
         ),
       );
+  }
+}
+
+/// [holdCatalogueReview] from the site page, reading what it needs from
+/// [container]: the record's sea named in the diver's language (as the
+/// fill names it), the site types, the acting diver, and the elevation of
+/// a position the Review gives; the types list is read first when site
+/// types are chosen. Returns false, holding nothing, when a read fails.
+Future<bool> holdCatalogueReviewFrom(
+  ProviderContainer container,
+  EditSession<DiveSite> session,
+  CataloguePair pair,
+  CatalogueComparisonResult result,
+) async {
+  try {
+    final service = container.read(catalogueGapServiceProvider);
+    final fields = result is ComparisonApply
+        ? result.fields
+        : const <CatalogueGapField>{};
+    final bodyOfWater = fields.contains(CatalogueGapField.bodyOfWater)
+        ? await catalogueSeaInDiversLanguage(
+            pair.record,
+            loadSeas: service.loadSeas,
+            placeNameLanguage: service.placeNameLanguage,
+          )
+        : null;
+    if (fields.contains(CatalogueGapField.siteTypes)) {
+      await siteTypesList.load(session);
+    }
+    final allTypes = await container.read(siteTypesProvider.future);
+    final diverId = await container.read(
+      validatedCurrentDiverIdProvider.future,
+    );
+    holdCatalogueReview(
+      session,
+      pair,
+      result,
+      allTypes: allTypes,
+      actingDiverId: diverId,
+      bodyOfWater: bodyOfWater,
+      fetchElevation: (point) => fetchSiteElevation(container, point),
+    );
+    return true;
+  } catch (error, stackTrace) {
+    _log.error(
+      'Could not hold the catalogue Review of site ${session.stored.id}',
+      error: error,
+      stackTrace: stackTrace,
+    );
+    return false;
   }
 }
 

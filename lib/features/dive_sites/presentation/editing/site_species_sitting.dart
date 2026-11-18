@@ -2,7 +2,6 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
-import 'package:submersion/features/dive_sites/presentation/editing/site_sitting_start.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/shared/widgets/record_editing/sitting_list.dart';
@@ -16,7 +15,7 @@ import 'package:submersion/shared/widgets/record_editing/sitting_list.dart';
 /// delete-all-then-add-each would have dropped it. The order carries no
 /// meaning.
 final siteSpeciesList = SittingList<DiveSite, SiteSpeciesEntry>(
-  key: siteSpeciesKey,
+  key: 'site.species',
   cardId: SiteDetailSectionId.marineLife.name,
   read: (site) => SpeciesRepository().getExpectedSpeciesForSite(site.id),
   write: (site, loaded, current) async {
@@ -45,11 +44,7 @@ final siteSpeciesList = SittingList<DiveSite, SiteSpeciesEntry>(
       );
     }
   },
-  same: (a, b) {
-    final ids = {for (final e in a) e.speciesId};
-    final others = {for (final e in b) e.speciesId};
-    return ids.length == others.length && ids.containsAll(others);
-  },
+  same: (a, b) => sameIdSets(a, b, (e) => e.speciesId),
 );
 
 /// [species] as a new expected species of [siteId], drawn as stored ones

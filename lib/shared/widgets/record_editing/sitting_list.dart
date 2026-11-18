@@ -135,3 +135,11 @@ class SittingList<T, E> {
       );
   }
 }
+
+/// Whether [a] and [b] hold the same rows by [id], whatever their order: a
+/// [SittingList.same] for rows whose order carries no meaning.
+bool sameIdSets<E>(List<E> a, List<E> b, String Function(E row) id) {
+  final ids = {for (final row in a) id(row)};
+  final others = {for (final row in b) id(row)};
+  return ids.length == others.length && ids.containsAll(others);
+}

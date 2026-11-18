@@ -2,7 +2,6 @@ import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_plain_fields.dart';
-import 'package:submersion/features/dive_sites/presentation/editing/site_sitting_start.dart';
 import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/shared/widgets/record_editing/sitting_list.dart';
@@ -15,7 +14,7 @@ import 'package:submersion/shared/widgets/record_editing/sitting_list.dart';
 /// list. Their order is the order they were picked, so the same types in
 /// another order are not a change.
 final siteTypesList = SittingList<DiveSite, SiteTypeEntity>(
-  key: siteTypesKey,
+  key: 'site.types',
   cardId: siteHeaderCardId,
   read: (site) => SiteClassificationRepository().getTypesForSite(site.id),
   write: (site, loaded, current) async {
@@ -33,12 +32,12 @@ final siteTypesList = SittingList<DiveSite, SiteTypeEntity>(
       notify: false,
     );
   },
-  same: (a, b) => _sameIdSets(a.map((t) => t.id), b.map((t) => t.id)),
+  same: (a, b) => sameIdSets(a, b, (t) => t.id),
 );
 
 /// The site's tags, edited on the Tags card, written as [siteTypesList] is.
 final siteTagsList = SittingList<DiveSite, Tag>(
-  key: siteTagsKey,
+  key: 'site.tags',
   cardId: SiteDetailSectionId.tags.name,
   read: (site) => SiteClassificationRepository().getTagsForSite(site.id),
   write: (site, loaded, current) async {
@@ -54,7 +53,7 @@ final siteTagsList = SittingList<DiveSite, Tag>(
       notify: false,
     );
   },
-  same: (a, b) => _sameIdSets(a.map((t) => t.id), b.map((t) => t.id)),
+  same: (a, b) => sameIdSets(a, b, (t) => t.id),
 );
 
 /// [stored] less what the sitting removed from [loaded], then what it added
@@ -78,10 +77,4 @@ List<String> mergedIds({
     if (!had.contains(id) && !result.contains(id)) result.add(id);
   }
   return result;
-}
-
-bool _sameIdSets(Iterable<String> a, Iterable<String> b) {
-  final ids = a.toSet();
-  final others = b.toSet();
-  return ids.length == others.length && ids.containsAll(others);
 }

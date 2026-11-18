@@ -238,7 +238,10 @@ class _SiteDetailContent extends ConsumerStatefulWidget {
 }
 
 class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
-    with RecordEditHost<_SiteDetailContent, DiveSite>, _SiteDetailPageEditing {
+    with
+        RecordEditHost<_SiteDetailContent, DiveSite>,
+        _SiteDetailPageEditing,
+        _SiteDetailFullscreen {
   /// Opens the display-options panel from the overflow menu. One controller
   /// serves both headers, since only one of them is ever built.
   final MenuController _displayOptionsMenu = MenuController();
@@ -248,8 +251,6 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
   /// padding alone cost more vertical space than several of the cards' own
   /// content.
   static const _cardPadding = EdgeInsets.all(12);
-
-  final MapController _fullController = MapController();
 
   @override
   void dispose() {
@@ -377,17 +378,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
         record: widget.site,
         shown: site,
         lockedBar: appBar,
-        // The Features card's editor opens the map to place in its sitting.
-        content: SiteFeaturePlacementScope(
-          placeOnMap: (session) => _showFullscreenMap(
-            context,
-            ref,
-            session.working,
-            startPlacing: true,
-            session: session,
-          ),
-          child: body,
-        ),
+        content: _withFeaturePlacement(context, body),
       );
     }
     return Scaffold(appBar: appBar, body: body);
@@ -1242,31 +1233,6 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
             // No map style switcher on the locked preview: the fullscreen map
             // carries one.
           ],
-        ),
-      ),
-    );
-  }
-
-  void _showFullscreenMap(
-    BuildContext context,
-    WidgetRef ref,
-    DiveSite site, {
-    bool initialScape3d = false,
-    bool startPlacing = false,
-    EditSession<DiveSite>? session,
-  }) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => _FullscreenSiteScapePage(
-          site: site,
-          controller: _fullController,
-          initialScape3d: initialScape3d,
-          startPlacing: startPlacing,
-          session: session,
-          sittingHost: session == null ? null : maybeEditController,
-          // On a page that holds edits in a sitting, the map changes
-          // features only for the Features card's editor (issue #4527).
-          readOnly: hostsEditing && session == null,
         ),
       ),
     );
