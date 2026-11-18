@@ -231,14 +231,17 @@ class SiteCatalogueFillRepository {
   /// shared library site this profile may not edit: such a site takes no
   /// part in pairing, whatever the caller still holds from before it lost
   /// the right.
-  Future<void> updateAnswers(
+  ///
+  /// Returns false when that is why nothing was written, so a caller that
+  /// must know (an editing sitting, issue #4527) can refuse.
+  Future<bool> updateAnswers(
     String siteId,
     SiteCatalogueAnswers Function(SiteCatalogueAnswers current) change, {
     String? actingDiverId,
   }) async {
     try {
       if (!await _stamper.mayEdit(siteId, actingDiverId: actingDiverId)) {
-        return;
+        return false;
       }
       final now = DateTime.now().millisecondsSinceEpoch;
       final changed = await _db.transaction(() async {
@@ -274,8 +277,8 @@ class SiteCatalogueFillRepository {
         }
         return true;
       });
-      if (!changed) return;
-      SyncEventBus.notifyLocalChange();
+      if (changed) SyncEventBus.notifyLocalChange();
+      return true;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to update catalogue answers of site $siteId',

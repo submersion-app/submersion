@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_sites/data/repositories/site_catalogue_
 import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_gap_field.dart';
 import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_pair.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_catalogue_answers.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_classification_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_edit_fields.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_location_rules.dart';
@@ -100,7 +101,8 @@ bool holdCatalogueReview(
     case ComparisonNotSame():
       _hold(
         session,
-        () => fills.updateAnswers(
+        () => _answer(
+          fills,
           siteId,
           (answers) => answers.withNotSame(record.id),
           actingDiverId: actingDiverId,
@@ -109,7 +111,8 @@ bool holdCatalogueReview(
     case ComparisonNoThanks():
       _hold(
         session,
-        () => fills.updateAnswers(
+        () => _answer(
+          fills,
           siteId,
           (answers) => answers.withDeclined(record.id, [
             for (final field in pair.fields) field.name,
@@ -194,6 +197,24 @@ Future<bool> _holdCatalogueReviewFrom(
       stackTrace: stackTrace,
     );
     return false;
+  }
+}
+
+/// Writes an answer at Save; one the repository refuses (this profile may
+/// no longer edit the site) fails the whole Save, as a refused link does.
+Future<void> _answer(
+  SiteCatalogueFillRepository fills,
+  String siteId,
+  SiteCatalogueAnswers Function(SiteCatalogueAnswers current) change, {
+  required String? actingDiverId,
+}) async {
+  final written = await fills.updateAnswers(
+    siteId,
+    change,
+    actingDiverId: actingDiverId,
+  );
+  if (!written) {
+    throw RecordSittingRefusal((l10n) => l10n.diveSites_edit_catalogueRefused);
   }
 }
 

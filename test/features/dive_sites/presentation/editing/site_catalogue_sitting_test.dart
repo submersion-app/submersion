@@ -5,6 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/database/database.dart' hide DiveSite;
+import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_catalogue_fill_repository.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_edit_fields.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
@@ -205,6 +208,38 @@ void main() {
     expect(stored.catalogueId, isNull);
   });
 
+  // The profile lost the right to edit the site after the Review: the
+  // answer is refused, and Save is all or nothing.
+  for (final answer in const <CatalogueComparisonResult>[
+    ComparisonNotSame(),
+    ComparisonNoThanks(),
+  ]) {
+    test(
+      'a refused ${answer.runtimeType} answer fails the whole Save',
+      () async {
+        final session = await loaded();
+        session.set(siteNotesField, 'Choppy');
+        holdCatalogueReview(
+          session,
+          pair,
+          answer,
+          allTypes: [wreck],
+          actingDiverId: 'me',
+          repository: SiteCatalogueFillRepository(stamper: _MayNotEdit()),
+        );
+
+        final error = await save(
+          session,
+        ).then<Object?>((_) => null, onError: (Object e) => e);
+
+        expect(error, isA<RecordSittingRefusal>());
+        final stored = (await SiteRepository().getSiteById('s1'))!;
+        expect(stored.notes, isNot('Choppy'));
+        expect(stored.catalogueAnswers.notSame, isEmpty);
+      },
+    );
+  }
+
   test('no thanks writes only the declines at Save', () async {
     final session = await loaded();
     holdCatalogueReview(
@@ -378,4 +413,10 @@ void main() {
       expect(siteCatalogueReviewed(session), isFalse);
     });
   });
+}
+
+/// A stamper that says this profile may not edit the site.
+class _MayNotEdit extends LibraryEditStamper {
+  @override
+  Future<bool> mayEdit(String siteId, {String? actingDiverId}) async => false;
 }
