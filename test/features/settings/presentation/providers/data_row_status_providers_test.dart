@@ -219,6 +219,7 @@ void main() {
       final c = container([
         sharedPreferencesProvider.overrideWithValue(prefs),
         cloudStorageProviderProvider.overrideWithValue(null),
+        isSyncingProvider.overrideWithValue(false),
         lastSyncTimeProvider.overrideWithValue(when),
       ]);
       keep(c, syncRowStatusProvider);
@@ -227,6 +228,39 @@ void main() {
       final s = c.read(syncRowStatusProvider);
       expect((s.kind, s.count), (DataRowStatusKind.syncWithMany, 2));
     });
+
+    test(
+      're-reads the live peers when a sync run ends without a new sync time',
+      () async {
+        SharedPreferences.setMockInitialValues({
+          'sync_peer_device_names': '{"id-1":"Lenovo","id-2":"Old phone"}',
+        });
+        final prefs = await SharedPreferences.getInstance();
+        final syncing = StateProvider<bool>((ref) => false);
+        final c = container([
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          cloudStorageProviderProvider.overrideWithValue(null),
+          isSyncingProvider.overrideWith((ref) => ref.watch(syncing)),
+          lastSyncTimeProvider.overrideWithValue(when),
+        ]);
+        keep(c, syncPeerNamesProvider);
+        await c.read(peerDeviceNamesProvider.future);
+        c.read(syncing.notifier).state = true;
+        expect(c.read(syncPeerNamesProvider), ['Lenovo', 'Old phone']);
+
+        // The pull wrote its snapshot; the run then failed, so the sync time
+        // stays where it was.
+        await PeerSyncSnapshotStore(prefs).write(
+          PeerSyncSnapshot(
+            takenAt: when,
+            caughtUp: true,
+            peers: [PeerPublish(deviceId: 'id-1', publishedAt: when)],
+          ),
+        );
+        c.read(syncing.notifier).state = false;
+        expect(c.read(syncPeerNamesProvider), ['Lenovo']);
+      },
+    );
 
     test('ignores live peers recorded on another backend', () async {
       SharedPreferences.setMockInitialValues({
@@ -244,6 +278,7 @@ void main() {
       final c = container([
         sharedPreferencesProvider.overrideWithValue(prefs),
         cloudStorageProviderProvider.overrideWithValue(null),
+        isSyncingProvider.overrideWithValue(false),
         lastSyncTimeProvider.overrideWithValue(when),
       ]);
       keep(c, syncPeerNamesProvider);
@@ -261,6 +296,7 @@ void main() {
         final c = container([
           sharedPreferencesProvider.overrideWithValue(prefs),
           cloudStorageProviderProvider.overrideWithValue(null),
+          isSyncingProvider.overrideWithValue(false),
           lastSyncTimeProvider.overrideWithValue(when),
         ]);
         keep(c, syncPeerNamesProvider);
@@ -278,6 +314,7 @@ void main() {
       final c = container([
         sharedPreferencesProvider.overrideWithValue(prefs),
         cloudStorageProviderProvider.overrideWithValue(null),
+        isSyncingProvider.overrideWithValue(false),
         lastSyncTimeProvider.overrideWith((ref) => ref.watch(lastSync)),
       ]);
       keep(c, syncPeerNamesProvider);
