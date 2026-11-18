@@ -81,8 +81,13 @@ mixin _SiteDetailPageEditing
     );
   }
 
+  // The header block is a card too, though not a section: its check (a
+  // name is required) is asked at Save like every other card's.
   @override
-  Iterable<EditCard<DiveSite>> get hostEditCards => siteEditCards.values;
+  Iterable<EditCard<DiveSite>> get hostEditCards => [
+    siteHeaderCard,
+    ...siteEditCards.values,
+  ];
 
   @override
   DiveSite? get storedForUnlock => ref.read(siteProvider(widget.siteId)).value;

@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/features/dive_sites/presentation/editing/site_access_card_editors.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_plain_fields.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 import 'site_detail_page_unlock_harness.dart';
 
@@ -82,6 +86,23 @@ void main() {
     await tester.tap(find.text(l.forms_save));
     await tester.pumpAndSettle();
     expect(page.save.calls.single.apply(page.stored).hazards, isNull);
+  });
+
+  testWidgets('a name emptied outside its editor refuses Save', (tester) async {
+    final page = await pumpSitePage(tester);
+    await unlock(tester);
+    // Any route that empties the name with the header block closed: the
+    // card's own check is asked at Save, as every card's is.
+    final controller = RecordEditScope.maybeOf<DiveSite>(
+      tester.element(find.byType(RecordCardFrame<DiveSite>).first),
+    )!;
+    controller.session!.set(siteNameField, '');
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text(l.forms_save));
+    await tester.pumpAndSettle();
+
+    expect(page.save.calls, isEmpty);
   });
 
   testWidgets('calculated cards fade while unlocked', (tester) async {
