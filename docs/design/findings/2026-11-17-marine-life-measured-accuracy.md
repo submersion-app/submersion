@@ -355,8 +355,9 @@ The first measurement merged two single runs in Python
 (`tool/species_pack/boxes.py`). Now the pair runs through the app's own
 pipeline, which reports each detector's boxes and the merged boxes, and the
 scorer merges those same per-detector boxes with `boxes.py`. They were equal
-on all 2,612 photos at both fittings, and equal to a merge of the separate
-single runs on all 2,612 too, so the numbers in this document hold for the
+on all 2,612 photos at both fittings. Each detector's boxes inside the pair
+run also equalled its own single run, and the merged boxes a merge of the
+single runs, on all 2,612, so the numbers in this document hold for the
 app's pair. A pack with one detector returns that detector's boxes
 unchanged: the fish detector's numbers on this pack equal the earlier run's.
 
