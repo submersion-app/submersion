@@ -1,0 +1,265 @@
+#!/usr/bin/env python3
+"""Fetches and embeds the naming layer's training photos (issue #4724;
+docs/design/specs/2026-11-18-marine-life-naming-layer-design.md).
+
+    python -I tool/species_pack/fetch_training.py --pack PACK STAGE
+
+Stages, each resumable:
+
+- lists: one iNaturalist request per candidate in the pack (research grade,
+  wild, a training licence, newest first), each observation's name checked
+  against GBIF to the candidate it belongs to.
+- select: the leak guard, the validation observers and the caps
+  (training_set.py), into selected.json.
+- embed: per batch of photos, download, run the app's vision pipeline (the
+  pair of detectors, centre crop, BioCLIP 2), keep the largest box's
+  embedding, delete the photos.
+- all: the three in order.
+
+Stays at one iNaturalist request a second and under 9,000 a day, and under
+20 GB of photos a day: a stage that reaches a limit stops and says to run
+it again tomorrow. Downloads live under the work folder's photos/, apart
+from these scripts. Developer-run; not part of CI.
+"""
+
+import argparse
+import concurrent.futures
+import datetime
+import json
+import os
+import shutil
+import sys
+import time
+import urllib.parse
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+import fetch_testset as ft  # noqa: E402
+import testset  # noqa: E402
+import training_set as ts  # noqa: E402
+
+REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+DEFAULT_WORK = os.path.join(REPO, "build", "naming_training")
+DAILY_REQUESTS = 9000
+DAILY_BYTES = 20 * 10**9
+BATCH = 2000
+MIN_SIDE = 64
+FIT = "centreCrop"
+
+
+def labelled_crop(result, min_side):
+    """The largest detection in a vision tool result when its shorter side
+    is at least `min_side`, else None (as the app would not name it)."""
+    if "error" in result:
+        return None
+    detections = result.get("detections") or []
+    if not detections:
+        return None
+    largest = max(detections, key=lambda d: d["pixelWidth"] * d["pixelHeight"])
+    return largest if min(largest["pixelWidth"], largest["pixelHeight"]) >= min_side else None
+
+
+def batch_of(records, size=BATCH):
+    """`records` in batches of `size`, by observation id."""
+    ordered = sorted(records, key=lambda r: int(r["id"]))
+    return [ordered[i : i + size] for i in range(0, len(ordered), size)]
+
+
+def candidate_for(gbif_key, index):
+    """The candidate index a resolved GBIF key belongs to, or None."""
+    return index.get(gbif_key) if gbif_key is not None else None
+
+
+def _today():
+    return datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
+
+
+class _Budget:
+    """A daily count kept in a file, so a limit holds across runs."""
+
+    def __init__(self, path, limit):
+        self.path, self.limit = path, limit
+        self.counts = ft._load(path, {})
+
+    def used(self):
+        return self.counts.get(_today(), 0)
+
+    def spend(self, amount):
+        self.counts[_today()] = self.used() + amount
+        ft._save(self.path, self.counts)
+
+    def exhausted(self):
+        return self.used() >= self.limit
+
+
+def _candidates(pack):
+    with open(os.path.join(pack, "candidates.json"), encoding="utf-8") as fh:
+        return json.load(fh)
+
+
+# Stage lists.
+
+
+def stage_lists(work, pack, limit=None):
+    cands = _candidates(pack)
+    index = {c["gbifKey"]: i for i, c in enumerate(cands)}
+    names_path = os.path.join(work, "gbif_names.json")
+    names = ft._load(names_path, {})
+    budget = _Budget(os.path.join(work, "requests.json"), DAILY_REQUESTS)
+    done = 0
+    for i, c in enumerate(cands[:limit] if limit else cands):
+        path = os.path.join(work, "lists", f"{c['gbifKey']}.json")
+        if os.path.exists(path):
+            continue
+        if budget.exhausted():
+            print(f"stopped at the day's {DAILY_REQUESTS} requests; run lists again tomorrow", flush=True)
+            return False
+        query = urllib.parse.urlencode(
+            {
+                "taxon_name": c["scientificName"],
+                "quality_grade": "research",
+                "captive": "false",
+                "photo_license": ",".join(ts.LICENCES),
+                "per_page": 200,
+                "order_by": "created_at",
+                "order": "desc",
+                "fields": ft.FIELDS,
+            }
+        )
+        page = ft._get(f"{ft.INAT}?{query}")
+        budget.spend(1)
+        time.sleep(1.0)  # iNaturalist asks for at most one request a second.
+        records = []
+        for o in page.get("results") or []:
+            taxon = o.get("taxon") or {}
+            name = testset.species_name(taxon.get("name") or "", taxon.get("rank") or "")
+            if name is None:
+                continue
+            if name not in names:
+                names[name] = ft._gbif_key(name)
+            resolved = candidate_for(names[name], index)
+            if resolved is None:
+                continue
+            record = ts.observation_record(o, resolved, cands[resolved]["gbifKey"])
+            if record:
+                records.append(record)
+        ft._save(names_path, names)
+        ft._save(path, records)
+        done += 1
+        if done % 100 == 0:
+            print(f"lists: {done} candidates this run, at {c['scientificName']} ({i + 1} of {len(cands)})", flush=True)
+    return True
+
+
+# Stage select.
+
+
+def stage_select(work, csv_path):
+    rows = testset.read_rows(csv_path)
+    inat = [r for r in rows if r["source"] == "inaturalist"]
+    test_ids = {r["id"] for r in inat}
+    test_observers = {r["observer"] for r in inat if r["observer"]}
+    by_id = {}
+    folder = os.path.join(work, "lists")
+    for name in sorted(os.listdir(folder)):
+        if name.endswith(".json"):
+            for r in ft._load(os.path.join(folder, name), []):
+                by_id.setdefault(r["id"], r)
+    records = ts.guard(list(by_id.values()), test_ids, test_observers)
+    train, validation = ts.split(records, ts.validation_observers(records))
+    train, validation = ts.cap(train), ts.cap(validation)
+    ft._save(os.path.join(work, "selected.json"), {"train": train, "validation": validation})
+    species = len({r["gbif_key"] for r in train})
+    print(
+        f"select: {len(by_id)} observations, {len(records)} after the leak guard; "
+        f"{len(train)} training photos of {species} species, {len(validation)} validation photos",
+        flush=True,
+    )
+
+
+# Stage embed.
+
+
+def stage_embed(work, pack):
+    import numpy as np
+
+    import score
+
+    selected = ft._load(os.path.join(work, "selected.json"), None)
+    if selected is None:
+        raise SystemExit("no selected.json; run select first")
+    runner = score.Runner(pack, os.path.join(work, "score"))
+    budget = _Budget(os.path.join(work, "downloads.json"), DAILY_BYTES)
+    out_dir = os.path.join(work, "embeddings")
+    os.makedirs(out_dir, exist_ok=True)
+    batches = batch_of(selected["train"] + selected["validation"])
+    for n, batch in enumerate(batches):
+        meta_path = os.path.join(out_dir, f"{n:04d}.jsonl")
+        if os.path.exists(meta_path):
+            continue
+        if budget.exhausted():
+            print(f"stopped at the day's {DAILY_BYTES // 10**9} GB of photos; run embed again tomorrow", flush=True)
+            return False
+        photos_dir = os.path.join(work, "photos", f"{n:04d}")
+        paths = {r["id"]: os.path.join(photos_dir, f"{r['id']}.jpg") for r in batch}
+
+        def fetch(r):
+            path = paths[r["id"]]
+            fresh = not os.path.exists(path)
+            try:
+                ft._download(r["photo_url"], path)
+            except Exception as e:  # a photo gone from the bucket is skipped, not fatal
+                print(f"skipping {r['id']}: {e}", flush=True)
+                return 0
+            return os.path.getsize(path) if fresh else 0
+
+        with concurrent.futures.ThreadPoolExecutor(8) as pool:
+            budget.spend(sum(pool.map(fetch, batch)))
+        present = [r for r in batch if os.path.exists(paths[r["id"]])]
+        raw = os.path.join(out_dir, f"{n:04d}.raw.jsonl")
+        runner.analyze(score.BOTH, FIT, [paths[r["id"]] for r in present], raw)
+        results = {}
+        with open(raw, encoding="utf-8") as fh:
+            for line in fh:
+                result = json.loads(line)
+                results[result["path"]] = result
+        vectors, kept = [], []
+        for r in present:
+            crop = labelled_crop(results.get(paths[r["id"]], {"error": "no result"}), MIN_SIDE)
+            if crop is None:
+                continue
+            vectors.append(crop["embedding"])
+            kept.append({**r, "side": min(crop["pixelWidth"], crop["pixelHeight"])})
+        array = np.asarray(vectors, dtype=np.float32).reshape(len(vectors), -1)
+        np.save(os.path.join(out_dir, f"{n:04d}.npy"), array)
+        # The metadata file is written last: its presence marks the batch done.
+        with open(meta_path + ".partial", "w", encoding="utf-8") as fh:
+            for r in kept:
+                fh.write(json.dumps(r, ensure_ascii=False) + "\n")
+        os.replace(meta_path + ".partial", meta_path)
+        os.remove(raw)
+        shutil.rmtree(photos_dir, ignore_errors=True)
+        print(f"embed: batch {n + 1} of {len(batches)}, {len(kept)} of {len(batch)} photos kept", flush=True)
+    return True
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("stage", choices=["lists", "select", "embed", "all"])
+    parser.add_argument("--pack", required=True, help="the base pack folder (its candidates and models)")
+    parser.add_argument("--set", default=ft.DEFAULT_CSV, help="the accuracy test set, for the leak guard")
+    parser.add_argument("--work", default=DEFAULT_WORK)
+    parser.add_argument("--limit", type=int, help="only the first N candidates (a dry run)")
+    args = parser.parse_args(argv)
+    os.makedirs(args.work, exist_ok=True)
+    if args.stage in ("lists", "all") and not stage_lists(args.work, args.pack, args.limit):
+        return 0
+    if args.stage in ("select", "all"):
+        stage_select(args.work, args.set)
+    if args.stage in ("embed", "all"):
+        stage_embed(args.work, args.pack)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
