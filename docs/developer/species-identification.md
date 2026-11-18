@@ -236,3 +236,33 @@ What is checked by hand, since no automated test runs the real models:
 labels sit on the fish in a landscape and a portrait clip, and a diver or a
 hand in frame gets no dot.
 
+
+## Memory readout
+
+For measuring memory on a phone, the app logs its memory after each
+identification stage while debug mode is on (tap the version line in
+Settings, About, five times). Read the lines in Settings, About, View log,
+where they can be copied or shared. With debug mode off nothing is read.
+
+Each stage writes one line: after the models load, after a photo, after
+each 10 second chunk's pass 1 and pass 2, and after the models unload:
+
+```text
+Memory after pass 2 (0:20 to 0:30): 2412 MB left, footprint 612 MB (peak 845 MB), 2179 MB left at the peak, Neural Engine 717 MB not counted (peak 717 MB), 0 MB counted
+```
+
+- **Left:** how much more the app may use before iOS stops it
+  (`os_proc_available_memory()`). macOS and the iOS Simulator have no
+  such limit, so their lines leave it out.
+- **Footprint:** the memory iOS compares with that limit, and its highest
+  point since the app started. A peak set while the app started up hides a
+  smaller one during a scan; the footprint on each line still shows the
+  trend.
+- **Left at the peak:** how close the app came to the limit at that peak.
+- **Neural Engine:** the models' memory on the Neural Engine, split into
+  what counts toward the footprint and what the system keeps out of it.
+
+Use a profile or release build for figures that stand for a diver's phone:
+a debug build carries over 1 GB of debug-only memory. The Mac measurements
+these lines follow up on are in
+[the phone memory findings](../design/findings/2026-11-17-marine-life-phone-memory.md).
