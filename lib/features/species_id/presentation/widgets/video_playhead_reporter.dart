@@ -20,7 +20,10 @@ import 'package:submersion/features/species_id/presentation/providers/species_id
 /// scrub stops, so scrubbing never moves the scan on its way.
 ///
 /// A seek is a jump forward over [jumpMs], or back over [backMs], between
-/// two player updates: more than playback explains.
+/// two player updates: more than playback explains. Paused, the playhead
+/// moves only when the diver moves it, so a move of over [backMs] from
+/// where it came to rest is a seek too, however small each step of a slow
+/// scrub is; it is reported once it has rested for [settle].
 class VideoPlayheadReporter extends ConsumerStatefulWidget {
   const VideoPlayheadReporter({
     super.key,
@@ -50,6 +53,10 @@ class _VideoPlayheadReporterState extends ConsumerState<VideoPlayheadReporter> {
   /// Whether what is settling is a seek; otherwise it is a pause.
   var _seeking = false;
 
+  /// Where the paused playhead came to rest (where it paused, or the last
+  /// report); null while playing.
+  int? _restMs;
+
   /// The service as last read, kept for [dispose], which cannot read
   /// providers. Reports read the provider afresh: it gives a new service
   /// when the pack store, repository or engine changes.
@@ -68,20 +75,23 @@ class _VideoPlayheadReporterState extends ConsumerState<VideoPlayheadReporter> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.item.id != widget.item.id) {
       // What was settling, and where it was, belong to the video left.
-      _settling?.cancel();
-      _seeking = false;
-      _lastMs = null;
-      _wasPlaying = widget.playback.value.isPlaying;
+      _forgetPosition();
       _service.forgetPlayhead(oldWidget.item.id);
     }
     if (oldWidget.playback != widget.playback) {
       oldWidget.playback.removeListener(_changed);
-      _settling?.cancel();
-      _seeking = false;
-      _lastMs = null;
-      _wasPlaying = widget.playback.value.isPlaying;
+      _forgetPosition();
       widget.playback.addListener(_changed);
     }
+  }
+
+  /// Starts afresh on [VideoPlayheadReporter.playback] as it is now.
+  void _forgetPosition() {
+    _settling?.cancel();
+    _seeking = false;
+    _lastMs = null;
+    _restMs = null;
+    _wasPlaying = widget.playback.value.isPlaying;
   }
 
   @override
@@ -100,15 +110,26 @@ class _VideoPlayheadReporterState extends ConsumerState<VideoPlayheadReporter> {
     final wasPlaying = _wasPlaying;
     _lastMs = ms;
     _wasPlaying = value.isPlaying;
+    if (value.isPlaying) {
+      _restMs = null;
+    } else {
+      _restMs ??= ms;
+    }
+    final rest = _restMs;
     if (!marineLifeIdEnabled) return;
+    final paused = !wasPlaying && !value.isPlaying;
     final jumped =
         last != null &&
-        (ms - last > widget.jumpMs || last - ms > widget.backMs);
+        (ms - last > widget.jumpMs ||
+            last - ms > widget.backMs ||
+            (paused && rest != null && (ms - rest).abs() > widget.backMs));
     if (jumped) {
       _seeking = true;
       _settle();
     } else if (_seeking) {
-      // A seek is settling: a pause or play now changes nothing about it.
+      // A seek is settling: it is reported where the playhead rests, so a
+      // paused move waits again; a pause or play changes nothing about it.
+      if (paused && ms != last) _settle();
     } else if (wasPlaying && !value.isPlaying) {
       _settle();
     } else if (!wasPlaying && value.isPlaying) {
@@ -128,7 +149,10 @@ class _VideoPlayheadReporterState extends ConsumerState<VideoPlayheadReporter> {
     if (!mounted) return;
     final value = widget.playback.value;
     if (!seek && value.isPlaying) return;
-    _report(value.position.inMilliseconds, seek: seek);
+    final ms = value.position.inMilliseconds;
+    // Reported: a later paused move is measured from here.
+    if (!value.isPlaying) _restMs = ms;
+    _report(ms, seek: seek);
   }
 
   void _report(int ms, {required bool seek}) {

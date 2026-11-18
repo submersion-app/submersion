@@ -137,6 +137,12 @@ class MediaIdentification extends Equatable {
   /// no label, and is named when the scan resumes.
   bool get isPending => isTrack && bestMs == null;
 
+  /// Whether the diver said something on it: a decision, or a species
+  /// named from the frame. A rescan carries this to the fresh track of the
+  /// same animal; the app's own guesses are found again.
+  bool get saidByDiver =>
+      decision != IdentificationDecision.undecided || claimedSpeciesId != null;
+
   int get durationMs => isTrack ? (endMs ?? startMs!) - startMs! : 0;
 
   MediaIdentification copyWith({

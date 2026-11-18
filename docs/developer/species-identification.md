@@ -304,17 +304,22 @@ opening or a move, so the first labels come soon, then 10 seconds:
 The scan follows where the diver is watching. `VideoPlayheadReporter`, in
 the viewer's video item, tells the service (`followPlayhead`) of a seek once
 the playhead has settled for half a second (a jump of over 1.5 s forward or
-0.25 s back between player updates) and of a pause once it has lasted
-half a second, so the pause a scrub starts with never moves the scan;
-nothing during steady playback. The service keeps the latest report per video and forgets
-it when the diver leaves the video. Before each chunk, `nextVideoChunk`
-(`video_scan_order.dart`) picks where to go: the first unscanned point at or
-after a new report (a pause on scanned video counts as none), otherwise on
-from where the last chunk ended, and once the end is reached, the gaps from
-the start. During playback the scan never chases the playhead, so a slow
-device scans the same stretches in the same order. A report that points
-outside the running chunk drops it (after pass 1, or between pass 2 batches):
-nothing of it is stored, and it is scanned again later.
+0.25 s back between player updates, or, while paused, a move of over 0.25 s
+from where the playhead rested, so a slow scrub counts too) and of a pause
+once it has lasted half a second, so the pause a scrub starts with never
+moves the scan; nothing during steady playback. The service keeps the
+latest report per video and forgets it when the diver leaves the video. The
+reporter is keyed in the video item's stack: the name labels beside it come
+and go with tag mode, and a reporter rebuilt then would forget its report.
+Before each chunk, `nextVideoChunk` (`video_scan_order.dart`) picks where to
+go: the first unscanned point at or after a new report (a pause on scanned
+video counts as none, except for a scan that has not run a chunk yet, which
+starts from wherever the diver last was), otherwise on from where the last
+chunk ended, and once the end is reached, the gaps from the start. During
+playback the scan never chases the playhead, so a slow device scans the
+same stretches in the same order. A report that points outside the running
+chunk drops it (after pass 1, or between pass 2 batches): nothing of it is
+stored, and it is scanned again later.
 
 The stretches scanned are kept on the run (`scanned_ranges`, packed by
 `scanned_ranges_codec.dart`). `scanned_ms` stays the end of the stretch that
@@ -329,11 +334,15 @@ point are taken up again, so a fish in view there stays one track.
   at least a second is named and stored, with its path to the end of the
   chunk, so its pill shows while it is still in view. It is named again
   only when a moment seen since is worth 1.5 times the one it was named from
-  (detector score times box area); otherwise its path just grows.
+  (detector score times box area); otherwise its path just grows, as it
+  does when none of the better view's moments can be cropped.
 - **Renaming and decisions.** A renamed fish the diver accepted by a name
   match (accepted, no claim) goes back to undecided if its name changed, and
   the service, which reconciles after every chunk, decides it again under
-  the current tags. A claim or a dismissal never changes.
+  the current tags. A claim or a dismissal never changes. In a rescan, a
+  fish named while in view can take over what the diver said on the
+  previous scan's track of it at any later chunk while nothing is said on
+  it yet: named early, it may only later reach far enough to match.
 - **Seams.** A chunk that ends where a stretch scanned earlier starts joins
   each open track to a stored track that starts within the gap allowance and
   overlaps its last box, under the later row's id; the earlier row is

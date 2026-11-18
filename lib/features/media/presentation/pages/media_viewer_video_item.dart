@@ -385,9 +385,12 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
 
           // Tells the scan where the diver is watching (issue #4709), in tag
           // mode and white-point picking too: the scan follows the playhead
-          // while the labels are hidden. Draws nothing.
+          // while the labels are hidden. Draws nothing. Keyed: the labels
+          // just before it come and go, and a reporter rebuilt then would
+          // forget what it reported.
           if (marineLifeIdEnabled && widget.isCurrent)
             Positioned(
+              key: const ValueKey('video_playhead_reporter'),
               left: 0,
               top: 0,
               child: VideoPlayheadReporter(

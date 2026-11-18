@@ -349,6 +349,34 @@ void main() {
     expect(found.single.decision, IdentificationDecision.rejected);
   });
 
+  test('a rescan carries a decision to a fish named in view before the old '
+      'track began (issue #4709)', () async {
+    engine.videoFrames = _fish(11500, 20000);
+    await runAll(scan());
+    final old = (await identifications.forMedia('v1')).single;
+    final dismissed = old.copyWith(
+      decision: IdentificationDecision.rejected,
+      decidedAt: fixtureT1,
+    );
+    await identifications.updateDecisions([dismissed]);
+    // The new models see the fish from 8.5 s: it is named at the first
+    // chunk's end from a part that does not reach the old track yet.
+    engine.videoFrames = _fish(8500, 20000);
+    // As the service starts a rescan: the carried rows already counted.
+    await runAll(
+      scan(
+        resumeFrom: videoRun(scannedMs: 0, videoDurationMs: null),
+        carry: [dismissed],
+      ),
+    );
+    final found = await identifications.forMedia('v1');
+    expect(found, hasLength(1));
+    expect(found.single.id, isNot(old.id));
+    expect(found.single.decision, IdentificationDecision.rejected);
+    expect((found.single.startMs, found.single.endMs), (8500, 19750));
+    expect((await identifications.runFor('v1'))!.detectionCount, 1);
+  });
+
   test('models freed before pass 1 are loaded again, once, and the chunk '
       'is kept whole', () async {
     reloads = 0;
@@ -744,6 +772,17 @@ void main() {
       expect(renamed.box.width, closeTo(0.4, 1e-9));
     });
 
+    test('a fish whose better view cannot be cropped keeps its name and '
+        'its whole path', () async {
+      closerInTheSecondChunk();
+      engine.cropMissing = (m) => m.ms >= 10000;
+      await runAll(scan());
+      final fish = (await identifications.forMedia('v1')).single;
+      expect(fish.top!.candidate, fixtureParrotfish);
+      expect((fish.startMs, fish.endMs), (5000, 14750));
+      expect(fish.path, hasLength(40));
+    });
+
     test('a renamed fish accepted by a name match goes back to '
         'undecided', () async {
       closerInTheSecondChunk();
@@ -959,8 +998,17 @@ void main() {
       );
     });
 
-    test('an earlier part is kept when its join across a seam could not be '
-        'named', () async {
+    /// A fish seen closer before 30 s than after, scanned from 30 s first
+    /// and then from the start: after three chunks, a dismissed earlier
+    /// part (from 15 s) and a later part (from 30 s) about to be joined.
+    Future<
+      ({
+        VideoIdentificationScan scan,
+        MediaIdentification earlier,
+        MediaIdentification later,
+      })
+    >
+    dismissedBeforeASeam() async {
       engine.videoDurationMs = 40000;
       engine.videoFrames = {
         ..._fish(15000, 30000, width: 0.4),
@@ -980,14 +1028,42 @@ void main() {
           decidedAt: fixtureT1,
         ),
       ]);
-      // The better view the join is named from gives no crop.
+      return (
+        scan: s,
+        earlier: earlier,
+        later: rows.singleWhere((i) => i.startMs == 30000),
+      );
+    }
+
+    test('a join across a seam whose better view gives no crop keeps the '
+        'later name and what was said on the earlier part', () async {
+      final (:scan, :earlier, :later) = await dismissedBeforeASeam();
+      // The better view the join would be named from gives no crop.
       engine.cropMissing = (m) => m.box.width > 0.3;
-      await runAll(s);
-      final kept = (await identifications.forMedia(
-        'v1',
-      )).where((i) => i.id == earlier.id);
-      expect(kept, hasLength(1));
-      expect(kept.single.decision, IdentificationDecision.rejected);
+      await runAll(scan);
+      final found = (await identifications.forMedia('v1')).single;
+      expect(found.id, later.id);
+      expect(found.top!.candidate, later.top!.candidate);
+      expect(found.decision, IdentificationDecision.rejected);
+      expect((found.startMs, found.endMs), (15000, 34750));
+    });
+
+    test('an earlier part is kept when the later part it joins was cleared '
+        'meanwhile', () async {
+      final (:scan, :earlier, :later) = await dismissedBeforeASeam();
+      identifications.afterRead = () {
+        identifications.afterRead = null;
+        // The later part goes just as the seam reads it.
+        unawaited(
+          (library.delete(
+            library.mediaIdentifications,
+          )..where((r) => r.id.equals(later.id))).go(),
+        );
+      };
+      await runAll(scan);
+      final found = (await identifications.forMedia('v1')).single;
+      expect(found.id, earlier.id);
+      expect(found.decision, IdentificationDecision.rejected);
     });
 
     test('a decision written while a chunk is stored is not '

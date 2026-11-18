@@ -557,18 +557,29 @@ class VideoIdentificationScan {
                 ),
           ];
         }
-        // A continued track keeps its own row and decision; only the new
-        // ones can take over a decision from a previous scan.
+        // A continued track keeps its own row and what was said on it. One
+        // with nothing said on it can still take over a decision from a
+        // previous scan, as a new one can: named while still in view, it
+        // may only now reach far enough to show it is that animal.
+        final unsaid = [
+          for (final c in continued)
+            if (!c.saidByDiver) c,
+        ];
         final found = carryTrackDecisions(
           decided: carry,
           fresh: [
             for (final n in named)
               if (!rows.containsKey(n.identification.id)) n.identification,
+            ...unsaid,
           ],
         );
         // An earlier part goes only when its joined row is stored.
         away = [for (final c in continued) ?joinedAway[c.id]];
-        inserted = [...found.insert, ...continued];
+        inserted = [
+          ...found.insert,
+          for (final c in continued)
+            if (c.saidByDiver) c,
+        ];
         deleted = [...found.deleteIds, ...away];
         carryLeft = [
           for (final c in carry)
@@ -585,10 +596,12 @@ class VideoIdentificationScan {
           analysedAt: _now().toUtc(),
           imageWidth: width,
           imageHeight: height,
+          // The continued rows in found.insert are counted already.
           detectionCount: math.max(
             0,
             _detectionCount +
                 found.insert.length -
+                unsaid.length -
                 found.deleteIds.length -
                 away.length,
           ),
@@ -630,10 +643,9 @@ class VideoIdentificationScan {
     MediaIdentification row,
     MediaIdentification? earlier,
   ) {
-    bool said(MediaIdentification i) =>
-        i.decision != IdentificationDecision.undecided ||
-        i.claimedSpeciesId != null;
-    if (earlier == null || said(row) || !said(earlier)) return row;
+    if (earlier == null || row.saidByDiver || !earlier.saidByDiver) {
+      return row;
+    }
     return earlier;
   }
 

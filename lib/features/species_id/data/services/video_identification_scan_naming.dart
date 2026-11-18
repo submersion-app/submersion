@@ -5,7 +5,9 @@ part of 'video_identification_scan.dart';
 extension _Naming on VideoIdentificationScan {
   /// Crops and embeds each track's best moments in batches, and names each
   /// track from the average of its moments' embeddings. A track none of
-  /// whose moments could be cropped is left out. When [stopping], only one
+  /// whose moments could be cropped is left out, unless it continues a
+  /// stored row: that is kept as named before, with its path grown
+  /// ([_unnamed]). When [stopping], only one
   /// batch is named, the tracks with no name yet and then the longest
   /// first; the others are kept without naming them. [rows] are the stored
   /// rows the tracks continue, by id. Between batches (not when stopping)
@@ -79,6 +81,8 @@ extension _Naming on VideoIdentificationScan {
           })
         >[];
     final averaged = <Float32List>[];
+    // Tracks that could not be named now but continue a stored row.
+    final unnameable = <TrackedAnimal>[];
     var at = 0;
     for (var t = 0; t < closed.length; t++) {
       final own = [
@@ -90,9 +94,13 @@ extension _Naming on VideoIdentificationScan {
         for (final o in own)
           if (o.crop != null) (index: o.index, crop: o.crop!),
       ];
-      if (usable.isEmpty) continue;
-      final embedding = _averaged([for (final u in usable) u.crop.embedding]);
-      if (embedding == null) continue;
+      final embedding = usable.isEmpty
+          ? null
+          : _averaged([for (final u in usable) u.crop.embedding]);
+      if (embedding == null) {
+        if (rows.containsKey(closed[t].storedId)) unnameable.add(closed[t]);
+        continue;
+      }
       kept.add((
         track: closed[t],
         moment: picks[t][usable.first.index],
@@ -124,6 +132,7 @@ extension _Naming on VideoIdentificationScan {
           now,
           rows,
         ),
+      for (final t in unnameable) _unnamed(t, now, rows),
       ...left,
     ];
   }

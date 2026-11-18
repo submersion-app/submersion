@@ -53,7 +53,7 @@ extension _VideoScanning on MediaIdentificationService {
         final scanned = from.scanned;
         final ahead = [
           for (final i in now)
-            if (_saidByDiver(i) &&
+            if (i.saidByDiver &&
                 !scanned.coversRange(i.startMs ?? 0, i.endMs ?? 0))
               i,
         ];
@@ -66,7 +66,7 @@ extension _VideoScanning on MediaIdentificationService {
         // app's own guesses are found again.
         final carry = [
           for (final i in stored)
-            if (_saidByDiver(i)) i,
+            if (i.saidByDiver) i,
         ];
         final dropped = [
           for (final i in stored)
@@ -100,11 +100,6 @@ extension _VideoScanning on MediaIdentificationService {
   /// (its location arrived late) waits for the scan to end, then names
   /// what was found for the new place, rather than stopping the scan.
   bool _otherWaiting(_Job job) => _waiting.keys.any((id) => id != job.item.id);
-
-  /// Whether the diver decided on [i], or named it from the frame.
-  static bool _saidByDiver(MediaIdentification i) =>
-      i.decision != IdentificationDecision.undecided ||
-      i.claimedSpeciesId != null;
 
   /// Scans [job]'s video a chunk at a time from [from]. Between chunks it
   /// stops when the video was left, another logbook opened, a pack change

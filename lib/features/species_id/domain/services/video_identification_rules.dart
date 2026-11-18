@@ -249,10 +249,7 @@ List<({TrackedAnimal open, MediaIdentification later})> seamJoins({
 
 /// Whether the diver said something on both [a] and [b], and not the same.
 bool _conflicting(MediaIdentification a, MediaIdentification b) {
-  bool said(MediaIdentification i) =>
-      i.decision != IdentificationDecision.undecided ||
-      i.claimedSpeciesId != null;
-  if (!said(a) || !said(b)) return false;
+  if (!a.saidByDiver || !b.saidByDiver) return false;
   return a.decision != b.decision ||
       a.decidedSpeciesId != b.decidedSpeciesId ||
       a.claimedSpeciesId != b.claimedSpeciesId;

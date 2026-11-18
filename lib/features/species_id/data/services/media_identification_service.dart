@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
+import 'package:meta/meta.dart' show visibleForTesting;
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/services/database_service.dart';
@@ -216,6 +217,7 @@ class MediaIdentificationService {
   }
 
   /// The latest playhead report for the video [mediaId], or null.
+  @visibleForTesting
   PlayheadReport? playheadOf(String mediaId) => _playheads[mediaId];
 
   bool isBusy(String mediaId) =>

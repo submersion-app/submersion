@@ -149,6 +149,13 @@ void main() {
       expect(changed.confident, isFalse);
       expect(changed.specific, isFalse);
       expect(track.copyWith(startMs: () => null).isTrack, isFalse);
+      // The diver's say: a claim from the frame, or a decision.
+      expect(track.saidByDiver, isTrue);
+      expect(changed.saidByDiver, isFalse);
+      expect(
+        changed.copyWith(decision: IdentificationDecision.rejected).saidByDiver,
+        isTrue,
+      );
 
       final run = MediaIdentificationRun(
         mediaId: 'v1',

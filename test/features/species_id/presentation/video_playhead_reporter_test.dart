@@ -133,6 +133,56 @@ void main() {
     expect(service.followed, [(mediaId: 'v1', ms: 120000, seek: true)]);
   });
 
+  testWidgets('a slow scrub while paused is reported where it stops', (
+    tester,
+  ) async {
+    await pump(tester);
+    at(5000);
+    await tester.pump(const Duration(milliseconds: 100));
+    at(5000, playing: false);
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(service.followed, [(mediaId: 'v1', ms: 5000, seek: false)]);
+    // Each step is far under a jump: only where it rests is reported.
+    for (var ms = 5200; ms <= 9000; ms += 200) {
+      at(ms, playing: false);
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(service.followed, [
+      (mediaId: 'v1', ms: 5000, seek: false),
+      (mediaId: 'v1', ms: 9000, seek: true),
+    ]);
+  });
+
+  testWidgets('a slow scrub that pauses first is reported where it stops, '
+      'not where its pause settled', (tester) async {
+    await pump(tester);
+    at(60000);
+    await tester.pump(const Duration(milliseconds: 100));
+    // The controls bar pauses the player as a drag starts.
+    at(60000, playing: false);
+    for (var ms = 60200; ms <= 64000; ms += 200) {
+      await tester.pump(const Duration(milliseconds: 100));
+      at(ms, playing: false);
+    }
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(service.followed, [(mediaId: 'v1', ms: 64000, seek: true)]);
+  });
+
+  testWidgets('a position that lands just after a pause keeps it a pause', (
+    tester,
+  ) async {
+    await pump(tester);
+    at(5000);
+    await tester.pump(const Duration(milliseconds: 100));
+    at(5000, playing: false);
+    await tester.pump(const Duration(milliseconds: 50));
+    // A position read before the pause, reported after it.
+    at(5100, playing: false);
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(service.followed, [(mediaId: 'v1', ms: 5100, seek: false)]);
+  });
+
   testWidgets('a pause undone before it settles reports nothing', (
     tester,
   ) async {
