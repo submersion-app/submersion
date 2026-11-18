@@ -36,23 +36,19 @@
 - Modify: `tool/species_pack/candidates.py` (the facet query at `fetch_photographed_species`, about lines 128-156; new constants and functions beside it)
 - Test: `tool/species_pack/manifest_test.py` (new classes after `ExpansionTests`)
 
-> **Superseded in review.** This task built the facet as a `facetOffset`
-> paging loop and kept the photo cache's old name. The whole-branch review
-> found GBIF's paging repeats and skips species, so the facet is now one
-> request per route: `facet_cache_path(work, route, taxon_keys, filters,
-> min_count, limit)` names every route `<route>_<digest of taxa and
-> filters>_<min>_<limit>.json`, the fetch functions take `limit` (default
-> 20000) and no `page`, a full answer prints a warning, and
-> `SpeciesFacetTests` pins it. Do not bring the paging back; see the
+> **Revised in review.** This task first paged the facet with
+> `facetOffset` and kept the photo cache's old name. GBIF's paging repeats
+> and skips species at page boundaries, so the task below now describes
+> the shipped one-request facet. Do not bring the paging back; see the
 > design's "Decided during review".
 
 **Interfaces:**
 - Produces:
   - `SURVEY_FILTERS: list[tuple[str, str]]`, the extra query parameters of the survey facet: `[("basis_of_record", "HUMAN_OBSERVATION"), ("occurrence_status", "PRESENT"), ("depth", "0,40")]`.
   - `PHOTO_FILTERS: list[tuple[str, str]]`: `[("media_type", "StillImage"), ("basis_of_record", "HUMAN_OBSERVATION")]` (today's).
-  - `facet_cache_path(work: str, route: str, taxon_keys, filters, min_count: int, offset: int) -> str`. For `route == "photographed"` it returns today's name, `facets/species_<sha256(sorted keys)[:12]>_<min>_<offset>.json`; for any other route, `facets/<route>_<sha256(sorted keys + filters)[:12]>_<min>_<offset>.json`.
-  - `fetch_surveyed_species(taxon_keys, work, *, min_records, page=1000, limit=40000) -> list[tuple[int, int]]`, most recorded first.
-  - `fetch_photographed_species` keeps its signature and output.
+  - `facet_cache_path(work: str, route: str, taxon_keys, filters, min_count: int, limit: int) -> str`: `facets/<route>_<sha256(sorted keys + filters)[:12]>_<min>_<limit>.json` for every route, so no name matches an earlier build's paged `species_*` files.
+  - `fetch_surveyed_species(taxon_keys, work, *, min_records, limit=20000) -> list[tuple[int, int]]`, most recorded first.
+  - `fetch_photographed_species(taxon_keys, work, *, min_images, limit=20000)`: same output as before, from one request (its `page` argument is gone).
   - `wanted_keys(photographed, surveyed, have, room) -> list[int]`: `photographed` and `surveyed` are `(key, count)` lists in rank order, `have` the keys already on the list, `room` how many may be added. Returns photographed keys not in `have`, then surveyed keys in neither, de-duplicated, truncated to `max(0, room)`.
 
 - [ ] **Step 1: Write the failing tests**
@@ -69,20 +65,31 @@ class SurveyQueryTests(unittest.TestCase):
     def test_photo_query_is_unchanged(self):
         self.assertEqual(candidates.PHOTO_FILTERS, [("media_type", "StillImage"), ("basis_of_record", "HUMAN_OBSERVATION")])
 
-    def test_photo_cache_keeps_its_name(self):
-        path = candidates.facet_cache_path("w", "photographed", [3, 1], candidates.PHOTO_FILTERS, 50, 1000)
+    def test_photo_cache_is_not_an_earlier_paged_page(self):
+        path = candidates.facet_cache_path("w", "photographed", [3, 1], candidates.PHOTO_FILTERS, 50, 20000)
         digest = hashlib.sha256(b"1,3").hexdigest()[:12]
-        self.assertEqual(path, os.path.join("w", "facets", f"species_{digest}_50_1000.json"))
+        self.assertNotEqual(path, os.path.join("w", "facets", f"species_{digest}_50_0.json"))
 
     def test_survey_cache_differs_from_the_photo_cache(self):
-        photo = candidates.facet_cache_path("w", "photographed", [1], candidates.PHOTO_FILTERS, 50, 0)
-        survey = candidates.facet_cache_path("w", "surveyed", [1], candidates.SURVEY_FILTERS, 50, 0)
+        photo = candidates.facet_cache_path("w", "photographed", [1], candidates.PHOTO_FILTERS, 50, 20000)
+        survey = candidates.facet_cache_path("w", "surveyed", [1], candidates.SURVEY_FILTERS, 50, 20000)
         self.assertNotEqual(photo, survey)
 
-    def test_survey_cache_changes_with_its_filters(self):
-        a = candidates.facet_cache_path("w", "surveyed", [1], candidates.SURVEY_FILTERS, 50, 0)
-        b = candidates.facet_cache_path("w", "surveyed", [1], [("depth", "0,30")], 50, 0)
-        self.assertNotEqual(a, b)
+    def test_cache_changes_with_filters_taxa_floor_and_limit(self):
+        base = candidates.facet_cache_path("w", "surveyed", [1], candidates.SURVEY_FILTERS, 50, 20000)
+        for other in (
+            candidates.facet_cache_path("w", "surveyed", [1], [("depth", "0,30")], 50, 20000),
+            candidates.facet_cache_path("w", "surveyed", [1, 2], candidates.SURVEY_FILTERS, 50, 20000),
+            candidates.facet_cache_path("w", "surveyed", [1], candidates.SURVEY_FILTERS, 25, 20000),
+            candidates.facet_cache_path("w", "surveyed", [1], candidates.SURVEY_FILTERS, 50, 1000),
+        ):
+            self.assertNotEqual(base, other)
+
+
+# SpeciesFacetTests (in manifest_test.py) stubs candidates._get_json and
+# pins one request per route (no facetOffset, facetLimit=limit), each
+# route's filters and cache prefix, and the warning when GBIF returns
+# `limit` species.
 
 
 class WantedKeysTests(unittest.TestCase):
@@ -113,7 +120,7 @@ Expected: errors, `module 'candidates' has no attribute 'SURVEY_FILTERS'` (and t
 
 - [ ] **Step 3: Implement in `candidates.py`**
 
-Move the paging loop of `fetch_photographed_species` into a private `_species_facet(taxon_keys, work, route, filters, min_count, page, limit)` that builds `taxon_key` params, adds `filters`, `limit=0`, `facet=speciesKey`, `facetMincount`, `facetLimit`, and pages with `facetOffset`, reading and writing through `facet_cache_path`. `fetch_photographed_species` calls it with `"photographed"` and `PHOTO_FILTERS`; `fetch_surveyed_species` with `"surveyed"` and `SURVEY_FILTERS`. Update the module docstring (the list is now catalogue, photographed, then surveyed). A comment on `SURVEY_FILTERS` says why each filter is there: absence rows from monitoring programmes, and fishery and deep ROV records below diving depth.
+Replace the paging loop of `fetch_photographed_species` with a private `_species_facet(taxon_keys, work, route, filters, min_count, limit)` that makes one request: `taxon_key` params, `filters`, `limit=0`, `facet=speciesKey`, `facetMincount`, and `facetLimit=limit`, with no `facetOffset`, read and written through `facet_cache_path`. If GBIF returns `limit` species it prints a warning to stderr that species beyond it are missing. `fetch_photographed_species` calls it with `"photographed"` and `PHOTO_FILTERS`; `fetch_surveyed_species` with `"surveyed"` and `SURVEY_FILTERS`. Update the module docstring (the list is now catalogue, photographed, then surveyed). A comment on `SURVEY_FILTERS` says why each filter is there: absence rows from monitoring programmes, and fishery and deep ROV records below diving depth.
 
 - [ ] **Step 4: Run the tests to see them pass**
 
