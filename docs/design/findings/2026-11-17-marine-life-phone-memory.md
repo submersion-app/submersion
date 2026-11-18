@@ -26,12 +26,14 @@ app's memory limit, unless a line says otherwise.
    analysing a 50 MP photo, 277 MiB in a video's pass 1 and 243 MiB in its
    pass 2. They are decoding the photo, the 4K decoder's buffers and full-size
    4K frames.
-3. **On the Neural Engine, 634 to 718 MiB goes to a separate account.**
-   Forcing the Neural Engine, the kernel puts the models' memory in the
-   process's neural footprint (`ri_neural_footprint`) and leaves the physical
-   footprint under 200 MiB. Apple does not document whether an iPhone's
-   limit includes that account. Phones whose Core ML prefers the Neural
-   Engine are the case to test.
+3. **On the Neural Engine, 634 to 718 MiB goes to an account that is not
+   counted.** Forcing the Neural Engine, the kernel puts the models' memory
+   in the process's `ledger_tag_neural_nofootprint` ledger (what
+   `ri_neural_footprint` reports), while the counted
+   `ledger_tag_neural_footprint` stays at zero, read in the process with
+   `task_info(TASK_VM_INFO)`. The physical footprint stays under 200 MiB.
+   That is macOS; whether iOS tags it the same way is for the phone to show.
+   Phones whose Core ML prefers the Neural Engine are the case to test.
 4. **No first-load spike in the app.** Compiling the models for the GPU took
    2.7 s with a 37 MiB peak; for the Neural Engine it took 8.3 s, done by the
    system's compiler service, with a 35 MiB peak in the app.
@@ -58,7 +60,10 @@ app's memory limit, unless a line says otherwise.
 - **Sampling.** `proc_pid_rusage(RUSAGE_INFO_V6)` every 20 ms, with each
   stage's name written to a file the sampler reads. It reports the physical
   footprint, its lifetime and interval peaks, the neural footprint and the
-  resident size. The `footprint` tool gave the breakdown by category.
+  resident size. The `footprint` tool gave the breakdown by category. In
+  one more Neural Engine run the harness also read
+  `task_info(TASK_VM_INFO)` at each stage, which splits the neural
+  footprint into its counted and not-counted ledgers.
 - **Where Core ML runs the models.** `MLComputePlan` with `.all` on this Mac
   puts all 602 detector operations and all 563 classifier operations on the
   GPU (99.8% and 100% of the estimated cost).
@@ -84,7 +89,8 @@ Physical footprint by stage, MiB:
 | After unloading | 81 | 78 | 52 | 36 | 44 |
 
 Neural footprint on the Neural Engine path: 634 MiB once loaded, 718 MiB
-while analysing, none after unloading. On the other paths it stays at zero.
+while analysing, none half a second after unloading, all of it in the
+not-counted ledger. On the other paths it stays at zero.
 
 Resident size, for contrast: 1.2 GB while loading on the GPU and CPU paths
 and up to 1.0 GB in use, while the footprint stayed under 0.3 GB. The
@@ -124,8 +130,9 @@ On a 6 GB iPhone, with a 4K clip and a large photo:
 
 - Where Core ML puts each model (`MLComputePlan` on the device). Phones with
   a strong Neural Engine may not choose the GPU as this Mac does.
-- The physical and neural footprint at each stage, as above, and
-  `os_proc_available_memory()` at the peaks.
+- The physical footprint and its peak, both neural ledgers (counted and not
+  counted) from `task_info(TASK_VM_INFO)`, and `os_proc_available_memory()`
+  at each stage.
 - Whether the app gets a memory warning or is stopped for memory during a
   long scan, with the models loaded and the video playing.
 - Whether `com.apple.developer.kernel.increased-memory-limit` changes the

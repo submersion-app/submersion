@@ -332,8 +332,8 @@ others)**:
   ML runs the classifier on the GPU, its weights are read from the model
   files and do not count against the app's limit; the feature's own peak was
   0.28 GB, from decoding a 50 MP photo and 4K video. On the Neural Engine,
-  0.63 to 0.72 GB more goes to a separate account, and Apple does not say
-  whether a phone's limit includes it. A 6 GB iPhone still has to confirm it.
+  0.63 to 0.72 GB more goes to a separate account that macOS keeps out of
+  the counted figure. A 6 GB iPhone still has to confirm iOS does the same.
 - **Speed off Apple hardware.** On the CPU path the detector alone took 100 ms
   on a fast laptop. Phones and older laptops will be several times slower.
 - **Fish only.** Turtles, rays that the detector misses, nudibranchs,
