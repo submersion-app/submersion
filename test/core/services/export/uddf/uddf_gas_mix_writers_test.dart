@@ -68,7 +68,7 @@ void main() {
           reason: 'o2 $fraction',
         );
         expect(
-          parse('<o2>0.21</o2><he>$fraction</he>').he,
+          parse('<o2>0.0</o2><he>$fraction</he>').he,
           percent,
           reason: 'he $fraction',
         );
@@ -108,6 +108,23 @@ void main() {
       expect(parse('<o2>320</o2><he>0</he>'), const GasMix());
       expect(parse('<o2>-0.1</o2><he>0.0</he>'), const GasMix());
       expect(parse('<o2>32</o2><he>-5</he>'), const GasMix(o2: 32));
+    });
+
+    test('does not decide the unit of the mix', () {
+      // 320 is no share of a gas in either unit, so it leaves the helium
+      // beside it a fraction rather than turning 0.45 into 0.45%.
+      expect(parse('<o2>320</o2><he>0.45</he>'), const GasMix(o2: 21, he: 45));
+    });
+
+    test('a mix over 100% in all falls back to air', () {
+      expect(parse('<o2>0.8</o2><he>0.5</he>'), const GasMix());
+      expect(parse('<o2>80</o2><he>50</he>'), const GasMix());
+      // The oxygen fallback counts too: 21% beside 90% helium is no gas.
+      expect(parse('<o2>bad</o2><he>0.9</he>'), const GasMix());
+    });
+
+    test('a mix of exactly 100% is kept', () {
+      expect(parse('<o2>0.29</o2><he>0.71</he>'), const GasMix(o2: 29, he: 71));
     });
   });
 

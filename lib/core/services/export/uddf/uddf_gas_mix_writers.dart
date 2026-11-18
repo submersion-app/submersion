@@ -78,7 +78,10 @@ class UddfGasMixWriters {
   /// whole fraction. A fraction a hair over 1 from float noise
   /// (1.0000000000000002) is still pure gas, not 1%. A missing or
   /// unreadable value, or one outside 0-100% once read, falls back to air's
-  /// 21% oxygen and no helium, whatever the unit.
+  /// 21% oxygen and no helium, whatever the unit. A value above 100 is no
+  /// share of a gas in either unit, so it does not decide the unit either.
+  /// A mix whose oxygen and helium come to more than 100% is no gas at all
+  /// and is read as air.
   static GasMix parseGasMix(XmlElement mixElement) {
     final o2 = UddfImportParsers.parseUddfDouble(
       UddfImportParsers.getElementText(mixElement, 'o2'),
@@ -86,20 +89,21 @@ class UddfGasMixWriters {
     final he = UddfImportParsers.parseUddfDouble(
       UddfImportParsers.getElementText(mixElement, 'he'),
     );
-    final scale = _isAboveWholeFraction(o2) || _isAboveWholeFraction(he)
-        ? 1
-        : 100;
+    final scale = _isOnlyAPercentage(o2) || _isOnlyAPercentage(he) ? 1 : 100;
 
-    return GasMix(
-      o2: _gasPercent(o2, scale) ?? 21.0,
-      he: _gasPercent(he, scale) ?? 0.0,
-    );
+    final o2Percent = _gasPercent(o2, scale) ?? 21.0;
+    final hePercent = _gasPercent(he, scale) ?? 0.0;
+    if (cleanPercent(o2Percent + hePercent) > 100) return const GasMix();
+    return GasMix(o2: o2Percent, he: hePercent);
   }
 
-  /// Whether [value] is above 1 by more than float noise, so it can only be
-  /// a percentage.
-  static bool _isAboveWholeFraction(double? value) =>
-      value != null && cleanPercent(value) > 1;
+  /// Whether [value] is above 1 by more than float noise, so it cannot be a
+  /// fraction, but no more than 100, so it is a percentage.
+  static bool _isOnlyAPercentage(double? value) {
+    if (value == null) return false;
+    final cleaned = cleanPercent(value);
+    return cleaned > 1 && cleaned <= 100;
+  }
 
   /// [value] times [scale] as a percentage, or null when there is no value
   /// or the result is not a share of a gas.
