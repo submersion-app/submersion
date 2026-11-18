@@ -3849,6 +3849,7 @@
   "diveSites_detail_diveCount_zero": "لا توجد غوصات مسجلة بعد",
   "diveSites_detail_editTooltip": "تعديل الموقع",
   "diveSites_detail_editTooltipShort": "تعديل",
+  "diveSites_edit_editingWithdrawn": "لم يعد بإمكانك تعديل هذا الموقع. تم تجاهل أي تغييرات غير محفوظة.",
   "diveSites_detail_error_body": "خطأ: {error}",
   "diveSites_detail_error_title": "خطأ",
   "diveSites_detail_loading_title": "جارٍ التحميل...",

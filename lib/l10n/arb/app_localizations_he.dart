@@ -11966,6 +11966,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_detail_editTooltipShort => 'ערוך';
 
   @override
+  String get diveSites_edit_editingWithdrawn =>
+      'כבר אין לך הרשאה לערוך את האתר הזה. שינויים שלא נשמרו בוטלו.';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return 'שגיאה: $error';
   }

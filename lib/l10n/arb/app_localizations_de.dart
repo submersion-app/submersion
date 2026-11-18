@@ -12224,6 +12224,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveSites_detail_editTooltipShort => 'Bearbeiten';
 
   @override
+  String get diveSites_edit_editingWithdrawn =>
+      'Du kannst diesen Tauchplatz nicht mehr bearbeiten. Ungespeicherte Änderungen wurden verworfen.';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return 'Fehler: $error';
   }

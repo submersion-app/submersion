@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' hide DiveSite;
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/data/services/site_edit_save_service.dart';
@@ -27,6 +28,9 @@ class _RecordingSites extends SiteRepository {
   Future<void> Function()? onReadAfterCommit;
   Zone? callerZone;
   bool _wrote = false;
+
+  /// Run as the library stamp is made.
+  Future<void> Function()? onStamp;
 
   @override
   Future<DiveSite?> getSiteById(String id) async {
@@ -64,6 +68,7 @@ class _RecordingSites extends SiteRepository {
   }) async {
     stamps.add((before: before.notes, after: after.notes));
     stampedAfter.add(after);
+    await onStamp?.call();
   }
 }
 
@@ -272,6 +277,30 @@ void main() {
     // A write that landed after the commit is not this diver's edit.
     expect(recording.stampedAfter.single.notes, 'Choppy');
     expect(recording.stampedAfter.single.name, 'Lake');
+  });
+
+  test('sync is told of the change after the library stamp', () async {
+    var told = 0;
+    final listening = SyncEventBus.changes.listen((_) => told++);
+    addTearDown(listening.cancel);
+    var toldAtStamp = -1;
+    final recording = _RecordingSites()
+      ..onStamp = () async {
+        // What was told before the stamp has arrived by now.
+        await Future<void>.delayed(Duration.zero);
+        toldAtStamp = told;
+      };
+    await SiteEditSaveService(recording).save(
+      siteId: 's1',
+      apply: notes('Choppy'),
+      changedCardIds: const ['notes'],
+    );
+    await Future<void>.delayed(Duration.zero);
+
+    // The stamp marks the library's copy for the next sync: one is asked
+    // for once it is there, not only from inside the transaction.
+    expect(toldAtStamp, isNonNegative);
+    expect(told, greaterThan(toldAtStamp));
   });
 
   test('a sitting that rolls back leaves no library stamp', () async {

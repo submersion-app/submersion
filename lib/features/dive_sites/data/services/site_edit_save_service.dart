@@ -88,12 +88,14 @@ class SiteEditSaveService {
       );
     }
     await _stampHeldWrites(siteId, heldLibraryFields, actingDiverId);
+    // The stamps mark the library's copy for the next sync, after the
+    // update's own notice: as updateSite stamps, then notifies.
+    SyncEventBus.notifyLocalChange();
     return result;
   }
 
-  /// Stamps the library fields the sitting's held writes changed, and lets
-  /// sync know of them, once the sitting has committed. Best effort, as the
-  /// row's own stamp.
+  /// Stamps the library fields the sitting's held writes changed, once the
+  /// sitting has committed. Best effort, as the row's own stamp.
   Future<void> _stampHeldWrites(
     String siteId,
     Set<String> Function()? heldLibraryFields,
@@ -110,8 +112,6 @@ class SiteEditSaveService {
         error: error,
         stackTrace: stackTrace,
       );
-    } finally {
-      SyncEventBus.notifyLocalChange();
     }
   }
 }
