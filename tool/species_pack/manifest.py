@@ -274,10 +274,15 @@ LEVEL_IDS = ("balanced", "eager")
 LEVEL_KEYS = ("precision", "levels")
 
 
+def _is_number(value):
+    """Whether `value` is a JSON number; a bool is not one."""
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
 def _is_share(value):
     """Whether `value` is a number in (0, 1]; a missing or non-numeric one
     is reported as a problem rather than raising."""
-    return isinstance(value, (int, float)) and not isinstance(value, bool) and 0 < value <= 1
+    return _is_number(value) and 0 < value <= 1
 
 
 def level_problems(naming):
@@ -291,6 +296,8 @@ def level_problems(naming):
     if precision is not None and not _is_share(precision):
         problems.append(f"precision {precision} is not in (0, 1]")
     levels = naming.get("levels", [])
+    if not isinstance(levels, list) or not all(isinstance(level, dict) for level in levels):
+        return problems + [f"levels {levels} are not a list of objects"]
     ids = [level.get("id") for level in levels]
     if ids != [i for i in LEVEL_IDS if i in ids] or len(set(ids)) != len(ids):
         problems.append(f"levels {ids} are not a subset of {list(LEVEL_IDS)} in order")
@@ -300,7 +307,7 @@ def level_problems(naming):
     above_precision = precision if _is_share(precision) else None
     for level in levels:
         bars = (level.get("suggestScore"), level.get("suggestScoreNoLocation"))
-        well_formed = all(isinstance(b, (int, float)) for b in bars)
+        well_formed = all(_is_number(b) for b in bars)
         if not (well_formed and all(0 <= b <= a for b, a in zip(bars, above))):
             problems.append(f"{level.get('id')} bars {bars} are not at or below {above}")
         elif bars == above:

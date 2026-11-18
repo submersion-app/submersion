@@ -80,14 +80,18 @@ double? _barAtMost(Object? value, double ceiling) =>
     : null;
 
 /// The naming levels a manifest's `naming.levels` ([value]) carries
-/// (issue #4721), surest first. They are optional: an entry that is not a known level below Surer, with bars no
-/// higher than the level above it, at least one of them lower, and a
-/// precision in (0, 1], is dropped, and the pack still reads.
+/// (issue #4721), surest first. They are optional: an entry is dropped,
+/// and the pack still reads, unless it is a known level below Surer, with
+/// bars no higher than the level above it and at least one of them lower,
+/// and a precision in (0, 1] no higher than the level above's
+/// ([surerPrecision] for Surer, when measured), so more names never read
+/// as more often right.
 List<MeasuredNamingLevel> measuredLevels(
   Object? value,
   double suggestScore,
-  double suggestScoreNoLocation,
-) {
+  double suggestScoreNoLocation, {
+  double? surerPrecision,
+}) {
   if (value is! List) return const [];
   final byLevel = <NamingLevel, Map<Object?, Object?>>{};
   for (final entry in value) {
@@ -99,6 +103,7 @@ List<MeasuredNamingLevel> measuredLevels(
   }
   final levels = <MeasuredNamingLevel>[];
   var above = (suggestScore, suggestScoreNoLocation);
+  var abovePrecision = surerPrecision;
   for (final level in NamingLevel.values) {
     final entry = byLevel[level];
     if (entry == null) continue;
@@ -112,7 +117,8 @@ List<MeasuredNamingLevel> measuredLevels(
         target is! num ||
         !target.isFinite ||
         // Bars the level above already names at add nothing.
-        (suggest, noLocation) == above) {
+        (suggest, noLocation) == above ||
+        (abovePrecision != null && precision > abovePrecision)) {
       continue;
     }
     levels.add(
@@ -125,6 +131,7 @@ List<MeasuredNamingLevel> measuredLevels(
       ),
     );
     above = (suggest, noLocation);
+    abovePrecision = precision;
   }
   return List.unmodifiable(levels);
 }

@@ -497,6 +497,7 @@ class SpeciesPackManifest extends Equatable {
                 naming['levels'],
                 _double(naming, 'suggestScore'),
                 _double(naming, 'suggestScoreNoLocation'),
+                surerPrecision: measuredShare(naming['precision']),
               ),
       ),
       region: RegionConfig(

@@ -694,6 +694,36 @@ void main() {
       );
     });
 
+    test('a level more often right than the one above is dropped', () {
+      expect(
+        ids(
+          naming([
+            balanced({'precision': 0.95}),
+          ], precision: 0.897),
+        ),
+        isEmpty,
+      );
+      expect(
+        ids(
+          naming([
+            balanced(),
+            eager({'precision': 0.85}),
+          ]),
+        ),
+        [NamingLevel.balanced],
+      );
+      // With no measured precision for Surer, Balanced has nothing above it
+      // to be compared with.
+      expect(
+        ids(
+          naming([
+            balanced({'precision': 0.95}),
+          ]),
+        ),
+        [NamingLevel.balanced],
+      );
+    });
+
     test('eager above balanced is dropped', () {
       expect(
         ids(

@@ -124,7 +124,8 @@ final levelInForceProvider = Provider<LevelInForce?>((ref) {
 });
 
 /// The level in force for a write that must not miss it (tag
-/// reconciliation, issue #4721): the pack's level once it is read, waiting
+/// reconciliation, issue #4721): none at once for Surer, which reads as the
+/// stored flags; otherwise the pack's level once it is read, waiting
 /// up to [wait] for a read still under way. None at once when the pack
 /// cannot be read, and none after [wait]: a failed read retries in the
 /// background, and the video scan awaits this, so it never waits on that.
@@ -135,6 +136,9 @@ Future<LevelInForce?> awaitLevelInForce(
   Duration wait = const Duration(seconds: 5),
 }) async {
   final chosen = container.read(namingLevelNotifierProvider);
+  // Surer is in force on any pack and reads as the stored flags, so there
+  // is nothing to wait for.
+  if (chosen == NamingLevel.surer) return null;
   final current = container.read(installedSpeciesPackProvider);
   if (current.hasValue) return levelInForce(current.value?.manifest, chosen);
   if (current.hasError) return null;

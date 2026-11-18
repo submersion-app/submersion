@@ -17,6 +17,7 @@ import 'package:submersion/features/species_id/data/services/identification_crop
 import 'package:submersion/features/species_id/data/services/memory_readout.dart';
 import 'package:submersion/features/species_id/data/services/video_identification_scan.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/domain/entities/naming_level.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
 import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
@@ -707,9 +708,12 @@ Future<List<MediaIdentification>> identificationsAtLevel(
   String mediaId,
   LevelInForce? level,
 ) async {
-  final namedWithPack = level == null
-      ? null
-      : (await repository.runFor(mediaId))?.packVersion;
+  // Surer is the pack's own bars, so its rows read as stored: no run to
+  // read and nothing to work out again.
+  if (level == null || level.level == NamingLevel.surer) {
+    return repository.forMedia(mediaId);
+  }
+  final namedWithPack = (await repository.runFor(mediaId))?.packVersion;
   return applyNamingLevel(
     await repository.forMedia(mediaId),
     level: level,

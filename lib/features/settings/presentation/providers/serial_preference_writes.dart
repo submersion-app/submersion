@@ -3,9 +3,8 @@
 /// A setting does not await its change, so two quick changes can have
 /// writes out together, and where a write replaces the whole preferences
 /// file (Windows, Linux) two in flight can land in either order. Queued
-/// here, the stored value is always the last one shown, as
-/// `MediaCacheSettingsNotifier` does for its sizes. A failed write does not
-/// hold up the ones after it; its caller still sees the error.
+/// here, the stored value is always the last one shown. A failed write
+/// does not hold up the ones after it; its caller still sees the error.
 mixin SerialPreferenceWrites {
   /// The latest write, which the next one waits on.
   Future<void> _lastWrite = Future<void>.value();
