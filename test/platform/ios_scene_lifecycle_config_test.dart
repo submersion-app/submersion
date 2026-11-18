@@ -11,18 +11,22 @@ import 'plist_test_helpers.dart';
 /// runs Dart code would notice the manifest going missing or the plugin
 /// registration moving back to launch, so these are file assertions.
 
-const _info = 'ios/Runner/Info.plist';
 final _runnerDir = p.join('ios', 'Runner');
+final _info = p.join(_runnerDir, 'Info.plist');
 final _appDelegate = p.join(_runnerDir, 'AppDelegate.swift');
 
-/// The body of the first Swift function in [source] whose declaration
-/// contains [signature], from its opening brace to the matching closing one.
-String swiftFunctionBody(String source, String signature) {
+/// The brace-delimited Swift block (a function or closure body) that follows
+/// the first occurrence of [signature] in [source], from its opening brace to
+/// the matching closing one.
+String swiftBodyAfter(String source, String signature) {
   final start = source.indexOf(signature);
   if (start < 0) {
-    throw StateError('No function declaration contains "$signature"');
+    throw StateError('Nothing in the source contains "$signature"');
   }
   final open = source.indexOf('{', start);
+  if (open < 0) {
+    throw StateError('No "{" follows "$signature"');
+  }
   var depth = 0;
   for (var i = open; i < source.length; i++) {
     if (source[i] == '{') depth++;
@@ -80,8 +84,8 @@ void main() {
 
     setUpAll(() {
       source = File(_appDelegate).readAsStringSync();
-      launch = swiftFunctionBody(source, 'didFinishLaunchingWithOptions');
-      engine = swiftFunctionBody(
+      launch = swiftBodyAfter(source, 'didFinishLaunchingWithOptions');
+      engine = swiftBodyAfter(
         source,
         'func didInitializeImplicitFlutterEngine',
       );
@@ -106,15 +110,32 @@ void main() {
       );
       // At launch the scene has not connected, so there is no engine yet.
       // The Workmanager callback registers plugins on its own background
-      // engine later, which is why the launch body may still name the
-      // registrant inside that closure.
-      expect(launch, isNot(contains('register(with: self)')));
+      // engine when a task runs, so only that closure may name the registrant.
+      final callback = swiftBodyAfter(launch, 'setPluginRegistrantCallback');
+      expect(
+        callback,
+        contains('GeneratedPluginRegistrant.register(with: registry)'),
+      );
+      final restOfLaunch = launch.replaceFirst(callback, '');
+      expect(restOfLaunch, isNot(contains('GeneratedPluginRegistrant')));
+      expect(restOfLaunch, isNot(contains('register(with:')));
       expect(launch, isNot(contains('registrar(forPlugin:')));
+    });
+
+    test("releases an earlier engine's handlers before creating new ones", () {
+      // iOS can disconnect the scene and reconnect it with a fresh engine;
+      // the replaced handlers would otherwise keep their security-scoped
+      // access for the life of the process.
+      final release = engine.indexOf('releaseSecurityScopedAccess()');
+      expect(release, isNonNegative);
+      expect(release, lessThan(engine.indexOf('registrar(forPlugin:')));
     });
 
     test('creates every channel handler on the implicit engine', () {
       final handlers = runnerHandlerNames();
-      expect(handlers, hasLength(9));
+      // Not a pinned count: a new handler registered correctly must pass.
+      // Empty would mean the listing found nothing to check.
+      expect(handlers, isNotEmpty);
       for (final handler in handlers) {
         expect(
           engine,

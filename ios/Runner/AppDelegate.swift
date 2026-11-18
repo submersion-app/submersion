@@ -35,14 +35,18 @@ import workmanager_apple
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
-  // Called once the storyboard's FlutterViewController has created the
-  // engine, as the scene connects.
+  // Called when the storyboard's FlutterViewController creates its engine as
+  // the scene connects: once per launch, and again with a fresh engine if iOS
+  // disconnects the scene and later reconnects it.
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
+    // Handlers left from an earlier engine still hold security-scoped access.
+    releaseSecurityScopedAccess()
+
     let registry = engineBridge.pluginRegistry
     GeneratedPluginRegistrant.register(with: registry)
 
     if let bookmarkRegistrar = registry.registrar(forPlugin: "SecurityScopedBookmarkHandler") {
-      bookmarkHandler = SecurityScopedBookmarkHandler(messenger: bookmarkRegistrar.messenger())
+      bookmarkHandler = SecurityScopedBookmarkHandler(registrar: bookmarkRegistrar)
     }
     if let icloudRegistrar = registry.registrar(forPlugin: "ICloudContainerHandler") {
       icloudHandler = ICloudContainerHandler(messenger: icloudRegistrar.messenger())
@@ -57,7 +61,7 @@ import workmanager_apple
       localMediaHandler = LocalMediaHandler(messenger: localMediaRegistrar.messenger())
     }
     if let backupRegistrar = registry.registrar(forPlugin: "BackupBookmarkHandler") {
-      backupBookmarkHandler = BackupBookmarkHandler(messenger: backupRegistrar.messenger())
+      backupBookmarkHandler = BackupBookmarkHandler(registrar: backupRegistrar)
     }
     if let deviceNameRegistrar = registry.registrar(forPlugin: "DeviceNameHandler") {
       deviceNameHandler = DeviceNameHandler(messenger: deviceNameRegistrar.messenger())
@@ -71,9 +75,14 @@ import workmanager_apple
   }
 
   override func applicationWillTerminate(_ application: UIApplication) {
-    // Clean up security-scoped resource access
+    releaseSecurityScopedAccess()
+  }
+
+  /// Stops the security-scoped access the folder and media handlers hold.
+  private func releaseSecurityScopedAccess() {
     bookmarkHandler?.cleanup()
     backupBookmarkHandler?.releaseAll()
+    localMediaHandler?.releaseAll()
   }
 
   /// iOS caches launch screen snapshots in Library/SplashBoard.
