@@ -404,6 +404,23 @@ void main() {
       );
     });
 
+    test('a detector id with a plus sign is malformed', () {
+      // A pair is stored as both ids joined with a plus sign, so a single id
+      // holding one could read as a pair.
+      expect(
+        () => SpeciesPackManifest.parse(
+          manifestV2Json((m) => detectorsOf(m).last['id'] = 'a+b'),
+        ),
+        malformed(),
+      );
+      expect(
+        () => SpeciesPackManifest.parse(
+          manifestJson((m) => (m['detector']! as Map)['id'] = 'a+b'),
+        ),
+        malformed(),
+      );
+    });
+
     test('a detector named like the classifier is malformed', () {
       expect(
         () => SpeciesPackManifest.parse(

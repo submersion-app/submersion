@@ -17,6 +17,7 @@ the app build or a pack.
 """
 
 import argparse
+import copy
 import hashlib
 import json
 import os
@@ -49,7 +50,7 @@ PACK_CHECKPOINT = "megalodon-2024"
 
 # How Megalodon is run, by the scorer and in a pack: the ultralytics
 # defaults, kept in manifest.py with the pack's other detector.
-SETTINGS = pack_manifest.DETECTORS["megalodon"]
+SETTINGS = copy.deepcopy(pack_manifest.DETECTORS["megalodon"])
 SUPPRESS_IOU = 0.7
 LETTERBOX_GREY = 114
 

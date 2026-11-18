@@ -5,9 +5,9 @@
 //                  --crop-fit F [--detector-boxes] < paths
 //
 // The manifest is a pack's: format 2 lists one or two detectors, each with
-// its format; format 1 has one detector block, whose "detectorFormat"
-// ("rfdetr", the default, or "yolo") the tool reads as the app would. Pass
-// one --detector per detector, in the manifest's order. --detector-boxes
+// its format; format 1 has one detector block, the fish detector, read as
+// the app reads it. Pass one --detector per detector, in the manifest's
+// order. --detector-boxes
 // adds each detector's own boxes and the merged boxes, before cropping, to
 // every result.
 //
@@ -56,11 +56,12 @@ guard let manifestData = try? Data(contentsOf: manifestURL),
 // The detectors and the shared box settings, from either format.
 let detectorBlocks: [[String: Any]]
 let boxes: [String: Any]
-if let list = manifest["detectors"] as? [[String: Any]], let shared = manifest["boxes"] as? [String: Any] {
+if let list = manifest["detectors"] as? [[String: Any]] {
+  guard let shared = manifest["boxes"] as? [String: Any] else { fail("the manifest has detectors but no boxes block") }
   detectorBlocks = list
   boxes = shared
 } else if let one = manifest["detector"] as? [String: Any] {
-  detectorBlocks = [one.merging(["format": one["detectorFormat"] ?? "rfdetr"]) { a, _ in a }]
+  detectorBlocks = [one.merging(["format": "rfdetr"]) { _, fish in fish }]
   boxes = ["mergeIoU": 0.5, "maxBoxes": one["maxBoxes"] as Any, "cropPadding": one["cropPadding"] as Any]
 } else {
   fail("the manifest has no detectors")

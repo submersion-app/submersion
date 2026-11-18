@@ -280,6 +280,20 @@ class BuildManifestTests(unittest.TestCase):
         self.assertEqual(manifest.model_zip("detector-megalodon", "coreml"), "detector-megalodon.coreml.zip")
         self.assertEqual(manifest.detector_ids("both"), [CFD, MEGALODON])
 
+    def test_a_built_manifest_shares_nothing_with_the_settings(self):
+        m = self.build("both")
+        m["detectors"][1]["std"][0] = 9.0
+        m["boxes"]["maxBoxes"] = 1
+        m["classifier"]["mean"][0] = 9.0
+        detectors, boxes = manifest.pack_detectors(self.build("both"))
+        detectors[0]["mean"][0] = 9.0
+        manifest.with_detectors(self.build("both"), detectors, boxes)["detectors"][0]["std"][0] = 9.0
+        self.assertEqual(manifest.DETECTORS["megalodon"]["std"], [1.0, 1.0, 1.0])
+        self.assertEqual(manifest.DETECTORS["cfd"]["mean"], [0.485, 0.456, 0.406])
+        self.assertEqual(manifest.DETECTORS["cfd"]["std"], [0.229, 0.224, 0.225])
+        self.assertEqual(manifest.BOXES["maxBoxes"], 8)
+        self.assertEqual(manifest.CLASSIFIER_SETTINGS["mean"][0], 0.48145466)
+
     def test_round_trips_through_json(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = os.path.join(tmp, "manifest.json")
@@ -310,6 +324,11 @@ class PackDetectorsTests(unittest.TestCase):
         detectors, boxes = manifest.pack_detectors(built)
         self.assertEqual([d["id"] for d in detectors], [CFD, MEGALODON])
         self.assertEqual(boxes, manifest.BOXES)
+
+    def test_a_format_one_detector_format_is_ignored_as_the_app_does(self):
+        old = dict(self.FORMAT_ONE, detector=dict(self.FORMAT_ONE["detector"], detectorFormat="yolo"))
+        (detector,), _ = manifest.pack_detectors(old)
+        self.assertEqual(detector["format"], "rfdetr")
 
     def test_with_detectors_writes_format_two_and_keeps_the_rest(self):
         one = manifest.with_detectors(self.FORMAT_ONE, [manifest.DETECTORS["megalodon"]], manifest.BOXES)
@@ -354,8 +373,26 @@ class DetectorIdentityTests(unittest.TestCase):
     def test_detector_settings_change_only_with_their_id(self):
         self.assertEqual(manifest.DETECTORS, self.PINNED_DETECTORS, "a detector setting changed: give it a new id")
 
+    def test_no_id_has_a_plus_sign(self):
+        # The app stores a pair as both ids joined with "+" and refuses an id
+        # holding one.
+        for detector in manifest.DETECTORS.values():
+            self.assertNotIn("+", detector["id"])
+
     def test_box_settings_change_only_with_new_ids(self):
         self.assertEqual(manifest.BOXES, self.PINNED_BOXES, "a box setting changed: give the detectors new ids")
+
+
+class FittingTests(unittest.TestCase):
+    def test_a_fitting_the_packs_use_is_no_mismatch(self):
+        self.assertEqual(manifest.fitting_mismatches(dict(manifest.CROP_FIT)), {})
+
+    def test_a_scorer_choice_unlike_the_packs_is_reported(self):
+        chosen = dict(manifest.CROP_FIT, megalodon="centreCrop")
+        self.assertEqual(
+            manifest.fitting_mismatches(chosen),
+            {"megalodon": {"chosen": "centreCrop", "packs use": "padSquare"}},
+        )
 
 
 class ModelIdsTests(unittest.TestCase):

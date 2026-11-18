@@ -5,6 +5,7 @@ a pack (lib/features/species_id/domain/entities/species_pack_manifest.dart).
 Standard library only, so its test runs in CI without the model tooling.
 """
 
+import copy
 import hashlib
 import json
 import os
@@ -184,14 +185,15 @@ def model_zip(stem, engine):
 
 def pack_detectors(manifest):
     """A pack manifest's detectors and box settings in format 2's shape,
-    from either format. A format 1 pack's one detector is the fish
-    detector, run with its own box limit and crop padding."""
+    from either format, as copies. A format 1 pack's one detector is the
+    fish detector (as the app reads it), run with its own box limit and
+    crop padding."""
     if "detectors" in manifest:
-        return [dict(d) for d in manifest["detectors"]], dict(manifest["boxes"])
-    d = manifest["detector"]
+        return copy.deepcopy(manifest["detectors"]), copy.deepcopy(manifest["boxes"])
+    d = copy.deepcopy(manifest["detector"])
     detector = {
         "id": d["id"],
-        "format": d.get("detectorFormat", "rfdetr"),
+        "format": "rfdetr",
         "file": "detector",
         **{k: d[k] for k in ("inputSize", "mean", "std", "scoreThreshold", "maxBoxes")},
     }
@@ -201,11 +203,22 @@ def pack_detectors(manifest):
 def with_detectors(manifest, detectors, boxes):
     """A format 2 copy of `manifest` carrying `detectors` and `boxes`, for
     running a set of detectors with the vision tool."""
-    out = {k: v for k, v in manifest.items() if k not in ("detector", "detectors", "boxes")}
+    out = copy.deepcopy({k: v for k, v in manifest.items() if k not in ("detector", "detectors", "boxes")})
     out["formatVersion"] = FORMAT_VERSION
-    out["detectors"] = [dict(d) for d in detectors]
-    out["boxes"] = dict(boxes)
+    out["detectors"] = copy.deepcopy(list(detectors))
+    out["boxes"] = copy.deepcopy(boxes)
     return out
+
+
+def fitting_mismatches(chosen):
+    """The detector sets (keys of DETECTOR_SETS) whose crop fitting a scorer
+    run chose differs from CROP_FIT, which the packs are built with. Bars
+    pinned at such a fitting would never match a built pack."""
+    return {
+        name: {"chosen": fit, "packs use": CROP_FIT[name]}
+        for name, fit in chosen.items()
+        if CROP_FIT[name] != fit
+    }
 
 
 def naming_for(detector_ids, classifier_id, crop_fit, contents, measured=NAMING_MEASURED):
@@ -239,12 +252,12 @@ def build_manifest(
     return {
         "formatVersion": FORMAT_VERSION,
         "packVersion": pack_version,
-        "detectors": [dict(DETECTORS[k]) for k in DETECTOR_SETS[detector_set]],
-        "boxes": dict(BOXES),
+        "detectors": [copy.deepcopy(DETECTORS[k]) for k in DETECTOR_SETS[detector_set]],
+        "boxes": copy.deepcopy(BOXES),
         "classifier": {
             "id": classifier_id,
             "embeddingSize": embedding_size,
-            **CLASSIFIER_SETTINGS,
+            **copy.deepcopy(CLASSIFIER_SETTINGS),
             "cropFit": crop_fit,
         },
         "naming": dict(

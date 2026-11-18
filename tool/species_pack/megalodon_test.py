@@ -95,6 +95,13 @@ class SettingsTests(unittest.TestCase):
         self.assertEqual(written["detectors"], [pack])
         self.assertEqual(written["boxes"], manifest.BOXES)
 
+    def test_the_settings_are_a_copy_of_the_packs(self):
+        sys.path.insert(0, _HERE)
+        import manifest
+
+        self.assertIsNot(megalodon.SETTINGS, manifest.DETECTORS["megalodon"])
+        self.assertIsNot(megalodon.SETTINGS["mean"], manifest.DETECTORS["megalodon"]["mean"])
+
 
 if __name__ == "__main__":
     unittest.main()

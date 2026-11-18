@@ -555,7 +555,7 @@ Never _bad(String detail) =>
   return (
     List.unmodifiable([
       DetectorConfig(
-        id: _string(detector, 'id'),
+        id: _detectorId(detector),
         format: DetectorFormat.rfdetr,
         file: 'detector',
         inputSize: _positiveInt(detector, 'inputSize'),
@@ -599,7 +599,7 @@ DetectorConfig _detector(Map<String, Object?> map) {
     _bad('detector file $file is not a safe name');
   }
   return DetectorConfig(
-    id: _string(map, 'id'),
+    id: _detectorId(map),
     format: format.single,
     file: file,
     inputSize: _positiveInt(map, 'inputSize'),
@@ -608,6 +608,15 @@ DetectorConfig _detector(Map<String, Object?> map) {
     scoreThreshold: _double(map, 'scoreThreshold'),
     maxBoxes: _positiveInt(map, 'maxBoxes'),
   );
+}
+
+/// A pair is stored as both ids joined with a plus sign
+/// ([SpeciesPackManifest.detectorSetId]), so an id holding one could be read
+/// as a pair.
+String _detectorId(Map<String, Object?> map) {
+  final id = _string(map, 'id');
+  if (id.contains('+')) _bad('detector id $id has a plus sign');
+  return id;
 }
 
 BoxesConfig _boxes(Map<String, Object?> map) {
