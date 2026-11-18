@@ -198,6 +198,26 @@ void main() {
     expect(service.followed, isEmpty);
   });
 
+  testWidgets('a reopened player is followed, not the old one', (tester) async {
+    await pump(tester);
+    final old = playback;
+    addTearDown(old.dispose);
+    playback = ValueNotifier(old.value);
+    await pump(tester);
+    // The old player jumps: nothing is heard from it any more.
+    for (final ms in [5000, 90000]) {
+      old.value = old.value.copyWith(position: Duration(milliseconds: ms));
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    await tester.pump(const Duration(seconds: 1));
+    expect(service.followed, isEmpty);
+    at(5000);
+    await tester.pump(const Duration(milliseconds: 100));
+    at(60000);
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(service.followed, [(mediaId: 'v1', ms: 60000, seek: true)]);
+  });
+
   testWidgets('leaving the video forgets its report', (tester) async {
     await pump(tester);
     expect(service.forgotten, isEmpty);
