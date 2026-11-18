@@ -176,7 +176,8 @@ class LightroomScanService {
       state: state,
       summary: summary,
     );
-    final placement = dive.profile.isEmpty
+    // Read only when there is something to place.
+    final placement = dive.profile.isEmpty || matched.isEmpty
         ? null
         : (
             profile: dive.profile,
