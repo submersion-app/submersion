@@ -9,7 +9,11 @@ candidates), whose list also takes the species divers record often in
 shallow surveys but rarely photograph, and the photographed species the
 earlier build's GBIF paging had skipped (#4683,
 [design](../specs/2026-11-17-marine-life-survey-candidates-design.md)).
-Both use BioCLIP 2 (`bioclip-2-vitl14-2957b32`), 16-bit Core ML on an
+Pack `2026.11.18.0356` carries both detectors and the same naming files
+as `2026.11.18.0030`; scored on it, every number below came out the same,
+and "Two detectors in one pack" adds what is new (#4691,
+[design](../specs/2026-11-17-marine-life-two-detectors-design.md)).
+All use BioCLIP 2 (`bioclip-2-vitl14-2957b32`), 16-bit Core ML on an
 Apple M5 Pro, through the app's own Swift pipeline. The numbers below are
 for the 9,151 pack unless they say otherwise; "The candidate list with
 surveyed species" compares the two.
@@ -37,7 +41,9 @@ interval where one is given. The bars were chosen on the other half.
    37% of the animals the detector boxes. The observed rate meets the
    target; the interval now dips below it (with the 7,646 list it was 85.8
    to 92.5%). The held-out gate switches a bar off only when the whole
-   interval is below the target, so these bars stand.
+   interval is below the target, so these bars stand. Megalodon alone and
+   the pair have measured bars of their own, under "Two detectors in one
+   pack".
 2. **No confident names.** No bar could show 95% on the tune half for the
    Community Fish Detector, so, as decided, the app names nothing at that
    level. Proving 95% on the one-sided lower bound needs either more photos
@@ -49,12 +55,17 @@ interval where one is given. The bars were chosen on the other half.
    not differ (57 against 41, p = 0.13), so pad-to-square stays for it. The
    fitting is now a manifest setting the app follows, so each pack carries
    the one its bars were measured with.
-4. **Detector: the fish detector alone or the pair, if the fish detector's
-   terms are acceptable; otherwise Megalodon.** The rule chose the pair with
-   the 7,646 list and the fish detector alone with the 9,151 list, but the
-   measurement does not separate the two: the pair names 304 animals right
-   and the fish detector 303 (p = 1.0). Megalodon's place behind the fish
-   detector does look real. Details under "Detectors".
+4. **Detector: both detectors, by the rule as it stands since #4691.**
+   The rule now also needs a detector set to find something in at least
+   70% of held-out photos in every animal group, and only the pair does:
+   the fish detector falls short in coral, crabs, octopus, snails and sea
+   stars, Megalodon in crabs. Counted only by animals named right, the pair
+   and the fish detector tie (304 and 303, p = 1.0), because three quarters
+   of the natural sample is fish; Megalodon's place behind the fish
+   detector does look real. If the fish detector's terms are unacceptable,
+   Megalodon alone is the explicitly licensed choice. The choice stays the
+   maintainer's. Details under "Detectors" and "Two detectors in one
+   pack".
 
 ## The candidate list with surveyed species
 
@@ -312,7 +323,10 @@ noise of each other (above), so this is not a change of conclusion:
   animals right overall (252 against 303, p = 0.0007), where with the 7,646
   list the two tied (p = 0.28).
 
-The choice is the maintainer's.
+The choice is the maintainer's. Since #4691 the rule also asks for a box
+in at least 70% of held-out photos in every group, which only the pair
+gives, so the rule now recommends the pair (see "Two detectors in one
+pack").
 
 ### Megalodon's conversion
 
@@ -322,6 +336,94 @@ drift 0.0003, best box overlap 0.998). The app pipeline's YOLO path
 letterbox, suppression and box scaling on 20 test photos, 10 portrait and
 10 landscape, upright as the app decodes them: 23 of 23 boxes matched at an
 intersection over union of 0.9 or more.
+
+## Two detectors in one pack
+
+Measured on 2026-11-17 for #4691
+([design](../specs/2026-11-17-marine-life-two-detectors-design.md)). A pack
+now lists one or two detectors (manifest format 2), and the app runs every
+one and merges two detectors' boxes before naming them. Pack
+`2026.11.18.0356` was built with `build_pack.py --detectors both`: the fish
+detector, then Megalodon, with the same `candidates.json`,
+`text_embeddings.f16` and `regions.bin` as `2026.11.18.0030`, byte for
+byte. Its download is 633 MB against 528 MB for the fish detector's pack;
+Megalodon's model is 105 MB.
+
+### The app merges as the scorer measured
+
+The first measurement merged two single runs in Python
+(`tool/species_pack/boxes.py`). Now the pair runs through the app's own
+pipeline, which reports each detector's boxes and the merged boxes, and the
+scorer merges those same per-detector boxes with `boxes.py`. They were equal
+on all 2,612 photos at both fittings. Each detector's boxes inside the pair
+run also equalled its own single run, and the merged boxes a merge of the
+single runs, on all 2,612, so the numbers in this document hold for the
+app's pair. A pack with one detector returns that detector's boxes
+unchanged: the fish detector's numbers on this pack equal the earlier run's.
+
+### Bars for each detector set
+
+The scorer now writes bars for every set at its chosen fitting, and all
+three are in `tool/species_pack/manifest.py`, so whichever pack is
+published carries measured bars:
+
+| Set (fitting) | `minOpenScore` | suggest | suggest, no location | confident | suggested right | coverage |
+| --- | --- | --- | --- | --- | --- | --- |
+| Fish detector (centre crop) | 0.39 | 0.64 | 0.79 | never | 87.1% (83.1 to 90.2) | 36.9% |
+| Megalodon (pad-to-square) | 0.21 | 0.75 | 0.70 | never | 92.3% (88.5 to 94.9) | 30.9% |
+| Both (centre crop) | 0.44 | 0.74 | 0.81 | never | 89.7% (86.0 to 92.5) | 32.4% |
+
+### The group floor
+
+Share of held-out photos with any box, against the 70% floor:
+
+| Group | Fish detector | Megalodon | Both |
+| --- | --- | --- | --- |
+| fish (820) | 95% | 80% | 98% |
+| sharks and rays (67) | 91% | 78% | 96% |
+| octopus (72) | 62% (below) | 79% | 90% |
+| crabs (26) | 50% (below) | 65% (below) | 77% |
+| sea snails and nudibranchs (146) | 60% (below) | 90% | 95% |
+| sea stars (56) | 68% (below) | 84% | 91% |
+| coral (78) | 40% (below) | 83% | 92% |
+
+Only the pair clears the floor in every group, so the rule recommends it.
+Crabs decide Megalodon's place and have 26 photos; at 65% against 70%, more
+crab photos could move it either way.
+
+### Speed
+
+On this Mac, GPU path:
+
+- **Photos:** detection took 11.2 ms (median) with the fish detector,
+  15.7 ms with Megalodon and 26.4 ms with both; embedding a crop is about
+  10 ms either way.
+- **Video pass 1** over a 26.8 s 4K60 HEVC clip (107 frames sampled at four
+  a second, decoding included), three runs each: 3.1 s median with the fish
+  detector, 4.8 s with both, 1.5 times as long. The pair finds 286 boxes
+  against 268, so pass 2 embeds a few more moments (71 against 58 here;
+  about 3.5 s against 2.5 s).
+
+### Memory
+
+Measured with the command-line harness of the
+[phone memory findings](2026-11-17-marine-life-phone-memory.md): the app's own `VisionPipeline.swift` and `VideoScanner.swift`
+with no Flutter, database or network, physical footprint sampled every
+20 ms, on a 50 MP reef photo and the clip above, models already compiled,
+two runs each (the kernel's lifetime peak agreed with the samples):
+
+| Stage | Fish detector | Both |
+| --- | --- | --- |
+| Models loaded, idle | 17 MB | 19 MB |
+| Photo, peak | 253 MB | 374 to 375 MB |
+| Video pass 1, peak | 273 to 277 MB | 406 to 415 MB |
+| Video pass 2, peak | 232 to 238 MB | 376 to 383 MB |
+| After unloading | 74 to 76 MB | 94 to 95 MB |
+
+The weights stay file-mapped, as the memory findings found for the fish
+detector and classifier; the pair's extra 120 to 140 MB at its peaks is
+Megalodon's working memory on top of the media decode. These are Mac
+figures on the GPU path; the iPhone test is still open.
 
 ## Licence notes
 

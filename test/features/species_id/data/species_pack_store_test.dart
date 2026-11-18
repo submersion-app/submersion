@@ -21,6 +21,14 @@ SpeciesPackManifest _manifest(String version) => SpeciesPackManifest.parse(
   }),
 );
 
+/// The same pack carrying both detectors (format 2).
+SpeciesPackManifest _pairManifest(String version) => SpeciesPackManifest.parse(
+  manifestV2Json((m) {
+    m['packVersion'] = version;
+    (m['classifier']! as Map)['embeddingSize'] = 3;
+  }),
+);
+
 Uint8List _zipOf(String folder) {
   final archive = Archive()
     ..addFile(
@@ -72,9 +80,14 @@ void main() {
     int embeddingValues = 6,
   }) async {
     final dir = await store.staging(manifest.packVersion);
-    File(
-      p.join(dir.path, 'detector.coreml.zip'),
-    ).writeAsBytesSync(_zipOf('detector.mlpackage'));
+    for (final detector in manifest.detectors) {
+      File(
+        p.join(
+          dir.path,
+          SpeciesPackManifest.modelFile(detector.file, 'coreml'),
+        ),
+      ).writeAsBytesSync(_zipOf('${detector.file}.mlpackage'));
+    }
     File(
       p.join(dir.path, 'classifier.coreml.zip'),
     ).writeAsBytesSync(_zipOf('classifier.mlpackage'));
@@ -117,10 +130,10 @@ void main() {
     final pack = await store.install(manifest);
 
     expect(pack.manifest.packVersion, '2026.11.1');
-    expect(p.basename(pack.detectorPath), 'detector.mlpackage');
+    expect(p.basename(pack.detectorPaths.single), 'detector.mlpackage');
     expect(p.basename(pack.classifierPath), 'classifier.mlpackage');
     expect(
-      await File(p.join(pack.detectorPath, 'Manifest.json')).exists(),
+      await File(p.join(pack.detectorPaths.single, 'Manifest.json')).exists(),
       isTrue,
     );
     expect(await store.installed(), pack);
@@ -139,11 +152,11 @@ void main() {
     await stage(manifest);
     final pack = await store.install(manifest);
     final compiled = Directory(
-      p.join(p.dirname(pack.detectorPath), 'detector.mlmodelc'),
+      p.join(p.dirname(pack.detectorPaths.single), 'detector.mlmodelc'),
     );
     await compiled.create();
     expect(
-      p.basename((await store.installed())!.detectorPath),
+      p.basename((await store.installed())!.detectorPaths.single),
       'detector.mlmodelc',
     );
   });
@@ -247,6 +260,27 @@ void main() {
     await stage(manifest);
     final pack = await store.install(manifest);
     await Directory(pack.classifierPath).delete(recursive: true);
+    expect(await store.installed(), isNull);
+  });
+
+  test('a pair pack unpacks each detector into its own folder', () async {
+    final manifest = _pairManifest('2026.11.2');
+    await stage(manifest);
+    final pack = await store.install(manifest);
+
+    expect(pack.detectorPaths, hasLength(2));
+    expect(p.basename(p.dirname(pack.detectorPaths[0])), 'detector');
+    expect(p.basename(pack.detectorPaths[0]), 'detector.mlpackage');
+    expect(p.basename(p.dirname(pack.detectorPaths[1])), 'detector-megalodon');
+    expect(p.basename(pack.detectorPaths[1]), 'detector-megalodon.mlpackage');
+    expect(await store.installed(), pack);
+  });
+
+  test('a pair pack missing its second model is not installed', () async {
+    final manifest = _pairManifest('2026.11.2');
+    await stage(manifest);
+    final pack = await store.install(manifest);
+    await Directory(pack.detectorPaths[1]).delete(recursive: true);
     expect(await store.installed(), isNull);
   });
 }

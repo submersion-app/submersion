@@ -37,23 +37,35 @@ const tang = PackCandidate(
 );
 
 /// A pack of three candidates with axis text embeddings, all recorded
-/// everywhere, so a location never removes one.
+/// everywhere, so a location never removes one. With [secondDetector], a
+/// format 2 pack carrying two detectors (issue #4691).
 LoadedPack pack({
   String version = '2026.11.1',
   String detector = 'det-a',
+  String? secondDetector,
   String classifier = 'clf-a',
   String? cropFit,
 }) {
+  void common(Map<String, Object?> m) {
+    m['packVersion'] = version;
+    final c = m['classifier']! as Map;
+    c['id'] = classifier;
+    c['embeddingSize'] = 3;
+    if (cropFit != null) c['cropFit'] = cropFit;
+    (m['naming']! as Map)['minAllowedCandidates'] = 1;
+  }
+
   final manifest = SpeciesPackManifest.parse(
-    manifestJson((m) {
-      m['packVersion'] = version;
-      (m['detector']! as Map)['id'] = detector;
-      final c = m['classifier']! as Map;
-      c['id'] = classifier;
-      c['embeddingSize'] = 3;
-      if (cropFit != null) c['cropFit'] = cropFit;
-      (m['naming']! as Map)['minAllowedCandidates'] = 1;
-    }),
+    secondDetector == null
+        ? manifestJson((m) {
+            common(m);
+            (m['detector']! as Map)['id'] = detector;
+          })
+        : manifestV2Json((m) {
+            common(m);
+            detectorsOf(m)[0]['id'] = detector;
+            detectorsOf(m)[1]['id'] = secondDetector;
+          }),
   );
   final grid = RegionGrid(cellDegrees: manifest.region.cellDegrees);
   final rowBytes = (grid.cellCount + 7) ~/ 8;
@@ -61,7 +73,10 @@ LoadedPack pack({
     pack: InstalledPack(
       manifest: manifest,
       directory: '/pack/$version',
-      detectorPath: '/pack/$version/detector/detector.mlpackage',
+      detectorPaths: [
+        for (final d in manifest.detectors)
+          '/pack/$version/${d.file}/${d.file}.mlpackage',
+      ],
       classifierPath: '/pack/$version/classifier/classifier.mlpackage',
     ),
     candidates: const [parrotfish, chromis, tang],

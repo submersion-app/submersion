@@ -1,15 +1,21 @@
 #!/usr/bin/env python3
-"""Scores a model pack against the accuracy test set, for each detector and
-crop fitting, and chooses the naming bars (the measured accuracy design,
-docs/design/specs/2026-11-17-marine-life-identification-measured-accuracy-design.md).
+"""Scores a model pack against the accuracy test set, for each detector set
+(the fish detector, Megalodon, both) and crop fitting, and chooses the
+naming bars (the measured accuracy design,
+docs/design/specs/2026-11-17-marine-life-identification-measured-accuracy-design.md,
+and the two detectors design,
+docs/design/specs/2026-11-17-marine-life-two-detectors-design.md).
 
     python -I tool/species_pack/score.py --pack PACK
 
 Runs the app's own vision pipeline (tool/species_pack/vision_cli) over every
-photo, names each crop with naming.py, chooses bars with bars.py on the tune
-half of the natural sample, gates them on the held-out half, and writes
-report.md and results.json to the work folder. Needs numpy, Pillow and the
-converted Megalodon model (megalodon.py). Developer-run; not part of CI.
+photo, the pair through the pipeline's own merge, which must equal
+boxes.py's on every photo; names each crop with naming.py, chooses bars
+with bars.py on the tune half of the natural sample, gates them on the
+held-out half, and writes report.md and results.json to the work folder.
+The pack must carry the fish detector; Megalodon comes from the pack or,
+when it carries none, from its converted model (megalodon.py). Needs numpy
+and Pillow. Developer-run; not part of CI.
 """
 
 import argparse
@@ -22,7 +28,6 @@ import shutil
 import statistics
 import subprocess
 import sys
-import zipfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -33,6 +38,7 @@ import megalodon  # noqa: E402
 import metrics  # noqa: E402
 import naming  # noqa: E402
 import region_grid  # noqa: E402
+import report  # noqa: E402
 import testset  # noqa: E402
 
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -52,68 +58,84 @@ def _read_json(path):
         return json.load(fh)
 
 
-def _model_path(models_dir, name):
-    compiled = os.path.join(models_dir, f"{name}.mlmodelc")
-    return compiled if os.path.exists(compiled) else os.path.join(models_dir, f"{name}.mlpackage")
-
-
 class Runner:
-    """Runs the vision tool once per detector and fitting, cached by pack
-    version, and keeps each run's results by photo path."""
+    """Runs the vision tool once per detector set (the fish detector,
+    Megalodon, both) and fitting, cached by pack version, and keeps each
+    run's results by photo path. Models come from the pack when it carries
+    them; Megalodon otherwise from its converted model in the work folder."""
 
     def __init__(self, pack, work):
         self.pack, self.work = pack, work
         with open(os.path.join(pack, "manifest.json"), encoding="utf-8") as fh:
             self.manifest = json.load(fh)
         self.version = self.manifest["packVersion"]
+        detectors, self.boxes = pack_manifest.pack_detectors(self.manifest)
+        stems = [d["file"] for d in detectors] + ["classifier"]
+        zips = {pack_manifest.model_zip(stem, "coreml") for stem in stems}
         # The models' own hashes, so a pack rebuilt under the same version
         # with other models is extracted again rather than read stale.
-        self.model_hashes = {
-            f["name"]: f["sha256"]
-            for f in self.manifest["files"]
-            if f["name"] in ("detector.coreml.zip", "classifier.coreml.zip")
-        }
+        self.model_hashes = {f["name"]: f["sha256"] for f in self.manifest["files"] if f["name"] in zips}
         self.models = os.path.join(work, "models", self.version)
         source = os.path.join(self.models, "source.json")
         if os.path.exists(self.models) and _read_json(source) != self.model_hashes:
             shutil.rmtree(self.models)
         os.makedirs(self.models, exist_ok=True)
-        for name in ("detector", "classifier"):
-            if not os.path.exists(os.path.join(self.models, f"{name}.mlmodelc")) and not os.path.exists(
-                os.path.join(self.models, f"{name}.mlpackage")
-            ):
-                with zipfile.ZipFile(os.path.join(pack, f"{name}.coreml.zip")) as zf:
-                    zf.extractall(self.models)
+        for stem in stems:
+            pack_manifest.unpack_model(pack, stem, os.path.join(self.models, stem))
         with open(source, "w", encoding="utf-8") as fh:
             json.dump(self.model_hashes, fh)
+        self.classifier = pack_manifest.model_in(os.path.join(self.models, "classifier"))
         self.tool = os.path.join(work, "species_vision")
         subprocess.run([os.path.join(os.path.dirname(__file__), "vision_cli", "build.sh"), self.tool], check=True)
-        mega_dir = megalodon.converted_dir(work, MEGALODON)
-        self.mega_manifest = os.path.join(mega_dir, "manifest.json")
-        with open(self.mega_manifest, "w", encoding="utf-8") as fh:
-            json.dump(megalodon.manifest_for(MEGALODON, os.path.join(pack, "manifest.json")), fh)
-        self.detectors = {
-            self.manifest["detector"]["id"]: (os.path.join(pack, "manifest.json"), self.models),
-            megalodon.CHECKPOINTS[MEGALODON]["id"]: (self.mega_manifest, mega_dir),
+
+        self.cfd = pack_manifest.DETECTORS["cfd"]["id"]
+        self.mega = pack_manifest.DETECTORS["megalodon"]["id"]
+        in_pack = {d["id"]: (d, os.path.join(self.models, d["file"])) for d in detectors}
+        if self.cfd not in in_pack:
+            raise SystemExit(f"{pack} does not carry the fish detector, which every comparison measures")
+        if self.mega not in in_pack:
+            # A copy of the converted package: the tool deletes what it compiles.
+            in_pack[self.mega] = (dict(megalodon.SETTINGS), os.path.dirname(megalodon.tool_model(work, MEGALODON)))
+        # Megalodon's checkpoint pins its model when it is not in the pack.
+        self.mega_from_pack = self.mega in {d["id"] for d in detectors}
+        self.runs = {
+            self.cfd: [self.cfd],
+            self.mega: [self.mega],
+            BOTH: [self.cfd, self.mega],
         }
+        self.manifests = {}
+        for name, ids in self.runs.items():
+            run_manifest = pack_manifest.with_detectors(self.manifest, [in_pack[i][0] for i in ids], self.boxes)
+            path = os.path.join(work, "manifests", self.version, f"{name}.json")
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, "w", encoding="utf-8") as fh:
+                json.dump(run_manifest, fh)
+            self.manifests[name] = path
+        self.model_paths = {i: pack_manifest.model_in(folder) for i, (_, folder) in in_pack.items()}
+        missing = [i for i, path in self.model_paths.items() if path is None]
+        if missing:
+            raise SystemExit(f"no model found for {', '.join(missing)}")
         self.memory = {}
 
-    def _fingerprint(self, detector, fit, photos):
-        """What a run's output depends on: the photos, the detector's
-        settings, the fitting, and the tool's source."""
+    def _fingerprint(self, name, fit, photos):
+        """What a run's output depends on: the photos, the detectors' and
+        classifier's settings, the fitting, the models, and the tool's
+        source."""
         digest = hashlib.sha256()
-        manifest, _ = self.detectors[detector]
-        with open(manifest, encoding="utf-8") as fh:
+        with open(self.manifests[name], encoding="utf-8") as fh:
             settings = json.load(fh)
         digest.update(
             json.dumps(
                 [
                     sorted(photos),
-                    settings["detector"],
+                    settings["detectors"],
+                    settings["boxes"],
                     settings["classifier"],
                     fit,
                     self.model_hashes,
-                    megalodon.CHECKPOINTS[MEGALODON]["sha256"],
+                    None if self.mega_from_pack else megalodon.CHECKPOINTS[MEGALODON]["sha256"],
+                    # The converted model itself, so converting again reruns.
+                    None if self.mega_from_pack else megalodon.converted_stamp(self.work, MEGALODON),
                 ]
             ).encode()
         )
@@ -128,15 +150,17 @@ class Runner:
                 digest.update(fh.read())
         return digest.hexdigest()
 
-    def run(self, detector, fit, photos):
-        out = os.path.join(self.work, "runs", f"{detector}_{fit}_{self.version}.jsonl")
+    def run(self, name, fit, photos):
+        out = os.path.join(self.work, "runs", f"{name}_{fit}_{self.version}.jsonl")
         mem = out[: -len(".jsonl")] + ".time.txt"
         key_path = out[: -len(".jsonl")] + ".key"
-        key = self._fingerprint(detector, fit, photos)
+        key = self._fingerprint(name, fit, photos)
         stored = open(key_path, encoding="utf-8").read().strip() if os.path.exists(key_path) else None
         if not os.path.exists(out) or stored != key:
             os.makedirs(os.path.dirname(out), exist_ok=True)
-            manifest, models_dir = self.detectors[detector]
+            detectors = [arg for i in self.runs[name] for arg in ("--detector", self.model_paths[i])]
+            # The pair's merge is checked against boxes.py on its own boxes.
+            extra = ["--detector-boxes"] if name == BOTH else []
             with open(out + ".partial", "w", encoding="utf-8") as fh, open(mem, "w", encoding="utf-8") as err:
                 subprocess.run(
                     [
@@ -144,13 +168,13 @@ class Runner:
                         "-l",
                         self.tool,
                         "--manifest",
-                        manifest,
-                        "--detector",
-                        _model_path(models_dir, "detector"),
+                        self.manifests[name],
+                        *detectors,
                         "--classifier",
-                        _model_path(self.models, "classifier"),
+                        self.classifier,
                         "--crop-fit",
                         fit,
+                        *extra,
                     ],
                     input="\n".join(photos) + "\n",
                     stdout=fh,
@@ -161,9 +185,12 @@ class Runner:
             os.replace(out + ".partial", out)
             with open(key_path, "w", encoding="utf-8") as fh:
                 fh.write(key + "\n")
+            # A compiled model may have replaced a package the paths named.
+            self.model_paths = {i: pack_manifest.model_in(os.path.dirname(p)) for i, p in self.model_paths.items()}
+            self.classifier = pack_manifest.model_in(os.path.dirname(self.classifier))
         with open(mem, encoding="utf-8") as fh:
             m = re.search(r"(\d+)\s+maximum resident set size", fh.read())
-        self.memory[(detector, fit)] = int(m.group(1)) if m else None
+        self.memory[(name, fit)] = int(m.group(1)) if m else None
         results = {}
         with open(out, encoding="utf-8") as fh:
             for line in fh:
@@ -173,7 +200,7 @@ class Runner:
         # photo where the detector found nothing.
         failed = [p for p in photos if p not in results or "error" in results[p]]
         if failed:
-            raise SystemExit(f"{detector} {fit}: {len(failed)} photos have no usable result, for example {failed[:2]}")
+            raise SystemExit(f"{name} {fit}: {len(failed)} photos have no usable result, for example {failed[:2]}")
         return results
 
 
@@ -504,94 +531,60 @@ def _labelled(results, detector):
     }
 
 
-def _merged(a, b, max_boxes):
+def _merged(a, b, merge_iou, max_boxes):
+    """Two single runs merged in Python, as the first measurement did."""
     out = {}
     for path in set(a) | set(b):
         runs = [a.get(path, {}).get("detections", []), b.get(path, {}).get("detections", [])]
-        out[path] = {"path": path, "detections": box_math.merge(runs, iou_threshold=0.5, max_boxes=max_boxes)}
+        out[path] = {"path": path, "detections": box_math.merge(runs, iou_threshold=merge_iou, max_boxes=max_boxes)}
     return out
+
+
+def _detector_run(pair, index):
+    """One detector's boxes from the pair run, shaped as a single run."""
+    return {path: {"detections": r["detectorBoxes"][index]} for path, r in pair.items()}
+
+
+def _same_boxes(a, b, tolerance=1e-4):
+    """How many photos have the same boxes, in order, in runs a and b."""
+    def rects(result):
+        return [(d["x"], d["y"], d["w"], d["h"]) for d in (result or {}).get("detections", [])]
+
+    return sum(
+        1
+        for path in a
+        if len(rects(a[path])) == len(rects(b.get(path)))
+        and all(max(abs(x - y) for x, y in zip(p, q)) <= tolerance for p, q in zip(rects(a[path]), rects(b.get(path))))
+    )
+
+
+def _measured_entry(bars, manifest, detector_ids, crop_fit):
+    """A NAMING_MEASURED entry for manifest.py from a run's gated bars."""
+    naming = manifest["naming"]
+    return {
+        "naming": {
+            "provisional": False,
+            "minCropSide": naming["minCropSide"],
+            "minOpenScore": round(bars["min_open"], 2),
+            "suggestScore": round(bars["suggest"], 2),
+            "confidentScore": round(bars["confident"], 2),
+            "suggestScoreNoLocation": round(bars["suggest_no_location"], 2),
+            "confidentScoreNoLocation": round(bars["confident_no_location"], 2),
+            "minAllowedCandidates": naming["minAllowedCandidates"],
+            "topK": naming["topK"],
+        },
+        "detectorIds": list(detector_ids),
+        "classifierId": manifest["classifier"]["id"],
+        "cropFit": crop_fit,
+        "packVersion": manifest["packVersion"],
+        "contents": pack_manifest.contents_of(manifest["files"]),
+    }
 
 
 def _paired(a, b):
     only_a = sum(1 for k in a if a[k] and not b.get(k))
     only_b = sum(1 for k in b if b[k] and not a.get(k))
     return {"only first": only_a, "only second": only_b, "p": bar_search.mcnemar_p(only_a, only_b)}
-
-
-def _pct(rate):
-    if not rate or rate.get("n", 0) == 0:
-        return "n/a"
-    return f"{rate['value']:.1%} ({rate['low']:.1%} to {rate['high']:.1%}, n {rate['n']})"
-
-
-def _bar(value):
-    return "never" if value >= bar_search.NEVER else f"{value:.2f}"
-
-
-def write_report(results, path):
-    """A Markdown summary of results.json, for reading and for the findings."""
-    lines = [f"# Accuracy report, pack {results['pack']} ({results['candidates']} candidates)", ""]
-    lines += ["## Bars after the held-out gate", ""]
-    lines += ["| Run | minOpenScore | suggest | suggest, no location | confident | confident, no location | switched off |"]
-    lines += ["| --- | --- | --- | --- | --- | --- | --- |"]
-    for key, e in results["evaluations"].items():
-        b = e["bars after held-out gate"]
-        lines.append(
-            f"| {key} | {b['min_open']:.2f} | {_bar(b['suggest'])} | {_bar(b['suggest_no_location'])} | "
-            f"{_bar(b['confident'])} | {_bar(b['confident_no_location'])} | {', '.join(e['switched off']) or 'none'} |"
-        )
-    lines += ["", "## Held-out natural sample", ""]
-    lines += [
-        "| Run | photos | any box | largest named right | top-1 / top-3 with location | "
-        "top-1 / top-3 without | suggested: coverage | suggested: precision | confident: coverage | "
-        "confident: precision | junk named |"
-    ]
-    lines += ["| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
-    for key, e in results["evaluations"].items():
-        d, s = e["held-out natural, detection"], e["held-out natural"]
-        sw, cw = s["suggested"]["with location"], s["confident"]["with location"]
-        lines.append(
-            f"| {key} | {d['photos']} | {_pct(d['any box'])} | {_pct(d['largest box named right (top-1, no bars)'])} | "
-            f"{s['top1 with location']:.1%} / {s['top3 with location']:.1%} | "
-            f"{s['top1 without location']:.1%} / {s['top3 without location']:.1%} | {_pct(sw['coverage'])} | "
-            f"{_pct(sw['precision'])} | {_pct(cw['coverage'])} | {_pct(cw['precision'])} | "
-            f"{_pct(e['junk named (held-out)'])} |"
-        )
-    for section in ("by group (held-out, natural and top-up)", "by region", "by pack membership", "by habitat", "by box size"):
-        lines += ["", f"## {section[0].upper()}{section[1:]}", ""]
-        lines += ["| Run | group | crops | top-1 with location | suggested precision | suggested coverage |"]
-        lines += ["| --- | --- | --- | --- | --- | --- |"]
-        for key, e in results["evaluations"].items():
-            for group, g in e[section].items():
-                sw = g["suggested"]["with location"]
-                lines.append(
-                    f"| {key} | {group} | {g['crops']} | {g['top1 with location']:.1%} | "
-                    f"{_pct(sw['precision'])} | {_pct(sw['coverage'])} |"
-                )
-    lines += ["", "## Crop fitting (centre crop against pad-to-square)", ""]
-    for name, c in results["fitting comparison"].items():
-        lines.append(
-            f"- {name}: only centre crop right {c['only first']}, only pad-to-square right "
-            f"{c['only second']}, p {c['p']:.3g}; chosen {results['fitting chosen'][name]}"
-        )
-    lines += ["", "## Detectors", ""]
-    for pair, c in results["detector comparison"].items():
-        lines.append(f"- {pair}: only first right {c['only first']}, only second {c['only second']}, p {c['p']:.3g}")
-    for name, n in results["named right per detector"].items():
-        lines.append(f"- {name}: {n} held-out photos named right at its bars")
-    lines.append(f"- recommended by the design's rule: {results['recommendation']}")
-    lines += ["", "## Speed and memory on this Mac", ""]
-    lines += ["| Run | detect ms (median, p90) | embed ms per crop (median, p90) | peak memory of the whole run |"]
-    lines += ["| --- | --- | --- | --- |"]
-    for key, sp in results["speed"].items():
-        mem = sp["peak memory bytes"]
-        lines.append(
-            f"| {key} | {sp['detect ms median'] or 0:.1f}, {sp['detect ms p90'] or 0:.1f} | "
-            f"{sp['embed ms median'] or 0:.1f}, {sp['embed ms p90'] or 0:.1f} | "
-            f"{mem / 1e9:.2f} GB |" if mem else f"| {key} | | | |"
-        )
-    with open(path, "w", encoding="utf-8") as fh:
-        fh.write("\n".join(lines) + "\n")
 
 
 def main(argv=None):
@@ -621,33 +614,53 @@ def main(argv=None):
     runner = Runner(args.pack, args.work)
     namer = Namer(args.pack, runner.manifest)
     min_side = runner.manifest["naming"]["minCropSide"]
-    max_boxes = runner.manifest["detector"]["maxBoxes"]
+    merge_iou, max_boxes = runner.boxes["mergeIoU"], runner.boxes["maxBoxes"]
     commons = sorted({_photo(args.work, r) for r in junk_rows})
     photos = [_photo(args.work, r) for r in animals] + commons
-    cfd = runner.manifest["detector"]["id"]
-    mega = megalodon.CHECKPOINTS[MEGALODON]["id"]
+    cfd, mega = runner.cfd, runner.mega
+    ids = {cfd: [cfd], mega: [mega], BOTH: [cfd, mega]}
 
     results = {
         "pack": runner.version,
         "candidates": len(namer.candidates),
-        # What NAMING_MEASURED in manifest.py needs to name this exact pack.
-        "detectorId": cfd,
         "classifierId": runner.manifest["classifier"]["id"],
         "contents": pack_manifest.contents_of(runner.manifest["files"]),
         "evaluations": {},
         "speed": {},
+        "pair agreement": {},
     }
     kept = {}
     for fit in FITS:
         runs = {}
-        for detector in (cfd, mega):
-            raw = runner.run(detector, fit, photos)
-            runs[detector] = _labelled(raw, detector)
-            results["speed"][f"{detector} {fit}"] = {
+        for name in (cfd, mega, BOTH):
+            raw = runner.run(name, fit, photos)
+            results["speed"][f"{name} {fit}"] = {
                 **_timings(raw),
-                "peak memory bytes": runner.memory.get((detector, fit)),
+                "peak memory bytes": runner.memory.get((name, fit)),
             }
-        runs[BOTH] = _merged(runs[cfd], runs[mega], max_boxes)
+            if name == BOTH:
+                # The app's merge must be the one measured, photo by photo.
+                bad = box_math.disagreements(raw, iou_threshold=merge_iou, max_boxes=max_boxes)
+                if bad:
+                    raise SystemExit(
+                        f"the app merged {len(bad)} of {len(raw)} photos' boxes unlike boxes.py, "
+                        f"for example {bad[:3]}; fix the pipeline before trusting this run"
+                    )
+                runs[name] = raw
+            else:
+                runs[name] = _labelled(raw, name)
+        # Every photo passed the check above. For information only: GPU runs
+        # need not repeat scores bit for bit, so the pair run's boxes may
+        # differ slightly from the single runs without anything being wrong.
+        results["pair agreement"][fit] = {
+            "photos checked against boxes.py": len(runs[BOTH]),
+            "per-detector boxes equal to the single run": {
+                name: _same_boxes(_detector_run(runs[BOTH], i), runs[name]) for i, name in enumerate((cfd, mega))
+            },
+            "merged boxes equal to a merge of the single runs": _same_boxes(
+                runs[BOTH], _merged(runs[cfd], runs[mega], merge_iou, max_boxes)
+            ),
+        }
         for name, by_photo in runs.items():
             key = f"{name} {fit}"
             print(f"scoring {key}", flush=True)
@@ -666,12 +679,31 @@ def main(argv=None):
         )
         detectors[name] = kept[f"{name} {better}"]["_correct_at_bars"]
         results.setdefault("fitting chosen", {})[name] = better
+    # Bars pinned at a fitting the packs are not built with would never match
+    # a pack: CROP_FIT in manifest.py has to follow the measurement.
+    set_keys = {cfd: "cfd", mega: "megalodon", BOTH: "both"}
+    results["fitting against the packs"] = pack_manifest.fitting_mismatches(
+        {set_keys[name]: fit for name, fit in results["fitting chosen"].items()}
+    )
+    for name, m in results["fitting against the packs"].items():
+        print(f"warning: {name} measured best with {m['chosen']}, but packs use {m['packs use']}; update CROP_FIT", flush=True)
     results["detector comparison"] = {
         f"{a} vs {b}": _paired(detectors[a], detectors[b]) for a, b in ((mega, cfd), (BOTH, cfd), (BOTH, mega))
     }
     for key, value in kept.items():
         results["evaluations"][key] = {k: v for k, v in value.items() if not k.startswith("_")}
     results["named right per detector"] = {name: sum(v.values()) for name, v in detectors.items()}
+    # What NAMING_MEASURED in manifest.py needs for each set, at its chosen
+    # fitting, to name this exact pack.
+    results["measured"] = [
+        _measured_entry(
+            kept[f"{name} {results['fitting chosen'][name]}"]["bars after held-out gate"],
+            runner.manifest,
+            ids[name],
+            results["fitting chosen"][name],
+        )
+        for name in (cfd, mega, BOTH)
+    ]
     # Simplest first: one explicitly licensed detector, then the other, then
     # the pair.
     preference = [mega, cfd, BOTH]
@@ -679,16 +711,30 @@ def main(argv=None):
         name: kept[f"{name} {results['fitting chosen'][name]}"]["junk named (tune, at the chosen bars)"] <= 0.02
         for name in preference
     }
+    # Every group must be found often enough (issue #4691), so a set is not
+    # chosen on a sample that is mostly fish.
+    results["groups below floor"] = {
+        name: metrics.groups_below_floor(
+            {
+                group: g["any box"]["value"]
+                for group, g in kept[f"{name} {results['fitting chosen'][name]}"][
+                    "by group (held-out, natural and top-up)"
+                ].items()
+            }
+        )
+        for name in preference
+    }
+    eligible = {name: junk_ok[name] and not results["groups below floor"][name] for name in preference}
     paired = {
         frozenset((a, b)): _paired(detectors[a], detectors[b])["p"]
         for a, b in ((mega, cfd), (BOTH, cfd), (BOTH, mega))
     }
-    results["recommendation"] = metrics.recommend(results["named right per detector"], paired, preference, junk_ok)
+    results["recommendation"] = metrics.recommend(results["named right per detector"], paired, preference, eligible)
 
     os.makedirs(args.work, exist_ok=True)
     with open(os.path.join(args.work, "results.json"), "w", encoding="utf-8") as fh:
         json.dump(results, fh, indent=1, default=str)
-    write_report(results, os.path.join(args.work, "report.md"))
+    report.write_report(results, os.path.join(args.work, "report.md"))
     print(f"wrote {os.path.join(args.work, 'results.json')} and report.md")
     return 0
 

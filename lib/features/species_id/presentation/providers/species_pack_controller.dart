@@ -245,7 +245,7 @@ class SpeciesPackController extends Notifier<SpeciesPackState> {
       await engine.load(
         VisionModels.fromManifest(
           pack.manifest,
-          detectorPath: pack.detectorPath,
+          detectorPaths: pack.detectorPaths,
           classifierPath: pack.classifierPath,
         ),
       );

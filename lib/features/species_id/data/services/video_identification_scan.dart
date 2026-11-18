@@ -325,7 +325,7 @@ class VideoIdentificationScan {
     final run = MediaIdentificationRun(
       mediaId: _item.id,
       packVersion: manifest.packVersion,
-      detectorId: manifest.detector.id,
+      detectorId: manifest.detectorSetId,
       classifierId: manifest.classifier.embeddingId,
       locationCell: _cell,
       analysedAt: _now().toUtc(),
