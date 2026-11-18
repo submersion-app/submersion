@@ -114,6 +114,26 @@ void main() {
     expect(updated()!.gasMix, const GasMix(o2: 100));
   });
 
+  testWidgets('a cylinder stored impossible keeps what the diver types', (
+    tester,
+  ) async {
+    // No possible mix to fall back to: keeping the stored 60/50 would drop
+    // each edit until the fields happen to add up.
+    final updated = await pumpEditor(
+      tester,
+      const DiveTank(id: 't', volume: 12, gasMix: GasMix(o2: 60, he: 50)),
+    );
+
+    await tester.enterText(find.widgetWithText(TextFormField, '50'), '45');
+    await tester.pump();
+    expect(updated()!.gasMix, const GasMix(o2: 60, he: 45));
+    expect(find.text(_error), findsOneWidget);
+
+    await tester.enterText(find.widgetWithText(TextFormField, '60'), '18');
+    await tester.pump();
+    expect(updated()!.gasMix, const GasMix(o2: 18, he: 45));
+  });
+
   testWidgets('a trimix is taken without complaint', (tester) async {
     final updated = await pumpEditor(
       tester,

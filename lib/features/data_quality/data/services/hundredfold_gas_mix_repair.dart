@@ -59,24 +59,36 @@ class HundredfoldGasMixRepair {
   /// dividing does not explain stays for the impossible gas mix finding.
   /// Returns the dives it changed.
   Future<Set<String>> rescaleAll() async {
-    final fixes = [
-      for (final stored in await _repo.impossibleMixes())
-        if (hundredfoldCorrection(stored.mix) case final mix?)
-          (diveId: stored.diveId, tankId: stored.tankId, mix: mix),
-    ];
-    if (fixes.isEmpty) return const {};
-    await ChangeLogScope.automatic(
+    // A first look outside the change log, so a launch with nothing to do
+    // opens no operation.
+    if ((await _fixes()).isEmpty) return const {};
+    final changed = await ChangeLogScope.automatic(
       _database ?? DatabaseService.instance.databaseOrNull,
       label: ChangeLogLabels.qualityRepair,
-      body: () => _write(fixes),
+      body: _write,
     );
-    final changed = {for (final fix in fixes) fix.diveId};
-    scheduleQualityScan(changed);
+    if (changed.isNotEmpty) scheduleQualityScan(changed);
     return changed;
   }
 
-  Future<void> _write(List<StoredTankMix> mixes) async {
-    await _db.transaction(() => _repo.setGasMixes(mixes));
+  /// Every stored mix dividing explains, as the mix to write.
+  Future<List<StoredTankMix>> _fixes() async => [
+    for (final stored in await _repo.impossibleMixes())
+      if (hundredfoldCorrection(stored.mix) case final mix?)
+        (diveId: stored.diveId, tankId: stored.tankId, mix: mix),
+  ];
+
+  /// Reads the mixes again and writes them in one transaction, as [rescale]
+  /// does: a sync or an edit landing after the first look must not be
+  /// overwritten under a newer clock that every device would then take.
+  Future<Set<String>> _write() async {
+    final fixes = await _db.transaction(() async {
+      final fixes = await _fixes();
+      await _repo.setGasMixes(fixes);
+      return fixes;
+    });
+    if (fixes.isEmpty) return const {};
     SyncEventBus.notifyLocalChange();
+    return {for (final fix in fixes) fix.diveId};
   }
 }

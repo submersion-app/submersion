@@ -115,6 +115,33 @@ void main() {
     expect(dives.every((d) => d.updatedAt > 1), isTrue);
   });
 
+  test('writes a whole logbook of cylinders, past any batch size', () async {
+    // The reported logbook held 841 such cylinders.
+    const count = 1200;
+    final mixes = [
+      for (var i = 0; i < count; i++)
+        (
+          diveId: i.isEven ? 'd1' : 'd2',
+          tankId: 't$i',
+          mix: GasMix(o2: [21.0, 32.0, 36.0][i % 3]),
+        ),
+    ];
+    for (final m in mixes) {
+      await tank(m.tankId, m.diveId, m.mix.o2 * 100);
+    }
+
+    await repo.setGasMixes(mixes);
+
+    final rows = {for (final t in await db.select(db.diveTanks).get()) t.id: t};
+    for (final m in mixes) {
+      expect(rows[m.tankId]!.o2Percent, m.mix.o2, reason: m.tankId);
+      expect(rows[m.tankId]!.hlc, isNotNull, reason: m.tankId);
+    }
+    final marked = await pending();
+    expect(marked.where((p) => p.$1 == 'diveTanks'), hasLength(count));
+    expect(marked, containsAll({('dives', 'd1'), ('dives', 'd2')}));
+  });
+
   test('an empty list writes nothing', () async {
     await tank('a', 'd1', 3200);
 

@@ -40,11 +40,6 @@ class GasModDetector extends QualityDetector {
     // on its mix.
     final tanks = breathingTanks(ctx.tanks);
     if (tanks.isEmpty) return const [];
-    // A mix no gas can have, such as 3200% O2 stored by an older import,
-    // reads as ppO2 far past any limit at every depth (issue #4714). The
-    // time it is breathed, and a switch onto it, are not judged: the
-    // impossible gas mix finding names it, and the rescan its repair queues
-    // judges the corrected mix. Every other gas on the dive still is.
     final switches = breathingRawGasSwitches(ctx.gasSwitches, ctx.tanks);
     final out = <QualityFinding>[];
     final environment = ctx.dive.environment;
@@ -105,6 +100,12 @@ class GasModDetector extends QualityDetector {
       peak = 0;
     }
 
+    // A mix no gas can have, such as 3200% O2 stored by an older import,
+    // reads as ppO2 far past any limit at every depth (issue #4714). The
+    // time it is breathed, here and in the hypoxic pass, and a switch onto
+    // it are not judged: the impossible gas mix finding names it, and the
+    // rescan its repair queues judges the corrected mix. Every other gas on
+    // the dive still is.
     for (final p in ctx.primarySamples) {
       final mix = mixAt(p.t);
       if (!mix.isPossible) {

@@ -196,8 +196,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   /// #4714), which [_currentGasMix] reports while they describe one that
   /// cannot, such as a typed 1000% O2. Kept apart from [_lastValidO2] and
   /// [_lastValidHe], which are remembered field by field and so can pair up
-  /// into a mix no gas can have.
-  late GasMix _lastPossibleMix;
+  /// into a mix no gas can have. Null until there is one: a cylinder stored
+  /// impossible has nothing to fall back to.
+  GasMix? _lastPossibleMix;
 
   /// The spec and pressure fields' last readable values, in display units,
   /// for the same reason as [_lastValidO2]: a mistype reports what the diver
@@ -275,7 +276,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     );
     _lastValidO2 = widget.tank.gasMix.o2;
     _lastValidHe = widget.tank.gasMix.he;
-    _lastPossibleMix = widget.tank.gasMix;
+    if (widget.tank.gasMix.isPossible) _lastPossibleMix = widget.tank.gasMix;
     _volume = LiveNumber(null)..resolve(_volumeController.text);
     _workingPressure = LiveNumber(null)
       ..resolve(_workingPressureController.text);
@@ -454,10 +455,12 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   ///
   /// A mix no gas can have, such as a typed 1000% O2, reports the last one
   /// that could instead, for the same reason: the field's error says why,
-  /// and the stored gas is never one the dive cannot have (issue #4714).
+  /// and a gas the diver had is not replaced by one the dive cannot have
+  /// (issue #4714). A cylinder stored impossible has no such mix, so there
+  /// the typed one is reported and each edit lands.
   GasMix _currentGasMix() {
     final typed = _typedGasMix();
-    return typed.isPossible ? typed : _lastPossibleMix;
+    return typed.isPossible ? typed : (_lastPossibleMix ?? typed);
   }
 
   /// The mix the O2/He fields spell out, possible or not.

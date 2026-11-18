@@ -383,18 +383,22 @@ class QualityRepairExecutor {
     required String tankId,
     required domain.GasMix mix,
     required String findingId,
-  }) async {
-    final prior = await _gasMixes.rescale(
-      diveId: diveId,
-      tankId: tankId,
-      mix: mix,
-    );
-    if (prior == null) return const RepairResult.noChange();
-    await _finish(findingId, [diveId]);
-    // No undo: this is what the launch repair writes anyway, so putting the
-    // impossible mix back would last only until the next launch.
-    return const RepairResult.applied();
-  }
+  }) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.qualityRepair,
+    body: () async {
+      final prior = await _gasMixes.rescale(
+        diveId: diveId,
+        tankId: tankId,
+        mix: mix,
+      );
+      if (prior == null) return const RepairResult.noChange();
+      await _finish(findingId, [diveId]);
+      // No undo: this is what the launch repair writes anyway, so putting
+      // the impossible mix back would last only until the next launch.
+      return const RepairResult.applied();
+    },
+  );
 
   Future<RepairResult> swapTankRecordPressures({
     required String diveId,

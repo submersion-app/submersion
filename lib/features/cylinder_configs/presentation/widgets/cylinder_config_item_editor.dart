@@ -156,6 +156,17 @@ class _CylinderConfigItemEditorState extends State<CylinderConfigItemEditor> {
       ? null
       : context.l10n.diveLog_tank_error_impossibleMix;
 
+  /// The share [field] spells out, or [stored] while it reads as no number.
+  /// Each gas field checks and emits against the other field's text, not
+  /// the model: a share the model refused (say O2 50 beside He 60) is still
+  /// on screen, and pairing the other field with the model's older value
+  /// would emit a mix the fields do not show.
+  static double _typedShare(TextEditingController field, double stored) =>
+      switch (readNumber(field.text)) {
+        NumberValue(:final value) => value,
+        _ => stored,
+      };
+
   // ---------------------------------------------------------------- size
 
   /// Litres for the volume field's text at [workingPressureBar], or null
@@ -454,16 +465,20 @@ class _CylinderConfigItemEditorState extends State<CylinderConfigItemEditor> {
                       suffixText: '%',
                       isDense: true,
                     ),
-                    check: (o2) => _mixError(o2, item.hePercent),
+                    check: (o2) =>
+                        _mixError(o2, _typedShare(_he, item.hePercent)),
                     // Only a readable value updates the model: blank, and
                     // transient or mistyped text such as a lone ".", must
                     // not clobber the stored mix; the field says why. So
                     // must a mix no gas can have, such as 1000% (#4714).
                     onChanged: (read) {
-                      if (read case NumberValue(
-                        :final value,
-                      ) when _mixError(value, item.hePercent) == null) {
-                        _emitOnLimit(item.copyWith(o2Percent: value));
+                      if (read case NumberValue(:final value)) {
+                        final he = _typedShare(_he, item.hePercent);
+                        if (_mixError(value, he) == null) {
+                          _emitOnLimit(
+                            item.copyWith(o2Percent: value, hePercent: he),
+                          );
+                        }
                       }
                     },
                   ),
@@ -477,12 +492,18 @@ class _CylinderConfigItemEditorState extends State<CylinderConfigItemEditor> {
                       suffixText: '%',
                       isDense: true,
                     ),
-                    check: (he) => _mixError(item.o2Percent, he),
+                    check: (he) =>
+                        _mixError(_typedShare(_o2, item.o2Percent), he),
                     onChanged: (read) {
-                      if (read case NumberValue(
-                        :final value,
-                      ) when _mixError(item.o2Percent, value) == null) {
-                        _emit(item.copyWith(hePercent: value));
+                      if (read case NumberValue(:final value)) {
+                        final o2 = _typedShare(_o2, item.o2Percent);
+                        if (_mixError(o2, value) == null) {
+                          // On the MOD's limit, as an O2 edit is: the O2
+                          // the field held back may land with this one.
+                          _emitOnLimit(
+                            item.copyWith(o2Percent: o2, hePercent: value),
+                          );
+                        }
                       }
                     },
                   ),

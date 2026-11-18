@@ -263,6 +263,8 @@ void main() {
     test('a whole fraction of 1 is still pure oxygen', () {
       expect(parse('1'), const GasMix(o2: 100));
       expect(parse('1.0'), const GasMix(o2: 100));
+      // Binary noise just over 1 is still that fraction, not 1% O2.
+      expect(parse('1.0000000000000002'), const GasMix(o2: 100));
     });
 
     test('a percentage mix without helium has none', () {

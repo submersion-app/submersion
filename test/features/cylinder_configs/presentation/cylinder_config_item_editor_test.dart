@@ -544,6 +544,29 @@ void main() {
       expect(current.hePercent, 35);
     });
 
+    testWidgets('a held-back share lands once the other field allows it', (
+      tester,
+    ) async {
+      await tester.pumpWidget(host(item: seed(o2: 21, he: 60)));
+      await tester.pumpAndSettle();
+
+      // 50 + 60 is no gas, so the model keeps the O2 it had...
+      await tester.enterText(field('O2'), '50');
+      await tester.pumpAndSettle();
+      expect(current.o2Percent, 21);
+
+      // ...and once He makes the fields a gas, the model takes what both
+      // fields show, not the old O2 beside the new He.
+      await tester.enterText(field('He'), '40');
+      await tester.pumpAndSettle();
+      expect(current.o2Percent, 50);
+      expect(current.hePercent, 40);
+      expect(
+        find.text('O2 and He must each be 0 to 100 and total 100 or less'),
+        findsNothing,
+      );
+    });
+
     testWidgets('an unreadable O2 says why and keeps the stored mix (#1900)', (
       tester,
     ) async {

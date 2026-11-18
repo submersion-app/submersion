@@ -25,11 +25,19 @@ void main() {
       );
     });
 
-    test('divides a helium share the import also multiplied', () {
-      // `<o2>21</o2><he>0.9</he>` stored 2100/90: 0.9% helium.
+    test('a share left in range beside an inflated one is not divided', () {
+      // The importers multiplied both shares. A Tx 18/45 stored as 1800/4500
+      // whose helium the diver put right by hand is 1800/45: dividing both
+      // would turn their 45% helium into 0.45%. Left for the diver.
+      expect(hundredfoldCorrection(const GasMix(o2: 1800, he: 45)), isNull);
+      expect(hundredfoldCorrection(const GasMix(o2: 2100, he: 90)), isNull);
+      expect(hundredfoldCorrection(const GasMix(o2: 32, he: 3500)), isNull);
+    });
+
+    test('a helium share over 100% is divided with the oxygen', () {
       expect(
-        hundredfoldCorrection(const GasMix(o2: 2100, he: 90)),
-        const GasMix(o2: 21, he: 0.9),
+        hundredfoldCorrection(const GasMix(o2: 2100, he: 150)),
+        const GasMix(o2: 21, he: 1.5),
       );
     });
 
@@ -68,6 +76,9 @@ void main() {
       // nothing but nitrogen, which no diver breathes. Left for the diver.
       expect(hundredfoldCorrection(const GasMix(o2: 1000)), isNull);
       expect(hundredfoldCorrection(const GasMix(o2: 500)), isNull);
+      // Nor does a trace of helium: 1000/50 divided is 10% O2 with 0.5%
+      // helium, still no gas a diver breathes.
+      expect(hundredfoldCorrection(const GasMix(o2: 1000, he: 50)), isNull);
       // A hypoxic trimix stored 100 times too high is still divided.
       expect(
         hundredfoldCorrection(const GasMix(o2: 1000, he: 7000)),

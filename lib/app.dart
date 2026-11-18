@@ -382,9 +382,19 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   /// device on an older version is put right this launch too. Same database
   /// timing argument as [_resumeMediaTransfers]; the syncs and the provider
   /// contain their own failures, so it is safe to leave unawaited.
+  ///
+  /// It also waits for the launch reconcile, as [_maybeSyncOnLaunch] does:
+  /// with sync on launch off, [syncs] ends at once, and the repair's row
+  /// clocks and pending marks must not land in a restore's rebaseline.
   void _repairGasMixesAfter(Future<void> syncs) {
     unawaited(
-      syncs.whenComplete(() {
+      syncs.whenComplete(() async {
+        if (!mounted) return;
+        try {
+          await ref.read(reconcileDeviceIdentityProvider.future);
+        } catch (_) {
+          // Logged inside reconcileDeviceIdentity; repair anyway.
+        }
         if (!mounted) return;
         unawaited(ref.read(launchGasMixRepairProvider)());
       }),

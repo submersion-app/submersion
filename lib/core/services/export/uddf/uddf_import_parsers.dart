@@ -442,7 +442,13 @@ class UddfImportParsers {
     // over 1 is taken as percentages (issue #4705). Deciding for the whole
     // mix keeps a small helium share such as `<he>1</he>` beside
     // `<o2>21</o2>` at 1% instead of reading it alone as the fraction 100%.
-    final scale = (o2Value ?? 0) > 1 || (heValue ?? 0) > 1 ? 1 : 100;
+    // The tolerance keeps a writer's binary noise on pure oxygen
+    // (1.0000000000000002) a fraction rather than 1% O2.
+    const fractionCeiling = 1 + 1e-6;
+    final scale =
+        (o2Value ?? 0) > fractionCeiling || (heValue ?? 0) > fractionCeiling
+        ? 1
+        : 100;
     final o2 = o2Text != null
         ? UddfGasMixWriters.cleanPercent(o2Value != null ? o2Value * scale : 21)
         : 21.0;

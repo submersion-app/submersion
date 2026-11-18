@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
 
@@ -50,29 +51,44 @@ class TankGasMixRepository {
   }
 
   /// Writes each cylinder's mix under a new clock and marks it and its dive
-  /// pending, so every device takes the write. Each dive is touched once.
-  /// The caller owns the transaction and the change notification.
+  /// pending, so every device takes the write. One update per distinct mix
+  /// and one set-based mark per table: a logbook stored 100 times too high
+  /// holds hundreds of cylinders but only a handful of gases. The caller
+  /// owns the transaction and the change notification.
   Future<void> setGasMixes(List<StoredTankMix> mixes) async {
     if (mixes.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
+    final tanksByMix = <GasMix, List<String>>{};
     for (final m in mixes) {
-      await (_db.update(
-        _db.diveTanks,
-      )..where((t) => t.id.equals(m.tankId))).write(
-        DiveTanksCompanion(
-          o2Percent: Value(m.mix.o2),
-          hePercent: Value(m.mix.he),
-          hlc: Value(await _sync.issueRowClock()),
-        ),
-      );
-      await _pending('diveTanks', m.tankId, now);
+      (tanksByMix[m.mix] ??= []).add(m.tankId);
     }
-    for (final diveId in {for (final m in mixes) m.diveId}) {
-      await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+    for (final MapEntry(key: mix, value: tankIds) in tanksByMix.entries) {
+      for (final chunk in seriesIdChunks(tankIds)) {
+        // child-clock: markRecordsPending below stamps every row's clock.
+        await (_db.update(_db.diveTanks)..where((t) => t.id.isIn(chunk))).write(
+          DiveTanksCompanion(
+            o2Percent: Value(mix.o2),
+            hePercent: Value(mix.he),
+          ),
+        );
+      }
+    }
+    final diveIds = {for (final m in mixes) m.diveId}.toList();
+    for (final chunk in seriesIdChunks(diveIds)) {
+      await (_db.update(_db.dives)..where((t) => t.id.isIn(chunk))).write(
         DivesCompanion(updatedAt: Value(now)),
       );
-      await _pending('dives', diveId, now);
     }
+    await _sync.markRecordsPending(
+      entityType: 'diveTanks',
+      recordIds: [for (final m in mixes) m.tankId],
+      localUpdatedAt: now,
+    );
+    await _sync.markRecordsPending(
+      entityType: 'dives',
+      recordIds: diveIds,
+      localUpdatedAt: now,
+    );
   }
 
   static StoredTankMix _stored(DiveTank row) => (
@@ -80,11 +96,4 @@ class TankGasMixRepository {
     tankId: row.id,
     mix: GasMix(o2: row.o2Percent, he: row.hePercent),
   );
-
-  Future<void> _pending(String entityType, String id, int now) =>
-      _sync.markRecordPending(
-        entityType: entityType,
-        recordId: id,
-        localUpdatedAt: now,
-      );
 }
