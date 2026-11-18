@@ -9,6 +9,7 @@ import 'package:equatable/equatable.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/naming_level.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
+import 'package:submersion/features/species_id/domain/services/species_namer.dart';
 
 /// The bars a level names at, for the pack that measured them. Only the
 /// two suggest bars differ from the pack's own.
@@ -100,17 +101,18 @@ int accuracyPercent(double precision) =>
     ((precision * 100) + 1e-9).floor() ~/ 5 * 5;
 
 /// Whether [identification] clears [level]'s bars, worked out exactly as
-/// the pack names a crop (`SpeciesNamer.name`).
-bool suggestableAt(MediaIdentification identification, LevelInForce level) {
-  final top = identification.top;
-  final bar = identification.locationLimited
-      ? level.suggestScore
-      : level.suggestScoreNoLocation;
-  return identification.boxShorterSide >= level.minCropSide &&
-      identification.openScore >= level.minOpenScore &&
-      top != null &&
-      top.score >= bar;
-}
+/// the pack names a crop ([clearsSuggestBars]).
+bool suggestableAt(MediaIdentification identification, LevelInForce level) =>
+    clearsSuggestBars(
+      boxShorterSide: identification.boxShorterSide,
+      openScore: identification.openScore,
+      topScore: identification.top?.score,
+      locationLimited: identification.locationLimited,
+      minCropSide: level.minCropSide,
+      minOpenScore: level.minOpenScore,
+      suggestScore: level.suggestScore,
+      suggestScoreNoLocation: level.suggestScoreNoLocation,
+    );
 
 /// [all] as [level] would suggest them, when the pack in force named them
 /// ([namedWithPack] is their run's pack version). Otherwise, or with no

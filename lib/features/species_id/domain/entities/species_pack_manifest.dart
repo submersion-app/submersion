@@ -461,6 +461,11 @@ class SpeciesPackManifest extends Equatable {
     final classifier = _map(root['classifier'], 'classifier');
     final naming = _map(root['naming'], 'naming');
     final region = _map(root['region'], 'region');
+    final provisional = naming['provisional'] == true;
+    final suggestScore = _double(naming, 'suggestScore');
+    final suggestScoreNoLocation = _double(naming, 'suggestScoreNoLocation');
+    // Levels and their precision stand only on measured bars.
+    final precision = provisional ? null : measuredShare(naming['precision']);
     return SpeciesPackManifest(
       formatVersion: format,
       packVersion: _versionString(root, 'packVersion'),
@@ -476,28 +481,25 @@ class SpeciesPackManifest extends Equatable {
         cropFit: CropFit.fromManifest(classifier['cropFit']),
       ),
       naming: NamingConfig(
-        provisional: naming['provisional'] == true,
+        provisional: provisional,
         minCropSide: _int(naming, 'minCropSide'),
         minOpenScore: _double(naming, 'minOpenScore'),
-        suggestScore: _double(naming, 'suggestScore'),
+        suggestScore: suggestScore,
         confidentScore: _double(naming, 'confidentScore'),
-        suggestScoreNoLocation: _double(naming, 'suggestScoreNoLocation'),
+        suggestScoreNoLocation: suggestScoreNoLocation,
         confidentScoreNoLocation: naming.containsKey('confidentScoreNoLocation')
             ? _double(naming, 'confidentScoreNoLocation')
             : null,
         minAllowedCandidates: _int(naming, 'minAllowedCandidates'),
         topK: _positiveInt(naming, 'topK'),
-        // Levels and their precision stand only on measured bars.
-        precision: naming['provisional'] == true
-            ? null
-            : measuredShare(naming['precision']),
-        levels: naming['provisional'] == true
+        precision: precision,
+        levels: provisional
             ? const []
             : measuredLevels(
                 naming['levels'],
-                _double(naming, 'suggestScore'),
-                _double(naming, 'suggestScoreNoLocation'),
-                surerPrecision: measuredShare(naming['precision']),
+                suggestScore,
+                suggestScoreNoLocation,
+                surerPrecision: precision,
               ),
       ),
       region: RegionConfig(

@@ -193,9 +193,10 @@ def level_bars(
     """A naming level's bars, chosen on the tune half: the pack's own
     (`surer`) with only its two suggest bars lowered to meet `target`,
     never above `ceiling` (the level above it). Junk is held to the same
-    cap as the pack's bars: a level naming too much is raised 0.01 at a
-    time. None when the level ends no lower than `ceiling`, so it would
-    add nothing."""
+    cap as the pack's bars: while a level names too much, each bar that
+    names junk is raised 0.01, so a bar that names none keeps its fish.
+    None when the cap cannot be met below `ceiling`, or the level ends no
+    lower than it, so it would add nothing."""
     limited = [c for c in with_location if c.limited]
     found = [
         _best_bar(limited, min_open=surer.min_open, min_side=min_side, target=target)[0],
@@ -209,12 +210,26 @@ def level_bars(
         return replace(surer, suggest=pair[0], suggest_no_location=pair[1])
 
     while junk_rate(junk_with, junk_without, as_bars(level), min_side=min_side) > max_junk_rate:
-        if level == tops:
-            break
-        level = [min(round(bar + 0.01, 2), top) if bar < top else bar for bar, top in zip(level, tops)]
+        naming_junk = _bars_naming(junk_with, junk_without, as_bars(level), min_side=min_side)
+        up = [names and bar < top for names, bar, top in zip(naming_junk, level, tops)]
+        if not any(up):
+            return None
+        level = [min(round(bar + 0.01, 2), top) if raise_ else bar for raise_, bar, top in zip(up, level, tops)]
     if level == tops:
         return None
     return as_bars(level)
+
+
+def _bars_naming(junk_with, junk_without, bars, *, min_side):
+    """[whether the location bar names a junk crop, whether the no-location
+    bar does], as `named` applies them: a crop limited by place against the
+    location bar, any other against the no-location bar."""
+    crops = list(junk_with) + list(junk_without)
+    hits = named(crops, bars, min_side=min_side)
+    return [
+        any(n and c.limited for c, n in zip(crops, hits)),
+        any(n and not c.limited for c, n in zip(crops, hits)),
+    ]
 
 
 def level_gate(level, surer, with_location, no_location, *, min_side, target):
@@ -226,16 +241,21 @@ def level_gate(level, surer, with_location, no_location, *, min_side, target):
         (level.suggest, surer.suggest, limited),
         (level.suggest_no_location, surer.suggest_no_location, no_location),
     ]
-    for bar, top, scored in checks:
-        if bar >= top:
-            continue
-        picked = _suggested(scored, min_open=level.min_open, bar=bar, min_side=min_side)
-        if not picked:
-            return False
-        correct = sum(1 for c in picked if c.correct)
-        if wilson(correct, len(picked), Z_TWO_SIDED)[1] < target:
-            return False
-    return True
+    return not any(
+        bar < top and _fails_held_out(scored, min_open=level.min_open, bar=bar, min_side=min_side, target=target)
+        for bar, top, scored in checks
+    )
+
+
+def _fails_held_out(scored, *, min_open, bar, min_side, target):
+    """Whether a bar fails on the held-out half: it names nothing, so has
+    no evidence of meeting `target`, or its two-sided 95% interval lies
+    wholly below it."""
+    picked = _suggested(scored, min_open=min_open, bar=bar, min_side=min_side)
+    if not picked:
+        return True
+    correct = sum(1 for c in picked if c.correct)
+    return wilson(correct, len(picked), Z_TWO_SIDED)[1] < target
 
 
 def held_out_gate(bars, with_location, no_location, *, min_side, suggest_target=0.85, confident_target=0.95):
@@ -246,14 +266,6 @@ def held_out_gate(bars, with_location, no_location, *, min_side, suggest_target=
     gated bars and the manifest names of those switched off. No value is
     chosen here."""
     limited = [c for c in with_location if c.limited]
-
-    def fails(scored, bar, target):
-        picked = _suggested(scored, min_open=bars.min_open, bar=bar, min_side=min_side)
-        if not picked:
-            return True
-        correct = sum(1 for c in picked if c.correct)
-        return wilson(correct, len(picked), Z_TWO_SIDED)[1] < target
-
     gated = bars
     off = []
     checks = [
@@ -265,7 +277,10 @@ def held_out_gate(bars, with_location, no_location, *, min_side, suggest_target=
     for key, field, scored, target in checks:
         follows = {"confident": "suggest", "confident_no_location": "suggest_no_location"}.get(field)
         switched_with_suggest = follows is not None and getattr(gated, follows) == NEVER
-        if getattr(gated, field) != NEVER and (switched_with_suggest or fails(scored, getattr(gated, field), target)):
+        if getattr(gated, field) != NEVER and (
+            switched_with_suggest
+            or _fails_held_out(scored, min_open=bars.min_open, bar=getattr(gated, field), min_side=min_side, target=target)
+        ):
             gated = replace(gated, **{field: NEVER})
             off.append(key)
     return gated, off

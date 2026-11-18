@@ -211,6 +211,23 @@ class LevelTests(unittest.TestCase):
         level = self.level(self.FISH, junk=[s(0.6, 0.56, False)] * 10)
         self.assertEqual((level.suggest, level.suggest_no_location), (0.57, 0.57))
 
+    def test_junk_raises_only_the_bar_that_names_it(self):
+        with_loc, without = both(self.FISH)
+        # Named only without a location: with one, its best name scores low.
+        junk_with = [s(0.6, 0.30, False)] * 10
+        junk_without = [s(0.6, 0.56, False, limited=False)] * 10
+        level = bars.level_bars(
+            with_loc,
+            without,
+            junk_with,
+            junk_without,
+            surer=self.SURER,
+            ceiling=self.SURER,
+            min_side=64,
+            target=0.65,
+        )
+        self.assertEqual((level.suggest, level.suggest_no_location), (0.55, 0.57))
+
     def test_junk_that_cannot_pass_drops_the_level(self):
         self.assertIsNone(self.level(self.FISH, junk=[s(0.6, 0.79, False)] * 10))
 

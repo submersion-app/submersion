@@ -281,13 +281,16 @@ A level moves only the two suggest bars. The open-score floor, the
 minimum box size and the confident bars are the pack's at every level, so
 hands, divers and open water stay unnamed.
 
-**Measuring.** `score.py` chooses each level's bars on the tune half after
-the pack's own (`bars.level_bars`): the lowest bars meeting the target by
-the same one-sided Wilson test, never above the level above them, and held
-to the same 2% junk cap (raised 0.01 at a time until they pass). A level
-that ends at the bars above it, or whose held-out interval lies wholly
-below its target (`bars.level_gate`), is left out, so a pack can carry one
-level or none. The report's "Naming levels" table gives each level's
+**Measuring.** `score.py` measures the levels with `levels.measure`, which
+chooses each level's bars on the tune half after the pack's own
+(`bars.level_bars`): the lowest bars meeting the target by the same
+one-sided Wilson test, never above the level above them, and held to the
+same 2% junk cap: while a level names too much junk, each bar that names
+some (with a location or without) is raised 0.01 until it passes. A level
+that ends at the bars above it, whose held-out interval lies wholly below
+its target (`bars.level_gate`), or that was more often right held out than
+the level above it is left out, so a pack can carry one level or none. The
+report's "Naming levels" table gives each level's
 held-out precision, coverage and junk named, and `results.json`'s
 `measured` entries carry `naming.precision` and `naming.levels` for
 `NAMING_MEASURED`. `manifest.level_problems` checks them.

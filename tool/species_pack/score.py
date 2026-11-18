@@ -33,6 +33,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import bars as bar_search  # noqa: E402
 import boxes as box_math  # noqa: E402
+import levels as level_search  # noqa: E402
 import manifest as pack_manifest  # noqa: E402
 import megalodon  # noqa: E402
 import metrics  # noqa: E402
@@ -409,55 +410,13 @@ def evaluate(name, results_by_photo, animals, junk_rows, namer, work, min_side, 
         chosen, [c["with"] for c in held_nat], [c["without"] for c in held_nat], min_side=min_side
     )
 
-    def level_rates(level):
-        """A level's held-out precision and coverage with a location, and
-        the held-out junk it names with or without one."""
-        scored = [c["with"] for c in held_nat]
-        named = bar_search.named(scored, level, min_side=min_side)
-        coverage, precision = metrics.coverage_precision(named, [s.correct for s in scored])
-        junk = [
-            a or b
-            for a, b in zip(
-                bar_search.named([c["with"] for c in held_junk], level, min_side=min_side),
-                bar_search.named([c["without"] for c in held_junk], level, min_side=min_side),
-            )
-        ]
-        return {
-            "precision": precision.__dict__,
-            "coverage": coverage.__dict__,
-            "junk named": metrics.rate(sum(junk), len(junk)).__dict__,
-        }
-
     # The naming levels (issue #4721), surest first, each chosen on the tune
     # half and kept only if it stands held out. They are measured under the
     # bars the pack ships with when it has measured ones (`published`), so
     # a run whose own bars come out slightly different never states an
     # accuracy the app does not name at; otherwise under this run's.
     surer = published or gated
-    levels = []
-    ceiling = surer
-    for level_id, target in bar_search.LEVEL_TARGETS:
-        level = bar_search.level_bars(
-            [c["with"] for c in tune_nat],
-            [c["without"] for c in tune_nat],
-            [c["with"] for c in tune_junk],
-            [c["without"] for c in tune_junk],
-            surer=surer,
-            ceiling=ceiling,
-            min_side=min_side,
-            target=target,
-        )
-        if level is None or not bar_search.level_gate(
-            level, surer, [c["with"] for c in held_nat], [c["without"] for c in held_nat], min_side=min_side, target=target
-        ):
-            continue
-        rates = level_rates(level)
-        # A level naming nothing held out with a location has no precision
-        # to show, so it is left out as the Surer precision is.
-        if not rates["precision"]["n"]:
-            continue
-        levels.append({"id": level_id, "target": target, "bars": level.__dict__, "held-out": rates})
-        ceiling = level
+    levels, surer_precision = level_search.measure(surer, tune_nat, tune_junk, held_nat, held_junk, min_side=min_side)
 
     def naming_rates(records, confident=False):
         out = {}
@@ -519,7 +478,6 @@ def evaluate(name, results_by_photo, animals, junk_rows, namer, work, min_side, 
                 "precision": sum(s.correct for s in picked) / len(picked) if picked else None,
             }
         )
-    surer_precision = level_rates(surer)["precision"]
     return {
         "detector": name,
         "bars chosen on tune": chosen.__dict__,
@@ -528,7 +486,7 @@ def evaluate(name, results_by_photo, animals, junk_rows, namer, work, min_side, 
         "levels measured under": {"bars": surer.__dict__, "published": published is not None},
         # Held out, at the bars the levels sit under; None when they name
         # nothing held out: no precision to show.
-        "surer precision": surer_precision["value"] if surer_precision["n"] else None,
+        "surer precision": surer_precision,
         "levels": levels,
         "held-out natural": summary(held_nat),
         "held-out natural, detection": {
@@ -628,7 +586,7 @@ def _measured_entry(evaluation, manifest, detector_ids, crop_fit):
             "target": level["target"],
             "suggestScore": round(level["bars"]["suggest"], 2),
             "suggestScoreNoLocation": round(level["bars"]["suggest_no_location"], 2),
-            "precision": round(level["held-out"]["precision"]["value"], 3),
+            "precision": round(level["held-out"]["precision"]["value"], level_search.PRECISION_PLACES),
         }
         for level in evaluation["levels"]
     ]
@@ -644,7 +602,7 @@ def _measured_entry(evaluation, manifest, detector_ids, crop_fit):
             "minAllowedCandidates": naming["minAllowedCandidates"],
             "topK": naming["topK"],
             **(
-                {"precision": round(evaluation["surer precision"], 3)}
+                {"precision": round(evaluation["surer precision"], level_search.PRECISION_PLACES)}
                 if evaluation["surer precision"] is not None
                 else {}
             ),

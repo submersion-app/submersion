@@ -312,6 +312,11 @@ def level_problems(naming):
             problems.append(f"{level.get('id')} bars {bars} are not at or below {above}")
         elif bars == above:
             problems.append(f"{level.get('id')} bars {bars} name nothing more than the level above")
+        # The app drops a level with no numeric target, so it must not be
+        # published without one.
+        target = level.get("target")
+        if not _is_share(target):
+            problems.append(f"{level.get('id')} target {target} is not in (0, 1]")
         level_precision = level.get("precision")
         if not _is_share(level_precision):
             problems.append(f"{level.get('id')} precision {level_precision} is not in (0, 1]")

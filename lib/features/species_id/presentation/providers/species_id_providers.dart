@@ -117,10 +117,14 @@ final namingLevelNotifierProvider =
 /// The level the installed pack names at for the diver's choice, or null
 /// with no pack (issue #4721). Never waits: while the pack is being read,
 /// or when it cannot be, there is no level and suggestions show as they
-/// were named; readers rebuild once it is known.
+/// were named; readers rebuild once it is known. Null for Surer, which
+/// reads as the stored flags on any pack: the pack is not watched then, so
+/// its reads and reloads rebuild no suggestions or tracks.
 final levelInForceProvider = Provider<LevelInForce?>((ref) {
+  final chosen = ref.watch(namingLevelNotifierProvider);
+  if (chosen == NamingLevel.surer) return null;
   final pack = ref.watch(installedSpeciesPackProvider).value;
-  return levelInForce(pack?.manifest, ref.watch(namingLevelNotifierProvider));
+  return levelInForce(pack?.manifest, chosen);
 });
 
 /// The level in force for a write that must not miss it (tag

@@ -500,6 +500,30 @@ void main() {
         expect(NamingLevelNotifier(prefs).state, NamingLevel.eager);
       },
     );
+
+    test('Surer is no level and never reads the pack', () async {
+      var reads = 0;
+      final c = ProviderContainer(
+        overrides: [
+          installedSpeciesPackProvider.overrideWith((ref) async {
+            reads++;
+            return levelledPack();
+          }),
+          namingLevelNotifierProvider.overrideWith(
+            (ref) => NamingLevelNotifier.unstored(NamingLevel.surer),
+          ),
+        ],
+      );
+      addTearDown(c.dispose);
+      expect(c.read(levelInForceProvider), isNull);
+      await pumpEventQueue();
+      expect(reads, 0);
+
+      c.read(namingLevelNotifierProvider.notifier).setLevel(NamingLevel.eager);
+      c.listen(levelInForceProvider, (_, _) {});
+      await c.read(installedSpeciesPackProvider.future);
+      expect(c.read(levelInForceProvider)?.level, NamingLevel.eager);
+    });
   });
 
   test('identifying on open is on by default and remembered', () async {

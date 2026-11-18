@@ -318,6 +318,12 @@ class LevelProblemsTests(unittest.TestCase):
         self.assertTrue(self.problems([{**self.BALANCED, "precision": 0}]))
         self.assertTrue(self.problems([self.BALANCED], precision=1.2))
 
+    def test_a_missing_or_bad_target(self):
+        without = {k: v for k, v in self.BALANCED.items() if k != "target"}
+        self.assertTrue(self.problems([without]))
+        self.assertTrue(self.problems([{**self.BALANCED, "target": "0.75"}]))
+        self.assertTrue(self.problems([{**self.BALANCED, "target": True}]))
+
     def test_malformed_values_are_problems_not_errors(self):
         broken = {**self.BALANCED, "suggestScore": None, "precision": None}
         problems = self.problems([broken, self.EAGER], precision="x")
