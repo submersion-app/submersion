@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart' hide DiveSite;
+import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
@@ -41,6 +42,22 @@ class _RecordingSites extends SiteRepository {
     String? actingDiverId,
   }) async {
     stamps.add((before: before.notes, after: after.notes));
+  }
+}
+
+/// Records the library fields stamped, and fails each stamp: a stamp made
+/// inside the sitting's transaction would roll the sitting back with it.
+class _FailingStamper extends LibraryEditStamper {
+  final stamped = <Set<String>>[];
+
+  @override
+  Future<void> stamp(
+    String siteId,
+    Set<String> fields, {
+    String? actingDiverId,
+  }) async {
+    stamped.add(fields);
+    throw StateError('the library store is out of reach');
   }
 }
 
@@ -162,6 +179,60 @@ void main() {
     // Not stamped inside the transaction, but once it has committed.
     expect(recording.stampedWithUpdate, [false]);
     expect(recording.stamps, [(before: 'Calm', after: 'Choppy')]);
+  });
+
+  test('held writes run in the sitting\'s transaction', () async {
+    await expectLater(
+      service.save(
+        siteId: 's1',
+        apply: notes('Choppy'),
+        changedCardIds: const ['notes'],
+        alsoWrite: () async {
+          await db.customStatement(
+            "UPDATE dive_sites SET name = 'Held' WHERE id = 's1'",
+          );
+          throw StateError('refused');
+        },
+      ),
+      throwsStateError,
+    );
+
+    final site = await stored();
+    expect(site.name, 'Lake');
+    expect(site.notes, 'Calm');
+  });
+
+  test('held library fields are stamped after the commit', () async {
+    final stamper = _FailingStamper();
+    final result = await SiteEditSaveService(sites, stamper: stamper).save(
+      siteId: 's1',
+      apply: notes('Choppy'),
+      changedCardIds: const ['notes'],
+      heldLibraryFields: () => {'features'},
+    );
+
+    expect(stamper.stamped, [
+      {'features'},
+    ]);
+    // The stamp failed once the sitting had committed: the save stands.
+    expect(result, isNotNull);
+    expect((await stored()).notes, 'Choppy');
+  });
+
+  test('a failed save stamps no held library fields', () async {
+    final stamper = _FailingStamper();
+    await expectLater(
+      SiteEditSaveService(sites, stamper: stamper).save(
+        siteId: 's1',
+        apply: notes('Choppy'),
+        changedCardIds: const ['notes'],
+        heldLibraryFields: () => {'features'},
+        alsoWrite: () async => throw StateError('refused'),
+      ),
+      throwsStateError,
+    );
+
+    expect(stamper.stamped, isEmpty);
   });
 
   test('a sitting that rolls back leaves no library stamp', () async {

@@ -1,5 +1,7 @@
 import 'package:submersion/core/services/change_log/record_sitting_writer.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
@@ -12,9 +14,11 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 /// transaction and one change log operation ([writeRecordSitting]), so the
 /// sitting is one History entry that reverts as a unit.
 class SiteEditSaveService {
-  SiteEditSaveService(this._sites);
+  SiteEditSaveService(this._sites, {LibraryEditStamper? stamper})
+    : _stamper = stamper ?? LibraryEditStamper();
 
   final SiteRepository _sites;
+  final LibraryEditStamper _stamper;
   final _log = LoggerService.forClass(SiteEditSaveService);
 
   /// Applies [apply] to the site as stored now and writes the result
@@ -27,7 +31,11 @@ class SiteEditSaveService {
   /// label. Returns the site before and after, or null when [apply] changed
   /// nothing. Throws [StateError] when the site no longer exists.
   /// [writeFirst], [alsoWrite] and [alsoWriteIsAChange] are the sitting's
-  /// held writes, as [writeRecordSitting] runs them.
+  /// held writes, as [writeRecordSitting] runs them. [heldLibraryFields],
+  /// asked once the sitting has committed, names the library fields those
+  /// writes changed (a site's features, its types): they write without
+  /// stamping, since the stamp goes to the shared library store, which a
+  /// rollback would not undo, and are stamped here instead.
   Future<({DiveSite before, DiveSite after})?> save({
     required String siteId,
     required DiveSite Function(DiveSite stored) apply,
@@ -36,6 +44,7 @@ class SiteEditSaveService {
     Future<void> Function()? writeFirst,
     Future<void> Function()? alsoWrite,
     bool alsoWriteIsAChange = false,
+    Set<String> Function()? heldLibraryFields,
   }) async {
     final result = await writeRecordSitting<DiveSite>(
       table: 'dive_sites',
@@ -72,6 +81,31 @@ class SiteEditSaveService {
         stackTrace: stackTrace,
       );
     }
+    await _stampHeldWrites(siteId, heldLibraryFields, actingDiverId);
     return result;
+  }
+
+  /// Stamps the library fields the sitting's held writes changed, and lets
+  /// sync know of them, once the sitting has committed. Best effort, as the
+  /// row's own stamp.
+  Future<void> _stampHeldWrites(
+    String siteId,
+    Set<String> Function()? heldLibraryFields,
+    String? actingDiverId,
+  ) async {
+    if (heldLibraryFields == null) return;
+    try {
+      final fields = heldLibraryFields();
+      if (fields.isEmpty) return;
+      await _stamper.stamp(siteId, fields, actingDiverId: actingDiverId);
+    } catch (error, stackTrace) {
+      _log.error(
+        'Library stamp of held writes after saving site $siteId failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    } finally {
+      SyncEventBus.notifyLocalChange();
+    }
   }
 }

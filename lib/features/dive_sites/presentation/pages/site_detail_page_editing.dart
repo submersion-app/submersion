@@ -90,6 +90,12 @@ mixin _SiteDetailPageEditing
   ];
 
   @override
+  void onSittingStart(
+    EditSession<DiveSite> session,
+    ProviderContainer container,
+  ) => startSiteSitting(session, container.read);
+
+  @override
   DiveSite? get storedForUnlock => ref.read(siteProvider(widget.siteId)).value;
 
   @override
@@ -112,11 +118,19 @@ mixin _SiteDetailPageEditing
     final actingDiver = ref.read(validatedCurrentDiverIdProvider.future);
     final siteId = session.stored.id;
     final shownId = widget.siteId;
+    // Noted afresh by this attempt's held writes.
+    clearSiteLibraryFields(session);
     final result = await service.save(
       siteId: siteId,
       apply: session.applyTo,
       changedCardIds: session.changedCardIds,
       actingDiverId: await actingDiver,
+      writeFirst: session.hasHeldWritesBeforeRecord
+          ? () => session.runHeldWrites(beforeRecord: true)
+          : null,
+      alsoWrite: session.hasHeldWrites ? session.runHeldWrites : null,
+      alsoWriteIsAChange: session.hasHeldChanges,
+      heldLibraryFields: () => siteLibraryFields(session),
     );
     if (result == null) return;
     if (result.after.id == shownId) justSavedRecord = result.after;
