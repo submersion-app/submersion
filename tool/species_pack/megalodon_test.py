@@ -29,5 +29,18 @@ class ConvertedDirTests(unittest.TestCase):
                 self.assertEqual(megalodon.converted_dir(work, "megalodon-2024"), folder)
 
 
+class SettingsTests(unittest.TestCase):
+    def test_the_scorer_runs_megalodon_as_a_pack_would(self):
+        sys.path.insert(0, _HERE)
+        import manifest
+
+        pack = manifest.DETECTORS["megalodon"]
+        self.assertEqual(megalodon.CHECKPOINTS["megalodon-2024"]["id"], pack["id"])
+        written = megalodon.manifest_for_settings(base={"formatVersion": 2, "classifier": {}})
+        self.assertEqual(written["formatVersion"], 2)
+        self.assertEqual(written["detectors"], [pack])
+        self.assertEqual(written["boxes"], manifest.BOXES)
+
+
 if __name__ == "__main__":
     unittest.main()

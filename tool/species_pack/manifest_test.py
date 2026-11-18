@@ -40,6 +40,7 @@ class FileEntryTests(unittest.TestCase):
 
 
 CFD = "cfd-rfdetr-nano-640-20260706"
+MEGALODON = "megalodon-yolo11x-403704d"
 BIOCLIP = "bioclip-2-vitl14-2957b32"
 CONTENTS = {"candidates.json": "a" * 64, "text_embeddings.f16": "b" * 64, "regions.bin": "c" * 64}
 
@@ -60,20 +61,38 @@ class ContentsTests(unittest.TestCase):
 
 
 class NamingForTests(unittest.TestCase):
-    MEASURED = {
-        "naming": {"provisional": False, "minOpenScore": 0.3},
-        "detectorId": CFD,
-        "classifierId": BIOCLIP,
-        "cropFit": "centreCrop",
-        "contents": CONTENTS,
-        "findings": "docs/design/findings/x.md",
-    }
+    MEASURED = [
+        {
+            "naming": {"provisional": False, "minOpenScore": 0.3},
+            "detectorIds": [CFD],
+            "classifierId": BIOCLIP,
+            "cropFit": "centreCrop",
+            "contents": CONTENTS,
+            "findings": "docs/design/findings/x.md",
+        },
+        {
+            "naming": {"provisional": False, "minOpenScore": 0.44},
+            "detectorIds": [CFD, MEGALODON],
+            "classifierId": BIOCLIP,
+            "cropFit": "centreCrop",
+            "contents": CONTENTS,
+            "findings": "docs/design/findings/x.md",
+        },
+    ]
 
-    def naming(self, detector=CFD, classifier=BIOCLIP, fit="centreCrop", contents=CONTENTS, measured=MEASURED):
-        return manifest.naming_for(detector, classifier, fit, contents, measured)
+    def naming(self, detectors=(CFD,), classifier=BIOCLIP, fit="centreCrop", contents=CONTENTS, measured=MEASURED):
+        return manifest.naming_for(list(detectors), classifier, fit, contents, measured)
 
     def test_measured_bars_for_the_exact_measured_pack(self):
-        self.assertEqual(self.naming(), self.MEASURED["naming"])
+        self.assertEqual(self.naming(), self.MEASURED[0]["naming"])
+
+    def test_each_detector_set_gets_its_own_bars(self):
+        self.assertEqual(self.naming(detectors=(CFD, MEGALODON)), self.MEASURED[1]["naming"])
+
+    def test_a_pair_in_the_other_order_is_not_the_measured_pair(self):
+        # Boxes are pooled in the pack's order, so the order is part of
+        # what was measured.
+        self.assertIs(self.naming(detectors=(MEGALODON, CFD))["provisional"], True)
 
     def test_provisional_bars_when_any_naming_file_differs(self):
         for name in CONTENTS:
@@ -90,7 +109,7 @@ class NamingForTests(unittest.TestCase):
         self.assertIs(self.naming(classifier="another-classifier")["provisional"], True)
 
     def test_provisional_bars_for_another_detector(self):
-        self.assertIs(self.naming(detector="megalodon-2024")["provisional"], True)
+        self.assertIs(self.naming(detectors=(MEGALODON,))["provisional"], True)
 
     def test_provisional_bars_for_another_crop_fitting(self):
         self.assertIs(self.naming(fit="padSquare")["provisional"], True)
@@ -121,7 +140,7 @@ class MeasuredBarsTests(unittest.TestCase):
     }
 
     def test_the_measured_pack_gets_the_measured_bars(self):
-        naming = manifest.naming_for(CFD, BIOCLIP, "centreCrop", self.MEASURED_PACK)
+        naming = manifest.naming_for([CFD], BIOCLIP, "centreCrop", self.MEASURED_PACK)
         self.assertIs(naming["provisional"], False)
         self.assertEqual(naming["minOpenScore"], 0.39)
         self.assertEqual(naming["suggestScore"], 0.64)
@@ -136,7 +155,7 @@ class MeasuredBarsTests(unittest.TestCase):
         def build(contents):
             return manifest.build_manifest(
                 pack_version="2026.11.17",
-                detector_id=CFD,
+                detector_set="cfd",
                 classifier_id=BIOCLIP,
                 embedding_size=768,
                 files=entries(contents),
@@ -147,19 +166,27 @@ class MeasuredBarsTests(unittest.TestCase):
         self.assertIs(build(CONTENTS)["naming"]["provisional"], True)
 
     def test_the_earlier_pack_now_gets_provisional_bars(self):
-        naming = manifest.naming_for(CFD, BIOCLIP, "centreCrop", self.EARLIER_PACK)
+        naming = manifest.naming_for([CFD], BIOCLIP, "centreCrop", self.EARLIER_PACK)
         self.assertIs(naming["provisional"], True)
 
     def test_the_measured_bars_name_their_findings(self):
-        path = os.path.join(_HERE, "..", "..", manifest.NAMING_MEASURED["findings"])
-        self.assertTrue(os.path.exists(path), path)
+        for entry in manifest.NAMING_MEASURED:
+            path = os.path.join(_HERE, "..", "..", entry["findings"])
+            self.assertTrue(os.path.exists(path), path)
+
+    def test_each_measured_entry_is_a_known_detector_set_at_its_fitting(self):
+        sets = {tuple(manifest.DETECTORS[k]["id"] for k in keys): name for name, keys in manifest.DETECTOR_SETS.items()}
+        for entry in manifest.NAMING_MEASURED:
+            name = sets.get(tuple(entry["detectorIds"]))
+            self.assertIsNotNone(name, entry["detectorIds"])
+            self.assertEqual(entry["cropFit"], manifest.CROP_FIT[name])
 
 
 class BuildManifestTests(unittest.TestCase):
-    def build(self):
+    def build(self, detector_set="cfd"):
         return manifest.build_manifest(
             pack_version="2026.11.17",
-            detector_id="cfd-rfdetr-nano-640-20260706",
+            detector_set=detector_set,
             classifier_id="bioclip-2-vitl14-2957b32",
             embedding_size=768,
             files=[{"name": "a", "engine": "all", "size": 1, "sha256": "0" * 64}],
@@ -168,7 +195,7 @@ class BuildManifestTests(unittest.TestCase):
 
     def test_format_and_provisional_bars(self):
         m = self.build()
-        self.assertEqual(m["formatVersion"], 1)
+        self.assertEqual(m["formatVersion"], 2)
         self.assertEqual(m["packVersion"], "2026.11.17")
         naming = m["naming"]
         self.assertIs(naming["provisional"], True)
@@ -182,28 +209,84 @@ class BuildManifestTests(unittest.TestCase):
         self.assertEqual(naming["topK"], 5)
         self.assertEqual(m["region"], {"cellDegrees": 5, "neighbourCells": 1})
         self.assertEqual(m["cropThumbnailSize"], 320)
+        self.assertNotIn("detector", m)
 
     def test_model_settings_are_the_spikes(self):
         m = self.build()
-        det = m["detector"]
+        (det,) = m["detectors"]
+        self.assertEqual(det["id"], CFD)
+        self.assertEqual(det["format"], "rfdetr")
+        self.assertEqual(det["file"], "detector")
         self.assertEqual(det["inputSize"], 640)
         self.assertEqual(det["mean"], [0.485, 0.456, 0.406])
         self.assertEqual(det["std"], [0.229, 0.224, 0.225])
         self.assertEqual(det["scoreThreshold"], 0.3)
         self.assertEqual(det["maxBoxes"], 8)
-        self.assertEqual(det["cropPadding"], 0.10)
+        self.assertEqual(m["boxes"], {"mergeIoU": 0.5, "maxBoxes": 8, "cropPadding": 0.10})
         clf = m["classifier"]
         self.assertEqual(clf["inputSize"], 224)
         self.assertEqual(clf["embeddingSize"], 768)
         self.assertEqual(clf["logitScale"], 100.0)
         self.assertEqual(clf["cropFit"], "centreCrop")
 
+    def test_megalodon_alone_is_padded_to_square(self):
+        m = self.build("megalodon")
+        (det,) = m["detectors"]
+        self.assertEqual(det["id"], MEGALODON)
+        self.assertEqual(det["format"], "yolo")
+        self.assertEqual(det["file"], "detector-megalodon")
+        self.assertEqual(det["mean"], [0.0, 0.0, 0.0])
+        self.assertEqual(det["std"], [1.0, 1.0, 1.0])
+        self.assertEqual(det["scoreThreshold"], 0.25)
+        self.assertEqual(det["maxBoxes"], 8)
+        self.assertEqual(m["classifier"]["cropFit"], "padSquare")
+
+    def test_both_detectors_in_order_with_centre_crop(self):
+        m = self.build("both")
+        self.assertEqual([d["id"] for d in m["detectors"]], [CFD, MEGALODON])
+        self.assertEqual([d["file"] for d in m["detectors"]], ["detector", "detector-megalodon"])
+        self.assertEqual(m["classifier"]["cropFit"], "centreCrop")
+
+    def test_detector_files_are_named_by_their_stem(self):
+        self.assertEqual(manifest.model_zip("detector-megalodon", "coreml"), "detector-megalodon.coreml.zip")
+        self.assertEqual(manifest.detector_ids("both"), [CFD, MEGALODON])
+
     def test_round_trips_through_json(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = os.path.join(tmp, "manifest.json")
-            manifest.write_manifest(path, self.build())
+            manifest.write_manifest(path, self.build("both"))
             with open(path, encoding="utf-8") as fh:
-                self.assertEqual(json.load(fh), self.build())
+                self.assertEqual(json.load(fh), self.build("both"))
+
+
+class CreditsTests(unittest.TestCase):
+    def names(self, detector_set):
+        return [c["name"] for c in build_pack.credits_for(detector_set)]
+
+    def test_the_fish_detector_pack_credits_it(self):
+        names = self.names("cfd")
+        self.assertIn("Community Fish Detector", names)
+        self.assertIn("RF-DETR", names)
+        self.assertNotIn("FathomNet Megalodon", names)
+
+    def test_a_megalodon_pack_credits_mbari_under_cc_by(self):
+        credits = {c["name"]: c for c in build_pack.credits_for("megalodon")}
+        self.assertNotIn("Community Fish Detector", credits)
+        self.assertNotIn("RF-DETR", credits)
+        megalodon = credits["FathomNet Megalodon"]
+        self.assertEqual(megalodon["licence"], "CC BY 4.0")
+        self.assertIn("MBARI", megalodon["text"])
+
+    def test_every_pack_credits_the_classifier_and_gbif(self):
+        for detector_set in manifest.DETECTOR_SETS:
+            names = self.names(detector_set)
+            self.assertIn("BioCLIP 2", names)
+            self.assertIn("GBIF occurrence and taxonomy data", names)
+
+    def test_the_pair_credits_both(self):
+        names = self.names("both")
+        self.assertIn("Community Fish Detector", names)
+        self.assertIn("FathomNet Megalodon", names)
 
 
 class CategoryTests(unittest.TestCase):
@@ -409,9 +492,15 @@ class PackVersionTests(unittest.TestCase):
 class BuildOptionsTests(unittest.TestCase):
     def test_defaults(self):
         args = build_pack.parse_args(["--out", "x"])
+        self.assertEqual(args.detectors, "cfd")
         self.assertEqual(args.max_candidates, 10000)
         self.assertEqual(args.min_images, 50)
         self.assertEqual(args.min_survey_records, 50)
+
+    def test_detectors_choose_a_set(self):
+        self.assertEqual(build_pack.parse_args(["--out", "x", "--detectors", "both"]).detectors, "both")
+        with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+            build_pack.parse_args(["--out", "x", "--detectors", "ssd"])
 
     def test_survey_floor_is_its_own_option(self):
         args = build_pack.parse_args(["--out", "x", "--min-survey-records", "25"])

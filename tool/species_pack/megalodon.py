@@ -27,6 +27,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import boxes as box_math  # noqa: E402
+import manifest as pack_manifest  # noqa: E402
 
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 DEFAULT_WORK = os.path.join(REPO, "build", "species_accuracy_work")
@@ -40,20 +41,15 @@ CHECKPOINTS = {
         "id": "megalodon-yolo11x-403704d",
     },
 }
+# The checkpoint a pack carries.
+PACK_CHECKPOINT = "megalodon-2024"
 # Not here: FathomNet/megalodon-2023-yolov8 (YOLOv8x). Its checkpoint was
 # saved with dill and needs dill's general type loader to open, which the
 # safe loader rightly refuses.
 
-# How the scorer runs Megalodon: the ultralytics defaults.
-SETTINGS = {
-    "detectorFormat": "yolo",
-    "inputSize": 640,
-    "mean": [0.0, 0.0, 0.0],
-    "std": [1.0, 1.0, 1.0],
-    "scoreThreshold": 0.25,
-    "maxBoxes": 8,
-    "cropPadding": 0.10,
-}
+# How Megalodon is run, by the scorer and in a pack: the ultralytics
+# defaults, kept in manifest.py with the pack's other detector.
+SETTINGS = pack_manifest.DETECTORS["megalodon"]
 SUPPRESS_IOU = 0.7
 LETTERBOX_GREY = 114
 
@@ -208,13 +204,23 @@ def converted_dir(work, name):
     return folder
 
 
-def manifest_for(name, pack_manifest):
-    """A copy of a pack manifest with Megalodon's detector settings, for
-    the vision tool."""
-    with open(pack_manifest, encoding="utf-8") as fh:
-        manifest = json.load(fh)
-    manifest["detector"] = {"id": CHECKPOINTS[name]["id"], **SETTINGS}
+def manifest_for_settings(base):
+    """A copy of the pack manifest `base` carrying Megalodon alone, for the
+    vision tool."""
+    manifest = {k: v for k, v in base.items() if k != "detector"}
+    manifest["formatVersion"] = pack_manifest.FORMAT_VERSION
+    manifest["detectors"] = [dict(SETTINGS)]
+    manifest["boxes"] = dict(pack_manifest.BOXES)
     return manifest
+
+
+def manifest_for(name, pack_manifest_path):
+    """The pack manifest at `pack_manifest_path` with Megalodon `name` as
+    its only detector, for the vision tool."""
+    if CHECKPOINTS[name]["id"] != SETTINGS["id"]:
+        raise SystemExit(f"{name} is not the Megalodon the pack settings describe")
+    with open(pack_manifest_path, encoding="utf-8") as fh:
+        return manifest_for_settings(json.load(fh))
 
 
 def check(name, tool, manifest_path, classifier, photos, work):
