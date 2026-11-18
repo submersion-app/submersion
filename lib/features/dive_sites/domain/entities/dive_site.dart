@@ -217,6 +217,7 @@ class DiveSite extends Equatable {
     bool clearAccessNotes = false,
     bool clearMooringNumber = false,
     bool clearParkingInfo = false,
+    bool clearAltitude = false,
   }) {
     return DiveSite(
       id: id ?? this.id,
@@ -246,7 +247,7 @@ class DiveSite extends Equatable {
           ? null
           : mooringNumber ?? this.mooringNumber,
       parkingInfo: clearParkingInfo ? null : parkingInfo ?? this.parkingInfo,
-      altitude: altitude ?? this.altitude,
+      altitude: clearAltitude ? null : altitude ?? this.altitude,
       entryMethods: entryMethods ?? this.entryMethods,
       exitMethods: exitMethods ?? this.exitMethods,
       isShared: isShared ?? this.isShared,
