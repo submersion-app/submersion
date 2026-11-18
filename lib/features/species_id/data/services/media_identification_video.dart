@@ -156,6 +156,7 @@ extension _VideoScanning on MediaIdentificationService {
         _loadedModels = null;
         await _ensureLoaded(pack);
       },
+      memoryReadout: _memoryReadout,
       keepGoing: () =>
           !job.cancelled &&
           !_disposed &&

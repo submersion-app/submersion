@@ -12,6 +12,7 @@ import 'package:submersion/features/species_id/data/repositories/identification_
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
 import 'package:submersion/features/species_id/data/services/crop_naming.dart';
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
+import 'package:submersion/features/species_id/data/services/memory_readout.dart';
 import 'package:submersion/features/species_id/data/services/video_identification_scan.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
@@ -55,6 +56,7 @@ class MediaIdentificationService {
     DateTime Function()? now,
     String Function()? newId,
     Duration idleUnload = const Duration(seconds: 60),
+    MemoryReadout? memoryReadout,
   }) : _engine = engine,
        _loadPack = loadPack,
        _identifications = identifications,
@@ -68,7 +70,8 @@ class MediaIdentificationService {
            databaseGeneration ?? (() => DatabaseService.instance.generation),
        _now = now ?? DateTime.now,
        _newId = newId ?? const Uuid().v4,
-       _idleUnload = idleUnload;
+       _idleUnload = idleUnload,
+       _memoryReadout = memoryReadout;
 
   final VisionEngine _engine;
   final Future<LoadedPack?> Function() _loadPack;
@@ -88,6 +91,10 @@ class MediaIdentificationService {
   final DateTime Function() _now;
   final String Function() _newId;
   final Duration _idleUnload;
+
+  /// Logs memory after each stage, while debug mode is on; null logs
+  /// nothing (the iPhone memory test, docs/developer/species-identification.md).
+  final MemoryReadout? _memoryReadout;
   final _log = LoggerService.forClass(MediaIdentificationService);
 
   /// Insertion-ordered (a map literal is a LinkedHashMap): the newest
@@ -569,9 +576,11 @@ class MediaIdentificationService {
   ) async {
     Future<VisionAnalysis> attempt() async {
       await _ensureLoaded(pack);
-      return image.path != null
-          ? _engine.analyze(path: image.path)
-          : _engine.analyze(bytes: image.bytes);
+      final analysis = image.path != null
+          ? await _engine.analyze(path: image.path)
+          : await _engine.analyze(bytes: image.bytes);
+      await _memoryReadout?.record('photo');
+      return analysis;
     }
 
     try {
@@ -594,6 +603,7 @@ class MediaIdentificationService {
       ),
     );
     _loadedModels = key;
+    await _memoryReadout?.record('load');
   }
 
   /// After a quiet spell the models and the pack's tables are freed. A
@@ -617,6 +627,7 @@ class MediaIdentificationService {
     _loadedModels = null;
     try {
       await _engine.unload();
+      await _memoryReadout?.record('unload');
     } on Object catch (e) {
       _log.debug('Could not unload the marine life models', error: e);
     }
