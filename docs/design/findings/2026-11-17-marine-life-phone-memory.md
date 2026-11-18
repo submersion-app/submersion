@@ -1,15 +1,17 @@
 # Marine life identification: phone memory
 
 How much memory marine life identification needs, measured on a Mac as a
-stand-in for an iPhone. It answers the "Phone memory" open risk in
+stand-in for an iPhone and then on an iPhone. It answers the "Phone memory" open risk in
 [the program overview](../specs/2026-11-17-marine-life-identification-program-design.md):
 whether the 608 MB classifier is too much even for the 6 GB floor. Refs #4668.
 
 Measured on 2026-11-17 on an Apple M5 Pro (64 GB, macOS 27.2), with pack
 `2026.11.17.1617`: the Community Fish Detector (`cfd-rfdetr-nano-640-20260706`,
 54 MB of weights) and BioCLIP 2 (`bioclip-2-vitl14-2957b32`, 608 MB), both
-16-bit Core ML. A real iPhone gives the final answer; what it has to check is
-at the end.
+16-bit Core ML. On 2026-11-18 the same pack was run in the app on an iPhone
+17 Pro Max (see "On an iPhone"), which settles how iOS counts the Neural
+Engine's memory. A 6 GB iPhone is still unmeasured; what is left is at the
+end.
 
 Sizes are MiB of **physical footprint**, the figure iOS compares with an
 app's memory limit, unless a line says otherwise.
@@ -32,8 +34,7 @@ app's memory limit, unless a line says otherwise.
    `ri_neural_footprint` reports), while the counted
    `ledger_tag_neural_footprint` stays at zero, read in the process with
    `task_info(TASK_VM_INFO)`. The physical footprint stays under 200 MiB.
-   That is macOS; whether iOS tags it the same way is for the phone to show.
-   Phones whose Core ML prefers the Neural Engine are the case to test.
+   That is macOS. On an iPhone it is counted (answer 6).
 4. **No first-load spike while the models load,** in the harness.
    Compiling them for the GPU took 2.7 s with a 37 MiB peak; for the Neural
    Engine it took 8.3 s, done by the system's compiler service, with a
@@ -42,11 +43,16 @@ app's memory limit, unless a line says otherwise.
 5. **Against an iPhone's limit.** Apple does not publish the per-app limit;
    developers commonly report about half the memory, roughly 3 GB on a 6 GB
    phone. The feature's own share is about 0.3 GB on the GPU path, and
-   about 1 GB if the Neural Engine account counts. Whether the whole app
-   stays under the limit is not shown here: a shipped build's own memory
-   was not measured, and the one in-app run, a debug build, idled at
-   1.6 GiB (see "The app's own figure"). The iPhone test has to measure the
-   total.
+   about 1 GB if the Neural Engine account counts, which on an iPhone it
+   does. The Mac runs could not show the whole app's total; the iPhone run
+   did (answer 6).
+6. **On an iPhone the Neural Engine's memory counts, and the app still fits
+   on a 12 GB phone.** On an iPhone 17 Pro Max (iOS 27.2.1, profile build)
+   Core ML ran both models on the Neural Engine, and iOS put their memory
+   in the counted ledger: 634 MiB once loaded, 712 to 718 MiB in use, none
+   once unloaded. The app's limit there was 3,376 MiB. Identification's
+   highest point was 2,432 MiB, with a 50 MP photo open, leaving 944 MiB.
+   The app's own media handling, not the models, set its overall peak.
 
 ## How it was measured
 
@@ -128,20 +134,67 @@ macOS, keeps about 1.3 GB of the weights in counted memory: 0.5 GiB idle,
 models loaded. Those figures stand for neither a Mac nor a phone, and have no
 per-app limit to compare with.
 
-## What the iPhone test has to check
+## On an iPhone
 
-On a 6 GB iPhone, with a 4K clip and a large photo:
+Measured on 2026-11-18 on an iPhone 17 Pro Max (iPhone18,2, 12 GB, iOS
+27.2.1), with the same pack, photo and clip. The figures are the app's own
+memory readout ([the developer guide](../../developer/species-identification.md#memory-readout)),
+one line after each stage, from a profile build with marine life
+identification on. The test build had its own bundle id and no iCloud,
+HealthKit or push, so it started empty and never saw the diver's log. A
+build made with Xcode 27 is stopped at launch on iOS 27 unless the app
+adopts the UIScene lifecycle (#4696), so the test build adopted it in a
+scratch copy; that changes only the order the window and the engine start
+in.
 
-- Where Core ML puts each model (`MLComputePlan` on the device). Phones with
-  a strong Neural Engine may not choose the GPU as this Mac does.
-- The physical footprint and its peak, both neural ledgers (counted and not
-  counted) from `task_info(TASK_VM_INFO)`, and `os_proc_available_memory()`
-  at each stage.
-- Whether the app gets a memory warning or is stopped for memory during a
-  long scan, with the models loaded and the video playing.
-- Whether `com.apple.developer.kernel.increased-memory-limit` changes the
-  answer. The app does not have that entitlement today.
+| Stage | Footprint | Peak so far | Left | Neural Engine, counted |
+| --- | --- | --- | --- | --- |
+| Models loaded, photo open | 2,237 | 2,348 | 1,139 | 634 |
+| Photo analysed | 2,388 | 2,432 | 988 | 718 |
+| Models unloaded, photo open | 1,700 | 2,432 | 1,676 | 0 |
+| Models loaded, video open | 1,417 | 2,708 | 1,959 | 634 |
+| Video, pass 1 of each chunk | 1,480 to 1,517 | 2,708 | 1,859 to 1,896 | 712 to 718 |
+| Video, pass 2 of each chunk | 1,485 to 1,515 | 2,708 | 1,861 to 1,891 | 718 |
+| Models unloaded, video open | 785 | 2,708 | 2,591 | 0 |
 
-Until then the 6 GB floor (`minimumMemoryBytes` in
-`SubmersionVisionPlugin.swift`) stays as it is. These numbers do not argue
-for raising it.
+MiB throughout. What the run showed:
+
+- **The limit was 3,376 MiB.** Footprint plus what is left came to that on
+  every line, so the limit held still for the whole run.
+- **iOS counts the Neural Engine's memory.** The not-counted ledger stayed
+  at zero; the models' memory went into the counted ledger and so into the
+  footprint. The models cost about 0.7 GiB of the limit while in use.
+  Unloading frees it at once, where macOS took half a second.
+- **The idle classifier is dropped and brought back.** At the start of
+  later scans the counted figure fell to 131 MiB, the detector alone, and
+  rose to 718 MiB again when pass 2 used the classifier.
+- **The app's own media cost more than the models.** With the 50 MP photo
+  open in the viewer and no model loaded, the app was at 1,700 MiB; with
+  the video open, 785 MiB. Its overall peak, 2,708 MiB with 668 MiB left,
+  came while no model was loaded, in the minutes when about 20 photos and
+  videos were being added to the dive.
+- **Nothing was stopped.** No memory report was filed for the app during
+  the run. Installing the pack did file a disk writes report: 1,074 MB
+  written in 15 minutes, over iOS's 1 GB a day threshold. That is a report,
+  not a stop, but a shipped build would show it to the developer.
+- **Speed.** The photo took about 0.4 s. The 27 second clip was scanned in
+  about 7 s: pass 1 took about 1.6 s per 10 seconds of video, and pass 2 up
+  to 1.9 s a chunk.
+
+## Still open
+
+- **A 6 GB iPhone.** Its limit is unmeasured. If it is about 3 GB, as
+  developers commonly report, identification's highest point here (2.4 GiB
+  with a 50 MP photo open) would leave about 0.5 GB, and the app's media
+  peak much less. Its Neural Engine (the A15 or A16) may also place the
+  models differently.
+- **The app's own memory with large media.** The viewer holds the app at
+  1.6 GiB with one 50 MP photo, and the minutes of adding many media at
+  once reached 2.6 GiB. That is outside identification but sets the real
+  ceiling.
+- **The Increased Memory Limit entitlement**
+  (`com.apple.developer.kernel.increased-memory-limit`) was not tried; the
+  app does not have it.
+
+Until a 6 GB phone is measured, the 6 GB floor (`minimumMemoryBytes` in
+`SubmersionVisionPlugin.swift`) stays as it is.

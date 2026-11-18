@@ -792,13 +792,13 @@ In light and dark, at phone and desktop widths where layout differs.
   with no region table. Against thousands of candidates the same fish will
   score lower, so this piece may suggest too little or too much until the
   measured accuracy piece replaces them.
-- **Phone memory is measured only on a Mac.** The
+- **Phone memory is not measured on a 6 GB phone.** The
   [phone memory findings](../findings/2026-11-17-marine-life-phone-memory.md)
-  put the feature's own peak at 0.28 GB, with the classifier's weights not
-  counted when Core ML runs it on the GPU, and 0.63 to 0.72 GB more on the
-  Neural Engine in an account macOS keeps out of the counted figure. The
-  whole app's memory on a 6 GB iPhone is still unmeasured, so the 6 GB floor
-  may still be too low.
+  measured a Mac and an iPhone 17 Pro Max. On the iPhone the models run on
+  the Neural Engine and iOS counts their 0.63 to 0.72 GB, and identification
+  peaked at 2.4 GiB with a 50 MP photo open, against a limit of 3,376 MiB.
+  A 6 GB phone's limit may be lower and is unmeasured, so the 6 GB floor may
+  still be too low.
 - **First use is slow.** Loading a 608 MB model takes seconds. The first
   photo opened after launch will show suggestions noticeably later than the
   rest.
