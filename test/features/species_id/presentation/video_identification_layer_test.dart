@@ -78,13 +78,11 @@ const _rockBeauty = Species(
 );
 
 void main() {
-  late bool flagBefore;
   late RecordingIdentificationService service;
   late _Tagging tagging;
   late ValueNotifier<VideoPlayerValue> playback;
 
   setUp(() {
-    flagBefore = marineLifeIdEnabled;
     marineLifeIdEnabled = true;
     service = RecordingIdentificationService();
     tagging = _Tagging();
@@ -98,7 +96,7 @@ void main() {
     );
   });
   tearDown(() {
-    marineLifeIdEnabled = flagBefore;
+    resetMarineLifeIdEnabled();
     playback.dispose();
   });
 

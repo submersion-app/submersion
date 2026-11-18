@@ -17,17 +17,15 @@ import '../../media/presentation/support/media_widget_harness.dart';
 import 'species_id_fakes.dart';
 
 void main() {
-  late bool flagBefore;
   late RecordingIdentificationService service;
   var chips = <SpeciesTagChip>[];
 
   setUp(() {
-    flagBefore = marineLifeIdEnabled;
     marineLifeIdEnabled = true;
     service = RecordingIdentificationService();
     chips = [];
   });
-  tearDown(() => marineLifeIdEnabled = flagBefore);
+  tearDown(resetMarineLifeIdEnabled);
 
   Widget host(MediaItem item, {GeoPoint? location}) => ProviderScope(
     overrides: [

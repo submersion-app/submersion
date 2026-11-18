@@ -7,8 +7,11 @@
 ///
 /// Flags here are plain mutable top-level variables (not `const`) so that
 /// widget tests can toggle them; they are evaluated at runtime, and production
-/// code only ever reads them.
+/// code only ever reads them. [marineLifeIdEnabled] is the exception: its
+/// default depends on the platform, so it is a getter with a test override.
 library;
+
+import 'package:flutter/foundation.dart';
 
 /// Whether the Adobe Lightroom integration is surfaced in the UI.
 ///
@@ -38,13 +41,32 @@ bool lightroomUiEnabled = false;
 /// the settings page, analysing photos as they are opened, and suggested
 /// species in the photo viewer.
 ///
-/// Off for divers until both of these hold: the fish detector's weights are
-/// cleared for redistribution, and the confidence bars in the model pack
-/// come from measured accuracy rather than the provisional values. See
-/// docs/design/specs/2026-11-17-marine-life-identification-program-design.md.
+/// On wherever an engine runs (iPhone, iPad and Mac) and hidden on the web,
+/// Android, Windows and Linux, which have no engine yet. It reads the
+/// platform the same way `ChannelVisionEngine` does, on every read, so the
+/// UI never offers what the engine would refuse. See
+/// docs/design/specs/2026-11-18-marine-life-release-gate-design.md.
 ///
-/// A development build turns it on with
-/// `--dart-define=MARINE_LIFE_ID=true`. Like [lightroomUiEnabled] it hides
-/// UI only, and is mutable so widget tests can toggle it; tests that set it
-/// must reset it in `addTearDown`.
-bool marineLifeIdEnabled = const bool.fromEnvironment('MARINE_LIFE_ID');
+/// A build passing `--dart-define=MARINE_LIFE_ID=false` turns it off
+/// everywhere. Like [lightroomUiEnabled] it hides UI only. Tests may set it;
+/// a test that does must call [resetMarineLifeIdEnabled] in `tearDown` or
+/// `addTearDown`, which puts the platform default back.
+bool get marineLifeIdEnabled =>
+    _marineLifeIdOverride ??
+    (_marineLifeIdDefine &&
+        !kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.iOS ||
+            defaultTargetPlatform == TargetPlatform.macOS));
+
+/// Overrides the platform default, for tests.
+set marineLifeIdEnabled(bool value) => _marineLifeIdOverride = value;
+
+/// Drops a test's override, so [marineLifeIdEnabled] follows the platform.
+@visibleForTesting
+void resetMarineLifeIdEnabled() => _marineLifeIdOverride = null;
+
+const _marineLifeIdDefine = bool.fromEnvironment(
+  'MARINE_LIFE_ID',
+  defaultValue: true,
+);
+bool? _marineLifeIdOverride;
