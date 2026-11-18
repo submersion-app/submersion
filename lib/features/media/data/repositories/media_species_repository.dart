@@ -66,10 +66,18 @@ class MediaSpeciesRepository {
 
   /// Tags [mediaId] with [speciesId]. Returns the existing tag when the pair
   /// is already linked: uniqueness lives here, not in a schema constraint.
+  ///
+  /// [unconfirmed] marks a tag the app applied (issue #4727);
+  /// [createdSighting] and [createdSpecies] record what the app created for
+  /// it, so rejecting the tag can take them too. All false for the diver's
+  /// own tags, stored as null.
   Future<MediaSpeciesTag> addTag({
     required String mediaId,
     required String speciesId,
     String? sightingId,
+    bool unconfirmed = false,
+    bool createdSighting = false,
+    bool createdSpecies = false,
   }) async {
     final existing = await _findTag(mediaId, speciesId);
     if (existing != null) return _tagFromRow(existing);
@@ -85,6 +93,9 @@ class MediaSpeciesRepository {
             speciesId: Value(speciesId),
             sightingId: Value(sightingId),
             createdAt: Value(now),
+            unconfirmed: Value(_flag(unconfirmed)),
+            createdSighting: Value(_flag(createdSighting)),
+            createdSpecies: Value(_flag(createdSpecies)),
           ),
         );
     await _syncRepository.markRecordPending(
@@ -94,14 +105,77 @@ class MediaSpeciesRepository {
     );
     SyncEventBus.notifyLocalChange();
 
-    return MediaSpeciesTag(
-      id: id,
-      mediaId: mediaId,
-      speciesId: speciesId,
-      sightingId: sightingId,
-      createdAt: DateTime.fromMillisecondsSinceEpoch(now),
-    );
+    return (await findTag(mediaId, speciesId))!;
   }
+
+  /// The tag linking [mediaId] and [speciesId], or null.
+  Future<MediaSpeciesTag?> findTag(String mediaId, String speciesId) async {
+    final row = await _findTag(mediaId, speciesId);
+    return row == null ? null : _tagFromRow(row);
+  }
+
+  /// Makes a tag the app applied the diver's own (issue #4727): clears the
+  /// three marks and, when given, links [sightingId]. The row's clock is
+  /// restamped so the confirm reaches peers and wins over older copies. A
+  /// hand tag, or no tag, is left alone.
+  Future<void> confirmTag({
+    required String mediaId,
+    required String speciesId,
+    String? sightingId,
+  }) async {
+    final existing = await _findTag(mediaId, speciesId);
+    if (existing == null || existing.unconfirmed != 1) return;
+    await (_db.update(
+      _db.mediaSpecies,
+    )..where((t) => t.id.equals(existing.id))).write(
+      MediaSpeciesCompanion(
+        unconfirmed: const Value(null),
+        createdSighting: const Value(null),
+        createdSpecies: const Value(null),
+        sightingId: sightingId == null
+            ? const Value.absent()
+            : Value(sightingId),
+      ),
+    );
+    await _syncRepository.markRecordPending(
+      entityType: 'mediaSpecies',
+      recordId: existing.id,
+      localUpdatedAt: DateTime.now().millisecondsSinceEpoch,
+    );
+    SyncEventBus.notifyLocalChange();
+  }
+
+  /// Every tag the app applied that the diver has not confirmed, on the
+  /// media of [diveId] when given, else across the log.
+  Future<List<MediaSpeciesTag>> unconfirmedTags({String? diveId}) async {
+    final query = _db.select(_db.mediaSpecies)
+      ..where((t) => t.unconfirmed.equals(1))
+      ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]);
+    if (diveId != null) {
+      final onDive = _db.selectOnly(_db.media)
+        ..addColumns([_db.media.id])
+        ..where(_db.media.diveId.equals(diveId));
+      query.where((t) => t.mediaId.isInQuery(onDive));
+    }
+    return (await query.get()).map(_tagFromRow).toList();
+  }
+
+  /// How many tags other than [exceptTagId] link [sightingId].
+  Future<int> countTagsForSighting(
+    String sightingId, {
+    String? exceptTagId,
+  }) async {
+    final count = _db.mediaSpecies.id.count();
+    final query = _db.selectOnly(_db.mediaSpecies)
+      ..addColumns([count])
+      ..where(_db.mediaSpecies.sightingId.equals(sightingId));
+    if (exceptTagId != null) {
+      query.where(_db.mediaSpecies.id.equals(exceptTagId).not());
+    }
+    return (await query.getSingle()).read(count) ?? 0;
+  }
+
+  static int? _flag(bool value) => value ? 1 : null;
 
   /// Removes the tag linking [mediaId] and [speciesId], tombstoning it by
   /// row id so other devices drop the same row. No-op when absent.
@@ -254,7 +328,8 @@ class MediaSpeciesRepository {
     final rows = await _db
         .customSelect(
           '''
-      SELECT sp.id, sp.common_name, sp.category, sp.is_built_in
+      SELECT sp.id, sp.common_name, sp.category, sp.is_built_in,
+        ms.unconfirmed
       FROM media_species ms
       JOIN species sp ON sp.id = ms.species_id
       WHERE ms.media_id = ?
@@ -273,6 +348,7 @@ class MediaSpeciesRepository {
           orElse: () => SpeciesCategory.other,
         ),
         isBuiltIn: row.read<bool>('is_built_in'),
+        unconfirmed: row.readNullable<int>('unconfirmed') == 1,
       );
     }).toList();
   }
@@ -407,5 +483,9 @@ class MediaSpeciesRepository {
     bboxHeight: row.bboxHeight,
     notes: row.notes,
     createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
+    unconfirmed: row.unconfirmed == 1,
+    createdSighting: row.createdSighting == 1,
+    createdSpecies: row.createdSpecies == 1,
+    hlc: row.hlc,
   );
 }
