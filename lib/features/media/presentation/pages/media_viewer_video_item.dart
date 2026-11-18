@@ -383,6 +383,19 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
               ),
             ),
 
+          // Tells the scan where the diver is watching (issue #4709), in tag
+          // mode and white-point picking too: the scan follows the playhead
+          // while the labels are hidden. Draws nothing.
+          if (marineLifeIdEnabled && widget.isCurrent)
+            Positioned(
+              left: 0,
+              top: 0,
+              child: VideoPlayheadReporter(
+                playback: controller,
+                item: widget.item,
+              ),
+            ),
+
           // Play/pause button overlay (center) - visual indicator only when
           // paused. It follows the player itself: the player reports its
           // state on its own schedule, and nothing else rebuilds this page
