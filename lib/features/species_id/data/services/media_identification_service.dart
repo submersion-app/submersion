@@ -18,6 +18,7 @@ import 'package:submersion/features/species_id/domain/entities/media_identificat
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
 import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
+import 'package:submersion/features/species_id/domain/services/naming_levels.dart';
 import 'package:submersion/features/species_id/domain/services/region_grid.dart';
 import 'package:submersion/features/species_id/domain/services/species_namer.dart';
 import 'package:submersion/features/species_id/domain/services/video_identification_rules.dart';
@@ -57,6 +58,7 @@ class MediaIdentificationService {
     String Function()? newId,
     Duration idleUnload = const Duration(seconds: 60),
     MemoryReadout? memoryReadout,
+    Future<LevelInForce?> Function()? namingLevel,
   }) : _engine = engine,
        _loadPack = loadPack,
        _identifications = identifications,
@@ -71,7 +73,8 @@ class MediaIdentificationService {
        _now = now ?? DateTime.now,
        _newId = newId ?? const Uuid().v4,
        _idleUnload = idleUnload,
-       _memoryReadout = memoryReadout;
+       _memoryReadout = memoryReadout,
+       _namingLevel = namingLevel ?? (() async => null);
 
   final VisionEngine _engine;
   final Future<LoadedPack?> Function() _loadPack;
@@ -95,6 +98,10 @@ class MediaIdentificationService {
   /// Logs memory after each stage, while debug mode is on; null logs
   /// nothing (the iPhone memory test, docs/developer/species-identification.md).
   final MemoryReadout? _memoryReadout;
+
+  /// The naming level the diver chose, as the installed pack names at it,
+  /// or null for the pack's own bars (issue #4721).
+  final Future<LevelInForce?> Function() _namingLevel;
   final _log = LoggerService.forClass(MediaIdentificationService);
 
   /// Insertion-ordered (a map literal is a LinkedHashMap): the newest
@@ -187,8 +194,20 @@ class MediaIdentificationService {
   Future<void> reconcile(String mediaId) async {
     final generation = _databaseGeneration();
     try {
-      final all = await _identifications.forMedia(mediaId);
-      if (all.isEmpty) return;
+      final stored = await _identifications.forMedia(mediaId);
+      if (stored.isEmpty) return;
+      // Which animals a tag may accept follows the naming level. Only
+      // decisions are written, so the level-applied flags stay in memory.
+      final level = await _namingLevel();
+      final all = level == null
+          ? stored
+          : applyNamingLevel(
+              stored,
+              level: level,
+              namedWithPack: (await _identifications.runFor(
+                mediaId,
+              ))?.packVersion,
+            );
       final changed = reconcileDecisions(
         all,
         await _taggedSpecies(mediaId),

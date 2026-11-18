@@ -25,8 +25,10 @@ import 'package:submersion/features/species_id/data/services/memory_readout.dart
 import 'package:submersion/features/species_id/data/services/suggestion_acceptor.dart';
 import 'package:submersion/features/species_id/data/services/video_identification_scan.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/domain/entities/naming_level.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
 import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
+import 'package:submersion/features/species_id/domain/services/naming_levels.dart';
 import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 
 /// Marine life identification (issue #4668).
@@ -72,6 +74,71 @@ final identifyFishOnOpenProvider =
     StateNotifierProvider<IdentifyFishOnOpenNotifier, bool>(
       (ref) => IdentifyFishOnOpenNotifier.unstored(true),
     );
+
+/// How sure the app must be before it names a fish (issue #4721). Per
+/// device, Surer by default; an id this version does not know reads as
+/// Surer and is kept until another level is chosen.
+class NamingLevelNotifier extends StateNotifier<NamingLevel> {
+  NamingLevelNotifier(SharedPreferences prefs)
+    : _prefs = prefs,
+      super(
+        NamingLevel.fromId(
+              prefs.getString(SettingsKeys.marineLifeNamingLevel),
+            ) ??
+            NamingLevel.surer,
+      );
+
+  /// Fixed state with nothing behind it, as
+  /// [DeviceBadgeToggleNotifier.unstored].
+  NamingLevelNotifier.unstored(super.level) : _prefs = null;
+
+  final SharedPreferences? _prefs;
+
+  /// The latest write, which the next one waits on, so two quick choices
+  /// leave the last one stored.
+  Future<void> _lastWrite = Future<void>.value();
+
+  Future<void> setLevel(NamingLevel level) {
+    if (state == level) return Future<void>.value();
+    state = level;
+    final prefs = _prefs;
+    if (prefs == null) return Future<void>.value();
+    final write = _lastWrite.then(
+      (_) => prefs.setString(SettingsKeys.marineLifeNamingLevel, level.id),
+    );
+    _lastWrite = write.then<void>((_) {}, onError: (Object _) {});
+    return write;
+  }
+}
+
+/// Surer, with no storage behind it; `rootProviderOverrides` gives it the
+/// stored preference.
+final namingLevelProvider =
+    StateNotifierProvider<NamingLevelNotifier, NamingLevel>(
+      (ref) => NamingLevelNotifier.unstored(NamingLevel.surer),
+    );
+
+/// The level the installed pack names at for the diver's choice, or null
+/// with no pack (issue #4721). Never waits: while the pack is being read,
+/// or when it cannot be, there is no level and suggestions show as they
+/// were named; readers rebuild once it is known.
+final levelInForceProvider = Provider<LevelInForce?>((ref) {
+  final pack = ref.watch(installedSpeciesPackProvider).value;
+  return levelInForce(pack?.manifest, ref.watch(namingLevelProvider));
+});
+
+/// [all] as [level] would suggest them, when the pack in force named
+/// [mediaId] (issue #4721).
+Future<List<MediaIdentification>> _atNamingLevel(
+  LevelInForce? level,
+  MediaIdentificationRepository repository,
+  String mediaId,
+  List<MediaIdentification> all,
+) async {
+  if (level == null || all.isEmpty) return all;
+  final run = await repository.runFor(mediaId);
+  return applyNamingLevel(all, level: level, namedWithPack: run?.packVersion);
+}
 
 final mediaIdentificationRepositoryProvider =
     Provider<MediaIdentificationRepository>(
@@ -129,6 +196,7 @@ final mediaIdentificationServiceProvider = Provider<MediaIdentificationService>(
       taggedSpecies: identifications.taggedSpecies,
       enabled: () =>
           marineLifeIdEnabled && ref.read(identifyFishOnOpenProvider),
+      namingLevel: () async => ref.read(levelInForceProvider),
     );
     ref.onDispose(service.dispose);
     return service;
@@ -194,8 +262,14 @@ final mediaSuggestionsProvider = FutureProvider.autoDispose
       final repository = ref.watch(mediaIdentificationRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchChanges());
       ref.invalidateSelfWhen(repository.watchTagChanges());
+      final level = ref.watch(levelInForceProvider);
       return groupSuggestions(
-        await repository.forMedia(mediaId),
+        await _atNamingLevel(
+          level,
+          repository,
+          mediaId,
+          await repository.forMedia(mediaId),
+        ),
         await repository.taggedSpecies(mediaId),
       );
     });
@@ -218,10 +292,12 @@ final videoTracksProvider = FutureProvider.autoDispose
       if (!marineLifeIdEnabled) return const [];
       final repository = ref.watch(mediaIdentificationRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchChanges());
-      return [
+      final level = ref.watch(levelInForceProvider);
+      final tracks = [
         for (final i in await repository.forMedia(mediaId))
           if (i.isTrack) i,
       ];
+      return _atNamingLevel(level, repository, mediaId, tracks);
     });
 
 /// Whether the photo is being analysed, or waiting to be.
