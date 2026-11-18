@@ -130,7 +130,10 @@ pools their boxes in the manifest's order, best score first, and keeps a box
 only if it overlaps every kept one by less than `mergeIoU`. A pack with one
 detector returns that detector's boxes as they are. Each stored
 identification records its detector set: one detector's own id, or both
-joined with `+`, so a photo is detected again when the set changes.
+joined with `+`, so a photo is detected again when the set changes. Only
+the ids are compared, so a detector's id must change with any of its
+settings (or the shared `boxes`); `manifest_test.py` pins each detector's
+settings to its id and fails when one changes alone.
 `tool/species_pack/vision_cli/check_merge.sh` checks the Swift merge against
 `boxes.py`'s cases on a Mac.
 

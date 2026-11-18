@@ -321,6 +321,43 @@ class PackDetectorsTests(unittest.TestCase):
         self.assertIn("detector", self.FORMAT_ONE)
 
 
+class DetectorIdentityTests(unittest.TestCase):
+    """The app detects a stored photo again only when the pack's detector
+    ids change (SpeciesPackManifest.detectorSetId), so how each detector
+    runs is pinned to its id here. Changing any value below needs a new id
+    for the detectors it affects; then update this test."""
+
+    PINNED_DETECTORS = {
+        "cfd": {
+            "id": "cfd-rfdetr-nano-640-20260706",
+            "format": "rfdetr",
+            "file": "detector",
+            "inputSize": 640,
+            "mean": [0.485, 0.456, 0.406],
+            "std": [0.229, 0.224, 0.225],
+            "scoreThreshold": 0.3,
+            "maxBoxes": 8,
+        },
+        "megalodon": {
+            "id": "megalodon-yolo11x-403704d",
+            "format": "yolo",
+            "file": "detector-megalodon",
+            "inputSize": 640,
+            "mean": [0.0, 0.0, 0.0],
+            "std": [1.0, 1.0, 1.0],
+            "scoreThreshold": 0.25,
+            "maxBoxes": 8,
+        },
+    }
+    PINNED_BOXES = {"mergeIoU": 0.5, "maxBoxes": 8, "cropPadding": 0.10}
+
+    def test_detector_settings_change_only_with_their_id(self):
+        self.assertEqual(manifest.DETECTORS, self.PINNED_DETECTORS, "a detector setting changed: give it a new id")
+
+    def test_box_settings_change_only_with_new_ids(self):
+        self.assertEqual(manifest.BOXES, self.PINNED_BOXES, "a box setting changed: give the detectors new ids")
+
+
 class ModelIdsTests(unittest.TestCase):
     def test_the_converted_models_are_the_ones_the_manifest_names(self):
         # A new checkpoint in models.py must change the pack's detector id,
