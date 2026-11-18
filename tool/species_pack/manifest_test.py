@@ -364,8 +364,7 @@ class SpeciesFacetTests(unittest.TestCase):
     def test_a_full_answer_warns_that_species_may_be_missing(self):
         counts = [{"name": "1", "count": 9}, {"name": "2", "count": 8}]
         _, _, err = self.fetch(candidates.fetch_surveyed_species, counts, min_records=5, limit=2)
-        self.assertIn("2", err)
-        self.assertIn("limit", err)
+        self.assertIn("GBIF returned 2 surveyed species, the limit", err)
 
     def test_a_short_answer_does_not_warn(self):
         _, _, err = self.fetch(candidates.fetch_surveyed_species, [{"name": "1", "count": 9}], min_records=5, limit=2)

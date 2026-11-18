@@ -10,6 +10,7 @@ replaced by a stub.
 """
 
 import hashlib
+import itertools
 import json
 import os
 import sys
@@ -207,7 +208,7 @@ def wanted_keys(photographed, surveyed, have, room):
     species are the ones left out."""
     chosen = []
     seen = set(have)
-    for key, _ in list(photographed) + list(surveyed):
+    for key, _ in itertools.chain(photographed, surveyed):
         if len(chosen) >= room:
             break
         if key not in seen:
