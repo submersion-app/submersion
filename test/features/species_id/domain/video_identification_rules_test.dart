@@ -1,7 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/constants/app_enums.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
+import 'package:submersion/features/species_id/domain/entities/video_detections.dart';
 import 'package:submersion/features/species_id/domain/services/video_identification_rules.dart';
+import 'package:submersion/features/species_id/domain/services/video_tracker.dart';
 
 import '../data/identification_fixtures.dart';
 
@@ -149,6 +153,332 @@ void main() {
       );
       expect(result.insert.single.claimedSpeciesId, 'sp_x');
       expect(result.deleteIds, ['old']);
+    });
+  });
+
+  group('naming in view (issue #4709)', () {
+    TrackedAnimal animal({
+      String? storedId,
+      double? namedWorth,
+      required List<double> widths,
+      int stored = 0,
+    }) {
+      final points = [
+        for (final (k, w) in widths.indexed)
+          (
+            ms: k * 250,
+            detection: DetectedBox(
+              box: IdentificationBox(x: 0.1, y: 0.4, width: w, height: 0.1),
+              score: 1,
+            ),
+          ),
+      ];
+      final fresh = TrackedAnimal(points.sublist(0, stored));
+      final tracker = VideoTracker()..resume(fresh);
+      if (storedId != null) {
+        tracker.markStored(
+          tracker.openTracks.single,
+          storedId: storedId,
+          namedWorth: namedWorth,
+        );
+      }
+      final open = tracker.openTracks.single;
+      for (final p in points.skip(stored)) {
+        open.points.add(p);
+      }
+      return open;
+    }
+
+    test('a track never named names now', () {
+      expect(namesNow(animal(widths: [0.2, 0.2, 0.2])), isTrue);
+    });
+
+    test('a named track does not name again without a better view', () {
+      expect(
+        namesNow(
+          animal(
+            storedId: 'r1',
+            namedWorth: 0.02,
+            widths: [0.2, 0.2, 0.28],
+            stored: 2,
+          ),
+        ),
+        isFalse,
+      );
+    });
+
+    test('a named track names again at 1.5 times the worth', () {
+      expect(
+        namesNow(
+          animal(
+            storedId: 'r1',
+            namedWorth: 0.02,
+            widths: [0.2, 0.2, 0.3],
+            stored: 2,
+          ),
+        ),
+        isTrue,
+      );
+    });
+
+    test('a better view among the points already stored does not '
+        'count', () {
+      expect(
+        namesNow(
+          animal(
+            storedId: 'r1',
+            namedWorth: 0.02,
+            widths: [0.4, 0.2, 0.2],
+            stored: 2,
+          ),
+        ),
+        isFalse,
+      );
+    });
+  });
+
+  group('keepDecisionOnRename', () {
+    final renamedAs = track('t1').copyWith(
+      candidates: const [
+        NamedCandidate(
+          candidate: PackCandidate(
+            gbifKey: 5,
+            scientificName: 'Sparisoma viride',
+            commonName: 'Stoplight Parrotfish',
+            category: SpeciesCategory.fish,
+          ),
+          score: 0.8,
+        ),
+      ],
+    );
+
+    test('an acceptance by name match goes back to undecided when the '
+        'name changes', () {
+      final before = track(
+        't1',
+        decision: IdentificationDecision.accepted,
+        decidedSpeciesId: 'sp_queen_parrotfish',
+      ).copyWith(decidedAt: fixtureT1);
+      final kept = keepDecisionOnRename(before: before, renamed: renamedAs);
+      expect(kept.decision, IdentificationDecision.undecided);
+      expect(kept.decidedSpeciesId, isNull);
+      expect(kept.decidedAt, isNull);
+      expect(kept.top!.candidate.commonName, 'Stoplight Parrotfish');
+    });
+
+    test('an acceptance stays when the name is the same', () {
+      final before = track(
+        't1',
+        decision: IdentificationDecision.accepted,
+        decidedSpeciesId: 'sp_queen_parrotfish',
+      ).copyWith(decidedAt: fixtureT1);
+      final same = track('t1').copyWith(
+        candidates: [
+          NamedCandidate(
+            candidate: before.top!.candidate.copyWith(
+              scientificName: 'SCARUS VETULA',
+            ),
+            score: 0.6,
+          ),
+        ],
+      );
+      final kept = keepDecisionOnRename(before: before, renamed: same);
+      expect(kept.decision, IdentificationDecision.accepted);
+      expect(kept.decidedSpeciesId, 'sp_queen_parrotfish');
+      expect(kept.decidedAt, fixtureT1);
+    });
+
+    test('a claim is kept whatever the name', () {
+      final before = track(
+        't1',
+        decision: IdentificationDecision.accepted,
+        decidedSpeciesId: 'sp_queen_parrotfish',
+        claimedSpeciesId: 'sp_queen_parrotfish',
+      );
+      final kept = keepDecisionOnRename(before: before, renamed: renamedAs);
+      expect(kept.decision, IdentificationDecision.accepted);
+      expect(kept.claimedSpeciesId, 'sp_queen_parrotfish');
+      expect(kept.decidedSpeciesId, 'sp_queen_parrotfish');
+    });
+
+    test('a dismissal is kept whatever the name', () {
+      final before = track(
+        't1',
+        decision: IdentificationDecision.rejected,
+      ).copyWith(decidedAt: fixtureT1);
+      final kept = keepDecisionOnRename(before: before, renamed: renamedAs);
+      expect(kept.decision, IdentificationDecision.rejected);
+      expect(kept.decidedAt, fixtureT1);
+    });
+
+    test('an undecided row stays undecided', () {
+      final kept = keepDecisionOnRename(
+        before: track('t1'),
+        renamed: renamedAs,
+      );
+      expect(kept.decision, IdentificationDecision.undecided);
+      expect(kept.decidedSpeciesId, isNull);
+    });
+  });
+
+  group('seamJoins', () {
+    TrackedAnimal openUntil(int endMs, {String? storedId}) {
+      final tracker = VideoTracker();
+      for (var ms = endMs - 1000; ms <= endMs; ms += 250) {
+        tracker.add(
+          FrameDetections(
+            ms: ms,
+            boxes: const [
+              DetectedBox(
+                box: IdentificationBox(x: 0.1, y: 0.4, width: 0.2, height: 0.1),
+                score: 0.9,
+              ),
+            ],
+          ),
+        );
+      }
+      if (storedId != null) {
+        tracker.markStored(
+          tracker.openTracks.single,
+          storedId: storedId,
+          namedWorth: 0.018,
+        );
+      }
+      return tracker.openTracks.single;
+    }
+
+    MediaIdentification later({
+      int startMs = 30000,
+      IdentificationDecision decision = IdentificationDecision.undecided,
+      String? decidedSpeciesId,
+    }) {
+      final t = track(
+        'later',
+        startMs: startMs,
+        endMs: startMs + 2000,
+        decision: decision,
+        decidedSpeciesId: decidedSpeciesId,
+      );
+      return t.copyWith(
+        path: [
+          for (final s in t.path)
+            s.copyWith(
+              box: const IdentificationBox(
+                x: 0.1,
+                y: 0.4,
+                width: 0.2,
+                height: 0.1,
+              ),
+            ),
+        ],
+      );
+    }
+
+    test('a fish crossing the seam is paired', () {
+      final open = openUntil(29750);
+      final pairs = seamJoins(
+        open: [open],
+        openRows: const {},
+        stored: [later()],
+        seamMs: 30000,
+      );
+      expect(pairs, hasLength(1));
+      expect(identical(pairs.single.open, open), isTrue);
+      expect(pairs.single.later.id, 'later');
+    });
+
+    test('a stored track starting too long after the seam is not', () {
+      expect(
+        seamJoins(
+          open: [openUntil(29750)],
+          openRows: const {},
+          stored: [later(startMs: 31000)],
+          seamMs: 30000,
+        ),
+        isEmpty,
+      );
+    });
+
+    test('a stored track elsewhere in the frame is not', () {
+      final elsewhere = later().copyWith(
+        path: [
+          for (final s in later().path) s.copyWith(box: s.box.copyWith(x: 0.7)),
+        ],
+      );
+      expect(
+        seamJoins(
+          open: [openUntil(29750)],
+          openRows: const {},
+          stored: [elsewhere],
+          seamMs: 30000,
+        ),
+        isEmpty,
+      );
+    });
+
+    test('parts the diver decided differently stay apart', () {
+      final accepted = track(
+        'early',
+        decision: IdentificationDecision.accepted,
+        decidedSpeciesId: 'sp_queen_parrotfish',
+      );
+      expect(
+        seamJoins(
+          open: [openUntil(29750, storedId: 'early')],
+          openRows: {'early': accepted},
+          stored: [later(decision: IdentificationDecision.rejected)],
+          seamMs: 30000,
+        ),
+        isEmpty,
+      );
+    });
+
+    test('a decided part joins an undecided one', () {
+      final accepted = track(
+        'early',
+        decision: IdentificationDecision.accepted,
+        decidedSpeciesId: 'sp_queen_parrotfish',
+      );
+      expect(
+        seamJoins(
+          open: [openUntil(29750, storedId: 'early')],
+          openRows: {'early': accepted},
+          stored: [later()],
+          seamMs: 30000,
+        ),
+        hasLength(1),
+      );
+    });
+
+    test('each stored track is used once, the most overlapping first', () {
+      final near = openUntil(29750);
+      final far = VideoTracker();
+      for (var ms = 28750; ms <= 29750; ms += 250) {
+        far.add(
+          FrameDetections(
+            ms: ms,
+            boxes: const [
+              DetectedBox(
+                box: IdentificationBox(
+                  x: 0.15,
+                  y: 0.4,
+                  width: 0.2,
+                  height: 0.1,
+                ),
+                score: 0.9,
+              ),
+            ],
+          ),
+        );
+      }
+      final pairs = seamJoins(
+        open: [far.openTracks.single, near],
+        openRows: const {},
+        stored: [later()],
+        seamMs: 30000,
+      );
+      expect(pairs, hasLength(1));
+      expect(identical(pairs.single.open, near), isTrue);
     });
   });
 }

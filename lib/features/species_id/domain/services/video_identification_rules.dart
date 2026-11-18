@@ -5,8 +5,10 @@ library;
 import 'dart:math' as math;
 
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
 import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
 import 'package:submersion/features/species_id/domain/services/track_labels.dart';
+import 'package:submersion/features/species_id/domain/services/video_tracker.dart';
 
 enum VideoRefreshAction {
   /// Nothing the stored tracks depend on has changed.
@@ -109,4 +111,149 @@ bool _sameAnimal(MediaIdentification a, MediaIdentification b) {
     count++;
   }
   return count > 0 && total / count >= sameAnimalOverlap;
+}
+
+/// How long an animal still in view must have been seen before a chunk's
+/// end names it (issue #4709).
+const int earlyNamingMs = 1000;
+
+/// How much better a view must be to name an animal again: its worth
+/// ([momentWorth]) against the moment it was last named from.
+const double betterViewMargin = 1.5;
+
+/// Whether [track] is to be named now: it has no name yet, or a moment
+/// seen since it was named is worth at least [betterViewMargin] times the
+/// one it was named from.
+bool namesNow(TrackedAnimal track) {
+  final worth = track.namedWorth;
+  if (worth == null || track.storedId == null) return true;
+  for (var k = track.storedLength; k < track.points.length; k++) {
+    if (momentWorth(track.points[k].detection) >= betterViewMargin * worth) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/// [renamed], named again from a better view, keeping what the diver said
+/// on [before], the row it replaces (issue #4709). An acceptance by a name
+/// match (accepted with no claim) whose best name changed goes back to
+/// undecided, for the tags to decide again. A claim, a dismissal and an
+/// acceptance whose name is unchanged stay as they are.
+MediaIdentification keepDecisionOnRename({
+  required MediaIdentification before,
+  required MediaIdentification renamed,
+}) {
+  final byName =
+      before.decision == IdentificationDecision.accepted &&
+      before.claimedSpeciesId == null;
+  if (byName && !_sameName(before.top, renamed.top)) {
+    return _decided(
+      renamed,
+      decision: IdentificationDecision.undecided,
+      speciesId: null,
+      at: null,
+      claim: null,
+    );
+  }
+  return _decided(
+    renamed,
+    decision: before.decision,
+    speciesId: before.decidedSpeciesId,
+    at: before.decidedAt,
+    claim: before.claimedSpeciesId,
+  );
+}
+
+bool _sameName(NamedCandidate? a, NamedCandidate? b) {
+  if (a == null || b == null) return a == b;
+  String key(String s) => s.trim().toLowerCase();
+  return key(a.candidate.scientificName) == key(b.candidate.scientificName);
+}
+
+/// [i] with exactly this decision, species, time and claim, any of which
+/// may be null.
+MediaIdentification _decided(
+  MediaIdentification i, {
+  required IdentificationDecision decision,
+  required String? speciesId,
+  required DateTime? at,
+  required String? claim,
+}) => MediaIdentification(
+  id: i.id,
+  mediaId: i.mediaId,
+  box: i.box,
+  boxPixelWidth: i.boxPixelWidth,
+  boxPixelHeight: i.boxPixelHeight,
+  detectorScore: i.detectorScore,
+  openScore: i.openScore,
+  candidates: i.candidates,
+  locationLimited: i.locationLimited,
+  suggestable: i.suggestable,
+  decision: decision,
+  decidedSpeciesId: speciesId,
+  decidedAt: at,
+  claimedSpeciesId: claim,
+  createdAt: i.createdAt,
+  startMs: i.startMs,
+  endMs: i.endMs,
+  bestMs: i.bestMs,
+  path: i.path,
+  confident: i.confident,
+  specific: i.specific,
+);
+
+/// Where two scanned stretches meet at [seamMs] (issue #4709): which of
+/// the [open] tracks reaching the seam are the same animal as a [stored]
+/// track of the later stretch. A stored track pairs when it starts within
+/// [maxGapMs] after the seam and its first box overlaps the open track's
+/// last box by at least [linkOverlap]; the most overlapping pairs first,
+/// each track used once. Two parts on which the diver said different
+/// things (a decision, its species, or a claim) stay apart; an open
+/// track's say is on its stored row in [openRows], by id.
+List<({TrackedAnimal open, MediaIdentification later})> seamJoins({
+  required List<TrackedAnimal> open,
+  required Map<String, MediaIdentification> openRows,
+  required List<MediaIdentification> stored,
+  required int seamMs,
+  int maxGapMs = 750,
+  double linkOverlap = 0.3,
+}) {
+  final candidates =
+      <({TrackedAnimal open, MediaIdentification later, double overlap})>[];
+  for (final o in open) {
+    final last = o.points.last.detection.box;
+    final row = o.storedId == null ? null : openRows[o.storedId];
+    for (final s in stored) {
+      final start = s.startMs;
+      if (!s.isTrack || s.path.isEmpty || start == null) continue;
+      if (start < seamMs || start > seamMs + maxGapMs) continue;
+      final overlap = last.iou(s.path.first.box);
+      if (overlap < linkOverlap) continue;
+      if (row != null && _conflicting(row, s)) continue;
+      candidates.add((open: o, later: s, overlap: overlap));
+    }
+  }
+  candidates.sort((a, b) => b.overlap.compareTo(a.overlap));
+  final usedOpen = <TrackedAnimal>{};
+  final usedLater = <String>{};
+  final pairs = <({TrackedAnimal open, MediaIdentification later})>[];
+  for (final c in candidates) {
+    if (usedOpen.contains(c.open) || usedLater.contains(c.later.id)) continue;
+    usedOpen.add(c.open);
+    usedLater.add(c.later.id);
+    pairs.add((open: c.open, later: c.later));
+  }
+  return pairs;
+}
+
+/// Whether the diver said something on both [a] and [b], and not the same.
+bool _conflicting(MediaIdentification a, MediaIdentification b) {
+  bool said(MediaIdentification i) =>
+      i.decision != IdentificationDecision.undecided ||
+      i.claimedSpeciesId != null;
+  if (!said(a) || !said(b)) return false;
+  return a.decision != b.decision ||
+      a.decidedSpeciesId != b.decidedSpeciesId ||
+      a.claimedSpeciesId != b.claimedSpeciesId;
 }
