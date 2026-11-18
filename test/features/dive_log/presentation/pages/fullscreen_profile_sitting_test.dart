@@ -73,7 +73,6 @@ void main() {
   Future<ProviderContainer> pumpPage(
     WidgetTester tester, {
     EditSession<Dive>? session,
-    bool readOnly = false,
   }) async {
     tester.view.physicalSize = const Size(1200, 800);
     tester.view.devicePixelRatio = 1.0;
@@ -97,11 +96,8 @@ void main() {
               return TextButton(
                 onPressed: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(
-                    builder: (_) => FullscreenProfilePage(
-                      diveId: diveId,
-                      session: session,
-                      readOnly: readOnly,
-                    ),
+                    builder: (_) =>
+                        FullscreenProfilePage(diveId: diveId, session: session),
                   ),
                 ),
                 child: const Text('open'),
@@ -136,15 +132,11 @@ void main() {
     await settle(tester, frames: 4);
   }
 
-  testWidgets('read only: no pin', (tester) async {
-    await pumpPage(tester, readOnly: true);
+  // Annotations are placed only in a sitting (issue #4527).
+  testWidgets('without a sitting: read only, no pin', (tester) async {
+    await pumpPage(tester);
     expect(find.byType(AnnotationMarkerLayer), findsOneWidget);
     expect(pin(), findsNothing);
-  });
-
-  testWidgets('switch off: as today, with its pin', (tester) async {
-    await pumpPage(tester);
-    expect(pin(), findsOneWidget);
   });
 
   testWidgets("with a sitting: its pin, and the sitting's annotations are "

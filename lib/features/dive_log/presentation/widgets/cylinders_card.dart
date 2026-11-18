@@ -31,7 +31,6 @@ import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_disp
 import 'package:submersion/features/dive_log/presentation/widgets/tank_figure.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_gear_menu.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_fill_levels.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/tank_series_reassign_sheet.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/observation_status_chip.dart';
 import 'package:submersion/features/planner/domain/services/tank_mod.dart';
@@ -80,8 +79,8 @@ class CylindersCard extends ConsumerWidget {
     // the dive is locked: Reassign moves into the open card, a check-in
     // waits for the unlock, and Assign, which links this and other dives'
     // cylinders at once, shows only in a sitting with nothing unsaved.
-    final edit = RecordEditScope.maybeOf<Dive>(context);
-    final sitting = edit?.session;
+    final edit = RecordEditScope.of<Dive>(context);
+    final sitting = edit.session;
     // `.value`, not `valueOrNull`, here and below: a reload keeps what is
     // already shown rather than dropping it from every row. In a sitting a
     // held reassign has moved the readings: each cylinder is drawn with
@@ -142,7 +141,6 @@ class CylindersCard extends ConsumerWidget {
 
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final offered = edit != null;
     // Assign, the cylinder menu and a check-in each write at once: whole-
     // record operations, listed but disabled until the page is unlocked
     // with nothing to save (issue #4527, plan 7).
@@ -157,7 +155,7 @@ class CylindersCard extends ConsumerWidget {
       for (final t in (sitting?.stored ?? dive).tanks) ?t.equipmentId,
     };
     bool checkInReadOnly(DiveTank tank) =>
-        offered && !storedGearIds.contains(tank.equipmentId);
+        !storedGearIds.contains(tank.equipmentId);
     final rows = [
       for (final entry in dive.tanks.asMap().entries)
         _tankRow(
@@ -226,20 +224,6 @@ class CylindersCard extends ConsumerWidget {
                 ),
               ),
             ],
-            if (!offered && canReassignTankSeries(dive, tankPressures))
-              Align(
-                alignment: AlignmentDirectional.centerEnd,
-                child: TextButton.icon(
-                  icon: const Icon(Icons.swap_vert),
-                  label: Text(l10n.diveLog_tank_reassignSeries),
-                  onPressed: () => showTankSeriesReassignSheet(
-                    context,
-                    ref,
-                    dive: dive,
-                    tankPressures: tankPressures ?? const {},
-                  ),
-                ),
-              ),
           ],
         ),
       ),
@@ -346,7 +330,7 @@ class CylindersCard extends ConsumerWidget {
     required TripCylinderTankLabel? slotLabel,
     required bool showRole,
     required String? operationReason,
-    required RecordOperationRunner? runAsOperation,
+    required RecordOperationRunner runAsOperation,
     required bool checkInReadOnly,
   }) {
     final l10n = context.l10n;
@@ -534,12 +518,10 @@ class CylindersCard extends ConsumerWidget {
                         queryParameters: {'serial': serial, 'dive': dive.id},
                       ).toString(),
                     );
-                    final run = runAsOperation;
-                    if (run == null) return assign();
                     // The setup page replaces itself on the way, so its
                     // answer is not awaited: the sitting starts again at
                     // once and follows the rows the setup links.
-                    run(() async {
+                    runAsOperation(() async {
                       assign();
                       return true;
                     });
@@ -599,7 +581,7 @@ class CylindersCard extends ConsumerWidget {
     DiveTank tank, {
     required bool checkInReadOnly,
     required String? operationReason,
-    required RecordOperationRunner? runAsOperation,
+    required RecordOperationRunner runAsOperation,
   }) {
     final checkIn = _checkInButton(
       tank,
@@ -629,7 +611,7 @@ class CylindersCard extends ConsumerWidget {
     DiveTank tank, {
     required bool readOnly,
     required String? operationReason,
-    required RecordOperationRunner? runAsOperation,
+    required RecordOperationRunner runAsOperation,
   }) {
     final equipmentId = tank.equipmentId;
     if (equipmentId == null) return null;

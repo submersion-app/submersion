@@ -406,8 +406,8 @@ On this Mac, GPU path:
 
 ### Memory
 
-Measured with the command-line harness of the phone memory findings
-(PR #4685): the app's own `VisionPipeline.swift` and `VideoScanner.swift`
+Measured with the command-line harness of the
+[phone memory findings](2026-11-17-marine-life-phone-memory.md): the app's own `VisionPipeline.swift` and `VideoScanner.swift`
 with no Flutter, database or network, physical footprint sampled every
 20 ms, on a 50 MP reef photo and the clip above, models already compiled,
 two runs each (the kernel's lifetime peak agreed with the samples):

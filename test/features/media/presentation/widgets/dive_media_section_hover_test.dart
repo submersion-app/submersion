@@ -2,12 +2,15 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/dive_media_section.dart';
 import 'package:submersion/features/media/presentation/widgets/media_hover_region.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/drag_select_grid_view.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -33,6 +36,7 @@ void main() {
   Widget host(
     List<MediaItem> media, {
     void Function(MediaItem? item)? onHoverMedia,
+    EditSession<Dive>? editing,
   }) {
     return testApp(
       locale: const Locale('en'),
@@ -47,7 +51,11 @@ void main() {
         ).overrideWith((ref) => ref.watch(_mediaProvider)),
       ],
       child: SingleChildScrollView(
-        child: DiveMediaSection(diveId: 'dive-1', onHoverMedia: onHoverMedia),
+        child: DiveMediaSection(
+          diveId: 'dive-1',
+          onHoverMedia: onHoverMedia,
+          editing: editing,
+        ),
       ),
     );
   }
@@ -265,8 +273,16 @@ void main() {
 
     testWidgets('still reports in selection mode', (tester) async {
       final reported = <MediaItem?>[];
+      // Selection is the open card's alone (issue #4673).
+      final controller = RecordEditController<Dive>(onSave: (_) async {})
+        ..unlock(Dive(id: 'dive-1', dateTime: DateTime.utc(2026)));
+      addTearDown(controller.dispose);
       await tester.pumpWidget(
-        host([_item('a'), _item('b')], onHoverMedia: reported.add),
+        host(
+          [_item('a'), _item('b')],
+          onHoverMedia: reported.add,
+          editing: controller.session,
+        ),
       );
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('enter_selection')));

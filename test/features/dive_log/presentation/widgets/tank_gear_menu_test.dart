@@ -50,9 +50,10 @@ void main() {
           operationReason: null,
           dive: Dive(id: 'd', dateTime: DateTime(2026), tanks: [tank]),
           tank: tank,
+          // Off the page's lock the action simply runs.
           runAsOperation: asOperation
               ? (operation) async => ran.add(await operation())
-              : null,
+              : (operation) async => operation(),
         ),
       ),
     );

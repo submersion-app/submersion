@@ -2717,7 +2717,6 @@
   "diveLog_edit_addCustomField": "Mező hozzáadása",
   "diveLog_edit_addTank": "Palack hozzáadása",
   "diveLog_edit_addWeightEntry": "Súly bevitel hozzáadása",
-  "diveLog_edit_addedGps": "GPS hozzáadva: {name}",
   "diveLog_edit_appBarNew": "Merülés rögzítése",
   "diveLog_edit_cancel": "Mégse",
   "diveLog_edit_clearAllEquipment": "Összes törlése",
@@ -3181,7 +3180,6 @@
   "siteSuggestion_assignButton": "{name} hozzárendelése",
   "siteSuggestion_chooseNearbyButton": "Közeli helyszín választása ({count})",
   "siteSuggestion_addLocationButton": "Helyszín hozzáadása: {name}",
-  "siteSuggestion_assignedSnack": "{name} hozzárendelve",
   "siteTypes_addTooltip": "Merülőhely-típus hozzáadása",
   "siteTypes_builtIn": "Beépített",
   "siteTypes_custom": "Egyedi",
@@ -5853,10 +5851,8 @@
   "media_diveMediaSection_replaceEditedContent": "A fájl tartalma eltér az eredetitől. Az újracsatolás újra feltölti a médiatárba.",
   "media_diveMediaSection_replaceEditedTitle": "A fájl tartalma eltér",
   "media_diveMediaSection_unlinkButton": "Leválasztás",
-  "media_diveMediaSection_unlinkError": "Nem sikerült a leválasztás: {error}",
   "media_diveMediaSection_unlinkSelectedButton": "{count} leválasztása",
   "media_diveMediaSection_unlinkSelectedContent": "Eltávolít {count} médiaelemet a médiatárból, a felhőmásolatokkal és bélyegképekkel együtt. A merülőhely által még használt elemek megmaradnak. Az eredeti fájlok érintetlenek maradnak.",
-  "media_diveMediaSection_unlinkSelectedSuccess": "{count} elem leválasztva",
   "media_diveMediaSection_unlinkSelectedTitle": "{count} elem leválasztása?",
   "media_library_unlinkConfirmTitle": "{count} elem leválasztása?",
   "media_siteMediaSection_unlinkError": "Nem sikerült a leválasztás: {error}",
@@ -8943,7 +8939,6 @@
   "signatures_drawSignatureSemantics": "Aláírás rajzolása",
   "signatures_error_drawSignature": "Rajzolj egy aláírást",
   "signatures_error_enterSignerName": "Add meg az aláíró nevét",
-  "signatures_error_saveFailed": "Az aláírást nem sikerült menteni. Próbáld újra.",
   "signatures_field_instructorName": "Oktató neve",
   "signatures_field_instructorNameHint": "Add meg az oktató nevét",
   "signatures_handoff_title": "Add át az eszközt",
@@ -10844,14 +10839,6 @@
     }
   },
   "media_diveScan_cancelButton": "Mégse",
-  "media_diveScan_error": "Hiba a galéria keresésekor: {error}",
-  "@media_diveScan_error": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
   "settings_appearance_metricsEnabledCount": "{count} / {total} engedélyezve",
   "@settings_appearance_metricsEnabledCount": {
     "placeholders": {
@@ -16624,8 +16611,6 @@
   "media_people_buddyThumbnailLabel": "Fotó vagy videó ezzel a búvártárssal",
   "media_people_filterSection": "Személyek",
   "media_people_removedBuddy": "Törölt búvártárs",
-  "media_people_saveFailed": "A jelölés mentése nem sikerült. Próbálja újra.",
-  "media_people_addToDiveFailed": "A búvártársat nem sikerült hozzáadni ehhez a merüléshez. Próbálja újra.",
   "media_people_createBuddyFailed": "A búvártársat nem sikerült létrehozni. Próbálja újra.",
   "media_info_fileSection": "Fájl",
   "media_info_filename": "Fájlnév",
@@ -17250,7 +17235,6 @@
   "diveLog_reassignSheet_moveTo": "Áthelyezés ide",
   "diveLog_reassignSheet_readings": "{count, plural, =1{1 mérés} other{{count} mérés}}",
   "diveLog_reassignSheet_noSeries": "Nincs nyomásgörbe",
-  "diveLog_reassignSheet_applied": "Nyomásgörbe áthelyezve",
   "universalImport_summary_noticeUnknownTransmitterTitle": "Hozzá nem rendelt jeladók",
   "universalImport_summary_noticeUnknownTransmitterBody": "A letöltés egy vagy több jeladója nincs palackhoz rendelve. Rendeld hozzá őket, hogy a jövőbeli letöltések a helyes méretet és szerepet kapják.",
   "universalImport_summary_noticeAssignTransmitters": "Jeladók hozzárendelése",

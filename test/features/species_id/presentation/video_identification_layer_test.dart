@@ -165,6 +165,20 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  /// The unlocked video's sitting, which a name picked on a label is held
+  /// in until Save (issue #4527).
+  EditSession<PhotoRecord> openSitting() {
+    final session = EditSession<PhotoRecord>(
+      PhotoRecord(
+        item: testMediaItem(id: 'v1', mediaType: MediaType.video),
+        species: const [],
+        people: const [],
+      ),
+    );
+    addTearDown(session.dispose);
+    return session;
+  }
+
   Finder pill(String id) => find.byKey(ValueKey('video_label_pill_$id'));
   Finder dot(String id) => find.byKey(ValueKey('video_label_dot_$id'));
 
@@ -178,7 +192,7 @@ void main() {
 
   testWidgets('paused shows suggestion pills and dots', (tester) async {
     final semantics = tester.ensureSemantics();
-    await pump(tester);
+    await pump(tester, sitting: openSitting());
     expect(pill('a'), findsOneWidget);
     expect(pill('b'), findsOneWidget);
     expect(dot('c'), findsOneWidget);
@@ -257,10 +271,10 @@ void main() {
     expect(find.text('Rock Beauty'), findsOneWidget);
   });
 
-  testWidgets('tapping a dot opens the picker and claims the track', (
-    tester,
-  ) async {
-    await pump(tester);
+  testWidgets('tapping a dot opens the picker, claims the track and holds '
+      'the tag', (tester) async {
+    final session = openSitting();
+    await pump(tester, sitting: session);
     await tester.tap(dot('c'));
     await tester.pumpAndSettle();
     final picker = tester.widget<SpeciesPickerSheet>(
@@ -272,12 +286,20 @@ void main() {
     ), '');
     await tester.pumpAndSettle();
     expect(service.claimed, [('v1', 'c', 'sp_rock_beauty')]);
-    expect(tagging.tagged, ['sp_rock_beauty']);
+    expect(tagging.tagged, isEmpty);
+    expect(session.working.species.map((c) => c.speciesId), ['sp_rock_beauty']);
+  });
+
+  testWidgets('with no sitting the labels take no taps', (tester) async {
+    await pump(tester);
+    await tester.tap(dot('c'), warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(find.byType(SpeciesPickerSheet), findsNothing);
   });
 
   testWidgets('tapping a pill opens its crop view with Other species and '
       'Dismiss', (tester) async {
-    await pump(tester);
+    await pump(tester, sitting: openSitting());
     await tester.tap(pill('b'));
     await tester.pumpAndSettle();
     expect(find.text('Other species...'), findsOneWidget);
@@ -288,7 +310,7 @@ void main() {
   });
 
   testWidgets('Add in a pill\'s crop view claims that fish', (tester) async {
-    await pump(tester);
+    await pump(tester, sitting: openSitting());
     await tester.tap(pill('b'));
     await tester.pumpAndSettle();
     await tester.tap(

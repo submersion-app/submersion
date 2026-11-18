@@ -97,8 +97,8 @@ const _guardedHandlers = <(String, String)>[
     'Future<List<AssetInfo>?> showPhotoPicker(',
   ),
   (
-    'lib/features/dive_log/presentation/pages/dive_detail_page_actions.dart',
-    'Future<void> _scanGalleryForDive(',
+    'lib/features/media/presentation/helpers/dive_gallery_scan_in_sitting.dart',
+    'Future<void> scanGalleryInSitting(',
   ),
   (
     'lib/features/trips/presentation/pages/trip_gallery_page.dart',

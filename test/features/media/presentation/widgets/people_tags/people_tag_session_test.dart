@@ -4,7 +4,9 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_person_tag.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/presentation/widgets/people_tags/people_tag_viewer_mixin.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 import '../../../../../helpers/test_database.dart';
 import 'people_tag_test_host.dart';
@@ -19,12 +21,36 @@ class _Host extends ConsumerStatefulWidget {
 }
 
 class _HostState extends ConsumerState<_Host> with PeopleTagViewerMixin<_Host> {
+  // Tag mode runs only in an unlocked photo's sitting (issue #4527).
+  final _sitting = EditSession<PhotoRecord>(
+    PhotoRecord(item: _video, species: const [], people: const []),
+  );
+
+  @override
+  EditSession<PhotoRecord>? get peopleSitting => _sitting;
+
+  @override
+  void dispose() {
+    _sitting.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     widget.onSession(buildPeopleSession(pauseVideo: widget.onPause));
     return const Scaffold(body: SizedBox.expand());
   }
 }
+
+final _video = MediaItem(
+  id: 'v1',
+  diveId: 'd1',
+  mediaType: MediaType.video,
+  sourceType: MediaSourceType.platformGallery,
+  takenAt: DateTime(2024),
+  createdAt: DateTime(2024),
+  updatedAt: DateTime(2024),
+);
 
 /// The session the viewer hands its pages (issue #1745).
 void main() {
@@ -44,18 +70,8 @@ void main() {
         ),
       );
     });
-    final video = MediaItem(
-      id: 'v1',
-      diveId: 'd1',
-      mediaType: MediaType.video,
-      sourceType: MediaSourceType.platformGallery,
-      takenAt: DateTime(2024),
-      createdAt: DateTime(2024),
-      updatedAt: DateTime(2024),
-    );
-
     session.onPlace(
-      video,
+      _video,
       const FaceBox(x: 0.1, y: 0.1, width: 0.2, height: 0.2),
       const Duration(seconds: 3),
     );

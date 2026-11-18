@@ -9,7 +9,6 @@ import 'package:submersion/features/dive_log/domain/entities/profile_event.dart'
 import 'package:submersion/features/dive_log/domain/services/annotation_links.dart';
 import 'package:submersion/features/dive_log/presentation/providers/annotation_focus_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/annotation_placement_provider.dart';
-import 'package:submersion/features/dive_log/presentation/providers/annotation_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/annotation_marker_popup.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/annotation_edits.dart';
@@ -20,9 +19,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// What the dive detail page (and the fullscreen profile) do with the
 /// chart's annotation callbacks (#4109): placement, the marker popup, Move,
 /// Remove, the typed time and the right-click menu. Chart-side writes go
-/// through [edits]: at once to the repository unless told otherwise, the
-/// page refreshing from its dive watch; into a sitting on the dive; or,
-/// [readOnly], nowhere (issue #4527).
+/// through [edits], into a sitting on the dive held until Save; without
+/// one, or [readOnly], nowhere (issue #4527).
 class DiveDetailAnnotationActions {
   const DiveDetailAnnotationActions({
     required this.ref,
@@ -31,15 +29,17 @@ class DiveDetailAnnotationActions {
     this.onOpenInNotes,
     this.shownProfile = const [],
     this.edits,
-    this.readOnly = false,
-  });
+    bool readOnly = false,
+  }) : readOnly = readOnly || edits == null;
 
-  /// Where the writes go. Null writes at once, as the dive page always has.
+  /// Where the writes go: the open Profile card's sitting. Null writes
+  /// nothing, as on a locked dive.
   final AnnotationEdits? edits;
 
   /// Writes nothing: no pin, no placement, no right-click menu, and a
-  /// popup that only opens the Notes. A locked dive, or a closed Profile
-  /// card during a sitting.
+  /// popup that only opens the Notes. A locked dive, a closed Profile card
+  /// during a sitting, or a sitting that does not hold the annotations yet.
+  /// Always so without [edits].
   final bool readOnly;
 
   final WidgetRef ref;
@@ -78,11 +78,9 @@ class DiveDetailAnnotationActions {
   AnnotationPlacementNotifier get _placement =>
       ref.read(annotationPlacementProvider(diveId).notifier);
 
-  /// Where a write goes, read when the action starts: the widget behind
-  /// [ref] can be rebuilt away while a sheet is open.
-  AnnotationEdits get _edits =>
-      edits ??
-      RepositoryAnnotationEdits(ref.read(annotationRepositoryProvider), diveId);
+  /// Where a write goes, read when the action starts. Asked only once
+  /// [readOnly] is false, which it never is without [edits].
+  AnnotationEdits get _edits => edits!;
 
   /// The latest second an annotation may fall on: the profile's last sample,
   /// else the runtime, else a day (see [annotationTimeCap]).

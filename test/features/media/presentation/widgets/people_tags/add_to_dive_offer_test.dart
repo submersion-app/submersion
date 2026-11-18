@@ -37,6 +37,7 @@ void main() {
     required PersonChoice choice,
     void Function(Buddy buddy)? onAdd,
   }) async {
+    final take = onAdd ?? (_) {};
     await tester.runAsync(() async {
       await tester.pumpWidget(
         await peopleTagHost(
@@ -48,7 +49,7 @@ void main() {
                   ref,
                   diveId: diveId,
                   choice: choice,
-                  onAdd: onAdd,
+                  onAdd: take,
                 ),
                 child: const Text('go'),
               ),
@@ -80,9 +81,8 @@ void main() {
   }
 
   // In a photo's sitting the Add is held, not written (issue #4527).
-  testWidgets('with onAdd, Add hands the buddy over and writes nothing', (
-    tester,
-  ) async {
+  testWidgets('offers a buddy not on the dive; Add hands them over and '
+      'writes nothing', (tester) async {
     final taken = <String>[];
     await offer(
       tester,
@@ -90,33 +90,12 @@ void main() {
       choice: BuddyChoice(buddy('alex', 'Alex')),
       onAdd: (b) => taken.add(b.id),
     );
+    expect(find.text("Add Alex to this dive's buddies?"), findsOneWidget);
     await tester.tap(find.text('Add'));
     await tester.pump();
 
     expect(taken, ['alex']);
     expect(await buddiesOnDive(tester), ['bea:buddy']);
-  });
-
-  testWidgets('offers a buddy not on the dive, and Add logs them', (
-    tester,
-  ) async {
-    await offer(
-      tester,
-      diveId: 'd1',
-      choice: BuddyChoice(buddy('alex', 'Alex')),
-    );
-
-    expect(find.text("Add Alex to this dive's buddies?"), findsOneWidget);
-    await tester.tap(find.text('Add'));
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 200)),
-    );
-    await tester.pump();
-
-    expect(
-      await buddiesOnDive(tester),
-      unorderedEquals(['bea:buddy', 'alex:buddy']),
-    );
   });
 
   testWidgets('ignoring the offer leaves the dive alone', (tester) async {

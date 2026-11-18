@@ -17,10 +17,13 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_lege
 import 'package:submersion/features/dive_log/presentation/providers/annotation_focus_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/annotation_marker_layer.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/annotation_placement_banner.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/annotation_edits.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_annotation_actions.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_annotations_sitting.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/forms/minutes_seconds_field.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 import '../../../../../helpers/mock_providers.dart';
 import '../../../../../helpers/test_database.dart';
@@ -390,6 +393,14 @@ void main() {
     // not there; the actions object still takes one by typed time, as the
     // fullscreen page and the notes editor do.
     final dive = await seedDive(withProfile: false);
+    // Annotations are placed in the open Profile card's sitting, held until
+    // Save (issue #4527).
+    final session = EditSession<Dive>(dive);
+    addTearDown(session.dispose);
+    final reader = ProviderContainer();
+    addTearDown(reader.dispose);
+    loadDiveAnnotations(session, reader.read);
+    await tester.runAsync(session.settled);
     final overrides = await getBaseOverrides(
       settingsNotifier: MockSettingsNotifier(const AppSettings()),
     );
@@ -410,6 +421,7 @@ void main() {
                   ref: ref,
                   context: context,
                   dive: dive,
+                  edits: SittingAnnotationEdits(session),
                 ).onPinPressed(),
                 child: const Text('pin'),
               ),
@@ -441,11 +453,9 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Add'));
     await tester.pumpAndSettle();
 
-    final row = (await rows()).single;
-    expect(
-      (row.timestamp, row.depth, row.description),
-      (300, null, 'Lost the buddy'),
-    );
-    expect(await notes(), 'First.\n\n[Lost the buddy](annotation:${row.id})');
+    final placed = sittingAnnotations(session)!.placed.single;
+    expect((placed.timestamp, placed.depth), (300, null));
+    // Nothing is written until Save.
+    expect(await rows(), isEmpty);
   });
 }
