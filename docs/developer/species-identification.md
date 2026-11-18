@@ -155,6 +155,28 @@ checked against `tool/species_pack/testdata/region_vectors.json`; after a
 change to the Python side, regenerate it with
 `python3.14 tool/species_pack/region_grid.py --write-vectors tool/species_pack/testdata/region_vectors.json`.
 
+## Publishing a pack
+
+The app reads the pack from the `species-pack` release: `manifest.json`
+first, then every file it lists, resolved next to the manifest. Pack
+`2026.11.18.0356` (both detectors) was published there on 2026-11-18.
+
+- **Always a pre-release.** The app's update check and the macOS appcast
+  read GitHub's `releases/latest`. A pack release marked latest would
+  replace the newest app version there for every user. Keep it a
+  pre-release and pass `--latest=false`.
+- **Draft first.** Create the release with `--draft`, upload every file
+  and the manifest, check the sizes, then publish with
+  `gh release edit species-pack --draft=false --prerelease --latest=false`.
+  A diver never sees a manifest whose files are still uploading.
+- **Measured bars only.** Check the manifest says `"provisional": false`
+  before it goes up. To change only credits or other manifest fields,
+  regenerate the manifest over the measured files with
+  `manifest.build_manifest` rather than rebuilding, which fetches GBIF
+  again and can change the naming files by a byte.
+- **Replacing a pack** means uploading the new files with
+  `gh release upload species-pack --clobber`, the manifest last.
+
 ## Measuring accuracy
 
 The naming bars in a pack come from a measurement, described in

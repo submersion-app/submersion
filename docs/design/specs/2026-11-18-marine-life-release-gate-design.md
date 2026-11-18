@@ -52,9 +52,10 @@ satisfied with the results.
    pair pack's manifest is regenerated over its files so it carries the new
    credits (a rebuild fetches GBIF again and, if anything differs by a byte,
    falls back to provisional bars), checked for `"provisional": false`, then
-   uploaded to a `species-pack` release, which does not exist yet.
-   That makes the weights public, so it waits for the maintainer's go at
-   that moment. Merging the flag change before it would put a download
+   uploaded to a `species-pack` release. That makes the weights public,
+   so it waited for the maintainer's go, given on 2026-11-18; the release
+   is a pre-release, since the app's update check reads
+   `releases/latest`. Merging the flag change before it would put a download
    that finds nothing in every beta built from main. The first release
    with the flag on carries App Review notes, on the iOS and the Mac App
    Store submissions alike, saying where the download is
