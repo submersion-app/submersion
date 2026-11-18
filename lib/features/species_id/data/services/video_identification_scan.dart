@@ -10,6 +10,7 @@ import 'package:submersion/features/species_id/data/services/memory_readout.dart
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/scanned_ranges.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
+import 'package:submersion/features/species_id/domain/entities/track_sample.dart';
 import 'package:submersion/features/species_id/domain/entities/video_detections.dart';
 import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
 import 'package:submersion/features/species_id/domain/services/species_namer.dart';
@@ -547,14 +548,19 @@ class VideoIdentificationScan {
           // As stored now: the diver may have decided or named a fish since
           // the scan read the rows, or cleared them.
           final current = {for (final i in stored) i.id: i};
+          final tracks = {for (final n in named) n.identification.id: n.track};
           carry = [for (final c in carry) ?current[c.id]];
           continued = [
             for (final c in continuing)
               if (current[c.id] case final now?)
-                keepDecisionOnRename(
-                  before: _sayOf(now, current[joinedAway[c.id]]),
-                  renamed: c,
-                ),
+                if (_undoneJoin(now, current[joinedAway[c.id]], tracks[c.id])
+                    case final earlier?)
+                  earlier
+                else
+                  keepDecisionOnRename(
+                    before: _sayOf(now, current[joinedAway[c.id]]),
+                    renamed: c,
+                  ),
           ];
         }
         // A continued track keeps its own row and what was said on it. One
@@ -622,19 +628,46 @@ class VideoIdentificationScan {
     _settle(named, inserted, away);
     // Rows first: a crop or embedding that fails to write leaves a row the
     // next opening sees as incomplete, and scans again.
+    // An earlier part kept by an undone join is not among [named]: its
+    // embedding and crop stay as they are.
     final byId = {for (final n in named) n.identification.id: n};
     await _embeddings.delete(deleted);
     await _crops.delete(_item.id, deleted);
     await _embeddings.put({
-      for (final i in inserted) i.id: ?byId[i.id]!.embedding,
+      for (final i in inserted) i.id: ?byId[i.id]?.embedding,
     }, classifierId: manifest.classifier.embeddingId);
     for (final i in inserted) {
-      if (byId[i.id]!.cropJpeg case final jpeg?) {
+      if (byId[i.id]?.cropJpeg case final jpeg?) {
         await _crops.write(_item.id, i.id, jpeg);
       }
     }
     await _crops.markAnalysed(_item.id);
     return true;
+  }
+
+  /// A join across a seam undone because the diver, while the chunk was
+  /// named, said something on [later] or [earlier] (both as stored now)
+  /// that differs from the other: [earlier] with the path [joined] followed
+  /// before [later] starts, to be written in place of the joined row, which
+  /// leaves [later] as it is. Null when the join stands.
+  static MediaIdentification? _undoneJoin(
+    MediaIdentification later,
+    MediaIdentification? earlier,
+    TrackedAnimal? joined,
+  ) {
+    final from = later.startMs;
+    if (earlier == null || joined == null || from == null) return null;
+    if (!saidDifferently(later, earlier)) return null;
+    final path = [
+      for (final p in joined.points)
+        if (p.ms < from) TrackSample(ms: p.ms, box: p.detection.box),
+    ];
+    if (path.isEmpty) return earlier;
+    return earlier.copyWith(
+      startMs: () => path.first.ms,
+      endMs: () => path.last.ms,
+      path: path,
+    );
   }
 
   /// What the diver said on [row] or, when nothing was said on it, on the

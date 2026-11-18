@@ -1048,6 +1048,34 @@ void main() {
       expect((found.startMs, found.endMs), (15000, 34750));
     });
 
+    test('a join is undone when the diver says something different on the '
+        'later part while the chunk is named', () async {
+      final (:scan, :earlier, :later) = await dismissedBeforeASeam();
+      identifications.afterRead = () {
+        identifications.afterRead = null;
+        // The diver accepts the later part just as the seam reads it.
+        unawaited(
+          identifications.updateDecisions([
+            later.copyWith(
+              decision: IdentificationDecision.accepted,
+              decidedSpeciesId: 'sp_queen_parrotfish',
+              decidedAt: fixtureT1,
+            ),
+          ]),
+        );
+      };
+      await runAll(scan);
+      final found = await identifications.forMedia('v1');
+      expect(found, hasLength(2));
+      final first = found.singleWhere((i) => i.id == earlier.id);
+      expect(first.decision, IdentificationDecision.rejected);
+      // The earlier part keeps the path it swam up to the seam.
+      expect((first.startMs, first.endMs), (15000, 29750));
+      final second = found.singleWhere((i) => i.id == later.id);
+      expect(second.decision, IdentificationDecision.accepted);
+      expect((second.startMs, second.endMs), (30000, 34750));
+    });
+
     test('an earlier part is kept when the later part it joins was cleared '
         'meanwhile', () async {
       final (:scan, :earlier, :later) = await dismissedBeforeASeam();

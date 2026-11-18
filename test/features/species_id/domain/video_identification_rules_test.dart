@@ -416,6 +416,30 @@ void main() {
       );
     });
 
+    test('saidDifferently needs a say on both parts, and a difference', () {
+      final accepted = track(
+        'a',
+        decision: IdentificationDecision.accepted,
+        decidedSpeciesId: 'sp_queen_parrotfish',
+      );
+      final rejected = track('b', decision: IdentificationDecision.rejected);
+      final claimed = track('c', claimedSpeciesId: 'sp_queen_parrotfish');
+      expect(saidDifferently(accepted, rejected), isTrue);
+      expect(saidDifferently(accepted, claimed), isTrue);
+      expect(saidDifferently(accepted, track('d')), isFalse);
+      expect(
+        saidDifferently(
+          accepted,
+          track(
+            'e',
+            decision: IdentificationDecision.accepted,
+            decidedSpeciesId: 'sp_queen_parrotfish',
+          ),
+        ),
+        isFalse,
+      );
+    });
+
     test('parts the diver decided differently stay apart', () {
       final accepted = track(
         'early',

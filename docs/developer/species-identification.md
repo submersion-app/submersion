@@ -346,7 +346,9 @@ point are taken up again, so a fish in view there stays one track.
 - **Seams.** A chunk that ends where a stretch scanned earlier starts joins
   each open track to a stored track that starts within the gap allowance and
   overlaps its last box, under the later row's id; the earlier row is
-  deleted. Two parts the diver said different things about stay apart.
+  deleted. Two parts the diver said different things about stay apart,
+  checked again as the chunk is stored: a decision made while it was named
+  undoes the join, and the earlier part keeps its path up to the seam.
 
 Labels: while playing, every undecided fish the app could suggest a name for
 shows its outlined pill, as when paused; dots stay paused only.

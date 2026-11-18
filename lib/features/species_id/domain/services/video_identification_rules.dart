@@ -230,7 +230,7 @@ List<({TrackedAnimal open, MediaIdentification later})> seamJoins({
       if (start < seamMs || start > seamMs + maxGapMs) continue;
       final overlap = last.iou(s.path.first.box);
       if (overlap < linkOverlap) continue;
-      if (row != null && _conflicting(row, s)) continue;
+      if (row != null && saidDifferently(row, s)) continue;
       candidates.add((open: o, later: s, overlap: overlap));
     }
   }
@@ -247,8 +247,9 @@ List<({TrackedAnimal open, MediaIdentification later})> seamJoins({
   return pairs;
 }
 
-/// Whether the diver said something on both [a] and [b], and not the same.
-bool _conflicting(MediaIdentification a, MediaIdentification b) {
+/// Whether the diver said something on both [a] and [b], and not the same:
+/// two parts of a track that must not be joined (issue #4709).
+bool saidDifferently(MediaIdentification a, MediaIdentification b) {
   if (!a.saidByDiver || !b.saidByDiver) return false;
   return a.decision != b.decision ||
       a.decidedSpeciesId != b.decidedSpeciesId ||

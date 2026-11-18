@@ -66,7 +66,13 @@ class _VideoPlayheadReporterState extends ConsumerState<VideoPlayheadReporter> {
   void initState() {
     super.initState();
     _service = ref.read(mediaIdentificationServiceProvider);
-    _wasPlaying = widget.playback.value.isPlaying;
+    final value = widget.playback.value;
+    _wasPlaying = value.isPlaying;
+    if (value.isInitialized && !value.isPlaying) {
+      // Waiting on a frame: a seek from it is a move from here. Playing,
+      // the first update is where it is.
+      _lastMs = _restMs = value.position.inMilliseconds;
+    }
     widget.playback.addListener(_changed);
   }
 

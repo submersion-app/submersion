@@ -133,6 +133,16 @@ void main() {
     expect(service.followed, [(mediaId: 'v1', ms: 120000, seek: true)]);
   });
 
+  testWidgets('a seek from the paused first frame is reported', (tester) async {
+    playback.value = playback.value.copyWith(isPlaying: false);
+    await pump(tester);
+    // One update: the controls bar seeks while the video waits on its
+    // first frame.
+    at(60000, playing: false);
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(service.followed, [(mediaId: 'v1', ms: 60000, seek: true)]);
+  });
+
   testWidgets('a slow scrub while paused is reported where it stops', (
     tester,
   ) async {
