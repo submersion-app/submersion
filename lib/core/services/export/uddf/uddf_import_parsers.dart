@@ -431,21 +431,24 @@ class UddfImportParsers {
     return readings;
   }
 
+  /// Reads a `<mix>` as percentages.
+  ///
+  /// UDDF defines the values as fractions (0.32 for EAN32), but some
+  /// programs write percentages (32), and scaling those by 100 stored EAN32
+  /// as 3200% oxygen (issue #4705). No share of a gas is above 1, so a mix
+  /// with either value above 1 is already in percent. The unit is decided
+  /// for the mix as a whole: beside 30% oxygen, a helium of 1 is 1%, not a
+  /// whole fraction. A missing or unreadable value falls back to air's 21%
+  /// oxygen and no helium, whatever the unit.
   static GasMix parseGasMix(XmlElement mixElement) {
-    final o2Text = getElementText(mixElement, 'o2');
-    final heText = getElementText(mixElement, 'he');
+    final o2 = parseUddfDouble(getElementText(mixElement, 'o2'));
+    final he = parseUddfDouble(getElementText(mixElement, 'he'));
+    final scale = (o2 ?? 0) > 1 || (he ?? 0) > 1 ? 1 : 100;
 
-    // UDDF stores gas values as fractions (0.21 for 21%).
-    final o2 = o2Text != null
-        ? UddfGasMixWriters.cleanPercent(
-            (double.tryParse(o2Text) ?? 0.21) * 100,
-          )
-        : 21.0;
-    final he = heText != null
-        ? UddfGasMixWriters.cleanPercent((double.tryParse(heText) ?? 0.0) * 100)
-        : 0.0;
-
-    return GasMix(o2: o2, he: he);
+    return GasMix(
+      o2: o2 == null ? 21.0 : UddfGasMixWriters.cleanPercent(o2 * scale),
+      he: he == null ? 0.0 : UddfGasMixWriters.cleanPercent(he * scale),
+    );
   }
 
   /// A datetime carrying trailing timezone info: a "Z", or an offset in any
