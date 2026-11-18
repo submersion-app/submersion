@@ -179,6 +179,12 @@ final exempt = <String, String>{
   ])
     method:
         'written by an import, a download, a device or the app\'s own derivation, not a diver\'s edit',
+  // A site's editing sitting stamps its library edit once it has committed
+  // (issue #4527): the same stamp updateSite makes after its own write.
+  'lib/features/dive_sites/data/repositories/'
+          'site_repository_impl.dart:stampLibraryEdit':
+      'shared library bookkeeping after a site write, which sites covers '
+      'through updateSite; it changes no record of the diver\'s diving',
   // Filling an existing site from the built-in catalogue (issue #4514).
   for (final method in const ['applyFill', 'updateAnswers'])
     'lib/features/dive_sites/data/repositories/'
