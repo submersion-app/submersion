@@ -219,6 +219,53 @@ void main() {
     expect(find.text('This document was removed.'), findsOneWidget);
   });
 
+  testWidgets('a document unlinked while unlocked ends the sitting unsaved '
+      'and closes the viewer', (tester) async {
+    await pumpDocument(tester, pushed: true);
+    await unlock(tester);
+    await holdCategory(tester, from: 'Uncategorized', category: 'Site map');
+
+    await tester.runAsync(
+      () => (db.update(db.media)..where((t) => t.id.equals('doc1'))).write(
+        const MediaCompanion(siteId: Value(null)),
+      ),
+    );
+    await settleViewer(tester, rounds: 10);
+    await settleViewer(tester, rounds: 10);
+
+    expect(find.byType(DocumentViewerPage), findsNothing);
+    expect(
+      find.text('This document was removed. Your changes were not saved.'),
+      findsOneWidget,
+    );
+    expect((await stored(tester)).siteCategory, isNull);
+  });
+
+  testWidgets('a viewer opened on a document already removed closes', (
+    tester,
+  ) async {
+    final item = await stored(tester);
+    await tester.runAsync(
+      () => (db.delete(db.media)..where((t) => t.id.equals('doc1'))).go(),
+    );
+    await pumpViewerApp(
+      tester,
+      pushedFrom(
+        DocumentViewerPage(
+          item: item,
+          editableSiteId: 's1',
+          attachmentLock: true,
+        ),
+      ),
+    );
+
+    await openPushed(tester);
+    await settleViewer(tester, rounds: 10);
+
+    expect(find.byType(DocumentViewerPage), findsNothing);
+    expect(find.text('This document was removed.'), findsOneWidget);
+  });
+
   testWidgets('without attachmentLock a removed document leaves the viewer '
       'as before', (tester) async {
     await pumpDocument(tester, pushed: true, attachmentLock: false);
