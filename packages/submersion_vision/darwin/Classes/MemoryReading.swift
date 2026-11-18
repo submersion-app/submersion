@@ -18,11 +18,13 @@ enum MemoryReading {
     }
     guard status == KERN_SUCCESS else { return [:] }
     var reading = reading(from: info, count: count)
-    #if os(iOS) && !targetEnvironment(simulator)
-    // A device always has a limit, so 0 here means none is left (or the
-    // app is over it). The Simulator has no limit and reports 0 too, so it
-    // sends nothing.
-    reading["available"] = NSNumber(value: os_proc_available_memory())
+    #if os(iOS) && !targetEnvironment(simulator) && !targetEnvironment(macCatalyst)
+    // An iPhone or iPad always has a limit, so 0 here means none is left (or
+    // the app is over it). The Simulator, Mac Catalyst and an iPhone build
+    // running on a Mac have no limit and report 0 too, so they send nothing.
+    if !ProcessInfo.processInfo.isiOSAppOnMac {
+      reading["available"] = NSNumber(value: os_proc_available_memory())
+    }
     #endif
     return reading
   }
@@ -36,8 +38,8 @@ enum MemoryReading {
     reading["footprintPeak"] = NSNumber(value: info.ledger_phys_footprint_peak)
     reading["neuralCounted"] = NSNumber(
       value: info.ledger_tag_neural_footprint + info.ledger_tag_neural_footprint_compressed)
-    // iOS 15 to 17 stop before revision 7: their not-counted figure is the
-    // revision 3 pair, with no peak.
+    // iOS 15 to 17 and macOS 12 to 14 stop before revision 7: their
+    // not-counted figure is the revision 3 pair, with no peak.
     reading["neuralNotCounted"] = NSNumber(
       value: info.ledger_tag_neural_nofootprint + info.ledger_tag_neural_nofootprint_compressed)
     guard count >= rev7 else { return reading }

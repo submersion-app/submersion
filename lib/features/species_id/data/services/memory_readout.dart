@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_memory.dart';
@@ -16,8 +18,7 @@ class MemoryReadout {
   final bool Function() _enabled;
   final _log = LoggerService.forClass(MemoryReadout);
 
-  static bool _infoLinesKept() =>
-      LoggerService.minimumFileLevel.index <= LogLevel.info.index;
+  static bool _infoLinesKept() => LoggerService.keeps(LogLevel.info);
 
   /// Logs one line for [stage]. Never throws: a reading that fails is
   /// logged at debug level and dropped, so identification never sees it.
@@ -29,12 +30,22 @@ class MemoryReadout {
       _log.debug('Could not read memory after $stage', error: e);
     }
   }
+
+  /// Starts [record] without waiting for it, so a reading never holds up
+  /// identification. The engine is asked before this returns, so the
+  /// plugin's queue still takes the reading right after the stage's own
+  /// work. [stage] is built only while readings are on.
+  void recordLater(String Function() stage) {
+    if (_enabled()) unawaited(record(stage()));
+  }
 }
 
 /// The log line for [reading] taken after [stage], in MiB. A figure the
-/// platform does not report is left out, never shown as zero.
+/// platform does not report is left out, never shown as zero. Nothing left
+/// means the app is at or over its limit, so the limit, and the room left at
+/// the peak, are unknown.
 String describeMemory(String stage, VisionMemory reading) {
-  String mb(int bytes) => '${(bytes / 1048576).round()} MB';
+  String mb(int bytes) => '${(bytes / 1048576).round()} MiB';
   final available = reading.availableBytes;
   final peak = reading.footprintPeakBytes;
   final notCounted = reading.neuralNotCountedBytes;
@@ -50,7 +61,7 @@ String describeMemory(String stage, VisionMemory reading) {
     if (available != null) '${mb(available)} left',
     'footprint ${mb(reading.footprintBytes)}'
         '${peak != null ? ' (peak ${mb(peak)})' : ''}',
-    if (available != null && peak != null)
+    if (available != null && available > 0 && peak != null)
       '${mb(available + reading.footprintBytes - peak)} left at the peak',
     if (neural.isNotEmpty) 'Neural Engine ${neural.join(', ')}',
   ];

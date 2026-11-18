@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
@@ -209,9 +208,9 @@ class VideoIdentificationScan {
       return false;
     }
     final duration = math.max(0, detections.durationMs);
-    final range =
+    String range() =>
         '(${_clock(from)} to ${_clock(math.min(from + chunkMs, duration))})';
-    _readMemory('pass 1 $range');
+    _memoryReadout?.recordLater(() => 'pass 1 ${range()}');
     final embedsBefore = _embedCalls;
     // Nothing of a chunk is stored until its pass 2 is done: a stop or a
     // failure there puts the tracks back as they were where it began, so
@@ -237,7 +236,7 @@ class VideoIdentificationScan {
       return false;
     }
     if (_embedCalls > embedsBefore) {
-      _readMemory('pass 2 $range');
+      _memoryReadout?.recordLater(() => 'pass 2 ${range()}');
     }
     final bool stored;
     try {
@@ -621,13 +620,6 @@ class VideoIdentificationScan {
     total = math.sqrt(total);
     if (total == 0 || !total.isFinite) return null;
     return Float32List.fromList([for (final v in sum) v / total]);
-  }
-
-  /// Logs memory after [stage] without waiting for the reading: the
-  /// plugin's queue still takes it right after the stage's own work.
-  void _readMemory(String stage) {
-    final readout = _memoryReadout;
-    if (readout != null) unawaited(readout.record(stage));
   }
 
   /// [ms] of video as m:ss, for the memory readout's stage names.

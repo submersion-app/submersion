@@ -399,6 +399,24 @@ void main() {
       expect(reading.neuralNotCountedPeakBytes, isNull);
     });
 
+    test('memory with an empty reply is an engine failure', () async {
+      // What the plugin answers when task_info fails.
+      messenger.setMockMethodCallHandler(
+        channel,
+        (call) async => <String, Object?>{},
+      );
+      expect(
+        engine().memory(),
+        throwsA(
+          isA<VisionEngineException>().having(
+            (e) => e.code,
+            'code',
+            'no_reading',
+          ),
+        ),
+      );
+    });
+
     test('memory with no reply is an engine failure', () async {
       messenger.setMockMethodCallHandler(channel, (call) async => null);
       expect(

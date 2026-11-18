@@ -579,7 +579,7 @@ class MediaIdentificationService {
       final analysis = image.path != null
           ? await _engine.analyze(path: image.path)
           : await _engine.analyze(bytes: image.bytes);
-      _readMemory('photo');
+      _memoryReadout?.recordLater(() => 'photo');
       return analysis;
     }
 
@@ -603,7 +603,7 @@ class MediaIdentificationService {
       ),
     );
     _loadedModels = key;
-    _readMemory('load');
+    _memoryReadout?.recordLater(() => 'load');
   }
 
   /// After a quiet spell the models and the pack's tables are freed. A
@@ -621,20 +621,13 @@ class MediaIdentificationService {
     });
   }
 
-  /// Logs memory after [stage] without waiting for the reading: the
-  /// plugin's queue still takes it right after the stage's own work.
-  void _readMemory(String stage) {
-    final readout = _memoryReadout;
-    if (readout != null) unawaited(readout.record(stage));
-  }
-
   Future<void> _unloadModels() async {
     _idleTimer?.cancel();
     if (_loadedModels == null) return;
     _loadedModels = null;
     try {
       await _engine.unload();
-      _readMemory('unload');
+      _memoryReadout?.recordLater(() => 'unload');
     } on Object catch (e) {
       _log.debug('Could not unload the marine life models', error: e);
     }
