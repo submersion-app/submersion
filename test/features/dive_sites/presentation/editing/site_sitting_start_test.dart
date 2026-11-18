@@ -18,11 +18,14 @@ void main() {
   });
 
   test('the table holds the site lists', () {
-    expect({for (final list in siteHeldLists) list.key}, {
-      siteTypesList.key,
-      siteTagsList.key,
-      siteSpeciesList.key,
-      siteFeaturesList.key,
-    });
+    expect(
+      {for (final list in siteHeldLists) list.key},
+      {
+        siteTypesList.key,
+        siteTagsList.key,
+        siteSpeciesList.key,
+        siteFeaturesList.key,
+      },
+    );
   });
 }
