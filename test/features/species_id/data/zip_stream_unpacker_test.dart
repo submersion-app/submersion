@@ -197,6 +197,23 @@ void main() {
     await expectLater(unpack(zip), malformed());
   });
 
+  test('a file growing past its recorded size is refused before it is all '
+      'written', () async {
+    final zeros = Uint8List(4 * 1024 * 1024);
+    final zip = Uint8List.fromList(
+      ZipEncoder().encodeBytes(
+        Archive()..addFile(ArchiveFile.bytes('m.mlpackage/zeros.bin', zeros)),
+      ),
+    );
+    final data = ByteData.sublistView(zip);
+    for (final at in _localHeaders(zip)) {
+      data.setUint32(at + 22, 1000, Endian.little);
+    }
+    await expectLater(unpack(zip, chunk: zip.length), malformed());
+    final file = File(p.join(out, 'm.mlpackage', 'zeros.bin'));
+    expect(await file.length(), lessThanOrEqualTo(1000));
+  });
+
   test('a zip that ends inside a file is refused', () async {
     final zip = _modelZip();
     final weights = _localHeaders(zip).last;

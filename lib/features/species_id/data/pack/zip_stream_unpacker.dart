@@ -238,6 +238,7 @@ class ZipStreamUnpacker {
         await _drain(entry);
       }
     } else if (out != null) {
+      _checkSize(entry, entry.written + end - offset);
       await out.writeFrom(chunk, offset, end);
       entry.written += end - offset;
     }
@@ -271,10 +272,22 @@ class ZipStreamUnpacker {
   static Future<void> _drain(_Entry entry) async {
     final out = entry.out;
     for (final piece in entry.inflated.pieces) {
+      _checkSize(entry, entry.written + piece.length);
       if (out != null) await out.writeFrom(piece);
       entry.written += piece.length;
     }
     entry.inflated.pieces.clear();
+  }
+
+  /// Refuses a file before it grows past the size its header records,
+  /// rather than once all of it is on disk.
+  static void _checkSize(_Entry entry, int written) {
+    if (!entry.name.endsWith('/') && written > entry.size) {
+      throw PackManifestException(
+        PackManifestFailure.malformed,
+        '${entry.name} unpacks to more than its recorded size',
+      );
+    }
   }
 
   static PackManifestException _doesNotInflate(_Entry entry) =>
