@@ -13,7 +13,7 @@ enum TrackLabelKind {
   confident,
 
   /// A name the app could suggest under the confident bar: an outlined
-  /// pill, paused only.
+  /// pill, playing or paused (issue #4709).
   suggestion,
 
   /// The species the diver tagged: a filled pill, playing or paused.
@@ -84,8 +84,8 @@ TrackLabelKind? labelKind(
       return null;
     case IdentificationDecision.undecided:
       if (track.confident) return TrackLabelKind.confident;
-      if (playing) return null;
       if (track.suggestable) return TrackLabelKind.suggestion;
+      if (playing) return null;
       if (track.specific && track.durationMs >= minDotMs) {
         return TrackLabelKind.dot;
       }

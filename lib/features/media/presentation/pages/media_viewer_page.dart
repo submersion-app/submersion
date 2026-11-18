@@ -75,6 +75,7 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/features/media/presentation/match_confidence_display.dart';
 import 'package:submersion/features/species_id/presentation/widgets/identification_trigger.dart';
 import 'package:submersion/features/species_id/presentation/widgets/video_identification_layer.dart';
+import 'package:submersion/features/species_id/presentation/widgets/video_playhead_reporter.dart';
 
 part 'media_viewer_actions.dart';
 part 'media_viewer_bottom_metadata.dart';

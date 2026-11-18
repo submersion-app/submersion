@@ -28,9 +28,9 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 /// Name pills and dots over a video, in step with [playback] (issue
 /// #4675).
 ///
-/// Playing, a fish gets a pill only when the app is confident of its name
-/// or the diver tagged it. Paused, every fish the app could name gets a
-/// pill, and others that look like something get a plain dot. Pills and
+/// Playing, a fish gets a pill when the app could suggest a name or the
+/// diver tagged it (issue #4709). Paused, others that look like something
+/// get a plain dot as well. Pills and
 /// dots take taps only while paused and [editable]; everywhere else taps
 /// fall through to the player.
 class VideoIdentificationLayer extends ConsumerWidget {

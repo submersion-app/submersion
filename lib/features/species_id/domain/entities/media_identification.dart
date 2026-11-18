@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
+import 'package:submersion/features/species_id/domain/entities/scanned_ranges.dart';
 import 'package:submersion/features/species_id/domain/entities/track_sample.dart';
 
 /// What the diver made of one of the app's identifications.
@@ -136,6 +137,12 @@ class MediaIdentification extends Equatable {
   /// no label, and is named when the scan resumes.
   bool get isPending => isTrack && bestMs == null;
 
+  /// Whether the diver said something on it: a decision, or a species
+  /// named from the frame. A rescan carries this to the fresh track of the
+  /// same animal; the app's own guesses are found again.
+  bool get saidByDiver =>
+      decision != IdentificationDecision.undecided || claimedSpeciesId != null;
+
   int get durationMs => isTrack ? (endMs ?? startMs!) - startMs! : 0;
 
   MediaIdentification copyWith({
@@ -226,6 +233,7 @@ class MediaIdentificationRun extends Equatable {
     required this.detectionCount,
     this.scannedMs,
     this.videoDurationMs,
+    this.scannedRanges,
   });
 
   final String mediaId;
@@ -247,9 +255,18 @@ class MediaIdentificationRun extends Equatable {
   final int? scannedMs;
   final int? videoDurationMs;
 
-  /// Whether a video's scan has reached its end.
+  /// Video only (issue #4709): the stretches scanned, in any order the
+  /// diver watched them. Null for a photo and for a run stored before they
+  /// were kept; [scanned] then reads [scannedMs] as one stretch from 0.
+  final ScannedRanges? scannedRanges;
+
+  /// The stretches of the video scanned so far.
+  ScannedRanges get scanned =>
+      scannedRanges ?? ScannedRanges.prefix(scannedMs ?? 0);
+
+  /// Whether a video's scan has covered all of it.
   bool get scanComplete =>
-      videoDurationMs != null && (scannedMs ?? 0) >= videoDurationMs!;
+      videoDurationMs != null && scanned.isComplete(videoDurationMs!);
 
   MediaIdentificationRun copyWith({
     String? packVersion,
@@ -258,6 +275,7 @@ class MediaIdentificationRun extends Equatable {
     int? detectionCount,
     int? Function()? scannedMs,
     int? Function()? videoDurationMs,
+    ScannedRanges? Function()? scannedRanges,
   }) => MediaIdentificationRun(
     mediaId: mediaId,
     packVersion: packVersion ?? this.packVersion,
@@ -272,6 +290,7 @@ class MediaIdentificationRun extends Equatable {
     videoDurationMs: videoDurationMs == null
         ? this.videoDurationMs
         : videoDurationMs(),
+    scannedRanges: scannedRanges == null ? this.scannedRanges : scannedRanges(),
   );
 
   @override
@@ -287,6 +306,7 @@ class MediaIdentificationRun extends Equatable {
     detectionCount,
     scannedMs,
     videoDurationMs,
+    scannedRanges,
   ];
 }
 

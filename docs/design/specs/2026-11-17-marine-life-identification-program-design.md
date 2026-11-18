@@ -31,9 +31,9 @@ tags, counts and firsts.
 
 - Opening a photo shows suggested species next to the species the diver has
   tagged. One tap turns a suggestion into a tag.
-- A video plays back with a name pill above each fish the app is confident
-  about, joined by a thin line to a dot on the animal. Fish it cannot name are
-  left unmarked while playing.
+- A video plays back with a name pill above each fish the app can suggest a
+  name for, joined by a thin line to a dot on the animal. Fish it cannot name
+  are left unmarked while playing.
 - Every identification keeps a small cropped image, so the diver can validate
   it without opening the photo or finding the moment in the video.
 - A setting lets confident matches be tagged with no tap. Tags the app applied
@@ -271,12 +271,15 @@ These came out of the spike and apply wherever a name is shown.
 
 - A rounded name pill above the animal, a thin line down, and a dot on the
   animal. No box outline.
-- While playing, only confidently named animals get a pill. Nothing reads
-  "unidentified".
+- While playing, animals the app can suggest a name for get a pill, as they
+  do when paused **(decided 2026-11-18, issue #4709, replacing "only
+  confidently named animals")**: the published pack's confident bar is never
+  reached. Nothing reads "unidentified".
 - **(proposed)** While paused, animals the app found but could not name show a
   plain dot that can be tapped to tag.
 - Each pill follows one animal across frames. The scan links detections into
-  tracks and names each track once, from its best crops.
+  tracks and names each track from its best crops, about a second after it
+  appears, and again only on a clearly better view (issue #4709).
 
 ### Video analysis
 
@@ -285,9 +288,16 @@ cost nothing:
 
 - **Scan first:** the video is analysed once, with progress shown, then plays
   back with labels in step. This is the path on slower devices.
-- **Live:** on devices fast enough, names appear as the video plays.
+- **Live:** names appear as the video plays.
 
-On current evidence live naming is realistic on Apple hardware only.
+**(decided 2026-11-18, issue #4709)** Live naming is the same scan following
+the playhead, on every device, with no device list or second engine: it
+scans from where the diver is watching, moves when they seek, names a fish
+while it is still in view, and fills in what it skipped afterwards. A device
+faster than playback (every phone and tablet the memory floor admits, and
+Apple silicon Macs) shows names as the fish appear; a slower one scans the
+same stretches in the same order, and its names show when the diver pauses
+or goes back.
 
 ## The pieces, in order
 
@@ -299,7 +309,8 @@ On current evidence live naming is realistic on Apple hardware only.
 3. **Android, Windows and Linux.** The ONNX Runtime engine.
 4. **Auto-apply and review.** The setting, the not-yet-validated state, and a
    place to work through what the app applied.
-5. **Live naming** during playback on devices fast enough.
+5. **Live naming** during playback: the scan follows the playhead and names
+   fish in view, on every device (issue #4709).
 
 The order of pieces 3 to 5 is not fixed.
 
