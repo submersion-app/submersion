@@ -7,6 +7,7 @@ import 'package:submersion/core/app/app_exit_guard.dart';
 import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_editing_page_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
@@ -58,6 +59,29 @@ void main() {
       page.container.read(recordEditShortcutTargetsProvider).current,
       isNull,
     );
+  });
+
+  // A file dropped on the window finds the page: locked, it has no
+  // sitting; unlocked, the sitting a drop is held in (issue #4527).
+  testWidgets('the page tells a drop whether the site is unlocked', (
+    tester,
+  ) async {
+    final page = await pumpSitePage(tester);
+    SiteEditingPage? told() => page.container.read(siteEditingPageProvider);
+    expect(told()?.siteId, 's1');
+    expect(told()?.session, isNull);
+
+    await unlock(tester);
+    expect(told()?.session, isNotNull);
+
+    await tester.tap(find.text(l.forms_cancel));
+    await tester.pumpAndSettle();
+    expect(told()?.session, isNull);
+  });
+
+  testWidgets('with the switch off a drop finds no page', (tester) async {
+    final page = await pumpSitePage(tester, unlockEditing: false);
+    expect(page.container.read(siteEditingPageProvider), isNull);
   });
 
   testWidgets('locked shows no pencil', (tester) async {

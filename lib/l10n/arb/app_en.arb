@@ -7534,6 +7534,10 @@
   "@diveSites_edit_editingWithdrawn": {
     "description": "Snack bar when the site page locks during an editing sitting because this profile may no longer edit the site (its library role was taken away, or the library disconnected), so the unsaved changes were discarded"
   },
+  "diveSites_media_dropUnlockHint": "Unlock this site to add photos.",
+  "@diveSites_media_dropUnlockHint": {
+    "description": "Snack bar when a file is dropped on a site whose page edits in place while the site is locked: unlock it first"
+  },
   "diveSites_detail_error_body": "Error: {error}",
   "diveSites_detail_error_title": "Error",
   "diveSites_detail_loading_title": "Loading...",

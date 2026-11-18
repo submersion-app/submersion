@@ -12273,6 +12273,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Vous ne pouvez plus modifier ce site. Les modifications non enregistrées ont été abandonnées.';
 
   @override
+  String get diveSites_media_dropUnlockHint =>
+      'Déverrouillez ce site pour y ajouter des photos.';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return 'Erreur : $error';
   }

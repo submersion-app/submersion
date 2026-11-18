@@ -11960,6 +11960,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'כבר אין לך הרשאה לערוך את האתר הזה. שינויים שלא נשמרו בוטלו.';
 
   @override
+  String get diveSites_media_dropUnlockHint =>
+      'בטל את נעילת האתר כדי להוסיף לו תמונות.';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return 'שגיאה: $error';
   }

@@ -101,6 +101,65 @@ mixin _SiteDetailPageEditing
         );
   }
 
+  /// Where a file dropped on the window finds this page (issue #4527),
+  /// read in [initState] so it can still be cleared once the page has gone.
+  StateController<SiteEditingPage?>? _dropSlot;
+
+  /// What this page last told [siteEditingPageProvider].
+  SiteEditingPage? _toldDrop;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!hostsEditing) return;
+    _dropSlot = ref.read(siteEditingPageProvider.notifier);
+    _tellDrop();
+  }
+
+  @override
+  void onEditChanged() {
+    _tellDrop();
+    super.onEditChanged();
+  }
+
+  @override
+  void disposeEditing() {
+    _tellDrop(gone: true);
+    super.disposeEditing();
+  }
+
+  /// Tells a drop that this page edits [widget]'s site in place, with its
+  /// sitting while unlocked, or that the page has gone. Set after the
+  /// frame's work, since a lock can come while the page is being built.
+  void _tellDrop({bool gone = false}) {
+    final slot = _dropSlot;
+    if (slot == null) return;
+    final told = _toldDrop;
+    final session = gone ? null : maybeEditController?.session;
+    if (!gone &&
+        told != null &&
+        told.siteId == widget.siteId &&
+        identical(told.session, session)) {
+      return;
+    }
+    final page = gone
+        ? null
+        : SiteEditingPage(
+            siteId: widget.siteId,
+            session: session,
+            showMediaCard: () =>
+                maybeEditController?.addCard(SiteDetailSectionId.media.name),
+          );
+    _toldDrop = page;
+    Future.microtask(() {
+      // The app (its provider scope) may have gone with the page.
+      if (!slot.mounted) return;
+      // Only this page's own: another page may have told since.
+      if (page == null && !identical(slot.state, told)) return;
+      slot.state = page;
+    });
+  }
+
   /// Ends a sitting this profile may no longer save, and says so: the
   /// diver's typing goes with it. A save still running ends it once it
   /// returns, and the page is built, and asks, again then.

@@ -12150,6 +12150,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Je kunt deze stek niet meer bewerken. Niet-opgeslagen wijzigingen zijn verwijderd.';
 
   @override
+  String get diveSites_media_dropUnlockHint =>
+      'Ontgrendel deze stek om er foto\'s aan toe te voegen.';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return 'Fout: $error';
   }

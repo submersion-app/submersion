@@ -3722,6 +3722,7 @@
   "diveSites_detail_editTooltip": "Modifica sito",
   "diveSites_detail_editTooltipShort": "Modifica",
   "diveSites_edit_editingWithdrawn": "Non puoi più modificare questo sito. Le modifiche non salvate sono state scartate.",
+  "diveSites_media_dropUnlockHint": "Sblocca questo sito per aggiungervi foto.",
   "diveSites_detail_error_body": "Errore: {error}",
   "diveSites_detail_error_title": "Errore",
   "diveSites_detail_loading_title": "Caricamento...",

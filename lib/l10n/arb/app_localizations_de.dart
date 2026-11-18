@@ -12218,6 +12218,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Du kannst diesen Tauchplatz nicht mehr bearbeiten. Ungespeicherte Änderungen wurden verworfen.';
 
   @override
+  String get diveSites_media_dropUnlockHint =>
+      'Entsperre diesen Tauchplatz, um Fotos hinzuzufügen.';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return 'Fehler: $error';
   }

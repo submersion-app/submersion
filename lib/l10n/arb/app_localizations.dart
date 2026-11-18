@@ -19426,6 +19426,12 @@ abstract class AppLocalizations {
   /// **'You can no longer edit this site. Any unsaved changes were discarded.'**
   String get diveSites_edit_editingWithdrawn;
 
+  /// Snack bar when a file is dropped on a site whose page edits in place while the site is locked: unlock it first
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock this site to add photos.'**
+  String get diveSites_media_dropUnlockHint;
+
   /// No description provided for @diveSites_detail_error_body.
   ///
   /// In en, this message translates to:

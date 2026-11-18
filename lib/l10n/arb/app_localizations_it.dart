@@ -12229,6 +12229,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Non puoi più modificare questo sito. Le modifiche non salvate sono state scartate.';
 
   @override
+  String get diveSites_media_dropUnlockHint =>
+      'Sblocca questo sito per aggiungervi foto.';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return 'Errore: $error';
   }

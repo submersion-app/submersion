@@ -12036,6 +12036,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'You can no longer edit this site. Any unsaved changes were discarded.';
 
   @override
+  String get diveSites_media_dropUnlockHint =>
+      'Unlock this site to add photos.';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return 'Error: $error';
   }

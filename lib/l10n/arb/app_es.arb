@@ -3848,6 +3848,7 @@
   "diveSites_detail_editTooltip": "Editar sitio",
   "diveSites_detail_editTooltipShort": "Editar",
   "diveSites_edit_editingWithdrawn": "Ya no puedes editar este sitio. Se descartaron los cambios sin guardar.",
+  "diveSites_media_dropUnlockHint": "Desbloquea este sitio para añadirle fotos.",
   "diveSites_detail_error_body": "Error: {error}",
   "diveSites_detail_error_title": "Error",
   "diveSites_detail_loading_title": "Cargando...",

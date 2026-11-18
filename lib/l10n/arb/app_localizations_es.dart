@@ -12228,6 +12228,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Ya no puedes editar este sitio. Se descartaron los cambios sin guardar.';
 
   @override
+  String get diveSites_media_dropUnlockHint =>
+      'Desbloquea este sitio para añadirle fotos.';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return 'Error: $error';
   }

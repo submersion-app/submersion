@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/open_dive_sitting_provider.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_editing_page_provider.dart';
 import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
 import 'package:submersion/features/media/presentation/helpers/media_drop_destination.dart';
 import 'package:submersion/features/media/presentation/helpers/media_drop_import.dart';
@@ -22,10 +23,13 @@ void main() {
     WidgetTester tester, {
     OpenDiveSitting? open,
     String diveId = 'dive-1',
+    MediaAttachTarget? target,
+    SiteEditingPage? sitePage,
   }) async {
     final container = ProviderContainer();
     addTearDown(container.dispose);
     container.read(openDiveSittingProvider.notifier).state = open;
+    container.read(siteEditingPageProvider.notifier).state = sitePage;
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
@@ -37,7 +41,9 @@ void main() {
                 onPressed: () => importDroppedMedia(
                   context,
                   ref,
-                  MediaDropDestination(target: DiveAttachTarget(diveId)),
+                  MediaDropDestination(
+                    target: target ?? DiveAttachTarget(diveId),
+                  ),
                   const ['/photos/a.jpg'],
                 ),
                 child: const Text('drop'),
@@ -91,5 +97,22 @@ void main() {
       ),
     );
     expect(find.text(_hint), findsOneWidget);
+  });
+
+  // A site whose page edits in place takes files only in its open sitting
+  // (issue #4527, phase 2).
+  testWidgets('a locked site whose page edits in place: the hint', (
+    tester,
+  ) async {
+    await drop(
+      tester,
+      target: const SiteAttachTarget('s1'),
+      sitePage: SiteEditingPage(
+        siteId: 's1',
+        session: null,
+        showMediaCard: () {},
+      ),
+    );
+    expect(find.text('Unlock this site to add photos.'), findsOneWidget);
   });
 }

@@ -4,6 +4,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/open_dive_sitting_provider.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_editing_page_provider.dart';
 import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
 import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
 import 'package:submersion/features/media/presentation/helpers/media_drop_destination.dart';
@@ -32,7 +34,8 @@ typedef MediaDropHandler =
 ///
 /// A dive takes files only in its open sitting, held there until Save; a
 /// drop on a locked dive, one being saved, or one the list pane shows is
-/// refused with a hint (issue #4527).
+/// refused with a hint (issue #4527). So does a site whose page edits in
+/// place; on any other site's page the files are imported at once.
 Future<void> importDroppedMedia(
   BuildContext context,
   WidgetRef ref,
@@ -40,6 +43,22 @@ Future<void> importDroppedMedia(
   List<String> paths,
 ) async {
   final target = destination.target;
+  if (target is SiteAttachTarget) {
+    final page = ref.read(siteEditingPageProvider);
+    switch (siteDropAnswer(page: page, siteId: target.siteId)) {
+      case SiteDropAnswer.importNow:
+        return _importDropped(context, ref, destination, paths);
+      case SiteDropAnswer.refuse:
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.diveSites_media_dropUnlockHint)),
+        );
+      case SiteDropAnswer.hold:
+        final session = page!.session!;
+        page.showMediaCard();
+        await _holdSiteDropped(context, ref, session, paths);
+    }
+    return;
+  }
   if (target is! DiveAttachTarget) {
     return _importDropped(context, ref, destination, paths);
   }
@@ -75,6 +94,22 @@ Future<void> _holdDropped(
     dive: session.working,
     initialFilePaths: paths,
     onHold: (adds) => addMediaToSitting(session, adds),
+  );
+}
+
+Future<void> _holdSiteDropped(
+  BuildContext context,
+  WidgetRef ref,
+  EditSession<DiveSite> session,
+  List<String> paths,
+) async {
+  await SiteMediaImportHelper.importPhotosForSite(
+    context: context,
+    ref: ref,
+    siteId: session.stored.id,
+    initialFilePaths: paths,
+    onHold: (adds) => addMediaToSitting(session, adds),
+    unlinkedInSitting: sittingMedia(session).unlinked,
   );
 }
 

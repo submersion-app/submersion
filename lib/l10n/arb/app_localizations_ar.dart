@@ -12390,6 +12390,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'لم يعد بإمكانك تعديل هذا الموقع. تم تجاهل أي تغييرات غير محفوظة.';
 
   @override
+  String get diveSites_media_dropUnlockHint =>
+      'افتح قفل هذا الموقع لإضافة صور إليه.';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return 'خطأ: $error';
   }
