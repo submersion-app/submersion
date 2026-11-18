@@ -262,7 +262,11 @@ void main() {
       await tester.tap(find.text('scan'));
       await tester.pumpAndSettle();
 
+      // The scan ran and found a photo, and holding it into the ended
+      // sitting neither threw nor said anything.
       expect(service.prepareCalls, 1);
+      expect(tester.takeException(), isNull);
+      expect(find.byType(SnackBar), findsNothing);
     });
   });
 }
