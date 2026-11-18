@@ -29601,6 +29601,38 @@ class AppLocalizationsAr extends AppLocalizations {
       'التعرّف على الأسماك عند فتح صورة أو مقطع فيديو';
 
   @override
+  String get settings_speciesId_levelTitle =>
+      'مدى تأكّد التطبيق قبل تسمية سمكة';
+
+  @override
+  String get settings_speciesId_levelSurer => 'أكثر تأكّدًا';
+
+  @override
+  String get settings_speciesId_levelBalanced => 'متوازن';
+
+  @override
+  String get settings_speciesId_levelEager => 'أكثر جرأة';
+
+  @override
+  String settings_speciesId_levelSurerAccuracy(int percent) {
+    return 'أسماء أقل. نحو $percent% صحيحة';
+  }
+
+  @override
+  String get settings_speciesId_levelSurerUnmeasured =>
+      'أسماء أقل، صحيحة في أغلب الأحيان';
+
+  @override
+  String settings_speciesId_levelBalancedAccuracy(int percent) {
+    return 'أسماء أكثر. نحو $percent% صحيحة';
+  }
+
+  @override
+  String settings_speciesId_levelEagerAccuracy(int percent) {
+    return 'أكبر عدد من الأسماء. نحو $percent% صحيحة';
+  }
+
+  @override
   String get settings_speciesId_kept => 'الاقتراحات المحفوظة على هذا الجهاز';
 
   @override

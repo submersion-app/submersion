@@ -29127,6 +29127,38 @@ class AppLocalizationsNl extends AppLocalizations {
       'Vissen herkennen als ik een foto of video open';
 
   @override
+  String get settings_speciesId_levelTitle =>
+      'Hoe zeker de app moet zijn om een vis te benoemen';
+
+  @override
+  String get settings_speciesId_levelSurer => 'Zekerder';
+
+  @override
+  String get settings_speciesId_levelBalanced => 'Gebalanceerd';
+
+  @override
+  String get settings_speciesId_levelEager => 'Ruim';
+
+  @override
+  String settings_speciesId_levelSurerAccuracy(int percent) {
+    return 'Minste namen. Ongeveer $percent% juist';
+  }
+
+  @override
+  String get settings_speciesId_levelSurerUnmeasured =>
+      'Minste namen, het vaakst juist';
+
+  @override
+  String settings_speciesId_levelBalancedAccuracy(int percent) {
+    return 'Meer namen. Ongeveer $percent% juist';
+  }
+
+  @override
+  String settings_speciesId_levelEagerAccuracy(int percent) {
+    return 'Meeste namen. Ongeveer $percent% juist';
+  }
+
+  @override
   String get settings_speciesId_kept => 'Suggesties op dit apparaat';
 
   @override

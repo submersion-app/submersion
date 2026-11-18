@@ -29390,6 +29390,38 @@ class AppLocalizationsFr extends AppLocalizations {
       'Identifier les poissons à l\'ouverture d\'une photo ou d\'une vidéo';
 
   @override
+  String get settings_speciesId_levelTitle =>
+      'Degré de certitude avant de nommer un poisson';
+
+  @override
+  String get settings_speciesId_levelSurer => 'Plus sûr';
+
+  @override
+  String get settings_speciesId_levelBalanced => 'Équilibré';
+
+  @override
+  String get settings_speciesId_levelEager => 'Généreux';
+
+  @override
+  String settings_speciesId_levelSurerAccuracy(int percent) {
+    return 'Moins de noms. Environ $percent % justes';
+  }
+
+  @override
+  String get settings_speciesId_levelSurerUnmeasured =>
+      'Moins de noms, le plus souvent justes';
+
+  @override
+  String settings_speciesId_levelBalancedAccuracy(int percent) {
+    return 'Plus de noms. Environ $percent % justes';
+  }
+
+  @override
+  String settings_speciesId_levelEagerAccuracy(int percent) {
+    return 'Le plus de noms. Environ $percent % justes';
+  }
+
+  @override
   String get settings_speciesId_kept =>
       'Suggestions conservées sur cet appareil';
 

@@ -29179,6 +29179,38 @@ class AppLocalizationsHu extends AppLocalizations {
       'Halak felismerése fotó vagy videó megnyitásakor';
 
   @override
+  String get settings_speciesId_levelTitle =>
+      'Mennyire legyen biztos az alkalmazás, mielőtt megnevez egy halat';
+
+  @override
+  String get settings_speciesId_levelSurer => 'Biztosabb';
+
+  @override
+  String get settings_speciesId_levelBalanced => 'Kiegyensúlyozott';
+
+  @override
+  String get settings_speciesId_levelEager => 'Bátrabb';
+
+  @override
+  String settings_speciesId_levelSurerAccuracy(int percent) {
+    return 'Kevesebb név. Kb. $percent%-ban helyes';
+  }
+
+  @override
+  String get settings_speciesId_levelSurerUnmeasured =>
+      'Kevesebb név, legtöbbször helyes';
+
+  @override
+  String settings_speciesId_levelBalancedAccuracy(int percent) {
+    return 'Több név. Kb. $percent%-ban helyes';
+  }
+
+  @override
+  String settings_speciesId_levelEagerAccuracy(int percent) {
+    return 'A legtöbb név. Kb. $percent%-ban helyes';
+  }
+
+  @override
   String get settings_speciesId_kept => 'Ezen az eszközön tárolt javaslatok';
 
   @override

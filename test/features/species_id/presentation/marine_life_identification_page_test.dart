@@ -5,11 +5,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/features/media_store/presentation/pages/photos_videos_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/species_id/data/pack/species_pack_downloader.dart';
+import 'package:submersion/features/species_id/data/pack/species_pack_store.dart';
 import 'package:submersion/features/species_id/data/repositories/identification_embedding_repository.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
 import 'package:submersion/features/species_id/data/services/identification_cleanup.dart';
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
+import 'package:submersion/features/species_id/domain/entities/naming_level.dart';
+import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
 import 'package:submersion/features/species_id/presentation/pages/marine_life_identification_page.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
@@ -17,6 +21,7 @@ import 'package:submersion/features/species_id/presentation/providers/species_pa
 
 import '../../../helpers/mock_providers.dart';
 import '../../../helpers/test_app.dart';
+import '../domain/manifest_fixture.dart';
 import 'species_id_fakes.dart';
 
 class _Controller extends SpeciesPackController {
@@ -284,6 +289,113 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('species_id_toggle')));
     await tester.pumpAndSettle();
     expect(prefs.getBool(SettingsKeys.identifyFishOnOpen), isFalse);
+  });
+
+  group('naming levels (issue #4721)', () {
+    const installed = PackInstalled(
+      version: '2026.11.1',
+      bytes: 660000000,
+      updateBytes: null,
+      credits: [],
+    );
+    InstalledPack withLevels(List<Map<String, Object?>> levels) =>
+        InstalledPack(
+          manifest: SpeciesPackManifest.parse(
+            manifestJson((m) {
+              final naming = m['naming']! as Map<String, Object?>;
+              naming['precision'] = 0.897;
+              naming['levels'] = levels;
+            }),
+          ),
+          directory: '/pack',
+          detectorPaths: const ['/pack/detector'],
+          classifierPath: '/pack/classifier',
+        );
+    const balanced = {
+      'id': 'balanced',
+      'target': 0.75,
+      'suggestScore': 0.4,
+      'suggestScoreNoLocation': 0.6,
+      'precision': 0.8,
+    };
+    const eager = {
+      'id': 'eager',
+      'target': 0.65,
+      'suggestScore': 0.3,
+      'suggestScoreNoLocation': 0.5,
+      'precision': 0.7,
+    };
+    const surerKey = ValueKey('species_id_level_surer');
+
+    Future<void> pumpLevels(
+      WidgetTester tester,
+      InstalledPack? pack, {
+      NamingLevel chosen = NamingLevel.surer,
+    }) => pump(
+      tester,
+      installed,
+      extra: [
+        installedSpeciesPackProvider.overrideWith((ref) async => pack),
+        namingLevelProvider.overrideWith(
+          (ref) => NamingLevelNotifier.unstored(chosen),
+        ),
+      ],
+    );
+
+    testWidgets('are hidden with no pack, or a pack without levels', (
+      tester,
+    ) async {
+      await pumpLevels(tester, null);
+      expect(find.byKey(surerKey), findsNothing);
+      await pumpLevels(tester, withLevels(const []));
+      expect(find.byKey(surerKey), findsNothing);
+    });
+
+    testWidgets('are hidden when the pack cannot be read', (tester) async {
+      await pump(tester, installed);
+      expect(find.byKey(surerKey), findsNothing);
+    });
+
+    testWidgets('show each level with its measured accuracy', (tester) async {
+      await pumpLevels(tester, withLevels(const [balanced, eager]));
+      expect(find.text('Name a fish when the app is'), findsOneWidget);
+      expect(find.text('Surer'), findsOneWidget);
+      expect(find.text('Fewest names. About 85% right'), findsOneWidget);
+      expect(find.text('Balanced'), findsOneWidget);
+      expect(find.text('More names. About 80% right'), findsOneWidget);
+      expect(find.text('Eager'), findsOneWidget);
+      expect(find.text('Most names. About 70% right'), findsOneWidget);
+    });
+
+    testWidgets('choosing one sets the level', (tester) async {
+      await pumpLevels(tester, withLevels(const [balanced, eager]));
+      const eagerKey = ValueKey('species_id_level_eager');
+      await tester.ensureVisible(find.byKey(eagerKey));
+      await tester.tap(find.byKey(eagerKey));
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(MarineLifeIdentificationPage)),
+      );
+      expect(container.read(namingLevelProvider), NamingLevel.eager);
+    });
+
+    testWidgets('a level the pack lacks shows the one in force', (
+      tester,
+    ) async {
+      await pumpLevels(
+        tester,
+        withLevels(const [balanced]),
+        chosen: NamingLevel.eager,
+      );
+      final group = tester.widget<RadioGroup<NamingLevel>>(
+        find.byType(RadioGroup<NamingLevel>),
+      );
+      expect(group.groupValue, NamingLevel.balanced);
+      expect(
+        find.byKey(const ValueKey('species_id_level_eager')),
+        findsNothing,
+      );
+    });
   });
 
   group('the entry on Photos and videos', () {

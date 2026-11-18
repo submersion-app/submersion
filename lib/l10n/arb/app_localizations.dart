@@ -46630,6 +46630,54 @@ abstract class AppLocalizations {
   /// **'Identify fish when I open a photo or video'**
   String get settings_speciesId_toggle;
 
+  /// Heading over the naming levels: how sure marine life identification must be before it names a fish. Each level's name completes the sentence.
+  ///
+  /// In en, this message translates to:
+  /// **'Name a fish when the app is'**
+  String get settings_speciesId_levelTitle;
+
+  /// Naming level: the model's own measured bars, the fewest names and the most often right
+  ///
+  /// In en, this message translates to:
+  /// **'Surer'**
+  String get settings_speciesId_levelSurer;
+
+  /// Naming level between Surer and Eager
+  ///
+  /// In en, this message translates to:
+  /// **'Balanced'**
+  String get settings_speciesId_levelBalanced;
+
+  /// Naming level: the most names, the least often right
+  ///
+  /// In en, this message translates to:
+  /// **'Eager'**
+  String get settings_speciesId_levelEager;
+
+  /// Under Surer: how often its names were right when measured
+  ///
+  /// In en, this message translates to:
+  /// **'Fewest names. About {percent}% right'**
+  String settings_speciesId_levelSurerAccuracy(int percent);
+
+  /// Under Surer when the model carries no measured accuracy for it
+  ///
+  /// In en, this message translates to:
+  /// **'Fewest names, most often right'**
+  String get settings_speciesId_levelSurerUnmeasured;
+
+  /// Under Balanced: how often its names were right when measured
+  ///
+  /// In en, this message translates to:
+  /// **'More names. About {percent}% right'**
+  String settings_speciesId_levelBalancedAccuracy(int percent);
+
+  /// Under Eager: how often its names were right when measured
+  ///
+  /// In en, this message translates to:
+  /// **'Most names. About {percent}% right'**
+  String settings_speciesId_levelEagerAccuracy(int percent);
+
   /// No description provided for @settings_speciesId_kept.
   ///
   /// In en, this message translates to:
