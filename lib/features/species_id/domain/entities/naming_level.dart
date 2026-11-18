@@ -83,9 +83,9 @@ double? _barAtMost(Object? value, double ceiling) =>
 /// (issue #4721), surest first. They are optional: an entry is dropped,
 /// and the pack still reads, unless it is a known level below Surer, with
 /// bars no higher than the level above it and at least one of them lower,
-/// and a precision in (0, 1] no higher than the level above's
-/// ([surerPrecision] for Surer, when measured), so more names never read
-/// as more often right.
+/// a target in (0, 1], and a precision in (0, 1] no higher than the level
+/// above's ([surerPrecision] for Surer, when measured), so more names
+/// never read as more often right.
 List<MeasuredNamingLevel> measuredLevels(
   Object? value,
   double suggestScore,
@@ -110,12 +110,12 @@ List<MeasuredNamingLevel> measuredLevels(
     final suggest = _barAtMost(entry['suggestScore'], above.$1);
     final noLocation = _barAtMost(entry['suggestScoreNoLocation'], above.$2);
     final precision = measuredShare(entry['precision']);
-    final target = entry['target'];
+    // A share of names that had to be right, as the scorer writes it.
+    final target = measuredShare(entry['target']);
     if (suggest == null ||
         noLocation == null ||
         precision == null ||
-        target is! num ||
-        !target.isFinite ||
+        target == null ||
         // Bars the level above already names at add nothing.
         (suggest, noLocation) == above ||
         (abovePrecision != null && precision > abovePrecision)) {
@@ -124,7 +124,7 @@ List<MeasuredNamingLevel> measuredLevels(
     levels.add(
       MeasuredNamingLevel(
         level: level,
-        target: target.toDouble(),
+        target: target,
         suggestScore: suggest,
         suggestScoreNoLocation: noLocation,
         precision: precision,

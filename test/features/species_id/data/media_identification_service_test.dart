@@ -45,6 +45,14 @@ class _ReadOrderRepository extends MediaIdentificationRepository {
     reads.add('rows');
     return super.forMedia(mediaId);
   }
+
+  @override
+  Future<(MediaIdentificationRun?, List<MediaIdentification>)> forMediaWithRun(
+    String mediaId,
+  ) {
+    reads.add('snapshot');
+    return super.forMediaWithRun(mediaId);
+  }
 }
 
 void main() {
@@ -383,14 +391,14 @@ void main() {
       expect(stored.suggestable, isFalse);
     });
 
-    test('the run is read before the rows, so a rename between the two '
-        'reads leaves the stored flags', () async {
+    test('the run and rows are read in one snapshot, so a rename cannot '
+        'land between them', () async {
       final recording = _ReadOrderRepository(library);
       identifications = recording;
       final levelled = build(namingLevel: () async => eager);
       addTearDown(levelled.dispose);
       await reconciled(levelled);
-      expect(recording.reads.take(2), ['run', 'rows']);
+      expect(recording.reads.first, 'snapshot');
     });
 
     test('with no level, the pack own bars decide as before', () async {

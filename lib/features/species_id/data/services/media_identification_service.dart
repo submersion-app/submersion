@@ -699,10 +699,9 @@ class MediaIdentificationService {
 }
 
 /// [mediaId]'s identifications as [level] would suggest them, when the
-/// pack in force named them (issue #4721). The run is read before the
-/// rows: a rename moves both at once, so rows newer than the run read keep
-/// their stored flags rather than taking the level to another pack's
-/// scores.
+/// pack in force named them (issue #4721). The run and rows are read in
+/// one snapshot, so the pack the run names is the pack the rows were
+/// named with: a rename landing in between cannot pair them wrongly.
 Future<List<MediaIdentification>> identificationsAtLevel(
   MediaIdentificationRepository repository,
   String mediaId,
@@ -713,12 +712,8 @@ Future<List<MediaIdentification>> identificationsAtLevel(
   if (level == null || level.level == NamingLevel.surer) {
     return repository.forMedia(mediaId);
   }
-  final namedWithPack = (await repository.runFor(mediaId))?.packVersion;
-  return applyNamingLevel(
-    await repository.forMedia(mediaId),
-    level: level,
-    namedWithPack: namedWithPack,
-  );
+  final (run, rows) = await repository.forMediaWithRun(mediaId);
+  return applyNamingLevel(rows, level: level, namedWithPack: run?.packVersion);
 }
 
 class _Job {

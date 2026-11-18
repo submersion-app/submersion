@@ -648,6 +648,17 @@ void main() {
         ),
         isEmpty,
       );
+      for (final target in [0, -0.5, 1.5]) {
+        expect(
+          ids(
+            naming([
+              balanced({'target': target}),
+            ]),
+          ),
+          isEmpty,
+          reason: 'target $target',
+        );
+      }
       expect(
         ids(
           naming([
