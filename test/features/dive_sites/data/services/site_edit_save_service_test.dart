@@ -11,22 +11,36 @@ import 'package:submersion/features/dive_sites/domain/entities/site_classificati
 import '../../../../core/database/change_log/change_log_support.dart';
 import '../../../../helpers/test_database.dart';
 
-/// Records the acting diver each update is made for.
+/// Records each update and each library stamp the service asks for.
 class _RecordingSites extends SiteRepository {
   final actingDiverIds = <String?>[];
+  final stampedWithUpdate = <bool>[];
+  final stamps = <({String before, String after})>[];
 
   @override
   Future<void> updateSite(
     DiveSite site, {
     SiteClassification? classification,
     String? actingDiverId,
+    bool stampLibrary = true,
   }) {
     actingDiverIds.add(actingDiverId);
+    stampedWithUpdate.add(stampLibrary);
     return super.updateSite(
       site,
       classification: classification,
       actingDiverId: actingDiverId,
+      stampLibrary: stampLibrary,
     );
+  }
+
+  @override
+  Future<void> stampLibraryEdit(
+    DiveSite before,
+    DiveSite after, {
+    String? actingDiverId,
+  }) async {
+    stamps.add((before: before.notes, after: after.notes));
   }
 }
 
@@ -135,5 +149,34 @@ void main() {
     );
 
     expect(recording.actingDiverIds, ['me']);
+  });
+
+  test('a library stamp waits for the sitting to commit', () async {
+    final recording = _RecordingSites();
+    await SiteEditSaveService(recording).save(
+      siteId: 's1',
+      apply: notes('Choppy'),
+      changedCardIds: const ['notes'],
+    );
+
+    // Not stamped inside the transaction, but once it has committed.
+    expect(recording.stampedWithUpdate, [false]);
+    expect(recording.stamps, [(before: 'Calm', after: 'Choppy')]);
+  });
+
+  test('a sitting that rolls back leaves no library stamp', () async {
+    final recording = _RecordingSites();
+    await expectLater(
+      SiteEditSaveService(recording).save(
+        siteId: 's1',
+        apply: notes('Choppy'),
+        changedCardIds: const ['notes'],
+        alsoWrite: () async => throw StateError('refused'),
+      ),
+      throwsStateError,
+    );
+
+    expect(recording.stamps, isEmpty);
+    expect((await stored()).notes, 'Calm');
   });
 }

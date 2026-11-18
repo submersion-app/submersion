@@ -4,7 +4,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
-import 'package:submersion/shared/widgets/record_editing/text_keeping_caret.dart';
+import 'package:submersion/shared/widgets/record_editing/field_text_binding.dart';
 
 /// The editor of a site card holding one Markdown field (Description,
 /// Notes): the field as Markdown, written through to the sitting as the
@@ -28,15 +28,18 @@ class SiteMarkdownCardEditor extends StatefulWidget {
 }
 
 class _SiteMarkdownCardEditorState extends State<SiteMarkdownCardEditor> {
-  late final TextEditingController _controller = TextEditingController(
-    text: widget.session.valueOf(widget.field),
-  );
+  /// Keeps the text in step with the sitting both ways: what the diver
+  /// types goes to the sitting, and a stored change to a value the diver
+  /// has not touched comes back into the text.
+  late FieldTextBinding<DiveSite, String> _binding = _bind();
 
-  @override
-  void initState() {
-    super.initState();
-    widget.session.addListener(_followSession);
-  }
+  FieldTextBinding<DiveSite, String> _bind() => FieldTextBinding(
+    session: widget.session,
+    field: widget.field,
+    format: (text) => text,
+    // Any text is a value: blank is an empty description.
+    parse: FieldValue<String>.new,
+  );
 
   @override
   void didUpdateWidget(SiteMarkdownCardEditor oldWidget) {
@@ -45,25 +48,13 @@ class _SiteMarkdownCardEditorState extends State<SiteMarkdownCardEditor> {
         oldWidget.field == widget.field) {
       return;
     }
-    oldWidget.session.removeListener(_followSession);
-    widget.session.addListener(_followSession);
-    _followSession();
-  }
-
-  /// Keeps the field showing the sitting's value. While the diver types the
-  /// two already agree; they differ only when the stored site changed
-  /// underneath a value the diver has not touched.
-  void _followSession() {
-    final value = widget.session.valueOf(widget.field);
-    if (_controller.text == value) return;
-    // The caret stays where it was, or at the end of a shorter text.
-    _controller.replaceTextKeepingCaret(value);
+    _binding.dispose();
+    _binding = _bind();
   }
 
   @override
   void dispose() {
-    widget.session.removeListener(_followSession);
-    _controller.dispose();
+    _binding.dispose();
     super.dispose();
   }
 
@@ -71,12 +62,11 @@ class _SiteMarkdownCardEditorState extends State<SiteMarkdownCardEditor> {
   Widget build(BuildContext context) {
     final placeholder = widget.placeholder;
     return MarkdownNotesField(
-      controller: _controller,
+      controller: _binding.controller,
       autofocus: true,
       decoration: placeholder == null
           ? null
           : InputDecoration(hintText: placeholder),
-      onChanged: (text) => widget.session.set(widget.field, text),
     );
   }
 }

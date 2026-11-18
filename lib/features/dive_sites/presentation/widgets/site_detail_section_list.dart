@@ -3,12 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/site_detail_section_pairs.dart';
 import 'package:submersion/core/constants/site_detail_sections.dart';
-import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
-import 'package:submersion/features/dive_sites/presentation/editing/site_edit_cards.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/responsive_section_pair.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
-import 'package:submersion/shared/widgets/record_editing/record_fold_pencil.dart';
 import 'package:submersion/shared/widgets/section_fold.dart';
 
 /// Gap between two consecutive cards in the detailed layout. Tighter than
@@ -43,6 +39,8 @@ class SiteDetailSectionList extends StatelessWidget {
     required this.cards,
     required this.onFoldChanged,
     this.alsoShown = const {},
+    this.heldOpen = const {},
+    this.foldTrailing,
   });
 
   /// The diver's card configuration, in order.
@@ -61,6 +59,14 @@ class SiteDetailSectionList extends StatelessWidget {
   /// page by an editing sitting (issue #4527).
   final Set<SiteDetailSectionId> alsoShown;
 
+  /// Sections held unfolded in the list layout whatever is saved, such as a
+  /// card open for editing; a tap on their row changes nothing meanwhile.
+  final Set<SiteDetailSectionId> heldOpen;
+
+  /// A control for a section's folded row in the list layout, such as the
+  /// pencil that opens its card while the site is unlocked; null for none.
+  final Widget? Function(SiteDetailSectionId id)? foldTrailing;
+
   @override
   Widget build(BuildContext context) {
     final shown = [
@@ -69,12 +75,7 @@ class SiteDetailSectionList extends StatelessWidget {
             cards[section.id] != null)
           section.id,
     ];
-    // While the site is unlocked, a section with a card the diver can edit
-    // gets the pencil on its folded row, and is unfolded while its card is
-    // open: that is not the diver's saved choice, so it is not written back.
-    final edit = RecordEditScope.maybeOf<DiveSite>(context);
-    final session = edit?.session;
-    final open = edit?.openCardIds ?? const <String>{};
+
     final shownIds = shown.toSet();
     final unfolded = {
       for (final section in sections)
@@ -96,31 +97,18 @@ class SiteDetailSectionList extends StatelessWidget {
 
       if (layout.foldsSections) {
         // Each folded row draws its own divider, so rows take no gap.
-        final title = id.localizedDisplayName(context.l10n);
-        final isOpen = open.contains(id.name);
-        final canOpen =
-            edit != null &&
-            session != null &&
-            siteEditCards.containsKey(id) &&
-            !isOpen;
+        // Held unfolded: not the diver's saved choice, so a tap here could
+        // only change that choice unseen. It does nothing meanwhile.
+        final held = heldOpen.contains(id);
         children.add(
           SectionFold(
             key: ValueKey('siteSectionFold_${id.name}'),
-            title: title,
+            title: id.localizedDisplayName(context.l10n),
             icon: id.icon,
-            isExpanded: unfolded.contains(id) || isOpen,
-            trailing: canOpen
-                ? RecordFoldPencil(
-                    title: title,
-                    // Open, the card's own header carries the dot.
-                    isChanged: session.changedCardIds.contains(id.name),
-                    onOpen: () => edit.openCard(id.name),
-                  )
-                : null,
-            // A card being edited stays unfolded whatever is saved, so a
-            // tap here could only change the saved choice unseen.
+            isExpanded: unfolded.contains(id) || held,
+            trailing: foldTrailing?.call(id),
             onToggle: (expanded) {
-              if (isOpen) return;
+              if (held) return;
               onFoldChanged(id, expanded);
             },
             contentBuilder: cards[id]!,

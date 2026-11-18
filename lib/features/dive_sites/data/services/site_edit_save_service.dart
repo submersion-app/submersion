@@ -1,4 +1,5 @@
 import 'package:submersion/core/services/change_log/record_sitting_writer.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
@@ -14,11 +15,13 @@ class SiteEditSaveService {
   SiteEditSaveService(this._sites);
 
   final SiteRepository _sites;
+  final _log = LoggerService.forClass(SiteEditSaveService);
 
   /// Applies [apply] to the site as stored now and writes the result
   /// through [SiteRepository.updateSite], for [actingDiverId], so a library
-  /// site is stamped and its private fields kept as they are from any
-  /// other save.
+  /// site's private fields are kept as they are from any other save. Its
+  /// library stamp is written once the sitting has committed
+  /// ([SiteRepository.stampLibraryEdit]), best effort.
   ///
   /// [changedCardIds] names the cards the sitting changed, for its History
   /// label. Returns the site before and after, or null when [apply] changed
@@ -33,16 +36,42 @@ class SiteEditSaveService {
     Future<void> Function()? writeFirst,
     Future<void> Function()? alsoWrite,
     bool alsoWriteIsAChange = false,
-  }) => writeRecordSitting<DiveSite>(
-    table: 'dive_sites',
-    recordId: siteId,
-    changedCardIds: changedCardIds,
-    read: () => _sites.getSiteById(siteId),
-    apply: apply,
-    write: (_, merged) =>
-        _sites.updateSite(merged, actingDiverId: actingDiverId),
-    writeFirst: writeFirst,
-    alsoWrite: alsoWrite,
-    alsoWriteIsAChange: alsoWriteIsAChange,
-  );
+  }) async {
+    final result = await writeRecordSitting<DiveSite>(
+      table: 'dive_sites',
+      recordId: siteId,
+      changedCardIds: changedCardIds,
+      read: () => _sites.getSiteById(siteId),
+      apply: apply,
+      // A library site's stamp goes to the shared library store, which a
+      // rollback would not undo: it waits for the commit, below.
+      write: (_, merged) => _sites.updateSite(
+        merged,
+        actingDiverId: actingDiverId,
+        stampLibrary: false,
+      ),
+      writeFirst: writeFirst,
+      alsoWrite: alsoWrite,
+      alsoWriteIsAChange: alsoWriteIsAChange,
+    );
+    if (result == null) return null;
+    // The write is committed. A stamp that fails from here on must not read
+    // as a save that failed: the diver would save the sitting a second time.
+    try {
+      // As stored: the write keeps a reader's site to its private fields.
+      final stored = await _sites.getSiteById(siteId) ?? result.after;
+      await _sites.stampLibraryEdit(
+        result.before,
+        stored,
+        actingDiverId: actingDiverId,
+      );
+    } catch (error, stackTrace) {
+      _log.error(
+        'Library stamp after saving site $siteId failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+    return result;
+  }
 }

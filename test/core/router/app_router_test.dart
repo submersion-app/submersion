@@ -59,6 +59,7 @@ import 'package:submersion/core/router/shortcut_locations.dart';
 import 'package:submersion/features/import_wizard/presentation/pages/universal_import_wizard_route.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/leave_running_import_dialog.dart';
 import 'package:submersion/features/table_editor/presentation/pages/table_editor_page.dart';
+import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blocker.dart';
 
 /// Finds a [GoRoute] by name in a route tree recursively.
 GoRoute? _findRouteByName(List<RouteBase> routes, String name) {
@@ -392,6 +393,14 @@ void main() {
   });
 
   // The sidebar leaves with go(), which no PopScope sees (#3422).
+  // A site's sitting is asked about before a `go` leaves it (issue #4527).
+  test('leaving a site page goes through its sitting check', () {
+    for (final name in const ['sites', 'siteDetail']) {
+      final route = _findRouteByName(router.configuration.routes, name);
+      expect(route?.onExit, same(confirmLeaveRecordSitting), reason: name);
+    }
+  });
+
   test('leaving the table editor goes through its unsaved work check', () {
     final route = _findRouteByName(router.configuration.routes, 'tableEditor');
 

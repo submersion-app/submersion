@@ -1,6 +1,6 @@
 part of 'site_detail_page.dart';
 
-final _editLog = LoggerService.forClass(SiteEditSaveService);
+const _editLog = LoggerService('SiteDetailPage');
 
 /// In-place editing for the site page (issue #4527, phase 2): what is the
 /// site's own on top of [RecordEditHost], which holds what every record page
@@ -23,11 +23,59 @@ mixin _SiteDetailPageEditing
   @override
   String recordIdOf(DiveSite record) => record.id;
 
+  /// The switch on, on the full page: the page keeps the editing shape
+  /// for its whole life, so a role that loads or changes never remounts it.
   @override
-  bool get offersEditing =>
-      widget.unlockEditing &&
-      !widget.embedded &&
-      _canEditSite(ref, widget.site, watch: false);
+  bool get hostsEditing => widget.unlockEditing && !widget.embedded;
+
+  /// [hostsEditing], for a site this profile may edit now. [watch] in
+  /// `build`, a read anywhere else.
+  bool _offersEditingNow({bool watch = false}) =>
+      hostsEditing && _canEditSite(ref, widget.site, watch: watch);
+
+  @override
+  bool get offersEditing => _offersEditingNow();
+
+  /// What `build` needs of the sitting: whether the page [hosts] editing
+  /// and [offered] it now, the [site] to show (the diver's working copy
+  /// during a sitting, or the site just saved), the hidden sections the
+  /// sitting brought onto the page, and the sections it holds unfolded.
+  ///
+  /// A sitting the page can no longer offer (the library role taken away,
+  /// the library disconnected) is ended: nothing on the page could save it
+  /// any more, and the app would still ask about it on the way out.
+  ({
+    bool hosts,
+    bool offered,
+    DiveSite site,
+    Set<SiteDetailSectionId> shownForSitting,
+    Set<SiteDetailSectionId> heldOpen,
+  })
+  _editingInBuild() {
+    if (!hostsEditing) {
+      return (
+        hosts: false,
+        offered: false,
+        site: widget.site,
+        shownForSitting: const {},
+        heldOpen: const {},
+      );
+    }
+    final offered = _offersEditingNow(watch: true);
+    if (!offered && isSittingOpen) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && !offersEditing) maybeEditController?.lock();
+      });
+    }
+    followStored(siteProvider(widget.siteId));
+    return (
+      hosts: true,
+      offered: offered,
+      site: shownRecord(widget.site),
+      shownForSitting: _sectionsShownForSitting(),
+      heldOpen: _sectionsOpenForSitting(),
+    );
+  }
 
   @override
   Iterable<EditCard<DiveSite>> get hostEditCards => siteEditCards.values;
@@ -104,6 +152,31 @@ mixin _SiteDetailPageEditing
             changed: changed.contains(card.id),
           ),
     ];
+  }
+
+  /// The sections whose cards are open, held unfolded in the list layout.
+  Set<SiteDetailSectionId> _sectionsOpenForSitting() {
+    final open = maybeEditController?.openCardIds ?? const <String>{};
+    return {
+      for (final id in SiteDetailSectionId.values)
+        if (open.contains(id.name)) id,
+    };
+  }
+
+  /// The pencil on [id]'s folded row in the list layout while the site is
+  /// unlocked and its card can be edited and is not open; null otherwise.
+  Widget? _foldPencil(SiteDetailSectionId id) {
+    final controller = maybeEditController;
+    final session = controller?.session;
+    if (controller == null || session == null) return null;
+    if (!siteEditCards.containsKey(id)) return null;
+    if (controller.openCardIds.contains(id.name)) return null;
+    return RecordFoldPencil(
+      title: id.localizedDisplayName(context.l10n),
+      // Open, the card's own header carries the dot.
+      isChanged: session.changedCardIds.contains(id.name),
+      onOpen: () => controller.openCard(id.name),
+    );
   }
 
   /// The hidden sections the sitting has brought onto the page.

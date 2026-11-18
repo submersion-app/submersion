@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/app/app_exit_guard.dart';
 import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
@@ -216,5 +217,38 @@ void main() {
     );
 
     expect(find.byIcon(Icons.lock_outline), findsNothing);
+  });
+
+  testWidgets('losing the right to edit during a sitting locks the page', (
+    tester,
+  ) async {
+    var role = SharedLibraryRole.editor;
+    final page = await pumpSitePage(
+      tester,
+      site: harnessSite.copyWith(sharedLibraryId: 'L'),
+      extra: [
+        libraryRoleProvider('L').overrideWith((ref) async => role),
+        libraryConnectedHereProvider('L').overrideWith((ref) async => true),
+        siteLibraryStateProvider('s1').overrideWith((ref) async => null),
+        libraryMemberNamesProvider('L').overrideWith((ref) async => const {}),
+      ],
+    );
+    await unlock(tester);
+    await openNotes(tester);
+    await typeNotes(tester, 'Choppy');
+
+    role = SharedLibraryRole.reader;
+    page.container.invalidate(libraryRoleProvider('L'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(RecordEditBar), findsNothing);
+    expect(find.byIcon(Icons.lock_outline), findsNothing);
+    expect(find.text('Calm'), findsOneWidget);
+    expect(page.save.calls, isEmpty);
+    // Nothing is left open to ask about on the way out.
+    final leaving = page.container.read(appExitGuardProvider).mayLeave();
+    await tester.pumpAndSettle();
+    expect(find.text(l.forms_discard_title), findsNothing);
+    expect(await leaving, isTrue);
   });
 }

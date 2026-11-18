@@ -41,9 +41,16 @@ mixin RecordEditHost<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
   /// Cancel are [saveNewRecord] and [cancelNewRecord].
   bool get isCreating => false;
 
-  /// Whether the page offers editing at all. While it does not, the page
-  /// never unlocks and the editing keys pass it by.
-  bool get offersEditing => true;
+  /// Whether the page can offer editing at all, for as long as it lives
+  /// (a page behind a build switch, or one shown where it never edits).
+  /// When false, the page builds no controller, holds no exit blocker and
+  /// takes no keys; [editController] is never asked for.
+  bool get hostsEditing => true;
+
+  /// Whether the page offers editing now: it can change while the page
+  /// lives (a library role that loads, or is taken away). While it does
+  /// not, the page never unlocks and the editing keys pass it by.
+  bool get offersEditing => hostsEditing;
 
   /// Writes [session], the record's own save. Throws when nothing could be
   /// written. Sets [justSavedRecord] once its write has committed.
@@ -161,6 +168,7 @@ mixin RecordEditHost<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
   void initState() {
     super.initState();
     _hostedRecordId = hostRecordId;
+    if (!hostsEditing) return;
     final controller = editController;
     final target = _shortcutTarget = RecordEditShortcutTarget(
       controller: controller,
