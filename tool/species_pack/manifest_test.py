@@ -703,5 +703,71 @@ class BuildOptionsTests(unittest.TestCase):
         self.assertEqual(args.min_images, 50)
 
 
+class TrainedPackTests(unittest.TestCase):
+    """A pack derived from another with trained rows (issue #4724)."""
+
+    def base(self):
+        return manifest.build_manifest(
+            pack_version="2026.11.18.0356",
+            detector_set="both",
+            classifier_id=BIOCLIP,
+            embedding_size=768,
+            files=[self.entry(name, sha) for name, sha in CONTENTS.items()],
+            credits=[{"name": "BioCLIP 2", "licence": "MIT", "text": "x"}],
+            naming={"provisional": False, "suggestScore": 0.74},
+        )
+
+    @staticmethod
+    def entry(name, sha):
+        return {"name": name, "engine": "all", "size": 1, "sha256": sha}
+
+    def trained_files(self):
+        return [self.entry(n, "d" * 64 if n == "text_embeddings.f16" else s) for n, s in CONTENTS.items()]
+
+    def test_training_credit_names_licence_and_list(self):
+        credit = manifest.training_credit(123456, "https://example.org/training_photos.csv")
+        self.assertEqual(credit["licence"], "CC BY-NC 4.0")
+        self.assertIn("123,456", credit["text"])
+        self.assertIn("https://example.org/training_photos.csv", credit["text"])
+        self.assertIn("not for commercial use", credit["text"])
+        for licence in ("CC0", "CC BY 4.0", "CC BY-NC 4.0"):
+            self.assertIn(licence, credit["text"])
+
+    def test_derived_manifest_is_provisional_for_new_rows(self):
+        derived = manifest.derive_manifest(
+            self.base(), self.trained_files(), pack_version="2026.11.20.0100", credits=[], measured=[]
+        )
+        self.assertEqual(derived["naming"], manifest.NAMING_PROVISIONAL)
+        self.assertEqual(derived["packVersion"], "2026.11.20.0100")
+
+    def test_derived_manifest_matches_a_measured_entry(self):
+        contents = manifest.contents_of(self.trained_files())
+        measured = [
+            {
+                "naming": {"provisional": False, "confidentScore": 0.93},
+                "detectorIds": [CFD, MEGALODON],
+                "classifierId": BIOCLIP,
+                "cropFit": "centreCrop",
+                "contents": contents,
+            }
+        ]
+        derived = manifest.derive_manifest(
+            self.base(), self.trained_files(), pack_version="v", credits=[], measured=measured
+        )
+        self.assertEqual(derived["naming"], {"provisional": False, "confidentScore": 0.93})
+
+    def test_derived_manifest_keeps_detectors_and_region(self):
+        base = self.base()
+        credit = manifest.training_credit(1, "u")
+        derived = manifest.derive_manifest(
+            base, self.trained_files(), pack_version="v", credits=[*base["credits"], credit], measured=[]
+        )
+        for key in ("formatVersion", "detectors", "boxes", "classifier", "region", "cropThumbnailSize"):
+            self.assertEqual(derived[key], base[key], key)
+        self.assertEqual(derived["credits"][-1], credit)
+        self.assertEqual(derived["files"], self.trained_files())
+        self.assertEqual(base["packVersion"], "2026.11.18.0356", "the base is not changed")
+
+
 if __name__ == "__main__":
     unittest.main()
