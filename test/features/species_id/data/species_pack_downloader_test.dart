@@ -301,6 +301,19 @@ void main() {
       expect(await File(p.join(folder.path, 'stale.bin')).exists(), isFalse);
     });
 
+    test('a model unpacked from a zip since republished is downloaded '
+        'again', () async {
+      await download(_server(body: zip));
+      await File(p.join(folder.path, '.zip-sha256')).writeAsString('c' * 64);
+      var requests = 0;
+      await download(_server(body: zip, inspect: (_) => requests++));
+      expect(requests, 1);
+      expect(
+        await File(p.join(folder.path, '.zip-sha256')).readAsString(),
+        zipSha,
+      );
+    });
+
     test('a zip an earlier build left whole or in part is removed', () async {
       final whole = File(p.join(dir.path, 'detector.coreml.zip'));
       final part = File('${whole.path}.part');

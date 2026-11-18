@@ -171,6 +171,14 @@ void main() {
     await expectLater(unpack(zip), malformed());
   });
 
+  test('a ZIP64 record too short for its sizes is refused', () async {
+    final zip = _zip64Entry('m.mlpackage/w.bin', [1, 2, 3, 4, 5]);
+    // The record's length now covers only the uncompressed size.
+    const at = 30 + 'm.mlpackage/w.bin'.length;
+    ByteData.sublistView(zip).setUint16(at + 2, 8, Endian.little);
+    await expectLater(unpack(zip), malformed());
+  });
+
   test('an entry that would land outside the folder is refused', () async {
     final zip = Uint8List.fromList(
       ZipEncoder().encodeBytes(

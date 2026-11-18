@@ -71,6 +71,14 @@ class ZipStreamUnpacker {
     final entry = _entry;
     _entry = null;
     if (entry == null) return;
+    if (entry.inflating) {
+      try {
+        // Frees the native inflater now rather than at garbage collection.
+        entry.inflater.close();
+      } on Exception {
+        // Cut short mid-stream, as expected after a failure.
+      }
+    }
     try {
       await entry.out?.close();
     } on FileSystemException {
@@ -192,15 +200,17 @@ class ZipStreamUnpacker {
     while (at + 4 <= header.length) {
       final id = _u16(header, at);
       final length = _u16(header, at + 2);
-      if (id == 0x0001) {
+      final end = at + 4 + length;
+      if (id == 0x0001 && end <= header.length) {
         var field = at + 4;
-        if (size == 0xFFFFFFFF && field + 8 <= header.length) {
+        if (size == 0xFFFFFFFF && field + 8 <= end) {
           size = _u64(header, field);
           field += 8;
         }
-        if (compressed == 0xFFFFFFFF && field + 8 <= header.length) {
+        if (compressed == 0xFFFFFFFF && field + 8 <= end) {
           compressed = _u64(header, field);
         }
+        if (size == 0xFFFFFFFF || compressed == 0xFFFFFFFF) break;
         return (size, compressed);
       }
       at += 4 + length;
@@ -219,6 +229,7 @@ class ZipStreamUnpacker {
     if (entry.inflate) {
       for (var at = offset; at < end; at += _inflateStep) {
         final stop = _min(at + _inflateStep, end);
+        entry.inflating = true;
         try {
           entry.inflater.addSlice(chunk, at, stop, false);
         } on FormatException {
@@ -237,6 +248,7 @@ class ZipStreamUnpacker {
 
   Future<void> _finish(_Entry entry) async {
     if (entry.inflate) {
+      entry.inflating = false;
       try {
         entry.inflater.close();
       } on FormatException {
@@ -306,6 +318,9 @@ class _Entry {
   RandomAccessFile? out;
 
   final inflated = _Pieces();
+
+  /// The inflater is made and not yet closed.
+  bool inflating = false;
 
   /// Made only for a deflated entry, at its first data.
   late final ByteConversionSink inflater = ZLibDecoder(
