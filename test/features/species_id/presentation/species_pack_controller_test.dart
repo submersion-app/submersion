@@ -36,6 +36,9 @@ class _Downloader extends SpeciesPackDownloader {
   var calls = 0;
   final downloaded = <String>[];
 
+  /// Each model zip's name, and the folder it was unpacked into.
+  final models = <String, String>{};
+
   @override
   Future<void> downloadFile({
     required Uri url,
@@ -43,7 +46,26 @@ class _Downloader extends SpeciesPackDownloader {
     required File dest,
     void Function(int receivedForThisFile)? onProgress,
     bool Function()? isCancelled,
-  }) async {
+  }) => _fetch(file, onProgress, isCancelled, () => dest.writeAsString('x'));
+
+  @override
+  Future<void> downloadModel({
+    required Uri url,
+    required PackFile file,
+    required Directory dest,
+    void Function(int receivedForThisFile)? onProgress,
+    bool Function()? isCancelled,
+  }) => _fetch(file, onProgress, isCancelled, () async {
+    await dest.create(recursive: true);
+    models[file.name] = dest.path;
+  });
+
+  Future<void> _fetch(
+    PackFile file,
+    void Function(int)? onProgress,
+    bool Function()? isCancelled,
+    Future<void> Function() write,
+  ) async {
     calls++;
     if (isCancelled?.call() ?? false) {
       throw const PackDownloadException(PackDownloadFailure.cancelled);
@@ -51,7 +73,7 @@ class _Downloader extends SpeciesPackDownloader {
     await gate?.future;
     onProgress?.call(file.size ~/ 2);
     if (failure != null) throw failure!;
-    await dest.writeAsString('x');
+    await write();
     downloaded.add(file.name);
     onProgress?.call(file.size);
   }
@@ -227,6 +249,22 @@ void main() {
     expect(service.packChanges, 1);
   });
 
+  test('each model is unpacked as it downloads, into its own folder; the '
+      'other files are downloaded whole', () async {
+    await controller().refresh();
+    await controller().download();
+
+    final staging = (await store.staging('2026.11.1')).path;
+    expect(downloader.models, {
+      'detector.coreml.zip': p.join(staging, 'detector'),
+      'classifier.coreml.zip': p.join(staging, 'classifier'),
+    });
+    expect(
+      downloader.downloaded.where((n) => !downloader.models.containsKey(n)),
+      ['candidates.json', 'text_embeddings.f16', 'regions.bin'],
+    );
+  });
+
   test('a failed download can be continued', () async {
     await controller().refresh();
     downloader.failure = const PackDownloadException(
@@ -241,11 +279,9 @@ void main() {
         PackDownloadFailure.network,
       ),
     );
-    // The first file's part is left in staging.
+    // A model unpacked before the failure is left in staging.
     final staging = await store.staging('2026.11.1');
-    await File(
-      p.join(staging.path, 'detector.coreml.zip.part'),
-    ).writeAsString('x');
+    await Directory(p.join(staging.path, 'detector')).create();
     await controller().refresh();
     expect((state() as PackNotInstalled).resumable, isTrue);
   });

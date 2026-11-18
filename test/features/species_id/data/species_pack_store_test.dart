@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:archive/archive.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 
@@ -29,33 +28,15 @@ SpeciesPackManifest _pairManifest(String version) => SpeciesPackManifest.parse(
   }),
 );
 
-Uint8List _zipOf(String folder) {
-  final archive = Archive()
-    ..addFile(
-      ArchiveFile.bytes('$folder/Manifest.json', utf8.encode('{"model": 1}')),
-    )
-    ..addFile(ArchiveFile.bytes('$folder/Data/weights.bin', Uint8List(16)));
-  return Uint8List.fromList(ZipEncoder().encodeBytes(archive));
-}
-
-/// A zip of one stored (uncompressed) file whose headers claim [claimed]
-/// bytes while it holds [actual]: what a model looks like when it did not
-/// unpack in full.
-Uint8List _zipClaiming(
-  String name, {
-  required int actual,
-  required int claimed,
-}) {
-  final archive = Archive()
-    ..addFile(ArchiveFile.noCompress(name, actual, Uint8List(actual)));
-  final bytes = Uint8List.fromList(ZipEncoder().encodeBytes(archive));
-  final data = ByteData.sublistView(bytes);
-  for (var i = 0; i + 4 <= bytes.length; i++) {
-    final signature = data.getUint32(i, Endian.little);
-    if (signature == 0x04034b50) data.setUint32(i + 22, claimed, Endian.little);
-    if (signature == 0x02014b50) data.setUint32(i + 24, claimed, Endian.little);
-  }
-  return bytes;
+/// Writes a model package into [folder], as the downloader unpacks one.
+void _writeModel(Directory folder, String package) {
+  final pkg = p.join(folder.path, package);
+  File(p.join(pkg, 'Manifest.json'))
+    ..createSync(recursive: true)
+    ..writeAsStringSync('{"model": 1}');
+  File(p.join(pkg, 'Data', 'weights.bin'))
+    ..createSync(recursive: true)
+    ..writeAsBytesSync(Uint8List(16));
 }
 
 void main() {
@@ -74,23 +55,23 @@ void main() {
   });
   tearDown(() => deleteTempDir(support));
 
-  /// Writes every file of [manifest] into staging, as the downloader would.
+  /// Writes every file of [manifest] into staging, as the downloader would:
+  /// each model unpacked into its own folder.
   Future<void> stage(
     SpeciesPackManifest manifest, {
     int embeddingValues = 6,
   }) async {
     final dir = await store.staging(manifest.packVersion);
     for (final detector in manifest.detectors) {
-      File(
-        p.join(
-          dir.path,
-          SpeciesPackManifest.modelFile(detector.file, 'coreml'),
-        ),
-      ).writeAsBytesSync(_zipOf('${detector.file}.mlpackage'));
+      _writeModel(
+        Directory(p.join(dir.path, detector.file)),
+        '${detector.file}.mlpackage',
+      );
     }
-    File(
-      p.join(dir.path, 'classifier.coreml.zip'),
-    ).writeAsBytesSync(_zipOf('classifier.mlpackage'));
+    _writeModel(
+      Directory(p.join(dir.path, 'classifier')),
+      'classifier.mlpackage',
+    );
     File(p.join(dir.path, 'candidates.json')).writeAsStringSync(
       jsonEncode([
         {
@@ -124,7 +105,7 @@ void main() {
     expect(await store.sizeBytes(), 0);
   });
 
-  test('an installed pack has its models unpacked where it says', () async {
+  test('an installed pack has its models where it says', () async {
     final manifest = _manifest('2026.11.1');
     await stage(manifest);
     final pack = await store.install(manifest);
@@ -210,41 +191,17 @@ void main() {
     },
   );
 
-  test('a model that does not unpack to the size its zip records is not '
-      'installed', () async {
+  test('a model that was not downloaded is not installed', () async {
     final manifest = _manifest('2026.11.1');
     await stage(manifest);
     final dir = await store.staging(manifest.packVersion);
-    File(p.join(dir.path, 'detector.coreml.zip')).writeAsBytesSync(
-      _zipClaiming(
-        'detector.mlpackage/Data/weights.bin',
-        actual: 16,
-        claimed: 32,
-      ),
-    );
+    await Directory(p.join(dir.path, 'classifier')).delete(recursive: true);
     await expectLater(
       store.install(manifest),
       throwsA(isA<PackManifestException>()),
     );
     expect(await store.installed(), isNull);
-  });
-
-  test('a zip entry that would land outside the model folder is '
-      'refused', () async {
-    final manifest = _manifest('2026.11.1');
-    await stage(manifest);
-    final dir = await store.staging(manifest.packVersion);
-    final archive = Archive()
-      ..addFile(ArchiveFile.bytes('../escaped.bin', Uint8List(4)));
-    File(
-      p.join(dir.path, 'detector.coreml.zip'),
-    ).writeAsBytesSync(ZipEncoder().encodeBytes(archive));
-    await expectLater(
-      store.install(manifest),
-      throwsA(isA<PackManifestException>()),
-    );
-    expect(await File(p.join(dir.path, 'escaped.bin')).exists(), isFalse);
-    expect(await store.installed(), isNull);
+    expect(await dir.exists(), isTrue);
   });
 
   test(
@@ -263,7 +220,7 @@ void main() {
     expect(await store.installed(), isNull);
   });
 
-  test('a pair pack unpacks each detector into its own folder', () async {
+  test('a pair pack keeps each detector in its own folder', () async {
     final manifest = _pairManifest('2026.11.2');
     await stage(manifest);
     final pack = await store.install(manifest);

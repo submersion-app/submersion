@@ -179,7 +179,9 @@ MiB throughout. What the run showed:
 - **Nothing was stopped.** No memory report was filed for the app during
   the run. Installing the pack did file a disk writes report: 1,074 MB
   written in 15 minutes, over iOS's 1 GB a day threshold. That is a report,
-  not a stop, but a shipped build would show it to the developer.
+  not a stop, but a shipped build would show it to the developer. Traced
+  in [the species pack disk writes findings](2026-11-18-species-pack-disk-writes.md)
+  (#4708).
 - **Speed.** The photo took about 0.4 s. The 27 second clip was scanned in
   about 7 s: pass 1 took about 1.6 s per 10 seconds of video, and pass 2 up
   to 1.9 s a chunk.

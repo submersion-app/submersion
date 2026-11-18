@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:archive/archive.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -215,6 +216,183 @@ void main() {
       ),
       failsWith(PackDownloadFailure.storage),
     );
+  });
+
+  group('downloadModel', () {
+    final zip = Uint8List.fromList(
+      ZipEncoder().encodeBytes(
+        Archive()
+          ..addFile(
+            ArchiveFile.bytes('detector.mlpackage/Manifest.json', [1, 2, 3]),
+          )
+          ..addFile(
+            ArchiveFile.bytes(
+              'detector.mlpackage/Data/weights.bin',
+              List.generate(3000, (i) => i % 7),
+            ),
+          ),
+      ),
+    );
+    final zipSha = sha256.convert(zip).toString();
+    final modelUrl = Uri.parse('https://example.test/pack/detector.coreml.zip');
+    late Directory folder;
+    Directory partFolder() => Directory('${folder.path}.part');
+    File weights() =>
+        File(p.join(folder.path, 'detector.mlpackage', 'Data', 'weights.bin'));
+
+    PackFile model({String? sha, int? size}) => PackFile(
+      name: 'detector.coreml.zip',
+      engine: 'coreml',
+      size: size ?? zip.length,
+      sha256: sha ?? zipSha,
+    );
+
+    setUp(() => folder = Directory(p.join(dir.path, 'detector')));
+
+    Future<void> download(
+      http.Client client, {
+      PackFile? file,
+      void Function(int)? onProgress,
+      bool Function()? isCancelled,
+    }) => SpeciesPackDownloader(client: client).downloadModel(
+      url: modelUrl,
+      file: file ?? model(),
+      dest: folder,
+      onProgress: onProgress,
+      isCancelled: isCancelled,
+    );
+
+    test('unpacks as it downloads: no zip is written', () async {
+      final progress = <int>[];
+      String? range;
+      await download(
+        _server(body: zip, inspect: (r) => range = r.headers['Range']),
+        onProgress: progress.add,
+      );
+      expect(await weights().readAsBytes(), List.generate(3000, (i) => i % 7));
+      expect(range, isNull);
+      expect(progress.last, zip.length);
+      expect(await partFolder().exists(), isFalse);
+      final written = dir.listSync(recursive: true).whereType<File>();
+      expect(written.where((f) => f.path.endsWith('.zip')), isEmpty);
+    });
+
+    test(
+      'a model unpacked from the same zip is not downloaded again',
+      () async {
+        await download(_server(body: zip));
+        var requests = 0;
+        final progress = <int>[];
+        await download(
+          _server(body: zip, inspect: (_) => requests++),
+          onProgress: progress.add,
+        );
+        expect(requests, 0);
+        expect(progress, [zip.length]);
+        expect(await weights().exists(), isTrue);
+      },
+    );
+
+    test('a model unpacked from another zip is downloaded again', () async {
+      await folder.create(recursive: true);
+      await File(p.join(folder.path, 'stale.bin')).writeAsString('old');
+      await download(_server(body: zip));
+      expect(await weights().exists(), isTrue);
+      expect(await File(p.join(folder.path, 'stale.bin')).exists(), isFalse);
+    });
+
+    test('a zip an earlier build left whole or in part is removed', () async {
+      final whole = File(p.join(dir.path, 'detector.coreml.zip'));
+      final part = File('${whole.path}.part');
+      await whole.writeAsBytes(zip);
+      await part.writeAsBytes(zip.sublist(0, 10));
+      await download(_server(body: zip));
+      expect(await whole.exists(), isFalse);
+      expect(await part.exists(), isFalse);
+      expect(await weights().exists(), isTrue);
+    });
+
+    test('a wrong hash fails and leaves nothing unpacked', () async {
+      await expectLater(
+        download(
+          _server(body: zip),
+          file: model(sha: 'b' * 64),
+        ),
+        failsWith(PackDownloadFailure.checksumMismatch),
+      );
+      expect(await folder.exists(), isFalse);
+      expect(await partFolder().exists(), isFalse);
+    });
+
+    test('a body that ends short fails and leaves nothing to resume', () async {
+      await expectLater(
+        download(_server(body: zip.sublist(0, zip.length - 50))),
+        failsWith(PackDownloadFailure.network),
+      );
+      expect(await folder.exists(), isFalse);
+      expect(await partFolder().exists(), isFalse);
+    });
+
+    test('more bytes than the manifest says fails', () async {
+      await expectLater(
+        download(_server(body: [...zip, 1, 2, 3])),
+        failsWith(PackDownloadFailure.sizeMismatch),
+      );
+      expect(await partFolder().exists(), isFalse);
+    });
+
+    test('cancelling leaves nothing unpacked', () async {
+      var chunks = 0;
+      await expectLater(
+        download(
+          _server(body: zip),
+          onProgress: (_) => chunks++,
+          isCancelled: () => chunks >= 2,
+        ),
+        failsWith(PackDownloadFailure.cancelled),
+      );
+      expect(await partFolder().exists(), isFalse);
+    });
+
+    test('a broken connection leaves nothing unpacked', () async {
+      await expectLater(
+        download(
+          _server(body: zip, failAfterFirstChunk: const SocketException('x')),
+        ),
+        failsWith(PackDownloadFailure.network),
+      );
+      expect(await partFolder().exists(), isFalse);
+    });
+
+    test('a file that is not a zip is malformed', () async {
+      final html = utf8.encode('<html>${'x' * 200}</html>');
+      await expectLater(
+        download(
+          _server(body: html),
+          file: model(sha: sha256.convert(html).toString(), size: html.length),
+        ),
+        failsWith(PackDownloadFailure.malformed),
+      );
+      expect(await folder.exists(), isFalse);
+      expect(await partFolder().exists(), isFalse);
+    });
+
+    test('a server error is an http failure', () async {
+      await expectLater(
+        download(MockClient((_) async => http.Response('nope', 500))),
+        failsWith(PackDownloadFailure.httpStatus),
+      );
+    });
+
+    test('a folder that cannot be written is a storage failure', () async {
+      final notADir = File(p.join(dir.path, 'plain-file'));
+      await notADir.writeAsString('x');
+      folder = Directory(p.join(notADir.path, 'detector'));
+      await expectLater(
+        download(_server(body: zip)),
+        failsWith(PackDownloadFailure.storage),
+      );
+    });
   });
 
   group('SpeciesPackManifestClient', () {

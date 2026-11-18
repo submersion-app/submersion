@@ -1,8 +1,6 @@
 import 'dart:io';
-import 'dart:isolate';
 import 'dart:typed_data';
 
-import 'package:archive/archive_io.dart';
 import 'package:equatable/equatable.dart';
 import 'package:path/path.dart' as p;
 
@@ -106,30 +104,20 @@ class SpeciesPackStore {
     return null;
   }
 
-  /// Installs the version in staging, whose files the caller has verified:
-  /// unpacks every model (each detector's and the classifier), writes the
-  /// manifest, swaps the version into place and removes any other. A model
-  /// that does not unpack in full (the disk filled) throws, and nothing is
+  /// Installs the version in staging, whose files the caller has verified
+  /// and whose models it has unpacked, each into the folder named by
+  /// [modelStems]: writes the manifest, swaps the version into place and
+  /// removes any other. A model missing from staging throws, and nothing is
   /// swapped in.
   Future<InstalledPack> install(SpeciesPackManifest manifest) async {
     final stage = await staging(manifest.packVersion);
-    for (final kind in _modelStems(manifest)) {
-      final zip = File(
-        p.join(stage.path, SpeciesPackManifest.modelFile(kind, engine)),
-      );
-      final out = Directory(p.join(stage.path, kind));
-      if (await out.exists()) await out.delete(recursive: true);
-      // Plain strings into the worker: nothing else of this scope.
-      final zipPath = zip.path;
-      final outPath = out.path;
-      try {
-        // Hundreds of megabytes: off the UI isolate.
-        await Isolate.run(() => unpackModelZip(zipPath, outPath));
-      } on Object {
-        if (await out.exists()) await out.delete(recursive: true);
-        rethrow;
+    for (final stem in modelStems(manifest)) {
+      if (await _model(Directory(p.join(stage.path, stem))) == null) {
+        throw PackManifestException(
+          PackManifestFailure.malformed,
+          'the $stem model was not downloaded',
+        );
       }
-      await zip.delete();
     }
     await File(
       p.join(stage.path, _manifestName),
@@ -240,8 +228,9 @@ class SpeciesPackStore {
     );
   }
 
-  /// The folder (and zip) stem of every model the pack carries.
-  static List<String> _modelStems(SpeciesPackManifest manifest) => [
+  /// The folder (and zip) stem of every model the pack carries: each
+  /// detector's, then the classifier's.
+  static List<String> modelStems(SpeciesPackManifest manifest) => [
     for (final detector in manifest.detectors) detector.file,
     SpeciesPackManifest.classifierStem,
   ];
@@ -259,48 +248,5 @@ class SpeciesPackStore {
       if (path.endsWith('.mlmodelc')) return path;
     }
     return names.first;
-  }
-}
-
-/// Unpacks the model zip at [zipPath] into [outPath], checking each file
-/// against the size the zip records. Synchronous: run it on another
-/// isolate.
-///
-/// Throws [PackManifestException] for an entry that would land outside
-/// [outPath] or a file that did not unpack in full, and lets a
-/// [FileSystemException] (a full disk) through rather than swallowing it.
-void unpackModelZip(String zipPath, String outPath) {
-  final input = InputFileStream(zipPath);
-  try {
-    final archive = ZipDecoder().decodeStream(input);
-    final root = p.normalize(p.absolute(outPath));
-    for (final entry in archive) {
-      final target = p.normalize(p.join(root, entry.name));
-      if (!p.isWithin(root, target)) {
-        throw const PackManifestException(
-          PackManifestFailure.malformed,
-          'a model file would land outside its folder',
-        );
-      }
-      if (!entry.isFile) {
-        Directory(target).createSync(recursive: true);
-        continue;
-      }
-      File(target).parent.createSync(recursive: true);
-      final output = OutputFileStream(target);
-      try {
-        entry.writeContent(output);
-      } finally {
-        output.closeSync();
-      }
-      if (File(target).lengthSync() != entry.size) {
-        throw PackManifestException(
-          PackManifestFailure.malformed,
-          '${entry.name} did not unpack in full',
-        );
-      }
-    }
-  } finally {
-    input.closeSync();
   }
 }

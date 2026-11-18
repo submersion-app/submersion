@@ -4,7 +4,9 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
+import 'package:path/path.dart' as p;
 
+import 'package:submersion/features/species_id/data/pack/zip_stream_unpacker.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
 
 /// Where the model pack's manifest is published (issue #4668). A
@@ -94,12 +96,14 @@ class SpeciesPackManifestClient {
   Uri fileUrl(PackFile file) => _url.resolve(file.name);
 }
 
-/// Downloads one pack file, verified against its manifest entry.
+/// Downloads one pack file, verified against its manifest entry: a model
+/// zip with [downloadModel], unpacked as it arrives, and any other file
+/// with [downloadFile].
 ///
-/// Bytes go to `<dest>.part`, and the file is renamed into place only when
-/// its size and SHA-256 match. A broken connection, a cancel or a full disk
-/// keeps the part, and the next attempt resumes it with a Range request; a
-/// file that fails verification is discarded.
+/// [downloadFile] writes to `<dest>.part`, and the file is renamed into
+/// place only when its size and SHA-256 match. A broken connection, a
+/// cancel or a full disk keeps the part, and the next attempt resumes it
+/// with a Range request; a file that fails verification is discarded.
 class SpeciesPackDownloader {
   SpeciesPackDownloader({
     http.Client? client,
@@ -230,6 +234,138 @@ class SpeciesPackDownloader {
       throw const PackDownloadException(PackDownloadFailure.checksumMismatch);
     }
     await _rename(part, dest);
+  }
+
+  /// Downloads a model zip and unpacks it as it arrives into the folder
+  /// [dest], so the model is written to disk once: the zip itself never is
+  /// (issue #4708).
+  ///
+  /// Unpacks into `<dest>.part`, renamed into place only when the zip's
+  /// size and SHA-256 match, with that hash recorded in the folder so a
+  /// later attempt keeps a model that still checks out. There is nothing to
+  /// resume from: a broken connection, a cancel or a full disk discards
+  /// what was unpacked, and the next attempt fetches the zip from its
+  /// start.
+  Future<void> downloadModel({
+    required Uri url,
+    required PackFile file,
+    required Directory dest,
+    void Function(int receivedForThisFile)? onProgress,
+    bool Function()? isCancelled,
+  }) async {
+    final recorded = File(p.join(dest.path, _modelHashFile));
+    if (await _readOrNull(recorded) == file.sha256) {
+      onProgress?.call(file.size);
+      return;
+    }
+    final part = Directory('${dest.path}.part');
+    await _deleteFolder(dest);
+    await _deleteFolder(part);
+    // The zip, whole or in part, as a build before #4708 left it.
+    final zip = File(p.join(dest.parent.path, file.name));
+    await _delete(zip);
+    await _delete(File('${zip.path}.part'));
+
+    final request = http.Request('GET', url);
+    final http.StreamedResponse response;
+    try {
+      response = await _client.send(request).timeout(connectTimeout);
+    } on TimeoutException {
+      throw const PackDownloadException(PackDownloadFailure.network, 'timeout');
+    } on Exception catch (e) {
+      throw PackDownloadException(PackDownloadFailure.network, '$e');
+    }
+    if (response.statusCode != 200) {
+      await response.stream.drain<void>().catchError((_) {});
+      throw PackDownloadException(
+        PackDownloadFailure.httpStatus,
+        'HTTP ${response.statusCode}',
+      );
+    }
+
+    final digest = _DigestSink();
+    final hasher = sha256.startChunkedConversion(digest);
+    final unpacker = ZipStreamUnpacker(part.path);
+    var received = 0;
+    try {
+      try {
+        await part.create(recursive: true);
+        // Each chunk is unpacked and written before the next is read.
+        await for (final chunk in response.stream.timeout(idleTimeout)) {
+          if (isCancelled?.call() ?? false) {
+            throw const PackDownloadException(PackDownloadFailure.cancelled);
+          }
+          received += chunk.length;
+          if (received > file.size) {
+            throw PackDownloadException(
+              PackDownloadFailure.sizeMismatch,
+              'more than ${file.size} bytes',
+            );
+          }
+          hasher.add(chunk);
+          await unpacker.add(chunk);
+          onProgress?.call(received);
+        }
+        if (received < file.size) {
+          throw PackDownloadException(
+            PackDownloadFailure.network,
+            'ended at $received of ${file.size} bytes',
+          );
+        }
+        hasher.close();
+        if (digest.value.toString() != file.sha256) {
+          throw const PackDownloadException(
+            PackDownloadFailure.checksumMismatch,
+          );
+        }
+        await unpacker.close();
+        await File(
+          p.join(part.path, _modelHashFile),
+        ).writeAsString(file.sha256, flush: true);
+        await part.rename(dest.path);
+      } on PackDownloadException {
+        rethrow;
+      } on PackManifestException catch (e) {
+        throw PackDownloadException(PackDownloadFailure.malformed, e.detail);
+      } on FileSystemException catch (e) {
+        throw PackDownloadException(PackDownloadFailure.storage, e.message);
+      } on TimeoutException {
+        throw const PackDownloadException(
+          PackDownloadFailure.network,
+          'stalled',
+        );
+      } on Exception catch (e) {
+        throw PackDownloadException(PackDownloadFailure.network, '$e');
+      }
+    } on Object {
+      await unpacker.abort();
+      try {
+        await _deleteFolder(part);
+      } on PackDownloadException {
+        // The failure that got here is the one to report.
+      }
+      rethrow;
+    }
+  }
+
+  /// Inside an unpacked model's folder: the SHA-256 of the zip it came
+  /// from. A dot file, so it is never taken for the model.
+  static const _modelHashFile = '.zip-sha256';
+
+  static Future<String?> _readOrNull(File file) async {
+    try {
+      return await file.exists() ? await file.readAsString() : null;
+    } on FileSystemException {
+      return null;
+    }
+  }
+
+  static Future<void> _deleteFolder(Directory dir) async {
+    try {
+      if (await dir.exists()) await dir.delete(recursive: true);
+    } on FileSystemException catch (e) {
+      throw PackDownloadException(PackDownloadFailure.storage, e.message);
+    }
   }
 
   static Future<int> _length(File file) async {

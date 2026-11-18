@@ -53,7 +53,7 @@ class PackDownloading extends SpeciesPackState {
   final int total;
 }
 
-/// Downloaded: unpacking the models and preparing them for this device.
+/// Downloaded and unpacked: preparing the models for this device.
 class PackInstalling extends SpeciesPackState {
   const PackInstalling();
 }
@@ -184,20 +184,37 @@ class SpeciesPackController extends Notifier<SpeciesPackState> {
     final store = ref.read(speciesPackStoreProvider);
     final client = ref.read(speciesPackManifestClientProvider);
     final downloader = ref.read(speciesPackDownloaderProvider);
+    // Each model zip is unpacked as it downloads, into its stem's folder,
+    // so it is written once (issue #4708).
+    final modelFolders = {
+      for (final stem in SpeciesPackStore.modelStems(manifest))
+        SpeciesPackManifest.modelFile(stem, engineName): stem,
+    };
     try {
       final staging = await store.staging(manifest.packVersion);
       var done = 0;
       for (final file in files) {
-        final dest = File(p.join(staging.path, file.name));
+        void progress(int n) =>
+            state = PackDownloading(received: done + n, total: total);
+        final folder = modelFolders[file.name];
         // The downloader keeps a finished file only if its hash matches.
-        await downloader.downloadFile(
-          url: client.fileUrl(file),
-          file: file,
-          dest: dest,
-          onProgress: (n) =>
-              state = PackDownloading(received: done + n, total: total),
-          isCancelled: () => _cancelled,
-        );
+        if (folder != null) {
+          await downloader.downloadModel(
+            url: client.fileUrl(file),
+            file: file,
+            dest: Directory(p.join(staging.path, folder)),
+            onProgress: progress,
+            isCancelled: () => _cancelled,
+          );
+        } else {
+          await downloader.downloadFile(
+            url: client.fileUrl(file),
+            file: file,
+            dest: File(p.join(staging.path, file.name)),
+            onProgress: progress,
+            isCancelled: () => _cancelled,
+          );
+        }
         done += file.size;
       }
       state = const PackInstalling();
