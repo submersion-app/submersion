@@ -19,6 +19,7 @@ typedef SiteSaveCall = ({
   DiveSite Function(DiveSite stored) apply,
   List<String> cards,
   String? actingDiverId,
+  bool hasHeldWrites,
 });
 
 /// Stands in for the save service: records what it was asked to write, and
@@ -39,12 +40,16 @@ class FakeSiteSave implements SiteEditSaveService {
     Future<void> Function()? writeFirst,
     Future<void> Function()? alsoWrite,
     bool alsoWriteIsAChange = false,
+    Set<String> Function()? heldLibraryFields,
   }) async {
     calls.add((
       siteId: siteId,
       apply: apply,
       cards: changedCardIds.toList()..sort(),
       actingDiverId: actingDiverId,
+      // Not run: the page's held writes reach the database, which this
+      // harness has none of.
+      hasHeldWrites: writeFirst != null || alsoWrite != null,
     ));
     final failure = failWith;
     if (failure != null) throw failure;
