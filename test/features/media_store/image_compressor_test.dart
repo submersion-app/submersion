@@ -115,6 +115,47 @@ void main() {
     expect(request.maxDimension, 2048);
     expect(request.skipWhenUnderCeiling, isTrue);
     expect(request.declaredName, 'shot.png');
+    expect(
+      request.keepJpegMetadata,
+      isTrue,
+      reason: 'a rendition keeps the capture time and location it had',
+    );
+  });
+
+  test('a format package:image cannot read still uploads untouched, its '
+      'metadata with it (#4699)', () async {
+    // HEIC uploaded as the original before the engine's codecs took over the
+    // decode; re-encoded now, it would lose its EXIF, which only a JPEG
+    // source's can be carried over.
+    var resized = 0;
+    final recording = ImageCompressor(
+      registry: MediaSourceResolverRegistry({
+        MediaSourceType.localFile: FakeLocalFileResolver(),
+      }),
+      cache: cache,
+      resize: (request) async {
+        resized++;
+        return const ImageResizeResult(ImageResizeOutcome.written);
+      },
+    );
+    final heic = MediaItem(
+      id: 'm2',
+      mediaType: MediaType.photo,
+      sourceType: MediaSourceType.localFile,
+      originalFilename: 'IMG_0001.HEIC',
+      takenAt: DateTime(2026, 1, 1),
+      createdAt: DateTime(2026, 1, 1),
+      updatedAt: DateTime(2026, 1, 1),
+    );
+
+    final result = await recording.compress(
+      heic,
+      await stagedPng(4000, 3000),
+      MediaUploadQuality.balanced,
+    );
+
+    expect(result, isNull);
+    expect(resized, 0);
   });
 
   test('original level never compresses', () async {

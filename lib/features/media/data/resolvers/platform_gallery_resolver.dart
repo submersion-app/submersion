@@ -181,15 +181,18 @@ class PlatformGalleryResolver implements MediaSourceResolver {
     return _missing(item);
   }
 
-  /// Asset [id]'s original: the file the platform keeps where it has one,
-  /// else its bytes, else null.
+  /// Asset [id]'s original: the file the platform keeps where it keeps one,
+  /// else its bytes, or null when it cannot be read.
   ///
-  /// The file first (issue #4699): read as bytes, the original sat whole in
-  /// memory, a 4K video's hundreds of MB to stage one upload, and a copy for
-  /// every viewer page on top of its decoded bitmap.
+  /// The file wherever there is one (issue #4699): read as bytes, the
+  /// original sat whole in memory, a 4K video's hundreds of MB to stage one
+  /// upload, and a copy for every viewer page on top of its decoded bitmap.
+  /// Never both: where originals are files the bytes are that file read
+  /// back, so a failed export would only be tried again.
   Future<MediaSourceData?> _original(String id) async {
-    final file = await _reader.originFile(id);
-    if (file != null) {
+    if (_reader.originalsAsFiles) {
+      final file = await _reader.originFile(id);
+      if (file == null) return null;
       return FileData(file: file, servedFrom: ServedFrom.platformGallery);
     }
     final bytes = await _reader.originBytes(id);

@@ -60,7 +60,10 @@ MiB throughout. What each change does:
   same read.
 - **Compressed uploads** of local photos decoded the original with
   package:image. They now use the engine's codecs, which scale as they decode,
-  as thumbnails already did.
+  as thumbnails already did. A JPEG's EXIF (capture time, location) is copied
+  into the rendition less its orientation, as package:image's re-encode kept
+  it, and a format package:image cannot read (HEIC) still uploads untouched,
+  since its metadata could not be carried over.
 - **The viewer** bounded its decode by width only, so a portrait photo was
   decoded at nearly its full size. It now fits the decode inside a square of
   the same bound, which gives portrait photos the detail landscape ones

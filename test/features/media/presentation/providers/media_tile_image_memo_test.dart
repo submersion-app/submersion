@@ -175,6 +175,51 @@ void main() {
     expect(MediaTileImageMemo.bounded(base, null, longEdge: true), base);
   });
 
+  test('a photo-library row re-linked to another asset is a miss '
+      '(#4699)', () async {
+    // Library photos now draw from the file photo_manager exports, through
+    // this memo; a re-link changes only the asset id.
+    MediaItem galleryRow(String assetId) => MediaItem(
+      id: 'g1',
+      mediaType: MediaType.photo,
+      sourceType: MediaSourceType.platformGallery,
+      platformAssetId: assetId,
+      takenAt: DateTime(2026),
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+    final memo = MediaTileImageMemo();
+    final file = fileNamed('export-A.jpg');
+    memo.remember(
+      galleryRow('A/L0/001'),
+      thumbnail: false,
+      cacheWidth: 2400,
+      file: file,
+      longEdge: true,
+    );
+    await seed(file, 2400, longEdge: true);
+
+    expect(
+      memo.cachedProvider(
+        galleryRow('A/L0/001'),
+        thumbnail: false,
+        cacheWidth: 2400,
+        longEdge: true,
+      ),
+      isNotNull,
+    );
+    expect(
+      memo.cachedProvider(
+        galleryRow('B/L0/001'),
+        thumbnail: false,
+        cacheWidth: 2400,
+        longEdge: true,
+      ),
+      isNull,
+      reason: 'the old asset\'s picture must not flash in the new one\'s place',
+    );
+  });
+
   test('evictItems takes the decoded images out of memory and forgets the '
       'items', () async {
     final memo = MediaTileImageMemo();

@@ -14,12 +14,16 @@ import 'package:submersion/core/platform/host_platform.dart';
 abstract class GalleryAssetReader {
   Future<Uint8List?> originBytes(String assetId);
 
-  /// The original as a file the platform already keeps, or null where it
-  /// has none to share and [originBytes] is the way to read it.
+  /// Whether this platform keeps originals as files, so [originFile] is how
+  /// to read one and [originBytes] would be the same file read into memory.
   ///
-  /// Preferred over [originBytes] wherever it answers (issue #4699): bytes
-  /// put the whole original in memory, which for a 4K video is hundreds of
-  /// MB, while a file is read or copied a piece at a time.
+  /// Files are preferred wherever the platform keeps them (issue #4699):
+  /// bytes put the whole original in memory, which for a 4K video is
+  /// hundreds of MB, while a file is read or copied a piece at a time.
+  bool get originalsAsFiles;
+
+  /// The original as the file the platform keeps, or null when it cannot be
+  /// had. Asked only where [originalsAsFiles] holds.
   Future<File?> originFile(String assetId);
   Future<Uint8List?> thumbnailBytes(String assetId, int width, int height);
   Future<bool> exists(String assetId);
@@ -43,8 +47,10 @@ class PhotoManagerAssetReader implements GalleryAssetReader {
   /// handing over the file costs nothing more. On Android the bytes cross
   /// the platform channel instead, and a file would be a new copy on disk.
   @override
+  bool get originalsAsFiles => HostPlatform.isApple;
+
+  @override
   Future<File?> originFile(String assetId) async {
-    if (!HostPlatform.isApple) return null;
     final asset = await AssetEntity.fromId(assetId);
     if (asset == null) return null;
     return asset.originFile;

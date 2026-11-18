@@ -154,8 +154,11 @@ class MediaTileImageMemo {
     return key;
   }
 
+  /// The asset id too: a photo-library row draws from the file its asset
+  /// exports (#4699), and a re-link changes only the id.
   static String _pointerOf(MediaItem item) =>
-      '${item.sourceType.name}\u0000${item.localPath ?? ''}'
+      '${item.sourceType.name}\u0000${item.platformAssetId ?? ''}'
+      '\u0000${item.localPath ?? ''}'
       '\u0000${item.filePath ?? ''}\u0000${item.bookmarkRef ?? ''}'
       '\u0000${item.contentHash ?? ''}';
 }

@@ -28,11 +28,10 @@ const Size kDefaultThumbnailTarget = Size(200, 200);
 /// How far past the viewport a full-screen image is decoded, so pinch-zoom
 /// still has pixels to show.
 ///
-/// The viewers run `PhotoViewGallery` at `maxScale: covered * 3.0`, so a bound
-/// of exactly one viewport would go soft the moment the user zooms. Two keeps
-/// detail through the range people actually use while still cutting a 24 MP
-/// original (~96 MB of RGBA) to roughly a tenth of that on a phone. Raising it
-/// buys sharpness at 3x zoom for a quadratic cost in bytes.
+/// The viewers zoom to `covered * 3.0`, so one viewport would go soft at once.
+/// Two times the screen's long side is 5736 px on an iPhone 17 Pro Max: a
+/// 50 MP photo keeps about 70% of its pixels, sharp to about 4x zoom, and
+/// holds about 146 MiB (#4699). The cost grows with the square of this.
 const double _viewerZoomHeadroom = 2.0;
 
 /// Universal display widget for any [MediaItem] regardless of its source
@@ -646,10 +645,8 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
             // The same decode bound as the file and bytes branches: without
             // it a served original decodes at native size, and the viewers
             // keep a neighbour built either side of the current page.
-            // Width only, even full screen: the package takes both
-            // dimensions as exact bounds, and the imageBuilder below must
-            // share its cache entry, so a long-edge bound here would
-            // distort the photo or decode it twice.
+            // Width only, even full screen: the package takes two dimensions
+            // as exact bounds, and the imageBuilder must share its entry.
             memCacheWidth: cacheWidth,
             // Only the loaded image is colour corrected; the placeholder and
             // the error tile below are drawn as they are (issue #3520). The

@@ -78,9 +78,11 @@ void main() {
     addTearDown(() => dir.deleteSync(recursive: true));
     final file = File(p.join(dir.path, 'IMG_0002.MOV'))
       ..writeAsBytesSync(bytes);
-    gallery.add(
-      FakeGalleryAsset(id: 'A-2', bytes: bytes, takenAt: taken, file: file),
-    );
+    gallery
+      ..originalsAsFiles = true
+      ..add(
+        FakeGalleryAsset(id: 'A-2', bytes: bytes, takenAt: taken, file: file),
+      );
 
     final data = await resolver.resolve(row('A-2', filename: 'IMG_0002.MOV'));
 
@@ -88,6 +90,18 @@ void main() {
     expect((data as FileData).file.path, file.path);
     expect(data.servedFrom, ServedFrom.platformGallery);
     expect(data.isPoster, isFalse);
+    expect(gallery.originBytesReads, 0);
+  });
+
+  test('where the library keeps originals as files, an export that fails '
+      'is not tried again as bytes (#4699)', () async {
+    // On iOS and macOS originBytes is the same export read back, so a
+    // second try (an iCloud download that failed) can only fail again.
+    gallery.originalsAsFiles = true;
+
+    final data = await resolver.resolve(row('A-1'));
+
+    expect(data, isA<UnavailableData>());
     expect(gallery.originBytesReads, 0);
   });
 

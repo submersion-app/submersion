@@ -216,7 +216,10 @@ void main() {
     );
     final video = views.singleWhere((v) => v.item.id == 'v1');
     expect(video.thumbnail, isTrue);
-    expect(video.targetSize, isNotNull);
+    // The screen in pixels, not points: the poster is asked for at that size,
+    // and a point-sized one is a third of the screen's resolution at 3x.
+    final view = tester.view;
+    expect(video.targetSize, view.physicalSize);
     final photo = views.singleWhere((v) => v.item.id == 'm2');
     expect(
       photo.thumbnail,

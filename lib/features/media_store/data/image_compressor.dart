@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'dart:ui' show Size;
 
+import 'package:image/image.dart' as img;
+
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -96,6 +98,15 @@ class ImageCompressor implements MediaCompressor {
     String? name,
     PhotoQualityPreset preset,
   ) async {
+    // A format package:image cannot read (HEIC) uploaded untouched before
+    // the engine's codecs took over the decode, and only a JPEG's EXIF can
+    // be carried into a rendition: re-encoded, it would lose its capture
+    // time and location (issue #4699).
+    if (name != null &&
+        name.contains('.') &&
+        img.findDecoderForNamedImage(name) == null) {
+      return null;
+    }
     final staged = await _cache.stagingFile();
     final result = await _resize(
       ImageResizeRequest.fromFile(
@@ -105,6 +116,7 @@ class ImageCompressor implements MediaCompressor {
         maxDimension: preset.maxDimension,
         jpegQuality: preset.jpegQuality,
         skipWhenUnderCeiling: true,
+        keepJpegMetadata: true,
       ),
     );
     if (result.outcome != ImageResizeOutcome.written) {

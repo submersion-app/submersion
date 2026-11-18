@@ -164,6 +164,11 @@ class FakePhotoPickerService
   /// How many originals were read whole into memory.
   int originBytesReads = 0;
 
+  /// Whether this library hands originals over as files, as photo_manager
+  /// does on iOS and macOS. Off by default, as on Android.
+  @override
+  bool originalsAsFiles = false;
+
   @override
   Future<Uint8List?> originBytes(String assetId) async {
     originBytesReads++;
