@@ -67,6 +67,32 @@ void main() {
     expect(gapped.coversRange(1000, 13000), isFalse);
   });
 
+  test('of sorts and merges whatever it is given', () {
+    expect(
+      ScannedRanges.of([
+        (startMs: 30000, endMs: 40000),
+        (startMs: 0, endMs: 10000),
+        (startMs: 5000, endMs: 12000),
+        (startMs: 50000, endMs: 50000),
+      ]).stretches,
+      [(startMs: 0, endMs: 12000), (startMs: 30000, endMs: 40000)],
+    );
+  });
+
+  test('copyWith sorts and merges too', () {
+    expect(
+      gapped
+          .copyWith(
+            stretches: const [
+              (startMs: 20000, endMs: 30000),
+              (startMs: 0, endMs: 25000),
+            ],
+          )
+          .stretches,
+      [(startMs: 0, endMs: 30000)],
+    );
+  });
+
   test('copyWith with nothing given is an equal copy', () {
     expect(gapped.copyWith(), gapped);
     expect(

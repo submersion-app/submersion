@@ -8,18 +8,26 @@ typedef ScannedStretch = ({int startMs, int endMs});
 /// The stretches of a video already scanned (issue #4709): sorted, never
 /// overlapping, merged where they touch, and never empty. Immutable.
 class ScannedRanges extends Equatable {
-  const ScannedRanges([this.stretches = const []]);
+  /// Nothing scanned yet.
+  const ScannedRanges() : stretches = const [];
+
+  const ScannedRanges._(this.stretches);
+
+  /// [stretches] in any order, sorted and merged, empty ones left out.
+  factory ScannedRanges.of(Iterable<ScannedStretch> stretches) => stretches
+      .fold(const ScannedRanges(), (all, s) => all.add(s.startMs, s.endMs));
 
   /// Scanned from the start up to [endMs]: how a run stored before the
   /// stretches were kept reads its single mark. Empty for [endMs] <= 0.
   factory ScannedRanges.prefix(int endMs) => endMs <= 0
       ? const ScannedRanges()
-      : ScannedRanges([(startMs: 0, endMs: endMs)]);
+      : ScannedRanges._([(startMs: 0, endMs: endMs)]);
 
   final List<ScannedStretch> stretches;
 
+  /// With [stretches] in place of these, sorted and merged.
   ScannedRanges copyWith({List<ScannedStretch>? stretches}) =>
-      ScannedRanges(stretches ?? this.stretches);
+      stretches == null ? this : ScannedRanges.of(stretches);
 
   /// These stretches with [startMs] to [endMs] added. Nothing changes for
   /// an empty stretch.
@@ -39,7 +47,7 @@ class ScannedRanges extends Equatable {
         merged.add(s);
       }
     }
-    return ScannedRanges(List.unmodifiable(merged));
+    return ScannedRanges._(List.unmodifiable(merged));
   }
 
   /// Whether the moment [ms] is scanned.

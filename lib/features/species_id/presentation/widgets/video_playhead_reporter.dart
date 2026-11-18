@@ -50,8 +50,10 @@ class _VideoPlayheadReporterState extends ConsumerState<VideoPlayheadReporter> {
   /// Whether what is settling is a seek; otherwise it is a pause.
   var _seeking = false;
 
-  /// Read once: [dispose] cannot read providers.
-  late final MediaIdentificationService _service;
+  /// The service as last read, kept for [dispose], which cannot read
+  /// providers. Reports read the provider afresh: it gives a new service
+  /// when the pack store, repository or engine changes.
+  late MediaIdentificationService _service;
 
   @override
   void initState() {
@@ -65,6 +67,9 @@ class _VideoPlayheadReporterState extends ConsumerState<VideoPlayheadReporter> {
   void didUpdateWidget(VideoPlayheadReporter oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.item.id != widget.item.id) {
+      // What was settling belongs to the video left.
+      _settling?.cancel();
+      _seeking = false;
       _service.forgetPlayhead(oldWidget.item.id);
     }
     if (oldWidget.playback != widget.playback) {
@@ -124,8 +129,10 @@ class _VideoPlayheadReporterState extends ConsumerState<VideoPlayheadReporter> {
     _report(value.position.inMilliseconds, seek: seek);
   }
 
-  void _report(int ms, {required bool seek}) =>
-      _service.followPlayhead(widget.item.id, ms, seek: seek);
+  void _report(int ms, {required bool seek}) {
+    _service = ref.read(mediaIdentificationServiceProvider);
+    _service.followPlayhead(widget.item.id, ms, seek: seek);
+  }
 
   @override
   Widget build(BuildContext context) => const SizedBox.shrink();

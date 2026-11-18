@@ -35,20 +35,21 @@ void main() {
     playback.dispose();
   });
 
-  Future<void> pump(WidgetTester tester) => tester.pumpWidget(
-    ProviderScope(
-      overrides: [
-        mediaIdentificationServiceProvider.overrideWithValue(service),
-      ],
-      child: Directionality(
-        textDirection: TextDirection.ltr,
-        child: VideoPlayheadReporter(
-          playback: playback,
-          item: testMediaItem(id: 'v1', mediaType: MediaType.video),
+  Future<void> pump(WidgetTester tester, {String id = 'v1'}) =>
+      tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            mediaIdentificationServiceProvider.overrideWithValue(service),
+          ],
+          child: Directionality(
+            textDirection: TextDirection.ltr,
+            child: VideoPlayheadReporter(
+              playback: playback,
+              item: testMediaItem(id: id, mediaType: MediaType.video),
+            ),
+          ),
         ),
-      ),
-    ),
-  );
+      );
 
   void at(int ms, {bool playing = true}) =>
       playback.value = playback.value.copyWith(
@@ -157,6 +158,33 @@ void main() {
     at(60500, playing: false);
     await tester.pump(const Duration(seconds: 1));
     expect(service.followed, isEmpty);
+  });
+
+  testWidgets('reports reach the service the provider gives now', (
+    tester,
+  ) async {
+    final first = service;
+    await pump(tester);
+    service = RecordingIdentificationService();
+    await pump(tester);
+    at(5000);
+    await tester.pump(const Duration(milliseconds: 100));
+    at(60000);
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(first.followed, isEmpty);
+    expect(service.followed, [(mediaId: 'v1', ms: 60000, seek: true)]);
+  });
+
+  testWidgets('a seek settling when the video changes is not reported for '
+      'the next one', (tester) async {
+    await pump(tester);
+    at(5000);
+    await tester.pump(const Duration(milliseconds: 100));
+    at(60000);
+    await pump(tester, id: 'v2');
+    await tester.pump(const Duration(seconds: 1));
+    expect(service.followed, isEmpty);
+    expect(service.forgotten, ['v1']);
   });
 
   testWidgets('leaving the video forgets its report', (tester) async {
