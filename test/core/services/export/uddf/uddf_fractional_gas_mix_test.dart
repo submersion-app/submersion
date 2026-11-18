@@ -238,5 +238,38 @@ void main() {
     test('an unreadable fraction still falls back', () {
       expect(parse('not a number', he: 'nor this'), const GasMix());
     });
+
+    // Issue #4705: some programs write the mix as percentages. No fraction
+    // is over 1, so such a mix is taken as written instead of being
+    // multiplied into an impossible 3200%.
+    test('a mix written as percentages keeps them', () {
+      expect(parse('32'), const GasMix(o2: 32));
+      expect(parse('21'), const GasMix(o2: 21));
+      expect(parse('100'), const GasMix(o2: 100));
+      expect(parse('32.5'), const GasMix(o2: 32.5));
+    });
+
+    test('a trimix written as percentages keeps its helium', () {
+      expect(parse('21', he: '35'), const GasMix(o2: 21, he: 35));
+      expect(parse('18', he: '45'), const GasMix(o2: 18, he: 45));
+    });
+
+    test('a percentage mix keeps a helium share of 1% or less', () {
+      // Read on its own, a helium of 1 would be the fraction 100%.
+      expect(parse('21', he: '1'), const GasMix(o2: 21, he: 1));
+      expect(parse('30', he: '0.5'), const GasMix(o2: 30, he: 0.5));
+    });
+
+    test('a whole fraction of 1 is still pure oxygen', () {
+      expect(parse('1'), const GasMix(o2: 100));
+      expect(parse('1.0'), const GasMix(o2: 100));
+    });
+
+    test('a percentage mix without helium has none', () {
+      final mix = UddfImportParsers.parseGasMix(
+        XmlDocument.parse('<mix id="m"><o2>32</o2></mix>').rootElement,
+      );
+      expect(mix, const GasMix(o2: 32));
+    });
   });
 }

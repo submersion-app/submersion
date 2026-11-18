@@ -434,15 +434,20 @@ class UddfImportParsers {
   static GasMix parseGasMix(XmlElement mixElement) {
     final o2Text = getElementText(mixElement, 'o2');
     final heText = getElementText(mixElement, 'he');
+    final o2Value = o2Text != null ? double.tryParse(o2Text) : null;
+    final heValue = heText != null ? double.tryParse(heText) : null;
 
-    // UDDF stores gas values as fractions (0.21 for 21%).
+    // UDDF stores gas values as fractions (0.21 for 21%), but some programs
+    // write percentages (21). No fraction is over 1, so a mix with a value
+    // over 1 is taken as percentages (issue #4705). Deciding for the whole
+    // mix keeps a small helium share such as `<he>1</he>` beside
+    // `<o2>21</o2>` at 1% instead of reading it alone as the fraction 100%.
+    final scale = (o2Value ?? 0) > 1 || (heValue ?? 0) > 1 ? 1 : 100;
     final o2 = o2Text != null
-        ? UddfGasMixWriters.cleanPercent(
-            (double.tryParse(o2Text) ?? 0.21) * 100,
-          )
+        ? UddfGasMixWriters.cleanPercent(o2Value != null ? o2Value * scale : 21)
         : 21.0;
     final he = heText != null
-        ? UddfGasMixWriters.cleanPercent((double.tryParse(heText) ?? 0.0) * 100)
+        ? UddfGasMixWriters.cleanPercent((heValue ?? 0.0) * scale)
         : 0.0;
 
     return GasMix(o2: o2, he: he);

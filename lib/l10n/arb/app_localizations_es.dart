@@ -44992,6 +44992,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get dataQuality_detector_gas_mod => 'Incoherencia de gas/MOD';
 
   @override
+  String get dataQuality_detector_impossible_gas_mix =>
+      'Mezcla de gas imposible';
+
+  @override
   String get dataQuality_detector_tank_assignment => 'Tanque incorrecto';
 
   @override
@@ -45184,6 +45188,25 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String dataQuality_msg_hypoxic(String gas) {
     return 'Mezcla hipóxica ($gas) mostrada en uso en la superficie';
+  }
+
+  @override
+  String dataQuality_msg_impossibleGasMix(
+    int tankNumber,
+    String o2,
+    String he,
+  ) {
+    return 'El tanque $tankNumber figura con $o2% de O2 y $he% de He, algo que ningún gas puede tener. Conviene corregir la mezcla en la inmersión.';
+  }
+
+  @override
+  String dataQuality_msg_impossibleGasMixScaled(
+    int tankNumber,
+    String o2,
+    String he,
+    String gas,
+  ) {
+    return 'El tanque $tankNumber figura con $o2% de O2 y $he% de He, algo que ningún gas puede tener. Lo más probable es que una importación anterior haya guardado $gas 100 veces más alto.';
   }
 
   @override
@@ -45471,6 +45494,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_convertTemp => 'Convertir temperatura';
+
+  @override
+  String dataQuality_repairLabel_rescaleGasMix(String gas) {
+    return 'Corregir a $gas';
+  }
 
   @override
   String get dataQuality_repairLabel_recompute =>

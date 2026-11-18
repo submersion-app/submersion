@@ -70544,6 +70544,12 @@ abstract class AppLocalizations {
   /// **'Gas/MOD inconsistency'**
   String get dataQuality_detector_gas_mod;
 
+  /// No description provided for @dataQuality_detector_impossible_gas_mix.
+  ///
+  /// In en, this message translates to:
+  /// **'Impossible gas mix'**
+  String get dataQuality_detector_impossible_gas_mix;
+
   /// No description provided for @dataQuality_detector_tank_assignment.
   ///
   /// In en, this message translates to:
@@ -70747,6 +70753,23 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Hypoxic mix ({gas}) shown in use at the surface'**
   String dataQuality_msg_hypoxic(String gas);
+
+  /// A cylinder whose stored mix no gas can have, such as a share over 100%; {o2} and {he} are the stored percentages.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinder {tankNumber} is recorded as {o2}% O2 and {he}% He, which no gas can be. Correct the mix on the dive.'**
+  String dataQuality_msg_impossibleGasMix(int tankNumber, String o2, String he);
+
+  /// A cylinder mix an older import stored 100 times too high; {o2} and {he} are the stored percentages and {gas} the mix divided by 100, such as EAN32.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinder {tankNumber} is recorded as {o2}% O2 and {he}% He, which no gas can be. An older import most likely stored {gas} 100 times too high.'**
+  String dataQuality_msg_impossibleGasMixScaled(
+    int tankNumber,
+    String o2,
+    String he,
+    String gas,
+  );
 
   /// No description provided for @dataQuality_msg_switchMod.
   ///
@@ -71073,6 +71096,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Convert temperature'**
   String get dataQuality_repairLabel_convertTemp;
+
+  /// Repair button that divides a cylinder mix stored 100 times too high; {gas} is the corrected mix, such as EAN32.
+  ///
+  /// In en, this message translates to:
+  /// **'Correct to {gas}'**
+  String dataQuality_repairLabel_rescaleGasMix(String gas);
 
   /// No description provided for @dataQuality_repairLabel_recompute.
   ///

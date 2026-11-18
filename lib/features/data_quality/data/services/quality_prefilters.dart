@@ -4,6 +4,8 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/data_quality/data/services/quality_neighbor_sql.dart';
 import 'package:submersion/features/data_quality/domain/quality_thresholds.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    show GasMix;
 
 /// Cheap SQL passes that narrow the full library to per-detector candidate
 /// sets before any context is built. A dive absent from a detector's set is
@@ -50,6 +52,15 @@ class QualityPrefilters {
       'SELECT d.id AS id FROM dives d WHERE EXISTS '
       '(SELECT 1 FROM dive_tanks t WHERE t.dive_id = d.id '
       "AND LTRIM(TRIM(t.transmitter_serial), '0') <> '')",
+    );
+    // A cylinder whose mix no gas can have, as GasMix.isPossible reads it
+    // (#4714): a share out of 0..100, or the two adding up past 100.
+    final impossibleMixes = await ids(
+      'SELECT d.id AS id FROM dives d WHERE EXISTS '
+      '(SELECT 1 FROM dive_tanks t WHERE t.dive_id = d.id AND '
+      '(t.o2_percent < 0 OR t.he_percent < 0 OR t.o2_percent > 100 OR '
+      't.he_percent > 100 OR t.o2_percent + t.he_percent > 100 + ?1))',
+      [const Variable(GasMix.sumTolerancePercent)],
     );
     final multiSource = await ids(
       'SELECT d.id AS id FROM dives d WHERE '
@@ -105,6 +116,7 @@ class QualityPrefilters {
       'temp_anomaly': {...withProfiles, ...scalarTempOutliers},
       'pressure_anomaly': {...withPressures, ...withTanks},
       'gas_mod': withTanks.intersection(withProfiles),
+      'impossible_gas_mix': impossibleMixes,
       'tank_assignment': withPressures,
       'missing_gas_switch': withPressures.intersection(withProfiles),
       'unknown_transmitter': withTransmitterSerials,

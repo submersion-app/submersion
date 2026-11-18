@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/core/services/storage/gc/storage_gc_coordinator.dart';
 import 'package:submersion/core/utils/system_sheet_lifecycle.dart';
+import 'package:submersion/features/data_quality/presentation/providers/launch_gas_mix_repair_provider.dart';
 import 'package:submersion/features/dive_import/presentation/health_auto_import_feedback.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/stale_open_draft_prompt.dart';
@@ -215,7 +216,9 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     }
     _diveMarks = startDiveMarkActionBridge(ref);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _runStorageCleanupAfter(_maybeSyncOnLaunch(), StorageGcTrigger.launch);
+      final launchSync = _maybeSyncOnLaunch();
+      _runStorageCleanupAfter(launchSync, StorageGcTrigger.launch);
+      _repairGasMixesAfter(launchSync);
       _setNearbyForeground(true);
       _resumeMediaTransfers();
       _republishOwnedMedia();
@@ -370,6 +373,20 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       syncs.whenComplete(() {
         if (!mounted) return;
         unawaited(ref.read(storageGcCoordinatorProvider).run(trigger));
+      }),
+    );
+  }
+
+  /// Divides cylinder mixes older imports stored 100 times too high (issue
+  /// #4714) once [syncs] end, so a mix the launch sync brings in from a
+  /// device on an older version is put right this launch too. Same database
+  /// timing argument as [_resumeMediaTransfers]; the syncs and the provider
+  /// contain their own failures, so it is safe to leave unawaited.
+  void _repairGasMixesAfter(Future<void> syncs) {
+    unawaited(
+      syncs.whenComplete(() {
+        if (!mounted) return;
+        unawaited(ref.read(launchGasMixRepairProvider)());
       }),
     );
   }

@@ -24,8 +24,10 @@ class GasModDetector extends QualityDetector {
   /// 4: the ppO2 and hypoxic findings record `hePercent`, so their message
   /// names a trimix as such (issue #4209). Findings stored by version 3 lack
   /// it; the bump raises the rescan banner that rewrites them.
+  /// 5: a dive breathing an impossible mix is left alone (issue #4714); the
+  /// bump retires the ppO2 findings a mix stored 100 times too high raised.
   @override
-  int get version => 4;
+  int get version => 5;
   @override
   QualityCategory get category => QualityCategory.gas;
 
@@ -37,6 +39,11 @@ class GasModDetector extends QualityDetector {
     // on its mix.
     final tanks = breathingTanks(ctx.tanks);
     if (tanks.isEmpty) return const [];
+    // A mix no gas can have, such as 3200% O2 stored by an older import,
+    // reads as ppO2 far past any limit at every depth. The impossible gas
+    // mix finding names it, and the rescan its repair queues judges the
+    // corrected mix (issue #4714).
+    if (!tanks.every((t) => t.gasMix.isPossible)) return const [];
     final switches = breathingRawGasSwitches(ctx.gasSwitches, ctx.tanks);
     final out = <QualityFinding>[];
     final environment = ctx.dive.environment;

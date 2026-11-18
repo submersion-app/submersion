@@ -73,6 +73,7 @@ String detectorTitle(AppLocalizations l10n, String detectorId) =>
       'temp_anomaly' => l10n.dataQuality_detector_temp_anomaly,
       'pressure_anomaly' => l10n.dataQuality_detector_pressure_anomaly,
       'gas_mod' => l10n.dataQuality_detector_gas_mod,
+      'impossible_gas_mix' => l10n.dataQuality_detector_impossible_gas_mix,
       'tank_assignment' => l10n.dataQuality_detector_tank_assignment,
       'missing_gas_switch' => l10n.dataQuality_detector_missing_gas_switch,
       'transmitter_role' => l10n.dataQuality_detector_transmitter_role,
@@ -219,6 +220,8 @@ QualityFindingMessage buildFindingMessage(
           qualityGasLabel(l10n, d('o2Percent'), he),
         );
       }
+    case 'impossible_gas_mix':
+      detail = _impossibleGasMixDetail(l10n, p);
     case 'unknown_transmitter':
       detail = l10n.dataQuality_msg_unknownTransmitter(
         (p['serial'] as String?) ?? '',
@@ -343,6 +346,39 @@ String _missingSwitchDetail(
       ),
   ];
   return sentences.join(' ');
+}
+
+/// "Cylinder {n} is recorded as {o2}% O2 and {he}% He ..." (issue #4714),
+/// naming the mix meant when the finding carries one. The stored shares are
+/// shown as stored, decimals only where they have any, so 3200 reads 3200
+/// and an analysed 3212.5 keeps its half.
+String _impossibleGasMixDetail(AppLocalizations l10n, Map<String, Object?> p) {
+  double? n(String key) => switch (p[key]) {
+    final num v => v.toDouble(),
+    _ => null,
+  };
+  String share(String key) {
+    final v = n(key) ?? 0;
+    return v == v.roundToDouble() ? v.toStringAsFixed(0) : '$v';
+  }
+
+  // Stored 0-based, as the other cylinder findings store it.
+  final number = (n('tankPosition')?.toInt() ?? 0) + 1;
+  final o2 = n('correctedO2Percent');
+  final he = n('correctedHePercent');
+  if (o2 != null && he != null) {
+    return l10n.dataQuality_msg_impossibleGasMixScaled(
+      number,
+      share('o2Percent'),
+      share('hePercent'),
+      qualityGasLabel(l10n, o2, he),
+    );
+  }
+  return l10n.dataQuality_msg_impossibleGasMix(
+    number,
+    share('o2Percent'),
+    share('hePercent'),
+  );
 }
 
 /// The mix a gas finding names. Air and oxygen are words and translate;

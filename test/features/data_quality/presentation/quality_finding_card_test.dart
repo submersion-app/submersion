@@ -523,6 +523,56 @@ void main() {
     });
   });
 
+  group('impossible gas mix (#4714)', () {
+    testWidgets('a mix stored 100 times too high offers the mix meant', (
+      tester,
+    ) async {
+      final repaired = <QualityRepairAction>[];
+      await pumpCard(
+        tester,
+        finding: _finding(
+          detectorId: 'impossible_gas_mix',
+          severity: QualitySeverity.warning,
+          params: const {
+            'tankId': 't1',
+            'tankPosition': 0,
+            'o2Percent': 3200.0,
+            'hePercent': 0.0,
+            'correctedO2Percent': 32.0,
+            'correctedHePercent': 0.0,
+          },
+        ),
+        onRepair: repaired.add,
+      );
+
+      expect(find.text('Correct to EAN32'), findsOneWidget);
+      await tester.tap(find.text('Correct to EAN32'));
+      await tester.pumpAndSettle();
+      final action = repaired.single as RescaleGasMixRepair;
+      expect(action.tankId, 't1');
+      expect(action.mix.o2, 32);
+    });
+
+    testWidgets('a mix dividing does not explain has no button', (
+      tester,
+    ) async {
+      await pumpCard(
+        tester,
+        finding: _finding(
+          detectorId: 'impossible_gas_mix',
+          severity: QualitySeverity.warning,
+          params: const {
+            'tankId': 't1',
+            'tankPosition': 0,
+            'o2Percent': 60.0,
+            'hePercent': 50.0,
+          },
+        ),
+      );
+      expect(find.byType(FilledButton), findsNothing);
+    });
+  });
+
   group('footer actions when expanded', () {
     testWidgets('go-to-dive button invokes callback with dive id', (
       tester,

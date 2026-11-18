@@ -59,6 +59,37 @@ void main() {
       expect(out.single.params['peakPpO2'], closeTo(2.25, 1e-9));
     });
 
+    // Issue #4714: EAN32 stored 100 times too high read as ppO2 128 at 30 m,
+    // a critical finding on every such dive. The impossible gas mix finding
+    // names the mix; the gas checks wait until it is put right.
+    test('an impossible breathing mix leaves the dive to its own finding', () {
+      final ctx = makeContext(
+        dive: makeTestDive(tanks: [tank(o2: 3200)]),
+        samples: flatProfile(depth: 30),
+      );
+      expect(det.detect(ctx), isEmpty);
+      // v5 is the bump that retires the findings such a mix produced.
+      expect(det.version, 5);
+    });
+
+    test('an impossible mix on a suit inflation bottle does not count', () {
+      final ctx = makeContext(
+        dive: makeTestDive(
+          tanks: [
+            tank(o2: 50),
+            const domain.DiveTank(
+              id: 'argon',
+              order: 1,
+              role: TankRole.suitInflation,
+              gasMix: domain.GasMix(o2: 2100),
+            ),
+          ],
+        ),
+        samples: flatProfile(depth: 35),
+      );
+      expect(det.detect(ctx), hasLength(1));
+    });
+
     test('air at 30 m is clean (ppO2 0.84)', () {
       final ctx = makeContext(
         dive: makeTestDive(tanks: [tank(o2: 21)]),

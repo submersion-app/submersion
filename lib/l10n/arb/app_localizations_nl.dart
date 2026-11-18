@@ -44668,6 +44668,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get dataQuality_detector_gas_mod => 'Gas/MOD-inconsistentie';
 
   @override
+  String get dataQuality_detector_impossible_gas_mix => 'Onmogelijk gasmengsel';
+
+  @override
   String get dataQuality_detector_tank_assignment => 'Verkeerde fles';
 
   @override
@@ -44857,6 +44860,25 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String dataQuality_msg_hypoxic(String gas) {
     return 'Hypoxisch mengsel ($gas) weergegeven als in gebruik aan de oppervlakte';
+  }
+
+  @override
+  String dataQuality_msg_impossibleGasMix(
+    int tankNumber,
+    String o2,
+    String he,
+  ) {
+    return 'Fles $tankNumber staat geregistreerd met $o2% O2 en $he% He, wat geen gas kan zijn. Corrigeer het mengsel bij de duik.';
+  }
+
+  @override
+  String dataQuality_msg_impossibleGasMixScaled(
+    int tankNumber,
+    String o2,
+    String he,
+    String gas,
+  ) {
+    return 'Fles $tankNumber staat geregistreerd met $o2% O2 en $he% He, wat geen gas kan zijn. Een eerdere import heeft $gas waarschijnlijk 100 keer te hoog opgeslagen.';
   }
 
   @override
@@ -45145,6 +45167,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_convertTemp => 'Temperatuur omrekenen';
+
+  @override
+  String dataQuality_repairLabel_rescaleGasMix(String gas) {
+    return 'Corrigeren naar $gas';
+  }
 
   @override
   String get dataQuality_repairLabel_recompute =>

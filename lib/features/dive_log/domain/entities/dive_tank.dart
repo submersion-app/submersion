@@ -333,7 +333,21 @@ class GasMix extends Equatable {
 
   const GasMix({this.o2 = 21.0, this.he = 0.0});
 
+  /// How far the shares may add up past 100% and still be [isPossible]:
+  /// binary noise on a full mix, far below any analyzer's precision.
+  static const double sumTolerancePercent = 1e-6;
+
   double get n2 => 100.0 - o2 - he;
+
+  /// Whether this can be a gas: no share below 0% or above 100%, and the
+  /// shares together at most 100%. Older imports stored mixes 100 times too
+  /// high, such as 3200% O2 (issue #4714).
+  bool get isPossible =>
+      o2 >= 0 &&
+      he >= 0 &&
+      o2 <= 100 &&
+      he <= 100 &&
+      o2 + he <= 100 + sumTolerancePercent;
   int get roundedO2 => o2.round();
   int get roundedHe => he.round();
 
