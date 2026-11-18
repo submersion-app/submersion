@@ -36,6 +36,16 @@
 - Modify: `tool/species_pack/candidates.py` (the facet query at `fetch_photographed_species`, about lines 128-156; new constants and functions beside it)
 - Test: `tool/species_pack/manifest_test.py` (new classes after `ExpansionTests`)
 
+> **Superseded in review.** This task built the facet as a `facetOffset`
+> paging loop and kept the photo cache's old name. The whole-branch review
+> found GBIF's paging repeats and skips species, so the facet is now one
+> request per route: `facet_cache_path(work, route, taxon_keys, filters,
+> min_count, limit)` names every route `<route>_<digest of taxa and
+> filters>_<min>_<limit>.json`, the fetch functions take `limit` (default
+> 20000) and no `page`, a full answer prints a warning, and
+> `SpeciesFacetTests` pins it. Do not bring the paging back; see the
+> design's "Decided during review".
+
 **Interfaces:**
 - Produces:
   - `SURVEY_FILTERS: list[tuple[str, str]]`, the extra query parameters of the survey facet: `[("basis_of_record", "HUMAN_OBSERVATION"), ("occurrence_status", "PRESENT"), ("depth", "0,40")]`.
