@@ -90,6 +90,53 @@ class RecommendTests(unittest.TestCase):
         self.assertIsNone(self.recommend({"pair": 1}, {}, {"pair": False}))
 
 
+class FloorTests(unittest.TestCase):
+    # Held-out share of photos with any box, per group (measured accuracy
+    # findings, pack 2026.11.18.0030).
+    FISH_DETECTOR = {
+        "fish": 0.95, "sharks and rays": 0.91, "octopus": 0.62, "crabs": 0.50,
+        "sea snails and nudibranchs": 0.60, "sea stars": 0.68, "coral": 0.40,
+    }
+    MEGALODON = {
+        "fish": 0.80, "sharks and rays": 0.78, "octopus": 0.79, "crabs": 0.65,
+        "sea snails and nudibranchs": 0.90, "sea stars": 0.84, "coral": 0.83,
+    }
+    PAIR = {
+        "fish": 0.98, "sharks and rays": 0.96, "octopus": 0.90, "crabs": 0.77,
+        "sea snails and nudibranchs": 0.95, "sea stars": 0.91, "coral": 0.92,
+    }
+
+    def test_groups_under_the_floor_sorted(self):
+        self.assertEqual(
+            metrics.groups_below_floor(self.FISH_DETECTOR),
+            ["coral", "crabs", "octopus", "sea snails and nudibranchs", "sea stars"],
+        )
+        self.assertEqual(metrics.groups_below_floor(self.MEGALODON), ["crabs"])
+        self.assertEqual(metrics.groups_below_floor(self.PAIR), [])
+
+    def test_exactly_the_floor_passes(self):
+        self.assertEqual(metrics.groups_below_floor({"crabs": 0.70}), [])
+        self.assertEqual(metrics.groups_below_floor({"crabs": 0.69}, floor=0.70), ["crabs"])
+
+    def test_with_the_floor_only_the_pair_is_eligible(self):
+        named = {"megalodon": 252, "cfd": 303, "pair": 304}
+        p = {frozenset(("megalodon", "pair")): 0.00005, frozenset(("cfd", "pair")): 1.0, frozenset(("megalodon", "cfd")): 0.0007}
+        eligible = {
+            "megalodon": not metrics.groups_below_floor(self.MEGALODON),
+            "cfd": not metrics.groups_below_floor(self.FISH_DETECTOR),
+            "pair": not metrics.groups_below_floor(self.PAIR),
+        }
+        self.assertEqual(metrics.recommend(named, p, ["megalodon", "cfd", "pair"], eligible), "pair")
+
+    def test_nothing_over_the_floor_is_no_recommendation(self):
+        named = {"megalodon": 252, "cfd": 303}
+        eligible = {
+            "megalodon": not metrics.groups_below_floor(self.MEGALODON),
+            "cfd": not metrics.groups_below_floor(self.FISH_DETECTOR),
+        }
+        self.assertIsNone(metrics.recommend(named, {}, ["megalodon", "cfd"], eligible))
+
+
 class BreakdownTests(unittest.TestCase):
     def test_breakdown_groups_and_sorts(self):
         items = [("b", 1), ("a", 2), ("b", 3)]

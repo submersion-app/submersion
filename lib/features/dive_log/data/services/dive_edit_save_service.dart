@@ -1,7 +1,6 @@
 import 'package:drift/drift.dart' show Variable;
 import 'package:submersion/core/database/database.dart' hide Dive;
-import 'package:submersion/core/services/change_log/change_log_scope.dart';
-import 'package:submersion/core/services/change_log/record_edit_label.dart';
+import 'package:submersion/core/services/change_log/record_sitting_writer.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -59,37 +58,14 @@ class DiveEditSaveService {
     Future<void> Function()? alsoWrite,
     bool alsoWriteIsAChange = false,
   }) {
-    // The scope goes outside the transaction it covers, as its own contract
-    // requires. An operation that ends with no events is removed when the
-    // log settles, so returning early below leaves nothing behind.
-    return ChangeLogScope.run(
-      DatabaseService.instance.databaseOrNull,
-      source: ChangeLogSource.manual,
-      label: RecordEditLabel.encode(
-        table: 'dives',
-        id: diveId,
-        cardIds: changedCardIds,
-      ),
-      body: () => _db.transaction(() async {
-        final stored = await _diveRepo.getDiveById(diveId);
-        if (stored == null) {
-          throw StateError('Dive $diveId no longer exists');
-        }
-        final merged = apply(stored);
-        if (merged == stored) {
-          if (!alsoWriteIsAChange ||
-              (alsoWrite == null && writeFirst == null)) {
-            return null;
-          }
-          await writeFirst?.call();
-          await alsoWrite?.call();
-          return (
-            before: stored,
-            after: stored,
-            tripDateStretches: const <TripDateStretch>[],
-          );
-        }
-        await writeFirst?.call();
+    var stretches = const <TripDateStretch>[];
+    final written = writeRecordSitting<Dive>(
+      table: 'dives',
+      recordId: diveId,
+      changedCardIds: changedCardIds,
+      read: () => _diveRepo.getDiveById(diveId),
+      apply: apply,
+      write: (stored, merged) async {
         await _diveRepo.updateDive(merged);
         // Only a save that touched the trip moves its dates: a dive saved
         // for something else leaves a trip it sits outside of alone, so a
@@ -100,12 +76,22 @@ class DiveEditSaveService {
           date: merged.effectiveEntryTime,
           previousDate: stored.effectiveEntryTime,
         );
-        final stretches = touchesTrip
-            ? await _tripRepo.stretchToCoverDives([diveId])
-            : const <TripDateStretch>[];
-        await alsoWrite?.call();
-        return (before: stored, after: merged, tripDateStretches: stretches);
-      }),
+        if (touchesTrip) {
+          stretches = await _tripRepo.stretchToCoverDives([diveId]);
+        }
+      },
+      writeFirst: writeFirst,
+      alsoWrite: alsoWrite,
+      alsoWriteIsAChange: alsoWriteIsAChange,
+    );
+    return written.then(
+      (result) => result == null
+          ? null
+          : (
+              before: result.before,
+              after: result.after,
+              tripDateStretches: stretches,
+            ),
     );
   }
 
@@ -133,15 +119,11 @@ class DiveEditSaveService {
         StateError('A new dive needs its id before it is created'),
       );
     }
-    return ChangeLogScope.run(
-      DatabaseService.instance.databaseOrNull,
-      source: ChangeLogSource.manual,
-      label: RecordEditLabel.encode(
-        table: 'dives',
-        id: dive.id,
-        cardIds: changedCardIds,
-      ),
-      body: () => _db.transaction(() async {
+    return runRecordSitting(
+      table: 'dives',
+      recordId: dive.id,
+      changedCardIds: changedCardIds,
+      body: () async {
         final taken = await _db
             .customSelect(
               'SELECT 1 FROM dives WHERE id = ?',
@@ -169,7 +151,7 @@ class DiveEditSaveService {
         // numbering may have given it a number.
         final after = await _diveRepo.getDiveById(created.id);
         return (after: after ?? created, tripDateStretches: stretches);
-      }),
+      },
     );
   }
 }

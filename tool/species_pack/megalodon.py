@@ -17,6 +17,7 @@ the app build or a pack.
 """
 
 import argparse
+import copy
 import hashlib
 import json
 import os
@@ -27,6 +28,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import boxes as box_math  # noqa: E402
+import manifest as pack_manifest  # noqa: E402
 
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 DEFAULT_WORK = os.path.join(REPO, "build", "species_accuracy_work")
@@ -40,20 +42,15 @@ CHECKPOINTS = {
         "id": "megalodon-yolo11x-403704d",
     },
 }
+# The checkpoint a pack carries.
+PACK_CHECKPOINT = "megalodon-2024"
 # Not here: FathomNet/megalodon-2023-yolov8 (YOLOv8x). Its checkpoint was
 # saved with dill and needs dill's general type loader to open, which the
 # safe loader rightly refuses.
 
-# How the scorer runs Megalodon: the ultralytics defaults.
-SETTINGS = {
-    "detectorFormat": "yolo",
-    "inputSize": 640,
-    "mean": [0.0, 0.0, 0.0],
-    "std": [1.0, 1.0, 1.0],
-    "scoreThreshold": 0.25,
-    "maxBoxes": 8,
-    "cropPadding": 0.10,
-}
+# How Megalodon is run, by the scorer and in a pack: the ultralytics
+# defaults, kept in manifest.py with the pack's other detector.
+SETTINGS = copy.deepcopy(pack_manifest.DETECTORS["megalodon"])
 SUPPRESS_IOU = 0.7
 LETTERBOX_GREY = 114
 
@@ -208,13 +205,69 @@ def converted_dir(work, name):
     return folder
 
 
-def manifest_for(name, pack_manifest):
-    """A copy of a pack manifest with Megalodon's detector settings, for
-    the vision tool."""
-    with open(pack_manifest, encoding="utf-8") as fh:
-        manifest = json.load(fh)
-    manifest["detector"] = {"id": CHECKPOINTS[name]["id"], **SETTINGS}
-    return manifest
+def _stamp(package):
+    """What identifies a converted package: each file's path, size and
+    modification time."""
+    entries = []
+    for root, _, files in os.walk(package):
+        for name in sorted(files):
+            full = os.path.join(root, name)
+            info = os.stat(full)
+            entries.append([os.path.relpath(full, package), info.st_size, info.st_mtime_ns])
+    return sorted(entries)
+
+
+def converted_stamp(work, name):
+    """What identifies the converted model in `work`: its package's stamp,
+    or the compiled model's when the folder holds only that."""
+    folder = converted_dir(work, name)
+    package = os.path.join(folder, "detector.mlpackage")
+    return _stamp(package if os.path.exists(package) else os.path.join(folder, "detector.mlmodelc"))
+
+
+def tool_model(work, name):
+    """Megalodon's model to hand the vision tool, which compiles a model
+    package once and deletes it: a copy of the converted package (or the
+    copy's compiled model), so the package itself stays for build_pack.py.
+    A folder converted before copies were made holds only a compiled model,
+    which is handed over as it is."""
+    folder = converted_dir(work, name)
+    package = os.path.join(folder, "detector.mlpackage")
+    if not os.path.exists(package):
+        return os.path.join(folder, "detector.mlmodelc")
+    copy_dir = os.path.join(work, "models", f"{name}-tool")
+    stamp_path = os.path.join(copy_dir, "source.json")
+    stamp = _stamp(package)
+    stored = None
+    if os.path.exists(stamp_path):
+        with open(stamp_path, encoding="utf-8") as fh:
+            stored = json.load(fh)
+    if stored != stamp and os.path.exists(copy_dir):
+        shutil.rmtree(copy_dir)
+    compiled = os.path.join(copy_dir, "detector.mlmodelc")
+    copy = os.path.join(copy_dir, "detector.mlpackage")
+    if os.path.exists(compiled):
+        return compiled
+    if not os.path.exists(copy):
+        shutil.copytree(package, copy)
+        with open(stamp_path, "w", encoding="utf-8") as fh:
+            json.dump(stamp, fh)
+    return copy
+
+
+def manifest_for_settings(base):
+    """A copy of the pack manifest `base` carrying Megalodon alone, for the
+    vision tool."""
+    return pack_manifest.with_detectors(base, [SETTINGS], pack_manifest.BOXES)
+
+
+def manifest_for(name, pack_manifest_path):
+    """The pack manifest at `pack_manifest_path` with Megalodon `name` as
+    its only detector, for the vision tool."""
+    if CHECKPOINTS[name]["id"] != SETTINGS["id"]:
+        raise SystemExit(f"{name} is not the Megalodon the pack settings describe")
+    with open(pack_manifest_path, encoding="utf-8") as fh:
+        return manifest_for_settings(json.load(fh))
 
 
 def check(name, tool, manifest_path, classifier, photos, work):
@@ -223,15 +276,13 @@ def check(name, tool, manifest_path, classifier, photos, work):
     from PIL import Image, ImageOps
 
     model = load(name)
-    detector = os.path.join(work, "models", name, "detector.mlpackage")
-    compiled = detector[: -len(".mlpackage")] + ".mlmodelc"
     run = subprocess.run(
         [
             tool,
             "--manifest",
             manifest_path,
             "--detector",
-            compiled if os.path.exists(compiled) else detector,
+            tool_model(work, name),
             "--classifier",
             classifier,
             "--crop-fit",

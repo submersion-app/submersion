@@ -252,15 +252,60 @@ class SiteRepository {
   /// Without one the junctions are never touched: several callers pass a
   /// partially loaded site (#1187), and none of them may clear its types or
   /// tags.
+  ///
+  /// [stampLibrary] false leaves a library site's edit stamp to the caller
+  /// ([stampLibraryEdit]): an editing sitting writes the site inside its own
+  /// transaction, and stamps only once that has committed, since the stamp
+  /// goes to the shared library store, which a rollback would not undo.
   Future<void> updateSite(
     domain.DiveSite site, {
     SiteClassification? classification,
     String? actingDiverId,
+    bool stampLibrary = true,
   }) => _writeSiteUpdate(
     site,
     classification: classification,
     actingDiverId: actingDiverId,
+    stampLibrary: stampLibrary,
   );
+
+  /// Records which fields a write changed on a library site, and the
+  /// profile's private notes and rating, as [updateSite] does after its own
+  /// write (issue #2567): for a write made with `stampLibrary: false`.
+  /// [before] is the site as it was, [after] as it is now stored. Does
+  /// nothing for a site in no library.
+  Future<void> stampLibraryEdit(
+    domain.DiveSite before,
+    domain.DiveSite after, {
+    String? actingDiverId,
+  }) async {
+    if (!before.isLibrarySite) return;
+    await _stampLibraryEdit(
+      before,
+      after,
+      LibraryEditStamper.changedFields(before, after),
+      actingDiverId: actingDiverId,
+    );
+  }
+
+  Future<void> _stampLibraryEdit(
+    domain.DiveSite before,
+    domain.DiveSite site,
+    Set<String> changed, {
+    String? actingDiverId,
+  }) async {
+    await _libraryStamper.stamp(site.id, changed, actingDiverId: actingDiverId);
+    // The profile's private notes and rating: never in the library, kept
+    // for personal sync to carry to its other devices.
+    if (before.notes != site.notes || before.rating != site.rating) {
+      await _libraryStamper.keepPrivate(
+        site.id,
+        notes: site.notes,
+        rating: site.rating,
+        actingDiverId: actingDiverId,
+      );
+    }
+  }
 
   /// Update an existing site and, in the same statement, apply importer-only
   /// columns that do not flow through the [domain.DiveSite] entity.
@@ -283,6 +328,7 @@ class SiteRepository {
     DiveSitesCompanion? metadataPatch,
     SiteClassification? classification,
     String? actingDiverId,
+    bool stampLibrary = true,
   }) async {
     try {
       _log.info('Updating site: ${site.id}');
@@ -402,7 +448,7 @@ class SiteRepository {
       if (before?.waterType?.name != companion.waterType.value) {
         DerivedMetricsScheduler.instance.scheduleStaleSweep();
       }
-      if (libraryEdit && before != null) {
+      if (stampLibrary && libraryEdit && before != null) {
         final changed = LibraryEditStamper.changedFields(before, site);
         if (classification != null) {
           if (classification.typeIds.toSet() != typesBefore) {
@@ -410,21 +456,12 @@ class SiteRepository {
           }
           if (classification.tagIds.toSet() != tagsBefore) changed.add('tags');
         }
-        await _libraryStamper.stamp(
-          site.id,
+        await _stampLibraryEdit(
+          before,
+          site,
           changed,
           actingDiverId: actingDiverId,
         );
-        // The profile's private notes and rating: never in the library,
-        // kept for personal sync to carry to its other devices.
-        if (before.notes != site.notes || before.rating != site.rating) {
-          await _libraryStamper.keepPrivate(
-            site.id,
-            notes: site.notes,
-            rating: site.rating,
-            actingDiverId: actingDiverId,
-          );
-        }
       }
       SyncEventBus.notifyLocalChange();
       _log.info('Updated site: ${site.id}');

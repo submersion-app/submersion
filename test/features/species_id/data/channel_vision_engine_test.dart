@@ -13,12 +13,19 @@ import 'package:submersion/features/species_id/domain/services/vision_engine.dar
 import '../domain/manifest_fixture.dart';
 
 const _models = VisionModels(
-  detectorPath: '/packs/1/detector.mlpackage',
+  detectors: [
+    VisionDetector(
+      path: '/packs/1/detector.mlpackage',
+      format: DetectorFormat.rfdetr,
+      inputSize: 640,
+      mean: [0.485, 0.456, 0.406],
+      std: [0.229, 0.224, 0.225],
+      scoreThreshold: 0.3,
+      maxBoxes: 8,
+    ),
+  ],
   classifierPath: '/packs/1/classifier.mlpackage',
-  detectorInputSize: 640,
-  detectorMean: [0.485, 0.456, 0.406],
-  detectorStd: [0.229, 0.224, 0.225],
-  scoreThreshold: 0.3,
+  mergeIoU: 0.5,
   maxBoxes: 8,
   cropPadding: 0.1,
   classifierInputSize: 224,
@@ -91,14 +98,21 @@ void main() {
     });
     await engine().load(_models);
     expect(sent, {
-      'detectorPath': '/packs/1/detector.mlpackage',
-      'classifierPath': '/packs/1/classifier.mlpackage',
-      'detectorInputSize': 640,
-      'detectorMean': [0.485, 0.456, 0.406],
-      'detectorStd': [0.229, 0.224, 0.225],
-      'scoreThreshold': 0.3,
+      'detectors': [
+        {
+          'path': '/packs/1/detector.mlpackage',
+          'format': 'rfdetr',
+          'inputSize': 640,
+          'mean': [0.485, 0.456, 0.406],
+          'std': [0.229, 0.224, 0.225],
+          'scoreThreshold': 0.3,
+          'maxBoxes': 8,
+        },
+      ],
+      'mergeIoU': 0.5,
       'maxBoxes': 8,
       'cropPadding': 0.1,
+      'classifierPath': '/packs/1/classifier.mlpackage',
       'classifierInputSize': 224,
       'classifierMean': [0.48, 0.45, 0.4],
       'classifierStd': [0.26, 0.26, 0.27],
@@ -106,6 +120,49 @@ void main() {
       'cropThumbnailSize': 320,
       'cropFit': 'padSquare',
     });
+  });
+
+  test('load sends both detectors of a pair pack, in order', () async {
+    Map<Object?, Object?>? sent;
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      sent = call.arguments as Map<Object?, Object?>;
+      return null;
+    });
+    final manifest = SpeciesPackManifest.parse(manifestV2Json());
+    await engine().load(
+      VisionModels.fromManifest(
+        manifest,
+        detectorPaths: const [
+          '/p/detector/d.mlmodelc',
+          '/p/detector-megalodon/m.mlmodelc',
+        ],
+        classifierPath: '/p/classifier/c.mlmodelc',
+      ),
+    );
+    final detectors = (sent!['detectors']! as List)
+        .cast<Map<Object?, Object?>>();
+    expect(detectors.map((d) => d['path']), [
+      '/p/detector/d.mlmodelc',
+      '/p/detector-megalodon/m.mlmodelc',
+    ]);
+    expect(detectors.map((d) => d['format']), ['rfdetr', 'yolo']);
+    expect(detectors.map((d) => d['scoreThreshold']), [0.3, 0.25]);
+    expect(detectors.last['mean'], [0.0, 0.0, 0.0]);
+    expect(sent!['mergeIoU'], 0.5);
+    expect(sent!['maxBoxes'], 8);
+    expect(sent!['cropPadding'], 0.10);
+  });
+
+  test('a detector path for each detector is required', () {
+    final manifest = SpeciesPackManifest.parse(manifestV2Json());
+    expect(
+      () => VisionModels.fromManifest(
+        manifest,
+        detectorPaths: const ['/p/detector/d.mlmodelc'],
+        classifierPath: '/p/classifier/c.mlmodelc',
+      ),
+      throwsArgumentError,
+    );
   });
 
   test('load sends the crop fitting the pack asks for', () async {
@@ -219,11 +276,13 @@ void main() {
     final manifest = SpeciesPackManifest.parse(manifestJson());
     final models = VisionModels.fromManifest(
       manifest,
-      detectorPath: 'd',
+      detectorPaths: const ['d'],
       classifierPath: 'c',
     );
-    expect(models.detectorInputSize, 640);
-    expect(models.scoreThreshold, 0.3);
+    expect(models.detectors.single.inputSize, 640);
+    expect(models.detectors.single.format, DetectorFormat.rfdetr);
+    expect(models.detectors.single.scoreThreshold, 0.3);
+    expect(models.detectors.single.maxBoxes, 8);
     expect(models.maxBoxes, 8);
     expect(models.cropPadding, 0.10);
     expect(models.classifierInputSize, 224);

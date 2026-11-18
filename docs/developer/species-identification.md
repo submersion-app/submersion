@@ -1,12 +1,14 @@
 # Species Identification
 
-Marine life identification finds fish in a diver's photos and videos on the
-device and suggests what they are (issues #4668 and #4675). The design is in
+Marine life identification finds fish and other animals in a diver's
+photos and videos on the device and suggests what they are (issues #4668,
+#4675 and #4691). The design is in
 [the program overview](../design/specs/2026-11-17-marine-life-identification-program-design.md),
 [the first piece](../design/specs/2026-11-17-marine-life-identification-1-photos-design.md)
 (photos) and
 [the second](../design/specs/2026-11-17-marine-life-identification-2-video-design.md)
-(video).
+(video), with packs of one or two detectors in
+[the two detectors design](../design/specs/2026-11-17-marine-life-two-detectors-design.md).
 
 The feature is behind a flag and off for divers. This page is for working on
 it.
@@ -22,15 +24,17 @@ flutter run -d macos --dart-define=MARINE_LIFE_ID=true
 
 Two things must hold before its default changes:
 
-1. A detector is chosen whose terms allow shipping it. The Community Fish
-   Detector's authors leave the terms of its weights to the user;
-   FathomNet's Megalodon is CC BY 4.0 but was trained with AGPL code. The
+1. A pack is chosen whose detectors' terms allow shipping it: the
+   Community Fish Detector, FathomNet's Megalodon or both (issue #4691). The
+   Community Fish Detector's authors leave the terms of its weights to the
+   user; Megalodon is CC BY 4.0 but was trained with AGPL code. The
    [measured accuracy findings](../design/findings/2026-11-17-marine-life-measured-accuracy.md)
-   compare the two and recommend one.
-2. The confidence bars in the pack come from measured accuracy. The pack
-   they were measured on (pack version `2026.11.17.1617`, Community Fish
-   Detector) is written with them; any other pack, a rebuilt candidate list
-   included, is marked `provisional` until the scorer is run on it.
+   compare the three and recommend both.
+2. The confidence bars in the pack come from measured accuracy. Each
+   detector set measured on the 9,151-candidate list (packs
+   `2026.11.18.0030` and `2026.11.18.0356`) is written with its bars; any
+   other pack, a rebuilt candidate list included, is marked `provisional`
+   until the scorer is run on it.
 
 Only iPhone, iPad and Mac can run it so far. Phones and tablets need at
 least 6 GB of memory.
@@ -75,7 +79,7 @@ python3.14 -m venv .venv-species-pack
 .venv-species-pack/bin/python tool/species_pack/build_pack.py --out build/species_pack
 ```
 
-It downloads the two models from pinned sources and checks their hashes,
+It downloads the models from pinned sources and checks their hashes,
 converts them to Core ML, builds the candidate list from the catalogue and
 GBIF (the species most photographed there, then the species divers record
 most in shallow surveys, which BioCLIP 2 names from their names alone, so
@@ -96,9 +100,44 @@ Useful options:
   human observations at 0 to 40 m a species needs, photographed or not.
   Only sightings count (monitoring programmes also publish a row for every
   species not seen), and records without a depth do not.
+- `--detectors cfd|megalodon|both` (default `cfd`) chooses the detectors
+  the pack carries: the Community Fish Detector, FathomNet's Megalodon, or
+  both, whose boxes the app merges (issue #4691). Megalodon must be
+  converted first with `megalodon.py convert` (see "Measuring accuracy");
+  `--megalodon-work` names the work folder it was converted in. The pack
+  credits only the detectors it carries, and fits crops as they were
+  measured: centre crop with the fish detector or both, pad-to-square with
+  Megalodon alone.
 - `--skip-models` reuses the converted models in the work folder.
 - `--version` names the pack; it defaults to the UTC date and time, so two
   builds on one day are two versions.
+
+### The manifest
+
+`manifest.json` is format 2: a `detectors` list of one or two entries, each
+with its `id`, `format` (`rfdetr` or `yolo`), `file` (the model is
+`<file>.<engine>.zip`, unpacked into `<file>/`) and input settings; a
+`boxes` block with the crop padding and, for two detectors, how their boxes
+merge (`mergeIoU` 0.5, at most `maxBoxes` 8, exactly as
+`tool/species_pack/boxes.py` merges); then the classifier, naming bars,
+region grid and files. The app still reads a format 1 manifest (one
+`detector` block, the fish detector) and refuses any later format with "This
+model needs a newer version". A pack that needs app code an older app lacks
+must raise the format, so a downloaded pack changes data, never features.
+
+With two detectors the native pipeline runs each in its own format, then
+pools their boxes in the manifest's order, best score first, and keeps a box
+only if it overlaps every kept one by less than `mergeIoU`. A pack with one
+detector returns that detector's boxes as they are. Each stored
+identification records its detector set: one detector's own id, or both
+joined with `+`, so a photo is detected again when the set changes. Only
+the ids are compared, so a detector's id must change with any of its
+settings (or the shared `boxes`); `manifest_test.py` pins each detector's
+settings to its id and fails when one changes alone.
+`tool/species_pack/vision_cli/check_merge.sh` checks the Swift merge against
+`boxes.py`'s cases on a Mac, and CI runs it on macOS
+(`.github/workflows/vision-merge-check.yml`) whenever the vision plugin or
+its tools change.
 
 The pure parts have tests that CI runs:
 
@@ -155,8 +194,8 @@ measured on. Each stage caches in the work folder and resumes if stopped:
 for stage in pool labels photos underwater review-sheets commons; do .venv-species-pack/bin/python -I tool/species_pack/fetch_testset.py $stage; done
 ```
 
-Convert Megalodon (as above) before drawing the junk contact sheets, which
-run both detectors:
+The junk contact sheets run both detectors, each alone; Megalodon comes from
+the pack when it carries it, otherwise convert it first (as above):
 
 ```bash
 .venv-species-pack/bin/python -I tool/species_pack/fetch_testset.py junk-sheets --pack build/species_pack
@@ -173,14 +212,26 @@ CSV, which needs `--force` because it replaces the committed one:
 ```
 
 The scorer runs the app's own Swift pipeline through a small command-line
-tool (`tool/species_pack/vision_cli/`), once per detector and crop fitting,
-names every crop with `naming.py`, chooses bars on the tune half and checks
-them on the held-out half, and writes `report.md` and `results.json` to the
-work folder. Copy the chosen bars into `NAMING_MEASURED` in
-`tool/species_pack/manifest.py`, with the `detectorId`, `classifierId` and
-`contents` (the SHA-256 of the pack's `candidates.json`,
-`text_embeddings.f16` and `regions.bin`) that `results.json` records; a pack
-is written with them only when it is that exact pack.
+tool (`tool/species_pack/vision_cli/`), once per detector set (the fish
+detector, Megalodon, both) and crop fitting. The pack must carry the fish
+detector; Megalodon comes from the pack, or from its converted model when
+the pack has none. The pair runs through the pipeline's own merge, and the
+run stops unless every photo's merged boxes equal `boxes.py`'s merge of that
+run's per-detector boxes. The scorer names every crop with `naming.py`,
+chooses bars on the tune half and checks them on the held-out half, and
+writes `report.md` and `results.json` to the work folder. It recommends a
+detector set only if the set returns a box in at least 70% of held-out
+photos in every animal group. `results.json` holds a `measured` entry for
+each set at its chosen fitting: copy the ones for packs you will build into
+`NAMING_MEASURED` in `tool/species_pack/manifest.py`. Each names its
+detector ids in order, classifier, fitting and `contents` (the SHA-256 of
+the pack's `candidates.json`, `text_embeddings.f16` and `regions.bin`); a
+pack is written with those bars only when it is that exact pack.
+
+The tool compiles a model package once and deletes it, so the scorer and
+the junk sheets hand it a copy of Megalodon's converted package
+(`<work>/models/megalodon-2024-tool/`), and the package itself stays for
+building a pack.
 
 The pure parts have tests that CI runs, beside the others above:
 `naming_test.py`, `bars_test.py`, `metrics_test.py`, `testset_test.py` and

@@ -11622,6 +11622,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_detail_editTooltipShort => '编辑';
 
   @override
+  String get diveSites_edit_editingWithdrawn => '您已无法编辑此潜水点。未保存的更改已被丢弃。';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return '错误： $error';
   }

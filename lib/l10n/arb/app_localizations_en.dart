@@ -12032,6 +12032,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveSites_detail_editTooltipShort => 'Edit';
 
   @override
+  String get diveSites_edit_editingWithdrawn =>
+      'You can no longer edit this site. Any unsaved changes were discarded.';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return 'Error: $error';
   }

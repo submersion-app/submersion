@@ -22,7 +22,7 @@ extension _VideoScanning on MediaIdentificationService {
     final action = decideVideoRefresh(
       run: run,
       packVersion: manifest.packVersion,
-      detectorId: manifest.detector.id,
+      detectorId: manifest.detectorSetId,
       classifierId: manifest.classifier.embeddingId,
       cell: cell,
       cropsPresent: cropsPresent,
@@ -82,7 +82,7 @@ extension _VideoScanning on MediaIdentificationService {
         final start = MediaIdentificationRun(
           mediaId: job.item.id,
           packVersion: manifest.packVersion,
-          detectorId: manifest.detector.id,
+          detectorId: manifest.detectorSetId,
           classifierId: manifest.classifier.embeddingId,
           locationCell: cell,
           analysedAt: _now().toUtc(),

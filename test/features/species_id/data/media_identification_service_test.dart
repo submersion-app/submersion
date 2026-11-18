@@ -176,7 +176,10 @@ void main() {
       await crops.allPresent('m1', found.map((i) => i.id).toList()),
       isTrue,
     );
-    expect(engine.loads.single.detectorPath, endsWith('detector.mlpackage'));
+    expect(
+      engine.loads.single.detectors.single.path,
+      endsWith('detector.mlpackage'),
+    );
   });
 
   test(
@@ -243,6 +246,34 @@ void main() {
     expect(engine.analysed, hasLength(2));
     expect((await identifications.runFor('m1'))!.classifierId, 'clf-b');
   });
+
+  test('a pack that adds a second detector analyses again and stores both '
+      'ids', () async {
+    await service.request(photo('m1'));
+    expect((await identifications.runFor('m1'))!.detectorId, 'det-a');
+    installed = pack(version: '2026.12.1', secondDetector: 'det-m');
+    await service.packChanged();
+    await service.request(photo('m1'));
+    expect(engine.analysed, hasLength(2));
+    expect((await identifications.runFor('m1'))!.detectorId, 'det-a+det-m');
+    expect(engine.loads.last.detectors.map((d) => d.path), [
+      '/pack/2026.12.1/detector/detector.mlpackage',
+      '/pack/2026.12.1/detector-megalodon/detector-megalodon.mlpackage',
+    ]);
+  });
+
+  test(
+    'a pair pack with the same detectors renames without the engine',
+    () async {
+      installed = pack(secondDetector: 'det-m');
+      await service.request(photo('m1'));
+      installed = pack(version: '2026.12.1', secondDetector: 'det-m');
+      await service.packChanged();
+      await service.request(photo('m1'));
+      expect(engine.analysed, hasLength(1));
+      expect((await identifications.runFor('m1'))!.detectorId, 'det-a+det-m');
+    },
+  );
 
   test('a new crop fitting analyses again: old embeddings were fitted the '
       'other way', () async {

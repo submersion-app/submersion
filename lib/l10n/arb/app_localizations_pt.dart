@@ -12220,6 +12220,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveSites_detail_editTooltipShort => 'Editar';
 
   @override
+  String get diveSites_edit_editingWithdrawn =>
+      'Você não pode mais editar este ponto. As alterações não salvas foram descartadas.';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return 'Erro: $error';
   }

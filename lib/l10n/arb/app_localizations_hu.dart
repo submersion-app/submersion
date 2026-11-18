@@ -12199,6 +12199,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveSites_detail_editTooltipShort => 'Szerkesztés';
 
   @override
+  String get diveSites_edit_editingWithdrawn =>
+      'Ezt a helyszínt már nem szerkesztheti. A nem mentett módosítások elvesztek.';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return 'Hiba: $error';
   }

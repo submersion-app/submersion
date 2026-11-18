@@ -7,7 +7,6 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
-import 'package:submersion/core/app/app_exit_guard.dart';
 import 'package:submersion/core/ui/chart_viewport.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -75,7 +74,6 @@ import 'package:submersion/features/dive_log/presentation/providers/safety_revie
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_actions.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_analysis_retention.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_title.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_embedded_editing_header.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_embedded_header.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_overflow_menu.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_profile_section.dart';
@@ -117,14 +115,12 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/ed
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_edit_cards.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tanks_fields.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
-import 'package:submersion/shared/widgets/record_editing/add_strip_layout.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
-import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
 import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_leave_guard.dart';
-import 'package:submersion/shared/widgets/record_editing/record_edit_shortcuts.dart';
-import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blocker.dart';
 import 'package:submersion/shared/widgets/export_destination_sheet.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
 import 'package:uuid/uuid.dart';
@@ -211,6 +207,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
     with
         _DiveDetailPageActions,
         _DiveDetailPageExports,
+        RecordEditHost<DiveDetailPage, Dive>,
         _DiveDetailPageEditing,
         _DiveDetailPageUnlockOpen,
         _DiveDetailPageCreating,
@@ -565,7 +562,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
     final layout = ref.watch(
       settingsProvider.select((s) => s.diveDetailLayout),
     );
-    final shown = shownDive(dive);
+    final shown = shownRecord(dive);
 
     final body = SingleChildScrollView(
       controller: DetailScrollController.maybeOf(context),
@@ -669,7 +666,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
 
     final appBar = _standaloneBar(dive, shown);
     return editScaffold(
-      dive: dive,
+      record: dive,
       shown: shown,
       lockedBar: appBar,
       content: content,

@@ -3847,6 +3847,7 @@
   "diveSites_detail_diveCount_zero": "Nenhum mergulho registrado ainda",
   "diveSites_detail_editTooltip": "Editar Ponto",
   "diveSites_detail_editTooltipShort": "Editar",
+  "diveSites_edit_editingWithdrawn": "Você não pode mais editar este ponto. As alterações não salvas foram descartadas.",
   "diveSites_detail_error_body": "Erro: {error}",
   "diveSites_detail_error_title": "Erro",
   "diveSites_detail_loading_title": "Carregando...",
