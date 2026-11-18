@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_media_sitting.dart';
+import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
 import 'package:submersion/features/media/presentation/helpers/media_hold.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';

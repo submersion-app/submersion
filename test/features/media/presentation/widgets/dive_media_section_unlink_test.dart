@@ -1,11 +1,12 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_media_sitting.dart';
+import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
@@ -76,6 +77,7 @@ void main() {
         drainDeletes: () async {},
         enqueueUpload: (_) {},
       ),
+      cardId: DiveDetailSectionId.media.name,
     );
 
     await tester.runAsync(() async {
