@@ -795,7 +795,7 @@ In light and dark, at phone and desktop widths where layout differs.
 - **Phone memory is not measured on a 6 GB phone.** The
   [phone memory findings](../findings/2026-11-17-marine-life-phone-memory.md)
   measured a Mac and an iPhone 17 Pro Max. On the iPhone the models run on
-  the Neural Engine and iOS counts their 0.63 to 0.72 GB, and identification
+  the Neural Engine and iOS counts their 634 to 718 MiB, and identification
   peaked at 2.4 GiB with a 50 MP photo open, against a limit of 3,376 MiB.
   A 6 GB phone's limit may be lower and is unmeasured, so the 6 GB floor may
   still be too low.

@@ -24,10 +24,11 @@ app's memory limit, unless a line says otherwise.
    process is 1.2 GB resident but its footprint is 17 to 35 MiB. Mapped file
    pages are clean, so the system can drop and re-read them instead of
    counting them.
-2. **The feature's peaks come from the media, not the models:** 253 MiB
-   analysing a 50 MP photo, 277 MiB in a video's pass 1 and 243 MiB in its
-   pass 2. They are decoding the photo, the 4K decoder's buffers and full-size
-   4K frames.
+2. **On the Mac's GPU path the feature's peaks come from the media, not
+   the models:** 253 MiB analysing a 50 MP photo, 277 MiB in a video's
+   pass 1 and 243 MiB in its pass 2. They are decoding the photo, the 4K
+   decoder's buffers and full-size 4K frames. On an iPhone the models, at
+   about 0.7 GiB, cost more than this decoding (answer 6).
 3. **On the Neural Engine, 634 to 718 MiB goes to an account that is not
    counted.** Forcing the Neural Engine, the kernel puts the models' memory
    in the process's `ledger_tag_neural_nofootprint` ledger (what
@@ -164,10 +165,12 @@ MiB throughout. What the run showed:
 - **iOS counts the Neural Engine's memory.** The not-counted ledger stayed
   at zero; the models' memory went into the counted ledger and so into the
   footprint. The models cost about 0.7 GiB of the limit while in use.
-  Unloading frees it at once, where macOS took half a second.
+  Unloading frees it at once; on the Mac it was gone by the sample half a
+  second after unloading.
 - **The idle classifier is dropped and brought back.** At the start of
-  later scans the counted figure fell to 131 MiB, the detector alone, and
-  rose to 718 MiB again when pass 2 used the classifier.
+  later scans the counted figure fell to 131 MiB, most likely the
+  detector alone, and rose to 718 MiB again when pass 2 used the
+  classifier.
 - **The app's own media cost more than the models.** With the 50 MP photo
   open in the viewer and no model loaded, the app was at 1,700 MiB; with
   the video open, 785 MiB. Its overall peak, 2,708 MiB with 668 MiB left,

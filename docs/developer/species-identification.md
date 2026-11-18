@@ -256,10 +256,11 @@ file to write to, nothing is read.
 Each stage writes one line: after the models load, after a photo, after
 each 10 second chunk's pass 1 and pass 2, and after the models unload. A
 chunk with no fish to name runs no pass 2 and so has no pass 2 line. The
-reading is taken without holding up identification:
+reading is taken without holding up identification. A line from an iPhone
+17 Pro Max:
 
 ```text
-Memory after pass 2 (0:20 to 0:30): 2412 MiB left, footprint 612 MiB (peak 845 MiB), 2179 MiB left at the peak, Neural Engine 717 MiB not counted (peak 717 MiB), 0 MiB counted
+Memory after pass 2 (0:00 to 0:10): 1891 MiB left, footprint 1485 MiB (peak 2708 MiB), 668 MiB left at the peak, Neural Engine 0 MiB not counted (peak 0 MiB), 718 MiB counted
 ```
 
 Figures are in MiB (1,048,576 bytes), as in the findings.
@@ -277,11 +278,12 @@ Figures are in MiB (1,048,576 bytes), as in the findings.
   nothing left the limit is unknown, so the line leaves this out.
 - **Neural Engine:** the models' memory on the Neural Engine, split into
   what counts toward the footprint and what the system keeps out of it.
-  The not-counted peak needs iOS 18 or macOS 15; earlier versions report
-  the figure without it. The Neural Engine frees its memory a moment after
-  the models unload, so the unload line may still show it.
+  An iPhone counts it; a Mac keeps it out. The not-counted peak needs iOS
+  18 or macOS 15; earlier versions report the figure without it. On an
+  iPhone the unload line shows it all freed; on a Mac it may still show
+  some, freed a moment later.
 
 Use a profile or release build for figures that stand for a diver's phone:
-a debug build carries over 1 GB of debug-only memory. The Mac measurements
-these lines follow up on are in
+a debug build carries over 1 GB of debug-only memory. The Mac and iPhone
+measurements are in
 [the phone memory findings](../design/findings/2026-11-17-marine-life-phone-memory.md).
