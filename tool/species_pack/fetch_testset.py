@@ -472,58 +472,50 @@ def _boxed(image, d):
     return crop
 
 
-def _model_in(folder):
-    """The model a folder holds: a compiled model when there is one, else
-    the package."""
-    names = sorted(os.listdir(folder)) if os.path.isdir(folder) else []
-    for ext in (".mlmodelc", ".mlpackage"):
-        for name in names:
-            if name.endswith(ext):
-                return os.path.join(folder, name)
-    return None
-
-
 def stage_junk_sheets(work, pack):
     import subprocess
-    import zipfile
 
     from PIL import Image
 
-    import megalodon
-
-    # Before any building or unzipping: both detectors run here.
-    mega_dir = megalodon.converted_dir(work, "megalodon-2024")
-    chosen = _load(os.path.join(work, "commons.json"), [])
-    tool = os.path.join(work, "species_vision")
-    subprocess.run([os.path.join(os.path.dirname(__file__), "vision_cli", "build.sh"), tool], check=True)
     import manifest as pack_manifest
+    import megalodon
 
     with open(os.path.join(pack, "manifest.json"), encoding="utf-8") as fh:
         pack_json = json.load(fh)
     detectors, boxes = pack_manifest.pack_detectors(pack_json)
+    by_id = {d["id"]: d for d in detectors}
     cfd_id = pack_manifest.DETECTORS["cfd"]["id"]
-    cfd = next((d for d in detectors if d["id"] == cfd_id), None)
-    if cfd is None:
+    mega_id = megalodon.CHECKPOINTS["megalodon-2024"]["id"]
+    if cfd_id not in by_id:
         raise SystemExit(f"{pack} does not carry the fish detector")
-    pack_models = os.path.join(work, "models", "junk")
-    for stem in (cfd["file"], "classifier"):
-        folder = os.path.join(pack_models, stem)
-        if not any(n.endswith((".mlmodelc", ".mlpackage")) for n in (os.listdir(folder) if os.path.isdir(folder) else [])):
-            with zipfile.ZipFile(os.path.join(pack, pack_manifest.model_zip(stem, "coreml"))) as zf:
-                zf.extractall(folder)
+    # Before any building or unzipping: Megalodon runs here too, from the
+    # pack when it carries it, else from its conversion in the work folder.
+    if mega_id not in by_id:
+        megalodon.converted_dir(work, "megalodon-2024")
+    chosen = _load(os.path.join(work, "commons.json"), [])
+    tool = os.path.join(work, "species_vision")
+    subprocess.run([os.path.join(os.path.dirname(__file__), "vision_cli", "build.sh"), tool], check=True)
+    # Keyed by the pack's models, so another pack's are never reused.
+    stems = [d["file"] for d in detectors] + ["classifier"]
+    zips = {pack_manifest.model_zip(stem, "coreml") for stem in stems}
+    key = hashlib.sha256(
+        json.dumps(sorted((f["name"], f["sha256"]) for f in pack_json["files"] if f["name"] in zips)).encode()
+    ).hexdigest()[:16]
+    pack_models = os.path.join(work, "models", "junk", key)
+    models = {stem: pack_manifest.unpack_model(pack, stem, os.path.join(pack_models, stem)) for stem in stems}
     # Each detector alone, so each box is labelled against the detector
     # that found it.
-    cfd_manifest = os.path.join(pack_models, "cfd_manifest.json")
-    with open(cfd_manifest, "w", encoding="utf-8") as fh:
-        json.dump(pack_manifest.with_detectors(pack_json, [cfd], boxes), fh)
-    mega_manifest = os.path.join(mega_dir, "manifest.json")
-    with open(mega_manifest, "w", encoding="utf-8") as fh:
-        json.dump(megalodon.manifest_for("megalodon-2024", os.path.join(pack, "manifest.json")), fh)
-    runs = {
-        cfd_id: (cfd_manifest, _model_in(os.path.join(pack_models, cfd["file"]))),
-        megalodon.CHECKPOINTS["megalodon-2024"]["id"]: (mega_manifest, megalodon.tool_model(work, "megalodon-2024")),
-    }
-    classifier_model = _model_in(os.path.join(pack_models, "classifier"))
+    runs = {}
+    for detector_id in (cfd_id, mega_id):
+        if detector_id in by_id:
+            settings, model = by_id[detector_id], models[by_id[detector_id]["file"]]
+        else:
+            settings, model = megalodon.SETTINGS, megalodon.tool_model(work, "megalodon-2024")
+        manifest_path = os.path.join(pack_models, f"{detector_id}.json")
+        with open(manifest_path, "w", encoding="utf-8") as fh:
+            json.dump(pack_manifest.with_detectors(pack_json, [settings], boxes), fh)
+        runs[detector_id] = (manifest_path, model)
+    classifier_model = models["classifier"]
     paths = "\n".join(_photo_path(work, "commons", f["id"]) for f in chosen) + "\n"
     for detector, (manifest, model) in runs.items():
         out_path = os.path.join(work, f"junk_detections_{detector}.jsonl")

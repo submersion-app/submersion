@@ -383,6 +383,44 @@ class DetectorIdentityTests(unittest.TestCase):
         self.assertEqual(manifest.BOXES, self.PINNED_BOXES, "a box setting changed: give the detectors new ids")
 
 
+class UnpackModelTests(unittest.TestCase):
+    def pack_with(self, tmp, stem, inner):
+        import zipfile
+
+        pack = os.path.join(tmp, "pack")
+        os.makedirs(pack, exist_ok=True)
+        with zipfile.ZipFile(os.path.join(pack, manifest.model_zip(stem, "coreml")), "w") as zf:
+            zf.writestr(f"{inner}/Manifest.json", "{}")
+        return pack
+
+    def test_a_pack_model_is_unpacked_into_its_folder(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            pack = self.pack_with(tmp, "detector-megalodon", "detector.mlpackage")
+            folder = os.path.join(tmp, "models", "detector-megalodon")
+            path = manifest.unpack_model(pack, "detector-megalodon", folder)
+            self.assertEqual(path, os.path.join(folder, "detector.mlpackage"))
+            self.assertTrue(os.path.isdir(path))
+
+    def test_a_compiled_model_already_there_is_used(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            pack = self.pack_with(tmp, "detector", "detector.mlpackage")
+            folder = os.path.join(tmp, "models", "detector")
+            os.makedirs(os.path.join(folder, "detector.mlmodelc"))
+            self.assertEqual(manifest.unpack_model(pack, "detector", folder), os.path.join(folder, "detector.mlmodelc"))
+            self.assertEqual(manifest.model_in(folder), os.path.join(folder, "detector.mlmodelc"))
+
+    def test_a_zip_holding_no_model_names_itself(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            pack = self.pack_with(tmp, "classifier", "weights")
+            with self.assertRaises(SystemExit) as stop:
+                manifest.unpack_model(pack, "classifier", os.path.join(tmp, "models", "classifier"))
+            self.assertIn("classifier.coreml.zip", str(stop.exception))
+
+    def test_an_empty_or_missing_folder_holds_no_model(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertIsNone(manifest.model_in(os.path.join(tmp, "nothing")))
+
+
 class FittingTests(unittest.TestCase):
     def test_a_fitting_the_packs_use_is_no_mismatch(self):
         self.assertEqual(manifest.fitting_mismatches(dict(manifest.CROP_FIT)), {})

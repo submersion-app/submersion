@@ -28,7 +28,6 @@ import shutil
 import statistics
 import subprocess
 import sys
-import zipfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -59,17 +58,6 @@ def _read_json(path):
         return json.load(fh)
 
 
-def _model_in(folder):
-    """The model a folder holds: a compiled model when there is one (the
-    vision tool compiles a package once and deletes it), else the package."""
-    names = sorted(os.listdir(folder)) if os.path.isdir(folder) else []
-    for ext in (".mlmodelc", ".mlpackage"):
-        for name in names:
-            if name.endswith(ext):
-                return os.path.join(folder, name)
-    return None
-
-
 class Runner:
     """Runs the vision tool once per detector set (the fish detector,
     Megalodon, both) and fitting, cached by pack version, and keeps each
@@ -83,7 +71,7 @@ class Runner:
         self.version = self.manifest["packVersion"]
         detectors, self.boxes = pack_manifest.pack_detectors(self.manifest)
         stems = [d["file"] for d in detectors] + ["classifier"]
-        zips = {pack_manifest.model_zip(stem, "coreml"): stem for stem in stems}
+        zips = {pack_manifest.model_zip(stem, "coreml") for stem in stems}
         # The models' own hashes, so a pack rebuilt under the same version
         # with other models is extracted again rather than read stale.
         self.model_hashes = {f["name"]: f["sha256"] for f in self.manifest["files"] if f["name"] in zips}
@@ -92,14 +80,11 @@ class Runner:
         if os.path.exists(self.models) and _read_json(source) != self.model_hashes:
             shutil.rmtree(self.models)
         os.makedirs(self.models, exist_ok=True)
-        for name, stem in zips.items():
-            folder = os.path.join(self.models, stem)
-            if _model_in(folder) is None:
-                with zipfile.ZipFile(os.path.join(pack, name)) as zf:
-                    zf.extractall(folder)
+        for stem in stems:
+            pack_manifest.unpack_model(pack, stem, os.path.join(self.models, stem))
         with open(source, "w", encoding="utf-8") as fh:
             json.dump(self.model_hashes, fh)
-        self.classifier = _model_in(os.path.join(self.models, "classifier"))
+        self.classifier = pack_manifest.model_in(os.path.join(self.models, "classifier"))
         self.tool = os.path.join(work, "species_vision")
         subprocess.run([os.path.join(os.path.dirname(__file__), "vision_cli", "build.sh"), self.tool], check=True)
 
@@ -126,7 +111,10 @@ class Runner:
             with open(path, "w", encoding="utf-8") as fh:
                 json.dump(run_manifest, fh)
             self.manifests[name] = path
-        self.model_paths = {i: _model_in(folder) for i, (_, folder) in in_pack.items()}
+        self.model_paths = {i: pack_manifest.model_in(folder) for i, (_, folder) in in_pack.items()}
+        missing = [i for i, path in self.model_paths.items() if path is None]
+        if missing:
+            raise SystemExit(f"no model found for {', '.join(missing)}")
         self.memory = {}
 
     def _fingerprint(self, name, fit, photos):
@@ -198,8 +186,8 @@ class Runner:
             with open(key_path, "w", encoding="utf-8") as fh:
                 fh.write(key + "\n")
             # A compiled model may have replaced a package the paths named.
-            self.model_paths = {i: _model_in(os.path.dirname(p)) for i, p in self.model_paths.items()}
-            self.classifier = _model_in(os.path.dirname(self.classifier))
+            self.model_paths = {i: pack_manifest.model_in(os.path.dirname(p)) for i, p in self.model_paths.items()}
+            self.classifier = pack_manifest.model_in(os.path.dirname(self.classifier))
         with open(mem, encoding="utf-8") as fh:
             m = re.search(r"(\d+)\s+maximum resident set size", fh.read())
         self.memory[(name, fit)] = int(m.group(1)) if m else None

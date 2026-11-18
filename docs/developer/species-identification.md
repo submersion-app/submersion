@@ -135,7 +135,9 @@ the ids are compared, so a detector's id must change with any of its
 settings (or the shared `boxes`); `manifest_test.py` pins each detector's
 settings to its id and fails when one changes alone.
 `tool/species_pack/vision_cli/check_merge.sh` checks the Swift merge against
-`boxes.py`'s cases on a Mac.
+`boxes.py`'s cases on a Mac, and CI runs it on macOS
+(`.github/workflows/vision-merge-check.yml`) whenever the vision plugin or
+its tools change.
 
 The pure parts have tests that CI runs:
 
@@ -192,8 +194,8 @@ measured on. Each stage caches in the work folder and resumes if stopped:
 for stage in pool labels photos underwater review-sheets commons; do .venv-species-pack/bin/python -I tool/species_pack/fetch_testset.py $stage; done
 ```
 
-Convert Megalodon (as above) before drawing the junk contact sheets, which
-run both detectors:
+The junk contact sheets run both detectors, each alone; Megalodon comes from
+the pack when it carries it, otherwise convert it first (as above):
 
 ```bash
 .venv-species-pack/bin/python -I tool/species_pack/fetch_testset.py junk-sheets --pack build/species_pack

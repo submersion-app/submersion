@@ -9,6 +9,7 @@ import copy
 import hashlib
 import json
 import os
+import zipfile
 
 # Format 2 (issue #4691): one or two detectors, each in its own format.
 FORMAT_VERSION = 2
@@ -181,6 +182,33 @@ def detector_ids(detector_set):
 def model_zip(stem, engine):
     """A model's file in a pack: `<stem>.<engine>.zip`, as the app names it."""
     return f"{stem}.{engine}.zip"
+
+
+def model_in(folder):
+    """The model a folder holds: a compiled model when there is one (the
+    vision tool compiles a package once and deletes it), else the package.
+    None when there is neither."""
+    names = sorted(os.listdir(folder)) if os.path.isdir(folder) else []
+    for ext in (".mlmodelc", ".mlpackage"):
+        for name in names:
+            if name.endswith(ext):
+                return os.path.join(folder, name)
+    return None
+
+
+def unpack_model(pack, stem, folder, engine="coreml"):
+    """The model `stem` of the pack folder `pack`, unpacked into `folder`
+    unless a model is already there, as its path. Stops, naming the zip,
+    when the zip holds no model."""
+    path = model_in(folder)
+    if path is None:
+        name = model_zip(stem, engine)
+        with zipfile.ZipFile(os.path.join(pack, name)) as zf:
+            zf.extractall(folder)
+        path = model_in(folder)
+        if path is None:
+            raise SystemExit(f"{name} in {pack} holds no Core ML model (.mlpackage or .mlmodelc at its top)")
+    return path
 
 
 def pack_detectors(manifest):
