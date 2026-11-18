@@ -11,8 +11,8 @@ import 'package:submersion/features/dive_log/data/services/profile_analysis_serv
 /// color vision deficiency across the phases that can share an edge, which
 /// includes bottom beside a stop when a short ascent wins no column. Descent
 /// rarely meets deco, which is what lets those two sit closer than the others.
-/// Picking a column also marks its phase row, so nothing depends on color
-/// alone.
+/// Picking a column fades the others and also marks its phase row, so
+/// nothing depends on color alone.
 abstract final class SacSegmentColors {
   static Color forPhase(DivePhase phase, Brightness brightness) {
     final light = brightness == Brightness.light;
