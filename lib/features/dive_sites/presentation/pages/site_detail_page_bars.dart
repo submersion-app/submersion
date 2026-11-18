@@ -150,6 +150,32 @@ extension _SiteDetailBars on _SiteDetailContentState {
     ];
   }
 
+  /// The old edit route for a pane that offers no lock: the list's pane in
+  /// edit mode, the dive list's for a site it shows (`&site=`).
+  void _openPaneEditMode(BuildContext context) {
+    final state = GoRouterState.of(context);
+    final currentPath = state.uri.path;
+    if (currentPath.startsWith('/dives')) {
+      // If we're on the /dives path, keep it and just add mode=edit and site parameter.
+      // The MasterDetailScaffold in DiveListPage will handle showing the site edit panel
+      // because we'll have both ?site=... and &mode=edit in the query params.
+      final params = Map<String, String>.from(state.uri.queryParameters);
+      params['mode'] = 'edit';
+      // We do NOT change 'selected' here, because 'selected' is used by DiveListPage's
+      // MasterDetailScaffold to identify the DIVE. If we change it to the siteId,
+      // the scaffold will try to find a dive with that siteId and fail.
+      params['site'] = widget.siteId;
+      // In place, not push: a pushed copy of the Dives list would
+      // stay behind after save, with a back arrow of its own (#3292).
+      context.goInPlace(
+        Uri(path: currentPath, queryParameters: params).toString(),
+      );
+    } else {
+      // Default to /sites path for site-related navigation if not on /dives.
+      context.go('/sites?selected=${widget.siteId}&mode=edit');
+    }
+  }
+
   /// The list pane's header row. [offered] is whether the lock shows;
   /// while the site is unlocked the shared pane header (Cancel, the title,
   /// the menu and Save) is laid over it ([RecordPaneRow]).
@@ -227,31 +253,12 @@ extension _SiteDetailBars on _SiteDetailContentState {
             IconButton(
               icon: const Icon(Icons.edit, size: 20),
               tooltip: context.l10n.diveSites_detail_editTooltipShort,
-              onPressed: () {
-                final state = GoRouterState.of(context);
-                final currentPath = state.uri.path;
-                if (currentPath.startsWith('/dives')) {
-                  // If we're on the /dives path, keep it and just add mode=edit and site parameter.
-                  // The MasterDetailScaffold in DiveListPage will handle showing the site edit panel
-                  // because we'll have both ?site=... and &mode=edit in the query params.
-                  final params = Map<String, String>.from(
-                    state.uri.queryParameters,
-                  );
-                  params['mode'] = 'edit';
-                  // We do NOT change 'selected' here, because 'selected' is used by DiveListPage's
-                  // MasterDetailScaffold to identify the DIVE. If we change it to the siteId,
-                  // the scaffold will try to find a dive with that siteId and fail.
-                  params['site'] = widget.siteId;
-                  // In place, not push: a pushed copy of the Dives list would
-                  // stay behind after save, with a back arrow of its own (#3292).
-                  context.goInPlace(
-                    Uri(path: currentPath, queryParameters: params).toString(),
-                  );
-                } else {
-                  // Default to /sites path for site-related navigation if not on /dives.
-                  context.go('/sites?selected=${widget.siteId}&mode=edit');
-                }
-              },
+              // Where the pane offers the lock, Edit unlocks the site in
+              // place as the lock does; the edit address would remount the
+              // pane at its top.
+              onPressed: offered
+                  ? () => editController.unlock(site)
+                  : () => _openPaneEditMode(context),
             ),
           ..._libraryButtons(context, ref, site),
           menu,

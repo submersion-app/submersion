@@ -440,6 +440,34 @@ void main() {
       expect(find.byType(RecordEditBar), findsNothing);
     });
 
+    // Android's Back strips `mode=edit` from the same page: typing the
+    // diver has done keeps the sitting open.
+    testWidgets('turned off with changes, it stays unlocked', (tester) async {
+      await pump(tester, const _NotePage(noteId: 'n1', openUnlocked: true));
+      await editText(tester, 'Choppy');
+
+      tester
+          .state<_HostState>(find.byType(_Host))
+          .show(const _NotePage(noteId: 'n1'));
+      await tester.pumpAndSettle();
+      expect(find.byType(RecordEditBar), findsOneWidget);
+      expect(find.text('Choppy'), findsOneWidget);
+    });
+
+    testWidgets('turned on again, it opens unlocked again', (tester) async {
+      await pump(tester, const _NotePage(noteId: 'n1', openUnlocked: true));
+      await tester.tap(find.text(l.forms_cancel));
+      await tester.pumpAndSettle();
+      final host = tester.state<_HostState>(find.byType(_Host));
+      host.show(const _NotePage(noteId: 'n1'));
+      await tester.pumpAndSettle();
+      expect(find.byType(RecordEditBar), findsNothing);
+
+      host.show(const _NotePage(noteId: 'n1', openUnlocked: true));
+      await tester.pumpAndSettle();
+      expect(find.byType(RecordEditBar), findsOneWidget);
+    });
+
     testWidgets('a leave the app asked about is not told', (tester) async {
       var ended = 0;
       await pump(

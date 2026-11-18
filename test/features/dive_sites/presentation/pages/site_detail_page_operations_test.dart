@@ -5,6 +5,8 @@ import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
+import 'package:submersion/core/services/shared_library/shared_library_store.dart';
+import 'package:submersion/core/services/shared_library/shared_site_publisher.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
@@ -41,6 +43,8 @@ void main() {
     bool unlockEditing = true,
     bool hidden = false,
     List<String> divers = const ['me'],
+    bool openUnlocked = false,
+    VoidCallback? onSittingEnded,
     List<Override> extra = const [],
   }) async {
     final sites = _RecordingSites();
@@ -48,6 +52,8 @@ void main() {
       tester,
       site: site,
       unlockEditing: unlockEditing,
+      openUnlocked: openUnlocked,
+      onSittingEnded: onSittingEnded,
       initialLocation: '/root-site',
       extra: [
         siteListNotifierProvider.overrideWith((ref) => sites),
@@ -242,6 +248,49 @@ void main() {
     expect(sites.hidden, isEmpty);
   });
 
+  // A library delete may keep the site here, detached as this profile's
+  // own: the page stays, so the end of its sitting is still told, and a
+  // pane opened for editing returns to view mode.
+  testWidgets('a library delete that keeps the site still tells the end of '
+      'the sitting', (tester) async {
+    var ended = 0;
+    final publisher = _DetachingPublisher();
+    await pump(
+      tester,
+      site: harnessSite.copyWith(sharedLibraryId: 'L'),
+      openUnlocked: true,
+      onSittingEnded: () => ended++,
+      extra: [
+        libraryRoleProvider(
+          'L',
+        ).overrideWith((ref) async => SharedLibraryRole.editor),
+        libraryConnectedHereProvider('L').overrideWith((ref) async => true),
+        siteLibraryStateProvider('s1').overrideWith((ref) async => null),
+        libraryMemberNamesProvider('L').overrideWith((ref) async => const {}),
+        sharedSitePublisherProvider.overrideWithValue(publisher),
+      ],
+    );
+    expect(find.byType(RecordEditBar), findsOneWidget);
+
+    await openMenu(tester);
+    await tester.tap(find.text(l.diveSites_detail_deleteMenu_label).last);
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text(l.diveSites_detail_deleteMenu_label),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(publisher.deleted, ['s1']);
+    // The site stayed, and its sitting started again from it.
+    expect(find.byType(RecordEditBar), findsOneWidget);
+
+    await tester.tap(find.text(l.forms_cancel));
+    await tester.pumpAndSettle();
+    expect(ended, 1);
+  });
+
   testWidgets('with the switch off the menu is as today', (tester) async {
     await pump(tester, unlockEditing: false);
     await openMenu(tester);
@@ -250,6 +299,19 @@ void main() {
     expect(find.text(l.recordEdit_unlockToUseThese), findsNothing);
     expect(find.text(l.diveSites_detail_deleteMenu_label), findsNothing);
   });
+}
+
+/// Deletes from the library and keeps the site here, as a detach does.
+class _DetachingPublisher extends SharedSitePublisher {
+  _DetachingPublisher() : super(store: SharedLibraryStore());
+
+  final deleted = <String>[];
+
+  @override
+  Future<void> deleteFromLibrary({
+    required String siteId,
+    required String diverId,
+  }) async => deleted.add(siteId);
 }
 
 class _FakeHides extends Fake implements ProfileHidesRepository {

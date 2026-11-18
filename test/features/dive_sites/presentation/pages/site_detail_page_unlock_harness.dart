@@ -124,13 +124,17 @@ Future<SiteUnlockHarness> pumpSitePage(
       : GoRouter(
           initialLocation: initialLocation,
           routes: [
-            GoRoute(path: '/root-site', builder: (_, _) => page),
+            GoRoute(
+              path: '/root-site',
+              builder: (_, _) => embedded ? Scaffold(body: page) : page,
+            ),
             GoRoute(
               path: '/sites',
               builder: (_, _) => const Scaffold(body: Text('sites pane')),
             ),
           ],
         );
+  if (router != null) addTearDown(router.dispose);
   harness.router = router;
   await tester.pumpWidget(
     ProviderScope(

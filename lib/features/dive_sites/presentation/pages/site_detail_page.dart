@@ -833,10 +833,13 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
     ref.invalidate(sitesProvider);
     ref.invalidate(sitesWithCountsProvider);
     if (!context.mounted) return true;
-    _leftForGood = true;
+    // The site may stay here, detached as this profile's own: only a page
+    // that leaves has gone for good.
     if (widget.onClose != null) {
+      _leftForGood = true;
       widget.onClose!();
     } else if (context.canPop()) {
+      _leftForGood = true;
       context.pop();
     }
     return true;

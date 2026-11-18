@@ -86,6 +86,41 @@ void main() {
   // On a device that attaches media the locked pane's Media card still
   // offers no Add: the pane holds the sitting's scope, which makes the
   // card read only until it is unlocked and opened.
+  // Where the pane offers the lock its Edit unlocks the site in place, as
+  // the lock does: no edit address remounting the pane at its top.
+  testWidgets('Edit unlocks the pane in place', (tester) async {
+    final page = await pumpSitePage(
+      tester,
+      embedded: true,
+      initialLocation: '/root-site',
+    );
+
+    await tester.tap(find.byTooltip(l.diveSites_detail_editTooltipShort));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(RecordEditPaneHeader), findsOneWidget);
+    final uri = page.router!.routerDelegate.currentConfiguration.uri;
+    expect(uri.toString(), '/root-site');
+  });
+
+  testWidgets('with the switch off, Edit opens the pane\'s edit mode', (
+    tester,
+  ) async {
+    final page = await pumpSitePage(
+      tester,
+      embedded: true,
+      unlockEditing: false,
+      initialLocation: '/root-site',
+    );
+
+    await tester.tap(find.byTooltip(l.diveSites_detail_editTooltipShort));
+    await tester.pumpAndSettle();
+
+    final uri = page.router!.routerDelegate.currentConfiguration.uri;
+    expect(uri.path, '/sites');
+    expect(uri.queryParameters['mode'], 'edit');
+  });
+
   group('on a device that attaches media', () {
     final attaches = [
       deviceCapabilitiesProvider.overrideWithValue(

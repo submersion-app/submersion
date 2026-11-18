@@ -73,10 +73,10 @@ Widget siteEditPane(
 }
 
 /// The dive list pane's site in edit mode (`&site=<id>&mode=edit`): with
-/// [unlockEditing], the site page opened unlocked, whose back arrow
-/// returns to the dive ([onClose], a leave that asks first with unsaved
-/// changes) and whose sitting's end returns the site to view mode
-/// ([onCancel]); else the edit form as before.
+/// [unlockEditing], the site page opened unlocked, whose sitting's end
+/// returns the site to view mode ([onCancel]) and whose back arrow, on the
+/// locked row only (the open sitting's header covers it), returns to the
+/// dive ([onClose]); else the edit form as before.
 Widget siteInDivesPane(
   BuildContext context,
   String siteId, {
