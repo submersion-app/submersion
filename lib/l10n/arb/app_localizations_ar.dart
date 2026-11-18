@@ -57035,6 +57035,19 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String media_species_unconfirmedLabel(String name) {
+    return '$name, tagged by the app, not yet confirmed';
+  }
+
+  @override
+  String get media_species_confirm => 'Confirm';
+
+  @override
+  String media_species_confirmTag(String name) {
+    return 'Confirm $name';
+  }
+
+  @override
   String get media_people_me => 'أنا';
 
   @override

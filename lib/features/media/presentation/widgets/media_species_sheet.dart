@@ -226,6 +226,19 @@ void holdPickedSpecies(EditSession<PhotoRecord> session, Species species) =>
       tagged: true,
     );
 
+/// Holds the app's tag [chip] as confirmed in [session] (issue #4727).
+/// Does nothing once the sitting has ended or while it is being saved.
+void holdSpeciesConfirmed(
+  EditSession<PhotoRecord> session,
+  SpeciesTagChip chip,
+) {
+  if (session.isDisposed || session.isFrozen) return;
+  session.set(
+    photoSpeciesField,
+    session.valueOf(photoSpeciesField).confirming(chip.speciesId),
+  );
+}
+
 /// Holds [chip] as untagged in [session] (issue #4668). Does nothing once
 /// the sitting has ended or while it is being saved.
 void holdSpeciesUntagged(

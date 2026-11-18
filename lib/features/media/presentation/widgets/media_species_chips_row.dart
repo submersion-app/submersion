@@ -10,7 +10,9 @@ import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/presentation/editing/photo_sitting_shown.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 import 'package:submersion/features/species_id/presentation/widgets/suggested_species_section.dart';
+import 'package:submersion/features/media/domain/entities/species_tag_chip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/dashed_outline_painter.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 /// The species tagged on a photo, as a wrapping row of chips over the
@@ -24,7 +26,8 @@ class MediaSpeciesChipsRow extends ConsumerWidget {
   /// ones (issue #4527).
   final EditSession<PhotoRecord>? sitting;
 
-  /// Opens the species sheet from a suggestion; null leaves suggestions
+  /// Opens the species sheet from a suggestion, or from a tag the app
+  /// applied that awaits the diver's confirm (issue #4727); null leaves both
   /// shown but inert, as on a locked photo.
   final VoidCallback? onSuggestionTap;
 
@@ -68,17 +71,25 @@ class MediaSpeciesChipsRow extends ConsumerWidget {
           runSpacing: 4,
           children: [
             for (final chip in chips)
-              ActionChip(
-                avatar: ExcludeSemantics(
-                  child: Icon(iconForSpeciesCategory(chip.category), size: 16),
+              if (!chip.unconfirmed)
+                ActionChip(
+                  avatar: ExcludeSemantics(
+                    child: Icon(
+                      iconForSpeciesCategory(chip.category),
+                      size: 16,
+                    ),
+                  ),
+                  label: Text(
+                    localizedSpeciesName(l10n, chip.speciesId, chip.storedName),
+                  ),
+                  onPressed: () => context.push('/species/${chip.speciesId}'),
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  visualDensity: VisualDensity.compact,
                 ),
-                label: Text(
-                  localizedSpeciesName(l10n, chip.speciesId, chip.storedName),
-                ),
-                onPressed: () => context.push('/species/${chip.speciesId}'),
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                visualDensity: VisualDensity.compact,
-              ),
+            // Tags the app applied, not yet confirmed (issue #4727).
+            for (final chip in chips)
+              if (chip.unconfirmed)
+                _UnconfirmedChip(chip: chip, onTap: onSuggestionTap),
             for (final s in suggestions)
               ActionChip(
                 key: ValueKey(
@@ -102,6 +113,49 @@ class MediaSpeciesChipsRow extends ConsumerWidget {
             // A video being scanned (issue #4675).
             if (progress != null) _ScanProgressChip(progress: progress),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A species tag the app applied and the diver has not confirmed: drawn
+/// like a tag, with a dashed outline and a small mark, so it never passes
+/// for the diver's own (issue #4727). Tapping opens the species sheet,
+/// where it can be confirmed; inert on a locked photo.
+class _UnconfirmedChip extends StatelessWidget {
+  const _UnconfirmedChip({required this.chip, required this.onTap});
+
+  final SpeciesTagChip chip;
+  final VoidCallback? onTap;
+
+  static const double _radius = 8;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final name = localizedSpeciesName(l10n, chip.speciesId, chip.storedName);
+    return Semantics(
+      key: ValueKey('media_unconfirmed_chip_${chip.speciesId}'),
+      label: l10n.media_species_unconfirmedLabel(name),
+      button: onTap != null,
+      excludeSemantics: true,
+      onTap: onTap,
+      child: CustomPaint(
+        foregroundPainter: DashedOutlinePainter(
+          color: Theme.of(context).colorScheme.outline,
+          radius: _radius,
+        ),
+        child: ActionChip(
+          avatar: const Icon(Icons.auto_awesome_outlined, size: 16),
+          label: Text(name),
+          side: BorderSide.none,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(_radius),
+          ),
+          onPressed: onTap,
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          visualDensity: VisualDensity.compact,
         ),
       ),
     );

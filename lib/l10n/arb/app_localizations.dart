@@ -88224,6 +88224,24 @@ abstract class AppLocalizations {
   /// **'Remove {name}'**
   String media_species_removeTag(String name);
 
+  /// No description provided for @media_species_unconfirmedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}, tagged by the app, not yet confirmed'**
+  String media_species_unconfirmedLabel(String name);
+
+  /// No description provided for @media_species_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get media_species_confirm;
+
+  /// No description provided for @media_species_confirmTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm {name}'**
+  String media_species_confirmTag(String name);
+
   /// No description provided for @media_people_me.
   ///
   /// In en, this message translates to:
