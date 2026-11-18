@@ -5,6 +5,7 @@ import 'package:submersion_vision/submersion_vision.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/video_detections.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
+import 'package:submersion/features/species_id/domain/entities/vision_memory.dart';
 import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 
 /// [VisionEngine] over the `submersion_vision` method channel: Core ML on
@@ -129,6 +130,28 @@ class ChannelVisionEngine implements VisionEngine {
 
   @override
   Future<void> unload() => _guard(SubmersionVision.unload);
+
+  @override
+  Future<VisionMemory> memory() => _guard(() async {
+    final reply = await SubmersionVision.memory();
+    final footprint = reply?['footprint'];
+    if (reply == null || footprint is! num) {
+      throw const VisionEngineException('inference_failed', 'no reply');
+    }
+    int? bytes(String key) {
+      final v = reply[key];
+      return v is num ? v.toInt() : null;
+    }
+
+    return VisionMemory(
+      footprintBytes: footprint.toInt(),
+      footprintPeakBytes: bytes('footprintPeak'),
+      availableBytes: bytes('available'),
+      neuralCountedBytes: bytes('neuralCounted'),
+      neuralNotCountedBytes: bytes('neuralNotCounted'),
+      neuralNotCountedPeakBytes: bytes('neuralNotCountedPeak'),
+    );
+  });
 
   @override
   Future<void> excludeFromBackup(String directory) =>

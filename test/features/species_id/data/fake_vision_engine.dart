@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:submersion/features/species_id/domain/entities/video_detections.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
+import 'package:submersion/features/species_id/domain/entities/vision_memory.dart';
 import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 
 /// Detections the fake engine returns, one per entry: an embedding along an
@@ -160,6 +161,19 @@ class FakeEngine implements VisionEngine {
     unloads++;
     events.add('unload');
     loaded = false;
+  }
+
+  /// What [memory] answers, and what it throws instead when set.
+  VisionMemory memoryReading = const VisionMemory(
+    footprintBytes: 300 * 1048576,
+  );
+  Object? memoryFailure;
+
+  @override
+  Future<VisionMemory> memory() async {
+    events.add('memory');
+    if (memoryFailure != null) throw memoryFailure!;
+    return memoryReading;
   }
 
   @override
