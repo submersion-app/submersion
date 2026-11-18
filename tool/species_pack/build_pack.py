@@ -36,15 +36,19 @@ CLASSIFIER_CREDIT = {
 GBIF_CREDIT = {
     "name": "GBIF occurrence and taxonomy data",
     "licence": "CC0 and CC BY 4.0",
-    "text": "GBIF.org. Species names and where each species has been recorded.",
+    "text": "GBIF.org. Species names, and counts of where each species has been recorded.",
 }
 # Each detector's credits, in the pack only when the detector is.
 DETECTOR_CREDITS = {
     "cfd": [
         {
             "name": "Community Fish Detector",
-            "licence": "Redistribution awaiting the authors' permission",
-            "text": "RF-DETR detector trained on the Community Fish Detection Dataset.",
+            "licence": "No licence stated; its authors leave the terms to the user",
+            "text": (
+                "RF-DETR detector trained on the Community Fish Detection Dataset. "
+                "The authors' statement on its terms: "
+                "https://github.com/filippovarini/community-fish-detector/issues/8"
+            ),
         },
         {
             "name": "RF-DETR",

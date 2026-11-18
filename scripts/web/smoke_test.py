@@ -347,16 +347,23 @@ def edit_first_dive(page, rows):
     """A saved edit, through a switch: a text row collapses again when it is
     tapped through the semantics layer, as the page's only pointer here.
     The dive page opens locked: unlock it, open the header card (the dive's
-    own fields), flip Planned dive there and Save (issue #4527)."""
+    own fields), flip Planned dive there and Save (issue #4527).
+
+    Returns once the save has landed: the lock comes back only when the
+    record locks again, since the unlocked header hides it from semantics.
+    A route change made while the save is still writing is refused without
+    a word (the leave check cannot end a sitting being written), which left
+    the page on the dive and Sync Now nowhere to be found on slow runners."""
     rows.first.click()
-    button(page, exact("Unlock to edit")).click(timeout=STEP_TIMEOUT_MS)
+    unlock = button(page, exact("Unlock to edit"))
+    unlock.click(timeout=STEP_TIMEOUT_MS)
     button(page, exact("Edit Dive")).click(timeout=STEP_TIMEOUT_MS)
     page.get_by_role("switch", name=re.compile(r"^Planned dive")).first.click(
         timeout=STEP_TIMEOUT_MS
     )
     page.wait_for_timeout(500)
-    button(page, exact("Save")).click()
-    page.wait_for_timeout(2000)
+    button(page, exact("Save")).click(timeout=STEP_TIMEOUT_MS)
+    unlock.wait_for(timeout=STEP_TIMEOUT_MS)
 
 
 def sync_now(page):

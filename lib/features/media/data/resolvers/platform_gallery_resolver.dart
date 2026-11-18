@@ -160,10 +160,8 @@ class PlatformGalleryResolver implements MediaSourceResolver {
     }
     final resolvedId = resolution.localAssetId;
     if (resolvedId == null) return _missing(item);
-    final bytes = await _reader.originBytes(resolvedId);
-    if (bytes != null) {
-      return BytesData(bytes: bytes, servedFrom: ServedFrom.platformGallery);
-    }
+    final original = await _original(resolvedId);
+    if (original != null) return original;
     // A cached mapping is trusted without re-proving it, so the photo can
     // stop reading under it: dropped from a limited selection, or
     // re-indexed. Search again before calling it gone (spec 6.3), and keep
@@ -177,12 +175,29 @@ class PlatformGalleryResolver implements MediaSourceResolver {
     }
     final newId = again.localAssetId;
     if (newId != null && newId != resolvedId) {
-      final found = await _reader.originBytes(newId);
-      if (found != null) {
-        return BytesData(bytes: found, servedFrom: ServedFrom.platformGallery);
-      }
+      final found = await _original(newId);
+      if (found != null) return found;
     }
     return _missing(item);
+  }
+
+  /// Asset [id]'s original: the file the platform keeps where it keeps one,
+  /// else its bytes, or null when it cannot be read.
+  ///
+  /// The file wherever there is one (issue #4699): read as bytes, the
+  /// original sat whole in memory, a 4K video's hundreds of MB to stage one
+  /// upload, and a copy for every viewer page on top of its decoded bitmap.
+  /// Never both: where originals are files the bytes are that file read
+  /// back, so a failed export would only be tried again.
+  Future<MediaSourceData?> _original(String id) async {
+    if (_reader.originalsAsFiles) {
+      final file = await _reader.originFile(id);
+      if (file == null) return null;
+      return FileData(file: file, servedFrom: ServedFrom.platformGallery);
+    }
+    final bytes = await _reader.originBytes(id);
+    if (bytes == null) return null;
+    return BytesData(bytes: bytes, servedFrom: ServedFrom.platformGallery);
   }
 
   @override

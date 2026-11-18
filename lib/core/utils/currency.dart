@@ -14,6 +14,7 @@ const List<String> kCommonCurrencyCodes = [
   'SEK',
   'NOK',
   'DKK',
+  'PLN',
   'THB',
   'EGP',
   'MXN',

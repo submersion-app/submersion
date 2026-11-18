@@ -10,34 +10,34 @@ photos and videos on the device and suggests what they are (issues #4668,
 (video), with packs of one or two detectors in
 [the two detectors design](../design/specs/2026-11-17-marine-life-two-detectors-design.md).
 
-The feature is behind a flag and off for divers. This page is for working on
-it.
+The feature is on for divers on iPhone, iPad and Mac. This page is for
+working on it.
 
-## Turning it on
+## Where it is on
 
 The flag is `marineLifeIdEnabled` in `lib/core/constants/feature_flags.dart`.
-A development build turns it on with a build define:
+It is on by default wherever the engine runs (iPhone, iPad and Mac, asked of
+`visionEngineRuns`) and hidden on the web, Android, Windows and Linux, which
+no build define can turn on until they have an engine. A build turns it off
+everywhere with:
 
 ```bash
-flutter run -d macos --dart-define=MARINE_LIFE_ID=true
+flutter run -d macos --dart-define=MARINE_LIFE_ID=false
 ```
 
-Two things must hold before its default changes:
+The [release gate design](../design/specs/2026-11-18-marine-life-release-gate-design.md)
+records why it is on: the first published pack carries both detectors (the
+Community Fish Detector, whose authors leave the terms of its weights to the
+user, and FathomNet's Megalodon, CC BY 4.0 but trained with AGPL code), and
+its confidence bars come from measured accuracy. Each detector set measured
+on the 9,151-candidate list (packs `2026.11.18.0030` and `2026.11.18.0356`)
+is written with its bars; any other pack, a rebuilt candidate list included,
+is marked `provisional` until the scorer is run on it, so a pack to publish
+is checked for `"provisional": false` first.
 
-1. A pack is chosen whose detectors' terms allow shipping it: the
-   Community Fish Detector, FathomNet's Megalodon or both (issue #4691). The
-   Community Fish Detector's authors leave the terms of its weights to the
-   user; Megalodon is CC BY 4.0 but was trained with AGPL code. The
-   [measured accuracy findings](../design/findings/2026-11-17-marine-life-measured-accuracy.md)
-   compare the three and recommend both.
-2. The confidence bars in the pack come from measured accuracy. Each
-   detector set measured on the 9,151-candidate list (packs
-   `2026.11.18.0030` and `2026.11.18.0356`) is written with its bars; any
-   other pack, a rebuilt candidate list included, is marked `provisional`
-   until the scorer is run on it.
-
-Only iPhone, iPad and Mac can run it so far. Phones and tablets need at
-least 6 GB of memory.
+Phones and tablets need 8 GB of memory at launch: the floor is `MemoryFloor`
+in `MemoryReading.swift`, 6.5 GiB as the device reports it, checked by
+`tool/species_pack/vision_cli/check_floor.sh` in the Build iOS job.
 
 ## How it fits together
 
@@ -155,6 +155,28 @@ checked against `tool/species_pack/testdata/region_vectors.json`; after a
 change to the Python side, regenerate it with
 `python3.14 tool/species_pack/region_grid.py --write-vectors tool/species_pack/testdata/region_vectors.json`.
 
+## Publishing a pack
+
+The app reads the pack from the `species-pack` release: `manifest.json`
+first, then every file it lists, resolved next to the manifest. Pack
+`2026.11.18.0356` (both detectors) was published there on 2026-11-18.
+
+- **Always a pre-release.** The app's update check and the macOS appcast
+  read GitHub's `releases/latest`. A pack release marked latest would
+  replace the newest app version there for every user. Keep it a
+  pre-release and pass `--latest=false`.
+- **Draft first.** Create the release with `--draft`, upload every file
+  and the manifest, check the sizes, then publish with
+  `gh release edit species-pack --draft=false --prerelease --latest=false`.
+  A diver never sees a manifest whose files are still uploading.
+- **Measured bars only.** Check the manifest says `"provisional": false`
+  before it goes up. To change only credits or other manifest fields,
+  regenerate the manifest over the measured files with
+  `manifest.build_manifest` rather than rebuilding, which fetches GBIF
+  again and can change the naming files by a byte.
+- **Replacing a pack** means uploading the new files with
+  `gh release upload species-pack --clobber`, the manifest last.
+
 ## Measuring accuracy
 
 The naming bars in a pack come from a measurement, described in
@@ -250,7 +272,7 @@ cd build/species_pack && python3.14 -m http.server 8765
 ```
 
 ```bash
-flutter run -d macos --dart-define=MARINE_LIFE_ID=true --dart-define=SPECIES_PACK_MANIFEST_URL=http://localhost:8765/manifest.json
+flutter run -d macos --dart-define=SPECIES_PACK_MANIFEST_URL=http://localhost:8765/manifest.json
 ```
 
 Then open Settings, Data, Photos and videos, Marine life identification,

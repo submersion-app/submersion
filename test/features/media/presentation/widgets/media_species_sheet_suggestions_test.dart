@@ -85,19 +85,17 @@ MediaItem _video() =>
     testMediaItem(id: 'p1', diveId: 'd1', mediaType: MediaType.video);
 
 void main() {
-  late bool flagBefore;
   late _Tagging tagging;
   late RecordingIdentificationService service;
   late FakeAcceptor acceptor;
 
   setUp(() {
-    flagBefore = marineLifeIdEnabled;
     marineLifeIdEnabled = true;
     tagging = _Tagging();
     service = RecordingIdentificationService();
     acceptor = FakeAcceptor();
   });
-  tearDown(() => marineLifeIdEnabled = flagBefore);
+  tearDown(resetMarineLifeIdEnabled);
 
   /// Pumps the sheet over [sitting], or over a sitting opened on [chips]
   /// as the viewer does, and returns the sitting it holds in.

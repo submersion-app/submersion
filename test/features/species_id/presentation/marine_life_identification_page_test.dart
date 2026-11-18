@@ -72,15 +72,13 @@ class _Cleanup extends IdentificationCleanup {
 }
 
 void main() {
-  late bool flagBefore;
   late _Cleanup cleanup;
 
   setUp(() {
-    flagBefore = marineLifeIdEnabled;
     marineLifeIdEnabled = true;
     cleanup = _Cleanup();
   });
-  tearDown(() => marineLifeIdEnabled = flagBefore);
+  tearDown(resetMarineLifeIdEnabled);
 
   Future<_Controller> pump(
     WidgetTester tester,

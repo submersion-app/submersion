@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:submersion/features/media/data/services/cloud_identifier_source.dart';
@@ -16,6 +17,7 @@ class FakeGalleryAsset {
     this.filename = 'IMG_0001.JPG',
     this.type = AssetType.image,
     this.cloudId,
+    this.file,
   });
 
   final String id;
@@ -32,6 +34,10 @@ class FakeGalleryAsset {
   /// PhotoKit's cloud identifier. Two devices sharing an iCloud library
   /// hold the same photo under different ids and the SAME cloud id.
   final String? cloudId;
+
+  /// The original as a file, the way photo_manager exports it on Apple
+  /// platforms. Null models a platform that hands over bytes only.
+  final File? file;
 
   AssetInfo get info => AssetInfo(
     id: id,
@@ -155,9 +161,22 @@ class FakePhotoPickerService
 
   // GalleryAssetReader
 
+  /// How many originals were read whole into memory.
+  int originBytesReads = 0;
+
+  /// Whether this library hands originals over as files, as photo_manager
+  /// does on iOS and macOS. Off by default, as on Android.
   @override
-  Future<Uint8List?> originBytes(String assetId) async =>
-      _visible(assetId)?.bytes;
+  bool originalsAsFiles = false;
+
+  @override
+  Future<Uint8List?> originBytes(String assetId) async {
+    originBytesReads++;
+    return _visible(assetId)?.bytes;
+  }
+
+  @override
+  Future<File?> originFile(String assetId) async => _visible(assetId)?.file;
 
   @override
   Future<Uint8List?> thumbnailBytes(

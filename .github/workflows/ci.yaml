@@ -1574,6 +1574,13 @@ jobs:
         with:
           xcode-version: 'latest-stable'
 
+      # The memory floor for marine life identification on iPhone and iPad
+      # (MemoryFloor in MemoryReading.swift) must keep 6 GB devices out. It
+      # runs here, a few seconds of swiftc, because this job is under CI
+      # Success, so a broken floor blocks the merge.
+      - name: Check the marine life memory floor
+        run: tool/species_pack/vision_cli/check_floor.sh "$RUNNER_TEMP/floor_check"
+
       - uses: ./.github/actions/setup-flutter
         id: setup-flutter
         with:

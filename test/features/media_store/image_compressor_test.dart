@@ -9,11 +9,15 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 import 'package:submersion/features/media_store/data/image_compressor.dart';
+import 'package:submersion/features/media_store/data/image_resize_job.dart';
 import 'package:submersion/features/media_store/data/media_cache_store.dart';
 import 'package:submersion/features/media_store/domain/media_upload_quality.dart';
 import 'support/fake_local_file_resolver.dart';
 
 void main() {
+  // The compressor decodes through Flutter's codecs (issue #4699).
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   late LocalCacheDatabase db;
   late Directory root;
   late MediaCacheStore cache;
@@ -79,6 +83,80 @@ void main() {
       expect(result, isNull);
     },
   );
+
+  test('hands a local photo to the resize step by path, under the level '
+      'ceiling, leaving one already under it untouched (#4699)', () async {
+    // package:image decoded the whole original to make a 2048 px copy:
+    // +565 MiB peak for a 50 MP photo on a Mac, against +145 MiB through
+    // the engine's bounded decode, which is the default resize step.
+    final requests = <ImageResizeRequest>[];
+    final recording = ImageCompressor(
+      registry: MediaSourceResolverRegistry({
+        MediaSourceType.localFile: FakeLocalFileResolver(),
+      }),
+      cache: cache,
+      resize: (request) async {
+        requests.add(request);
+        return const ImageResizeResult(ImageResizeOutcome.underCeiling);
+      },
+    );
+    final source = await stagedPng(4000, 3000);
+
+    final result = await recording.compress(
+      photo(),
+      source,
+      MediaUploadQuality.balanced,
+    );
+
+    expect(result, isNull);
+    final request = requests.single;
+    expect(request.sourcePath, source.path);
+    expect(request.sourceBytes, isNull);
+    expect(request.maxDimension, 2048);
+    expect(request.skipWhenUnderCeiling, isTrue);
+    expect(request.declaredName, 'shot.png');
+    expect(
+      request.keepJpegMetadata,
+      isTrue,
+      reason: 'a rendition keeps the capture time and location it had',
+    );
+  });
+
+  test('a format package:image cannot read still uploads untouched, its '
+      'metadata with it (#4699)', () async {
+    // HEIC uploaded as the original before the engine's codecs took over the
+    // decode; re-encoded now, it would lose its EXIF, which only a JPEG
+    // source's can be carried over.
+    var resized = 0;
+    final recording = ImageCompressor(
+      registry: MediaSourceResolverRegistry({
+        MediaSourceType.localFile: FakeLocalFileResolver(),
+      }),
+      cache: cache,
+      resize: (request) async {
+        resized++;
+        return const ImageResizeResult(ImageResizeOutcome.written);
+      },
+    );
+    final heic = MediaItem(
+      id: 'm2',
+      mediaType: MediaType.photo,
+      sourceType: MediaSourceType.localFile,
+      originalFilename: 'IMG_0001.HEIC',
+      takenAt: DateTime(2026, 1, 1),
+      createdAt: DateTime(2026, 1, 1),
+      updatedAt: DateTime(2026, 1, 1),
+    );
+
+    final result = await recording.compress(
+      heic,
+      await stagedPng(4000, 3000),
+      MediaUploadQuality.balanced,
+    );
+
+    expect(result, isNull);
+    expect(resized, 0);
+  });
 
   test('original level never compresses', () async {
     final result = await compressor.compress(

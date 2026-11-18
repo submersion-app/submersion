@@ -194,7 +194,8 @@ MiB throughout. What the run showed:
 - **The app's own memory with large media.** The viewer holds the app at
   1.6 GiB with one 50 MP photo, and the minutes of adding many media at
   once reached 2.6 GiB. That is outside identification but sets the real
-  ceiling.
+  ceiling. Traced in [the media memory findings](2026-11-18-media-memory.md)
+  (#4699).
 - **The Increased Memory Limit entitlement**
   (`com.apple.developer.kernel.increased-memory-limit`) was not tried; the
   app does not have it.

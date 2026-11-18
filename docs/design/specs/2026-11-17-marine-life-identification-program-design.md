@@ -197,9 +197,11 @@ The models are an optional download, never bundled **(decided)**.
   part of the app build or CI.
 - An installed pack is excluded from iCloud and computer device backups. It
   is large and can be downloaded again.
-- **Phones and tablets need at least 6 GB of memory at first (decided).** The
-  classifier has not been tried on a phone; the floor is one constant to
-  change once it has.
+- **Phones and tablets need 8 GB of memory at launch (decided 2026-11-18).**
+  An iPhone 17 Pro Max gave the app a 3,376 MiB limit and a 6 GB phone's is
+  unmeasured, so the floor started at 6 GB and rose to 8 GB in the
+  [release gate](2026-11-18-marine-life-release-gate-design.md); it comes
+  back down once a 6 GB phone is measured.
 
 ### Naming rules
 
@@ -316,6 +318,12 @@ others)**:
 2. The measured accuracy piece is done and the bars come from it.
 3. The maintainer is satisfied with the results.
 
+On 2026-11-18 the maintainer settled all three and chose to turn it on
+everywhere it can run, in one step: the
+[release gate design](2026-11-18-marine-life-release-gate-design.md)
+records the pack, the licence risks accepted and the 8 GB floor. The flag
+is now on by default for iPhone, iPad and Mac, once the pack is published.
+
 ## Open risks
 
 - **The detectors' licences.** A pack can carry the Community Fish
@@ -326,8 +334,10 @@ others)**:
   leave their use to the user (filippovarini/community-fish-detector#8).
   Megalodon's weights are CC BY 4.0 from MBARI, but it was trained with
   Ultralytics' AGPL-3.0 code, and whether that reaches the weights is not
-  settled. Until a pack is chosen none is published. This blocks release,
-  not development.
+  settled. **Accepted (2026-11-18):** the first published pack carries both
+  detectors, and the maintainer accepts both risks; if either is challenged,
+  a Megalodon-only pack replaces it without an app update
+  ([release gate](2026-11-18-marine-life-release-gate-design.md)).
 - **Training data terms.** BioCLIP 2 is published under MIT but was trained
   partly on images with non-commercial terms. Whether that reaches the weights
   is unsettled. Its authors ship it as MIT.
@@ -344,7 +354,11 @@ others)**:
   carrying both detectors peaks at 0.41 GB
   ([two detectors](../findings/2026-11-17-marine-life-measured-accuracy.md#two-detectors-in-one-pack));
   that pack was not run on the iPhone. A 6 GB iPhone, whose limit may be
-  lower, is still unmeasured.
+  lower, is still unmeasured, so at launch iPhone and iPad need 8 GB
+  (`minimumMemoryBytes`, 6.5 GiB as the device reports it, in
+  `MemoryReading.swift`); the floor comes down once the media memory fix
+  lands and a 6 GB phone is measured
+  ([release gate](2026-11-18-marine-life-release-gate-design.md)).
 - **Speed off Apple hardware.** On the CPU path the detector alone took 100 ms
   on a fast laptop. Phones and older laptops will be several times slower.
 - **Fish mostly.** The Community Fish Detector rarely boxes coral, crabs,

@@ -37,6 +37,7 @@ class ImageResizeRequest {
     required this.jpegQuality,
     this.declaredName,
     this.skipWhenUnderCeiling = false,
+    this.keepJpegMetadata = false,
   }) : sourceBytes = null;
 
   /// For callers that already hold the bytes and have no file to point at
@@ -49,6 +50,7 @@ class ImageResizeRequest {
     required this.jpegQuality,
     this.declaredName,
     this.skipWhenUnderCeiling = false,
+    this.keepJpegMetadata = false,
   }) : sourcePath = null,
        sourceBytes = bytes;
 
@@ -75,6 +77,13 @@ class ImageResizeRequest {
   /// Thumbnails want the opposite: a small source is still copied out, because
   /// the point is to strip EXIF, not to shrink.
   final bool skipWhenUnderCeiling;
+
+  /// Whether a JPEG source's EXIF (capture time, location, camera) goes into
+  /// the output, less its orientation, which the decode has applied to the
+  /// pixels. package:image's re-encode always kept it; the engine's decode
+  /// keeps it only when asked (issue #4699). An upload rendition wants it; a
+  /// thumbnail must not carry it.
+  final bool keepJpegMetadata;
 }
 
 /// What [resizeToJpegFile] did.
