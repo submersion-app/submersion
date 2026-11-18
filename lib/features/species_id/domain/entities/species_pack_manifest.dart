@@ -22,58 +22,107 @@ class PackManifestException implements Exception {
       'PackManifestException(${reason.name}${detail == null ? '' : ': $detail'})';
 }
 
-/// How the fish detector is fed and read.
+/// How a detector's input is prepared and its output read. The names are
+/// the manifest's and the native pipeline's.
+enum DetectorFormat {
+  /// RF-DETR (the Community Fish Detector).
+  rfdetr,
+
+  /// YOLO (FathomNet's Megalodon).
+  yolo,
+}
+
+/// One of a pack's detectors (issue #4691): its model and how it is run.
 class DetectorConfig extends Equatable {
   const DetectorConfig({
     required this.id,
+    required this.format,
+    required this.file,
     required this.inputSize,
     required this.mean,
     required this.std,
     required this.scoreThreshold,
     required this.maxBoxes,
-    required this.cropPadding,
   });
 
   /// Changes only when the model itself changes.
   final String id;
+  final DetectorFormat format;
+
+  /// The model's file stem: `<file>.<engine>.zip`, unpacked into `<file>/`.
+  final String file;
   final int inputSize;
   final List<double> mean;
   final List<double> std;
   final double scoreThreshold;
+
+  /// At most this many boxes from this detector.
+  final int maxBoxes;
+
+  DetectorConfig copyWith({
+    String? id,
+    DetectorFormat? format,
+    String? file,
+    int? inputSize,
+    List<double>? mean,
+    List<double>? std,
+    double? scoreThreshold,
+    int? maxBoxes,
+  }) => DetectorConfig(
+    id: id ?? this.id,
+    format: format ?? this.format,
+    file: file ?? this.file,
+    inputSize: inputSize ?? this.inputSize,
+    mean: mean ?? this.mean,
+    std: std ?? this.std,
+    scoreThreshold: scoreThreshold ?? this.scoreThreshold,
+    maxBoxes: maxBoxes ?? this.maxBoxes,
+  );
+
+  @override
+  List<Object?> get props => [
+    id,
+    format,
+    file,
+    inputSize,
+    mean,
+    std,
+    scoreThreshold,
+    maxBoxes,
+  ];
+}
+
+/// What happens to the boxes the detectors find, whichever found them.
+class BoxesConfig extends Equatable {
+  const BoxesConfig({
+    required this.mergeIoU,
+    required this.maxBoxes,
+    required this.cropPadding,
+  });
+
+  /// With two detectors, boxes overlapping this much or more are one
+  /// animal. Unused with one.
+  final double mergeIoU;
+
+  /// With two detectors, at most this many boxes once merged.
   final int maxBoxes;
 
   /// How far a box is widened on each side before it is cropped, as a share
   /// of the box.
   final double cropPadding;
 
-  DetectorConfig copyWith({
-    String? id,
-    int? inputSize,
-    List<double>? mean,
-    List<double>? std,
-    double? scoreThreshold,
+  BoxesConfig copyWith({
+    double? mergeIoU,
     int? maxBoxes,
     double? cropPadding,
-  }) => DetectorConfig(
-    id: id ?? this.id,
-    inputSize: inputSize ?? this.inputSize,
-    mean: mean ?? this.mean,
-    std: std ?? this.std,
-    scoreThreshold: scoreThreshold ?? this.scoreThreshold,
+  }) => BoxesConfig(
+    mergeIoU: mergeIoU ?? this.mergeIoU,
     maxBoxes: maxBoxes ?? this.maxBoxes,
     cropPadding: cropPadding ?? this.cropPadding,
   );
 
   @override
-  List<Object?> get props => [
-    id,
-    inputSize,
-    mean,
-    std,
-    scoreThreshold,
-    maxBoxes,
-    cropPadding,
-  ];
+  List<Object?> get props => [mergeIoU, maxBoxes, cropPadding];
 }
 
 /// How a crop is fitted to the classifier's square input. The names are
@@ -299,7 +348,8 @@ class SpeciesPackManifest extends Equatable {
   const SpeciesPackManifest({
     required this.formatVersion,
     required this.packVersion,
-    required this.detector,
+    required this.detectors,
+    required this.boxes,
     required this.classifier,
     required this.naming,
     required this.region,
@@ -309,19 +359,28 @@ class SpeciesPackManifest extends Equatable {
     this.source = '',
   });
 
-  static const int supportedFormatVersion = 1;
+  /// Format 1 has one fish detector; format 2 (issue #4691) one or two
+  /// detectors of any format this app knows. A pack that needs app code
+  /// this build lacks raises the format, so this build refuses it rather
+  /// than run it wrongly.
+  static const Set<int> supportedFormatVersions = {1, 2};
 
   /// The `engine` of a file every engine needs.
   static const String sharedEngine = 'all';
   static const String candidatesFile = 'candidates.json';
   static const String textEmbeddingsFile = 'text_embeddings.f16';
   static const String regionsFile = 'regions.bin';
-  static String detectorFile(String engine) => 'detector.$engine.zip';
-  static String classifierFile(String engine) => 'classifier.$engine.zip';
+  static const String classifierStem = 'classifier';
+  static String modelFile(String stem, String engine) => '$stem.$engine.zip';
+  static String classifierFile(String engine) =>
+      modelFile(classifierStem, engine);
 
   final int formatVersion;
   final String packVersion;
-  final DetectorConfig detector;
+
+  /// One or two, in the pack's order: the order boxes are pooled in.
+  final List<DetectorConfig> detectors;
+  final BoxesConfig boxes;
   final ClassifierConfig classifier;
   final NamingConfig naming;
   final RegionConfig region;
@@ -332,6 +391,11 @@ class SpeciesPackManifest extends Equatable {
   /// The text this was parsed from, written to disk with an installed pack.
   /// Not part of equality.
   final String source;
+
+  /// What a stored identification was detected with: one detector's id, or
+  /// both ids joined with `+` in the pack's order. A one-detector pack keeps
+  /// the plain id every earlier app stored, so its photos are not redone.
+  String get detectorSetId => detectors.map((d) => d.id).join('+');
 
   /// Throws [PackManifestException] when [source] is not a manifest this
   /// build can use.
@@ -344,28 +408,23 @@ class SpeciesPackManifest extends Equatable {
     }
     final root = _map(json, 'manifest');
     final format = _int(root, 'formatVersion');
-    if (format != supportedFormatVersion) {
+    if (!supportedFormatVersions.contains(format)) {
       throw PackManifestException(
         PackManifestFailure.unsupportedFormat,
         'format $format',
       );
     }
-    final detector = _map(root['detector'], 'detector');
+    final (detectors, boxes) = format == 1
+        ? _formatOneDetector(_map(root['detector'], 'detector'))
+        : (_detectors(root), _boxes(_map(root['boxes'], 'boxes')));
     final classifier = _map(root['classifier'], 'classifier');
     final naming = _map(root['naming'], 'naming');
     final region = _map(root['region'], 'region');
     return SpeciesPackManifest(
       formatVersion: format,
       packVersion: _versionString(root, 'packVersion'),
-      detector: DetectorConfig(
-        id: _string(detector, 'id'),
-        inputSize: _positiveInt(detector, 'inputSize'),
-        mean: _triple(detector, 'mean'),
-        std: _triple(detector, 'std'),
-        scoreThreshold: _double(detector, 'scoreThreshold'),
-        maxBoxes: _positiveInt(detector, 'maxBoxes'),
-        cropPadding: _double(detector, 'cropPadding'),
-      ),
+      detectors: detectors,
+      boxes: boxes,
       classifier: ClassifierConfig(
         id: _string(classifier, 'id'),
         inputSize: _positiveInt(classifier, 'inputSize'),
@@ -419,7 +478,7 @@ class SpeciesPackManifest extends Equatable {
   bool supportsEngine(String engine) {
     final names = {for (final file in filesFor(engine)) file.name};
     return names.containsAll([
-      detectorFile(engine),
+      for (final detector in detectors) modelFile(detector.file, engine),
       classifierFile(engine),
       candidatesFile,
       textEmbeddingsFile,
@@ -438,7 +497,8 @@ class SpeciesPackManifest extends Equatable {
   SpeciesPackManifest copyWith({
     int? formatVersion,
     String? packVersion,
-    DetectorConfig? detector,
+    List<DetectorConfig>? detectors,
+    BoxesConfig? boxes,
     ClassifierConfig? classifier,
     NamingConfig? naming,
     RegionConfig? region,
@@ -449,7 +509,8 @@ class SpeciesPackManifest extends Equatable {
   }) => SpeciesPackManifest(
     formatVersion: formatVersion ?? this.formatVersion,
     packVersion: packVersion ?? this.packVersion,
-    detector: detector ?? this.detector,
+    detectors: detectors ?? this.detectors,
+    boxes: boxes ?? this.boxes,
     classifier: classifier ?? this.classifier,
     naming: naming ?? this.naming,
     region: region ?? this.region,
@@ -463,7 +524,8 @@ class SpeciesPackManifest extends Equatable {
   List<Object?> get props => [
     formatVersion,
     packVersion,
-    detector,
+    detectors,
+    boxes,
     classifier,
     naming,
     region,
@@ -475,6 +537,80 @@ class SpeciesPackManifest extends Equatable {
 
 Never _bad(String detail) =>
     throw PackManifestException(PackManifestFailure.malformed, detail);
+
+/// A format 1 manifest's one detector block: the fish detector, its boxes
+/// never merged, its crop padding the shared one.
+(List<DetectorConfig>, BoxesConfig) _formatOneDetector(
+  Map<String, Object?> detector,
+) {
+  final maxBoxes = _positiveInt(detector, 'maxBoxes');
+  return (
+    [
+      DetectorConfig(
+        id: _string(detector, 'id'),
+        format: DetectorFormat.rfdetr,
+        file: 'detector',
+        inputSize: _positiveInt(detector, 'inputSize'),
+        mean: _triple(detector, 'mean'),
+        std: _triple(detector, 'std'),
+        scoreThreshold: _double(detector, 'scoreThreshold'),
+        maxBoxes: maxBoxes,
+      ),
+    ],
+    BoxesConfig(
+      mergeIoU: 0.5,
+      maxBoxes: maxBoxes,
+      cropPadding: _double(detector, 'cropPadding'),
+    ),
+  );
+}
+
+List<DetectorConfig> _detectors(Map<String, Object?> root) {
+  final entries = _list(root, 'detectors');
+  if (entries.isEmpty || entries.length > 2) {
+    _bad('a pack carries one or two detectors, not ${entries.length}');
+  }
+  final detectors = [
+    for (final entry in entries) _detector(_map(entry, 'detectors entry')),
+  ];
+  final files = {for (final d in detectors) d.file};
+  if (files.length != detectors.length) _bad('two detectors share a file');
+  return List.unmodifiable(detectors);
+}
+
+DetectorConfig _detector(Map<String, Object?> map) {
+  final formatName = _string(map, 'format');
+  final format = DetectorFormat.values.where((f) => f.name == formatName);
+  // A format this app cannot run would give wrong boxes if run as another.
+  if (format.isEmpty) _bad('detector format $formatName is not known');
+  final file = _string(map, 'file');
+  if (!_fileNamePattern.hasMatch(file) ||
+      file == SpeciesPackManifest.classifierStem) {
+    _bad('detector file $file is not a safe name');
+  }
+  return DetectorConfig(
+    id: _string(map, 'id'),
+    format: format.single,
+    file: file,
+    inputSize: _positiveInt(map, 'inputSize'),
+    mean: _triple(map, 'mean'),
+    std: _triple(map, 'std'),
+    scoreThreshold: _double(map, 'scoreThreshold'),
+    maxBoxes: _positiveInt(map, 'maxBoxes'),
+  );
+}
+
+BoxesConfig _boxes(Map<String, Object?> map) {
+  final mergeIoU = _double(map, 'mergeIoU');
+  if (mergeIoU <= 0 || mergeIoU > 1) {
+    _bad('mergeIoU is not above 0 and at most 1');
+  }
+  return BoxesConfig(
+    mergeIoU: mergeIoU,
+    maxBoxes: _positiveInt(map, 'maxBoxes'),
+    cropPadding: _double(map, 'cropPadding'),
+  );
+}
 
 Map<String, Object?> _map(Object? value, String what) {
   if (value is Map<String, Object?>) return value;

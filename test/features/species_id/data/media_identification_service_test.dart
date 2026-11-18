@@ -170,7 +170,10 @@ void main() {
       await crops.allPresent('m1', found.map((i) => i.id).toList()),
       isTrue,
     );
-    expect(engine.loads.single.detectorPath, endsWith('detector.mlpackage'));
+    expect(
+      engine.loads.single.detectors.single.path,
+      endsWith('detector.mlpackage'),
+    );
   });
 
   test(

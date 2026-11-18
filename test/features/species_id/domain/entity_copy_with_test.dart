@@ -221,24 +221,31 @@ void main() {
 
       const detector = DetectorConfig(
         id: 'd2',
+        format: DetectorFormat.yolo,
+        file: 'detector-2',
         inputSize: 320,
         mean: [0.1, 0.1, 0.1],
         std: [0.2, 0.2, 0.2],
         scoreThreshold: 0.5,
         maxBoxes: 4,
-        cropPadding: 0.2,
       );
       expect(
-        manifest.detector.copyWith(
+        manifest.detectors.single.copyWith(
           id: 'd2',
+          format: DetectorFormat.yolo,
+          file: 'detector-2',
           inputSize: 320,
           mean: [0.1, 0.1, 0.1],
           std: [0.2, 0.2, 0.2],
           scoreThreshold: 0.5,
           maxBoxes: 4,
-          cropPadding: 0.2,
         ),
         detector,
+      );
+      const boxes = BoxesConfig(mergeIoU: 0.4, maxBoxes: 6, cropPadding: 0.2);
+      expect(
+        manifest.boxes.copyWith(mergeIoU: 0.4, maxBoxes: 6, cropPadding: 0.2),
+        boxes,
       );
       const classifier = ClassifierConfig(
         id: 'c2',
@@ -310,7 +317,8 @@ void main() {
       final changed = manifest.copyWith(
         formatVersion: 2,
         packVersion: '2027.1.1',
-        detector: detector,
+        detectors: const [detector],
+        boxes: boxes,
         classifier: classifier,
         naming: naming,
         region: region,
@@ -321,7 +329,8 @@ void main() {
       );
       expect(changed.formatVersion, 2);
       expect(changed.packVersion, '2027.1.1');
-      expect(changed.detector, detector);
+      expect(changed.detectors, [detector]);
+      expect(changed.boxes, boxes);
       expect(changed.classifier, classifier);
       expect(changed.naming, naming);
       expect(changed.region, region);
@@ -335,17 +344,36 @@ void main() {
       final manifest = SpeciesPackManifest.parse(manifestJson());
       final models = VisionModels.fromManifest(
         manifest,
-        detectorPath: '/d',
+        detectorPaths: const ['/d'],
         classifierPath: '/c',
       );
       expect(models.copyWith(), models);
-      const changedModels = VisionModels(
-        detectorPath: '/d2',
-        classifierPath: '/c2',
-        detectorInputSize: 1,
-        detectorMean: [1, 1, 1],
-        detectorStd: [2, 2, 2],
+      const detector = VisionDetector(
+        path: '/d2',
+        format: DetectorFormat.yolo,
+        inputSize: 1,
+        mean: [1, 1, 1],
+        std: [2, 2, 2],
         scoreThreshold: 0.9,
+        maxBoxes: 1,
+      );
+      expect(models.detectors.single.copyWith(), models.detectors.single);
+      expect(
+        models.detectors.single.copyWith(
+          path: '/d2',
+          format: DetectorFormat.yolo,
+          inputSize: 1,
+          mean: [1, 1, 1],
+          std: [2, 2, 2],
+          scoreThreshold: 0.9,
+          maxBoxes: 1,
+        ),
+        detector,
+      );
+      const changedModels = VisionModels(
+        detectors: [detector],
+        classifierPath: '/c2',
+        mergeIoU: 0.3,
         maxBoxes: 1,
         cropPadding: 0.5,
         classifierInputSize: 2,
@@ -357,12 +385,9 @@ void main() {
       );
       expect(
         models.copyWith(
-          detectorPath: '/d2',
+          detectors: const [detector],
           classifierPath: '/c2',
-          detectorInputSize: 1,
-          detectorMean: [1, 1, 1],
-          detectorStd: [2, 2, 2],
-          scoreThreshold: 0.9,
+          mergeIoU: 0.3,
           maxBoxes: 1,
           cropPadding: 0.5,
           classifierInputSize: 2,

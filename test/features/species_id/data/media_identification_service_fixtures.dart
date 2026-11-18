@@ -61,7 +61,7 @@ LoadedPack pack({
     pack: InstalledPack(
       manifest: manifest,
       directory: '/pack/$version',
-      detectorPath: '/pack/$version/detector/detector.mlpackage',
+      detectorPaths: ['/pack/$version/detector/detector.mlpackage'],
       classifierPath: '/pack/$version/classifier/classifier.mlpackage',
     ),
     candidates: const [parrotfish, chromis, tang],

@@ -16,20 +16,22 @@ class InstalledPack extends Equatable {
   const InstalledPack({
     required this.manifest,
     required this.directory,
-    required this.detectorPath,
+    required this.detectorPaths,
     required this.classifierPath,
   });
 
   final SpeciesPackManifest manifest;
   final String directory;
-  final String detectorPath;
+
+  /// One model per detector, in the manifest's order.
+  final List<String> detectorPaths;
   final String classifierPath;
 
   @override
   List<Object?> get props => [
     manifest,
     directory,
-    detectorPath,
+    detectorPaths,
     classifierPath,
   ];
 }
@@ -105,13 +107,16 @@ class SpeciesPackStore {
   }
 
   /// Installs the version in staging, whose files the caller has verified:
-  /// unpacks the two models, writes the manifest, swaps the version into
-  /// place and removes any other. A model that does not unpack in full
-  /// (the disk filled) throws, and nothing is swapped in.
+  /// unpacks every model (each detector's and the classifier), writes the
+  /// manifest, swaps the version into place and removes any other. A model
+  /// that does not unpack in full (the disk filled) throws, and nothing is
+  /// swapped in.
   Future<InstalledPack> install(SpeciesPackManifest manifest) async {
     final stage = await staging(manifest.packVersion);
-    for (final kind in ['detector', 'classifier']) {
-      final zip = File(p.join(stage.path, '$kind.$engine.zip'));
+    for (final kind in _modelStems(manifest)) {
+      final zip = File(
+        p.join(stage.path, SpeciesPackManifest.modelFile(kind, engine)),
+      );
       final out = Directory(p.join(stage.path, kind));
       if (await out.exists()) await out.delete(recursive: true);
       // Plain strings into the worker: nothing else of this scope.
@@ -217,16 +222,29 @@ class SpeciesPackStore {
     } on PackManifestException {
       return null;
     }
-    final detector = await _model(Directory(p.join(dir.path, 'detector')));
-    final classifier = await _model(Directory(p.join(dir.path, 'classifier')));
-    if (detector == null || classifier == null) return null;
+    final detectors = <String>[];
+    for (final detector in manifest.detectors) {
+      final path = await _model(Directory(p.join(dir.path, detector.file)));
+      if (path == null) return null;
+      detectors.add(path);
+    }
+    final classifier = await _model(
+      Directory(p.join(dir.path, SpeciesPackManifest.classifierStem)),
+    );
+    if (classifier == null) return null;
     return InstalledPack(
       manifest: manifest,
       directory: dir.path,
-      detectorPath: detector,
+      detectorPaths: List.unmodifiable(detectors),
       classifierPath: classifier,
     );
   }
+
+  /// The folder (and zip) stem of every model the pack carries.
+  static List<String> _modelStems(SpeciesPackManifest manifest) => [
+    for (final detector in manifest.detectors) detector.file,
+    SpeciesPackManifest.classifierStem,
+  ];
 
   /// The model inside an unpacked folder: a compiled model when one was
   /// made beside the package, else the package or file as unpacked.

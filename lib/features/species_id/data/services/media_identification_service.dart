@@ -399,7 +399,7 @@ class MediaIdentificationService {
         switch (decideRefresh(
           run: run,
           packVersion: manifest.packVersion,
-          detectorId: manifest.detector.id,
+          detectorId: manifest.detectorSetId,
           classifierId: manifest.classifier.embeddingId,
           cell: cell,
           cropsPresent: cropsPresent,
@@ -520,7 +520,7 @@ class MediaIdentificationService {
       MediaIdentificationRun(
         mediaId: item.id,
         packVersion: manifest.packVersion,
-        detectorId: manifest.detector.id,
+        detectorId: manifest.detectorSetId,
         classifierId: manifest.classifier.embeddingId,
         locationCell: cell,
         analysedAt: now,
@@ -589,7 +589,7 @@ class MediaIdentificationService {
     await _engine.load(
       VisionModels.fromManifest(
         pack.pack.manifest,
-        detectorPath: pack.pack.detectorPath,
+        detectorPaths: pack.pack.detectorPaths,
         classifierPath: pack.pack.classifierPath,
       ),
     );

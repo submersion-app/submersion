@@ -15,15 +15,84 @@ enum VisionAvailability {
   deviceNotEligible,
 }
 
-/// The two models and the numbers the native engine needs to run them.
+/// One detector as the native engine runs it.
+class VisionDetector extends Equatable {
+  const VisionDetector({
+    required this.path,
+    required this.format,
+    required this.inputSize,
+    required this.mean,
+    required this.std,
+    required this.scoreThreshold,
+    required this.maxBoxes,
+  });
+
+  factory VisionDetector.fromConfig(DetectorConfig config, String path) =>
+      VisionDetector(
+        path: path,
+        format: config.format,
+        inputSize: config.inputSize,
+        mean: config.mean,
+        std: config.std,
+        scoreThreshold: config.scoreThreshold,
+        maxBoxes: config.maxBoxes,
+      );
+
+  final String path;
+  final DetectorFormat format;
+  final int inputSize;
+  final List<double> mean;
+  final List<double> std;
+  final double scoreThreshold;
+  final int maxBoxes;
+
+  Map<String, Object?> toChannel() => {
+    'path': path,
+    'format': format.name,
+    'inputSize': inputSize,
+    'mean': mean,
+    'std': std,
+    'scoreThreshold': scoreThreshold,
+    'maxBoxes': maxBoxes,
+  };
+
+  VisionDetector copyWith({
+    String? path,
+    DetectorFormat? format,
+    int? inputSize,
+    List<double>? mean,
+    List<double>? std,
+    double? scoreThreshold,
+    int? maxBoxes,
+  }) => VisionDetector(
+    path: path ?? this.path,
+    format: format ?? this.format,
+    inputSize: inputSize ?? this.inputSize,
+    mean: mean ?? this.mean,
+    std: std ?? this.std,
+    scoreThreshold: scoreThreshold ?? this.scoreThreshold,
+    maxBoxes: maxBoxes ?? this.maxBoxes,
+  );
+
+  @override
+  List<Object?> get props => [
+    path,
+    format,
+    inputSize,
+    mean,
+    std,
+    scoreThreshold,
+    maxBoxes,
+  ];
+}
+
+/// The models and the numbers the native engine needs to run them: one or
+/// two detectors (issue #4691) and the classifier.
 class VisionModels extends Equatable {
   const VisionModels({
-    required this.detectorPath,
+    required this.detectors,
     required this.classifierPath,
-    required this.detectorInputSize,
-    required this.detectorMean,
-    required this.detectorStd,
-    required this.scoreThreshold,
+    required this.mergeIoU,
     required this.maxBoxes,
     required this.cropPadding,
     required this.classifierInputSize,
@@ -34,33 +103,41 @@ class VisionModels extends Equatable {
     this.cropFit = CropFit.padSquare,
   });
 
+  /// [detectorPaths] holds one installed model per detector, in the
+  /// manifest's order.
   factory VisionModels.fromManifest(
     SpeciesPackManifest manifest, {
-    required String detectorPath,
+    required List<String> detectorPaths,
     required String classifierPath,
-  }) => VisionModels(
-    detectorPath: detectorPath,
-    classifierPath: classifierPath,
-    detectorInputSize: manifest.detector.inputSize,
-    detectorMean: manifest.detector.mean,
-    detectorStd: manifest.detector.std,
-    scoreThreshold: manifest.detector.scoreThreshold,
-    maxBoxes: manifest.detector.maxBoxes,
-    cropPadding: manifest.detector.cropPadding,
-    classifierInputSize: manifest.classifier.inputSize,
-    classifierMean: manifest.classifier.mean,
-    classifierStd: manifest.classifier.std,
-    embeddingSize: manifest.classifier.embeddingSize,
-    cropThumbnailSize: manifest.cropThumbnailSize,
-    cropFit: manifest.classifier.cropFit,
-  );
+  }) {
+    if (detectorPaths.length != manifest.detectors.length) {
+      throw ArgumentError.value(
+        detectorPaths,
+        'detectorPaths',
+        'one path for each of the ${manifest.detectors.length} detectors',
+      );
+    }
+    return VisionModels(
+      detectors: List.unmodifiable([
+        for (var i = 0; i < detectorPaths.length; i++)
+          VisionDetector.fromConfig(manifest.detectors[i], detectorPaths[i]),
+      ]),
+      classifierPath: classifierPath,
+      mergeIoU: manifest.boxes.mergeIoU,
+      maxBoxes: manifest.boxes.maxBoxes,
+      cropPadding: manifest.boxes.cropPadding,
+      classifierInputSize: manifest.classifier.inputSize,
+      classifierMean: manifest.classifier.mean,
+      classifierStd: manifest.classifier.std,
+      embeddingSize: manifest.classifier.embeddingSize,
+      cropThumbnailSize: manifest.cropThumbnailSize,
+      cropFit: manifest.classifier.cropFit,
+    );
+  }
 
-  final String detectorPath;
+  final List<VisionDetector> detectors;
   final String classifierPath;
-  final int detectorInputSize;
-  final List<double> detectorMean;
-  final List<double> detectorStd;
-  final double scoreThreshold;
+  final double mergeIoU;
   final int maxBoxes;
   final double cropPadding;
   final int classifierInputSize;
@@ -71,14 +148,11 @@ class VisionModels extends Equatable {
   final CropFit cropFit;
 
   Map<String, Object?> toChannel() => {
-    'detectorPath': detectorPath,
-    'classifierPath': classifierPath,
-    'detectorInputSize': detectorInputSize,
-    'detectorMean': detectorMean,
-    'detectorStd': detectorStd,
-    'scoreThreshold': scoreThreshold,
+    'detectors': [for (final detector in detectors) detector.toChannel()],
+    'mergeIoU': mergeIoU,
     'maxBoxes': maxBoxes,
     'cropPadding': cropPadding,
+    'classifierPath': classifierPath,
     'classifierInputSize': classifierInputSize,
     'classifierMean': classifierMean,
     'classifierStd': classifierStd,
@@ -88,12 +162,9 @@ class VisionModels extends Equatable {
   };
 
   VisionModels copyWith({
-    String? detectorPath,
+    List<VisionDetector>? detectors,
     String? classifierPath,
-    int? detectorInputSize,
-    List<double>? detectorMean,
-    List<double>? detectorStd,
-    double? scoreThreshold,
+    double? mergeIoU,
     int? maxBoxes,
     double? cropPadding,
     int? classifierInputSize,
@@ -103,12 +174,9 @@ class VisionModels extends Equatable {
     int? cropThumbnailSize,
     CropFit? cropFit,
   }) => VisionModels(
-    detectorPath: detectorPath ?? this.detectorPath,
+    detectors: detectors ?? this.detectors,
     classifierPath: classifierPath ?? this.classifierPath,
-    detectorInputSize: detectorInputSize ?? this.detectorInputSize,
-    detectorMean: detectorMean ?? this.detectorMean,
-    detectorStd: detectorStd ?? this.detectorStd,
-    scoreThreshold: scoreThreshold ?? this.scoreThreshold,
+    mergeIoU: mergeIoU ?? this.mergeIoU,
     maxBoxes: maxBoxes ?? this.maxBoxes,
     cropPadding: cropPadding ?? this.cropPadding,
     classifierInputSize: classifierInputSize ?? this.classifierInputSize,
@@ -121,12 +189,9 @@ class VisionModels extends Equatable {
 
   @override
   List<Object?> get props => [
-    detectorPath,
+    detectors,
     classifierPath,
-    detectorInputSize,
-    detectorMean,
-    detectorStd,
-    scoreThreshold,
+    mergeIoU,
     maxBoxes,
     cropPadding,
     classifierInputSize,
