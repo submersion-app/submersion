@@ -19991,6 +19991,12 @@ abstract class AppLocalizations {
   /// **'Found for these coordinates'**
   String get diveSites_edit_altitude_foundTooltip;
 
+  /// Snack bar when a held catalogue link is refused at Save (the record changed or another site claimed it), so nothing was saved
+  ///
+  /// In en, this message translates to:
+  /// **'The catalogue record has changed or is linked to another site. Nothing was saved.'**
+  String get diveSites_edit_catalogueRefused;
+
   /// No description provided for @diveSites_edit_lookupReplace_title.
   ///
   /// In en, this message translates to:

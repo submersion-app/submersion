@@ -17,9 +17,23 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// catalogue has more details; for one that is not, it may hold the site,
 /// and the diver says whether it does.
 class SiteCatalogueOfferLine extends ConsumerWidget {
-  const SiteCatalogueOfferLine({super.key, required this.site});
+  const SiteCatalogueOfferLine({
+    super.key,
+    required this.site,
+    this.onReviewed,
+    this.reviewable = true,
+  });
 
   final DiveSite site;
+
+  /// Takes what the diver chose in the comparison in place of writing it:
+  /// a sitting on the site holds it until Save (issue #4527, phase 2).
+  final void Function(CataloguePair pair, CatalogueComparisonResult result)?
+  onReviewed;
+
+  /// Offers Review. A page that edits in place shows the locked line
+  /// without it: the header block's editor reviews.
+  final bool reviewable;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -42,14 +56,15 @@ class SiteCatalogueOfferLine extends ConsumerWidget {
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
-          TextButton(
-            style: TextButton.styleFrom(
-              padding: EdgeInsets.zero,
-              visualDensity: VisualDensity.compact,
+          if (reviewable)
+            TextButton(
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.zero,
+                visualDensity: VisualDensity.compact,
+              ),
+              onPressed: () => _review(context, pair, onReviewed),
+              child: Text(l10n.diveSites_gapNotice_review),
             ),
-            onPressed: () => _review(context, pair),
-            child: Text(l10n.diveSites_gapNotice_review),
-          ),
         ],
       ),
     );
@@ -61,13 +76,22 @@ class SiteCatalogueOfferLine extends ConsumerWidget {
 /// Everything after the sheet goes through the provider container, not
 /// this widget: the diver may leave the site's page while a write is under
 /// way, and the write and what follows it must still finish.
-Future<void> _review(BuildContext context, CataloguePair pair) async {
+Future<void> _review(
+  BuildContext context,
+  CataloguePair pair,
+  void Function(CataloguePair, CatalogueComparisonResult)? onReviewed,
+) async {
   final l10n = context.l10n;
   final messenger = ScaffoldMessenger.of(context);
   final container = ProviderScope.containerOf(context, listen: false);
   final result = await showCatalogueGapComparison(context, pair: pair);
   // Closed without acting: nothing to remember outside the review list.
   if (result is ComparisonKept) return;
+  // Held by a sitting: written, or not, with it.
+  if (onReviewed != null) {
+    onReviewed(pair, result);
+    return;
+  }
 
   final service = container.read(catalogueGapServiceProvider);
   try {

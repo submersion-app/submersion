@@ -12617,6 +12617,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Trouvé pour ces coordonnées';
 
   @override
+  String get diveSites_edit_catalogueRefused =>
+      'La fiche du catalogue a changé ou est liée à un autre site. Rien n\'a été enregistré.';
+
+  @override
   String get diveSites_edit_lookupReplace_title =>
       'Remplacer les informations de lieu ?';
 

@@ -12577,6 +12577,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Trovato per queste coordinate';
 
   @override
+  String get diveSites_edit_catalogueRefused =>
+      'La voce del catalogo è cambiata o è collegata a un altro sito. Non è stato salvato nulla.';
+
+  @override
   String get diveSites_edit_lookupReplace_title =>
       'Sostituire i dettagli di località?';
 

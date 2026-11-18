@@ -30,9 +30,23 @@ import 'package:submersion/features/shared_library/presentation/widgets/site_att
 /// card further down (rating, difficulty, site types), so each line is a
 /// summary and is simply left out when the site has no value for it.
 class SiteDetailHeader extends ConsumerWidget {
-  const SiteDetailHeader({super.key, required this.site, this.types});
+  const SiteDetailHeader({
+    super.key,
+    required this.site,
+    this.types,
+    this.offerReviewable = true,
+    this.showOffer = true,
+  });
 
   final DiveSite site;
+
+  /// Whether the catalogue offer line offers Review: not on a page that
+  /// edits in place, whose header block's editor reviews (issue #4527).
+  final bool offerReviewable;
+
+  /// Whether the catalogue offer line shows: not once a sitting holds a
+  /// Review of it.
+  final bool showOffer;
 
   /// The site's types to show in place of those stored: a sitting's, once
   /// the diver has changed them (issue #4527).
@@ -156,7 +170,8 @@ class SiteDetailHeader extends ConsumerWidget {
           if (site.catalogueId != null)
             _CatalogueLine(catalogueId: site.catalogueId!),
           // What the built-in catalogue could still add to this site.
-          SiteCatalogueOfferLine(site: site),
+          if (showOffer)
+            SiteCatalogueOfferLine(site: site, reviewable: offerReviewable),
         ],
       ),
     );

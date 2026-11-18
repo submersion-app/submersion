@@ -3977,6 +3977,7 @@
   "diveSites_edit_snackbar_lookupNoChanges": "Die Ortsangaben stimmen bereits mit diesen Koordinaten überein",
   "diveSites_edit_snackbar_lookupFailed": "Ortssuche fehlgeschlagen. Prüfe deine Verbindung und versuche es erneut.",
   "diveSites_edit_altitude_foundTooltip": "Für diese Koordinaten gefunden",
+  "diveSites_edit_catalogueRefused": "Der Katalogeintrag hat sich geändert oder ist mit einem anderen Tauchplatz verknüpft. Es wurde nichts gespeichert.",
   "diveSites_edit_lookupReplace_title": "Ortsangaben ersetzen?",
   "diveSites_edit_lookupReplace_body": "Die Suche hat für diese Felder andere Werte gefunden:",
   "diveSites_edit_lookupReplace_replace": "Ersetzen",

@@ -3817,6 +3817,7 @@
   "diveSites_edit_snackbar_lookupNoChanges": "Les informations de lieu correspondent déjà à ces coordonnées",
   "diveSites_edit_snackbar_lookupFailed": "La recherche de lieu a échoué. Vérifiez votre connexion et réessayez.",
   "diveSites_edit_altitude_foundTooltip": "Trouvé pour ces coordonnées",
+  "diveSites_edit_catalogueRefused": "La fiche du catalogue a changé ou est liée à un autre site. Rien n'a été enregistré.",
   "diveSites_edit_lookupReplace_title": "Remplacer les informations de lieu ?",
   "diveSites_edit_lookupReplace_body": "La recherche a trouvé des valeurs différentes pour ces champs :",
   "diveSites_edit_lookupReplace_replace": "Remplacer",

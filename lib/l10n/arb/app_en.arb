@@ -7699,6 +7699,10 @@
   "@diveSites_edit_altitude_foundTooltip": {
     "description": "Tooltip of the altitude suggested from the site's coordinates on the Altitude card"
   },
+  "diveSites_edit_catalogueRefused": "The catalogue record has changed or is linked to another site. Nothing was saved.",
+  "@diveSites_edit_catalogueRefused": {
+    "description": "Snack bar when a held catalogue link is refused at Save (the record changed or another site claimed it), so nothing was saved"
+  },
   "diveSites_edit_lookupReplace_title": "Replace location details?",
   "diveSites_edit_lookupReplace_body": "The lookup found different values for these fields:",
   "diveSites_edit_lookupReplace_replace": "Replace",

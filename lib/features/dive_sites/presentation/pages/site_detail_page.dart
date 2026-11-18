@@ -87,6 +87,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_classification_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_edit_cards.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_sitting_start.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_catalogue_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_features_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_sharing_sitting.dart';
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
@@ -289,6 +290,9 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
                   child: SiteDetailHeader(
                     site: site,
                     types: _heldList(siteTypesList),
+                    // The header block's editor reviews the offer.
+                    offerReviewable: false,
+                    showOffer: !_catalogueReviewed(),
                   ),
                 )
               : SiteDetailHeader(site: site),

@@ -244,6 +244,12 @@ mixin _SiteDetailPageEditing
     );
   }
 
+  /// Whether the sitting holds a Review of the catalogue offer.
+  bool _catalogueReviewed() {
+    final session = maybeEditController?.session;
+    return session != null && siteCatalogueReviewed(session);
+  }
+
   /// The sections whose cards are open, held unfolded in the list layout.
   Set<SiteDetailSectionId> _sectionsOpenForSitting() {
     final open = maybeEditController?.openCardIds ?? const <String>{};

@@ -3943,6 +3943,7 @@
   "diveSites_edit_snackbar_lookupNoChanges": "Os detalhes de localização já correspondem a estas coordenadas",
   "diveSites_edit_snackbar_lookupFailed": "A consulta de localização falhou. Verifique a sua ligação e tente novamente.",
   "diveSites_edit_altitude_foundTooltip": "Encontrado para estas coordenadas",
+  "diveSites_edit_catalogueRefused": "O registo do catálogo foi alterado ou está associado a outro local. Nada foi guardado.",
   "diveSites_edit_lookupReplace_title": "Substituir os detalhes de localização?",
   "diveSites_edit_lookupReplace_body": "A consulta encontrou valores diferentes para estes campos:",
   "diveSites_edit_lookupReplace_replace": "Substituir",

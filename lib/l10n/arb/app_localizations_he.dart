@@ -12298,6 +12298,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'נמצא עבור הקואורדינטות האלה';
 
   @override
+  String get diveSites_edit_catalogueRefused =>
+      'רשומת הקטלוג השתנתה או מקושרת לאתר אחר. דבר לא נשמר.';
+
+  @override
   String get diveSites_edit_lookupReplace_title => 'להחליף את פרטי המיקום?';
 
   @override

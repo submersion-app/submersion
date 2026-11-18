@@ -12548,6 +12548,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ezekhez a koordinátákhoz találva';
 
   @override
+  String get diveSites_edit_catalogueRefused =>
+      'A katalógusbejegyzés megváltozott, vagy egy másik merülőhelyhez van kapcsolva. Semmi sem lett mentve.';
+
+  @override
   String get diveSites_edit_lookupReplace_title => 'Lecseréli a helyadatokat?';
 
   @override

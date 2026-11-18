@@ -12378,6 +12378,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Found for these coordinates';
 
   @override
+  String get diveSites_edit_catalogueRefused =>
+      'The catalogue record has changed or is linked to another site. Nothing was saved.';
+
+  @override
   String get diveSites_edit_lookupReplace_title => 'Replace location details?';
 
   @override

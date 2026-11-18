@@ -12736,6 +12736,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_edit_altitude_foundTooltip => 'وُجد لهذه الإحداثيات';
 
   @override
+  String get diveSites_edit_catalogueRefused =>
+      'تغيّر سجل الدليل أو أصبح مرتبطًا بموقع آخر. لم يُحفظ أي شيء.';
+
+  @override
   String get diveSites_edit_lookupReplace_title => 'استبدال تفاصيل الموقع؟';
 
   @override

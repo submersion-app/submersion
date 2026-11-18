@@ -4056,6 +4056,7 @@
   "diveSites_edit_snackbar_lookupNoChanges": "地点信息已与这些坐标一致",
   "diveSites_edit_snackbar_lookupFailed": "地点查找失败。请检查网络连接后重试。",
   "diveSites_edit_altitude_foundTooltip": "根据这些坐标找到",
+  "diveSites_edit_catalogueRefused": "目录记录已更改或已关联到另一个潜点。未保存任何内容。",
   "diveSites_edit_lookupReplace_title": "替换地点信息？",
   "diveSites_edit_lookupReplace_body": "查找结果中以下字段的值不同：",
   "diveSites_edit_lookupReplace_replace": "替换",

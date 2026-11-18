@@ -12491,6 +12491,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Gevonden voor deze coördinaten';
 
   @override
+  String get diveSites_edit_catalogueRefused =>
+      'Het catalogusitem is gewijzigd of aan een andere duiklocatie gekoppeld. Er is niets opgeslagen.';
+
+  @override
   String get diveSites_edit_lookupReplace_title => 'Locatiegegevens vervangen?';
 
   @override

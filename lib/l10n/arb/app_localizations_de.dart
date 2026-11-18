@@ -12562,6 +12562,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Für diese Koordinaten gefunden';
 
   @override
+  String get diveSites_edit_catalogueRefused =>
+      'Der Katalogeintrag hat sich geändert oder ist mit einem anderen Tauchplatz verknüpft. Es wurde nichts gespeichert.';
+
+  @override
   String get diveSites_edit_lookupReplace_title => 'Ortsangaben ersetzen?';
 
   @override

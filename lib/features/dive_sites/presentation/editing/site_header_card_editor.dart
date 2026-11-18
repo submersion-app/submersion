@@ -2,6 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_sites/data/services/catalogue_sea_name.dart';
+import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_gap_field.dart';
+import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_pair.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_catalogue_sitting.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_location_rules.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_gap_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/catalogue_gap_comparison_sheet.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_catalogue_offer_line.dart';
 import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_sharing_sitting.dart';
@@ -86,6 +94,39 @@ class _SiteHeaderCardEditorState extends ConsumerState<SiteHeaderCardEditor> {
         if (mounted) setState(() {});
       });
     }
+  }
+
+  /// Holds what the diver chose for [pair], the record's sea named in the
+  /// diver's language as the fill would name it.
+  Future<void> _holdReview(
+    CataloguePair pair,
+    CatalogueComparisonResult result,
+  ) async {
+    final session = widget.session;
+    final container = ProviderScope.containerOf(context, listen: false);
+    final service = container.read(catalogueGapServiceProvider);
+    final bodyOfWater =
+        result is ComparisonApply &&
+            result.fields.contains(CatalogueGapField.bodyOfWater)
+        ? await catalogueSeaInDiversLanguage(
+            pair.record,
+            loadSeas: service.loadSeas,
+            placeNameLanguage: service.placeNameLanguage,
+          )
+        : null;
+    final allTypes = await container.read(siteTypesProvider.future);
+    final diverId = await container.read(
+      validatedCurrentDiverIdProvider.future,
+    );
+    holdCatalogueReview(
+      session,
+      pair,
+      result,
+      allTypes: allTypes,
+      actingDiverId: diverId,
+      bodyOfWater: bodyOfWater,
+      fetchElevation: (point) => fetchSiteElevation(container, point),
+    );
   }
 
   /// "Shared with", as the form offered it: never on a library site, which
@@ -192,6 +233,20 @@ class _SiteHeaderCardEditorState extends ConsumerState<SiteHeaderCardEditor> {
             listenable: session,
             builder: (context, _) =>
                 _sharingField(session) ?? const SizedBox.shrink(),
+          ),
+          // The catalogue offer's Review, held until Save; not in a library
+          // reader's sitting, and gone once reviewed in this one.
+          ListenableBuilder(
+            listenable: session,
+            builder: (context, _) => siteCatalogueReviewed(session)
+                ? const SizedBox.shrink()
+                : Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    child: SiteCatalogueOfferLine(
+                      site: session.stored,
+                      onReviewed: (pair, result) => _holdReview(pair, result),
+                    ),
+                  ),
           ),
           SiteEnumChipsRow<WaterType>(
             session: session,

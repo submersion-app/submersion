@@ -89,7 +89,9 @@ class SiteCatalogueFillRepository {
   /// name, which the catalogue holds in English.
   ///
   /// The site is stamped and marked for sync once, and only when something
-  /// changed.
+  /// changed. [stampLibrary] false leaves the library stamp and the sync
+  /// nudge to the caller: an editing sitting writes inside its own
+  /// transaction and stamps once that has committed (issue #4527).
   Future<CatalogueFillWrite> applyFill({
     required String siteId,
     required CatalogueSite record,
@@ -97,6 +99,7 @@ class SiteCatalogueFillRepository {
     Set<CatalogueGapField> declined = const {},
     String? bodyOfWater,
     String? actingDiverId,
+    bool stampLibrary = true,
   }) async {
     try {
       if (!await _stamper.mayEdit(siteId, actingDiverId: actingDiverId)) {
@@ -194,7 +197,7 @@ class SiteCatalogueFillRepository {
         );
       });
 
-      if (!wrote) return write;
+      if (!wrote || !stampLibrary) return write;
       final was = before;
       if (was != null && was.isLibrarySite) {
         final after = await _sites.getSiteById(siteId);

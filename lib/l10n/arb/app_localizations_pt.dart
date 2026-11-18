@@ -12569,6 +12569,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Encontrado para estas coordenadas';
 
   @override
+  String get diveSites_edit_catalogueRefused =>
+      'O registo do catálogo foi alterado ou está associado a outro local. Nada foi guardado.';
+
+  @override
   String get diveSites_edit_lookupReplace_title =>
       'Substituir os detalhes de localização?';
 
