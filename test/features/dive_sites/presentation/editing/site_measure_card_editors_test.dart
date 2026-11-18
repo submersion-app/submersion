@@ -56,6 +56,64 @@ void main() {
     expect(h.session.valueOf(siteAltitudeField), closeTo(30.48, 0.001));
   });
 
+  testWidgets('altitude takes no value below sea level, as the form', (
+    tester,
+  ) async {
+    final h = await pumpSiteEditor(
+      tester,
+      site,
+      (session) => SiteAltitudeCardEditor(session: session),
+      overrides: [
+        elevationServiceProvider.overrideWithValue(_FakeElevation(null)),
+      ],
+    );
+
+    await tester.tap(find.text(l.diveSites_edit_section_altitude));
+    await tester.pump();
+    await tester.enterText(find.byType(TextFormField), '-20');
+    await tester.pump();
+
+    final altitude = h.session.valueOf(siteAltitudeField);
+    expect(altitude == null || altitude >= 0, isTrue);
+  });
+
+  testWidgets('an elevation below sea level is not offered', (tester) async {
+    await pumpSiteEditor(
+      tester,
+      const DiveSite(id: 's1', name: 'Hole', location: GeoPoint(31.5, 35.5)),
+      (session) => SiteAltitudeCardEditor(session: session),
+      overrides: [
+        elevationServiceProvider.overrideWithValue(_FakeElevation(-400)),
+      ],
+    );
+
+    expect(
+      find.byTooltip(l.diveSites_edit_altitude_foundTooltip),
+      findsNothing,
+    );
+  });
+
+  testWidgets('the found altitude is not offered once the site has moved', (
+    tester,
+  ) async {
+    final h = await pumpSiteEditor(
+      tester,
+      const DiveSite(id: 's1', name: 'Hole', location: GeoPoint(1, 2)),
+      (session) => SiteAltitudeCardEditor(session: session),
+      overrides: [
+        elevationServiceProvider.overrideWithValue(_FakeElevation(12)),
+      ],
+    );
+    final offer = find.byTooltip(l.diveSites_edit_altitude_foundTooltip);
+    expect(offer, findsOneWidget);
+
+    // Moved in the sitting: 12 m was found for where the site was.
+    h.session.set(siteLocationField, const GeoPoint(3, 4));
+    await tester.pump();
+
+    expect(offer, findsNothing);
+  });
+
   testWidgets('the found altitude is offered and used only on a tap', (
     tester,
   ) async {

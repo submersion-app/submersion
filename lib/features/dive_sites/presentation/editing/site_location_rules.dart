@@ -128,7 +128,9 @@ void scheduleAltitudeAfterMove(
     final point = session.valueOf(siteLocationField);
     if (point == null || session.valueOf(siteAltitudeField) != null) return;
     final metres = await fetch(point);
-    if (metres == null || !current()) return;
+    // Below sea level is no altitude the site can hold: the form refused
+    // one under 0.
+    if (metres == null || metres < 0 || !current()) return;
     if (session.valueOf(siteLocationField) != point) return;
     if (session.valueOf(siteAltitudeField) != null) return;
     session.set(siteAltitudeField, metres);
@@ -137,7 +139,8 @@ void scheduleAltitudeAfterMove(
 }
 
 /// The elevation found for a site whose stored position is set and whose
-/// altitude is not: what the Altitude card offers as a suggestion. Asked
+/// altitude is not: what the Altitude card offers as a suggestion, while the
+/// site is still there. None below sea level. Asked
 /// once per sitting; it changes nothing in the sitting. Null when there is
 /// nothing to ask or nothing was found.
 Future<double?> foundAltitude(
@@ -148,7 +151,9 @@ Future<double?> foundAltitude(
   final point = stored.location;
   if (point == null || stored.altitude != null) return Future.value();
   if (session.firstTime(_foundAskedKey)) {
-    final work = fetch(point);
+    // Below sea level is nothing to offer: the form refused an altitude
+    // under 0.
+    final work = fetch(point).then((m) => m == null || m < 0 ? null : m);
     session.remember(_foundKey, work);
     return work;
   }

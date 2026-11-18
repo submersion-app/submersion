@@ -390,7 +390,6 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
     WidgetBuilder watching(Widget Function(BuildContext, WidgetRef) build) =>
         (_) => Consumer(builder: (context, ref, _) => build(context, ref));
 
-    final hasHazards = laidOut.hazards != null && laidOut.hazards!.isNotEmpty;
     final cards = <SiteDetailSectionId, WidgetBuilder? Function()>{
       // The count and the aggregates derived from the dives at this site.
       SiteDetailSectionId.diveStatistics: () => watching(
@@ -434,13 +433,14 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
           : null,
       SiteDetailSectionId.depth: () =>
           watching((context, ref) => _buildDepthSection(context, ref, site)),
-      SiteDetailSectionId.altitude: () => laidOut.altitude == null
-          ? null
-          : site.altitude == null
-          ? (context) => _heldEmptyCard(context, SiteDetailSectionId.altitude)
-          : watching(
-              (context, ref) => _buildAltitudeSection(context, ref, site),
-            ),
+      SiteDetailSectionId.altitude: () => _shownWhileLaidOut(
+        SiteDetailSectionId.altitude,
+        laidOut: laidOut,
+        site: site,
+        build: watching(
+          (context, ref) => _buildAltitudeSection(context, ref, site),
+        ),
+      ),
       // Diver-placed annotations. Placement happens on the map, so the add
       // action opens the fullscreen scape armed to place.
       SiteDetailSectionId.features: () => site.hasCoordinates
@@ -501,21 +501,26 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
           (ref.watch(tagsForSiteProvider(site.id)).value ?? const []).isEmpty
           ? null
           : (_) => SiteTagsCard(siteId: site.id),
-      SiteDetailSectionId.difficulty: () => laidOut.difficulty == null
-          ? null
-          : site.difficulty == null
-          ? (context) => _heldEmptyCard(context, SiteDetailSectionId.difficulty)
-          : (context) => _buildDifficultySection(context, site),
+      SiteDetailSectionId.difficulty: () => _shownWhileLaidOut(
+        SiteDetailSectionId.difficulty,
+        laidOut: laidOut,
+        site: site,
+        build: (context) => _buildDifficultySection(context, site),
+      ),
       SiteDetailSectionId.rating: () =>
           (context) => _buildRatingSection(context, site),
-      SiteDetailSectionId.hazards: () => !hasHazards
-          ? null
-          : site.hazards?.isNotEmpty != true
-          ? (context) => _heldEmptyCard(context, SiteDetailSectionId.hazards)
-          : (context) => _buildHazardsSection(context, site),
-      SiteDetailSectionId.access: () => _hasAccessInfo(laidOut)
-          ? (context) => _buildAccessSection(context, site)
-          : null,
+      SiteDetailSectionId.hazards: () => _shownWhileLaidOut(
+        SiteDetailSectionId.hazards,
+        laidOut: laidOut,
+        site: site,
+        build: (context) => _buildHazardsSection(context, site),
+      ),
+      SiteDetailSectionId.access: () => _shownWhileLaidOut(
+        SiteDetailSectionId.access,
+        laidOut: laidOut,
+        site: site,
+        build: (context) => _buildAccessSection(context, site),
+      ),
       SiteDetailSectionId.notes: () =>
           (context) => _buildNotesSection(context, site),
       SiteDetailSectionId.documents: () =>
@@ -1474,8 +1479,6 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
 
     return content;
   }
-
-  bool _hasAccessInfo(DiveSite site) => site.hasAccessInfo;
 
   /// The site's depth: what it is rated for, and what dives actually found.
   ///

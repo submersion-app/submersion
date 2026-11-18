@@ -67,14 +67,19 @@ class _SiteAltitudeCardEditorState
       listenable: session,
       builder: (context, _) {
         final found = _found;
+        // Found for the stored position: not once the site has moved.
         final offer =
-            found != null && session.valueOf(siteAltitudeField) == null;
+            found != null &&
+            session.valueOf(siteAltitudeField) == null &&
+            session.valueOf(siteLocationField) == session.stored.location;
         return RecordNumberRow<DiveSite>(
           session: session,
           field: siteAltitudeField,
           label: l10n.diveSites_edit_section_altitude,
           suffixText: units.altitudeSymbol,
           placeholder: l10n.diveSites_edit_altitude_hint,
+          // As the form: no altitude below sea level.
+          allowNegative: false,
           toDisplay: units.convertAltitude,
           fromDisplay: units.altitudeToMeters,
           suggestion: offer

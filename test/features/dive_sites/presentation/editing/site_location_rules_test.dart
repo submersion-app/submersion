@@ -106,6 +106,20 @@ void main() {
       });
     });
 
+    test('an elevation below sea level is not filled, as the form '
+        'would refuse it', () {
+      fakeAsync((async) {
+        final session = sitting();
+        session.set(siteLocationField, const GeoPoint(31.5, 35.5));
+        scheduleAltitudeAfterMove(session, (_) async => -400);
+
+        async.elapse(const Duration(milliseconds: 1100));
+        async.flushMicrotasks();
+
+        expect(session.valueOf(siteAltitudeField), isNull);
+      });
+    });
+
     test('a typed altitude stands', () {
       fakeAsync((async) {
         final session = sitting();

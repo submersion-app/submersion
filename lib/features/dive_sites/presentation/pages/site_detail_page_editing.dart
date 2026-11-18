@@ -194,6 +194,23 @@ mixin _SiteDetailPageEditing
     );
   }
 
+  /// [build] for a card shown only when it has something, by its card's own
+  /// rule ([EditCard.isEmpty]): left out when the record the page lays
+  /// itself out from has nothing, and, while an editor is open, held as its
+  /// title alone when the sitting has emptied it ([_heldEmptyCard]), so no
+  /// card comes or goes above the editor.
+  WidgetBuilder? _shownWhileLaidOut(
+    SiteDetailSectionId id, {
+    required DiveSite laidOut,
+    required DiveSite site,
+    required WidgetBuilder build,
+  }) {
+    final card = siteEditCards[id]!;
+    if (card.isEmpty(laidOut)) return null;
+    if (card.isEmpty(site)) return (context) => _heldEmptyCard(context, id);
+    return build;
+  }
+
   /// A card held on the page while an editor is open although the sitting
   /// has emptied it: its title alone, until the editors close and it leaves
   /// for the Add strip (issue #4527).

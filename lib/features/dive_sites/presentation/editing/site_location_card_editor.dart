@@ -30,9 +30,14 @@ class SiteLocationCardEditor extends ConsumerStatefulWidget {
     super.key,
     required this.session,
     this.pickLocation = pickSiteLocationOnMap,
+    this.isPhone,
   });
 
   final EditSession<DiveSite> session;
+
+  /// Whether the device is a phone, whose location settings the diver can
+  /// be sent to; null asks the platform. A test says which.
+  final bool? isPhone;
 
   /// Asks the diver for a point on the map, starting at [initial]; null when
   /// they backed out. A test hands in its own answer.
@@ -48,6 +53,39 @@ class _SiteLocationCardEditorState
     extends ConsumerState<SiteLocationCardEditor> {
   final Map<String, FieldTextBinding<DiveSite, String?>> _bindings = {};
   bool _busy = false;
+
+  /// The place-name suggestions, kept until the sites, the country or the
+  /// region change: the rows rebuild on every keystroke and caret move.
+  ({
+    List<DiveSite> sites,
+    String country,
+    String region,
+    _PlaceSuggestions lists,
+  })?
+  _suggested;
+
+  _PlaceSuggestions _suggestionsFor(
+    List<DiveSite> sites,
+    String country,
+    String region,
+  ) {
+    final kept = _suggested;
+    if (kept != null &&
+        identical(kept.sites, sites) &&
+        kept.country == country &&
+        kept.region == region) {
+      return kept.lists;
+    }
+    final lists = (
+      countries: suggestedCountries(sites),
+      regions: suggestedRegions(sites, country),
+      cities: suggestedCities(sites, country, region),
+      islands: suggestedIslands(sites, country),
+      waters: suggestedBodiesOfWater(sites, country),
+    );
+    _suggested = (sites: sites, country: country, region: region, lists: lists);
+    return lists;
+  }
 
   EditSession<DiveSite> get _session => widget.session;
 
@@ -111,11 +149,26 @@ class _SiteLocationCardEditorState
       if (!mounted || _session.isDisposed) return;
       if (result == null) {
         final isMobile =
-            !kIsWeb && (HostPlatform.isIOS || HostPlatform.isAndroid);
-        _snack(
-          isMobile
-              ? l10n.diveSites_edit_snackbar_locationUnavailableMobile
-              : l10n.diveSites_edit_snackbar_locationUnavailableDesktop,
+            widget.isPhone ??
+            (!kIsWeb && (HostPlatform.isIOS || HostPlatform.isAndroid));
+        if (!isMobile) {
+          return _snack(
+            l10n.diveSites_edit_snackbar_locationUnavailableDesktop,
+          );
+        }
+        // As the form: on a phone, the way to the app's location settings.
+        final service = ref.read(locationServiceProvider);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              l10n.diveSites_edit_snackbar_locationUnavailableMobile,
+            ),
+            persist: false,
+            action: SnackBarAction(
+              label: l10n.diveSites_edit_snackbar_locationSettings,
+              onPressed: () => service.openAppSettings(),
+            ),
+          ),
         );
         return;
       }
@@ -244,6 +297,7 @@ class _SiteLocationCardEditorState
       builder: (context, _) {
         final country = _session.valueOf(siteCountryField) ?? '';
         final region = _session.valueOf(siteRegionField) ?? '';
+        final suggested = _suggestionsFor(allSites, country, region);
         Widget place(
           EditField<DiveSite, String?> field,
           String label,
@@ -280,7 +334,9 @@ class _SiteLocationCardEditorState
                     label: Text(l10n.diveSites_edit_gps_useMyLocation),
                   ),
                   TextButton.icon(
-                    onPressed: _pickFromMap,
+                    // Not while a position is on its way: it would land on
+                    // top of the point picked.
+                    onPressed: _busy ? null : _pickFromMap,
                     icon: const Icon(Icons.map, size: 16),
                     label: Text(l10n.diveSites_edit_gps_pickFromMap),
                   ),
@@ -299,27 +355,27 @@ class _SiteLocationCardEditorState
             place(
               siteCountryField,
               l10n.diveSites_edit_field_country_label,
-              suggestedCountries(allSites),
+              suggested.countries,
             ),
             place(
               siteRegionField,
               l10n.diveSites_edit_field_region_label,
-              suggestedRegions(allSites, country),
+              suggested.regions,
             ),
             place(
               siteCityField,
               l10n.diveSites_edit_field_city_label,
-              suggestedCities(allSites, country, region),
+              suggested.cities,
             ),
             place(
               siteIslandField,
               l10n.diveSites_edit_field_island_label,
-              suggestedIslands(allSites, country),
+              suggested.islands,
             ),
             place(
               siteBodyOfWaterField,
               l10n.diveSites_edit_field_bodyOfWater_label,
-              suggestedBodiesOfWater(allSites, country),
+              suggested.waters,
             ),
           ],
         );
@@ -337,3 +393,12 @@ Future<PickedLocation?> pickSiteLocationOnMap(
     builder: (context) => LocationPickerMap(initialLocation: initial),
   ),
 );
+
+/// The place-name suggestions the Location card offers.
+typedef _PlaceSuggestions = ({
+  List<String> countries,
+  List<String> regions,
+  List<String> cities,
+  List<String> islands,
+  List<String> waters,
+});
