@@ -12291,6 +12291,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveSites_detail_section_description => 'Descrizione';
 
   @override
+  String get diveSites_detail_section_header => 'Sito';
+
+  @override
   String get diveSites_detail_section_difficultyLevel =>
       'Livello di difficoltà';
 
@@ -12562,6 +12565,14 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get diveSites_edit_snackbar_lookupFailed =>
       'Ricerca della località non riuscita. Controlla la connessione e riprova.';
+
+  @override
+  String get diveSites_edit_altitude_foundTooltip =>
+      'Trovato per queste coordinate';
+
+  @override
+  String get diveSites_edit_depth_rangeInvalid =>
+      'La profondità minima non può superare quella massima.';
 
   @override
   String get diveSites_edit_lookupReplace_title =>

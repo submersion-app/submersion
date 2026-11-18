@@ -19540,6 +19540,12 @@ abstract class AppLocalizations {
   /// **'Description'**
   String get diveSites_detail_section_description;
 
+  /// The site page's header block (name, types, water), named as a card in History
+  ///
+  /// In en, this message translates to:
+  /// **'Site'**
+  String get diveSites_detail_section_header;
+
   /// No description provided for @diveSites_detail_section_difficultyLevel.
   ///
   /// In en, this message translates to:
@@ -19972,6 +19978,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Location lookup failed. Check your connection and try again.'**
   String get diveSites_edit_snackbar_lookupFailed;
+
+  /// Tooltip of the altitude suggested from the site's coordinates on the Altitude card
+  ///
+  /// In en, this message translates to:
+  /// **'Found for these coordinates'**
+  String get diveSites_edit_altitude_foundTooltip;
+
+  /// Under the Depth card's rows, and why Save is refused, when the minimum depth is deeper than the maximum
+  ///
+  /// In en, this message translates to:
+  /// **'The minimum depth can\'t be deeper than the maximum.'**
+  String get diveSites_edit_depth_rangeInvalid;
 
   /// No description provided for @diveSites_edit_lookupReplace_title.
   ///

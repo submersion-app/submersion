@@ -88,8 +88,10 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_edit_
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_fade.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
 import 'package:submersion/shared/widgets/record_editing/record_fold_pencil.dart';
 
@@ -268,7 +270,12 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
             _buildMapSection(context, ref, site),
             const SizedBox(height: kSiteDetailCardGap),
           ],
-          SiteDetailHeader(site: site),
+          edit.hosts
+              ? RecordCardFrame<DiveSite>(
+                  card: siteHeaderCard,
+                  child: SiteDetailHeader(site: site),
+                )
+              : SiteDetailHeader(site: site),
           SharedByBanner(
             kind: SharedItemKind.site,
             itemId: site.id,
@@ -284,6 +291,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
               sections,
               editing: edit.hosts,
               shownForSitting: edit.shownForSitting,
+              presence: edit.presence,
             ),
             alsoShown: edit.shownForSitting,
             heldOpen: edit.heldOpen,
@@ -376,21 +384,22 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
     List<SiteDetailSectionConfig> sections, {
     bool editing = false,
     Set<SiteDetailSectionId> shownForSitting = const {},
+    DiveSite? presence,
   }) {
+    // Whether a card the diver edits has anything to show is read from the
+    // record the page lays itself out from while an editor is open, so no
+    // card comes or goes above it; what it shows is [site] (issue #4527).
+    final laidOut = presence ?? site;
     WidgetBuilder watching(Widget Function(BuildContext, WidgetRef) build) =>
         (_) => Consumer(builder: (context, ref, _) => build(context, ref));
 
-    final hasHazards = site.hazards != null && site.hazards!.isNotEmpty;
     final cards = <SiteDetailSectionId, WidgetBuilder? Function()>{
       // The count and the aggregates derived from the dives at this site.
       SiteDetailSectionId.diveStatistics: () => watching(
         (context, ref) => _buildDiveStatisticsSection(context, ref, site),
       ),
-      SiteDetailSectionId.description: () => _framed(
-        SiteDetailSectionId.description,
-        (context) => _buildDescriptionSection(context, site),
-        editing: editing,
-      ),
+      SiteDetailSectionId.description: () =>
+          (context) => _buildDescriptionSection(context, site),
       // Photos from the dives logged here (issue #4502). Decided from a
       // count, so a site without any leaves no gap and no folded header,
       // and the photos themselves load only once the card is laid out.
@@ -427,11 +436,14 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
           : null,
       SiteDetailSectionId.depth: () =>
           watching((context, ref) => _buildDepthSection(context, ref, site)),
-      SiteDetailSectionId.altitude: () => site.altitude != null
-          ? watching(
-              (context, ref) => _buildAltitudeSection(context, ref, site),
-            )
-          : null,
+      SiteDetailSectionId.altitude: () => _shownWhileLaidOut(
+        SiteDetailSectionId.altitude,
+        laidOut: laidOut,
+        site: site,
+        build: watching(
+          (context, ref) => _buildAltitudeSection(context, ref, site),
+        ),
+      ),
       // Diver-placed annotations. Placement happens on the map, so the add
       // action opens the fullscreen scape armed to place.
       SiteDetailSectionId.features: () => site.hasCoordinates
@@ -492,21 +504,28 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
           (ref.watch(tagsForSiteProvider(site.id)).value ?? const []).isEmpty
           ? null
           : (_) => SiteTagsCard(siteId: site.id),
-      SiteDetailSectionId.difficulty: () => site.difficulty != null
-          ? (context) => _buildDifficultySection(context, site)
-          : null,
+      SiteDetailSectionId.difficulty: () => _shownWhileLaidOut(
+        SiteDetailSectionId.difficulty,
+        laidOut: laidOut,
+        site: site,
+        build: (context) => _buildDifficultySection(context, site),
+      ),
       SiteDetailSectionId.rating: () =>
           (context) => _buildRatingSection(context, site),
-      SiteDetailSectionId.hazards: () =>
-          hasHazards ? (context) => _buildHazardsSection(context, site) : null,
-      SiteDetailSectionId.access: () => _hasAccessInfo(site)
-          ? (context) => _buildAccessSection(context, site)
-          : null,
-      SiteDetailSectionId.notes: () => _framed(
-        SiteDetailSectionId.notes,
-        (context) => _buildNotesSection(context, site),
-        editing: editing,
+      SiteDetailSectionId.hazards: () => _shownWhileLaidOut(
+        SiteDetailSectionId.hazards,
+        laidOut: laidOut,
+        site: site,
+        build: (context) => _buildHazardsSection(context, site),
       ),
+      SiteDetailSectionId.access: () => _shownWhileLaidOut(
+        SiteDetailSectionId.access,
+        laidOut: laidOut,
+        site: site,
+        build: (context) => _buildAccessSection(context, site),
+      ),
+      SiteDetailSectionId.notes: () =>
+          (context) => _buildNotesSection(context, site),
       SiteDetailSectionId.documents: () =>
           (context) => DocumentsSection(
             owner: DocumentOwner(DocumentOwnerKind.site, site.id),
@@ -515,7 +534,11 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
     return {
       for (final section in sections)
         if (section.visible || shownForSitting.contains(section.id))
-          section.id: cards[section.id]!(),
+          section.id: _framed(
+            section.id,
+            cards[section.id]!(),
+            editing: editing,
+          ),
     };
   }
 
@@ -1281,15 +1304,11 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Icon(Icons.map, size: 20, color: colorScheme.primary),
-                  const SizedBox(width: 8),
-                  Text(
-                    context.l10n.diveSites_detail_section_location,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ],
+              // The card's title row, which carries the pencil while the
+              // page is unlocked (issue #4527).
+              RecordCardHeader(
+                title: context.l10n.diveSites_detail_section_location,
+                leading: Icon(Icons.map, size: 20, color: colorScheme.primary),
               ),
               const SizedBox(height: 12),
               _buildDetailRow(
@@ -1464,14 +1483,6 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
     return content;
   }
 
-  bool _hasAccessInfo(DiveSite site) {
-    return (site.accessNotes != null && site.accessNotes!.isNotEmpty) ||
-        (site.mooringNumber != null && site.mooringNumber!.isNotEmpty) ||
-        (site.parkingInfo != null && site.parkingInfo!.isNotEmpty) ||
-        site.entryMethods.isNotEmpty ||
-        site.exitMethods.isNotEmpty;
-  }
-
   /// The site's depth: what it is rated for, and what dives actually found.
   ///
   /// [DiveSite.minDepth]/[DiveSite.maxDepth] are entered by hand and describe
@@ -1525,19 +1536,13 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.arrow_downward,
-                    size: 20,
-                    color: colorScheme.primary,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    context.l10n.diveSites_detail_section_depthRange,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ],
+              RecordCardHeader(
+                title: context.l10n.diveSites_detail_section_depthRange,
+                leading: Icon(
+                  Icons.arrow_downward,
+                  size: 20,
+                  color: colorScheme.primary,
+                ),
               ),
               const SizedBox(height: 12),
               if (!hasDepthInfo)
@@ -1924,22 +1929,18 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(Icons.terrain, size: 20, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    context.l10n.diveSites_detail_section_altitude,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
-                HeaderInfoButton(
-                  title: context.l10n.diveSites_detail_section_altitude,
-                  content: (context) =>
-                      siteAltitudeInfo(context.l10n, infoUnits(context)),
-                ),
-              ],
+            RecordCardHeader(
+              title: context.l10n.diveSites_detail_section_altitude,
+              leading: Icon(
+                Icons.terrain,
+                size: 20,
+                color: colorScheme.primary,
+              ),
+              trailing: HeaderInfoButton(
+                title: context.l10n.diveSites_detail_section_altitude,
+                content: (context) =>
+                    siteAltitudeInfo(context.l10n, infoUnits(context)),
+              ),
             ),
             const SizedBox(height: 12),
             Row(
@@ -2084,19 +2085,13 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.fitness_center,
-                  size: 20,
-                  color: colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  context.l10n.diveSites_detail_section_difficultyLevel,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
+            RecordCardHeader(
+              title: context.l10n.diveSites_detail_section_difficultyLevel,
+              leading: Icon(
+                Icons.fitness_center,
+                size: 20,
+                color: colorScheme.primary,
+              ),
             ),
             const SizedBox(height: 12),
             Center(
@@ -2155,11 +2150,18 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
               children: [
                 Icon(Icons.warning_amber, size: 20, color: colorScheme.error),
                 const SizedBox(width: 8),
-                Text(
-                  context.l10n.diveSites_detail_section_hazards,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleMedium?.copyWith(color: colorScheme.error),
+                Expanded(
+                  child: Text(
+                    context.l10n.diveSites_detail_section_hazards,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleMedium?.copyWith(color: colorScheme.error),
+                  ),
+                ),
+                // The card keeps its warning colour, so it draws its own
+                // title and only takes the pencil (issue #4527).
+                RecordCardPencil(
+                  cardTitle: context.l10n.diveSites_detail_section_hazards,
                 ),
               ],
             ),
@@ -2180,15 +2182,13 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(Icons.directions, size: 20, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(
-                  context.l10n.diveSites_detail_section_access,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
+            RecordCardHeader(
+              title: context.l10n.diveSites_detail_section_access,
+              leading: Icon(
+                Icons.directions,
+                size: 20,
+                color: colorScheme.primary,
+              ),
             ),
             const SizedBox(height: 12),
             if (site.parkingInfo != null && site.parkingInfo!.isNotEmpty) ...[
@@ -2315,15 +2315,9 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(Icons.star, size: 20, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(
-                  context.l10n.diveSites_detail_section_rating,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
+            RecordCardHeader(
+              title: context.l10n.diveSites_detail_section_rating,
+              leading: Icon(Icons.star, size: 20, color: colorScheme.primary),
             ),
             const SizedBox(height: 12),
             Center(

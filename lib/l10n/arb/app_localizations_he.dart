@@ -12021,6 +12021,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_detail_section_description => 'תיאור';
 
   @override
+  String get diveSites_detail_section_header => 'אתר';
+
+  @override
   String get diveSites_detail_section_difficultyLevel => 'רמת קושי';
 
   @override
@@ -12283,6 +12286,14 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get diveSites_edit_snackbar_lookupFailed =>
       'חיפוש המיקום נכשל. בדקו את החיבור ונסו שוב.';
+
+  @override
+  String get diveSites_edit_altitude_foundTooltip =>
+      'נמצא עבור הקואורדינטות האלה';
+
+  @override
+  String get diveSites_edit_depth_rangeInvalid =>
+      'העומק המינימלי לא יכול להיות עמוק מהמקסימלי.';
 
   @override
   String get diveSites_edit_lookupReplace_title => 'להחליף את פרטי המיקום?';

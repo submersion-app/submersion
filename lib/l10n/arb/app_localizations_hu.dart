@@ -12265,6 +12265,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveSites_detail_section_description => 'Leírás';
 
   @override
+  String get diveSites_detail_section_header => 'Merülőhely';
+
+  @override
   String get diveSites_detail_section_difficultyLevel => 'Nehézségi szint';
 
   @override
@@ -12533,6 +12536,14 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveSites_edit_snackbar_lookupFailed =>
       'A helylekérdezés nem sikerült. Ellenőrizze a kapcsolatot, és próbálja újra.';
+
+  @override
+  String get diveSites_edit_altitude_foundTooltip =>
+      'Ezekhez a koordinátákhoz találva';
+
+  @override
+  String get diveSites_edit_depth_rangeInvalid =>
+      'A minimális mélység nem lehet nagyobb a maximálisnál.';
 
   @override
   String get diveSites_edit_lookupReplace_title => 'Lecseréli a helyadatokat?';

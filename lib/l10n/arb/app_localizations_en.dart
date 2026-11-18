@@ -12097,6 +12097,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveSites_detail_section_description => 'Description';
 
   @override
+  String get diveSites_detail_section_header => 'Site';
+
+  @override
   String get diveSites_detail_section_difficultyLevel => 'Difficulty Level';
 
   @override
@@ -12363,6 +12366,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveSites_edit_snackbar_lookupFailed =>
       'Location lookup failed. Check your connection and try again.';
+
+  @override
+  String get diveSites_edit_altitude_foundTooltip =>
+      'Found for these coordinates';
+
+  @override
+  String get diveSites_edit_depth_rangeInvalid =>
+      'The minimum depth can\'t be deeper than the maximum.';
 
   @override
   String get diveSites_edit_lookupReplace_title => 'Replace location details?';

@@ -120,6 +120,15 @@ class DiveSite extends Equatable {
   /// Whether this site belongs to a shared site library (issue #2567).
   bool get isLibrarySite => sharedLibraryId != null;
 
+  /// Whether the site has anything about getting in and out: parking,
+  /// access notes, a mooring, or entry and exit methods.
+  bool get hasAccessInfo =>
+      (parkingInfo?.isNotEmpty ?? false) ||
+      (accessNotes?.isNotEmpty ?? false) ||
+      (mooringNumber?.isNotEmpty ?? false) ||
+      entryMethods.isNotEmpty ||
+      exitMethods.isNotEmpty;
+
   /// The site's entry method when it lists exactly one, else null: with
   /// several there is no telling which one a given dive used.
   EntryMethod? get soleEntryMethod =>
@@ -217,6 +226,7 @@ class DiveSite extends Equatable {
     bool clearAccessNotes = false,
     bool clearMooringNumber = false,
     bool clearParkingInfo = false,
+    bool clearAltitude = false,
   }) {
     return DiveSite(
       id: id ?? this.id,
@@ -246,7 +256,7 @@ class DiveSite extends Equatable {
           ? null
           : mooringNumber ?? this.mooringNumber,
       parkingInfo: clearParkingInfo ? null : parkingInfo ?? this.parkingInfo,
-      altitude: altitude ?? this.altitude,
+      altitude: clearAltitude ? null : altitude ?? this.altitude,
       entryMethods: entryMethods ?? this.entryMethods,
       exitMethods: exitMethods ?? this.exitMethods,
       isShared: isShared ?? this.isShared,

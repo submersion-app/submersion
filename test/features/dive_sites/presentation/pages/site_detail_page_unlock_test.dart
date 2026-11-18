@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -65,7 +67,7 @@ void main() {
     expect(find.byType(RecordPencilIcon), findsNothing);
   });
 
-  testWidgets('unlocking titles the bar and marks Description and Notes', (
+  testWidgets('unlocking titles the bar and marks the editable cards', (
     tester,
   ) async {
     await pumpSitePage(tester);
@@ -73,19 +75,36 @@ void main() {
 
     expect(find.byType(RecordEditBar), findsOneWidget);
     expect(find.text(l.recordEdit_editingTitle('Blue Hole')), findsOneWidget);
-    expect(find.byType(RecordPencilIcon), findsNWidgets(2));
+    // The header block, Description, Location and Notes each have one.
+    for (final title in [
+      l.diveSites_detail_section_header,
+      l.diveSites_detail_section_description,
+      l.diveSites_detail_section_location,
+      l.diveSites_detail_section_notes,
+    ]) {
+      expect(
+        find.byTooltip(l.recordEdit_editCardTooltip(title)),
+        findsOneWidget,
+        reason: title,
+      );
+    }
   });
 
   testWidgets('the old edit form cannot be opened over an open sitting', (
     tester,
   ) async {
+    // The app bar's button to the form, not a card's pencil.
+    final oldEdit = find.descendant(
+      of: find.byType(AppBar),
+      matching: find.widgetWithIcon(IconButton, Icons.edit),
+    );
     await pumpSitePage(tester);
-    expect(find.byTooltip(l.diveSites_detail_editTooltip), findsOneWidget);
+    expect(oldEdit, findsOneWidget);
 
     await unlock(tester);
 
     // The form would save over the sitting: not offered while it is open.
-    expect(find.byTooltip(l.diveSites_detail_editTooltip), findsNothing);
+    expect(oldEdit, findsNothing);
   });
 
   testWidgets('editing Notes and saving writes one sitting and locks', (
@@ -171,6 +190,9 @@ void main() {
         matching: find.text(l.diveSites_detail_section_notes),
       );
       expect(chip, findsOneWidget);
+      // The strip scrolls: empty cards are offered beside the hidden one.
+      await tester.ensureVisible(chip);
+      await tester.pumpAndSettle();
       await tester.tap(chip);
       await tester.pumpAndSettle();
 
@@ -192,13 +214,14 @@ void main() {
       final foldedBefore = page.settings.state.siteDetailSections;
       await unlock(tester);
 
-      final pencils = find.byType(RecordFoldPencil);
-      expect(pencils, findsNWidgets(2));
-      // The Notes row comes after the Description row.
-      await tester.ensureVisible(pencils.last);
-      await tester.tap(
-        find.descendant(of: pencils.last, matching: find.byType(IconButton)),
+      // Every card with an editor has a pencil on its folded row.
+      expect(find.byType(RecordFoldPencil), findsWidgets);
+      final notesPencil = find.byTooltip(
+        l.recordEdit_editCardTooltip(l.diveSites_detail_section_notes),
       );
+      expect(notesPencil, findsOneWidget);
+      await tester.ensureVisible(notesPencil);
+      await tester.tap(notesPencil);
       await tester.pumpAndSettle();
 
       expect(find.byType(TextFormField), findsOneWidget);
@@ -235,6 +258,48 @@ void main() {
       isNull,
     );
   });
+
+  // A reload of the role or the connection (a library's details changing,
+  // a sync) is not a loss of the right to edit: only a settled answer that
+  // says so ends the sitting.
+  for (final fails in [false, true]) {
+    testWidgets('a role that reloads${fails ? ' and fails' : ''} keeps the '
+        'sitting', (tester) async {
+      Completer<SharedLibraryRole>? reload;
+      final page = await pumpSitePage(
+        tester,
+        site: harnessSite.copyWith(sharedLibraryId: 'L'),
+        extra: [
+          libraryRoleProvider('L').overrideWith(
+            (ref) => reload?.future ?? Future.value(SharedLibraryRole.editor),
+          ),
+          libraryConnectedHereProvider('L').overrideWith((ref) async => true),
+          siteLibraryStateProvider('s1').overrideWith((ref) async => null),
+          libraryMemberNamesProvider('L').overrideWith((ref) async => const {}),
+        ],
+      );
+      await unlock(tester);
+      await openNotes(tester);
+      await typeNotes(tester, 'Choppy');
+
+      final waiting = reload = Completer<SharedLibraryRole>();
+      page.container.invalidate(libraryRoleProvider('L'));
+      await tester.pump();
+      await tester.pump();
+      expect(find.byType(RecordEditBar), findsOneWidget);
+
+      if (fails) {
+        waiting.completeError(StateError('offline'));
+      } else {
+        waiting.complete(SharedLibraryRole.editor);
+      }
+      await tester.pumpAndSettle();
+
+      expect(find.byType(RecordEditBar), findsOneWidget);
+      expect(find.text(l.diveSites_edit_editingWithdrawn), findsNothing);
+      expect(find.text('Choppy'), findsWidgets);
+    });
+  }
 
   testWidgets('losing the right to edit during a sitting locks the page', (
     tester,

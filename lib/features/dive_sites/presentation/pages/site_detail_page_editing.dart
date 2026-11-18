@@ -50,6 +50,7 @@ mixin _SiteDetailPageEditing
     DiveSite site,
     Set<SiteDetailSectionId> shownForSitting,
     Set<SiteDetailSectionId> heldOpen,
+    DiveSite? presence,
   })
   _editingInBuild() {
     if (!hostsEditing) {
@@ -59,10 +60,11 @@ mixin _SiteDetailPageEditing
         site: widget.site,
         shownForSitting: const {},
         heldOpen: const {},
+        presence: null,
       );
     }
     final offered = _offersEditingNow(watch: true);
-    if (!offered && isSittingOpen) {
+    if (!offered && isSittingOpen && _libraryAccessSettled(watch: true)) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _endWithdrawn());
     }
     followStored(siteProvider(widget.siteId));
@@ -72,7 +74,31 @@ mixin _SiteDetailPageEditing
       site: shownRecord(widget.site),
       shownForSitting: _sectionsShownForSitting(),
       heldOpen: _sectionsOpenForSitting(),
+      // While an editor is open, the record the page lays itself out from.
+      presence: maybeEditController?.layoutRecord,
     );
+  }
+
+  /// Whether what decides the right to edit has settled: a library's
+  /// connection and this profile's role in it, read and not being read
+  /// again. A reload, or one that fails, says nothing of a lost right, so
+  /// it never ends a sitting; a settled answer that refuses does. [watch]
+  /// in `build`, a read anywhere else.
+  bool _libraryAccessSettled({bool watch = false}) {
+    final id = widget.site.sharedLibraryId;
+    if (id == null) return true;
+    bool settled(AsyncValue<Object?> value) =>
+        value.hasValue && !value.isLoading && !value.hasError;
+    return settled(
+          watch
+              ? ref.watch(libraryConnectedHereProvider(id))
+              : ref.read(libraryConnectedHereProvider(id)),
+        ) &&
+        settled(
+          watch
+              ? ref.watch(libraryRoleProvider(id))
+              : ref.read(libraryRoleProvider(id)),
+        );
   }
 
   /// Ends a sitting this profile may no longer save, and says so: the
@@ -81,7 +107,7 @@ mixin _SiteDetailPageEditing
   void _endWithdrawn() {
     final controller = maybeEditController;
     if (!mounted || offersEditing || controller == null) return;
-    if (!controller.isUnlocked) return;
+    if (!controller.isUnlocked || !_libraryAccessSettled()) return;
     controller.lock();
     if (controller.isUnlocked) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -89,8 +115,13 @@ mixin _SiteDetailPageEditing
     );
   }
 
+  // The header block is a card too, though not a section: its check (a
+  // name is required) is asked at Save like every other card's.
   @override
-  Iterable<EditCard<DiveSite>> get hostEditCards => siteEditCards.values;
+  Iterable<EditCard<DiveSite>> get hostEditCards => [
+    siteHeaderCard,
+    ...siteEditCards.values,
+  ];
 
   @override
   DiveSite? get storedForUnlock => ref.read(siteProvider(widget.siteId)).value;
@@ -137,10 +168,10 @@ mixin _SiteDetailPageEditing
     }
   }
 
-  /// The cards the diver hid that can be edited, in section order: a card
-  /// with nothing to show is never left out (Description and Notes say so).
-  /// One brought in from the strip stays on the page while it is open or
-  /// has something in it.
+  /// The cards the page is not showing that can be edited, in section
+  /// order: hidden by the diver, or with nothing to show. One brought in
+  /// from the strip stays on the page while it is open or has something in
+  /// it; emptied and closed, it is offered here again.
   @override
   List<AddStripEntry> addStripEntries(DiveSite working) {
     final sections = ref.watch(
@@ -151,16 +182,22 @@ mixin _SiteDetailPageEditing
     final open = controller.openCardIds;
     final added = controller.addedCardIds;
     final changed = controller.session?.changedCardIds ?? const <String>{};
+    final session = controller.session;
+    // As the page lays itself out: while an editor is open no card comes in,
+    // so none leaves the strip either.
+    final presence = controller.layoutRecord ?? working;
     return [
       for (final section in sections)
         if (siteEditCards[section.id] case final card?
-            when !section.visible &&
-                !open.contains(card.id) &&
-                !added.contains(card.id))
+            when !open.contains(card.id) &&
+                !added.contains(card.id) &&
+                (!section.visible ||
+                    (card.isEmptyDuring(presence, session) &&
+                        (session == null || card.isOfferedWhenEmpty(session)))))
           AddStripEntry(
             cardId: card.id,
             label: section.id.localizedDisplayName(l10n),
-            hidden: true,
+            hidden: !section.visible,
             changed: changed.contains(card.id),
           ),
     ];
@@ -191,6 +228,39 @@ mixin _SiteDetailPageEditing
     );
   }
 
+  /// [build] for a card shown only when it has something, by its card's own
+  /// rule ([EditCard.isEmpty]): left out when the record the page lays
+  /// itself out from has nothing, and, while an editor is open, held as its
+  /// title alone when the sitting has emptied it ([_heldEmptyCard]), so no
+  /// card comes or goes above the editor.
+  WidgetBuilder? _shownWhileLaidOut(
+    SiteDetailSectionId id, {
+    required DiveSite laidOut,
+    required DiveSite site,
+    required WidgetBuilder build,
+  }) {
+    final card = siteEditCards[id]!;
+    if (card.isEmpty(laidOut)) return null;
+    if (card.isEmpty(site)) return (context) => _heldEmptyCard(context, id);
+    return build;
+  }
+
+  /// A card held on the page while an editor is open although the sitting
+  /// has emptied it: its title alone, until the editors close and it leaves
+  /// for the Add strip (issue #4527).
+  Widget _heldEmptyCard(BuildContext context, SiteDetailSectionId id) {
+    final card = siteEditCards[id]!;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: RecordCardHeader(
+          title: card.title(context),
+          leading: card.leading?.call(context),
+        ),
+      ),
+    );
+  }
+
   /// The hidden sections the sitting has brought onto the page.
   Set<SiteDetailSectionId> _sectionsShownForSitting() {
     final controller = maybeEditController;
@@ -205,14 +275,44 @@ mixin _SiteDetailPageEditing
   /// [builder] framed as its card while the page offers editing, so
   /// unlocking never remounts it; as it is otherwise, and for a section
   /// with no card.
+  ///
+  /// A card that can be edited is on the page while it is open, and
+  /// otherwise when [builder] has something to show (decided from the
+  /// record the page lays itself out from, `_sectionCards`'s `presence`).
+  /// Open with nothing to show, it gets an empty body, which the frame
+  /// replaces with its editor. A card worked out from other values fades
+  /// while unlocked.
   WidgetBuilder? _framed(
     SiteDetailSectionId id,
     WidgetBuilder? builder, {
     required bool editing,
   }) {
+    if (!editing) return builder;
     final card = siteEditCards[id];
-    if (!editing || builder == null || card == null) return builder;
+    if (card == null) {
+      if (builder == null || !kSiteCalculatedSections.contains(id)) {
+        return builder;
+      }
+      return (context) => RecordCardFade<DiveSite>(
+        reason: RecordCardFadeReason.calculated,
+        child: builder(context),
+      );
+    }
+    final isOpen = maybeEditController?.openCardIds.contains(card.id) ?? false;
+    if (!isOpen && builder == null) return null;
+    final body = builder ?? (_) => const SizedBox.shrink();
     return (context) =>
-        RecordCardFrame<DiveSite>(card: card, child: builder(context));
+        RecordCardFrame<DiveSite>(card: card, child: body(context));
   }
 }
+
+/// The site cards worked out from other data (the dives logged here, the
+/// tide and terrain at the position, the reef's state): nothing to edit, so
+/// they fade while the page is unlocked.
+const kSiteCalculatedSections = {
+  SiteDetailSectionId.diveStatistics,
+  SiteDetailSectionId.divePhotos,
+  SiteDetailSectionId.tide,
+  SiteDetailSectionId.seascape,
+  SiteDetailSectionId.reefHealth,
+};

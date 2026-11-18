@@ -7553,6 +7553,10 @@
   "diveSites_detail_section_altitude": "Altitude",
   "diveSites_detail_section_depthRange": "Depth Range",
   "diveSites_detail_section_description": "Description",
+  "diveSites_detail_section_header": "Site",
+  "@diveSites_detail_section_header": {
+    "description": "The site page's header block (name, types, water), named as a card in History"
+  },
   "diveSites_detail_section_difficultyLevel": "Difficulty Level",
   "diveSites_detail_section_diveStatistics": "Dive Statistics",
   "diveSites_detail_section_divesAtSite": "Dives at this Site",
@@ -7679,6 +7683,14 @@
   "diveSites_edit_snackbar_lookupNothingFound": "No location details found for these coordinates",
   "diveSites_edit_snackbar_lookupNoChanges": "Location details already match these coordinates",
   "diveSites_edit_snackbar_lookupFailed": "Location lookup failed. Check your connection and try again.",
+  "diveSites_edit_altitude_foundTooltip": "Found for these coordinates",
+  "@diveSites_edit_altitude_foundTooltip": {
+    "description": "Tooltip of the altitude suggested from the site's coordinates on the Altitude card"
+  },
+  "diveSites_edit_depth_rangeInvalid": "The minimum depth can't be deeper than the maximum.",
+  "@diveSites_edit_depth_rangeInvalid": {
+    "description": "Under the Depth card's rows, and why Save is refused, when the minimum depth is deeper than the maximum"
+  },
   "diveSites_edit_lookupReplace_title": "Replace location details?",
   "diveSites_edit_lookupReplace_body": "The lookup found different values for these fields:",
   "diveSites_edit_lookupReplace_replace": "Replace",

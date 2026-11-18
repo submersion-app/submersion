@@ -16,6 +16,7 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_catal
 import 'package:submersion/features/site_types/presentation/site_type_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/country_flag.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/site_attribution_line.dart';
 
@@ -76,7 +77,22 @@ class SiteDetailHeader extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(site.name, style: theme.textTheme.headlineSmall),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            site.name,
+                            style: theme.textTheme.headlineSmall,
+                          ),
+                        ),
+                        // The header block's pencil while the page is
+                        // unlocked; nothing while locked (issue #4527).
+                        RecordCardPencil(
+                          cardTitle:
+                              context.l10n.diveSites_detail_section_header,
+                        ),
+                      ],
+                    ),
                     if (site.isLibrarySite) ...[
                       const SizedBox(height: 4),
                       _LibraryLine(site: site),
