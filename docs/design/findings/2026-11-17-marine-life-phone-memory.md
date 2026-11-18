@@ -39,10 +39,12 @@ app's memory limit, unless a line says otherwise.
    system's compiler service, with a 35 MiB peak in the app.
 5. **Against an iPhone's limit.** Apple does not publish the per-app limit;
    developers commonly report about half the memory, roughly 3 GB on a 6 GB
-   phone. The feature needs about 0.3 GB of it on the GPU path, and about
-   1 GB if the Neural Engine account counts. Both fit, with room for the
-   app itself, but the app's own idle figure for a shipped build was not
-   measured (see "The app's own figure").
+   phone. The feature's own share is about 0.3 GB on the GPU path, and
+   about 1 GB if the Neural Engine account counts. Whether the whole app
+   stays under the limit is not shown here: a shipped build's own memory
+   was not measured, and the one in-app run, a debug build, idled at
+   1.6 GiB (see "The app's own figure"). The iPhone test has to measure the
+   total.
 
 ## How it was measured
 
