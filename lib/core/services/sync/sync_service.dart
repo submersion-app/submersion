@@ -4509,7 +4509,9 @@ class SyncService {
     return null;
   }
 
-  /// The keys a parent-gated child's [remote] copy clears on [local]: its
+  /// The keys a parent-gated child's (or a clock-guarded type in
+  /// [SyncDataSerializer.clockGuardedClearTables]) [remote] copy clears on
+  /// [local]: its
   /// explicit nulls, when the copy's clock ([remoteHlc], against the local
   /// row's [localHlc]) is strictly newer (#2644). Empty for anything else,
   /// including a row this device does not have yet.
@@ -4520,8 +4522,7 @@ class SyncService {
     required Hlc? remoteHlc,
     required Hlc? localHlc,
   }) {
-    if (local == null ||
-        !SyncDataSerializer.parentGatedChildEntities.contains(entityType)) {
+    if (local == null || SyncDataSerializer.clearTableFor(entityType) == null) {
       return const {};
     }
     if (!isNewerChildCopy(remote: remoteHlc, local: localHlc)) {
