@@ -12224,6 +12224,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveSites_detail_editTooltipShort => 'Editar';
 
   @override
+  String get diveSites_edit_editingWithdrawn =>
+      'Ya no puedes editar este sitio. Se descartaron los cambios sin guardar.';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return 'Error: $error';
   }

@@ -12146,6 +12146,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveSites_detail_editTooltipShort => 'Bewerken';
 
   @override
+  String get diveSites_edit_editingWithdrawn =>
+      'Je kunt deze stek niet meer bewerken. Niet-opgeslagen wijzigingen zijn verwijderd.';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return 'Fout: $error';
   }

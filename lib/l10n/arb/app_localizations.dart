@@ -19420,6 +19420,12 @@ abstract class AppLocalizations {
   /// **'Edit'**
   String get diveSites_detail_editTooltipShort;
 
+  /// Snack bar when the site page locks during an editing sitting because this profile may no longer edit the site (its library role was taken away, or the library disconnected), so the unsaved changes were discarded
+  ///
+  /// In en, this message translates to:
+  /// **'You can no longer edit this site. Any unsaved changes were discarded.'**
+  String get diveSites_edit_editingWithdrawn;
+
   /// No description provided for @diveSites_detail_error_body.
   ///
   /// In en, this message translates to:

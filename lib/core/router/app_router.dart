@@ -675,6 +675,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/sites',
             name: 'sites',
+            // A site's sitting, or one on a page pushed above the list, is
+            // asked about before a tab or a link goes (issue #4527).
+            onExit: confirmLeaveRecordSitting,
             pageBuilder: (context, state) => NoTransitionPage(
               key: state.pageKey,
               child: const SiteListPage(),
@@ -730,6 +733,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: ':siteId',
                 name: 'siteDetail',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) =>
                     SiteDetailPage(siteId: state.pathParameters['siteId']!),
                 routes: [

@@ -12269,6 +12269,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveSites_detail_editTooltipShort => 'Modifier';
 
   @override
+  String get diveSites_edit_editingWithdrawn =>
+      'Vous ne pouvez plus modifier ce site. Les modifications non enregistrées ont été abandonnées.';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return 'Erreur : $error';
   }

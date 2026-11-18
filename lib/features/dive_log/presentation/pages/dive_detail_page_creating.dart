@@ -52,7 +52,7 @@ mixin _DiveDetailPageCreating
   @override
   void dispose() {
     // Left without a create. A save still running owns its copies.
-    if (_created == null && !(_editController?.isSaving ?? false)) {
+    if (_created == null && !(maybeEditController?.isSaving ?? false)) {
       _dropPhotoCopies();
     }
     super.dispose();
@@ -130,7 +130,7 @@ mixin _DiveDetailPageCreating
         child: ExcludeFocus(child: _buildContent(context, created)),
       );
     }
-    final session = _editController?.session;
+    final session = maybeEditController?.session;
     if (session != null) return _buildContent(context, session.stored);
     if (_seed != null && !_leaving) _askReopen();
     return Scaffold(
@@ -153,7 +153,7 @@ mixin _DiveDetailPageCreating
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _reopenAsked = false;
       if (!mounted || _leaving || _created != null) return;
-      if (_editController?.isUnlocked ?? false) return;
+      if (maybeEditController?.isUnlocked ?? false) return;
       if (!(ModalRoute.of(context)?.isCurrent ?? true)) return;
       _dropPhotoCopies();
       setState(() => _seed = null);

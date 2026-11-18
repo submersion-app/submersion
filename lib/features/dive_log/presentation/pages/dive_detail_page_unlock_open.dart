@@ -33,7 +33,7 @@ mixin _DiveDetailPageUnlockOpen
       if (!mounted) return;
       final controller = editController;
       if (controller.isUnlocked) return;
-      controller.unlock(shownDive(stored));
+      controller.unlock(shownRecord(stored));
       _sittingOpenedUnlocked = controller.isUnlocked;
     });
   }
@@ -47,7 +47,7 @@ mixin _DiveDetailPageUnlockOpen
     }
     // Turned off (the address left `mode=edit`, as Android's Back does on
     // the same page): a sitting it opened with nothing to lose locks.
-    final controller = _editController;
+    final controller = maybeEditController;
     if (!widget.openUnlocked &&
         oldWidget.openUnlocked &&
         _sittingOpenedUnlocked &&
@@ -66,8 +66,8 @@ mixin _DiveDetailPageUnlockOpen
     if (isSittingOpen) return;
     // Whichever sitting a leave discarded, its end clears the mark, so it
     // cannot stand for a later sitting's end.
-    final byLeave = _endedByLeave;
-    _endedByLeave = false;
+    final byLeave = sittingEndedByLeave;
+    sittingEndedByLeave = false;
     if (!_sittingOpenedUnlocked) return;
     _sittingOpenedUnlocked = false;
     // Discarded by a leave the app asked about: the pane is moving on, and
