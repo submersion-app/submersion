@@ -49,7 +49,7 @@ class DiveDetailHeaderBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = RecordEditScope.maybeOf<Dive>(context);
+    final controller = RecordEditScope.of<Dive>(context);
     final editing = siteSuggestionEditingOf(context);
     final hero = DiveDetailHeroSection(dive: shown, embedded: embedded);
     // What the banners offer acts on the whole dive at once: only on an
@@ -88,10 +88,7 @@ class DiveDetailHeaderBlock extends StatelessWidget {
             editing: editing,
           ),
         ],
-        if (controller == null)
-          hero
-        else
-          RecordCardFrame<Dive>(card: diveHeaderCard, child: hero),
+        RecordCardFrame<Dive>(card: diveHeaderCard, child: hero),
       ],
     );
   }

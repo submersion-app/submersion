@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/annotation_placement_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/annotation_edits.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_annotation_actions.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/forms/minutes_seconds_field.dart';
@@ -13,14 +13,35 @@ import 'package:submersion/shared/widgets/forms/minutes_seconds_field.dart';
 import '../../../../../helpers/mock_providers.dart';
 import '../../../../../helpers/test_database.dart';
 
+/// Where the actions hold what they change: the open Profile card's sitting
+/// (issue #4527). Records the words added instead.
+class _RecordingEdits implements AnnotationEdits {
+  final added = <String>[];
+
+  @override
+  Future<void> add({
+    required int seconds,
+    double? depth,
+    required String words,
+  }) async => added.add(words);
+
+  @override
+  Future<void> move(String id, {required int seconds, double? depth}) async {}
+
+  @override
+  Future<void> remove(String id) async {}
+
+  @override
+  int maxSeconds(int fallback) => fallback;
+}
+
 /// The actions outlive the widget that made them: a sheet can stay open
 /// after the section behind it is rebuilt away (#4109).
 void main() {
   const diveId = 'd1';
-  late AppDatabase db;
 
   setUp(() async {
-    db = await setUpTestDatabase();
+    await setUpTestDatabase();
     await DiveRepository().createDive(
       createTestDiveWithBottomTime(id: diveId, diveNumber: 1),
     );
@@ -31,6 +52,7 @@ void main() {
       'it going away', (tester) async {
     final show = ValueNotifier(true);
     addTearDown(show.dispose);
+    final edits = _RecordingEdits();
     final dive = createTestDiveWithBottomTime(id: diveId, diveNumber: 1);
     late ProviderContainer container;
     await tester.pumpWidget(
@@ -50,6 +72,7 @@ void main() {
                           ref: ref,
                           context: context,
                           dive: dive,
+                          edits: edits,
                         );
                         return ElevatedButton(
                           onPressed: () => actions.place(60, null),
@@ -80,10 +103,7 @@ void main() {
     });
 
     expect(tester.takeException(), isNull);
-    final rows = await tester.runAsync(
-      () => (db.select(db.diveProfileEvents)).get(),
-    );
-    expect(rows!.single.description, 'felt sick');
+    expect(edits.added, ['felt sick']);
     expect(container.read(annotationPlacementProvider(diveId)), isNull);
     expect(find.byType(MinutesSecondsField), findsNothing);
   });
@@ -103,6 +123,7 @@ void main() {
                   ref: ref,
                   context: context,
                   dive: dive,
+                  edits: _RecordingEdits(),
                 );
                 return const SizedBox.shrink();
               },
@@ -196,6 +217,7 @@ void main() {
                   ref: ref,
                   context: context,
                   dive: dive,
+                  edits: _RecordingEdits(),
                 );
                 return ElevatedButton(
                   onPressed: () => actions.addAt(60, null),

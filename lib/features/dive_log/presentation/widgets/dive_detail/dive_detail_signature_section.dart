@@ -30,10 +30,10 @@ const _uuid = Uuid();
 /// A single card is returned bare so that it grows to fill that height; two
 /// share it through a [FillLastColumn], the lower card taking the extra.
 ///
-/// On a page that offers editing (issue #4527) it reads only, locked and
-/// in a closed card alike, showing the sitting's buddies and signatures once
-/// the sitting changed them. [editing] is the open card's sitting: its
-/// captures and deletes go there, held until Save.
+/// Without [editing] it reads only (issue #4527), locked and in a closed
+/// card alike, showing the sitting's buddies and signatures once the sitting
+/// changed them. [editing] is the open card's sitting: its captures and
+/// deletes go there, held until Save.
 class DiveSignaturesSection extends ConsumerWidget {
   const DiveSignaturesSection({super.key, required this.dive, this.editing});
 
@@ -42,9 +42,8 @@ class DiveSignaturesSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final scope = RecordEditScope.maybeOf<Dive>(context);
     final editing = this.editing;
-    final session = editing ?? scope?.session;
+    final session = editing ?? RecordEditScope.maybeOf<Dive>(context)?.session;
     // What the sitting holds: in the open card always, elsewhere once it
     // has changed them.
     List<T>? held<T>(SittingList<Dive, T> list) {
@@ -57,12 +56,10 @@ class DiveSignaturesSection extends ConsumerWidget {
 
     final heldBuddies = held(diveBuddiesList);
     final heldSignatures = held(diveSignaturesList);
-    final interactive = scope == null || editing != null;
     final buddies = BuddySignaturesSection(
       diveId: dive.id,
       buddies: heldBuddies,
       signatures: heldSignatures?.where((s) => s.isBuddySignature).toList(),
-      requestShown: interactive,
       onCaptured: editing == null
           ? null
           : (bwr, strokes, size) =>
@@ -101,7 +98,6 @@ class DiveSignaturesSection extends ConsumerWidget {
                   .where((s) => s.isInstructorSignature)
                   .firstOrNull,
             ),
-      interactive: interactive,
       editing: editing,
     );
     if (!buddiesShow) return training;
@@ -111,8 +107,7 @@ class DiveSignaturesSection extends ConsumerWidget {
   }
 }
 
-/// Renders a buddy's drawn signature and holds it in [session], as the
-/// immediate path saves it.
+/// Renders a buddy's drawn signature and holds it in [session] until Save.
 Future<void> _captureForBuddy(
   EditSession<Dive> session,
   BuddyWithRole bwr,
@@ -144,12 +139,7 @@ Future<void> _captureForBuddy(
 
 /// The course instructor's signature on a training dive.
 class _TrainingSignatureCard extends ConsumerWidget {
-  const _TrainingSignatureCard({
-    required this.dive,
-    this.held,
-    this.interactive = true,
-    this.editing,
-  });
+  const _TrainingSignatureCard({required this.dive, this.held, this.editing});
 
   final Dive dive;
 
@@ -157,15 +147,14 @@ class _TrainingSignatureCard extends ConsumerWidget {
   /// one.
   final ({Signature? signature})? held;
 
-  /// Whether it can be captured or deleted here.
-  final bool interactive;
-
-  /// The open card's sitting, which holds a capture or a delete.
+  /// The open card's sitting, which holds a capture or a delete; without
+  /// it the card reads only.
   final EditSession<Dive>? editing;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
+    final session = editing;
     final heldSignature = held;
     final signatureAsync = heldSignature != null
         ? AsyncValue.data(heldSignature.signature)
@@ -201,24 +190,17 @@ class _TrainingSignatureCard extends ConsumerWidget {
             signatureAsync.when(
               data: (signature) {
                 if (signature != null) {
-                  final session = editing;
                   return SignatureDisplayWidget(
                     signature: signature,
-                    showDeleteButton: interactive,
-                    onDelete: () {
-                      if (session != null) {
-                        removeSignature(session, signature.id);
-                        return;
-                      }
-                      ref
-                          .read(signatureSaveNotifierProvider.notifier)
-                          .deleteSignature(signature.id, dive.id);
-                    },
+                    showDeleteButton: session != null,
+                    onDelete: session == null
+                        ? null
+                        : () => removeSignature(session, signature.id),
                   );
                 }
 
                 // Read only, there is nothing to offer.
-                if (!interactive) {
+                if (session == null) {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Text(
@@ -232,7 +214,7 @@ class _TrainingSignatureCard extends ConsumerWidget {
                 }
 
                 // No signature yet: show add signature button
-                return _buildAddSignatureButton(context, ref);
+                return _buildAddSignatureButton(context, ref, session);
               },
               loading: () => const Padding(
                 padding: EdgeInsets.all(16),
@@ -252,7 +234,11 @@ class _TrainingSignatureCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildAddSignatureButton(BuildContext context, WidgetRef ref) {
+  Widget _buildAddSignatureButton(
+    BuildContext context,
+    WidgetRef ref,
+    EditSession<Dive> session,
+  ) {
     final colorScheme = Theme.of(context).colorScheme;
     // The representative course's instructor signs (#2515).
     final instructorName = ref
@@ -267,7 +253,8 @@ class _TrainingSignatureCard extends ConsumerWidget {
       button: true,
       label: context.l10n.diveLog_detail_captureSignature,
       child: InkWell(
-        onTap: () => _showSignatureCapture(context, ref, instructorName),
+        onTap: () =>
+            _showSignatureCapture(context, ref, session, instructorName),
         borderRadius: BorderRadius.circular(12),
         child: Container(
           padding: const EdgeInsets.all(24),
@@ -303,9 +290,11 @@ class _TrainingSignatureCard extends ConsumerWidget {
     );
   }
 
+  /// Captures the instructor's signature and holds it in [session].
   void _showSignatureCapture(
     BuildContext context,
     WidgetRef ref,
+    EditSession<Dive> session,
     String? instructorName,
   ) {
     // The representative course's instructor signs (#2515).
@@ -315,63 +304,34 @@ class _TrainingSignatureCard extends ConsumerWidget {
         ?.firstOrNull
         ?.instructorId;
 
-    // Captured before the sheet closes: the save outlives it, and reporting
-    // a failure needs a messenger that is still in the tree.
-    final messenger = ScaffoldMessenger.of(context);
-    final l10n = context.l10n;
-    // So is the container: this card can remount while the sheet is up.
-    final container = ProviderScope.containerOf(context, listen: false);
-
-    final session = editing;
     showSignatureCaptureSheet(
       context: context,
       initialSignerName: instructorName,
       onSave: (strokes, signerName, canvasSize) async {
-        if (session != null) {
-          final png = await SignatureStorageService.strokesToPng(
-            strokes: strokes,
-            width: canvasSize.width,
-            height: canvasSize.height,
-            strokeColor: const Color(0xFF000000),
-            strokeWidth: 3.0,
-            backgroundColor: Colors.white,
-          );
-          if (session.isDisposed || session.isFrozen) return;
-          addCapturedSignature(
-            session,
-            Signature(
-              id: _uuid.v4(),
-              diveId: session.stored.id,
-              imageData: png,
-              signerId: instructorId,
-              signerName: signerName,
-              signedAt: DateTime.now(),
-              type: SignatureType.instructor,
-            ),
-          );
-          return;
-        }
         // The strokes are in the capture canvas's own coordinates, so the
         // PNG is rendered at that exact size. A hardcoded size cropped
         // every signature drawn on a canvas wider than it (issue #1358).
-        final signature = await container
-            .read(signatureSaveNotifierProvider.notifier)
-            .saveFromStrokes(
-              diveId: dive.id,
-              strokes: strokes,
-              width: canvasSize.width,
-              height: canvasSize.height,
-              signerName: signerName,
-              signerId: instructorId,
-              backgroundColor: Colors.white,
-            );
-        // A null result means the save threw. Nothing watches the notifier's
-        // AsyncValue, so without this the failure is entirely silent.
-        if (signature == null) {
-          messenger.showSnackBar(
-            SnackBar(content: Text(l10n.signatures_error_saveFailed)),
-          );
-        }
+        final png = await SignatureStorageService.strokesToPng(
+          strokes: strokes,
+          width: canvasSize.width,
+          height: canvasSize.height,
+          strokeColor: const Color(0xFF000000),
+          strokeWidth: 3.0,
+          backgroundColor: Colors.white,
+        );
+        if (session.isDisposed || session.isFrozen) return;
+        addCapturedSignature(
+          session,
+          Signature(
+            id: _uuid.v4(),
+            diveId: session.stored.id,
+            imageData: png,
+            signerId: instructorId,
+            signerName: signerName,
+            signedAt: DateTime.now(),
+            type: SignatureType.instructor,
+          ),
+        );
       },
     );
   }

@@ -6,10 +6,12 @@ import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/dive_media_section.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -42,7 +44,15 @@ void main() {
   Future<void> pump(
     WidgetTester tester, {
     domain.ConnectedAccount? withAccount,
+    bool open = true,
   }) async {
+    // The scan writes into the open card's sitting, so only that card
+    // offers it (issue #4673).
+    final controller = RecordEditController<Dive>(onSave: (_) async {});
+    addTearDown(controller.dispose);
+    if (open) {
+      controller.unlock(Dive(id: 'd-none', dateTime: DateTime.utc(2026)));
+    }
     await tester.runAsync(() async {
       await tester.pumpWidget(
         ProviderScope(
@@ -50,12 +60,15 @@ void main() {
             sharedPreferencesProvider.overrideWithValue(prefs),
             lightroomAccountProvider.overrideWith((ref) async => withAccount),
           ],
-          child: const MaterialApp(
+          child: MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
               body: SingleChildScrollView(
-                child: DiveMediaSection(diveId: 'd-none'),
+                child: DiveMediaSection(
+                  diveId: 'd-none',
+                  editing: controller.session,
+                ),
               ),
             ),
           ),
@@ -89,6 +102,12 @@ void main() {
     tester,
   ) async {
     await pump(tester);
+    expect(find.byTooltip('Scan Lightroom'), findsNothing);
+  });
+
+  testWidgets('hides the Lightroom scan action from a card without a '
+      'sitting, even when connected', (tester) async {
+    await pump(tester, withAccount: account, open: false);
     expect(find.byTooltip('Scan Lightroom'), findsNothing);
   });
 

@@ -8409,11 +8409,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_edit_addWeightEntry => 'Súly bevitel hozzáadása';
 
   @override
-  String diveLog_edit_addedGps(Object name) {
-    return 'GPS hozzáadva: $name';
-  }
-
-  @override
   String get diveLog_edit_appBarNew => 'Merülés rögzítése';
 
   @override
@@ -10268,11 +10263,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String siteSuggestion_addLocationButton(Object name) {
     return 'Helyszín hozzáadása: $name';
-  }
-
-  @override
-  String siteSuggestion_assignedSnack(Object name) {
-    return '$name hozzárendelve';
   }
 
   @override
@@ -20471,11 +20461,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_diveMediaSection_unlinkButton => 'Leválasztás';
 
   @override
-  String media_diveMediaSection_unlinkError(Object error) {
-    return 'Nem sikerült a leválasztás: $error';
-  }
-
-  @override
   String media_diveMediaSection_unlinkSelectedButton(int count) {
     return '$count leválasztása';
   }
@@ -20483,11 +20468,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String media_diveMediaSection_unlinkSelectedContent(int count) {
     return 'Eltávolít $count médiaelemet a médiatárból, a felhőmásolatokkal és bélyegképekkel együtt. A merülőhely által még használt elemek megmaradnak. Az eredeti fájlok érintetlenek maradnak.';
-  }
-
-  @override
-  String media_diveMediaSection_unlinkSelectedSuccess(int count) {
-    return '$count elem leválasztva';
   }
 
   @override
@@ -20708,11 +20688,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get media_diveScan_cancelButton => 'Mégse';
-
-  @override
-  String media_diveScan_error(String error) {
-    return 'Hiba a galéria keresésekor: $error';
-  }
 
   @override
   String media_gpsBanner_coordinates(Object coordinates) {
@@ -31525,10 +31500,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get signatures_error_enterSignerName => 'Add meg az aláíró nevét';
-
-  @override
-  String get signatures_error_saveFailed =>
-      'Az aláírást nem sikerült menteni. Próbáld újra.';
 
   @override
   String get signatures_field_instructorName => 'Oktató neve';
@@ -56019,14 +55990,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_people_removedBuddy => 'Törölt búvártárs';
 
   @override
-  String get media_people_saveFailed =>
-      'A jelölés mentése nem sikerült. Próbálja újra.';
-
-  @override
-  String get media_people_addToDiveFailed =>
-      'A búvártársat nem sikerült hozzáadni ehhez a merüléshez. Próbálja újra.';
-
-  @override
   String get media_people_createBuddyFailed =>
       'A búvártársat nem sikerült létrehozni. Próbálja újra.';
 
@@ -58354,9 +58317,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_reassignSheet_noSeries => 'Nincs nyomásgörbe';
-
-  @override
-  String get diveLog_reassignSheet_applied => 'Nyomásgörbe áthelyezve';
 
   @override
   String get universalImport_summary_noticeUnknownTransmitterTitle =>

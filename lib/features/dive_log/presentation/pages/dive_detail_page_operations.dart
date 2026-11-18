@@ -23,7 +23,7 @@ mixin _DiveDetailPageOperations
   /// the operation's own message has told the diver, and the page carries
   /// on as the controller left it.
   Future<void> _runOperation(Future<bool> Function() operation) =>
-      recordOperationRunnerOf(editController, record: 'dive $diveId')!(
+      recordOperationRunnerOf(editController, record: 'dive $diveId')(
         operation,
       );
 

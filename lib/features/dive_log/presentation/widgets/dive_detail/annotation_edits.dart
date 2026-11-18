@@ -1,11 +1,9 @@
-import 'package:submersion/features/dive_log/data/repositories/annotation_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_annotations_sitting.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
-/// Where the profile's annotation actions write (issue #4527, plan 6): at
-/// once to the database, as the dive page always has, or into a sitting on
-/// the dive, held until Save.
+/// Where the profile's annotation actions write (issue #4527, plan 6): into
+/// a sitting on the dive, held until Save.
 abstract interface class AnnotationEdits {
   Future<void> add({
     required int seconds,
@@ -20,37 +18,6 @@ abstract interface class AnnotationEdits {
   /// The latest second an annotation may fall on, or [fallback] when these
   /// edits have no better answer than the chart's.
   int maxSeconds(int fallback);
-}
-
-/// Straight to the repository, as today.
-class RepositoryAnnotationEdits implements AnnotationEdits {
-  const RepositoryAnnotationEdits(this.repository, this.diveId);
-
-  final AnnotationRepository repository;
-  final String diveId;
-
-  @override
-  Future<void> add({
-    required int seconds,
-    double? depth,
-    required String words,
-  }) => repository.addAnnotation(
-    diveId: diveId,
-    timestamp: seconds,
-    depth: depth,
-    words: words,
-  );
-
-  @override
-  Future<void> move(String id, {required int seconds, double? depth}) =>
-      repository.moveAnnotation(id: id, timestamp: seconds, depth: depth);
-
-  @override
-  Future<void> remove(String id) =>
-      repository.removeAnnotation(diveId: diveId, id: id);
-
-  @override
-  int maxSeconds(int fallback) => fallback;
 }
 
 /// Into a sitting on the dive, held until Save.

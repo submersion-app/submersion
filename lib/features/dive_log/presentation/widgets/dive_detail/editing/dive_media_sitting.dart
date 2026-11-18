@@ -119,14 +119,18 @@ SittingMedia sittingMedia(EditSession<Dive> session) =>
     (session.isDisposed ? null : session.recall<SittingMedia>(_noteKey)) ??
     const SittingMedia();
 
-/// What makes two media the same file: the gallery asset, the local file
-/// or the address it was fetched from. Null for one with none of them.
+/// What makes two media the same file: the gallery asset, the local file,
+/// the address it was fetched from, or the connector's asset (a Lightroom
+/// scan run twice in one sitting finds its held photos again). Null for
+/// one with none of them.
 String? _sameFileKey(MediaItem m) => m.platformAssetId != null
     ? 'asset:${m.platformAssetId}'
     : m.localPath != null
     ? 'file:${m.localPath}'
     : m.url != null
     ? 'url:${m.url}'
+    : m.remoteAssetId != null
+    ? 'remote:${m.connectorAccountId}:${m.remoteAssetId}'
     : null;
 
 /// Adds what a picker handed the sitting. One the sitting already holds

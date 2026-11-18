@@ -17,6 +17,8 @@ import 'package:submersion/features/media/data/services/media_serving_recorder.d
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_provenance.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/domain/entities/photo_record.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/features/media/presentation/providers/media_health_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_provenance_providers.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
@@ -106,6 +108,7 @@ void main() {
     Stream<Map<String, String>>? peerNames,
     List<dynamic> extra = const [],
     List<MediaItem>? liveRow,
+    EditSession<PhotoRecord>? sitting,
   }) => pumpInfoPanel(
     tester,
     item,
@@ -117,7 +120,17 @@ void main() {
     peerNames: peerNames,
     extra: extra,
     liveRow: liveRow,
+    sitting: sitting,
   );
+
+  /// The photo's sitting, which Locate holds its relink in (issue #4527).
+  EditSession<PhotoRecord> sittingOver(MediaItem item) {
+    final sitting = EditSession<PhotoRecord>(
+      PhotoRecord(item: item, species: const [], people: const []),
+    );
+    addTearDown(sitting.dispose);
+    return sitting;
+  }
 
   group('File block', () {
     testWidgets('renders filename, dimensions, size and taken date', (
@@ -606,15 +619,13 @@ void main() {
     });
 
     testWidgets('Locate appears only for a missing local file', (tester) async {
-      await pump(
-        tester,
-        _item(
-          sourceType: MediaSourceType.localFile,
-          platformAssetId: null,
-          localPath: '/gone/reef.jpg',
-          isOrphaned: true,
-        ),
+      final item = _item(
+        sourceType: MediaSourceType.localFile,
+        platformAssetId: null,
+        localPath: '/gone/reef.jpg',
+        isOrphaned: true,
       );
+      await pump(tester, item, sitting: sittingOver(item));
 
       expect(find.text('Locate file...'), findsOneWidget);
     });
@@ -622,21 +633,20 @@ void main() {
     // Picking a file for a gallery row would relink it to the wrong source
     // type, so the repair engine's file candidate is not offered there.
     testWidgets('Locate is absent for a missing gallery row', (tester) async {
-      await pump(tester, _item(isOrphaned: true));
+      final item = _item(isOrphaned: true);
+      await pump(tester, item, sitting: sittingOver(item));
 
       expect(find.text('Locate file...'), findsNothing);
     });
 
     testWidgets('Locate is absent for a healthy local file', (tester) async {
-      await pump(
-        tester,
-        _item(
-          sourceType: MediaSourceType.localFile,
-          platformAssetId: null,
-          localPath: '/here/reef.jpg',
-          lastVerifiedAt: DateTime(2026, 8, 1),
-        ),
+      final item = _item(
+        sourceType: MediaSourceType.localFile,
+        platformAssetId: null,
+        localPath: '/here/reef.jpg',
+        lastVerifiedAt: DateTime(2026, 8, 1),
       );
+      await pump(tester, item, sitting: sittingOver(item));
 
       expect(find.text('Locate file...'), findsNothing);
     });

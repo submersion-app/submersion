@@ -91,12 +91,8 @@ import 'package:submersion/features/dive_types/presentation/providers/dive_type_
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
-import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
 import 'package:submersion/features/media/presentation/helpers/document_open_helper.dart';
-import 'package:submersion/features/media/presentation/helpers/photo_import_helper.dart';
-import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
-import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/presentation/planner_navigation.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
@@ -383,13 +379,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
     ),
     separateSegments: (dive, segmentCount) =>
         _runOperation(() => _confirmAndSeparate(dive, segmentCount)),
-    scanGallery: _scanGalleryForDive,
-    addPhotos: _addPhotos,
-    addDocument: (dive) => DocumentOpenHelper.pickAndAttach(
-      context: context,
-      ref: ref,
-      diveId: dive.id,
-    ),
     openDocument: (item) => DocumentOpenHelper.open(context, ref, item),
     openAnnotation: _scrollToProfileAndFocus,
   );
