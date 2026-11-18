@@ -18,6 +18,7 @@ import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/pending_setup_service.dart';
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
@@ -69,6 +70,13 @@ final _providersSource = p.join(
   'providers',
   'data_row_status_providers.dart',
 );
+
+const _backendId = 'dropbox';
+
+class _Backend extends Fake implements CloudStorageProvider {
+  @override
+  String get providerId => _backendId;
+}
 
 class _FakeStores extends Fake implements MediaStoresRepository {
   _FakeStores(this.hints, {this.active});
@@ -207,6 +215,7 @@ void main() {
         PeerSyncSnapshotStore.key: jsonEncode(
           PeerSyncSnapshot(
             takenAt: when,
+            providerId: _backendId,
             caughtUp: true,
             peers: [
               PeerPublish(deviceId: 'id-1', publishedAt: when),
@@ -218,7 +227,7 @@ void main() {
       final prefs = await SharedPreferences.getInstance();
       final c = container([
         sharedPreferencesProvider.overrideWithValue(prefs),
-        cloudStorageProviderProvider.overrideWithValue(null),
+        cloudStorageProviderProvider.overrideWithValue(_Backend()),
         isSyncingProvider.overrideWithValue(false),
         lastSyncTimeProvider.overrideWithValue(when),
       ]);
@@ -239,7 +248,7 @@ void main() {
         final syncing = StateProvider<bool>((ref) => false);
         final c = container([
           sharedPreferencesProvider.overrideWithValue(prefs),
-          cloudStorageProviderProvider.overrideWithValue(null),
+          cloudStorageProviderProvider.overrideWithValue(_Backend()),
           isSyncingProvider.overrideWith((ref) => ref.watch(syncing)),
           lastSyncTimeProvider.overrideWithValue(when),
         ]);
@@ -253,6 +262,7 @@ void main() {
         await PeerSyncSnapshotStore(prefs).write(
           PeerSyncSnapshot(
             takenAt: when,
+            providerId: _backendId,
             caughtUp: true,
             peers: [PeerPublish(deviceId: 'id-1', publishedAt: when)],
           ),
@@ -261,6 +271,29 @@ void main() {
         expect(c.read(syncPeerNamesProvider), ['Lenovo']);
       },
     );
+
+    test('ignores live peers recorded without a backend', () async {
+      SharedPreferences.setMockInitialValues({
+        'sync_peer_device_names': '{"id-9":"New laptop"}',
+        PeerSyncSnapshotStore.key: jsonEncode(
+          PeerSyncSnapshot(
+            takenAt: when,
+            caughtUp: true,
+            peers: [PeerPublish(deviceId: 'id-1', publishedAt: when)],
+          ).toJson(),
+        ),
+      });
+      final prefs = await SharedPreferences.getInstance();
+      final c = container([
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        cloudStorageProviderProvider.overrideWithValue(_Backend()),
+        isSyncingProvider.overrideWithValue(false),
+        lastSyncTimeProvider.overrideWithValue(when),
+      ]);
+      keep(c, syncPeerNamesProvider);
+      await c.read(peerDeviceNamesProvider.future);
+      expect(c.read(syncPeerNamesProvider), ['New laptop']);
+    });
 
     test('ignores live peers recorded on another backend', () async {
       SharedPreferences.setMockInitialValues({
@@ -277,7 +310,7 @@ void main() {
       final prefs = await SharedPreferences.getInstance();
       final c = container([
         sharedPreferencesProvider.overrideWithValue(prefs),
-        cloudStorageProviderProvider.overrideWithValue(null),
+        cloudStorageProviderProvider.overrideWithValue(_Backend()),
         isSyncingProvider.overrideWithValue(false),
         lastSyncTimeProvider.overrideWithValue(when),
       ]);
@@ -295,7 +328,7 @@ void main() {
         final prefs = await SharedPreferences.getInstance();
         final c = container([
           sharedPreferencesProvider.overrideWithValue(prefs),
-          cloudStorageProviderProvider.overrideWithValue(null),
+          cloudStorageProviderProvider.overrideWithValue(_Backend()),
           isSyncingProvider.overrideWithValue(false),
           lastSyncTimeProvider.overrideWithValue(when),
         ]);
@@ -313,7 +346,7 @@ void main() {
       final lastSync = StateProvider<DateTime?>((ref) => when);
       final c = container([
         sharedPreferencesProvider.overrideWithValue(prefs),
-        cloudStorageProviderProvider.overrideWithValue(null),
+        cloudStorageProviderProvider.overrideWithValue(_Backend()),
         isSyncingProvider.overrideWithValue(false),
         lastSyncTimeProvider.overrideWith((ref) => ref.watch(lastSync)),
       ]);
@@ -324,6 +357,7 @@ void main() {
       await PeerSyncSnapshotStore(prefs).write(
         PeerSyncSnapshot(
           takenAt: when,
+          providerId: _backendId,
           caughtUp: true,
           peers: [PeerPublish(deviceId: 'id-1', publishedAt: when)],
         ),
