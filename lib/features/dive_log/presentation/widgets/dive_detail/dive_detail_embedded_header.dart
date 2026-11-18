@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/shared/widgets/record_editing/record_pane_row.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_title.dart';
@@ -176,21 +177,7 @@ class DiveDetailEmbeddedHeader extends ConsumerWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (!unlocked)
-          row
-        else
-          Stack(
-            children: [
-              Visibility(
-                visible: false,
-                maintainSize: true,
-                maintainAnimation: true,
-                maintainState: true,
-                child: row,
-              ),
-              Positioned.fill(child: unlockedRow),
-            ],
-          ),
+        RecordPaneRow(locked: row, unlocked: unlocked ? unlockedRow : null),
         if (dive.isPlanned && !creating)
           PlannedDiveBanner(
             diveId: dive.id,

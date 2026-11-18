@@ -27,7 +27,7 @@ import 'package:submersion/features/data_quality/presentation/providers/data_qua
 import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_create_builder.dart';
-import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
+import 'package:submersion/features/dive_sites/presentation/pages/site_edit_routes.dart';
 import 'package:submersion/features/dive_log/presentation/providers/card_photo_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_list_count_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_profile_batcher.dart';
@@ -431,45 +431,31 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
           final state = GoRouterState.of(context);
           final siteId = state.uri.queryParameters['site'];
           if (siteId != null && siteId.isNotEmpty) {
-            return SiteEditPage(
-              siteId: siteId,
-              embedded: true,
-              onSaved: (savedId) {
-                // When a site is saved through the dive details navigation, we want to return to the site detail view.
-                // We must preserve the original dive 'selected' parameter and keep the 'site' parameter,
-                // while removing the 'mode=edit' parameter.
-                final params = Map<String, String>.from(
-                  state.uri.queryParameters,
-                );
-                params.remove('mode');
-                // Ensure the site ID is updated if it changed (though unlikely for edit)
-                params['site'] = savedId;
-                // 'selected' remains the original diveId (passed as 'id' here)
-                context.replace(
-                  Uri(path: state.uri.path, queryParameters: params).toString(),
-                );
-              },
-              onCancel: () {
-                // Same for cancel - return to site detail view without 'mode=edit'
-                final params = Map<String, String>.from(
-                  state.uri.queryParameters,
-                );
-                params.remove('mode');
-                context.replace(
-                  Uri(path: state.uri.path, queryParameters: params).toString(),
-                );
-              },
-              onDeleted: () {
-                // The site is gone, so return to the dive it was opened from.
-                final params = {
-                  for (final entry in state.uri.queryParameters.entries)
-                    if (entry.key != 'mode' && entry.key != 'site')
-                      entry.key: entry.value,
-                };
-                context.replace(
-                  Uri(path: state.uri.path, queryParameters: params).toString(),
-                );
-              },
+            /// [state]'s address with [drop] taken out of its query.
+            void replaceWithout(Set<String> drop, {String? site}) {
+              final params = {
+                for (final entry in state.uri.queryParameters.entries)
+                  if (!drop.contains(entry.key)) entry.key: entry.value,
+                'site': ?site,
+              };
+              context.replace(
+                Uri(path: state.uri.path, queryParameters: params).toString(),
+              );
+            }
+
+            // 'selected' stays the dive (passed as 'id' here): the site is
+            // shown in its place, and leaving the site returns to it.
+            return siteInDivesPane(
+              context,
+              siteId,
+              // Back to the site in view mode, its id kept.
+              onSaved: (savedId) =>
+                  replaceWithout({'mode', 'site'}, site: savedId),
+              onCancel: () => replaceWithout({'mode'}),
+              // Back to the dive the site was opened from.
+              onClose: () => replaceWithout({'mode', 'site'}),
+              // The site is gone, so return to the dive it was opened from.
+              onDeleted: () => replaceWithout({'mode', 'site'}),
             );
           }
           return unlockedDivePane(context, id, onCancel);

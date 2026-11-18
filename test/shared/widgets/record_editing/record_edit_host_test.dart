@@ -16,6 +16,7 @@ import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
 import 'package:submersion/shared/widgets/record_editing/record_sitting_refusal.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_pane_header.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_shortcuts.dart';
+import 'package:submersion/shared/widgets/record_editing/record_open_unlocked.dart';
 
 /// A record small enough to show what the host does for any record page.
 @immutable
@@ -79,6 +80,8 @@ class _NotePage extends ConsumerStatefulWidget {
     this.offersEditing = true,
     this.hostsEditing = true,
     this.stripEntry = false,
+    this.openUnlocked = false,
+    this.onSittingEnded,
   });
 
   final String noteId;
@@ -86,13 +89,29 @@ class _NotePage extends ConsumerStatefulWidget {
   final bool offersEditing;
   final bool hostsEditing;
   final bool stripEntry;
+  final bool openUnlocked;
+  final VoidCallback? onSittingEnded;
 
   @override
   ConsumerState<_NotePage> createState() => _NotePageState();
 }
 
 class _NotePageState extends ConsumerState<_NotePage>
-    with RecordEditHost<_NotePage, _Note> {
+    with
+        RecordEditHost<_NotePage, _Note>,
+        RecordOpenUnlocked<_NotePage, _Note> {
+  @override
+  bool openUnlockedOf(_NotePage widget) => widget.openUnlocked;
+
+  @override
+  VoidCallback? get onOpenedSittingEnded => widget.onSittingEnded;
+
+  @override
+  void onEditChanged() {
+    noteOpenedSittingEnded();
+    super.onEditChanged();
+  }
+
   @override
   String get hostRecordId => widget.noteId;
 
@@ -143,6 +162,7 @@ class _NotePageState extends ConsumerState<_NotePage>
     followStored(_noteProvider(widget.noteId));
     final stored = ref.watch(_noteProvider(widget.noteId)).value;
     if (stored == null) return const SizedBox.shrink();
+    if (hostsEditing) openUnlockedOnce(stored);
     final shown = shownRecord(stored);
     final content = ListView(
       children: [
@@ -365,6 +385,137 @@ void main() {
     await tester.pumpAndSettle();
     expect(await leaving, isTrue);
     expect(find.byType(RecordEditBar), findsNothing);
+  });
+
+  // A page asked to open unlocked (an old edit address, a pane's
+  // `&mode=edit`) does so once, and tells its owner when that sitting ends.
+  group('opened unlocked', () {
+    testWidgets('the page unlocks once', (tester) async {
+      await pump(tester, const _NotePage(noteId: 'n1', openUnlocked: true));
+      expect(find.byType(RecordEditBar), findsOneWidget);
+
+      await tester.tap(find.text(l.forms_cancel));
+      await tester.pumpAndSettle();
+      expect(find.byType(RecordEditBar), findsNothing);
+
+      // A rebuild with the same request does not unlock again.
+      tester
+          .state<_HostState>(find.byType(_Host))
+          .show(const _NotePage(noteId: 'n1', openUnlocked: true));
+      await tester.pumpAndSettle();
+      expect(find.byType(RecordEditBar), findsNothing);
+    });
+
+    testWidgets('the end of the sitting it opened is told once', (
+      tester,
+    ) async {
+      var ended = 0;
+      await pump(
+        tester,
+        _NotePage(
+          noteId: 'n1',
+          openUnlocked: true,
+          onSittingEnded: () => ended++,
+        ),
+      );
+
+      await tester.tap(find.text(l.forms_cancel));
+      await tester.pumpAndSettle();
+      expect(ended, 1);
+
+      await unlock(tester);
+      await tester.tap(find.text(l.forms_cancel));
+      await tester.pumpAndSettle();
+      expect(ended, 1);
+    });
+
+    testWidgets('turned off with nothing changed, it locks', (tester) async {
+      await pump(tester, const _NotePage(noteId: 'n1', openUnlocked: true));
+      expect(find.byType(RecordEditBar), findsOneWidget);
+
+      tester
+          .state<_HostState>(find.byType(_Host))
+          .show(const _NotePage(noteId: 'n1'));
+      await tester.pumpAndSettle();
+      expect(find.byType(RecordEditBar), findsNothing);
+    });
+
+    // Android's Back strips `mode=edit` from the same page: typing the
+    // diver has done keeps the sitting open.
+    testWidgets('turned off with changes, it stays unlocked', (tester) async {
+      await pump(tester, const _NotePage(noteId: 'n1', openUnlocked: true));
+      await editText(tester, 'Choppy');
+
+      tester
+          .state<_HostState>(find.byType(_Host))
+          .show(const _NotePage(noteId: 'n1'));
+      await tester.pumpAndSettle();
+      expect(find.byType(RecordEditBar), findsOneWidget);
+      expect(find.text('Choppy'), findsOneWidget);
+    });
+
+    testWidgets('turned on again, it opens unlocked again', (tester) async {
+      await pump(tester, const _NotePage(noteId: 'n1', openUnlocked: true));
+      await tester.tap(find.text(l.forms_cancel));
+      await tester.pumpAndSettle();
+      final host = tester.state<_HostState>(find.byType(_Host));
+      host.show(const _NotePage(noteId: 'n1'));
+      await tester.pumpAndSettle();
+      expect(find.byType(RecordEditBar), findsNothing);
+
+      host.show(const _NotePage(noteId: 'n1', openUnlocked: true));
+      await tester.pumpAndSettle();
+      expect(find.byType(RecordEditBar), findsOneWidget);
+    });
+
+    // The unlock comes after the frame: a record that is not the page's
+    // own by then (a stale read, another record handed to the page) is not
+    // opened, and the page's own opens once it has it.
+    testWidgets('a record not the page\'s own is not opened', (tester) async {
+      probe = _Probe();
+      probe.notes['n2'] = const _Note('n1', 'First', 'Calm');
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [_probeProvider.overrideWithValue(probe)],
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: _Host(page: _NotePage(noteId: 'n2', openUnlocked: true)),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(RecordEditBar), findsNothing);
+
+      probe.notes['n2'] = const _Note('n2', 'Second', 'Flat');
+      ProviderScope.containerOf(
+        tester.element(find.byType(_Host)),
+      ).invalidate(_noteProvider('n2'));
+      await tester.pumpAndSettle();
+      expect(find.text('Editing Second'), findsOneWidget);
+    });
+
+    testWidgets('a leave the app asked about is not told', (tester) async {
+      var ended = 0;
+      await pump(
+        tester,
+        _NotePage(
+          noteId: 'n1',
+          openUnlocked: true,
+          onSittingEnded: () => ended++,
+        ),
+      );
+      await editText(tester, 'Choppy');
+
+      final leaving = container.read(appExitGuardProvider).mayLeave();
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l.forms_discard_discard));
+      await tester.pumpAndSettle();
+
+      expect(await leaving, isTrue);
+      expect(ended, 0);
+    });
   });
 
   testWidgets('the pane uses the pane header', (tester) async {

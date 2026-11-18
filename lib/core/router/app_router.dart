@@ -74,6 +74,7 @@ import 'package:submersion/features/maps/presentation/pages/offline_maps_page.da
 import 'package:submersion/features/dive_sites/presentation/pages/site_list_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
+import 'package:submersion/features/dive_sites/presentation/pages/site_edit_routes.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_merge_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/catalogue_gap_review_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/catalogue_site_page.dart';
@@ -734,12 +735,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: ':siteId',
                 name: 'siteDetail',
                 onExit: confirmLeaveRecordSitting,
-                builder: (context, state) =>
-                    SiteDetailPage(siteId: state.pathParameters['siteId']!),
+                builder: (context, state) => SiteDetailPage(
+                  siteId: state.pathParameters['siteId']!,
+                  // The old edit address opens the page unlocked
+                  // (issue #4527, phase 2).
+                  openUnlocked: state.uri.queryParameters['mode'] == 'edit',
+                ),
                 routes: [
                   GoRoute(
                     path: 'edit',
                     name: 'editSite',
+                    redirect: siteEditRedirect,
                     builder: (context, state) => SiteEditPage(
                       siteId: state.pathParameters['siteId'],
                       suggest: state.uri.queryParameters['suggest'] == '1',

@@ -281,14 +281,18 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
   /// Changing the selection leaves the record the pane shows: unsaved work
   /// held there is asked about first (issue #4527).
   Future<void> _onItemSelected(String? itemId) async {
-    // The record already shown leaves nothing behind: no need to ask.
-    final leaving = itemId != _selectedId || _mode != DetailPaneMode.view;
+    // The record already shown leaves nothing behind: no need to ask. The
+    // pane may show something else in its place (a dive list's pane showing
+    // a site, `&site=`): the selection's address drops that, so it leaves.
+    final key = widget.queryParamKey;
+    final showsElse = _query.keys.any((k) => k != key && k != 'view');
+    final leaving =
+        itemId != _selectedId || _mode != DetailPaneMode.view || showsElse;
     if (leaving && (!await _mayLeaveShown() || !mounted)) return;
     final currentPath = _ownPath;
 
     if (ResponsiveBreakpoints.isMasterDetail(context)) {
       // Desktop: Update URL with query param, preserving map view state
-      final key = widget.queryParamKey;
       if (itemId != null) {
         if (_isMapView) {
           // Preserve map view when selecting from map

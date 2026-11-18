@@ -29,7 +29,7 @@ mixin _DiveDetailPageBars
     // the title has no room beside every action icon, so History moves into
     // the overflow menu.
     final compactActions =
-        MediaQuery.sizeOf(context).width < _kCompactAppBarWidth;
+        MediaQuery.sizeOf(context).width < kRecordCompactBarWidth;
     return AppBar(
       // Titled like the desktop pane's header, not "Dive Details" (#4445).
       title: Text(
@@ -164,7 +164,3 @@ class _DiveShortcuts extends ConsumerWidget {
     );
   }
 }
-
-/// Below this window width the standalone app bar keeps only the actions
-/// that leave room for its title; the rest go into the overflow menu.
-const double _kCompactAppBarWidth = 600;

@@ -7,6 +7,7 @@ import 'package:submersion/core/app/app_exit_guard.dart';
 import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
+import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_editing_page_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
@@ -84,6 +85,146 @@ void main() {
     expect(page.container.read(siteEditingPageProvider), isNull);
   });
 
+  // The old edit address opens the page unlocked (issue #4527, phase 2).
+  group('opened unlocked', () {
+    testWidgets('with mode=edit the page is unlocked, and its end is told', (
+      tester,
+    ) async {
+      var ended = 0;
+      await pumpSitePage(
+        tester,
+        openUnlocked: true,
+        onSittingEnded: () => ended++,
+      );
+      expect(find.byType(RecordEditBar), findsOneWidget);
+
+      await tester.tap(find.text(l.forms_cancel));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(RecordEditBar), findsNothing);
+      expect(ended, 1);
+    });
+
+    // On a desktop window a root visit moves into the list pane: an edit
+    // address arrives there still asking for edit mode, once.
+    testWidgets('on desktop, mode=edit moves into the pane still asking to '
+        'unlock', (tester) async {
+      final page = await pumpSitePage(
+        tester,
+        openUnlocked: true,
+        size: const Size(1400, 1000),
+        initialLocation: '/root-site',
+      );
+
+      final landed = page.router!.routerDelegate.currentConfiguration.uri;
+      expect(landed.path, '/sites');
+      expect(landed.queryParameters['selected'], 's1');
+      expect(landed.queryParameters['mode'], 'edit');
+    });
+  });
+
+  // With the switch off an edit address is as before: a site in view mode,
+  // on desktop moved into the pane without asking for edit mode, which
+  // there would open the old form.
+  testWidgets('with the switch off, mode=edit on desktop moves into the pane '
+      'as it is', (tester) async {
+    final page = await pumpSitePage(
+      tester,
+      unlockEditing: false,
+      openUnlocked: true,
+      size: const Size(1400, 1000),
+      initialLocation: '/root-site',
+    );
+
+    final landed = page.router!.routerDelegate.currentConfiguration.uri;
+    expect(landed.path, '/sites');
+    expect(landed.queryParameters.containsKey('mode'), isFalse);
+  });
+
+  // A window widened during a sitting keeps the page, and the sitting,
+  // until it ends: the move into the pane would drop what is being edited.
+  testWidgets('a window widened during a sitting moves into the pane only '
+      'once it ends', (tester) async {
+    final page = await pumpSitePage(tester, initialLocation: '/root-site');
+    await unlock(tester);
+    await openNotes(tester);
+    await typeNotes(tester, 'Choppy');
+
+    tester.view.physicalSize = const Size(1400, 1000);
+    addTearDown(tester.view.reset);
+    await tester.pumpAndSettle();
+
+    final router = page.router!.routerDelegate;
+    expect(router.currentConfiguration.uri.path, '/root-site');
+    expect(find.text('Choppy'), findsOneWidget);
+
+    await save(tester);
+
+    expect(page.save.calls, hasLength(1));
+    final landed = router.currentConfiguration.uri;
+    expect(landed.path, '/sites');
+    expect(landed.queryParameters['selected'], 's1');
+    expect(landed.queryParameters.containsKey('mode'), isFalse);
+  });
+
+  // A stale edit link on a site this profile only reads opens it locked,
+  // not unlocked and then withdrawn.
+  testWidgets('a reader asked to open unlocked stays locked', (tester) async {
+    await pumpSitePage(
+      tester,
+      openUnlocked: true,
+      site: harnessSite.copyWith(sharedLibraryId: 'L'),
+      extra: [
+        libraryRoleProvider(
+          'L',
+        ).overrideWith((ref) async => SharedLibraryRole.reader),
+        libraryConnectedHereProvider('L').overrideWith((ref) async => true),
+        siteLibraryStateProvider('s1').overrideWith((ref) async => null),
+        libraryMemberNamesProvider('L').overrideWith((ref) async => const {}),
+      ],
+    );
+
+    expect(find.byType(RecordEditBar), findsNothing);
+    expect(find.text(l.diveSites_edit_editingWithdrawn), findsNothing);
+  });
+
+  // History beside the lock where the bar has room, else in the menu, as
+  // on a dive (issue #4527).
+  group('History', () {
+    final inBar = find.descendant(
+      of: find.byType(AppBar),
+      matching: find.byTooltip(l.changeLog_history),
+    );
+
+    testWidgets('sits beside the lock on a wide window', (tester) async {
+      await pumpSitePage(tester, size: const Size(900, 1400));
+      expect(inBar, findsOneWidget);
+    });
+
+    testWidgets('is in the menu on a narrow window', (tester) async {
+      await pumpSitePage(tester, size: const Size(400, 1400));
+      expect(inBar, findsNothing);
+
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AppBar),
+          matching: find.byType(PopupMenuButton<String>),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text(l.changeLog_history), findsOneWidget);
+    });
+
+    testWidgets('with the switch off the bar is as today', (tester) async {
+      await pumpSitePage(
+        tester,
+        unlockEditing: false,
+        size: const Size(900, 1400),
+      );
+      expect(inBar, findsNothing);
+    });
+  });
+
   testWidgets('locked shows no pencil', (tester) async {
     await pumpSitePage(tester);
 
@@ -129,6 +270,22 @@ void main() {
 
     // The form would save over the sitting: not offered while it is open.
     expect(oldEdit, findsNothing);
+  });
+
+  // With the switch on the old edit address opens this page unlocked, so
+  // Edit unlocks the page in place rather than pushing a second copy.
+  testWidgets('Edit unlocks the page in place', (tester) async {
+    await pumpSitePage(tester);
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AppBar),
+        matching: find.widgetWithIcon(IconButton, Icons.edit),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(RecordEditBar), findsOneWidget);
+    expect(find.byType(SiteDetailPage), findsOneWidget);
   });
 
   testWidgets('editing Notes and saving writes one sitting and locks', (
@@ -253,10 +410,10 @@ void main() {
     },
   );
 
-  testWidgets('the pane offers no lock yet', (tester) async {
+  testWidgets('the pane offers the lock', (tester) async {
     await pumpSitePage(tester, embedded: true);
 
-    expect(find.byIcon(Icons.lock_outline), findsNothing);
+    expect(find.byIcon(Icons.lock_outline), findsOneWidget);
   });
 
   testWidgets('a library site this profile only reads offers no lock', (
