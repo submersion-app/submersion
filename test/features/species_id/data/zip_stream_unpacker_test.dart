@@ -49,9 +49,15 @@ List<int> _localHeaders(Uint8List zip) {
 
 /// One stored entry whose sizes sit in a ZIP64 extra field, as Python's
 /// zipfile writes them for a file over 2 GB.
-Uint8List _zip64Entry(String name, List<int> content, {int? claimed}) {
+Uint8List _zip64Entry(
+  String name,
+  List<int> content, {
+  int? claimed,
+  List<int> extraBefore = const [],
+  List<int> endComment = const [],
+}) {
   final nameBytes = utf8.encode(name);
-  final extra = ByteData(20)
+  final zip64 = ByteData(20)
     ..setUint16(0, 0x0001, Endian.little)
     ..setUint16(2, 16, Endian.little)
     ..setUint64(4, claimed ?? content.length, Endian.little)
@@ -62,13 +68,14 @@ Uint8List _zip64Entry(String name, List<int> content, {int? claimed}) {
     ..setUint32(18, 0xFFFFFFFF, Endian.little)
     ..setUint32(22, 0xFFFFFFFF, Endian.little)
     ..setUint16(26, nameBytes.length, Endian.little)
-    ..setUint16(28, 20, Endian.little);
+    ..setUint16(28, extraBefore.length + 20, Endian.little);
   return Uint8List.fromList([
     ...header.buffer.asUint8List(),
     ...nameBytes,
-    ...extra.buffer.asUint8List(),
+    ...extraBefore,
+    ...zip64.buffer.asUint8List(),
     ...content,
-    ..._endRecord(),
+    ..._endRecord(comment: endComment),
   ]);
 }
 
@@ -195,6 +202,61 @@ void main() {
     await expectLater(unpack(zip), malformed());
   });
 
+  test('a ZIP64 record after another extra field is found', () async {
+    // An extended timestamp field first, as zip tools often write.
+    final timestamp = ByteData(9)
+      ..setUint16(0, 0x5455, Endian.little)
+      ..setUint16(2, 5, Endian.little);
+    await unpack(
+      _zip64Entry('m.mlpackage/w.bin', [
+        7,
+        8,
+        9,
+      ], extraBefore: timestamp.buffer.asUint8List()),
+    );
+    expect(await File(p.join(out, 'm.mlpackage', 'w.bin')).readAsBytes(), [
+      7,
+      8,
+      9,
+    ]);
+  });
+
+  test('a folder entry is made as a folder', () async {
+    final zip = Uint8List.fromList(
+      ZipEncoder().encodeBytes(
+        Archive()
+          ..addFile(ArchiveFile.directory('m.mlpackage/Data/'))
+          ..addFile(ArchiveFile.bytes('m.mlpackage/Data/w.bin', [1])),
+      ),
+    );
+    await unpack(zip);
+    expect(
+      await Directory(p.join(out, 'm.mlpackage', 'Data')).exists(),
+      isTrue,
+    );
+  });
+
+  test('a long central directory still ends in a found end record', () async {
+    // More after the entries than the unpacker keeps of it.
+    final zip = _zip64Entry('m.mlpackage/w.bin', [
+      1,
+      2,
+    ], endComment: List.filled(0xFFFF, 0x20));
+    final entries = zip.length - 22 - 0xFFFF;
+    final central = ByteData(4)..setUint32(0, 0x02014b50, Endian.little);
+    final long = Uint8List.fromList([
+      ...zip.sublist(0, entries),
+      ...central.buffer.asUint8List(),
+      ...List.filled(200000, 0),
+      ...zip.sublist(entries),
+    ]);
+    await unpack(long, chunk: 8192);
+    expect(await File(p.join(out, 'm.mlpackage', 'w.bin')).readAsBytes(), [
+      1,
+      2,
+    ]);
+  });
+
   test('an entry that would land outside the folder is refused', () async {
     final zip = Uint8List.fromList(
       ZipEncoder().encodeBytes(
@@ -301,6 +363,25 @@ void main() {
         ByteData.sublistView(zip).getUint16(weights + 28, Endian.little);
     zip.fillRange(dataStart, dataStart + 64, 0xFF);
     await expectLater(unpack(zip), malformed());
+  });
+
+  test('a deflate stream cut before its end is refused', () async {
+    final zip = _modelZip();
+    final weights = _localHeaders(zip).last;
+    final data = ByteData.sublistView(zip);
+    final compressed = data.getUint32(weights + 18, Endian.little);
+    final dataStart =
+        weights +
+        30 +
+        data.getUint16(weights + 26, Endian.little) +
+        data.getUint16(weights + 28, Endian.little);
+    // The entry now claims, and holds, all but its last 16 bytes.
+    data.setUint32(weights + 18, compressed - 16, Endian.little);
+    final cut = Uint8List.fromList([
+      ...zip.sublist(0, dataStart + compressed - 16),
+      ...zip.sublist(dataStart + compressed),
+    ]);
+    await expectLater(unpack(cut), malformed());
   });
 
   test('something that is not a zip is refused', () async {

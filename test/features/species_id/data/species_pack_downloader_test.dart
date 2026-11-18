@@ -397,6 +397,16 @@ void main() {
       );
     });
 
+    test('a request that cannot connect is a network failure', () async {
+      await expectLater(
+        download(
+          MockClient((_) async => throw const SocketException('refused')),
+        ),
+        failsWith(PackDownloadFailure.network),
+      );
+      expect(await folder.exists(), isFalse);
+    });
+
     test('a folder that cannot be written is a storage failure', () async {
       final notADir = File(p.join(dir.path, 'plain-file'));
       await notADir.writeAsString('x');
