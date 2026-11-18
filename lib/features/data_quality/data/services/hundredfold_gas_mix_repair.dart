@@ -31,22 +31,25 @@ class HundredfoldGasMixRepair {
   /// Divides [tankId]'s mix to [mix], the diver's one-tap repair, while the
   /// stored mix still divides to it: one corrected by hand since the scan,
   /// or edited to another value, is left alone. Returns the mix it replaced,
-  /// for undo, or null when it wrote nothing.
+  /// or null when it wrote nothing.
   Future<StoredTankMix?> rescale({
     required String diveId,
     required String tankId,
     required GasMix mix,
   }) async {
-    final stored = await _repo.tankMix(diveId: diveId, tankId: tankId);
-    if (stored == null || hundredfoldCorrection(stored.mix) != mix) {
-      return null;
-    }
-    await _write([(diveId: diveId, tankId: tankId, mix: mix)]);
+    // Read and write in one transaction, so an edit landing between the
+    // check and the write cannot be overwritten.
+    final stored = await _db.transaction(() async {
+      final stored = await _repo.tankMix(diveId: diveId, tankId: tankId);
+      if (stored == null || hundredfoldCorrection(stored.mix) != mix) {
+        return null;
+      }
+      await _repo.setGasMixes([(diveId: diveId, tankId: tankId, mix: mix)]);
+      return stored;
+    });
+    if (stored != null) SyncEventBus.notifyLocalChange();
     return stored;
   }
-
-  /// Writes [prior] back: the undo of [rescale].
-  Future<void> restore(StoredTankMix prior) => _write([prior]);
 
   /// Divides every stored mix that dividing explains, as one automatic
   /// change, and queues a rescan of the dives it changed so the findings

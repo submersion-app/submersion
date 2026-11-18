@@ -57,7 +57,29 @@ void main() {
     });
 
     test('the oxygen floor itself is accepted', () {
-      expect(hundredfoldCorrection(const GasMix(o2: 500)), const GasMix(o2: 5));
+      expect(
+        hundredfoldCorrection(const GasMix(o2: 500, he: 8000)),
+        const GasMix(o2: 5, he: 80),
+      );
+    });
+
+    test('a hypoxic result needs helium to be a diving gas', () {
+      // A typed 100% with an extra zero is 1000%: divided, 10% O2 with
+      // nothing but nitrogen, which no diver breathes. Left for the diver.
+      expect(hundredfoldCorrection(const GasMix(o2: 1000)), isNull);
+      expect(hundredfoldCorrection(const GasMix(o2: 500)), isNull);
+      // A hypoxic trimix stored 100 times too high is still divided.
+      expect(
+        hundredfoldCorrection(const GasMix(o2: 1000, he: 7000)),
+        const GasMix(o2: 10, he: 70),
+      );
+    });
+
+    test('a normoxic nitrox needs no helium', () {
+      expect(
+        hundredfoldCorrection(const GasMix(o2: 1600)),
+        const GasMix(o2: 16),
+      );
     });
 
     test('no correction when the divided mix is still impossible', () {

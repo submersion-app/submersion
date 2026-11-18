@@ -84,7 +84,7 @@ class QualityRepairExecutor {
        _tankRepo = tankPressureRepository ?? TankPressureRepository(),
        _findings = findingsRepository ?? QualityFindingsRepository(),
        _profiles = profileRepairService ?? ProfileRepairService(),
-       _injectedGasMixRepair = gasMixRepair,
+       _gasMixes = gasMixRepair ?? HundredfoldGasMixRepair(),
        _restoreDocuments =
            restoreDocuments ?? DocumentRepository().restoreSnapshot;
 
@@ -105,9 +105,7 @@ class QualityRepairExecutor {
   final TankPressureRepository _tankRepo;
   final QualityFindingsRepository _findings;
   final ProfileRepairService _profiles;
-  final HundredfoldGasMixRepair? _injectedGasMixRepair;
-  HundredfoldGasMixRepair get _gasMixes =>
-      _injectedGasMixRepair ?? HundredfoldGasMixRepair();
+  final HundredfoldGasMixRepair _gasMixes;
   AppDatabase get _db => DatabaseService.instance.database;
   static const _log = LoggerService('QualityRepairExecutor');
 
@@ -378,7 +376,8 @@ class QualityRepairExecutor {
   }
 
   /// Divide a cylinder's mix stored 100 times too high back to [mix]
-  /// (issue #4714), while the stored mix still divides to it.
+  /// (issue #4714), while the stored mix still divides to it: the launch
+  /// repair's write for one cylinder that arrived since, say by sync.
   Future<RepairResult> rescaleGasMix({
     required String diveId,
     required String tankId,
@@ -392,10 +391,9 @@ class QualityRepairExecutor {
     );
     if (prior == null) return const RepairResult.noChange();
     await _finish(findingId, [diveId]);
-    return RepairResult.applied(() async {
-      await _gasMixes.restore(prior);
-      _rescan([diveId]);
-    });
+    // No undo: this is what the launch repair writes anyway, so putting the
+    // impossible mix back would last only until the next launch.
+    return const RepairResult.applied();
   }
 
   Future<RepairResult> swapTankRecordPressures({

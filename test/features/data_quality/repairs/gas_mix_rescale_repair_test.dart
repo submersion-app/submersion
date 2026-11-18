@@ -68,7 +68,7 @@ void main() {
   Future<QualityStatus> status() async =>
       (await findingsRepo.getFindings(diveId: 'd1')).single.status;
 
-  test('divides the mix, resolves the finding, and undo restores', () async {
+  test('divides the mix and resolves the finding', () async {
     await diveWith(const domain.GasMix(o2: 2100, he: 3500));
     final finding = await seedFinding();
 
@@ -82,9 +82,9 @@ void main() {
     expect(result.changed, isTrue);
     expect(await storedMix(), const domain.GasMix(o2: 21, he: 35));
     expect(await status(), QualityStatus.resolved);
-
-    await result.undo!();
-    expect(await storedMix(), const domain.GasMix(o2: 2100, he: 3500));
+    // It is what the next launch would write anyway (rescaleAll), so an
+    // undo putting the impossible mix back could not last.
+    expect(result.undo, isNull);
   });
 
   test('reports no change when the cylinder is gone', () async {

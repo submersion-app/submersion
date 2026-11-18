@@ -20,7 +20,7 @@ void main() {
       dive.copyWith(altitude: 3000, waterType: WaterType.fresh);
 
   test('the gas detector versions moved with their rules', () {
-    // v5: a dive breathing an impossible mix is left alone (#4714).
+    // v5: the time an impossible mix is breathed is not judged (#4714).
     expect(const GasModDetector().version, 5);
     // v7: the Avelo Hydrotank's pump-ins are no anomaly (#4657).
     expect(const PressureAnomalyDetector().version, 7);

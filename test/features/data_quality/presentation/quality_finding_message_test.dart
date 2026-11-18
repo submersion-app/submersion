@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/quality_finding_message.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -372,6 +373,31 @@ void main() {
         'correctedHePercent': 0.0,
       });
       expect(d, contains('3212.5% O2'));
+    });
+
+    test('a stored share drops the binary noise of its import', () {
+      final d = detailFor('impossible_gas_mix', {
+        'tankPosition': 0,
+        'o2Percent': 2899.9999999999995,
+        'hePercent': 0.0,
+        'correctedO2Percent': 29.0,
+        'correctedHePercent': 0.0,
+      });
+      expect(d, contains('2900% O2'));
+    });
+
+    test("a stored share uses the locale's decimal separator", () {
+      final previous = Intl.defaultLocale;
+      addTearDown(() => Intl.defaultLocale = previous);
+      Intl.defaultLocale = 'de';
+      final d = detailFor('impossible_gas_mix', {
+        'tankPosition': 0,
+        'o2Percent': 3212.5,
+        'hePercent': 0.0,
+        'correctedO2Percent': 32.125,
+        'correctedHePercent': 0.0,
+      });
+      expect(d, contains('3212,5% O2'));
     });
 
     test('without a correction, asks for the mix to be checked', () {

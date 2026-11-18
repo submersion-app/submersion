@@ -64,7 +64,10 @@ MissedSwitches missedGasSwitches(DiveQualityContext ctx) {
   if (ctx.dive.diveMode != DiveMode.oc) return _none;
   // Every start on a mix no gas can have (3200% O2 from an older import)
   // would read as deeper than its MOD; the impossible gas mix finding names
-  // it instead (issue #4714).
+  // it instead (issue #4714). Unlike the gas/MOD check, which skips only the
+  // time such a mix is breathed, this waits for the whole dive: the
+  // inference follows the cylinders in turn, and a switch onto one whose mix
+  // is unknown can neither be checked against its MOD nor stepped over.
   if (!breathingTanks(ctx.tanks).every((t) => t.gasMix.isPossible)) {
     return _none;
   }

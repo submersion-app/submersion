@@ -24,8 +24,9 @@ class GasModDetector extends QualityDetector {
   /// 4: the ppO2 and hypoxic findings record `hePercent`, so their message
   /// names a trimix as such (issue #4209). Findings stored by version 3 lack
   /// it; the bump raises the rescan banner that rewrites them.
-  /// 5: a dive breathing an impossible mix is left alone (issue #4714); the
-  /// bump retires the ppO2 findings a mix stored 100 times too high raised.
+  /// 5: the time an impossible mix is breathed is not judged (issue #4714);
+  /// the bump retires the ppO2 findings a mix stored 100 times too high
+  /// raised.
   @override
   int get version => 5;
   @override
@@ -40,10 +41,10 @@ class GasModDetector extends QualityDetector {
     final tanks = breathingTanks(ctx.tanks);
     if (tanks.isEmpty) return const [];
     // A mix no gas can have, such as 3200% O2 stored by an older import,
-    // reads as ppO2 far past any limit at every depth. The impossible gas
-    // mix finding names it, and the rescan its repair queues judges the
-    // corrected mix (issue #4714).
-    if (!tanks.every((t) => t.gasMix.isPossible)) return const [];
+    // reads as ppO2 far past any limit at every depth (issue #4714). The
+    // time it is breathed, and a switch onto it, are not judged: the
+    // impossible gas mix finding names it, and the rescan its repair queues
+    // judges the corrected mix. Every other gas on the dive still is.
     final switches = breathingRawGasSwitches(ctx.gasSwitches, ctx.tanks);
     final out = <QualityFinding>[];
     final environment = ctx.dive.environment;
@@ -106,6 +107,10 @@ class GasModDetector extends QualityDetector {
 
     for (final p in ctx.primarySamples) {
       final mix = mixAt(p.t);
+      if (!mix.isPossible) {
+        closePpo2Run();
+        continue;
+      }
       final ppo2 = mix.o2 / 100.0 * environment.pressureAtDepth(p.depth);
       if (ppo2 > ppO2WarnBar) {
         runStart ??= p.t;
@@ -147,6 +152,10 @@ class GasModDetector extends QualityDetector {
 
     for (final p in ctx.primarySamples) {
       final mix = mixAt(p.t);
+      if (!mix.isPossible) {
+        closeHypoRun();
+        continue;
+      }
       if (mix.o2 / 100.0 < QualityThresholds.hypoxicFo2 &&
           p.depth < QualityThresholds.hypoxicMaxDepthMeters) {
         hypoStart ??= p.t;
@@ -162,7 +171,7 @@ class GasModDetector extends QualityDetector {
     for (final sw in switches) {
       final tank = tankById(sw.tankId);
       final d = sw.depth;
-      if (tank == null || d == null) continue;
+      if (tank == null || d == null || !tank.gasMix.isPossible) continue;
       final fo2 = tank.gasMix.o2 / 100.0;
       if (fo2 <= 0) continue;
       final mod = maxOperatingDepthMeters(
