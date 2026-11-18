@@ -24,10 +24,6 @@ public class SubmersionVisionPlugin: NSObject, FlutterPlugin {
     set { activeLock.lock(); _active = newValue; activeLock.unlock() }
   }
 
-  /// Devices with less memory than this cannot hold the embedding model.
-  /// Phones sold as 6 GB report about 5.5 GiB.
-  private static let minimumMemoryBytes: UInt64 = 5 * 1024 * 1024 * 1024
-
   public static func register(with registrar: FlutterPluginRegistrar) {
     #if os(iOS)
     let messenger = registrar.messenger()
@@ -122,8 +118,9 @@ public class SubmersionVisionPlugin: NSObject, FlutterPlugin {
 
   private static func availability() -> String {
     #if os(iOS)
-    return ProcessInfo.processInfo.physicalMemory < minimumMemoryBytes
-      ? "deviceNotEligible" : "available"
+    // The floor (MemoryFloor, in MemoryReading.swift) needs an 8 GB device.
+    return MemoryFloor.isEligible(physicalMemory: ProcessInfo.processInfo.physicalMemory)
+      ? "available" : "deviceNotEligible"
     #else
     return "available"
     #endif

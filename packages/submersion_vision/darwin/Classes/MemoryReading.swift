@@ -62,3 +62,19 @@ enum MemoryReading {
     return mach_msg_type_number_t((offset + MemoryLayout<T>.size) / MemoryLayout<natural_t>.size)
   }
 }
+
+/// The least memory an iPhone or iPad needs to run marine life
+/// identification. At launch the feature needs an 8 GB device
+/// (docs/design/specs/2026-11-18-marine-life-release-gate-design.md): on an
+/// iPhone 17 Pro Max iOS gave the app 3,376 MiB and identification peaked at
+/// 2,432 MiB, and a 6 GB phone's limit is unmeasured. Devices report a
+/// little less than they are sold with; a 6 GB device can never report more
+/// than 6 GiB, and an 8 GB one reports a little under 8 GiB, so 6.5 GiB sits
+/// between the two. Macs have no floor.
+enum MemoryFloor {
+  static let minimumMemoryBytes: UInt64 = 6_979_321_856  // 6.5 GiB
+
+  static func isEligible(physicalMemory: UInt64) -> Bool {
+    physicalMemory >= minimumMemoryBytes
+  }
+}
