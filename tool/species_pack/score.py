@@ -409,6 +409,47 @@ def evaluate(name, results_by_photo, animals, junk_rows, namer, work, min_side, 
         chosen, [c["with"] for c in held_nat], [c["without"] for c in held_nat], min_side=min_side
     )
 
+    def level_rates(level):
+        """A level's held-out precision and coverage with a location, and
+        the held-out junk it names with or without one."""
+        scored = [c["with"] for c in held_nat]
+        named = bar_search.named(scored, level, min_side=min_side)
+        coverage, precision = metrics.coverage_precision(named, [s.correct for s in scored])
+        junk = [
+            a or b
+            for a, b in zip(
+                bar_search.named([c["with"] for c in held_junk], level, min_side=min_side),
+                bar_search.named([c["without"] for c in held_junk], level, min_side=min_side),
+            )
+        ]
+        return {
+            "precision": precision.__dict__,
+            "coverage": coverage.__dict__,
+            "junk named": metrics.rate(sum(junk), len(junk)).__dict__,
+        }
+
+    # The naming levels under the gated bars (issue #4721), surest first,
+    # each chosen on the tune half and kept only if it stands held out.
+    levels = []
+    ceiling = gated
+    for level_id, target in bar_search.LEVEL_TARGETS:
+        level = bar_search.level_bars(
+            [c["with"] for c in tune_nat],
+            [c["without"] for c in tune_nat],
+            [c["with"] for c in tune_junk],
+            [c["without"] for c in tune_junk],
+            surer=gated,
+            ceiling=ceiling,
+            min_side=min_side,
+            target=target,
+        )
+        if level is None or not bar_search.level_gate(
+            level, gated, [c["with"] for c in held_nat], [c["without"] for c in held_nat], min_side=min_side, target=target
+        ):
+            continue
+        levels.append({"id": level_id, "target": target, "bars": level.__dict__, "held-out": level_rates(level)})
+        ceiling = level
+
     def naming_rates(records, confident=False):
         out = {}
         for key, condition in (("with location", "with"), ("without location", "without")):
@@ -469,12 +510,20 @@ def evaluate(name, results_by_photo, animals, junk_rows, namer, work, min_side, 
                 "precision": sum(s.correct for s in picked) / len(picked) if picked else None,
             }
         )
+    held_summary = summary(held_nat)
     return {
         "detector": name,
         "bars chosen on tune": chosen.__dict__,
         "bars after held-out gate": gated.__dict__,
         "switched off": switched_off,
-        "held-out natural": summary(held_nat),
+        # None when the gated bars name nothing held out: no precision to show.
+        "surer precision": (
+            held_summary["suggested"]["with location"]["precision"]["value"]
+            if held_summary["suggested"]["with location"]["precision"]["n"]
+            else None
+        ),
+        "levels": levels,
+        "held-out natural": held_summary,
         "held-out natural, detection": {
             "photos": len(held_natural_rows),
             **recall(held_natural_rows),
@@ -558,9 +607,22 @@ def _same_boxes(a, b, tolerance=1e-4):
     )
 
 
-def _measured_entry(bars, manifest, detector_ids, crop_fit):
-    """A NAMING_MEASURED entry for manifest.py from a run's gated bars."""
+def _measured_entry(evaluation, manifest, detector_ids, crop_fit):
+    """A NAMING_MEASURED entry for manifest.py from a run's gated bars,
+    with the precision measured at them and the naming levels under them
+    (issue #4721)."""
     naming = manifest["naming"]
+    bars = evaluation["bars after held-out gate"]
+    levels = [
+        {
+            "id": level["id"],
+            "target": level["target"],
+            "suggestScore": round(level["bars"]["suggest"], 2),
+            "suggestScoreNoLocation": round(level["bars"]["suggest_no_location"], 2),
+            "precision": round(level["held-out"]["precision"]["value"], 3),
+        }
+        for level in evaluation["levels"]
+    ]
     return {
         "naming": {
             "provisional": False,
@@ -572,6 +634,12 @@ def _measured_entry(bars, manifest, detector_ids, crop_fit):
             "confidentScoreNoLocation": round(bars["confident_no_location"], 2),
             "minAllowedCandidates": naming["minAllowedCandidates"],
             "topK": naming["topK"],
+            **(
+                {"precision": round(evaluation["surer precision"], 3)}
+                if evaluation["surer precision"] is not None
+                else {}
+            ),
+            "levels": levels,
         },
         "detectorIds": list(detector_ids),
         "classifierId": manifest["classifier"]["id"],
@@ -697,7 +765,7 @@ def main(argv=None):
     # fitting, to name this exact pack.
     results["measured"] = [
         _measured_entry(
-            kept[f"{name} {results['fitting chosen'][name]}"]["bars after held-out gate"],
+            kept[f"{name} {results['fitting chosen'][name]}"],
             runner.manifest,
             ids[name],
             results["fitting chosen"][name],

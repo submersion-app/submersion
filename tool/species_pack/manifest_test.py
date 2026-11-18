@@ -2,6 +2,7 @@
 """Unit tests for manifest.py and candidates.py (GBIF replaced by a stub)."""
 
 import contextlib
+import copy
 import hashlib
 import importlib.util
 import io
@@ -209,6 +210,108 @@ class MeasuredBarsTests(unittest.TestCase):
             name = sets.get(tuple(entry["detectorIds"]))
             self.assertIsNotNone(name, entry["detectorIds"])
             self.assertEqual(entry["cropFit"], manifest.CROP_FIT[name])
+
+
+class RelevelTests(unittest.TestCase):
+    """Naming levels (issue #4721) added to a published manifest, keeping
+    its pack version and files."""
+
+    BASE = {
+        "provisional": False,
+        "minCropSide": 64,
+        "minOpenScore": 0.44,
+        "suggestScore": 0.74,
+        "confidentScore": 1.01,
+        "suggestScoreNoLocation": 0.81,
+        "confidentScoreNoLocation": 1.01,
+        "minAllowedCandidates": 200,
+        "topK": 5,
+    }
+    LEVELS = [{"id": "balanced", "target": 0.75, "suggestScore": 0.6, "suggestScoreNoLocation": 0.7, "precision": 0.81}]
+
+    def published(self):
+        return manifest.build_manifest(
+            pack_version="2026.11.18.0356",
+            detector_set="both",
+            classifier_id=BIOCLIP,
+            embedding_size=768,
+            files=entries(CONTENTS),
+            credits=[],
+            naming=dict(self.BASE),
+        )
+
+    def measured(self, **naming):
+        return [
+            {
+                "naming": {**self.BASE, "precision": 0.897, "levels": copy.deepcopy(self.LEVELS), **naming},
+                "detectorIds": manifest.detector_ids("both"),
+                "classifierId": BIOCLIP,
+                "cropFit": "centreCrop",
+                "contents": CONTENTS,
+                "findings": "docs/design/findings/x.md",
+            }
+        ]
+
+    def test_relevel_adds_levels_and_keeps_the_pack(self):
+        published = self.published()
+        out = manifest.relevel(published, self.measured())
+        self.assertEqual([level["id"] for level in out["naming"]["levels"]], ["balanced"])
+        self.assertEqual(out["naming"]["precision"], 0.897)
+        self.assertEqual(out["packVersion"], published["packVersion"])
+        self.assertEqual(out["files"], published["files"])
+        self.assertNotIn("levels", published["naming"])
+
+    def test_relevel_refuses_a_changed_bar(self):
+        with self.assertRaises(ValueError):
+            manifest.relevel(self.published(), self.measured(suggestScore=0.70))
+
+    def test_relevel_refuses_an_unmeasured_pack(self):
+        published = self.published()
+        published["files"] = entries({**CONTENTS, "regions.bin": "e" * 64})
+        with self.assertRaises(ValueError):
+            manifest.relevel(published, self.measured())
+
+    def test_relevel_refuses_bad_levels(self):
+        bad = [{**self.LEVELS[0], "suggestScore": 0.9}]
+        with self.assertRaises(ValueError):
+            manifest.relevel(self.published(), self.measured(levels=bad))
+
+    def test_naming_for_copies_levels(self):
+        measured = self.measured()
+        naming = manifest.naming_for(manifest.detector_ids("both"), BIOCLIP, "centreCrop", CONTENTS, measured)
+        naming["levels"].append({})
+        self.assertEqual(len(measured[0]["naming"]["levels"]), 1)
+
+
+class LevelProblemsTests(unittest.TestCase):
+    NAMING = RelevelTests.BASE
+    BALANCED = RelevelTests.LEVELS[0]
+    EAGER = {"id": "eager", "target": 0.65, "suggestScore": 0.5, "suggestScoreNoLocation": 0.6, "precision": 0.7}
+
+    def problems(self, levels, **naming):
+        return manifest.level_problems({**self.NAMING, "levels": levels, **naming})
+
+    def test_good_levels_have_no_problems(self):
+        self.assertEqual(self.problems([self.BALANCED, self.EAGER], precision=0.897), [])
+        self.assertEqual(manifest.level_problems(dict(self.NAMING)), [])
+
+    def test_a_bar_above_the_pack_bar(self):
+        self.assertTrue(self.problems([{**self.BALANCED, "suggestScoreNoLocation": 0.85}]))
+
+    def test_eager_above_balanced(self):
+        self.assertTrue(self.problems([self.BALANCED, {**self.EAGER, "suggestScore": 0.65}]))
+
+    def test_out_of_order_or_unknown_ids(self):
+        self.assertTrue(self.problems([self.EAGER, self.BALANCED]))
+        self.assertTrue(self.problems([{**self.BALANCED, "id": "surer"}]))
+
+    def test_precision_out_of_range(self):
+        self.assertTrue(self.problems([{**self.BALANCED, "precision": 0}]))
+        self.assertTrue(self.problems([self.BALANCED], precision=1.2))
+
+    def test_measured_entries_have_no_problems(self):
+        for entry in manifest.NAMING_MEASURED:
+            self.assertEqual(manifest.level_problems(entry["naming"]), [], entry["detectorIds"])
 
 
 class BuildManifestTests(unittest.TestCase):

@@ -32,6 +32,20 @@ def write_report(results, path):
             f"| {key} | {b['min_open']:.2f} | {_bar(b['suggest'])} | {_bar(b['suggest_no_location'])} | "
             f"{_bar(b['confident'])} | {_bar(b['confident_no_location'])} | {', '.join(e['switched off']) or 'none'} |"
         )
+    lines += ["", "## Naming levels", ""]
+    lines += ["Under the gated bars, each held to the same junk cap; precision and coverage with a location."]
+    lines += ["", "| Run | level | target | suggest | suggest, no location | precision | coverage | junk named |"]
+    lines += ["| --- | --- | --- | --- | --- | --- | --- | --- |"]
+    for key, e in results["evaluations"].items():
+        if not e.get("levels"):
+            lines.append(f"| {key} | none | | | | | | |")
+        for level in e.get("levels", []):
+            b, h = level["bars"], level["held-out"]
+            lines.append(
+                f"| {key} | {level['id']} | {level['target']:.2f} | {_bar(b['suggest'])} | "
+                f"{_bar(b['suggest_no_location'])} | {_pct(h['precision'])} | {_pct(h['coverage'])} | "
+                f"{_pct(h['junk named'])} |"
+            )
     lines += ["", "## Held-out natural sample", ""]
     lines += [
         "| Run | photos | any box | largest named right | top-1 / top-3 with location | "

@@ -262,8 +262,67 @@ def naming_for(detector_ids, classifier_id, crop_fit, contents, measured=NAMING_
             and crop_fit == entry["cropFit"]
             and contents == entry["contents"]
         ):
-            return dict(entry["naming"])
+            return copy.deepcopy(entry["naming"])
     return dict(NAMING_PROVISIONAL)
+
+
+# The naming levels a manifest may carry, surest first (issue #4721). Surer
+# is the naming block's own bars and is never listed.
+LEVEL_IDS = ("balanced", "eager")
+# The naming keys a republished manifest may change: the levels and the
+# accuracy measured at them. Anything else needs a new pack version.
+LEVEL_KEYS = ("precision", "levels")
+
+
+def level_problems(naming):
+    """What is wrong with a naming block's levels, as messages; empty when
+    nothing is. Each level is a known id, in order, with each bar no higher
+    than the level above it (Surer first) and a precision in (0, 1]."""
+    problems = []
+    precision = naming.get("precision")
+    if precision is not None and not 0 < precision <= 1:
+        problems.append(f"precision {precision} is not in (0, 1]")
+    levels = naming.get("levels", [])
+    ids = [level.get("id") for level in levels]
+    if ids != [i for i in LEVEL_IDS if i in ids] or len(set(ids)) != len(ids):
+        problems.append(f"levels {ids} are not a subset of {list(LEVEL_IDS)} in order")
+    above = (naming["suggestScore"], naming["suggestScoreNoLocation"])
+    for level in levels:
+        bars = (level.get("suggestScore"), level.get("suggestScoreNoLocation"))
+        if not all(isinstance(b, (int, float)) and 0 <= b <= a for b, a in zip(bars, above)):
+            problems.append(f"{level.get('id')} bars {bars} are not at or below {above}")
+        if not 0 < level.get("precision", 0) <= 1:
+            problems.append(f"{level.get('id')} precision {level.get('precision')} is not in (0, 1]")
+        above = bars
+    return problems
+
+
+def relevel(published, measured=NAMING_MEASURED):
+    """`published` (a manifest as JSON) with the naming levels measured for
+    its exact pack, keeping its pack version, so a device that has the pack
+    takes the new manifest without downloading (issue #4721). Raises
+    ValueError when the pack has no measured bars, or when anything but the
+    levels and their precision would change."""
+    classifier = published["classifier"]
+    naming = naming_for(
+        [d["id"] for d in published["detectors"]],
+        classifier["id"],
+        classifier["cropFit"],
+        contents_of(published["files"]),
+        measured,
+    )
+    if naming.get("provisional", True):
+        raise ValueError(f"pack {published['packVersion']} has no measured bars")
+    current = published["naming"]
+    changed = sorted(k for k in set(current) | set(naming) if k not in LEVEL_KEYS and current.get(k) != naming.get(k))
+    if changed:
+        raise ValueError(f"republishing would change {changed}; that needs a new pack version")
+    problems = level_problems(naming)
+    if problems:
+        raise ValueError("; ".join(problems))
+    out = copy.deepcopy(published)
+    out["naming"] = naming
+    return out
 
 
 def build_manifest(
