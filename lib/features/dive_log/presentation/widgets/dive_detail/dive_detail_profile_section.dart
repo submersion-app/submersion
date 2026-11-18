@@ -187,14 +187,12 @@ class DiveDetailProfileSection extends ConsumerWidget {
     required EditSession<Dive>? editing,
   }) {
     final scope = RecordEditScope.maybeOf<Dive>(context);
-    // A page that offers editing changes the profile in the open card only.
-    final readOnly = scope != null && editing == null;
     final session = editing ?? scope?.session;
-    // In the open card, annotations are edited only once the sitting holds
-    // them: until then (or after a failed read) a pin, a move or a removal
-    // would go nowhere.
+    // The profile is changed in the open card only (issue #4527), and its
+    // annotations only once the sitting holds them: until then (or after a
+    // failed read) a pin, a move or a removal would go nowhere.
     final annotationsReadOnly =
-        readOnly || (editing != null && sittingAnnotations(editing) == null);
+        editing == null || sittingAnnotations(editing) == null;
     final annotationActions = DiveDetailAnnotationActions(
       ref: ref,
       context: context,
@@ -322,7 +320,8 @@ class DiveDetailProfileSection extends ConsumerWidget {
                 viewport: viewport,
                 onViewportChanged: onViewportChanged,
                 annotationActions: annotationActions,
-                findingsDismissable: scope == null,
+                // Findings are dismissed in the open Safety review card.
+                findingsDismissable: false,
                 annotationsInSitting: annotationsInSitting,
                 gasSwitchesInSitting: gasSwitchesInSitting,
                 safetyReviewInSitting: session == null
@@ -358,17 +357,14 @@ class DiveDetailProfileSection extends ConsumerWidget {
     // Root navigator, not the ShellRoute's: pushing on the shell navigator
     // renders the page inside MainScaffold, leaving the bottom navigation
     // bar painted under a supposedly fullscreen chart (#811).
-    // On a page that offers editing, the fullscreen page edits only the open
-    // Profile card's sitting, and otherwise reads (issue #4527).
-    final readOnly = RecordEditScope.maybeOf<Dive>(context) != null;
-    final session = editing;
+    // The fullscreen page edits only the open Profile card's sitting, and
+    // otherwise reads (issue #4527).
     Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute(
         builder: (context) => FullscreenProfilePage(
           diveId: diveId,
           onOpenInNotes: onOpenInNotes,
-          session: session,
-          readOnly: readOnly && session == null,
+          session: editing,
         ),
       ),
     );

@@ -8302,11 +8302,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_edit_addWeightEntry => 'Add Weight Entry';
 
   @override
-  String diveLog_edit_addedGps(Object name) {
-    return 'Added GPS to $name';
-  }
-
-  @override
   String get diveLog_edit_appBarNew => 'Log Dive';
 
   @override
@@ -10129,11 +10124,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String siteSuggestion_addLocationButton(Object name) {
     return 'Add location to $name';
-  }
-
-  @override
-  String siteSuggestion_assignedSnack(Object name) {
-    return 'Assigned $name';
   }
 
   @override
@@ -20245,11 +20235,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_diveMediaSection_unlinkButton => 'Unlink';
 
   @override
-  String media_diveMediaSection_unlinkError(Object error) {
-    return 'Failed to unlink: $error';
-  }
-
-  @override
   String media_diveMediaSection_unlinkSelectedButton(int count) {
     return 'Unlink $count';
   }
@@ -20257,11 +20242,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String media_diveMediaSection_unlinkSelectedContent(int count) {
     return 'Removes $count media items from your library, along with their cloud copies and thumbnails. Media a dive site still uses is kept. Your original files are not affected.';
-  }
-
-  @override
-  String media_diveMediaSection_unlinkSelectedSuccess(int count) {
-    return 'Unlinked $count items';
   }
 
   @override
@@ -20488,11 +20468,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get media_diveScan_cancelButton => 'Cancel';
-
-  @override
-  String media_diveScan_error(String error) {
-    return 'Error scanning gallery: $error';
-  }
 
   @override
   String media_gpsBanner_coordinates(Object coordinates) {
@@ -28755,11 +28730,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_speciesId_entrySubtitle =>
-      'Find fish in your photos and suggest what they are';
+      'Find fish in your photos and videos and suggest what they are';
 
   @override
   String get settings_speciesId_intro =>
-      'Finds fish in your photos and suggests what they are. Runs on this device. Your photos never leave it.';
+      'Finds fish in your photos and videos and suggests what they are. Runs on this device. Your photos and videos never leave it.';
 
   @override
   String get settings_speciesId_model => 'Model';
@@ -28834,7 +28809,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'This model needs a newer version of Submersion.';
 
   @override
-  String get settings_speciesId_toggle => 'Identify fish when I open a photo';
+  String get settings_speciesId_toggle =>
+      'Identify fish when I open a photo or video';
 
   @override
   String get settings_speciesId_kept => 'Suggestions kept on this device';
@@ -31157,10 +31133,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get signatures_error_enterSignerName => 'Please enter the signer name';
-
-  @override
-  String get signatures_error_saveFailed =>
-      'Could not save the signature. Please try again.';
 
   @override
   String get signatures_field_instructorName => 'Instructor Name';
@@ -55355,6 +55327,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_species_identifying => 'Looking for fish...';
 
   @override
+  String get media_species_sheetTitleVideo => 'Species in this video';
+
+  @override
+  String media_species_scanProgress(String percent) {
+    return 'Looking for fish, $percent';
+  }
+
+  @override
+  String get media_species_unnamedFish => 'Unnamed fish, tap to name';
+
+  @override
+  String get media_species_unnamedFishLocked => 'Unnamed fish';
+
+  @override
   String get media_species_possibleMatches => 'Possible matches';
 
   @override
@@ -55444,13 +55430,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get media_people_removedBuddy => 'Removed buddy';
-
-  @override
-  String get media_people_saveFailed => 'Couldn\'t save the tag. Try again.';
-
-  @override
-  String get media_people_addToDiveFailed =>
-      'Couldn\'t add the buddy to this dive. Try again.';
 
   @override
   String get media_people_createBuddyFailed =>
@@ -57744,9 +57723,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_reassignSheet_noSeries => 'No pressure series';
-
-  @override
-  String get diveLog_reassignSheet_applied => 'Pressure series reassigned';
 
   @override
   String get universalImport_summary_noticeUnknownTransmitterTitle =>

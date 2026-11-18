@@ -15,15 +15,15 @@ enum _TankGearAction { add, link, unlink }
 /// no gear item can become a new cylinder or be linked to one the diver
 /// owns; a linked tank can be unlinked, so a wrong link (a rental logged
 /// against the diver's own cylinder) is undone without deleting anything.
-/// Every action writes at once, so the host shows this only where the
-/// Tanks card may write (#4527).
+/// Every action writes at once, a whole-record operation run through the
+/// dive page's lock (#4527).
 class TankGearMenu extends ConsumerWidget {
   const TankGearMenu({
     super.key,
     required this.dive,
     required this.tank,
     required this.operationReason,
-    this.runAsOperation,
+    required this.runAsOperation,
   });
 
   final Dive dive;
@@ -34,9 +34,8 @@ class TankGearMenu extends ConsumerWidget {
   /// button is drawn disabled with this as its tooltip.
   final String? operationReason;
 
-  /// Runs the chosen action as the page's whole-record operation. Null
-  /// runs it directly, as off such a page.
-  final RecordOperationRunner? runAsOperation;
+  /// Runs the chosen action as the page's whole-record operation.
+  final RecordOperationRunner runAsOperation;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -49,11 +48,7 @@ class TankGearMenu extends ConsumerWidget {
       // Horizontal, so the page's own overflow stays the only vertical one
       // on the dive page.
       icon: const Icon(Icons.more_horiz),
-      onSelected: (action) {
-        Future<bool> act() => _run(context, ref, action);
-        final run = runAsOperation;
-        run == null ? act() : run(act);
-      },
+      onSelected: (action) => runAsOperation(() => _run(context, ref, action)),
       itemBuilder: (context) => [
         if (!linked) ...[
           PopupMenuItem(

@@ -76,40 +76,21 @@ void main() {
   Future<Set<String>> tagIds() async =>
       ((await links.getTagIdsByItem(['m1']))['m1'] ?? const <String>[]).toSet();
 
-  testWidgets('the tag sheet saves a typed tag at once', (tester) async {
-    await pump(tester, MediaTagSheet(item: item));
-
-    await tester.enterText(
-      find.descendant(
-        of: find.byType(TagInputWidget),
-        matching: find.byType(TextField),
-      ),
-      'Funny',
-    );
-    await tester.testTextInput.receiveAction(TextInputAction.done);
-    await tester.pumpAndSettle();
-
-    final stored = await tester.runAsync(() async {
-      final ids = await tagIds();
-      return ids;
-    });
-    expect(stored, hasLength(1));
-    expect(find.text('Funny'), findsOneWidget);
-    // The tag input refocuses on a short timer after a submit.
-    await tester.pump(const Duration(seconds: 1));
-  });
-
   testWidgets('the keyboard never covers the tag sheet\'s field (#4406)', (
     tester,
   ) async {
     // pump() sizes the view to 800 x 1200; the keyboard takes half of it.
     tester.view.viewInsets = const FakeViewPadding(bottom: 600);
+    final sitting = EditSession<PhotoRecord>(
+      PhotoRecord(item: item, species: const [], people: const []),
+    );
+    addTearDown(sitting.dispose);
     await pump(
       tester,
       Scaffold(
         body: Builder(
           builder: (context) => TextButton(
-            onPressed: () => showMediaTagSheet(context, item),
+            onPressed: () => showMediaTagSheet(context, item, sitting: sitting),
             child: const Text('open'),
           ),
         ),
@@ -125,9 +106,7 @@ void main() {
     expect(tester.getBottomLeft(field).dy, lessThanOrEqualTo(1200 - 600));
   });
 
-  testWidgets('the info card lists the tags and offers Edit tags', (
-    tester,
-  ) async {
+  testWidgets('the info card lists the stored tags', (tester) async {
     await pump(tester, Scaffold(body: MediaInfoTagsSection(item: item)));
     expect(find.text('No tags yet'), findsOneWidget);
 
@@ -136,10 +115,6 @@ void main() {
 
     expect(find.byTooltip('Show media tagged Wreck'), findsOneWidget);
     expect(find.text('No tags yet'), findsNothing);
-
-    await tester.tap(find.byKey(const ValueKey('media_info_editTags')));
-    await tester.pumpAndSettle();
-    expect(find.byType(MediaTagSheet), findsOneWidget);
   });
 
   testWidgets('the filter sheet offers media tags and applies them', (
@@ -188,6 +163,31 @@ void main() {
       addTearDown(session.dispose);
       return session;
     }
+
+    testWidgets('with no sitting: the card offers no Edit tags', (
+      tester,
+    ) async {
+      // Edit tags holds its change in a sitting; without one it would have
+      // to write at once, outside the photo's lock.
+      await pump(tester, Scaffold(body: MediaInfoTagsSection(item: item)));
+
+      expect(find.byKey(const ValueKey('media_info_editTags')), findsNothing);
+    });
+
+    testWidgets('in a sitting: Edit tags opens the tag sheet', (tester) async {
+      final sitting = sittingOver();
+      await pump(
+        tester,
+        Scaffold(
+          body: MediaInfoTagsSection(item: item, sitting: sitting),
+        ),
+      );
+
+      await tester.tap(find.byKey(const ValueKey('media_info_editTags')));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(MediaTagSheet), findsOneWidget);
+    });
 
     testWidgets('read only: the tags section offers no Edit tags', (
       tester,

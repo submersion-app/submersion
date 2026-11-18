@@ -15,6 +15,7 @@ import 'package:submersion/features/transmitters/domain/entities/transmitter.dar
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
 
 import '../../../../helpers/test_app.dart';
+import 'dive_card_scope.dart';
 
 /// The Tanks card names each cylinder's role and draws the glyph for how it
 /// is carried (issue #2901).
@@ -45,18 +46,20 @@ Widget _card(List<DiveTank> tanks, {Locale locale = const Locale('en')}) {
       transmittersProvider.overrideWith((ref) async => const <Transmitter>[]),
     ],
     child: SingleChildScrollView(
-      child: CylindersCard(
-        dive: Dive(
-          id: 'dive-1',
-          diveNumber: 1,
-          dateTime: DateTime(2026, 6, 1, 10),
-          maxDepth: 30,
-          bottomTime: const Duration(minutes: 45),
-          tanks: tanks,
+      child: onDivePage(
+        CylindersCard(
+          dive: Dive(
+            id: 'dive-1',
+            diveNumber: 1,
+            dateTime: DateTime(2026, 6, 1, 10),
+            maxDepth: 30,
+            bottomTime: const Duration(minutes: 45),
+            tanks: tanks,
+          ),
+          units: const UnitFormatter(_settings),
+          settings: _settings,
+          display: GasConsumptionDisplay.sac,
         ),
-        units: const UnitFormatter(_settings),
-        settings: _settings,
-        display: GasConsumptionDisplay.sac,
       ),
     ),
   );

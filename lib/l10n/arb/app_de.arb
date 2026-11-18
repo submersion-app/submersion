@@ -2869,7 +2869,6 @@
   "diveLog_edit_addCustomField": "Feld hinzufügen",
   "diveLog_edit_addTank": "Flasche hinzufügen",
   "diveLog_edit_addWeightEntry": "Gewichtseintrag hinzufügen",
-  "diveLog_edit_addedGps": "GPS zu {name} hinzugefügt",
   "diveLog_edit_appBarNew": "Tauchgang erfassen",
   "diveLog_edit_cancel": "Abbrechen",
   "diveLog_edit_clearAllEquipment": "Alle entfernen",
@@ -3333,7 +3332,6 @@
   "siteSuggestion_assignButton": "{name} zuweisen",
   "siteSuggestion_chooseNearbyButton": "Nahegelegenen Tauchplatz wählen ({count})",
   "siteSuggestion_addLocationButton": "Standort zu {name} hinzufügen",
-  "siteSuggestion_assignedSnack": "{name} zugewiesen",
   "siteTypes_addTooltip": "Tauchplatztyp hinzufügen",
   "siteTypes_builtIn": "Integriert",
   "siteTypes_custom": "Benutzerdefiniert",
@@ -6110,10 +6108,8 @@
   "media_diveMediaSection_replaceEditedContent": "Der Inhalt dieser Datei unterscheidet sich vom Original. Beim Neuverknüpfen wird sie erneut in deinen Medienspeicher hochgeladen.",
   "media_diveMediaSection_replaceEditedTitle": "Dateiinhalt unterscheidet sich",
   "media_diveMediaSection_unlinkButton": "Trennen",
-  "media_diveMediaSection_unlinkError": "Trennen fehlgeschlagen: {error}",
   "media_diveMediaSection_unlinkSelectedButton": "{count} trennen",
   "media_diveMediaSection_unlinkSelectedContent": "Entfernt {count} Medien samt Cloud-Kopien und Miniaturansichten aus deiner Mediathek. Medien, die ein Tauchplatz noch verwendet, bleiben erhalten. Deine Originaldateien bleiben unberührt.",
-  "media_diveMediaSection_unlinkSelectedSuccess": "{count} Elemente getrennt",
   "media_diveMediaSection_unlinkSelectedTitle": "{count} Elemente trennen?",
   "media_library_unlinkConfirmTitle": "{count} Elemente trennen?",
   "media_siteMediaSection_unlinkError": "Trennen fehlgeschlagen: {error}",
@@ -8517,8 +8513,8 @@
   "settings_backups_title": "Sicherungen",
   "settings_photosVideos_title": "Fotos & Videos",
   "settings_speciesId_title": "Meereslebewesen erkennen",
-  "settings_speciesId_entrySubtitle": "Fische in deinen Fotos finden und Arten vorschlagen",
-  "settings_speciesId_intro": "Findet Fische in deinen Fotos und schlägt vor, welche Art es ist. Läuft auf diesem Gerät. Deine Fotos verlassen es nie.",
+  "settings_speciesId_entrySubtitle": "Fische in deinen Fotos und Videos finden und Arten vorschlagen",
+  "settings_speciesId_intro": "Findet Fische in deinen Fotos und Videos und schlägt vor, welche Art es ist. Läuft auf diesem Gerät. Deine Fotos und Videos verlassen es nie.",
   "settings_speciesId_model": "Modell",
   "settings_speciesId_modelNotDownloaded": "Nicht heruntergeladen",
   "settings_speciesId_modelNotAvailable": "Noch nicht verfügbar",
@@ -8537,7 +8533,7 @@
   "settings_speciesId_downloadFailed": "Der Download wurde nicht abgeschlossen. Versuche es erneut, um dort weiterzumachen, wo er aufgehört hat.",
   "settings_speciesId_downloadNoSpace": "Auf diesem Gerät ist nicht genug Speicherplatz frei.",
   "settings_speciesId_needsAppUpdate": "Dieses Modell erfordert eine neuere Version von Submersion.",
-  "settings_speciesId_toggle": "Fische beim Öffnen eines Fotos erkennen",
+  "settings_speciesId_toggle": "Fische beim Öffnen eines Fotos oder Videos erkennen",
   "settings_speciesId_kept": "Auf diesem Gerät gespeicherte Vorschläge",
   "settings_speciesId_keptValue": "{count} ({size})",
   "settings_speciesId_clear": "Vorschläge löschen",
@@ -9208,7 +9204,6 @@
   "signatures_drawSignatureSemantics": "Signatur zeichnen",
   "signatures_error_drawSignature": "Bitte zeichne eine Signatur",
   "signatures_error_enterSignerName": "Bitte gib den Namen des Unterzeichners ein",
-  "signatures_error_saveFailed": "Die Unterschrift konnte nicht gespeichert werden. Bitte versuche es erneut.",
   "signatures_field_instructorName": "Tauchlehrername",
   "signatures_field_instructorNameHint": "Tauchlehrernamen eingeben",
   "signatures_handoff_title": "Gib dein Gerät an",
@@ -11109,14 +11104,6 @@
     }
   },
   "media_diveScan_cancelButton": "Abbrechen",
-  "media_diveScan_error": "Fehler beim Durchsuchen der Galerie: {error}",
-  "@media_diveScan_error": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
   "settings_appearance_metricsEnabledCount": "{count} von {total} aktiviert",
   "@settings_appearance_metricsEnabledCount": {
     "placeholders": {
@@ -16751,6 +16738,10 @@
   "media_species_addAll": "Alle hinzufügen",
   "media_species_dismiss": "Vorschlag verwerfen",
   "media_species_identifying": "Suche nach Fischen...",
+  "media_species_sheetTitleVideo": "Arten in diesem Video",
+  "media_species_scanProgress": "Suche nach Fischen, {percent}",
+  "media_species_unnamedFish": "Unbenannter Fisch, zum Benennen tippen",
+  "media_species_unnamedFishLocked": "Unbenannter Fisch",
   "media_species_possibleMatches": "Mögliche Treffer",
   "media_species_cropUnavailable": "Bild nicht auf diesem Gerät",
   "media_species_taggedOnPhoto": "Auf diesem Foto markiert",
@@ -16779,8 +16770,6 @@
   "media_people_buddyThumbnailLabel": "Foto oder Video mit diesem Tauchpartner",
   "media_people_filterSection": "Personen",
   "media_people_removedBuddy": "Entfernter Tauchpartner",
-  "media_people_saveFailed": "Die Markierung konnte nicht gespeichert werden. Versuche es erneut.",
-  "media_people_addToDiveFailed": "Der Tauchpartner konnte diesem Tauchgang nicht hinzugefügt werden. Versuche es erneut.",
   "media_people_createBuddyFailed": "Der Tauchpartner konnte nicht angelegt werden. Versuche es erneut.",
   "media_info_fileSection": "Datei",
   "media_info_filename": "Dateiname",
@@ -17405,7 +17394,6 @@
   "diveLog_reassignSheet_moveTo": "Verschieben nach",
   "diveLog_reassignSheet_readings": "{count, plural, =1{1 Messwert} other{{count} Messwerte}}",
   "diveLog_reassignSheet_noSeries": "Kein Druckverlauf",
-  "diveLog_reassignSheet_applied": "Druckverlauf neu zugeordnet",
   "universalImport_summary_noticeUnknownTransmitterTitle": "Nicht zugewiesene Sender",
   "universalImport_summary_noticeUnknownTransmitterBody": "Ein oder mehrere Sender in diesem Download sind keiner Flasche zugewiesen. Weise sie zu, damit künftige Downloads die richtige Größe und Rolle erhalten.",
   "universalImport_summary_noticeAssignTransmitters": "Sender zuweisen",

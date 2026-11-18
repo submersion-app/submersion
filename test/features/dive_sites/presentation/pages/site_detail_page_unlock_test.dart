@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -256,6 +258,48 @@ void main() {
       isNull,
     );
   });
+
+  // A reload of the role or the connection (a library's details changing,
+  // a sync) is not a loss of the right to edit: only a settled answer that
+  // says so ends the sitting.
+  for (final fails in [false, true]) {
+    testWidgets('a role that reloads${fails ? ' and fails' : ''} keeps the '
+        'sitting', (tester) async {
+      Completer<SharedLibraryRole>? reload;
+      final page = await pumpSitePage(
+        tester,
+        site: harnessSite.copyWith(sharedLibraryId: 'L'),
+        extra: [
+          libraryRoleProvider('L').overrideWith(
+            (ref) => reload?.future ?? Future.value(SharedLibraryRole.editor),
+          ),
+          libraryConnectedHereProvider('L').overrideWith((ref) async => true),
+          siteLibraryStateProvider('s1').overrideWith((ref) async => null),
+          libraryMemberNamesProvider('L').overrideWith((ref) async => const {}),
+        ],
+      );
+      await unlock(tester);
+      await openNotes(tester);
+      await typeNotes(tester, 'Choppy');
+
+      final waiting = reload = Completer<SharedLibraryRole>();
+      page.container.invalidate(libraryRoleProvider('L'));
+      await tester.pump();
+      await tester.pump();
+      expect(find.byType(RecordEditBar), findsOneWidget);
+
+      if (fails) {
+        waiting.completeError(StateError('offline'));
+      } else {
+        waiting.complete(SharedLibraryRole.editor);
+      }
+      await tester.pumpAndSettle();
+
+      expect(find.byType(RecordEditBar), findsOneWidget);
+      expect(find.text(l.diveSites_edit_editingWithdrawn), findsNothing);
+      expect(find.text('Choppy'), findsWidgets);
+    });
+  }
 
   testWidgets('losing the right to edit during a sitting locks the page', (
     tester,

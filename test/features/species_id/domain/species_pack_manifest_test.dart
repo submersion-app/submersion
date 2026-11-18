@@ -16,12 +16,19 @@ void main() {
 
       expect(m.formatVersion, 1);
       expect(m.packVersion, '2026.11.1');
-      expect(m.detector.id, 'cfd-rfdetr-nano-640-20260706');
-      expect(m.detector.inputSize, 640);
-      expect(m.detector.mean, [0.485, 0.456, 0.406]);
-      expect(m.detector.scoreThreshold, 0.3);
-      expect(m.detector.maxBoxes, 8);
-      expect(m.detector.cropPadding, 0.10);
+      // A format 1 pack is one fish detector, as every earlier app ran it.
+      final detector = m.detectors.single;
+      expect(detector.id, 'cfd-rfdetr-nano-640-20260706');
+      expect(detector.format, DetectorFormat.rfdetr);
+      expect(detector.file, 'detector');
+      expect(detector.inputSize, 640);
+      expect(detector.mean, [0.485, 0.456, 0.406]);
+      expect(detector.scoreThreshold, 0.3);
+      expect(detector.maxBoxes, 8);
+      expect(m.boxes.cropPadding, 0.10);
+      expect(m.boxes.maxBoxes, 8);
+      expect(m.boxes.mergeIoU, 0.5);
+      expect(m.detectorSetId, 'cfd-rfdetr-nano-640-20260706');
       expect(m.classifier.id, 'bioclip-2-vitl14-2957b32');
       expect(m.classifier.embeddingSize, 768);
       expect(m.classifier.logitScale, 100.0);
@@ -44,7 +51,7 @@ void main() {
     test('an unknown format version is refused', () {
       expect(
         () => SpeciesPackManifest.parse(
-          manifestJson((m) => m['formatVersion'] = 2),
+          manifestJson((m) => m['formatVersion'] = 3),
         ),
         throwsA(
           isA<PackManifestException>().having(
@@ -164,7 +171,7 @@ void main() {
       expect(
         VisionModels.fromManifest(
           m,
-          detectorPath: '/d',
+          detectorPaths: const ['/d'],
           classifierPath: '/c',
         ).cropFit,
         CropFit.centreCrop,
@@ -238,11 +245,226 @@ void main() {
     });
 
     test('the model file names follow the engine', () {
-      expect(SpeciesPackManifest.detectorFile('coreml'), 'detector.coreml.zip');
+      expect(
+        SpeciesPackManifest.modelFile('detector', 'coreml'),
+        'detector.coreml.zip',
+      );
+      expect(
+        SpeciesPackManifest.modelFile('detector-megalodon', 'coreml'),
+        'detector-megalodon.coreml.zip',
+      );
       expect(
         SpeciesPackManifest.classifierFile('coreml'),
         'classifier.coreml.zip',
       );
+    });
+  });
+
+  group('format 2, one or two detectors', () {
+    Matcher malformed() => throwsA(
+      isA<PackManifestException>().having(
+        (e) => e.reason,
+        'reason',
+        PackManifestFailure.malformed,
+      ),
+    );
+
+    test('parses both detectors and how their boxes are merged', () {
+      final m = SpeciesPackManifest.parse(manifestV2Json());
+
+      expect(m.formatVersion, 2);
+      expect(m.detectors, hasLength(2));
+      expect(m.detectors[0].id, 'cfd-rfdetr-nano-640-20260706');
+      expect(m.detectors[0].format, DetectorFormat.rfdetr);
+      expect(m.detectors[0].file, 'detector');
+      expect(m.detectors[1].id, 'megalodon-yolo11x-403704d');
+      expect(m.detectors[1].format, DetectorFormat.yolo);
+      expect(m.detectors[1].file, 'detector-megalodon');
+      expect(m.detectors[1].mean, [0.0, 0.0, 0.0]);
+      expect(m.detectors[1].std, [1.0, 1.0, 1.0]);
+      expect(m.detectors[1].scoreThreshold, 0.25);
+      expect(m.detectors[1].maxBoxes, 8);
+      expect(m.boxes.mergeIoU, 0.5);
+      expect(m.boxes.maxBoxes, 8);
+      expect(m.boxes.cropPadding, 0.10);
+    });
+
+    test('a pair is stored as both ids, in the pack order', () {
+      final m = SpeciesPackManifest.parse(manifestV2Json());
+
+      expect(
+        m.detectorSetId,
+        'cfd-rfdetr-nano-640-20260706+megalodon-yolo11x-403704d',
+      );
+    });
+
+    test('one detector is stored as its own id', () {
+      final m = SpeciesPackManifest.parse(
+        manifestV2Json((m) => detectorsOf(m).removeAt(0)),
+      );
+
+      expect(m.detectors.single.format, DetectorFormat.yolo);
+      expect(m.detectorSetId, 'megalodon-yolo11x-403704d');
+    });
+
+    test('no detector is malformed', () {
+      expect(
+        () => SpeciesPackManifest.parse(
+          manifestV2Json((m) => m['detectors'] = <Object?>[]),
+        ),
+        malformed(),
+      );
+    });
+
+    test('three detectors are malformed', () {
+      expect(
+        () => SpeciesPackManifest.parse(
+          manifestV2Json((m) {
+            final third = Map<String, Object?>.of(detectorsOf(m).last)
+              ..['file'] = 'detector-third';
+            (m['detectors']! as List).add(third);
+          }),
+        ),
+        malformed(),
+      );
+    });
+
+    test('a detector format this app does not know is malformed', () {
+      expect(
+        () => SpeciesPackManifest.parse(
+          manifestV2Json((m) => detectorsOf(m).last['format'] = 'ssd'),
+        ),
+        malformed(),
+      );
+    });
+
+    test('a detector with no format is malformed', () {
+      expect(
+        () => SpeciesPackManifest.parse(
+          manifestV2Json((m) => detectorsOf(m).last.remove('format')),
+        ),
+        malformed(),
+      );
+    });
+
+    test('a detector file that is not a safe name is malformed', () {
+      expect(
+        () => SpeciesPackManifest.parse(
+          manifestV2Json((m) => detectorsOf(m).last['file'] = '../escape'),
+        ),
+        malformed(),
+      );
+    });
+
+    test('two detectors sharing a file are malformed', () {
+      expect(
+        () => SpeciesPackManifest.parse(
+          manifestV2Json((m) => detectorsOf(m).last['file'] = 'detector'),
+        ),
+        malformed(),
+      );
+    });
+
+    test('a format 1 pack cannot gain a detector after parsing', () {
+      final m = SpeciesPackManifest.parse(manifestJson());
+      final more = m.detectors.single.copyWith(id: 'other', file: 'other');
+
+      expect(() => m.detectors.add(more), throwsUnsupportedError);
+    });
+
+    test('a detector file must be a plain name, not a data file', () {
+      for (final file in [
+        'candidates.json',
+        'manifest.json',
+        'regions.bin',
+        'detector.coreml.zip',
+      ]) {
+        expect(
+          () => SpeciesPackManifest.parse(
+            manifestV2Json((m) => detectorsOf(m).last['file'] = file),
+          ),
+          malformed(),
+          reason: file,
+        );
+      }
+    });
+
+    test('detector files differing only in case are malformed', () {
+      expect(
+        () => SpeciesPackManifest.parse(
+          manifestV2Json((m) => detectorsOf(m).last['file'] = 'Detector'),
+        ),
+        malformed(),
+      );
+      expect(
+        () => SpeciesPackManifest.parse(
+          manifestV2Json((m) => detectorsOf(m).last['file'] = 'Classifier'),
+        ),
+        malformed(),
+      );
+    });
+
+    test('a detector id with a plus sign is malformed', () {
+      // A pair is stored as both ids joined with a plus sign, so a single id
+      // holding one could read as a pair.
+      expect(
+        () => SpeciesPackManifest.parse(
+          manifestV2Json((m) => detectorsOf(m).last['id'] = 'a+b'),
+        ),
+        malformed(),
+      );
+      expect(
+        () => SpeciesPackManifest.parse(
+          manifestJson((m) => (m['detector']! as Map)['id'] = 'a+b'),
+        ),
+        malformed(),
+      );
+    });
+
+    test('a detector named like the classifier is malformed', () {
+      expect(
+        () => SpeciesPackManifest.parse(
+          manifestV2Json((m) => detectorsOf(m).last['file'] = 'classifier'),
+        ),
+        malformed(),
+      );
+    });
+
+    test('no boxes block is malformed', () {
+      expect(
+        () =>
+            SpeciesPackManifest.parse(manifestV2Json((m) => m.remove('boxes'))),
+        malformed(),
+      );
+    });
+
+    test('a merge overlap outside 0 to 1 is malformed', () {
+      for (final value in [0, 1.5]) {
+        expect(
+          () => SpeciesPackManifest.parse(
+            manifestV2Json((m) => (m['boxes']! as Map)['mergeIoU'] = value),
+          ),
+          malformed(),
+        );
+      }
+    });
+
+    test('every detector model is needed for an engine', () {
+      final whole = SpeciesPackManifest.parse(manifestV2Json());
+      expect(whole.supportsEngine('coreml'), isTrue);
+      expect(
+        whole.downloadBytesFor('coreml'),
+        55000000 + 110000000 + 600000000 + 1000000 + 12000000 + 2000000,
+      );
+
+      final missing = SpeciesPackManifest.parse(
+        manifestV2Json(
+          (m) => (m['files']! as List).removeWhere(
+            (f) => (f as Map)['name'] == 'detector-megalodon.coreml.zip',
+          ),
+        ),
+      );
+      expect(missing.supportsEngine('coreml'), isFalse);
     });
   });
 

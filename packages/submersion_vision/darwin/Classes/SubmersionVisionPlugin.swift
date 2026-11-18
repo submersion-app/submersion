@@ -13,6 +13,16 @@ import AppKit
 public class SubmersionVisionPlugin: NSObject, FlutterPlugin {
   private let queue = DispatchQueue(label: "app.submersion.vision", qos: .userInitiated)
   private let pipeline = VisionPipeline()
+  private lazy var scanner = VideoScanner(pipeline: pipeline)
+
+  /// Whether the app is in the foreground, where iOS lets it use the GPU.
+  /// Written on the main thread, read on the queue between video frames.
+  private let activeLock = NSLock()
+  private var _active = true
+  private var isActive: Bool {
+    get { activeLock.lock(); defer { activeLock.unlock() }; return _active }
+    set { activeLock.lock(); _active = newValue; activeLock.unlock() }
+  }
 
   /// Devices with less memory than this cannot hold the embedding model.
   /// Phones sold as 6 GB report about 5.5 GiB.
@@ -34,8 +44,24 @@ public class SubmersionVisionPlugin: NSObject, FlutterPlugin {
       name: UIApplication.didReceiveMemoryWarningNotification,
       object: nil
     )
+    NotificationCenter.default.addObserver(
+      instance,
+      selector: #selector(enteredBackground),
+      name: UIApplication.didEnterBackgroundNotification,
+      object: nil
+    )
+    NotificationCenter.default.addObserver(
+      instance,
+      selector: #selector(enteringForeground),
+      name: UIApplication.willEnterForegroundNotification,
+      object: nil
+    )
+    instance.isActive = UIApplication.shared.applicationState != .background
     #endif
   }
+
+  @objc private func enteredBackground() { isActive = false }
+  @objc private func enteringForeground() { isActive = true }
 
   @objc private func memoryWarning() {
     queue.async { [pipeline] in pipeline.unload() }
@@ -53,6 +79,16 @@ public class SubmersionVisionPlugin: NSObject, FlutterPlugin {
       }
     case "analyze":
       run(result) { try self.pipeline.analyze(args) }
+    case "detectVideo":
+      run(result) {
+        try self.checkVideoAllowed()
+        return try self.scanner.detect(args) { self.isActive }
+      }
+    case "embedMoments":
+      run(result) {
+        try self.checkVideoAllowed()
+        return try self.scanner.embed(args) { self.isActive }
+      }
     case "unload":
       run(result) { self.pipeline.unload(); return nil }
     case "excludeFromBackup":
@@ -68,6 +104,16 @@ public class SubmersionVisionPlugin: NSObject, FlutterPlugin {
       }
     default:
       result(FlutterMethodNotImplemented)
+    }
+  }
+
+  /// A video scan runs only in the foreground (iOS refuses GPU work from
+  /// the background) and on a device that is not hot (issue #4675).
+  private func checkVideoAllowed() throws {
+    if !isActive { throw VisionError.notForeground }
+    switch ProcessInfo.processInfo.thermalState {
+    case .serious, .critical: throw VisionError.tooHot
+    default: break
     }
   }
 

@@ -8560,11 +8560,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_addWeightEntry => 'إضافة إدخال أثقال';
 
   @override
-  String diveLog_edit_addedGps(Object name) {
-    return 'تمت إضافة GPS إلى $name';
-  }
-
-  @override
   String get diveLog_edit_appBarNew => 'تسجيل غوصة';
 
   @override
@@ -10429,11 +10424,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String siteSuggestion_addLocationButton(Object name) {
     return 'إضافة الموقع إلى $name';
-  }
-
-  @override
-  String siteSuggestion_assignedSnack(Object name) {
-    return 'تم تعيين $name';
   }
 
   @override
@@ -20842,11 +20832,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_diveMediaSection_unlinkButton => 'إلغاء الربط';
 
   @override
-  String media_diveMediaSection_unlinkError(Object error) {
-    return 'فشل في إلغاء الربط: $error';
-  }
-
-  @override
   String media_diveMediaSection_unlinkSelectedButton(int count) {
     return 'إلغاء ربط $count';
   }
@@ -20854,11 +20839,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String media_diveMediaSection_unlinkSelectedContent(int count) {
     return 'يزيل $count من عناصر الوسائط من مكتبتك، مع نسخها السحابية والصور المصغرة. تبقى العناصر التي لا يزال موقع غوص يستخدمها. لن تتأثر ملفاتك الأصلية.';
-  }
-
-  @override
-  String media_diveMediaSection_unlinkSelectedSuccess(int count) {
-    return 'تم إلغاء ربط $count عنصر';
   }
 
   @override
@@ -21099,11 +21079,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get media_diveScan_cancelButton => 'إلغاء';
-
-  @override
-  String media_diveScan_error(String error) {
-    return 'خطأ في مسح المعرض: $error';
-  }
 
   @override
   String media_gpsBanner_coordinates(Object coordinates) {
@@ -29536,11 +29511,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_speciesId_entrySubtitle =>
-      'اعثر على الأسماك في صورك واقترح أنواعها';
+      'اعثر على الأسماك في صورك ومقاطع الفيديو واقترح أنواعها';
 
   @override
   String get settings_speciesId_intro =>
-      'يعثر على الأسماك في صورك ويقترح أنواعها. يعمل على هذا الجهاز. لا تغادر صورك الجهاز أبدًا.';
+      'يعثر على الأسماك في صورك ومقاطع الفيديو ويقترح أنواعها. يعمل على هذا الجهاز. لا تغادر صورك ومقاطع الفيديو الجهاز أبدًا.';
 
   @override
   String get settings_speciesId_model => 'النموذج';
@@ -29614,7 +29589,8 @@ class AppLocalizationsAr extends AppLocalizations {
       'يتطلب هذا النموذج إصدارًا أحدث من Submersion.';
 
   @override
-  String get settings_speciesId_toggle => 'التعرّف على الأسماك عند فتح صورة';
+  String get settings_speciesId_toggle =>
+      'التعرّف على الأسماك عند فتح صورة أو مقطع فيديو';
 
   @override
   String get settings_speciesId_kept => 'الاقتراحات المحفوظة على هذا الجهاز';
@@ -31972,10 +31948,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get signatures_error_enterSignerName => 'الرجاء إدخال اسم الموقع';
-
-  @override
-  String get signatures_error_saveFailed =>
-      'تعذر حفظ التوقيع. يرجى المحاولة مرة أخرى.';
 
   @override
   String get signatures_field_instructorName => 'اسم المدرب';
@@ -57026,6 +56998,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_species_identifying => 'جارٍ البحث عن الأسماك...';
 
   @override
+  String get media_species_sheetTitleVideo => 'الأنواع في هذا الفيديو';
+
+  @override
+  String media_species_scanProgress(String percent) {
+    return 'جارٍ البحث عن الأسماك، $percent';
+  }
+
+  @override
+  String get media_species_unnamedFish => 'سمكة بلا اسم، اضغط لتسميتها';
+
+  @override
+  String get media_species_unnamedFishLocked => 'سمكة بلا اسم';
+
+  @override
   String get media_species_possibleMatches => 'تطابقات محتملة';
 
   @override
@@ -57115,13 +57101,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get media_people_removedBuddy => 'رفيق محذوف';
-
-  @override
-  String get media_people_saveFailed => 'تعذر حفظ الوسم. حاول مرة أخرى.';
-
-  @override
-  String get media_people_addToDiveFailed =>
-      'تعذرت إضافة الرفيق إلى هذه الغطسة. حاول مرة أخرى.';
 
   @override
   String get media_people_createBuddyFailed =>
@@ -59456,9 +59435,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_reassignSheet_noSeries => 'لا توجد سلسلة ضغط';
-
-  @override
-  String get diveLog_reassignSheet_applied => 'تمت إعادة تعيين سلسلة الضغط';
 
   @override
   String get universalImport_summary_noticeUnknownTransmitterTitle =>

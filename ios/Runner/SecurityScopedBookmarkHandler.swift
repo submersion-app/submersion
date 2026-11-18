@@ -20,10 +20,14 @@ class SecurityScopedBookmarkHandler: NSObject, UIDocumentPickerDelegate {
     /// Pending result callback for folder picker
     private var pendingPickerResult: FlutterResult?
 
-    init(messenger: FlutterBinaryMessenger) {
+    /// Owned by the engine; its view controller presents the folder picker.
+    private weak var registrar: FlutterPluginRegistrar?
+
+    init(registrar: FlutterPluginRegistrar) {
+        self.registrar = registrar
         channel = FlutterMethodChannel(
             name: "app.submersion/security_scoped_bookmark",
-            binaryMessenger: messenger
+            binaryMessenger: registrar.messenger()
         )
         super.init()
 
@@ -101,7 +105,9 @@ class SecurityScopedBookmarkHandler: NSObject, UIDocumentPickerDelegate {
     /// - path: The folder path
     /// - bookmarkData: The bookmark data for persistent access
     private func pickFolderWithSecurityScope(result: @escaping FlutterResult) {
-        guard let viewController = UIApplication.shared.windows.first?.rootViewController else {
+        // The engine's FlutterViewController, found through the registrar rather
+        // than UIApplication.windows, which spans every connected scene.
+        guard let viewController = registrar?.viewController else {
             result(FlutterError(code: "NO_VIEW_CONTROLLER", message: "Could not find root view controller", details: nil))
             return
         }

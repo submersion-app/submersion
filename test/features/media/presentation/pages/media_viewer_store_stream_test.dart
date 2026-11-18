@@ -167,6 +167,16 @@ void main() {
     expect(platform.sources, isEmpty);
   });
 
+  testWidgets('the video on screen holds the file it resolved, for the fish '
+      'scan to read rather than fetch again', (tester) async {
+    await pump(tester, const FilePlayback('/videos/clip.mp4'));
+    expect(platform.sources.single, endsWith('/videos/clip.mp4'));
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(MediaViewerPage)),
+    );
+    expect(container.exists(videoPlaybackProvider(_video)), isTrue);
+  });
+
   testWidgets('nothing to play still says the file was not found', (
     tester,
   ) async {

@@ -33,6 +33,8 @@ void main() {
     List<SpeciesTagChip> chips = const [_tang],
     List<SpeciesSuggestion> suggestions = const [],
     VoidCallback? onSuggestionTap,
+    double? progress,
+    bool settle = true,
   }) async {
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
@@ -44,6 +46,9 @@ void main() {
           mediaSuggestionsProvider(
             'p1',
           ).overrideWith((ref) async => suggestions),
+          mediaIdentificationProgressProvider(
+            'p1',
+          ).overrideWith((ref) => Stream.value(progress)),
         ],
         child: MediaSpeciesChipsRow(
           mediaId: 'p1',
@@ -51,8 +56,33 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    if (settle) {
+      await tester.pumpAndSettle();
+    } else {
+      // A progress ring never settles.
+      await tester.pump();
+      await tester.pump();
+    }
   }
+
+  testWidgets('a video being scanned shows how far it has got (issue '
+      '#4675)', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await pump(tester, progress: 0.4, settle: false);
+    expect(find.text('40%'), findsOneWidget);
+    expect(find.bySemanticsLabel('Looking for fish, 40%'), findsOneWidget);
+    semantics.dispose();
+  });
+
+  testWidgets('no progress chip once the scan is done', (tester) async {
+    await pump(tester);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+  });
+
+  testWidgets('a scan shows even before any tag or suggestion', (tester) async {
+    await pump(tester, chips: const [], progress: 0.1, settle: false);
+    expect(find.text('10%'), findsOneWidget);
+  });
 
   testWidgets('with no suggestions the row is as before', (tester) async {
     await pump(tester);

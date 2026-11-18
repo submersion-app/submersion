@@ -150,9 +150,6 @@ extension _DiveDetailSectionContent on DiveDetailSectionList {
       case DiveDetailSectionId.media:
         return DiveMediaSection(
           diveId: dive.id,
-          onScanPressed: () => actions.scanGallery(dive),
-          onAddPressed: () => actions.addPhotos(dive),
-          onAddDocumentPressed: () => actions.addDocument(dive),
           onOpenDocument: actions.openDocument,
           // Hovering a thumbnail marks its moment on the profile (#4524).
           onHoverMedia: mediaHoverCursorHandler(ref.container, dive),

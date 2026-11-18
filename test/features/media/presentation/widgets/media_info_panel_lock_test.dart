@@ -22,7 +22,6 @@ import 'package:submersion/features/media/presentation/helpers/media_link_replac
 import 'package:submersion/features/media/presentation/providers/media_repair_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_info_panel.dart';
-import 'package:submersion/features/media/presentation/widgets/set_media_time_dialog.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 import 'media_info_panel_harness.dart';
@@ -110,10 +109,27 @@ void main() {
       expect(find.text('Locate file...'), findsNothing);
     });
 
-    testWidgets('in a sitting: Set time holds the pin; nothing applied', (
+    // Each change is held in the photo's sitting: with none there is
+    // nowhere to hold it, and writing at once would change the photo
+    // outside its lock.
+    testWidgets('with no sitting: no Set time, Locate or Edit tags', (
       tester,
     ) async {
-      final applied = <MediaTimeChoice>[];
+      await pump(
+        tester,
+        infoPanelLinked(
+          enrichment: infoPanelEnrichmentAt(750),
+        ).copyWith(isOrphaned: true),
+        extra: [infoPanelDiveOverride()],
+      );
+
+      expect(find.text('Time in dive'), findsOneWidget);
+      expect(find.text('Set time in dive'), findsNothing);
+      expect(find.text('Locate file...'), findsNothing);
+      expect(find.byKey(const ValueKey('media_info_editTags')), findsNothing);
+    });
+
+    testWidgets('in a sitting: Set time holds the pin', (tester) async {
       final item = infoPanelLinked(enrichment: infoPanelEnrichmentAt(750));
       final sitting = EditSession<PhotoRecord>(
         PhotoRecord(item: item, species: const [], people: const []),
@@ -124,7 +140,7 @@ void main() {
         item,
         extra: [
           infoPanelDiveOverride(),
-          mediaTimePinnerProvider.overrideWithValue(CapturingPinner(applied)),
+          mediaTimePinnerProvider.overrideWithValue(const NoShiftPinner()),
         ],
         sitting: sitting,
       );
@@ -135,7 +151,6 @@ void main() {
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
 
-      expect(applied, isEmpty);
       expect(sitting.valueOf(photoPinField), 300);
     });
 
@@ -151,7 +166,7 @@ void main() {
         item,
         extra: [
           infoPanelDiveOverride(),
-          mediaTimePinnerProvider.overrideWithValue(CapturingPinner([])),
+          mediaTimePinnerProvider.overrideWithValue(const NoShiftPinner()),
         ],
         sitting: sitting,
       );

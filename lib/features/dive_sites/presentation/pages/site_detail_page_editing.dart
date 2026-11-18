@@ -64,7 +64,7 @@ mixin _SiteDetailPageEditing
       );
     }
     final offered = _offersEditingNow(watch: true);
-    if (!offered && isSittingOpen) {
+    if (!offered && isSittingOpen && _libraryAccessSettled(watch: true)) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _endWithdrawn());
     }
     followStored(siteProvider(widget.siteId));
@@ -79,13 +79,35 @@ mixin _SiteDetailPageEditing
     );
   }
 
+  /// Whether what decides the right to edit has settled: a library's
+  /// connection and this profile's role in it, read and not being read
+  /// again. A reload, or one that fails, says nothing of a lost right, so
+  /// it never ends a sitting; a settled answer that refuses does. [watch]
+  /// in `build`, a read anywhere else.
+  bool _libraryAccessSettled({bool watch = false}) {
+    final id = widget.site.sharedLibraryId;
+    if (id == null) return true;
+    bool settled(AsyncValue<Object?> value) =>
+        value.hasValue && !value.isLoading && !value.hasError;
+    return settled(
+          watch
+              ? ref.watch(libraryConnectedHereProvider(id))
+              : ref.read(libraryConnectedHereProvider(id)),
+        ) &&
+        settled(
+          watch
+              ? ref.watch(libraryRoleProvider(id))
+              : ref.read(libraryRoleProvider(id)),
+        );
+  }
+
   /// Ends a sitting this profile may no longer save, and says so: the
   /// diver's typing goes with it. A save still running ends it once it
   /// returns, and the page is built, and asks, again then.
   void _endWithdrawn() {
     final controller = maybeEditController;
     if (!mounted || offersEditing || controller == null) return;
-    if (!controller.isUnlocked) return;
+    if (!controller.isUnlocked || !_libraryAccessSettled()) return;
     controller.lock();
     if (controller.isUnlocked) return;
     ScaffoldMessenger.of(context).showSnackBar(

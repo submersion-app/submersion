@@ -14,21 +14,16 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import '../../../../helpers/mock_providers.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
-/// Records calls instead of touching a real database.
-class _RecordingNavTrackRepository extends NavTrackRepository {
-  String? unlinkedId;
-  String? primaryId;
+/// The card only reads (issue #4527): linking is changed in the open card,
+/// so a write through here fails the test.
+class _ReadOnlyNavTrackRepository extends NavTrackRepository {
+  @override
+  Future<void> unlink(String routeId, {String? onlyFromDiveId}) =>
+      throw StateError('the card unlinked $routeId');
 
   @override
-  Future<void> unlink(String routeId, {String? onlyFromDiveId}) async {
-    unlinkedId = routeId;
-  }
-
-  @override
-  Future<bool> setPrimary(String routeId, {String? onlyForDiveId}) async {
-    primaryId = routeId;
-    return true;
-  }
+  Future<bool> setPrimary(String routeId, {String? onlyForDiveId}) =>
+      throw StateError('the card made $routeId the primary');
 }
 
 final _dive = Dive(
@@ -54,7 +49,7 @@ NavTrack _route({String? diveId, bool isPrimary = true, double? maxSpeed}) =>
       updatedAt: DateTime(2026, 8, 22),
     );
 
-Future<_RecordingNavTrackRepository> _pump(
+Future<void> _pump(
   WidgetTester tester, {
   required List<NavTrack> linkedRoutes,
   bool expanded = true,
@@ -73,7 +68,7 @@ Future<_RecordingNavTrackRepository> _pump(
   addTearDown(tester.platformDispatcher.clearLocalesTestValue);
 
   final overrides = await getBaseOverrides();
-  final repository = _RecordingNavTrackRepository();
+  final repository = _ReadOnlyNavTrackRepository();
   final effectiveOverrides = [
     ...overrides,
     navTrackSectionExpandedProvider.overrideWith((ref) => expanded),
@@ -116,7 +111,6 @@ Future<_RecordingNavTrackRepository> _pump(
     );
   }
   await tester.pumpAndSettle();
-  return repository;
 }
 
 void main() {
@@ -166,47 +160,6 @@ void main() {
   });
 
   group('row overflow menu', () {
-    testWidgets('does not offer "Make primary" for the primary route', (
-      tester,
-    ) async {
-      await _pump(tester, linkedRoutes: [_route(diveId: _dive.id)]);
-
-      await tester.tap(find.byType(PopupMenuButton<String>));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Make primary'), findsNothing);
-    });
-
-    testWidgets('offers "Make primary" for a non-primary route, and calls '
-        'setPrimary', (tester) async {
-      final repository = await _pump(
-        tester,
-        linkedRoutes: [_route(diveId: _dive.id, isPrimary: false)],
-      );
-
-      await tester.tap(find.byType(PopupMenuButton<String>));
-      await tester.pumpAndSettle();
-      expect(find.text('Make primary'), findsOneWidget);
-      await tester.tap(find.text('Make primary'));
-      await tester.pumpAndSettle();
-
-      expect(repository.primaryId, 'r1');
-    });
-
-    testWidgets('"Unlink" calls unlink on the repository', (tester) async {
-      final repository = await _pump(
-        tester,
-        linkedRoutes: [_route(diveId: _dive.id)],
-      );
-
-      await tester.tap(find.byType(PopupMenuButton<String>));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Unlink'));
-      await tester.pumpAndSettle();
-
-      expect(repository.unlinkedId, 'r1');
-    });
-
     testWidgets('"Open track" pushes the route detail page', (tester) async {
       final router = GoRouter(
         initialLocation: '/',
@@ -296,8 +249,9 @@ void main() {
     });
   });
 
-  testWidgets('on a page that offers editing the row menu offers Open and '
-      '3D only', (tester) async {
+  // Linking is changed in the open card (issue #4527): a route that is not
+  // the primary still offers no Unlink or Make primary here.
+  testWidgets('the row menu offers Open and 3D only', (tester) async {
     final controller = RecordEditController<Dive>(onSave: (_) async {});
     addTearDown(controller.dispose);
     await _pump(
