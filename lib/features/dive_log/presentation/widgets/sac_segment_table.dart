@@ -55,6 +55,13 @@ class SacSegmentTableSection {
 /// number columns take their content's width, so a long unit, a translated
 /// heading or larger text squeezes the label rather than the figures.
 class SacSegmentTable extends StatelessWidget {
+  /// How strongly the picked row is washed in its own color, light enough
+  /// for its text to keep its contrast (issue #4697).
+  static const double selectedTintAlpha = 0.18;
+
+  /// The bar of full color down the picked row's leading edge.
+  static const double _selectedStripeWidth = 3;
+
   static const double _minRowHeight = 28;
   static const double _columnGap = 10;
   static const double _labelInset = 4;
@@ -113,18 +120,25 @@ class SacSegmentTable extends StatelessWidget {
       );
     }
 
+    /// The picked row wears the color it has in the chart above, so the two
+    /// read as one pick; a row with no color of its own takes the primary.
+    BoxDecoration selectedDecoration(SacSegmentTableRow row) {
+      final color = row.color ?? theme.colorScheme.primary;
+      return BoxDecoration(
+        color: color.withValues(alpha: selectedTintAlpha),
+        border: BorderDirectional(
+          start: BorderSide(color: color, width: _selectedStripeWidth),
+        ),
+      );
+    }
+
     TableRow row(SacSegmentTableRow row) {
       final style = theme.textTheme.bodySmall;
       final secondary = style?.copyWith(
         color: theme.colorScheme.onSurfaceVariant,
       );
       return TableRow(
-        decoration: row.selected
-            ? BoxDecoration(
-                border: Border.all(color: theme.colorScheme.primary),
-                borderRadius: BorderRadius.circular(6),
-              )
-            : null,
+        decoration: row.selected ? selectedDecoration(row) : null,
         children: [
           _LabelCell(row: row, minHeight: _minRowHeight, inset: _labelInset),
           number(row.rate, style?.copyWith(fontWeight: FontWeight.w600)),
