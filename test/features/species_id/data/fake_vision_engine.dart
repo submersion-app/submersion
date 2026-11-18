@@ -169,9 +169,13 @@ class FakeEngine implements VisionEngine {
   );
   Object? memoryFailure;
 
+  /// Holds every [memory] reply until a test completes it.
+  Completer<void>? memoryGate;
+
   @override
   Future<VisionMemory> memory() async {
     events.add('memory');
+    await memoryGate?.future;
     if (memoryFailure != null) throw memoryFailure!;
     return memoryReading;
   }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
@@ -134,10 +135,6 @@ class VideoIdentificationScan {
 
   /// Logs memory after each pass, while debug mode is on; null logs nothing.
   final MemoryReadout? _memoryReadout;
-
-  /// Engine calls made by pass 2, so a chunk that embedded nothing logs no
-  /// pass 2 reading.
-  var _embedCalls = 0;
   final LoadedPack _pack;
   final MediaIdentificationRepository _identifications;
   final IdentificationEmbeddingRepository _embeddings;
@@ -156,6 +153,10 @@ class VideoIdentificationScan {
 
   /// Asked between batches of pass 2: false stops the chunk there.
   final bool Function() _keepGoing;
+
+  /// Engine calls made by pass 2, so a chunk that embedded nothing logs no
+  /// pass 2 reading.
+  var _embedCalls = 0;
 
   /// A chunk failed part-way: what the tracker holds may include frames
   /// that were never stored, so nothing more is stored from it.
@@ -210,7 +211,7 @@ class VideoIdentificationScan {
     final duration = math.max(0, detections.durationMs);
     final range =
         '(${_clock(from)} to ${_clock(math.min(from + chunkMs, duration))})';
-    await _memoryReadout?.record('pass 1 $range');
+    _readMemory('pass 1 $range');
     final embedsBefore = _embedCalls;
     // Nothing of a chunk is stored until its pass 2 is done: a stop or a
     // failure there puts the tracks back as they were where it began, so
@@ -236,7 +237,7 @@ class VideoIdentificationScan {
       return false;
     }
     if (_embedCalls > embedsBefore) {
-      await _memoryReadout?.record('pass 2 $range');
+      _readMemory('pass 2 $range');
     }
     final bool stored;
     try {
@@ -620,6 +621,13 @@ class VideoIdentificationScan {
     total = math.sqrt(total);
     if (total == 0 || !total.isFinite) return null;
     return Float32List.fromList([for (final v in sum) v / total]);
+  }
+
+  /// Logs memory after [stage] without waiting for the reading: the
+  /// plugin's queue still takes it right after the stage's own work.
+  void _readMemory(String stage) {
+    final readout = _memoryReadout;
+    if (readout != null) unawaited(readout.record(stage));
   }
 
   /// [ms] of video as m:ss, for the memory readout's stage names.

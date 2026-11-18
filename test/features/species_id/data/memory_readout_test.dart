@@ -83,6 +83,17 @@ void main() {
       expect(memoryLines().single.message, startsWith('Memory after photo:'));
     });
 
+    test('record reads only while the log file keeps info lines', () async {
+      final before = LoggerService.minimumFileLevel;
+      addTearDown(() => LoggerService.setMinimumFileLevel(before));
+      LoggerService.setMinimumFileLevel(LogLevel.warning);
+      await MemoryReadout(engine: engine).record('photo');
+      expect(engine.events, isNot(contains('memory')));
+      LoggerService.setMinimumFileLevel(LogLevel.debug);
+      await MemoryReadout(engine: engine).record('photo');
+      expect(engine.events, contains('memory'));
+    });
+
     test('record swallows a failed reading', () async {
       engine.memoryFailure = const VisionEngineException('unsupported');
       await MemoryReadout(engine: engine, enabled: () => true).record('photo');

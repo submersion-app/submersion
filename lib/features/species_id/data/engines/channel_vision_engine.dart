@@ -136,7 +136,7 @@ class ChannelVisionEngine implements VisionEngine {
     final reply = await SubmersionVision.memory();
     final footprint = reply?['footprint'];
     if (reply == null || footprint is! num) {
-      throw const VisionEngineException('inference_failed', 'no reply');
+      throw const VisionEngineException('no_reading', 'no memory reading');
     }
     int? bytes(String key) {
       final v = reply[key];

@@ -401,7 +401,16 @@ void main() {
 
     test('memory with no reply is an engine failure', () async {
       messenger.setMockMethodCallHandler(channel, (call) async => null);
-      expect(engine().memory(), throwsA(isA<VisionEngineException>()));
+      expect(
+        engine().memory(),
+        throwsA(
+          isA<VisionEngineException>().having(
+            (e) => e.code,
+            'code',
+            'no_reading',
+          ),
+        ),
+      );
     });
   });
 }

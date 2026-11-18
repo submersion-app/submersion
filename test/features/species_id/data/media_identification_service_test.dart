@@ -558,6 +558,13 @@ void main() {
       );
     });
 
+    test('a slow memory reading does not hold up identification', () async {
+      engine.memoryGate = Completer<void>();
+      addTearDown(() => engine.memoryGate?.complete());
+      await service.request(photo('m1')).timeout(const Duration(seconds: 5));
+      expect(await identifications.runFor('m1'), isNotNull);
+    });
+
     test('unloading logs a reading', () async {
       await service.request(photo('m1'));
       await Future<void>.delayed(const Duration(milliseconds: 120));
