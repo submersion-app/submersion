@@ -6,12 +6,12 @@ import 'package:submersion/core/geography/country_code.dart';
 import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/location_service_provider.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/text/blank_text.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_suggestions.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_coordinate_rows.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_location_rules.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_plain_fields.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_text_binding.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/place_lookup_row.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/location_picker_map.dart';
@@ -26,9 +26,18 @@ import 'package:submersion/shared/widgets/record_editing/field_text_binding.dart
 /// from map and Look up from coordinates, and the five place names, each
 /// keeping the form's rules (issue #4527, phase 2).
 class SiteLocationCardEditor extends ConsumerStatefulWidget {
-  const SiteLocationCardEditor({super.key, required this.session});
+  const SiteLocationCardEditor({
+    super.key,
+    required this.session,
+    this.pickLocation = pickSiteLocationOnMap,
+  });
 
   final EditSession<DiveSite> session;
+
+  /// Asks the diver for a point on the map, starting at [initial]; null when
+  /// they backed out. A test hands in its own answer.
+  final Future<PickedLocation?> Function(BuildContext context, LatLng? initial)
+  pickLocation;
 
   @override
   ConsumerState<SiteLocationCardEditor> createState() =>
@@ -46,11 +55,9 @@ class _SiteLocationCardEditorState
   /// code its name reads as, or none, so a hand edit never leaves another
   /// country's flag beside it.
   FieldTextBinding<DiveSite, String?> _bind(EditField<DiveSite, String?> f) =>
-      _bindings[f.id] ??= FieldTextBinding<DiveSite, String?>(
-        session: _session,
-        field: f,
-        format: (value) => value ?? '',
-        parse: (text) => FieldValue(trimmedOrNull(text)),
+      _bindings[f.id] ??= siteWordsBinding(
+        _session,
+        f,
         apply: f == siteCountryField
             ? (country) {
                 _session.set(siteCountryField, country);
@@ -132,14 +139,9 @@ class _SiteLocationCardEditorState
   Future<void> _pickFromMap() async {
     final l10n = context.l10n;
     final current = _session.valueOf(siteLocationField);
-    final result = await Navigator.of(context).push<PickedLocation>(
-      MaterialPageRoute(
-        builder: (context) => LocationPickerMap(
-          initialLocation: current == null
-              ? null
-              : LatLng(current.latitude, current.longitude),
-        ),
-      ),
+    final result = await widget.pickLocation(
+      context,
+      current == null ? null : LatLng(current.latitude, current.longitude),
     );
     if (result == null || !mounted || _session.isDisposed) return;
     moveSiteTo(
@@ -231,12 +233,17 @@ class _SiteLocationCardEditorState
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final allSites = ref.watch(sitesProvider).value ?? const <DiveSite>[];
+    // Only what depends on other values is rebuilt as they change: the
+    // suggestion lists follow the country and region rows, and the lookup
+    // follows the position.
     return ListenableBuilder(
-      listenable: _session,
+      listenable: Listenable.merge([
+        _bind(siteCountryField).controller,
+        _bind(siteRegionField).controller,
+      ]),
       builder: (context, _) {
         final country = _session.valueOf(siteCountryField) ?? '';
         final region = _session.valueOf(siteRegionField) ?? '';
-        final hasPosition = _session.valueOf(siteLocationField) != null;
         Widget place(
           EditField<DiveSite, String?> field,
           String label,
@@ -280,9 +287,14 @@ class _SiteLocationCardEditorState
                 ],
               ),
             ),
-            PlaceLookupRow(
-              isBusy: _busy,
-              onLookup: hasPosition ? _lookUp : null,
+            ListenableBuilder(
+              listenable: _session,
+              builder: (context, _) => PlaceLookupRow(
+                isBusy: _busy,
+                onLookup: _session.valueOf(siteLocationField) == null
+                    ? null
+                    : _lookUp,
+              ),
             ),
             place(
               siteCountryField,
@@ -315,3 +327,13 @@ class _SiteLocationCardEditorState
     );
   }
 }
+
+/// The map picker the site form opens, pushed over the page.
+Future<PickedLocation?> pickSiteLocationOnMap(
+  BuildContext context,
+  LatLng? initial,
+) => Navigator.of(context).push<PickedLocation>(
+  MaterialPageRoute(
+    builder: (context) => LocationPickerMap(initialLocation: initial),
+  ),
+);

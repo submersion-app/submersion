@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/text/blank_text.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_plain_fields.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_text_binding.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/enum_multi_picker_row.dart';
@@ -13,17 +13,6 @@ import 'package:submersion/shared/widgets/forms/suggestion_form_row.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/field_text_binding.dart';
-
-/// A free-text row of the site bound to [field]; blank is no value.
-FieldTextBinding<DiveSite, String?> _bindWords(
-  EditSession<DiveSite> session,
-  EditField<DiveSite, String?> field,
-) => FieldTextBinding<DiveSite, String?>(
-  session: session,
-  field: field,
-  format: (value) => value ?? '',
-  parse: (text) => FieldValue(trimmedOrNull(text)),
-);
 
 /// The Hazards card's editor (issue #4527, phase 2).
 class SiteHazardsCardEditor extends StatefulWidget {
@@ -36,7 +25,7 @@ class SiteHazardsCardEditor extends StatefulWidget {
 }
 
 class _SiteHazardsCardEditorState extends State<SiteHazardsCardEditor> {
-  late FieldTextBinding<DiveSite, String?> _hazards = _bindWords(
+  late FieldTextBinding<DiveSite, String?> _hazards = siteWordsBinding(
     widget.session,
     siteHazardsField,
   );
@@ -46,7 +35,7 @@ class _SiteHazardsCardEditorState extends State<SiteHazardsCardEditor> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.session == widget.session) return;
     _hazards.dispose();
-    _hazards = _bindWords(widget.session, siteHazardsField);
+    _hazards = siteWordsBinding(widget.session, siteHazardsField);
   }
 
   @override
@@ -85,7 +74,7 @@ class _SiteAccessCardEditorState extends ConsumerState<SiteAccessCardEditor> {
   final Map<String, FieldTextBinding<DiveSite, String?>> _bindings = {};
 
   FieldTextBinding<DiveSite, String?> _bind(EditField<DiveSite, String?> f) =>
-      _bindings[f.id] ??= _bindWords(widget.session, f);
+      _bindings[f.id] ??= siteWordsBinding(widget.session, f);
 
   void _disposeBindings() {
     for (final binding in _bindings.values) {

@@ -34,12 +34,27 @@ class _SiteAltitudeCardEditorState
   @override
   void initState() {
     super.initState();
+    _askFound();
+  }
+
+  /// Handed another sitting, the suggestion is that sitting's own.
+  @override
+  void didUpdateWidget(SiteAltitudeCardEditor oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.session == widget.session) return;
+    _found = null;
+    _askFound();
+  }
+
+  void _askFound() {
+    final session = widget.session;
     final container = ProviderScope.containerOf(context, listen: false);
     foundAltitude(
-      widget.session,
+      session,
       (point) => fetchSiteElevation(container, point),
     ).then((metres) {
-      if (mounted && metres != null) setState(() => _found = metres);
+      if (!mounted || metres == null || widget.session != session) return;
+      setState(() => _found = metres);
     });
   }
 

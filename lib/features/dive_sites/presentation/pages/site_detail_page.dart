@@ -1475,7 +1475,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
     return content;
   }
 
-  bool _hasAccessInfo(DiveSite site) => siteHasAccessInfo(site);
+  bool _hasAccessInfo(DiveSite site) => site.hasAccessInfo;
 
   /// The site's depth: what it is rated for, and what dives actually found.
   ///

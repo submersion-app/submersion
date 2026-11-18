@@ -108,4 +108,14 @@ void main() {
       expect(cards, contains(field.cardId), reason: field.id);
     }
   });
+
+  test('hasAccessInfo is any of the access values', () {
+    const bare = DiveSite(id: 's1', name: 'Hole');
+    expect(bare.hasAccessInfo, isFalse);
+    expect(bare.copyWith(parkingInfo: 'Lot').hasAccessInfo, isTrue);
+    expect(
+      bare.copyWith(exitMethods: const [EntryMethod.ladder]).hasAccessInfo,
+      isTrue,
+    );
+  });
 }

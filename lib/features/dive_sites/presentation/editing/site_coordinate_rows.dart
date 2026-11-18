@@ -54,6 +54,17 @@ class _SiteCoordinateRowsState extends State<SiteCoordinateRows> {
     widget.session.addListener(_follow);
   }
 
+  /// Handed another sitting (a retake after a whole-record operation), the
+  /// rows follow it and show its position.
+  @override
+  void didUpdateWidget(SiteCoordinateRows oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.session == widget.session) return;
+    oldWidget.session.removeListener(_follow);
+    widget.session.addListener(_follow);
+    _show(widget.session.valueOf(siteLocationField));
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();

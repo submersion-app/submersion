@@ -122,7 +122,7 @@ final Map<SiteDetailSectionId, EditCard<DiveSite>> siteEditCards = {
       color: Theme.of(context).colorScheme.primary,
     ),
     // As the page decides whether to show the card.
-    isEmpty: (site) => !siteHasAccessInfo(site),
+    isEmpty: (site) => !site.hasAccessInfo,
     editorBuilder: (context, session) => SiteAccessCardEditor(session: session),
   ),
 };
@@ -136,12 +136,3 @@ final siteHeaderCard = EditCard<DiveSite>(
   isValid: siteNameIsValid,
   editorBuilder: (context, session) => SiteHeaderCardEditor(session: session),
 );
-
-/// Whether [site] has anything for its Access card to show: the rule the
-/// page leaves the card out by, shared with the card's emptiness.
-bool siteHasAccessInfo(DiveSite site) =>
-    (site.parkingInfo?.isNotEmpty ?? false) ||
-    (site.accessNotes?.isNotEmpty ?? false) ||
-    (site.mooringNumber?.isNotEmpty ?? false) ||
-    site.entryMethods.isNotEmpty ||
-    site.exitMethods.isNotEmpty;

@@ -7,6 +7,7 @@ import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_location_card_editor.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_plain_fields.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/location_picker_map.dart';
 import 'package:submersion/features/weather/data/services/elevation_service.dart';
 import 'package:submersion/features/weather/presentation/providers/weather_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
@@ -77,7 +78,11 @@ void main() {
   }) => pumpSiteEditor(
     tester,
     site,
-    (session) => SiteLocationCardEditor(session: session),
+    (session) => SiteLocationCardEditor(
+      session: session,
+      pickLocation: (_, _) async =>
+          PickedLocation(latitude: 20.5, longitude: -87.1, place: lookup),
+    ),
     overrides: [
       locationServiceProvider.overrideWithValue(_FakeLocation(lookup)),
       elevationServiceProvider.overrideWithValue(_FakeElevation(elevation)),
@@ -195,5 +200,22 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(h.session.valueOf(siteAltitudeField), 12);
+  });
+
+  testWidgets('a pick from the map fills the position and the empty names', (
+    tester,
+  ) async {
+    final h = await pump(tester);
+
+    await tester.tap(find.text(l.diveSites_edit_gps_pickFromMap));
+    await tester.pumpAndSettle();
+
+    expect(h.session.valueOf(siteLocationField), const GeoPoint(20.5, -87.1));
+    expect(h.session.valueOf(siteCountryField), 'Belize');
+    expect(
+      find.text(l.diveSites_edit_snackbar_locationSelectedFromMap),
+      findsOneWidget,
+    );
+    await tester.pump(const Duration(seconds: 2));
   });
 }
