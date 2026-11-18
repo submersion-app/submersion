@@ -15,7 +15,7 @@
 - Survey filters: `basis_of_record=HUMAN_OBSERVATION`, `occurrence_status=PRESENT`, `depth=0,40`, faceted by `speciesKey`, within the same order keys as the photo route.
 - `--min-survey-records` defaults to 50; `--max-candidates` defaults to 10000 (was 8000); `--min-images` stays 50.
 - Order: catalogue species, then photographed species in rank order, then surveyed species not already chosen, in rank order; survey-only species are the ones cut when the cap binds.
-- The photo query, its cache file names and the shape of `candidates.json` do not change.
+- The photo query's filters and the shape of `candidates.json` do not change. (The review later found GBIF's facet paging skips species; each facet became one request under new cache names, the photo one included. See the design's "Decided during review".)
 - No pack is published and the feature flag stays off.
 - Local tests: only the changed test files, by path.
 - No em-dashes, en-dashes as punctuation, or spaced hyphens as prose punctuation in code, comments or docs.
