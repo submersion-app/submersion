@@ -82,6 +82,12 @@ class RecordingIdentificationService extends MediaIdentificationService {
   void followPlayhead(String mediaId, int positionMs, {required bool seek}) =>
       followed.add((mediaId: mediaId, ms: positionMs, seek: seek));
 
+  /// Videos whose playhead report was forgotten, in order.
+  final forgotten = <String>[];
+
+  @override
+  void forgetPlayhead(String mediaId) => forgotten.add(mediaId);
+
   @override
   Future<void> reject(String mediaId, List<String> identificationIds) async =>
       rejected.add((mediaId, identificationIds));

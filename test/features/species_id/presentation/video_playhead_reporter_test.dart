@@ -159,6 +159,13 @@ void main() {
     expect(service.followed, isEmpty);
   });
 
+  testWidgets('leaving the video forgets its report', (tester) async {
+    await pump(tester);
+    expect(service.forgotten, isEmpty);
+    await tester.pumpWidget(const SizedBox());
+    expect(service.forgotten, ['v1']);
+  });
+
   testWidgets('a pending seek is not reported after the viewer goes', (
     tester,
   ) async {

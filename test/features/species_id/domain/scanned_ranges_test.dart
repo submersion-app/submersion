@@ -67,6 +67,14 @@ void main() {
     expect(gapped.coversRange(1000, 13000), isFalse);
   });
 
+  test('copyWith with nothing given is an equal copy', () {
+    expect(gapped.copyWith(), gapped);
+    expect(
+      gapped.copyWith(stretches: const [(startMs: 0, endMs: 5000)]),
+      ScannedRanges.prefix(5000),
+    );
+  });
+
   test('prefixEndMs is the end of a stretch starting at 0', () {
     expect(gapped.prefixEndMs, 12000);
     expect(const ScannedRanges().add(5000, 9000).prefixEndMs, 0);

@@ -608,9 +608,17 @@ void main() {
 
     test('leaving the video forgets its report', () async {
       service.followPlayhead('v1', 30000, seek: true);
-      service.cancelPending('v1');
+      service.forgetPlayhead('v1');
       await service.request(video());
       expect(engine.detectCalls.first, (0, 10000));
+    });
+
+    test('a page covering the video keeps its report', () async {
+      service.followPlayhead('v1', 30000, seek: true);
+      // The trigger stops the scan while a full page covers the viewer.
+      service.cancelPending('v1');
+      await service.request(video());
+      expect(engine.detectCalls.first, (30000, 40000));
     });
 
     test('a pause does not replace a seek the scan has not followed '

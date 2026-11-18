@@ -7,9 +7,11 @@ import 'package:video_player/video_player.dart';
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/species_id/data/services/media_identification_service.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 
-/// Tells the video's scan where the diver is watching (issue #4709): a
+/// Tells the video's scan where the diver is watching (issue #4709), and
+/// that the diver left it when it goes: a
 /// seek once the playhead has settled for [settle], and a pause once it
 /// has lasted [settle]. Nothing during steady playback. Draws nothing.
 ///
@@ -48,9 +50,13 @@ class _VideoPlayheadReporterState extends ConsumerState<VideoPlayheadReporter> {
   /// Whether what is settling is a seek; otherwise it is a pause.
   var _seeking = false;
 
+  /// Read once: [dispose] cannot read providers.
+  late final MediaIdentificationService _service;
+
   @override
   void initState() {
     super.initState();
+    _service = ref.read(mediaIdentificationServiceProvider);
     _wasPlaying = widget.playback.value.isPlaying;
     widget.playback.addListener(_changed);
   }
@@ -58,6 +64,9 @@ class _VideoPlayheadReporterState extends ConsumerState<VideoPlayheadReporter> {
   @override
   void didUpdateWidget(VideoPlayheadReporter oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.item.id != widget.item.id) {
+      _service.forgetPlayhead(oldWidget.item.id);
+    }
     if (oldWidget.playback != widget.playback) {
       oldWidget.playback.removeListener(_changed);
       _settling?.cancel();
@@ -72,6 +81,7 @@ class _VideoPlayheadReporterState extends ConsumerState<VideoPlayheadReporter> {
   void dispose() {
     _settling?.cancel();
     widget.playback.removeListener(_changed);
+    _service.forgetPlayhead(widget.item.id);
     super.dispose();
   }
 
@@ -114,9 +124,8 @@ class _VideoPlayheadReporterState extends ConsumerState<VideoPlayheadReporter> {
     _report(value.position.inMilliseconds, seek: seek);
   }
 
-  void _report(int ms, {required bool seek}) => ref
-      .read(mediaIdentificationServiceProvider)
-      .followPlayhead(widget.item.id, ms, seek: seek);
+  void _report(int ms, {required bool seek}) =>
+      _service.followPlayhead(widget.item.id, ms, seek: seek);
 
   @override
   Widget build(BuildContext context) => const SizedBox.shrink();

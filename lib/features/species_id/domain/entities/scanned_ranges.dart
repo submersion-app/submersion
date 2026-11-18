@@ -18,6 +18,9 @@ class ScannedRanges extends Equatable {
 
   final List<ScannedStretch> stretches;
 
+  ScannedRanges copyWith({List<ScannedStretch>? stretches}) =>
+      ScannedRanges(stretches ?? this.stretches);
+
   /// These stretches with [startMs] to [endMs] added. Nothing changes for
   /// an empty stretch.
   ScannedRanges add(int startMs, int endMs) {

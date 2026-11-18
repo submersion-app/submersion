@@ -348,22 +348,13 @@ class VideoIdentificationScan {
       for (final t in _tracker.openTracks)
         if (t.endMs - t.startMs >= earlyNamingMs) t,
     ];
-    final all = [
-      for (final t in [...closed, ...early])
-        if (t.hasNewPoints) t,
-    ];
-    return (
-      toName: [
-        for (final t in all)
-          if (forced[t] ?? namesNow(t)) t,
-      ],
-      toKeep: [
-        for (final t in all)
-          if (!(forced[t] ?? namesNow(t))) t,
-      ],
-      rows: rows,
-      joinedAway: joinedAway,
-    );
+    final toName = <TrackedAnimal>[];
+    final toKeep = <TrackedAnimal>[];
+    for (final t in [...closed, ...early]) {
+      if (!t.hasNewPoints) continue;
+      (forced[t] ?? namesNow(t) ? toName : toKeep).add(t);
+    }
+    return (toName: toName, toKeep: toKeep, rows: rows, joinedAway: joinedAway);
   }
 
   /// Where the chunk ends at [seamMs], the start of a stretch scanned

@@ -168,8 +168,6 @@ class MediaIdentificationService {
   /// #4675); what was scanned is kept, so this also returns true for it:
   /// it is asked for again, and resumes, when the diver comes back.
   bool cancelPending(String mediaId) {
-    _playheads.remove(mediaId);
-    _followedPlayheads.remove(mediaId);
     final job = _waiting.remove(mediaId);
     if (job != null) {
       job.done.complete();
@@ -191,7 +189,7 @@ class MediaIdentificationService {
   /// a seek once it settled, or a pause when [seek] is false (issue #4709).
   /// A scan of that video follows it, now or when it starts; a report for
   /// a video not being scanned waits until it is, or until the diver
-  /// leaves it ([cancelPending]).
+  /// leaves it ([forgetPlayhead]).
   ///
   /// A pause after a seek the scan has not followed yet keeps it a seek, so
   /// the move the seek asked for is not lost.
@@ -207,6 +205,14 @@ class MediaIdentificationService {
       seek: seek || unfollowedSeek,
       sequence: ++_playheadSequence,
     );
+  }
+
+  /// The diver left the video [mediaId]: its playhead report is dropped, so
+  /// a later opening starts from the beginning. A page covering the viewer
+  /// stops the scan ([cancelPending]) but keeps the report.
+  void forgetPlayhead(String mediaId) {
+    _playheads.remove(mediaId);
+    _followedPlayheads.remove(mediaId);
   }
 
   /// The latest playhead report for the video [mediaId], or null.
