@@ -12,7 +12,11 @@ import 'package:submersion/features/tags/domain/entities/tag.dart';
 /// which the edits never name, is kept.
 @immutable
 class SpeciesTagEdits extends Equatable {
-  const SpeciesTagEdits({this.added = const {}, this.removed = const {}});
+  const SpeciesTagEdits({
+    this.added = const {},
+    this.removed = const {},
+    this.confirmed = const {},
+  });
 
   static const none = SpeciesTagEdits();
 
@@ -22,7 +26,18 @@ class SpeciesTagEdits extends Equatable {
   /// Stored species untagged in the sitting.
   final Set<String> removed;
 
-  bool get isEmpty => added.isEmpty && removed.isEmpty;
+  /// Stored tags the app applied that the diver confirmed in the sitting
+  /// (issue #4727), by species id.
+  final Set<String> confirmed;
+
+  bool get isEmpty => added.isEmpty && removed.isEmpty && confirmed.isEmpty;
+
+  /// These edits with the app's tag of [speciesId] confirmed.
+  SpeciesTagEdits confirming(String speciesId) => SpeciesTagEdits(
+    added: added,
+    removed: {...removed}..remove(speciesId),
+    confirmed: {...confirmed, speciesId},
+  );
 
   /// These edits with [chip] tagged or untagged, against [stored] as it is
   /// now. Untagging one the sitting added, or tagging back one it removed,
@@ -39,7 +54,11 @@ class SpeciesTagEdits extends Equatable {
     final nextRemoved = {...removed}..remove(id);
     if (tagged && !isStored) nextAdded[id] = chip;
     if (!tagged && isStored) nextRemoved.add(id);
-    return SpeciesTagEdits(added: nextAdded, removed: nextRemoved);
+    return SpeciesTagEdits(
+      added: nextAdded,
+      removed: nextRemoved,
+      confirmed: tagged ? confirmed : ({...confirmed}..remove(id)),
+    );
   }
 
   /// [stored] without the untagged species, then the tagged ones it does not
@@ -47,7 +66,10 @@ class SpeciesTagEdits extends Equatable {
   List<SpeciesTagChip> applyTo(List<SpeciesTagChip> stored) {
     final kept = [
       for (final chip in stored)
-        if (!removed.contains(chip.speciesId)) chip,
+        if (!removed.contains(chip.speciesId))
+          confirmed.contains(chip.speciesId)
+              ? chip.copyWith(unconfirmed: false)
+              : chip,
     ];
     final have = {for (final chip in kept) chip.speciesId};
     return [
@@ -67,11 +89,16 @@ class SpeciesTagEdits extends Equatable {
           if (!ids.contains(entry.key)) entry.key: entry.value,
       },
       removed: removed.intersection(ids),
+      confirmed: {
+        for (final chip in stored)
+          if (chip.unconfirmed && confirmed.contains(chip.speciesId))
+            chip.speciesId,
+      },
     );
   }
 
   @override
-  List<Object?> get props => [added, removed];
+  List<Object?> get props => [added, removed, confirmed];
 }
 
 /// The people a photo's sitting tagged, moved, re-assigned and removed

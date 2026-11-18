@@ -165,13 +165,23 @@ class PhotoEditSaveService {
     PhotoRecord before,
     PhotoRecord after,
   ) async {
-    final had = {for (final chip in before.species) chip.speciesId};
-    final has = {for (final chip in after.species) chip.speciesId};
-    for (final speciesId in had.difference(has)) {
-      await _tagging.untagPhoto(mediaId: id, speciesId: speciesId);
+    final had = {for (final chip in before.species) chip.speciesId: chip};
+    final has = {for (final chip in after.species) chip.speciesId: chip};
+    for (final speciesId in had.keys.toSet().difference(has.keys.toSet())) {
+      // A tag the app applied takes what it created with it (issue #4727).
+      if (had[speciesId]!.unconfirmed) {
+        await _tagging.rejectTag(mediaId: id, speciesId: speciesId);
+      } else {
+        await _tagging.untagPhoto(mediaId: id, speciesId: speciesId);
+      }
+    }
+    for (final MapEntry(key: speciesId, value: chip) in has.entries) {
+      if (!chip.unconfirmed && (had[speciesId]?.unconfirmed ?? false)) {
+        await _tagging.confirmTag(mediaId: id, speciesId: speciesId);
+      }
     }
     // A tag on a dive photo adds the dive's sighting when none exists.
-    for (final speciesId in has.difference(had)) {
+    for (final speciesId in has.keys.toSet().difference(had.keys.toSet())) {
       await _tagging.tagPhoto(mediaId: id, speciesId: speciesId);
     }
   }

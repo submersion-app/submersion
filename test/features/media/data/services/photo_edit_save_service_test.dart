@@ -28,6 +28,7 @@ import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/domain/entities/species_tag_chip.dart';
 import 'package:submersion/features/media/domain/services/media_repair_types.dart';
 import 'package:submersion/features/media/domain/value_objects/photo_tag_edits.dart';
+import 'package:submersion/features/media/domain/value_objects/sighting_timing.dart';
 import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
 import 'package:submersion/features/media/presentation/editing/photo_held_writes.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
@@ -778,5 +779,76 @@ void main() {
       expect(after.species, isEmpty);
       expect(await uploads(), isEmpty);
     });
+  });
+
+  group('tags the app applied (issue #4727)', () {
+    Future<void> appTag(String mediaId, String speciesId) =>
+        SpeciesTaggingService(
+          tags: MediaSpeciesRepository(),
+          media: media,
+          species: species,
+        ).applyAppTag(
+          mediaId: mediaId,
+          speciesId: speciesId,
+          timing: SightingTiming.straightAway,
+          createdSpecies: false,
+        );
+
+    test('confirming in a sitting confirms on save', () async {
+      await appTag('p1', 'sp_turtle');
+      final session = await sitting('p1');
+      session.set(
+        photoSpeciesField,
+        SpeciesTagEdits.none.confirming('sp_turtle'),
+      );
+
+      await save(session);
+
+      final tag = await MediaSpeciesRepository().findTag('p1', 'sp_turtle');
+      expect(tag!.unconfirmed, isFalse);
+    });
+
+    test('untagging an unconfirmed tag in a sitting rejects it, '
+        'taking the sighting it created', () async {
+      await appTag('p1', 'sp_turtle');
+      final session = await sitting('p1');
+      final chip = (await stored('p1')).species.single;
+      session.set(
+        photoSpeciesField,
+        SpeciesTagEdits.none.toggled(chip, tagged: false, stored: [chip]),
+      );
+
+      await save(session);
+
+      expect(await MediaSpeciesRepository().findTag('p1', 'sp_turtle'), isNull);
+      expect(await species.getSightingsForDive('d1'), isEmpty);
+    });
+
+    test(
+      'a tag the app writes under an open sitting survives its save',
+      () async {
+        final session = await sitting('p1');
+        session.set(
+          photoSpeciesField,
+          SpeciesTagEdits.none.toggled(
+            const SpeciesTagChip(
+              speciesId: 'sp_ray',
+              storedName: 'Ray',
+              category: SpeciesCategory.fish,
+              isBuiltIn: false,
+            ),
+            tagged: true,
+            stored: const [],
+          ),
+        );
+        await appTag('p1', 'sp_turtle');
+
+        await save(session);
+
+        final tags = MediaSpeciesRepository();
+        expect((await tags.findTag('p1', 'sp_turtle'))!.unconfirmed, isTrue);
+        expect((await tags.findTag('p1', 'sp_ray'))!.unconfirmed, isFalse);
+      },
+    );
   });
 }
