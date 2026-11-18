@@ -9,8 +9,10 @@ import 'package:submersion/features/species_id/domain/entities/species_pack_mani
 /// Unpacks a zip as its bytes arrive, so a model is written to disk once,
 /// unpacked, rather than once as a zip and again unpacked (issue #4708).
 ///
-/// Reads each entry's local header in order and stops at the central
-/// directory, which only repeats them. Entries are stored or deflated, with
+/// Reads each entry's local header in order and stops unpacking at the
+/// central directory, which only repeats them; the zip must still end with
+/// a complete end-of-central-directory record. Entries are stored or
+/// deflated, with
 /// their sizes in the local header or its ZIP64 extra field. A zip written
 /// to a stream, whose sizes follow the data instead, is refused: the pack
 /// builder (`tool/species_pack/models.py`) writes its zips to a file, so
@@ -33,11 +35,20 @@ class ZipStreamUnpacker {
   /// The central directory has begun: the rest is not unpacked.
   var _ended = false;
 
+  /// The last bytes after the entries, where the end-of-central-directory
+  /// record must sit.
+  final _tail = BytesBuilder();
+
   static const _localHeader = 0x04034b50;
   static const _localHeaderLength = 30;
   static const _centralHeader = 0x02014b50;
   static const _endOfCentralDirectory = 0x06054b50;
   static const _zip64EndOfCentralDirectory = 0x06064b50;
+
+  /// The end-of-central-directory record without its comment, and the
+  /// longest it can be with one.
+  static const _endRecordLength = 22;
+  static const _longestEndRecord = _endRecordLength + 0xFFFF;
 
   /// Compressed bytes inflated in one step. Deflate can expand a run of
   /// zeros about a thousandfold, so this bounds what one step holds in
@@ -54,14 +65,22 @@ class ZipStreamUnpacker {
         offset = await _readData(entry, chunk, offset);
       }
     }
+    if (_ended && offset < chunk.length) _keepTail(chunk.sublist(offset));
   }
 
-  /// The zip ended: anything left mid-entry means it was cut short.
+  /// The zip ended: it must have reached its end-of-central-directory
+  /// record, or it was cut short.
   Future<void> close() async {
     if (_entry != null || _header.isNotEmpty) {
       throw const PackManifestException(
         PackManifestFailure.malformed,
         'a model zip ended inside a file',
+      );
+    }
+    if (!_ended || !_endsWithEndRecord(_tail.toBytes())) {
+      throw const PackManifestException(
+        PackManifestFailure.malformed,
+        'a model zip ended before its central directory did',
       );
     }
   }
@@ -97,9 +116,9 @@ class ZipStreamUnpacker {
         if (signature == _centralHeader ||
             signature == _endOfCentralDirectory ||
             signature == _zip64EndOfCentralDirectory) {
-          _header.clear();
+          _keepTail(_header.takeBytes());
           _ended = true;
-          return chunk.length;
+          return offset;
         }
         throw const PackManifestException(
           PackManifestFailure.malformed,
@@ -120,6 +139,28 @@ class ZipStreamUnpacker {
     _entry = entry;
     if (entry.remaining == 0) await _finish(entry);
     return offset;
+  }
+
+  /// Keeps [bytes] after the entries, only as many as could hold the
+  /// end-of-central-directory record.
+  void _keepTail(List<int> bytes) {
+    _tail.add(bytes);
+    if (_tail.length > 2 * _longestEndRecord) {
+      final kept = _tail.takeBytes();
+      _tail.add(kept.sublist(kept.length - _longestEndRecord));
+    }
+  }
+
+  /// Whether [tail] ends with a whole end-of-central-directory record:
+  /// its signature, then 18 bytes and a comment of the length it gives.
+  static bool _endsWithEndRecord(Uint8List tail) {
+    for (var at = tail.length - _endRecordLength; at >= 0; at--) {
+      if (_u32(tail, at) == _endOfCentralDirectory &&
+          at + _endRecordLength + _u16(tail, at + 20) == tail.length) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /// Moves bytes from [chunk] at [offset] into the header until it holds

@@ -63,14 +63,30 @@ Uint8List _zip64Entry(String name, List<int> content, {int? claimed}) {
     ..setUint32(22, 0xFFFFFFFF, Endian.little)
     ..setUint16(26, nameBytes.length, Endian.little)
     ..setUint16(28, 20, Endian.little);
-  final central = ByteData(4)..setUint32(0, 0x02014b50, Endian.little);
   return Uint8List.fromList([
     ...header.buffer.asUint8List(),
     ...nameBytes,
     ...extra.buffer.asUint8List(),
     ...content,
-    ...central.buffer.asUint8List(),
+    ..._endRecord(),
   ]);
+}
+
+/// An end-of-central-directory record, with [comment] after it.
+List<int> _endRecord({List<int> comment = const []}) {
+  final record = ByteData(22)
+    ..setUint32(0, 0x06054b50, Endian.little)
+    ..setUint16(20, comment.length, Endian.little);
+  return [...record.buffer.asUint8List(), ...comment];
+}
+
+/// Where the central directory starts in [zip].
+int _centralDirectory(Uint8List zip) {
+  final data = ByteData.sublistView(zip);
+  for (var i = 0; i + 4 <= zip.length; i++) {
+    if (data.getUint32(i, Endian.little) == 0x02014b50) return i;
+  }
+  throw StateError('no central directory');
 }
 
 void main() {
@@ -218,6 +234,36 @@ void main() {
     final zip = _modelZip();
     final weights = _localHeaders(zip).last;
     await expectLater(unpack(zip.sublist(0, weights + 1000)), malformed());
+  });
+
+  test('a zip cut short after its last file is refused', () async {
+    final zip = _modelZip();
+    await expectLater(
+      unpack(zip.sublist(0, _centralDirectory(zip))),
+      malformed(),
+    );
+  });
+
+  test('a zip cut short inside its central directory is refused', () async {
+    final zip = _modelZip();
+    for (final cut in [_centralDirectory(zip) + 4, zip.length - 1]) {
+      await deleteTempDir(Directory(out));
+      await expectLater(unpack(zip.sublist(0, cut), chunk: 7), malformed());
+    }
+  });
+
+  test('an end record carrying a comment is accepted', () async {
+    final zip = _zip64Entry('m.mlpackage/w.bin', [1, 2, 3]);
+    final commented = Uint8List.fromList([
+      ...zip.sublist(0, zip.length - 22),
+      ..._endRecord(comment: List.filled(300, 0x50)),
+    ]);
+    await unpack(commented, chunk: 5);
+    expect(await File(p.join(out, 'm.mlpackage', 'w.bin')).readAsBytes(), [
+      1,
+      2,
+      3,
+    ]);
   });
 
   test('a zip that ends inside a header is refused', () async {
