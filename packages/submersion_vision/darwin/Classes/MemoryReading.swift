@@ -9,36 +9,54 @@ import Foundation
 enum MemoryReading {
   static func current() -> [String: Any] {
     var info = task_vm_info_data_t()
-    // TASK_VM_INFO_COUNT and its REVn counterparts are macros Swift cannot
-    // import, so they are worked out here the way the header defines them.
-    let rev7 = mach_msg_type_number_t(
+    var count = mach_msg_type_number_t(
       MemoryLayout<task_vm_info_data_t>.size / MemoryLayout<natural_t>.size)
-    let rev3 = rev7 - 4 - 2 - 1 - 2
-    var count = rev7
     let status = withUnsafeMutablePointer(to: &info) {
       $0.withMemoryRebound(to: integer_t.self, capacity: Int(count)) {
         task_info(mach_task_self_, task_flavor_t(TASK_VM_INFO), $0, &count)
       }
     }
     guard status == KERN_SUCCESS else { return [:] }
-
-    var reading: [String: Any] = ["footprint": NSNumber(value: info.phys_footprint)]
-    if count >= rev3 {
-      reading["footprintPeak"] = NSNumber(value: info.ledger_phys_footprint_peak)
-      reading["neuralCounted"] = NSNumber(value: info.ledger_tag_neural_footprint)
-    }
-    if count >= rev7 {
-      reading["neuralNotCounted"] = NSNumber(value: info.ledger_tag_neural_nofootprint_total)
-      reading["neuralNotCountedPeak"] = NSNumber(value: info.ledger_tag_neural_nofootprint_peak)
-    }
-    #if os(iOS)
-    // 0 means the process has no limit (the Simulator), not that none is
-    // left: a process with nothing left has already been stopped.
-    let available = os_proc_available_memory()
-    if available > 0 {
-      reading["available"] = NSNumber(value: available)
-    }
+    var reading = reading(from: info, count: count)
+    #if os(iOS) && !targetEnvironment(simulator)
+    // A device always has a limit, so 0 here means none is left (or the
+    // app is over it). The Simulator has no limit and reports 0 too, so it
+    // sends nothing.
+    reading["available"] = NSNumber(value: os_proc_available_memory())
     #endif
     return reading
+  }
+
+  /// The figures [info] holds when the kernel filled [count] words of it.
+  static func reading(from info: task_vm_info_data_t, count: mach_msg_type_number_t) -> [String: Any] {
+    var reading: [String: Any] = [:]
+    guard count >= rev1 else { return reading }
+    reading["footprint"] = NSNumber(value: info.phys_footprint)
+    guard count >= rev3 else { return reading }
+    reading["footprintPeak"] = NSNumber(value: info.ledger_phys_footprint_peak)
+    reading["neuralCounted"] = NSNumber(
+      value: info.ledger_tag_neural_footprint + info.ledger_tag_neural_footprint_compressed)
+    // iOS 15 to 17 stop before revision 7: their not-counted figure is the
+    // revision 3 pair, with no peak.
+    reading["neuralNotCounted"] = NSNumber(
+      value: info.ledger_tag_neural_nofootprint + info.ledger_tag_neural_nofootprint_compressed)
+    guard count >= rev7 else { return reading }
+    reading["neuralNotCounted"] = NSNumber(value: info.ledger_tag_neural_nofootprint_total)
+    reading["neuralNotCountedPeak"] = NSNumber(value: info.ledger_tag_neural_nofootprint_peak)
+    return reading
+  }
+
+  // The words a kernel must fill for each revision's fields, worked out from
+  // where the revision's last field ends. A later revision appends fields,
+  // so these never move (the header's TASK_VM_INFO_REVn_COUNT macros are not
+  // importable into Swift).
+  private static let rev1 = wordsThrough(\.phys_footprint)
+  private static let rev3 = wordsThrough(\.ledger_tag_neural_nofootprint_compressed)
+  private static let rev7 = wordsThrough(\.ledger_tag_neural_nofootprint_peak)
+
+  private static func wordsThrough<T>(_ field: KeyPath<task_vm_info_data_t, T>) -> mach_msg_type_number_t {
+    // A stored field of an imported C struct always has an offset.
+    let offset = MemoryLayout<task_vm_info_data_t>.offset(of: field)!
+    return mach_msg_type_number_t((offset + MemoryLayout<T>.size) / MemoryLayout<natural_t>.size)
   }
 }
