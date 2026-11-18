@@ -8,6 +8,7 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/editing/attachment_details_hold.dart';
 import 'package:submersion/features/media/presentation/editing/photo_viewer_editing.dart';
 import 'package:submersion/features/media/presentation/helpers/document_open_helper.dart';
+import 'package:submersion/features/media/presentation/providers/photo_editing_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/attachment_details_fields.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
@@ -58,9 +59,18 @@ class _AttachmentDetailsPageState extends ConsumerState<AttachmentDetailsPage>
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final stored = followStoredPhoto(widget.item);
-    final shown = shownItem(stored?.item ?? widget.item, const []);
+    // Followed whether or not this device edits, so a browser shows a
+    // change made elsewhere too.
+    final storedItem =
+        stored?.item ??
+        ref.watch(photoRecordProvider(widget.item.id)).value?.item ??
+        widget.item;
+    final shown = shownItem(storedItem, const []);
     final unlocked = photoUnlocked;
     final controller = unlocked ? photoEditController : null;
+    // Not while Save runs: the sitting takes nothing then, and a pick
+    // would show a value that is never saved.
+    final editable = controller != null && !controller.isSaving;
     final showOpen = widget.showOpen ?? HostPlatform.isDesktop;
 
     return photoEditScope(
@@ -115,14 +125,14 @@ class _AttachmentDetailsPageState extends ConsumerState<AttachmentDetailsPage>
             AttachmentDetailsFields(
               category: shown.siteCategory,
               size: shown.displaySizeOverride,
-              onCategory: unlocked
+              onCategory: editable
                   ? (category) => holdAttachmentDetails(
                       photoSitting,
                       category,
                       shown.displaySizeOverride,
                     )
                   : null,
-              onSize: unlocked
+              onSize: editable
                   ? (size) => holdAttachmentDetails(
                       photoSitting,
                       shown.siteCategory,

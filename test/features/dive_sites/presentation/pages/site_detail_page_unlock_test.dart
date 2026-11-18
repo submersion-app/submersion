@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/media/data/services/photo_edit_save_service.dart';
 import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
@@ -366,6 +367,71 @@ void main() {
     expect(find.text('Choppy'), findsWidgets);
   });
 
+  // The attachment's own Save, made while the site is being edited, writes
+  // the attachment alone: the site's sitting carries on.
+  testWidgets(
+    'saving the details of a PDF from the site being edited keeps its '
+    'sitting',
+    (tester) async {
+      final at = DateTime.utc(2026);
+      final pdf = MediaItem(
+        id: 'p1',
+        siteId: 's1',
+        mediaType: MediaType.document,
+        originalFilename: 'reef-map.pdf',
+        takenAt: at,
+        createdAt: at,
+        updatedAt: at,
+      );
+      final saves = <Iterable<String>>[];
+      final page = await pumpSitePage(
+        tester,
+        extra: [
+          mediaForSiteProvider('s1').overrideWith((_) async => [pdf]),
+          mediaBytesProvider(pdf).overrideWith(
+            (_) async =>
+                const ResolvedAssetResult(status: ResolutionStatus.unavailable),
+          ),
+          photoRecordProvider('p1').overrideWith(
+            (_) async =>
+                PhotoRecord(item: pdf, species: const [], people: const []),
+          ),
+          photoEditSaveServiceProvider.overrideWithValue(
+            _RecordingPhotoSave(saves),
+          ),
+        ],
+      );
+      await unlock(tester);
+      await openNotes(tester);
+      await typeNotes(tester, 'Choppy');
+      await tester.ensureVisible(find.byType(MediaThumbnailTile));
+      await tester.tap(find.byType(MediaThumbnailTile));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('document_unlock')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Edit details'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Uncategorized').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Site map').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Done'));
+      await tester.pumpAndSettle();
+      // The viewer's Save, in its own bar, over the site's.
+      await tester.tap(find.text(l.forms_save).last);
+      await tester.pumpAndSettle();
+      expect(saves.single, ['details']);
+
+      await tester.tap(find.byType(CloseButton));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(RecordEditBar), findsOneWidget);
+      expect(find.text('Choppy'), findsWidgets);
+      expect(page.save.calls, isEmpty);
+    },
+  );
+
   testWidgets('a failed save stays unlocked and says so', (tester) async {
     final page = await pumpSitePage(tester);
     page.save.failWith = StateError('the save failed');
@@ -575,4 +641,25 @@ void main() {
     expect(find.text(l.forms_discard_title), findsNothing);
     expect(await leaving, isTrue);
   });
+}
+
+/// Records each attachment save's changed cards, and writes nothing.
+class _RecordingPhotoSave extends Fake implements PhotoEditSaveService {
+  _RecordingPhotoSave(this.saves);
+
+  final List<Iterable<String>> saves;
+
+  @override
+  Future<({PhotoRecord before, PhotoRecord after})?> save({
+    required String mediaId,
+    required String? diverId,
+    required PhotoRecord Function(PhotoRecord stored) apply,
+    required Iterable<String> changedCardIds,
+    Future<void> Function()? alsoWrite,
+    bool alsoWriteIsAChange = false,
+    ({String? id})? diveAtStart,
+  }) async {
+    saves.add(changedCardIds.toList());
+    return null;
+  }
 }

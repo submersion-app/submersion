@@ -1,3 +1,11 @@
+import 'dart:async';
+import 'package:drift/drift.dart' show Value;
+import 'package:flutter_riverpod/misc.dart' show Override;
+import 'package:submersion/core/database/database.dart' hide Dive;
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/media/data/services/photo_edit_save_service.dart';
+import 'package:submersion/features/media/domain/entities/photo_record.dart';
+import 'package:submersion/features/media/presentation/providers/photo_editing_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
@@ -38,13 +46,20 @@ void main() {
     WidgetTester tester, {
     bool showOpen = true,
     bool browser = false,
+    List<Override> overrides = const [],
   }) async {
     final item = await stored(tester);
     await pumpViewerApp(
       tester,
       AttachmentDetailsPage(item: item, siteId: 's1', showOpen: showOpen),
       browser: browser,
+      overrides: overrides,
     );
+  }
+
+  Future<void> unlock(WidgetTester tester) async {
+    await tester.tap(find.byKey(unlockKey));
+    await settleViewer(tester);
   }
 
   DropdownButton<SiteAttachmentCategory?> categoryField(WidgetTester tester) =>
@@ -108,6 +123,83 @@ void main() {
     expect(find.byIcon(Icons.share), findsOneWidget);
   });
 
+  // A pick keeps the field it was made in, so a keyboard keeps its place;
+  // a value set from outside (Cancel) still shows.
+  testWidgets('a pick keeps its field, and Cancel puts the stored details '
+      'back', (tester) async {
+    await pumpPage(tester);
+    await unlock(tester);
+    final field = find.byType(DropdownButtonFormField<SiteAttachmentCategory?>);
+    final before = tester.state(field);
+
+    await pickCategory(tester, 'Site map');
+    expect(tester.state(field), same(before));
+
+    await tester.tap(find.text('Cancel'));
+    await settleViewer(tester);
+    await tester.tap(find.text('Discard'));
+    await settleViewer(tester);
+    expect(find.text('Uncategorized'), findsOneWidget);
+    expect(find.text('Site map'), findsNothing);
+  });
+
+  // A pick made while Save runs would be dropped: the fields wait.
+  testWidgets('the fields wait while Save runs', (tester) async {
+    final release = Completer<void>();
+    await pumpPage(
+      tester,
+      overrides: [
+        photoEditSaveServiceProvider.overrideWithValue(
+          _SlowSave(release.future),
+        ),
+      ],
+    );
+    await unlock(tester);
+    await pickCategory(tester, 'Site map');
+
+    await tester.tap(find.text('Save'));
+    await tester.pump();
+    expect(categoryField(tester).onChanged, isNull);
+
+    release.complete();
+    await settleViewer(tester);
+  });
+
+  // Review Focus 1 on this page: the document goes while unlocked.
+  testWidgets('a document removed while unlocked ends the sitting in '
+      'document words', (tester) async {
+    await pumpPage(tester);
+    await unlock(tester);
+
+    final db = DatabaseService.instance.database;
+    await tester.runAsync(
+      () => (db.delete(db.media)..where((t) => t.id.equals('doc2'))).go(),
+    );
+    await settleViewer(tester, rounds: 10);
+
+    expect(find.byType(RecordEditBar), findsNothing);
+    expect(
+      find.text('This document was removed. Your changes were not saved.'),
+      findsOneWidget,
+    );
+  });
+
+  // A browser follows the stored details too, though it never unlocks.
+  testWidgets('a browser shows details changed elsewhere', (tester) async {
+    await pumpPage(tester, browser: true);
+    expect(find.text('Uncategorized'), findsOneWidget);
+
+    final db = DatabaseService.instance.database;
+    await tester.runAsync(
+      () => (db.update(db.media)..where((t) => t.id.equals('doc2'))).write(
+        const MediaCompanion(siteCategory: Value('siteMap')),
+      ),
+    );
+    await settleViewer(tester, rounds: 10);
+
+    expect(find.text('Site map'), findsOneWidget);
+  });
+
   // Review Focus 5: a browser changes no media.
   testWidgets('a browser reads only', (tester) async {
     await pumpPage(tester, browser: true);
@@ -115,4 +207,25 @@ void main() {
     expect(find.byKey(unlockKey), findsNothing);
     expect(categoryField(tester).onChanged, isNull);
   });
+}
+
+/// A save that waits for [release], as a slow write does.
+class _SlowSave extends Fake implements PhotoEditSaveService {
+  _SlowSave(this.release);
+
+  final Future<void> release;
+
+  @override
+  Future<({PhotoRecord before, PhotoRecord after})?> save({
+    required String mediaId,
+    required String? diverId,
+    required PhotoRecord Function(PhotoRecord stored) apply,
+    required Iterable<String> changedCardIds,
+    Future<void> Function()? alsoWrite,
+    bool alsoWriteIsAChange = false,
+    ({String? id})? diveAtStart,
+  }) async {
+    await release;
+    return null;
+  }
 }

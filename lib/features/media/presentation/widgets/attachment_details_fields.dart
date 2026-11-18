@@ -49,10 +49,10 @@ class AttachmentDetailsFields extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        // A value set from outside (a sitting cancelled) shows: the field
+        // takes a changed initialValue as its value, and keeps its State,
+        // so a keyboard keeps its place after a pick.
         DropdownButtonFormField<SiteAttachmentCategory?>(
-          // Keyed on the value, so one set from outside (a sitting
-          // cancelled) shows.
-          key: ValueKey(('category', category)),
           initialValue: category,
           isExpanded: true,
           decoration: InputDecoration(
@@ -78,7 +78,6 @@ class AttachmentDetailsFields extends StatelessWidget {
         // A dropdown, not a segmented control: three segments at phone
         // width cannot hold "Default (Large)" in every language.
         DropdownButtonFormField<_SizeChoice>(
-          key: ValueKey(('size', choice)),
           initialValue: choice,
           isExpanded: true,
           decoration: InputDecoration(

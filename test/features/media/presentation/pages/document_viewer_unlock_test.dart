@@ -137,6 +137,18 @@ void main() {
     expect(controller(tester).isDirty, isTrue);
   });
 
+  // Review Focus 3 on this page: Back with held details asks first.
+  testWidgets('Back with held details asks first', (tester) async {
+    await pumpDocument(tester);
+    await unlock(tester);
+    await holdCategory(tester, from: 'Uncategorized', category: 'Site map');
+
+    await tester.binding.handlePopRoute();
+    await settleViewer(tester);
+
+    expect(find.byType(AlertDialog), findsOneWidget);
+  });
+
   // Review Focus 4: a change undone leaves nothing to save.
   testWidgets('details set back to what is stored leave nothing to save', (
     tester,
