@@ -33,9 +33,11 @@ Widget unlockedSitePane(
   String id,
   VoidCallback onCancel, {
   VoidCallback? onDeleted,
+  bool unlockEditing = kUnlockSiteEditing,
 }) => SiteDetailPage(
   siteId: id,
   embedded: true,
+  unlockEditing: unlockEditing,
   openUnlocked: true,
   onSittingEnded: onCancel,
   onDeleted: onDeleted,
@@ -53,7 +55,13 @@ Widget siteEditPane(
   bool unlockEditing = kUnlockSiteEditing,
 }) {
   if (unlockEditing) {
-    return unlockedSitePane(context, id, onCancel, onDeleted: onDeleted);
+    return unlockedSitePane(
+      context,
+      id,
+      onCancel,
+      onDeleted: onDeleted,
+      unlockEditing: unlockEditing,
+    );
   }
   return SiteEditPage(
     siteId: id,
@@ -82,6 +90,7 @@ Widget siteInDivesPane(
     return SiteDetailPage(
       siteId: siteId,
       embedded: true,
+      unlockEditing: unlockEditing,
       openUnlocked: true,
       onClose: onClose,
       onSittingEnded: onCancel,

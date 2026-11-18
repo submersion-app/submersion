@@ -83,12 +83,13 @@ void main() {
   });
 
   group('the list\'s edit pane', () {
+    var cancelled = 0;
     Widget pane(BuildContext context, {required bool unlockEditing}) =>
         siteEditPane(
           context,
           's1',
           (_) {},
-          () {},
+          () => cancelled++,
           unlockEditing: unlockEditing,
         );
 
@@ -109,7 +110,11 @@ void main() {
       final page = built as SiteDetailPage;
       expect(page.embedded, isTrue);
       expect(page.openUnlocked, isTrue);
-      expect(page.onSittingEnded, isNotNull);
+      // The page it builds hosts editing, whatever the build's switch.
+      expect(page.unlockEditing, isTrue);
+      // The end of its sitting returns the pane to view mode.
+      page.onSittingEnded!();
+      expect(cancelled, 1);
     });
 
     testWidgets('with the switch off is the form', (tester) async {
@@ -188,13 +193,15 @@ void main() {
   });
 
   group("the dive list's site pane", () {
+    var cancelled = 0;
+    var closed = 0;
     Widget pane(BuildContext context, {required bool unlockEditing}) =>
         siteInDivesPane(
           context,
           's1',
           onSaved: (_) {},
-          onCancel: () {},
-          onClose: () {},
+          onCancel: () => cancelled++,
+          onClose: () => closed++,
           onDeleted: () {},
           unlockEditing: unlockEditing,
         );
@@ -220,8 +227,13 @@ void main() {
       final page = built as SiteDetailPage;
       expect(page.embedded, isTrue);
       expect(page.openUnlocked, isTrue);
-      expect(page.onClose, isNotNull);
-      expect(page.onSittingEnded, isNotNull);
+      expect(page.unlockEditing, isTrue);
+      // Its back arrow returns to the dive; its sitting's end, to the site
+      // in view mode.
+      page.onClose!();
+      page.onSittingEnded!();
+      expect(closed, 1);
+      expect(cancelled, 1);
     });
 
     testWidgets('with the switch off is the form', (tester) async {
