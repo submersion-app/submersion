@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:equatable/equatable.dart';
 
+import 'package:submersion/features/species_id/domain/entities/naming_level.dart';
+
 /// Why a model pack's manifest or one of its data files could not be used.
 enum PackManifestFailure {
   /// Not the shape this build expects.
@@ -217,6 +219,8 @@ class NamingConfig extends Equatable {
     double? confidentScoreNoLocation,
     required this.minAllowedCandidates,
     required this.topK,
+    this.precision,
+    this.levels = const [],
   }) : _confidentScoreNoLocation = confidentScoreNoLocation;
 
   /// True until the bars have been set from measured accuracy.
@@ -236,6 +240,15 @@ class NamingConfig extends Equatable {
   final int minAllowedCandidates;
   final int topK;
 
+  /// The share of suggestions that were right on held-out photos at the
+  /// suggest bars, with a location; null when the pack was not measured
+  /// for it (issue #4721).
+  final double? precision;
+
+  /// The measured naming levels below the suggest bars, surest first;
+  /// empty when the pack carries none (issue #4721).
+  final List<MeasuredNamingLevel> levels;
+
   NamingConfig copyWith({
     bool? provisional,
     int? minCropSide,
@@ -246,6 +259,8 @@ class NamingConfig extends Equatable {
     double? confidentScoreNoLocation,
     int? minAllowedCandidates,
     int? topK,
+    double? precision,
+    List<MeasuredNamingLevel>? levels,
   }) => NamingConfig(
     provisional: provisional ?? this.provisional,
     minCropSide: minCropSide ?? this.minCropSide,
@@ -258,6 +273,8 @@ class NamingConfig extends Equatable {
         confidentScoreNoLocation ?? _confidentScoreNoLocation,
     minAllowedCandidates: minAllowedCandidates ?? this.minAllowedCandidates,
     topK: topK ?? this.topK,
+    precision: precision ?? this.precision,
+    levels: levels ?? this.levels,
   );
 
   @override
@@ -271,6 +288,8 @@ class NamingConfig extends Equatable {
     confidentScoreNoLocation,
     minAllowedCandidates,
     topK,
+    precision,
+    levels,
   ];
 }
 
@@ -454,6 +473,12 @@ class SpeciesPackManifest extends Equatable {
             : null,
         minAllowedCandidates: _int(naming, 'minAllowedCandidates'),
         topK: _positiveInt(naming, 'topK'),
+        precision: _share(naming['precision']),
+        levels: _levels(
+          naming['levels'],
+          _double(naming, 'suggestScore'),
+          _double(naming, 'suggestScoreNoLocation'),
+        ),
       ),
       region: RegionConfig(
         cellDegrees: _cellDegrees(region),
@@ -678,6 +703,66 @@ double _double(Map<String, Object?> map, String key) {
   final value = map[key];
   if (value is num && value.isFinite) return value.toDouble();
   _bad('$key is not a number');
+}
+
+/// [value] when it is a share in (0, 1], else null.
+double? _share(Object? value) =>
+    value is num && value.isFinite && value > 0 && value <= 1
+    ? value.toDouble()
+    : null;
+
+/// A bar in [0, [ceiling]], else null.
+double? _barAtMost(Object? value, double ceiling) =>
+    value is num && value.isFinite && value >= 0 && value <= ceiling
+    ? value.toDouble()
+    : null;
+
+/// The naming levels a pack carries (issue #4721), surest first. They are
+/// optional: an entry that is not a known level below Surer, with bars no
+/// higher than the level above it and a precision in (0, 1], is dropped,
+/// and the pack still reads.
+List<MeasuredNamingLevel> _levels(
+  Object? value,
+  double suggestScore,
+  double suggestScoreNoLocation,
+) {
+  if (value is! List) return const [];
+  final byLevel = <NamingLevel, Map<Object?, Object?>>{};
+  for (final entry in value) {
+    if (entry is! Map) continue;
+    final id = entry['id'];
+    final level = NamingLevel.fromId(id is String ? id : null);
+    if (level == null || level == NamingLevel.surer) continue;
+    byLevel.putIfAbsent(level, () => entry);
+  }
+  final levels = <MeasuredNamingLevel>[];
+  var above = (suggestScore, suggestScoreNoLocation);
+  for (final level in NamingLevel.values) {
+    final entry = byLevel[level];
+    if (entry == null) continue;
+    final suggest = _barAtMost(entry['suggestScore'], above.$1);
+    final noLocation = _barAtMost(entry['suggestScoreNoLocation'], above.$2);
+    final precision = _share(entry['precision']);
+    final target = entry['target'];
+    if (suggest == null ||
+        noLocation == null ||
+        precision == null ||
+        target is! num ||
+        !target.isFinite) {
+      continue;
+    }
+    levels.add(
+      MeasuredNamingLevel(
+        level: level,
+        target: target.toDouble(),
+        suggestScore: suggest,
+        suggestScoreNoLocation: noLocation,
+        precision: precision,
+      ),
+    );
+    above = (suggest, noLocation);
+  }
+  return List.unmodifiable(levels);
 }
 
 List<double> _triple(Map<String, Object?> map, String key) {

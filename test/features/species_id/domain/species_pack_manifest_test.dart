@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/app_enums.dart';
+import 'package:submersion/features/species_id/domain/entities/naming_level.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
@@ -547,6 +548,138 @@ void main() {
         () => parseCandidates('{}'),
         throwsA(isA<PackManifestException>()),
       );
+    });
+  });
+
+  group('naming levels (issue #4721)', () {
+    Map<String, Object?> balanced([Map<String, Object?> edit = const {}]) => {
+      'id': 'balanced',
+      'target': 0.75,
+      'suggestScore': 0.4,
+      'suggestScoreNoLocation': 0.6,
+      'precision': 0.81,
+      ...edit,
+    };
+    Map<String, Object?> eager([Map<String, Object?> edit = const {}]) => {
+      'id': 'eager',
+      'target': 0.65,
+      'suggestScore': 0.3,
+      'suggestScoreNoLocation': 0.5,
+      'precision': 0.72,
+      ...edit,
+    };
+    NamingConfig naming(Object? levels, {Object? precision}) =>
+        SpeciesPackManifest.parse(
+          manifestJson((m) {
+            final n = m['naming']! as Map<String, Object?>;
+            if (levels != null) n['levels'] = levels;
+            if (precision != null) n['precision'] = precision;
+          }),
+        ).naming;
+    List<NamingLevel> ids(NamingConfig n) => [
+      for (final l in n.levels) l.level,
+    ];
+
+    test('are read in order, surest first, with the precision', () {
+      final n = naming([eager(), balanced()], precision: 0.897);
+      expect(ids(n), [NamingLevel.balanced, NamingLevel.eager]);
+      expect(n.precision, 0.897);
+      expect(
+        n.levels.first,
+        const MeasuredNamingLevel(
+          level: NamingLevel.balanced,
+          target: 0.75,
+          suggestScore: 0.4,
+          suggestScoreNoLocation: 0.6,
+          precision: 0.81,
+        ),
+      );
+    });
+
+    test('a pack without them has none and no precision', () {
+      final n = naming(null);
+      expect(n.levels, isEmpty);
+      expect(n.precision, isNull);
+    });
+
+    test('a bad entry is dropped and the pack still reads', () {
+      expect(
+        ids(
+          naming([
+            balanced({'id': 'surer'}),
+          ]),
+        ),
+        isEmpty,
+      );
+      expect(
+        ids(
+          naming([
+            balanced({'id': 'reckless'}),
+          ]),
+        ),
+        isEmpty,
+      );
+      expect(ids(naming([balanced(), balanced()])), [NamingLevel.balanced]);
+      expect(
+        ids(
+          naming([
+            balanced({'suggestScore': 'low'}),
+          ]),
+        ),
+        isEmpty,
+      );
+      expect(
+        ids(
+          naming([
+            balanced({'suggestScore': 0.55}),
+          ]),
+        ),
+        isEmpty,
+      );
+      expect(
+        ids(
+          naming([
+            balanced({'suggestScoreNoLocation': 0.75}),
+          ]),
+        ),
+        isEmpty,
+      );
+      expect(
+        ids(
+          naming([
+            balanced({'precision': 0}),
+          ]),
+        ),
+        isEmpty,
+      );
+      expect(
+        ids(
+          naming([
+            balanced({'precision': 1.2}),
+          ]),
+        ),
+        isEmpty,
+      );
+      expect(ids(naming(['balanced'])), isEmpty);
+      expect(ids(naming('levels')), isEmpty);
+    });
+
+    test('eager above balanced is dropped', () {
+      expect(
+        ids(
+          naming([
+            balanced(),
+            eager({'suggestScore': 0.45}),
+          ]),
+        ),
+        [NamingLevel.balanced],
+      );
+    });
+
+    test('a precision outside (0, 1] reads as none', () {
+      expect(naming(null, precision: 0).precision, isNull);
+      expect(naming(null, precision: 1.5).precision, isNull);
+      expect(naming(null, precision: 'high').precision, isNull);
     });
   });
 }
