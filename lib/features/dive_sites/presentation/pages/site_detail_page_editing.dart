@@ -210,6 +210,40 @@ mixin _SiteDetailPageEditing
     return list.current(session);
   }
 
+  /// "Shared with" under the header, for the owner of a site shared with
+  /// other profiles (issue #4527, phase 2), offered where the header
+  /// block's editor offers sharing: never on a library site, and only with
+  /// two or more divers. While the header block is open its editor shows
+  /// the field instead.
+  Widget? _sharedWithLine(BuildContext context, DiveSite site) {
+    if (site.isLibrarySite) return null;
+    final controller = maybeEditController;
+    if (controller?.openCardIds.contains(siteHeaderCardId) ?? false) {
+      return null;
+    }
+    final divers = ref.watch(allDiversProvider).value ?? const [];
+    if (divers.length < 2) return null;
+    final isOwner = canDestroySharedItemOnceKnown(
+      ref.watch(validatedCurrentDiverIdProvider),
+      ownerId: site.diverId,
+    );
+    if (isOwner != true) return null;
+    final session = controller?.session;
+    final sharing =
+        (session == null ? null : siteSharingInSitting(session)) ??
+        ref
+            .watch(
+              itemSharingProvider((kind: SharedItemKind.site, id: site.id)),
+            )
+            .value;
+    if (sharing == null || !sharing.isShared) return null;
+    return SharingTile(
+      summary: sharingSummary(sharing, {
+        for (final d in divers) d.id: d.name,
+      }, context.l10n),
+    );
+  }
+
   /// The sections whose cards are open, held unfolded in the list layout.
   Set<SiteDetailSectionId> _sectionsOpenForSitting() {
     final open = maybeEditController?.openCardIds ?? const <String>{};

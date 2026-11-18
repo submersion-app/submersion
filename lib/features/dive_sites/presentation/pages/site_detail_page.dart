@@ -88,6 +88,11 @@ import 'package:submersion/features/dive_sites/presentation/editing/site_classif
 import 'package:submersion/features/dive_sites/presentation/editing/site_edit_cards.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_sitting_start.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_features_sitting.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_sharing_sitting.dart';
+import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
+import 'package:submersion/shared/widgets/shared_items/item_sharing_field.dart';
+import 'package:submersion/shared/widgets/shared_items/share_target_dialog.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_plain_fields.dart';
 import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_species_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/unlock_site_editing_flag.dart';
@@ -287,6 +292,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
                   ),
                 )
               : SiteDetailHeader(site: site),
+          if (edit.hosts) ?_sharedWithLine(context, site),
           SharedByBanner(
             kind: SharedItemKind.site,
             itemId: site.id,

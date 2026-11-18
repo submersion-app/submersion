@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/data/visibility/item_sharing.dart';
+import 'package:submersion/core/data/visibility/shared_item_policy.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_sharing_sitting.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/shared/widgets/shared_items/item_sharing_field.dart';
+import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
 import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_classification_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/site_type_chips.dart';
@@ -68,11 +74,48 @@ class _SiteHeaderCardEditorState extends ConsumerState<SiteHeaderCardEditor> {
   }
 
   /// Reads the site's types afresh unless the diver has changed them, and
-  /// draws them once read: keeping them does not notify the sitting.
+  /// who it is shared with unless read already, and draws them once read:
+  /// keeping them does not notify the sitting.
   void _loadTypes() {
-    siteTypesList.load(widget.session).then((_) {
+    final session = widget.session;
+    siteTypesList.load(session).then((_) {
       if (mounted) setState(() {});
     });
+    if (siteSharingLoaded(session) == null) {
+      loadSiteSharing(session, ref.read).then((_) {
+        if (mounted) setState(() {});
+      });
+    }
+  }
+
+  /// "Shared with", as the form offered it: never on a library site, which
+  /// follows its library, and only with two or more divers (the field hides
+  /// itself otherwise). Locked while the profile, or the sharing, is not
+  /// known yet, and to anyone but the owner.
+  Widget? _sharingField(EditSession<DiveSite> session) {
+    final stored = session.stored;
+    if (stored.isLibrarySite) return null;
+    final loaded = siteSharingLoaded(session);
+    final unread = siteSharingUnread(session);
+    if (loaded == null && !unread) return null;
+    final current = siteSharingInSitting(session) ?? ItemSharing.none;
+    final activeDiver = ref.watch(validatedCurrentDiverIdProvider);
+    return ItemSharingField(
+      kind: SharedItemKind.site,
+      value: current,
+      original: loaded ?? ItemSharing.none,
+      mayShare: unread
+          ? null
+          : canDestroySharedItemOnceKnown(activeDiver, ownerId: stored.diverId),
+      ownerId: stored.diverId ?? activeDiver.value,
+      itemName: session.working.name,
+      onChanged: (next) => setSiteSharing(
+        session,
+        next,
+        // The profile acting now, which the repository checks.
+        actingDiverId: ref.read(validatedCurrentDiverIdProvider).value,
+      ),
+    );
   }
 
   /// Holds [ids] as the site's types, each as [allTypes] has it.
@@ -145,6 +188,11 @@ class _SiteHeaderCardEditorState extends ConsumerState<SiteHeaderCardEditor> {
                 );
               },
             ),
+          ListenableBuilder(
+            listenable: session,
+            builder: (context, _) =>
+                _sharingField(session) ?? const SizedBox.shrink(),
+          ),
           SiteEnumChipsRow<WaterType>(
             session: session,
             field: siteWaterTypeField,

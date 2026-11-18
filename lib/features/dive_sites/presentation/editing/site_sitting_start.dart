@@ -2,6 +2,7 @@ import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_classification_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_features_sitting.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_sharing_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_species_sitting.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/editing/record_document_links_sitting.dart';
@@ -36,6 +37,7 @@ void startSiteSitting(EditSession<DiveSite> session, ProviderRead read) {
   siteTagsList.load(session);
   siteSpeciesList.load(session);
   siteFeaturesList.load(session);
+  loadSiteSharing(session, read);
   holdSittingMedia(
     session,
     SittingMediaWriters.forSite(read),
