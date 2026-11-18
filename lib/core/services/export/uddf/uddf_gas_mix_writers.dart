@@ -1,11 +1,13 @@
 import 'package:xml/xml.dart';
 
+import 'package:submersion/core/services/export/uddf/uddf_import_parsers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 /// UDDF writer for gas mixes, shared by the full backup and the dives-only
 /// export so the two name a mix the same way. A mix's id is its identity in
 /// the file: `<gasdefinitions>` holds one `<mix>` per id, and each cylinder
-/// and starting `<switchmix>` links to one by it.
+/// and starting `<switchmix>` links to one by it. [parseGasMix] reads a mix
+/// back, from these writers or from another program.
 class UddfGasMixWriters {
   const UddfGasMixWriters._();
 
@@ -65,4 +67,45 @@ class UddfGasMixWriters {
   /// of a fraction are 10 of a percentage.
   static String _fraction(double percent) =>
       _rounded(percent / 100, 12).toString();
+
+  /// Reads a `<mix>` as percentages.
+  ///
+  /// UDDF defines the values as fractions (0.32 for EAN32), but some
+  /// programs write percentages (32), and scaling those by 100 stored EAN32
+  /// as 3200% oxygen (issue #4705). No share of a gas is above 1, so a mix
+  /// with either value above 1 is already in percent. The unit is decided
+  /// for the mix as a whole: beside 30% oxygen, a helium of 1 is 1%, not a
+  /// whole fraction. A fraction a hair over 1 from float noise
+  /// (1.0000000000000002) is still pure gas, not 1%. A missing or
+  /// unreadable value, or one outside 0-100% once read, falls back to air's
+  /// 21% oxygen and no helium, whatever the unit.
+  static GasMix parseGasMix(XmlElement mixElement) {
+    final o2 = UddfImportParsers.parseUddfDouble(
+      UddfImportParsers.getElementText(mixElement, 'o2'),
+    );
+    final he = UddfImportParsers.parseUddfDouble(
+      UddfImportParsers.getElementText(mixElement, 'he'),
+    );
+    final scale = _isAboveWholeFraction(o2) || _isAboveWholeFraction(he)
+        ? 1
+        : 100;
+
+    return GasMix(
+      o2: _gasPercent(o2, scale) ?? 21.0,
+      he: _gasPercent(he, scale) ?? 0.0,
+    );
+  }
+
+  /// Whether [value] is above 1 by more than float noise, so it can only be
+  /// a percentage.
+  static bool _isAboveWholeFraction(double? value) =>
+      value != null && cleanPercent(value) > 1;
+
+  /// [value] times [scale] as a percentage, or null when there is no value
+  /// or the result is not a share of a gas.
+  static double? _gasPercent(double? value, int scale) {
+    if (value == null) return null;
+    final percent = cleanPercent(value * scale);
+    return percent < 0 || percent > 100 ? null : percent;
+  }
 }

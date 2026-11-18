@@ -14,6 +14,7 @@ import 'package:submersion/core/services/export/uddf/uddf_dive_logistics.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dump_codec.dart';
 import 'package:submersion/core/services/export/uddf/uddf_gradient_factor.dart';
 import 'package:submersion/core/services/export/uddf/uddf_fill_writers.dart';
+import 'package:submersion/core/services/export/uddf/uddf_gas_mix_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_import_parsers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_service_clock_writers.dart';
 import 'package:submersion/features/universal_import/data/services/import_site_fold.dart';
@@ -219,7 +220,7 @@ class UddfFullImportService {
       for (final mixElement in gasDefsElement.findElements('mix')) {
         final mixId = mixElement.getAttribute('id');
         if (mixId != null) {
-          gasMixes[mixId] = UddfImportParsers.parseGasMix(mixElement);
+          gasMixes[mixId] = UddfGasMixWriters.parseGasMix(mixElement);
         }
       }
     }

@@ -1,14 +1,15 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_import_service.dart';
-import 'package:submersion/core/services/export/uddf/uddf_import_parsers.dart';
+import 'package:submersion/core/services/export/uddf/uddf_gas_mix_writers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:xml/xml.dart';
 
-/// Issue #4705: UDDF gives a mix as fractions (`<o2>0.32</o2>`), but some
-/// programs write percentages (`<o2>32</o2>`). Every value was multiplied by
-/// 100, so EAN32 was stored as 3200% oxygen and air as 2100%.
+/// Reading a `<mix>` back. Issue #4705: UDDF gives a mix as fractions
+/// (`<o2>0.32</o2>`), but some programs write percentages (`<o2>32</o2>`).
+/// Every value was multiplied by 100, so EAN32 was stored as 3200% oxygen and
+/// air as 2100%.
 void main() {
-  GasMix parse(String body) => UddfImportParsers.parseGasMix(
+  GasMix parse(String body) => UddfGasMixWriters.parseGasMix(
     XmlDocument.parse('<mix id="m">$body</mix>').rootElement,
   );
 
@@ -54,9 +55,44 @@ void main() {
       expect(parse('<o2>0.32</o2><he>0.0</he>'), const GasMix(o2: 32));
     });
 
+    test('restores every tenth of a percent exactly', () {
+      // Multiplying the stored fraction by 100 left 93 of these, and 29%,
+      // slightly off (0.29 * 100 is 28.999999999999996).
+      for (var tenths = 1; tenths <= 1000; tenths++) {
+        final percent = tenths / 10;
+        final fraction = (percent / 100).toString();
+
+        expect(
+          parse('<o2>$fraction</o2><he>0.0</he>').o2,
+          percent,
+          reason: 'o2 $fraction',
+        );
+        expect(
+          parse('<o2>0.21</o2><he>$fraction</he>').he,
+          percent,
+          reason: 'he $fraction',
+        );
+      }
+    });
+
+    test('keeps the precision another program wrote', () {
+      expect(parse('<o2>0.32125</o2><he>0.0</he>').o2, 32.125);
+    });
+
+    test('an unreadable fraction still falls back', () {
+      expect(parse('<o2>not a number</o2><he>nor this</he>'), const GasMix());
+    });
+
     test('reads a whole fraction as pure oxygen, not 1%', () {
       expect(parse('<o2>1.0</o2><he>0.0</he>'), const GasMix(o2: 100));
       expect(parse('<o2>1</o2>'), const GasMix(o2: 100));
+    });
+
+    test('reads a whole fraction with float noise as pure gas, not 1%', () {
+      expect(
+        parse('<o2>1.0000000000000002</o2><he>0</he>'),
+        const GasMix(o2: 100),
+      );
     });
 
     test('a non-finite value neither poisons the mix nor sets its unit', () {
@@ -64,6 +100,14 @@ void main() {
       // oxygen beside it as 0.32%.
       expect(parse('<o2>0.32</o2><he>Infinity</he>'), const GasMix(o2: 32));
       expect(parse('<o2>NaN</o2><he>0.0</he>'), const GasMix());
+    });
+  });
+
+  group('parseGasMix, a value that is no share of a gas', () {
+    test('falls back like an unreadable one', () {
+      expect(parse('<o2>320</o2><he>0</he>'), const GasMix());
+      expect(parse('<o2>-0.1</o2><he>0.0</he>'), const GasMix());
+      expect(parse('<o2>32</o2><he>-5</he>'), const GasMix(o2: 32));
     });
   });
 

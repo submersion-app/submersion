@@ -4,7 +4,7 @@ import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_builders.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_export_service.dart';
-import 'package:submersion/core/services/export/uddf/uddf_import_parsers.dart';
+import 'package:submersion/core/services/export/uddf/uddf_gas_mix_writers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:xml/xml.dart';
 
@@ -29,7 +29,7 @@ void main() {
   /// Each `<mix>` in the file, by id.
   Map<String, GasMix> definitionsIn(String xml) => {
     for (final mix in XmlDocument.parse(xml).findAllElements('mix'))
-      mix.getAttribute('id')!: UddfImportParsers.parseGasMix(mix),
+      mix.getAttribute('id')!: UddfGasMixWriters.parseGasMix(mix),
   };
 
   /// The definition each `<tankdata>` links to, in cylinder order.
@@ -208,35 +208,6 @@ void main() {
       );
 
       expect(UddfExportBuilders.startMixId(withSuit), 'mix_32_0');
-    });
-  });
-
-  group('parseGasMix', () {
-    GasMix parse(String o2, {String he = '0.0'}) =>
-        UddfImportParsers.parseGasMix(
-          XmlDocument.parse(
-            '<mix id="m"><o2>$o2</o2><he>$he</he></mix>',
-          ).rootElement,
-        );
-
-    test('restores every tenth of a percent exactly', () {
-      // Multiplying the stored fraction by 100 left 93 of these, and 29%,
-      // slightly off (0.29 * 100 is 28.999999999999996).
-      for (var tenths = 1; tenths <= 1000; tenths++) {
-        final percent = tenths / 10;
-        final fraction = (percent / 100).toString();
-
-        expect(parse(fraction).o2, percent, reason: 'o2 $fraction');
-        expect(parse('0.21', he: fraction).he, percent, reason: 'he $fraction');
-      }
-    });
-
-    test('keeps the precision another program wrote', () {
-      expect(parse('0.32125').o2, 32.125);
-    });
-
-    test('an unreadable fraction still falls back', () {
-      expect(parse('not a number', he: 'nor this'), const GasMix());
     });
   });
 }
