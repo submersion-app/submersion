@@ -20175,6 +20175,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_siteAttachment_detailsTitle => 'פרטי הקובץ המצורף';
 
   @override
+  String get media_attachmentDetails_editing => 'עריכת קובץ מצורף';
+
+  @override
+  String get media_attachmentDetails_open => 'פתח';
+
+  @override
   String get media_siteAttachment_editDetails => 'עריכת פרטים';
 
   @override

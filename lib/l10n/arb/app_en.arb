@@ -12513,6 +12513,14 @@
   "media_siteAttachment_categorySiteMap": "Site map",
   "media_siteAttachment_categoryUnderwater": "Underwater",
   "media_siteAttachment_detailsTitle": "Attachment details",
+  "media_attachmentDetails_editing": "Editing attachment",
+  "@media_attachmentDetails_editing": {
+    "description": "Title of a site attachment's details page bar while its details are being edited (the attachment is unlocked); like media_viewer_editingPhoto."
+  },
+  "media_attachmentDetails_open": "Open",
+  "@media_attachmentDetails_open": {
+    "description": "Button on a site attachment's details page (a document with no in-app viewer, such as a Word file) that opens the file in another app on a desktop computer."
+  },
   "media_siteAttachment_editDetails": "Edit details",
   "media_siteAttachment_groupHeading": "{category} ({count})",
   "@media_siteAttachment_groupHeading": {"description": "Site media group heading", "placeholders": {"category": {"type": "String"}, "count": {"type": "int"}}},

@@ -20563,6 +20563,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_siteAttachment_detailsTitle => 'Melléklet adatai';
 
   @override
+  String get media_attachmentDetails_editing => 'Melléklet szerkesztése';
+
+  @override
+  String get media_attachmentDetails_open => 'Megnyitás';
+
+  @override
   String get media_siteAttachment_editDetails => 'Adatok szerkesztése';
 
   @override

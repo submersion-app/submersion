@@ -32760,6 +32760,18 @@ abstract class AppLocalizations {
   /// **'Attachment details'**
   String get media_siteAttachment_detailsTitle;
 
+  /// Title of a site attachment's details page bar while its details are being edited (the attachment is unlocked); like media_viewer_editingPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Editing attachment'**
+  String get media_attachmentDetails_editing;
+
+  /// Button on a site attachment's details page (a document with no in-app viewer, such as a Word file) that opens the file in another app on a desktop computer.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get media_attachmentDetails_open;
+
   /// No description provided for @media_siteAttachment_editDetails.
   ///
   /// In en, this message translates to:

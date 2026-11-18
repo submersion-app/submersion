@@ -19599,6 +19599,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_siteAttachment_detailsTitle => '附件详情';
 
   @override
+  String get media_attachmentDetails_editing => '正在编辑附件';
+
+  @override
+  String get media_attachmentDetails_open => '打开';
+
+  @override
   String get media_siteAttachment_editDetails => '编辑详情';
 
   @override

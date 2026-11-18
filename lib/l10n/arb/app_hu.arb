@@ -5876,6 +5876,8 @@
   "media_siteAttachment_categorySiteMap": "Merülőhely térképe",
   "media_siteAttachment_categoryUnderwater": "Víz alatt",
   "media_siteAttachment_detailsTitle": "Melléklet adatai",
+  "media_attachmentDetails_editing": "Melléklet szerkesztése",
+  "media_attachmentDetails_open": "Megnyitás",
   "media_siteAttachment_editDetails": "Adatok szerkesztése",
   "media_siteAttachment_groupHeading": "{category} ({count})",
   "media_siteAttachment_moreOptions": "További lehetőségek",

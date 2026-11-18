@@ -6128,6 +6128,8 @@
   "media_siteAttachment_categorySiteMap": "Tauchplatzkarte",
   "media_siteAttachment_categoryUnderwater": "Unter Wasser",
   "media_siteAttachment_detailsTitle": "Anhangdetails",
+  "media_attachmentDetails_editing": "Anhang wird bearbeitet",
+  "media_attachmentDetails_open": "Öffnen",
   "media_siteAttachment_editDetails": "Details bearbeiten",
   "media_siteAttachment_groupHeading": "{category} ({count})",
   "media_siteAttachment_moreOptions": "Weitere Optionen",

@@ -6002,6 +6002,8 @@
   "media_siteAttachment_categorySiteMap": "Mapa do ponto de mergulho",
   "media_siteAttachment_categoryUnderwater": "Subaquático",
   "media_siteAttachment_detailsTitle": "Detalhes do anexo",
+  "media_attachmentDetails_editing": "A editar anexo",
+  "media_attachmentDetails_open": "Abrir",
   "media_siteAttachment_editDetails": "Editar detalhes",
   "media_siteAttachment_groupHeading": "{category} ({count})",
   "media_siteAttachment_moreOptions": "Mais opções",

@@ -6136,6 +6136,8 @@
   "media_siteAttachment_categorySiteMap": "潜水点地图",
   "media_siteAttachment_categoryUnderwater": "水下",
   "media_siteAttachment_detailsTitle": "附件详情",
+  "media_attachmentDetails_editing": "正在编辑附件",
+  "media_attachmentDetails_open": "打开",
   "media_siteAttachment_editDetails": "编辑详情",
   "media_siteAttachment_groupHeading": "{category}（{count}）",
   "media_siteAttachment_moreOptions": "更多选项",

@@ -20621,6 +20621,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get media_siteAttachment_detailsTitle => 'Detalles del adjunto';
 
   @override
+  String get media_attachmentDetails_editing => 'Editando adjunto';
+
+  @override
+  String get media_attachmentDetails_open => 'Abrir';
+
+  @override
   String get media_siteAttachment_editDetails => 'Editar detalles';
 
   @override

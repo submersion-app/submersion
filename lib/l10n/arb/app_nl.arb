@@ -6002,6 +6002,8 @@
   "media_siteAttachment_categorySiteMap": "Kaart van de duikstek",
   "media_siteAttachment_categoryUnderwater": "Onder water",
   "media_siteAttachment_detailsTitle": "Bijlagedetails",
+  "media_attachmentDetails_editing": "Bijlage bewerken",
+  "media_attachmentDetails_open": "Openen",
   "media_siteAttachment_editDetails": "Details bewerken",
   "media_siteAttachment_groupHeading": "{category} ({count})",
   "media_siteAttachment_moreOptions": "Meer opties",

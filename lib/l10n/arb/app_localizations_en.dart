@@ -20318,6 +20318,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_siteAttachment_detailsTitle => 'Attachment details';
 
   @override
+  String get media_attachmentDetails_editing => 'Editing attachment';
+
+  @override
+  String get media_attachmentDetails_open => 'Open';
+
+  @override
   String get media_siteAttachment_editDetails => 'Edit details';
 
   @override

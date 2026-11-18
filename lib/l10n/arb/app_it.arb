@@ -5876,6 +5876,8 @@
   "media_siteAttachment_categorySiteMap": "Mappa del sito",
   "media_siteAttachment_categoryUnderwater": "Subacqueo",
   "media_siteAttachment_detailsTitle": "Dettagli allegato",
+  "media_attachmentDetails_editing": "Modifica dell'allegato",
+  "media_attachmentDetails_open": "Apri",
   "media_siteAttachment_editDetails": "Modifica dettagli",
   "media_siteAttachment_groupHeading": "{category} ({count})",
   "media_siteAttachment_moreOptions": "Altre opzioni",

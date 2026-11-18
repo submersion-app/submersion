@@ -5876,6 +5876,8 @@
   "media_siteAttachment_categorySiteMap": "Carte du site",
   "media_siteAttachment_categoryUnderwater": "Sous l'eau",
   "media_siteAttachment_detailsTitle": "Détails de la pièce jointe",
+  "media_attachmentDetails_editing": "Modification de la pièce jointe",
+  "media_attachmentDetails_open": "Ouvrir",
   "media_siteAttachment_editDetails": "Modifier les détails",
   "media_siteAttachment_groupHeading": "{category} ({count})",
   "media_siteAttachment_moreOptions": "Plus d'options",

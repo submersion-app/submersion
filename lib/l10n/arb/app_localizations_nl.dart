@@ -20501,6 +20501,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_siteAttachment_detailsTitle => 'Bijlagedetails';
 
   @override
+  String get media_attachmentDetails_editing => 'Bijlage bewerken';
+
+  @override
+  String get media_attachmentDetails_open => 'Openen';
+
+  @override
   String get media_siteAttachment_editDetails => 'Details bewerken';
 
   @override

@@ -5876,6 +5876,8 @@
   "media_siteAttachment_categorySiteMap": "מפת האתר",
   "media_siteAttachment_categoryUnderwater": "מתחת למים",
   "media_siteAttachment_detailsTitle": "פרטי הקובץ המצורף",
+  "media_attachmentDetails_editing": "עריכת קובץ מצורף",
+  "media_attachmentDetails_open": "פתח",
   "media_siteAttachment_editDetails": "עריכת פרטים",
   "media_siteAttachment_groupHeading": "{category} ({count})",
   "media_siteAttachment_moreOptions": "אפשרויות נוספות",

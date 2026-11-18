@@ -11,6 +11,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/data/services/document_import_service.dart';
 import 'package:submersion/features/media/data/services/media_share_temp_file.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/presentation/pages/attachment_details_page.dart';
 import 'package:submersion/features/media/presentation/pages/document_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_bytes_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
@@ -48,6 +49,17 @@ class DocumentOpenHelper {
             editableSiteId: editableSiteId,
             attachmentLock: attachmentLock,
           ),
+        ),
+      );
+      return;
+    }
+    // A document with no viewer opens its details, under the lock.
+    if (attachmentLock && editableSiteId != null) {
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          fullscreenDialog: true,
+          builder: (_) =>
+              AttachmentDetailsPage(item: item, siteId: editableSiteId),
         ),
       );
       return;

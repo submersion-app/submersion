@@ -6002,6 +6002,8 @@
   "media_siteAttachment_categorySiteMap": "خريطة الموقع",
   "media_siteAttachment_categoryUnderwater": "تحت الماء",
   "media_siteAttachment_detailsTitle": "تفاصيل المرفق",
+  "media_attachmentDetails_editing": "تعديل المرفق",
+  "media_attachmentDetails_open": "فتح",
   "media_siteAttachment_editDetails": "تعديل التفاصيل",
   "media_siteAttachment_groupHeading": "{category} ({count})",
   "media_siteAttachment_moreOptions": "خيارات إضافية",

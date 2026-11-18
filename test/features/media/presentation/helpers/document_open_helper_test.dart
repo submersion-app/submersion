@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/features/media/data/services/asset_resolution_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/helpers/document_open_helper.dart';
+import 'package:submersion/features/media/presentation/pages/attachment_details_page.dart';
 import 'package:submersion/features/media/presentation/pages/document_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_bytes_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_editing_providers.dart';
@@ -107,6 +108,22 @@ void main() {
     expect(
       find.text('This document is not available on this device'),
       findsOneWidget,
+    );
+  });
+
+  testWidgets('a document with no viewer and attachmentLock opens its '
+      'details page', (tester) async {
+    final doc = testMediaItem(
+      mediaType: MediaType.document,
+      originalFilename: 'briefing.docx',
+    );
+
+    await pumpAndOpen(tester, doc, editableSiteId: 's1', attachmentLock: true);
+
+    expect(find.byType(AttachmentDetailsPage), findsOneWidget);
+    expect(
+      find.text('This document is not available on this device'),
+      findsNothing,
     );
   });
 

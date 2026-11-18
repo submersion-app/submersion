@@ -20687,6 +20687,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_siteAttachment_detailsTitle => 'Détails de la pièce jointe';
 
   @override
+  String get media_attachmentDetails_editing =>
+      'Modification de la pièce jointe';
+
+  @override
+  String get media_attachmentDetails_open => 'Ouvrir';
+
+  @override
   String get media_siteAttachment_editDetails => 'Modifier les détails';
 
   @override

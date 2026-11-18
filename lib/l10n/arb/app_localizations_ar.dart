@@ -20921,6 +20921,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_siteAttachment_detailsTitle => 'تفاصيل المرفق';
 
   @override
+  String get media_attachmentDetails_editing => 'تعديل المرفق';
+
+  @override
+  String get media_attachmentDetails_open => 'فتح';
+
+  @override
   String get media_siteAttachment_editDetails => 'تعديل التفاصيل';
 
   @override

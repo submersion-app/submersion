@@ -6002,6 +6002,8 @@
   "media_siteAttachment_categorySiteMap": "Mapa del punto de buceo",
   "media_siteAttachment_categoryUnderwater": "Bajo el agua",
   "media_siteAttachment_detailsTitle": "Detalles del adjunto",
+  "media_attachmentDetails_editing": "Editando adjunto",
+  "media_attachmentDetails_open": "Abrir",
   "media_siteAttachment_editDetails": "Editar detalles",
   "media_siteAttachment_groupHeading": "{category} ({count})",
   "media_siteAttachment_moreOptions": "Más opciones",
