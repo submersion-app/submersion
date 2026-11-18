@@ -3944,6 +3944,7 @@
   "diveSites_edit_snackbar_lookupFailed": "La consulta de ubicación falló. Comprueba tu conexión e inténtalo de nuevo.",
   "diveSites_edit_altitude_foundTooltip": "Encontrado para estas coordenadas",
   "diveSites_edit_catalogueRefused": "El registro del catálogo ha cambiado o está vinculado a otro sitio. No se ha guardado nada.",
+  "diveSites_edit_depth_rangeInvalid": "La profundidad mínima no puede ser mayor que la máxima.",
   "diveSites_edit_lookupReplace_title": "¿Reemplazar los datos de ubicación?",
   "diveSites_edit_lookupReplace_body": "La consulta encontró valores distintos para estos campos:",
   "diveSites_edit_lookupReplace_replace": "Reemplazar",

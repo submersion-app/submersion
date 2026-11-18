@@ -12566,6 +12566,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Der Katalogeintrag hat sich geändert oder ist mit einem anderen Tauchplatz verknüpft. Es wurde nichts gespeichert.';
 
   @override
+  String get diveSites_edit_depth_rangeInvalid =>
+      'Die Mindesttiefe darf nicht größer als die Maximaltiefe sein.';
+
+  @override
   String get diveSites_edit_lookupReplace_title => 'Ortsangaben ersetzen?';
 
   @override

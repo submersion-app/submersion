@@ -12581,6 +12581,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'La voce del catalogo è cambiata o è collegata a un altro sito. Non è stato salvato nulla.';
 
   @override
+  String get diveSites_edit_depth_rangeInvalid =>
+      'La profondità minima non può superare quella massima.';
+
+  @override
   String get diveSites_edit_lookupReplace_title =>
       'Sostituire i dettagli di località?';
 

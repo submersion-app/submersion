@@ -12576,6 +12576,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'El registro del catálogo ha cambiado o está vinculado a otro sitio. No se ha guardado nada.';
 
   @override
+  String get diveSites_edit_depth_rangeInvalid =>
+      'La profundidad mínima no puede ser mayor que la máxima.';
+
+  @override
   String get diveSites_edit_lookupReplace_title =>
       '¿Reemplazar los datos de ubicación?';
 

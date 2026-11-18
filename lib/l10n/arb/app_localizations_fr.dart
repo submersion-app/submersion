@@ -12621,6 +12621,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'La fiche du catalogue a changé ou est liée à un autre site. Rien n\'a été enregistré.';
 
   @override
+  String get diveSites_edit_depth_rangeInvalid =>
+      'La profondeur minimale ne peut pas dépasser la profondeur maximale.';
+
+  @override
   String get diveSites_edit_lookupReplace_title =>
       'Remplacer les informations de lieu ?';
 

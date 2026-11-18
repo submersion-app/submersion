@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -11,6 +13,7 @@ import 'package:submersion/features/dive_sites/presentation/widgets/location_pic
 import 'package:submersion/features/weather/data/services/elevation_service.dart';
 import 'package:submersion/features/weather/presentation/providers/weather_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
+import 'package:submersion/shared/widgets/forms/coordinate_field_group.dart';
 import 'package:submersion/shared/widgets/forms/suggestion_form_row.dart';
 
 import 'site_editor_harness.dart';
@@ -45,6 +48,43 @@ class _FakeLocation implements LocationService {
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// A phone that finds no position, and records the settings it opens.
+class _NoFix extends _FakeLocation {
+  _NoFix(super.place);
+
+  var settingsOpened = 0;
+
+  @override
+  Future<LocationResult?> getCurrentLocation({
+    bool includeGeocoding = true,
+    Duration timeout = const Duration(seconds: 15),
+    String languageCode = LocationService.defaultLanguageCode,
+  }) async => null;
+
+  @override
+  Future<bool> openAppSettings() async {
+    settingsOpened++;
+    return true;
+  }
+}
+
+/// A position that answers only when [answer] completes.
+class _SlowFix extends _FakeLocation {
+  _SlowFix(super.place);
+
+  final answer = Completer<void>();
+
+  @override
+  Future<LocationResult?> getCurrentLocation({
+    bool includeGeocoding = true,
+    Duration timeout = const Duration(seconds: 15),
+    String languageCode = LocationService.defaultLanguageCode,
+  }) async {
+    await answer.future;
+    return super.getCurrentLocation();
+  }
 }
 
 class _FakeElevation extends ElevationService {
@@ -216,6 +256,83 @@ void main() {
       find.text(l.diveSites_edit_snackbar_locationSelectedFromMap),
       findsOneWidget,
     );
+    await tester.pump(const Duration(seconds: 2));
+  });
+
+  testWidgets('a pick from the map replaces half-typed coordinates', (
+    tester,
+  ) async {
+    final h = await pump(tester);
+    await typeCoordinates(tester, '17.3', '');
+    expect(h.controller.invalidCardIds, contains('location'));
+
+    await tester.tap(find.text(l.diveSites_edit_gps_pickFromMap));
+    await tester.pumpAndSettle();
+
+    // The rows show the picked point, and nothing holds Save back.
+    expect(h.session.valueOf(siteLocationField), const GeoPoint(20.5, -87.1));
+    expect(
+      tester
+          .widget<CoordinateFieldGroup>(find.byType(CoordinateFieldGroup))
+          .errorText,
+      isNull,
+    );
+    expect(h.controller.invalidCardIds, isNot(contains('location')));
+    final fields = find.byType(TextField);
+    String text(int i) =>
+        tester.widget<TextField>(fields.at(i)).controller!.text;
+    expect(double.parse(text(0)), 20.5);
+    expect(double.parse(text(1)), -87.1);
+    await tester.pump(const Duration(seconds: 2));
+  });
+
+  testWidgets('no position on a phone offers the location settings, as the '
+      'form', (tester) async {
+    final noFix = _NoFix(place);
+    await pumpSiteEditor(
+      tester,
+      const DiveSite(id: 's1', name: 'Hole'),
+      (session) => SiteLocationCardEditor(session: session, isPhone: true),
+      overrides: [locationServiceProvider.overrideWithValue(noFix)],
+    );
+
+    await tester.tap(find.text(l.diveSites_edit_gps_useMyLocation));
+    await tester.pumpAndSettle();
+    expect(
+      find.text(l.diveSites_edit_snackbar_locationUnavailableMobile),
+      findsOneWidget,
+    );
+    await tester.tap(find.text(l.diveSites_edit_snackbar_locationSettings));
+    await tester.pumpAndSettle();
+
+    expect(noFix.settingsOpened, 1);
+  });
+
+  testWidgets('Pick from map waits while the location is being found', (
+    tester,
+  ) async {
+    final slow = _SlowFix(place);
+    await pumpSiteEditor(
+      tester,
+      const DiveSite(id: 's1', name: 'Hole'),
+      (session) => SiteLocationCardEditor(session: session),
+      overrides: [locationServiceProvider.overrideWithValue(slow)],
+    );
+    ButtonStyleButton pick() => tester.widget<ButtonStyleButton>(
+      find.ancestor(
+        of: find.text(l.diveSites_edit_gps_pickFromMap),
+        matching: find.byWidgetPredicate((w) => w is ButtonStyleButton),
+      ),
+    );
+
+    await tester.tap(find.text(l.diveSites_edit_gps_useMyLocation));
+    await tester.pump();
+    // A pick now would be overwritten by the position still on its way.
+    expect(pick().onPressed, isNull);
+
+    slow.answer.complete();
+    await tester.pumpAndSettle();
+    expect(pick().onPressed, isNotNull);
     await tester.pump(const Duration(seconds: 2));
   });
 }

@@ -12495,6 +12495,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Het catalogusitem is gewijzigd of aan een andere duiklocatie gekoppeld. Er is niets opgeslagen.';
 
   @override
+  String get diveSites_edit_depth_rangeInvalid =>
+      'De minimale diepte mag niet dieper zijn dan de maximale.';
+
+  @override
   String get diveSites_edit_lookupReplace_title => 'Locatiegegevens vervangen?';
 
   @override

@@ -11958,6 +11958,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_edit_catalogueRefused => '目录记录已更改或已关联到另一个潜点。未保存任何内容。';
 
   @override
+  String get diveSites_edit_depth_rangeInvalid => '最小深度不能大于最大深度。';
+
+  @override
   String get diveSites_edit_lookupReplace_title => '替换地点信息？';
 
   @override

@@ -3818,6 +3818,7 @@
   "diveSites_edit_snackbar_lookupFailed": "חיפוש המיקום נכשל. בדקו את החיבור ונסו שוב.",
   "diveSites_edit_altitude_foundTooltip": "נמצא עבור הקואורדינטות האלה",
   "diveSites_edit_catalogueRefused": "רשומת הקטלוג השתנתה או מקושרת לאתר אחר. דבר לא נשמר.",
+  "diveSites_edit_depth_rangeInvalid": "העומק המינימלי לא יכול להיות עמוק מהמקסימלי.",
   "diveSites_edit_lookupReplace_title": "להחליף את פרטי המיקום?",
   "diveSites_edit_lookupReplace_body": "החיפוש מצא ערכים שונים לשדות אלה:",
   "diveSites_edit_lookupReplace_replace": "החלפה",

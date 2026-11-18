@@ -12552,6 +12552,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'A katalógusbejegyzés megváltozott, vagy egy másik merülőhelyhez van kapcsolva. Semmi sem lett mentve.';
 
   @override
+  String get diveSites_edit_depth_rangeInvalid =>
+      'A minimális mélység nem lehet nagyobb a maximálisnál.';
+
+  @override
   String get diveSites_edit_lookupReplace_title => 'Lecseréli a helyadatokat?';
 
   @override

@@ -12740,6 +12740,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'تغيّر سجل الدليل أو أصبح مرتبطًا بموقع آخر. لم يُحفظ أي شيء.';
 
   @override
+  String get diveSites_edit_depth_rangeInvalid =>
+      'لا يمكن أن يكون الحد الأدنى للعمق أعمق من الحد الأقصى.';
+
+  @override
   String get diveSites_edit_lookupReplace_title => 'استبدال تفاصيل الموقع؟';
 
   @override

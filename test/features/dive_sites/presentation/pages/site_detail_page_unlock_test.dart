@@ -88,6 +88,23 @@ void main() {
     }
   });
 
+  testWidgets('the old edit form cannot be opened over an open sitting', (
+    tester,
+  ) async {
+    // The app bar's button to the form, not a card's pencil.
+    final oldEdit = find.descendant(
+      of: find.byType(AppBar),
+      matching: find.widgetWithIcon(IconButton, Icons.edit),
+    );
+    await pumpSitePage(tester);
+    expect(oldEdit, findsOneWidget);
+
+    await unlock(tester);
+
+    // The form would save over the sitting: not offered while it is open.
+    expect(oldEdit, findsNothing);
+  });
+
   testWidgets('editing Notes and saving writes one sitting and locks', (
     tester,
   ) async {

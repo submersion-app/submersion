@@ -46,6 +46,10 @@ class SiteEditSaveService {
     bool alsoWriteIsAChange = false,
     Set<String> Function()? heldLibraryFields,
   }) async {
+    // The site as the sitting's own write left it, read inside the
+    // transaction: the stamp below must not take in a write that lands
+    // between the commit and a later read (a sync), as this diver's edit.
+    DiveSite? written;
     final result = await writeRecordSitting<DiveSite>(
       table: 'dive_sites',
       recordId: siteId,
@@ -54,11 +58,14 @@ class SiteEditSaveService {
       apply: apply,
       // A library site's stamp goes to the shared library store, which a
       // rollback would not undo: it waits for the commit, below.
-      write: (_, merged) => _sites.updateSite(
-        merged,
-        actingDiverId: actingDiverId,
-        stampLibrary: false,
-      ),
+      write: (_, merged) async {
+        await _sites.updateSite(
+          merged,
+          actingDiverId: actingDiverId,
+          stampLibrary: false,
+        );
+        written = await _sites.getSiteById(siteId);
+      },
       writeFirst: writeFirst,
       alsoWrite: alsoWrite,
       alsoWriteIsAChange: alsoWriteIsAChange,
@@ -68,10 +75,9 @@ class SiteEditSaveService {
     // as a save that failed: the diver would save the sitting a second time.
     try {
       // As stored: the write keeps a reader's site to its private fields.
-      final stored = await _sites.getSiteById(siteId) ?? result.after;
       await _sites.stampLibraryEdit(
         result.before,
-        stored,
+        written ?? result.after,
         actingDiverId: actingDiverId,
       );
     } catch (error, stackTrace) {

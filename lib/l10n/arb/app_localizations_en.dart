@@ -12382,6 +12382,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'The catalogue record has changed or is linked to another site. Nothing was saved.';
 
   @override
+  String get diveSites_edit_depth_rangeInvalid =>
+      'The minimum depth can\'t be deeper than the maximum.';
+
+  @override
   String get diveSites_edit_lookupReplace_title => 'Replace location details?';
 
   @override

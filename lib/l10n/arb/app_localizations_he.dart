@@ -12302,6 +12302,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'רשומת הקטלוג השתנתה או מקושרת לאתר אחר. דבר לא נשמר.';
 
   @override
+  String get diveSites_edit_depth_rangeInvalid =>
+      'העומק המינימלי לא יכול להיות עמוק מהמקסימלי.';
+
+  @override
   String get diveSites_edit_lookupReplace_title => 'להחליף את פרטי המיקום?';
 
   @override

@@ -3818,6 +3818,7 @@
   "diveSites_edit_snackbar_lookupFailed": "Ricerca della località non riuscita. Controlla la connessione e riprova.",
   "diveSites_edit_altitude_foundTooltip": "Trovato per queste coordinate",
   "diveSites_edit_catalogueRefused": "La voce del catalogo è cambiata o è collegata a un altro sito. Non è stato salvato nulla.",
+  "diveSites_edit_depth_rangeInvalid": "La profondità minima non può superare quella massima.",
   "diveSites_edit_lookupReplace_title": "Sostituire i dettagli di località?",
   "diveSites_edit_lookupReplace_body": "La ricerca ha trovato valori diversi per questi campi:",
   "diveSites_edit_lookupReplace_replace": "Sostituisci",

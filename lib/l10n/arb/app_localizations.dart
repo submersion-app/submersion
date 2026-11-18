@@ -19997,6 +19997,12 @@ abstract class AppLocalizations {
   /// **'The catalogue record has changed or is linked to another site. Nothing was saved.'**
   String get diveSites_edit_catalogueRefused;
 
+  /// Under the Depth card's rows, and why Save is refused, when the minimum depth is deeper than the maximum
+  ///
+  /// In en, this message translates to:
+  /// **'The minimum depth can\'t be deeper than the maximum.'**
+  String get diveSites_edit_depth_rangeInvalid;
+
   /// No description provided for @diveSites_edit_lookupReplace_title.
   ///
   /// In en, this message translates to:
