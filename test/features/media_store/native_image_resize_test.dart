@@ -114,6 +114,82 @@ void main() {
     expect(decoded.height, 48);
   });
 
+  group('a JPEG source\'s EXIF (#4699)', () {
+    File writeJpegWithExif(String name) {
+      final image = img.Image(width: 1200, height: 800);
+      img.fill(image, color: img.ColorRgb8(20, 80, 140));
+      image.exif.exifIfd['DateTimeOriginal'] = img.IfdValueAscii(
+        '2026:01:02 03:04:05',
+      );
+      image.exif.imageIfd['Orientation'] = img.IfdValueShort(6);
+      return File(out(name))..writeAsBytesSync(img.encodeJpg(image));
+    }
+
+    test('is carried over, less its orientation, when the request keeps '
+        'it', () async {
+      // A compressed upload replaced package:image's re-encode, which kept
+      // the capture time and location; the engine applies the orientation
+      // as it decodes, so the tag would turn the pixels a second time.
+      final source = writeJpegWithExif('dated.jpg');
+      final destination = out('rendition.jpg');
+
+      await resizeToJpegFileNative(
+        ImageResizeRequest.fromFile(
+          sourcePath: source.path,
+          destinationPath: destination,
+          declaredName: 'dated.jpg',
+          maxDimension: 512,
+          jpegQuality: 80,
+          keepJpegMetadata: true,
+        ),
+        fallback: neverFallBack,
+      );
+
+      final exif = img.decodeJpgExif(File(destination).readAsBytesSync())!;
+      expect(
+        exif.exifIfd['DateTimeOriginal']?.toString(),
+        '2026:01:02 03:04:05',
+      );
+      expect(exif.imageIfd['Orientation'], isNull);
+    });
+
+    test('is carried over from bytes too', () async {
+      final source = writeJpegWithExif('dated.jpg');
+      final destination = out('rendition.jpg');
+
+      await resizeToJpegFileNative(
+        ImageResizeRequest.fromBytes(
+          bytes: source.readAsBytesSync(),
+          destinationPath: destination,
+          declaredName: 'dated.jpg',
+          maxDimension: 512,
+          jpegQuality: 80,
+          keepJpegMetadata: true,
+        ),
+        fallback: neverFallBack,
+      );
+
+      final exif = img.decodeJpgExif(File(destination).readAsBytesSync())!;
+      expect(
+        exif.exifIfd['DateTimeOriginal']?.toString(),
+        '2026:01:02 03:04:05',
+      );
+    });
+
+    test('is left behind for a thumbnail', () async {
+      final source = writeJpegWithExif('dated.jpg');
+      final destination = out('thumb.jpg');
+
+      await resizeToJpegFileNative(
+        fromFile(source, destination),
+        fallback: neverFallBack,
+      );
+
+      final exif = img.decodeJpgExif(File(destination).readAsBytesSync());
+      expect(exif?.exifIfd['DateTimeOriginal'], isNull);
+    });
+  });
+
   test('skipWhenUnderCeiling leaves a small source alone', () async {
     final source = writePng('small.png', width: 64, height: 48);
     final destination = out('thumb.jpg');

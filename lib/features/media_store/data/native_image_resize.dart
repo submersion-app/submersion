@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' show min;
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
@@ -74,6 +75,8 @@ Future<ImageResizeResult> resizeToJpegFileNative(
       maxDimension: request.maxDimension,
       jpegQuality: request.jpegQuality,
       destinationPath: request.destinationPath,
+      exifPath: request.keepJpegMetadata ? request.sourcePath : null,
+      exifBytes: request.keepJpegMetadata ? _head(request.sourceBytes) : null,
     ),
   );
   return ImageResizeResult(ImageResizeOutcome.written, sizeBytes: sizeBytes);
@@ -134,6 +137,8 @@ class _RgbaEncodeJob {
     required this.maxDimension,
     required this.jpegQuality,
     required this.destinationPath,
+    this.exifPath,
+    this.exifBytes,
   });
 
   final Uint8List rgba;
@@ -142,6 +147,49 @@ class _RgbaEncodeJob {
   final int maxDimension;
   final int jpegQuality;
   final String destinationPath;
+
+  /// The source whose JPEG EXIF goes into the output, by path or bytes, or
+  /// neither when the request did not keep it.
+  final String? exifPath;
+  final Uint8List? exifBytes;
+}
+
+/// How much of a source file is read for its EXIF: the APP1 segment that
+/// holds it sits at the head of a JPEG and is at most 64 KB, so the rest of a
+/// multi-megabyte original never needs to be read.
+const int _exifHeadBytes = 1 << 20;
+
+/// The first [_exifHeadBytes] of [bytes], as a view: only those can hold
+/// the EXIF, and the rest of the original need not cross to the isolate.
+Uint8List? _head(Uint8List? bytes) => bytes == null
+    ? null
+    : Uint8List.sublistView(bytes, 0, min(bytes.length, _exifHeadBytes));
+
+/// [job]'s source EXIF less its orientation, or null when it has none to
+/// carry: not asked for, not a JPEG, or unreadable.
+img.ExifData? _sourceExif(_RgbaEncodeJob job) {
+  try {
+    var head = job.exifBytes;
+    final path = job.exifPath;
+    if (head == null && path != null) {
+      final file = File(path).openSync();
+      try {
+        head = file.readSync(_exifHeadBytes);
+      } finally {
+        file.closeSync();
+      }
+    }
+    if (head == null) return null;
+    final exif = img.decodeJpgExif(head);
+    if (exif == null || exif.isEmpty) return null;
+    // The engine turned the pixels upright as it decoded them.
+    exif.imageIfd['Orientation'] = null;
+    return exif;
+  } on Object {
+    // Metadata is a nicety: a source whose head cannot be parsed still
+    // gets its rendition, without it.
+    return null;
+  }
 }
 
 /// The isolate body: JPEG-encodes already-small pixels and writes the file.
@@ -166,6 +214,8 @@ int _encodeRgbaToJpegFile(_RgbaEncodeJob job) {
       height: image.height > image.width ? job.maxDimension : null,
     );
   }
+  final exif = _sourceExif(job);
+  if (exif != null) image.exif = exif;
   final jpeg = img.encodeJpg(image, quality: job.jpegQuality);
   File(job.destinationPath).writeAsBytesSync(jpeg, flush: true);
   return jpeg.length;
