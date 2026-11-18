@@ -827,6 +827,27 @@ class SpeciesRepository {
     return (result.data['count'] as int) > 0;
   }
 
+  /// Whether any site lists the species as expected there (diver data the
+  /// species delete would otherwise clear with it).
+  Future<bool> isSpeciesOnAnySite(String id) async {
+    final row = await _db
+        .customSelect(
+          'SELECT EXISTS(SELECT 1 FROM site_species WHERE species_id = ?) '
+          'AS used',
+          variables: [Variable.withString(id)],
+        )
+        .getSingle();
+    return row.read<int>('used') == 1;
+  }
+
+  /// The species row's sync clock, or null.
+  Future<String?> hlcOf(String id) async {
+    final row = await (_db.select(
+      _db.species,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
+    return row?.hlc;
+  }
+
   // ===========================================================================
   // Site Species Methods (for Common Marine Life feature)
   // ===========================================================================
