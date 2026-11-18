@@ -122,7 +122,21 @@ void holdCatalogueReview(
 /// fill names it), the site types, the acting diver, and the elevation of
 /// a position the Review gives; the types list is read first when site
 /// types are chosen. Returns false, holding nothing, when a read fails.
+///
+/// The sitting tracks the work, so a Save asked for while the reads are
+/// answering waits for the Review to be held, and writes it.
 Future<bool> holdCatalogueReviewFrom(
+  ProviderContainer container,
+  EditSession<DiveSite> session,
+  CataloguePair pair,
+  CatalogueComparisonResult result,
+) {
+  final work = _holdCatalogueReviewFrom(container, session, pair, result);
+  if (!session.isDisposed) session.track(work);
+  return work;
+}
+
+Future<bool> _holdCatalogueReviewFrom(
   ProviderContainer container,
   EditSession<DiveSite> session,
   CataloguePair pair,

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/providers/provider.dart';
@@ -248,10 +250,11 @@ void main() {
   });
 
   group('from the page', () {
-    ProviderContainer container0({Object? typesFail}) {
+    ProviderContainer container0({Object? typesFail, Future<void>? typesGate}) {
       final container = ProviderContainer(
         overrides: [
           siteTypesProvider.overrideWith((_) async {
+            await typesGate;
             if (typesFail != null) throw typesFail;
             return [wreck];
           }),
@@ -276,6 +279,28 @@ void main() {
       expect(held, isTrue);
       expect(siteTypesList.current(session)!.map((t) => t.id), ['wreck']);
       expect(siteCatalogueReviewed(session), isTrue);
+    });
+
+    // Save waits for work the sitting tracks: a Review accepted just before
+    // Save is written with it, not left out while its lookups answer.
+    test('Save waits for the hold while its lookups answer', () async {
+      final session = EditSession<DiveSite>(site);
+      addTearDown(session.dispose);
+      final gate = Completer<void>();
+
+      final holding = holdCatalogueReviewFrom(
+        container0(typesGate: gate.future),
+        session,
+        pair,
+        const ComparisonApply({CatalogueGapField.depth}),
+      );
+      await Future<void>.delayed(Duration.zero);
+      expect(session.isSettled, isFalse);
+
+      gate.complete();
+      await session.settled();
+      expect(siteCatalogueReviewed(session), isTrue);
+      expect(await holding, isTrue);
     });
 
     test('a lookup that fails holds nothing and says so', () async {

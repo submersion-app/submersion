@@ -45,54 +45,57 @@ class SiteEditSaveService {
     Future<void> Function()? alsoWrite,
     bool alsoWriteIsAChange = false,
     Set<String> Function()? heldLibraryFields,
-  }) async {
-    // The site as the sitting's own write left it, read inside the
-    // transaction: the stamp below must not take in a write that lands
-    // between the commit and a later read (a sync), as this diver's edit.
-    DiveSite? written;
-    final result = await writeRecordSitting<DiveSite>(
-      table: 'dive_sites',
-      recordId: siteId,
-      changedCardIds: changedCardIds,
-      read: () => _sites.getSiteById(siteId),
-      apply: apply,
-      // A library site's stamp goes to the shared library store, which a
-      // rollback would not undo: it waits for the commit, below.
-      write: (_, merged) async {
-        await _sites.updateSite(
-          merged,
-          actingDiverId: actingDiverId,
-          stampLibrary: false,
+  }) =>
+      // Sync hears of the save once, after its stamps: the notices of the
+      // writes inside it, sent as its transaction commits, are held too.
+      SyncEventBus.holdNotices(() async {
+        // The site as the sitting's own write left it, read inside the
+        // transaction: the stamp below must not take in a write that lands
+        // between the commit and a later read (a sync), as this diver's edit.
+        DiveSite? written;
+        final result = await writeRecordSitting<DiveSite>(
+          table: 'dive_sites',
+          recordId: siteId,
+          changedCardIds: changedCardIds,
+          read: () => _sites.getSiteById(siteId),
+          apply: apply,
+          // A library site's stamp goes to the shared library store, which a
+          // rollback would not undo: it waits for the commit, below.
+          write: (_, merged) async {
+            await _sites.updateSite(
+              merged,
+              actingDiverId: actingDiverId,
+              stampLibrary: false,
+            );
+            written = await _sites.getSiteById(siteId);
+          },
+          writeFirst: writeFirst,
+          alsoWrite: alsoWrite,
+          alsoWriteIsAChange: alsoWriteIsAChange,
         );
-        written = await _sites.getSiteById(siteId);
-      },
-      writeFirst: writeFirst,
-      alsoWrite: alsoWrite,
-      alsoWriteIsAChange: alsoWriteIsAChange,
-    );
-    if (result == null) return null;
-    // The write is committed. A stamp that fails from here on must not read
-    // as a save that failed: the diver would save the sitting a second time.
-    try {
-      // As stored: the write keeps a reader's site to its private fields.
-      await _sites.stampLibraryEdit(
-        result.before,
-        written ?? result.after,
-        actingDiverId: actingDiverId,
-      );
-    } catch (error, stackTrace) {
-      _log.error(
-        'Library stamp after saving site $siteId failed',
-        error: error,
-        stackTrace: stackTrace,
-      );
-    }
-    await _stampHeldWrites(siteId, heldLibraryFields, actingDiverId);
-    // The stamps mark the library's copy for the next sync, after the
-    // update's own notice: as updateSite stamps, then notifies.
-    SyncEventBus.notifyLocalChange();
-    return result;
-  }
+        if (result == null) return null;
+        // The write is committed. A stamp that fails from here on must not read
+        // as a save that failed: the diver would save the sitting a second time.
+        try {
+          // As stored: the write keeps a reader's site to its private fields.
+          await _sites.stampLibraryEdit(
+            result.before,
+            written ?? result.after,
+            actingDiverId: actingDiverId,
+          );
+        } catch (error, stackTrace) {
+          _log.error(
+            'Library stamp after saving site $siteId failed',
+            error: error,
+            stackTrace: stackTrace,
+          );
+        }
+        await _stampHeldWrites(siteId, heldLibraryFields, actingDiverId);
+        // The stamps mark the library's copy for the next sync: one notice, sent
+        // as the hold ends, after them.
+        SyncEventBus.notifyLocalChange();
+        return result;
+      });
 
   /// Stamps the library fields the sitting's held writes changed, once the
   /// sitting has committed. Best effort, as the row's own stamp.

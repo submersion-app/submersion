@@ -301,6 +301,9 @@ void main() {
     // for once it is there, not only from inside the transaction.
     expect(toldAtStamp, isNonNegative);
     expect(told, greaterThan(toldAtStamp));
+    // Once, after the stamps: not also from inside the save, before them.
+    expect(toldAtStamp, 0);
+    expect(told, 1);
   });
 
   test('a sitting that rolls back leaves no library stamp', () async {
