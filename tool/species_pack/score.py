@@ -150,6 +150,39 @@ class Runner:
                 digest.update(fh.read())
         return digest.hexdigest()
 
+    def analyze(self, name, fit, photos, out, *, detector_boxes=False, timing=None):
+        """Runs the vision tool over `photos` into the JSONL file `out`,
+        uncached: written to `out`.partial, then renamed. `timing` keeps
+        the tool's time and memory readout."""
+        os.makedirs(os.path.dirname(out), exist_ok=True)
+        detectors = [arg for i in self.runs[name] for arg in ("--detector", self.model_paths[i])]
+        extra = ["--detector-boxes"] if detector_boxes else []
+        with open(out + ".partial", "w", encoding="utf-8") as fh, open(timing or os.devnull, "w", encoding="utf-8") as err:
+            subprocess.run(
+                [
+                    "/usr/bin/time",
+                    "-l",
+                    self.tool,
+                    "--manifest",
+                    self.manifests[name],
+                    *detectors,
+                    "--classifier",
+                    self.classifier,
+                    "--crop-fit",
+                    fit,
+                    *extra,
+                ],
+                input="\n".join(photos) + "\n",
+                stdout=fh,
+                stderr=err,
+                text=True,
+                check=True,
+            )
+        os.replace(out + ".partial", out)
+        # A compiled model may have replaced a package the paths named.
+        self.model_paths = {i: pack_manifest.model_in(os.path.dirname(p)) for i, p in self.model_paths.items()}
+        self.classifier = pack_manifest.model_in(os.path.dirname(self.classifier))
+
     def run(self, name, fit, photos):
         out = os.path.join(self.work, "runs", f"{name}_{fit}_{self.version}.jsonl")
         mem = out[: -len(".jsonl")] + ".time.txt"
@@ -157,37 +190,10 @@ class Runner:
         key = self._fingerprint(name, fit, photos)
         stored = open(key_path, encoding="utf-8").read().strip() if os.path.exists(key_path) else None
         if not os.path.exists(out) or stored != key:
-            os.makedirs(os.path.dirname(out), exist_ok=True)
-            detectors = [arg for i in self.runs[name] for arg in ("--detector", self.model_paths[i])]
             # The pair's merge is checked against boxes.py on its own boxes.
-            extra = ["--detector-boxes"] if name == BOTH else []
-            with open(out + ".partial", "w", encoding="utf-8") as fh, open(mem, "w", encoding="utf-8") as err:
-                subprocess.run(
-                    [
-                        "/usr/bin/time",
-                        "-l",
-                        self.tool,
-                        "--manifest",
-                        self.manifests[name],
-                        *detectors,
-                        "--classifier",
-                        self.classifier,
-                        "--crop-fit",
-                        fit,
-                        *extra,
-                    ],
-                    input="\n".join(photos) + "\n",
-                    stdout=fh,
-                    stderr=err,
-                    text=True,
-                    check=True,
-                )
-            os.replace(out + ".partial", out)
+            self.analyze(name, fit, photos, out, detector_boxes=name == BOTH, timing=mem)
             with open(key_path, "w", encoding="utf-8") as fh:
                 fh.write(key + "\n")
-            # A compiled model may have replaced a package the paths named.
-            self.model_paths = {i: pack_manifest.model_in(os.path.dirname(p)) for i, p in self.model_paths.items()}
-            self.classifier = pack_manifest.model_in(os.path.dirname(self.classifier))
         with open(mem, encoding="utf-8") as fh:
             m = re.search(r"(\d+)\s+maximum resident set size", fh.read())
         self.memory[(name, fit)] = int(m.group(1)) if m else None
@@ -368,10 +374,12 @@ def _junk_records(name, results_by_photo, junk_rows, namer, work, fish_cells):
     return records
 
 
-def evaluate(name, results_by_photo, animals, junk_rows, namer, work, min_side, tune):
+def evaluate(name, results_by_photo, animals, junk_rows, namer, work, min_side, tune, fixed_bars=None):
     """Every number for one detector (or merged pair) and fitting.
     `results_by_photo` maps a photo path to its detections, each tagged
-    with the detector (`source`) that found it."""
+    with the detector (`source`) that found it. With `fixed_bars`, those
+    bars are used as given instead of being chosen and gated (the
+    rare-species check names at the shipped layer's bars)."""
     natural = [r for r in animals if r["sample"] == "natural"]
     if not natural:
         raise SystemExit("the test set has no underwater photos in its natural sample")
@@ -408,6 +416,8 @@ def evaluate(name, results_by_photo, animals, junk_rows, namer, work, min_side, 
     gated, switched_off = bar_search.held_out_gate(
         chosen, [c["with"] for c in held_nat], [c["without"] for c in held_nat], min_side=min_side
     )
+    if fixed_bars is not None:
+        chosen, gated, switched_off = fixed_bars, fixed_bars, []
 
     def naming_rates(records, confident=False):
         out = {}
@@ -449,6 +459,26 @@ def evaluate(name, results_by_photo, animals, junk_rows, namer, work, min_side, 
             out[r["id"]] = bool(
                 c and bar_search.named([c["with"]], gated, min_side=min_side)[0] and c["with"].correct
             )
+        return out
+
+    def per_photo(rows):
+        """Per test photo, both halves: named right at the bars, named
+        confidently right or wrong, and what the gate groups it by."""
+        out = {}
+        for r in rows:
+            c = crops.get(r["id"])
+            named = bool(c and bar_search.named([c["with"]], gated, min_side=min_side)[0])
+            sure = bool(c and bar_search.named([c["with"]], gated, min_side=min_side, confident=True)[0])
+            right = bool(c and c["with"].correct)
+            out[r["id"]] = {
+                "named_right": named and right,
+                "confident_right": sure and right,
+                "confident_wrong": sure and not right,
+                "group": r["group"],
+                "sample": r["sample"],
+                "held_out": _key(r) not in tune,
+                "gbif_key": r["gbif_key"],
+            }
         return out
 
     junk_named = [
@@ -505,6 +535,7 @@ def evaluate(name, results_by_photo, animals, junk_rows, namer, work, min_side, 
             for c in held_nat
         },
         "_all": held_all,
+        "_per_photo": per_photo(animals),
     }
 
 
@@ -592,7 +623,23 @@ def main(argv=None):
     parser.add_argument("--pack", required=True)
     parser.add_argument("--set", default=os.path.join(os.path.dirname(__file__), "testdata", "accuracy_set.csv"))
     parser.add_argument("--work", default=DEFAULT_WORK)
+    parser.add_argument(
+        "--naming-from",
+        metavar="PACK",
+        help="name at this pack's bars instead of choosing them (the naming layer's rare-species check)",
+    )
     args = parser.parse_args(argv)
+    fixed_bars = None
+    if args.naming_from:
+        with open(os.path.join(args.naming_from, "manifest.json"), encoding="utf-8") as fh:
+            given = json.load(fh)["naming"]
+        fixed_bars = bar_search.Bars(
+            given["minOpenScore"],
+            given["suggestScore"],
+            given["suggestScoreNoLocation"],
+            given["confidentScore"],
+            given.get("confidentScoreNoLocation", given["confidentScore"]),
+        )
 
     rows = testset.read_rows(args.set)
     animals = [r for r in rows if r["source"] == "inaturalist" and r["underwater"] == "yes"]
@@ -664,7 +711,7 @@ def main(argv=None):
         for name, by_photo in runs.items():
             key = f"{name} {fit}"
             print(f"scoring {key}", flush=True)
-            kept[key] = evaluate(name, by_photo, animals, junk_rows, namer, args.work, min_side, tune)
+            kept[key] = evaluate(name, by_photo, animals, junk_rows, namer, args.work, min_side, tune, fixed_bars)
 
     for name in (cfd, mega, BOTH):
         results.setdefault("fitting comparison", {})[name] = _paired(
@@ -734,6 +781,9 @@ def main(argv=None):
     os.makedirs(args.work, exist_ok=True)
     with open(os.path.join(args.work, "results.json"), "w", encoding="utf-8") as fh:
         json.dump(results, fh, indent=1, default=str)
+    # Per photo, for comparing two packs on the same photos (gate.py).
+    with open(os.path.join(args.work, "per_photo.json"), "w", encoding="utf-8") as fh:
+        json.dump({key: value["_per_photo"] for key, value in kept.items()}, fh)
     report.write_report(results, os.path.join(args.work, "report.md"))
     print(f"wrote {os.path.join(args.work, 'results.json')} and report.md")
     return 0
