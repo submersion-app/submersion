@@ -119,6 +119,7 @@ import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
+import 'package:submersion/shared/widgets/record_editing/record_open_unlocked.dart';
 import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_leave_guard.dart';
 import 'package:submersion/shared/widgets/export_destination_sheet.dart';
@@ -209,6 +210,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
         _DiveDetailPageExports,
         RecordEditHost<DiveDetailPage, Dive>,
         _DiveDetailPageEditing,
+        RecordOpenUnlocked<DiveDetailPage, Dive>,
         _DiveDetailPageUnlockOpen,
         _DiveDetailPageCreating,
         _DiveDetailPageOperations,
@@ -459,7 +461,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
       // mode in the pane, which opens the dive unlocked there (issue #4527,
       // plan 11). Once its sitting has been and gone, the dive moves as it
       // is.
-      final mode = widget.openUnlocked && !_openedUnlocked ? '&mode=edit' : '';
+      final mode = widget.openUnlocked && !hasOpenedUnlocked
+          ? '&mode=edit'
+          : '';
       _redirectingToPane = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
@@ -512,7 +516,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
             body: Center(child: Text(context.l10n.diveLog_detail_notFound)),
           );
         }
-        _openUnlockedOnce(dive);
+        openUnlockedOnce(dive);
         return _DiveShortcuts(
           diveId: dive.id,
           enabled: !isSittingOpen,
