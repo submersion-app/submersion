@@ -7,6 +7,7 @@ import 'package:submersion/core/app/app_exit_guard.dart';
 import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
+import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_editing_page_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
@@ -243,6 +244,22 @@ void main() {
 
     // The form would save over the sitting: not offered while it is open.
     expect(oldEdit, findsNothing);
+  });
+
+  // With the switch on the old edit address opens this page unlocked, so
+  // Edit unlocks the page in place rather than pushing a second copy.
+  testWidgets('Edit unlocks the page in place', (tester) async {
+    await pumpSitePage(tester);
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AppBar),
+        matching: find.widgetWithIcon(IconButton, Icons.edit),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(RecordEditBar), findsOneWidget);
+    expect(find.byType(SiteDetailPage), findsOneWidget);
   });
 
   testWidgets('editing Notes and saving writes one sitting and locks', (

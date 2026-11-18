@@ -42,7 +42,11 @@ extension _SiteDetailBars on _SiteDetailContentState {
           IconButton(
             icon: const Icon(Icons.edit),
             tooltip: context.l10n.diveSites_detail_editTooltip,
-            onPressed: () => context.push('/sites/${widget.siteId}/edit'),
+            // On a page that offers the lock the old address opens this page
+            // unlocked, so Edit unlocks it in place, not over a copy.
+            onPressed: offered
+                ? () => editController.unlock(site)
+                : () => context.push('/sites/${widget.siteId}/edit'),
           ),
         ..._libraryButtons(context, ref, site),
         _siteMenu(context, site, historyItem: !historyInBar, hosts: hosts),
