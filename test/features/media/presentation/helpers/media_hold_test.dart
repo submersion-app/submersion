@@ -53,4 +53,16 @@ void main() {
     );
     expect(seen, isNull);
   });
+
+  test('a network request for a site is drawn on that site', () {
+    final request = NetworkInsertRequest(
+      media: ResolvedNetworkMedia(uri: Uri.parse('https://x.test/a.jpg')),
+      siteId: 'site-1',
+    );
+
+    final preview = networkPreview(request);
+
+    expect(preview.siteId, 'site-1');
+    expect(preview.diveId, isNull);
+  });
 }

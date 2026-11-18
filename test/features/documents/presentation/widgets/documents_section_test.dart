@@ -9,7 +9,7 @@ import 'package:submersion/features/documents/presentation/widgets/document_tile
 import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_document_links_sitting.dart';
+import 'package:submersion/features/documents/presentation/editing/record_document_links_sitting.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dart';
 
@@ -207,8 +207,13 @@ void main() {
       holdDocumentLinks(
         controller.session!,
         ProviderScope.containerOf(
-          t.element(find.byType(DocumentsSection)),
+          t.element(find.byType(DocumentsSection<Dive>)),
         ).read,
+        owner: DocumentOwner(
+          DocumentOwnerKind.dive,
+          controller.session!.stored.id,
+        ),
+        cardId: 'documents',
       );
 
       await t.tap(find.byKey(const ValueKey('document-remove-a')));

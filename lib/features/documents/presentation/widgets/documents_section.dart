@@ -8,8 +8,7 @@ import 'package:submersion/features/documents/presentation/widgets/document_tile
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_link_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_document_links_sitting.dart';
+import 'package:submersion/features/documents/presentation/editing/record_document_links_sitting.dart';
 import 'package:submersion/features/documents/presentation/pages/document_edit_page.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
@@ -19,17 +18,20 @@ import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dar
 /// The Documents card on an owner's detail page (dive, site, trip, gear,
 /// course, certification, buddy, dive center): its documents and an "Add
 /// document" that files the new one under this owner (issue #2613).
-class DocumentsSection extends ConsumerWidget {
+/// [T] is the record type of a page that edits in place (a dive, a site):
+/// its sitting holds attach and remove, and its scope makes the card read
+/// only. Other owners leave it unset.
+class DocumentsSection<T> extends ConsumerWidget {
   final DocumentOwner owner;
 
   /// The certification page shows its card images itself.
   final bool excludeCards;
 
-  /// The open Documents card's sitting on the dive (issue #4527): Add
-  /// creates a Personal document at once and holds joining it to the dive;
+  /// The open Documents card's sitting on the record (issue #4527): Add
+  /// creates a Personal document at once and holds joining it to the record;
   /// Remove holds detaching. On a page that offers editing and with no
   /// sitting given, the card reads only.
-  final EditSession<Dive>? editing;
+  final EditSession<T>? editing;
 
   const DocumentsSection({
     super.key,
@@ -41,7 +43,7 @@ class DocumentsSection extends ConsumerWidget {
   /// A new document, filed as Personal until the sitting is saved.
   Future<void> _addInSitting(
     BuildContext context,
-    EditSession<Dive> session,
+    EditSession<T> session,
   ) async {
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
@@ -67,7 +69,7 @@ class DocumentsSection extends ConsumerWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final stored = ref.watch(documentsForOwnerProvider(owner));
-    final scope = RecordEditScope.maybeOf<Dive>(context);
+    final scope = RecordEditScope.maybeOf<T>(context);
     final editing = this.editing;
     final session = editing ?? scope?.session;
     final readOnly = scope != null && editing == null;

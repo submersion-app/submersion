@@ -58,7 +58,7 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/open_dive_sitting_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_buddies_sitting.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_media_sitting.dart';
+import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_plan_link_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_route_links_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_site_assignment.dart';

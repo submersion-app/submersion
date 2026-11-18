@@ -13,7 +13,7 @@ import 'package:submersion/features/dive_log/data/repositories/safety_findings_r
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_edit_save_provider.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_document_links_sitting.dart';
+import 'package:submersion/features/documents/presentation/editing/record_document_links_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_edit_cards.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_plan_link_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_route_links_sitting.dart';

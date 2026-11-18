@@ -18,7 +18,7 @@ import 'package:submersion/features/dive_log/data/services/dive_edit_save_servic
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_buddies_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_edit_cards.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_media_sitting.dart';
+import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_sightings_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tanks_fields.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
@@ -158,6 +158,7 @@ void main() {
           drainDeletes: () async {},
           enqueueUpload: (_) {},
         ),
+        cardId: 'media',
       );
       addMediaToSitting(session, [
         HeldMediaRow((item: held, enrichment: null)),

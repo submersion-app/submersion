@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_media_sitting.dart';
+import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/editing/photo_sitting_shown.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';

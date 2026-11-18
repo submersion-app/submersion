@@ -33,7 +33,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/dive_log/presentation/providers/open_dive_sitting_provider.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_media_sitting.dart';
+import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
 import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
 import 'package:submersion/features/media/presentation/editing/photo_held_writes.dart';
 import 'package:submersion/features/media/presentation/editing/photo_sitting_shown.dart';

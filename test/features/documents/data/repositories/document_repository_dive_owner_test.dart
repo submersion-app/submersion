@@ -53,6 +53,25 @@ void main() {
     },
   );
 
+  test('setOwner files documents under a site and back to Personal', () async {
+    await db.customStatement(
+      'INSERT INTO dive_sites (id, name, created_at, updated_at) '
+      "VALUES ('site-1', 'Reef', 0, 0)",
+    );
+    final doc = await repo.save(personal(), const []);
+    await repo.setDiveOwner([doc.id], 'dive-1');
+
+    await repo.setOwner(DocumentOwnerKind.site, [doc.id], 'site-1');
+    // One owner: filed under the site, it is no longer the dive's.
+    expect(
+      (await repo.getById(doc.id))!.owner,
+      const DocumentOwner(DocumentOwnerKind.site, 'site-1'),
+    );
+
+    await repo.setOwner(DocumentOwnerKind.site, [doc.id], null);
+    expect((await repo.getById(doc.id))!.owner, const DocumentOwner.personal());
+  });
+
   test('no ids writes nothing', () async {
     await repo.setDiveOwner(const [], 'dive-1');
   });

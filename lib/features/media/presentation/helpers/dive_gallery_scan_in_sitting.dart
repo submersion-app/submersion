@@ -4,7 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_media_sitting.dart';
+import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
 import 'package:submersion/features/media/presentation/helpers/media_hold.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';

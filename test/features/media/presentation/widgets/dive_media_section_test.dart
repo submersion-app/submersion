@@ -12,7 +12,7 @@ import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import '../../../../helpers/mock_providers.dart' show Override;
 import '../support/media_widget_harness.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_media_sitting.dart';
+import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
 import 'package:submersion/features/media/presentation/helpers/media_hold.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dart';
@@ -291,6 +291,7 @@ void main() {
           drainDeletes: () async {},
           enqueueUpload: (_) {},
         ),
+        cardId: 'media',
       );
       addMediaToSitting(session, [
         HeldMediaRow((item: photo('n1', 10), enrichment: null)),
