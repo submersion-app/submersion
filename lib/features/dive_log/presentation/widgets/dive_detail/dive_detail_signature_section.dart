@@ -193,11 +193,9 @@ class _TrainingSignatureCard extends ConsumerWidget {
                   return SignatureDisplayWidget(
                     signature: signature,
                     showDeleteButton: session != null,
-                    onDelete: () {
-                      if (session != null) {
-                        removeSignature(session, signature.id);
-                      }
-                    },
+                    onDelete: session == null
+                        ? null
+                        : () => removeSignature(session, signature.id),
                   );
                 }
 
