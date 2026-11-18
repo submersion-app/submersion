@@ -1,6 +1,7 @@
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/accounts/pending_setup_service.dart';
+import 'package:submersion/core/services/sync/peer_sync_snapshot.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
@@ -8,6 +9,7 @@ import 'package:submersion/features/settings/domain/data_health/data_row_status.
 import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
 import 'package:submersion/features/settings/domain/data_health/media_health.dart';
 import 'package:submersion/features/settings/presentation/providers/data_health_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/pending_setup_items_provider.dart';
@@ -177,14 +179,54 @@ final backupsRowStatusProvider = Provider.autoDispose<DataRowStatus>((ref) {
   );
 });
 
-/// Names the other devices on the library have published. While the live
-/// stream starts, the stored names stand in, so the first frame never reads
-/// as no peers.
+/// The other devices the last finished pull found live, or null before a
+/// pull on this backend has recorded them.
+///
+/// Read from the snapshot each pull leaves for the storage cleanup, which
+/// already leaves out retired devices. Re-read whenever a sync run ends, and
+/// whenever the sync time moves: the snapshot is written as the pull ends,
+/// and a run that fails after its pull keeps the old sync time.
+///
+/// A snapshot from another backend names that backend's devices. Until the
+/// first pull here replaces it, it would hide every peer the new backend's
+/// pull has just named, so it counts as no snapshot. So does one that does
+/// not say which backend it came from, as the storage cleanup treats it,
+/// and any snapshot while no backend is selected.
+final syncLivePeerIdsProvider = Provider.autoDispose<Set<String>?>((ref) {
+  ref.watch(lastSyncTimeProvider);
+  ref.watch(isSyncingProvider);
+  final backendId = ref.watch(
+    cloudStorageProviderProvider.select((p) => p?.providerId),
+  );
+  final snapshot = PeerSyncSnapshotStore(
+    ref.watch(sharedPreferencesProvider),
+  ).read();
+  if (snapshot == null ||
+      backendId == null ||
+      snapshot.providerId != backendId) {
+    return null;
+  }
+  return snapshot.peers.map((p) => p.deviceId).toSet();
+});
+
+/// Names the other live devices on the library have published. While the
+/// live stream starts, the stored names stand in, so the first frame never
+/// reads as no peers.
+///
+/// The name store keeps a removed device's name for good, so the change log
+/// can still say where an old edit came from; a removed device is not one
+/// this library keeps in step with, so it is left out here, as the devices
+/// page leaves it out (issue #4702). Before any pull recorded the live
+/// peers, every named peer counts.
 final syncPeerNamesProvider = Provider.autoDispose<List<String>>((ref) {
   final peers =
       ref.watch(peerDeviceNamesProvider).value ??
       ref.watch(peerDeviceNameStoreProvider).all();
-  return peers.values.toList();
+  final live = ref.watch(syncLivePeerIdsProvider);
+  return [
+    for (final e in peers.entries)
+      if (live == null || live.contains(e.key)) e.value,
+  ];
 });
 
 /// Whether a custom database folder can only be a device volume here, so it
