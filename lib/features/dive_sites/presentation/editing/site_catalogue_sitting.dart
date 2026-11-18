@@ -47,7 +47,10 @@ bool siteCatalogueReviewed(EditSession<DiveSite> session) =>
 ///
 /// A link or answer the repository refuses at Save (the record claimed by
 /// another site, the site linked elsewhere since) fails the whole Save.
-void holdCatalogueReview(
+///
+/// Returns whether it was held: not once the sitting has ended, or while
+/// it is frozen for a Save under way, which would not write it.
+bool holdCatalogueReview(
   EditSession<DiveSite> session,
   CataloguePair pair,
   CatalogueComparisonResult result, {
@@ -57,13 +60,13 @@ void holdCatalogueReview(
   Future<double?> Function(GeoPoint point)? fetchElevation,
   SiteCatalogueFillRepository? repository,
 }) {
-  if (session.isDisposed || session.isFrozen) return;
+  if (session.isDisposed || session.isFrozen) return false;
   final fills = repository ?? SiteCatalogueFillRepository();
   final record = pair.record;
   final siteId = session.stored.id;
   switch (result) {
     case ComparisonKept():
-      return;
+      return true;
     case ComparisonApply(:final fields):
       // Site types need the sitting's list to join: before it is read they
       // are neither filled nor turned down, so the record offers them again.
@@ -115,6 +118,7 @@ void holdCatalogueReview(
         ),
       );
   }
+  return true;
 }
 
 /// [holdCatalogueReview] from the site page, reading what it needs from
@@ -123,16 +127,29 @@ void holdCatalogueReview(
 /// a position the Review gives; the types list is read first when site
 /// types are chosen. Returns false, holding nothing, when a read fails.
 ///
-/// The sitting tracks the work, so a Save asked for while the reads are
-/// answering waits for the Review to be held, and writes it.
+/// The Review is a change of the sitting at once, held as an answer that
+/// writes nothing until the reads answer: a Save asked for meanwhile sees
+/// the change, waits for the reads (the sitting tracks them), and writes
+/// the Review. One whose reads fail is taken back.
 Future<bool> holdCatalogueReviewFrom(
   ProviderContainer container,
   EditSession<DiveSite> session,
   CataloguePair pair,
   CatalogueComparisonResult result,
 ) {
-  final work = _holdCatalogueReviewFrom(container, session, pair, result);
-  if (!session.isDisposed) session.track(work);
+  if (session.isDisposed || session.isFrozen) return Future.value(false);
+  _hold(session, () async {});
+  final work = _holdCatalogueReviewFrom(container, session, pair, result).then((
+    held,
+  ) {
+    if (!held && !session.isDisposed && !session.isFrozen) {
+      session
+        ..remember(_reviewedKey, null)
+        ..releaseWrite(siteCatalogueKey);
+    }
+    return held;
+  });
+  session.track(work);
   return work;
 }
 
@@ -161,7 +178,7 @@ Future<bool> _holdCatalogueReviewFrom(
     final diverId = await container.read(
       validatedCurrentDiverIdProvider.future,
     );
-    holdCatalogueReview(
+    return holdCatalogueReview(
       session,
       pair,
       result,
@@ -170,7 +187,6 @@ Future<bool> _holdCatalogueReviewFrom(
       bodyOfWater: bodyOfWater,
       fetchElevation: (point) => fetchSiteElevation(container, point),
     );
-    return true;
   } catch (error, stackTrace) {
     _log.error(
       'Could not hold the catalogue Review of site ${session.stored.id}',

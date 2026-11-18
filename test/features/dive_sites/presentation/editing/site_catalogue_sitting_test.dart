@@ -303,6 +303,65 @@ void main() {
       expect(await holding, isTrue);
     });
 
+    // A Save tapped before the lookups answer must see the Review as the
+    // change it is, or a sitting with nothing else changed would lock with
+    // nothing saved.
+    test('the Review is a change at once, before its lookups answer', () async {
+      final session = EditSession<DiveSite>(site);
+      addTearDown(session.dispose);
+      final gate = Completer<void>();
+
+      final holding = holdCatalogueReviewFrom(
+        container0(typesGate: gate.future),
+        session,
+        pair,
+        const ComparisonApply({CatalogueGapField.depth}),
+      );
+
+      expect(session.isDirty, isTrue);
+      expect(siteCatalogueReviewed(session), isTrue);
+      gate.complete();
+      expect(await holding, isTrue);
+      expect(session.isDirty, isTrue);
+    });
+
+    test('a lookup that fails takes back the Review it held at once', () async {
+      final session = EditSession<DiveSite>(site);
+      addTearDown(session.dispose);
+      final gate = Completer<void>();
+
+      final holding = holdCatalogueReviewFrom(
+        container0(typesGate: gate.future, typesFail: StateError('offline')),
+        session,
+        pair,
+        const ComparisonApply({CatalogueGapField.depth}),
+      );
+      gate.complete();
+
+      expect(await holding, isFalse);
+      expect(session.isDirty, isFalse);
+      expect(siteCatalogueReviewed(session), isFalse);
+    });
+
+    // A Save that stopped waiting writes what it had: a Review landing on
+    // the frozen sitting is not written, and must not read as held.
+    test('a Review landing after Save froze the sitting is not held', () async {
+      final session = EditSession<DiveSite>(site);
+      addTearDown(session.dispose);
+      final gate = Completer<void>();
+
+      final holding = holdCatalogueReviewFrom(
+        container0(typesGate: gate.future),
+        session,
+        pair,
+        const ComparisonApply({CatalogueGapField.depth}),
+      );
+      session.freeze();
+      gate.complete();
+
+      expect(await holding, isFalse);
+    });
+
     test('a lookup that fails holds nothing and says so', () async {
       final session = EditSession<DiveSite>(site);
       addTearDown(session.dispose);

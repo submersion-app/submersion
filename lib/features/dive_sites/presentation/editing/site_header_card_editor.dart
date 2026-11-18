@@ -98,7 +98,8 @@ class _SiteHeaderCardEditorState extends ConsumerState<SiteHeaderCardEditor>
       pair,
       result,
     );
-    if (!held) {
+    // A sitting cancelled meanwhile has nothing to say about it.
+    if (!held && !widget.session.isDisposed) {
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.diveSites_gapReview_error)),
       );

@@ -34,7 +34,7 @@ class SyncEventBus {
     final held = _HeldNotices();
     try {
       final result = await runZoned(body, zoneValues: {_heldKey: held});
-      held.open = false;
+      // Sent from the caller's zone: to an outer hold, or out.
       if (held.pending) notifyLocalChange();
       return result;
     } finally {

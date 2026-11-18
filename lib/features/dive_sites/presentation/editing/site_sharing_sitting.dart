@@ -23,8 +23,11 @@ const String _unreadKey = 'site.sharing.unread';
 
 /// Reads who the site is shared with into the sitting, tracked, and keeps
 /// the repository its held write uses. A read that fails is noted
-/// ([siteSharingUnread]), as the form locked its field.
+/// ([siteSharingUnread]), as the form locked its field. A library site
+/// reads nothing.
 Future<void> loadSiteSharing(EditSession<DiveSite> session, ProviderRead read) {
+  // A library site follows its library: no sharing to show or write.
+  if (session.stored.isLibrarySite) return Future<void>.value();
   final repository = read(itemSharesRepositoryProvider);
   session.remember(_repoKey, repository);
   final siteId = session.stored.id;

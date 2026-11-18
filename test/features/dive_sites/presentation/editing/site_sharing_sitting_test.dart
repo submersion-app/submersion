@@ -49,6 +49,18 @@ void main() {
 
   const withAna = ItemSharing(profileIds: {'ana'});
 
+  // A library site follows its library: it shows no sharing and writes
+  // none, so a sitting on it reads none.
+  test('a library site reads no sharing', () async {
+    final session = EditSession<DiveSite>(site.copyWith(sharedLibraryId: 'L'));
+    addTearDown(session.dispose);
+
+    await loadSiteSharing(session, container.read);
+
+    expect(siteSharingLoaded(session), isNull);
+    expect(siteSharingUnread(session), isFalse);
+  });
+
   test(
     'choosing other profiles holds the change and dots the header',
     () async {
