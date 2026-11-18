@@ -304,8 +304,9 @@ opening or a move, so the first labels come soon, then 10 seconds:
 The scan follows where the diver is watching. `VideoPlayheadReporter`, in
 the viewer's video item, tells the service (`followPlayhead`) of a seek once
 the playhead has settled for half a second (a jump of over 1.5 s forward or
-0.25 s back between player updates) and of a pause at once; nothing during
-steady playback. The service keeps the latest report per video and forgets
+0.25 s back between player updates) and of a pause once it has lasted
+half a second, so the pause a scrub starts with never moves the scan;
+nothing during steady playback. The service keeps the latest report per video and forgets
 it when the diver leaves the video. Before each chunk, `nextVideoChunk`
 (`video_scan_order.dart`) picks where to go: the first unscanned point at or
 after a new report (a pause on scanned video counts as none), otherwise on
