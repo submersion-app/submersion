@@ -117,6 +117,12 @@ def main(argv=None):
     if not (args.skip_models and os.path.exists(classifier_pkg)):
         print("converting the classifier", flush=True)
         classifier_pkg = models.convert_classifier(args.work)
+    # A detector of another set left by an earlier build would be served
+    # with this pack's folder though its manifest does not list it.
+    for detector in mf.DETECTORS.values():
+        stale = os.path.join(args.out, mf.model_zip(detector["file"], "coreml"))
+        if detector["id"] not in mf.detector_ids(args.detectors) and os.path.exists(stale):
+            os.remove(stale)
     model_files = []
     for key in detector_set:
         if key == "cfd":

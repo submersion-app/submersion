@@ -299,9 +299,10 @@ final class VisionPipeline {
       pooled[a].score != pooled[b].score ? pooled[a].score > pooled[b].score : a < b
     }
     var kept: [Box] = []
-    for i in order where kept.count < limit {
+    for i in order {
       let box = pooled[i]
       if kept.allSatisfy({ overlap(box, $0) < iou }) { kept.append(box) }
+      if kept.count == limit { break }
     }
     return kept
   }
