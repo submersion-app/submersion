@@ -471,6 +471,18 @@ class CreditsTests(unittest.TestCase):
         self.assertIn("Community Fish Detector", names)
         self.assertIn("FathomNet Megalodon", names)
 
+    def test_the_fish_detector_credit_says_no_licence_is_stated(self):
+        credits = {c["name"]: c for c in build_pack.credits_for("cfd")}
+        cfd = credits["Community Fish Detector"]
+        self.assertEqual(cfd["licence"], "No licence stated; its authors leave the terms to the user")
+        self.assertIn("https://github.com/filippovarini/community-fish-detector/issues/8", cfd["text"])
+        self.assertNotIn("awaiting", cfd["licence"])
+
+    def test_the_gbif_credit_names_what_the_pack_uses(self):
+        gbif = {c["name"]: c for c in build_pack.credits_for("both")}["GBIF occurrence and taxonomy data"]
+        self.assertIn("Species names", gbif["text"])
+        self.assertIn("counts of where each species has been recorded", gbif["text"])
+
 
 class CategoryTests(unittest.TestCase):
     def cat(self, kingdom="Animalia", phylum="Chordata", klass=None, order=None):

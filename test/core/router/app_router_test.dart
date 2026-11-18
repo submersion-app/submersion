@@ -2358,6 +2358,7 @@ void main() {
       '/settings/photos-media/uploads',
       '/settings/media-sources',
       '/settings/media-sources/network-sources',
+      '/settings/marine-life-identification',
       '/settings/connected-accounts',
       '/settings/connected-accounts/acct1',
       '/settings/storage',

@@ -77,9 +77,8 @@ void main() {
       inventory.categories.firstWhere((c) => c.id == id);
 
   test('exposes exactly the fifteen documented categories', () {
-    final flagBefore = marineLifeIdEnabled;
     marineLifeIdEnabled = false;
-    addTearDown(() => marineLifeIdEnabled = flagBefore);
+    addTearDown(resetMarineLifeIdEnabled);
     final ids = build().categories.map((c) => c.id).toList();
 
     expect(ids, hasLength(15));
@@ -90,9 +89,7 @@ void main() {
   });
 
   group('marine life identification (issue #4668)', () {
-    late bool flagBefore;
-    setUp(() => flagBefore = marineLifeIdEnabled);
-    tearDown(() => marineLifeIdEnabled = flagBefore);
+    tearDown(resetMarineLifeIdEnabled);
 
     test('its two categories are hidden while the feature is off', () {
       marineLifeIdEnabled = false;

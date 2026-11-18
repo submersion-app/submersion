@@ -21,12 +21,10 @@ const _tang = SpeciesTagChip(
 );
 
 void main() {
-  late bool flagBefore;
   setUp(() {
-    flagBefore = marineLifeIdEnabled;
     marineLifeIdEnabled = true;
   });
-  tearDown(() => marineLifeIdEnabled = flagBefore);
+  tearDown(resetMarineLifeIdEnabled);
 
   Future<void> pump(
     WidgetTester tester, {

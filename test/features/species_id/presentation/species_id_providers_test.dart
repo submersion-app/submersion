@@ -47,10 +47,8 @@ class _CountingCleanup extends IdentificationCleanup {
 void main() {
   late AppDatabase db;
   late ProviderContainer container;
-  late bool flagBefore;
 
   setUp(() {
-    flagBefore = marineLifeIdEnabled;
     db = AppDatabase(NativeDatabase.memory(setup: registerAppSqlFunctions));
     container = ProviderContainer(
       overrides: [
@@ -61,7 +59,7 @@ void main() {
     );
   });
   tearDown(() async {
-    marineLifeIdEnabled = flagBefore;
+    resetMarineLifeIdEnabled();
     container.dispose();
     await db.close();
   });
