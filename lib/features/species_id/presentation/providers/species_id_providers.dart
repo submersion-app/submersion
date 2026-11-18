@@ -21,6 +21,7 @@ import 'package:submersion/features/species_id/data/repositories/media_identific
 import 'package:submersion/features/species_id/data/services/identification_cleanup.dart';
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
 import 'package:submersion/features/species_id/data/services/media_identification_service.dart';
+import 'package:submersion/features/species_id/data/services/memory_readout.dart';
 import 'package:submersion/features/species_id/data/services/suggestion_acceptor.dart';
 import 'package:submersion/features/species_id/data/services/video_identification_scan.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
@@ -112,8 +113,10 @@ final mediaIdentificationServiceProvider = Provider<MediaIdentificationService>(
   (ref) {
     final store = ref.watch(speciesPackStoreProvider);
     final identifications = ref.watch(mediaIdentificationRepositoryProvider);
+    final engine = ref.watch(visionEngineProvider);
     final service = MediaIdentificationService(
-      engine: ref.watch(visionEngineProvider),
+      engine: engine,
+      memoryReadout: MemoryReadout(engine: engine),
       loadPack: () async {
         final pack = await store.installed();
         return pack == null ? null : store.load(pack);

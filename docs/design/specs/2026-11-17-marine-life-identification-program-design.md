@@ -334,16 +334,17 @@ others)**:
 - **Accuracy is not measured.** The spike was judged by eye on one library,
   against the 685-species catalogue and with no table of where species are
   recorded. The measured accuracy piece closes this.
-- **Phone memory.** Measured on a Mac as a stand-in for a phone
-  ([findings](../findings/2026-11-17-marine-life-phone-memory.md)). When Core
-  ML runs the classifier on the GPU, its weights are read from the model
-  files and do not count against the app's limit; the feature's own peak was
-  0.28 GB, from decoding a 50 MP photo and 4K video. On the Neural Engine,
-  0.63 to 0.72 GB more goes to a separate account that macOS keeps out of
-  the counted figure. A pack carrying both detectors peaks at 0.41 GB on
-  the same harness
-  ([two detectors](../findings/2026-11-17-marine-life-measured-accuracy.md#two-detectors-in-one-pack)).
-  A 6 GB iPhone still has to confirm iOS does the same.
+- **Phone memory.** Measured on a Mac and on an iPhone 17 Pro Max
+  ([findings](../findings/2026-11-17-marine-life-phone-memory.md)). On the
+  iPhone, Core ML runs both models on the Neural Engine and iOS counts
+  their memory against the app's limit: 634 to 718 MiB, against a limit
+  of 3,376 MiB there. With a 50 MP photo open, identification's highest
+  point was 2.4 GiB, leaving 0.9 GiB, and the app's own media handling
+  peaked higher than identification did. On the Mac harness a pack
+  carrying both detectors peaks at 0.41 GB
+  ([two detectors](../findings/2026-11-17-marine-life-measured-accuracy.md#two-detectors-in-one-pack));
+  that pack was not run on the iPhone. A 6 GB iPhone, whose limit may be
+  lower, is still unmeasured.
 - **Speed off Apple hardware.** On the CPU path the detector alone took 100 ms
   on a fast laptop. Phones and older laptops will be several times slower.
 - **Fish mostly.** The Community Fish Detector rarely boxes coral, crabs,

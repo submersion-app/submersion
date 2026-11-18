@@ -7,6 +7,7 @@ import 'package:submersion/features/species_id/domain/entities/media_identificat
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
 import 'package:submersion/features/species_id/domain/entities/video_detections.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
+import 'package:submersion/features/species_id/domain/entities/vision_memory.dart';
 import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 
 import '../domain/manifest_fixture.dart';
@@ -409,6 +410,81 @@ void main() {
             (e) => e.code,
             'code',
             'unsupported',
+          ),
+        ),
+      );
+    });
+  });
+
+  group('memory', () {
+    const mib = 1048576;
+
+    test('memory decodes every field the plugin reports', () async {
+      messenger.setMockMethodCallHandler(channel, (call) async {
+        expect(call.method, 'memory');
+        return <String, Object?>{
+          'footprint': 600 * mib,
+          'footprintPeak': 845 * mib,
+          'available': 2412 * mib,
+          'neuralCounted': 0,
+          'neuralNotCounted': 717 * mib,
+          'neuralNotCountedPeak': 717 * mib,
+        };
+      });
+      expect(
+        await engine().memory(),
+        const VisionMemory(
+          footprintBytes: 600 * mib,
+          footprintPeakBytes: 845 * mib,
+          availableBytes: 2412 * mib,
+          neuralCountedBytes: 0,
+          neuralNotCountedBytes: 717 * mib,
+          neuralNotCountedPeakBytes: 717 * mib,
+        ),
+      );
+    });
+
+    test('memory leaves out what the platform does not report', () async {
+      messenger.setMockMethodCallHandler(
+        channel,
+        (call) async => <String, Object?>{'footprint': mib},
+      );
+      final reading = await engine().memory();
+      expect(reading.footprintBytes, mib);
+      expect(reading.footprintPeakBytes, isNull);
+      expect(reading.availableBytes, isNull);
+      expect(reading.neuralCountedBytes, isNull);
+      expect(reading.neuralNotCountedBytes, isNull);
+      expect(reading.neuralNotCountedPeakBytes, isNull);
+    });
+
+    test('memory with an empty reply is an engine failure', () async {
+      // What the plugin answers when task_info fails.
+      messenger.setMockMethodCallHandler(
+        channel,
+        (call) async => <String, Object?>{},
+      );
+      expect(
+        engine().memory(),
+        throwsA(
+          isA<VisionEngineException>().having(
+            (e) => e.code,
+            'code',
+            'no_reading',
+          ),
+        ),
+      );
+    });
+
+    test('memory with no reply is an engine failure', () async {
+      messenger.setMockMethodCallHandler(channel, (call) async => null);
+      expect(
+        engine().memory(),
+        throwsA(
+          isA<VisionEngineException>().having(
+            (e) => e.code,
+            'code',
+            'no_reading',
           ),
         ),
       );

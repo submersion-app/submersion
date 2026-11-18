@@ -7,10 +7,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/species_id/data/repositories/identification_embedding_repository.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
+import 'package:submersion/features/species_id/data/services/memory_readout.dart';
 import 'package:submersion/features/species_id/data/services/video_identification_scan.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
@@ -118,7 +120,9 @@ void main() {
     MediaIdentificationRun? resumeFrom,
     List<MediaIdentification> carry = const [],
     List<MediaIdentification> stored = const [],
+    MemoryReadout? memoryReadout,
   }) => VideoIdentificationScan(
+    memoryReadout: memoryReadout,
     stored: stored,
     keepGoing: () => keepGoing(),
     reload: () async {
@@ -632,5 +636,83 @@ void main() {
     expect(await scan().runChunk(), isFalse);
     expect(await identifications.runFor('v1'), isNull);
     expect(await identifications.forMedia('v1'), isEmpty);
+  });
+
+  group('memory readout', () {
+    List<String> passes() => [
+      for (final e in engine.events)
+        if (e.startsWith('detectVideo') || e == 'embedMoments' || e == 'memory')
+          e,
+    ];
+
+    test('each chunk logs a reading after pass 1 and after pass 2', () async {
+      engine.videoDurationMs = 20000;
+      engine.videoFrames = {..._fish(1000, 4000), ..._fish(11000, 14000)};
+      await runAll(
+        scan(
+          memoryReadout: MemoryReadout(engine: engine, enabled: () => true),
+        ),
+      );
+      expect(passes(), [
+        'detectVideo:0',
+        'memory',
+        'embedMoments',
+        'memory',
+        'detectVideo:10000',
+        'memory',
+        'embedMoments',
+        'memory',
+      ]);
+    });
+
+    test('each reading names its pass and the chunk it covers', () async {
+      engine.videoDurationMs = 65000;
+      engine.videoFrames = _fish(61000, 64000);
+      final stages = <String>[];
+      final sub = LoggerService.logStream.listen((e) {
+        if (e.message.startsWith('Memory after ')) {
+          stages.add(e.message.substring(0, e.message.indexOf('): ') + 1));
+        }
+      });
+      addTearDown(sub.cancel);
+      await runAll(
+        scan(
+          memoryReadout: MemoryReadout(engine: engine, enabled: () => true),
+        ),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(stages, [
+        'Memory after pass 1 (0:00 to 0:10)',
+        'Memory after pass 1 (0:10 to 0:20)',
+        'Memory after pass 1 (0:20 to 0:30)',
+        'Memory after pass 1 (0:30 to 0:40)',
+        'Memory after pass 1 (0:40 to 0:50)',
+        'Memory after pass 1 (0:50 to 1:00)',
+        'Memory after pass 1 (1:00 to 1:05)',
+        'Memory after pass 2 (1:00 to 1:05)',
+      ]);
+    });
+
+    test('a failing memory reading leaves the video scanned', () async {
+      engine.memoryFailure = const VisionEngineException('unsupported');
+      engine.videoFrames = _fish(1000, 4000);
+      await runAll(
+        scan(
+          memoryReadout: MemoryReadout(engine: engine, enabled: () => true),
+        ),
+      );
+      expect((await identifications.runFor('v1'))!.scanComplete, isTrue);
+      expect(await identifications.forMedia('v1'), hasLength(1));
+    });
+
+    test('a chunk with nothing to embed logs no pass 2 reading', () async {
+      engine.videoDurationMs = 10000;
+      await runAll(
+        scan(
+          memoryReadout: MemoryReadout(engine: engine, enabled: () => true),
+        ),
+      );
+      expect(passes(), ['detectVideo:0', 'memory']);
+    });
   });
 }

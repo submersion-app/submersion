@@ -296,3 +296,45 @@ What is checked by hand, since no automated test runs the real models:
 labels sit on the fish in a landscape and a portrait clip, and a diver or a
 hand in frame gets no dot.
 
+## Memory readout
+
+For measuring memory on a phone, the app logs its memory after each
+identification stage while debug mode is on (tap the version line in
+Settings, About, five times). Read the lines in Settings, About, View log,
+where they can be copied or shared. With debug mode off, or with no log
+file to write to, nothing is read.
+
+Each stage writes one line: after the models load, after a photo, after
+each 10 second chunk's pass 1 and pass 2, and after the models unload. A
+chunk with no fish to name runs no pass 2 and so has no pass 2 line. The
+reading is taken without holding up identification. A line from an iPhone
+17 Pro Max:
+
+```text
+Memory after pass 2 (0:00 to 0:10): 1891 MiB left, footprint 1485 MiB (peak 2708 MiB), 668 MiB left at the peak, Neural Engine 0 MiB not counted (peak 0 MiB), 718 MiB counted
+```
+
+Figures are in MiB (1,048,576 bytes), as in the findings.
+
+- **Left:** how much more the app may use before iOS stops it
+  (`os_proc_available_memory()`). On a phone, 0 means none is left or the
+  app is over its limit. macOS, the iOS Simulator and an iPhone build
+  running on a Mac have no such limit, so their lines leave it out.
+- **Footprint:** the memory iOS compares with that limit, and its highest
+  point since the app started. A peak set while the app started up hides a
+  smaller one during a scan; the footprint on each line still shows the
+  trend.
+- **Left at the peak:** how close the app came to the limit at that peak,
+  worked out against the limit as it is now (iOS can change it). With
+  nothing left the limit is unknown, so the line leaves this out.
+- **Neural Engine:** the models' memory on the Neural Engine, split into
+  what counts toward the footprint and what the system keeps out of it.
+  An iPhone counts it; a Mac keeps it out. The not-counted peak needs iOS
+  18 or macOS 15; earlier versions report the figure without it. On an
+  iPhone the unload line shows it all freed; on a Mac it may still show
+  some, freed a moment later.
+
+Use a profile or release build for figures that stand for a diver's phone:
+a debug build carries over 1 GB of debug-only memory. The Mac and iPhone
+measurements are in
+[the phone memory findings](../design/findings/2026-11-17-marine-life-phone-memory.md).

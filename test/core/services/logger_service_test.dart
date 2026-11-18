@@ -405,6 +405,23 @@ void main() {
       expect(await fileService.readEntries(), isEmpty);
     });
 
+    test('keeps says whether a line would reach the file now', () async {
+      LoggerService.setFileService(null);
+      LoggerService.setMinimumFileLevel(LogLevel.debug);
+      expect(LoggerService.keeps(LogLevel.error), isFalse);
+
+      LoggerService.configureFileLogging(fileService, verbose: false);
+      expect(LoggerService.keeps(LogLevel.info), isFalse);
+      expect(LoggerService.keeps(LogLevel.warning), isTrue);
+      expect(
+        LoggerService.keeps(LogLevel.info, category: LogCategory.media),
+        isTrue,
+      );
+
+      LoggerService.configureFileLogging(fileService, verbose: true);
+      expect(LoggerService.keeps(LogLevel.debug), isTrue);
+    });
+
     test('info(alwaysPersist: true) is written below the floor', () async {
       LoggerService.configureFileLogging(fileService, verbose: false);
 

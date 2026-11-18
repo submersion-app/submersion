@@ -6,6 +6,7 @@ import 'package:submersion/features/species_id/data/pack/species_pack_store.dart
 import 'package:submersion/features/species_id/data/repositories/identification_embedding_repository.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
+import 'package:submersion/features/species_id/data/services/memory_readout.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
 import 'package:submersion/features/species_id/domain/entities/video_detections.dart';
@@ -67,6 +68,7 @@ class VideoIdentificationScan {
     List<MediaIdentification> stored = const [],
     Future<void> Function()? reload,
     bool Function()? keepGoing,
+    MemoryReadout? memoryReadout,
     this.chunkMs = 10000,
     this.sampleIntervalMs = 250,
   }) : _engine = engine,
@@ -83,6 +85,7 @@ class VideoIdentificationScan {
        _databaseGeneration = databaseGeneration,
        _reload = reload,
        _keepGoing = keepGoing ?? _always,
+       _memoryReadout = memoryReadout,
        _generation = generation ?? databaseGeneration(),
        _scannedMs = resumeFrom?.scannedMs ?? 0,
        _durationMs = resumeFrom?.videoDurationMs,
@@ -128,6 +131,9 @@ class VideoIdentificationScan {
   static bool _always() => true;
 
   final VisionEngine _engine;
+
+  /// Logs memory after each pass, while debug mode is on; null logs nothing.
+  final MemoryReadout? _memoryReadout;
   final LoadedPack _pack;
   final MediaIdentificationRepository _identifications;
   final IdentificationEmbeddingRepository _embeddings;
@@ -146,6 +152,10 @@ class VideoIdentificationScan {
 
   /// Asked between batches of pass 2: false stops the chunk there.
   final bool Function() _keepGoing;
+
+  /// Engine calls made by pass 2, so a chunk that embedded nothing logs no
+  /// pass 2 reading.
+  var _embedCalls = 0;
 
   /// A chunk failed part-way: what the tracker holds may include frames
   /// that were never stored, so nothing more is stored from it.
@@ -198,6 +208,10 @@ class VideoIdentificationScan {
       return false;
     }
     final duration = math.max(0, detections.durationMs);
+    String range() =>
+        '(${_clock(from)} to ${_clock(math.min(from + chunkMs, duration))})';
+    _memoryReadout?.recordLater(() => 'pass 1 ${range()}');
+    final embedsBefore = _embedCalls;
     // Nothing of a chunk is stored until its pass 2 is done: a stop or a
     // failure there puts the tracks back as they were where it began, so
     // the next chunk, or [finish], starts from what is stored.
@@ -220,6 +234,9 @@ class VideoIdentificationScan {
     if (named == null) {
       _tracker.restore(before);
       return false;
+    }
+    if (_embedCalls > embedsBefore) {
+      _memoryReadout?.recordLater(() => 'pass 2 ${range()}');
     }
     final bool stored;
     try {
@@ -408,6 +425,7 @@ class VideoIdentificationScan {
     final crops = <VisionMomentCrop?>[];
     for (var at = 0; at < moments.length; at += embedBatch) {
       if (!stopping && !_keepGoing()) throw const VideoScanStopped();
+      _embedCalls++;
       final batch = await _call(
         (path) => _engine.embedMoments(
           path: path,
@@ -603,4 +621,8 @@ class VideoIdentificationScan {
     if (total == 0 || !total.isFinite) return null;
     return Float32List.fromList([for (final v in sum) v / total]);
   }
+
+  /// [ms] of video as m:ss, for the memory readout's stage names.
+  static String _clock(int ms) =>
+      '${ms ~/ 60000}:${(ms % 60000 ~/ 1000).toString().padLeft(2, '0')}';
 }

@@ -110,8 +110,13 @@ class SacTimeColumns extends StatelessWidget {
   /// mark.
   static const double _minHeightFactor = 0.03;
 
-  /// Marks the selected column, since every column is at full color.
-  static const double _selectedOutlineWidth = 1.5;
+  /// How much of its color a column keeps while another one is picked, so
+  /// the picked column is the only one at full strength (issue #4697).
+  static const double unpickedAlpha = 0.35;
+
+  /// Outlines the picked column as well, so the pick does not rest on color
+  /// alone.
+  static const double _selectedOutlineWidth = 2;
 
   final List<SacTimeColumn> columns;
 
@@ -227,6 +232,14 @@ class SacTimeColumns extends StatelessWidget {
     );
   }
 
+  /// The fill of the column at [index]: full strength when it is picked or
+  /// nothing is, faded while another column is picked.
+  Color _fill(ColorScheme colorScheme, int index) {
+    final color = columns[index].color ?? colorScheme.primary;
+    final faded = activeIndex != null && index != activeIndex;
+    return faded ? color.withValues(alpha: unpickedAlpha) : color;
+  }
+
   Widget _plot(ThemeData theme, double width) {
     final colorScheme = theme.colorScheme;
     return MouseRegion(
@@ -281,12 +294,16 @@ class SacTimeColumns extends StatelessWidget {
                           ),
                           child: DecoratedBox(
                             decoration: BoxDecoration(
-                              color:
-                                  columns[i].color ?? theme.colorScheme.primary,
+                              color: _fill(colorScheme, i),
                               border: i == activeIndex
                                   ? Border.all(
-                                      color: theme.colorScheme.onSurface,
+                                      color: colorScheme.onSurface,
                                       width: _selectedOutlineWidth,
+                                      // Centered on the edge: half inside, so
+                                      // a short column keeps its color, and
+                                      // half in the 1 px gap, so no neighbour
+                                      // paints over it.
+                                      strokeAlign: BorderSide.strokeAlignCenter,
                                     )
                                   : null,
                               borderRadius: const BorderRadius.vertical(

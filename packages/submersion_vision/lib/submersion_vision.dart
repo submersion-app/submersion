@@ -31,6 +31,12 @@ class SubmersionVision {
 
   static Future<void> unload() => _channel.invokeMethod<void>('unload');
 
+  /// `{footprint, footprintPeak, available, neuralCounted, neuralNotCounted,
+  /// neuralNotCountedPeak}` in bytes; a key the platform does not report is
+  /// left out.
+  static Future<Map<Object?, Object?>?> memory() =>
+      _channel.invokeMethod<Map<Object?, Object?>>('memory');
+
   static Future<void> excludeFromBackup(String path) =>
       _channel.invokeMethod<void>('excludeFromBackup', {'path': path});
 }

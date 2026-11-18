@@ -78,6 +78,13 @@ class LoggerService {
     _minimumFileLevel = level;
   }
 
+  /// Whether a line at [level] in [category] would be written to the log
+  /// file now: a file is attached and the level clears its floor. For work
+  /// done only to produce such a line, which is wasted when it would not be
+  /// kept.
+  static bool keeps(LogLevel level, {LogCategory category = LogCategory.app}) =>
+      _fileService != null && _persists(level, false, category: category);
+
   /// Attach [fileService] and choose how much of the log it keeps.
   ///
   /// Warnings and errors are always persisted, so a bug report can carry the

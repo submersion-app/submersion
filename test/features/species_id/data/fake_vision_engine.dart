@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:submersion/features/species_id/domain/entities/video_detections.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
+import 'package:submersion/features/species_id/domain/entities/vision_memory.dart';
 import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 
 /// Detections the fake engine returns, one per entry: an embedding along an
@@ -15,6 +16,9 @@ class FakeEngine implements VisionEngine {
   Object? failure;
   Completer<void>? gate;
   final analysed = <String>[];
+
+  /// The bytes of each photo analysed from memory rather than a path.
+  final analysedBytes = <Uint8List>[];
   final loads = <VisionModels>[];
   var unloads = 0;
 
@@ -47,6 +51,7 @@ class FakeEngine implements VisionEngine {
     events.add('analyze:${path ?? 'bytes'}');
     if (!loaded) throw const VisionEngineException('not_loaded');
     analysed.add(path ?? 'bytes');
+    if (bytes != null) analysedBytes.add(bytes);
     await gate?.future;
     if (failure != null) throw failure!;
     return VisionAnalysis(
@@ -160,6 +165,23 @@ class FakeEngine implements VisionEngine {
     unloads++;
     events.add('unload');
     loaded = false;
+  }
+
+  /// What [memory] answers, and what it throws instead when set.
+  VisionMemory memoryReading = const VisionMemory(
+    footprintBytes: 300 * 1048576,
+  );
+  Object? memoryFailure;
+
+  /// Holds every [memory] reply until a test completes it.
+  Completer<void>? memoryGate;
+
+  @override
+  Future<VisionMemory> memory() async {
+    events.add('memory');
+    await memoryGate?.future;
+    if (memoryFailure != null) throw memoryFailure!;
+    return memoryReading;
   }
 
   @override

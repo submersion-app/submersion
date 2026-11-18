@@ -15,8 +15,10 @@ import 'package:submersion/features/species_id/data/repositories/identification_
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
 import 'package:submersion/features/species_id/data/services/media_identification_service.dart';
+import 'package:submersion/features/species_id/data/services/memory_readout.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
+import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 
 import '../../../helpers/temp_dir.dart';
 import 'fake_vision_engine.dart';
@@ -42,6 +44,35 @@ void main() {
   Completer<void>? tagsGate;
   var tagsAsked = 0;
 
+  MediaIdentificationService build({MemoryReadout? memoryReadout}) =>
+      MediaIdentificationService(
+        memoryReadout: memoryReadout,
+        engine: engine,
+        loadPack: () async {
+          packLoads++;
+          return installed;
+        },
+        identifications: identifications,
+        embeddings: embeddings,
+        crops: crops,
+        resolveImage: (item) async => imageFor(item),
+        resolveVideo: (item) async {
+          if (!videoReadable) return null;
+          return <T>(Future<T> Function(String path) read) =>
+              read('/videos/${item.id}.mp4');
+        },
+        taggedSpecies: (_) async {
+          tagsAsked++;
+          await tagsGate?.future;
+          return tagged;
+        },
+        enabled: () => enabled,
+        databaseGeneration: () => generation,
+        now: () => DateTime.utc(2026, 11, 17),
+        newId: () => 'id-${ids++}',
+        idleUnload: const Duration(milliseconds: 50),
+      );
+
   setUp(() async {
     library = AppDatabase(
       NativeDatabase.memory(setup: registerAppSqlFunctions),
@@ -62,32 +93,7 @@ void main() {
     generation = 0;
     tagsGate = null;
     tagsAsked = 0;
-    service = MediaIdentificationService(
-      engine: engine,
-      loadPack: () async {
-        packLoads++;
-        return installed;
-      },
-      identifications: identifications,
-      embeddings: embeddings,
-      crops: crops,
-      resolveImage: (item) async => imageFor(item),
-      resolveVideo: (item) async {
-        if (!videoReadable) return null;
-        return <T>(Future<T> Function(String path) read) =>
-            read('/videos/${item.id}.mp4');
-      },
-      taggedSpecies: (_) async {
-        tagsAsked++;
-        await tagsGate?.future;
-        return tagged;
-      },
-      enabled: () => enabled,
-      databaseGeneration: () => generation,
-      now: () => DateTime.utc(2026, 11, 17),
-      newId: () => 'id-${ids++}',
-      idleUnload: const Duration(milliseconds: 50),
-    );
+    service = build();
   });
   tearDown(() async {
     await service.dispose();
@@ -553,5 +559,63 @@ void main() {
     final run = await identifications.runFor('m1');
     expect(run, isNotNull);
     expect(run!.locationCell, isNull);
+  });
+
+  group('memory readout', () {
+    setUp(() async {
+      await service.dispose();
+      service = build(
+        memoryReadout: MemoryReadout(engine: engine, enabled: () => true),
+      );
+    });
+
+    test('a photo logs readings after load and after the photo', () async {
+      await service.request(photo('m1'));
+      expect(engine.events.take(4), [
+        'load',
+        'memory',
+        'analyze:/photos/m1.jpeg',
+        'memory',
+      ]);
+    });
+
+    test('a photo given as bytes logs a reading after the photo', () async {
+      final bytes = Uint8List.fromList([1, 2, 3]);
+      imageFor = (_) => IdentificationImage.bytes(bytes);
+      await service.request(photo('m1'));
+      expect(engine.analysedBytes, [bytes]);
+      expect(engine.events.take(4), [
+        'load',
+        'memory',
+        'analyze:bytes',
+        'memory',
+      ]);
+    });
+
+    test('a failing memory reading leaves the photo identified', () async {
+      engine.memoryFailure = const VisionEngineException('unsupported');
+      await service.request(photo('m1'));
+      expect(await identifications.runFor('m1'), isNotNull);
+      expect(
+        await identifications.forMedia('m1'),
+        hasLength(engine.embeddings.length),
+      );
+    });
+
+    test('a slow memory reading does not hold up identification', () async {
+      engine.memoryGate = Completer<void>();
+      addTearDown(() => engine.memoryGate?.complete());
+      await service.request(photo('m1')).timeout(const Duration(seconds: 5));
+      expect(await identifications.runFor('m1'), isNotNull);
+    });
+
+    test('unloading logs a reading', () async {
+      await service.request(photo('m1'));
+      await Future<void>.delayed(const Duration(milliseconds: 120));
+      expect(engine.events.skip(engine.events.length - 2), [
+        'unload',
+        'memory',
+      ]);
+    });
   });
 }
