@@ -263,6 +263,61 @@ checked against `tool/species_pack/testdata/naming_vectors.json`, which
 `python3.14 tool/species_pack/naming.py --write-vectors tool/species_pack/testdata/naming_vectors.json`
 regenerates.
 
+## Naming levels
+
+The diver chooses how sure the app must be before it names a fish (issue
+#4721), in Settings, Data, Photos and videos, Marine life identification.
+The design is in
+[the naming levels design](../design/specs/2026-11-18-marine-life-naming-levels-design.md).
+
+| Level | Suggest bars |
+| --- | --- |
+| Surer (default) | the pack's own `suggestScore` and `suggestScoreNoLocation` |
+| Balanced | measured for a 75% precision target |
+| Eager | measured for a 65% precision target |
+
+A level moves only the two suggest bars. The open-score floor, the
+minimum box size and the confident bars are the pack's at every level, so
+hands, divers and open water stay unnamed.
+
+**Measuring.** `score.py` chooses each level's bars on the tune half after
+the pack's own (`bars.level_bars`): the lowest bars meeting the target by
+the same one-sided Wilson test, never above the level above them, and held
+to the same 2% junk cap (raised 0.01 at a time until they pass). A level
+that ends at the bars above it, or whose held-out interval lies wholly
+below its target (`bars.level_gate`), is left out, so a pack can carry one
+level or none. The report's "Naming levels" table gives each level's
+held-out precision, coverage and junk named, and `results.json`'s
+`measured` entries carry `naming.precision` and `naming.levels` for
+`NAMING_MEASURED`. `manifest.level_problems` checks them.
+
+**Publishing.** The levels are optional manifest fields, so they need no
+format change and an older app names at Surer. To add them to a published
+pack without a new version, download its manifest into a folder of its
+own and write the new one beside you:
+
+```bash
+gh release download species-pack -p manifest.json -D published
+```
+
+```bash
+python3.14 tool/species_pack/relevel_manifest.py --in published/manifest.json --out manifest.json
+```
+
+It refuses a pack with no measured entry, or any change but
+`naming.precision` and `naming.levels`. Upload only that manifest with
+`gh release upload species-pack manifest.json --clobber`.
+
+**In the app.** A device that has the pack takes a republished manifest of
+the same version in place, with nothing downloaded, when its files are
+byte for byte the installed ones and only the levels, their precision and
+the credits differ (`SpeciesPackManifest.adoptableFrom`). The level is
+applied when reading (`naming_levels.dart`, `applyNamingLevel`) to
+identifications the installed pack named; the stored `suggestable` column
+keeps the pack's own answer, and decisions never change with the level. A
+level the installed pack does not carry falls back to the nearest surer
+one, and the settings section is hidden when the pack carries none.
+
 ## Trying a pack locally
 
 Serve the pack folder and point the app at its manifest:
