@@ -127,6 +127,14 @@ final Map<SiteDetailSectionId, EditCard<DiveSite>> siteEditCards = {
     isEmpty: (site) => !site.hasAccessInfo,
     editorBuilder: (context, session) => SiteAccessCardEditor(session: session),
   ),
+  SiteDetailSectionId.marineLife: EditCard<DiveSite>(
+    id: SiteDetailSectionId.marineLife.name,
+    title: (context) => context.l10n.marineLife_siteSection_title,
+    // Always on the page: empty, it says there are none.
+    isEmpty: (_) => false,
+    editorBuilder: (context, session) =>
+        SiteSpeciesCardEditor(session: session),
+  ),
   SiteDetailSectionId.tags: EditCard<DiveSite>(
     id: SiteDetailSectionId.tags.name,
     title: (context) => context.l10n.diveLog_detail_section_tags,

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:submersion/core/database/database.dart' hide DiveSite, Tag;
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/database/database.dart'
+    hide DiveSite, Species, Tag;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -9,8 +11,12 @@ import 'package:submersion/features/dive_sites/presentation/editing/site_classif
 import 'package:submersion/features/dive_sites/presentation/editing/site_collection_card_editors.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_header_card_editor.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_plain_fields.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_species_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_header.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_tags_card.dart';
+import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
+import 'package:submersion/features/marine_life/domain/entities/species.dart';
+import 'package:submersion/features/marine_life/presentation/widgets/site_marine_life_section.dart';
 import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
 import 'package:submersion/features/site_types/presentation/providers/site_type_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -145,6 +151,87 @@ void main() {
 
       expect(find.text('Avoid'), findsOneWidget);
       expect(find.text('To try'), findsNothing);
+    });
+  });
+
+  group('the Marine Life card', () {
+    late Species turtle;
+    late Species manta;
+
+    setUp(() async {
+      final repository = SpeciesRepository();
+      turtle = await repository.createSpecies(
+        commonName: 'Green turtle',
+        category: SpeciesCategory.turtle,
+      );
+      manta = await repository.createSpecies(
+        commonName: 'Manta',
+        category: SpeciesCategory.ray,
+      );
+      await repository.addExpectedSpecies(siteId: 's1', speciesId: turtle.id);
+    });
+
+    testWidgets('picking species holds them and dots the card', (tester) async {
+      final h = await pumpSiteEditor(
+        tester,
+        site,
+        (session) => SiteSpeciesCardEditor(
+          session: session,
+          pickSpecies: (_, selected) async => {...selected, manta.id},
+        ),
+        onStart: siteSpeciesList.load,
+      );
+      expect(find.text('Green turtle'), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.add));
+      await tester.pumpAndSettle();
+
+      expect(h.session.changedCardIds, {'marineLife'});
+      expect(find.text('Manta'), findsOneWidget);
+      final stored = await SpeciesRepository().getExpectedSpeciesForSite('s1');
+      expect(stored.map((e) => e.speciesId), [turtle.id]);
+    });
+
+    testWidgets('removing a species holds it', (tester) async {
+      final h = await pumpSiteEditor(
+        tester,
+        site,
+        (session) => SiteSpeciesCardEditor(session: session),
+        onStart: siteSpeciesList.load,
+      );
+
+      tester
+          .widget<InputChip>(find.widgetWithText(InputChip, 'Green turtle'))
+          .onDeleted!();
+      await tester.pumpAndSettle();
+
+      expect(siteSpeciesList.current(h.session), isEmpty);
+      expect(h.session.changedCardIds, {'marineLife'});
+    });
+
+    testWidgets('the section shows the species it is given', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: (await getBaseOverrides()).cast<Override>(),
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: SingleChildScrollView(
+                child: SiteMarineLifeSection(
+                  siteId: 's1',
+                  readOnly: true,
+                  species: [newSiteSpeciesEntry('s1', manta)],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Manta'), findsOneWidget);
+      expect(find.text('Green turtle'), findsNothing);
     });
   });
 }

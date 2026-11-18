@@ -85,6 +85,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_classification_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_edit_cards.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_sitting_start.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_species_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/unlock_site_editing_flag.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_edit_save_provider.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
@@ -476,8 +477,10 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
       SiteDetailSectionId.marineLife: () =>
           (_) => SiteMarineLifeSection(
             siteId: site.id,
-            readOnly: !_canEditSite(ref, site),
+            // Hosting editing, the card's pencil edits them, held.
+            readOnly: editing || !_canEditSite(ref, site),
             location: site.location,
+            species: _heldList(siteSpeciesList),
           ),
       // Attachments and dive photos.
       SiteDetailSectionId.media: () =>
