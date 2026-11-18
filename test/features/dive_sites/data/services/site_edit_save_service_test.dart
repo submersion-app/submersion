@@ -195,6 +195,28 @@ void main() {
     expect(recording.actingDiverIds, ['me']);
   });
 
+  // The right to edit, lost after the sitting began: the site's own write
+  // would keep only the private notes and rating, and the held writes would
+  // go through, so the whole Save is refused instead.
+  test('a profile that may no longer edit the site saves nothing', () async {
+    var heldWrites = 0;
+    final refusing = SiteEditSaveService(sites, stamper: _MayNotEdit());
+
+    await expectLater(
+      refusing.save(
+        siteId: 's1',
+        apply: notes('Choppy'),
+        changedCardIds: const ['notes'],
+        alsoWrite: () async => heldWrites++,
+      ),
+      throwsA(isA<SiteEditRefused>()),
+    );
+
+    expect((await stored()).notes, 'Calm');
+    expect(heldWrites, 0);
+    expect(await operations(), isEmpty);
+  });
+
   test('a library stamp waits for the sitting to commit', () async {
     final recording = _RecordingSites();
     await SiteEditSaveService(recording).save(
@@ -321,4 +343,10 @@ void main() {
     expect(recording.stamps, isEmpty);
     expect((await stored()).notes, 'Calm');
   });
+}
+
+/// Says this profile may not edit the site.
+class _MayNotEdit extends LibraryEditStamper {
+  @override
+  Future<bool> mayEdit(String siteId, {String? actingDiverId}) async => false;
 }

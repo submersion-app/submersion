@@ -11628,6 +11628,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_media_dropUnlockHint => '请先解锁此潜水点，再添加照片。';
 
   @override
+  String get diveSites_edit_saveRefused => '您已无法编辑此潜水点，因此未保存任何内容。';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return '错误： $error';
   }

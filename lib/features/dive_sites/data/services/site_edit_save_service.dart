@@ -5,6 +5,18 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
+/// A sitting's Save refused because the profile may no longer edit the
+/// site (its library role was taken away since the sitting began): nothing
+/// was written.
+class SiteEditRefused implements Exception {
+  const SiteEditRefused(this.siteId);
+
+  final String siteId;
+
+  @override
+  String toString() => 'SiteEditRefused($siteId)';
+}
+
 /// Saves one editing sitting on a site (issue #4527, phase 2).
 ///
 /// The diver's changes are applied to the site as it is stored at the
@@ -57,7 +69,16 @@ class SiteEditSaveService {
           table: 'dive_sites',
           recordId: siteId,
           changedCardIds: changedCardIds,
-          read: () => _sites.getSiteById(siteId),
+          // Asked first, inside the transaction: a profile that lost the
+          // right to edit the site since the sitting began would have its
+          // row kept to the private fields while the held writes went
+          // through. Nothing is written instead.
+          read: () async {
+            if (!await _stamper.mayEdit(siteId, actingDiverId: actingDiverId)) {
+              throw SiteEditRefused(siteId);
+            }
+            return _sites.getSiteById(siteId);
+          },
           apply: apply,
           // A library site's stamp goes to the shared library store, which a
           // rollback would not undo: it waits for the commit, below.

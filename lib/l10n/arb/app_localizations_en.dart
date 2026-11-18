@@ -12040,6 +12040,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Unlock this site to add photos.';
 
   @override
+  String get diveSites_edit_saveRefused =>
+      'You can no longer edit this site, so nothing was saved.';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return 'Error: $error';
   }

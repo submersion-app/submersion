@@ -12207,6 +12207,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Oldd fel a helyszín zárolását, hogy fotókat adhass hozzá.';
 
   @override
+  String get diveSites_edit_saveRefused =>
+      'Ezt a helyszínt már nem szerkesztheti, ezért semmi sem lett mentve.';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return 'Hiba: $error';
   }

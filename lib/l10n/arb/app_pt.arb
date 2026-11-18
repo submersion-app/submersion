@@ -3849,6 +3849,7 @@
   "diveSites_detail_editTooltipShort": "Editar",
   "diveSites_edit_editingWithdrawn": "Você não pode mais editar este ponto. As alterações não salvas foram descartadas.",
   "diveSites_media_dropUnlockHint": "Desbloqueie este ponto para adicionar fotos.",
+  "diveSites_edit_saveRefused": "Você não pode mais editar este ponto, então nada foi salvo.",
   "diveSites_detail_error_body": "Erro: {error}",
   "diveSites_detail_error_title": "Erro",
   "diveSites_detail_loading_title": "Carregando...",

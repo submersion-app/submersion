@@ -3849,6 +3849,7 @@
   "diveSites_detail_editTooltipShort": "تعديل",
   "diveSites_edit_editingWithdrawn": "لم يعد بإمكانك تعديل هذا الموقع. تم تجاهل أي تغييرات غير محفوظة.",
   "diveSites_media_dropUnlockHint": "افتح قفل هذا الموقع لإضافة صور إليه.",
+  "diveSites_edit_saveRefused": "لم يعد بإمكانك تعديل هذا الموقع، لذا لم يُحفظ شيء.",
   "diveSites_detail_error_body": "خطأ: {error}",
   "diveSites_detail_error_title": "خطأ",
   "diveSites_detail_loading_title": "جارٍ التحميل...",

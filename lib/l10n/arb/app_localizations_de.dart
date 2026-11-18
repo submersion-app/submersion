@@ -12222,6 +12222,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Entsperre diesen Tauchplatz, um Fotos hinzuzufügen.';
 
   @override
+  String get diveSites_edit_saveRefused =>
+      'Du kannst diesen Tauchplatz nicht mehr bearbeiten, daher wurde nichts gespeichert.';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return 'Fehler: $error';
   }

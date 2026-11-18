@@ -11964,6 +11964,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'בטל את נעילת האתר כדי להוסיף לו תמונות.';
 
   @override
+  String get diveSites_edit_saveRefused =>
+      'כבר אין לך הרשאה לערוך את האתר הזה, ולכן דבר לא נשמר.';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return 'שגיאה: $error';
   }

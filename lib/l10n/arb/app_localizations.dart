@@ -19432,6 +19432,12 @@ abstract class AppLocalizations {
   /// **'Unlock this site to add photos.'**
   String get diveSites_media_dropUnlockHint;
 
+  /// Snack bar when Save is refused because this profile may no longer edit the site (its library role was taken away since editing began), so nothing was saved
+  ///
+  /// In en, this message translates to:
+  /// **'You can no longer edit this site, so nothing was saved.'**
+  String get diveSites_edit_saveRefused;
+
   /// No description provided for @diveSites_detail_error_body.
   ///
   /// In en, this message translates to:

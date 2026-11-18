@@ -12394,6 +12394,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'افتح قفل هذا الموقع لإضافة صور إليه.';
 
   @override
+  String get diveSites_edit_saveRefused =>
+      'لم يعد بإمكانك تعديل هذا الموقع، لذا لم يُحفظ شيء.';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return 'خطأ: $error';
   }

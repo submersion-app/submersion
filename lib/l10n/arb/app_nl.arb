@@ -3849,6 +3849,7 @@
   "diveSites_detail_editTooltipShort": "Bewerken",
   "diveSites_edit_editingWithdrawn": "Je kunt deze stek niet meer bewerken. Niet-opgeslagen wijzigingen zijn verwijderd.",
   "diveSites_media_dropUnlockHint": "Ontgrendel deze stek om er foto's aan toe te voegen.",
+  "diveSites_edit_saveRefused": "Je kunt deze stek niet meer bewerken, dus er is niets opgeslagen.",
   "diveSites_detail_error_body": "Fout: {error}",
   "diveSites_detail_error_title": "Fout",
   "diveSites_detail_loading_title": "Laden...",

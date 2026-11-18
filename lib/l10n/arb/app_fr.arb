@@ -3723,6 +3723,7 @@
   "diveSites_detail_editTooltipShort": "Modifier",
   "diveSites_edit_editingWithdrawn": "Vous ne pouvez plus modifier ce site. Les modifications non enregistrées ont été abandonnées.",
   "diveSites_media_dropUnlockHint": "Déverrouillez ce site pour y ajouter des photos.",
+  "diveSites_edit_saveRefused": "Vous ne pouvez plus modifier ce site, rien n'a donc été enregistré.",
   "diveSites_detail_error_body": "Erreur : {error}",
   "diveSites_detail_error_title": "Erreur",
   "diveSites_detail_loading_title": "Chargement...",

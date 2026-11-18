@@ -12154,6 +12154,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Ontgrendel deze stek om er foto\'s aan toe te voegen.';
 
   @override
+  String get diveSites_edit_saveRefused =>
+      'Je kunt deze stek niet meer bewerken, dus er is niets opgeslagen.';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return 'Fout: $error';
   }

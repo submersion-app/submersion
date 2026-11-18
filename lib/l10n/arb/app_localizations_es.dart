@@ -12232,6 +12232,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Desbloquea este sitio para añadirle fotos.';
 
   @override
+  String get diveSites_edit_saveRefused =>
+      'Ya no puedes editar este sitio, así que no se guardó nada.';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return 'Error: $error';
   }

@@ -3883,6 +3883,7 @@
   "diveSites_detail_editTooltipShort": "Bearbeiten",
   "diveSites_edit_editingWithdrawn": "Du kannst diesen Tauchplatz nicht mehr bearbeiten. Ungespeicherte Änderungen wurden verworfen.",
   "diveSites_media_dropUnlockHint": "Entsperre diesen Tauchplatz, um Fotos hinzuzufügen.",
+  "diveSites_edit_saveRefused": "Du kannst diesen Tauchplatz nicht mehr bearbeiten, daher wurde nichts gespeichert.",
   "diveSites_detail_error_body": "Fehler: {error}",
   "diveSites_detail_error_title": "Fehler",
   "diveSites_detail_loading_title": "Wird geladen...",

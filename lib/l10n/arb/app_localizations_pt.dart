@@ -12228,6 +12228,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Desbloqueie este ponto para adicionar fotos.';
 
   @override
+  String get diveSites_edit_saveRefused =>
+      'Você não pode mais editar este ponto, então nada foi salvo.';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return 'Erro: $error';
   }

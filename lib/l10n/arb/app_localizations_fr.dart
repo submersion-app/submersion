@@ -12277,6 +12277,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Déverrouillez ce site pour y ajouter des photos.';
 
   @override
+  String get diveSites_edit_saveRefused =>
+      'Vous ne pouvez plus modifier ce site, rien n\'a donc été enregistré.';
+
+  @override
   String diveSites_detail_error_body(Object error) {
     return 'Erreur : $error';
   }
