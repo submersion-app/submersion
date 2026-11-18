@@ -316,7 +316,9 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
                 _showFullscreenMap(context, ref, site, initialScape3d: true),
           ),
         if (edit.offered) lockButton(site),
-        if (_canEditSite(ref, site))
+        // Never over an open sitting: the old form would save over it, and
+        // a child route passes no leave check (issue #4527).
+        if (_canEditSite(ref, site) && !isSittingOpen)
           IconButton(
             icon: const Icon(Icons.edit),
             tooltip: context.l10n.diveSites_detail_editTooltip,

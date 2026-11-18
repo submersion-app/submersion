@@ -76,6 +76,18 @@ void main() {
     expect(find.byType(RecordPencilIcon), findsNWidgets(2));
   });
 
+  testWidgets('the old edit form cannot be opened over an open sitting', (
+    tester,
+  ) async {
+    await pumpSitePage(tester);
+    expect(find.byTooltip(l.diveSites_detail_editTooltip), findsOneWidget);
+
+    await unlock(tester);
+
+    // The form would save over the sitting: not offered while it is open.
+    expect(find.byTooltip(l.diveSites_detail_editTooltip), findsNothing);
+  });
+
   testWidgets('editing Notes and saving writes one sitting and locks', (
     tester,
   ) async {
