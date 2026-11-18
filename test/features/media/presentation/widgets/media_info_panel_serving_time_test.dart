@@ -5,8 +5,6 @@ import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/features/media/data/services/media_serving_recorder.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
-import 'package:submersion/features/media/presentation/providers/media_providers.dart';
-import 'package:submersion/features/media/presentation/widgets/set_media_time_dialog.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import 'media_info_panel_harness.dart';
@@ -173,31 +171,6 @@ void main() {
 
       expect(find.text('Time in dive'), findsNothing);
       expect(find.text('Set time in dive'), findsNothing);
-    });
-
-    testWidgets('Set time in dive opens the dialog and applies the choice', (
-      tester,
-    ) async {
-      final applied = <MediaTimeChoice>[];
-      await pump(
-        tester,
-        linked(enrichment: enrichmentAt(750)),
-        extra: [
-          diveOverride,
-          mediaTimePinnerProvider.overrideWithValue(CapturingPinner(applied)),
-        ],
-      );
-
-      await tester.tap(find.text('Set time in dive'));
-      await tester.pumpAndSettle();
-      expect(find.byType(SetMediaTimeDialog), findsOneWidget);
-
-      await tester.enterText(find.byType(TextField), '5:00');
-      await tester.tap(find.text('Save'));
-      await tester.pumpAndSettle();
-
-      expect(applied, hasLength(1));
-      expect((applied.single as MediaTimePinned).elapsedSeconds, 300);
     });
   });
 

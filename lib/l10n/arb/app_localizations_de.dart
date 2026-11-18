@@ -8427,11 +8427,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_edit_addWeightEntry => 'Gewichtseintrag hinzufügen';
 
   @override
-  String diveLog_edit_addedGps(Object name) {
-    return 'GPS zu $name hinzugefügt';
-  }
-
-  @override
   String get diveLog_edit_appBarNew => 'Tauchgang erfassen';
 
   @override
@@ -10286,11 +10281,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String siteSuggestion_addLocationButton(Object name) {
     return 'Standort zu $name hinzufügen';
-  }
-
-  @override
-  String siteSuggestion_assignedSnack(Object name) {
-    return '$name zugewiesen';
   }
 
   @override
@@ -20526,11 +20516,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_diveMediaSection_unlinkButton => 'Trennen';
 
   @override
-  String media_diveMediaSection_unlinkError(Object error) {
-    return 'Trennen fehlgeschlagen: $error';
-  }
-
-  @override
   String media_diveMediaSection_unlinkSelectedButton(int count) {
     return '$count trennen';
   }
@@ -20538,11 +20523,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String media_diveMediaSection_unlinkSelectedContent(int count) {
     return 'Entfernt $count Medien samt Cloud-Kopien und Miniaturansichten aus deiner Mediathek. Medien, die ein Tauchplatz noch verwendet, bleiben erhalten. Deine Originaldateien bleiben unberührt.';
-  }
-
-  @override
-  String media_diveMediaSection_unlinkSelectedSuccess(int count) {
-    return '$count Elemente getrennt';
   }
 
   @override
@@ -20769,11 +20749,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get media_diveScan_cancelButton => 'Abbrechen';
-
-  @override
-  String media_diveScan_error(String error) {
-    return 'Fehler beim Durchsuchen der Galerie: $error';
-  }
 
   @override
   String media_gpsBanner_coordinates(Object coordinates) {
@@ -29183,11 +29158,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_speciesId_entrySubtitle =>
-      'Fische in deinen Fotos finden und Arten vorschlagen';
+      'Fische in deinen Fotos und Videos finden und Arten vorschlagen';
 
   @override
   String get settings_speciesId_intro =>
-      'Findet Fische in deinen Fotos und schlägt vor, welche Art es ist. Läuft auf diesem Gerät. Deine Fotos verlassen es nie.';
+      'Findet Fische in deinen Fotos und Videos und schlägt vor, welche Art es ist. Läuft auf diesem Gerät. Deine Fotos und Videos verlassen es nie.';
 
   @override
   String get settings_speciesId_model => 'Modell';
@@ -29263,7 +29238,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_speciesId_toggle =>
-      'Fische beim Öffnen eines Fotos erkennen';
+      'Fische beim Öffnen eines Fotos oder Videos erkennen';
 
   @override
   String get settings_speciesId_kept =>
@@ -31621,10 +31596,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get signatures_error_enterSignerName =>
       'Bitte gib den Namen des Unterzeichners ein';
-
-  @override
-  String get signatures_error_saveFailed =>
-      'Die Unterschrift konnte nicht gespeichert werden. Bitte versuche es erneut.';
 
   @override
   String get signatures_field_instructorName => 'Tauchlehrername';
@@ -56100,6 +56071,21 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_species_identifying => 'Suche nach Fischen...';
 
   @override
+  String get media_species_sheetTitleVideo => 'Arten in diesem Video';
+
+  @override
+  String media_species_scanProgress(String percent) {
+    return 'Suche nach Fischen, $percent';
+  }
+
+  @override
+  String get media_species_unnamedFish =>
+      'Unbenannter Fisch, zum Benennen tippen';
+
+  @override
+  String get media_species_unnamedFishLocked => 'Unbenannter Fisch';
+
+  @override
   String get media_species_possibleMatches => 'Mögliche Treffer';
 
   @override
@@ -56191,14 +56177,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get media_people_removedBuddy => 'Entfernter Tauchpartner';
-
-  @override
-  String get media_people_saveFailed =>
-      'Die Markierung konnte nicht gespeichert werden. Versuche es erneut.';
-
-  @override
-  String get media_people_addToDiveFailed =>
-      'Der Tauchpartner konnte diesem Tauchgang nicht hinzugefügt werden. Versuche es erneut.';
 
   @override
   String get media_people_createBuddyFailed =>
@@ -58539,9 +58517,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_reassignSheet_noSeries => 'Kein Druckverlauf';
-
-  @override
-  String get diveLog_reassignSheet_applied => 'Druckverlauf neu zugeordnet';
 
   @override
   String get universalImport_summary_noticeUnknownTransmitterTitle =>

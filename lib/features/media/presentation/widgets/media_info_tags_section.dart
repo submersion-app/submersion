@@ -48,9 +48,9 @@ class MediaInfoTagsSection extends ConsumerWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final held = sittingIsOver(sitting, item.id) ? sitting : null;
-    // A sitting that has ended offers nothing: Edit tags without it would
-    // write at once, outside the lock.
-    final canEdit = !readOnly && (sitting == null || held != null);
+    // Edit tags holds its change in the sitting, so it is offered only while
+    // one is over this photo: not locked, nor once the sitting has ended.
+    final canEdit = !readOnly && held != null;
     final tags = held != null
         ? held.working.tags
         : ref

@@ -8251,11 +8251,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_addWeightEntry => 'הוספת רשומת משקל';
 
   @override
-  String diveLog_edit_addedGps(Object name) {
-    return 'GPS נוסף ל-$name';
-  }
-
-  @override
   String get diveLog_edit_appBarNew => 'רישום צלילה';
 
   @override
@@ -10062,11 +10057,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String siteSuggestion_addLocationButton(Object name) {
     return 'הוספת מיקום ל-$name';
-  }
-
-  @override
-  String siteSuggestion_assignedSnack(Object name) {
-    return '$name שויך';
   }
 
   @override
@@ -20098,11 +20088,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_diveMediaSection_unlinkButton => 'בטל קישור';
 
   @override
-  String media_diveMediaSection_unlinkError(Object error) {
-    return 'ביטול הקישור נכשל: $error';
-  }
-
-  @override
   String media_diveMediaSection_unlinkSelectedButton(int count) {
     return 'בטל קישור $count';
   }
@@ -20110,11 +20095,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String media_diveMediaSection_unlinkSelectedContent(int count) {
     return 'מסיר $count פריטי מדיה מהספרייה שלך, יחד עם העותקים בענן והתמונות הממוזערות. פריטים שאתר צלילה עדיין משתמש בהם יישמרו. קובצי המקור שלך לא ייפגעו.';
-  }
-
-  @override
-  String media_diveMediaSection_unlinkSelectedSuccess(int count) {
-    return 'בוטל קישור של $count פריטים';
   }
 
   @override
@@ -20334,11 +20314,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get media_diveScan_cancelButton => 'ביטול';
-
-  @override
-  String media_diveScan_error(String error) {
-    return 'שגיאה בסריקת הגלריה: $error';
-  }
 
   @override
   String media_gpsBanner_coordinates(Object coordinates) {
@@ -28516,11 +28491,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_speciesId_entrySubtitle =>
-      'מציאת דגים בתמונות שלך והצעת המין';
+      'מציאת דגים בתמונות ובסרטונים שלך והצעת המין';
 
   @override
   String get settings_speciesId_intro =>
-      'מוצא דגים בתמונות שלך ומציע לאיזה מין הם שייכים. פועל במכשיר הזה. התמונות שלך לא יוצאות ממנו לעולם.';
+      'מוצא דגים בתמונות ובסרטונים שלך ומציע לאיזה מין הם שייכים. פועל במכשיר הזה. התמונות והסרטונים שלך לא יוצאים ממנו לעולם.';
 
   @override
   String get settings_speciesId_model => 'מודל';
@@ -28594,7 +28569,8 @@ class AppLocalizationsHe extends AppLocalizations {
       'המודל הזה דורש גרסה חדשה יותר של Submersion.';
 
   @override
-  String get settings_speciesId_toggle => 'זיהוי דגים כשאני פותח תמונה';
+  String get settings_speciesId_toggle =>
+      'זיהוי דגים כשאני פותח תמונה או סרטון';
 
   @override
   String get settings_speciesId_kept => 'הצעות שנשמרו במכשיר הזה';
@@ -30895,10 +30871,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get signatures_error_enterSignerName => 'נא להזין שם החותם';
-
-  @override
-  String get signatures_error_saveFailed =>
-      'לא ניתן היה לשמור את החתימה. נסו שוב.';
 
   @override
   String get signatures_field_instructorName => 'שם המדריך';
@@ -55049,6 +55021,20 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_species_identifying => 'מחפש דגים...';
 
   @override
+  String get media_species_sheetTitleVideo => 'מינים בסרטון זה';
+
+  @override
+  String media_species_scanProgress(String percent) {
+    return 'מחפש דגים, $percent';
+  }
+
+  @override
+  String get media_species_unnamedFish => 'דג ללא שם, הקש כדי לתת שם';
+
+  @override
+  String get media_species_unnamedFishLocked => 'דג ללא שם';
+
+  @override
   String get media_species_possibleMatches => 'התאמות אפשריות';
 
   @override
@@ -55138,13 +55124,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get media_people_removedBuddy => 'חבר צוללים שהוסר';
-
-  @override
-  String get media_people_saveFailed => 'לא ניתן לשמור את התיוג. נסה שוב.';
-
-  @override
-  String get media_people_addToDiveFailed =>
-      'לא ניתן להוסיף את חבר הצוללים לצלילה זו. נסה שוב.';
 
   @override
   String get media_people_createBuddyFailed =>
@@ -57419,9 +57398,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_reassignSheet_noSeries => 'אין סדרת לחץ';
-
-  @override
-  String get diveLog_reassignSheet_applied => 'סדרת הלחץ שויכה מחדש';
 
   @override
   String get universalImport_summary_noticeUnknownTransmitterTitle =>

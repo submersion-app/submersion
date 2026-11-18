@@ -15,6 +15,8 @@ enum VisionError: Error {
   case decodeFailed(String)
   case inferenceFailed(String)
   case badArguments(String)
+  case notForeground
+  case tooHot
 
   var code: String {
     switch self {
@@ -22,6 +24,8 @@ enum VisionError: Error {
     case .decodeFailed: return "decode_failed"
     case .inferenceFailed: return "inference_failed"
     case .badArguments: return "bad_arguments"
+    case .notForeground: return "not_foreground"
+    case .tooHot: return "too_hot"
     }
   }
 
@@ -31,6 +35,8 @@ enum VisionError: Error {
     case .decodeFailed(let detail): return "Could not read the image: \(detail)"
     case .inferenceFailed(let detail): return detail
     case .badArguments(let name): return "Missing or invalid argument: \(name)"
+    case .notForeground: return "The app is not in the foreground"
+    case .tooHot: return "The device is too hot"
     }
   }
 }
@@ -40,9 +46,9 @@ enum DetectorFormat: String {
   /// RF-DETR (the Community Fish Detector): the image resized straight to
   /// the square, 300 boxes with raw scores, no overlap suppression.
   case rfdetr
-  /// YOLO (FathomNet's Megalodon, for measuring only): the image
-  /// letterboxed into the square, one output of boxes and squashed scores
-  /// per anchor, overlapping boxes suppressed.
+  /// YOLO (FathomNet's Megalodon): the image letterboxed into the square,
+  /// one output of boxes and squashed scores per anchor, overlapping boxes
+  /// suppressed.
   case yolo
 }
 
@@ -56,71 +62,97 @@ enum CropFit: String {
   case centreCrop
 }
 
-/// What the model pack says about running its two models.
-struct VisionModelSettings: Equatable {
-  let detectorPath: String
-  let classifierPath: String
-  let detectorInputSize: Int
-  let detectorMean: [Float]
-  let detectorStd: [Float]
+/// Reads typed values from the channel's arguments, naming the bad key.
+private struct Arguments {
+  let values: [String: Any]
+
+  func string(_ key: String) throws -> String {
+    guard let v = values[key] as? String, !v.isEmpty else { throw VisionError.badArguments(key) }
+    return v
+  }
+
+  func int(_ key: String) throws -> Int {
+    guard let v = values[key] as? NSNumber, v.intValue > 0 else { throw VisionError.badArguments(key) }
+    return v.intValue
+  }
+
+  func double(_ key: String) throws -> Double {
+    guard let v = values[key] as? NSNumber, v.doubleValue.isFinite else { throw VisionError.badArguments(key) }
+    return v.doubleValue
+  }
+
+  func triple(_ key: String) throws -> [Float] {
+    guard let v = values[key] as? [NSNumber], v.count == 3 else { throw VisionError.badArguments(key) }
+    return v.map { $0.floatValue }
+  }
+}
+
+/// One detector of a pack (issue #4691): its model and how it is run.
+struct DetectorSettings: Equatable {
+  let path: String
+  let format: DetectorFormat
+  let inputSize: Int
+  let mean: [Float]
+  let std: [Float]
   let scoreThreshold: Float
   let maxBoxes: Int
+
+  init(_ values: [String: Any]) throws {
+    let args = Arguments(values: values)
+    path = try args.string("path")
+    guard let format = DetectorFormat(rawValue: try args.string("format")) else {
+      throw VisionError.badArguments("format")
+    }
+    self.format = format
+    inputSize = try args.int("inputSize")
+    mean = try args.triple("mean")
+    std = try args.triple("std")
+    scoreThreshold = Float(try args.double("scoreThreshold"))
+    maxBoxes = try args.int("maxBoxes")
+  }
+}
+
+/// What the model pack says about running its detectors and classifier.
+struct VisionModelSettings: Equatable {
+  /// One or two, in the pack's order.
+  let detectors: [DetectorSettings]
+  /// Two detectors' boxes overlapping this much or more are one animal.
+  let mergeIoU: Double
+  /// At most this many boxes once two detectors' boxes are merged.
+  let maxBoxes: Int
   let cropPadding: Double
+  let classifierPath: String
   let classifierInputSize: Int
   let classifierMean: [Float]
   let classifierStd: [Float]
   let embeddingSize: Int
   let cropThumbnailSize: Int
   let cropFit: CropFit
-  let detectorFormat: DetectorFormat
 
-  init(_ args: [String: Any]) throws {
-    func string(_ key: String) throws -> String {
-      guard let v = args[key] as? String, !v.isEmpty else { throw VisionError.badArguments(key) }
-      return v
+  init(_ values: [String: Any]) throws {
+    let args = Arguments(values: values)
+    guard let list = values["detectors"] as? [[String: Any]], (1...2).contains(list.count) else {
+      throw VisionError.badArguments("detectors")
     }
-    func int(_ key: String) throws -> Int {
-      guard let v = args[key] as? NSNumber, v.intValue > 0 else { throw VisionError.badArguments(key) }
-      return v.intValue
-    }
-    func double(_ key: String) throws -> Double {
-      guard let v = args[key] as? NSNumber else { throw VisionError.badArguments(key) }
-      return v.doubleValue
-    }
-    func triple(_ key: String) throws -> [Float] {
-      guard let v = args[key] as? [NSNumber], v.count == 3 else { throw VisionError.badArguments(key) }
-      return v.map { $0.floatValue }
-    }
-    detectorPath = try string("detectorPath")
-    classifierPath = try string("classifierPath")
-    detectorInputSize = try int("detectorInputSize")
-    detectorMean = try triple("detectorMean")
-    detectorStd = try triple("detectorStd")
-    scoreThreshold = Float(try double("scoreThreshold"))
-    maxBoxes = try int("maxBoxes")
-    cropPadding = try double("cropPadding")
-    classifierInputSize = try int("classifierInputSize")
-    classifierMean = try triple("classifierMean")
-    classifierStd = try triple("classifierStd")
-    embeddingSize = try int("embeddingSize")
-    cropThumbnailSize = try int("cropThumbnailSize")
-    // Absent means pad-to-square, which is all the app sends today.
-    if let fit = args["cropFit"] {
+    detectors = try list.map(DetectorSettings.init)
+    mergeIoU = try args.double("mergeIoU")
+    guard mergeIoU > 0, mergeIoU <= 1 else { throw VisionError.badArguments("mergeIoU") }
+    maxBoxes = try args.int("maxBoxes")
+    cropPadding = try args.double("cropPadding")
+    classifierPath = try args.string("classifierPath")
+    classifierInputSize = try args.int("classifierInputSize")
+    classifierMean = try args.triple("classifierMean")
+    classifierStd = try args.triple("classifierStd")
+    embeddingSize = try args.int("embeddingSize")
+    cropThumbnailSize = try args.int("cropThumbnailSize")
+    // Absent means pad-to-square, which every app before fittings sent.
+    if let fit = values["cropFit"] {
       guard let name = fit as? String, let parsed = CropFit(rawValue: name) else {
         throw VisionError.badArguments("cropFit")
       }
       cropFit = parsed
     } else {
       cropFit = .padSquare
-    }
-    // Absent means RF-DETR, the only detector a pack carries today.
-    if let format = args["detectorFormat"] {
-      guard let name = format as? String, let parsed = DetectorFormat(rawValue: name) else {
-        throw VisionError.badArguments("detectorFormat")
-      }
-      detectorFormat = parsed
-    } else {
-      detectorFormat = .rfdetr
     }
   }
 }
@@ -134,85 +166,168 @@ final class VisionPipeline {
   private static let maxImageSide = 4096
 
   private var settings: VisionModelSettings?
-  private var detector: MLModel?
+  /// One per detector setting, in the same order.
+  private var detectors: [MLModel] = []
   private var classifier: MLModel?
 
   func load(_ next: VisionModelSettings) throws {
-    if next == settings, detector != nil, classifier != nil { return }
+    if next == settings, detectors.count == next.detectors.count, classifier != nil { return }
     unload()
     let config = MLModelConfiguration()
     config.computeUnits = .all
-    detector = try MLModel(contentsOf: try Self.compiledModel(at: next.detectorPath), configuration: config)
+    detectors = try next.detectors.map {
+      try MLModel(contentsOf: try Self.compiledModel(at: $0.path), configuration: config)
+    }
     classifier = try MLModel(contentsOf: try Self.compiledModel(at: next.classifierPath), configuration: config)
     settings = next
   }
 
   func unload() {
-    detector = nil
+    detectors = []
     classifier = nil
     settings = nil
   }
 
   func analyze(_ args: [String: Any]) throws -> [String: Any] {
-    guard let settings = settings, let detector = detector, let classifier = classifier else {
+    guard settings != nil, !detectors.isEmpty, classifier != nil else {
       throw VisionError.notLoaded
     }
     let image = try Self.decode(args)
-    let width = image.width
-    let height = image.height
-
     let detectStart = Date()
-    let boxes = try detect(image, settings: settings, model: detector)
+    let runs = try detectEach(in: image)
+    let boxes = try combined(runs)
     let detectMs = Date().timeIntervalSince(detectStart) * 1000
     var detections: [[String: Any]] = []
     for box in boxes {
-      // Pixel box of the detection, then padded for the crop.
-      let bx = box.x * Double(width), by = box.y * Double(height)
-      let bw = box.w * Double(width), bh = box.h * Double(height)
-      let padX = bw * settings.cropPadding, padY = bh * settings.cropPadding
-      let cropRect = CGRect(
-        x: max(0, bx - padX), y: max(0, by - padY),
-        width: min(Double(width), bx + bw + padX) - max(0, bx - padX),
-        height: min(Double(height), by + bh + padY) - max(0, by - padY)
-      ).integral
-      guard cropRect.width >= 2, cropRect.height >= 2, let crop = image.cropping(to: cropRect),
-            let jpeg = Self.jpeg(Self.fitted(crop, within: settings.cropThumbnailSize)) else {
-        // No crop to show for it, so no suggestion either.
+      // No crop to show for it, so no suggestion either.
+      guard var detection = try cropAndEmbed(image, x: box.x, y: box.y, w: box.w, h: box.h) else {
         continue
       }
-      let embedStart = Date()
-      let embedding = try embed(crop, settings: settings, model: classifier)
-      let embedMs = Date().timeIntervalSince(embedStart) * 1000
-      detections.append([
-        "x": box.x, "y": box.y, "width": box.w, "height": box.h,
-        "score": Double(box.score),
-        "pixelWidth": Int(bw.rounded()), "pixelHeight": Int(bh.rounded()),
-        "crop": FlutterStandardTypedData(bytes: jpeg),
-        "embedding": FlutterStandardTypedData(float32: embedding.withUnsafeBufferPointer { Data(buffer: $0) }),
-        "embedMs": embedMs,
-      ])
+      detection["x"] = box.x
+      detection["y"] = box.y
+      detection["width"] = box.w
+      detection["height"] = box.h
+      detection["score"] = Double(box.score)
+      detections.append(detection)
     }
-    return ["imageWidth": width, "imageHeight": height, "detections": detections, "detectMs": detectMs]
+    var reply: [String: Any] = [
+      "imageWidth": image.width, "imageHeight": image.height, "detections": detections,
+      "detectMs": detectMs,
+    ]
+    // Each detector's own boxes and the merged boxes, before any is
+    // cropped, for the accuracy tool's check that the merge matches the one
+    // it measured. The app never asks.
+    if args["withDetectorBoxes"] as? Bool == true {
+      func plain(_ run: [Box]) -> [[String: Any]] {
+        run.map { ["x": $0.x, "y": $0.y, "w": $0.w, "h": $0.h, "score": Double($0.score)] }
+      }
+      reply["detectorBoxes"] = runs.map(plain)
+      reply["mergedBoxes"] = plain(boxes)
+    }
+    return reply
+  }
+
+  /// The detectors over an already decoded frame (a video's, issue #4675),
+  /// merged when there are two.
+  func detectBoxes(in image: CGImage) throws -> [Box] {
+    try combined(try detectEach(in: image))
+  }
+
+  /// Each detector's boxes, in the pack's order.
+  func detectEach(in image: CGImage) throws -> [[Box]] {
+    guard let settings = settings, !detectors.isEmpty else { throw VisionError.notLoaded }
+    return try zip(settings.detectors, detectors).map { detector, model in
+      try detect(image, settings: detector, model: model)
+    }
+  }
+
+  /// One detector's boxes as they are, as every one-detector pack has
+  /// always had them; two detectors' merged.
+  private func combined(_ runs: [[Box]]) throws -> [Box] {
+    guard let settings = settings else { throw VisionError.notLoaded }
+    if runs.count == 1 { return runs[0] }
+    return Self.merge(runs, iou: settings.mergeIoU, limit: settings.maxBoxes)
+  }
+
+  /// The box at normalised [x, y, w, h] of [image], padded, cropped and
+  /// embedded: `{pixelWidth, pixelHeight, crop, embedding}`, or nil when
+  /// the crop is too small to read. Shared by photos and video moments.
+  func cropAndEmbed(_ image: CGImage, x: Double, y: Double, w: Double, h: Double) throws -> [String: Any]? {
+    guard let settings = settings, let classifier = classifier else { throw VisionError.notLoaded }
+    let width = image.width
+    let height = image.height
+    // Pixel box of the detection, then padded for the crop.
+    let bx = x * Double(width), by = y * Double(height)
+    let bw = w * Double(width), bh = h * Double(height)
+    let padX = bw * settings.cropPadding, padY = bh * settings.cropPadding
+    let cropRect = CGRect(
+      x: max(0, bx - padX), y: max(0, by - padY),
+      width: min(Double(width), bx + bw + padX) - max(0, bx - padX),
+      height: min(Double(height), by + bh + padY) - max(0, by - padY)
+    ).integral
+    guard cropRect.width >= 2, cropRect.height >= 2, let crop = image.cropping(to: cropRect),
+          let jpeg = Self.jpeg(Self.fitted(crop, within: settings.cropThumbnailSize)) else {
+      return nil
+    }
+    let embedStart = Date()
+    let embedding = try embed(crop, settings: settings, model: classifier)
+    // Read by the accuracy tool (tool/species_pack); the app ignores it.
+    let embedMs = Date().timeIntervalSince(embedStart) * 1000
+    return [
+      "pixelWidth": Int(bw.rounded()), "pixelHeight": Int(bh.rounded()),
+      "crop": FlutterStandardTypedData(bytes: jpeg),
+      "embedding": FlutterStandardTypedData(float32: embedding.withUnsafeBufferPointer { Data(buffer: $0) }),
+      "embedMs": embedMs,
+    ]
   }
 
   // MARK: Detection
 
-  private struct Box {
+  struct Box {
     let x: Double, y: Double, w: Double, h: Double
     let score: Float
   }
 
-  private func detect(_ image: CGImage, settings: VisionModelSettings, model: MLModel) throws -> [Box] {
-    if settings.detectorFormat == .yolo {
+  /// Several detectors' boxes as one set, as the accuracy scorer merged
+  /// them (tool/species_pack/boxes.py `merge`): all boxes pooled in run
+  /// order, best score first (equal scores keep pool order, as Python's
+  /// stable sort does), each dropped if it overlaps a kept box by [iou] or
+  /// more, at most [limit].
+  static func merge(_ runs: [[Box]], iou: Double, limit: Int) -> [Box] {
+    let pooled = runs.flatMap { $0 }
+    let order = pooled.indices.sorted { a, b in
+      pooled[a].score != pooled[b].score ? pooled[a].score > pooled[b].score : a < b
+    }
+    var kept: [Box] = []
+    for i in order {
+      let box = pooled[i]
+      if kept.allSatisfy({ overlap(box, $0) < iou }) { kept.append(box) }
+      if kept.count == limit { break }
+    }
+    return kept
+  }
+
+  /// Intersection over union of two boxes, computed as boxes.py `iou`
+  /// does, so a merge decided at the threshold goes the same way.
+  static func overlap(_ a: Box, _ b: Box) -> Double {
+    let ix = max(0, min(a.x + a.w, b.x + b.w) - max(a.x, b.x))
+    let iy = max(0, min(a.y + a.h, b.y + b.h) - max(a.y, b.y))
+    let inter = ix * iy
+    let union = a.w * a.h + b.w * b.h - inter
+    return union > 0 ? inter / union : 0
+  }
+
+  private func detect(_ image: CGImage, settings: DetectorSettings, model: MLModel) throws -> [Box] {
+    if settings.format == .yolo {
       return try detectYolo(image, settings: settings, model: model)
     }
-    let size = settings.detectorInputSize
+    let size = settings.inputSize
     // Resized straight to the square input, no letterbox, as the detector
     // was trained.
     guard let pixels = Self.rgba(image, into: CGRect(x: 0, y: 0, width: size, height: size), canvas: size, fill: nil) else {
       throw VisionError.decodeFailed("could not draw the image")
     }
-    let input = try Self.tensor(pixels, size: size, mean: settings.detectorMean, std: settings.detectorStd)
+    let input = try Self.tensor(pixels, size: size, mean: settings.mean, std: settings.std)
     let output = try model.prediction(from: try Self.features(model, input))
 
     var boxArray: MLMultiArray?
@@ -257,13 +372,13 @@ final class VisionPipeline {
   private static let letterboxFill: [Float] = [114 / 255, 114 / 255, 114 / 255]
   private static let yoloSuppressIoU = 0.7
 
-  private func detectYolo(_ image: CGImage, settings: VisionModelSettings, model: MLModel) throws -> [Box] {
-    let size = settings.detectorInputSize
+  private func detectYolo(_ image: CGImage, settings: DetectorSettings, model: MLModel) throws -> [Box] {
+    let size = settings.inputSize
     let rect = Self.letterboxRect(width: image.width, height: image.height, size: size)
     guard let pixels = Self.rgba(image, into: rect, canvas: size, fill: Self.letterboxFill) else {
       throw VisionError.decodeFailed("could not draw the image")
     }
-    let input = try Self.tensor(pixels, size: size, mean: settings.detectorMean, std: settings.detectorStd)
+    let input = try Self.tensor(pixels, size: size, mean: settings.mean, std: settings.std)
     let output = try model.prediction(from: try Self.features(model, input))
     guard let array = output.featureNames.lazy.compactMap({ output.featureValue(for: $0)?.multiArrayValue })
       .first(where: { $0.shape.count == 3 }) else {
@@ -309,14 +424,7 @@ final class VisionPipeline {
   private static func suppress(_ boxes: [Box], iou: Double, limit: Int) -> [Box] {
     var kept: [Box] = []
     for box in boxes.sorted(by: { $0.score > $1.score }) {
-      let overlaps = kept.contains { k in
-        let ix = max(0, min(box.x + box.w, k.x + k.w) - max(box.x, k.x))
-        let iy = max(0, min(box.y + box.h, k.y + k.h) - max(box.y, k.y))
-        let inter = ix * iy
-        let union = box.w * box.h + k.w * k.h - inter
-        return union > 0 && inter / union >= iou
-      }
-      if !overlaps { kept.append(box) }
+      if !kept.contains(where: { overlap(box, $0) >= iou }) { kept.append(box) }
       if kept.count == limit { break }
     }
     return kept

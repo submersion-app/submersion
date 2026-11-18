@@ -593,13 +593,6 @@
       }
     }
   },
-  "@media_diveScan_error": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
   "@media_diveScan_foundPhotos": {
     "placeholders": {
       "count": {
@@ -2944,7 +2937,6 @@
   "diveLog_edit_addCustomField": "添加字段",
   "diveLog_edit_addTank": "添加气瓶",
   "diveLog_edit_addWeightEntry": "添加配重条目",
-  "diveLog_edit_addedGps": "已为 {name} 添加 GPS",
   "diveLog_edit_appBarNew": "记录潜水",
   "diveLog_edit_button_fetchWeather": "获取天气",
   "diveLog_edit_cancel": "取消",
@@ -3420,7 +3412,6 @@
   "siteSuggestion_assignButton": "指定 {name}",
   "siteSuggestion_chooseNearbyButton": "选择附近潜水点 ({count})",
   "siteSuggestion_addLocationButton": "为 {name} 添加位置",
-  "siteSuggestion_assignedSnack": "已指定 {name}",
   "siteTypes_addTooltip": "添加潜水点类型",
   "siteTypes_builtIn": "内置",
   "siteTypes_custom": "自定义",
@@ -6124,10 +6115,8 @@
   "media_diveMediaSection_replaceEditedContent": "此文件的内容与原始文件不同。重新关联会将其重新上传到您的媒体存储。",
   "media_diveMediaSection_replaceEditedTitle": "文件内容不同",
   "media_diveMediaSection_unlinkButton": "取消关联",
-  "media_diveMediaSection_unlinkError": "取消关联失败：{error}",
   "media_diveMediaSection_unlinkSelectedButton": "取消关联 {count}",
   "media_diveMediaSection_unlinkSelectedContent": "从您的媒体库中移除 {count} 个媒体项目，包括其云端副本和缩略图。潜点仍在使用的项目会被保留。您的原始文件不受影响。",
-  "media_diveMediaSection_unlinkSelectedSuccess": "已取消关联 {count} 个项目",
   "media_diveMediaSection_unlinkSelectedTitle": "取消关联 {count} 项目?",
   "media_library_unlinkConfirmTitle": "取消关联 {count} 项目?",
   "media_siteMediaSection_unlinkError": "取消关联失败：{error}",
@@ -6172,7 +6161,6 @@
   "media_documentViewer_attached": "已附加 {count} 个文档",
   "media_diveScan_accessDenied": "需要照片库访问权限以扫描照片",
   "media_diveScan_cancelButton": "取消",
-  "media_diveScan_error": "扫描相册出错：{error}",
   "media_diveScan_foundPhotos": "找到此次潜水附近的 {count} {count, plural, =1{张照片} other{张照片}}。关联{count, plural, =1{它} other{它们}}吗？",
   "media_diveScan_foundTitle": "照片已找到",
   "media_diveScan_linkButton": "关联 {count, plural, =1{照片} other{照片}}",
@@ -8545,8 +8533,8 @@
   "settings_backups_title": "备份",
   "settings_photosVideos_title": "照片与视频",
   "settings_speciesId_title": "海洋生物识别",
-  "settings_speciesId_entrySubtitle": "在照片中查找鱼类并建议物种",
-  "settings_speciesId_intro": "在照片中查找鱼类并建议物种。在此设备上运行，照片绝不会离开设备。",
+  "settings_speciesId_entrySubtitle": "在照片和视频中查找鱼类并建议物种",
+  "settings_speciesId_intro": "在照片和视频中查找鱼类并建议物种。在此设备上运行，照片和视频绝不会离开设备。",
   "settings_speciesId_model": "模型",
   "settings_speciesId_modelNotDownloaded": "未下载",
   "settings_speciesId_modelNotAvailable": "暂不可用",
@@ -8565,7 +8553,7 @@
   "settings_speciesId_downloadFailed": "下载未完成。重试即可从中断处继续。",
   "settings_speciesId_downloadNoSpace": "此设备的可用空间不足。",
   "settings_speciesId_needsAppUpdate": "此模型需要更新版本的 Submersion。",
-  "settings_speciesId_toggle": "打开照片时识别鱼类",
+  "settings_speciesId_toggle": "打开照片或视频时识别鱼类",
   "settings_speciesId_kept": "此设备上保留的建议",
   "settings_speciesId_keptValue": "{count}（{size}）",
   "settings_speciesId_clear": "清除建议",
@@ -9245,7 +9233,6 @@
   "signatures_drawSignatureSemantics": "绘制签名",
   "signatures_error_drawSignature": "请绘制签名",
   "signatures_error_enterSignerName": "请输入签名者姓名",
-  "signatures_error_saveFailed": "无法保存签名。请重试。",
   "signatures_field_instructorName": "教练名称",
   "signatures_field_instructorNameHint": "输入教练姓名",
   "signatures_handoff_title": "请将设备交给",
@@ -16596,6 +16583,10 @@
   "media_species_addAll": "全部添加",
   "media_species_dismiss": "忽略建议",
   "media_species_identifying": "正在识别鱼类...",
+  "media_species_sheetTitleVideo": "这段视频中的物种",
+  "media_species_scanProgress": "正在识别鱼类，{percent}",
+  "media_species_unnamedFish": "未命名的鱼，点按以命名",
+  "media_species_unnamedFishLocked": "未命名的鱼",
   "media_species_possibleMatches": "可能的匹配",
   "media_species_cropUnavailable": "图像不在此设备上",
   "media_species_taggedOnPhoto": "此照片中已标记",
@@ -16624,8 +16615,6 @@
   "media_people_buddyThumbnailLabel": "与此潜伴的照片或视频",
   "media_people_filterSection": "人物",
   "media_people_removedBuddy": "已删除的潜伴",
-  "media_people_saveFailed": "无法保存标记，请重试。",
-  "media_people_addToDiveFailed": "无法将潜伴添加到本次潜水，请重试。",
   "media_people_createBuddyFailed": "无法创建潜伴，请重试。",
   "media_info_fileSection": "文件",
   "media_info_filename": "文件名",
@@ -17250,7 +17239,6 @@
   "diveLog_reassignSheet_moveTo": "移动到",
   "diveLog_reassignSheet_readings": "{count, plural, =1{1 个读数} other{{count} 个读数}}",
   "diveLog_reassignSheet_noSeries": "没有压力曲线",
-  "diveLog_reassignSheet_applied": "压力曲线已重新分配",
   "universalImport_summary_noticeUnknownTransmitterTitle": "未分配的发射器",
   "universalImport_summary_noticeUnknownTransmitterBody": "此次下载中有一个或多个发射器未分配到气瓶。分配后，今后的下载将获得正确的容量和用途。",
   "universalImport_summary_noticeAssignTransmitters": "分配发射器",

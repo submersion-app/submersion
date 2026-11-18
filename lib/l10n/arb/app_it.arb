@@ -2717,7 +2717,6 @@
   "diveLog_edit_addCustomField": "Aggiungi campo",
   "diveLog_edit_addTank": "Aggiungi bombola",
   "diveLog_edit_addWeightEntry": "Aggiungi voce zavorra",
-  "diveLog_edit_addedGps": "GPS aggiunto a {name}",
   "diveLog_edit_appBarNew": "Registra immersione",
   "diveLog_edit_cancel": "Annulla",
   "diveLog_edit_clearAllEquipment": "Rimuovi tutto",
@@ -3181,7 +3180,6 @@
   "siteSuggestion_assignButton": "Assegna {name}",
   "siteSuggestion_chooseNearbyButton": "Scegli sito vicino ({count})",
   "siteSuggestion_addLocationButton": "Aggiungi posizione a {name}",
-  "siteSuggestion_assignedSnack": "Assegnato {name}",
   "siteTypes_addTooltip": "Aggiungi tipo di sito",
   "siteTypes_builtIn": "Predefiniti",
   "siteTypes_custom": "Personalizzati",
@@ -5857,10 +5855,8 @@
   "media_diveMediaSection_replaceEditedContent": "Il contenuto di questo file differisce dall'originale. Ricollegarlo lo ricaricherà nel tuo archivio multimediale.",
   "media_diveMediaSection_replaceEditedTitle": "Il contenuto del file differisce",
   "media_diveMediaSection_unlinkButton": "Scollega",
-  "media_diveMediaSection_unlinkError": "Scollegamento non riuscito: {error}",
   "media_diveMediaSection_unlinkSelectedButton": "Scollega {count}",
   "media_diveMediaSection_unlinkSelectedContent": "Rimuove {count} elementi multimediali dalla libreria, insieme alle copie nel cloud e alle miniature. Gli elementi ancora usati da un sito di immersione vengono mantenuti. I file originali non vengono toccati.",
-  "media_diveMediaSection_unlinkSelectedSuccess": "{count} elementi scollegati",
   "media_diveMediaSection_unlinkSelectedTitle": "Scollegare {count} elementi?",
   "media_library_unlinkConfirmTitle": "Scollegare {count} elementi?",
   "media_siteMediaSection_unlinkError": "Scollegamento non riuscito: {error}",
@@ -8256,8 +8252,8 @@
   "settings_backups_title": "Backup",
   "settings_photosVideos_title": "Foto e video",
   "settings_speciesId_title": "Identificazione della vita marina",
-  "settings_speciesId_entrySubtitle": "Trova i pesci nelle tue foto e suggerisci la specie",
-  "settings_speciesId_intro": "Trova i pesci nelle tue foto e suggerisce la specie. Funziona su questo dispositivo. Le tue foto non lo lasciano mai.",
+  "settings_speciesId_entrySubtitle": "Trova i pesci nelle tue foto e nei tuoi video e suggerisci la specie",
+  "settings_speciesId_intro": "Trova i pesci nelle tue foto e nei tuoi video e suggerisce la specie. Funziona su questo dispositivo. Le tue foto e i tuoi video non lo lasciano mai.",
   "settings_speciesId_model": "Modello",
   "settings_speciesId_modelNotDownloaded": "Non scaricato",
   "settings_speciesId_modelNotAvailable": "Non ancora disponibile",
@@ -8276,7 +8272,7 @@
   "settings_speciesId_downloadFailed": "Il download non è stato completato. Riprova per continuare da dove si è interrotto.",
   "settings_speciesId_downloadNoSpace": "Non c'è abbastanza spazio libero su questo dispositivo.",
   "settings_speciesId_needsAppUpdate": "Questo modello richiede una versione più recente di Submersion.",
-  "settings_speciesId_toggle": "Identifica i pesci quando apro una foto",
+  "settings_speciesId_toggle": "Identifica i pesci quando apro una foto o un video",
   "settings_speciesId_kept": "Suggerimenti conservati su questo dispositivo",
   "settings_speciesId_keptValue": "{count} ({size})",
   "settings_speciesId_clear": "Cancella suggerimenti",
@@ -8943,7 +8939,6 @@
   "signatures_drawSignatureSemantics": "Disegna firma",
   "signatures_error_drawSignature": "Disegna una firma",
   "signatures_error_enterSignerName": "Inserisci il nome del firmatario",
-  "signatures_error_saveFailed": "Impossibile salvare la firma. Riprova.",
   "signatures_field_instructorName": "Nome Istruttore",
   "signatures_field_instructorNameHint": "Inserisci nome istruttore",
   "signatures_handoff_title": "Passa il dispositivo a",
@@ -10844,14 +10839,6 @@
     }
   },
   "media_diveScan_cancelButton": "Annulla",
-  "media_diveScan_error": "Errore durante la ricerca nella galleria: {error}",
-  "@media_diveScan_error": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
   "settings_appearance_metricsEnabledCount": "{count} di {total} abilitati",
   "@settings_appearance_metricsEnabledCount": {
     "placeholders": {
@@ -16596,6 +16583,10 @@
   "media_species_addAll": "Aggiungi tutte",
   "media_species_dismiss": "Ignora suggerimento",
   "media_species_identifying": "Ricerca di pesci...",
+  "media_species_sheetTitleVideo": "Specie in questo video",
+  "media_species_scanProgress": "Ricerca di pesci, {percent}",
+  "media_species_unnamedFish": "Pesce senza nome, tocca per dargli un nome",
+  "media_species_unnamedFishLocked": "Pesce senza nome",
   "media_species_possibleMatches": "Possibili corrispondenze",
   "media_species_cropUnavailable": "Immagine non presente su questo dispositivo",
   "media_species_taggedOnPhoto": "Taggate in questa foto",
@@ -16624,8 +16615,6 @@
   "media_people_buddyThumbnailLabel": "Foto o video con questo compagno",
   "media_people_filterSection": "Persone",
   "media_people_removedBuddy": "Compagno rimosso",
-  "media_people_saveFailed": "Impossibile salvare il tag. Riprova.",
-  "media_people_addToDiveFailed": "Impossibile aggiungere il compagno a questa immersione. Riprova.",
   "media_people_createBuddyFailed": "Impossibile creare il compagno. Riprova.",
   "media_info_fileSection": "File",
   "media_info_filename": "Nome file",
@@ -17250,7 +17239,6 @@
   "diveLog_reassignSheet_moveTo": "Sposta su",
   "diveLog_reassignSheet_readings": "{count, plural, =1{1 lettura} other{{count} letture}}",
   "diveLog_reassignSheet_noSeries": "Nessuna serie di pressione",
-  "diveLog_reassignSheet_applied": "Serie di pressione riassegnata",
   "universalImport_summary_noticeUnknownTransmitterTitle": "Trasmettitori non assegnati",
   "universalImport_summary_noticeUnknownTransmitterBody": "Uno o più trasmettitori di questo download non sono assegnati a una bombola. Assegnali perché i prossimi download abbiano dimensione e ruolo corretti.",
   "universalImport_summary_noticeAssignTransmitters": "Assegna trasmettitori",

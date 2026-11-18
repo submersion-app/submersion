@@ -57,3 +57,49 @@ String manifestJson([void Function(Map<String, Object?> m)? edit]) {
   edit?.call(m);
   return jsonEncode(m);
 }
+
+/// A format 2 manifest carrying both detectors (issue #4691): the fish
+/// detector, then Megalodon.
+Map<String, Object?> manifestV2Map() {
+  final m = manifestMap();
+  m['formatVersion'] = 2;
+  m.remove('detector');
+  m['detectors'] = <Object?>[
+    {
+      'id': 'cfd-rfdetr-nano-640-20260706',
+      'format': 'rfdetr',
+      'file': 'detector',
+      'inputSize': 640,
+      'mean': [0.485, 0.456, 0.406],
+      'std': [0.229, 0.224, 0.225],
+      'scoreThreshold': 0.3,
+      'maxBoxes': 8,
+    },
+    {
+      'id': 'megalodon-yolo11x-403704d',
+      'format': 'yolo',
+      'file': 'detector-megalodon',
+      'inputSize': 640,
+      'mean': [0.0, 0.0, 0.0],
+      'std': [1.0, 1.0, 1.0],
+      'scoreThreshold': 0.25,
+      'maxBoxes': 8,
+    },
+  ];
+  m['boxes'] = {'mergeIoU': 0.5, 'maxBoxes': 8, 'cropPadding': 0.10};
+  (m['files']! as List).insert(
+    1,
+    _file('detector-megalodon.coreml.zip', 'coreml', 110000000),
+  );
+  return m;
+}
+
+String manifestV2Json([void Function(Map<String, Object?> m)? edit]) {
+  final m = manifestV2Map();
+  edit?.call(m);
+  return jsonEncode(m);
+}
+
+/// The detector entries of a format 2 manifest map, for editing.
+List<Map<String, Object?>> detectorsOf(Map<String, Object?> m) =>
+    (m['detectors']! as List).cast<Map<String, Object?>>();

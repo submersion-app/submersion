@@ -278,8 +278,12 @@ class _MarineLifeIdentificationPageState
     if (!(go ?? false) || !context.mounted) return;
     final messenger = ScaffoldMessenger.maybeOf(context);
     final failed = l10n.common_error_tryAgain;
+    final cleanup = ref.read(identificationCleanupProvider);
+    final service = ref.read(mediaIdentificationServiceProvider);
     try {
-      await ref.read(identificationCleanupProvider).clearAll();
+      // A scan still running would write back what is cleared.
+      await service.settleAll();
+      await cleanup.clearAll();
     } catch (_) {
       messenger?.showSnackBar(SnackBar(content: Text(failed)));
     }

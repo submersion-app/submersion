@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/app_enums.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
+import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
+import 'package:submersion/features/species_id/domain/services/species_namer.dart';
 import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
 
 final _now = DateTime.utc(2026, 11, 17, 12);
@@ -266,6 +268,140 @@ void main() {
     });
   });
 
+  group('reconcileDecisions on a video (issue #4675)', () {
+    MediaIdentification fish(
+      String id, {
+      List<(PackCandidate, double)> candidates = const [(_parrotfish, 0.9)],
+      bool suggestable = true,
+      String? claim,
+    }) => _id(id, candidates: candidates, suggestable: suggestable).copyWith(
+      startMs: () => 0,
+      endMs: () => 2000,
+      claimedSpeciesId: () => claim,
+    );
+
+    test('a claim accepts its track when its species is tagged', () {
+      final changed = reconcileDecisions(
+        [
+          fish(
+            'a',
+            candidates: [(_chromis, 0.9)],
+            claim: 'sp_queen_parrotfish',
+          ),
+        ],
+        [const TaggedSpecies(speciesId: 'sp_queen_parrotfish')],
+        now: _now,
+      );
+      expect(changed.single.decision, IdentificationDecision.accepted);
+      expect(changed.single.decidedSpeciesId, 'sp_queen_parrotfish');
+    });
+
+    test('a claim outside the candidates still accepts', () {
+      final changed = reconcileDecisions(
+        [fish('a', suggestable: false, claim: 'own-7')],
+        [
+          const TaggedSpecies(
+            speciesId: 'own-7',
+            scientificName: 'Gramma loreto',
+          ),
+        ],
+        now: _now,
+      );
+      expect(changed.single.decidedSpeciesId, 'own-7');
+    });
+
+    test('a claim with no tag stays undecided', () {
+      expect(
+        reconcileDecisions([fish('a', claim: 'own-7')], const [], now: _now),
+        isEmpty,
+      );
+    });
+
+    test('a claimed track takes its claim, not the name rules', () {
+      final changed = reconcileDecisions(
+        [
+          fish('a', candidates: [(_parrotfish, 0.9)], claim: 'sp_blue_tang'),
+          fish('b', candidates: [(_parrotfish, 0.8)]),
+        ],
+        [
+          const TaggedSpecies(speciesId: 'sp_queen_parrotfish'),
+          const TaggedSpecies(speciesId: 'sp_blue_tang'),
+        ],
+        now: _now,
+      );
+      final byId = {for (final c in changed) c.id: c.decidedSpeciesId};
+      expect(byId['a'], 'sp_blue_tang');
+      expect(byId['b'], 'sp_queen_parrotfish');
+    });
+
+    test('a tag a claim took does not also take a neighbour by rank', () {
+      final changed = reconcileDecisions(
+        [
+          fish('dot', suggestable: false, claim: 'sp_blue_tang'),
+          fish('other', candidates: [(_parrotfish, 0.7), (_tang, 0.2)]),
+        ],
+        [const TaggedSpecies(speciesId: 'sp_blue_tang')],
+        now: _now,
+      );
+      expect(changed.map((i) => i.id), ['dot']);
+    });
+
+    test('on video, a weak best guess is not accepted by name', () {
+      expect(
+        reconcileDecisions(
+          [fish('a', suggestable: false)],
+          [const TaggedSpecies(speciesId: 'sp_queen_parrotfish')],
+          now: _now,
+        ),
+        isEmpty,
+      );
+    });
+
+    test('on video, the fallback skips tracks that are not suggestable', () {
+      final changed = reconcileDecisions(
+        [
+          fish(
+            'weak',
+            candidates: [(_tang, 0.5), (_chromis, 0.4)],
+            suggestable: false,
+          ),
+          fish('named', candidates: [(_tang, 0.8), (_chromis, 0.1)]),
+        ],
+        [
+          const TaggedSpecies(
+            speciesId: 'uuid-1',
+            scientificName: 'Chromis multilineata',
+          ),
+        ],
+        now: _now,
+      );
+      expect(changed.map((i) => i.id), ['named']);
+    });
+
+    test('photos still accept a best name that is not suggestable', () {
+      final changed = reconcileDecisions(
+        [_id('a', suggestable: false)],
+        [const TaggedSpecies(speciesId: 'sp_queen_parrotfish')],
+        now: _now,
+      );
+      expect(changed.single.decision, IdentificationDecision.accepted);
+    });
+
+    test('decisionsAsShown applies held tags in memory', () {
+      final stored = [
+        fish('a'),
+        fish('b', candidates: [(_chromis, 0.9)]),
+      ];
+      final shown = decisionsAsShown(stored, [
+        const TaggedSpecies(speciesId: 'sp_queen_parrotfish'),
+      ], now: _now);
+      expect(shown.map((i) => i.id), ['a', 'b']);
+      expect(shown[0].decision, IdentificationDecision.accepted);
+      expect(shown[1].decision, IdentificationDecision.undecided);
+      expect(stored[0].decision, IdentificationDecision.undecided);
+    });
+  });
+
   group('groupSuggestions', () {
     test('merges detections of one species, keeping the best crop', () {
       final suggestions = groupSuggestions([
@@ -467,6 +603,62 @@ void main() {
         IdentificationDecision.rejected,
         IdentificationDecision.undecided,
       ]);
+    });
+  });
+
+  group('namingFlags (issue #4675)', () {
+    const config = NamingConfig(
+      provisional: true,
+      minCropSide: 64,
+      minOpenScore: 0.15,
+      suggestScore: 0.50,
+      confidentScore: 0.70,
+      suggestScoreNoLocation: 0.70,
+      minAllowedCandidates: 200,
+      topK: 5,
+    );
+    const fish = PackCandidate(
+      gbifKey: 1,
+      scientificName: 'Scarus vetula',
+      commonName: 'Queen Parrotfish',
+      category: SpeciesCategory.fish,
+    );
+    NamingResult result({
+      double top = 0.8,
+      double open = 0.5,
+      bool suggestable = true,
+    }) => NamingResult(
+      openScore: open,
+      candidates: [NamedCandidate(candidate: fish, score: top)],
+      locationLimited: true,
+      suggestable: suggestable,
+    );
+
+    test('a suggestable name over the confident bar is confident', () {
+      expect(namingFlags(result(top: 0.71), config).confident, isTrue);
+      expect(namingFlags(result(top: 0.70), config).confident, isTrue);
+    });
+
+    test('a suggestable name under the confident bar is not', () {
+      expect(namingFlags(result(top: 0.69), config).confident, isFalse);
+    });
+
+    test('a name that is not suggestable is never confident', () {
+      expect(
+        namingFlags(result(top: 0.9, suggestable: false), config).confident,
+        isFalse,
+      );
+    });
+
+    test('nothing named is neither', () {
+      final flags = namingFlags(NamingResult.unusable, config);
+      expect(flags.confident, isFalse);
+      expect(flags.specific, isFalse);
+    });
+
+    test('specific follows the open score floor', () {
+      expect(namingFlags(result(open: 0.15), config).specific, isTrue);
+      expect(namingFlags(result(open: 0.149), config).specific, isFalse);
     });
   });
 

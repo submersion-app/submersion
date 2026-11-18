@@ -51,14 +51,6 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
     return true;
   }
 
-  Future<void> _addPhotos(Dive dive) async {
-    await PhotoImportHelper.importPhotosForDive(
-      context: context,
-      ref: ref,
-      dive: dive,
-    );
-  }
-
   Future<bool> _linkPreDiveChecklist(Dive dive) async {
     final messenger = ScaffoldMessenger.of(context);
     final confirmation = context.l10n.preDive_link_linked;
@@ -269,120 +261,6 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
     final target = await ref.read(downloadTargetComputerProvider.future);
     if (!mounted) return;
     context.push(downloadRouteFor(target));
-  }
-
-  Future<void> _scanGalleryForDive(Dive dive) async {
-    if (!demoSealGuard(context, DemoSealedFeature.mediaImport)) {
-      return;
-    }
-    // Show loading
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const Center(child: CircularProgressIndicator()),
-    );
-
-    try {
-      final mediaRepo = ref.read(mediaRepositoryProvider);
-      final linked = await mediaRepo.getGalleryLinksForDive(dive.id);
-
-      final photoPickerService = ref.read(photoPickerServiceProvider);
-      final assets = await TripMediaScanner.scanGalleryForDive(
-        dive: dive,
-        linked: linked,
-        linkedGalleryAssets: ref.read(linkedGalleryAssetsProvider),
-        photoPickerService: photoPickerService,
-      );
-
-      if (!mounted) return;
-      Navigator.of(context, rootNavigator: true).pop(); // Dismiss loading
-
-      if (assets == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.media_diveScan_accessDenied)),
-        );
-        return;
-      }
-
-      if (assets.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.media_diveScan_noPhotosFound)),
-        );
-        return;
-      }
-
-      // Confirm with user
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text(context.l10n.media_diveScan_foundTitle),
-          content: Text(context.l10n.media_diveScan_foundPhotos(assets.length)),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(false),
-              child: Text(context.l10n.media_diveScan_cancelButton),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(ctx).pop(true),
-              child: Text(
-                context.l10n.media_diveScan_linkButton(assets.length),
-              ),
-            ),
-          ],
-        ),
-      );
-
-      if (confirmed != true || !mounted) return;
-
-      // Show importing dialog
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => AlertDialog(
-          content: Row(
-            children: [
-              const CircularProgressIndicator(),
-              const SizedBox(width: 24),
-              Expanded(
-                child: Text(
-                  context.l10n.media_import_importingPhotos(assets.length),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-
-      final importService = ref.read(mediaImportServiceProvider);
-      final result = await importService.importPhotosForDive(
-        selectedAssets: assets,
-        dive: dive,
-      );
-
-      if (!mounted) return;
-      Navigator.of(context, rootNavigator: true).pop(); // Dismiss importing
-
-      // Refresh media providers
-      ref.invalidate(mediaForDiveProvider(dive.id));
-      ref.invalidate(mediaCountForDiveProvider(dive.id));
-      ref.invalidate(divePhotoGpsProvider(dive.id));
-      ref.invalidate(allDivePhotoGpsProvider(dive.id));
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            context.l10n.media_import_importedPhotos(result.imported.length),
-          ),
-        ),
-      );
-    } catch (e) {
-      if (mounted) Navigator.of(context, rootNavigator: true).pop();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.media_diveScan_error('$e'))),
-        );
-      }
-    }
   }
 
   Future<bool> _confirmAndSplit(Dive dive, String sourceId) async {

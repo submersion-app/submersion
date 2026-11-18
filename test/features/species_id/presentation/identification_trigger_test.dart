@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -109,9 +111,131 @@ void main() {
     expect(service.cancelled, ['p1']);
   });
 
-  testWidgets('a video is not asked for', (tester) async {
+  testWidgets('a video is asked for after the dwell (issue #4675)', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       host(testMediaItem(id: 'v1', mediaType: MediaType.video)),
+    );
+    await tester.pump(const Duration(milliseconds: 399));
+    expect(service.requested, isEmpty);
+    await tester.pump(const Duration(milliseconds: 2));
+    expect(service.requested, ['v1']);
+  });
+
+  testWidgets('a video is asked for again when the app comes back', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host(testMediaItem(id: 'v1', mediaType: MediaType.video)),
+    );
+    await tester.pump(const Duration(milliseconds: 401));
+    expect(service.requested, ['v1']);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    expect(service.requested, ['v1', 'v1']);
+  });
+
+  testWidgets('losing focus without going to the background asks nothing', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host(testMediaItem(id: 'v1', mediaType: MediaType.video)),
+    );
+    await tester.pump(const Duration(milliseconds: 401));
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    expect(service.requested, ['v1']);
+  });
+
+  group('a page over the viewer', () {
+    final navigator = GlobalKey<NavigatorState>();
+
+    Widget app(MediaItem item) => ProviderScope(
+      overrides: [
+        mediaIdentificationServiceProvider.overrideWithValue(service),
+        mediaTagChipsProvider.overrideWith((ref, id) async => chips),
+      ],
+      child: MaterialApp(
+        navigatorKey: navigator,
+        home: Scaffold(body: IdentificationTrigger(item: item)),
+      ),
+    );
+
+    testWidgets('stops the video\'s scan, and coming back asks again', (
+      tester,
+    ) async {
+      service.requestsWait = true;
+      await tester.pumpWidget(
+        app(testMediaItem(id: 'v1', mediaType: MediaType.video)),
+      );
+      await tester.pump(const Duration(milliseconds: 401));
+      expect(service.requested, ['v1']);
+      unawaited(
+        navigator.currentState!.push(
+          MaterialPageRoute<void>(builder: (_) => const Scaffold()),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(service.cancelled, ['v1']);
+      navigator.currentState!.pop();
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 401));
+      expect(service.requested, ['v1', 'v1']);
+    });
+
+    testWidgets('a location arriving while covered does not start the scan', (
+      tester,
+    ) async {
+      service.requestsWait = true;
+      final video = testMediaItem(id: 'v1', mediaType: MediaType.video);
+      Widget located(GeoPoint? at) => ProviderScope(
+        overrides: [
+          mediaIdentificationServiceProvider.overrideWithValue(service),
+          mediaTagChipsProvider.overrideWith((ref, id) async => chips),
+        ],
+        child: MaterialApp(
+          navigatorKey: navigator,
+          home: Scaffold(
+            body: IdentificationTrigger(item: video, location: at),
+          ),
+        ),
+      );
+      await tester.pumpWidget(located(null));
+      await tester.pump(const Duration(milliseconds: 401));
+      unawaited(
+        navigator.currentState!.push(
+          MaterialPageRoute<void>(builder: (_) => const Scaffold()),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.pumpWidget(located(const GeoPoint(12, -68)));
+      await tester.pump();
+      expect(service.requested, ['v1']);
+    });
+
+    testWidgets('a sheet over it leaves the scan running', (tester) async {
+      service.requestsWait = true;
+      await tester.pumpWidget(
+        app(testMediaItem(id: 'v1', mediaType: MediaType.video)),
+      );
+      await tester.pump(const Duration(milliseconds: 401));
+      unawaited(
+        showModalBottomSheet<void>(
+          context: navigator.currentContext!,
+          builder: (_) => const SizedBox(height: 100),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(service.cancelled, isEmpty);
+    });
+  });
+
+  testWidgets('a document is not asked for', (tester) async {
+    await tester.pumpWidget(
+      host(testMediaItem(id: 'd1', mediaType: MediaType.document)),
     );
     await tester.pump(const Duration(milliseconds: 401));
     expect(service.requested, isEmpty);

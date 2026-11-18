@@ -67,19 +67,15 @@ class FullscreenProfilePage extends ConsumerStatefulWidget {
 
   /// The open Profile card's sitting (issue #4527): annotations placed,
   /// moved and removed here are held in it, and the sitting's annotations
-  /// and gas switches are drawn.
+  /// and gas switches are drawn. Without one (a locked dive, a closed
+  /// Profile card, the dashboard) the page shows no control that writes.
   final EditSession<Dive>? session;
-
-  /// Shows no control that writes: opened from a locked dive, a closed
-  /// Profile card, or the dashboard, with in-place editing switched on.
-  final bool readOnly;
 
   const FullscreenProfilePage({
     super.key,
     required this.diveId,
     this.onOpenInNotes,
     this.session,
-    this.readOnly = false,
   });
 
   @override
@@ -219,15 +215,10 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
     final session = widget.session;
     // A sitting that has ended (the dive changed elsewhere) edits nothing.
     final sitting = session == null || session.isDisposed ? null : session;
-    // Read only as asked, or once a sitting it was handed has ended: with no
-    // sitting the edits would otherwise go straight to the database.
-    final writesNothing =
-        widget.readOnly || (session != null && sitting == null);
-    // In a sitting, annotations are edited only once it holds them: until
-    // then a pin, a move or a removal would go nowhere.
+    // Annotations are edited only in a sitting, and only once it holds them:
+    // until then a pin, a move or a removal would go nowhere.
     final annotationsReadOnly =
-        writesNothing ||
-        (sitting != null && sittingAnnotations(sitting) == null);
+        sitting == null || sittingAnnotations(sitting) == null;
     final gasSwitches =
         (sitting == null ? null : sittingGasSwitchesWithTanks(sitting)) ??
         ref.watch(gasSwitchesProvider(widget.diveId)).value;
@@ -722,16 +713,9 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                                   ? null
                                   : finding;
                             },
-                            // With editing switched on, findings are
-                            // dismissed in the open Safety review card.
-                            onSafetyFindingDismiss:
-                                widget.readOnly || session != null
-                                ? null
-                                : (finding) => setSafetyFindingDismissed(
-                                    ref,
-                                    finding: finding,
-                                    dismissed: true,
-                                  ),
+                            // No onSafetyFindingDismiss: findings are
+                            // dismissed in the open Safety review card
+                            // (issue #4527).
                             // Time, not sample index: the surface lead-in
                             // before the first sample reports 0, so playback
                             // and the tooltip agree on 00:00.

@@ -19,6 +19,7 @@ import 'package:submersion/features/transmitters/domain/entities/transmitter.dar
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
 
 import '../../../../helpers/test_app.dart';
+import 'dive_card_scope.dart';
 
 /// A CCR dive's rates read as loop use, with SAC and RMV kept for the gas
 /// lost after a bailout (issue #4082).
@@ -51,18 +52,20 @@ Widget _card(
       transmittersProvider.overrideWith((ref) async => const <Transmitter>[]),
     ],
     child: SingleChildScrollView(
-      child: CylindersCard(
-        dive: Dive(
-          id: 'dive-1',
-          diveNumber: 1,
-          dateTime: DateTime(2026, 6, 1, 10),
-          maxDepth: 30,
-          diveMode: DiveMode.ccr,
-          tanks: tanks,
+      child: onDivePage(
+        CylindersCard(
+          dive: Dive(
+            id: 'dive-1',
+            diveNumber: 1,
+            dateTime: DateTime(2026, 6, 1, 10),
+            maxDepth: 30,
+            diveMode: DiveMode.ccr,
+            tanks: tanks,
+          ),
+          units: UnitFormatter(settings),
+          settings: settings,
+          display: display,
         ),
-        units: UnitFormatter(settings),
-        settings: settings,
-        display: display,
       ),
     ),
   );
@@ -148,18 +151,20 @@ void main() {
             ),
           ],
           child: SingleChildScrollView(
-            child: CylindersCard(
-              dive: Dive(
-                id: 'dive-1',
-                diveNumber: 1,
-                dateTime: DateTime(2026, 6, 1, 10),
-                maxDepth: 30,
-                diveMode: DiveMode.ccr,
-                tanks: const [_tank],
+            child: onDivePage(
+              CylindersCard(
+                dive: Dive(
+                  id: 'dive-1',
+                  diveNumber: 1,
+                  dateTime: DateTime(2026, 6, 1, 10),
+                  maxDepth: 30,
+                  diveMode: DiveMode.ccr,
+                  tanks: const [_tank],
+                ),
+                units: const UnitFormatter(AppSettings()),
+                settings: const AppSettings(),
+                display: GasConsumptionDisplay.both,
               ),
-              units: const UnitFormatter(AppSettings()),
-              settings: const AppSettings(),
-              display: GasConsumptionDisplay.both,
             ),
           ),
         ),
@@ -215,24 +220,26 @@ void main() {
             ),
           ],
           child: SingleChildScrollView(
-            child: CylindersCard(
-              dive: Dive(
-                id: 'dive-1',
-                diveNumber: 1,
-                dateTime: now,
-                maxDepth: 30,
-                diveMode: DiveMode.ccr,
-                tanks: const [
-                  DiveTank(
-                    id: 'tank',
-                    computerId: 'c1',
-                    role: TankRole.diluent,
-                  ),
-                ],
+            child: onDivePage(
+              CylindersCard(
+                dive: Dive(
+                  id: 'dive-1',
+                  diveNumber: 1,
+                  dateTime: now,
+                  maxDepth: 30,
+                  diveMode: DiveMode.ccr,
+                  tanks: const [
+                    DiveTank(
+                      id: 'tank',
+                      computerId: 'c1',
+                      role: TankRole.diluent,
+                    ),
+                  ],
+                ),
+                units: const UnitFormatter(AppSettings()),
+                settings: const AppSettings(),
+                display: GasConsumptionDisplay.both,
               ),
-              units: const UnitFormatter(AppSettings()),
-              settings: const AppSettings(),
-              display: GasConsumptionDisplay.both,
             ),
           ),
         ),

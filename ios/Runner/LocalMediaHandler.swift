@@ -66,6 +66,13 @@ class LocalMediaHandler: NSObject {
         // missed teardown, etc.). On normal app exit the OS would reclaim
         // these anyway, but draining the dictionary keeps long-lived sandbox
         // accounting clean if the handler is ever recreated mid-process.
+        releaseAll()
+    }
+
+    /// Stops accessing every URL we hold. AppDelegate calls this before it
+    /// replaces the handler for a new engine, since the channel's strong
+    /// reference to `handle` keeps deinit from running.
+    func releaseAll() {
         for (_, url) in active {
             url.stopAccessingSecurityScopedResource()
         }
@@ -234,10 +241,7 @@ class LocalMediaHandler: NSObject {
     }
 
     private func releaseAllBookmarks(result: @escaping FlutterResult) {
-        for (_, url) in active {
-            url.stopAccessingSecurityScopedResource()
-        }
-        active.removeAll()
+        releaseAll()
         result(nil)
     }
 

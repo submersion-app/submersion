@@ -233,9 +233,8 @@ class _BulkDiveEditPageState extends ConsumerState<BulkDiveEditPage> {
   // Weight fields - multiple weight entries per dive
   List<DiveWeight> _weights = [];
 
-  // Post-dive weighting feedback (v104): trains the weight predictor.
-  WeightingFeedback? _weightingFeedback;
-  final _weightingFeedbackAmountController = TextEditingController();
+  // No weighting feedback here: one value rarely fits several dives, and the
+  // single-dive editor is where a diver records it (#4674).
 
   // Tank data - list of tanks with multi-tank support
   List<DiveTank> _tanks = [];
@@ -384,7 +383,6 @@ class _BulkDiveEditPageState extends ConsumerState<BulkDiveEditPage> {
     _boatNameController.dispose();
     _boatCaptainController.dispose();
     _surfaceConditionsController.dispose();
-    _weightingFeedbackAmountController.dispose();
     super.dispose();
   }
 

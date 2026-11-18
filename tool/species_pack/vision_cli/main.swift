@@ -1,27 +1,43 @@
 // Runs the app's own vision pipeline (packages/submersion_vision) over a
 // list of images, for the accuracy scorer (tool/species_pack/score.py).
 //
-//   species_vision --manifest M --detector D --classifier C --crop-fit F < paths
+//   species_vision --manifest M --detector D [--detector D2] --classifier C
+//                  --crop-fit F [--detector-boxes] < paths
 //
-// The manifest's detector block may carry "detectorFormat" ("rfdetr", the
-// default, or "yolo"), which the pipeline reads as the app would.
+// The manifest is a pack's: format 2 lists one or two detectors, each with
+// its format; format 1 has one detector block, the fish detector, read as
+// the app reads it. Pass one --detector per detector, in the manifest's
+// order. --detector-boxes
+// adds each detector's own boxes and the merged boxes, before cropping, to
+// every result.
 //
 // Reads one image path per line on stdin and writes one JSON line per image
 // on stdout. The pipeline compiles a model package once and deletes it, so
 // pass copies, never a pack's own files.
 import Foundation
 
+let usage = "usage: species_vision --manifest M --detector D [--detector D2] --classifier C " +
+  "--crop-fit padSquare|centreCrop [--detector-boxes]"
+
 func fail(_ message: String) -> Never {
   FileHandle.standardError.write((message + "\n").data(using: .utf8)!)
   exit(2)
 }
 
-func option(_ name: String) -> String {
+/// Every value given for [name], in order.
+func values(_ name: String) -> [String] {
   let args = CommandLine.arguments
-  guard let i = args.firstIndex(of: name), i + 1 < args.count else {
-    fail("usage: species_vision --manifest M --detector D --classifier C --crop-fit padSquare|centreCrop")
+  var found: [String] = []
+  for (i, arg) in args.enumerated() where arg == name {
+    guard i + 1 < args.count else { fail(usage) }
+    found.append(args[i + 1])
   }
-  return args[i + 1]
+  return found
+}
+
+func option(_ name: String) -> String {
+  guard let value = values(name).first else { fail(usage) }
+  return value
 }
 
 func emit(_ object: [String: Any]) {
@@ -33,29 +49,50 @@ func emit(_ object: [String: Any]) {
 let manifestURL = URL(fileURLWithPath: option("--manifest"))
 guard let manifestData = try? Data(contentsOf: manifestURL),
       let manifest = (try? JSONSerialization.jsonObject(with: manifestData)) as? [String: Any],
-      let detector = manifest["detector"] as? [String: Any],
       let classifier = manifest["classifier"] as? [String: Any] else {
   fail("could not read the manifest")
 }
 
+// The detectors and the shared box settings, from either format.
+let detectorBlocks: [[String: Any]]
+let boxes: [String: Any]
+if let list = manifest["detectors"] as? [[String: Any]] {
+  guard let shared = manifest["boxes"] as? [String: Any] else { fail("the manifest has detectors but no boxes block") }
+  detectorBlocks = list
+  boxes = shared
+} else if let one = manifest["detector"] as? [String: Any] {
+  detectorBlocks = [one.merging(["format": "rfdetr"]) { _, fish in fish }]
+  boxes = ["mergeIoU": 0.5, "maxBoxes": one["maxBoxes"] as Any, "cropPadding": one["cropPadding"] as Any]
+} else {
+  fail("the manifest has no detectors")
+}
+let detectorPaths = values("--detector")
+guard detectorPaths.count == detectorBlocks.count else {
+  fail("the manifest has \(detectorBlocks.count) detectors; pass one --detector for each")
+}
+let withDetectorBoxes = CommandLine.arguments.contains("--detector-boxes")
+
 let settings: VisionModelSettings
 do {
   settings = try VisionModelSettings([
-    "detectorPath": option("--detector"),
+    "detectors": zip(detectorBlocks, detectorPaths).map { block, path -> [String: Any] in
+      [
+        "path": path, "format": block["format"] as Any, "inputSize": block["inputSize"] as Any,
+        "mean": block["mean"] as Any, "std": block["std"] as Any,
+        "scoreThreshold": block["scoreThreshold"] as Any, "maxBoxes": block["maxBoxes"] as Any,
+      ]
+    },
+    "mergeIoU": boxes["mergeIoU"] as Any,
+    "maxBoxes": boxes["maxBoxes"] as Any,
+    "cropPadding": boxes["cropPadding"] as Any,
     "classifierPath": option("--classifier"),
-    "detectorInputSize": detector["inputSize"] as Any,
-    "detectorMean": detector["mean"] as Any,
-    "detectorStd": detector["std"] as Any,
-    "scoreThreshold": detector["scoreThreshold"] as Any,
-    "maxBoxes": detector["maxBoxes"] as Any,
-    "cropPadding": detector["cropPadding"] as Any,
     "classifierInputSize": classifier["inputSize"] as Any,
     "classifierMean": classifier["mean"] as Any,
     "classifierStd": classifier["std"] as Any,
     "embeddingSize": classifier["embeddingSize"] as Any,
     "cropThumbnailSize": manifest["cropThumbnailSize"] as Any,
     "cropFit": option("--crop-fit"),
-  ].merging(detector["detectorFormat"].map { ["detectorFormat": $0] } ?? [:]) { a, _ in a })
+  ])
 } catch let error as VisionError {
   fail(error.message)
 } catch {
@@ -78,7 +115,7 @@ while let line = readLine() {
   // every decoded image stays alive until the process exits.
   autoreleasepool {
   do {
-    let result = try pipeline.analyze(["path": path])
+    let result = try pipeline.analyze(["path": path, "withDetectorBoxes": withDetectorBoxes])
     let detections = (result["detections"] as? [[String: Any]] ?? []).map { d -> [String: Any] in
       let bytes = (d["embedding"] as? FlutterStandardTypedData)?.data ?? Data()
       let floats = bytes.withUnsafeBytes { Array($0.bindMemory(to: Float.self)) }
@@ -98,10 +135,13 @@ while let line = readLine() {
       emit(["path": path, "error": "the classifier returned a value that is not a number"])
       return
     }
-    emit([
+    var line: [String: Any] = [
       "path": path, "width": result["imageWidth"] as Any, "height": result["imageHeight"] as Any,
       "detections": detections, "detectMs": result["detectMs"] as Any,
-    ])
+    ]
+    if let perDetector = result["detectorBoxes"] { line["detectorBoxes"] = perDetector }
+    if let merged = result["mergedBoxes"] { line["mergedBoxes"] = merged }
+    emit(line)
   } catch let error as VisionError {
     emit(["path": path, "error": error.message])
   } catch {

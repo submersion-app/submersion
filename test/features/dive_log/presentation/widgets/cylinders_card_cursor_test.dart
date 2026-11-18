@@ -20,6 +20,7 @@ import 'package:submersion/features/transmitters/domain/entities/transmitter.dar
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
 
 import '../../../../helpers/test_app.dart';
+import 'dive_card_scope.dart';
 
 // Issue #4291: the Cylinders card follows the profile cursor.
 
@@ -99,11 +100,13 @@ Widget _card({
       profileTrackingIndexProvider.overrideWith((ref, id) => cursor),
     ],
     child: SingleChildScrollView(
-      child: CylindersCard(
-        dive: dive,
-        units: units,
-        settings: settings,
-        display: GasConsumptionDisplay.sac,
+      child: onDivePage(
+        CylindersCard(
+          dive: dive,
+          units: units,
+          settings: settings,
+          display: GasConsumptionDisplay.sac,
+        ),
       ),
     ),
   );

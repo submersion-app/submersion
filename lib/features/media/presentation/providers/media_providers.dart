@@ -44,21 +44,11 @@ final diveMediaEnricherProvider = Provider<DiveMediaEnricher>((ref) {
   );
 });
 
-/// Applies the Set-time dialog's choice (issue #1090): one write, to the
-/// media row for a pin or the dive for a shift (issue #4539), plus one
-/// enrichment pass, so the new position lands on the next tick.
-// no-tick: a service rather than a cached query result. The dive repository
-// is reached inside a closure, and only to write.
+/// What the Set-time dialog needs to offer (issue #1090); the choice is
+/// held in the photo's sitting and written by its Save (issue #4527).
+// no-tick: a service rather than a cached query result.
 final mediaTimePinnerProvider = Provider<MediaTimePinner>((ref) {
-  return MediaTimePinner(
-    repository: ref.watch(mediaRepositoryProvider),
-    enricher: ref.watch(diveMediaEnricherProvider),
-    // Read when a shift is applied, so a screen that only pins needs no
-    // dive repository.
-    setDiveShift: (diveId, seconds) => ref
-        .read(diveRepositoryProvider)
-        .setMediaTimeOffsetSeconds(diveId, seconds),
-  );
+  return MediaTimePinner(enricher: ref.watch(diveMediaEnricherProvider));
 });
 
 /// The one implementation of "unlink from a dive", shared by the Media
@@ -190,17 +180,6 @@ class MediaListNotifier extends StateNotifier<AsyncValue<List<MediaItem>>> {
   Future<void> deleteMultipleMedia(List<String> ids) async {
     await _ref.read(mediaDeletionCoordinatorProvider).deleteMultipleMedia(ids);
     await refresh();
-  }
-
-  /// Unlinks from the dive: the rows leave the library, along with their
-  /// cloud proxies and thumbnails, unless a dive site still needs them.
-  /// Original source files are never touched. See [MediaUnlinkService].
-  Future<UnlinkOutcome> unlinkMultipleMedia(List<String> ids) async {
-    final outcome = await _ref
-        .read(mediaUnlinkServiceProvider)
-        .unlinkFromDive(ids);
-    await refresh();
-    return outcome;
   }
 
   /// Mark a media item as orphaned (photo deleted from gallery)

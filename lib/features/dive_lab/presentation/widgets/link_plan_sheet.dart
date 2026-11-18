@@ -7,23 +7,6 @@ import 'package:submersion/features/planner/presentation/plan_link_actions.dart'
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Picks a saved plan for dive [diveId] and links it. Returns whether it did.
-Future<bool> pickPlanAndLink(
-  BuildContext context,
-  WidgetRef ref, {
-  required String diveId,
-}) async {
-  final planId = await showModalBottomSheet<String>(
-    context: context,
-    showDragHandle: true,
-    isScrollControlled: true,
-    useSafeArea: true,
-    builder: (_) => LinkPlanSheet(diveId: diveId),
-  );
-  if (planId == null || !context.mounted) return false;
-  return linkPlanWithConfirm(context, ref, planId: planId, diveId: diveId);
-}
-
 /// Saved plans that are free, newest first, then plans linked to other dives,
 /// greyed with the dive they belong to. Those stay tappable: moving a link is
 /// allowed, after confirming.

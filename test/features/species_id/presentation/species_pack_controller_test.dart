@@ -80,7 +80,7 @@ class _Store extends SpeciesPackStore {
     return current = InstalledPack(
       manifest: manifest,
       directory: '/pack',
-      detectorPath: '/pack/d',
+      detectorPaths: const ['/pack/d'],
       classifierPath: '/pack/c',
     );
   }
@@ -286,7 +286,7 @@ void main() {
     addTearDown(sub.close);
     await controller().download();
     expect(seen.whereType<PackInstalling>(), isNotEmpty);
-    expect(engine.loads.single.detectorPath, '/pack/d');
+    expect(engine.loads.single.detectors.single.path, '/pack/d');
     expect(engine.unloads, 1);
     expect(state(), isA<PackInstalled>());
   });

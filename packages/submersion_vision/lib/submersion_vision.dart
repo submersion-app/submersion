@@ -18,6 +18,17 @@ class SubmersionVision {
   static Future<Map<Object?, Object?>?> analyze(Map<String, Object?> source) =>
       _channel.invokeMethod<Map<Object?, Object?>>('analyze', source);
 
+  /// `{width, height, durationMs, frames: [{ms, boxes: [{x, y, width,
+  /// height, score}]}]}`.
+  static Future<Map<Object?, Object?>?> detectVideo(
+    Map<String, Object?> args,
+  ) => _channel.invokeMethod<Map<Object?, Object?>>('detectVideo', args);
+
+  /// One entry per moment: null, or `{pixelWidth, pixelHeight, crop,
+  /// embedding}`.
+  static Future<List<Object?>?> embedMoments(Map<String, Object?> args) =>
+      _channel.invokeMethod<List<Object?>>('embedMoments', args);
+
   static Future<void> unload() => _channel.invokeMethod<void>('unload');
 
   static Future<void> excludeFromBackup(String path) =>

@@ -6,6 +6,8 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
+import 'package:submersion/features/species_id/domain/entities/track_sample.dart';
+import 'package:submersion/features/species_id/domain/entities/video_detections.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
 
 import 'manifest_fixture.dart';
@@ -95,30 +97,155 @@ void main() {
       );
     });
 
+    test('tracks on a video', () {
+      const box = IdentificationBox(x: 0.1, y: 0.2, width: 0.3, height: 0.4);
+      const other = IdentificationBox(x: 0.5, y: 0.5, width: 0.1, height: 0.1);
+      const sample = TrackSample(ms: 250, box: box);
+      expect(sample.copyWith(), sample);
+      expect(
+        sample.copyWith(ms: 500, box: other),
+        const TrackSample(ms: 500, box: other),
+      );
+
+      final track = MediaIdentification(
+        id: 'i1',
+        mediaId: 'v1',
+        box: box,
+        boxPixelWidth: 80,
+        boxPixelHeight: 60,
+        detectorScore: 0.9,
+        openScore: 0.5,
+        candidates: const [],
+        locationLimited: false,
+        suggestable: true,
+        decision: IdentificationDecision.undecided,
+        createdAt: DateTime.utc(2026),
+        startMs: 0,
+        endMs: 1500,
+        bestMs: 750,
+        path: const [sample],
+        claimedSpeciesId: 'sp_a',
+        confident: true,
+        specific: true,
+      );
+      expect(track.copyWith(), track);
+      expect(track.isTrack, isTrue);
+      expect(track.durationMs, 1500);
+      final changed = track.copyWith(
+        startMs: () => 100,
+        endMs: () => 200,
+        bestMs: () => 150,
+        path: const [],
+        claimedSpeciesId: () => null,
+        confident: false,
+        specific: false,
+      );
+      expect(changed.startMs, 100);
+      expect(changed.endMs, 200);
+      expect(changed.bestMs, 150);
+      expect(changed.path, isEmpty);
+      expect(changed.claimedSpeciesId, isNull);
+      expect(changed.confident, isFalse);
+      expect(changed.specific, isFalse);
+      expect(track.copyWith(startMs: () => null).isTrack, isFalse);
+
+      final run = MediaIdentificationRun(
+        mediaId: 'v1',
+        packVersion: 'p',
+        detectorId: 'd',
+        classifierId: 'c',
+        analysedAt: DateTime.utc(2026),
+        imageWidth: 1920,
+        imageHeight: 1080,
+        detectionCount: 0,
+        scannedMs: 10000,
+        videoDurationMs: 25000,
+      );
+      expect(run.copyWith(), run);
+      expect(run.scanComplete, isFalse);
+      final done = run.copyWith(scannedMs: () => 25000);
+      expect(done.scanComplete, isTrue);
+      expect(run.copyWith(videoDurationMs: () => null).scanComplete, isFalse);
+    });
+
+    test('video detections and moments', () {
+      const box = IdentificationBox(x: 0.1, y: 0.2, width: 0.3, height: 0.4);
+      const other = IdentificationBox(x: 0.5, y: 0.5, width: 0.1, height: 0.1);
+      const detected = DetectedBox(box: box, score: 0.8);
+      expect(detected.copyWith(), detected);
+      expect(
+        detected.copyWith(box: other, score: 0.5),
+        const DetectedBox(box: other, score: 0.5),
+      );
+      const frame = FrameDetections(ms: 250, boxes: [detected]);
+      expect(frame.copyWith(), frame);
+      expect(
+        frame.copyWith(ms: 500, boxes: const []),
+        const FrameDetections(ms: 500, boxes: []),
+      );
+      const video = VideoDetections(
+        width: 1920,
+        height: 1080,
+        durationMs: 25000,
+        frames: [frame],
+      );
+      expect(video.copyWith(), video);
+      expect(
+        video.copyWith(width: 1080, height: 1920, durationMs: 1, frames: []),
+        const VideoDetections(
+          width: 1080,
+          height: 1920,
+          durationMs: 1,
+          frames: [],
+        ),
+      );
+      const moment = VisionMoment(ms: 250, box: box);
+      expect(moment.copyWith(), moment);
+      expect(
+        moment.copyWith(ms: 500, box: other),
+        const VisionMoment(ms: 500, box: other),
+      );
+      final crop = VisionMomentCrop(
+        pixelWidth: 80,
+        pixelHeight: 60,
+        cropJpeg: Uint8List.fromList([1]),
+        embedding: Float32List.fromList([1, 0]),
+      );
+      expect(crop.copyWith(), crop);
+      expect(crop.copyWith(pixelWidth: 10, pixelHeight: 20).pixelWidth, 10);
+    });
+
     test('the manifest and its parts', () {
       final manifest = SpeciesPackManifest.parse(manifestJson());
       expect(manifest.copyWith(), manifest);
 
       const detector = DetectorConfig(
         id: 'd2',
+        format: DetectorFormat.yolo,
+        file: 'detector-2',
         inputSize: 320,
         mean: [0.1, 0.1, 0.1],
         std: [0.2, 0.2, 0.2],
         scoreThreshold: 0.5,
         maxBoxes: 4,
-        cropPadding: 0.2,
       );
       expect(
-        manifest.detector.copyWith(
+        manifest.detectors.single.copyWith(
           id: 'd2',
+          format: DetectorFormat.yolo,
+          file: 'detector-2',
           inputSize: 320,
           mean: [0.1, 0.1, 0.1],
           std: [0.2, 0.2, 0.2],
           scoreThreshold: 0.5,
           maxBoxes: 4,
-          cropPadding: 0.2,
         ),
         detector,
+      );
+      const boxes = BoxesConfig(mergeIoU: 0.4, maxBoxes: 6, cropPadding: 0.2);
+      expect(
+        manifest.boxes.copyWith(mergeIoU: 0.4, maxBoxes: 6, cropPadding: 0.2),
+        boxes,
       );
       const classifier = ClassifierConfig(
         id: 'c2',
@@ -190,7 +317,8 @@ void main() {
       final changed = manifest.copyWith(
         formatVersion: 2,
         packVersion: '2027.1.1',
-        detector: detector,
+        detectors: const [detector],
+        boxes: boxes,
         classifier: classifier,
         naming: naming,
         region: region,
@@ -201,7 +329,8 @@ void main() {
       );
       expect(changed.formatVersion, 2);
       expect(changed.packVersion, '2027.1.1');
-      expect(changed.detector, detector);
+      expect(changed.detectors, [detector]);
+      expect(changed.boxes, boxes);
       expect(changed.classifier, classifier);
       expect(changed.naming, naming);
       expect(changed.region, region);
@@ -215,17 +344,36 @@ void main() {
       final manifest = SpeciesPackManifest.parse(manifestJson());
       final models = VisionModels.fromManifest(
         manifest,
-        detectorPath: '/d',
+        detectorPaths: const ['/d'],
         classifierPath: '/c',
       );
       expect(models.copyWith(), models);
-      const changedModels = VisionModels(
-        detectorPath: '/d2',
-        classifierPath: '/c2',
-        detectorInputSize: 1,
-        detectorMean: [1, 1, 1],
-        detectorStd: [2, 2, 2],
+      const detector = VisionDetector(
+        path: '/d2',
+        format: DetectorFormat.yolo,
+        inputSize: 1,
+        mean: [1, 1, 1],
+        std: [2, 2, 2],
         scoreThreshold: 0.9,
+        maxBoxes: 1,
+      );
+      expect(models.detectors.single.copyWith(), models.detectors.single);
+      expect(
+        models.detectors.single.copyWith(
+          path: '/d2',
+          format: DetectorFormat.yolo,
+          inputSize: 1,
+          mean: [1, 1, 1],
+          std: [2, 2, 2],
+          scoreThreshold: 0.9,
+          maxBoxes: 1,
+        ),
+        detector,
+      );
+      const changedModels = VisionModels(
+        detectors: [detector],
+        classifierPath: '/c2',
+        mergeIoU: 0.3,
         maxBoxes: 1,
         cropPadding: 0.5,
         classifierInputSize: 2,
@@ -237,12 +385,9 @@ void main() {
       );
       expect(
         models.copyWith(
-          detectorPath: '/d2',
+          detectors: const [detector],
           classifierPath: '/c2',
-          detectorInputSize: 1,
-          detectorMean: [1, 1, 1],
-          detectorStd: [2, 2, 2],
-          scoreThreshold: 0.9,
+          mergeIoU: 0.3,
           maxBoxes: 1,
           cropPadding: 0.5,
           classifierInputSize: 2,

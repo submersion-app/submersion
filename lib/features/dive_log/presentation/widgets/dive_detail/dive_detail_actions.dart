@@ -13,9 +13,6 @@ class DiveDetailActions {
     required this.splitSource,
     required this.removeSource,
     required this.separateSegments,
-    required this.scanGallery,
-    required this.addPhotos,
-    required this.addDocument,
     required this.openDocument,
     this.openAnnotation,
   });
@@ -27,9 +24,6 @@ class DiveDetailActions {
   final void Function(Dive dive, String sourceId, String sourceName)
   removeSource;
   final void Function(Dive dive, int segmentCount) separateSegments;
-  final void Function(Dive dive) scanGallery;
-  final void Function(Dive dive) addPhotos;
-  final void Function(Dive dive) addDocument;
   final void Function(MediaItem item) openDocument;
 
   /// A tap on an annotation link in the Notes card (#4109): scrolls to the

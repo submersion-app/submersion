@@ -15,7 +15,6 @@ import 'package:submersion/features/media/presentation/providers/media_provenanc
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_serving_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_info_panel.dart';
-import 'package:submersion/features/media/presentation/widgets/set_media_time_dialog.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
@@ -103,14 +102,9 @@ MediaEnrichment infoPanelEnrichmentAt(
   createdAt: DateTime(2026, 3, 12),
 );
 
-class CapturingPinner implements MediaTimePinner {
-  CapturingPinner(this.applied);
-  final List<MediaTimeChoice> applied;
-
-  @override
-  Future<void> apply(MediaItem item, MediaTimeChoice choice) async {
-    applied.add(choice);
-  }
+/// A pinner that offers no dive-wide shift, so Set time needs no dive.
+class NoShiftPinner implements MediaTimePinner {
+  const NoShiftPinner();
 
   @override
   Future<MediaAutomaticTime?> automaticTimeFor(MediaItem item) async => null;

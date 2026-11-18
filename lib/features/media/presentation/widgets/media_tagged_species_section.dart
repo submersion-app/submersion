@@ -5,9 +5,7 @@ import 'package:submersion/features/marine_life/presentation/providers/species_p
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/photo_record.dart';
-import 'package:submersion/features/media/domain/entities/species_tag_chip.dart';
 import 'package:submersion/features/media/presentation/editing/photo_sitting_shown.dart';
-import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_species_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
@@ -17,16 +15,17 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 ///
 /// Before it, such a tag (and every tag on a photo with no dive) could not
 /// be removed in the viewer at all; suggestions make that easy to hit
-/// (issue #4668). Renders nothing when there are none.
+/// (issue #4668). Renders nothing when there are none. A removal is held in
+/// the photo's sitting until the viewer's Save (issue #4527).
 class MediaTaggedSpeciesSection extends ConsumerWidget {
   const MediaTaggedSpeciesSection({
     super.key,
     required this.item,
-    this.sitting,
+    required this.sitting,
   });
 
   final MediaItem item;
-  final EditSession<PhotoRecord>? sitting;
+  final EditSession<PhotoRecord> sitting;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -44,7 +43,7 @@ class MediaTaggedSpeciesSection extends ConsumerWidget {
         if (!sighted.contains(chip.speciesId)) chip,
     ];
     if (others.isEmpty) return const SizedBox.shrink();
-    final ended = sitting?.isDisposed ?? false;
+    final ended = sitting.isDisposed;
 
     return Padding(
       padding: const EdgeInsets.only(top: 16),
@@ -73,32 +72,14 @@ class MediaTaggedSpeciesSection extends ConsumerWidget {
                   deleteButtonTooltipMessage: l10n.media_species_removeTag(
                     localizedSpeciesName(l10n, chip.speciesId, chip.storedName),
                   ),
-                  onDeleted: ended ? null : () => _remove(context, ref, chip),
+                  onDeleted: ended
+                      ? null
+                      : () => holdSpeciesUntagged(sitting, chip),
                 ),
             ],
           ),
         ],
       ),
     );
-  }
-
-  Future<void> _remove(
-    BuildContext context,
-    WidgetRef ref,
-    SpeciesTagChip chip,
-  ) async {
-    final session = sitting;
-    if (session != null) {
-      holdSpeciesUntagged(session, chip);
-      return;
-    }
-    final tagging = ref.read(speciesTaggingServiceProvider);
-    final messenger = ScaffoldMessenger.maybeOf(context);
-    final failed = context.l10n.common_error_tryAgain;
-    try {
-      await tagging.untagPhoto(mediaId: item.id, speciesId: chip.speciesId);
-    } catch (_) {
-      messenger?.showSnackBar(SnackBar(content: Text(failed)));
-    }
   }
 }

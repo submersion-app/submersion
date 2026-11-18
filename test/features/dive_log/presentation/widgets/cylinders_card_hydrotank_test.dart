@@ -14,6 +14,7 @@ import 'package:submersion/features/transmitters/domain/entities/transmitter.dar
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
 
 import '../../../../helpers/test_app.dart';
+import 'dive_card_scope.dart';
 
 /// The Tanks card lists an Avelo Hydrotank with its role, pressures, MOD and
 /// MND, and says why it has no gas used or SAC: its pressure rises with the
@@ -52,18 +53,20 @@ Widget _card(
     transmittersProvider.overrideWith((ref) async => const <Transmitter>[]),
   ],
   child: SingleChildScrollView(
-    child: CylindersCard(
-      dive: Dive(
-        id: 'dive-1',
-        diveNumber: 1,
-        dateTime: DateTime(2026, 11, 17, 9),
-        maxDepth: 18,
-        bottomTime: const Duration(minutes: 40),
-        tanks: tanks,
+    child: onDivePage(
+      CylindersCard(
+        dive: Dive(
+          id: 'dive-1',
+          diveNumber: 1,
+          dateTime: DateTime(2026, 11, 17, 9),
+          maxDepth: 18,
+          bottomTime: const Duration(minutes: 40),
+          tanks: tanks,
+        ),
+        units: const UnitFormatter(_settings),
+        settings: _settings,
+        display: GasConsumptionDisplay.sac,
       ),
-      units: const UnitFormatter(_settings),
-      settings: _settings,
-      display: GasConsumptionDisplay.sac,
     ),
   ),
 );

@@ -53,7 +53,8 @@ void main() {
               dive: dive,
               readOnly: readOnly,
               operationReason: operationReason,
-              runAsOperation: runAsOperation,
+              runAsOperation:
+                  runAsOperation ?? (operation) async => operation(),
             ),
           ),
         ),

@@ -39,16 +39,16 @@ class DiveEquipmentSection extends ConsumerWidget {
       GearTree.topLevelCount(dive.gearProvenance),
     );
 
-    final edit = RecordEditScope.maybeOf<Dive>(context);
+    final edit = RecordEditScope.of<Dive>(context);
     // A check-in writes at once, a whole-record operation (issue #4527):
     // listed but disabled until the page is unlocked with nothing to save,
     // and only for gear the dive is stored with, not for gear that is only
     // in the sitting and may never be saved.
     final storedGearIds = {
-      for (final link in (edit?.session?.stored ?? dive).gear) link.item.id,
+      for (final link in (edit.session?.stored ?? dive).gear) link.item.id,
     };
     bool checkInReadOnly(String equipmentId) =>
-        edit != null && !storedGearIds.contains(equipmentId);
+        !storedGearIds.contains(equipmentId);
     final operationReason = recordOperationReason(
       context.l10n,
       recordOperationBlockOf(edit),
@@ -109,8 +109,8 @@ class DiveEquipmentSection extends ConsumerWidget {
     // During a sitting, the set the dive's location suggests shows above the
     // card once every editor has closed: arriving after a lookup, it must
     // not push an open editor down the page (issue #4527).
-    final session = edit?.session;
-    if (session == null || edit!.openCardIds.isNotEmpty) return card;
+    final session = edit.session;
+    if (session == null || edit.openCardIds.isNotEmpty) return card;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,

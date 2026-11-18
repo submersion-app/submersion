@@ -10,8 +10,10 @@ import 'package:submersion/features/media/presentation/providers/species_media_p
 import 'package:submersion/features/species_id/data/services/media_identification_service.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 
-/// Asks for the photo on screen to be analysed for marine life (issue
-/// #4668), once it has been shown a moment. Draws nothing.
+/// Asks for the photo or video on screen to be analysed for marine life
+/// (issues #4668, #4675), once it has been shown a moment. Draws nothing.
+/// A video is scanned a chunk at a time; leaving it stops the scan, and
+/// coming back resumes it.
 ///
 /// The viewer mounts one for the current item only, never for the
 /// neighbouring pages the gallery builds ahead of a swipe. A photo swiped
@@ -39,21 +41,73 @@ class IdentificationTrigger extends ConsumerStatefulWidget {
       _IdentificationTriggerState();
 }
 
-class _IdentificationTriggerState extends ConsumerState<IdentificationTrigger> {
+class _IdentificationTriggerState extends ConsumerState<IdentificationTrigger>
+    with WidgetsBindingObserver {
   final _requested = <String>{};
   Timer? _timer;
+
+  /// Whether the viewer is on screen: false while another full page covers
+  /// it (a species page), when a video's scan is stopped. A sheet over the
+  /// viewer leaves it showing.
+  var _showing = true;
+
+  /// The app went to the background (not merely lost focus): a video's
+  /// scan stopped there, and resumes when it is back.
+  var _wasAway = false;
 
   /// The service asked, kept for [dispose], where `ref` may no longer be
   /// read.
   MediaIdentificationService? _service;
 
   bool get _applies =>
-      marineLifeIdEnabled && widget.item.mediaType == MediaType.photo;
+      marineLifeIdEnabled &&
+      (widget.item.mediaType == MediaType.photo ||
+          widget.item.mediaType == MediaType.video);
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _schedule();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Routes under a full page run with tickers off; under a sheet, on.
+    final showing = TickerMode.valuesOf(context).enabled;
+    if (showing == _showing) return;
+    _showing = showing;
+    final item = widget.item;
+    if (!showing) {
+      _timer?.cancel();
+      if (marineLifeIdEnabled &&
+          ref.read(mediaIdentificationServiceProvider).cancelPending(item.id)) {
+        _requested.remove(item.id);
+      }
+    } else {
+      _schedule();
+    }
+  }
+
+  /// A video's scan stops in the background; back in the foreground with
+  /// the video still on screen, it carries on (issue #4675).
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden) {
+      _wasAway = true;
+      return;
+    }
+    if (state != AppLifecycleState.resumed || !_wasAway) return;
+    _wasAway = false;
+    final item = widget.item;
+    if (_showing &&
+        _applies &&
+        item.mediaType == MediaType.video &&
+        _requested.contains(item.id)) {
+      _ask(item);
+    }
   }
 
   @override
@@ -63,6 +117,7 @@ class _IdentificationTriggerState extends ConsumerState<IdentificationTrigger> {
     if (oldWidget.item.id == item.id) {
       final location = widget.location;
       if (_applies &&
+          _showing &&
           location != null &&
           location != oldWidget.location &&
           _requested.contains(item.id)) {
@@ -83,13 +138,16 @@ class _IdentificationTriggerState extends ConsumerState<IdentificationTrigger> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
     _service?.cancelPending(widget.item.id);
     super.dispose();
   }
 
   void _schedule() {
-    if (!_applies || _requested.contains(widget.item.id)) return;
+    if (!_applies || !_showing || _requested.contains(widget.item.id)) {
+      return;
+    }
     final item = widget.item;
     _timer = Timer(widget.dwell, () {
       if (!mounted || widget.item.id != item.id) return;

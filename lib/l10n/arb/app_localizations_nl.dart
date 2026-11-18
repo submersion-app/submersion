@@ -8379,11 +8379,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_edit_addWeightEntry => 'Gewicht toevoegen';
 
   @override
-  String diveLog_edit_addedGps(Object name) {
-    return 'GPS toegevoegd aan $name';
-  }
-
-  @override
   String get diveLog_edit_appBarNew => 'Duik loggen';
 
   @override
@@ -10227,11 +10222,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String siteSuggestion_addLocationButton(Object name) {
     return 'Locatie toevoegen aan $name';
-  }
-
-  @override
-  String siteSuggestion_assignedSnack(Object name) {
-    return '$name toegewezen';
   }
 
   @override
@@ -20423,11 +20413,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_diveMediaSection_unlinkButton => 'Ontkoppelen';
 
   @override
-  String media_diveMediaSection_unlinkError(Object error) {
-    return 'Ontkoppelen mislukt: $error';
-  }
-
-  @override
   String media_diveMediaSection_unlinkSelectedButton(int count) {
     return '$count ontkoppelen';
   }
@@ -20435,11 +20420,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String media_diveMediaSection_unlinkSelectedContent(int count) {
     return 'Verwijdert $count media-items uit je bibliotheek, samen met hun cloudkopieën en miniaturen. Items die een duikstek nog gebruikt blijven behouden. Je originele bestanden blijven ongemoeid.';
-  }
-
-  @override
-  String media_diveMediaSection_unlinkSelectedSuccess(int count) {
-    return '$count items ontkoppeld';
   }
 
   @override
@@ -20661,11 +20641,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get media_diveScan_cancelButton => 'Annuleren';
-
-  @override
-  String media_diveScan_error(String error) {
-    return 'Fout bij het doorzoeken van de galerij: $error';
-  }
 
   @override
   String media_gpsBanner_coordinates(Object coordinates) {
@@ -29057,11 +29032,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_speciesId_entrySubtitle =>
-      'Vind vissen in je foto\'s en stel de soort voor';
+      'Vind vissen in je foto\'s en video\'s en stel de soort voor';
 
   @override
   String get settings_speciesId_intro =>
-      'Vindt vissen in je foto\'s en stelt voor welke soort het is. Draait op dit apparaat. Je foto\'s verlaten het nooit.';
+      'Vindt vissen in je foto\'s en video\'s en stelt voor welke soort het is. Draait op dit apparaat. Je foto\'s en video\'s verlaten het nooit.';
 
   @override
   String get settings_speciesId_model => 'Model';
@@ -29137,7 +29112,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_speciesId_toggle =>
-      'Vissen herkennen als ik een foto open';
+      'Vissen herkennen als ik een foto of video open';
 
   @override
   String get settings_speciesId_kept => 'Suggesties op dit apparaat';
@@ -31481,10 +31456,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get signatures_error_enterSignerName =>
       'Voer de naam van de ondertekenaar in';
-
-  @override
-  String get signatures_error_saveFailed =>
-      'De handtekening kon niet worden opgeslagen. Probeer het opnieuw.';
 
   @override
   String get signatures_field_instructorName => 'Naam instructeur';
@@ -55877,6 +55848,21 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_species_identifying => 'Zoeken naar vissen...';
 
   @override
+  String get media_species_sheetTitleVideo => 'Soorten in deze video';
+
+  @override
+  String media_species_scanProgress(String percent) {
+    return 'Zoeken naar vissen, $percent';
+  }
+
+  @override
+  String get media_species_unnamedFish =>
+      'Naamloze vis, tik om een naam te geven';
+
+  @override
+  String get media_species_unnamedFishLocked => 'Naamloze vis';
+
+  @override
   String get media_species_possibleMatches => 'Mogelijke overeenkomsten';
 
   @override
@@ -55966,14 +55952,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get media_people_removedBuddy => 'Verwijderde buddy';
-
-  @override
-  String get media_people_saveFailed =>
-      'De tag kon niet worden opgeslagen. Probeer het opnieuw.';
-
-  @override
-  String get media_people_addToDiveFailed =>
-      'De buddy kon niet aan deze duik worden toegevoegd. Probeer het opnieuw.';
 
   @override
   String get media_people_createBuddyFailed =>
@@ -58295,9 +58273,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_reassignSheet_noSeries => 'Geen drukreeks';
-
-  @override
-  String get diveLog_reassignSheet_applied => 'Drukreeks opnieuw toegewezen';
 
   @override
   String get universalImport_summary_noticeUnknownTransmitterTitle =>

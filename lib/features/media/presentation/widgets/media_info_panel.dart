@@ -67,7 +67,9 @@ class MediaInfoPanel extends ConsumerWidget {
   /// is locked, or shown where it has no lock of its own (issue #4527).
   final bool readOnly;
 
-  /// The photo's sitting: Set time is held in it until Save.
+  /// The photo's sitting: Edit tags, Set time and Locate hold what they
+  /// change in it until Save, and are offered only while it is over the
+  /// photo.
   final EditSession<PhotoRecord>? sitting;
 
   /// Supplied when hosted in a DraggableScrollableSheet, which owns scrolling.
@@ -143,15 +145,12 @@ class MediaInfoPanel extends ConsumerWidget {
           item: live,
           origin: provenance.origin,
           units: units,
-          // In a sitting, Locate is held until Save.
-          canLocate:
-              !readOnly &&
-              !rowless &&
-              !relinkedOnDive &&
-              (session == null || inSitting),
+          // Locate's relink is held in the sitting until Save.
+          locateIn: !readOnly && !rowless && !relinkedOnDive && inSitting
+              ? session
+              : null,
           canCheck: !rowless,
           stored: stored,
-          sitting: inSitting ? session : null,
         ),
         const SizedBox(height: 12),
         _BackupSection(
@@ -218,9 +217,8 @@ class _OriginSection extends ConsumerWidget {
     required this.item,
     required this.origin,
     required this.units,
-    required this.canLocate,
+    required this.locateIn,
     required this.canCheck,
-    required this.sitting,
     required this.stored,
   });
 
@@ -228,14 +226,12 @@ class _OriginSection extends ConsumerWidget {
   final OriginFacts origin;
   final UnitFormatter units;
 
-  /// Whether Locate may relink the photo here.
-  final bool canLocate;
+  /// The photo's sitting, which holds what Locate finds until Save; null
+  /// offers no Locate.
+  final EditSession<PhotoRecord>? locateIn;
 
   /// Whether the photo has a row whose file can be checked.
   final bool canCheck;
-
-  /// The photo's sitting, which holds what Locate finds until Save.
-  final EditSession<PhotoRecord>? sitting;
 
   /// The photo as stored: what Check now checks and Locate relinks, while
   /// [item] may be drawn with a relink the sitting holds.
@@ -258,6 +254,7 @@ class _OriginSection extends ConsumerWidget {
     final isLocalFile = origin.sourceType == MediaSourceType.localFile;
     // A browser has no file to check or locate (issue #4121).
     final canEdit = ref.watch(deviceCapabilitiesProvider).mediaAttach;
+    final locateIn = this.locateIn;
 
     return _Section(
       title: l10n.media_info_originSection,
@@ -281,8 +278,8 @@ class _OriginSection extends ConsumerWidget {
         if (origin.health == OriginHealth.missing &&
             isLocalFile &&
             canEdit &&
-            canLocate)
-          _LocateButton(item: stored, sitting: sitting),
+            locateIn != null)
+          _LocateButton(item: stored, sitting: locateIn),
         if (pointer != null && isLocalFile && canRevealInFileManager)
           TextButton(
             // Explicitly unawaited: revealInFileManager swallows its own
@@ -570,42 +567,30 @@ class _CheckNowButtonState extends ConsumerState<_CheckNowButton> {
   );
 }
 
-/// Picks a replacement file and re-links through the repair engine; in a
-/// sitting the relink is held until Save (issue #4527).
+/// Picks a replacement file through the repair engine and holds the relink
+/// in the photo's sitting until Save (issue #4527).
 class _LocateButton extends ConsumerWidget {
   const _LocateButton({required this.item, required this.sitting});
 
   final MediaItem item;
-  final EditSession<PhotoRecord>? sitting;
+  final EditSession<PhotoRecord> sitting;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) => TextButton(
     onPressed: () async {
-      // Captured before the picker: a sitting that ends while it is open
-      // must not turn its answer into a write.
-      final held = sitting;
-      if (held != null) {
-        final service = ref.read(mediaRepairServiceProvider);
-        final files = ref.read(mediaLinkFileSourceProvider);
-        await replaceMediaLink(
-          context,
-          ref,
-          item,
-          onHold: (proposal) {
-            // holdRelink drops it once the sitting ended or is saving.
-            if (!sittingIsOver(held, item.id)) return;
-            holdRelink(held, proposal, service: service, hashFile: files.hash);
-          },
-        );
-        return;
-      }
-      final applied = await replaceMediaLink(context, ref, item);
-      // The picker and confirm dialog can outlive the sheet, and ref after
-      // dispose throws, which would turn a plain user-cancel into an error.
-      if (!context.mounted) return;
-      // The repair writes the row, so re-read it: that is what re-keys the
-      // provenance provider and lets the status line stop saying "missing".
-      if (applied) ref.invalidate(mediaByIdProvider(item.id));
+      final service = ref.read(mediaRepairServiceProvider);
+      final files = ref.read(mediaLinkFileSourceProvider);
+      await replaceMediaLink(
+        context,
+        ref,
+        item,
+        onHold: (proposal) {
+          // A sitting that ended while the picker was open takes nothing;
+          // holdRelink also drops it while the sitting is saving.
+          if (!sittingIsOver(sitting, item.id)) return;
+          holdRelink(sitting, proposal, service: service, hashFile: files.hash);
+        },
+      );
     },
     child: Text(context.l10n.media_info_actionLocate),
   );

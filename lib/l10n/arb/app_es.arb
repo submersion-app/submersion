@@ -2843,7 +2843,6 @@
   "diveLog_edit_addCustomField": "Añadir campo",
   "diveLog_edit_addTank": "Agregar tanque",
   "diveLog_edit_addWeightEntry": "Agregar entrada de lastre",
-  "diveLog_edit_addedGps": "GPS agregado a {name}",
   "diveLog_edit_appBarNew": "Registrar inmersión",
   "diveLog_edit_cancel": "Cancelar",
   "diveLog_edit_clearAllEquipment": "Limpiar todo",
@@ -3307,7 +3306,6 @@
   "siteSuggestion_assignButton": "Asignar {name}",
   "siteSuggestion_chooseNearbyButton": "Elegir punto cercano ({count})",
   "siteSuggestion_addLocationButton": "Añadir ubicación a {name}",
-  "siteSuggestion_assignedSnack": "Asignado {name}",
   "siteTypes_addTooltip": "Añadir tipo de punto",
   "siteTypes_builtIn": "Integrado",
   "siteTypes_custom": "Personalizado",
@@ -5983,10 +5981,8 @@
   "media_diveMediaSection_replaceEditedContent": "El contenido de este archivo difiere del original. Volver a vincularlo lo resubirá a su almacén multimedia.",
   "media_diveMediaSection_replaceEditedTitle": "El contenido del archivo difiere",
   "media_diveMediaSection_unlinkButton": "Desvincular",
-  "media_diveMediaSection_unlinkError": "Error al desvincular: {error}",
   "media_diveMediaSection_unlinkSelectedButton": "Desvincular {count}",
   "media_diveMediaSection_unlinkSelectedContent": "Elimina {count} elementos multimedia de tu biblioteca, junto con sus copias en la nube y miniaturas. Se conservan los elementos que aún usa un sitio de buceo. Tus archivos originales no se ven afectados.",
-  "media_diveMediaSection_unlinkSelectedSuccess": "{count} elementos desvinculados",
   "media_diveMediaSection_unlinkSelectedTitle": "Desvincular {count} elementos?",
   "media_library_unlinkConfirmTitle": "Desvincular {count} elementos?",
   "media_siteMediaSection_unlinkError": "Error al desvincular: {error}",
@@ -8382,8 +8378,8 @@
   "settings_backups_title": "Copias de seguridad",
   "settings_photosVideos_title": "Fotos y vídeos",
   "settings_speciesId_title": "Identificación de vida marina",
-  "settings_speciesId_entrySubtitle": "Encuentra peces en tus fotos y sugiere qué especie son",
-  "settings_speciesId_intro": "Encuentra peces en tus fotos y sugiere qué especie son. Funciona en este dispositivo. Tus fotos nunca salen de él.",
+  "settings_speciesId_entrySubtitle": "Encuentra peces en tus fotos y vídeos y sugiere qué especie son",
+  "settings_speciesId_intro": "Encuentra peces en tus fotos y vídeos y sugiere qué especie son. Funciona en este dispositivo. Tus fotos y vídeos nunca salen de él.",
   "settings_speciesId_model": "Modelo",
   "settings_speciesId_modelNotDownloaded": "Sin descargar",
   "settings_speciesId_modelNotAvailable": "Aún no disponible",
@@ -8402,7 +8398,7 @@
   "settings_speciesId_downloadFailed": "La descarga no terminó. Vuelve a intentarlo para continuar donde se detuvo.",
   "settings_speciesId_downloadNoSpace": "No hay suficiente espacio libre en este dispositivo.",
   "settings_speciesId_needsAppUpdate": "Este modelo requiere una versión más reciente de Submersion.",
-  "settings_speciesId_toggle": "Identificar peces al abrir una foto",
+  "settings_speciesId_toggle": "Identificar peces al abrir una foto o un vídeo",
   "settings_speciesId_kept": "Sugerencias guardadas en este dispositivo",
   "settings_speciesId_keptValue": "{count} ({size})",
   "settings_speciesId_clear": "Borrar sugerencias",
@@ -9073,7 +9069,6 @@
   "signatures_drawSignatureSemantics": "Dibujar firma",
   "signatures_error_drawSignature": "Por favor dibuja una firma",
   "signatures_error_enterSignerName": "Por favor ingresa el nombre del firmante",
-  "signatures_error_saveFailed": "No se pudo guardar la firma. Inténtalo de nuevo.",
   "signatures_field_instructorName": "Nombre del Instructor",
   "signatures_field_instructorNameHint": "Ingresa el nombre del instructor",
   "signatures_handoff_title": "Entrega tu dispositivo a",
@@ -10974,14 +10969,6 @@
     }
   },
   "media_diveScan_cancelButton": "Cancelar",
-  "media_diveScan_error": "Error al buscar en la galería: {error}",
-  "@media_diveScan_error": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
   "settings_appearance_metricsEnabledCount": "{count} de {total} habilitados",
   "@settings_appearance_metricsEnabledCount": {
     "placeholders": {
@@ -16596,6 +16583,10 @@
   "media_species_addAll": "Añadir todas",
   "media_species_dismiss": "Descartar sugerencia",
   "media_species_identifying": "Buscando peces...",
+  "media_species_sheetTitleVideo": "Especies en este vídeo",
+  "media_species_scanProgress": "Buscando peces, {percent}",
+  "media_species_unnamedFish": "Pez sin nombre, toca para nombrarlo",
+  "media_species_unnamedFishLocked": "Pez sin nombre",
   "media_species_possibleMatches": "Posibles coincidencias",
   "media_species_cropUnavailable": "La imagen no está en este dispositivo",
   "media_species_taggedOnPhoto": "Etiquetadas en esta foto",
@@ -16624,8 +16615,6 @@
   "media_people_buddyThumbnailLabel": "Foto o vídeo con este compañero",
   "media_people_filterSection": "Personas",
   "media_people_removedBuddy": "Compañero eliminado",
-  "media_people_saveFailed": "No se pudo guardar la etiqueta. Inténtalo de nuevo.",
-  "media_people_addToDiveFailed": "No se pudo agregar el compañero a esta inmersión. Inténtalo de nuevo.",
   "media_people_createBuddyFailed": "No se pudo crear el compañero. Inténtalo de nuevo.",
   "media_info_fileSection": "Archivo",
   "media_info_filename": "Nombre del archivo",
@@ -17250,7 +17239,6 @@
   "diveLog_reassignSheet_moveTo": "Mover a",
   "diveLog_reassignSheet_readings": "{count, plural, =1{1 lectura} other{{count} lecturas}}",
   "diveLog_reassignSheet_noSeries": "Sin serie de presión",
-  "diveLog_reassignSheet_applied": "Serie de presión reasignada",
   "universalImport_summary_noticeUnknownTransmitterTitle": "Transmisores sin asignar",
   "universalImport_summary_noticeUnknownTransmitterBody": "Uno o más transmisores de esta descarga no están asignados a una botella. Asígnalos para que las próximas descargas tengan el tamaño y el rol correctos.",
   "universalImport_summary_noticeAssignTransmitters": "Asignar transmisores",

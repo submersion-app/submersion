@@ -5018,7 +5018,6 @@
   "diveLog_edit_addCustomField": "Add Field",
   "diveLog_edit_addTank": "Add Tank",
   "diveLog_edit_addWeightEntry": "Add Weight Entry",
-  "diveLog_edit_addedGps": "Added GPS to {name}",
   "diveLog_edit_appBarNew": "Log Dive",
   "diveLog_edit_cancel": "Cancel",
   "diveLog_edit_clearAllEquipment": "Clear All",
@@ -6091,14 +6090,6 @@
       }
     }
   },
-  "siteSuggestion_assignedSnack": "Assigned {name}",
-  "@siteSuggestion_assignedSnack": {
-    "placeholders": {
-      "name": {
-        "type": "Object"
-      }
-    }
-  },
   "siteTypes_addTooltip": "Add Site Type",
   "siteTypes_builtIn": "Built-in",
   "siteTypes_custom": "Custom",
@@ -6926,13 +6917,6 @@
     }
   },
   "@diveLog_editSighting_removeConfirm": {
-    "placeholders": {
-      "name": {
-        "type": "Object"
-      }
-    }
-  },
-  "@diveLog_edit_addedGps": {
     "placeholders": {
       "name": {
         "type": "Object"
@@ -12472,10 +12456,8 @@
     "description": "Title of the changed-bytes replace-link confirmation"
   },
   "media_diveMediaSection_unlinkButton": "Unlink",
-  "media_diveMediaSection_unlinkError": "Failed to unlink: {error}",
   "media_diveMediaSection_unlinkSelectedButton": "Unlink {count}",
   "media_diveMediaSection_unlinkSelectedContent": "Removes {count} media items from your library, along with their cloud copies and thumbnails. Media a dive site still uses is kept. Your original files are not affected.",
-  "media_diveMediaSection_unlinkSelectedSuccess": "Unlinked {count} items",
   "media_diveMediaSection_unlinkSelectedTitle": "Unlink {count} items?",
   "media_library_unlinkConfirmTitle": "Unlink {count} items?",
   "media_siteMediaSection_unlinkError": "Failed to unlink: {error}",
@@ -12580,14 +12562,6 @@
     }
   },
   "media_diveScan_cancelButton": "Cancel",
-  "media_diveScan_error": "Error scanning gallery: {error}",
-  "@media_diveScan_error": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
   "media_gpsBanner_coordinates": "Coordinates: {coordinates}",
   "media_gpsBanner_createSiteButton": "Create Site",
   "media_gpsBanner_dismissTooltip": "Dismiss GPS suggestion",
@@ -12946,13 +12920,6 @@
   "media_writeMetadata_videoUnsupported": "Dive data can only be written to photos, not videos.",
   "media_writeMetadata_warningPhotoText": "This will modify the original photo.",
   "media_writeMetadata_writeButton": "Write",
-  "@media_diveMediaSection_unlinkError": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
   "@media_diveMediaSection_unlinkSelectedButton": {
     "placeholders": {
       "count": {
@@ -12961,13 +12928,6 @@
     }
   },
   "@media_diveMediaSection_unlinkSelectedContent": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@media_diveMediaSection_unlinkSelectedSuccess": {
     "placeholders": {
       "count": {
         "type": "int"
@@ -17198,8 +17158,8 @@
   "settings_backups_title": "Backups",
   "settings_photosVideos_title": "Photos & videos",
   "settings_speciesId_title": "Marine life identification",
-  "settings_speciesId_entrySubtitle": "Find fish in your photos and suggest what they are",
-  "settings_speciesId_intro": "Finds fish in your photos and suggests what they are. Runs on this device. Your photos never leave it.",
+  "settings_speciesId_entrySubtitle": "Find fish in your photos and videos and suggest what they are",
+  "settings_speciesId_intro": "Finds fish in your photos and videos and suggests what they are. Runs on this device. Your photos and videos never leave it.",
   "settings_speciesId_model": "Model",
   "settings_speciesId_modelNotDownloaded": "Not downloaded",
   "settings_speciesId_modelNotAvailable": "Not available yet",
@@ -17225,7 +17185,7 @@
   "settings_speciesId_downloadFailed": "The download did not finish. Try again to continue where it stopped.",
   "settings_speciesId_downloadNoSpace": "There is not enough free space on this device.",
   "settings_speciesId_needsAppUpdate": "This model needs a newer version of Submersion.",
-  "settings_speciesId_toggle": "Identify fish when I open a photo",
+  "settings_speciesId_toggle": "Identify fish when I open a photo or video",
   "settings_speciesId_kept": "Suggestions kept on this device",
   "settings_speciesId_keptValue": "{count} ({size})",
   "@settings_speciesId_keptValue": {"placeholders": {"count": {"type": "int"}, "size": {"type": "String"}}},
@@ -18483,7 +18443,6 @@
   "signatures_drawSignatureSemantics": "Draw signature",
   "signatures_error_drawSignature": "Please draw a signature",
   "signatures_error_enterSignerName": "Please enter the signer name",
-  "signatures_error_saveFailed": "Could not save the signature. Please try again.",
   "signatures_field_instructorName": "Instructor Name",
   "signatures_field_instructorNameHint": "Enter instructor name",
   "signatures_handoff_title": "Hand your device to",
@@ -18569,9 +18528,6 @@
   },
   "@signatures_error_enterSignerName": {
     "description": "Error shown when trying to save without entering a signer name"
-  },
-  "@signatures_error_saveFailed": {
-    "description": "Error shown when saving a signature failed"
   },
   "@signatures_field_instructorName": {
     "description": "Label for the instructor name text field"
@@ -33608,6 +33564,11 @@
   "media_species_addAll": "Add all",
   "media_species_dismiss": "Dismiss suggestion",
   "media_species_identifying": "Looking for fish...",
+  "media_species_sheetTitleVideo": "Species in this video",
+  "media_species_scanProgress": "Looking for fish, {percent}",
+  "@media_species_scanProgress": {"placeholders": {"percent": {"type": "String"}}},
+  "media_species_unnamedFish": "Unnamed fish, tap to name",
+  "media_species_unnamedFishLocked": "Unnamed fish",
   "media_species_possibleMatches": "Possible matches",
   "media_species_cropUnavailable": "Image not on this device",
   "media_species_taggedOnPhoto": "Tagged on this photo",
@@ -33639,8 +33600,6 @@
   "media_people_buddyThumbnailLabel": "Photo or video with this buddy",
   "media_people_filterSection": "People",
   "media_people_removedBuddy": "Removed buddy",
-  "media_people_saveFailed": "Couldn't save the tag. Try again.",
-  "media_people_addToDiveFailed": "Couldn't add the buddy to this dive. Try again.",
   "media_people_createBuddyFailed": "Couldn't create the buddy. Try again.",
   "media_info_fileSection": "File",
   "media_info_filename": "Filename",
@@ -35097,7 +35056,6 @@
     }
   },
   "diveLog_reassignSheet_noSeries": "No pressure series",
-  "diveLog_reassignSheet_applied": "Pressure series reassigned",
   "universalImport_summary_noticeUnknownTransmitterTitle": "Unassigned transmitters",
   "universalImport_summary_noticeUnknownTransmitterBody": "One or more transmitters in this download are not assigned to a cylinder. Assign them so future downloads get the right size and role.",
   "universalImport_summary_noticeAssignTransmitters": "Assign transmitters",

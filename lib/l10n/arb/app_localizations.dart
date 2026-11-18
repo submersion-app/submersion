@@ -13224,12 +13224,6 @@ abstract class AppLocalizations {
   /// **'Add Weight Entry'**
   String get diveLog_edit_addWeightEntry;
 
-  /// No description provided for @diveLog_edit_addedGps.
-  ///
-  /// In en, this message translates to:
-  /// **'Added GPS to {name}'**
-  String diveLog_edit_addedGps(Object name);
-
   /// No description provided for @diveLog_edit_appBarNew.
   ///
   /// In en, this message translates to:
@@ -16257,12 +16251,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add location to {name}'**
   String siteSuggestion_addLocationButton(Object name);
-
-  /// No description provided for @siteSuggestion_assignedSnack.
-  ///
-  /// In en, this message translates to:
-  /// **'Assigned {name}'**
-  String siteSuggestion_assignedSnack(Object name);
 
   /// No description provided for @siteTypes_addTooltip.
   ///
@@ -32646,12 +32634,6 @@ abstract class AppLocalizations {
   /// **'Unlink'**
   String get media_diveMediaSection_unlinkButton;
 
-  /// No description provided for @media_diveMediaSection_unlinkError.
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to unlink: {error}'**
-  String media_diveMediaSection_unlinkError(Object error);
-
   /// No description provided for @media_diveMediaSection_unlinkSelectedButton.
   ///
   /// In en, this message translates to:
@@ -32663,12 +32645,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Removes {count} media items from your library, along with their cloud copies and thumbnails. Media a dive site still uses is kept. Your original files are not affected.'**
   String media_diveMediaSection_unlinkSelectedContent(int count);
-
-  /// No description provided for @media_diveMediaSection_unlinkSelectedSuccess.
-  ///
-  /// In en, this message translates to:
-  /// **'Unlinked {count} items'**
-  String media_diveMediaSection_unlinkSelectedSuccess(int count);
 
   /// No description provided for @media_diveMediaSection_unlinkSelectedTitle.
   ///
@@ -32963,12 +32939,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cancel'**
   String get media_diveScan_cancelButton;
-
-  /// No description provided for @media_diveScan_error.
-  ///
-  /// In en, this message translates to:
-  /// **'Error scanning gallery: {error}'**
-  String media_diveScan_error(String error);
 
   /// No description provided for @media_gpsBanner_coordinates.
   ///
@@ -46519,13 +46489,13 @@ abstract class AppLocalizations {
   /// No description provided for @settings_speciesId_entrySubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Find fish in your photos and suggest what they are'**
+  /// **'Find fish in your photos and videos and suggest what they are'**
   String get settings_speciesId_entrySubtitle;
 
   /// No description provided for @settings_speciesId_intro.
   ///
   /// In en, this message translates to:
-  /// **'Finds fish in your photos and suggests what they are. Runs on this device. Your photos never leave it.'**
+  /// **'Finds fish in your photos and videos and suggests what they are. Runs on this device. Your photos and videos never leave it.'**
   String get settings_speciesId_intro;
 
   /// No description provided for @settings_speciesId_model.
@@ -46639,7 +46609,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_speciesId_toggle.
   ///
   /// In en, this message translates to:
-  /// **'Identify fish when I open a photo'**
+  /// **'Identify fish when I open a photo or video'**
   String get settings_speciesId_toggle;
 
   /// No description provided for @settings_speciesId_kept.
@@ -50451,12 +50421,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Please enter the signer name'**
   String get signatures_error_enterSignerName;
-
-  /// Error shown when saving a signature failed
-  ///
-  /// In en, this message translates to:
-  /// **'Could not save the signature. Please try again.'**
-  String get signatures_error_saveFailed;
 
   /// Label for the instructor name text field
   ///
@@ -88194,6 +88158,30 @@ abstract class AppLocalizations {
   /// **'Looking for fish...'**
   String get media_species_identifying;
 
+  /// No description provided for @media_species_sheetTitleVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Species in this video'**
+  String get media_species_sheetTitleVideo;
+
+  /// No description provided for @media_species_scanProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Looking for fish, {percent}'**
+  String media_species_scanProgress(String percent);
+
+  /// No description provided for @media_species_unnamedFish.
+  ///
+  /// In en, this message translates to:
+  /// **'Unnamed fish, tap to name'**
+  String get media_species_unnamedFish;
+
+  /// No description provided for @media_species_unnamedFishLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Unnamed fish'**
+  String get media_species_unnamedFishLocked;
+
   /// No description provided for @media_species_possibleMatches.
   ///
   /// In en, this message translates to:
@@ -88361,18 +88349,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Removed buddy'**
   String get media_people_removedBuddy;
-
-  /// No description provided for @media_people_saveFailed.
-  ///
-  /// In en, this message translates to:
-  /// **'Couldn\'t save the tag. Try again.'**
-  String get media_people_saveFailed;
-
-  /// No description provided for @media_people_addToDiveFailed.
-  ///
-  /// In en, this message translates to:
-  /// **'Couldn\'t add the buddy to this dive. Try again.'**
-  String get media_people_addToDiveFailed;
 
   /// No description provided for @media_people_createBuddyFailed.
   ///
@@ -92097,12 +92073,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No pressure series'**
   String get diveLog_reassignSheet_noSeries;
-
-  /// No description provided for @diveLog_reassignSheet_applied.
-  ///
-  /// In en, this message translates to:
-  /// **'Pressure series reassigned'**
-  String get diveLog_reassignSheet_applied;
 
   /// No description provided for @universalImport_summary_noticeUnknownTransmitterTitle.
   ///

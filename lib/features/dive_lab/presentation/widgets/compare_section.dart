@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_plan_link_sitting.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_lab/domain/dive_lab_eligibility.dart';
 import 'package:submersion/features/dive_lab/domain/entities/compare_column.dart';
@@ -18,7 +17,6 @@ import 'package:submersion/features/dive_lab/presentation/widgets/compare_chart.
 import 'package:submersion/features/dive_lab/presentation/widgets/compare_chips.dart';
 import 'package:submersion/features/dive_lab/presentation/widgets/compare_table.dart';
 import 'package:submersion/features/dive_lab/presentation/widgets/lab_chart.dart';
-import 'package:submersion/features/dive_lab/presentation/widgets/link_plan_sheet.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
@@ -55,14 +53,12 @@ class CompareSection extends ConsumerWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final linked = ref.watch(hasLinkedPlanProvider(diveId));
-    // On a page that offers editing (issue #4527), a plan is linked in the
-    // open card, where the sitting holds it: the read card offers no Link.
-    // Asking a what-if still works: a what-if is a record of its own.
-    final scope = RecordEditScope.maybeOf<Dive>(context);
-    final linkOffered = scope == null;
-    // A link changed in the open card shows here as what Save will do: the
-    // stored comparison is of the plan that will no longer be linked.
-    final session = scope?.session;
+    // A plan is linked in the open card, where the sitting holds it (issue
+    // #4527): the read card offers no Link. Asking a what-if still works: a
+    // what-if is a record of its own. A link changed in the open card shows
+    // here as what Save will do: the stored comparison is of the plan that
+    // will no longer be linked.
+    final session = RecordEditScope.maybeOf<Dive>(context)?.session;
     final heldLink = session == null ? null : heldPlanLinkChange(session);
     final scenariosAsync = ref.watch(diveScenariosForDiveProvider(diveId));
     final scenarios = scenariosAsync.value ?? const <DiveScenario>[];
@@ -79,10 +75,7 @@ class CompareSection extends ConsumerWidget {
     } else if (!settled) {
       body = const SizedBox.shrink();
     } else if (dive.isPlanned) {
-      body = _Message(
-        text: l10n.diveLab_compare_waiting,
-        actions: [if (!linked && linkOffered) _LinkPlanButton(diveId: diveId)],
-      );
+      body = _Message(text: l10n.diveLab_compare_waiting, actions: const []);
     } else if (!linked && scenarios.isEmpty) {
       body = _Message(
         text: l10n.diveLab_compare_empty,
@@ -93,7 +86,6 @@ class CompareSection extends ConsumerWidget {
               icon: const Icon(Icons.add),
               label: Text(l10n.diveLab_compare_askWhatIf),
             ),
-          if (linkOffered) _LinkPlanButton(diveId: diveId),
         ],
       );
     } else {
@@ -101,7 +93,6 @@ class CompareSection extends ConsumerWidget {
         dive: dive,
         scenarios: eligible ? scenarios : const [],
         eligible: eligible,
-        linkOffered: linkOffered,
       );
     }
 
@@ -175,32 +166,12 @@ class _Message extends StatelessWidget {
   }
 }
 
-class _LinkPlanButton extends ConsumerWidget {
-  const _LinkPlanButton({required this.diveId});
-
-  final String diveId;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) => OutlinedButton.icon(
-    onPressed: () => logFailure(
-      pickPlanAndLink(context, ref, diveId: diveId),
-      _LinkPlanButton,
-      'link plan to dive',
-    ),
-    icon: const Icon(Icons.link),
-    label: Text(context.l10n.diveLab_compare_linkPlan),
-  );
-}
-
 class _Comparison extends ConsumerWidget {
   const _Comparison({
     required this.dive,
     required this.scenarios,
     required this.eligible,
-    this.linkOffered = true,
   });
-
-  final bool linkOffered;
 
   final Dive dive;
   final List<DiveScenario> scenarios;
@@ -341,16 +312,6 @@ class _Comparison extends ConsumerWidget {
                 avatar: const Icon(Icons.add, size: 18),
                 label: Text(l10n.diveLab_compare_addWhatIf),
                 onPressed: () => showDiveLab(context, diveId),
-              ),
-            if (comparison == null && linkOffered)
-              ActionChip(
-                avatar: const Icon(Icons.link, size: 18),
-                label: Text(l10n.diveLab_compare_linkPlan),
-                onPressed: () => logFailure(
-                  pickPlanAndLink(context, ref, diveId: diveId),
-                  _Comparison,
-                  'link plan to dive',
-                ),
               ),
           ],
         ),

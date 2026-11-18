@@ -84,6 +84,14 @@ Future<void> _pump(
   List<SpeciesTagChip> chips = const [],
   EditSession<PhotoRecord>? sitting,
 }) async {
+  // The sheet holds its tags in the photo's sitting, which the viewer opens
+  // over the stored tags.
+  final shown =
+      sitting ??
+      EditSession<PhotoRecord>(
+        PhotoRecord(item: item, species: chips, people: const []),
+      );
+  if (sitting == null) addTearDown(shown.dispose);
   final overrides = await getBaseOverrides();
   await tester.pumpWidget(
     testApp(
@@ -94,7 +102,7 @@ Future<void> _pump(
         mediaTagChipsProvider('p1').overrideWith((ref) async => chips),
         diveSightingsProvider('d1').overrideWith((ref) async => _sightings),
       ],
-      child: MediaSpeciesSheet(item: item, sitting: sitting),
+      child: MediaSpeciesSheet(item: item, sitting: shown),
     ),
   );
   await tester.pumpAndSettle();
@@ -129,31 +137,6 @@ void main() {
     );
     expect(whale.selected, isTrue);
     expect(nudi.selected, isFalse);
-  });
-
-  testWidgets('toggling a chip tags or untags the photo', (tester) async {
-    final service = _RecordingTaggingService();
-    await _pump(
-      tester,
-      item: _photo(diveId: 'd1'),
-      service: service,
-      chips: const [
-        SpeciesTagChip(
-          speciesId: 'sp_whale_shark',
-          storedName: 'Whale Shark',
-          category: SpeciesCategory.shark,
-          isBuiltIn: true,
-        ),
-      ],
-    );
-
-    await tester.tap(find.widgetWithText(FilterChip, 'My Nudibranch'));
-    await tester.pump();
-    await tester.tap(find.widgetWithText(FilterChip, 'Whale Shark'));
-    await tester.pump();
-
-    expect(service.tagged, [('p1', 'c1')]);
-    expect(service.untagged, [('p1', 'sp_whale_shark')]);
   });
 
   testWidgets('a site-only photo offers only the search', (tester) async {
