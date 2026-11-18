@@ -102,7 +102,15 @@ class NamingForTests(unittest.TestCase):
 
 
 class MeasuredBarsTests(unittest.TestCase):
+    # Pack 2026.11.17.2349: 9,011 candidates, with the surveyed species.
     MEASURED_PACK = {
+        "candidates.json": "62ffa0f9f60034191601c029d529c073b7e3030fab37ac1bedff0520215f343c",
+        "text_embeddings.f16": "9d0b09a87a577b13a6a9d0c3bc65124ddaef0d5935ff54be026c8e515f5bb794",
+        "regions.bin": "ea4959083c4868334252c3d3ba49e587c1ea30ee2082290c1f5e25d0652d3dd7",
+    }
+    # Pack 2026.11.17.1617: 7,646 candidates, photographed species only. Its
+    # bars do not carry over to a pack with a longer list.
+    EARLIER_PACK = {
         "candidates.json": "7e36bbf837c705f2679baf29e120462b35707421c96955403e031d61d3e7accb",
         "text_embeddings.f16": "957f0e7ee016dc7ef99a1b96c81b81130439b5dbb9b9170e0d190839b0e1b20e",
         "regions.bin": "ec2f86088a9bd113b7faa96550168e8672ed7e63f6cb2b6d0d64f43e15ac426f",
@@ -111,8 +119,8 @@ class MeasuredBarsTests(unittest.TestCase):
     def test_the_measured_pack_gets_the_measured_bars(self):
         naming = manifest.naming_for(CFD, BIOCLIP, "centreCrop", self.MEASURED_PACK)
         self.assertIs(naming["provisional"], False)
-        self.assertEqual(naming["minOpenScore"], 0.34)
-        self.assertEqual(naming["suggestScore"], 0.72)
+        self.assertEqual(naming["minOpenScore"], 0.39)
+        self.assertEqual(naming["suggestScore"], 0.64)
         self.assertEqual(naming["suggestScoreNoLocation"], 0.79)
         self.assertEqual(naming["confidentScore"], 1.01)
         self.assertEqual(naming["confidentScoreNoLocation"], 1.01)
@@ -133,6 +141,10 @@ class MeasuredBarsTests(unittest.TestCase):
 
         self.assertIs(build(self.MEASURED_PACK)["naming"]["provisional"], False)
         self.assertIs(build(CONTENTS)["naming"]["provisional"], True)
+
+    def test_the_earlier_pack_now_gets_provisional_bars(self):
+        naming = manifest.naming_for(CFD, BIOCLIP, "centreCrop", self.EARLIER_PACK)
+        self.assertIs(naming["provisional"], True)
 
     def test_the_measured_bars_name_their_findings(self):
         path = os.path.join(_HERE, "..", "..", manifest.NAMING_MEASURED["findings"])

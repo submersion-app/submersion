@@ -54,13 +54,14 @@ CONTENT_FILES = ("candidates.json", "text_embeddings.f16", "regions.bin")
 # fitting, and the same naming files byte for byte. Any other pack, a
 # rebuilt candidate list of the same size included, gets the provisional
 # bars until the scorer is run on it. A bar of 1.01 is never: no confident
-# names, since no bar proved 95% right.
+# names, since no bar proved 95% right. Measured on the pack with surveyed
+# species (9,011 candidates); the earlier 7,646 pack's bars no longer apply.
 NAMING_MEASURED = {
     "naming": {
         "provisional": False,
         "minCropSide": 64,
-        "minOpenScore": 0.34,
-        "suggestScore": 0.72,
+        "minOpenScore": 0.39,
+        "suggestScore": 0.64,
         "confidentScore": 1.01,
         "suggestScoreNoLocation": 0.79,
         "confidentScoreNoLocation": 1.01,
@@ -70,11 +71,11 @@ NAMING_MEASURED = {
     "detectorId": "cfd-rfdetr-nano-640-20260706",
     "classifierId": "bioclip-2-vitl14-2957b32",
     "cropFit": "centreCrop",
-    "packVersion": "2026.11.17.1617",
+    "packVersion": "2026.11.17.2349",
     "contents": {
-        "candidates.json": "7e36bbf837c705f2679baf29e120462b35707421c96955403e031d61d3e7accb",
-        "text_embeddings.f16": "957f0e7ee016dc7ef99a1b96c81b81130439b5dbb9b9170e0d190839b0e1b20e",
-        "regions.bin": "ec2f86088a9bd113b7faa96550168e8672ed7e63f6cb2b6d0d64f43e15ac426f",
+        "candidates.json": "62ffa0f9f60034191601c029d529c073b7e3030fab37ac1bedff0520215f343c",
+        "text_embeddings.f16": "9d0b09a87a577b13a6a9d0c3bc65124ddaef0d5935ff54be026c8e515f5bb794",
+        "regions.bin": "ea4959083c4868334252c3d3ba49e587c1ea30ee2082290c1f5e25d0652d3dd7",
     },
     "findings": "docs/design/findings/2026-11-17-marine-life-measured-accuracy.md",
 }
