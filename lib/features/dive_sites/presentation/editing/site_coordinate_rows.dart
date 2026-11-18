@@ -8,16 +8,17 @@ import 'package:submersion/shared/widgets/forms/coordinate_field_group.dart';
 import 'package:submersion/shared/widgets/forms/coordinate_validation_messages.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_form.dart';
-import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 /// The site's position as a pair of coordinate rows, bound to
 /// [siteLocationField] (issue #4527, phase 2).
 ///
 /// The rows keep decimal-degree text, as the form's do; [format] is only how
 /// they are shown. Both blank is no position; both readable and in range is
-/// one; anything else (a half-typed position, a latitude past 90) is input
-/// that cannot be read, reported to the page so the card stays open and Save
-/// is refused, and nothing reaches the sitting.
+/// one. Anything else (a half-typed position, a latitude past 90) stays in
+/// the input the diver is typing in: [CoordinateFieldGroup] never hands it
+/// to these rows, and the input fails its own validator, which the card's
+/// form reports to the page, so the card stays open and Save is refused.
+/// Nothing reaches the sitting.
 class SiteCoordinateRows extends StatefulWidget {
   const SiteCoordinateRows({
     super.key,
@@ -42,8 +43,6 @@ class _SiteCoordinateRowsState extends State<SiteCoordinateRows> {
 
   /// Set while the rows show the sitting's value, so that is not an edit.
   bool _showing = false;
-  String? _error;
-  RecordEditController<DiveSite>? _controller;
 
   @override
   void initState() {
@@ -65,12 +64,6 @@ class _SiteCoordinateRowsState extends State<SiteCoordinateRows> {
     _show(widget.session.valueOf(siteLocationField));
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _controller = RecordEditScope.maybeOf<DiveSite>(context);
-  }
-
   void _show(GeoPoint? point) {
     _showing = true;
     _latitude.text = point?.latitude.toString() ?? '';
@@ -78,30 +71,23 @@ class _SiteCoordinateRowsState extends State<SiteCoordinateRows> {
     _showing = false;
   }
 
-  /// What the two rows read as.
-  ({GeoPoint? point, String? error}) _read() {
-    final l10n = context.l10n;
+  /// What the two rows read as: a position, none (both blank), or null
+  /// when they cannot be read, which [CoordinateFieldGroup] never writes.
+  ({GeoPoint? point})? _read() {
     final lat = _latitude.text.trim();
     final lon = _longitude.text.trim();
-    if (lat.isEmpty && lon.isEmpty) return (point: null, error: null);
+    if (lat.isEmpty && lon.isEmpty) return (point: null);
     final latitude = double.tryParse(lat);
-    if (latitude == null || latitude < -90 || latitude > 90) {
-      return (point: null, error: l10n.diveSites_edit_gps_latitude_validation);
-    }
     final longitude = double.tryParse(lon);
-    if (longitude == null || longitude < -180 || longitude > 180) {
-      return (point: null, error: l10n.diveSites_edit_gps_longitude_validation);
-    }
-    return (point: GeoPoint(latitude, longitude), error: null);
+    if (latitude == null || latitude < -90 || latitude > 90) return null;
+    if (longitude == null || longitude < -180 || longitude > 180) return null;
+    return (point: GeoPoint(latitude, longitude));
   }
 
   void _edited() {
     if (_showing) return;
     final read = _read();
-    final unreadable = read.error != null;
-    _controller?.setFieldInvalid('location', 'location', invalid: unreadable);
-    if (read.error != _error) setState(() => _error = read.error);
-    if (unreadable) return;
+    if (read == null) return;
     final point = read.point;
     if (widget.session.valueOf(siteLocationField) == point) return;
     widget.session.set(siteLocationField, point);
@@ -109,20 +95,19 @@ class _SiteCoordinateRowsState extends State<SiteCoordinateRows> {
   }
 
   /// Shows a position set elsewhere (a pick from the map, a stored change),
-  /// unless the rows already read as it or hold text the diver must fix.
+  /// unless the rows already read as it. Text the diver is part way through
+  /// typing lives in the input, not here, and is replaced by the input
+  /// when these rows change.
   void _follow() {
     if (widget.session.isDisposed) return;
-    final read = _read();
-    if (read.error != null) return;
     final point = widget.session.valueOf(siteLocationField);
-    if (read.point == point) return;
+    if (_read()?.point == point) return;
     _show(point);
   }
 
   @override
   void dispose() {
     widget.session.removeListener(_follow);
-    _controller?.setFieldInvalid('location', 'location', invalid: false);
     _latitude.dispose();
     _longitude.dispose();
     super.dispose();
@@ -131,9 +116,6 @@ class _SiteCoordinateRowsState extends State<SiteCoordinateRows> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    // A half-typed position never reaches the controllers: the input keeps
-    // the last good value and fails its own validator. The form reports
-    // that to the page, so the card stays open and Save is refused.
     return RecordCardForm<DiveSite>(
       cardId: 'location',
       fieldId: 'coordinates',
@@ -143,7 +125,6 @@ class _SiteCoordinateRowsState extends State<SiteCoordinateRows> {
         format: widget.format,
         latitudeLabel: l10n.diveSites_edit_gps_latitude_label,
         longitudeLabel: l10n.diveSites_edit_gps_longitude_label,
-        errorText: _error,
         messages: CoordinateValidationMessages.of(context),
       ),
     );

@@ -86,12 +86,12 @@ void main() {
     await pump(tester, rows(first));
     await tester.enterText(find.byType(TextField).first, '95');
     await tester.pump();
-    expect(find.text(l.diveSites_edit_gps_latitude_validation), findsWidgets);
+    expect(find.text(l.common_coordinates_invalidLatitude), findsWidgets);
 
     await pump(tester, rows(second));
 
     // The new sitting's position reads: no error from the old one remains.
-    expect(find.text(l.diveSites_edit_gps_latitude_validation), findsNothing);
+    expect(find.text(l.common_coordinates_invalidLatitude), findsNothing);
   });
 
   testWidgets('the altitude suggestion follows a new sitting', (tester) async {
