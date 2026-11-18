@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:submersion_vision/submersion_vision.dart';
 
+import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/video_detections.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
@@ -18,9 +19,8 @@ class ChannelVisionEngine implements VisionEngine {
 
   final TargetPlatform _platform;
 
-  bool get _apple =>
-      !kIsWeb &&
-      (_platform == TargetPlatform.iOS || _platform == TargetPlatform.macOS);
+  /// The same test the marine life flag uses, so the two always agree.
+  bool get _apple => visionEngineRuns(_platform);
 
   @override
   String? get engineName => _apple ? VisionEngine.coreMlEngine : null;

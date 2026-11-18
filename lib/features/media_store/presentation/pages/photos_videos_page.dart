@@ -55,7 +55,7 @@ class PhotosVideosPage extends ConsumerWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.pushSettingsPage('/settings/media-sources'),
           ),
-          // Hidden until the feature ships (issue #4668).
+          // Only where marine life identification runs (issue #4668).
           if (marineLifeIdEnabled)
             ListTile(
               key: const ValueKey('photos-marine-life-identification'),

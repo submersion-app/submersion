@@ -196,6 +196,42 @@ void main() {
     expect(views.every((v) => v.showAccessActions), isTrue);
   });
 
+  // Issue #4699: the pager drew a video page through the photo path, which
+  // resolves the ORIGINAL. A photo-library video was read whole into memory
+  // (a 4K clip is hundreds of MB) and handed to the image decoder, which
+  // failed with "Invalid image data". Its poster is the still to show.
+  testWidgets('a video page shows its poster, never decodes the original', (
+    tester,
+  ) async {
+    // A display larger than the window, as on a desktop: the poster follows
+    // the display, so resizing the window never fetches it again.
+    tester.view.display.size = const Size(3456, 2234);
+    addTearDown(tester.view.display.reset);
+    final clip = testMediaItem(
+      id: 'v1',
+      siteId: 'site-1',
+      mediaType: MediaType.video,
+      originalFilename: 'clip.mov',
+    );
+    await pumpViewer(tester, initialMediaId: 'v1', items: [clip, second]);
+
+    final views = tester.widgetList<MediaItemView>(
+      find.byType(MediaItemView, skipOffstage: false),
+    );
+    final video = views.singleWhere((v) => v.item.id == 'v1');
+    expect(video.thumbnail, isTrue);
+    // The display in pixels: a point-sized poster is a third of the screen's
+    // resolution at 3x, and a window-sized one would be fetched again on
+    // every frame of a desktop window resize.
+    expect(video.targetSize, const Size(3456, 2234));
+    final photo = views.singleWhere((v) => v.item.id == 'm2');
+    expect(
+      photo.thumbnail,
+      isFalse,
+      reason: 'a photo keeps its zoomable full-screen decode',
+    );
+  });
+
   // Issue #3298: a neighbour built only once it slides into view arrives as
   // an empty placeholder and pops in after the swipe ends.
   testWidgets('the neighbouring photo is built before it is swiped to', (

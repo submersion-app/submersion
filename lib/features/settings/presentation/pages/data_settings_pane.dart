@@ -32,6 +32,7 @@ import 'package:submersion/features/shared_library/presentation/pages/shared_lib
 import 'package:submersion/features/shared_library/presentation/pages/shared_library_members_page.dart';
 import 'package:submersion/features/shared_library/presentation/pages/shared_library_page.dart';
 import 'package:submersion/features/shared_library/presentation/pages/suggestion_inbox_page.dart';
+import 'package:submersion/features/species_id/presentation/pages/marine_life_identification_page.dart';
 
 /// Settings > Data inside the desktop detail pane: the Data hub, with every
 /// page reached from it opening in the pane too (issue #3467).
@@ -87,6 +88,7 @@ Widget? dataPanePage(Uri location) {
     ['photos-media', 'uploads'] => const TransfersPage(),
     ['media-sources'] => const MediaSourcesPage(),
     ['media-sources', 'network-sources'] => const NetworkSourcesPage(),
+    ['marine-life-identification'] => const MarineLifeIdentificationPage(),
     // Hidden pending Adobe review; while it is, the route redirects to Media
     // Sources, so a push is left to the router.
     ['lightroom'] when lightroomUiEnabled => const LightroomSettingsPage(),

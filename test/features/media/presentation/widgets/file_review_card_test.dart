@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/local_bookmark_storage.dart';
@@ -18,12 +19,16 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 
-ExtractedFile _ef(String path, {MediaSourceMetadata? metadata}) =>
-    ExtractedFile(
-      sourcePath: path,
-      file: File(path),
-      metadata: metadata ?? const MediaSourceMetadata(mimeType: 'image/jpeg'),
-    );
+/// A staged file named [name] in the system temp folder, built with
+/// `p.join` so the path holds on every platform. Nothing is written there.
+ExtractedFile _ef(String name, {MediaSourceMetadata? metadata}) {
+  final path = p.join(Directory.systemTemp.path, name);
+  return ExtractedFile(
+    sourcePath: path,
+    file: File(path),
+    metadata: metadata ?? const MediaSourceMetadata(mimeType: 'image/jpeg'),
+  );
+}
 
 class _UnusedMediaRepository implements MediaRepository {
   @override
@@ -96,11 +101,7 @@ Future<void> _pumpCard(
 
 void main() {
   testWidgets('renders basename and remove tooltip', (tester) async {
-    await _pumpCard(
-      tester,
-      file: _ef('/tmp/missing-file.jpg'),
-      targetDiveId: 'd1',
-    );
+    await _pumpCard(tester, file: _ef('missing-file.jpg'), targetDiveId: 'd1');
 
     expect(find.text('missing-file.jpg'), findsOneWidget);
     expect(find.byTooltip('Remove from selection'), findsOneWidget);
@@ -112,7 +113,7 @@ void main() {
     await _pumpCard(
       tester,
       file: _ef(
-        '/tmp/clip.mp4',
+        'clip.mp4',
         metadata: const MediaSourceMetadata(mimeType: 'video/mp4'),
       ),
       targetDiveId: 'd1',
@@ -124,6 +125,31 @@ void main() {
     expect(find.byType(Image), findsNothing);
   });
 
+  testWidgets('decodes a photo at the card size, not the original (#4699)', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 3.0;
+    addTearDown(tester.view.reset);
+
+    await _pumpCard(tester, file: _ef('missing-file.jpg'), targetDiveId: 'd1');
+
+    final provider = tester.widget<Image>(find.byType(Image)).image;
+    expect(
+      provider,
+      isA<ResizeImage>(),
+      reason:
+          'an unbounded Image.file decodes the whole original for a 48 px '
+          'square: four 50 MP photos held over 1 GB',
+    );
+    // 48 logical x 3.0 dpr x 2, so a landscape photo still fills the square.
+    expect((provider as ResizeImage).width, 288);
+    expect(
+      provider.height,
+      isNull,
+      reason: 'both dimensions would decode to exact bounds and distort',
+    );
+  });
+
   // Note: the `errorBuilder` for `Image.file` in `FileReviewCard` is the
   // broken-image fallback. It is not exercised here because `FileImage`'s
   // load failure is dispatched on the asynchronous decoder isolate and
@@ -133,7 +159,7 @@ void main() {
   testWidgets('tapping the close icon calls removeFile on the notifier', (
     tester,
   ) async {
-    final file = _ef('/tmp/p.jpg');
+    final file = _ef('p.jpg');
     final notifier = _SeededFilesTabNotifier(
       FilesTabState.initial().copyWith(
         files: [file],
@@ -160,7 +186,7 @@ void main() {
       await _pumpCard(
         tester,
         file: _ef(
-          '/tmp/photo.jpg',
+          'photo.jpg',
           metadata: MediaSourceMetadata(
             takenAt: DateTime.utc(2025, 12, 27, 11, 47),
             takenAtSource: TakenAtSource.nativeExif,
@@ -180,7 +206,7 @@ void main() {
       await _pumpCard(
         tester,
         file: _ef(
-          '/tmp/clip.mp4',
+          'clip.mp4',
           metadata: MediaSourceMetadata(
             takenAt: DateTime.utc(2025, 12, 27, 11, 47),
             takenAtSource: TakenAtSource.containerMetadata,
@@ -197,7 +223,7 @@ void main() {
       await _pumpCard(
         tester,
         file: _ef(
-          '/tmp/photo.jpg',
+          'photo.jpg',
           metadata: MediaSourceMetadata(
             takenAt: DateTime.utc(2026, 4, 2, 9),
             takenAtSource: TakenAtSource.fileModifiedTime,
@@ -211,7 +237,7 @@ void main() {
     });
 
     testWidgets('says so when nothing dated the file', (tester) async {
-      await _pumpCard(tester, file: _ef('/tmp/photo.jpg'), targetDiveId: 'd1');
+      await _pumpCard(tester, file: _ef('photo.jpg'), targetDiveId: 'd1');
 
       expect(find.text('no date found'), findsOneWidget);
     });
@@ -222,7 +248,7 @@ void main() {
       await _pumpCard(
         tester,
         file: _ef(
-          '/tmp/photo.jpg',
+          'photo.jpg',
           metadata: MediaSourceMetadata(
             takenAt: DateTime.utc(2025, 12, 27, 16, 47),
             takenAtSource: TakenAtSource.nativeExif,
@@ -244,7 +270,7 @@ void main() {
     testWidgets('explains a file with no capture time', (tester) async {
       await _pumpCard(
         tester,
-        file: _ef('/tmp/photo.jpg'),
+        file: _ef('photo.jpg'),
         diagnostic: const UnmatchedDiagnostic(
           reason: UnmatchedReason.noTimestamp,
         ),
@@ -258,7 +284,7 @@ void main() {
     ) async {
       await _pumpCard(
         tester,
-        file: _ef('/tmp/photo.jpg'),
+        file: _ef('photo.jpg'),
         diagnostic: const UnmatchedDiagnostic(
           reason: UnmatchedReason.outsideAllWindows,
           nearestDiveId: 'dive-1',
@@ -274,7 +300,7 @@ void main() {
     ) async {
       await _pumpCard(
         tester,
-        file: _ef('/tmp/photo.jpg'),
+        file: _ef('photo.jpg'),
         diagnostic: const UnmatchedDiagnostic(
           reason: UnmatchedReason.outsideAllWindows,
           nearestDiveId: 'dive-1',
@@ -292,7 +318,7 @@ void main() {
       // direction, so the size must not collapse to zero.
       await _pumpCard(
         tester,
-        file: _ef('/tmp/photo.jpg'),
+        file: _ef('photo.jpg'),
         diagnostic: const UnmatchedDiagnostic(
           reason: UnmatchedReason.outsideAllWindows,
           nearestDiveId: 'dive-1',
@@ -308,7 +334,7 @@ void main() {
     ) async {
       await _pumpCard(
         tester,
-        file: _ef('/tmp/photo.jpg'),
+        file: _ef('photo.jpg'),
         diagnostic: const UnmatchedDiagnostic(
           reason: UnmatchedReason.outsideAllWindows,
           nearestDiveId: 'dive-1',
@@ -324,7 +350,7 @@ void main() {
     ) async {
       await _pumpCard(
         tester,
-        file: _ef('/tmp/photo.jpg'),
+        file: _ef('photo.jpg'),
         diagnostic: const UnmatchedDiagnostic(
           reason: UnmatchedReason.outsideAllWindows,
         ),
@@ -334,7 +360,7 @@ void main() {
     });
 
     testWidgets('a matched card shows no reason line', (tester) async {
-      await _pumpCard(tester, file: _ef('/tmp/photo.jpg'), targetDiveId: 'd1');
+      await _pumpCard(tester, file: _ef('photo.jpg'), targetDiveId: 'd1');
 
       expect(find.textContaining('nearest dive'), findsNothing);
       expect(find.text('No capture time could be read'), findsNothing);

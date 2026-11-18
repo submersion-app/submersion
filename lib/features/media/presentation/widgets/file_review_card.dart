@@ -70,7 +70,7 @@ class FileReviewCard extends ConsumerWidget {
 
     return ListTile(
       isThreeLine: reason != null,
-      leading: _buildLeading(),
+      leading: _buildLeading(context),
       title: Text(
         p.basename(file.sourcePath),
         maxLines: 1,
@@ -183,19 +183,27 @@ class FileReviewCard extends ConsumerWidget {
 
   /// A 48x48 leading preview. Videos can't be decoded by [Image.file], so they
   /// get an explicit video icon rather than the broken-image error fallback.
-  Widget _buildLeading() {
+  ///
+  /// The decode is bounded to the square's pixels (issue #4699). Unbounded,
+  /// [Image.file] decodes the whole original for a 48 px preview: a 50 MP
+  /// photo is about 270 MiB, and four cards held over 1 GB. Width only, at
+  /// twice the square, so a landscape photo still covers it; both dimensions
+  /// would decode to exact bounds and distort.
+  Widget _buildLeading(BuildContext context) {
+    const side = 48.0;
     if (file.metadata.mimeType.startsWith('video/')) {
       return const SizedBox(
-        width: 48,
-        height: 48,
+        width: side,
+        height: side,
         child: Center(child: Icon(Icons.movie_outlined, size: 32)),
       );
     }
     return Image.file(
       file.file,
-      width: 48,
-      height: 48,
+      width: side,
+      height: side,
       fit: BoxFit.cover,
+      cacheWidth: (side * MediaQuery.devicePixelRatioOf(context) * 2).round(),
       // coverage:ignore-start
       // FileImage failure is dispatched on the async decoder isolate and
       // doesn't fire deterministically under `flutter test` without a real
