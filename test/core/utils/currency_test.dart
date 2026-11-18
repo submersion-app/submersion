@@ -213,6 +213,10 @@ void main() {
     expect(kCommonCurrencyCodes, containsAll(['USD', 'EUR', 'GBP', 'CHF']));
   });
 
+  test('kCommonCurrencyCodes offers the Polish zloty', () {
+    expect(kCommonCurrencyCodes, contains('PLN'));
+  });
+
   test('kCommonCurrencyCodes has no duplicates and is upper-case', () {
     expect(
       kCommonCurrencyCodes.toSet(),
