@@ -259,6 +259,39 @@ class BuildManifestTests(unittest.TestCase):
                 self.assertEqual(json.load(fh), self.build("both"))
 
 
+class PackDetectorsTests(unittest.TestCase):
+    FORMAT_ONE = {
+        "formatVersion": 1,
+        "detector": {
+            "id": CFD, "inputSize": 640, "mean": [0.485, 0.456, 0.406], "std": [0.229, 0.224, 0.225],
+            "scoreThreshold": 0.3, "maxBoxes": 8, "cropPadding": 0.1,
+        },
+        "classifier": {"id": BIOCLIP},
+    }
+
+    def test_a_format_one_pack_is_the_fish_detector(self):
+        detectors, boxes = manifest.pack_detectors(self.FORMAT_ONE)
+        self.assertEqual(detectors, [manifest.DETECTORS["cfd"]])
+        self.assertEqual(boxes, manifest.BOXES)
+
+    def test_a_format_two_pack_lists_its_own(self):
+        built = manifest.build_manifest(
+            pack_version="v", detector_set="both", classifier_id=BIOCLIP, embedding_size=768, files=[], credits=[]
+        )
+        detectors, boxes = manifest.pack_detectors(built)
+        self.assertEqual([d["id"] for d in detectors], [CFD, MEGALODON])
+        self.assertEqual(boxes, manifest.BOXES)
+
+    def test_with_detectors_writes_format_two_and_keeps_the_rest(self):
+        one = manifest.with_detectors(self.FORMAT_ONE, [manifest.DETECTORS["megalodon"]], manifest.BOXES)
+        self.assertEqual(one["formatVersion"], 2)
+        self.assertNotIn("detector", one)
+        self.assertEqual(one["detectors"], [manifest.DETECTORS["megalodon"]])
+        self.assertEqual(one["boxes"], manifest.BOXES)
+        self.assertEqual(one["classifier"], {"id": BIOCLIP})
+        self.assertIn("detector", self.FORMAT_ONE)
+
+
 class CreditsTests(unittest.TestCase):
     def names(self, detector_set):
         return [c["name"] for c in build_pack.credits_for(detector_set)]

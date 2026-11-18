@@ -141,6 +141,32 @@ def model_zip(stem, engine):
     return f"{stem}.{engine}.zip"
 
 
+def pack_detectors(manifest):
+    """A pack manifest's detectors and box settings in format 2's shape,
+    from either format. A format 1 pack's one detector is the fish
+    detector, run with its own box limit and crop padding."""
+    if "detectors" in manifest:
+        return [dict(d) for d in manifest["detectors"]], dict(manifest["boxes"])
+    d = manifest["detector"]
+    detector = {
+        "id": d["id"],
+        "format": d.get("detectorFormat", "rfdetr"),
+        "file": "detector",
+        **{k: d[k] for k in ("inputSize", "mean", "std", "scoreThreshold", "maxBoxes")},
+    }
+    return [detector], {"mergeIoU": BOXES["mergeIoU"], "maxBoxes": d["maxBoxes"], "cropPadding": d["cropPadding"]}
+
+
+def with_detectors(manifest, detectors, boxes):
+    """A format 2 copy of `manifest` carrying `detectors` and `boxes`, for
+    running a set of detectors with the vision tool."""
+    out = {k: v for k, v in manifest.items() if k not in ("detector", "detectors", "boxes")}
+    out["formatVersion"] = FORMAT_VERSION
+    out["detectors"] = [dict(d) for d in detectors]
+    out["boxes"] = dict(boxes)
+    return out
+
+
 def naming_for(detector_ids, classifier_id, crop_fit, contents, measured=NAMING_MEASURED):
     """The naming bars for a pack: the measured ones when it is a measured
     pack (same detectors in the same order, classifier, crop fitting and

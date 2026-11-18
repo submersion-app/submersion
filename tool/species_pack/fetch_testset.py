@@ -479,6 +479,17 @@ def _boxed(image, d):
     return crop
 
 
+def _model_in(folder):
+    """The model a folder holds: a compiled model when there is one, else
+    the package."""
+    names = sorted(os.listdir(folder)) if os.path.isdir(folder) else []
+    for ext in (".mlmodelc", ".mlpackage"):
+        for name in names:
+            if name.endswith(ext):
+                return os.path.join(folder, name)
+    return None
+
+
 def stage_junk_sheets(work, pack):
     import subprocess
     import zipfile
@@ -492,24 +503,34 @@ def stage_junk_sheets(work, pack):
     chosen = _load(os.path.join(work, "commons.json"), [])
     tool = os.path.join(work, "species_vision")
     subprocess.run([os.path.join(os.path.dirname(__file__), "vision_cli", "build.sh"), tool], check=True)
-    pack_models = os.path.join(work, "models", "junk")
-    os.makedirs(pack_models, exist_ok=True)
-    for name in ("detector", "classifier"):
-        if not os.path.exists(os.path.join(pack_models, f"{name}.mlmodelc")):
-            with zipfile.ZipFile(os.path.join(pack, f"{name}.coreml.zip")) as zf:
-                zf.extractall(pack_models)
+    import manifest as pack_manifest
+
     with open(os.path.join(pack, "manifest.json"), encoding="utf-8") as fh:
-        pack_detector = json.load(fh)["detector"]["id"]
+        pack_json = json.load(fh)
+    detectors, boxes = pack_manifest.pack_detectors(pack_json)
+    cfd_id = pack_manifest.DETECTORS["cfd"]["id"]
+    cfd = next((d for d in detectors if d["id"] == cfd_id), None)
+    if cfd is None:
+        raise SystemExit(f"{pack} does not carry the fish detector")
+    pack_models = os.path.join(work, "models", "junk")
+    for stem in (cfd["file"], "classifier"):
+        folder = os.path.join(pack_models, stem)
+        if not any(n.endswith((".mlmodelc", ".mlpackage")) for n in (os.listdir(folder) if os.path.isdir(folder) else [])):
+            with zipfile.ZipFile(os.path.join(pack, pack_manifest.model_zip(stem, "coreml"))) as zf:
+                zf.extractall(folder)
+    # Each detector alone, so each box is labelled against the detector
+    # that found it.
+    cfd_manifest = os.path.join(pack_models, "cfd_manifest.json")
+    with open(cfd_manifest, "w", encoding="utf-8") as fh:
+        json.dump(pack_manifest.with_detectors(pack_json, [cfd], boxes), fh)
     mega_manifest = os.path.join(mega_dir, "manifest.json")
     with open(mega_manifest, "w", encoding="utf-8") as fh:
         json.dump(megalodon.manifest_for("megalodon-2024", os.path.join(pack, "manifest.json")), fh)
     runs = {
-        pack_detector: (os.path.join(pack, "manifest.json"), _model_path(pack_models, "detector")),
-        megalodon.CHECKPOINTS["megalodon-2024"]["id"]: (
-            mega_manifest,
-            _model_path(mega_dir, "detector"),
-        ),
+        cfd_id: (cfd_manifest, _model_in(os.path.join(pack_models, cfd["file"]))),
+        megalodon.CHECKPOINTS["megalodon-2024"]["id"]: (mega_manifest, _model_path(mega_dir, "detector")),
     }
+    classifier_model = _model_in(os.path.join(pack_models, "classifier"))
     paths = "\n".join(_photo_path(work, "commons", f["id"]) for f in chosen) + "\n"
     for detector, (manifest, model) in runs.items():
         out_path = os.path.join(work, f"junk_detections_{detector}.jsonl")
@@ -522,7 +543,7 @@ def stage_junk_sheets(work, pack):
                     "--detector",
                     model,
                     "--classifier",
-                    _model_path(pack_models, "classifier"),
+                    classifier_model,
                     "--crop-fit",
                     "padSquare",
                 ],

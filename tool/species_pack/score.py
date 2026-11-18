@@ -69,21 +69,6 @@ def _model_in(folder):
     return None
 
 
-def _pack_detectors(manifest):
-    """A pack manifest's detectors and box settings, in format 2's shape,
-    from either format."""
-    if "detectors" in manifest:
-        return [dict(d) for d in manifest["detectors"]], dict(manifest["boxes"])
-    d = manifest["detector"]
-    detector = {
-        "id": d["id"],
-        "format": d.get("detectorFormat", "rfdetr"),
-        "file": "detector",
-        **{k: d[k] for k in ("inputSize", "mean", "std", "scoreThreshold", "maxBoxes")},
-    }
-    return [detector], {"mergeIoU": pack_manifest.BOXES["mergeIoU"], "maxBoxes": d["maxBoxes"], "cropPadding": d["cropPadding"]}
-
-
 class Runner:
     """Runs the vision tool once per detector set (the fish detector,
     Megalodon, both) and fitting, cached by pack version, and keeps each
@@ -95,7 +80,7 @@ class Runner:
         with open(os.path.join(pack, "manifest.json"), encoding="utf-8") as fh:
             self.manifest = json.load(fh)
         self.version = self.manifest["packVersion"]
-        detectors, self.boxes = _pack_detectors(self.manifest)
+        detectors, self.boxes = pack_manifest.pack_detectors(self.manifest)
         stems = [d["file"] for d in detectors] + ["classifier"]
         zips = {pack_manifest.model_zip(stem, "coreml"): stem for stem in stems}
         # The models' own hashes, so a pack rebuilt under the same version
@@ -133,10 +118,7 @@ class Runner:
         }
         self.manifests = {}
         for name, ids in self.runs.items():
-            run_manifest = {k: v for k, v in self.manifest.items() if k not in ("detector", "detectors", "boxes")}
-            run_manifest["formatVersion"] = pack_manifest.FORMAT_VERSION
-            run_manifest["detectors"] = [in_pack[i][0] for i in ids]
-            run_manifest["boxes"] = self.boxes
+            run_manifest = pack_manifest.with_detectors(self.manifest, [in_pack[i][0] for i in ids], self.boxes)
             path = os.path.join(work, "manifests", self.version, f"{name}.json")
             os.makedirs(os.path.dirname(path), exist_ok=True)
             with open(path, "w", encoding="utf-8") as fh:

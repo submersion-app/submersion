@@ -207,11 +207,7 @@ def converted_dir(work, name):
 def manifest_for_settings(base):
     """A copy of the pack manifest `base` carrying Megalodon alone, for the
     vision tool."""
-    manifest = {k: v for k, v in base.items() if k != "detector"}
-    manifest["formatVersion"] = pack_manifest.FORMAT_VERSION
-    manifest["detectors"] = [dict(SETTINGS)]
-    manifest["boxes"] = dict(pack_manifest.BOXES)
-    return manifest
+    return pack_manifest.with_detectors(base, [SETTINGS], pack_manifest.BOXES)
 
 
 def manifest_for(name, pack_manifest_path):
