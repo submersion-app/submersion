@@ -72,6 +72,17 @@ void main() {
     );
   });
 
+  test('an infinite share is past every bound', () async {
+    // SQLite stores infinity, and NaN only as NULL, which the columns refuse.
+    await tank('inf', 'd1', double.infinity);
+    await tank('negInf', 'd2', 21, double.negativeInfinity);
+
+    final found = await repo.impossibleMixes();
+
+    expect({for (final m in found) m.tankId}, {'inf', 'negInf'});
+    expect(await repo.divesWithImpossibleMixes(), {'d1', 'd2'});
+  });
+
   test('names each dive holding such a cylinder once', () async {
     await tank('a', 'd1', 3200);
     await tank('b', 'd1', 2100, 3500);

@@ -239,6 +239,16 @@ void main() {
       expect(parse('not a number', he: 'nor this'), const GasMix());
     });
 
+    test('a share that is no finite number falls back as unreadable', () {
+      // double.tryParse accepts these, and none is a reading. An infinite
+      // helium must not make the oxygen beside it read as a percentage.
+      expect(parse('NaN'), const GasMix());
+      expect(parse('Infinity'), const GasMix());
+      expect(parse('-Infinity'), const GasMix());
+      expect(parse('32', he: 'NaN'), const GasMix(o2: 32));
+      expect(parse('0.21', he: 'Infinity'), const GasMix());
+    });
+
     // Issue #4705: some programs write the mix as percentages. No fraction
     // is over 1, so such a mix is taken as written instead of being
     // multiplied into an impossible 3200%.

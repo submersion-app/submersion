@@ -343,7 +343,9 @@ class GasMix extends Equatable {
   /// Whether this can be a gas: no share below 0% or above 100%, and the
   /// shares together at most 100%, each within [tolerancePercent]. Older
   /// imports stored mixes 100 times too high, such as 3200% O2 (issue
-  /// #4714).
+  /// #4714). Written as the bounds a gas keeps, so a NaN share, which fails
+  /// every comparison, is impossible too; negating the bounds a gas breaks
+  /// would let it through.
   bool get isPossible =>
       o2 >= -tolerancePercent &&
       he >= -tolerancePercent &&

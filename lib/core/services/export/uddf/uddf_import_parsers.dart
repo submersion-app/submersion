@@ -434,8 +434,10 @@ class UddfImportParsers {
   static GasMix parseGasMix(XmlElement mixElement) {
     final o2Text = getElementText(mixElement, 'o2');
     final heText = getElementText(mixElement, 'he');
-    final o2Value = o2Text != null ? double.tryParse(o2Text) : null;
-    final heValue = heText != null ? double.tryParse(heText) : null;
+    // A share that is no finite number ("NaN", "Infinity") reads as
+    // unreadable, so it can neither be stored nor decide the scale below.
+    final o2Value = parseUddfDouble(o2Text);
+    final heValue = parseUddfDouble(heText);
 
     // UDDF stores gas values as fractions (0.21 for 21%), but some programs
     // write percentages (21). No fraction is over 1, so a mix with a value

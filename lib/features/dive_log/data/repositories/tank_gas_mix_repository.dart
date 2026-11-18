@@ -37,7 +37,9 @@ class TankGasMixRepository {
     return {for (final row in await query.get()) row.read(t.diveId)!};
   }
 
-  /// [GasMix.isPossible] negated, in SQL.
+  /// [GasMix.isPossible] negated, in SQL. Negating is safe here, where the
+  /// Dart rule could not be: SQLite stores a NaN only as NULL, which these
+  /// columns refuse, and an infinite share breaks a bound.
   static Expression<bool> _impossible($DiveTanksTable t) {
     const tolerance = GasMix.tolerancePercent;
     return t.o2Percent.isSmallerThanValue(-tolerance) |

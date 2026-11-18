@@ -35,6 +35,18 @@ void main() {
       expect(const GasMix(o2: 21, he: -0.5).isPossible, isFalse);
     });
 
+    test('a share that is no finite number is impossible', () {
+      // NaN fails every comparison, so only bounds a gas must keep turn it
+      // away; the negation of a bound it breaks would let it through.
+      expect(const GasMix(o2: double.nan).isPossible, isFalse);
+      expect(const GasMix(o2: 21, he: double.nan).isPossible, isFalse);
+      expect(const GasMix(o2: double.infinity).isPossible, isFalse);
+      expect(
+        const GasMix(o2: 21, he: double.negativeInfinity).isPossible,
+        isFalse,
+      );
+    });
+
     test('binary noise on a full mix is still possible', () {
       expect(const GasMix(o2: 21.0000000001, he: 79).isPossible, isTrue);
     });
