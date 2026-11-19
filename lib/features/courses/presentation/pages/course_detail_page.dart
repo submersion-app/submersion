@@ -45,6 +45,7 @@ import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart'
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
 import 'package:submersion/shared/widgets/record_editing/record_open_unlocked.dart';
+import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 import 'package:submersion/shared/widgets/record_editing/record_pane_row.dart';
 import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
@@ -382,7 +383,7 @@ class _CourseDetailContent extends ConsumerWidget {
         if (value == kOpenInConnectionsAction) {
           openInConnections(context, NodeRef(ConnectionKind.course, course.id));
         } else if (value == 'delete') {
-          _confirmDelete(context, ref);
+          _requestDelete(context, ref);
         } else if (value == 'export') {
           _exportTrainingLog(context, ref);
         }
@@ -406,8 +407,11 @@ class _CourseDetailContent extends ConsumerWidget {
             ],
           ),
         ),
+        // Delete is a whole-record operation, under the lock.
+        ...?host?._operationCaption(),
         PopupMenuItem(
           value: 'delete',
+          enabled: host?._operationsAvailable ?? true,
           child: Row(
             children: [
               const Icon(Icons.delete_outline, color: Colors.red),
@@ -451,7 +455,20 @@ class _CourseDetailContent extends ConsumerWidget {
     }
   }
 
-  Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
+  /// Delete, through the sitting where the page edits in place.
+  void _requestDelete(BuildContext context, WidgetRef ref) {
+    final host = this.host;
+    if (host == null) {
+      _confirmDelete(context, ref);
+      return;
+    }
+    recordOperationRunnerOf(host.editController, record: 'course ${course.id}')(
+      () => _confirmDelete(context, ref),
+    );
+  }
+
+  /// Asks, then deletes; whether it was deleted.
+  Future<bool> _confirmDelete(BuildContext context, WidgetRef ref) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -473,16 +490,14 @@ class _CourseDetailContent extends ConsumerWidget {
       ),
     );
 
-    if (confirmed == true) {
-      await ref
-          .read(courseListNotifierProvider.notifier)
-          .deleteCourse(course.id);
-      if (onDeleted != null) {
-        onDeleted!();
-      } else if (context.mounted) {
-        context.pop();
-      }
+    if (confirmed != true) return false;
+    await ref.read(courseListNotifierProvider.notifier).deleteCourse(course.id);
+    if (onDeleted != null) {
+      onDeleted!();
+    } else if (context.mounted) {
+      context.pop();
     }
+    return true;
   }
 
   Future<void> _exportTrainingLog(BuildContext context, WidgetRef ref) async {

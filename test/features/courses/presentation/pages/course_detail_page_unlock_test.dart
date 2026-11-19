@@ -308,4 +308,132 @@ void main() {
       expect(harness.save.calls.single.cards, {'status', 'requirements'});
     });
   });
+  group('opening and operations', () {
+    testWidgets('opened with mode=edit, the page is unlocked', (tester) async {
+      await pumpCoursePage(tester, openUnlocked: true);
+
+      expect(find.byType(RecordEditBar), findsOneWidget);
+    });
+
+    testWidgets("the pane's edit opens the page unlocked, Cancel returns to "
+        'view', (tester) async {
+      var ended = 0;
+      await pumpCoursePage(
+        tester,
+        embedded: true,
+        openUnlocked: true,
+        onSittingEnded: () => ended++,
+      );
+      expect(find.textContaining('Editing'), findsOneWidget);
+
+      await tester.tap(find.text(l.forms_cancel));
+      await tester.pumpAndSettle();
+
+      expect(ended, 1);
+    });
+
+    testWidgets("the pane's Save updates the course", (tester) async {
+      var ended = 0;
+      final harness = await pumpCoursePage(
+        tester,
+        embedded: true,
+        openUnlocked: true,
+        onSittingEnded: () => ended++,
+      );
+      sessionOf(tester).set(courseLocationField, 'Blue Hole');
+      await tester.pumpAndSettle();
+
+      await save(tester);
+
+      expect(harness.save.calls.single.after.location, 'Blue Hole');
+      expect(harness.stored.state!.location, 'Blue Hole');
+      expect(ended, 1);
+    });
+
+    testWidgets("the pane's Save creates no course", (tester) async {
+      final harness = await pumpCoursePage(
+        tester,
+        embedded: true,
+        openUnlocked: true,
+      );
+      sessionOf(tester).set(courseLocationField, 'Blue Hole');
+      await tester.pumpAndSettle();
+
+      await save(tester);
+
+      // The one write is the update of the course the pane opened on.
+      expect(harness.save.calls, hasLength(1));
+      expect(harness.save.calls.single.after.id, 'k1');
+    });
+
+    testWidgets('locked, Delete is disabled under "Unlock to use these"', (
+      tester,
+    ) async {
+      await pumpCoursePage(tester);
+      await tester.tap(find.byType(PopupMenuButton<String>).first);
+      await tester.pumpAndSettle();
+
+      expect(find.text(l.recordEdit_unlockToUseThese), findsOneWidget);
+      final delete = tester.widget<PopupMenuItem<String>>(
+        find.widgetWithText(PopupMenuItem<String>, l.common_action_delete),
+      );
+      expect(delete.enabled, isFalse);
+    });
+
+    testWidgets('Export training log works locked', (tester) async {
+      await pumpCoursePage(tester);
+      await tester.tap(find.byType(PopupMenuButton<String>).first);
+      await tester.pumpAndSettle();
+
+      final export = tester.widget<PopupMenuItem<String>>(
+        find.widgetWithText(
+          PopupMenuItem<String>,
+          l.courses_action_exportTrainingLog,
+        ),
+      );
+      expect(export.enabled, isTrue);
+    });
+
+    testWidgets('unlocked and clean, Delete asks', (tester) async {
+      await pumpCoursePage(tester);
+      await unlock(tester);
+      await tester.tap(
+        find.descendant(
+          of: find.byType(RecordEditBar),
+          matching: find.byType(PopupMenuButton<String>),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final item = tester.widget<PopupMenuItem<String>>(
+        find.widgetWithText(PopupMenuItem<String>, l.common_action_delete),
+      );
+      expect(item.enabled, isTrue);
+      expect(find.text(l.recordEdit_unlockToUseThese), findsNothing);
+      await tester.tap(find.text(l.common_action_delete));
+      await tester.pumpAndSettle();
+
+      expect(find.text(l.courses_dialog_deleteTitle), findsOneWidget);
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text(l.common_action_cancel),
+        ),
+      );
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('with the switch off, Delete is offered as before', (
+      tester,
+    ) async {
+      await pumpCoursePage(tester, unlockEditing: false);
+      await tester.tap(find.byType(PopupMenuButton<String>).first);
+      await tester.pumpAndSettle();
+
+      expect(find.text(l.recordEdit_unlockToUseThese), findsNothing);
+      final delete = tester.widget<PopupMenuItem<String>>(
+        find.widgetWithText(PopupMenuItem<String>, l.common_action_delete),
+      );
+      expect(delete.enabled, isTrue);
+    });
+  });
 }
