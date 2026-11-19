@@ -52,6 +52,27 @@ void main() {
     },
   );
 
+  test('a snapshot reads both from the logbook open when it began, even if '
+      'another opens during it', () async {
+    final other = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
+    addTearDown(other.close);
+    await repo.storeRun(
+      run(),
+      insert: [identification('a')],
+      deleteIds: const [],
+    );
+    // The first lookup finds this logbook; every later one, another.
+    var lookups = 0;
+    final switching = MediaIdentificationRepository(
+      currentDatabase: () => lookups++ == 0 ? db : other,
+    );
+    final (stored, rows) = await switching.forMediaWithRun('m1');
+    expect(stored?.packVersion, '2026.11.1');
+    expect(rows.map((i) => i.id), ['a']);
+  });
+
   test('a run with nothing found is stored', () async {
     await repo.storeRun(run(count: 0), insert: const [], deleteIds: const []);
     expect((await repo.runFor('m1'))!.detectionCount, 0);

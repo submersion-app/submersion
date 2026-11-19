@@ -24,13 +24,23 @@ typedef StoreRunWrite = ({
 /// decisions on it (issue #4668). Never synced: the rows are this device's,
 /// and the app derives them; the diver's own record is the species tags.
 class MediaIdentificationRepository {
-  MediaIdentificationRepository({AppDatabase? database}) : _database = database;
+  /// [database] fixes the logbook; otherwise [currentDatabase] (by default
+  /// [DatabaseService]'s) is asked on every call.
+  MediaIdentificationRepository({
+    AppDatabase? database,
+    AppDatabase Function()? currentDatabase,
+  }) : _database = database,
+       _currentDatabase = currentDatabase;
 
   final AppDatabase? _database;
+  final AppDatabase Function()? _currentDatabase;
 
   /// The open logbook, read on every call so a switch of logbook (demo
   /// mode, a restore) is followed.
-  AppDatabase get _db => _database ?? DatabaseService.instance.database;
+  AppDatabase get _db =>
+      _database ??
+      _currentDatabase?.call() ??
+      DatabaseService.instance.database;
 
   /// Ticks on any write to either table.
   Stream<void> watchChanges() => _db.tableUpdates(
@@ -66,17 +76,43 @@ class MediaIdentificationRepository {
     ];
   }
 
-  Future<MediaIdentificationRun?> runFor(String mediaId) async {
-    final row = await (_db.select(
-      _db.mediaIdentificationRuns,
+  Future<MediaIdentificationRun?> runFor(String mediaId) =>
+      _runIn(_db, mediaId);
+
+  /// Oldest first, so a photo's identifications keep a stable order.
+  Future<List<MediaIdentification>> forMedia(String mediaId) =>
+      _rowsIn(_db, mediaId);
+
+  /// [mediaId]'s run and its identifications, read in one transaction on
+  /// one logbook so both come from the same moment: a rename that moves
+  /// them on together is seen whole or not at all, and a logbook opened
+  /// during the read is not mixed in, as [storeRun] pins its own (issue
+  /// #4721).
+  Future<(MediaIdentificationRun?, List<MediaIdentification>)> forMediaWithRun(
+    String mediaId,
+  ) {
+    final db = _db;
+    return db.transaction(
+      () async => (await _runIn(db, mediaId), await _rowsIn(db, mediaId)),
+    );
+  }
+
+  static Future<MediaIdentificationRun?> _runIn(
+    AppDatabase db,
+    String mediaId,
+  ) async {
+    final row = await (db.select(
+      db.mediaIdentificationRuns,
     )..where((r) => r.mediaId.equals(mediaId))).getSingleOrNull();
     return row == null ? null : _runFromRow(row);
   }
 
-  /// Oldest first, so a photo's identifications keep a stable order.
-  Future<List<MediaIdentification>> forMedia(String mediaId) async {
+  static Future<List<MediaIdentification>> _rowsIn(
+    AppDatabase db,
+    String mediaId,
+  ) async {
     final rows =
-        await (_db.select(_db.mediaIdentifications)
+        await (db.select(db.mediaIdentifications)
               ..where((r) => r.mediaId.equals(mediaId))
               ..orderBy([
                 (r) => OrderingTerm.asc(r.createdAt),
@@ -85,15 +121,6 @@ class MediaIdentificationRepository {
             .get();
     return [for (final row in rows) _fromRow(row)];
   }
-
-  /// [mediaId]'s run and its identifications, read in one transaction so
-  /// both come from the same moment: a rename that moves them on together
-  /// is seen whole or not at all (issue #4721).
-  Future<(MediaIdentificationRun?, List<MediaIdentification>)> forMediaWithRun(
-    String mediaId,
-  ) => _db.transaction(
-    () async => (await runFor(mediaId), await forMedia(mediaId)),
-  );
 
   /// In one transaction: upserts [run], deletes [deleteIds], inserts
   /// [insert].
