@@ -223,4 +223,65 @@ void main() {
       expect(after.pages, hasLength(2));
     });
   });
+
+  group('addresses and operations', () {
+    Future<void> openMenu(WidgetTester tester) async {
+      await tester.tap(find.byIcon(Icons.more_vert).last);
+      await tester.pumpAndSettle();
+    }
+
+    Finder deleteItem() => find.text(l.common_action_delete);
+
+    testWidgets('opened with mode=edit, the page is unlocked', (tester) async {
+      await pumpDocumentPage(tester, openUnlocked: true);
+
+      expect(find.byType(RecordEditBar), findsOneWidget);
+    });
+
+    testWidgets('a pane opened for editing returns to view when it ends', (
+      tester,
+    ) async {
+      var ended = 0;
+      await pumpDocumentPage(
+        tester,
+        embedded: true,
+        openUnlocked: true,
+        onSittingEnded: () => ended += 1,
+      );
+
+      await tester.tap(find.text(l.forms_cancel));
+      await tester.pumpAndSettle();
+
+      expect(ended, 1);
+      expect(find.byType(RecordEditBar), findsNothing);
+    });
+
+    testWidgets('locked, Delete is disabled under "Unlock to use these"', (
+      tester,
+    ) async {
+      final harness = await pumpDocumentPage(tester);
+      await openMenu(tester);
+
+      expect(find.text(l.recordEdit_unlockToUseThese), findsOneWidget);
+      await tester.tap(deleteItem());
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(harness.mutations.deleted, isEmpty);
+    });
+
+    testWidgets('unlocked and clean, Delete asks and deletes', (tester) async {
+      final harness = await pumpDocumentPage(tester);
+      await unlock(tester);
+      await openMenu(tester);
+
+      await tester.tap(deleteItem());
+      await tester.pumpAndSettle();
+      expect(find.text(l.documents_delete_title), findsOneWidget);
+      await tester.tap(deleteItem().last);
+      await tester.pumpAndSettle();
+
+      expect(harness.mutations.deleted, ['doc']);
+    });
+  });
 }

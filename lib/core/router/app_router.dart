@@ -37,6 +37,7 @@ import 'package:submersion/features/dive_centers/presentation/providers/dive_cen
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/pages/document_detail_page.dart';
+import 'package:submersion/features/documents/presentation/pages/document_edit_routes.dart';
 import 'package:submersion/features/documents/presentation/pages/document_edit_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_detail_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_edit_page.dart';
@@ -1061,6 +1062,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/documents',
             name: 'documents',
+            onExit: confirmLeaveRecordSitting,
             // Documents' filters (type/filter/owner/tag) are not read from
             // this route's state: the shared host also rebuilds for /media,
             // which carries none of them. The host hands each tab its own
@@ -1087,13 +1089,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: ':documentId',
                 name: 'documentDetail',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => DocumentDetailPage(
                   documentId: state.pathParameters['documentId']!,
+                  openUnlocked: state.uri.queryParameters['mode'] == 'edit',
                 ),
                 routes: [
                   GoRoute(
                     path: 'edit',
                     name: 'editDocument',
+                    // Behind phase 3's switch, the page opened unlocked.
+                    redirect: documentEditRedirect,
                     builder: (context, state) => DocumentEditPage(
                       documentId: state.pathParameters['documentId'],
                     ),

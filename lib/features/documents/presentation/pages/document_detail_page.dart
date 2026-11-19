@@ -19,6 +19,7 @@ import 'package:submersion/features/documents/presentation/editing/document_card
 import 'package:submersion/features/documents/presentation/editing/document_edit_cards.dart';
 import 'package:submersion/features/documents/presentation/editing/document_record.dart';
 import 'package:submersion/features/documents/presentation/providers/document_record_provider.dart';
+import 'package:submersion/features/documents/presentation/pages/document_edit_routes.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
@@ -85,6 +86,10 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage>
 
   bool _redirected = false;
 
+  /// A full page moving into the list's pane leaves the unlock to the pane.
+  @override
+  bool get handsUnlockElsewhere => _redirected;
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -96,8 +101,14 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage>
         ResponsiveBreakpoints.isMasterDetail(context) &&
         !context.canPop()) {
       _redirected = true;
+      // Asked to open unlocked and not yet: the pane opens it unlocked.
+      final unlock = hostsEditing && widget.openUnlocked && !hasOpenedUnlocked;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) context.go('/documents?selected=${widget.documentId}');
+        if (mounted) {
+          context.go(
+            documentPaneLocation(widget.documentId, openUnlocked: unlock),
+          );
+        }
       });
     }
     final entry = ref.watch(documentEntryProvider(widget.documentId));

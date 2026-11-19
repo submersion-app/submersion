@@ -73,13 +73,27 @@ class FakeDocumentSave implements DocumentEditSaveService {
   Object? noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-/// What a test pumped: the fake save, and the stored record to change
-/// underneath.
+/// Records deletes, and re-arms nothing, instead of touching a database.
+class FakeDocumentMutations extends DocumentMutations {
+  FakeDocumentMutations(super.ref);
+
+  final deleted = <String>[];
+
+  @override
+  Future<void> delete(String id) async => deleted.add(id);
+
+  @override
+  Future<void> rearmReminders(Iterable<Document> documents) async {}
+}
+
+/// What a test pumped: the fake save, the stored record to change
+/// underneath, and the deletes.
 class DocumentPageHarness {
-  DocumentPageHarness(this.save, this.stored);
+  DocumentPageHarness(this.save, this.stored, this.mutations);
 
   final FakeDocumentSave save;
   final StateController<DocumentRecord?> stored;
+  final FakeDocumentMutations mutations;
 }
 
 final _storedProvider = StateProvider<DocumentRecord?>((ref) => null);
@@ -104,6 +118,7 @@ Future<DocumentPageHarness> pumpDocumentPage(
   final record = DocumentRecord(document: doc, pages: pages, tagIds: tagIds);
   final overrides = await getBaseOverrides();
   late DocumentPageHarness harness;
+  late FakeDocumentMutations mutations;
   await tester.pumpWidget(
     testApp(
       locale: const Locale('en'),
@@ -134,11 +149,15 @@ Future<DocumentPageHarness> pumpDocumentPage(
           scope: TagScope.documents,
           itemId: doc.id,
         )).overrideWith((ref) async => const <Tag>[]),
+        documentMutationsProvider.overrideWith(
+          (ref) => mutations = FakeDocumentMutations(ref),
+        ),
         documentEditSaveServiceProvider.overrideWith((ref) {
           final save = FakeDocumentSave(ref.watch(_storedProvider.notifier));
           harness = DocumentPageHarness(
             save,
             ref.watch(_storedProvider.notifier),
+            mutations,
           );
           return save;
         }),
@@ -153,8 +172,10 @@ Future<DocumentPageHarness> pumpDocumentPage(
     ),
   );
   await tester.pumpAndSettle();
-  ProviderScope.containerOf(
+  final container = ProviderScope.containerOf(
     tester.element(find.byType(DocumentDetailPage)),
-  ).read(documentEditSaveServiceProvider);
+  );
+  container.read(documentMutationsProvider);
+  container.read(documentEditSaveServiceProvider);
   return harness;
 }
