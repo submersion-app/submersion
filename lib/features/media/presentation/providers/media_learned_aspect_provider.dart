@@ -79,7 +79,8 @@ class MediaLearnedAspectsNotifier
 
   void _flush() {
     _flushScheduled = false;
-    if (_pending.isEmpty) return;
+    // The frame can end after the provider has gone (a closed scope).
+    if (!ref.mounted || _pending.isEmpty) return;
     final current = state.value;
     if (current == null) {
       // Still loading: flush once the stored shapes are in.

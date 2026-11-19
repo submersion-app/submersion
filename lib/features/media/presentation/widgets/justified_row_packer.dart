@@ -37,7 +37,8 @@ class JustifiedRow {
 /// last row: what is already laid out above stays where it is when a page of
 /// the library arrives.
 ///
-/// [minTileWidth] raises any ratio narrower than it at [targetHeight]. A pane
+/// [minTileWidth] raises any ratio narrower than it at [targetHeight], and a
+/// row never closes at a break that would scale a tile below it. A pane
 /// narrower than that still gets one item a row, at the pane's width.
 List<JustifiedRow> packJustifiedRows({
   required List<double> ratios,
@@ -71,6 +72,7 @@ List<JustifiedRow> packJustifiedRows({
     final start = i;
     var count = 0;
     var ratioSum = 0.0;
+    var narrowest = double.infinity;
     JustifiedRow? row;
     while (i < effective.length) {
       final nextSum = ratioSum + effective[i];
@@ -78,15 +80,21 @@ List<JustifiedRow> packJustifiedRows({
       if (nextSum * targetHeight + gap * count < paneWidth) {
         ratioSum = nextSum;
         count = nextCount;
+        narrowest = math.min(narrowest, effective[i]);
         i++;
         continue;
       }
       // Item i reaches the edge: close before it or after it.
       final after = heightFor(nextCount, nextSum);
+      // Taking it scales the row down; never so far that a tile falls under
+      // the minimum width. Closing before it only scales the row up.
+      final keepsMinimum =
+          math.min(narrowest, effective[i]) * after >= minTileWidth;
       final takeIt =
           count == 0 ||
-          (math.log(after / targetHeight)).abs() <=
-              (math.log(heightFor(count, ratioSum) / targetHeight)).abs();
+          (keepsMinimum &&
+              (math.log(after / targetHeight)).abs() <=
+                  (math.log(heightFor(count, ratioSum) / targetHeight)).abs());
       if (takeIt) {
         row = closed(start, nextCount, nextSum);
         i++;

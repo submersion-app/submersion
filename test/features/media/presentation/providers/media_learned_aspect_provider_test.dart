@@ -119,6 +119,19 @@ void main() {
     expect(repository.writes, [expected]);
   });
 
+  testWidgets('a report pending when the provider goes away does nothing', (
+    tester,
+  ) async {
+    final notifier = await tester.runAsync(start);
+
+    notifier!.report(_item('a'), const Size(300, 400));
+    container.dispose();
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+    expect(repository.writes, isEmpty);
+  });
+
   testWidgets('a document is never learned', (tester) async {
     final notifier = await tester.runAsync(start);
 

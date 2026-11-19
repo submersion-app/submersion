@@ -107,6 +107,31 @@ void main() {
       }
     });
 
+    test('a closed row never scales a tile under the minimum width', () {
+      // Two 3:4 photos at the smallest stop in a 96 px pane: taking the
+      // second would shrink both to about 47 px.
+      final narrow = pack(
+        [0.75, 0.75],
+        paneWidth: 96,
+        targetHeight: 64,
+        minTileWidth: 48,
+      );
+      // Four 4:3 photos and a portrait across a phone-width pane.
+      final phone = pack(
+        [4 / 3, 4 / 3, 4 / 3, 4 / 3, 0.75, 4 / 3, 4 / 3],
+        paneWidth: 386,
+        targetHeight: 64,
+        minTileWidth: 48,
+      );
+      for (final rows in [narrow, phone]) {
+        for (final row in rows) {
+          for (final width in row.widths) {
+            expect(width, greaterThanOrEqualTo(48 - 1e-9));
+          }
+        }
+      }
+    });
+
     test('nothing to pack gives no rows', () {
       expect(pack([]), isEmpty);
     });
