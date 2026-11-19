@@ -61,6 +61,24 @@ void main() {
     expect(siteSharingUnread(session), isFalse);
   });
 
+  // A new site (issue #4527, plan 6) has no row to read: its sharing is
+  // the seed's, the starting record, and a change from it is held.
+  test('a new site\'s sharing is the seed\'s, read from nowhere', () async {
+    final session = EditSession<DiveSite>(
+      const DiveSite(id: 'n1', diverId: 'me', name: '', isShared: true),
+      isNew: true,
+    );
+    addTearDown(session.dispose);
+
+    await loadSiteSharing(session, container.read);
+
+    expect(siteSharingLoaded(session), const ItemSharing(everyone: true));
+    expect(siteSharingUnread(session), isFalse);
+    expect(session.isDirty, isFalse);
+    setSiteSharing(session, ItemSharing.none, actingDiverId: 'me');
+    expect(session.changedCardIds, {siteHeaderCardId});
+  });
+
   test(
     'choosing other profiles holds the change and dots the header',
     () async {
