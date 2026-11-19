@@ -24953,6 +24953,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Deine Notizen und deine Bewertung wurden gespeichert.';
 
   @override
+  String get sharedLibrary_suggest_savedNotSent =>
+      'Deine Notizen und deine Bewertung wurden gespeichert. Der Vorschlag konnte nicht gesendet werden.';
+
+  @override
   String sharedLibrary_suggest_pending(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

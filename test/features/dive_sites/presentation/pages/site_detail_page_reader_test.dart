@@ -135,11 +135,29 @@ void main() {
     final waiting = reload = Completer<SharedLibraryRole>();
     page.container.invalidate(libraryRoleProvider('L'));
     await tester.pump();
+    // While the role is read again the cards keep the reader's framing.
+    expect(find.text(l.recordEdit_onlyYou), findsWidgets);
     waiting.complete(SharedLibraryRole.reader);
     await tester.pumpAndSettle();
 
     expect(find.byType(RecordEditBar), findsOneWidget);
     expect(find.text(l.diveSites_edit_editingWithdrawn), findsNothing);
+  });
+
+  // A reader's sitting whose role becomes editor's says so: Save, not Send.
+  testWidgets('a reader\'s sitting whose role becomes editor\'s saves with '
+      'Save', (tester) async {
+    var role = SharedLibraryRole.reader;
+    final page = await pumpReader(tester, role: () => Future.value(role));
+    await tester.tap(find.byKey(suggestKey));
+    await tester.pumpAndSettle();
+
+    role = SharedLibraryRole.editor;
+    page.container.invalidate(libraryRoleProvider('L'));
+    await tester.pumpAndSettle();
+
+    expect(find.text(l.forms_save), findsOneWidget);
+    expect(find.text(l.sharedLibrary_suggest_send), findsNothing);
   });
 
   // Question 2: an editor's sitting may hold changes a reader cannot send.
@@ -254,16 +272,18 @@ void main() {
     Future<SiteUnlockHarness> pumpSend(
       WidgetTester tester, {
       bool editorInStore = false,
+      bool storeFails = false,
+      SharedLibraryRole shownRole = SharedLibraryRole.reader,
     }) {
       suggestions = _Suggestions();
       return pumpSitePage(
         tester,
         site: librarySite,
         extra: [
-          ...library(),
+          ...library(role: () => Future.value(shownRole)),
           suggestionServiceProvider.overrideWithValue(suggestions),
           sharedLibraryStoreProvider.overrideWithValue(
-            _Store(editor: editorInStore),
+            _Store(editor: editorInStore, fails: storeFails),
           ),
         ],
       );
@@ -370,6 +390,52 @@ void main() {
       expect(suggestions.calls, isEmpty);
     });
 
+    // An editor's sitting is never a Send, whatever the store says at Save:
+    // the save goes as an edit, which the save service refuses if the right
+    // has gone, keeping the sitting.
+    testWidgets('an editor\'s sitting is never sent', (tester) async {
+      final page = await pumpSend(tester, shownRole: SharedLibraryRole.editor);
+      await tester.tap(find.byIcon(Icons.lock_outline));
+      await tester.pumpAndSettle();
+      sitting(tester).set(siteNotesField, 'Choppy');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text(l.forms_save));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(page.save.calls.single.privateOnly, isFalse);
+      expect(suggestions.calls, isEmpty);
+    });
+
+    testWidgets('a second tap on Send asks once', (tester) async {
+      await pumpSend(tester);
+      await unlockReader(tester);
+      sitting(tester).set(siteNameField, 'Big Hole');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text(l.sharedLibrary_suggest_send));
+      await tester.tap(find.text(l.sharedLibrary_suggest_send));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsOneWidget);
+    });
+
+    testWidgets('a role that cannot be read at Send says the save failed', (
+      tester,
+    ) async {
+      final page = await pumpSend(tester, storeFails: true);
+      await unlockReader(tester);
+      sitting(tester).set(siteNotesField, 'Choppy');
+      await tester.pumpAndSettle();
+
+      await tapSend(tester);
+
+      expect(find.text(l.recordEdit_saveFailed), findsOneWidget);
+      expect(find.byType(RecordEditBar), findsOneWidget);
+      expect(page.save.calls, isEmpty);
+    });
+
     testWidgets('a reader\'s sitting that finds the profile an editor at Send '
         'saves as an edit', (tester) async {
       final page = await pumpSend(tester, editorInStore: true);
@@ -388,12 +454,18 @@ void main() {
 
 /// The library as stored, with this profile listed as an editor or not.
 class _Store extends SharedLibraryStore {
-  _Store({required this.editor});
+  _Store({required this.editor, this.fails = false});
 
   final bool editor;
+  final bool fails;
 
   @override
-  Future<SharedLibrary?> getLibrary(String id) async => SharedLibrary(
+  Future<SharedLibrary?> getLibrary(String id) async {
+    if (fails) throw StateError('the library store is out of reach');
+    return _library();
+  }
+
+  SharedLibrary _library() => SharedLibrary(
     id: 'L',
     name: 'Club',
     connectedAccountId: 'a',

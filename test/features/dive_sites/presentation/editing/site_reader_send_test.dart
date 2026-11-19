@@ -51,6 +51,18 @@ class _Suggestions extends Fake implements SuggestionService {
   }
 }
 
+/// A proposal that fails after the reader's own write (the role changed, the
+/// store refused it).
+class _FailingSuggestions extends Fake implements SuggestionService {
+  @override
+  Future<SharedSiteSuggestion?> propose({
+    required DiveSite proposed,
+    required String diverId,
+    String note = '',
+    Map<String, Object?> childFields = const {},
+  }) async => throw StateError('only a reader suggests changes');
+}
+
 /// A save that fails, as a write the database refused does.
 class _FailingSave extends Fake implements SiteEditSaveService {
   @override
@@ -149,6 +161,45 @@ void main() {
 
     await expectLater(send(session, save: _FailingSave()), throwsStateError);
     expect(suggestions.calls, isEmpty);
+  });
+
+  // The reader's own write has committed: a failed proposal says so and
+  // ends the Send, rather than handing back a sitting whose held writes
+  // would run a second time.
+  test(
+    'a failed proposal after the own write is saved privately, not sent',
+    () async {
+      final session = await sitting()
+        ..set(siteNotesField, 'Choppy')
+        ..set(siteNameField, 'Big Lake');
+
+      final outcome = (await sendReaderSitting(
+        session,
+        service: service,
+        suggestions: _FailingSuggestions(),
+        diverId: 'me',
+        note: '',
+      )).outcome;
+
+      expect(outcome, SiteReaderSent.savedPrivateNotSent);
+      expect((await stored()).notes, 'Choppy');
+    },
+  );
+
+  test('a failed proposal with nothing written fails the Send', () async {
+    final session = await sitting()
+      ..set(siteNameField, 'Big Lake');
+
+    await expectLater(
+      sendReaderSitting(
+        session,
+        service: service,
+        suggestions: _FailingSuggestions(),
+        diverId: 'me',
+        note: '',
+      ),
+      throwsStateError,
+    );
   });
 
   test('held media is written, held type changes are not', () async {

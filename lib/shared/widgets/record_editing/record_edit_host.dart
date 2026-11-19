@@ -250,8 +250,6 @@ mixin RecordEditHost<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
     });
   }
 
-  /// Saves the sitting, or creates the record, and says why when nothing
-  /// was saved.
   /// The Save button's word in the open sitting: Save when null. A sitting
   /// that ends otherwise names its own (a library reader's Send).
   String? get saveLabel => null;
@@ -260,6 +258,8 @@ mixin RecordEditHost<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
   /// as it is and saves nothing, as a dialog the diver cancelled does.
   Future<bool> beforeSave() async => true;
 
+  /// Saves the sitting, or creates the record, and says why when nothing
+  /// was saved.
   Future<void> saveAndReport() async {
     if (isCreating) return saveNewRecord();
     final messenger = ScaffoldMessenger.of(context);

@@ -63,6 +63,17 @@ mixin _SiteDetailPageEditing
       !_canEditSite(ref, widget.site, watch: watch) &&
       _readerMaySuggest(watch: watch);
 
+  /// Whether the page shows a reader's sitting now: the open sitting a
+  /// reader's while this profile may not edit the site, or, while locked,
+  /// a page that offers a reader's unlock. A reader's sitting that finds
+  /// the profile an editor shows an editor's page (plan 5, Question 2).
+  bool _readerPageNow({bool watch = false}) {
+    final session = maybeEditController?.session;
+    if (session == null) return _suggestsNow(watch: watch);
+    return isReaderSitting(session) &&
+        !_canEditSite(ref, widget.site, watch: watch);
+  }
+
   /// Whether the open sitting may go on: a reader's while the page offers
   /// any, an editor's while the profile may still edit. An editor's sitting
   /// may hold what a reader cannot send (features, expected species), so
@@ -236,15 +247,13 @@ mixin _SiteDetailPageEditing
   DiveSite? get storedForUnlock => ref.read(siteProvider(widget.siteId)).value;
 
   @override
-  String editingTitle(DiveSite site) =>
-      isReaderSitting(maybeEditController?.session)
+  String editingTitle(DiveSite site) => _readerPageNow()
       ? context.l10n.sharedLibrary_suggest_title
       : context.l10n.recordEdit_editingTitle(site.name);
 
   @override
-  String? get saveLabel => isReaderSitting(maybeEditController?.session)
-      ? context.l10n.sharedLibrary_suggest_send
-      : null;
+  String? get saveLabel =>
+      _readerPageNow() ? context.l10n.sharedLibrary_suggest_send : null;
 
   // After a whole-record operation: the site as stored now, read through
   // the provider the page shows, so both agree.
@@ -259,9 +268,11 @@ mixin _SiteDetailPageEditing
   bool _sendAtSave = false;
   String _sendNote = '';
 
-  /// On a library site the role as stored now decides, however the sitting
-  /// was opened: an editor's save edits, anyone else's is a Send, which
-  /// asks for a note only when something goes to the owner.
+  /// A reader's sitting on a library site: the role as stored now decides.
+  /// An editor's role saves as an edit; anyone else's is a Send, which asks
+  /// for a note only when something goes to the owner. An editor's sitting
+  /// is never sent: one whose role has dropped is withdrawn, not sent
+  /// (plan 5, Question 2). A role that cannot be read saves nothing.
   @override
   Future<bool> beforeSave() async {
     _sendAtSave = false;
@@ -269,7 +280,16 @@ mixin _SiteDetailPageEditing
     final session = maybeEditController?.session;
     final libraryId = widget.site.sharedLibraryId;
     if (session == null || libraryId == null) return true;
-    final role = await libraryRoleNow(ref.read, libraryId);
+    if (!isReaderSitting(session)) return true;
+    final messenger = ScaffoldMessenger.of(context);
+    final failed = context.l10n.recordEdit_saveFailed;
+    final SharedLibraryRole? role;
+    try {
+      role = await libraryRoleNow(ref.read, libraryId);
+    } catch (_) {
+      messenger.showSnackBar(SnackBar(content: Text(failed)));
+      return false;
+    }
     if (!mounted) return false;
     if (role != null && canEditLibrarySite(role)) return true;
     if (readerSendProposes(session)) {
@@ -339,6 +359,8 @@ mixin _SiteDetailPageEditing
           SiteReaderSent.sent => l10n.sharedLibrary_suggest_sent,
           SiteReaderSent.savedPrivate =>
             l10n.sharedLibrary_suggest_savedPrivate,
+          SiteReaderSent.savedPrivateNotSent =>
+            l10n.sharedLibrary_suggest_savedNotSent,
           SiteReaderSent.nothingChanged =>
             l10n.sharedLibrary_suggest_nothingChanged,
         }),
@@ -374,7 +396,7 @@ mixin _SiteDetailPageEditing
     final changed = controller.session?.changedCardIds ?? const <String>{};
     final session = controller.session;
     // A reader's sitting changes none of the library's cards.
-    final reader = isReaderSitting(session);
+    final reader = _readerPageNow(watch: true);
     // As the page lays itself out: while an editor is open no card comes in,
     // so none leaves the strip either.
     final presence = controller.layoutRecord ?? working;
@@ -541,9 +563,10 @@ mixin _SiteDetailPageEditing
       );
     }
     // A library reader's page (plan 5): the library's cards fade with no
-    // pencil, and the reader's own say so. Decided by the page, not the
-    // sitting, so unlocking never remounts a card.
-    final rule = _suggestsNow(watch: true)
+    // pencil, and the reader's own say so. While locked the page decides,
+    // so unlocking never remounts a card; while unlocked the sitting does,
+    // so a reload of the role keeps the reader's framing.
+    final rule = _readerPageNow(watch: true)
         ? siteReaderCardRule(card.id)
         : SiteReaderCard.suggested;
     if (rule == SiteReaderCard.library) {

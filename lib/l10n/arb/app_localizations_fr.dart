@@ -25050,6 +25050,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Vos notes et votre évaluation sont enregistrées.';
 
   @override
+  String get sharedLibrary_suggest_savedNotSent =>
+      'Vos notes et votre évaluation sont enregistrées. La suggestion n\'a pas pu être envoyée.';
+
+  @override
   String sharedLibrary_suggest_pending(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

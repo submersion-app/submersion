@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/services/shared_library/shared_site_models.dart';
 import 'package:submersion/core/services/shared_library/suggestion_service.dart';
 import 'package:submersion/features/dive_sites/data/services/site_edit_save_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -17,6 +18,10 @@ enum SiteReaderSent {
 
   /// Only the reader's own changes were written.
   savedPrivate,
+
+  /// The reader's own changes were written, but the proposal to the owner
+  /// failed: the Send ends there, so the written part never runs twice.
+  savedPrivateNotSent,
 
   /// Nothing differed from what is stored.
   nothingChanged,
@@ -90,8 +95,10 @@ class _SuggestionNoteDialogState extends State<_SuggestionNoteDialog> {
 /// attachments) written as one History entry, then, when [session] holds
 /// any, the changed shared fields, types and tags proposed to the owner
 /// with [note]. The library's site itself is never written. A failed
-/// write throws and proposes nothing. Returns what was done, and the site
-/// as the write left it.
+/// write throws and proposes nothing; a failed proposal throws too, unless
+/// the reader's own write has committed, which is then reported as
+/// [SiteReaderSent.savedPrivateNotSent]. Returns what was done, and the
+/// site as the write left it.
 Future<({SiteReaderSent outcome, DiveSite? saved})> sendReaderSitting(
   EditSession<DiveSite> session, {
   required SiteEditSaveService service,
@@ -106,7 +113,7 @@ Future<({SiteReaderSent outcome, DiveSite? saved})> sendReaderSitting(
           session,
           service,
           actingDiverId: diverId,
-          privateCards: const {'notes', 'rating', 'media', 'documents'},
+          privateCards: siteReaderPrivateCards,
         );
   if (!readerSendProposes(session)) {
     return (
@@ -116,12 +123,18 @@ Future<({SiteReaderSent outcome, DiveSite? saved})> sendReaderSitting(
       saved: written?.after,
     );
   }
-  final suggestion = await suggestions.propose(
-    proposed: session.working,
-    diverId: diverId,
-    note: note,
-    childFields: _childFields(session),
-  );
+  final SharedSiteSuggestion? suggestion;
+  try {
+    suggestion = await suggestions.propose(
+      proposed: session.working,
+      diverId: diverId,
+      note: note,
+      childFields: _childFields(session),
+    );
+  } catch (_) {
+    if (written == null) rethrow;
+    return (outcome: SiteReaderSent.savedPrivateNotSent, saved: written.after);
+  }
   return (
     outcome: suggestion != null
         ? SiteReaderSent.sent

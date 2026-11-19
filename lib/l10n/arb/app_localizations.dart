@@ -39447,6 +39447,12 @@ abstract class AppLocalizations {
   /// **'Your notes and rating are saved.'**
   String get sharedLibrary_suggest_savedPrivate;
 
+  /// Snack bar after a shared site library reader's Send when their own notes and rating were saved but the suggestion to the library's owner could not be sent.
+  ///
+  /// In en, this message translates to:
+  /// **'Your notes and rating are saved. The suggestion could not be sent.'**
+  String get sharedLibrary_suggest_savedNotSent;
+
   /// No description provided for @sharedLibrary_suggest_pending.
   ///
   /// In en, this message translates to:

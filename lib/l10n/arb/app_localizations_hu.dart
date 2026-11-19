@@ -24901,6 +24901,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'A jegyzeteid és az értékelésed mentve.';
 
   @override
+  String get sharedLibrary_suggest_savedNotSent =>
+      'A jegyzeteid és az értékelésed mentve. A javaslatot nem sikerült elküldeni.';
+
+  @override
   String sharedLibrary_suggest_pending(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

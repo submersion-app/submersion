@@ -24978,6 +24978,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'As suas notas e a sua classificação foram guardadas.';
 
   @override
+  String get sharedLibrary_suggest_savedNotSent =>
+      'As suas notas e a sua classificação foram guardadas. Não foi possível enviar a sugestão.';
+
+  @override
   String sharedLibrary_suggest_pending(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

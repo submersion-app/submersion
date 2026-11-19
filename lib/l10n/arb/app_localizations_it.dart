@@ -24981,6 +24981,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Le tue note e la tua valutazione sono state salvate.';
 
   @override
+  String get sharedLibrary_suggest_savedNotSent =>
+      'Le tue note e la tua valutazione sono state salvate. Non è stato possibile inviare il suggerimento.';
+
+  @override
   String sharedLibrary_suggest_pending(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

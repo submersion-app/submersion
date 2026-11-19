@@ -356,8 +356,10 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
     final embedded = widget.embedded;
     // Unlock-to-edit in place (issue #4527, phase 2), behind the switch.
     final edit = _editingInBuild();
-    // Only where the page offers editing now: a reader's stale edit link
-    // opens the site locked. A role still loading unlocks once it allows.
+    // Only where the page offers editing now: an edit link opens an
+    // editor's sitting, or a library reader's to suggest changes, and opens
+    // the site locked for anyone else. A role still loading unlocks once it
+    // allows.
     if (edit.offered) openUnlockedOnce(widget.site);
     final site = edit.site;
     final sections = ref.watch(

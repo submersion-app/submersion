@@ -7079,6 +7079,7 @@
   "sharedLibrary_suggest_sent": "Suggerimento inviato",
   "sharedLibrary_suggest_nothingChanged": "Nessuna modifica.",
   "sharedLibrary_suggest_savedPrivate": "Le tue note e la tua valutazione sono state salvate.",
+  "sharedLibrary_suggest_savedNotSent": "Le tue note e la tua valutazione sono state salvate. Non è stato possibile inviare il suggerimento.",
   "sharedLibrary_suggest_pending": "{count, plural, =1{1 suggerimento in attesa} other{{count} suggerimenti in attesa}}",
   "@sharedLibrary_suggest_pending": {
     "placeholders": {

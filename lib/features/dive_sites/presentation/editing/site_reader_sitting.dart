@@ -57,11 +57,20 @@ enum SiteReaderCard {
   library,
 }
 
-/// [cardId]'s place in a reader's sitting. Notes, rating and the reader's
-/// attachments are their own; features and expected species are the
-/// library's; every other card, the header block included, is suggested.
-SiteReaderCard siteReaderCardRule(String cardId) => switch (cardId) {
-  'notes' || 'rating' || 'media' || 'documents' => SiteReaderCard.private,
-  'features' || 'marineLife' => SiteReaderCard.library,
-  _ => SiteReaderCard.suggested,
-};
+/// The cards a reader's sitting keeps as the reader's own: notes, rating
+/// and their attachments.
+const siteReaderPrivateCards = {'notes', 'rating', 'media', 'documents'};
+
+/// The library's cards, which a reader's sitting does not change: features
+/// and expected species.
+const siteReaderLibraryCards = {'features', 'marineLife'};
+
+/// [cardId]'s place in a reader's sitting: one of
+/// [siteReaderPrivateCards] or [siteReaderLibraryCards], or, for every
+/// other card (the header block included), suggested.
+SiteReaderCard siteReaderCardRule(String cardId) =>
+    siteReaderPrivateCards.contains(cardId)
+    ? SiteReaderCard.private
+    : siteReaderLibraryCards.contains(cardId)
+    ? SiteReaderCard.library
+    : SiteReaderCard.suggested;

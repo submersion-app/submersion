@@ -15706,6 +15706,10 @@
   "sharedLibrary_suggest_sent": "Suggestion sent",
   "sharedLibrary_suggest_nothingChanged": "Nothing changed.",
   "sharedLibrary_suggest_savedPrivate": "Your notes and rating are saved.",
+  "sharedLibrary_suggest_savedNotSent": "Your notes and rating are saved. The suggestion could not be sent.",
+  "@sharedLibrary_suggest_savedNotSent": {
+    "description": "Snack bar after a shared site library reader's Send when their own notes and rating were saved but the suggestion to the library's owner could not be sent."
+  },
   "sharedLibrary_suggest_pending": "{count, plural, =1{1 suggestion pending} other{{count} suggestions pending}}",
   "@sharedLibrary_suggest_pending": {"placeholders": {"count": {"type": "int"}}},
   "sharedLibrary_suggest_withdraw": "Withdraw",

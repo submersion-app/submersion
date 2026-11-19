@@ -24834,6 +24834,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Je notities en beoordeling zijn opgeslagen.';
 
   @override
+  String get sharedLibrary_suggest_savedNotSent =>
+      'Je notities en beoordeling zijn opgeslagen. De suggestie kon niet worden verzonden.';
+
+  @override
   String sharedLibrary_suggest_pending(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
