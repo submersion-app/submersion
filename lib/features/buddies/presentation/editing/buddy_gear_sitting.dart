@@ -5,6 +5,7 @@ import 'package:submersion/features/equipment/data/repositories/equipment_locati
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/services/equipment_move_flow.dart';
 import 'package:submersion/features/equipment/data/services/equipment_return_flow.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
 import 'package:submersion/features/equipment/domain/services/gear_with_buddy.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_location_picker_sheet.dart';
@@ -114,11 +115,14 @@ typedef BuddyGearRow = ({GearWithBuddy gear, int? heldIndex});
 
 /// The buddy's gear as [session] holds it: [stored], less what a held move
 /// returns, plus what a held move lends to this buddy (at a place standing
-/// for theirs, which is made at Save).
+/// for theirs, which is made at Save), with the parts the diver agreed to
+/// send along, found by id in [items].
 List<BuddyGearRow> buddyGearInSitting(
   EditSession<Buddy> session,
-  List<GearWithBuddy> stored,
-) {
+  List<GearWithBuddy> stored, {
+  List<EquipmentItem> items = const [],
+}) {
+  final byId = {for (final item in items) item.id: item};
   final moves = heldBuddyGearMoves(session);
   final buddy = session.working;
   var rows = <BuddyGearRow>[
@@ -137,12 +141,16 @@ List<BuddyGearRow> buddyGearInSitting(
     if (move.lend case final lend?) {
       final pick = lend.pick;
       final here = pick is BuddyPick && pick.buddy.id == buddy.id;
-      final ids = {for (final item in lend.items) item.id};
+      final lent = [
+        ...lend.items,
+        for (final id in lend.plan.partIds) ?byId[id],
+      ];
+      final ids = {for (final item in lent) item.id};
       rows = [
         for (final row in rows)
           if (!ids.contains(row.gear.item.id)) row,
         if (here)
-          for (final item in lend.items)
+          for (final item in lent)
             (gear: (item: item, place: _heldPlace(buddy, lend)), heldIndex: i),
       ];
     }

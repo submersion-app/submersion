@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/location_service_provider.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/editing/dive_center_edit_fields.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_location_card_editor.dart'
@@ -57,7 +58,7 @@ class _DiveCenterMapCardEditorState
   @override
   void initState() {
     super.initState();
-    _showStored();
+    _writeStored();
     _session.addListener(_showStored);
     _latitude.addListener(_onTyped);
     _longitude.addListener(_onTyped);
@@ -94,16 +95,24 @@ class _DiveCenterMapCardEditorState
   }
 
   /// Shows the sitting's coordinates unless the text already reads as them.
+  /// [_writeStored], and the error under the fields with it.
   void _showStored() {
-    if (_session.isDisposed) return;
+    if (_writeStored() && mounted) setState(() {});
+  }
+
+  /// Writes the sitting's coordinates as text unless the text already reads
+  /// as them; whether it wrote.
+  bool _writeStored() {
+    if (_session.isDisposed) return false;
     final value = _session.valueOf(diveCenterCoordinatesField);
     final typed = _typed();
-    if (typed.readable && typed.value == value) return;
-    if (!typed.readable && value == null) return;
+    if (typed.readable && typed.value == value) return false;
+    if (!typed.readable && value == null) return false;
     _writing = true;
     _latitude.text = value?.latitude.toStringAsFixed(6) ?? '';
     _longitude.text = value?.longitude.toStringAsFixed(6) ?? '';
     _writing = false;
+    return true;
   }
 
   void _onTyped() {
@@ -127,11 +136,17 @@ class _DiveCenterMapCardEditorState
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
     setState(() => _busy = true);
+    LocationResult? result;
     try {
-      final result = await location.getCurrentLocation(
+      result = await location.getCurrentLocation(
         includeGeocoding: true,
         languageCode: language,
       );
+    } catch (_) {
+      // Unavailable, as when it answers nothing.
+      result = null;
+    }
+    try {
       if (result == null) {
         // On a phone the likely cause is the permission, which Settings
         // grants, as the form says.
@@ -183,7 +198,13 @@ class _DiveCenterMapCardEditorState
     final location = ref.read(locationServiceProvider);
     setState(() => _busy = true);
     try {
-      final result = await location.forwardGeocode(address);
+      LocationResult? result;
+      try {
+        result = await location.forwardGeocode(address);
+      } catch (_) {
+        // A lookup that fails says so as one that finds nothing.
+        result = null;
+      }
       if (result == null) {
         messenger.showSnackBar(
           SnackBar(content: Text(l10n.diveCenters_error_geocodeFailed)),

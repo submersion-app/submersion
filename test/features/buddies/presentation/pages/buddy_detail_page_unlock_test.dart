@@ -129,6 +129,8 @@ void main() {
     final harness = await pumpBuddyPage(tester);
     await unlock(tester);
     await openCard(tester, l.buddies_section_diveStatistics);
+    // The figures stay in view under the switch while it is open.
+    expect(find.text(l.buddies_stat_divesTogether), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('buddy-edit-rankings')));
     await tester.pumpAndSettle();
 

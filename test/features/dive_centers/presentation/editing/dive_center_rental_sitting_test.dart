@@ -96,4 +96,26 @@ void main() {
 
     expect(await notes.getForCenter('c1'), isEmpty);
   });
+
+  test('a note saved unchanged leaves the list as it was', () {
+    final a = note('a', 'blue 3');
+    final b = note('b', 'red 1');
+
+    expect(rentalNotesAfter([a, b], (note: a, removed: false)), [a, b]);
+    expect(
+      rentalNotesAfter(
+        [a, b],
+        (note: a.copyWith(label: 'blue 4'), removed: false),
+      ).map((n) => n.id),
+      ['a', 'b'],
+    );
+    expect(rentalNotesAfter([a, b], (note: a, removed: true)), [b]);
+    expect(
+      rentalNotesAfter(
+        [a],
+        (note: note('c', 'new'), removed: false),
+      ).map((n) => n.id),
+      ['a', 'c'],
+    );
+  });
 }

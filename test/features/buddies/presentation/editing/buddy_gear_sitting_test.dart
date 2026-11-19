@@ -244,4 +244,34 @@ void main() {
 
     expect(rows, isEmpty);
   });
+
+  test('a held lend lists the parts that go with it', () {
+    final session = EditSession(alex);
+    addTearDown(session.dispose);
+    const second = EquipmentItem(
+      id: 'second',
+      name: 'Second stage',
+      type: EquipmentType.regulator,
+      status: EquipmentStatus.active,
+    );
+    final withParts = lend();
+    holdBuddyLend(
+      session,
+      HeldLend(
+        items: withParts.items,
+        pick: withParts.pick,
+        plan: EquipmentMovePlan(
+          items: withParts.plan.items,
+          movedAt: withParts.plan.movedAt,
+          withParts: true,
+          partIds: const {'second'},
+        ),
+        diverId: 'me',
+      ),
+    );
+
+    final rows = buddyGearInSitting(session, const [], items: const [second]);
+
+    expect([for (final r in rows) r.gear.item.id], ['reg', 'second']);
+  });
 }

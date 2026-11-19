@@ -14,6 +14,7 @@ class EquipmentMovePlan {
     required this.movedAt,
     this.note = '',
     this.withParts = false,
+    this.partIds = const {},
     this.status,
   });
 
@@ -24,6 +25,11 @@ class EquipmentMovePlan {
 
   /// Whether their parts go too.
   final bool withParts;
+
+  /// The parts when the diver agreed, for showing the move before it is
+  /// written; [EquipmentMoveFlow.write] finds them again from what is
+  /// stored then.
+  final Set<String> partIds;
 
   /// The status the diver agreed to, or null to keep each one's.
   final EquipmentStatus? status;
@@ -128,6 +134,7 @@ class EquipmentMoveFlow {
       movedAt: movedAt,
       note: note,
       withParts: withParts,
+      partIds: withParts ? parts.keys.toSet() : const {},
       status: agreed ? offered : null,
     );
   }

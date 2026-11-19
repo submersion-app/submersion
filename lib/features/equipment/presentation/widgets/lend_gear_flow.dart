@@ -56,7 +56,12 @@ Future<HeldLend?> planLendGear(
   Set<String> lent = const {},
   Set<String> returned = const {},
 }) async {
-  final diverIdFuture = ref.read(validatedCurrentDiverIdProvider.future);
+  // Handled now, though awaited only at the end: a failure while the diver
+  // is still choosing would otherwise go unhandled. The place is then filed
+  // under no diver, as for a library with none.
+  final diverIdFuture = ref
+      .read(validatedCurrentDiverIdProvider.future)
+      .then<String?>((id) => id, onError: (Object _) => null);
   final moves = ref.read(equipmentLocationMoveRepositoryProvider);
   final items = await _pickGearToLend(
     context,
@@ -100,14 +105,12 @@ Future<HeldLend?> planLendGear(
     messenger.showSnackBar(SnackBar(content: Text(failed)));
     return null;
   }
-  String? diverId;
-  try {
-    diverId = await diverIdFuture;
-  } catch (_) {
-    // The place is filed under no diver, as for a library with none.
-    diverId = null;
-  }
-  return HeldLend(items: items, pick: draft.pick, plan: plan, diverId: diverId);
+  return HeldLend(
+    items: items,
+    pick: draft.pick,
+    plan: plan,
+    diverId: await diverIdFuture,
+  );
 }
 
 /// The gear picker for lending to [buddy]: what they already have, or the

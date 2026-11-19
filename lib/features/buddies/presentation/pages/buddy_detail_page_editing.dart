@@ -108,11 +108,12 @@ mixin _BuddyDetailPageEditing
     final current =
         ref.watch(currentEquipmentLocationsProvider).value ??
         const <String, EquipmentLocation>{};
-    final stored = gearWithBuddy(buddy.id, itemsAtPlaces(ref), current);
+    final items = itemsAtPlaces(ref);
+    final stored = gearWithBuddy(buddy.id, items, current);
     final session = maybeEditController?.session;
     return session == null
         ? stored.isEmpty
-        : buddyGearInSitting(session, stored).isEmpty;
+        : buddyGearInSitting(session, stored, items: items).isEmpty;
   }
 
   /// Whether [id] is shown though empty: open or brought in from the strip

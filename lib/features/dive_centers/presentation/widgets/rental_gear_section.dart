@@ -73,11 +73,7 @@ class RentalGearSection extends ConsumerWidget {
     }
     final current = diveCenterRentalList.current(session);
     if (current == null || session.isDisposed) return;
-    diveCenterRentalList.set(session, [
-      for (final n in current)
-        if (n.id != edit.note.id) n,
-      if (!edit.removed) edit.note,
-    ]);
+    diveCenterRentalList.set(session, rentalNotesAfter(current, edit));
   }
 
   Widget _build(

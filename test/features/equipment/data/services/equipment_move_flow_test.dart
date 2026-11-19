@@ -198,6 +198,7 @@ void main() {
       expect(partsAsked, 1);
       expect(statusAsked, (EquipmentStatus.inService, 2));
       expect(plan.withParts, isTrue);
+      expect(plan.partIds, {'second'});
       expect(plan.status, EquipmentStatus.inService);
       expect(statusWritten, isFalse);
       expect(

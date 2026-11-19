@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/editing/buddy_card_ids.dart';
 import 'package:submersion/features/buddies/presentation/editing/buddy_certifications_sitting.dart';
 import 'package:submersion/features/buddies/presentation/editing/buddy_contact_card_editor.dart';
 import 'package:submersion/features/buddies/presentation/editing/buddy_edit_fields.dart';
 import 'package:submersion/features/buddies/presentation/editing/buddy_header_card_editor.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_gear_section.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
+import 'package:submersion/shared/widgets/icon_detail_row.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
@@ -90,25 +96,63 @@ const List<BuddyCardId> buddyOptionalCards = [
 ];
 
 /// The Statistics card's editor: whether the buddy is left out of the
-/// rankings (issue #3624). The figures themselves are calculated.
-class BuddyStatisticsCardEditor extends StatelessWidget {
+/// rankings (issue #3624), above the figures, which are calculated and
+/// read only.
+class BuddyStatisticsCardEditor extends ConsumerWidget {
   const BuddyStatisticsCardEditor({super.key, required this.session});
 
   final EditSession<Buddy> session;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
+    final units = ref.watch(unitFormatterProvider);
+    final stats = ref.watch(buddyStatsProvider(session.stored.id)).value;
     return ListenableBuilder(
       listenable: session,
-      builder: (context, _) => SwitchListTile(
-        key: const ValueKey('buddy-edit-rankings'),
-        contentPadding: EdgeInsets.zero,
-        title: Text(l10n.buddies_field_excludedFromRankings),
-        subtitle: Text(l10n.buddies_field_excludedFromRankingsHint),
-        value: session.valueOf(buddyExcludedFromRankingsField),
-        onChanged: (value) =>
-            session.set(buddyExcludedFromRankingsField, value),
+      builder: (context, _) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SwitchListTile(
+            key: const ValueKey('buddy-edit-rankings'),
+            contentPadding: EdgeInsets.zero,
+            title: Text(l10n.buddies_field_excludedFromRankings),
+            subtitle: Text(l10n.buddies_field_excludedFromRankingsHint),
+            value: session.valueOf(buddyExcludedFromRankingsField),
+            onChanged: (value) =>
+                session.set(buddyExcludedFromRankingsField, value),
+          ),
+          if (stats != null)
+            DetailRowGroup(
+              child: Column(
+                children: [
+                  IconDetailRow(
+                    icon: Icons.scuba_diving,
+                    label: l10n.buddies_stat_divesTogether,
+                    value: stats.totalDives.toString(),
+                  ),
+                  if (stats.firstDive != null)
+                    IconDetailRow(
+                      icon: Icons.first_page,
+                      label: l10n.buddies_stat_firstDive,
+                      value: units.formatDate(stats.firstDive),
+                    ),
+                  if (stats.lastDive != null)
+                    IconDetailRow(
+                      icon: Icons.last_page,
+                      label: l10n.buddies_stat_lastDive,
+                      value: units.formatDate(stats.lastDive),
+                    ),
+                  if (stats.favoriteSite != null)
+                    IconDetailRow(
+                      icon: Icons.place,
+                      label: l10n.buddies_stat_favoriteSite,
+                      value: stats.favoriteSite!,
+                    ),
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }

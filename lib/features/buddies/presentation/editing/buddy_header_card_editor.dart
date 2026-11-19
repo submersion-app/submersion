@@ -72,9 +72,8 @@ class _BuddyHeaderCardEditorState extends State<BuddyHeaderCardEditor> {
                     children: [
                       ProfileAvatar(
                         photo: _session.valueOf(buddyPhotoField),
-                        initials: name.trim().isEmpty
-                            ? '?'
-                            : name.trim()[0].toUpperCase(),
+                        // As the page draws them.
+                        initials: _session.working.initials,
                         radius: 50,
                         textStyle: TextStyle(
                           fontSize: 36,

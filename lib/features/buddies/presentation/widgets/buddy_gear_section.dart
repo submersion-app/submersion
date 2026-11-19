@@ -137,10 +137,11 @@ class BuddyGearSection extends ConsumerWidget {
     final current =
         ref.watch(currentEquipmentLocationsProvider).value ??
         const <String, EquipmentLocation>{};
-    final stored = gearWithBuddy(buddy.id, itemsAtPlaces(ref), current);
+    final items = itemsAtPlaces(ref);
+    final stored = gearWithBuddy(buddy.id, items, current);
     final rows = sitting == null
         ? [for (final gear in stored) (gear: gear, heldIndex: null)]
-        : buddyGearInSitting(sitting, stored);
+        : buddyGearInSitting(sitting, stored, items: items);
     // In the open card it is shown whatever it holds: Lend starts there.
     if (rows.isEmpty && editing == null) return const SizedBox.shrink();
     // Lends the sitting holds to somewhere other than this buddy: listed in
