@@ -292,9 +292,10 @@ extension _CourseDetailSections on _CourseDetailContent {
   Widget _buildCertificationSection(BuildContext context, WidgetRef ref) {
     final session = host?.maybeEditController?.session;
     if (session == null) return _certificationCard(context, ref);
-    // What the sitting holds is drawn as it changes.
+    // What the sitting holds is drawn as it changes, and only then: not on
+    // every keystroke in another card.
     return ListenableBuilder(
-      listenable: session,
+      listenable: courseCertificationsList.changes(session),
       builder: (context, _) => _certificationCard(context, ref),
     );
   }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
@@ -60,7 +62,7 @@ List<String> earnedCertificationIdsAtSave({
 /// The Earned certifications card's editor: which certifications the
 /// course earned, ticked in the sheet the form used. Inert until the
 /// sitting has read them, so nothing starts empty and unlinks them all; it
-/// asks for the read itself and draws the list once it answers.
+/// draws the list once the read answers.
 class CourseEarnedCertificationsEditor extends ConsumerStatefulWidget {
   const CourseEarnedCertificationsEditor({super.key, required this.session});
 
@@ -78,13 +80,8 @@ class _CourseEarnedCertificationsEditorState
   @override
   void initState() {
     super.initState();
-    if (courseCertificationsList.current(_session) == null) _load();
-  }
-
-  void _load() {
-    courseCertificationsList.load(_session).then((_) {
-      if (mounted) setState(() {});
-    });
+    // The read the sitting asked for, or one of its own when none was.
+    unawaited(courseCertificationsList.currentOrRead(_session));
   }
 
   @override
@@ -93,12 +90,14 @@ class _CourseEarnedCertificationsEditorState
         ref.watch(certificationListNotifierProvider).value ??
         const <Certification>[];
     return ListenableBuilder(
-      listenable: _session,
+      listenable: courseCertificationsList.changes(_session),
       builder: (context, _) {
         final current = courseCertificationsList.current(_session);
         if (current == null) {
           if (courseCertificationsList.failed(_session)) {
-            return SittingLoadFailed(onRetry: _load);
+            return SittingLoadFailed(
+              onRetry: () => courseCertificationsList.load(_session),
+            );
           }
           return const LinearProgressIndicator();
         }

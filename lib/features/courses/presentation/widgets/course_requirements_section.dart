@@ -43,9 +43,10 @@ class CourseRequirementsSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final sitting = editing ?? shown;
     if (sitting == null) return _build(context, ref);
-    // What the sitting holds is drawn as it changes.
+    // What the sitting holds is drawn as it changes, and only then: not on
+    // every keystroke in another card.
     return ListenableBuilder(
-      listenable: sitting,
+      listenable: courseRequirementsList.changes(sitting),
       builder: (context, _) => _build(context, ref),
     );
   }

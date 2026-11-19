@@ -230,4 +230,76 @@ void main() {
     expect(sameIdSets(['a:1'], ['a:1', 'b:2'], id), isFalse);
     expect(sameIdSets(['a:1', 'a:2'], ['a:3', 'b:4'], id), isFalse);
   });
+  test(
+    'changes tells when a read lands and when the diver sets the list',
+    () async {
+      final list = rows();
+      var told = 0;
+      list.changes(session).addListener(() => told++);
+
+      list.load(session);
+      expect(told, 0);
+      await session.settled();
+      expect(told, 1);
+
+      list.set(session, ['a']);
+      expect(told, 2);
+    },
+  );
+
+  test('changes tells when a read fails', () async {
+    final list = SittingList<String, String>(
+      key: 'failing',
+      cardId: 'card',
+      read: (_) async => throw StateError('no database'),
+      write: (_, _, _) async => null,
+    );
+    var told = 0;
+    list.changes(session).addListener(() => told++);
+
+    list.load(session);
+    await session.settled();
+
+    expect(list.failed(session), isTrue);
+    expect(told, 1);
+  });
+
+  test('currentOrRead waits for the read already asked and asks none of its '
+      'own', () async {
+    final list = rows();
+    gate = Completer();
+    list.load(session);
+
+    final first = list.currentOrRead(session);
+    final second = list.currentOrRead(session);
+    gate!.complete(['x']);
+
+    expect(await first, ['x']);
+    expect(await second, ['x']);
+    expect(reads, 1);
+  });
+
+  test('currentOrRead asks for a read when none was asked', () async {
+    final list = rows();
+
+    final results = await Future.wait([
+      list.currentOrRead(session),
+      list.currentOrRead(session),
+    ]);
+
+    expect(results, [
+      ['a', 'b'],
+      ['a', 'b'],
+    ]);
+    expect(reads, 1);
+  });
+
+  test('currentOrRead answers at once once read', () async {
+    final list = rows();
+    list.load(session);
+    await session.settled();
+
+    expect(await list.currentOrRead(session), ['a', 'b']);
+    expect(reads, 1);
+  });
 }

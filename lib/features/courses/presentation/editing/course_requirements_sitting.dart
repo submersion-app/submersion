@@ -338,33 +338,6 @@ class HeldRequirementActions implements RequirementActions {
 
   String get _courseId => _session.stored.id;
 
-  /// The sitting's rows, waiting for the read the sitting already asked for
-  /// (asking again would drop its answer) and asking for one only when none
-  /// has answered; null when the rows cannot be read.
-  Future<List<CourseRequirementProgress>?> _rows() async {
-    var rows = courseRequirementsList.current(_session);
-    if (rows != null || _session.isDisposed) return rows;
-    await _session.settled();
-    if (_session.isDisposed) return null;
-    rows = courseRequirementsList.current(_session);
-    if (rows != null) return rows;
-    // One read for every action waiting on it: a second would drop the
-    // first one's answer.
-    var reading = _session.recall<Future<void>>(_readingKey);
-    if (reading == null) {
-      reading = courseRequirementsList.load(_session);
-      _session.remember(_readingKey, reading);
-      reading.whenComplete(() {
-        if (!_session.isDisposed) _session.remember(_readingKey, null);
-      });
-    }
-    await reading;
-    if (_session.isDisposed) return null;
-    return courseRequirementsList.current(_session);
-  }
-
-  static const _readingKey = 'course.requirements.actionRead';
-
   /// Applies [edit] to the sitting's rows, reading them first when the
   /// sitting has not yet, so nothing done before the read answers is lost.
   Future<void> _change(
@@ -373,7 +346,7 @@ class HeldRequirementActions implements RequirementActions {
     )
     edit,
   ) async {
-    final rows = await _rows();
+    final rows = await courseRequirementsList.currentOrRead(_session);
     if (rows == null || _session.isDisposed) return;
     courseRequirementsList.set(_session, edit(rows));
   }
@@ -419,7 +392,7 @@ class HeldRequirementActions implements RequirementActions {
   ) async {
     var dive = suggestion;
     if (dive == null) {
-      final current = await _rows();
+      final current = await courseRequirementsList.currentOrRead(_session);
       final loaded = courseRequirementsList.loaded(_session);
       if (loaded == null || current == null || !context.mounted) return;
       final scope = pickerScopeInSitting(loaded: loaded, current: current);
