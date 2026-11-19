@@ -7,6 +7,11 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_edit_cards.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_header_card_editor.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_plain_fields.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_reader_sitting.dart';
+import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_gap_field.dart';
+import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_pair.dart';
+import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_gap_providers.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
@@ -107,6 +112,43 @@ void main() {
         ana,
       ]);
       expect(find.text(l.sharedItems_sharedWith_label), findsNothing);
+    });
+  });
+
+  // In a library reader's sitting a fill would write the library's site,
+  // which a reader cannot: the catalogue offer reads only (plan 5).
+  group('the catalogue offer', () {
+    const pair = CataloguePair(
+      site: site,
+      record: CatalogueSite(id: 'r1', name: 'Blue Hole', source: 'osm'),
+      kind: CataloguePairKind.linked,
+      fields: {CatalogueGapField.depth},
+    );
+    final offer = [
+      catalogueGapPairForSiteProvider('s1').overrideWith((ref) => pair),
+    ];
+
+    testWidgets('an editor can review it', (tester) async {
+      await pumpSiteEditor(
+        tester,
+        site,
+        (session) => SiteHeaderCardEditor(session: session),
+        overrides: offer,
+      );
+
+      expect(find.text(l.diveSites_gapNotice_review), findsOneWidget);
+    });
+
+    testWidgets('a reader\'s sitting reads it only', (tester) async {
+      await pumpSiteEditor(
+        tester,
+        site,
+        (session) => SiteHeaderCardEditor(session: session),
+        overrides: offer,
+        onStart: markReaderSitting,
+      );
+
+      expect(find.text(l.diveSites_gapNotice_review), findsNothing);
     });
   });
 }

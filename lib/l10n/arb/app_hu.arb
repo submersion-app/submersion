@@ -3166,6 +3166,8 @@
   "recordEdit_loadFailed": "Ezt a kártyát nem sikerült betölteni.",
   "recordEdit_tryAgain": "Újra",
   "recordEdit_imported": "Importált",
+  "recordEdit_library": "Könyvtár",
+  "recordEdit_onlyYou": "Csak te",
   "recordEdit_saveFailed": "Nem sikerült menteni a módosításokat. Semmi sem változott.",
   "recordEdit_fixInvalid": "Néhány érték nem olvasható. Javítsa ki őket mentés előtt.",
   "recordEdit_unlockToUseThis": "Oldd fel a használatához",
@@ -7077,6 +7079,7 @@
   "sharedLibrary_suggest_sent": "Javaslat elküldve",
   "sharedLibrary_suggest_nothingChanged": "Semmi sem változott.",
   "sharedLibrary_suggest_savedPrivate": "A jegyzeteid és az értékelésed mentve.",
+  "sharedLibrary_suggest_savedNotSent": "A jegyzeteid és az értékelésed mentve. A javaslatot nem sikerült elküldeni.",
   "sharedLibrary_suggest_pending": "{count, plural, =1{1 javaslat függőben} other{{count} javaslat függőben}}",
   "@sharedLibrary_suggest_pending": {
     "placeholders": {

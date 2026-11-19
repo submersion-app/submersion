@@ -14,6 +14,7 @@ Widget _host({
   VoidCallback? onSave,
   ThemeData? theme,
   List<Widget> actions = const [],
+  String? saveLabel,
 }) {
   return MaterialApp(
     theme: theme,
@@ -28,6 +29,7 @@ Widget _host({
         onCancel: onCancel ?? () {},
         onSave: onSave ?? () {},
         actions: actions,
+        saveLabel: saveLabel,
       ),
     ),
   );
@@ -173,4 +175,16 @@ void main() {
       });
     }
   }
+
+  // A sitting that ends otherwise (a reader's Send, issue #4527) names its
+  // own Save.
+  testWidgets('a save label replaces Save', (tester) async {
+    var saved = 0;
+    await tester.pumpWidget(_host(saveLabel: 'Send', onSave: () => saved++));
+
+    expect(find.text('Send'), findsOneWidget);
+    expect(find.text('Save'), findsNothing);
+    await tester.tap(find.text('Send'));
+    expect(saved, 1);
+  });
 }

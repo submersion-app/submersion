@@ -3166,6 +3166,8 @@
   "recordEdit_loadFailed": "לא ניתן היה לטעון כרטיס זה.",
   "recordEdit_tryAgain": "נסה שוב",
   "recordEdit_imported": "מיובא",
+  "recordEdit_library": "ספרייה",
+  "recordEdit_onlyYou": "רק לך",
   "recordEdit_saveFailed": "לא ניתן היה לשמור את השינויים. שום דבר לא השתנה.",
   "recordEdit_fixInvalid": "לא ניתן לקרוא חלק מהערכים. תקן אותם לפני השמירה.",
   "recordEdit_unlockToUseThis": "יש לבטל את הנעילה כדי להשתמש בזה",
@@ -7207,6 +7209,7 @@
   "sharedLibrary_suggest_sent": "ההצעה נשלחה",
   "sharedLibrary_suggest_nothingChanged": "שום דבר לא השתנה.",
   "sharedLibrary_suggest_savedPrivate": "ההערות והדירוג שלך נשמרו.",
+  "sharedLibrary_suggest_savedNotSent": "ההערות והדירוג שלך נשמרו. לא ניתן היה לשלוח את ההצעה.",
   "sharedLibrary_suggest_pending": "{count, plural, =1{הצעה אחת ממתינה} other{{count} הצעות ממתינות}}",
   "@sharedLibrary_suggest_pending": {
     "placeholders": {

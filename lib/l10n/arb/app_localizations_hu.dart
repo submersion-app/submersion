@@ -9990,6 +9990,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get recordEdit_imported => 'Importált';
 
   @override
+  String get recordEdit_library => 'Könyvtár';
+
+  @override
+  String get recordEdit_onlyYou => 'Csak te';
+
+  @override
   String get recordEdit_saveFailed =>
       'Nem sikerült menteni a módosításokat. Semmi sem változott.';
 
@@ -24893,6 +24899,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get sharedLibrary_suggest_savedPrivate =>
       'A jegyzeteid és az értékelésed mentve.';
+
+  @override
+  String get sharedLibrary_suggest_savedNotSent =>
+      'A jegyzeteid és az értékelésed mentve. A javaslatot nem sikerült elküldeni.';
 
   @override
   String sharedLibrary_suggest_pending(int count) {

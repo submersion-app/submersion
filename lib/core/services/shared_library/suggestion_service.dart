@@ -62,12 +62,15 @@ class SuggestionService {
     }
     // An editor or owner edits the site; a suggestion is a reader's way in.
     final library = await _store.getLibrary(libraryId);
-    final role = library == null
-        ? SharedLibraryRole.reader
-        : effectiveRole(
-            listed: library.roles.roleOf(membership.memberId),
-            readOnlyDetected: library.writesHeld,
-          );
+    // Gone since the membership was read (a disconnect): a suggestion kept
+    // for it would never reach anyone.
+    if (library == null) {
+      throw StateError('library $libraryId is not connected here');
+    }
+    final role = effectiveRole(
+      listed: library.roles.roleOf(membership.memberId),
+      readOnlyDetected: library.writesHeld,
+    );
     if (!canSuggestOnLibrarySite(role)) {
       throw StateError('only a reader suggests changes in $libraryId');
     }

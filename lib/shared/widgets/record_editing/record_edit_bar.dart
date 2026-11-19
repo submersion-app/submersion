@@ -19,6 +19,7 @@ class RecordEditBar extends StatelessWidget implements PreferredSizeWidget {
     required this.onSave,
     this.actions = const [],
     this.isBusy = false,
+    this.saveLabel,
   });
 
   final String title;
@@ -37,6 +38,10 @@ class RecordEditBar extends StatelessWidget implements PreferredSizeWidget {
   final bool isBusy;
   final VoidCallback onCancel;
   final VoidCallback onSave;
+
+  /// The Save button's word where a sitting ends otherwise (a library
+  /// reader's Send, issue #4527); Save when null.
+  final String? saveLabel;
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -77,7 +82,7 @@ class RecordEditBar extends StatelessWidget implements PreferredSizeWidget {
       actions: [
         ...actions,
         AppBarTextAction(
-          label: l10n.forms_save,
+          label: saveLabel ?? l10n.forms_save,
           onPressed: canSave && !isSaving && !isBusy ? onSave : null,
           busy: isSaving,
         ),

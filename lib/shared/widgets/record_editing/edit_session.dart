@@ -152,6 +152,12 @@ class EditSession<T> extends ChangeNotifier {
   /// Whether any held entry is a change in its own right ([holdChange]).
   bool get hasHeldChanges => _held.values.any((held) => held.cardId != null);
 
+  /// The cards a held change ([holdChange]) belongs to: for a save that
+  /// writes part of the sitting, whether its part holds one.
+  Set<String> get heldChangeCardIds => {
+    for (final held in _held.values) ?held.cardId,
+  };
+
   /// Whether a write or a change is held under [key].
   bool isHeld(String key) => _held.containsKey(key);
 
@@ -205,13 +211,40 @@ class EditSession<T> extends ChangeNotifier {
     if (held?.cardId case final cardId?) _moved({cardId});
   }
 
+  /// Drops the held changes of [cardIds], once a save that writes part of
+  /// the sitting has written them and stopped short of the rest (a library
+  /// reader's Send whose suggestion failed, issue #4527): the rest is saved
+  /// again, and these must not run twice. Unlike [releaseWrite] it works
+  /// while the session [isFrozen], since the save that wrote them still
+  /// holds it.
+  void dropWrittenChanges(Set<String> cardIds) {
+    if (_isDisposed) return;
+    final dropped = <String>{};
+    _held.removeWhere((_, held) {
+      final cardId = held.cardId;
+      if (cardId == null || !cardIds.contains(cardId)) return false;
+      dropped.add(cardId);
+      return true;
+    });
+    if (dropped.isNotEmpty) _moved(dropped);
+  }
+
   /// Runs the held writes and changes of one phase, one after another, in
   /// the order first held: those that go before the record when
   /// [beforeRecord], the rest otherwise. They are kept, so a save that
   /// failed can run them again. The first one to throw stops the rest.
-  Future<void> runHeldWrites({bool beforeRecord = false}) async {
+  ///
+  /// With [cardIds], only the held changes of those cards run, and no held
+  /// write with no card: a save that writes part of the sitting (a library
+  /// reader's own changes, issue #4527).
+  Future<void> runHeldWrites({
+    bool beforeRecord = false,
+    Set<String>? cardIds,
+  }) async {
     for (final held in _held.values.toList()) {
-      if (held.beforeRecord == beforeRecord) await held.write();
+      if (held.beforeRecord != beforeRecord) continue;
+      if (cardIds != null && !cardIds.contains(held.cardId)) continue;
+      await held.write();
     }
   }
 

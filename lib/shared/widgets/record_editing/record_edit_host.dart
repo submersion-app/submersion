@@ -250,13 +250,36 @@ mixin RecordEditHost<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
     });
   }
 
+  /// The Save button's word in the open sitting: Save when null. A sitting
+  /// that ends otherwise names its own (a library reader's Send).
+  String? get saveLabel => null;
+
+  /// Asked before a Save that would write the open sitting: false leaves
+  /// the sitting as it is and saves nothing, as a dialog the diver
+  /// cancelled does. Not asked of a sitting with nothing to write, or with
+  /// input to fix first, which the save ends or refuses as it is.
+  Future<bool> beforeSave() async => true;
+
+  /// Whether [beforeSave] is being asked: a second Save meanwhile (a double
+  /// tap, the Save key pressed twice) does nothing.
+  bool _askingBeforeSave = false;
+
   /// Saves the sitting, or creates the record, and says why when nothing
   /// was saved.
   Future<void> saveAndReport() async {
     if (isCreating) return saveNewRecord();
+    if (_askingBeforeSave) return;
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
     final controller = editController;
+    if (controller.saveWouldWrite) {
+      _askingBeforeSave = true;
+      try {
+        if (!await beforeSave() || !mounted) return;
+      } finally {
+        _askingBeforeSave = false;
+      }
+    }
     final saved = await controller.save();
     if (saved || !mounted) return;
     // Refused for a field that holds text which is not a value: the card is
@@ -314,6 +337,7 @@ mixin RecordEditHost<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
       onCancel: cancelOrLeave,
       onSave: saveAndReport,
       menu: menu,
+      saveLabel: saveLabel,
     );
   }
 
@@ -389,6 +413,7 @@ mixin RecordEditHost<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
                 actions: unlockedActions,
                 onCancel: cancelOrLeave,
                 onSave: saveAndReport,
+                saveLabel: saveLabel,
               )
             : lockedBar,
         // The strip comes and goes as the page unlocks and locks, and as

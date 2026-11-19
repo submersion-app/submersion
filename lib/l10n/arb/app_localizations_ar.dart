@@ -10157,6 +10157,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recordEdit_imported => 'مستورد';
 
   @override
+  String get recordEdit_library => 'المكتبة';
+
+  @override
+  String get recordEdit_onlyYou => 'أنت فقط';
+
+  @override
   String get recordEdit_saveFailed => 'تعذّر حفظ التغييرات. لم يتغيّر شيء.';
 
   @override
@@ -25343,6 +25349,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get sharedLibrary_suggest_savedPrivate => 'تم حفظ ملاحظاتك وتقييمك.';
+
+  @override
+  String get sharedLibrary_suggest_savedNotSent =>
+      'تم حفظ ملاحظاتك وتقييمك. تعذّر إرسال الاقتراح.';
 
   @override
   String sharedLibrary_suggest_pending(int count) {

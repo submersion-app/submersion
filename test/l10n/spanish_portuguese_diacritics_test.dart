@@ -45,6 +45,7 @@ void main() {
       ),
       'donde': _Homograph('the relative donde, and the interrogative dónde'),
       'si': _Homograph('the conditional si, and sí meaning yes'),
+      'tu': _Homograph('the possessive tu (your), and the pronoun tú (you)'),
       'min': _Homograph('min, the minutes unit, and mín. for mínimo'),
       'max': _Homograph('Max in untranslated labels, and máx. for máximo'),
       'registro': _Homograph('the noun registro, and the past tense registró'),

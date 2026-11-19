@@ -10,6 +10,10 @@ enum RecordCardFadeReason {
 
   /// Brought in from a device or a service.
   imported,
+
+  /// A shared site library's, which a reader's sitting does not change
+  /// (issue #4527, phase 2).
+  library,
 }
 
 /// How far a card with nothing to edit fades while its record is unlocked.
@@ -38,20 +42,73 @@ class RecordCardFade<T> extends StatelessWidget {
     final unlocked = controller.isUnlocked;
     // One shape locked or unlocked, so unlocking never remounts the card,
     // and the card is laid out under the constraints it was given.
+    return _EdgeWord(
+      word: unlocked ? _reasonWord(context, reason) : null,
+      child: Opacity(opacity: unlocked ? _fadedOpacity : 1, child: child),
+    );
+  }
+}
+
+String _reasonWord(BuildContext context, RecordCardFadeReason reason) {
+  final l10n = context.l10n;
+  return switch (reason) {
+    RecordCardFadeReason.calculated => l10n.recordEdit_calculated,
+    RecordCardFadeReason.imported => l10n.recordEdit_imported,
+    RecordCardFadeReason.library => l10n.recordEdit_library,
+  };
+}
+
+/// A card that can be edited with something to say while its record is
+/// unlocked, such as "Only you" on a library reader's private card (issue
+/// #4527, phase 2): [label] set on its top edge as [RecordCardFade] sets
+/// its word, with no fade. With no [RecordEditScope], or locked, or with
+/// no [label], [child] and nothing else, in the same shape: a page may
+/// give every card one, so a word that comes or goes (a role that changes
+/// mid-sitting) never rebuilds the card under it.
+class RecordCardEdgeLabel<T> extends StatelessWidget {
+  const RecordCardEdgeLabel({
+    super.key,
+    required this.label,
+    required this.child,
+  });
+
+  final String? label;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = RecordEditScope.maybeOf<T>(context);
+    if (controller == null) return child;
+    return _EdgeWord(word: controller.isUnlocked ? label : null, child: child);
+  }
+}
+
+/// [child] with [word] straddling its top edge near the right, half in the
+/// gap above the card and half in its top padding; with no [word], [child]
+/// in the same shape. The word takes no taps.
+class _EdgeWord extends StatelessWidget {
+  const _EdgeWord({required this.word, required this.child});
+
+  final String? word;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final word = this.word;
     return Stack(
       fit: StackFit.passthrough,
       // The word straddles the card's top edge.
       clipBehavior: Clip.none,
       children: [
-        Opacity(opacity: unlocked ? _fadedOpacity : 1, child: child),
-        if (unlocked)
+        child,
+        if (word != null)
           Positioned(
             top: 0,
             right: 16,
             child: IgnorePointer(
               child: FractionalTranslation(
                 translation: const Offset(0, -0.5),
-                child: _ReasonLabel(reason: reason),
+                child: _ReasonLabel(text: word),
               ),
             ),
           ),
@@ -61,18 +118,13 @@ class RecordCardFade<T> extends StatelessWidget {
 }
 
 class _ReasonLabel extends StatelessWidget {
-  const _ReasonLabel({required this.reason});
+  const _ReasonLabel({required this.text});
 
-  final RecordCardFadeReason reason;
+  final String text;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final l10n = context.l10n;
-    final text = switch (reason) {
-      RecordCardFadeReason.calculated => l10n.recordEdit_calculated,
-      RecordCardFadeReason.imported => l10n.recordEdit_imported,
-    };
     return DecoratedBox(
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest,
