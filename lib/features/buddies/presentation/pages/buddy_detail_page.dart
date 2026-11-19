@@ -40,6 +40,7 @@ import 'package:submersion/features/buddies/data/services/buddy_edit_save_servic
 import 'package:submersion/features/buddies/presentation/editing/buddy_card_ids.dart';
 import 'package:submersion/features/buddies/presentation/editing/buddy_certifications_sitting.dart';
 import 'package:submersion/features/buddies/presentation/editing/buddy_edit_cards.dart';
+import 'package:submersion/features/buddies/presentation/pages/buddy_edit_routes.dart';
 import 'package:submersion/features/buddies/presentation/editing/buddy_gear_sitting.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
 import 'package:submersion/features/equipment/domain/services/gear_with_buddy.dart';
@@ -127,7 +128,12 @@ class _BuddyDetailPageState extends ConsumerState<BuddyDetailPage>
       _hasRedirected = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          context.go('/buddies?selected=${widget.buddyId}');
+          context.go(
+            buddyPaneLocation(
+              widget.buddyId,
+              openUnlocked: widget.openUnlocked,
+            ),
+          );
         }
       });
     }

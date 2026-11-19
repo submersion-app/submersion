@@ -297,4 +297,77 @@ void main() {
       expect(harness.save.calls.single.cards, {'contact', 'gear'});
     });
   });
+
+  group('opening and operations', () {
+    testWidgets('opened with mode=edit, the page is unlocked', (tester) async {
+      await pumpBuddyPage(tester, openUnlocked: true);
+
+      expect(find.byType(RecordEditBar), findsOneWidget);
+    });
+
+    testWidgets("the pane's edit opens the page unlocked, Cancel returns to "
+        'view', (tester) async {
+      var ended = 0;
+      await pumpBuddyPage(
+        tester,
+        embedded: true,
+        openUnlocked: true,
+        onSittingEnded: () => ended++,
+      );
+      expect(find.text(l.recordEdit_editingTitle('Alex')), findsOneWidget);
+
+      await tester.tap(find.text(l.forms_cancel));
+      await tester.pumpAndSettle();
+
+      expect(ended, 1);
+    });
+
+    testWidgets('locked, Delete is disabled under "Unlock to use these"', (
+      tester,
+    ) async {
+      await pumpBuddyPage(tester);
+      await tester.tap(find.byType(PopupMenuButton<String>).first);
+      await tester.pumpAndSettle();
+
+      expect(find.text(l.recordEdit_unlockToUseThese), findsOneWidget);
+      final delete = tester.widget<PopupMenuItem<String>>(
+        find.widgetWithText(PopupMenuItem<String>, l.common_action_delete),
+      );
+      expect(delete.enabled, isFalse);
+    });
+
+    testWidgets('Share dives works locked', (tester) async {
+      await pumpBuddyPage(tester);
+      await tester.tap(find.byType(PopupMenuButton<String>).first);
+      await tester.pumpAndSettle();
+
+      final share = tester.widget<PopupMenuItem<String>>(
+        find.widgetWithText(PopupMenuItem<String>, l.buddies_action_shareDives),
+      );
+      expect(share.enabled, isTrue);
+    });
+
+    testWidgets('unlocked and clean, Delete asks', (tester) async {
+      await pumpBuddyPage(tester);
+      await unlock(tester);
+      await tester.tap(
+        find.descendant(
+          of: find.byType(RecordEditBar),
+          matching: find.byType(PopupMenuButton<String>),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l.common_action_delete).last);
+      await tester.pumpAndSettle();
+
+      expect(find.text(l.buddies_dialog_deleteTitle), findsOneWidget);
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text(l.common_action_cancel),
+        ),
+      );
+      await tester.pumpAndSettle();
+    });
+  });
 }

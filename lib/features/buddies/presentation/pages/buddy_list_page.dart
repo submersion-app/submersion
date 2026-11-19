@@ -22,6 +22,7 @@ import 'package:submersion/features/buddies/presentation/widgets/buddy_list_cont
 import 'package:submersion/features/buddies/presentation/widgets/buddy_summary_widget.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_edit_page.dart';
+import 'package:submersion/features/buddies/presentation/pages/buddy_edit_routes.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_query_providers.dart';
@@ -87,11 +88,13 @@ class _BuddyListPageState extends ConsumerState<BuddyListPage>
             },
           ),
           summaryBuilder: (context) => const BuddySummaryWidget(),
-          editBuilder: (context, buddyId, onSaved, onCancel) => BuddyEditPage(
-            buddyId: buddyId,
-            embedded: true,
-            onSaved: onSaved,
-            onCancel: onCancel,
+          // Behind phase 3's switch, the page opened unlocked (issue #4527).
+          editBuilder: (context, buddyId, onSaved, onCancel) => buddyEditPane(
+            context,
+            buddyId,
+            onSaved,
+            onCancel,
+            onDeleted: () => context.go(GoRouterState.of(context).uri.path),
           ),
           createBuilder: (context, onSaved, onCancel) => BuddyEditPage(
             embedded: true,
@@ -206,11 +209,13 @@ class _BuddyListPageState extends ConsumerState<BuddyListPage>
             },
           ),
           summaryBuilder: (context) => const BuddySummaryWidget(),
-          editBuilder: (context, buddyId, onSaved, onCancel) => BuddyEditPage(
-            buddyId: buddyId,
-            embedded: true,
-            onSaved: onSaved,
-            onCancel: onCancel,
+          // Behind phase 3's switch, the page opened unlocked (issue #4527).
+          editBuilder: (context, buddyId, onSaved, onCancel) => buddyEditPane(
+            context,
+            buddyId,
+            onSaved,
+            onCancel,
+            onDeleted: () => context.go(GoRouterState.of(context).uri.path),
           ),
           createBuilder: (context, onSaved, onCancel) => BuddyEditPage(
             embedded: true,

@@ -944,6 +944,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/buddies',
             name: 'buddies',
+            onExit: confirmLeaveRecordSitting,
             pageBuilder: (context, state) => NoTransitionPage(
               key: state.pageKey,
               child: const BuddyListPage(),
@@ -999,12 +1000,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: ':buddyId',
                 name: 'buddyDetail',
-                builder: (context, state) =>
-                    BuddyDetailPage(buddyId: state.pathParameters['buddyId']!),
+                onExit: confirmLeaveRecordSitting,
+                builder: (context, state) => BuddyDetailPage(
+                  buddyId: state.pathParameters['buddyId']!,
+                  openUnlocked: state.uri.queryParameters['mode'] == 'edit',
+                ),
                 routes: [
                   GoRoute(
                     path: 'edit',
                     name: 'editBuddy',
+                    // Behind phase 3's switch, the page opened unlocked.
+                    redirect: buddyEditRedirect,
                     builder: (context, state) =>
                         BuddyEditPage(buddyId: state.pathParameters['buddyId']),
                   ),
