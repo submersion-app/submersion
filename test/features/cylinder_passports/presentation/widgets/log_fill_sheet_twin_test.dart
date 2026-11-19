@@ -98,8 +98,6 @@ void main() {
   });
   tearDown(tearDownTestDatabase);
 
-  final today = calendarDay(DateTime.now());
-
   Future<AppLocalizations> pump(
     WidgetTester tester, {
     required _Fills fills,
@@ -179,7 +177,12 @@ void main() {
     tester,
   ) async {
     // The swap is tomorrow: today's fill is still the old partner's, though
-    // the newest pairing (and the open one) is the new partner's.
+    // the newest pairing (and the open one) is the new partner's. Read the
+    // clock here, not once in main(): CI runs this file in a bundle under
+    // TZ=Australia/Sydney, and a bundle that starts just before midnight
+    // there runs this test the next day, when "tomorrow" is the fill's own
+    // day and the sheet rightly names the new partner.
+    final today = calendarDay(DateTime.now());
     final swap = today.add(const Duration(days: 1));
     final l10n = await pump(
       tester,
