@@ -421,7 +421,8 @@ void main() {
       // The viewer's Save, in its own bar, over the site's.
       await tester.tap(find.text(l.forms_save).last);
       await tester.pumpAndSettle();
-      expect(saves.single, ['details']);
+      // The attachment's own save, refused if it has left the site since.
+      expect(saves.single, ['details', 'site:s1']);
 
       await tester.tap(find.byType(CloseButton));
       await tester.pumpAndSettle();
@@ -658,8 +659,9 @@ class _RecordingPhotoSave extends Fake implements PhotoEditSaveService {
     Future<void> Function()? alsoWrite,
     bool alsoWriteIsAChange = false,
     ({String? id})? diveAtStart,
+    String? siteAtStart,
   }) async {
-    saves.add(changedCardIds.toList());
+    saves.add([...changedCardIds, 'site:$siteAtStart']);
     return null;
   }
 }

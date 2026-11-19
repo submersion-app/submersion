@@ -83,6 +83,11 @@ class PhotoEditSaveService {
   /// [diveAtStart] is the dive the photo was on when the sitting began.
   /// When the photo has since been moved to another dive, the save is
   /// refused with a [PhotoMovedError].
+  ///
+  /// [siteAtStart] is the site a site attachment's sitting began on (issue
+  /// #4527, phase 2). One unlinked from that site since, and kept for a
+  /// dive, is no longer the site's: the save is refused with a
+  /// [PhotoGoneError], as for a deleted one, and nothing is written.
   Future<({PhotoRecord before, PhotoRecord after})?> save({
     required String mediaId,
     required String? diverId,
@@ -91,6 +96,7 @@ class PhotoEditSaveService {
     Future<void> Function()? alsoWrite,
     bool alsoWriteIsAChange = false,
     ({String? id})? diveAtStart,
+    String? siteAtStart,
   }) {
     // The scope goes outside the transaction it covers, as its own contract
     // requires. An operation that ends with no events is removed when the
@@ -110,7 +116,8 @@ class PhotoEditSaveService {
       ),
       body: () => _db.transaction(() async {
         final stored = await _reader.read(mediaId, diverId: diverId);
-        if (stored == null) {
+        if (stored == null ||
+            (siteAtStart != null && stored.item.siteId != siteAtStart)) {
           throw PhotoGoneError(mediaId);
         }
         if (diveAtStart != null && stored.item.diveId != diveAtStart.id) {

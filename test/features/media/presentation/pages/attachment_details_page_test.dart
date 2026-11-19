@@ -359,6 +359,7 @@ class _SlowSave extends Fake implements PhotoEditSaveService {
     Future<void> Function()? alsoWrite,
     bool alsoWriteIsAChange = false,
     ({String? id})? diveAtStart,
+    String? siteAtStart,
   }) async {
     await release;
     return null;

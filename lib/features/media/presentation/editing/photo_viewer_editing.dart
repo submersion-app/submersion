@@ -162,8 +162,13 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
   /// The dive the sitting's photo was on when it was unlocked.
   ({String? id})? _diveAtUnlock;
 
+  /// The site a document's sitting began on, where this page edits a
+  /// document's details: one unlinked from it since is not saved to.
+  String? _siteAtUnlock;
+
   void unlockPhoto(PhotoRecord stored) {
     _diveAtUnlock = (id: stored.item.diveId);
+    _siteAtUnlock = unlocksDocuments ? stored.item.siteId : null;
     photoEditController.unlock(stored);
   }
 
@@ -337,6 +342,7 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
         // Moved to another dive meanwhile: its time and its writes to the
         // dive were made for the dive it was on.
         diveAtStart: _diveAtUnlock,
+        siteAtStart: _siteAtUnlock,
       ),
     );
     // The write is committed. What a relink left for now (the upload of
