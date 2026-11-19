@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/feature_flags.dart';
@@ -353,6 +355,37 @@ void main() {
         findsOneWidget,
       );
       expect(run.started, isEmpty);
+    });
+
+    testWidgets('a second tap while it counts opens no second prompt', (
+      tester,
+    ) async {
+      final answer = Completer<bool>();
+      final library = MediaItem(
+        id: 'p1',
+        diveId: 'd1',
+        mediaType: MediaType.photo,
+        platformAssetId: 'PH-1',
+        takenAt: DateTime.utc(2026, 3, 9),
+        createdAt: DateTime.utc(2026, 3, 9),
+        updatedAt: DateTime.utc(2026, 3, 9),
+      );
+      await pumpCard(
+        tester,
+        installed: pack,
+        run: _RecordingRun(),
+        media: [library],
+        libraryOriginalHere: (_) => answer.future,
+      );
+
+      await tester.tap(find.byKey(const ValueKey('dive_species_find')));
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('dive_species_find')));
+      await tester.pump();
+      answer.complete(false);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsOneWidget);
     });
 
     testWidgets('media already checked is not counted: the run starts at '

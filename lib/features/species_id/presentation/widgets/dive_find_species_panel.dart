@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -38,13 +40,25 @@ bool _canFind(WidgetRef ref, Dive dive) {
 
 /// Find species in photos, its progress, and the way to Species to review,
 /// at the foot of the dive's Marine life card (issue #4727).
-class DiveFindSpeciesPanel extends ConsumerWidget {
+class DiveFindSpeciesPanel extends ConsumerStatefulWidget {
   const DiveFindSpeciesPanel({super.key, required this.dive});
 
   final Dive dive;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DiveFindSpeciesPanel> createState() =>
+      _DiveFindSpeciesPanelState();
+}
+
+class _DiveFindSpeciesPanelState extends ConsumerState<DiveFindSpeciesPanel> {
+  Dive get dive => widget.dive;
+
+  /// Counting or asking before a run: a second tap waits on the first
+  /// rather than opening a second prompt.
+  var _asking = false;
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = context.l10n;
     final scope = DiveReviewScope(dive.id);
     final toReview = ref.watch(speciesReviewCountProvider(scope)).value ?? 0;
@@ -160,6 +174,16 @@ class DiveFindSpeciesPanel extends ConsumerWidget {
   }
 
   Future<void> _start(BuildContext context, WidgetRef ref) async {
+    if (_asking) return;
+    _asking = true;
+    try {
+      await _countAndStart(context, ref);
+    } finally {
+      _asking = false;
+    }
+  }
+
+  Future<void> _countAndStart(BuildContext context, WidgetRef ref) async {
     final media = [
       for (final m in await ref.read(mediaForDiveProvider(dive.id).future))
         if (m.mediaType == MediaType.photo || m.mediaType == MediaType.video) m,
@@ -192,7 +216,8 @@ class DiveFindSpeciesPanel extends ConsumerWidget {
       );
       if (go != true) return;
     }
-    await ref.read(diveSpeciesRunProvider.notifier).start(dive.id);
+    // Not awaited: the run outlives the tap; its own start dedups.
+    unawaited(ref.read(diveSpeciesRunProvider.notifier).start(dive.id));
   }
 
   void _showSummary(BuildContext context, WidgetRef ref) {
