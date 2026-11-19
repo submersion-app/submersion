@@ -8571,6 +8571,7 @@
   "settings_speciesId_levelSurerUnmeasured": "名称最少，最常正确",
   "settings_speciesId_levelBalancedAccuracy": "名称更多。约 {percent}% 正确",
   "settings_speciesId_levelEagerAccuracy": "名称最多。约 {percent}% 正确",
+  "settings_speciesId_levelFallback": "此版本的模型没有“{chosen}”级别，因此应用会使用“{inForce}”，直到更新加入“{chosen}”。选择“{inForce}”即可继续使用“{inForce}”。",
   "settings_speciesId_kept": "此设备上保留的建议",
   "settings_speciesId_keptValue": "{count}（{size}）",
   "settings_speciesId_clear": "清除建议",

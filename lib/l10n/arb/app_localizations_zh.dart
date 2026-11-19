@@ -27704,6 +27704,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String settings_speciesId_levelFallback(String chosen, String inForce) {
+    return '此版本的模型没有“$chosen”级别，因此应用会使用“$inForce”，直到更新加入“$chosen”。选择“$inForce”即可继续使用“$inForce”。';
+  }
+
+  @override
   String get settings_speciesId_kept => '此设备上保留的建议';
 
   @override
