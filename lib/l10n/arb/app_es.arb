@@ -8409,7 +8409,7 @@
   "settings_speciesId_needsAppUpdate": "Este modelo requiere una versión más reciente de Submersion.",
   "settings_speciesId_toggle": "Identificar peces al abrir una foto o un vídeo",
   "settings_speciesId_autoApply": "Etiquetar automáticamente las coincidencias seguras",
-  "settings_speciesId_autoApplyDescription": "La app añade una etiqueta de especie cuando está segura de una coincidencia. Tú confirmas cada una en Especies por revisar.",
+  "settings_speciesId_autoApplyDescription": "La app añade una etiqueta de especie cuando está segura de una coincidencia. Cada una se confirma en Especies por revisar.",
   "settings_speciesId_autoApplyNever": "El modelo instalado aún no está lo bastante seguro de ninguna especie para etiquetarla por sí solo. Las sugerencias siguen apareciendo para que las añadas.",
   "settings_speciesId_autoApplyPlaceOnly": "Solo para fotos y vídeos con ubicación.",
   "settings_speciesId_sightingTiming": "Registrar avistamientos de estas etiquetas",

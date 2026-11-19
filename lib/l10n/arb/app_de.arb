@@ -16809,7 +16809,7 @@
   "speciesReview_downloadBody": "{count, plural, =1{1 Foto oder Video ist nicht auf diesem Gerät. Für die Artensuche wird es heruntergeladen.} other{{count} Fotos und Videos sind nicht auf diesem Gerät. Für die Artensuche werden sie heruntergeladen.}}",
   "speciesReview_downloadAndFind": "Herunterladen und suchen",
   "speciesReview_photos": "{count, plural, =1{1 Foto} other{{count} Fotos}}",
-  "speciesReview_videos": "{count, plural, =1{1 Video} other{{count} Videos}}",
+  "speciesReview_videos": "{count, plural, =1{{count} Video} other{{count} Videos}}",
   "speciesReview_speciesTagged": "{count, plural, =1{1 Art} other{{count} Arten}}",
   "speciesReview_summary": "{photos} und {videos} geprüft. {species} markiert; {toReview} zu prüfen.",
   "speciesReview_decided": "Entschieden",

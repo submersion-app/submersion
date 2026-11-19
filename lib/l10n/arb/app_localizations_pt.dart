@@ -56376,7 +56376,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'em $count fotos',
-      one: 'em 1 foto',
+      one: 'em $count foto',
     );
     return '$_temp0';
   }
@@ -56387,7 +56387,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'em $count vídeos',
-      one: 'em 1 vídeo',
+      one: 'em $count vídeo',
     );
     return '$_temp0';
   }
@@ -56463,7 +56463,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count espécies para revisar',
-      one: '1 espécie para revisar',
+      one: '$count espécie para revisar',
     );
     return '$_temp0';
   }
@@ -56476,7 +56476,7 @@ class AppLocalizationsPt extends AppLocalizations {
       other:
           '$count fotos e vídeos não estão neste dispositivo. A busca por espécies vai baixá-los.',
       one:
-          '1 foto ou vídeo não está neste dispositivo. A busca por espécies vai baixá-lo.',
+          '$count foto ou vídeo não está neste dispositivo. A busca por espécies vai baixá-lo.',
     );
     return '$_temp0';
   }
@@ -56490,7 +56490,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count fotos',
-      one: '1 foto',
+      one: '$count foto',
     );
     return '$_temp0';
   }
@@ -56501,7 +56501,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count vídeos',
-      one: '1 vídeo',
+      one: '$count vídeo',
     );
     return '$_temp0';
   }
@@ -56512,7 +56512,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count espécies',
-      one: '1 espécie',
+      one: '$count espécie',
     );
     return '$_temp0';
   }
@@ -56540,7 +56540,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count não puderam ser abertos.',
-      one: '1 não pôde ser aberto.',
+      one: '$count não pôde ser aberto.',
     );
     return '$_temp0';
   }

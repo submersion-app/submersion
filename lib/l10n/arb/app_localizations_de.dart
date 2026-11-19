@@ -56385,7 +56385,7 @@ class AppLocalizationsDe extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count Videos',
-      one: '1 Video',
+      one: '$count Video',
     );
     return '$_temp0';
   }

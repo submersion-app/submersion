@@ -9,6 +9,7 @@ import 'package:submersion/features/species_id/domain/services/identification_ru
 import 'package:submersion/features/species_id/domain/value_objects/species_review_edits.dart';
 import 'package:submersion/features/species_id/presentation/pages/species_review_page.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_review_providers.dart';
+import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 
 import '../../media/presentation/support/media_widget_harness.dart';
 import '../data/identification_fixtures.dart';
@@ -110,7 +111,7 @@ void main() {
 
   testWidgets('Confirm is held until Save', (tester) async {
     await pump(tester, taggedRows: [tagRow]);
-    expect(tester.widget<TextButton>(save()).onPressed, isNull);
+    expect(tester.widget<AppBarTextAction>(save()).onPressed, isNull);
 
     await tester.tap(find.byKey(const ValueKey('species_review_keep_s:sp1')));
     await tester.pumpAndSettle();

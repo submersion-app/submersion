@@ -9,6 +9,7 @@ import 'package:submersion/features/species_id/presentation/providers/species_re
 import 'package:submersion/features/species_id/presentation/widgets/species_review_row.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/forms/discard_dialog.dart';
 
 /// Species to review (issue #4727): what the app tagged on its own and what
@@ -55,10 +56,10 @@ class _SpeciesReviewPageState extends ConsumerState<SpeciesReviewPage> {
         appBar: AppBar(
           leadingWidth: _dirty ? 96 : null,
           leading: _dirty
-              ? TextButton(
+              ? AppBarTextAction(
                   key: const ValueKey('species_review_cancel'),
+                  label: l10n.common_action_cancel,
                   onPressed: _saving ? null : () => Navigator.maybePop(context),
-                  child: Text(l10n.common_action_cancel),
                 )
               : null,
           title: Column(
@@ -71,10 +72,11 @@ class _SpeciesReviewPageState extends ConsumerState<SpeciesReviewPage> {
             ],
           ),
           actions: [
-            TextButton(
+            AppBarTextAction(
               key: const ValueKey('species_review_save'),
+              label: l10n.common_action_save,
+              busy: _saving,
               onPressed: _dirty && !_saving ? () => _save(groups) : null,
-              child: Text(l10n.common_action_save),
             ),
           ],
         ),

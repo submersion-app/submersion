@@ -29351,7 +29351,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_speciesId_autoApplyDescription =>
-      'La app añade una etiqueta de especie cuando está segura de una coincidencia. Tú confirmas cada una en Especies por revisar.';
+      'La app añade una etiqueta de especie cuando está segura de una coincidencia. Cada una se confirma en Especies por revisar.';
 
   @override
   String get settings_speciesId_autoApplyNever =>
