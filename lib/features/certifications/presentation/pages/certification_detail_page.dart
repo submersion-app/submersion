@@ -255,6 +255,7 @@ class _CertificationDetailContent extends ConsumerWidget {
               CertificationCurrencySection(
                 certification: certification,
                 readOnly: true,
+                shown: this.host?.maybeEditController?.session,
               ),
             )
           else

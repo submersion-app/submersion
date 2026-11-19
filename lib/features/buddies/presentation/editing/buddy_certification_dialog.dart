@@ -97,7 +97,10 @@ class _BuddyCertificationDialogState extends State<_BuddyCertificationDialog> {
               ),
               _section(
                 title(CertificationCardId.notes),
-                CertificationNotesCardEditor(session: _session),
+                CertificationNotesCardEditor(
+                  session: _session,
+                  autofocus: false,
+                ),
               ),
             ],
           ),

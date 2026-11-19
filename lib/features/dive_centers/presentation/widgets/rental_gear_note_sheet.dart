@@ -214,39 +214,9 @@ class _RentalGearNoteSheetState extends ConsumerState<_RentalGearNoteSheet> {
         return;
       }
       if (existing == null) {
-        await repo.create(
-          DiveCenterGearNote(
-            id: '',
-            diveCenterId: widget.diveCenterId,
-            gearType: _gearType,
-            label: _label.text,
-            size: _size.text,
-            verdict: _verdict,
-            leadAdjustmentKg: leadKg,
-            volumeLiters: volumeL,
-            note: _note.text,
-            diveId: widget.diveId,
-            notedAt: now,
-            createdAt: now,
-            updatedAt: now,
-          ),
-        );
+        await repo.create(note);
       } else {
-        await repo.update(
-          existing.copyWith(
-            gearType: _gearType,
-            label: _label.text,
-            clearLabel: _label.text.trim().isEmpty,
-            size: _size.text,
-            clearSize: _size.text.trim().isEmpty,
-            verdict: _verdict,
-            leadAdjustmentKg: leadKg,
-            clearLeadAdjustment: leadKg == null,
-            volumeLiters: volumeL,
-            clearVolume: volumeL == null,
-            note: _note.text,
-          ),
-        );
+        await repo.update(note);
       }
       if (mounted) Navigator.of(context).pop();
     } catch (_) {

@@ -250,6 +250,11 @@ void main() {
           .isNotEmpty,
     );
     expect(find.text(l.buddies_merge_refusedDifferentLinks), findsOneWidget);
+    // A refused merge changed nothing: leaving asks nothing.
+    await tester.tap(find.text(l.common_action_cancel));
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.byType(BuddyMergeForm), findsNothing);
     final both = await tester.runAsync(
       () async => [
         for (final b in buddies) await BuddyRepository().getBuddyById(b.id),

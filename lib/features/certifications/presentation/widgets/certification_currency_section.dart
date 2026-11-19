@@ -23,6 +23,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
+import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
 /// What a currency row's menu can do.
@@ -48,23 +49,28 @@ class CertificationCurrencySection extends ConsumerWidget {
   /// editor, drawn inside the open card.
   final EditSession<Certification>? editing;
 
-  /// Offers no action: the page edits in place and is locked.
+  /// Offers no action: the page edits in place and is locked, or its card
+  /// is closed.
   final bool readOnly;
+
+  /// The sitting whose events and preferences a closed card shows.
+  final EditSession<Certification>? shown;
 
   const CertificationCurrencySection({
     super.key,
     required this.certification,
     this.editing,
     this.readOnly = false,
+    this.shown,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final editing = this.editing;
-    if (editing == null) return _build(context, ref);
+    final sitting = editing ?? shown;
+    if (sitting == null) return _build(context, ref);
     // What the sitting holds is drawn as it changes.
     return ListenableBuilder(
-      listenable: editing,
+      listenable: sitting,
       builder: (context, _) => _build(context, ref),
     );
   }
@@ -81,17 +87,18 @@ class CertificationCurrencySection extends ConsumerWidget {
             .value ??
         const <CurrencyEvent>[];
     final editing = this.editing;
-    final events = editing == null
+    final sitting = editing ?? shown;
+    final events = sitting == null
         ? storedEvents
-        : certificationEventsList.current(editing) ?? storedEvents;
+        : certificationEventsList.current(sitting) ?? storedEvents;
     if (groups.isEmpty && events.isEmpty) return const SizedBox.shrink();
 
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final units = ref.watch(unitFormatterProvider);
-    final loadedIds = editing == null
+    final loadedIds = sitting == null
         ? null
-        : {for (final e in certificationEventsList.loaded(editing) ?? []) e.id};
+        : {for (final e in certificationEventsList.loaded(sitting) ?? []) e.id};
     final title = l10n.certifications_detail_sectionTitle_currency;
     final rows = <Widget>[
       for (final group in groups)
@@ -100,6 +107,7 @@ class CertificationCurrencySection extends ConsumerWidget {
           group: group,
           units: units,
           editing: editing,
+          sitting: sitting,
           readOnly: readOnly,
         ),
       if (events.isNotEmpty) ...[
@@ -118,11 +126,18 @@ class CertificationCurrencySection extends ConsumerWidget {
           ),
       ],
     ];
-    // The open card draws its own frame and title.
+    // The open card draws its own frame and title. A read of the events
+    // that failed says so; an action reads them again.
     if (editing != null) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: rows,
+        children: [
+          if (certificationEventsList.failed(editing))
+            SittingLoadFailed(
+              onRetry: () => certificationEventsList.load(editing),
+            ),
+          ...rows,
+        ],
       );
     }
     return Padding(
@@ -161,6 +176,9 @@ class _CurrencyRow extends ConsumerWidget {
   final CurrencyGroup group;
   final UnitFormatter units;
   final EditSession<Certification>? editing;
+
+  /// The sitting the row shows, open or closed.
+  final EditSession<Certification>? sitting;
   final bool readOnly;
 
   const _CurrencyRow({
@@ -168,14 +186,15 @@ class _CurrencyRow extends ConsumerWidget {
     required this.group,
     required this.units,
     this.editing,
+    this.sitting,
     this.readOnly = false,
   });
 
   /// The preferences the sitting holds for this row's cards.
   List<CurrencyPref> _held() {
-    final editing = this.editing;
-    if (editing == null) return const [];
-    final held = currencyPrefsInSitting(editing);
+    final sitting = this.sitting;
+    if (sitting == null) return const [];
+    final held = currencyPrefsInSitting(sitting);
     return [
       for (final m in group.members)
         ?held[(certificationId: m.certification.id, ruleId: m.rule.id)],
@@ -335,7 +354,7 @@ class _CurrencyRow extends ConsumerWidget {
         if (logged == null) return;
         final editing = this.editing;
         if (editing != null) {
-          final current = certificationEventsList.current(editing);
+          final current = await _heldEvents(editing);
           if (current == null || editing.isDisposed) return;
           certificationEventsList.set(editing, [
             ...current,
@@ -509,7 +528,7 @@ class _EventTile extends ConsumerWidget {
   Future<void> _delete(BuildContext context, WidgetRef ref) async {
     final editing = this.editing;
     if (editing != null) {
-      final current = certificationEventsList.current(editing);
+      final current = await _heldEvents(editing);
       if (current == null) return;
       certificationEventsList.set(editing, [
         for (final e in current)
@@ -549,4 +568,16 @@ class _EventTile extends ConsumerWidget {
           .deleteEvent(event.id);
     }
   }
+}
+
+/// The events [session] holds, read first when they have not been: an
+/// action taken before the read answered, or after it failed, waits for it.
+/// Null when they cannot be read.
+Future<List<CurrencyEvent>?> _heldEvents(
+  EditSession<Certification> session,
+) async {
+  final current = certificationEventsList.current(session);
+  if (current != null) return current;
+  await certificationEventsList.load(session);
+  return certificationEventsList.current(session);
 }

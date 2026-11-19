@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/location_service_provider.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
@@ -70,15 +72,25 @@ class _DiveCenterMapCardEditorState
   }
 
   /// What the text reads as: none when both are blank, a place when both
-  /// are numbers, and nothing at all otherwise.
-  ({bool readable, DiveCenterCoordinates? value}) _typed() {
+  /// are numbers, and nothing at all otherwise. [latitudeUnreadable] says
+  /// which of the two to name when it reads as nothing.
+  ({bool readable, bool latitudeUnreadable, DiveCenterCoordinates? value})
+  _typed() {
     final lat = _latitude.text.trim();
     final lon = _longitude.text.trim();
-    if (lat.isEmpty && lon.isEmpty) return (readable: true, value: null);
+    if (lat.isEmpty && lon.isEmpty) {
+      return (readable: true, latitudeUnreadable: false, value: null);
+    }
     final la = double.tryParse(lat);
     final lo = double.tryParse(lon);
-    if (la == null || lo == null) return (readable: false, value: null);
-    return (readable: true, value: (latitude: la, longitude: lo));
+    if (la == null || lo == null) {
+      return (readable: false, latitudeUnreadable: la == null, value: null);
+    }
+    return (
+      readable: true,
+      latitudeUnreadable: false,
+      value: (latitude: la, longitude: lo),
+    );
   }
 
   /// Shows the sitting's coordinates unless the text already reads as them.
@@ -121,8 +133,25 @@ class _DiveCenterMapCardEditorState
         languageCode: language,
       );
       if (result == null) {
+        // On a phone the likely cause is the permission, which Settings
+        // grants, as the form says.
+        final isMobile =
+            !kIsWeb && (HostPlatform.isIOS || HostPlatform.isAndroid);
         messenger.showSnackBar(
-          SnackBar(content: Text(l10n.diveCenters_error_locationUnavailable)),
+          SnackBar(
+            content: Text(
+              isMobile
+                  ? l10n.diveCenters_error_locationPermission
+                  : l10n.diveCenters_error_locationUnavailable,
+            ),
+            persist: false,
+            action: isMobile
+                ? SnackBarAction(
+                    label: l10n.diveCenters_action_settings,
+                    onPressed: () => location.openAppSettings(),
+                  )
+                : null,
+          ),
         );
         return;
       }
@@ -173,7 +202,9 @@ class _DiveCenterMapCardEditorState
     final typed = _typed();
     final value = typed.value;
     final error = !typed.readable
-        ? l10n.diveCenters_validation_invalidLatitude
+        ? (typed.latitudeUnreadable
+              ? l10n.diveCenters_validation_invalidLatitude
+              : l10n.diveCenters_validation_invalidLongitude)
         : diveCenterCoordinateError(l10n, value?.latitude, value?.longitude);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

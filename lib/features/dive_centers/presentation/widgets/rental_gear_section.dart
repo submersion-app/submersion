@@ -13,6 +13,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
+import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dart';
 
 /// The dive center detail page's rental gear notes (issue #2075), grouped
 /// by gear type in the canonical equipment order, with add on the header
@@ -65,8 +66,13 @@ class RentalGearSection extends ConsumerWidget {
       editing: note,
       holdOnly: true,
     );
+    if (edit == null || session.isDisposed) return;
+    // Read first when the read had not answered, or failed.
+    if (diveCenterRentalList.current(session) == null) {
+      await diveCenterRentalList.load(session);
+    }
     final current = diveCenterRentalList.current(session);
-    if (edit == null || current == null || session.isDisposed) return;
+    if (current == null || session.isDisposed) return;
     diveCenterRentalList.set(session, [
       for (final n in current)
         if (n.id != edit.note.id) n,
@@ -134,6 +140,10 @@ class RentalGearSection extends ConsumerWidget {
                 ),
             ],
           ),
+          if (editing != null && diveCenterRentalList.failed(editing!))
+            SittingLoadFailed(
+              onRetry: () => diveCenterRentalList.load(editing!),
+            ),
           if (ordered.isEmpty)
             Text(
               l10n.diveCenters_rental_empty,

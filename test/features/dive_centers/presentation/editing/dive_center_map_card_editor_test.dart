@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_centers/presentation/editing/dive_cente
 import 'package:submersion/features/dive_centers/presentation/editing/dive_center_edit_fields.dart';
 import 'package:submersion/features/dive_centers/presentation/editing/dive_center_map_card_editor.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/location_picker_map.dart';
+import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -66,5 +67,34 @@ void main() {
     session.set(diveCenterCoordinatesField, (latitude: 45.0, longitude: 0.0));
     expect(card.isValid!(session), isTrue);
     session.dispose();
+  });
+
+  testWidgets('an unreadable longitude names the longitude', (tester) async {
+    tester.view.physicalSize = const Size(700, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final session = EditSession(centre());
+    addTearDown(session.dispose);
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        overrides: overrides,
+        child: Scaffold(
+          body: SingleChildScrollView(
+            child: DiveCenterMapCardEditor(session: session),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final fields = find.byType(TextField);
+    await tester.enterText(fields.at(0), '28.5');
+    await tester.enterText(fields.at(1), 'abc');
+    await tester.pumpAndSettle();
+
+    final l = AppLocalizationsEn();
+    expect(find.text(l.diveCenters_validation_invalidLongitude), findsWidgets);
+    expect(find.text(l.diveCenters_validation_invalidLatitude), findsNothing);
+    expect(session.isDirty, isFalse);
   });
 }

@@ -163,9 +163,11 @@ Future<Map<CurrencyPrefKey, CurrencyPref>> storedCurrencyPrefs(
   CertificationCurrencyRepository? repository,
 }) async {
   final repo = repository ?? CertificationCurrencyRepository();
+  // Each card's are read at once: they are independent.
+  final prefs = await Future.wait(group.certificationIds.map(repo.getPrefs));
   return {
-    for (final id in group.certificationIds)
-      for (final p in await repo.getPrefs(id)) _keyOf(p): p,
+    for (final list in prefs)
+      for (final p in list) _keyOf(p): p,
   };
 }
 

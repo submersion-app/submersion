@@ -90,12 +90,14 @@ Future<HeldLend?> planLendGear(
     movedAt: draft.movedAt,
     note: draft.note,
   );
-  return HeldLend(
-    items: items,
-    pick: draft.pick,
-    plan: plan,
-    diverId: await diverIdFuture,
-  );
+  String? diverId;
+  try {
+    diverId = await diverIdFuture;
+  } catch (_) {
+    // The place is filed under no diver, as for a library with none.
+    diverId = null;
+  }
+  return HeldLend(items: items, pick: draft.pick, plan: plan, diverId: diverId);
 }
 
 /// The gear picker for lending to [buddy]: what they already have, or the

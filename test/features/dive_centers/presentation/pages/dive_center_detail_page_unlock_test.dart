@@ -285,4 +285,29 @@ void main() {
       expect(delete.enabled, isTrue);
     });
   });
+
+  testWidgets('a centre stored with one fill time still shows Contact', (
+    tester,
+  ) async {
+    // Not empty to the card (it holds a value), so not offered in the strip:
+    // the card must show, or it could not be reached to fix the pair.
+    await pumpDiveCenterPage(
+      tester,
+      center: DiveCenter(
+        id: 'dc1',
+        name: 'Reef Divers',
+        fillOpensAt: 8 * 60,
+        createdAt: DateTime(2020),
+        updatedAt: DateTime(2020),
+      ),
+    );
+    await unlock(tester);
+
+    expect(
+      find.byTooltip(
+        l.recordEdit_editCardTooltip(l.diveCenters_section_contact),
+      ),
+      findsOneWidget,
+    );
+  });
 }

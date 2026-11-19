@@ -202,6 +202,13 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage>
                   center: center,
                   units: units,
                   pencil: _pencil(DiveCenterCardId.contact),
+                  // Shown though empty while brought in from the strip, or
+                  // while it holds a value it cannot show (one fill time).
+                  showEmpty:
+                      _showsWhileEmpty(DiveCenterCardId.contact) ||
+                      (hostsEditing &&
+                          !diveCenterEditCards[DiveCenterCardId.contact]!
+                              .isEmpty(center)),
                 ),
               ),
               if (center.notes.isNotEmpty ||
@@ -424,10 +431,14 @@ class _ContactSection extends StatelessWidget {
   /// The card's pencil, where the page edits in place.
   final Widget? pencil;
 
+  /// Whether the title shows when there is nothing under it.
+  final bool showEmpty;
+
   const _ContactSection({
     required this.center,
     required this.units,
     this.pencil,
+    this.showEmpty = false,
   });
 
   @override
@@ -440,7 +451,7 @@ class _ContactSection extends StatelessWidget {
         center.website != null ||
         (opens != null && closes != null);
 
-    if (!hasContact) return const SizedBox();
+    if (!hasContact && !showEmpty) return const SizedBox();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),

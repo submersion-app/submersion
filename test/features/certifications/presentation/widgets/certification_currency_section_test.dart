@@ -92,6 +92,7 @@ void main() {
     WidgetTester tester,
     Certification cert, {
     EditSession<Certification>? editing,
+    EditSession<Certification>? shown,
     bool readOnly = false,
   }) async {
     SharedPreferences.setMockInitialValues({});
@@ -114,6 +115,7 @@ void main() {
               child: CertificationCurrencySection(
                 certification: cert,
                 editing: editing,
+                shown: shown,
                 readOnly: readOnly,
               ),
             ),
@@ -515,6 +517,29 @@ void main() {
     for (final c in [ow, aow]) {
       expect((await currency.getPrefs(c.id)).single.muted, isTrue);
     }
+  });
+
+  testWidgets('closed, the card shows what the sitting holds', (tester) async {
+    final session = EditSession(aow);
+    addTearDown(session.dispose);
+    await tester.runAsync(() => certificationEventsList.load(session));
+    certificationEventsList.set(session, [
+      newCurrencyEvent(
+        certificationId: aow.id,
+        ruleId: 'padi_reactivate',
+        type: CurrencyEventType.refresher,
+        date: DateTime(2024, 5, 1),
+      ),
+    ]);
+    final g = (await tester.runAsync(
+      () => CertificationCurrencyRepository().getRules(),
+    ))!;
+    expect(g, isNotEmpty);
+
+    await pump(tester, aow, readOnly: true, shown: session);
+
+    expect(find.byKey(const ValueKey('currencyEventTile')), findsOneWidget);
+    expect(find.byIcon(Icons.delete_outline), findsNothing);
   });
 
   testWidgets('the section is absent when nothing applies or is logged', (

@@ -12,6 +12,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 import 'package:submersion/shared/widgets/record_editing/sitting_list.dart';
+import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dart';
 
 /// A buddy's certifications held in its page's sitting (issue #4527, phase
 /// 3): added, edited and removed in a dialog, written at Save.
@@ -55,21 +56,43 @@ Certification newBuddyCertification(Buddy buddy) =>
 /// The Certifications card's editor: the buddy's certifications as the
 /// sitting holds them, each opened in [showBuddyCertificationDialog], with
 /// add and remove. A change is a change of Certifications; held rows show
-/// the changed dot.
-class BuddyCertificationsCardEditor extends StatelessWidget {
+/// the changed dot. A read that failed says so and offers to try again.
+class BuddyCertificationsCardEditor extends StatefulWidget {
   const BuddyCertificationsCardEditor({super.key, required this.session});
 
   final EditSession<Buddy> session;
 
+  @override
+  State<BuddyCertificationsCardEditor> createState() =>
+      _BuddyCertificationsCardEditorState();
+}
+
+class _BuddyCertificationsCardEditorState
+    extends State<BuddyCertificationsCardEditor> {
+  EditSession<Buddy> get _session => widget.session;
+
+  @override
+  void initState() {
+    super.initState();
+    if (buddyCertificationsList.current(_session) == null) _load();
+  }
+
+  /// Reads the list (again), and draws it once read: a read answers
+  /// without telling the sitting's listeners.
+  Future<void> _load() async {
+    await buddyCertificationsList.load(_session);
+    if (mounted) setState(() {});
+  }
+
   Future<void> _edit(BuildContext context, Certification? existing) async {
-    final initial = existing ?? newBuddyCertification(session.stored);
+    final initial = existing ?? newBuddyCertification(_session.stored);
     final edited = await showBuddyCertificationDialog(
       context,
       initial: initial,
     );
-    final current = buddyCertificationsList.current(session);
-    if (edited == null || current == null || session.isDisposed) return;
-    buddyCertificationsList.set(session, [
+    final current = buddyCertificationsList.current(_session);
+    if (edited == null || current == null || _session.isDisposed) return;
+    buddyCertificationsList.set(_session, [
       if (existing == null) ...[
         ...current,
         edited,
@@ -79,9 +102,9 @@ class BuddyCertificationsCardEditor extends StatelessWidget {
   }
 
   void _remove(Certification cert) {
-    final current = buddyCertificationsList.current(session);
+    final current = buddyCertificationsList.current(_session);
     if (current == null) return;
-    buddyCertificationsList.set(session, [
+    buddyCertificationsList.set(_session, [
       for (final c in current)
         if (c.id != cert.id) c,
     ]);
@@ -90,11 +113,15 @@ class BuddyCertificationsCardEditor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final session = _session;
     return ListenableBuilder(
       listenable: session,
       builder: (context, _) {
         final current = buddyCertificationsList.current(session);
         if (current == null) {
+          if (buddyCertificationsList.failed(session)) {
+            return SittingLoadFailed(onRetry: _load);
+          }
           return const Padding(
             padding: EdgeInsets.symmetric(vertical: 8),
             child: Center(child: CircularProgressIndicator()),

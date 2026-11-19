@@ -84,9 +84,6 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
   bool _isSaving = false;
   bool _hasChanges = false;
 
-  /// Where the saved buddy's card figures come from: the buddy being
-  /// edited.
-  Buddy? get _cardBuddy => _originalBuddy;
   Buddy? _originalBuddy;
   Uint8List? _photo;
 
@@ -395,19 +392,17 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
             const SizedBox(height: 24),
 
             // Linked profile (issue #2002): which local diver this buddy is.
-            ...[
-              if (!_suggestionDismissed && _linkedDiverId == null)
-                _buildLinkedProfileSuggestion(),
-              LinkedProfileField(
-                ownerDiverId: _originalBuddy?.diverId,
-                linkedDiverId: _linkedDiverId,
-                onChanged: (id) => setState(() {
-                  _linkedDiverId = id;
-                  _hasChanges = true;
-                }),
-              ),
-              const SizedBox(height: 24),
-            ],
+            if (!_suggestionDismissed && _linkedDiverId == null)
+              _buildLinkedProfileSuggestion(),
+            LinkedProfileField(
+              ownerDiverId: _originalBuddy?.diverId,
+              linkedDiverId: _linkedDiverId,
+              onChanged: (id) => setState(() {
+                _linkedDiverId = id;
+                _hasChanges = true;
+              }),
+            ),
+            const SizedBox(height: 24),
 
             // Rankings exclusion (issue #3624).
             SwitchListTile(
@@ -426,61 +421,58 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
 
             // Certifications (issue #553): staged in memory, committed on
             // Save.
-            ...[
-              Text(
-                context.l10n.buddies_section_certifications,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 12),
-              for (final (index, cert) in _certifications.indexed)
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.card_membership),
-                  title: Text(
-                    certificationTitleL10n(
-                      cert,
-                      context.l10n,
-                      catalog: context.certificationCatalog,
-                    ),
-                  ),
-                  subtitle: Text(
-                    certificationAgencyAndLevelL10n(
-                      cert,
-                      context.l10n,
-                      catalog: context.certificationCatalog,
-                    ),
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit),
-                        onPressed: () => _openCertEditor(index),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline),
-                        onPressed: () => setState(() {
-                          _certifications = [..._certifications]
-                            ..removeAt(index);
-                          _hasChanges = true;
-                          _certificationsDirty = true;
-                        }),
-                      ),
-                    ],
+            Text(
+              context.l10n.buddies_section_certifications,
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            for (final (index, cert) in _certifications.indexed)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.card_membership),
+                title: Text(
+                  certificationTitleL10n(
+                    cert,
+                    context.l10n,
+                    catalog: context.certificationCatalog,
                   ),
                 ),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: TextButton.icon(
-                  icon: const Icon(Icons.add),
-                  label: Text(context.l10n.buddies_action_addCertification),
-                  onPressed: () => _openCertEditor(null),
+                subtitle: Text(
+                  certificationAgencyAndLevelL10n(
+                    cert,
+                    context.l10n,
+                    catalog: context.certificationCatalog,
+                  ),
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit),
+                      onPressed: () => _openCertEditor(index),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline),
+                      onPressed: () => setState(() {
+                        _certifications = [..._certifications]..removeAt(index);
+                        _hasChanges = true;
+                        _certificationsDirty = true;
+                      }),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 24),
-            ],
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                icon: const Icon(Icons.add),
+                label: Text(context.l10n.buddies_action_addCertification),
+                onPressed: () => _openCertEditor(null),
+              ),
+            ),
+            const SizedBox(height: 24),
 
             // Notes section header
             Text(
@@ -733,7 +725,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
         updatedAt: now,
         // The buddy card figures (issue #3728) have no form field: only a
         // card writes them, so an edit carries them over as they were.
-        cardId: _cardBuddy?.cardId,
+        cardId: _originalBuddy?.cardId,
         socialHandle: _socialController.text.trim().isEmpty
             ? null
             : _socialController.text.trim(),
@@ -745,10 +737,10 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
             code: _originalBuddy?.countryCode,
           ),
         ),
-        cardDiveCount: _cardBuddy?.cardDiveCount,
-        cardDivingSince: _cardBuddy?.cardDivingSince,
-        cardLastDive: _cardBuddy?.cardLastDive,
-        cardReceivedAt: _cardBuddy?.cardReceivedAt,
+        cardDiveCount: _originalBuddy?.cardDiveCount,
+        cardDivingSince: _originalBuddy?.cardDivingSince,
+        cardLastDive: _originalBuddy?.cardLastDive,
+        cardReceivedAt: _originalBuddy?.cardReceivedAt,
       );
 
       Buddy savedBuddy;

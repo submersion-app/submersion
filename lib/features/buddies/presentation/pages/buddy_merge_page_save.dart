@@ -94,7 +94,7 @@ extension _BuddyMergeSave on _BuddyMergeFormState {
     final errorColor = Theme.of(context).colorScheme.error;
     final links = ref.read(buddyProfileLinkRepositoryProvider);
     final notifier = ref.read(buddyListNotifierProvider.notifier);
-    _update(() => _isSaving = true);
+    _setSaving(true);
     try {
       final diverId =
           _survivor.diverId ??
@@ -129,14 +129,14 @@ extension _BuddyMergeSave on _BuddyMergeFormState {
               persist: false,
             ),
           );
-          _update(() => _isSaving = false);
+          _setSaving(false);
           return;
         }
       }
       final buddy = _merged(diverId, linkedDiverId);
       if (!mounted) return;
       if (!await _confirmMerge()) {
-        if (mounted) _update(() => _isSaving = false);
+        if (mounted) _setSaving(false);
         return;
       }
       final buddyIds = [for (final b in widget.buddies) b.id];
@@ -155,7 +155,7 @@ extension _BuddyMergeSave on _BuddyMergeFormState {
       messenger.showSnackBar(
         SnackBar(content: Text(message), backgroundColor: errorColor),
       );
-      _update(() => _isSaving = false);
+      _setSaving(false);
     }
   }
 }

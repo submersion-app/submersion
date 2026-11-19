@@ -149,6 +149,9 @@ class _BuddyMergeFormState extends ConsumerState<BuddyMergeForm> {
     _hasChanges = true;
   });
 
+  /// Redraws with [saving], which is not a change of the merge.
+  void _setSaving(bool saving) => setState(() => _isSaving = saving);
+
   void _onFieldChanged() {
     if (!_hasChanges) setState(() => _hasChanges = true);
   }

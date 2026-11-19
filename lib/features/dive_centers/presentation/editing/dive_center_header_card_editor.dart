@@ -93,6 +93,8 @@ class _DiveCenterHeaderCardEditorState
 
   /// Once the address has lost focus, looks up a centre with no coordinates.
   void _onAddressFocus() {
+    // Focus also leaves as the card closes or the page goes: no lookup then.
+    if (!mounted) return;
     if (_addressFocus.any((node) => node.hasFocus)) return;
     final session = _session;
     if (session.isDisposed || session.isFrozen) return;

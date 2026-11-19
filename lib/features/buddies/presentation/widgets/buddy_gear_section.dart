@@ -12,6 +12,7 @@ import 'package:submersion/features/equipment/domain/services/gear_with_buddy.da
 import 'package:submersion/features/equipment/presentation/pages/equipment_location_list_page.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_location_picker_sheet.dart';
 import 'package:submersion/features/equipment/presentation/widgets/lend_gear_flow.dart';
 import 'package:submersion/features/equipment/presentation/widgets/return_equipment_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -142,6 +143,17 @@ class BuddyGearSection extends ConsumerWidget {
         : buddyGearInSitting(sitting, stored);
     // In the open card it is shown whatever it holds: Lend starts there.
     if (rows.isEmpty && editing == null) return const SizedBox.shrink();
+    // Lends the sitting holds to somewhere other than this buddy: listed in
+    // the open card only, so they can be taken back.
+    final elsewhere = editing == null
+        ? const <(int, HeldLend)>[]
+        : [
+            for (final (i, move) in heldBuddyGearMoves(editing).indexed)
+              if (move.lend case final lend?)
+                if (lend.pick is! BuddyPick ||
+                    (lend.pick as BuddyPick).buddy.id != buddy.id)
+                  (i, lend),
+          ];
     // The rows held for return are the stored ones still listed.
     final returnable = [
       for (final row in rows)
@@ -181,6 +193,23 @@ class BuddyGearSection extends ConsumerWidget {
           // leaves the list as its move saves, and a prompt shown
           // from a context that has gone is silently a no.
           onReturned: _onReturned(context, ref, editing, row),
+        ),
+      for (final (index, lend) in elsewhere)
+        ListTile(
+          key: ValueKey('buddy_gear_elsewhere_$index'),
+          contentPadding: EdgeInsets.zero,
+          leading: const RecordChangedDot(),
+          title: Text([for (final item in lend.items) item.name].join(', ')),
+          subtitle: Text(switch (lend.pick) {
+            PlacePick(:final location) => location.name,
+            BuddyPick(:final buddy) => buddy.name,
+            NoLocationPick() => l10n.equipment_location_noLocation,
+          }),
+          trailing: IconButton(
+            icon: const Icon(Icons.close),
+            tooltip: l10n.common_action_cancel,
+            onPressed: () => releaseBuddyGearMove(editing!, index),
+          ),
         ),
     ];
     // The open card draws its own frame and title.

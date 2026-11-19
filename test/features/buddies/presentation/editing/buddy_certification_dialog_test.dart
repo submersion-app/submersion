@@ -94,4 +94,16 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets('opening it focuses no field', (tester) async {
+    await open(tester, nitrox);
+
+    final focused = [
+      for (final e in tester.widgetList<EditableText>(
+        find.byType(EditableText),
+      ))
+        if (e.focusNode.hasFocus) e,
+    ];
+    expect(focused, isEmpty);
+  });
 }

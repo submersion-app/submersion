@@ -409,9 +409,17 @@ class CertificationCardPhotosEditor extends StatelessWidget {
 
 /// Notes, as Markdown.
 class CertificationNotesCardEditor extends StatefulWidget {
-  const CertificationNotesCardEditor({super.key, required this.session});
+  const CertificationNotesCardEditor({
+    super.key,
+    required this.session,
+    this.autofocus = true,
+  });
 
   final EditSession<Certification> session;
+
+  /// Takes the focus as it opens: the open card's one field. Not in a
+  /// dialog that lists every card, where it would scroll past the rest.
+  final bool autofocus;
 
   @override
   State<CertificationNotesCardEditor> createState() =>
@@ -435,7 +443,7 @@ class _CertificationNotesCardEditorState
   @override
   Widget build(BuildContext context) => MarkdownNotesField(
     controller: _binding.controller,
-    autofocus: true,
+    autofocus: widget.autofocus,
     decoration: InputDecoration(
       labelText: context.l10n.certifications_edit_label_notes,
       hintText: context.l10n.certifications_edit_hint_notes,

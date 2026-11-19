@@ -86,7 +86,7 @@ mixin _BuddyDetailPageEditing
     final session = maybeEditController?.session;
     if (session == null) return const [];
     bool empty(BuddyCardId id) => id == BuddyCardId.gear
-        ? _gearEmpty(working)
+        ? _gearEmpty(ref, working)
         : buddyEditCards[id]!.isEmptyDuring(working, session);
     return [
       for (final id in [
@@ -102,8 +102,9 @@ mixin _BuddyDetailPageEditing
     ];
   }
 
-  /// Whether [buddy] has no gear, as the sitting holds it.
-  bool _gearEmpty(Buddy buddy) {
+  /// Whether [buddy] has no gear, as the sitting holds it, watched through
+  /// [ref], the building widget's own.
+  bool _gearEmpty(WidgetRef ref, Buddy buddy) {
     final current =
         ref.watch(currentEquipmentLocationsProvider).value ??
         const <String, EquipmentLocation>{};

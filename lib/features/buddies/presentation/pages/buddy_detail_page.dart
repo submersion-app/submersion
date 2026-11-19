@@ -282,7 +282,8 @@ class _BuddyDetailContent extends ConsumerWidget {
           // have none and show no gap.
           if (!_editing)
             BuddyGearSection(buddy: buddy)
-          else if (!this.host!._gearEmpty(buddy) || _shows(BuddyCardId.gear))
+          else if (!this.host!._gearEmpty(ref, buddy) ||
+              _shows(BuddyCardId.gear))
             _framed(
               BuddyCardId.gear,
               BuddyGearSection(
