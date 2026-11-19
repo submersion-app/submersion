@@ -32,8 +32,9 @@ class ReefRepository {
   /// Cache generation for nearby species. Bump this whenever the taxon
   /// whitelist or what a cached result can contain changes, so previously
   /// cached results are refetched rather than served for the rest of their
-  /// 30-day lifetime. v3 drops lists cached with failed name lookups.
-  static const String _speciesWhitelistVariant = 'v3';
+  /// 30-day lifetime. v3 drops lists cached with failed name lookups. v4
+  /// keeps every species key, so marine life suggestions can be matched.
+  static const String _speciesWhitelistVariant = 'v4';
 
   ReefRepository({
     required ReefCacheDao cache,

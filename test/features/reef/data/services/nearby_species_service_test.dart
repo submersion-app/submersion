@@ -128,6 +128,53 @@ void main() {
       expect(nameLookups, 25);
     });
 
+    test('keeps every species key the search returned', () async {
+      final client = MockClient((request) async {
+        if (request.url.path.startsWith('/v1/species/')) {
+          return http.Response(
+            jsonEncode({'scientificName': 'Aplysina archeri'}),
+            200,
+          );
+        }
+        return http.Response(
+          _facetBody([
+            ['2384460', 120],
+            ['9999999', 40],
+          ]),
+          200,
+        );
+      });
+
+      final part = await NearbySpeciesService(
+        client: client,
+        matcher: _matcher(),
+      ).fetch(const GeoPoint(12.160, -68.280));
+
+      // One catalogue match and one name-only species: both keys kept.
+      expect(part.value!.speciesKeys, {2384460, 9999999});
+    });
+
+    test('keeps keys beyond the 25 names it looks up', () async {
+      final counts = List.generate(
+        40,
+        (i) => <Object>['${900000 + i}', 40 - i],
+      );
+      final client = MockClient((request) async {
+        if (request.url.path.startsWith('/v1/species/')) {
+          return http.Response(jsonEncode({'scientificName': 'A b'}), 200);
+        }
+        return http.Response(_facetBody(counts), 200);
+      });
+
+      final part = await NearbySpeciesService(
+        client: client,
+        matcher: _matcher(),
+      ).fetch(const GeoPoint(1, 2));
+
+      expect(part.value!.unmatchedNames.length, 25);
+      expect(part.value!.speciesKeys.length, 40);
+    });
+
     // Sequentially these would be 25 round trips before the tier can render.
     test('resolves unmatched names concurrently', () async {
       var inFlight = 0;

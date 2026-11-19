@@ -44,10 +44,16 @@ class NearbySpecies extends Equatable {
   /// lifetime.
   final bool namesIncomplete;
 
+  /// The GBIF species key of every species the search returned, matched or
+  /// not, so a marine life suggestion can be checked against the list by its
+  /// key. Not shown: [isEmpty] and the site page read only the two tiers.
+  final Set<int> speciesKeys;
+
   const NearbySpecies({
     this.matched = const [],
     this.unmatchedNames = const [],
     this.namesIncomplete = false,
+    this.speciesKeys = const {},
   });
 
   bool get isEmpty => matched.isEmpty && unmatchedNames.isEmpty;
@@ -55,6 +61,7 @@ class NearbySpecies extends Equatable {
   Map<String, dynamic> toJson() => {
     'matched': matched.map((m) => m.toJson()).toList(),
     'unmatchedNames': unmatchedNames,
+    'speciesKeys': speciesKeys.toList()..sort(),
   };
 
   factory NearbySpecies.fromJson(Map<String, dynamic> json) => NearbySpecies(
@@ -65,8 +72,17 @@ class NearbySpecies extends Equatable {
     unmatchedNames: (json['unmatchedNames'] as List? ?? [])
         .cast<String>()
         .toList(),
+    speciesKeys: {
+      for (final key in json['speciesKeys'] as List? ?? const [])
+        (key as num).toInt(),
+    },
   );
 
   @override
-  List<Object?> get props => [matched, unmatchedNames, namesIncomplete];
+  List<Object?> get props => [
+    matched,
+    unmatchedNames,
+    namesIncomplete,
+    speciesKeys,
+  ];
 }

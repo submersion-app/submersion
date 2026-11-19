@@ -112,6 +112,7 @@ class NearbySpeciesService {
             .whereType<String>()
             .toList(),
         namesIncomplete: resolved.any((r) => r.failed),
+        speciesKeys: {for (final c in counts) c.key},
       );
       if (result.isEmpty) {
         // Nothing to show because the lookups failed is not "nothing nearby".

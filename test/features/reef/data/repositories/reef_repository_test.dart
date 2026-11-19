@@ -309,6 +309,32 @@ void main() {
     },
   );
 
+  test('a species row saved before keys were kept is refetched', () async {
+    // Written by a build that saved no species keys: read back, it would
+    // match no marine life suggestion for the rest of its 30 days.
+    await ReefCacheDao(db, now: () => clock).write(
+      provider: ReefProviderId.species,
+      coordKey: ReefCoordinateKey.format(const GeoPoint(12.16, -68.28)),
+      variant: 'v3',
+      status: ReefDataStatus.ok,
+      payloadJson:
+          '{"matched":[{"speciesId":"sp_sixbar_wrasse","occurrenceCount":5}],'
+          '"unmatchedNames":[]}',
+    );
+    var searches = 0;
+    final repo = buildRepository(
+      speciesClient: MockClient((request) async {
+        if (request.url.path.endsWith('/occurrence/search')) searches++;
+        return http.Response(_facetBody([2384460]), 200);
+      }),
+    );
+
+    final part = await repo.speciesFor(const GeoPoint(12.16, -68.28));
+
+    expect(searches, 1);
+    expect(part.value!.speciesKeys, {2384460});
+  });
+
   test('a concurrent caller shares a partial species result', () async {
     var searches = 0;
     final repo = buildRepository(
