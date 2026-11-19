@@ -2,8 +2,113 @@
 /// track per animal (issue #4675). Pure Dart, so every engine shares it.
 library;
 
+import 'dart:math' as math;
+
+import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/track_sample.dart';
 import 'package:submersion/features/species_id/domain/entities/video_detections.dart';
+
+/// The version of how tracks are linked, named in a video's run so a video
+/// tracked by an earlier version is scanned again. 2: a fish may continue
+/// to a nearby box it barely overlaps ([TrackLink], issue #4729).
+const int videoTrackerVersion = 2;
+
+/// What a video's run stores as its detector id: the pack's detector set
+/// and the tracker version. A change to either scans the video again.
+String videoRunDetectorId(String detectorSetId) =>
+    '$detectorSetId#tracker$videoTrackerVersion';
+
+/// Whether a box in the next sampled frame can continue a track, and how
+/// well (issue #4729).
+///
+/// A box overlapping the track's last box by [minOverlap] or more continues
+/// it. So does a box of alike size ([minAreaRatio]) whose centre is at most
+/// [maxShift] boxes away, across in box widths and down in box heights: a
+/// small fish swims most of its length between two samples a quarter of a
+/// second apart, and a moving camera shifts every box, so their overlap
+/// falls under [minOverlap] though the fish is the same. Measured in boxes,
+/// the reach is the same on a portrait video as on a landscape one.
+class TrackLink {
+  const TrackLink({
+    this.minOverlap = 0.3,
+    this.maxShift = 1.0,
+    this.minAreaRatio = 0.4,
+  });
+
+  final double minOverlap;
+  final double maxShift;
+  final double minAreaRatio;
+
+  /// How well [next] continues a track last seen at [last], higher is
+  /// better, or null when it cannot: 1 plus the overlap for an overlap
+  /// link (above 1), 1 less the shift for a nearby one (0 to 1).
+  double? score(IdentificationBox last, IdentificationBox next) {
+    final overlap = last.iou(next);
+    if (overlap >= minOverlap) return 1 + overlap;
+    final larger = math.max(last.area, next.area);
+    if (larger <= 0 || math.min(last.area, next.area) / larger < minAreaRatio) {
+      return null;
+    }
+    final across =
+        ((last.x + last.width / 2) - (next.x + next.width / 2)).abs() /
+        math.max(last.width, next.width);
+    final down =
+        ((last.y + last.height / 2) - (next.y + next.height / 2)).abs() /
+        math.max(last.height, next.height);
+    final shift = math.sqrt(across * across + down * down);
+    return shift <= maxShift ? 1 - shift : null;
+  }
+
+  /// Whether [score] is an overlap link's.
+  static bool isOverlap(double score) => score > 1;
+}
+
+/// One-to-one pairs of `from` and `to` indexes by [score] (a [TrackLink]
+/// score, null for none), the best first. An overlap link always counts.
+/// A nearby link counts only when neither end has any other candidate: in
+/// a school, a box between two fish could be either, and handing it to
+/// the wrong one would mix two animals into one track and one name.
+List<({int from, int to})> matchLinks(
+  int fromCount,
+  int toCount,
+  double? Function(int from, int to) score,
+) {
+  final candidates = <({int from, int to, double score})>[];
+  final fromCandidates = List<int>.filled(fromCount, 0);
+  final toCandidates = List<int>.filled(toCount, 0);
+  for (var f = 0; f < fromCount; f++) {
+    for (var t = 0; t < toCount; t++) {
+      final s = score(f, t);
+      if (s == null) continue;
+      candidates.add((from: f, to: t, score: s));
+      fromCandidates[f]++;
+      toCandidates[t]++;
+    }
+  }
+  final usable = [
+    for (final c in candidates)
+      if (TrackLink.isOverlap(c.score) ||
+          (fromCandidates[c.from] == 1 && toCandidates[c.to] == 1))
+        c,
+  ];
+  // Ties in index order, as List.sort is not stable.
+  usable.sort((a, b) {
+    final byScore = b.score.compareTo(a.score);
+    if (byScore != 0) return byScore;
+    final byFrom = a.from.compareTo(b.from);
+    return byFrom != 0 ? byFrom : a.to.compareTo(b.to);
+  });
+  final usedFrom = <int>{};
+  final usedTo = <int>{};
+  final pairs = <({int from, int to})>[];
+  for (final c in usable) {
+    if (usedFrom.contains(c.from) || usedTo.contains(c.to)) continue;
+    usedFrom.add(c.from);
+    usedTo.add(c.to);
+    pairs.add((from: c.from, to: c.to));
+  }
+  return pairs;
+}
 
 /// One animal followed through consecutive sampled frames.
 class TrackedAnimal {
@@ -66,14 +171,14 @@ class _Open {
 }
 
 /// Feeds on frames in time order. A frame's boxes are matched to the open
-/// tracks greedily, the most overlapping pair first; a box left over opens
-/// a track. A track missed for more than [maxGapSamples] frames in a row
-/// is closed. A track seen in one frame only is dropped as flicker.
+/// tracks by [link] ([matchLinks]); a box left over opens a track. A track
+/// missed for more than [maxGapSamples] frames in a row is closed. A track
+/// seen in one frame only is dropped as flicker.
 class VideoTracker {
-  VideoTracker({this.linkOverlap = 0.3, this.maxGapSamples = 2});
+  VideoTracker({this.link = const TrackLink(), this.maxGapSamples = 2});
 
-  /// The least intersection over union for a box to continue a track.
-  final double linkOverlap;
+  /// Which box continues a track.
+  final TrackLink link;
   final int maxGapSamples;
 
   final _open = <_Open>[];
@@ -123,29 +228,22 @@ class VideoTracker {
 
   /// Adds [frame]; returns the tracks it closed.
   List<TrackedAnimal> add(FrameDetections frame) {
-    final pairs = <({int track, int box, double overlap})>[];
-    for (var t = 0; t < _open.length; t++) {
-      final last = _open[t].animal.points.last.detection.box;
-      for (var b = 0; b < frame.boxes.length; b++) {
-        final overlap = last.iou(frame.boxes[b].box);
-        if (overlap >= linkOverlap) {
-          pairs.add((track: t, box: b, overlap: overlap));
-        }
-      }
-    }
-    pairs.sort((a, b) => b.overlap.compareTo(a.overlap));
+    final pairs = matchLinks(
+      _open.length,
+      frame.boxes.length,
+      (t, b) => link.score(
+        _open[t].animal.points.last.detection.box,
+        frame.boxes[b].box,
+      ),
+    );
     final matchedTracks = <int>{};
     final matchedBoxes = <int>{};
     for (final pair in pairs) {
-      if (matchedTracks.contains(pair.track) ||
-          matchedBoxes.contains(pair.box)) {
-        continue;
-      }
-      matchedTracks.add(pair.track);
-      matchedBoxes.add(pair.box);
-      _open[pair.track]
+      matchedTracks.add(pair.from);
+      matchedBoxes.add(pair.to);
+      _open[pair.from]
         ..missed = 0
-        ..animal.points.add((ms: frame.ms, detection: frame.boxes[pair.box]));
+        ..animal.points.add((ms: frame.ms, detection: frame.boxes[pair.to]));
     }
     final closed = <TrackedAnimal>[];
     final still = <_Open>[];

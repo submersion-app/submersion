@@ -186,7 +186,7 @@ void main() {
     expect(run.videoDurationMs, 25000);
     expect(run.scanComplete, isTrue);
     expect(run.imageWidth, 1920);
-    expect(run.detectorId, 'det-a');
+    expect(run.detectorId, 'det-a#tracker2');
     expect(s.progress, 1);
   });
 

@@ -416,6 +416,61 @@ void main() {
       );
     });
 
+    test('a fish that moved most of its length across the seam is '
+        'paired', () {
+      // 0.15 across with a width of 0.2: an overlap of 0.14 and a shift
+      // of three quarters of a box.
+      final moved = later().copyWith(
+        path: [
+          for (final s in later().path)
+            s.copyWith(box: s.box.copyWith(x: 0.25)),
+        ],
+      );
+      expect(
+        seamJoins(
+          open: [openUntil(29750)],
+          openRows: const {},
+          stored: [moved],
+          seamMs: 30000,
+        ),
+        hasLength(1),
+      );
+    });
+
+    test('a nearby stored track two open fish could continue is paired '
+        'with neither', () {
+      final other = VideoTracker();
+      for (var ms = 28750; ms <= 29750; ms += 250) {
+        other.add(
+          FrameDetections(
+            ms: ms,
+            boxes: const [
+              DetectedBox(
+                box: IdentificationBox(x: 0.4, y: 0.4, width: 0.2, height: 0.1),
+                score: 0.9,
+              ),
+            ],
+          ),
+        );
+      }
+      // Between the two, overlapping neither by 0.3.
+      final between = later().copyWith(
+        path: [
+          for (final s in later().path)
+            s.copyWith(box: s.box.copyWith(x: 0.25)),
+        ],
+      );
+      expect(
+        seamJoins(
+          open: [openUntil(29750), other.openTracks.single],
+          openRows: const {},
+          stored: [between],
+          seamMs: 30000,
+        ),
+        isEmpty,
+      );
+    });
+
     test('saidDifferently needs a say on both parts, and a difference', () {
       final accepted = track(
         'a',

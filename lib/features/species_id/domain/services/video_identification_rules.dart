@@ -206,45 +206,35 @@ MediaIdentification _decided(
 /// Where two scanned stretches meet at [seamMs] (issue #4709): which of
 /// the [open] tracks reaching the seam are the same animal as a [stored]
 /// track of the later stretch. A stored track pairs when it starts within
-/// [maxGapMs] after the seam and its first box overlaps the open track's
-/// last box by at least [linkOverlap]; the most overlapping pairs first,
-/// each track used once. Two parts on which the diver said different
-/// things (a decision, its species, or a claim) stay apart; an open
-/// track's say is on its stored row in [openRows], by id.
+/// [maxGapMs] after the seam and its first box continues the open track's
+/// last box by [link], as the tracker links boxes ([matchLinks]), each
+/// track used once. Two parts on which the diver said different things (a
+/// decision, its species, or a claim) stay apart; an open track's say is
+/// on its stored row in [openRows], by id.
 List<({TrackedAnimal open, MediaIdentification later})> seamJoins({
   required List<TrackedAnimal> open,
   required Map<String, MediaIdentification> openRows,
   required List<MediaIdentification> stored,
   required int seamMs,
   int maxGapMs = 750,
-  double linkOverlap = 0.3,
+  TrackLink link = const TrackLink(),
 }) {
-  final candidates =
-      <({TrackedAnimal open, MediaIdentification later, double overlap})>[];
-  for (final o in open) {
-    final last = o.points.last.detection.box;
-    final row = o.storedId == null ? null : openRows[o.storedId];
-    for (final s in stored) {
-      final start = s.startMs;
-      if (!s.isTrack || s.path.isEmpty || start == null) continue;
-      if (start < seamMs || start > seamMs + maxGapMs) continue;
-      final overlap = last.iou(s.path.first.box);
-      if (overlap < linkOverlap) continue;
-      if (row != null && saidDifferently(row, s)) continue;
-      candidates.add((open: o, later: s, overlap: overlap));
-    }
-  }
-  candidates.sort((a, b) => b.overlap.compareTo(a.overlap));
-  final usedOpen = <TrackedAnimal>{};
-  final usedLater = <String>{};
-  final pairs = <({TrackedAnimal open, MediaIdentification later})>[];
-  for (final c in candidates) {
-    if (usedOpen.contains(c.open) || usedLater.contains(c.later.id)) continue;
-    usedOpen.add(c.open);
-    usedLater.add(c.later.id);
-    pairs.add((open: c.open, later: c.later));
-  }
-  return pairs;
+  final later = [
+    for (final s in stored)
+      if (s.isTrack &&
+          s.path.isNotEmpty &&
+          s.startMs != null &&
+          s.startMs! >= seamMs &&
+          s.startMs! <= seamMs + maxGapMs)
+        s,
+  ];
+  final pairs = matchLinks(open.length, later.length, (o, l) {
+    final track = open[o];
+    final row = track.storedId == null ? null : openRows[track.storedId];
+    if (row != null && saidDifferently(row, later[l])) return null;
+    return link.score(track.points.last.detection.box, later[l].path.first.box);
+  });
+  return [for (final p in pairs) (open: open[p.from], later: later[p.to])];
 }
 
 /// Whether the diver said something on both [a] and [b], and not the same:
