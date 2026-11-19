@@ -8,8 +8,9 @@ Linux build among them no beta shipped (issue #4722). scripts/apt_mirror.py
 repoints the sources; this guard keeps a new job, or a step moved above the
 call, from bringing the slow mirror back.
 
-A job installs from apt when a line runs `apt-get install`, `apt install`,
-or `playwright install --with-deps` (which runs apt-get itself). Comments and
+A job installs from apt when a line runs `apt-get install` or `apt install`
+(with or without options such as `-y` before `install`), or
+`playwright install --with-deps` (which runs apt-get itself). Comments and
 step names are prose, not commands, and are skipped. The first such line in
 a job must come after a line that runs scripts/apt_mirror.py.
 The rewrite persists on the runner for the rest of the job, so later steps
@@ -30,8 +31,13 @@ WORKFLOW_DIR = os.path.join(".github", "workflows")
 _JOBS_KEY = re.compile(r"^jobs:\s*(?:#.*)?$")
 _JOB_KEY = re.compile(r"^  ([A-Za-z0-9_-]+):\s*(?:#.*)?$")
 _TOP_KEY = re.compile(r"^\S")
+# Options may sit between apt-get (or apt) and `install`: `-y`,
+# `--no-install-recommends`, or `-o Key=value` with its value as a separate
+# word. Anything else in that position is a different apt subcommand.
+_APT_OPTIONS = r"(?:\s+(?:-o\s+\S+|-\S+))*"
 _INSTALL = re.compile(
-    r"\bapt-get\s+install\b|\bapt\s+install\b|playwright\s+install\s+--with-deps"
+    r"\bapt(?:-get)?" + _APT_OPTIONS + r"\s+install\b"
+    r"|playwright\s+install\s+--with-deps"
 )
 _MIRROR = re.compile(r"scripts/apt_mirror\.py\b")
 # A step name is prose, not a command: "Check every apt install ..." is not one.

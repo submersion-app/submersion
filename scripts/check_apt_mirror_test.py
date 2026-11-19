@@ -98,6 +98,39 @@ class GuardTest(unittest.TestCase):
         self.assertEqual(code, 1, out)
         self.assertIn("second", out)
 
+    def test_options_before_install_still_count(self):
+        for command in (
+            "sudo apt-get -y install clang",
+            "sudo apt-get --no-install-recommends install clang",
+            "sudo apt-get -o Dpkg::Options::=--force-confnew install clang",
+            "sudo apt -qq install clang",
+            "sudo DEBIAN_FRONTEND=noninteractive apt-get -y -q install clang",
+        ):
+            with self.subTest(command=command):
+                self.write(
+                    "ci.yaml",
+                    _job("linux", _step("Deps", f"          {command}\n")),
+                )
+                code, out = self.run_main()
+                self.assertEqual(code, 1, out)
+                self.assertIn("linux", out)
+
+    def test_other_apt_commands_are_not_installs(self):
+        self.write(
+            "ci.yaml",
+            _job(
+                "linux",
+                _step(
+                    "Inspect",
+                    "          apt-get -s upgrade\n",
+                    "          apt-cache policy clang\n",
+                    "          sudo apt-get update\n",
+                ),
+            ),
+        )
+        code, out = self.run_main()
+        self.assertEqual(code, 0, out)
+
     def test_playwright_with_deps_counts_as_an_install(self):
         self.write("ci.yaml", _job("smoke", _step("Browsers", PLAYWRIGHT)))
         code, out = self.run_main()
