@@ -104,6 +104,14 @@ class SettingsKeys {
   /// opened in the viewer (issue #4668).
   static const String identifyFishOnOpen = 'species_id_identify_on_open';
 
+  /// Device-local: whether matches the app is confident of are tagged with
+  /// no tap, marked unconfirmed (issue #4727). Off by default.
+  static const String speciesIdAutoApply = 'species_id_auto_apply';
+
+  /// Device-local: when such a tag logs its dive's sighting, by
+  /// `SightingTiming` name (issue #4727).
+  static const String speciesIdSightingTiming = 'species_id_sighting_timing';
+
   /// Device-local: whether the fullscreen viewers fill the window or take
   /// the desktop window into OS fullscreen.
   static const String viewerFullscreenMode = 'viewer_fullscreen_mode';

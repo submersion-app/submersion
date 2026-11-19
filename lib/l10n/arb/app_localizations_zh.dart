@@ -27655,6 +27655,32 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_speciesId_toggle => '打开照片或视频时识别鱼类';
 
   @override
+  String get settings_speciesId_autoApply =>
+      'Tag confident matches automatically';
+
+  @override
+  String get settings_speciesId_autoApplyDescription =>
+      'The app adds a species tag when it is sure of a match. You confirm each one in Species to review.';
+
+  @override
+  String get settings_speciesId_autoApplyNever =>
+      'The installed model isn\'t yet sure enough of any species to tag on its own. Suggestions still appear for you to add.';
+
+  @override
+  String get settings_speciesId_autoApplyPlaceOnly =>
+      'Only for photos and videos with a location.';
+
+  @override
+  String get settings_speciesId_sightingTiming =>
+      'Log sightings for these tags';
+
+  @override
+  String get settings_speciesId_sightingOnConfirm => 'When I confirm the tag';
+
+  @override
+  String get settings_speciesId_sightingStraightAway => 'Straight away';
+
+  @override
   String get settings_speciesId_kept => '此设备上保留的建议';
 
   @override

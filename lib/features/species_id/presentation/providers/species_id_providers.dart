@@ -12,6 +12,7 @@ import 'package:submersion/features/media/presentation/providers/media_bytes_pro
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media/presentation/providers/video_color_track_provider.dart';
 import 'package:submersion/features/media/presentation/providers/video_playback_providers.dart';
+import 'package:submersion/features/media/domain/value_objects/sighting_timing.dart';
 import 'package:submersion/features/settings/presentation/providers/media_badge_settings_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/species_id/data/engines/channel_vision_engine.dart';
@@ -71,6 +72,64 @@ class IdentifyFishOnOpenNotifier extends DeviceBadgeToggleNotifier {
 final identifyFishOnOpenProvider =
     StateNotifierProvider<IdentifyFishOnOpenNotifier, bool>(
       (ref) => IdentifyFishOnOpenNotifier.unstored(true),
+    );
+
+/// Whether matches the app is confident of are tagged with no tap (issue
+/// #4727). Per device, off by default.
+class AutoApplyNotifier extends DeviceBadgeToggleNotifier {
+  AutoApplyNotifier(SharedPreferences prefs)
+    : super(prefs, SettingsKeys.speciesIdAutoApply, defaultValue: false);
+
+  /// Fixed state with nothing behind it; see
+  /// [DeviceBadgeToggleNotifier.unstored].
+  AutoApplyNotifier.unstored(bool enabled)
+    : super.unstored(enabled, SettingsKeys.speciesIdAutoApply);
+}
+
+/// Off, with no storage behind it; `rootProviderOverrides` gives it the
+/// stored preference.
+final autoApplyProvider = StateNotifierProvider<AutoApplyNotifier, bool>(
+  (ref) => AutoApplyNotifier.unstored(false),
+);
+
+/// When a tag the app applied logs its sighting (issue #4727). Per device,
+/// [SightingTiming.onConfirm] by default.
+class SightingTimingNotifier extends StateNotifier<SightingTiming> {
+  SightingTimingNotifier(SharedPreferences prefs)
+    : _prefs = prefs,
+      super(
+        SightingTiming.fromName(
+          prefs.getString(SettingsKeys.speciesIdSightingTiming),
+        ),
+      );
+
+  /// Fixed state with nothing behind it.
+  SightingTimingNotifier.unstored(super.timing) : _prefs = null;
+
+  final SharedPreferences? _prefs;
+
+  /// The latest write, which the next one waits on, so the stored choice is
+  /// the last one shown.
+  Future<void> _lastWrite = Future<void>.value();
+
+  Future<void> setTiming(SightingTiming timing) {
+    if (state == timing) return Future<void>.value();
+    state = timing;
+    final prefs = _prefs;
+    if (prefs == null) return Future<void>.value();
+    final write = _lastWrite.then(
+      (_) => prefs.setString(SettingsKeys.speciesIdSightingTiming, timing.name),
+    );
+    _lastWrite = write.then<void>((_) {}, onError: (Object _) {});
+    return write;
+  }
+}
+
+/// When I confirm, with no storage behind it; `rootProviderOverrides` gives
+/// it the stored preference.
+final sightingTimingProvider =
+    StateNotifierProvider<SightingTimingNotifier, SightingTiming>(
+      (ref) => SightingTimingNotifier.unstored(SightingTiming.onConfirm),
     );
 
 final mediaIdentificationRepositoryProvider =

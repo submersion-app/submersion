@@ -29327,6 +29327,32 @@ class AppLocalizationsIt extends AppLocalizations {
       'Identifica i pesci quando apro una foto o un video';
 
   @override
+  String get settings_speciesId_autoApply =>
+      'Tag confident matches automatically';
+
+  @override
+  String get settings_speciesId_autoApplyDescription =>
+      'The app adds a species tag when it is sure of a match. You confirm each one in Species to review.';
+
+  @override
+  String get settings_speciesId_autoApplyNever =>
+      'The installed model isn\'t yet sure enough of any species to tag on its own. Suggestions still appear for you to add.';
+
+  @override
+  String get settings_speciesId_autoApplyPlaceOnly =>
+      'Only for photos and videos with a location.';
+
+  @override
+  String get settings_speciesId_sightingTiming =>
+      'Log sightings for these tags';
+
+  @override
+  String get settings_speciesId_sightingOnConfirm => 'When I confirm the tag';
+
+  @override
+  String get settings_speciesId_sightingStraightAway => 'Straight away';
+
+  @override
   String get settings_speciesId_kept =>
       'Suggerimenti conservati su questo dispositivo';
 

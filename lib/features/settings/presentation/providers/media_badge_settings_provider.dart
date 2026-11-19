@@ -29,13 +29,17 @@ class MediaProvenanceBadgesNotifier extends DeviceBadgeToggleNotifier {
 }
 
 /// A device-local on/off switch for a thumbnail decoration, stored in
-/// SharedPreferences under [_key] and on by default. Shared by the source
-/// badges and the tag markers so the two cannot drift apart.
+/// SharedPreferences under [_key] and on by default ([defaultValue]).
+/// Shared by the source badges and the tag markers so the two cannot drift
+/// apart.
 class DeviceBadgeToggleNotifier extends StateNotifier<bool> {
-  DeviceBadgeToggleNotifier(SharedPreferences prefs, String key)
-    : _prefs = prefs,
-      _key = key,
-      super(prefs.getBool(key) ?? true);
+  DeviceBadgeToggleNotifier(
+    SharedPreferences prefs,
+    String key, {
+    bool defaultValue = true,
+  }) : _prefs = prefs,
+       _key = key,
+       super(prefs.getBool(key) ?? defaultValue);
 
   /// Fixed state with nothing behind it.
   ///

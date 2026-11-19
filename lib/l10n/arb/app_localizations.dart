@@ -46630,6 +46630,48 @@ abstract class AppLocalizations {
   /// **'Identify fish when I open a photo or video'**
   String get settings_speciesId_toggle;
 
+  /// No description provided for @settings_speciesId_autoApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag confident matches automatically'**
+  String get settings_speciesId_autoApply;
+
+  /// No description provided for @settings_speciesId_autoApplyDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'The app adds a species tag when it is sure of a match. You confirm each one in Species to review.'**
+  String get settings_speciesId_autoApplyDescription;
+
+  /// No description provided for @settings_speciesId_autoApplyNever.
+  ///
+  /// In en, this message translates to:
+  /// **'The installed model isn\'t yet sure enough of any species to tag on its own. Suggestions still appear for you to add.'**
+  String get settings_speciesId_autoApplyNever;
+
+  /// No description provided for @settings_speciesId_autoApplyPlaceOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Only for photos and videos with a location.'**
+  String get settings_speciesId_autoApplyPlaceOnly;
+
+  /// No description provided for @settings_speciesId_sightingTiming.
+  ///
+  /// In en, this message translates to:
+  /// **'Log sightings for these tags'**
+  String get settings_speciesId_sightingTiming;
+
+  /// No description provided for @settings_speciesId_sightingOnConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'When I confirm the tag'**
+  String get settings_speciesId_sightingOnConfirm;
+
+  /// No description provided for @settings_speciesId_sightingStraightAway.
+  ///
+  /// In en, this message translates to:
+  /// **'Straight away'**
+  String get settings_speciesId_sightingStraightAway;
+
   /// No description provided for @settings_speciesId_kept.
   ///
   /// In en, this message translates to:
