@@ -14,6 +14,10 @@ import 'package:submersion/features/species_id/domain/entities/track_sample.dart
 import 'package:submersion/features/species_id/domain/services/scanned_ranges_codec.dart';
 import 'package:submersion/features/species_id/domain/services/track_path_codec.dart';
 
+/// The logbook a transaction of [MediaIdentificationRepository] runs on,
+/// and whether that transaction has ended.
+typedef _Pin = ({AppDatabase db, Completer<void> ended});
+
 /// What [MediaIdentificationRepository.storeRunAfterReading] writes.
 typedef StoreRunWrite = ({
   MediaIdentificationRun run,
@@ -30,7 +34,11 @@ class MediaIdentificationRepository {
   MediaIdentificationRepository({
     AppDatabase? database,
     AppDatabase Function()? currentDatabase,
-  }) : _currentDatabase = database != null
+  }) : assert(
+         database == null || currentDatabase == null,
+         'Give a fixed database or a way to find one, not both',
+       ),
+       _currentDatabase = database != null
            ? (() => database)
            : (currentDatabase ?? _openLogbook);
 
@@ -44,18 +52,27 @@ class MediaIdentificationRepository {
 
   /// The open logbook, read on every call so a switch of logbook (demo
   /// mode, a restore) is followed; inside one of this repository's
-  /// transactions, the logbook it began on.
-  AppDatabase get _db =>
-      Zone.current[_pinned] as AppDatabase? ?? _currentDatabase();
+  /// transactions, the logbook it began on. A callback the transaction
+  /// left behind keeps its zone, so the pin holds only until it ends.
+  AppDatabase get _db {
+    final pin = Zone.current[_pinned] as _Pin?;
+    if (pin != null && !pin.ended.isCompleted) return pin.db;
+    return _currentDatabase();
+  }
 
   /// Runs [body] in one transaction on the logbook open now. Every read
   /// and write this repository makes inside it uses that logbook, so a
   /// logbook opened meanwhile is neither read nor written (issue #4721).
-  Future<T> _transaction<T>(Future<T> Function(AppDatabase db) body) {
+  Future<T> _transaction<T>(Future<T> Function(AppDatabase db) body) async {
     final db = _db;
-    return db.transaction(
-      () => runZoned(() => body(db), zoneValues: {_pinned: db}),
-    );
+    final _Pin pin = (db: db, ended: Completer<void>());
+    try {
+      return await db.transaction(
+        () => runZoned(() => body(db), zoneValues: {_pinned: pin}),
+      );
+    } finally {
+      pin.ended.complete();
+    }
   }
 
   /// Ticks on any write to either table.
@@ -80,13 +97,14 @@ class MediaIdentificationRepository {
   /// The species tagged on [mediaId], with their scientific names, as the
   /// rules compare them with candidates.
   Future<List<TaggedSpecies>> taggedSpecies(String mediaId) async {
-    final rows = await _db
+    final db = _db;
+    final rows = await db
         .customSelect(
           'SELECT ms.species_id AS species_id, s.scientific_name AS sci '
           'FROM media_species ms LEFT JOIN species s ON s.id = ms.species_id '
           'WHERE ms.media_id = ?',
           variables: [Variable.withString(mediaId)],
-          readsFrom: {_db.mediaSpecies, _db.species},
+          readsFrom: {db.mediaSpecies, db.species},
         )
         .get();
     return [
@@ -232,20 +250,24 @@ class MediaIdentificationRepository {
     await db.update(db.mediaIdentificationRuns).replace(_runToCompanion(run));
   });
 
-  Future<void> _writeOver(String id, MediaIdentificationsCompanion columns) =>
-      (_db.update(
-        _db.mediaIdentifications,
-      )..where((r) => r.id.equals(id))).write(columns);
+  Future<void> _writeOver(String id, MediaIdentificationsCompanion columns) {
+    final db = _db;
+    return (db.update(
+      db.mediaIdentifications,
+    )..where((r) => r.id.equals(id))).write(columns);
+  }
 
   /// Records that the diver gave [identificationId] the species
   /// [speciesId] from the frame (issue #4675). Writes nothing when the row
   /// is gone: a claim must not bring back a cleared identification.
-  Future<void> claim(String identificationId, String speciesId) =>
-      (_db.update(
-        _db.mediaIdentifications,
-      )..where((r) => r.id.equals(identificationId))).write(
-        MediaIdentificationsCompanion(claimedSpeciesId: Value(speciesId)),
-      );
+  Future<void> claim(String identificationId, String speciesId) {
+    final db = _db;
+    return (db.update(
+      db.mediaIdentifications,
+    )..where((r) => r.id.equals(identificationId))).write(
+      MediaIdentificationsCompanion(claimedSpeciesId: Value(speciesId)),
+    );
+  }
 
   /// Removes the runs and identifications of [mediaIds]; returns the ids of
   /// the identifications removed, for their crops and embeddings.
@@ -273,7 +295,8 @@ class MediaIdentificationRepository {
   /// Media ids with rows here but no media row: deleted by sync, or by a
   /// delete that was held for undo and never undone.
   Future<List<String>> orphanMediaIds() async {
-    final rows = await _db
+    final db = _db;
+    final rows = await db
         .customSelect(
           'SELECT media_id FROM media_identification_runs '
           'WHERE media_id NOT IN (SELECT id FROM media) '
@@ -281,9 +304,9 @@ class MediaIdentificationRepository {
           'SELECT media_id FROM media_identifications '
           'WHERE media_id NOT IN (SELECT id FROM media)',
           readsFrom: {
-            _db.mediaIdentificationRuns,
-            _db.mediaIdentifications,
-            _db.media,
+            db.mediaIdentificationRuns,
+            db.mediaIdentifications,
+            db.media,
           },
         )
         .get();
@@ -291,21 +314,23 @@ class MediaIdentificationRepository {
   }
 
   Future<int> count() async {
-    final countExp = _db.mediaIdentifications.id.count();
-    final row = await (_db.selectOnly(
-      _db.mediaIdentifications,
+    final db = _db;
+    final countExp = db.mediaIdentifications.id.count();
+    final row = await (db.selectOnly(
+      db.mediaIdentifications,
     )..addColumns([countExp])).getSingle();
     return row.read(countExp) ?? 0;
   }
 
   /// Every media id with a run or an identification in this logbook.
   Future<List<String>> mediaIds() async {
-    final rows = await _db
+    final db = _db;
+    final rows = await db
         .customSelect(
           'SELECT media_id FROM media_identification_runs '
           'UNION '
           'SELECT media_id FROM media_identifications',
-          readsFrom: {_db.mediaIdentificationRuns, _db.mediaIdentifications},
+          readsFrom: {db.mediaIdentificationRuns, db.mediaIdentifications},
         )
         .get();
     return [for (final row in rows) row.read<String>('media_id')];

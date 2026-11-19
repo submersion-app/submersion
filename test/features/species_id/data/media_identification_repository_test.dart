@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -52,27 +54,6 @@ void main() {
     },
   );
 
-  test('a snapshot reads both from the logbook open when it began, even if '
-      'another opens during it', () async {
-    final other = AppDatabase(
-      NativeDatabase.memory(setup: registerAppSqlFunctions),
-    );
-    addTearDown(other.close);
-    await repo.storeRun(
-      run(),
-      insert: [identification('a')],
-      deleteIds: const [],
-    );
-    // The first lookup finds this logbook; every later one, another.
-    var lookups = 0;
-    final switching = MediaIdentificationRepository(
-      currentDatabase: () => lookups++ == 0 ? db : other,
-    );
-    final (stored, rows) = await switching.forMediaWithRun('m1');
-    expect(stored?.packVersion, '2026.11.1');
-    expect(rows.map((i) => i.id), ['a']);
-  });
-
   group('a transaction stays on the logbook open when it began', () {
     late AppDatabase other;
     late MediaIdentificationRepository switching;
@@ -88,6 +69,12 @@ void main() {
       switching = MediaIdentificationRepository(
         currentDatabase: () => lookups++ == 0 ? db : other,
       );
+    });
+
+    test('a snapshot reads both from there', () async {
+      final (stored, rows) = await switching.forMediaWithRun('m1');
+      expect(stored?.packVersion, '2026.11.1');
+      expect(rows.map((i) => i.id), ['a']);
     });
 
     test('a store after reading reads and writes there', () async {
@@ -114,8 +101,35 @@ void main() {
         packVersion: '2026.12.1',
         locationCell: () => null,
       );
-      await switching.updateNames([identification('a')], run: renamed);
+      final named = identification('a').copyWith(openScore: 0.7);
+      await switching.updateNames([named], run: renamed);
       expect(await repo.runFor('m1'), renamed);
+      expect((await repo.forMedia('m1')).single.openScore, 0.7);
+      expect(await other.select(other.mediaIdentificationRuns).get(), isEmpty);
+    });
+
+    test('a decision is written there', () async {
+      final dismissed = identification(
+        'a',
+        decision: IdentificationDecision.rejected,
+        decidedAt: fixtureT1,
+      );
+      await switching.updateDecisions([dismissed]);
+      expect(await repo.forMedia('m1'), [dismissed]);
+    });
+
+    test('a callback it left behind follows the logbook open when it runs, '
+        'not the one the transaction began on', () async {
+      late Zone inside;
+      await switching.storeRunAfterReading(
+        'm1',
+        read: false,
+        build: (_) async {
+          inside = Zone.current;
+          return null;
+        },
+      );
+      expect(await inside.run(() => switching.forMedia('m1')), isEmpty);
     });
   });
 
