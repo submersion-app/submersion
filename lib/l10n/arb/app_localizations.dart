@@ -46603,7 +46603,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_speciesId_title.
   ///
   /// In en, this message translates to:
-  /// **'Marine life identification'**
+  /// **'Species identification'**
   String get settings_speciesId_title;
 
   /// No description provided for @settings_speciesId_entrySubtitle.
@@ -46611,6 +46611,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Find fish in your photos and videos and suggest what they are'**
   String get settings_speciesId_entrySubtitle;
+
+  /// No description provided for @speciesId_downloadPrompt_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Identify fish in your photos and videos'**
+  String get speciesId_downloadPrompt_title;
+
+  /// No description provided for @speciesId_downloadPrompt_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Download the species identification model to get suggestions'**
+  String get speciesId_downloadPrompt_subtitle;
+
+  /// No description provided for @speciesId_downloadPrompt_dismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t show again'**
+  String get speciesId_downloadPrompt_dismiss;
 
   /// No description provided for @settings_speciesId_intro.
   ///
@@ -46867,7 +46885,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_speciesId_unsupported.
   ///
   /// In en, this message translates to:
-  /// **'Marine life identification is not available on this device yet.'**
+  /// **'Species identification is not available on this device yet.'**
   String get settings_speciesId_unsupported;
 
   /// No description provided for @settings_speciesId_notEligible.
@@ -97969,6 +97987,12 @@ abstract class AppLocalizations {
   /// **'Where photos come from'**
   String get settings_photos_sourcesHeader;
 
+  /// Photos & videos: header over species identification (issue #4773)
+  ///
+  /// In en, this message translates to:
+  /// **'Species'**
+  String get settings_photos_speciesHeader;
+
   /// Row: the photo library and files a diver links photos from
   ///
   /// In en, this message translates to:
@@ -99907,7 +99931,7 @@ abstract class AppLocalizations {
   /// No description provided for @changeLog_label_marineLifeId.
   ///
   /// In en, this message translates to:
-  /// **'Marine life identification'**
+  /// **'Species identification'**
   String get changeLog_label_marineLifeId;
 
   /// No description provided for @changeLog_label_speciesReview.

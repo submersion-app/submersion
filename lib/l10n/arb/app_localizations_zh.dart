@@ -27635,10 +27635,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_photosVideos_title => '照片与视频';
 
   @override
-  String get settings_speciesId_title => '海洋生物识别';
+  String get settings_speciesId_title => '物种识别';
 
   @override
   String get settings_speciesId_entrySubtitle => '在照片和视频中查找鱼类并建议物种';
+
+  @override
+  String get speciesId_downloadPrompt_title => '识别照片和视频中的鱼类';
+
+  @override
+  String get speciesId_downloadPrompt_subtitle => '下载物种识别模型以获取建议';
+
+  @override
+  String get speciesId_downloadPrompt_dismiss => '不再显示';
 
   @override
   String get settings_speciesId_intro =>
@@ -27795,7 +27804,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_speciesId_credits => '致谢与许可';
 
   @override
-  String get settings_speciesId_unsupported => '此设备暂不支持海洋生物识别。';
+  String get settings_speciesId_unsupported => '此设备暂不支持物种识别。';
 
   @override
   String get settings_speciesId_notEligible => '此设备内存不足，无法运行该模型。';
@@ -58492,6 +58501,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_photos_sourcesHeader => '照片来源';
 
   @override
+  String get settings_photos_speciesHeader => '物种';
+
+  @override
   String get settings_photos_library => '照片库和文件';
 
   @override
@@ -59847,7 +59859,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get changeLog_label_mediaRepair => '已修复媒体链接';
 
   @override
-  String get changeLog_label_marineLifeId => '海洋生物识别';
+  String get changeLog_label_marineLifeId => '物种识别';
 
   @override
   String get changeLog_label_speciesReview => '物种审核';

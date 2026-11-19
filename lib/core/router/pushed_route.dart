@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
@@ -85,3 +87,29 @@ bool shouldRedirectToMasterDetail(
     GoRouter.maybeOf(context) != null &&
     (ModalRoute.of(context)?.isCurrent ?? true) &&
     !isImperativelyPushed(context);
+
+/// Pops every pageless route above the router's page on [navigator] (a
+/// sheet, the viewer pushed imperatively), so the router's next page opens
+/// over the page the diver came from rather than under or between them.
+///
+/// Returns false, having popped nothing past it, when a route refuses to be
+/// popped (the viewer unlocked with unsaved changes, issue #4527):
+/// `Navigator.pop` would close it anyway and its guard would drop the
+/// changes unasked. It is asked instead, as Back asks it, and the caller
+/// must not navigate.
+///
+/// A navigator with no page (one started from `home:`) keeps its first
+/// route: popping it would leave the navigator with nothing on it.
+bool closeRoutesAboveRouterPage(NavigatorState navigator) {
+  var guarded = false;
+  navigator.popUntil((route) {
+    if (route.settings is Page || route.isFirst) return true;
+    if (route.popDisposition == RoutePopDisposition.doNotPop) {
+      guarded = true;
+      return true;
+    }
+    return false;
+  });
+  if (guarded) unawaited(navigator.maybePop());
+  return !guarded;
+}

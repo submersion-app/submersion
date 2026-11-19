@@ -28800,11 +28800,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_photosVideos_title => 'Photos & videos';
 
   @override
-  String get settings_speciesId_title => 'Marine life identification';
+  String get settings_speciesId_title => 'Species identification';
 
   @override
   String get settings_speciesId_entrySubtitle =>
       'Find fish in your photos and videos and suggest what they are';
+
+  @override
+  String get speciesId_downloadPrompt_title =>
+      'Identify fish in your photos and videos';
+
+  @override
+  String get speciesId_downloadPrompt_subtitle =>
+      'Download the species identification model to get suggestions';
+
+  @override
+  String get speciesId_downloadPrompt_dismiss => 'Don\'t show again';
 
   @override
   String get settings_speciesId_intro =>
@@ -28971,7 +28982,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_speciesId_unsupported =>
-      'Marine life identification is not available on this device yet.';
+      'Species identification is not available on this device yet.';
 
   @override
   String get settings_speciesId_notEligible =>
@@ -61324,6 +61335,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_photos_sourcesHeader => 'Where photos come from';
 
   @override
+  String get settings_photos_speciesHeader => 'Species';
+
+  @override
   String get settings_photos_library => 'Photo library and files';
 
   @override
@@ -62750,7 +62764,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get changeLog_label_mediaRepair => 'Repaired media links';
 
   @override
-  String get changeLog_label_marineLifeId => 'Marine life identification';
+  String get changeLog_label_marineLifeId => 'Species identification';
 
   @override
   String get changeLog_label_speciesReview => 'Species review';

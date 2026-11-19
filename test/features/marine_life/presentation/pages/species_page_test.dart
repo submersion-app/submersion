@@ -14,6 +14,7 @@ import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_query_providers.dart';
 import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
+import 'package:submersion/features/species_id/presentation/providers/species_download_prompt_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -110,6 +111,18 @@ void main() {
     expect(find.text('Whale Shark'), findsOneWidget);
     expect(find.text('Green Sea Turtle'), findsOneWidget);
     expect(find.text('2 species · 8 sightings'), findsOneWidget);
+  });
+
+  testWidgets('with no model it offers the download (#4773)', (tester) async {
+    await _pumpPage(
+      tester,
+      [_whaleShark],
+      extra: [speciesDownloadPromptProvider.overrideWithValue(true)],
+    );
+    expect(
+      find.byKey(const ValueKey('species_download_prompt')),
+      findsOneWidget,
+    );
   });
 
   testWidgets('sorts by most dives by default', (tester) async {
