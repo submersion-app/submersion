@@ -36,8 +36,10 @@ class MediaLibraryView extends ConsumerStatefulWidget {
   final MediaViewerOpener openViewer;
 
   /// The bulk-selection state, when a host shows the toolbar somewhere else
-  /// and so has to share it (#4777). The host owns and disposes it, and
-  /// ends it when the view goes away. Null gives the view one of its own.
+  /// and so has to share it (#4777). The host owns and disposes it and
+  /// decides when it ends, which can outlive this view: `MediaSectionPage`
+  /// keeps it across the remount a resize past the master-detail breakpoint
+  /// causes. Null gives the view one of its own.
   final SelectionController? selection;
 
   /// Whether the view shows [MediaLibraryHeaderToolbar] above its content.
@@ -268,6 +270,7 @@ class MediaLibraryHeaderToolbar extends ConsumerWidget {
     return SelectableListScope(
       controller: selection,
       selectableIds: [for (final e in entries) e.item.id],
+      skipTraversal: true,
       child: toolbar,
     );
   }

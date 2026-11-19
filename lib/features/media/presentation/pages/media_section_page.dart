@@ -48,8 +48,9 @@ class _MediaSectionPageState extends ConsumerState<MediaSectionPage> {
 
   /// The Library's bulk selection, held here rather than in the Library view
   /// because at desktop widths its toolbar, Select button included, sits in
-  /// the header's tab row (#4777). It still lasts only as long as the view:
-  /// [_select] ends it when another section takes the page.
+  /// the header's tab row (#4777). It lasts as long as the Library section
+  /// stays selected: a resize that remounts the view keeps it, and [_select]
+  /// ends it when another section takes the page.
   final SelectionController _librarySelection = SelectionController();
 
   // Built once: the page reads the screen size to place the toolbar, so it

@@ -227,6 +227,25 @@ void main() {
       );
     });
 
+    testWidgets('Tab goes from the last section tab straight to the filter '
+        'button', (tester) async {
+      // The header's own keyboard scope must not add a stop of its own: a
+      // blank stop spanning the toolbar reads as focus lost.
+      setDesktopSize(tester);
+      await tester.pumpWidget(host());
+      await tester.pump();
+
+      Focus.of(tester.element(find.text('Equipment'))).requestFocus();
+      await tester.pump();
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+
+      expect(
+        FocusManager.instance.primaryFocus,
+        Focus.of(tester.element(find.byIcon(Icons.filter_list))),
+      );
+    });
+
     testWidgets('Escape and Cmd/Ctrl-A answer with focus on a header control', (
       tester,
     ) async {

@@ -36,6 +36,38 @@ void main() {
   }
 
   group('SelectableListScope', () {
+    testWidgets('skipTraversal keeps keys working but takes the scope off '
+        'the Tab order', (tester) async {
+      // A scope around a row of controls (the Media header toolbar, #4777)
+      // must not add a blank stop before them.
+      Future<FocusNode> pumpScope({required bool skip}) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: SelectableListScope(
+              controller: controller,
+              selectableIds: const ['a', 'b', 'c'],
+              skipTraversal: skip,
+              child: const SizedBox.expand(key: Key('inside')),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        return Focus.of(tester.element(find.byKey(const Key('inside'))));
+      }
+
+      expect((await pumpScope(skip: false)).skipTraversal, isFalse);
+
+      final node = await pumpScope(skip: true);
+      expect(node.skipTraversal, isTrue);
+      // Still the autofocused node that answers the keys.
+      expect(node.hasPrimaryFocus, isTrue);
+      controller.enterImplicit('a');
+      await tester.pump();
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pump();
+      expect(controller.value.isActive, isFalse);
+    });
+
     testWidgets('Escape exits selection mode', (tester) async {
       controller.enterImplicit('a');
       await tester.pumpWidget(host());
