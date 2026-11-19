@@ -13,7 +13,10 @@ the epochs, a blend with the name rows and an overall sharpness are chosen
 on the validation photos (post-cutoff photos of observers kept out of
 training), never on the test set. The sharpness scales every row, trained
 or not: it is the same as changing logitScale, so it leaves each crop's
-ranking of trained and untrained candidates as it was.
+ranking of trained and untrained candidates as it was. The rare-species
+check layer (`--exclude-held-back` with `--settings-from` the trained
+pack) reuses the trained pack's chosen pull, epochs, blend and sharpness
+instead of searching, so it differs from that pack only in its photos.
 
 The derived pack copies every file of the base pack but the rows and the
 manifest, so candidates, regions and models stay byte for byte the same.
@@ -113,10 +116,11 @@ def _device():
 
 
 def train(name_rows, x, y, *, anchor, epochs, lr, seed, device=None, validation=None):
-    """Trained rows, starting at `name_rows`. With `validation` (x, y), the
-    rows of the epoch with the lowest validation loss, stopping after
-    PATIENCE epochs without improvement. Rows of candidates absent from `y`
-    stay exactly their name rows."""
+    """(trained rows, epochs), starting at `name_rows`. With `validation`
+    (x, y), the rows of the epoch with the lowest validation loss and that
+    epoch's number, stopping after PATIENCE epochs without improvement;
+    without, the rows after all `epochs`. Rows of candidates absent from
+    `y` stay exactly their name rows."""
     import torch
     import torch.nn.functional as F
 
@@ -131,8 +135,8 @@ def train(name_rows, x, y, *, anchor, epochs, lr, seed, device=None, validation=
     inputs = torch.tensor(_unit(x), device=device)
     labels = torch.tensor(y, dtype=torch.long, device=device)
     optimiser = torch.optim.Adam([rows], lr=lr)
-    best, best_loss, stale = None, math.inf, 0
-    for _ in range(epochs):
+    best, best_loss, stale, best_epoch, epoch = None, math.inf, 0, 0, 0
+    for epoch in range(1, epochs + 1):
         order = torch.randperm(len(inputs), generator=generator).to(device)
         for i in range(0, len(inputs), BATCH):
             batch = order[i : i + BATCH]
@@ -147,7 +151,7 @@ def train(name_rows, x, y, *, anchor, epochs, lr, seed, device=None, validation=
             current = rows.detach().cpu().numpy()
             score = validation_loss(current, *validation)
             if score < best_loss:
-                best, best_loss, stale = current.copy(), score, 0
+                best, best_loss, stale, best_epoch = current.copy(), score, 0, epoch
             else:
                 stale += 1
                 if stale >= PATIENCE:
@@ -155,7 +159,7 @@ def train(name_rows, x, y, *, anchor, epochs, lr, seed, device=None, validation=
     out = best if best is not None else rows.detach().cpu().numpy()
     out = out.astype(np.float32)
     out[~seen] = name_rows[~seen]
-    return out
+    return out, (best_epoch if best is not None else epoch)
 
 
 def finish(trained, name_rows, *, blend, sharpness):
@@ -169,7 +173,7 @@ def search(name_rows, train_xy, validation_xy, *, seed=SEED, log=print):
     """(rows, settings) with the lowest validation loss over the grid."""
     best_rows, best = None, {"validation loss": math.inf}
     for anchor in ANCHORS:
-        trained = train(
+        trained, epochs = train(
             name_rows, *train_xy, anchor=anchor, epochs=MAX_EPOCHS, lr=LEARNING_RATE, seed=seed, validation=validation_xy
         )
         for blend in BLENDS:
@@ -179,11 +183,44 @@ def search(name_rows, train_xy, validation_xy, *, seed=SEED, log=print):
                 log(f"anchor {anchor} blend {blend} sharpness {sharpness}: validation loss {loss:.4f}")
                 if loss < best["validation loss"]:
                     best_rows = rows
-                    best = {"anchor": anchor, "blend": blend, "sharpness": sharpness, "validation loss": loss}
+                    best = {
+                        "anchor": anchor,
+                        "epochs": epochs,
+                        "blend": blend,
+                        "sharpness": sharpness,
+                        "validation loss": loss,
+                    }
     if best_rows is None:
         raise SystemExit("no setting gave a finite validation loss: training diverged")
     best["validation top-1"] = top1(best_rows, *validation_xy)
     return best_rows, best
+
+
+def with_settings(name_rows, train_xy, validation_xy, settings, *, seed=SEED):
+    """(rows, settings) trained with another layer's chosen settings: its
+    pull for its epochs, then its blend and sharpness. No search and no
+    early stop, so the rare-species check layer differs from the shipped
+    one only in its photos."""
+    trained, _ = train(
+        name_rows, *train_xy, anchor=settings["anchor"], epochs=settings["epochs"], lr=LEARNING_RATE, seed=seed
+    )
+    rows = finish(trained, name_rows, blend=settings["blend"], sharpness=settings["sharpness"])
+    return rows, {
+        **{k: settings[k] for k in ts.SETTING_KEYS},
+        "validation loss": validation_loss(rows, *validation_xy),
+        "validation top-1": top1(rows, *validation_xy),
+    }
+
+
+def settings_from(pack):
+    """The settings a trained pack chose (its training.json)."""
+    path = os.path.join(pack, "training.json")
+    with open(path, encoding="utf-8") as fh:
+        recorded = json.load(fh)
+    missing = [k for k in ts.SETTING_KEYS if k not in recorded]
+    if missing:
+        raise SystemExit(f"{path} records no {', '.join(missing)}; train that pack again with this train_naming.py")
+    return {k: recorded[k] for k in ts.SETTING_KEYS}
 
 
 def f16_bytes(rows):
@@ -240,6 +277,11 @@ def main(argv=None):
     parser.add_argument("--out", required=True)
     parser.add_argument("--version", default=datetime.datetime.now(datetime.timezone.utc).strftime("%Y.%m.%d.%H%M"))
     parser.add_argument("--exclude-held-back", metavar="ACCURACY_CSV", help="train the rare-species check layer")
+    parser.add_argument(
+        "--settings-from",
+        metavar="PACK",
+        help="train with this trained pack's chosen settings instead of searching (the check layer)",
+    )
     parser.add_argument("--list-url", default=LIST_URL)
     parser.add_argument("--seed", type=int, default=SEED)
     args = parser.parse_args(argv)
@@ -251,7 +293,11 @@ def main(argv=None):
     x, y, records = load(args.training, part="train", exclude=exclude)
     xv, yv, _ = load(args.training, part="validation", exclude=exclude)
     print(f"{len(x)} training and {len(xv)} validation photos, {len(np.unique(y))} species", flush=True)
-    rows, settings = search(name_rows, (x, y), (xv, yv), seed=args.seed)
+    if args.settings_from:
+        rows, settings = with_settings(name_rows, (x, y), (xv, yv), settings_from(args.settings_from), seed=args.seed)
+        settings["settings from"] = _read_manifest(args.settings_from)["packVersion"]
+    else:
+        rows, settings = search(name_rows, (x, y), (xv, yv), seed=args.seed)
     settings.update(
         {
             "seed": args.seed,

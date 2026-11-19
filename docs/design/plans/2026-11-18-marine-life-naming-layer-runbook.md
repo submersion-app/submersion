@@ -359,18 +359,29 @@ Write the `training.json` values into `progress.md`. Mark Phase 3 done.
 
 ## Phase 4: Train the rare-species check layer
 
-The same training with every photo of 100 held-back test species removed.
-This pack is never shipped.
+The same training with every photo of 100 held-back test species removed,
+at the shipped layer's chosen settings (pull, epochs, blend, sharpness)
+rather than a search of its own, so it differs from the shipped layer only
+in its photos (Eric, 2026-11-19). This pack is never shipped.
 
 ```bash
 source /Users/ericgriffin/repos/submersion-app/naming-training/env.sh
 cd $WT && $PY -I $TOOLS/train_naming.py --base $BASE --training $DATA/training \
-  --out $DATA/pack-check --exclude-held-back $CSV > $DATA/train-check.txt 2>&1; echo "exit $?"
-python3.14 -c "import json; t=json.load(open('$DATA/pack-check/training.json')); print(len(t['held back species']), t['training photos'])"
+  --out $DATA/pack-check --exclude-held-back $CSV --settings-from $DATA/pack-trained \
+  > $DATA/train-check.txt 2>&1; echo "exit $?"
+python3.14 - <<'EOF'
+import json, os
+d = os.environ["DATA"]
+check = json.load(open(f"{d}/pack-check/training.json"))
+shipped = json.load(open(f"{d}/pack-trained/training.json"))
+keys = ("anchor", "epochs", "blend", "sharpness")
+print(len(check["held back species"]), check["training photos"], shipped["training photos"])
+print("same settings:", all(check[k] == shipped[k] for k in keys), {k: check[k] for k in keys})
+EOF
 ```
 
-Good: `exit 0`, and `100` held-back species, with fewer training photos than
-the shipped layer. Mark Phase 4 done.
+Good: `exit 0`, `100` held-back species, fewer training photos than the
+shipped layer, and `same settings: True`. Mark Phase 4 done.
 
 ## Phase 5: Score the three packs
 

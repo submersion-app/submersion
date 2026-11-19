@@ -99,13 +99,21 @@ class RareTest(unittest.TestCase):
 class CheckPackTest(unittest.TestCase):
     BARS = {"min_open": 0.1, "suggest": 0.7, "suggest_no_location": 0.8, "confident": 0.93, "confident_no_location": 1.01}
 
-    def confirm(self, held=(5, 6), named_at=None):
+    SETTINGS = {"anchor": 1e-3, "epochs": 4, "blend": 0.5, "sharpness": 2.0}
+
+    def confirm(self, held=(5, 6), named_at=None, settings=None):
         gate.confirm_check_pack(
-            {"held back species": list(held)},
+            {"held back species": list(held), **(settings or self.SETTINGS)},
             [6, 5],
             {"bars after held-out gate": named_at or self.BARS},
             {"bars after held-out gate": self.BARS},
+            {"held back species": [], **self.SETTINGS},
         )
+
+    def test_a_check_pack_trained_with_other_settings_is_refused(self):
+        for changed in ({"blend": 0.75}, {"epochs": 5}):
+            with self.subTest(changed=changed), self.assertRaisesRegex(SystemExit, "settings"):
+                self.confirm(settings={**self.SETTINGS, **changed})
 
     def test_a_check_pack_that_held_back_the_test_species_passes(self):
         self.confirm()
