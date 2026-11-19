@@ -130,7 +130,8 @@ IdentificationBox? _pathBoxAt(List<TrackSample> path, double ms, int maxGapMs) {
 }
 
 /// The index of the last sample at or before [ms], which is within [path],
-/// found by halving: this runs for every visible fish on every frame.
+/// found by halving: smoothing runs it ten times for each fish in view on
+/// every frame while the video plays.
 int _lastAtOrBefore(List<TrackSample> path, double ms) {
   var low = 0;
   var high = path.length - 1;
