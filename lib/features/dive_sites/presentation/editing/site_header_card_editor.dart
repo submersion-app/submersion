@@ -167,6 +167,8 @@ class _SiteHeaderCardEditorState extends ConsumerState<SiteHeaderCardEditor>
           SuggestionFormRow(
             label: l10n.diveSites_edit_field_siteName_label,
             controller: _name.controller,
+            // A new site starts at its name, which it needs (plan 6).
+            autofocus: session.isNew,
             suggestions: names,
             textCapitalization: TextCapitalization.words,
             validator: (_) => siteNameIsValid(session)

@@ -131,6 +131,24 @@ void main() {
     );
   });
 
+  // The name is required and sits at the top: a new site starts there,
+  // not in Notes further down the page.
+  testWidgets('a new site starts in the site\'s name', (tester) async {
+    await pumpNewSitePage(tester);
+
+    final header = find.byWidgetPredicate(
+      (w) => w is RecordCardFrame<DiveSite> && w.card.id == siteHeaderCardId,
+    );
+    final name = tester.widget<EditableText>(
+      find.descendant(of: header, matching: find.byType(EditableText)).first,
+    );
+    expect(name.focusNode.hasFocus, isTrue);
+    expect(
+      tester.getTopLeft(header).dy,
+      lessThan(tester.view.physicalSize.height / 2),
+    );
+  });
+
   testWidgets('Save waits for the first entry', (tester) async {
     await pumpNewSitePage(tester);
     expect(saveButton(tester).onPressed, isNull);
