@@ -90,6 +90,7 @@ void main() {
   PlayheadReport? report;
   var sequence = 0;
   PackCandidate Function(Float32List embedding)? nameBy;
+  double Function(Float32List embedding)? openBy;
 
   void seekTo(int ms) =>
       report = PlayheadReport(ms: ms, seek: true, sequence: ++sequence);
@@ -114,6 +115,7 @@ void main() {
     report = null;
     sequence = 0;
     nameBy = null;
+    openBy = null;
   });
   tearDown(() async {
     await crops.dispose();
@@ -123,13 +125,13 @@ void main() {
   });
 
   /// Names every crop the first candidate, confidently, unless [nameBy]
-  /// picks another from its embedding.
+  /// picks another from its embedding; [openBy] sets its open score.
   Future<List<NamingResult>> name(
     List<({Float32List embedding, int shorterSide})> crops,
   ) async => [
     for (final c in crops)
       NamingResult(
-        openScore: 0.9,
+        openScore: openBy?.call(c.embedding) ?? 0.9,
         candidates: [
           NamedCandidate(
             candidate: nameBy?.call(c.embedding) ?? fixtureParrotfish,
@@ -186,7 +188,7 @@ void main() {
     expect(run.videoDurationMs, 25000);
     expect(run.scanComplete, isTrue);
     expect(run.imageWidth, 1920);
-    expect(run.detectorId, 'det-a#tracker2');
+    expect(run.detectorId, 'det-a#tracker3');
     expect(s.progress, 1);
   });
 
@@ -1221,6 +1223,48 @@ void main() {
         ),
       );
       expect(passes(), ['detectVideo:0', 'memory']);
+    });
+  });
+
+  group('naming from single views', () {
+    /// A fish in view from 0 to 2.75 s: its best moments are at 0, 1 and
+    /// 2 s. The views at [tangAt] look like a tang, and more decided.
+    void fishWithViews({required List<int> tangAt}) {
+      engine.videoFrames = _fish(0, 3000);
+      for (final ms in tangAt) {
+        engine.momentEmbeddings[0.1 + ms / 1000000] = Float32List.fromList([
+          0,
+          1,
+          0,
+        ]);
+      }
+      nameBy = (e) => e[1] > 0.5 ? fixtureTang : fixtureParrotfish;
+      openBy = (e) => e[1] > 0.5 ? 0.95 : 0.5;
+    }
+
+    test('a track is named from its most decided view, and shows that '
+        'view', () async {
+      fishWithViews(tangAt: [1000, 2000]);
+      await runAll(scan());
+      expect(engine.embedCalls.single.map((m) => m.ms), [0, 1000, 2000]);
+      final fish = (await identifications.forMedia('v1')).single;
+      expect(fish.top!.candidate, fixtureTang);
+      expect(fish.openScore, closeTo(0.95, 1e-9));
+      expect(fish.bestMs, 1000);
+      expect(fish.box.x, closeTo(0.1 + 1000 / 1000000, 1e-9));
+      expect(fish.suggestable, isTrue);
+      final stored = await embeddings.get([
+        fish.id,
+      ], classifierId: fixturePack().pack.manifest.classifier.embeddingId);
+      expect(stored[fish.id], Float32List.fromList([0, 1, 0]));
+    });
+
+    test('a view no other view agrees with is not suggested', () async {
+      fishWithViews(tangAt: [1000]);
+      await runAll(scan());
+      final fish = (await identifications.forMedia('v1')).single;
+      expect(fish.top!.candidate, fixtureTang);
+      expect(fish.suggestable, isFalse);
     });
   });
 }

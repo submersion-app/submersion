@@ -7,6 +7,7 @@ import 'dart:math' as math;
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
 import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
+import 'package:submersion/features/species_id/domain/services/species_namer.dart';
 import 'package:submersion/features/species_id/domain/services/track_labels.dart';
 import 'package:submersion/features/species_id/domain/services/video_tracker.dart';
 
@@ -163,6 +164,53 @@ MediaIdentification keepDecisionOnRename({
     at: before.decidedAt,
     claim: before.claimedSpeciesId,
   );
+}
+
+/// Which of a track's [views] (each of its best moments, named on its own)
+/// names the track, and whether it may be suggested.
+///
+/// The view whose name is most decided, by its open score, names it; on a
+/// tie, the first, which is the detector's best view. Each view is named
+/// as a photo's crop is, so its scores are on the scale the bars were
+/// measured on; an average of the views' embeddings never was, and one
+/// poor view in it pulled every score down. Taking the best of several
+/// views would also let more wrong names through, so with two or more
+/// usable views the chosen one is suggested only when another view's best
+/// name is the same species. A single usable view is judged as a photo is.
+/// A view with no names (an unusable embedding) neither names nor agrees.
+({int index, bool suggestable}) chooseNamingView(List<NamingResult> views) {
+  int? chosen;
+  for (var k = 0; k < views.length; k++) {
+    if (views[k].candidates.isEmpty) continue;
+    if (chosen == null || views[k].openScore > views[chosen].openScore) {
+      chosen = k;
+    }
+  }
+  if (chosen == null) return (index: 0, suggestable: false);
+  final pick = views[chosen];
+  final others = [
+    for (var k = 0; k < views.length; k++)
+      if (k != chosen && views[k].candidates.isNotEmpty) views[k],
+  ];
+  final agreed =
+      others.isEmpty ||
+      others.any((v) => _sameName(v.candidates.first, pick.candidates.first));
+  return (index: chosen, suggestable: pick.suggestable && agreed);
+}
+
+/// Whether [renamed], a stored identification named again from its stored
+/// embedding for a new pack or place, may be suggested. A photo goes by the
+/// bars. A video track was stored from one view, so whether another view
+/// agrees with a new name cannot be told: it keeps a suggestion only when
+/// it had one under the same name, and a changed name waits for the next
+/// scan.
+bool suggestableOnRename({
+  required MediaIdentification before,
+  required MediaIdentification renamed,
+}) {
+  if (!renamed.suggestable) return false;
+  if (!before.isTrack) return true;
+  return before.suggestable && _sameName(before.top, renamed.top);
 }
 
 bool _sameName(NamedCandidate? a, NamedCandidate? b) {

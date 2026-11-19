@@ -16,6 +16,7 @@ import 'package:submersion/features/species_id/data/repositories/media_identific
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
 import 'package:submersion/features/species_id/data/services/media_identification_service.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
 import 'package:submersion/features/species_id/domain/entities/video_detections.dart';
 import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 
@@ -597,9 +598,41 @@ void main() {
       expect(engine.detectCalls, isNotEmpty);
       expect(
         (await identifications.runFor('v1'))!.detectorId,
-        'det-a#tracker2',
+        'det-a#tracker3',
       );
       expect(await identifications.forMedia('v1'), hasLength(1));
+    });
+
+    test('a renamed video track keeps a suggestion only under the same '
+        'name', () async {
+      oneFish();
+      await service.request(video());
+      final fish = (await identifications.forMedia('v1')).single;
+      expect(fish.top!.candidate, parrotfish);
+      expect(fish.suggestable, isTrue);
+      // As if the pack before had named it another species.
+      await identifications.updateNames([
+        fish.copyWith(
+          candidates: const [NamedCandidate(candidate: tang, score: 0.9)],
+        ),
+      ], run: (await identifications.runFor('v1'))!);
+
+      installed = pack(version: '2026.12.1');
+      await service.packChanged();
+      await service.request(video());
+      final renamed = (await identifications.forMedia('v1')).single;
+      expect(renamed.top!.candidate, parrotfish);
+      expect(renamed.suggestable, isFalse);
+    });
+
+    test('a renamed video track under the same name stays '
+        'suggested', () async {
+      oneFish();
+      await service.request(video());
+      installed = pack(version: '2026.12.1');
+      await service.packChanged();
+      await service.request(video());
+      expect((await identifications.forMedia('v1')).single.suggestable, isTrue);
     });
   });
 

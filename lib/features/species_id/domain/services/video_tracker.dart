@@ -8,10 +8,12 @@ import 'package:submersion/features/species_id/domain/entities/media_identificat
 import 'package:submersion/features/species_id/domain/entities/track_sample.dart';
 import 'package:submersion/features/species_id/domain/entities/video_detections.dart';
 
-/// The version of how tracks are linked, named in a video's run so a video
-/// tracked by an earlier version is scanned again. 2: a fish may continue
-/// to a nearby box it barely overlaps ([TrackLink], issue #4729).
-const int videoTrackerVersion = 2;
+/// The version of how a video's tracks are linked and named, stored in its
+/// run so a video scanned by an earlier version is scanned again. 2: a
+/// fish may continue to a nearby box it barely overlaps ([TrackLink], issue
+/// #4729). 3: a track is named from its most decided view, not an average
+/// of its views (issue #4736).
+const int videoTrackerVersion = 3;
 
 /// What a video's run stores as its detector id: the pack's detector set
 /// and the tracker version. A change to either scans the video again.

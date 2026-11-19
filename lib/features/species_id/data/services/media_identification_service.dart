@@ -502,7 +502,7 @@ class MediaIdentificationService {
     final naming = pack.pack.manifest.naming;
     final changed = [
       for (var k = 0; k < undecided.length; k++)
-        _named(undecided[k], results[k], naming),
+        _renamed(undecided[k], _named(undecided[k], results[k], naming)),
     ];
     if (_databaseGeneration() != generation) return;
     await _identifications.updateNames(
@@ -616,6 +616,20 @@ class MediaIdentificationService {
       suggestable: result.suggestable,
       confident: flags.confident,
       specific: flags.specific,
+    );
+  }
+
+  /// [renamed] as [suggestableOnRename] allows, given [before]: a video
+  /// track keeps a suggestion only under the same name.
+  static MediaIdentification _renamed(
+    MediaIdentification before,
+    MediaIdentification renamed,
+  ) {
+    final suggestable = suggestableOnRename(before: before, renamed: renamed);
+    if (suggestable == renamed.suggestable) return renamed;
+    return renamed.copyWith(
+      suggestable: suggestable,
+      confident: renamed.confident && suggestable,
     );
   }
 

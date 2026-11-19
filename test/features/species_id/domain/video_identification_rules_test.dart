@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/app_enums.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
 import 'package:submersion/features/species_id/domain/entities/video_detections.dart';
+import 'package:submersion/features/species_id/domain/services/species_namer.dart';
 import 'package:submersion/features/species_id/domain/services/video_identification_rules.dart';
 import 'package:submersion/features/species_id/domain/services/video_tracker.dart';
 
@@ -558,6 +559,186 @@ void main() {
       );
       expect(pairs, hasLength(1));
       expect(identical(pairs.single.open, near), isTrue);
+    });
+  });
+
+  group('naming a track from its views', () {
+    PackCandidate species(String scientificName) => PackCandidate(
+      gbifKey: scientificName.hashCode,
+      scientificName: scientificName,
+      commonName: scientificName,
+      category: SpeciesCategory.fish,
+    );
+
+    /// One view's naming: [open] is its open score, [top] its best name.
+    NamingResult view(double open, String top, {bool suggestable = true}) =>
+        NamingResult(
+          openScore: open,
+          candidates: [NamedCandidate(candidate: species(top), score: 0.9)],
+          locationLimited: true,
+          suggestable: suggestable,
+        );
+
+    const stoplight = 'Sparisoma viride';
+    const chromis = 'Chromis multilineata';
+
+    test('the most decided view names the track', () {
+      final pick = chooseNamingView([
+        view(0.3, stoplight),
+        view(0.8, stoplight),
+        view(0.5, stoplight),
+      ]);
+      expect(pick.index, 1);
+      expect(pick.suggestable, isTrue);
+    });
+
+    test("a tie goes to the first view, the detector's best", () {
+      expect(
+        chooseNamingView([view(0.6, stoplight), view(0.6, stoplight)]).index,
+        0,
+      );
+    });
+
+    test('a decided view no other view agrees with is not suggested', () {
+      final pick = chooseNamingView([
+        view(0.3, chromis),
+        view(0.8, stoplight),
+        view(0.5, chromis),
+      ]);
+      expect(pick.index, 1);
+      expect(pick.suggestable, isFalse);
+    });
+
+    test('a view agrees by its name, whether or not it clears the bars', () {
+      final pick = chooseNamingView([
+        view(0.8, stoplight),
+        view(0.2, stoplight, suggestable: false),
+      ]);
+      expect(pick.suggestable, isTrue);
+    });
+
+    test('the names are compared ignoring case and surrounding space', () {
+      expect(
+        chooseNamingView([
+          view(0.8, stoplight),
+          view(0.2, ' sparisoma VIRIDE '),
+        ]).suggestable,
+        isTrue,
+      );
+    });
+
+    test('agreement never lifts a view that misses the bars', () {
+      expect(
+        chooseNamingView([
+          view(0.8, stoplight, suggestable: false),
+          view(0.5, stoplight),
+        ]).suggestable,
+        isFalse,
+      );
+    });
+
+    test('a single view is judged as a photo is', () {
+      expect(chooseNamingView([view(0.8, stoplight)]).suggestable, isTrue);
+      expect(
+        chooseNamingView([
+          view(0.8, stoplight, suggestable: false),
+        ]).suggestable,
+        isFalse,
+      );
+    });
+
+    test('a view with no names neither names the track nor agrees', () {
+      final pick = chooseNamingView([
+        NamingResult.unusable,
+        view(0.4, chromis),
+      ]);
+      expect(pick.index, 1);
+      // Only one usable view: judged as a photo is.
+      expect(pick.suggestable, isTrue);
+      expect(
+        chooseNamingView([
+          view(0.4, chromis),
+          NamingResult.unusable,
+          NamingResult.unusable,
+        ]).suggestable,
+        isTrue,
+      );
+    });
+  });
+
+  group('renaming a stored track', () {
+    MediaIdentification renamedTo(
+      MediaIdentification before,
+      String scientificName, {
+      bool suggestable = true,
+    }) => before.copyWith(
+      candidates: [
+        NamedCandidate(
+          candidate: PackCandidate(
+            gbifKey: 9,
+            scientificName: scientificName,
+            commonName: scientificName,
+            category: SpeciesCategory.fish,
+          ),
+          score: 0.9,
+        ),
+      ],
+      suggestable: suggestable,
+    );
+
+    test('keeps its suggestion when its name stays the same', () {
+      final before = track('a');
+      expect(
+        suggestableOnRename(
+          before: before,
+          renamed: renamedTo(before, 'Scarus vetula'),
+        ),
+        isTrue,
+      );
+    });
+
+    test('loses it when its name changes, until it is scanned again', () {
+      final before = track('a');
+      expect(
+        suggestableOnRename(
+          before: before,
+          renamed: renamedTo(before, 'Sparisoma viride'),
+        ),
+        isFalse,
+      );
+    });
+
+    test('gains none it did not have', () {
+      final before = track('a', suggestable: false);
+      expect(
+        suggestableOnRename(
+          before: before,
+          renamed: renamedTo(before, 'Scarus vetula'),
+        ),
+        isFalse,
+      );
+    });
+
+    test('loses it when the new name misses the bars', () {
+      final before = track('a');
+      expect(
+        suggestableOnRename(
+          before: before,
+          renamed: renamedTo(before, 'Scarus vetula', suggestable: false),
+        ),
+        isFalse,
+      );
+    });
+
+    test('a photo is renamed by the bars alone', () {
+      final before = identification('p').copyWith(suggestable: false);
+      expect(
+        suggestableOnRename(
+          before: before,
+          renamed: renamedTo(before, 'Sparisoma viride'),
+        ),
+        isTrue,
+      );
     });
   });
 }
