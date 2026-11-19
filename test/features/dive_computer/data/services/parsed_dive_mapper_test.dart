@@ -357,6 +357,31 @@ void main() {
       expect(p.o2Sensor1, isNull);
     });
 
+    test('maps the Avelo fields (absent stay null) (#4664)', () {
+      final parsed = makeParsedDive(
+        fingerprint: 'avelo1',
+        samples: [
+          pigeon.ProfileSample(
+            timeSeconds: 0,
+            depthMeters: 3.0,
+            aveloBuoyancy: -0.393,
+            aveloGasRemaining: 100,
+            computerRmv: 10.68,
+          ),
+          pigeon.ProfileSample(timeSeconds: 10, depthMeters: 4.0),
+        ],
+      );
+
+      final profile = parsedDiveToDownloaded(parsed).profile;
+
+      expect(profile[0].aveloBuoyancy, -0.393);
+      expect(profile[0].aveloGasRemaining, 100);
+      expect(profile[0].computerRmv, 10.68);
+      expect(profile[1].aveloBuoyancy, isNull);
+      expect(profile[1].aveloGasRemaining, isNull);
+      expect(profile[1].computerRmv, isNull);
+    });
+
     test('carries heading into domain ProfileSample', () {
       final parsed = makeParsedDive(
         fingerprint: 'heading-test',

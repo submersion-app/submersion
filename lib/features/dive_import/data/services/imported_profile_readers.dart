@@ -58,6 +58,11 @@ DiveProfilePoint profilePointFromImport(
   o2SensorMv4: p['o2SensorMv4'] as int?,
   o2SensorMv5: p['o2SensorMv5'] as int?,
   o2SensorMv6: p['o2SensorMv6'] as int?,
+  // Shearwater Avelo mode (issue #4664), from the libdivecomputer path and
+  // Submersion's own UDDF.
+  aveloBuoyancy: asDoubleOrNull(p['aveloBuoyancy']),
+  aveloGasRemaining: p['aveloGasRemaining'] as int?,
+  computerRmv: asDoubleOrNull(p['computerRmv']),
 );
 
 /// The per-tank pressure readings in parsed profile samples, keyed by the id
