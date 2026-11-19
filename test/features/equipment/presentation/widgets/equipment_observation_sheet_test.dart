@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_check_ins_sitting.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
@@ -89,6 +90,8 @@ void main() {
     WidgetTester tester, {
     domain.Dive? withDive,
     List<Override> extra = const [],
+    HeldCheckIn? held,
+    void Function(HeldCheckIn)? onHold,
   }) async {
     // The editor's photos row (issue #3355) makes it taller than the default
     // 800x600 window, which would leave Save off screen.
@@ -119,6 +122,8 @@ void main() {
                   context,
                   equipment: reg,
                   dive: withDive,
+                  held: held,
+                  onHold: onHold,
                 ),
                 child: const Text('open'),
               ),
@@ -130,6 +135,66 @@ void main() {
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
   }
+
+  // The item page's sitting (issue #4527, phase 3): held, not written.
+  group('held in an item page\'s sitting', () {
+    testWidgets('it opens on a new check-in; Save writes nothing and hands '
+        'it back', (tester) async {
+      final held = <HeldCheckIn>[];
+      await pumpAndOpen(tester, onHold: held.add);
+
+      // Straight into the editor: there is no list in a sitting.
+      expect(find.text('Save'), findsOneWidget);
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(held.single.observation.equipmentId, 'reg');
+      expect(held.single.observation.diverId, 'kept');
+      expect(await repo.getForEquipment('reg'), isEmpty);
+      expect(find.text('Save'), findsNothing);
+    });
+
+    testWidgets('a held check-in is edited where it stands, its photo changes '
+        'kept', (tester) async {
+      final existing = EquipmentObservation(
+        id: 'o9',
+        equipmentId: 'reg',
+        observedAt: DateTime.utc(2026, 9, 1),
+        status: ObservationStatus.ok,
+        note: 'Was fine',
+        createdAt: DateTime.utc(2026, 9, 1),
+        updatedAt: DateTime.utc(2026, 9, 1),
+      );
+      final back = <HeldCheckIn>[];
+      await pumpAndOpen(
+        tester,
+        held: HeldCheckIn(observation: existing, removedPhotoIds: {'p1'}),
+        onHold: back.add,
+      );
+
+      await tester.enterText(find.byType(TextField).last, 'Now leaking');
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(back.single.observation.id, 'o9');
+      expect(back.single.observation.note, 'Now leaking');
+      expect(back.single.removedPhotoIds, {'p1'});
+      expect(await repo.getForEquipment('reg'), isEmpty);
+    });
+
+    testWidgets('Cancel closes the sheet and hands back nothing', (
+      tester,
+    ) async {
+      final held = <HeldCheckIn>[];
+      await pumpAndOpen(tester, onHold: held.add);
+
+      await tester.tap(find.text('Cancel').last);
+      await tester.pumpAndSettle();
+
+      expect(held, isEmpty);
+      expect(find.text('Save'), findsNothing);
+    });
+  });
 
   testWidgets('adds an issue with tags filtered to the item type', (
     tester,

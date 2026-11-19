@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/features/media/presentation/helpers/media_hold.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_check_ins_sitting.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -34,12 +36,19 @@ export 'package:submersion/features/equipment/domain/services/observation_defaul
 /// sheet opens straight into the editor for that observation. With
 /// [offerNearMiss] off, rows show no near-miss action: the near-miss form opens
 /// the sheet that way, since it is the report such an action would start.
+///
+/// With [onHold] (the item page's sitting, issue #4527, phase 3) the sheet
+/// opens straight into the editor, for [held] when given or a new check-in,
+/// and writes nothing: Save hands the check-in and the photos added to and
+/// removed from it to [onHold], to be written at the page's Save.
 Future<void> showEquipmentObservationSheet(
   BuildContext context, {
   required EquipmentItem equipment,
   Dive? dive,
   EquipmentObservation? editing,
   bool offerNearMiss = true,
+  HeldCheckIn? held,
+  void Function(HeldCheckIn checkIn)? onHold,
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -50,6 +59,8 @@ Future<void> showEquipmentObservationSheet(
       dive: dive,
       editing: editing,
       offerNearMiss: offerNearMiss,
+      held: held,
+      onHold: onHold,
     ),
   );
 }
@@ -114,12 +125,16 @@ class _ObservationSheet extends ConsumerStatefulWidget {
   final Dive? dive;
   final EquipmentObservation? editing;
   final bool offerNearMiss;
+  final HeldCheckIn? held;
+  final void Function(HeldCheckIn checkIn)? onHold;
 
   const _ObservationSheet({
     required this.equipment,
     this.dive,
     this.editing,
     required this.offerNearMiss,
+    this.held,
+    this.onHold,
   });
 
   @override
@@ -144,16 +159,31 @@ class _ObservationSheetState extends ConsumerState<_ObservationSheet> {
     super.initState();
     _unlink = ref.read(mediaUnlinkServiceProvider);
     _gearPhotos = ref.read(gearPhotoRepositoryProvider);
-    if (widget.editing case final existing?) {
+    if (widget.onHold != null) {
+      // Held in the item page's sitting: straight into the editor.
+      _draft = switch (widget.held) {
+        final held? =>
+          _Draft.fromExisting(held.observation)
+            ..added = [...held.added]
+            ..removed = {...held.removedPhotoIds},
+        null => _Draft.fresh(
+          observedAt: asWallClockUtc(DateTime.now()),
+          diveId: null,
+        ),
+      };
+    } else if (widget.editing case final existing?) {
       _draft = _Draft.fromExisting(existing);
     }
   }
 
+  /// Whether the sheet holds its check-in in the item page's sitting.
+  bool get _holding => widget.onHold != null;
+
   @override
   void dispose() {
     // A Save still in flight may yet create the check-in, so its photos
-    // stay.
-    if (!_saving) {
+    // stay; a held check-in wrote none.
+    if (!_saving && !_holding) {
       if (_draft case final draft?) _discardUnsavedPhotos(draft);
     }
     _draft?.note.dispose();
@@ -182,6 +212,11 @@ class _ObservationSheetState extends ConsumerState<_ObservationSheet> {
   }
 
   void _closeEditor({bool saved = false}) {
+    // A held check-in has no list behind it: the sheet closes.
+    if (_holding) {
+      Navigator.of(context).pop();
+      return;
+    }
     if (!saved) {
       if (_draft case final draft?) _discardUnsavedPhotos(draft);
     }
@@ -229,6 +264,7 @@ class _ObservationSheetState extends ConsumerState<_ObservationSheet> {
                   hasDive: dive != null,
                   onCancel: _closeEditor,
                   onSave: _saving ? null : () => _save(draft),
+                  holding: _holding,
                 ),
               ),
             )
@@ -285,6 +321,10 @@ class _ObservationSheetState extends ConsumerState<_ObservationSheet> {
       setState(() => draft.error = l10n.equipmentObservation_sheet_tagRequired);
       return;
     }
+    if (widget.onHold case final hold?) {
+      await _hold(draft, hold);
+      return;
+    }
     setState(() => _saving = true);
     try {
       final repo = ref.read(equipmentObservationRepositoryProvider);
@@ -334,6 +374,52 @@ class _ObservationSheetState extends ConsumerState<_ObservationSheet> {
 
   Future<void> _delete(EquipmentObservation observation) =>
       confirmDeleteObservation(context, ref, observation);
+
+  /// Hands the check-in [draft] makes, and its photo changes, to [hold],
+  /// writing nothing.
+  Future<void> _hold(_Draft draft, void Function(HeldCheckIn) hold) async {
+    final tags = draft.status == ObservationStatus.issue
+        ? draft.tags.toList()
+        : const <ObservationTag>[];
+    final note = draft.note.text.trim();
+    final existing = draft.existing;
+    final now = DateTime.now();
+    final EquipmentObservation observation;
+    if (existing == null) {
+      // The validated id, as every diver-scoped read uses.
+      final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+      if (!mounted) return;
+      observation = EquipmentObservation(
+        id: draft.id,
+        diverId: diverId,
+        equipmentId: widget.equipment.id,
+        diveId: draft.diveId,
+        observedAt: draft.observedAt,
+        status: draft.status,
+        issueTags: tags,
+        note: note,
+        createdAt: now,
+        updatedAt: now,
+      );
+    } else {
+      observation = existing.copyWith(
+        diveId: draft.diveId,
+        clearDiveId: draft.diveId == null,
+        observedAt: draft.observedAt,
+        status: draft.status,
+        issueTags: tags,
+        note: note,
+      );
+    }
+    hold(
+      HeldCheckIn(
+        observation: observation,
+        added: draft.added,
+        removedPhotoIds: draft.removed,
+      ),
+    );
+    Navigator.of(context).pop();
+  }
 }
 
 /// The editor's working copy. Mutable on purpose: it lives only while the
@@ -350,6 +436,11 @@ class _Draft {
   DateTime observedAt;
   String? diveId;
   String? error;
+
+  /// Photos picked and removed while the check-in is held in an item
+  /// page's sitting (issue #4527, phase 3).
+  List<HeldMediaAdd> added = [];
+  Set<String> removed = {};
 
   _Draft({
     this.existing,
@@ -391,12 +482,16 @@ class _Editor extends ConsumerStatefulWidget {
   /// Null while a save is in flight, which disables the button.
   final VoidCallback? onSave;
 
+  /// Whether its photos are held in the item page's sitting.
+  final bool holding;
+
   const _Editor({
     required this.draft,
     required this.equipment,
     required this.hasDive,
     required this.onCancel,
     required this.onSave,
+    this.holding = false,
   });
 
   @override
@@ -512,6 +607,15 @@ class _EditorState extends ConsumerState<_Editor> {
         CheckInPhotosRow(
           equipmentId: widget.equipment.id,
           observationId: draft.id,
+          heldAdded: draft.added,
+          heldRemoved: draft.removed,
+          onHeldChanged: widget.holding
+              ? (added, removed) => setState(() {
+                  draft
+                    ..added = added
+                    ..removed = removed;
+                })
+              : null,
         ),
         if (draft.error case final error?)
           Padding(

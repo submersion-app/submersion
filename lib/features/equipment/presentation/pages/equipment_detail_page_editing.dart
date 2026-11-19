@@ -79,6 +79,8 @@ mixin _EquipmentDetailPageEditing
       cardId: GearItemCardId.photos.name,
     );
     holdLegacyFiles(session, SittingMediaWriters.forEquipment(container.read));
+    holdCheckIns(session, SittingMediaWriters.forEquipment(container.read));
+    gearItemCheckInsList.load(session);
   }
 
   /// Writes the sitting through the item's save service: its changed values
@@ -110,6 +112,7 @@ mixin _EquipmentDetailPageEditing
     final afterCommit = [
       ...mediaAfterCommit(session),
       ...legacyFilesAfterCommit(session),
+      ...checkInsAfterCommit(session),
     ];
     afterGearItemSave(
       container,
@@ -219,7 +222,8 @@ void afterGearItemSave(
     // Photos, check-in photos and linked files may have changed.
     ..invalidate(identificationPhotosProvider(equipmentId))
     ..invalidate(checkInPhotosProvider(equipmentId))
-    ..invalidate(mediaForEquipmentProvider(equipmentId));
+    ..invalidate(mediaForEquipmentProvider(equipmentId))
+    ..invalidate(observationsForEquipmentProvider(equipmentId));
   if (before != null &&
       after != null &&
       before.serialNumber != after.serialNumber) {

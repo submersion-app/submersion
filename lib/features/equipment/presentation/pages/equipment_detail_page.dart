@@ -2,6 +2,8 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_check_ins_sitting.dart';
 import 'package:submersion/features/media/presentation/providers/equipment_media_providers.dart';
 import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
 import 'package:submersion/features/equipment/presentation/providers/gear_photo_providers.dart';
@@ -421,7 +423,14 @@ class _EquipmentDetailContent extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 24),
-          ObservationsCard(equipment: equipment),
+          _framed(
+            GearItemCardId.observations,
+            ObservationsCard(
+              equipment: equipment,
+              shown: _session,
+              readOnly: _editing,
+            ),
+          ),
           const SizedBox(height: 24),
           ComponentsCard(equipmentId: equipmentId, readOnly: _editing),
           // Only rebreathers own configurations; every other type would show

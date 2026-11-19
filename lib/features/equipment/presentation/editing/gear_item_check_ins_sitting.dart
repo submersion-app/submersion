@@ -1,0 +1,237 @@
+import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
+
+import 'package:submersion/features/equipment/data/repositories/equipment_observation_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/gear_photo_repository.dart';
+import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_card_ids.dart';
+import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
+import 'package:submersion/features/media/presentation/helpers/media_hold.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/sitting_list.dart';
+
+/// One check-in as a gear item's sitting holds it (issue #4527, phase 3,
+/// plan 6): the row, the photos added to it and removed from it in the
+/// sitting, and whether the sitting deleted it. Its photos are written with
+/// it, after its row, so a new check-in exists before the photos that name
+/// it.
+@immutable
+class HeldCheckIn {
+  const HeldCheckIn({
+    required this.observation,
+    this.added = const [],
+    this.removedPhotoIds = const {},
+    this.deleted = false,
+    this.writers,
+  });
+
+  final EquipmentObservation observation;
+
+  /// Photos picked for it in the sitting, not yet written.
+  final List<HeldMediaAdd> added;
+
+  /// Its stored photos the sitting removed.
+  final Set<String> removedPhotoIds;
+
+  /// Deleted in the sitting: written at Save with its photos unlinked, in
+  /// the same write.
+  final bool deleted;
+
+  /// How its photos are written: the page's, which outlive it. Not part of
+  /// what it is.
+  final SittingMediaWriters? writers;
+
+  bool get hasPhotoChanges => added.isNotEmpty || removedPhotoIds.isNotEmpty;
+
+  HeldCheckIn copyWith({
+    EquipmentObservation? observation,
+    List<HeldMediaAdd>? added,
+    Set<String>? removedPhotoIds,
+    bool? deleted,
+    SittingMediaWriters? writers,
+  }) => HeldCheckIn(
+    observation: observation ?? this.observation,
+    added: added ?? this.added,
+    removedPhotoIds: removedPhotoIds ?? this.removedPhotoIds,
+    deleted: deleted ?? this.deleted,
+    writers: writers ?? this.writers,
+  );
+
+  @override
+  bool operator ==(Object other) =>
+      other is HeldCheckIn &&
+      other.observation == observation &&
+      other.deleted == deleted &&
+      const ListEquality<String>().equals(
+        [for (final a in other.added) a.preview.id],
+        [for (final a in added) a.preview.id],
+      ) &&
+      const SetEquality<String>().equals(
+        other.removedPhotoIds,
+        removedPhotoIds,
+      );
+
+  @override
+  int get hashCode => Object.hash(
+    observation,
+    deleted,
+    Object.hashAll([for (final a in added) a.preview.id]),
+    Object.hashAllUnordered(removedPhotoIds),
+  );
+}
+
+/// The item's check-ins held in its page's sitting: added, edited and
+/// deleted there, with their photos, written at Save.
+final gearItemCheckInsList = SittingList<EquipmentItem, HeldCheckIn>(
+  key: 'equipment.checkIns',
+  cardId: GearItemCardId.observations.name,
+  read: (item) async => [
+    for (final o in await EquipmentObservationRepository().getForEquipment(
+      item.id,
+    ))
+      HeldCheckIn(observation: o),
+  ],
+  write: (item, loaded, current) async {
+    final repository = EquipmentObservationRepository();
+    final byId = {for (final c in loaded) c.observation.id: c};
+    final kept = {for (final c in current) c.observation.id};
+    var changed = false;
+    for (final row in current) {
+      final before = byId[row.observation.id];
+      if (row == before) continue;
+      changed = true;
+      if (row.deleted) {
+        if (before == null) continue;
+        await _deleteWithPhotos(repository, row.observation.id, row.writers);
+        continue;
+      }
+      final o = row.observation;
+      if (before == null) {
+        await repository.create(
+          id: o.id,
+          equipmentId: o.equipmentId,
+          diveId: o.diveId,
+          diverId: o.diverId,
+          observedAt: o.observedAt,
+          status: o.status,
+          issueTags: o.issueTags,
+          unrecognizedTags: o.unrecognizedTags,
+          note: o.note,
+        );
+      } else if (before.observation != o) {
+        await repository.update(o);
+      }
+      // After its row, so a new check-in exists before its photos.
+      await _writePhotos(row);
+    }
+    for (final row in loaded) {
+      if (kept.contains(row.observation.id)) continue;
+      await _deleteWithPhotos(repository, row.observation.id, null);
+      changed = true;
+    }
+    if (changed) scheduleConditionFindingsRefresh([item.id]);
+    return changed;
+  },
+);
+
+Future<void> _writePhotos(HeldCheckIn row) async {
+  final writers = row.writers;
+  if (writers == null || !row.hasPhotoChanges) return;
+  final rows = [
+    for (final a in row.added)
+      if (a is HeldMediaRow) a.prepared,
+  ];
+  if (rows.isNotEmpty) await writers.writeRows(rows);
+  final network = [
+    for (final a in row.added)
+      if (a is HeldNetworkMedia) a.request,
+  ];
+  if (network.isNotEmpty) await writers.insertNetwork(network);
+  if (row.removedPhotoIds.isNotEmpty) {
+    await writers.unlink(row.removedPhotoIds.toList());
+  }
+}
+
+/// Deletes check-in [id] and unlinks its photos in the same write: today a
+/// failed unlink after the delete is swallowed (issue #4527, plan 6).
+Future<void> _deleteWithPhotos(
+  EquipmentObservationRepository repository,
+  String id,
+  SittingMediaWriters? writers,
+) async {
+  final photos = await GearPhotoRepository().photosForObservation(id);
+  await repository.delete(id);
+  if (photos.isNotEmpty && writers != null) {
+    await writers.unlink([for (final m in photos) m.id]);
+  }
+}
+
+const String _writersNote = 'equipment.checkIns.writers';
+
+/// Keeps the writers the check-ins' photos are written with.
+void holdCheckIns(
+  EditSession<EquipmentItem> session,
+  SittingMediaWriters writers,
+) => session.remember(_writersNote, writers);
+
+/// The writers [holdCheckIns] kept, or null.
+SittingMediaWriters? checkInWriters(EditSession<EquipmentItem> session) =>
+    session.isDisposed
+    ? null
+    : session.recall<SittingMediaWriters>(_writersNote);
+
+/// Puts [row] into the sitting's check-ins, in place of the one with its id
+/// or first as the newest. Does nothing before they are read.
+void holdCheckIn(EditSession<EquipmentItem> session, HeldCheckIn row) {
+  final rows = gearItemCheckInsList.current(session);
+  if (rows == null) return;
+  final held = row.copyWith(writers: checkInWriters(session));
+  final known = rows.any((c) => c.observation.id == row.observation.id);
+  gearItemCheckInsList.set(session, [
+    if (!known) held,
+    for (final c in rows) c.observation.id == row.observation.id ? held : c,
+  ]);
+}
+
+/// Deletes the check-in [id] in the sitting: one added in it is dropped,
+/// a stored one marked to be deleted with its photos at Save.
+void deleteHeldCheckIn(EditSession<EquipmentItem> session, String id) {
+  final rows = gearItemCheckInsList.current(session);
+  if (rows == null) return;
+  final stored = {
+    for (final c
+        in gearItemCheckInsList.loaded(session) ?? const <HeldCheckIn>[])
+      c.observation.id,
+  };
+  gearItemCheckInsList.set(session, [
+    for (final c in rows)
+      if (c.observation.id != id)
+        c
+      else if (stored.contains(id))
+        c.copyWith(deleted: true, writers: checkInWriters(session)),
+  ]);
+}
+
+/// What must happen once the sitting's write has committed: an upload
+/// queued for each photo written, and the remote deletes its unlinks held.
+List<Future<void> Function()> checkInsAfterCommit(
+  EditSession<EquipmentItem> session,
+) {
+  final writers = checkInWriters(session);
+  final rows = gearItemCheckInsList.current(session);
+  if (writers == null ||
+      rows == null ||
+      !gearItemCheckInsList.isChanged(session)) {
+    return const [];
+  }
+  final unlinked = rows.any((c) => c.deleted || c.removedPhotoIds.isNotEmpty);
+  return [
+    for (final c in rows)
+      for (final a in c.added)
+        if (a is HeldMediaRow)
+          () async => writers.enqueueUpload(a.prepared.item.id),
+    if (unlinked) writers.drainDeletes,
+  ];
+}

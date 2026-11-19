@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/equipment/presentation/widgets/observations_card.dart';
 import 'package:submersion/features/media/presentation/helpers/document_open_helper.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_photos_section.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_documents_section.dart';
@@ -85,6 +86,15 @@ final Map<GearItemCardId, EditCard<EquipmentItem>> gearItemEditCards = {
     isEmpty: (_) => false,
     editorBuilder: (context, session) =>
         EquipmentPhotosSection(equipment: session.working, editing: session),
+  ),
+  GearItemCardId.observations: EditCard<EquipmentItem>(
+    id: GearItemCardId.observations.name,
+    title: (context) =>
+        GearItemCardId.observations.localizedDisplayName(context.l10n),
+    // Always on the page: with none, it says so.
+    isEmpty: (_) => false,
+    editorBuilder: (context, session) =>
+        ObservationsCard(equipment: session.working, editing: session),
   ),
   GearItemCardId.legacyFiles: EditCard<EquipmentItem>(
     id: GearItemCardId.legacyFiles.name,
