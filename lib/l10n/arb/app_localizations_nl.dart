@@ -29045,11 +29045,22 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_photosVideos_title => 'Foto\'s en video\'s';
 
   @override
-  String get settings_speciesId_title => 'Herkenning van zeeleven';
+  String get settings_speciesId_title => 'Soortherkenning';
 
   @override
   String get settings_speciesId_entrySubtitle =>
       'Vind vissen in je foto\'s en video\'s en stel de soort voor';
+
+  @override
+  String get speciesId_downloadPrompt_title =>
+      'Herken de vissen in je foto\'s en video\'s';
+
+  @override
+  String get speciesId_downloadPrompt_subtitle =>
+      'Download het model voor soortherkenning om suggesties te krijgen';
+
+  @override
+  String get speciesId_downloadPrompt_dismiss => 'Niet meer tonen';
 
   @override
   String get settings_speciesId_intro =>
@@ -29217,7 +29228,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_speciesId_unsupported =>
-      'Herkenning van zeeleven is nog niet beschikbaar op dit apparaat.';
+      'Soortherkenning is nog niet beschikbaar op dit apparaat.';
 
   @override
   String get settings_speciesId_notEligible =>
@@ -61830,6 +61841,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_photos_sourcesHeader => 'Waar foto\'s vandaan komen';
 
   @override
+  String get settings_photos_speciesHeader => 'Soorten';
+
+  @override
   String get settings_photos_library => 'Fotobibliotheek en bestanden';
 
   @override
@@ -63278,7 +63292,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get changeLog_label_mediaRepair => 'Medialinks hersteld';
 
   @override
-  String get changeLog_label_marineLifeId => 'Herkenning van zeeleven';
+  String get changeLog_label_marineLifeId => 'Soortherkenning';
 
   @override
   String get changeLog_label_speciesReview => 'Soortcontrole';

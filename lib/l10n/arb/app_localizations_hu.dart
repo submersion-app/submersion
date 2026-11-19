@@ -29098,11 +29098,22 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_photosVideos_title => 'Fotók és videók';
 
   @override
-  String get settings_speciesId_title => 'Tengeri élőlények felismerése';
+  String get settings_speciesId_title => 'Fajfelismerés';
 
   @override
   String get settings_speciesId_entrySubtitle =>
       'Halak keresése a fotóidon és videóidon, és fajjavaslatok';
+
+  @override
+  String get speciesId_downloadPrompt_title =>
+      'Halak felismerése a fotóidon és videóidon';
+
+  @override
+  String get speciesId_downloadPrompt_subtitle =>
+      'Töltsd le a fajfelismerő modellt a javaslatokhoz';
+
+  @override
+  String get speciesId_downloadPrompt_dismiss => 'Ne mutasd újra';
 
   @override
   String get settings_speciesId_intro =>
@@ -29272,7 +29283,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_speciesId_unsupported =>
-      'A tengeri élőlények felismerése ezen az eszközön még nem érhető el.';
+      'A fajfelismerés ezen az eszközön még nem érhető el.';
 
   @override
   String get settings_speciesId_notEligible =>
@@ -61887,6 +61898,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_photos_sourcesHeader => 'Honnan származnak a fotók';
 
   @override
+  String get settings_photos_speciesHeader => 'Fajok';
+
+  @override
   String get settings_photos_library => 'Fotókönyvtár és fájlok';
 
   @override
@@ -63324,7 +63338,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get changeLog_label_mediaRepair => 'Médiahivatkozások javítva';
 
   @override
-  String get changeLog_label_marineLifeId => 'Tengeri élőlények felismerése';
+  String get changeLog_label_marineLifeId => 'Fajfelismerés';
 
   @override
   String get changeLog_label_speciesReview => 'Fajok ellenőrzése';
