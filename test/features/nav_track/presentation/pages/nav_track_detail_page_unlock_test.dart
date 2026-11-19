@@ -482,4 +482,28 @@ void main() {
 
     expect(find.byType(NavTrack3dPage), findsOneWidget);
   });
+
+  testWidgets("the menu's 3D views carry the bar buttons' icons", (
+    tester,
+  ) async {
+    await pumpNavTrackPage(tester);
+    await unlock(tester);
+    await tester.tap(find.byType(PopupMenuButton<String>));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('nav-track-menu-3d-preview')),
+        matching: find.byIcon(Icons.view_in_ar),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('nav-track-menu-3d')),
+        matching: find.byIcon(Icons.terrain),
+      ),
+      findsOneWidget,
+    );
+  });
 }

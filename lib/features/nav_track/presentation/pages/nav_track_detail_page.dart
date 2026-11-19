@@ -342,15 +342,28 @@ class _NavTrackDetailPageState extends ConsumerState<NavTrackDetailPage>
         final l10n = context.l10n;
         return [
           if (stored != null) ...[
+            // Each with its bar button's icon, laid out as History is.
             PopupMenuItem(
               key: const ValueKey('nav-track-menu-3d-preview'),
               value: '3dPreview',
-              child: Text(l10n.navTrack3d_previewTitle),
+              child: Row(
+                children: [
+                  const Icon(Icons.view_in_ar),
+                  const SizedBox(width: 12),
+                  Text(l10n.navTrack3d_previewTitle),
+                ],
+              ),
             ),
             PopupMenuItem(
               key: const ValueKey('nav-track-menu-3d'),
               value: '3dSeascape',
-              child: Text(l10n.navTrack_common_open3dTooltip),
+              child: Row(
+                children: [
+                  const Icon(Icons.terrain),
+                  const SizedBox(width: 12),
+                  Text(l10n.navTrack_common_open3dTooltip),
+                ],
+              ),
             ),
             const PopupMenuDivider(),
           ],
