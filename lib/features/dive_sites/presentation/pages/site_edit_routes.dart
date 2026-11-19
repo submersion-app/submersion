@@ -148,10 +148,9 @@ Widget newSitePane(
 /// 6, Question 1); as today, the opener is shown again, otherwise.
 Future<void> openNewSite(
   BuildContext context, {
-  Object? extra,
   bool unlockEditing = kUnlockSiteEditing,
 }) async {
-  final id = await context.push<String>('/sites/new', extra: extra);
+  final id = await context.push<String>('/sites/new');
   if (!unlockEditing || id == null || !context.mounted) return;
   await context.push('/sites/$id');
 }

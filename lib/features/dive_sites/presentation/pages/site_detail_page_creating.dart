@@ -44,6 +44,9 @@ class _NewSiteLoaderState extends ConsumerState<_NewSiteLoader> {
 
   DiveSite? _seed;
 
+  /// The read error last logged: the page is built many times over one.
+  Object? _loggedError;
+
   @override
   void initState() {
     super.initState();
@@ -66,13 +69,18 @@ class _NewSiteLoaderState extends ConsumerState<_NewSiteLoader> {
         : ref.watch(siteDuplicateSourceProvider(duplicateOfId));
     final l10n = context.l10n;
     // A read that failed says what failed, as the stored site's page does;
-    // only a site that is gone reads as not found.
-    if (source != null && !source.isLoading && source.hasError) {
-      _editLog.error(
-        'Reading site $duplicateOfId to duplicate failed',
-        error: source.error,
-        stackTrace: source.stackTrace,
-      );
+    // only a site that is gone reads as not found. It keeps saying so while
+    // Riverpod tries the read again (an Exception is retried), which marks
+    // the source loading once more.
+    if (source != null && source.hasError) {
+      if (!identical(source.error, _loggedError)) {
+        _loggedError = source.error;
+        _editLog.error(
+          'Reading site $duplicateOfId to duplicate failed',
+          error: source.error,
+          stackTrace: source.stackTrace,
+        );
+      }
       return _newSiteMessage(
         page,
         title: l10n.diveSites_detail_error_title,
@@ -285,7 +293,12 @@ mixin _SiteDetailPageCreating
       service,
       activeDiverId: diverId,
     );
-    if (mounted) setState(() => _created = created);
+    // Kept even once the page has gone: the rules it is owed still run.
+    if (mounted) {
+      setState(() => _created = created);
+    } else {
+      _created = created;
+    }
     // The site exists from here on: nothing that follows may read as a
     // failed save, which would hand the diver the sitting to create again.
     await _refreshSiteList(sites, created.id);
@@ -327,6 +340,7 @@ mixin _SiteDetailPageCreating
     }
     final created = _created;
     if (created == null) return;
+    // Run whether or not the page is still there: the site exists.
     await rulesAfterCreate(subject: RuleSubject.sites, ids: [created.id]);
     // Gone meanwhile (the app moved elsewhere): its pop would take the
     // page under it.

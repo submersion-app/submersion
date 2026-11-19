@@ -52,6 +52,17 @@ class _GatedRules extends Fake implements RuleEngine {
   }
 }
 
+/// Records each run of the rules, and finds nothing to do.
+class _RecordingRules extends Fake implements RuleEngine {
+  final requests = <RuleRunRequest>[];
+
+  @override
+  Future<RuleRunResult> run(RuleRunRequest request) async {
+    requests.add(request);
+    throw StateError('no rules here');
+  }
+}
+
 /// A new site, and a duplicate, open on the site page itself, already
 /// unlocked (issue #4527, phase 2, plan 6).
 void main() {
@@ -274,6 +285,65 @@ void main() {
     expect(page.leftWith, page.save.creates.single.site.id);
   });
 
+  // The site exists once written, wherever the diver has gone meanwhile:
+  // the rules a site created by hand is owed still run on it.
+  testWidgets('a pane taken away during Save still runs the rules', (
+    tester,
+  ) async {
+    final rules = _RecordingRules();
+    final page = await pumpNewSitePage(
+      tester,
+      embedded: true,
+      extra: [ruleEngineProvider.overrideWithValue(rules)],
+    );
+    sitting(tester).set(siteNameField, 'Blue Hole');
+    await tester.pumpAndSettle();
+    final gate = page.save.createGate = Completer<void>();
+
+    await tester.tap(find.text(l.forms_save));
+    await tester.pump();
+    page.shown.value = false;
+    await tester.pump();
+    gate.complete();
+    await tester.pumpAndSettle();
+
+    final id = page.save.creates.single.site.id;
+    expect(rules.requests.single.targets.values.single, {id});
+    expect(page.created, isNull);
+  });
+
+  // As the app opens it, through go_router: Save leaves with the id for its
+  // opener, and an untouched Cancel leaves with none, past the route's own
+  // leave check.
+  testWidgets('through go_router, Save leaves with the new id', (tester) async {
+    final page = await pumpNewSitePage(tester, viaRouter: true);
+    sitting(tester).set(siteNameField, 'Blue Hole');
+    await tester.pumpAndSettle();
+
+    await tapText(tester, l.forms_save);
+
+    expect(page.leftWith, page.save.creates.single.site.id);
+    expect(find.text('list'), findsOneWidget);
+  });
+
+  testWidgets('through go_router, Cancel with an entry asks, then leaves '
+      'with nothing', (tester) async {
+    final page = await pumpNewSitePage(
+      tester,
+      viaRouter: true,
+      seed: const NewSiteSeed(name: 'Blue Hole'),
+    );
+
+    await tapText(tester, l.forms_cancel);
+    await tapText(tester, l.forms_discard_discard);
+
+    expect(page.left, isTrue);
+    expect(page.leftWith, isNull);
+    expect(find.text('list'), findsOneWidget);
+    expect(find.text(l.forms_discard_title), findsNothing);
+    expect(page.save.creates, isEmpty);
+  });
+
   testWidgets('in the pane, Save hands the new id over', (tester) async {
     final page = await pumpNewSitePage(tester, embedded: true);
     sitting(tester).set(siteNameField, 'Blue Hole');
@@ -369,6 +439,31 @@ void main() {
     expect(find.textContaining('database is locked'), findsOneWidget);
     expect(find.text(l.diveSites_detail_siteNotFound_body), findsNothing);
     expect(find.byType(RecordEditBar), findsNothing);
+  });
+
+  // An Exception (a locked database) is retried by Riverpod: the page keeps
+  // saying what failed while it tries again, rather than flickering back
+  // to a spinner with each attempt.
+  testWidgets('a read retried after it failed keeps saying why', (
+    tester,
+  ) async {
+    var reads = 0;
+    await pumpNewSitePage(
+      tester,
+      duplicateRead: () {
+        reads++;
+        if (reads == 1) throw Exception('database is locked');
+        return Completer<SiteDuplicateSource?>().future;
+      },
+    );
+    expect(find.textContaining('database is locked'), findsOneWidget);
+
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump();
+
+    expect(reads, 2);
+    expect(find.textContaining('database is locked'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
   });
 
   testWidgets('a duplicate of a site that is gone says so', (tester) async {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -13,6 +15,7 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blocker.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
@@ -42,6 +45,9 @@ class FakeSiteSave implements SiteEditSaveService {
   Object? failWith;
   final calls = <SiteSaveCall>[];
   final creates = <SiteCreateCall>[];
+
+  /// While set and not completed, a create waits, as a slow write does.
+  Completer<void>? createGate;
 
   @override
   Future<({DiveSite before, DiveSite after})?> save({
@@ -85,6 +91,7 @@ class FakeSiteSave implements SiteEditSaveService {
     required Iterable<String> changedCardIds,
     Future<void> Function()? alsoWrite,
   }) async {
+    await createGate?.future;
     creates.add((
       site: site,
       cards: changedCardIds.toList()..sort(),
@@ -222,6 +229,10 @@ class NewSiteHarness {
   /// The pane's callbacks: the id created, and whether it was cancelled.
   String? created;
   bool cancelled = false;
+
+  /// Whether the pane shows the page: false takes it away, as the list
+  /// pane does when another site is picked.
+  final shown = ValueNotifier<bool>(true);
 }
 
 /// Pumps the new-site page, as a pushed route or ([embedded]) in a pane,
@@ -233,7 +244,9 @@ Future<NewSiteHarness> pumpNewSitePage(
   SiteDuplicateSource? duplicate,
   bool duplicateGone = false,
   Object? duplicateReadError,
+  Future<SiteDuplicateSource?> Function()? duplicateRead,
   bool embedded = false,
+  bool viaRouter = false,
   AppSettings settings = const AppSettings(),
   Size size = const Size(600, 1400),
   List<Override> extra = const [],
@@ -245,7 +258,9 @@ Future<NewSiteHarness> pumpNewSitePage(
   final duplicateOfId =
       duplicate?.site.id ??
       (duplicateGone ? 'gone' : null) ??
-      (duplicateReadError != null ? 'unreadable' : null);
+      (duplicateReadError != null || duplicateRead != null
+          ? 'unreadable'
+          : null);
   final page = embedded
       ? SiteDetailPage.newSite(
           seed: seed,
@@ -256,6 +271,25 @@ Future<NewSiteHarness> pumpNewSitePage(
         )
       : SiteDetailPage.newSite(seed: seed, duplicateOfId: duplicateOfId);
   final navigator = GlobalKey<NavigatorState>();
+  // As the app opens it: pushed by go_router onto a list, at a route with
+  // the new site's leave check.
+  final router = viaRouter
+      ? GoRouter(
+          initialLocation: '/list',
+          routes: [
+            GoRoute(
+              path: '/list',
+              builder: (_, _) => const Scaffold(body: Text('list')),
+            ),
+            GoRoute(
+              path: '/sites/new',
+              onExit: confirmLeaveRecordSitting,
+              builder: (_, _) => page,
+            ),
+          ],
+        )
+      : null;
+  if (router != null) addTearDown(router.dispose);
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
@@ -267,23 +301,47 @@ Future<NewSiteHarness> pumpNewSitePage(
         siteEditSaveServiceProvider.overrideWithValue(harness.save),
         if (duplicateOfId != null)
           siteDuplicateSourceProvider(duplicateOfId).overrideWith(
-            (_) async => duplicateReadError == null
+            (_) async => duplicateRead != null
+                ? await duplicateRead()
+                : duplicateReadError == null
                 ? duplicate
                 : throw duplicateReadError,
           ),
         ...extra,
       ].cast<Override>(),
-      child: MaterialApp(
-        navigatorKey: navigator,
-        debugShowCheckedModeBanner: false,
-        locale: const Locale('en'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: embedded ? Scaffold(body: page) : const Scaffold(),
-      ),
+      child: router != null
+          ? MaterialApp.router(
+              debugShowCheckedModeBanner: false,
+              locale: const Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              routerConfig: router,
+            )
+          : MaterialApp(
+              navigatorKey: navigator,
+              debugShowCheckedModeBanner: false,
+              locale: const Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: embedded
+                  ? Scaffold(
+                      body: ValueListenableBuilder<bool>(
+                        valueListenable: harness.shown,
+                        builder: (_, shown, _) =>
+                            shown ? page : const SizedBox.shrink(),
+                      ),
+                    )
+                  : const Scaffold(),
+            ),
     ),
   );
-  if (!embedded) {
+  if (router != null) {
+    router.push<String>('/sites/new').then((value) {
+      harness
+        ..left = true
+        ..leftWith = value;
+    });
+  } else if (!embedded) {
     navigator.currentState!
         .push<Object?>(MaterialPageRoute(builder: (_) => page))
         .then((value) {

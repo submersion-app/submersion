@@ -495,8 +495,9 @@ mixin _SiteDetailPageEditing
                 !(reader &&
                     siteReaderCardRule(card.id) == SiteReaderCard.library) &&
                 (!section.visible ||
-                    ((card.isEmptyDuring(presence, session) ||
-                            _waitsInStrip(card.id)) &&
+                    // Neither open nor added (above): on a new site it
+                    // waits here ([_waitsInStrip]).
+                    ((card.isEmptyDuring(presence, session) || isCreating) &&
                         (session == null || card.isOfferedWhenEmpty(session)))))
           AddStripEntry(
             cardId: card.id,
