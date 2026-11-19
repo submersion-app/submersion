@@ -119,9 +119,18 @@ extension _EquipmentDetailSections on _EquipmentDetailContent {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                context.l10n.equipment_detail_detailsTitle,
-                style: Theme.of(context).textTheme.titleMedium,
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      context.l10n.equipment_detail_detailsTitle,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                  RecordCardPencil(
+                    cardTitle: context.l10n.equipment_detail_detailsTitle,
+                  ),
+                ],
               ),
               const Divider(),
               _buildDetailRow(
@@ -181,7 +190,14 @@ extension _EquipmentDetailSections on _EquipmentDetailContent {
                 ),
                 error: (e, s) => const SizedBox.shrink(),
               ),
-              EquipmentSharingRow(equipment: equipment),
+              // Where the page edits in place, sharing is chosen in the
+              // Details editor; closed, the card shows what the sitting
+              // holds.
+              EquipmentSharingRow(
+                equipment: equipment,
+                shown: this.host?.maybeEditController?.session,
+                readOnly: _editing,
+              ),
               if (equipment.brand != null)
                 _buildDetailRow(
                   context,
@@ -492,43 +508,8 @@ extension _EquipmentDetailSections on _EquipmentDetailContent {
     );
   }
 
-  String _formatDuration(BuildContext context, Duration duration) {
-    final days = duration.inDays;
-    if (days < 30) return context.l10n.equipment_detail_durationDays(days);
-    if (days < 365) {
-      final months = (days / 30).floor();
-      return context.l10n.equipment_detail_durationMonths(months);
-    }
-    final years = (days / 365).floor();
-    final months = ((days % 365) / 30).floor();
-    if (months == 0) {
-      return years == 1
-          ? context.l10n.equipment_detail_durationYearsSingular(years)
-          : context.l10n.equipment_detail_durationYearsPlural(years);
-    }
-    if (years == 1 && months == 1) {
-      return context.l10n.equipment_detail_durationYearsMonthsSingularSingular(
-        years,
-        months,
-      );
-    }
-    if (years == 1) {
-      return context.l10n.equipment_detail_durationYearsMonthsSingularPlural(
-        years,
-        months,
-      );
-    }
-    if (months == 1) {
-      return context.l10n.equipment_detail_durationYearsMonthsPluralSingular(
-        years,
-        months,
-      );
-    }
-    return context.l10n.equipment_detail_durationYearsMonthsPluralPlural(
-      years,
-      months,
-    );
-  }
+  String _formatDuration(BuildContext context, Duration duration) =>
+      equipmentOwnedForText(context.l10n, duration);
 }
 
 /// The header's service banner: which service is due, on which part, and

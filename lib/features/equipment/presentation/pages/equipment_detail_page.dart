@@ -35,7 +35,9 @@ import 'package:submersion/features/equipment/figure/presentation/figure_positio
 import 'package:submersion/features/equipment/presentation/editing/gear_item_card_ids.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_edit_cards.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_edit_fields.dart';
+import 'package:submersion/features/equipment/presentation/editing/equipment_shares_sharing_adapter.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_header_editor.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_sharing_sitting.dart';
 import 'package:submersion/features/equipment/presentation/helpers/equipment_web_link_launcher.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -44,6 +46,7 @@ import 'package:submersion/features/equipment/presentation/utils/equipment_attri
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_units.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_color_names.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_owned_for.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_transfer_gate.dart';
 import 'package:submersion/features/equipment/presentation/utils/service_severity_colors.dart';
 import 'package:submersion/features/equipment/presentation/widgets/children_card.dart';
@@ -322,7 +325,10 @@ class _EquipmentDetailContent extends ConsumerWidget {
           // takes no room while it loads or when it fails.
           if (equipment.type == EquipmentType.computer)
             DiveComputerSection(equipmentId: equipmentId),
-          _buildDetailsSection(context, ref, equipment, units),
+          _framed(
+            GearItemCardId.details,
+            _buildDetailsSection(context, ref, equipment, units),
+          ),
           const SizedBox(height: 24),
           if (equipment.type == EquipmentType.transmitter) ...[
             TransmitterSection(equipmentId: equipmentId),

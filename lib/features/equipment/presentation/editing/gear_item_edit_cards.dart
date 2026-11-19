@@ -4,6 +4,7 @@ import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_card_ids.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_details_editor.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_edit_fields.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_header_editor.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -23,6 +24,16 @@ final Map<GearItemCardId, EditCard<EquipmentItem>> gearItemEditCards = {
     // A name, as the form's validator has it.
     isValid: (session) => gearNameValid(session.working.name),
     editorBuilder: (context, session) => GearItemHeaderEditor(session: session),
+  ),
+  GearItemCardId.details: EditCard<EquipmentItem>(
+    id: GearItemCardId.details.name,
+    title: (context) =>
+        GearItemCardId.details.localizedDisplayName(context.l10n),
+    isEmpty: (_) => false,
+    // A readable price, as the form's validator has it.
+    isValid: gearDetailsValid,
+    editorBuilder: (context, session) =>
+        GearItemDetailsEditor(session: session),
   ),
   GearItemCardId.notes: EditCard<EquipmentItem>(
     id: GearItemCardId.notes.name,

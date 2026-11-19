@@ -50,6 +50,18 @@ mixin _EquipmentDetailPageEditing
     ProviderContainer container,
   ) {
     gearItemTagsList.load(session);
+    // Who it is shared with, where it can be: an item with an owner, among
+    // two or more profiles.
+    if (session.stored.diverId != null &&
+        container.read(hasMultipleDiversProvider)) {
+      gearItemSharing.load(
+        session,
+        EquipmentSharesSharingAdapter(
+          container.read(equipmentShareRepositoryProvider),
+        ),
+        actingDiverId: container.read(validatedCurrentDiverIdProvider).value,
+      );
+    }
     holdDocumentLinks(
       session,
       container.read,

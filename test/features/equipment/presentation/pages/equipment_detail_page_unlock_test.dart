@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/documents/presentation/editing/record_document_links_sitting.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_edit_fields.dart';
 import 'package:submersion/features/equipment/presentation/widgets/components_card.dart';
@@ -184,6 +186,59 @@ void main() {
 
       expect(find.byType(RecordEditBar), findsOneWidget);
       expect(find.text(l.recordEdit_editingTitle('Apex')), findsOneWidget);
+    });
+  });
+
+  group('details', () {
+    testWidgets('brand and a spec attribute in one sitting are one entry', (
+      tester,
+    ) async {
+      final harness = await pumpGearPage(tester);
+      await unlock(tester);
+      await openCard(tester, l.equipment_detail_detailsTitle);
+      await tester.enterText(
+        find.byKey(const ValueKey('gear-edit-brand')),
+        'Scubapro',
+      );
+      await tester.pumpAndSettle();
+      final key =
+          EquipmentAttributeCatalog.attributesFor(EquipmentType.regulator)
+              .firstWhere(
+                (d) =>
+                    d.group == AttributeGroup.spec &&
+                    d.kind == AttributeKind.number,
+              )
+              .key;
+      sessionOf(tester).set(
+        gearAttributeField(key),
+        EquipmentAttribute.curated(equipmentId: 'g1', key: key, valueNum: 2),
+      );
+      await tester.pumpAndSettle();
+
+      await save(tester);
+
+      final call = harness.save.calls.single;
+      expect(call.after.brand, 'Scubapro');
+      expect(call.after.attrNum(key), 2);
+      expect(call.cards, {'details'});
+    });
+
+    testWidgets('an unreadable price keeps the Save from writing', (
+      tester,
+    ) async {
+      final harness = await pumpGearPage(tester);
+      await unlock(tester);
+      await openCard(tester, l.equipment_detail_detailsTitle);
+      final price = find.byKey(const ValueKey('equipment-purchase-price'));
+      await tester.ensureVisible(price);
+      await tester.enterText(price, '4x0');
+      await tester.pumpAndSettle();
+      sessionOf(tester).set(gearNotesField, 'Rinse');
+      await tester.pumpAndSettle();
+
+      await save(tester);
+
+      expect(harness.save.calls, isEmpty);
     });
   });
 
