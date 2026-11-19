@@ -1,84 +1,80 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/presentation/providers/media_thumbnail_scale_provider.dart';
-import 'package:submersion/features/media/presentation/widgets/media_thumbnail_columns_builder.dart';
+import 'package:submersion/features/media/presentation/widgets/media_thumbnail_row_height_builder.dart';
+
+/// The middle stop's row height across a pane [width] wide.
+double _middle(double width) => 64 * math.sqrt(width / 2 / 64);
 
 void main() {
-  group('thumbnail steps (issue #3297)', () {
+  group('thumbnail steps (issues #3297, #4738)', () {
     test('there are seven, and the gallery opens on the middle one', () {
       expect(kMediaThumbnailSteps, 7);
       expect(const MediaThumbnailScale().step, 3);
-      expect(const MediaThumbnailScale().columns, isNull);
+      expect(const MediaThumbnailScale().rowHeight, isNull);
     });
 
-    test('the largest step is half the pane, at any width', () {
-      for (final width in [200.0, 360.0, 800.0, 1200.0, 2400.0]) {
-        expect(mediaThumbnailColumnsForStep(6, width), 2, reason: '$width');
+    test('rows run from 64 to half the pane in equal ratios', () {
+      expect(mediaThumbnailRowHeightForStep(0, 1200), 64);
+      expect(mediaThumbnailRowHeightForStep(6, 1200), moreOrLessEquals(600));
+      expect(
+        mediaThumbnailRowHeightForStep(3, 1200),
+        moreOrLessEquals(_middle(1200)),
+      );
+    });
+
+    test('a pane too narrow for a 64 row at half its width gives 64', () {
+      for (var step = 0; step < kMediaThumbnailSteps; step++) {
+        expect(mediaThumbnailRowHeightForStep(step, 100), 64);
       }
-    });
-
-    test('the smallest step is as many as fit at 64 or more', () {
-      // The grouped list's 16 of padding and the 4 between tiles come off
-      // first: 17 across 1200 is (1184 - 16 x 4) / 17 = 65.9 each, and an
-      // eighteenth column would drop them to 62.0.
-      expect(mediaThumbnailColumnsForStep(0, 1200), 17);
-      expect(mediaThumbnailColumnsForStep(0, 800), 11);
-      expect(mediaThumbnailColumnsForStep(0, 352), 5);
-    });
-
-    test('no step draws a tile under 64 once gaps and padding are '
-        'taken off', () {
-      // From the narrowest pane that holds two 64px tiles at all.
-      for (var width = 148.0; width <= 3000; width += 7) {
-        for (var step = 0; step < kMediaThumbnailSteps; step++) {
-          final columns = mediaThumbnailColumnsForStep(step, width);
-          // The grouped list, whose 8 a side is the widest padding.
-          final tile =
-              (width -
-                  kMediaThumbnailMaxInset -
-                  (columns - 1) * kMediaThumbnailGap) /
-              columns;
-          expect(
-            tile,
-            greaterThanOrEqualTo(kMediaThumbnailMinExtent),
-            reason: 'step $step at $width: $columns across',
-          );
-        }
-      }
-    });
-
-    test('a desktop pane gets seven different sizes, smallest first', () {
-      final columns = [
-        for (var step = 0; step < kMediaThumbnailSteps; step++)
-          mediaThumbnailColumnsForStep(step, 1200),
-      ];
-      expect(columns, [17, 13, 9, 6, 4, 3, 2]);
-    });
-
-    test('a pane too narrow for two 64px tiles still shows two', () {
-      expect(mediaThumbnailColumnsForStep(0, 100), 2);
-      expect(mediaThumbnailColumnsForStep(3, 100), 2);
     });
   });
 
-  group('MediaThumbnailScale.columnsAt', () {
+  group('spacing', () {
+    test('a phone-width pane packs tighter', () {
+      expect(mediaThumbnailGap(599), 2);
+      expect(mediaThumbnailGap(600), 4);
+      expect(mediaThumbnailInset(599), 2);
+      expect(mediaThumbnailInset(600), 8);
+    });
+  });
+
+  group('mediaThumbnailDecodeTarget', () {
+    test('the longest side picks one of three sizes', () {
+      expect(
+        mediaThumbnailDecodeTarget(const Size(150, 200)),
+        const Size.square(200),
+      );
+      expect(
+        mediaThumbnailDecodeTarget(const Size(300, 201)),
+        const Size.square(400),
+      );
+      expect(
+        mediaThumbnailDecodeTarget(const Size(900, 300)),
+        const Size.square(800),
+      );
+    });
+  });
+
+  group('MediaThumbnailScale.rowHeightAt', () {
     test('before anything is held, follows the step at that width', () {
       const scale = MediaThumbnailScale();
-      expect(scale.columnsAt(1200), 6);
-      expect(scale.columnsAt(800), 5);
+      expect(scale.rowHeightAt(1200), moreOrLessEquals(_middle(1200)));
+      expect(scale.rowHeightAt(800), moreOrLessEquals(_middle(800)));
     });
 
-    test('a held count stays the same when the pane is resized', () {
-      const scale = MediaThumbnailScale(columns: 6);
-      expect(scale.columnsAt(1200), 6);
-      expect(scale.columnsAt(800), 6);
-      expect(scale.columnsAt(2000), 6);
+    test('a held height stays when the pane is resized', () {
+      const scale = MediaThumbnailScale(rowHeight: 180);
+      expect(scale.rowHeightAt(1200), 180);
+      expect(scale.rowHeightAt(2000), 180);
     });
 
-    test('but never squeezes tiles below 64', () {
-      const scale = MediaThumbnailScale(columns: 6);
-      expect(scale.columnsAt(300), 4);
+    test('but never goes past half the pane', () {
+      const scale = MediaThumbnailScale(rowHeight: 500);
+      expect(scale.rowHeightAt(800), 400);
     });
   });
 
@@ -90,24 +86,32 @@ void main() {
       addTearDown(container.dispose);
     });
 
-    test('choosing a step drops the held count, to be re-read at the '
+    test('choosing a step drops the held height, to be re-read at the '
         'current width', () {
       final notifier = container.read(mediaThumbnailScaleProvider.notifier);
-      notifier.hold(6);
-      expect(container.read(mediaThumbnailScaleProvider).columns, 6);
+      notifier.hold(180);
+      expect(container.read(mediaThumbnailScaleProvider).rowHeight, 180);
 
       notifier.setStep(5);
 
       final scale = container.read(mediaThumbnailScaleProvider);
       expect(scale.step, 5);
-      expect(scale.columns, isNull);
+      expect(scale.rowHeight, isNull);
     });
 
-    test('a count already held is not replaced', () {
+    test('a height already held is not replaced', () {
       final notifier = container.read(mediaThumbnailScaleProvider.notifier);
-      notifier.hold(6);
-      notifier.hold(9);
-      expect(container.read(mediaThumbnailScaleProvider).columns, 6);
+      notifier.hold(180);
+      notifier.hold(90);
+      expect(container.read(mediaThumbnailScaleProvider).rowHeight, 180);
+    });
+
+    test('a step past either end keeps the held height', () {
+      final notifier = container.read(mediaThumbnailScaleProvider.notifier);
+      notifier.setStep(6);
+      notifier.hold(400);
+      notifier.stepBy(1);
+      expect(container.read(mediaThumbnailScaleProvider).rowHeight, 400);
     });
 
     test('steps outside the slider are clamped', () {
@@ -119,7 +123,7 @@ void main() {
     });
   });
 
-  group('MediaThumbnailColumnsBuilder', () {
+  group('MediaThumbnailRowHeightBuilder', () {
     late ProviderContainer container;
     late int builds;
 
@@ -138,10 +142,10 @@ void main() {
           container: container,
           child: Directionality(
             textDirection: TextDirection.ltr,
-            child: MediaThumbnailColumnsBuilder(
-              builder: (context, columns, targetSize) {
+            child: MediaThumbnailRowHeightBuilder(
+              builder: (context, rowHeight) {
                 builds++;
-                return Text('$columns across at ${targetSize.width.toInt()}');
+                return Text('rows ${rowHeight.round()}');
               },
             ),
           ),
@@ -152,68 +156,36 @@ void main() {
 
     testWidgets('opens on the middle size', (tester) async {
       await pump(tester, 1200);
-      expect(find.textContaining('6 across at'), findsOneWidget);
+      expect(find.text('rows ${_middle(1200).round()}'), findsOneWidget);
     });
 
-    testWidgets('hands over the decode size for the width and count', (
+    testWidgets('holding the height does not build the gallery again', (
       tester,
     ) async {
       await pump(tester, 1200);
-      // 1200 / 6 is 200 a thumbnail.
-      expect(find.text('6 across at 200'), findsOneWidget);
-
-      container.read(mediaThumbnailScaleProvider.notifier).setStep(6);
-      await tester.pumpAndSettle();
-      // 1200 / 2 is 600, past 400.
-      expect(find.text('2 across at 800'), findsOneWidget);
-    });
-
-    testWidgets('holding the count does not build the gallery again', (
-      tester,
-    ) async {
-      await pump(tester, 1200);
-      expect(container.read(mediaThumbnailScaleProvider).columns, 6);
+      expect(
+        container.read(mediaThumbnailScaleProvider).rowHeight,
+        moreOrLessEquals(_middle(1200)),
+      );
       expect(builds, 1);
     });
 
-    testWidgets('resizing the window keeps the same number across', (
-      tester,
-    ) async {
+    testWidgets('resizing the window keeps the row height', (tester) async {
       await pump(tester, 1200);
-      expect(find.textContaining('6 across at'), findsOneWidget);
-
-      // Unheld, the middle step at 800 would be 5.
       await pump(tester, 800);
-      expect(find.textContaining('6 across at'), findsOneWidget);
-
-      await pump(tester, 1600);
-      expect(find.textContaining('6 across at'), findsOneWidget);
+      expect(find.text('rows ${_middle(1200).round()}'), findsOneWidget);
     });
 
     testWidgets('a new step is read at the width it was chosen at, then held', (
       tester,
     ) async {
       await pump(tester, 1200);
-      container.read(mediaThumbnailScaleProvider.notifier).setStep(1);
+      container.read(mediaThumbnailScaleProvider.notifier).setStep(0);
       await tester.pumpAndSettle();
-      expect(find.textContaining('13 across at'), findsOneWidget);
+      expect(find.text('rows 64'), findsOneWidget);
 
       await pump(tester, 1000);
-      expect(find.textContaining('13 across at'), findsOneWidget);
-    });
-
-    testWidgets('the size survives the gallery being closed and reopened', (
-      tester,
-    ) async {
-      await pump(tester, 1200);
-      container.read(mediaThumbnailScaleProvider.notifier).setStep(6);
-      await tester.pumpAndSettle();
-
-      await tester.pumpWidget(const SizedBox.shrink());
-      await pump(tester, 1200);
-
-      expect(find.textContaining('2 across at'), findsOneWidget);
-      expect(container.read(mediaThumbnailScaleProvider).step, 6);
+      expect(find.text('rows 64'), findsOneWidget);
     });
   });
 }

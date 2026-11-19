@@ -44,4 +44,17 @@ void main() {
       expect(parseElapsedMmSs('-1:00'), isNull);
     });
   });
+
+  group('formatClipDuration', () {
+    test('reads m:ss under an hour', () {
+      expect(formatClipDuration(0), '0:00');
+      expect(formatClipDuration(83), '1:23');
+      expect(formatClipDuration(3599), '59:59');
+    });
+
+    test('reads h:mm:ss from an hour', () {
+      expect(formatClipDuration(3600), '1:00:00');
+      expect(formatClipDuration(3725), '1:02:05');
+    });
+  });
 }

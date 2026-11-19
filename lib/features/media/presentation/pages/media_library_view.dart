@@ -12,7 +12,7 @@ import 'package:submersion/features/media/presentation/widgets/media_map_content
 import 'package:submersion/features/media/presentation/widgets/media_library_grouped_list.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_groupers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_missing_banner.dart';
-import 'package:submersion/features/media/presentation/widgets/media_thumbnail_columns_builder.dart';
+import 'package:submersion/features/media/presentation/widgets/media_thumbnail_row_height_builder.dart';
 import 'package:submersion/features/media/presentation/widgets/media_thumbnail_wheel_zoom.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
@@ -185,15 +185,14 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
     // One size for all three thumbnail views, from the toolbar's slider or
     // the mouse wheel with Ctrl held (issue #3297).
     return MediaThumbnailWheelZoom(
-      child: MediaThumbnailColumnsBuilder(
-        builder: (context, columns, targetSize) => switch (mode) {
+      child: MediaThumbnailRowHeightBuilder(
+        builder: (context, rowHeight) => switch (mode) {
           MediaLibraryViewMode.grid => MediaLibraryGrid(
             entries: state.entries,
             hasMore: state.hasMore,
             onLoadMore: loadMore,
             onTileTap: (entry, index) => handleTap(entry),
-            columns: columns,
-            targetSize: targetSize,
+            rowHeight: rowHeight,
             selectedIds: checkedIds,
             isSelectionMode: selection.isActive,
           ),
@@ -203,8 +202,7 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
             hasMore: state.hasMore,
             onLoadMore: loadMore,
             onTileTap: handleTap,
-            columns: columns,
-            targetSize: targetSize,
+            rowHeight: rowHeight,
             selectedIds: checkedIds,
             isSelectionMode: selection.isActive,
           ),

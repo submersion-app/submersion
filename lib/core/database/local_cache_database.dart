@@ -1,11 +1,14 @@
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/local_cache_identification_table.dart';
+import 'package:submersion/core/database/local_cache_media_aspect_table.dart';
 import 'package:submersion/core/database/local_cache_site_catalogue_tables.dart';
 import 'package:submersion/core/database/local_cache_vertical_distance_table.dart';
 
 export 'package:submersion/core/database/local_cache_identification_table.dart'
     show IdentificationEmbeddings;
+export 'package:submersion/core/database/local_cache_media_aspect_table.dart'
+    show MediaAspectCache;
 export 'package:submersion/core/database/local_cache_site_catalogue_tables.dart'
     show SiteCatalogueEntries, SiteCatalogueMeta;
 export 'package:submersion/core/database/local_cache_vertical_distance_table.dart'
@@ -353,13 +356,14 @@ class RecentQueries extends Table {
     SiteCatalogueMeta,
     DiveVerticalDistanceCache,
     IdentificationEmbeddings,
+    MediaAspectCache,
   ],
 )
 class LocalCacheDatabase extends _$LocalCacheDatabase {
   LocalCacheDatabase(super.e);
 
   @override
-  int get schemaVersion => 25;
+  int get schemaVersion => 26;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -563,6 +567,8 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
       if (from < 24) await addSiteCataloguePositionFrom(this);
       // v25: marine life crop embeddings (issue #4668).
       if (from < 25) await m.createTable(identificationEmbeddings);
+      // v26: each library thumbnail's learned shape (issue #4738).
+      if (from < 26) await m.createTable(mediaAspectCache);
     },
     beforeOpen: (details) async {
       // Ladder-collision self-heal: a parallel branch that also claimed v7
@@ -730,6 +736,8 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
       // v23 mirror, for a database a colliding branch stamped at v23 first.
       await customStatement(kCreateDiveVerticalDistanceCacheSql);
       await customStatement(kCreateIdentificationEmbeddingsSql);
+      // v26 mirror, for a database a colliding branch stamped at v26 first.
+      await customStatement(kCreateMediaAspectCacheSql);
       // v24 mirror, for a database a colliding branch stamped at v24 first.
       await addSiteCataloguePositionFrom(this);
     },

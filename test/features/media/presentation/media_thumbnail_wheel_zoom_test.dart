@@ -209,15 +209,15 @@ void main() {
     }, variant: macOnly);
   });
 
-  test('stepBy keeps a held count when the step cannot move', () {
+  test('stepBy keeps a held height when the step cannot move', () {
     final notifier = container.read(mediaThumbnailScaleProvider.notifier);
     notifier.setStep(kMediaThumbnailSteps - 1);
-    notifier.hold(2);
+    notifier.hold(400);
 
     notifier.stepBy(1);
 
     final scale = container.read(mediaThumbnailScaleProvider);
     expect(scale.step, kMediaThumbnailSteps - 1);
-    expect(scale.columns, 2);
+    expect(scale.rowHeight, 400);
   });
 }

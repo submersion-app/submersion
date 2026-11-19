@@ -328,6 +328,32 @@ void main() {
       );
     });
 
+    test('deletes learned thumbnail shapes whose media is gone', () async {
+      await addMedia('media-live');
+      for (final id in ['media-live', 'media-gone']) {
+        await local
+            .into(local.mediaAspectCache)
+            .insert(
+              MediaAspectCacheCompanion.insert(
+                mediaId: id,
+                ratio: 0.75,
+                learnedAt: 0,
+              ),
+            );
+      }
+
+      final report = await sweep().run(now: now);
+
+      expect(report.mediaAspectRows, 1);
+      expect(report.rowsDeleted, 1);
+      expect(
+        (await local.select(local.mediaAspectCache).get()).map(
+          (r) => r.mediaId,
+        ),
+        ['media-live'],
+      );
+    });
+
     test('deletes crop embeddings whose identification is gone', () async {
       await library
           .into(library.mediaIdentifications)

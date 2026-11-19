@@ -1,25 +1,23 @@
-import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
+import 'package:submersion/features/media/presentation/helpers/media_layout_aspect.dart';
+import 'package:submersion/features/media/presentation/providers/media_learned_aspect_provider.dart';
 import 'package:submersion/features/media/presentation/providers/media_thumbnail_scale_provider.dart';
+import 'package:submersion/features/media/presentation/widgets/justified_media_grid.dart';
+import 'package:submersion/features/media/presentation/widgets/justified_media_scroll_view.dart';
 import 'package:submersion/features/media/presentation/widgets/media_group_header.dart';
-import 'package:submersion/features/media/presentation/widgets/media_grouped_grid.dart';
-import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_grid.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_groupers.dart';
-import 'package:submersion/features/media/presentation/widgets/media_thumbnail_wheel_zoom.dart';
-import 'package:submersion/features/media/presentation/widgets/media_thumbnail_zoom_anchor.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Sectioned presentation shared by the by-dive and timeline modes: one lazy
-/// grid whose cells are group headers and thumbnails, so what is built follows
-/// the viewport rather than the size of a group (issue #3826), with the same
-/// near-end load-more contract as the flat grid.
+/// justified grid whose cells are group headers and thumbnails, so what is
+/// built follows the viewport rather than the size of a group (issues #3826,
+/// #4738), with the same near-end load-more contract as the flat grid.
 class MediaLibraryGroupedList extends ConsumerStatefulWidget {
   const MediaLibraryGroupedList({
     super.key,
@@ -27,8 +25,7 @@ class MediaLibraryGroupedList extends ConsumerStatefulWidget {
     required this.hasMore,
     required this.onLoadMore,
     required this.onTileTap,
-    required this.columns,
-    this.targetSize = kDefaultThumbnailTarget,
+    required this.rowHeight,
     this.selectedIds = const {},
     this.isSelectionMode = false,
   });
@@ -38,12 +35,9 @@ class MediaLibraryGroupedList extends ConsumerStatefulWidget {
   final VoidCallback onLoadMore;
   final void Function(MediaLibraryEntry entry) onTileTap;
 
-  /// How many thumbnails go across, from the size slider (issue #3297).
-  final int columns;
-
-  /// The size to decode thumbnails at, from the pane's width and [columns]
-  /// (see [mediaThumbnailDecodeTarget]).
-  final Size targetSize;
+  /// The height rows are packed at, from the size slider (issues #3297,
+  /// #4738).
+  final double rowHeight;
 
   /// Ids rendered with the selection overlay.
   final Set<String> selectedIds;
@@ -52,8 +46,6 @@ class MediaLibraryGroupedList extends ConsumerStatefulWidget {
   /// checked.
   final bool isSelectionMode;
 
-  static const double _loadMoreThreshold = 400;
-
   @override
   ConsumerState<MediaLibraryGroupedList> createState() =>
       _MediaLibraryGroupedListState();
@@ -61,65 +53,7 @@ class MediaLibraryGroupedList extends ConsumerStatefulWidget {
 
 class _MediaLibraryGroupedListState
     extends ConsumerState<MediaLibraryGroupedList> {
-  /// The list's scroll position, picked up from a cell's context. Not a
-  /// ScrollController: giving the list one would stop it being the page's
-  /// primary scroll view.
-  ScrollPosition? _position;
-
   MediaGroupHeaderMeasurer? _measurer;
-  MediaGroupedGridTable? _table;
-  List<MediaGridSection> _sections = const [];
-
-  /// Moves the offset as [next] replaces [previous], before the new layout, so
-  /// the first frame at it is already in place. An exact table has no estimates
-  /// to absorb a change in height above the viewport, so with the offset left
-  /// alone, entering selection or resizing the pane would throw the view
-  /// somewhere else.
-  void _keepPlace(MediaGroupedGridTable? previous, MediaGroupedGridTable next) {
-    if (previous == null) return;
-    final anchor = previous.columns == next.columns
-        ? null
-        : MediaThumbnailZoomAnchorScope.takeFrom(context);
-    final position = _position;
-    if (position == null || !position.hasPixels) return;
-    if (anchor != null) {
-      position.correctPixels(
-        _offsetKeeping(anchor, position.pixels, previous.columns, next.columns),
-      );
-    } else if (previous.hasSameCellsAs(next)) {
-      position.correctPixels(next.offsetOf(previous.placeAt(position.pixels)));
-    }
-  }
-
-  /// A wheel zoom's offset, which keeps the thumbnail under the cursor on the
-  /// same line (issue #3297) rather than the cell at the top edge.
-  double _offsetKeeping(
-    MediaThumbnailZoomAnchor anchor,
-    double pixels,
-    int oldColumns,
-    int newColumns,
-  ) {
-    final newExtent = mediaThumbnailExtentAfter(
-      anchor.tileExtent,
-      oldColumns: oldColumns,
-      newColumns: newColumns,
-    );
-    // Every group above the anchor's changes height with the size and pushes
-    // it down, or pulls it up, by the difference.
-    var heightChangeAbove = 0.0;
-    for (final section in _sections.take(anchor.slot.row)) {
-      final count = section.tileCount;
-      heightChangeAbove +=
-          mediaThumbnailGridHeight(count, newColumns, newExtent) -
-          mediaThumbnailGridHeight(count, oldColumns, anchor.tileExtent);
-    }
-    return anchor.scrollOffsetFor(
-      pixels: pixels,
-      oldColumns: oldColumns,
-      newColumns: newColumns,
-      heightChangeAbove: heightChangeAbove,
-    );
-  }
 
   /// A linked dive's header label. Unlinked has no plain header: its section
   /// heading names it (issue #4224).
@@ -275,11 +209,12 @@ class _MediaLibraryGroupedListState
     return headers;
   }
 
-  /// The table for this build, kept when nothing about the layout changed, so
-  /// that a selection toggle does not lay the gallery out again.
-  MediaGroupedGridTable _tableFor(
+  /// Each group's section at [paneWidth]: its headers' heights, measured
+  /// for that width, and its thumbnails' shapes.
+  List<JustifiedSection> _sections(
     BuildContext context,
     List<List<MediaGroupHeaderSpec>> headers,
+    Map<String, LearnedAspect> learned,
     double paneWidth,
   ) {
     final measurer = MediaGroupHeaderMeasurer.of(context);
@@ -287,90 +222,55 @@ class _MediaLibraryGroupedListState
     final kept = current != null && current.matches(measurer)
         ? current
         : _measurer = measurer;
-    final sections = [
+    return [
       for (var g = 0; g < headers.length; g++)
-        MediaGridSection(
+        JustifiedSection(
           headerExtents: [
             for (final spec in headers[g]) kept.extentOf(spec, paneWidth),
           ],
-          tileCount: widget.groups[g].entries.length,
+          ratios: mediaLibraryRatios(widget.groups[g].entries, learned),
         ),
     ];
-    final previous = _table;
-    if (previous != null &&
-        previous.columns == widget.columns &&
-        previous.paneWidth == paneWidth &&
-        listEquals(_sections, sections)) {
-      return previous;
-    }
-    final next = MediaGroupedGridTable.build(
-      sections: sections,
-      columns: widget.columns,
-      paneWidth: paneWidth,
-    );
-    _keepPlace(previous, next);
-    _sections = sections;
-    return _table = next;
   }
 
   @override
   Widget build(BuildContext context) {
+    // The first layout waits for the learned shapes, as the flat grid does.
+    final learned = ref.watch(mediaLearnedAspectsProvider).value;
+    if (learned == null) return const SizedBox.shrink();
     final units = ref.watch(unitFormatterProvider);
     final headers = _headers(context, units);
     final groups = widget.groups;
-    final target = widget.targetSize;
     final selectedIds = widget.selectedIds;
     final isSelectionMode = widget.isSelectionMode;
 
-    return NotificationListener<ScrollNotification>(
-      onNotification: (notification) {
-        if (widget.hasMore &&
-            notification.metrics.pixels >=
-                notification.metrics.maxScrollExtent -
-                    MediaLibraryGroupedList._loadMoreThreshold) {
-          widget.onLoadMore();
-        }
-        return false;
-      },
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final table = _tableFor(context, headers, constraints.maxWidth);
-          return GridView.builder(
-            // Lets Ctrl + wheel resize instead of scroll (issue #3297).
-            physics: const MediaThumbnailWheelZoomPhysics(),
-            // As the flat grid does (issue #3337).
-            scrollCacheExtent: const ScrollCacheExtent.viewport(2),
-            padding: const EdgeInsets.only(bottom: 8),
-            gridDelegate: MediaGroupedGridDelegate(table),
-            itemCount: table.cellCount,
-            itemBuilder: (context, cell) {
-              _position = Scrollable.maybeOf(context)?.position;
-              final group = table.sectionOf(cell);
-              final header = table.headerIndexOf(cell);
-              if (header >= 0) {
-                final spec = headers[group][header];
-                return MediaGroupHeader(
-                  spec: spec,
-                  onTap: () => context.pushOrReturnTo(spec.route!),
-                );
-              }
-              final index = table.tileIndexOf(cell);
-              final entry = groups[group].entries[index];
-              return MetaData(
-                metaData: MediaThumbnailSlot(row: group, index: index),
-                behavior: HitTestBehavior.opaque,
-                child: MediaLibraryTile(
-                  entry: entry,
-                  selected: selectedIds.contains(entry.item.id),
-                  isSelectionMode: isSelectionMode,
-                  targetSize: target,
-                  onTap: () => widget.onTileTap(entry),
-                ),
-              );
-            },
+    return JustifiedMediaScrollView(
+      sectionsFor: (paneWidth) =>
+          _sections(context, headers, learned, paneWidth),
+      rowHeight: widget.rowHeight,
+      hasMore: widget.hasMore,
+      onLoadMore: widget.onLoadMore,
+      padding: const EdgeInsets.only(bottom: 8),
+      cellBuilder: (context, cell) {
+        if (cell.isHeader) {
+          final spec = headers[cell.section][cell.header];
+          return MediaGroupHeader(
+            spec: spec,
+            onTap: () => context.pushOrReturnTo(spec.route!),
           );
-        },
-      ),
+        }
+        final entry = groups[cell.section].entries[cell.tile];
+        return MediaLibraryTile(
+          entry: entry,
+          selected: selectedIds.contains(entry.item.id),
+          isSelectionMode: isSelectionMode,
+          targetSize: mediaThumbnailDecodeTarget(cell.size),
+          onImageSize: (size) => ref
+              .read(mediaLearnedAspectsProvider.notifier)
+              .report(entry.item, size),
+          onTap: () => widget.onTileTap(entry),
+        );
+      },
     );
   }
 }

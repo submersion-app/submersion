@@ -1,15 +1,35 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
+import 'package:submersion/features/media/presentation/helpers/elapsed_time_format.dart';
+import 'package:submersion/features/media/presentation/helpers/media_layout_aspect.dart';
+import 'package:submersion/features/media/presentation/providers/media_learned_aspect_provider.dart';
 import 'package:submersion/features/media/presentation/providers/media_thumbnail_scale_provider.dart';
+import 'package:submersion/features/media/presentation/widgets/justified_media_grid.dart';
+import 'package:submersion/features/media/presentation/widgets/justified_media_scroll_view.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/media/presentation/widgets/media_info_sheet.dart';
 import 'package:submersion/features/media/presentation/widgets/media_status_badge.dart';
-import 'package:submersion/features/media/presentation/widgets/media_thumbnail_wheel_zoom.dart';
-import 'package:submersion/features/media/presentation/widgets/media_thumbnail_zoom_anchor.dart';
 import 'package:submersion/features/media/presentation/widgets/media_tile_markers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+
+/// Below this width a tile drops its markers and duration, which would
+/// otherwise crowd the badge and the selection check (issue #4738).
+const double kMediaTileDetailWidth = 64;
+
+/// Each entry's shape as the justified grid lays it out: learned, stored or
+/// fallback, then clamped (issue #4738).
+List<double> mediaLibraryRatios(
+  List<MediaLibraryEntry> entries,
+  Map<String, LearnedAspect> learned,
+) => [
+  for (final entry in entries)
+    clampMediaAspect(
+      mediaRawAspect(entry.item, learned: learned[entry.item.id]),
+    ),
+];
 
 /// One library thumbnail with the shared selection overlay. Used by both the
 /// flat grid and the grouped list so the two modes cannot diverge.
@@ -21,6 +41,7 @@ class MediaLibraryTile extends StatelessWidget {
     required this.onTap,
     this.isSelectionMode = false,
     this.targetSize = const Size(200, 200),
+    this.onImageSize,
   });
 
   final MediaLibraryEntry entry;
@@ -31,6 +52,10 @@ class MediaLibraryTile extends StatelessWidget {
   /// for more (issue #3297), up to the cap in [mediaThumbnailDecodeTarget],
   /// so a large thumbnail is not a 200px image stretched.
   final Size targetSize;
+
+  /// Called with the thumbnail's decoded size, which is how the library
+  /// learns a photo's displayed shape (issue #4738).
+  final ValueChanged<Size>? onImageSize;
 
   /// Whether the surface is in multi-select. Unselected tiles dim, which is
   /// what makes an explicitly entered mode legible before anything is
@@ -81,72 +106,118 @@ class MediaLibraryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final duration = entry.item.mediaType == MediaType.video
+        ? entry.item.durationSeconds
+        : null;
     return GestureDetector(
       onTap: onTap,
       onSecondaryTapDown: (details) => _showContextMenu(context, details),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          MediaItemView(
-            item: entry.item,
-            thumbnail: true,
-            targetSize: targetSize,
-            fit: BoxFit.cover,
-          ),
-          if (isSelectionMode && !selected)
-            Container(color: Colors.black.withValues(alpha: 0.3)),
-          // Top-left: the top-right corner belongs to the selection check.
-          Positioned(
-            top: 4,
-            left: 4,
-            child: MediaStatusBadge(item: entry.item),
-          ),
-          // Bottom-left: free on a library tile, and away from both badges
-          // above (issue #4218).
-          Positioned(bottom: 4, left: 4, child: MediaTileMarkers(entry: entry)),
-          if (selected) ...[
-            Container(color: colorScheme.primary.withValues(alpha: 0.3)),
-            // On its own disc, as the dive and site media grids draw it: a
-            // bare white glyph was lost on bright photos and placeholders.
-            Positioned(
-              top: 4,
-              right: 4,
-              child: Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  color: colorScheme.primary,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.check,
-                  size: 16,
-                  color: colorScheme.onPrimary,
-                ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final roomy = constraints.maxWidth >= kMediaTileDetailWidth;
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              MediaItemView(
+                item: entry.item,
+                thumbnail: true,
+                targetSize: targetSize,
+                fit: BoxFit.cover,
+                onImageSize: onImageSize,
               ),
-            ),
-          ],
-        ],
+              if (isSelectionMode && !selected)
+                Container(color: Colors.black.withValues(alpha: 0.3)),
+              // Top-left: the top-right corner belongs to the selection check.
+              Positioned(
+                top: 4,
+                left: 4,
+                child: MediaStatusBadge(item: entry.item),
+              ),
+              // Bottom-left: free on a library tile, and away from both badges
+              // above (issue #4218).
+              if (roomy)
+                Positioned(
+                  bottom: 4,
+                  left: 4,
+                  child: MediaTileMarkers(entry: entry),
+                ),
+              if (roomy && duration != null)
+                Positioned(
+                  bottom: 4,
+                  right: 4,
+                  child: _DurationChip(seconds: duration),
+                ),
+              if (selected) ...[
+                Container(color: colorScheme.primary.withValues(alpha: 0.3)),
+                // On its own disc, as the dive and site media grids draw it: a
+                // bare white glyph was lost on bright photos and placeholders.
+                Positioned(
+                  top: 4,
+                  right: 4,
+                  child: Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: colorScheme.primary,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.check,
+                      size: 16,
+                      color: colorScheme.onPrimary,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          );
+        },
       ),
     );
   }
 }
 
-/// Flat thumbnail grid over library entries with near-end load-more.
+/// A video's length, bottom right of its tile, styled like the markers
+/// opposite it (issue #4738).
+class _DurationChip extends StatelessWidget {
+  const _DurationChip({required this.seconds});
+
+  final int seconds;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      key: const Key('media-tile-duration'),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+      decoration: BoxDecoration(
+        color: Colors.black54,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        formatClipDuration(seconds),
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 11,
+          fontFeatures: [FontFeature.tabularFigures()],
+        ),
+      ),
+    );
+  }
+}
+
+/// Flat justified thumbnail grid over library entries with near-end
+/// load-more (issue #4738).
 ///
 /// Purely presentational: paging state lives in the library notifier; this
 /// widget only reports "the user is close to the bottom" via [onLoadMore].
-/// Its one piece of state is the scroll position, so a wheel zoom can keep
-/// the thumbnail under the cursor where it is.
-class MediaLibraryGrid extends StatefulWidget {
+class MediaLibraryGrid extends ConsumerWidget {
   const MediaLibraryGrid({
     super.key,
     required this.entries,
     required this.hasMore,
     required this.onLoadMore,
     required this.onTileTap,
-    required this.columns,
-    this.targetSize = kDefaultThumbnailTarget,
+    required this.rowHeight,
     this.selectedIds = const {},
     this.isSelectionMode = false,
   });
@@ -156,12 +227,9 @@ class MediaLibraryGrid extends StatefulWidget {
   final VoidCallback onLoadMore;
   final void Function(MediaLibraryEntry entry, int index) onTileTap;
 
-  /// How many thumbnails go across, from the size slider (issue #3297).
-  final int columns;
-
-  /// The size to decode thumbnails at, from the pane's width and [columns]
-  /// (see [mediaThumbnailDecodeTarget]).
-  final Size targetSize;
+  /// The height rows are packed at, from the size slider (issues #3297,
+  /// #4738).
+  final double rowHeight;
 
   /// Ids rendered with the selection overlay.
   final Set<String> selectedIds;
@@ -170,78 +238,35 @@ class MediaLibraryGrid extends StatefulWidget {
   /// checked.
   final bool isSelectionMode;
 
-  static const double _loadMoreThreshold = 400;
-
   @override
-  State<MediaLibraryGrid> createState() => _MediaLibraryGridState();
-}
-
-class _MediaLibraryGridState extends State<MediaLibraryGrid> {
-  /// The grid's scroll position, picked up from a tile's context. Not a
-  /// ScrollController: giving the grid one would stop it being the page's
-  /// primary scroll view.
-  ScrollPosition? _position;
-
-  @override
-  void didUpdateWidget(MediaLibraryGrid oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.columns == widget.columns) return;
-    // A wheel zoom: move the offset now, before the new layout, so the
-    // thumbnail under the cursor is drawn on the same line (issue #3297).
-    final anchor = MediaThumbnailZoomAnchorScope.takeFrom(context);
-    final position = _position;
-    if (anchor == null || position == null || !position.hasPixels) return;
-    position.correctPixels(
-      anchor.scrollOffsetFor(
-        pixels: position.pixels,
-        oldColumns: oldWidget.columns,
-        newColumns: widget.columns,
-      ),
+  Widget build(BuildContext context, WidgetRef ref) {
+    // The first layout waits for the learned shapes, so a returning diver
+    // never sees rotated photos jump into place.
+    final learned = ref.watch(mediaLearnedAspectsProvider).value;
+    if (learned == null) return const SizedBox.shrink();
+    final section = JustifiedSection(
+      headerExtents: const [],
+      ratios: mediaLibraryRatios(entries, learned),
     );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return NotificationListener<ScrollNotification>(
-      onNotification: (notification) {
-        if (widget.hasMore &&
-            notification.metrics.pixels >=
-                notification.metrics.maxScrollExtent -
-                    MediaLibraryGrid._loadMoreThreshold) {
-          widget.onLoadMore();
-        }
-        return false;
+    return JustifiedMediaScrollView(
+      sectionsFor: (_) => [section],
+      rowHeight: rowHeight,
+      hasMore: hasMore,
+      onLoadMore: onLoadMore,
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      cellBuilder: (context, cell) {
+        final entry = entries[cell.tile];
+        return MediaLibraryTile(
+          entry: entry,
+          selected: selectedIds.contains(entry.item.id),
+          isSelectionMode: isSelectionMode,
+          targetSize: mediaThumbnailDecodeTarget(cell.size),
+          onImageSize: (size) => ref
+              .read(mediaLearnedAspectsProvider.notifier)
+              .report(entry.item, size),
+          onTap: () => onTileTap(entry, cell.tile),
+        );
       },
-      child: GridView.builder(
-        // Lets Ctrl + wheel resize instead of scroll (issue #3297).
-        physics: const MediaThumbnailWheelZoomPhysics(),
-        // Two pane heights beyond the visible area, not the default 250px:
-        // a fast scroll otherwise brings tiles on screen before their decode
-        // has finished (issue #3337).
-        scrollCacheExtent: const ScrollCacheExtent.viewport(2),
-        padding: const EdgeInsets.all(4),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: widget.columns,
-          mainAxisSpacing: kMediaThumbnailGap,
-          crossAxisSpacing: kMediaThumbnailGap,
-        ),
-        itemCount: widget.entries.length,
-        itemBuilder: (context, index) {
-          _position = Scrollable.maybeOf(context)?.position;
-          final entry = widget.entries[index];
-          return MetaData(
-            metaData: MediaThumbnailSlot(row: 0, index: index),
-            behavior: HitTestBehavior.opaque,
-            child: MediaLibraryTile(
-              entry: entry,
-              selected: widget.selectedIds.contains(entry.item.id),
-              isSelectionMode: widget.isSelectionMode,
-              targetSize: widget.targetSize,
-              onTap: () => widget.onTileTap(entry, index),
-            ),
-          );
-        },
-      ),
     );
   }
 }

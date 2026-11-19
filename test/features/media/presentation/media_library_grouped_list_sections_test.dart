@@ -74,7 +74,7 @@ void main() {
           hasMore: false,
           onLoadMore: () {},
           onTileTap: (_) {},
-          columns: 4,
+          rowHeight: 120,
         ),
       ),
     ),

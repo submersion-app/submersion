@@ -44,24 +44,24 @@ List<MediaLibraryGroup> _groups(int count, {String site = 'Blue Hole'}) => [
 class _View {
   const _View({
     required this.groups,
-    this.columns = 4,
+    this.rowHeight = 120,
     this.width = 800,
     this.selecting = false,
   });
 
   final List<MediaLibraryGroup> groups;
-  final int columns;
+  final double rowHeight;
   final double width;
   final bool selecting;
 
   _View copyWith({
     List<MediaLibraryGroup>? groups,
-    int? columns,
+    double? rowHeight,
     double? width,
     bool? selecting,
   }) => _View(
     groups: groups ?? this.groups,
-    columns: columns ?? this.columns,
+    rowHeight: rowHeight ?? this.rowHeight,
     width: width ?? this.width,
     selecting: selecting ?? this.selecting,
   );
@@ -88,7 +88,7 @@ void main() {
               hasMore: false,
               onLoadMore: () {},
               onTileTap: (_) {},
-              columns: view.columns,
+              rowHeight: view.rowHeight,
               isSelectionMode: view.selecting,
             ),
           ),
@@ -157,8 +157,8 @@ void main() {
     final id = await openAt(tester, view);
     final before = fractionAtEdge(tester, id);
 
-    // No wheel, so no anchor: the column count just changes.
-    await tester.pumpWidget(host(view.copyWith(columns: 2)));
+    // No wheel, so no anchor: the row height just changes.
+    await tester.pumpWidget(host(view.copyWith(rowHeight: 300)));
 
     expect(tileOf(id), findsOneWidget);
     expect(fractionAtEdge(tester, id), moreOrLessEquals(before, epsilon: 0.01));
@@ -232,7 +232,9 @@ void main() {
     await tester.pumpWidget(host(view));
     await tester.pump();
 
-    await tester.pumpWidget(host(view.copyWith(columns: 2, selecting: true)));
+    await tester.pumpWidget(
+      host(view.copyWith(rowHeight: 300, selecting: true)),
+    );
 
     expect(positionOf(tester).pixels, 0);
   });
