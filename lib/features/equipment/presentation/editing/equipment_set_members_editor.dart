@@ -19,20 +19,39 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 /// What the set page shows as the gear [shown] applies: the stored set's
-/// own items when [shown] is it, else the gear as a sitting has it
-/// ([setItemsInSitting]), once the diver's gear and sets have loaded.
+/// own items when [shown] is it and was read with them, else the gear as a
+/// sitting has it ([setItemsInSitting]), once the diver's gear and sets have
+/// loaded.
 List<EquipmentItem>? setItemsShown(
   WidgetRef ref,
   EquipmentSet shown,
   EquipmentSet stored,
-) {
-  if (identical(shown, stored)) return stored.items;
-  final every = ref.watch(allEquipmentProvider).valueOrNull;
-  final sets = ref.watch(equipmentSetsProvider).valueOrNull;
-  if (every == null || sets == null) return stored.items;
+) => identical(shown, stored) && stored.items != null
+    ? stored.items
+    : setItemsShownFrom(
+        shown,
+        stored,
+        every: ref.watch(allEquipmentProvider).valueOrNull,
+        sets: ref.watch(equipmentSetsProvider).valueOrNull,
+      );
+
+/// [setItemsShown] from the diver's gear ([every]) and sets ([sets]) as
+/// already read: [stored]'s items until both have loaded.
+List<EquipmentItem>? setItemsShownFrom(
+  EquipmentSet shown,
+  EquipmentSet stored, {
+  required List<EquipmentItem>? every,
+  required List<EquipmentSet>? sets,
+}) {
+  final items = stored.items;
+  if ((identical(shown, stored) && items != null) ||
+      every == null ||
+      sets == null) {
+    return items;
+  }
   return setItemsInSitting(
     shown,
-    storedItems: stored.items ?? const [],
+    storedItems: items ?? const [],
     everyItem: every,
     allSets: sets,
   );

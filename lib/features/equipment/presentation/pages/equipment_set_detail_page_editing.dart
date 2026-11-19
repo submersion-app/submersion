@@ -49,6 +49,8 @@ mixin _EquipmentSetDetailPageEditing
     // Read before the write: the page can be gone by the time it is done.
     final service = ref.read(equipmentSetEditSaveServiceProvider);
     final sets = ref.read(equipmentSetListNotifierProvider.notifier);
+    final every = ref.read(allEquipmentProvider).valueOrNull;
+    final allSets = ref.read(equipmentSetsProvider).valueOrNull;
     final result = await service.save(
       // The set the sitting was opened on, whatever the page shows by the
       // time the write is asked for.
@@ -57,7 +59,18 @@ mixin _EquipmentSetDetailPageEditing
       changedCardIds: session.changedCardIds,
       alsoLogged: session.recall<bool>(_alsoLoggedKey) ?? false,
     );
-    justSavedRecord = result?.after ?? session.working;
+    // Shown until the page reads the set again, and a new sitting can start
+    // from it: with its items, as the set the page reads has them, so the
+    // count and the members no longer shared are right meanwhile.
+    final saved = result?.after ?? session.working;
+    justSavedRecord = saved.copyWith(
+      items: setItemsShownFrom(
+        saved,
+        session.stored,
+        every: every,
+        sets: allSets,
+      ),
+    );
     // The sitting has committed: the lists that show it catch up without
     // holding the Save.
     if (result != null) unawaited(sets.afterSittingSaved(session.stored.id));

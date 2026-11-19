@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/cylinder_configs/presentation/providers/cylinder_config_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/presentation/editing/equipment_set_card_editors.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -47,20 +49,23 @@ void main() {
 
   Future<EditSession<EquipmentSet>> pumpEditor(
     WidgetTester tester,
-    Widget Function(EditSession<EquipmentSet> session) editor,
-  ) async {
+    Widget Function(EditSession<EquipmentSet> session) editor, {
+    EquipmentSet? start,
+    List<EquipmentItem> gear = const [],
+    List<EquipmentSet>? sets,
+  }) async {
     tester.view.physicalSize = const Size(900, 2400);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
-    final session = EditSession(cold);
+    final session = EditSession(start ?? cold);
     addTearDown(session.dispose);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
-          allEquipmentProvider.overrideWith((ref) async => const []),
+          allEquipmentProvider.overrideWith((ref) async => gear),
           equipmentSetsProvider.overrideWith(
-            (ref) async => [cold, outer, plain],
+            (ref) async => sets ?? [cold, outer, plain],
           ),
           weightPresetsProvider.overrideWith((ref) async => const []),
           cylinderConfigsProvider.overrideWith((ref) async => const []),
@@ -93,6 +98,33 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('set-edit-show-figure')));
     await tester.pumpAndSettle();
     expect(figure.changedCardIds, {'figure'});
+  });
+
+  testWidgets('the header count reads the gear when the set was read without '
+      'its items', (tester) async {
+    // As after a Save: the saved set comes back without its items, and a
+    // sitting can start from it before the page reads the set again.
+    EquipmentItem item(String id) =>
+        EquipmentItem(id: id, name: id, type: EquipmentType.bcd);
+    final withPlain = cold.copyWith(includedSetIds: ['plainGear']);
+    final plainGear = EquipmentSet(
+      id: 'plainGear',
+      diverId: 'd1',
+      name: 'Fins',
+      equipmentIds: const ['e2', 'e3'],
+      createdAt: t0,
+      updatedAt: t0,
+    );
+    await tester.pumpWidget(const SizedBox());
+    await pumpEditor(
+      tester,
+      (s) => EquipmentSetHeaderEditor(session: s),
+      start: withPlain,
+      gear: [item('e1'), item('e2'), item('e3')],
+      sets: [withPlain, plainGear],
+    );
+
+    expect(find.text('3 items'), findsOneWidget);
   });
 
   testWidgets('the Default and auto-apply switches are held', (tester) async {
