@@ -24,7 +24,9 @@ void main() {
   });
 
   test('the new columns keep the floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(372));
+    // A later rung (v378, the marks on app-applied species tags) raised the
+    // floor; v372 itself did not set it.
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(372));
   });
 
   test('upgrading from v371 adds both columns, empty', () async {

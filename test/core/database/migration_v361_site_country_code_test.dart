@@ -41,7 +41,9 @@ void main() {
   test('v361 is in the ladder and keeps the floor', () {
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(361));
     expect(AppDatabase.migrationVersions, contains(361));
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(361));
+    // A later rung (v378, the marks on app-applied species tags) raised the
+    // floor; v361 itself did not set it.
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(361));
   });
 
   test('upgrading backfills recognised countries only', () async {

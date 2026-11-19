@@ -42,7 +42,9 @@ void main() {
   });
 
   test('this rung is additive and did not move the sync floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(357));
+    // A later rung (v378, the marks on app-applied species tags) raised the
+    // floor; v357 itself did not set it.
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(357));
   });
 
   test('upgrading from v356 adds the column and marks nothing', () async {
