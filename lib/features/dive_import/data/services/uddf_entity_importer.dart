@@ -3058,7 +3058,6 @@ class UddfEntityImporter {
             hasOwnTrip: linkedTripId != null,
             hasTripRef: tripRef != null,
             sourceHasTrips: fileHasTrips,
-            isDated: true,
           )) {
         diverTrips ??= await repos.tripRepository.getAllTrips(diverId: diverId);
         linkedTripId = tripForDiveDate(sourceDateTime, diverTrips)?.id;

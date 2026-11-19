@@ -36579,6 +36579,11 @@ class AppLocalizationsHe extends AppLocalizations {
       'חלק מהטיולים לא יובאו';
 
   @override
+  String universalImport_summary_noticeTripsNotImportedBody(String names) {
+    return 'לטיולים אלה אין תאריכים, ולאף אחת מהצלילות שלהם אין תאריך, ולכן לא ניתן היה לייבא אותם: $names. אפשר להוסיף אותם שוב בקטע הטיולים.';
+  }
+
+  @override
   String get universalImport_summary_tripsTitle => 'טיולים';
 
   @override
@@ -36590,11 +36595,6 @@ class AppLocalizationsHe extends AppLocalizations {
       one: '$trip: צלילה אחת',
     );
     return '$_temp0';
-  }
-
-  @override
-  String universalImport_summary_noticeTripsNotImportedBody(String names) {
-    return 'לטיולים אלה אין תאריכים, ולאף אחת מהצלילות שלהם אין תאריך, ולכן לא ניתן היה לייבא אותם: $names. אפשר להוסיף אותם שוב בקטע הטיולים.';
   }
 
   @override

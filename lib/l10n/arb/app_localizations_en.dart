@@ -36862,6 +36862,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Some trips not imported';
 
   @override
+  String universalImport_summary_noticeTripsNotImportedBody(String names) {
+    return 'These trips have no dates, and none of their dives has one, so they could not be imported: $names. You can add them again under Trips.';
+  }
+
+  @override
   String get universalImport_summary_tripsTitle => 'Trips';
 
   @override
@@ -36873,11 +36878,6 @@ class AppLocalizationsEn extends AppLocalizations {
       one: '$trip: $count dive',
     );
     return '$_temp0';
-  }
-
-  @override
-  String universalImport_summary_noticeTripsNotImportedBody(String names) {
-    return 'These trips have no dates, and none of their dives has one, so they could not be imported: $names. You can add them again under Trips.';
   }
 
   @override

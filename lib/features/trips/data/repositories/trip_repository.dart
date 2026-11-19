@@ -766,7 +766,7 @@ class TripRepository {
       SELECT * FROM trips
       WHERE start_date <= ? AND end_date >= ?
       ${vis.whereClause}
-      ORDER BY start_date DESC
+      ORDER BY start_date DESC, id DESC
       LIMIT 1
     ''', variables: variables).getSingleOrNull();
 

@@ -80,6 +80,8 @@ void main() {
                 'name': 'Curacao',
                 'startDate': DateTime(2026, 3, 20),
               },
+              // The importer creates no trip without a name.
+              {'uddfId': 't3', 'name': ''},
             ],
             ui.ImportEntityType.dives: [
               _dive(8, tripRef: 't1'),
@@ -93,18 +95,28 @@ void main() {
       final dives = bundle.groups[ImportEntityType.dives]!.items;
       final trips = bundle.groups[ImportEntityType.trips]!.items;
       expect(dives.map((d) => d.tripRef), ['t1', 't2', null]);
-      expect(dives.map((d) => d.sourceHasTrips), [true, true, true]);
-      expect(trips.map((t) => t.tripRef), ['t1', 't2']);
-      expect(trips[0].tripDates, (
+      // A single file says nothing per dive; the review asks its trip rows.
+      expect(dives.map((d) => d.sourceHasTrips), [null, null, null]);
+      expect(dives.map((d) => d.hasSourceTime), [true, true, true]);
+      expect(trips.map((t) => t.tripRef), ['t1', 't2', 't3']);
+      expect(trips[0].sourceTrip, (
+        name: 'Bonaire',
         start: DateTime(2026, 3, 7),
         end: DateTime(2026, 3, 14),
       ));
-      // A trip missing an end date carries no dates.
-      expect(trips[1].tripDates, isNull);
-      expect(dives[0].tripDates, isNull);
+      // A trip missing its end keeps the start it has.
+      expect(trips[1].sourceTrip, (
+        name: 'Curacao',
+        start: DateTime(2026, 3, 20),
+        end: null,
+      ));
+      expect(trips[2].sourceTrip, isNull);
+      expect(dives[0].sourceTrip, isNull);
     });
 
-    testWidgets('a source with no trips says so on every dive', (tester) async {
+    testWidgets('a single source leaves the per-dive flag unset', (
+      tester,
+    ) async {
       final bundle = await _bundle(
         tester,
         ImportPayload(
@@ -116,7 +128,7 @@ void main() {
 
       final dive = bundle.groups[ImportEntityType.dives]!.items.single;
       expect(dive.tripRef, isNull);
-      expect(dive.sourceHasTrips, isFalse);
+      expect(dive.sourceHasTrips, isNull);
     });
 
     testWidgets('a merged batch dive follows its own file', (tester) async {
@@ -151,7 +163,12 @@ void main() {
       subtitle: '',
       tripRef: 't1',
       sourceHasTrips: true,
-      tripDates: (start: DateTime(2026, 3, 7), end: DateTime(2026, 3, 14)),
+      hasSourceTime: false,
+      sourceTrip: (
+        name: 'Bonaire',
+        start: DateTime(2026, 3, 7),
+        end: DateTime(2026, 3, 14),
+      ),
     );
 
     final moved = item.copyWith(
@@ -160,7 +177,8 @@ void main() {
 
     expect(moved.tripRef, 't1');
     expect(moved.sourceHasTrips, isTrue);
-    expect(moved.tripDates, item.tripDates);
+    expect(moved.hasSourceTime, isFalse);
+    expect(moved.sourceTrip, item.sourceTrip);
     expect(moved.target?.key, 'diver:a');
   });
 }

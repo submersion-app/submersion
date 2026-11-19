@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
+import 'package:submersion/features/import_wizard/domain/models/diver_import_outcome.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/import_trips_tile.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
@@ -114,6 +115,65 @@ void main() {
   testWidgets('one dive reads in the singular', (tester) async {
     await pumpTile(tester, dives: [_dive('a', 't2')], ids: ['a']);
     expect(find.text('Red Sea: 1 dive'), findsOneWidget);
+  });
+
+  group('tripCountDiveIds', () {
+    test('counts the new dives of every profile, once', () {
+      expect(
+        tripCountDiveIds(
+          importedDiveIds: const ['a', 'b'],
+          diverOutcomes: const [
+            DiverImportOutcome(
+              diverId: 'me',
+              name: 'Me',
+              isNew: false,
+              isActive: true,
+              diveIds: ['a', 'b'],
+            ),
+            DiverImportOutcome(
+              diverId: 'sam',
+              name: 'Sam',
+              isNew: false,
+              isActive: false,
+              diveIds: ['c'],
+            ),
+          ],
+          filledDiveIds: const [],
+        ),
+        ['a', 'b', 'c'],
+      );
+    });
+
+    test('a download filed under another profile still counts', () {
+      // Such a download reports its dives only through diverOutcomes.
+      expect(
+        tripCountDiveIds(
+          importedDiveIds: const [],
+          diverOutcomes: const [
+            DiverImportOutcome(
+              diverId: 'sam',
+              name: 'Sam',
+              isNew: false,
+              isActive: false,
+              diveIds: ['c'],
+            ),
+          ],
+          filledDiveIds: const [],
+        ),
+        ['c'],
+      );
+    });
+
+    test('a filled planned dive is not a new dive', () {
+      expect(
+        tripCountDiveIds(
+          importedDiveIds: const ['a', 'p'],
+          diverOutcomes: const [],
+          filledDiveIds: const ['p'],
+        ),
+        ['a'],
+      );
+    });
   });
 
   testWidgets('no dive in a trip shows nothing', (tester) async {

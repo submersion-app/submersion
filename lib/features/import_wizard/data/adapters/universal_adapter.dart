@@ -487,14 +487,11 @@ class UniversalAdapter implements ImportSourceAdapter {
     }
 
     final groups = <wizard.ImportEntityType, EntityGroup>{};
-    final payloadHasTrips = payload
-        .entitiesOf(ui.ImportEntityType.trips)
-        .isNotEmpty;
     _addGroupIfNotEmpty(
       groups,
       wizard.ImportEntityType.dives,
       payload.entitiesOf(ui.ImportEntityType.dives),
-      (data) => _diveToEntityItem(data, payloadHasTrips: payloadHasTrips),
+      _diveToEntityItem,
     );
     _addGroupIfNotEmpty(
       groups,
@@ -1492,12 +1489,7 @@ class UniversalAdapter implements ImportSourceAdapter {
     groups[type] = EntityGroup(items: items.map(converter).toList());
   }
 
-  /// [payloadHasTrips] says whether the payload carries trips; a merged
-  /// batch dive says instead whether its own file did (#2743).
-  EntityItem _diveToEntityItem(
-    Map<String, dynamic> data, {
-    required bool payloadHasTrips,
-  }) {
+  EntityItem _diveToEntityItem(Map<String, dynamic> data) {
     final dateTime = data['dateTime'] as DateTime?;
     final maxDepth = asDoubleOrNull(data['maxDepth']);
     final runtime = data['runtime'] as Duration?;
@@ -1539,8 +1531,10 @@ class UniversalAdapter implements ImportSourceAdapter {
       subtitle: subtitle,
       diveData: diveData,
       tripRef: data['tripRef'] as String?,
-      sourceHasTrips:
-          data[PayloadMerger.sourceHasTripsKey] as bool? ?? payloadHasTrips,
+      // Only a merged batch says per dive whether its own file had trips
+      // (#2743); otherwise the review asks the trip rows of the dive's
+      // profile, as each profile's slice is imported on its own.
+      sourceHasTrips: data[PayloadMerger.sourceHasTripsKey] as bool?,
     );
   }
 
@@ -1605,7 +1599,8 @@ class UniversalAdapter implements ImportSourceAdapter {
   }
 
   EntityItem _tripToEntityItem(Map<String, dynamic> data) {
-    final name = (data['name'] as String?) ?? 'Unnamed';
+    final sourceName = data['name'] as String?;
+    final name = sourceName ?? 'Unnamed';
     final startDate = data['startDate'] as DateTime?;
     final endDate = data['endDate'] as DateTime?;
 
@@ -1625,9 +1620,10 @@ class UniversalAdapter implements ImportSourceAdapter {
       title: name,
       subtitle: subtitle,
       tripRef: data['uddfId'] as String?,
-      tripDates: startDate != null && endDate != null
-          ? (start: startDate, end: endDate)
-          : null,
+      // The importer creates no trip without a name.
+      sourceTrip: sourceName == null || sourceName.isEmpty
+          ? null
+          : (name: sourceName, start: startDate, end: endDate),
     );
   }
 

@@ -21889,6 +21889,14 @@
     }
   },
   "universalImport_summary_noticeTripsNotImportedTitle": "Some trips not imported",
+  "universalImport_summary_noticeTripsNotImportedBody": "These trips have no dates, and none of their dives has one, so they could not be imported: {names}. You can add them again under Trips.",
+  "@universalImport_summary_noticeTripsNotImportedBody": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
   "universalImport_summary_tripsTitle": "Trips",
   "universalImport_summary_tripCount": "{count, plural, =1{{trip}: {count} dive} other{{trip}: {count} dives}}",
   "@universalImport_summary_tripCount": {
@@ -21898,14 +21906,6 @@
       },
       "count": {
         "type": "int"
-      }
-    }
-  },
-  "universalImport_summary_noticeTripsNotImportedBody": "These trips have no dates, and none of their dives has one, so they could not be imported: {names}. You can add them again under Trips.",
-  "@universalImport_summary_noticeTripsNotImportedBody": {
-    "placeholders": {
-      "names": {
-        "type": "String"
       }
     }
   },

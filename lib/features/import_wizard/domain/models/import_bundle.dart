@@ -166,13 +166,21 @@ class EntityItem {
   /// put it in; on a trip, its own ref. Null when there is none.
   final String? tripRef;
 
-  /// On a dive, whether its source file had trips at all. Such a file leaves
-  /// a dive outside its trips on purpose, so only a dive whose own trip is
-  /// not imported is placed by date (see `placesImportedDiveByDate`).
-  final bool sourceHasTrips;
+  /// On a dive of a merged multi-file batch, whether its own file had trips
+  /// (`PayloadMerger.sourceHasTripsKey`); null otherwise, when the trip rows
+  /// of the dive's profile say whether its source had trips. Such a source
+  /// leaves a dive outside its trips on purpose, so only a dive whose own
+  /// trip is not imported is placed by date (see `placesImportedDiveByDate`).
+  final bool? sourceHasTrips;
 
-  /// On a trip, its first and last days; null when either is missing.
-  final ({DateTime start, DateTime end})? tripDates;
+  /// On a dive, false when its source reported no start time: its time is a
+  /// stand-in, so the download places it in no trip.
+  final bool hasSourceTime;
+
+  /// On a trip, the trip the importer would create from it: its name and
+  /// dates as given (a missing one is the import moment). Null when the
+  /// importer creates none, as for a trip with no name.
+  final ({String name, DateTime? start, DateTime? end})? sourceTrip;
 
   const EntityItem({
     required this.title,
@@ -181,8 +189,9 @@ class EntityItem {
     this.diveData,
     this.target,
     this.tripRef,
-    this.sourceHasTrips = false,
-    this.tripDates,
+    this.sourceHasTrips,
+    this.hasSourceTime = true,
+    this.sourceTrip,
   });
 
   EntityItem copyWith({ImportTarget? target}) => EntityItem(
@@ -193,7 +202,8 @@ class EntityItem {
     target: target ?? this.target,
     tripRef: tripRef,
     sourceHasTrips: sourceHasTrips,
-    tripDates: tripDates,
+    hasSourceTime: hasSourceTime,
+    sourceTrip: sourceTrip,
   );
 }
 

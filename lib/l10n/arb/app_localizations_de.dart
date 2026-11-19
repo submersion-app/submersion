@@ -37407,6 +37407,11 @@ class AppLocalizationsDe extends AppLocalizations {
       'Einige Reisen nicht importiert';
 
   @override
+  String universalImport_summary_noticeTripsNotImportedBody(String names) {
+    return 'Diese Reisen haben kein Datum, und keiner ihrer Tauchgänge hat eines, daher konnten sie nicht importiert werden: $names. Du kannst sie unter Reisen erneut anlegen.';
+  }
+
+  @override
   String get universalImport_summary_tripsTitle => 'Reisen';
 
   @override
@@ -37418,11 +37423,6 @@ class AppLocalizationsDe extends AppLocalizations {
       one: '$trip: $count Tauchgang',
     );
     return '$_temp0';
-  }
-
-  @override
-  String universalImport_summary_noticeTripsNotImportedBody(String names) {
-    return 'Diese Reisen haben kein Datum, und keiner ihrer Tauchgänge hat eines, daher konnten sie nicht importiert werden: $names. Du kannst sie unter Reisen erneut anlegen.';
   }
 
   @override

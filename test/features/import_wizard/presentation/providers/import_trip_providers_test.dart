@@ -42,17 +42,12 @@ Trip _trip(String name, DateTime start, DateTime end) => Trip(
 final _bonaire = _trip('Bonaire', DateTime(2026, 3, 7), DateTime(2026, 3, 14));
 final _komodo = _trip('Komodo', DateTime(2026, 3, 7), DateTime(2026, 3, 14));
 
-EntityItem _dive({
-  ImportTarget? target,
-  String? tripRef,
-  bool fileTrips = false,
-}) => EntityItem(
+EntityItem _dive({ImportTarget? target, String? tripRef}) => EntityItem(
   title: 'dive',
   subtitle: '',
   diveData: IncomingDiveData(startTime: DateTime.utc(2026, 3, 10, 10)),
   target: target,
   tripRef: tripRef,
-  sourceHasTrips: fileTrips,
 );
 
 ImportBundle _bundle(
@@ -153,13 +148,14 @@ void main() {
   test('namesFollowSelectionChanges', () async {
     notifier.setBundle(
       _bundle(
-        [_dive(tripRef: 'a', fileTrips: true)],
+        [_dive(tripRef: 'a')],
         trips: [
           EntityItem(
             title: 'Cozumel',
             subtitle: '',
             tripRef: 'a',
-            tripDates: (
+            sourceTrip: (
+              name: 'Cozumel',
               start: DateTime(2026, 3, 9),
               end: DateTime(2026, 3, 11),
             ),

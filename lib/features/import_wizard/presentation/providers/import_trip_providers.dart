@@ -7,6 +7,7 @@ import 'package:submersion/features/import_wizard/domain/services/review_trip_na
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/features/universal_import/data/models/diver_target.dart';
 
 /// The trips a profile can see, which a new imported dive filed under it may
 /// join (issue #3022): [diverId], or the active diver for null or empty, as
@@ -20,9 +21,6 @@ final importOwnerTripsProvider = FutureProvider.autoDispose
           : diverId;
       return trips.getAllTrips(diverId: owner);
     });
-
-/// The prefix of an [ImportTarget.key] naming an existing profile.
-const _diverTargetPrefix = 'diver:';
 
 /// The trip each reviewed dive will be saved in, keyed by row index of the
 /// dives group (issue #3022); see [reviewTripNames]. Follows the review
@@ -47,10 +45,9 @@ final importReviewTripNamesProvider = Provider.autoDispose<Map<int, String>>((
   (bool, String?) ownerOf(EntityItem dive) {
     final target = dive.target;
     if (target == null) return (true, wizardDiverId);
-    if (target.isNew || !target.key.startsWith(_diverTargetPrefix)) {
-      return (false, null);
-    }
-    return (true, target.key.substring(_diverTargetPrefix.length));
+    if (target.isNew) return (false, null);
+    final id = DiverTarget.diverIdOf(target.key);
+    return id == null ? (false, null) : (true, id);
   }
 
   final tripsByOwner = <String?, List<Trip>?>{};

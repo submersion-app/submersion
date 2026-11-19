@@ -19,28 +19,25 @@ void main() {
   final onTrip = DateTime.utc(2026, 3, 10, 9);
 
   group('placesImportedDiveByDate', () {
-    test('only a dated dive with no trip of its own may be placed', () {
-      // hasOwnTrip, hasTripRef, sourceHasTrips, isDated -> placed
-      final cases = <(bool, bool, bool, bool, bool)>[
-        (false, false, false, true, true),
-        (false, true, false, true, true),
-        (false, true, true, true, true),
-        (false, false, true, true, false),
-        (true, false, false, true, false),
-        (true, true, true, true, false),
-        (false, false, false, false, false),
-        (false, true, true, false, false),
+    test('only a dive with no trip of its own may be placed', () {
+      // hasOwnTrip, hasTripRef, sourceHasTrips -> placed
+      final cases = <(bool, bool, bool, bool)>[
+        (false, false, false, true),
+        (false, true, false, true),
+        (false, true, true, true),
+        (false, false, true, false),
+        (true, false, false, false),
+        (true, true, true, false),
       ];
-      for (final (own, ref, sourceTrips, dated, expected) in cases) {
+      for (final (own, ref, sourceTrips, expected) in cases) {
         expect(
           placesImportedDiveByDate(
             hasOwnTrip: own,
             hasTripRef: ref,
             sourceHasTrips: sourceTrips,
-            isDated: dated,
           ),
           expected,
-          reason: 'own=$own ref=$ref sourceHasTrips=$sourceTrips dated=$dated',
+          reason: 'own=$own ref=$ref sourceHasTrips=$sourceTrips',
         );
       }
     });

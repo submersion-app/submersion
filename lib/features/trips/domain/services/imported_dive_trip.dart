@@ -3,10 +3,11 @@ import 'package:submersion/features/trips/domain/services/trip_for_dive_date.dar
 
 /// Pure. Whether a new imported dive joins the trip whose dates cover its
 /// day (#2618), shared by the importers and the import review (#3022) so
-/// the trip the review shows is the trip the dive is saved in.
+/// the trip the review shows is the trip the dive is saved in. The caller
+/// checks the dive has a date: an undated dive is never placed, since its
+/// date would be the import clock.
 ///
-/// A dive its source already put in a trip keeps it ([hasOwnTrip]). An
-/// undated dive is never placed: its date would be the import clock. A
+/// A dive its source already put in a trip keeps it ([hasOwnTrip]). A
 /// source that has trips leaves a dive out of them on purpose, so there
 /// only a dive whose own trip was not imported ([hasTripRef] with no own
 /// trip) is placed by date. A source with no trips at all, a dive computer
@@ -15,8 +16,7 @@ bool placesImportedDiveByDate({
   required bool hasOwnTrip,
   required bool hasTripRef,
   required bool sourceHasTrips,
-  required bool isDated,
-}) => !hasOwnTrip && isDated && (hasTripRef || !sourceHasTrips);
+}) => !hasOwnTrip && (hasTripRef || !sourceHasTrips);
 
 /// Pure. The trip a new imported dive is saved in: [ownTrip] when its source
 /// put it in one that is imported or linked, otherwise the trip among
@@ -35,7 +35,6 @@ Trip? tripForImportedDive({
         hasOwnTrip: false,
         hasTripRef: hasTripRef,
         sourceHasTrips: sourceHasTrips,
-        isDated: true,
       )) {
     return null;
   }

@@ -37297,6 +37297,11 @@ class AppLocalizationsHu extends AppLocalizations {
       'Néhány út nem lett importálva';
 
   @override
+  String universalImport_summary_noticeTripsNotImportedBody(String names) {
+    return 'Ezeknek az utaknak nincs dátuma, és egyik merülésüknek sincs, ezért nem sikerült importálni őket: $names. Az Utak résznél újra felveheted őket.';
+  }
+
+  @override
   String get universalImport_summary_tripsTitle => 'Utak';
 
   @override
@@ -37308,11 +37313,6 @@ class AppLocalizationsHu extends AppLocalizations {
       one: '$trip: $count merülés',
     );
     return '$_temp0';
-  }
-
-  @override
-  String universalImport_summary_noticeTripsNotImportedBody(String names) {
-    return 'Ezeknek az utaknak nincs dátuma, és egyik merülésüknek sincs, ezért nem sikerült importálni őket: $names. Az Utak résznél újra felveheted őket.';
   }
 
   @override

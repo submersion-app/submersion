@@ -52,7 +52,10 @@ void main() {
 
       expect(find.text('Bonaire 2026'), findsOneWidget);
       expect(find.byIcon(Icons.flight_outlined), findsOneWidget);
-      expect(find.bySemanticsLabel(RegExp('Trip: Bonaire 2026')), findsOneWidget);
+      expect(
+        find.bySemanticsLabel(RegExp('Trip: Bonaire 2026')),
+        findsOneWidget,
+      );
       handle.dispose();
     });
 

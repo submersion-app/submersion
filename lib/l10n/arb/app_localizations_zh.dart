@@ -35267,6 +35267,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get universalImport_summary_noticeTripsNotImportedTitle => '部分旅行未导入';
 
   @override
+  String universalImport_summary_noticeTripsNotImportedBody(String names) {
+    return '这些旅行没有日期，其潜水记录也都没有日期，因此无法导入：$names。您可以在旅行页面中重新添加。';
+  }
+
+  @override
   String get universalImport_summary_tripsTitle => '旅行';
 
   @override
@@ -35278,11 +35283,6 @@ class AppLocalizationsZh extends AppLocalizations {
       one: '$trip：$count 次潜水',
     );
     return '$_temp0';
-  }
-
-  @override
-  String universalImport_summary_noticeTripsNotImportedBody(String names) {
-    return '这些旅行没有日期，其潜水记录也都没有日期，因此无法导入：$names。您可以在旅行页面中重新添加。';
   }
 
   @override

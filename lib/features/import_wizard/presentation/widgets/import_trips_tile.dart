@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_match_review_notifier.dart';
+import 'package:submersion/features/import_wizard/domain/models/diver_import_outcome.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_trip_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -42,4 +43,21 @@ class ImportTripsTile extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// The dives [ImportTripsTile] counts: every dive the import saved as new,
+/// in whichever profile ([importedDiveIds] holds only the active profile's,
+/// and a download filed under another profile reports its dives through
+/// [diverOutcomes] alone), less the planned dives it filled, which kept the
+/// trip they had (issue #3022). In first-seen order, each once.
+List<String> tripCountDiveIds({
+  required List<String> importedDiveIds,
+  required List<DiverImportOutcome> diverOutcomes,
+  required Iterable<String> filledDiveIds,
+}) {
+  final filled = filledDiveIds.toSet();
+  return {
+    ...importedDiveIds,
+    for (final outcome in diverOutcomes) ...outcome.diveIds,
+  }.where((id) => !filled.contains(id)).toList();
 }

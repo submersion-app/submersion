@@ -38001,6 +38001,11 @@ class AppLocalizationsAr extends AppLocalizations {
       'لم يتم استيراد بعض الرحلات';
 
   @override
+  String universalImport_summary_noticeTripsNotImportedBody(String names) {
+    return 'لا تحمل هذه الرحلات تواريخ، ولا تحمل أي من غطساتها تاريخًا، لذا تعذّر استيرادها: $names. يمكنك إضافتها مجددًا من قسم الرحلات.';
+  }
+
+  @override
   String get universalImport_summary_tripsTitle => 'الرحلات';
 
   @override
@@ -38015,11 +38020,6 @@ class AppLocalizationsAr extends AppLocalizations {
       one: '$trip: غوصة واحدة',
     );
     return '$_temp0';
-  }
-
-  @override
-  String universalImport_summary_noticeTripsNotImportedBody(String names) {
-    return 'لا تحمل هذه الرحلات تواريخ، ولا تحمل أي من غطساتها تاريخًا، لذا تعذّر استيرادها: $names. يمكنك إضافتها مجددًا من قسم الرحلات.';
   }
 
   @override

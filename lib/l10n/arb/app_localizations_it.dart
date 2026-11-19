@@ -37498,6 +37498,11 @@ class AppLocalizationsIt extends AppLocalizations {
       'Alcuni viaggi non importati';
 
   @override
+  String universalImport_summary_noticeTripsNotImportedBody(String names) {
+    return 'Questi viaggi non hanno date e nessuna delle loro immersioni ne ha una, quindi non è stato possibile importarli: $names. Puoi aggiungerli di nuovo in Viaggi.';
+  }
+
+  @override
   String get universalImport_summary_tripsTitle => 'Viaggi';
 
   @override
@@ -37509,11 +37514,6 @@ class AppLocalizationsIt extends AppLocalizations {
       one: '$trip: $count immersione',
     );
     return '$_temp0';
-  }
-
-  @override
-  String universalImport_summary_noticeTripsNotImportedBody(String names) {
-    return 'Questi viaggi non hanno date e nessuna delle loro immersioni ne ha una, quindi non è stato possibile importarli: $names. Puoi aggiungerli di nuovo in Viaggi.';
   }
 
   @override

@@ -19,26 +19,40 @@ void main() {
     updatedAt: created,
   );
 
+  ImportTarget target(String key) =>
+      ImportTarget(key: key, name: key, isNew: key.startsWith('new:'));
+
   // Dives keep their wall-clock time in UTC components.
   EntityItem dive(
     int month,
     int day, {
     int hour = 10,
     String? tripRef,
-    bool sourceHasTrips = false,
+    bool? sourceHasTrips,
+    bool hasSourceTime = true,
+    String? targetKey,
   }) => EntityItem(
     title: 'dive',
     subtitle: '',
     diveData: IncomingDiveData(startTime: DateTime.utc(2026, month, day, hour)),
     tripRef: tripRef,
     sourceHasTrips: sourceHasTrips,
+    hasSourceTime: hasSourceTime,
+    target: targetKey == null ? null : target(targetKey),
   );
 
-  EntityItem fileTrip(String ref, DateTime start, DateTime end) => EntityItem(
-    title: 'File $ref',
+  EntityItem fileTrip(
+    String ref,
+    DateTime? start,
+    DateTime? end, {
+    String? name,
+    String? targetKey,
+  }) => EntityItem(
+    title: name ?? 'File $ref',
     subtitle: '',
     tripRef: ref,
-    tripDates: (start: start, end: end),
+    sourceTrip: (name: name ?? 'File $ref', start: start, end: end),
+    target: targetKey == null ? null : target(targetKey),
   );
 
   final bonaire = trip('Bonaire', DateTime(2026, 3, 7), DateTime(2026, 3, 14));
@@ -52,7 +66,7 @@ void main() {
     Set<int> tripSelections = const {},
     Map<int, DuplicateAction> tripActions = const {},
     Map<int, EntityMatchResult>? tripMatches,
-    List<Trip>? existing,
+    List<Trip> Function(EntityItem dive)? existingTripsFor,
   }) => reviewTripNames(
     dives: EntityGroup(items: dives, duplicateIndices: duplicateIndices),
     trips: trips == null
@@ -63,7 +77,7 @@ void main() {
     diveActions: diveActions,
     tripSelections: tripSelections,
     tripActions: tripActions,
-    existingTripsFor: (_) => existing ?? [bonaire],
+    existingTripsFor: existingTripsFor ?? (_) => [bonaire],
     now: now,
   );
 
@@ -73,7 +87,7 @@ void main() {
 
   test('importedFileTripNamesItsDives', () {
     final result = names(
-      [dive(3, 10, tripRef: 'a', sourceHasTrips: true)],
+      [dive(3, 10, tripRef: 'a')],
       trips: [fileTrip('a', DateTime(2026, 3, 9), DateTime(2026, 3, 11))],
       tripSelections: {0},
     );
@@ -83,7 +97,7 @@ void main() {
   test('a dive the file leaves out of its trips can still join an imported '
       'file trip by date when its own trip is unticked', () {
     final result = names(
-      [dive(5, 2, tripRef: 'b', sourceHasTrips: true)],
+      [dive(5, 2, tripRef: 'b')],
       trips: [
         fileTrip('a', DateTime(2026, 5, 1), DateTime(2026, 5, 3)),
         fileTrip('b', DateTime(2026, 6, 1), DateTime(2026, 6, 3)),
@@ -95,7 +109,7 @@ void main() {
 
   test('consolidatedFileTripNamesTheExistingTrip', () {
     final result = names(
-      [dive(8, 1, tripRef: 'a', sourceHasTrips: true)],
+      [dive(8, 1, tripRef: 'a')],
       trips: [fileTrip('a', DateTime(2026, 3, 7), DateTime(2026, 3, 14))],
       tripSelections: {0},
       tripActions: {0: DuplicateAction.consolidate},
@@ -114,7 +128,7 @@ void main() {
 
   test('a consolidated trip the diver cannot see is named by its match', () {
     final result = names(
-      [dive(8, 1, tripRef: 'a', sourceHasTrips: true)],
+      [dive(8, 1, tripRef: 'a')],
       trips: [fileTrip('a', DateTime(2026, 3, 7), DateTime(2026, 3, 14))],
       tripSelections: {0},
       tripActions: {0: DuplicateAction.consolidate},
@@ -134,7 +148,7 @@ void main() {
     final fileTrips = [
       fileTrip('a', DateTime(2026, 3, 9), DateTime(2026, 3, 11)),
     ];
-    final dives = [dive(3, 10, tripRef: 'a', sourceHasTrips: true)];
+    final dives = [dive(3, 10, tripRef: 'a')];
     expect(names(dives, trips: fileTrips, tripSelections: const {}), {
       0: 'Bonaire',
     });
@@ -150,13 +164,135 @@ void main() {
     );
   });
 
+  test('a trip imported as new counts even outside the selection', () {
+    // Deselect all keeps the action, and the importer adds every
+    // import-as-new row (UniversalAdapter._resolveSelections).
+    final result = names(
+      [dive(3, 10, tripRef: 'a')],
+      trips: [fileTrip('a', DateTime(2026, 3, 9), DateTime(2026, 3, 11))],
+      tripActions: {0: DuplicateAction.importAsNew},
+    );
+    expect(result, {0: 'File a'});
+  });
+
   test('fileWithTripsLeavesUnreferencedDiveOut', () {
     final result = names(
-      [dive(3, 10, sourceHasTrips: true)],
+      [dive(3, 10)],
       trips: [fileTrip('a', DateTime(2026, 3, 9), DateTime(2026, 3, 11))],
       tripSelections: {0},
     );
     expect(result, isEmpty);
+  });
+
+  test('a merged batch dive whose own file had no trips is placed', () {
+    final result = names(
+      [dive(3, 10, sourceHasTrips: false)],
+      trips: [fileTrip('a', DateTime(2026, 5, 9), DateTime(2026, 5, 11))],
+      tripSelections: {0},
+    );
+    expect(result, {0: 'Bonaire'});
+  });
+
+  test('a nameless file trip is not imported, so its dives go by date', () {
+    final result = names(
+      [dive(3, 10, tripRef: 'a')],
+      trips: [const EntityItem(title: 'Unnamed', subtitle: '', tripRef: 'a')],
+      tripSelections: {0},
+    );
+    expect(result, {0: 'Bonaire'});
+  });
+
+  test('a file trip missing its end runs to now, as the importer saves it', () {
+    final result = names(
+      [dive(10, 2, tripRef: 'a')],
+      trips: [fileTrip('a', DateTime(2026, 9, 1), null)],
+      tripSelections: {0},
+      existingTripsFor: (_) => const [],
+    );
+    expect(result, {0: 'File a'});
+  });
+
+  test('a file trip reads its dates as the saved trip reads them back', () {
+    // A source may give a trip's end as a UTC instant; the saved trip reads
+    // back in local time, so its last day is the local day of that instant.
+    final end = DateTime.utc(2026, 3, 14, 20);
+    final local = end.toLocal();
+    final result = names(
+      [dive(local.month, local.day, hour: 9, tripRef: 'b')],
+      trips: [
+        fileTrip('a', DateTime(2026, 3, 7), end),
+        fileTrip('b', DateTime(2026, 6, 1), DateTime(2026, 6, 3)),
+      ],
+      tripSelections: {0},
+      existingTripsFor: (_) => const [],
+    );
+    expect(result, {0: 'File a'});
+  });
+
+  group('per profile (multi-diver file import)', () {
+    test('a dive reads only its own profile file trips', () {
+      final result = names(
+        [
+          dive(3, 10, tripRef: 'a', targetKey: 'diver:A'),
+          dive(3, 10, tripRef: 'a', targetKey: 'diver:B'),
+        ],
+        trips: [
+          fileTrip(
+            'a',
+            DateTime(2026, 3, 9),
+            DateTime(2026, 3, 11),
+            targetKey: 'diver:A',
+          ),
+          fileTrip(
+            'a',
+            DateTime(2026, 3, 9),
+            DateTime(2026, 3, 11),
+            targetKey: 'diver:B',
+          ),
+        ],
+        // B's copy is unticked: B's dive goes by date among B's trips.
+        tripSelections: {0},
+        existingTripsFor: (d) =>
+            d.target?.key == 'diver:B' ? [bonaire] : const [],
+      );
+      expect(result, {0: 'File a', 1: 'Bonaire'});
+    });
+
+    test('a profile whose slice has no trips places its dives by date', () {
+      final result = names(
+        [
+          dive(3, 10, tripRef: 'a', targetKey: 'diver:A'),
+          dive(3, 10, targetKey: 'diver:B'),
+        ],
+        trips: [
+          fileTrip(
+            'a',
+            DateTime(2026, 3, 9),
+            DateTime(2026, 3, 11),
+            targetKey: 'diver:A',
+          ),
+        ],
+        tripSelections: {0},
+      );
+      expect(result, {0: 'File a', 1: 'Bonaire'});
+    });
+
+    test("another profile's file trips are not date candidates", () {
+      final result = names(
+        [dive(3, 10, targetKey: 'new:Sam')],
+        trips: [
+          fileTrip(
+            'a',
+            DateTime(2026, 3, 9),
+            DateTime(2026, 3, 11),
+            targetKey: 'diver:A',
+          ),
+        ],
+        tripSelections: {0},
+        existingTripsFor: (_) => const [],
+      );
+      expect(result, isEmpty);
+    });
   });
 
   test('onlyNewDivesGetANameForEachAction', () {
@@ -175,6 +311,16 @@ void main() {
     // 0: unselected. 1: new. 2: duplicate still undecided. 3-5: not saved
     // as a new dive. 6: imported as new.
     expect(result, {1: 'Bonaire', 6: 'Bonaire'});
+  });
+
+  test('a dive imported as new is named even outside the selection', () {
+    final result = names(
+      [dive(3, 10)],
+      diveSelections: const {},
+      duplicateIndices: {0},
+      diveActions: {0: DuplicateAction.importAsNew},
+    );
+    expect(result, {0: 'Bonaire'});
   });
 
   test('a planned-dive fill is not a new dive', () {
@@ -197,23 +343,15 @@ void main() {
     expect(result, isEmpty);
   });
 
+  test('a download with no reported start time gets no name', () {
+    expect(names([dive(3, 10, hasSourceTime: false)]), isEmpty);
+  });
+
   test('each dive reads its own owner trips', () {
-    final result = reviewTripNames(
-      dives: EntityGroup(
-        items: [
-          dive(3, 10).copyWith(
-            target: const ImportTarget(key: 'diver:a', name: 'A', isNew: false),
-          ),
-          dive(3, 10).copyWith(
-            target: const ImportTarget(key: 'diver:b', name: 'B', isNew: false),
-          ),
-        ],
-      ),
-      diveSelections: {0, 1},
-      diveActions: const {},
-      existingTripsFor: (d) => d.target?.key == 'diver:a' ? [bonaire] : [],
-      now: now,
-    );
+    final result = names([
+      dive(3, 10, targetKey: 'diver:a'),
+      dive(3, 10, targetKey: 'diver:b'),
+    ], existingTripsFor: (d) => d.target?.key == 'diver:a' ? [bonaire] : []);
     expect(result, {0: 'Bonaire'});
   });
 }

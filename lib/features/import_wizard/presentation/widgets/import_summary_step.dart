@@ -337,8 +337,13 @@ class _SuccessView extends StatelessWidget {
                     : const SizedBox.shrink(),
               ),
             // The trips the new dives were saved in (issue #3022).
-            if (importedDiveIds.isNotEmpty)
-              ImportTripsTile(importedDiveIds: importedDiveIds),
+            ImportTripsTile(
+              importedDiveIds: tripCountDiveIds(
+                importedDiveIds: importedDiveIds,
+                diverOutcomes: diverOutcomes,
+                filledDiveIds: [for (final f in fillOutcomes) f.diveId],
+              ),
+            ),
             if (partialError != null ||
                 ImportSummaryDiverOutcomes.isWorthShowing(diverOutcomes)) ...[
               const SizedBox(height: 16),
