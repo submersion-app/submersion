@@ -385,6 +385,7 @@ void main() {
       bool editorInStore = false,
       bool storeFails = false,
       bool proposalFails = false,
+      bool libraryMissing = false,
       Completer<void>? storeGate,
       SharedLibraryRole shownRole = SharedLibraryRole.reader,
     }) {
@@ -396,7 +397,12 @@ void main() {
           ...library(role: () => Future.value(shownRole)),
           suggestionServiceProvider.overrideWithValue(suggestions),
           sharedLibraryStoreProvider.overrideWithValue(
-            _Store(editor: editorInStore, fails: storeFails, gate: storeGate),
+            _Store(
+              editor: editorInStore,
+              fails: storeFails,
+              gate: storeGate,
+              missing: libraryMissing,
+            ),
           ),
         ],
       );
@@ -662,6 +668,27 @@ void main() {
       expect(page.save.calls, isEmpty);
     });
 
+    // A library the store no longer has here gives no role: nothing is
+    // written or proposed, and the sitting stays.
+    testWidgets('a library gone from the store at Send saves nothing', (
+      tester,
+    ) async {
+      final page = await pumpSend(tester, libraryMissing: true);
+      await unlockReader(tester);
+      sitting(tester)
+        ..set(siteNotesField, 'Choppy')
+        ..set(siteNameField, 'Big Hole');
+      await tester.pumpAndSettle();
+
+      await tapSend(tester);
+
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.text(l.diveSites_edit_saveRefused), findsOneWidget);
+      expect(page.save.calls, isEmpty);
+      expect(suggestions.calls, isEmpty);
+      expect(find.byType(RecordEditBar), findsOneWidget);
+    });
+
     testWidgets('a reader\'s sitting that finds the profile an editor at Send '
         'saves as an edit', (tester) async {
       final page = await pumpSend(tester, editorInStore: true);
@@ -680,10 +707,18 @@ void main() {
 
 /// The library as stored, with this profile listed as an editor or not.
 class _Store extends SharedLibraryStore {
-  _Store({required this.editor, this.fails = false, this.gate});
+  _Store({
+    required this.editor,
+    this.fails = false,
+    this.gate,
+    this.missing = false,
+  });
 
   final bool editor;
   final bool fails;
+
+  /// Whether the library is no longer connected here.
+  final bool missing;
 
   /// While set and not completed, the read waits, as a slow store does.
   final Completer<void>? gate;
@@ -692,7 +727,7 @@ class _Store extends SharedLibraryStore {
   Future<SharedLibrary?> getLibrary(String id) async {
     await gate?.future;
     if (fails) throw StateError('the library store is out of reach');
-    return _library();
+    return missing ? null : _library();
   }
 
   SharedLibrary _library() => SharedLibrary(

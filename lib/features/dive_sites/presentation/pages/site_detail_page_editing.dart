@@ -306,7 +306,8 @@ mixin _SiteDetailPageEditing
   /// the sitting for [saveSitting], which asks for a note only when
   /// something goes to the owner. An editor's sitting is never sent: one
   /// whose role has dropped is withdrawn, not sent (plan 5, Question 2). A
-  /// demo profile, or a role that cannot be read, saves nothing.
+  /// demo profile, a role that cannot be read, or a library no longer
+  /// connected here, saves nothing.
   ///
   /// The Send held by an attempt that did not go through stays held until
   /// this decides again, so its note is offered to the next one; a save
@@ -340,7 +341,15 @@ mixin _SiteDetailPageEditing
       return false;
     }
     if (!mounted) return false;
-    if (role != null && canEditLibrarySite(role)) {
+    // The library is no longer connected here: no role to save or suggest
+    // as, so nothing is written or proposed, and the sitting stays.
+    if (role == null) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(context.l10n.diveSites_edit_saveRefused)),
+      );
+      return false;
+    }
+    if (canEditLibrarySite(role)) {
       clearReaderSend(session);
       return true;
     }
