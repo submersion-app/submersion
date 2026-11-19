@@ -35,8 +35,11 @@ extension _VideoScanning on MediaIdentificationService {
         await _rename(pack, run!, undecided, embeddings, cell, generation);
         return false;
       case VideoRefreshAction.resume:
-        final reader = await _resolveVideo(job.item);
-        if (reader == null) return false;
+        final reader = await (job.resolveVideo ?? _resolveVideo)(job.item);
+        if (reader == null) {
+          job.outcome = RunItemOutcome.unreadable;
+          return false;
+        }
         var from = run!;
         final moved =
             from.packVersion != manifest.packVersion ||
@@ -59,8 +62,11 @@ extension _VideoScanning on MediaIdentificationService {
         ];
         return _scanVideo(job, pack, cell, reader, from, generation, ahead);
       case VideoRefreshAction.rescan:
-        final reader = await _resolveVideo(job.item);
-        if (reader == null) return false;
+        final reader = await (job.resolveVideo ?? _resolveVideo)(job.item);
+        if (reader == null) {
+          job.outcome = RunItemOutcome.unreadable;
+          return false;
+        }
         // What the diver said about a fish (a decision, or a claim from
         // the frame) is carried to the fresh track of the same fish; the
         // app's own guesses are found again.
@@ -198,6 +204,7 @@ extension _VideoScanning on MediaIdentificationService {
       // In the background, too hot, or a failure: what was stored stays,
       // and the next opening carries on from it.
       _log.debug('Video scan of ${job.item.id} stopped', error: e);
+      job.outcome = runOutcomeOf(e);
       try {
         await scan.finish();
       } on Object {

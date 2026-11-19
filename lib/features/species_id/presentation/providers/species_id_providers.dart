@@ -190,6 +190,8 @@ final mediaIdentificationServiceProvider = Provider<MediaIdentificationService>(
       taggedSpecies: identifications.taggedSpecies,
       enabled: () =>
           marineLifeIdEnabled && ref.read(identifyFishOnOpenProvider),
+      // A Find species run is the diver's own request (issue #4727).
+      runEnabled: () => marineLifeIdEnabled,
       onItemSettled: (item) => ref
           .read(autoApplierProvider)
           .applyInScope(item.id, isVideo: item.mediaType == MediaType.video)
