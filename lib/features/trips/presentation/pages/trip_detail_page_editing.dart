@@ -42,10 +42,13 @@ mixin _TripDetailPageEditing
   String editingTitle(Trip record) =>
       context.l10n.recordEdit_editingTitle(record.name);
 
-  /// The documents attached and detached in the sitting are filed under the
-  /// trip.
+  /// Who the trip is shared with is read, and the documents attached and
+  /// detached in the sitting are filed under the trip.
   @override
   void onSittingStart(EditSession<Trip> session, ProviderContainer container) {
+    // Read now: an owner's Save clears share rows a sync race left beside
+    // the Everyone flag, as the form's did, whichever card it changed.
+    loadTripSharing(session, container.read);
     holdDocumentLinks(
       session,
       container.read,

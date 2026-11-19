@@ -9,6 +9,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/profile_hides_providers.dart';
@@ -22,6 +23,7 @@ import 'package:submersion/features/trips/domain/services/trip_story_builder.dar
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/scrubber_margin_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/side_trip_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_day_weather_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_equipment_providers.dart';
@@ -30,6 +32,7 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/shared_items_fixture.dart';
 import '../../../../helpers/test_app.dart';
 
 /// The trip the page shows, as stored: a shore trip in 2030, still to come,
@@ -76,8 +79,10 @@ class FakeTripSave implements TripEditSaveService {
     await gate?.future;
     final before = stored.state!;
     final after = apply(before);
-    calls.add((after: after, cards: changedCardIds.toSet()));
+    // In the real save the held writes run in its transaction: one that
+    // throws (a refusal) leaves nothing written.
     if (runHeld) await alsoWrite?.call();
+    calls.add((after: after, cards: changedCardIds.toSet()));
     stored.state = after;
     return (before: before, after: after);
   }
@@ -101,11 +106,12 @@ class FakeTripList extends StateNotifier<AsyncValue<List<TripWithStats>>>
 }
 
 class TripPageHarness {
-  TripPageHarness(this.save, this.stored, this.trips);
+  TripPageHarness(this.save, this.stored, this.trips, this.shares);
 
   final FakeTripSave save;
   final StateController<Trip?> stored;
   final FakeTripList trips;
+  final FakeItemShares shares;
 }
 
 final _storedProvider = StateProvider<Trip?>((ref) => redSea);
@@ -129,7 +135,12 @@ Future<TripPageHarness> pumpTripPage(
   List<Dive> dives = const [],
   List<Object> extraOverrides = const [],
   Widget Function(Widget page)? wrap,
+  FakeItemShares? shares,
+  List<Diver>? divers,
+  String? activeDiverId,
+  bool hasSideTrips = false,
 }) async {
+  final itemShares = shares ?? FakeItemShares();
   final shown = trip ?? redSea;
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -198,12 +209,23 @@ Future<TripPageHarness> pumpTripPage(
           shown.id,
         ).overrideWith((ref) async => (done: 0, total: 0)),
         tripListNotifierProvider.overrideWith((ref) => trips),
+        itemSharesRepositoryProvider.overrideWithValue(itemShares),
+        hasSideTripsProvider(
+          shown.id,
+        ).overrideWith((ref) async => hasSideTrips),
+        if (divers != null)
+          allDiversProvider.overrideWith((ref) async => divers),
+        if (activeDiverId != null)
+          validatedCurrentDiverIdProvider.overrideWith(
+            (ref) async => activeDiverId,
+          ),
         tripEditSaveServiceProvider.overrideWith((ref) {
           final save = FakeTripSave(ref.watch(_storedProvider.notifier));
           harness = TripPageHarness(
             save,
             ref.watch(_storedProvider.notifier),
             trips,
+            itemShares,
           );
           return save;
         }),
@@ -236,4 +258,20 @@ final List<Object> ownerOverrides = [
   allDiversProvider.overrideWith((ref) async => const []),
   isHiddenProvider.overrideWith((ref, key) async => false),
   itemSharingProvider.overrideWith((ref, key) async => ItemSharing.none),
+];
+
+/// Two profiles: [redSea]'s owner `d1` and `d2`.
+final twoDivers = [
+  Diver(
+    id: 'd1',
+    name: 'Ana',
+    createdAt: DateTime(2026),
+    updatedAt: DateTime(2026),
+  ),
+  Diver(
+    id: 'd2',
+    name: 'Ben',
+    createdAt: DateTime(2026),
+    updatedAt: DateTime(2026),
+  ),
 ];

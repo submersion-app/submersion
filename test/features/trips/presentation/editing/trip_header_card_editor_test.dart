@@ -1,0 +1,396 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/data/visibility/item_sharing.dart';
+import 'package:submersion/core/data/visibility/shared_item_policy.dart';
+import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_edit_fields.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_header_card_editor.dart';
+import 'package:submersion/features/trips/presentation/widgets/part_of_trip_field.dart';
+import 'package:submersion/l10n/arb/app_localizations_en.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/shared_items/item_sharing_field.dart';
+
+import '../../../../helpers/shared_items_fixture.dart';
+import '../pages/trip_detail_page_unlock_harness.dart';
+
+/// The trip page's header block edited in place (issue #4527, phase 3):
+/// the form's header values and rules, and who the trip is shared with.
+void main() {
+  final l = AppLocalizationsEn();
+  final header = l.settings_conflict_ref_trip;
+
+  Future<void> openHeader(WidgetTester tester) async {
+    await tester.tap(find.byIcon(Icons.lock_outline));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip(l.recordEdit_editCardTooltip(header)));
+    await tester.pumpAndSettle();
+  }
+
+  Future<void> save(WidgetTester tester) async {
+    await tester.tap(find.text(l.forms_save));
+    await tester.pumpAndSettle();
+  }
+
+  EditSession<Trip> sessionOf(WidgetTester tester) {
+    final element = tester.element(find.byType(RecordCardFrame<Trip>).first);
+    return RecordEditScope.maybeOf<Trip>(element)!.session!;
+  }
+
+  group('values', () {
+    testWidgets('the header editor shows every header value', (tester) async {
+      await pumpTripPage(
+        tester,
+        trip: redSea.copyWith(
+          resortName: 'Oasis',
+          liveaboardName: 'MV Old',
+          returnFlightAt: DateTime.utc(2030, 6, 9, 14, 30),
+        ),
+      );
+      await openHeader(tester);
+
+      String text(String key) =>
+          tester.widget<TextField>(find.byKey(Key(key))).controller!.text;
+      expect(text('trip-edit-name'), 'Red Sea');
+      expect(text('trip-edit-location'), 'Hurghada');
+      expect(text('trip-edit-resort'), 'Oasis');
+      expect(text('trip-edit-liveaboard-name'), 'MV Old');
+      expect(find.byKey(const Key('trip-edit-start')), findsOneWidget);
+      expect(find.byKey(const Key('trip-edit-end')), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(TripHeaderCardEditor),
+          matching: find.text(l.trips_edit_returnFlightNotSet),
+        ),
+        findsNothing,
+      );
+      expect(find.byTooltip(l.trips_edit_returnFlightClear), findsOneWidget);
+    });
+
+    testWidgets('each value sets only the header card', (tester) async {
+      final harness = await pumpTripPage(tester);
+      await openHeader(tester);
+      await tester.enterText(
+        find.byKey(const Key('trip-edit-location')),
+        'Safaga',
+      );
+      await tester.enterText(
+        find.byKey(const Key('trip-edit-resort')),
+        'Oasis',
+      );
+      await tester.pumpAndSettle();
+
+      await save(tester);
+
+      expect(harness.save.calls.single.cards, {'header'});
+      expect(harness.save.calls.single.after.location, 'Safaga');
+      expect(harness.save.calls.single.after.resortName, 'Oasis');
+    });
+
+    testWidgets('choosing Day Trip collapses the dates', (tester) async {
+      await pumpTripPage(tester);
+      await openHeader(tester);
+
+      await tester.tap(find.text(l.trips_type_dayTrip));
+      await tester.pumpAndSettle();
+
+      final working = sessionOf(tester).working;
+      expect(working.tripType, TripType.dayTrip);
+      expect(working.endDate, working.startDate);
+      expect(find.text(l.trips_type_description_dayTrip), findsOneWidget);
+    });
+
+    testWidgets('leaving Day Trip keeps the dates', (tester) async {
+      final day = redSea.copyWith(
+        tripType: TripType.dayTrip,
+        endDate: redSea.startDate,
+      );
+      await pumpTripPage(tester, trip: day);
+      await openHeader(tester);
+
+      await tester.tap(find.text(l.trips_type_resort));
+      await tester.pumpAndSettle();
+
+      expect(sessionOf(tester).working.endDate, day.startDate);
+    });
+
+    testWidgets('a one-day Day Trip locks its end date', (tester) async {
+      await pumpTripPage(
+        tester,
+        trip: redSea.copyWith(
+          tripType: TripType.dayTrip,
+          endDate: redSea.startDate,
+        ),
+      );
+      await openHeader(tester);
+
+      final end = tester.widget<ListTile>(
+        find.byKey(const Key('trip-edit-end')),
+      );
+      expect(end.enabled, isFalse);
+    });
+
+    testWidgets('a stored multi-day Day Trip keeps its end editable', (
+      tester,
+    ) async {
+      await pumpTripPage(
+        tester,
+        trip: redSea.copyWith(tripType: TripType.dayTrip),
+      );
+      await openHeader(tester);
+
+      final end = tester.widget<ListTile>(
+        find.byKey(const Key('trip-edit-end')),
+      );
+      expect(end.enabled, isTrue);
+    });
+
+    testWidgets("the editor's duration counts calendar days across a "
+        'spring-forward', (tester) async {
+      await pumpTripPage(
+        tester,
+        trip: redSea.copyWith(
+          startDate: DateTime(2030, 3, 9),
+          endDate: DateTime(2030, 3, 11),
+        ),
+      );
+      await openHeader(tester);
+
+      expect(find.text(l.trips_edit_durationDays(3)), findsOneWidget);
+    });
+
+    testWidgets('tapping the start date opens the date picker', (tester) async {
+      await pumpTripPage(tester);
+      await openHeader(tester);
+
+      await tester.tap(find.byKey(const Key('trip-edit-start')));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DatePickerDialog), findsOneWidget);
+    });
+
+    testWidgets('the end date picker opens at no earlier than the start', (
+      tester,
+    ) async {
+      await pumpTripPage(tester);
+      await openHeader(tester);
+
+      await tester.tap(find.byKey(const Key('trip-edit-end')));
+      await tester.pumpAndSettle();
+
+      final picker = tester.widget<DatePickerDialog>(
+        find.byType(DatePickerDialog),
+      );
+      expect(picker.firstDate, redSea.startDate);
+    });
+
+    testWidgets('clearing the return flight is a change', (tester) async {
+      final harness = await pumpTripPage(
+        tester,
+        trip: redSea.copyWith(returnFlightAt: DateTime.utc(2030, 6, 9, 12)),
+      );
+      await openHeader(tester);
+
+      await tester.tap(find.byTooltip(l.trips_edit_returnFlightClear));
+      await tester.pumpAndSettle();
+      await save(tester);
+
+      expect(harness.save.calls.single.after.returnFlightAt, isNull);
+    });
+
+    testWidgets('a trip without side trips offers a larger trip', (
+      tester,
+    ) async {
+      await pumpTripPage(tester);
+      await openHeader(tester);
+
+      expect(find.byType(PartOfTripField), findsOneWidget);
+    });
+
+    testWidgets('a trip with side trips offers no larger trip', (tester) async {
+      await pumpTripPage(tester, hasSideTrips: true);
+      await openHeader(tester);
+
+      expect(find.byType(PartOfTripField), findsNothing);
+    });
+
+    testWidgets('a blank name cannot be saved', (tester) async {
+      final harness = await pumpTripPage(tester);
+      await openHeader(tester);
+      await tester.enterText(find.byKey(const Key('trip-edit-name')), ' ');
+      await tester.pumpAndSettle();
+
+      await save(tester);
+
+      expect(harness.save.calls, isEmpty);
+      expect(find.text(l.trips_edit_validation_nameRequired), findsOneWidget);
+      expect(find.byType(RecordEditBar), findsOneWidget);
+    });
+  });
+
+  group('sharing', () {
+    testWidgets('hidden with one diver', (tester) async {
+      await pumpTripPage(tester, activeDiverId: 'd1');
+      await openHeader(tester);
+
+      expect(find.text(l.sharedItems_sharedWith_label), findsNothing);
+    });
+
+    testWidgets('open for the owner, and a change is written at Save', (
+      tester,
+    ) async {
+      final harness = await pumpTripPage(
+        tester,
+        divers: twoDivers,
+        activeDiverId: 'd1',
+      );
+      await openHeader(tester);
+      final field = tester.widget<ItemSharingField>(
+        find.byType(ItemSharingField),
+      );
+      expect(field.mayShare, isTrue);
+
+      field.onChanged(ItemSharing.all);
+      await tester.pumpAndSettle();
+      expect(harness.shares.setCalls, isEmpty);
+      await save(tester);
+
+      expect(harness.shares.setCalls.single, ('t1', ItemSharing.all));
+      expect(harness.save.calls.single.cards, {'header'});
+    });
+
+    testWidgets('locked for another profile, naming the owner', (tester) async {
+      await pumpTripPage(tester, divers: twoDivers, activeDiverId: 'd2');
+      await openHeader(tester);
+
+      final field = tester.widget<ItemSharingField>(
+        find.byType(ItemSharingField),
+      );
+      expect(field.mayShare, isFalse);
+      expect(field.ownerId, 'd1');
+    });
+
+    testWidgets('locked while the sharing cannot be read', (tester) async {
+      await pumpTripPage(
+        tester,
+        divers: twoDivers,
+        activeDiverId: 'd1',
+        shares: _UnreadableShares(),
+      );
+      await openHeader(tester);
+
+      final field = tester.widget<ItemSharingField>(
+        find.byType(ItemSharingField),
+      );
+      expect(field.mayShare, isNull);
+    });
+
+    testWidgets('a failed read never unshares at Save', (tester) async {
+      final shares = _UnreadableShares();
+      final harness = await pumpTripPage(
+        tester,
+        trip: redSea.copyWith(isShared: true),
+        divers: twoDivers,
+        activeDiverId: 'd1',
+        shares: shares,
+      );
+      await openHeader(tester);
+      await tester.enterText(find.byKey(const Key('trip-edit-name')), 'Egypt');
+      await tester.pumpAndSettle();
+
+      await save(tester);
+
+      expect(harness.save.calls, hasLength(1));
+      expect(shares.setCalls, isEmpty);
+    });
+
+    testWidgets('unchanged sharing holds nothing', (tester) async {
+      final harness = await pumpTripPage(
+        tester,
+        divers: twoDivers,
+        activeDiverId: 'd1',
+      );
+      await openHeader(tester);
+      await tester.enterText(find.byKey(const Key('trip-edit-name')), 'Egypt');
+      await tester.pumpAndSettle();
+
+      await save(tester);
+
+      expect(harness.shares.setCalls, isEmpty);
+    });
+
+    testWidgets("a stale share row is rewritten by the owner's Save", (
+      tester,
+    ) async {
+      final shares = FakeItemShares({'t1': ItemSharing.all})
+        ..staleRows['t1'] = {'d2'};
+      await pumpTripPage(
+        tester,
+        divers: twoDivers,
+        activeDiverId: 'd1',
+        shares: shares,
+      );
+      await tester.tap(find.byIcon(Icons.lock_outline));
+      await tester.pumpAndSettle();
+      sessionOf(tester).set(tripNotesField, 'Windy');
+      await tester.pumpAndSettle();
+
+      await save(tester);
+
+      expect(shares.setCalls.single, ('t1', ItemSharing.all));
+    });
+
+    testWidgets('a refused change fails the whole Save with the sharing '
+        'message and writes nothing', (tester) async {
+      final shares = FakeItemShares()..refuseSet = true;
+      final harness = await pumpTripPage(
+        tester,
+        divers: twoDivers,
+        activeDiverId: 'd1',
+        shares: shares,
+      );
+      await openHeader(tester);
+      tester
+          .widget<ItemSharingField>(find.byType(ItemSharingField))
+          .onChanged(ItemSharing.all);
+      await tester.pumpAndSettle();
+
+      await save(tester);
+
+      expect(harness.save.calls, isEmpty);
+      expect(find.text(sharingRefusedMessage(l)), findsOneWidget);
+      expect(find.byType(RecordEditBar), findsOneWidget);
+    });
+  });
+
+  testWidgets('locked, the header shows location, resort and the type only '
+      'when set', (tester) async {
+    await pumpTripPage(
+      tester,
+      trip: redSea.copyWith(resortName: 'Oasis', tripType: TripType.resort),
+    );
+
+    expect(find.text('Hurghada'), findsOneWidget);
+    expect(find.text('Oasis'), findsOneWidget);
+    expect(find.text(l.trips_type_resort), findsOneWidget);
+  });
+
+  testWidgets('locked, a liveaboard with none of them shows no header rows', (
+    tester,
+  ) async {
+    await pumpTripPage(tester, trip: liveaboard.copyWith(location: null));
+
+    expect(find.byKey(const Key('trip-header-rows')), findsNothing);
+  });
+}
+
+/// Who items are shared with cannot be read.
+class _UnreadableShares extends FakeItemShares {
+  @override
+  Future<ItemSharing> sharingOf(SharedItemKind kind, String id) async =>
+      throw StateError('the read failed');
+}

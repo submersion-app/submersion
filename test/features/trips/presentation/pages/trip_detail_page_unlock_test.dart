@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_edit_fields.dart';
+import 'package:submersion/features/trips/presentation/widgets/overview/trip_prepare_overview.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
@@ -207,6 +208,57 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(harness.trips.deleted, ['t1']);
+  });
+
+  testWidgets('a start date moved past today in a sitting keeps the prepare '
+      'page until Save', (tester) async {
+    final harness = await pumpTripPage(tester);
+    await unlock(tester);
+    final now = DateTime.now();
+    sessionOf(tester).set(tripDatesField, (
+      start: DateTime(now.year - 1, 6, 1),
+      end: DateTime(now.year - 1, 6, 8),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(TripPrepareOverview), findsOneWidget);
+
+    await save(tester);
+
+    expect(harness.save.calls, hasLength(1));
+    expect(find.byType(TripPrepareOverview), findsNothing);
+  });
+
+  testWidgets('name, dates and notes in one sitting save as one entry', (
+    tester,
+  ) async {
+    final harness = await pumpTripPage(tester);
+    await unlock(tester);
+    await openCard(tester, l.settings_conflict_ref_trip);
+    await tester.enterText(find.byKey(const Key('trip-edit-name')), 'Egypt');
+    await tester.pumpAndSettle();
+    sessionOf(tester).set(tripNotesField, 'Windy');
+    await tester.pumpAndSettle();
+
+    await save(tester);
+
+    expect(harness.save.calls, hasLength(1));
+    expect(harness.save.calls.single.cards, {'header', 'notes'});
+    expect(harness.save.calls.single.after.name, 'Egypt');
+  });
+
+  testWidgets('the header editor opens above the tab row on every tab', (
+    tester,
+  ) async {
+    await pumpTripPage(tester);
+    await unlock(tester);
+    await showTab(tester, l.trips_detail_tab_gear);
+
+    await openCard(tester, l.settings_conflict_ref_trip);
+
+    final editor = tester.getRect(find.byKey(const Key('trip-edit-name')));
+    final tabs = tester.getRect(find.byType(TabBar));
+    expect(editor.bottom, lessThan(tabs.top));
   });
 
   testWidgets('Cancel with changes asks first', (tester) async {

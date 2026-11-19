@@ -33,6 +33,7 @@ import 'package:submersion/features/trips/data/services/trip_edit_save_service.d
 import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_card_slots.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_edit_cards.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_header_card_editor.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
@@ -234,6 +235,13 @@ class _TripDetailContent extends ConsumerWidget {
           tripId: trip.id,
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
         ),
+        // The header block, on every tab, where the page edits in place:
+        // the trip's values nothing else shows, and its editor (issue
+        // #4527).
+        if (host != null)
+          host
+              ._slots(trip, stored)
+              .frame(TripCardId.header, TripHeaderRows(trip: trip)),
         Expanded(
           child: TripDetailTabs(
             tripWithStats: tripWithStats,
