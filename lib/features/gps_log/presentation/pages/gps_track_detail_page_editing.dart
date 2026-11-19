@@ -50,7 +50,36 @@ mixin _GpsTrackDetailPageEditing
     // The save reads the track without its fixes; the sitting's own copy
     // has them, so the page goes on drawing it until the reread.
     justSavedRecord = session.working;
-    if (trimChanged) await evict(session.stored.id);
+    if (!trimChanged) return;
+    // Best effort, after the commit: the save has been written, and a cache
+    // that cannot drop the old line must not report it as failed. The map
+    // then catches up when the cache is next evicted.
+    try {
+      await evict(session.stored.id);
+    } catch (e, stackTrace) {
+      _operationLog.error(
+        'Dropping the cached geometry of GPS track ${session.stored.id} '
+        'failed',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  /// Closes the split panel once a split could no longer run from it: the
+  /// sitting ended, or holds changes. Its "Split here" would otherwise do
+  /// nothing. A split running keeps it, so a refused split point can be
+  /// moved.
+  @override
+  void onEditChanged() {
+    final controller = maybeEditController;
+    if (hostsEditing &&
+        ref.read(trackEditModeProvider) != TrackEditMode.none &&
+        !(controller?.isOperating ?? false) &&
+        _operationBlock != RecordOperationBlock.none) {
+      ref.read(trackEditModeProvider.notifier).state = TrackEditMode.none;
+    }
+    super.onEditChanged();
   }
 
   @override

@@ -84,6 +84,8 @@ class GpsTrackTrimCardEditor extends StatelessWidget {
     final points = session.stored.points;
     final l10n = context.l10n;
     if (points.length < 2) return const SizedBox.shrink();
+    final spanStart = points.first.timestamp * 1000;
+    final spanEnd = points.last.timestamp * 1000;
     return ListenableBuilder(
       listenable: session,
       builder: (context, _) {
@@ -96,14 +98,18 @@ class GpsTrackTrimCardEditor extends StatelessWidget {
               // A new scrubber once the trim is reset, so its handles move
               // back to the ends.
               key: ValueKey('gps-track-trim-scrubber-$hasTrim'),
-              startMs: points.first.timestamp * 1000,
-              endMs: points.last.timestamp * 1000,
+              startMs: spanStart,
+              endMs: spanEnd,
               initialStartMs: trim.startMs,
               initialEndMs: trim.endMs,
               mode: TrackScrubberMode.range,
               onChanged: (_, _) {},
-              onChangeEnd: (start, end) =>
-                  session.set(gpsTrackTrimField, (startMs: start, endMs: end)),
+              // A handle left at its end of the recording cuts nothing
+              // there: that end stays open.
+              onChangeEnd: (start, end) => session.set(gpsTrackTrimField, (
+                startMs: start <= spanStart ? null : start,
+                endMs: end >= spanEnd ? null : end,
+              )),
             ),
             Align(
               alignment: AlignmentDirectional.centerEnd,

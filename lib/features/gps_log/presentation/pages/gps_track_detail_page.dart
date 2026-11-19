@@ -386,12 +386,20 @@ class _GpsTrackDetailPageState extends ConsumerState<GpsTrackDetailPage>
     final l10n = context.l10n;
     final sitting = isSittingOpen;
     final points = shown.effectivePoints;
-    // A trim held in a sitting may leave too few fixes to draw; the track
-    // itself still has them, and its Trim card must stay reachable.
-    final drawable = points.length >= 2 ? points : shown.points;
-    if (drawable.length < 2 || (!sitting && points.length < 2)) {
-      return Center(child: Text(l10n.gpsTrack_detail_noPoints));
+    if (points.length < 2) {
+      final noPoints = Center(child: Text(l10n.gpsTrack_detail_noPoints));
+      // A trim held in a sitting may leave too few fixes; the track itself
+      // still has them, and its cards stay so the trim can be changed back.
+      if (!sitting || shown.points.length < 2) return noPoints;
+      return Column(
+        children: [
+          _headerBlock(shown),
+          _trimCard(shown),
+          Expanded(child: noPoints),
+        ],
+      );
     }
+    final drawable = points;
     final trimHeld =
         sitting &&
         (maybeEditController?.session?.changedCardIds.contains(

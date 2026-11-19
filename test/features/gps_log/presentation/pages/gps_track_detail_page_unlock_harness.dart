@@ -120,6 +120,7 @@ Future<GpsTrackPageHarness> pumpGpsTrackPage(
   GpsTrack? track,
   bool unlockEditing = true,
   List<Dive> dives = const [],
+  bool evictFails = false,
 }) async {
   tester.view.physicalSize = const Size(600, 1200);
   tester.view.devicePixelRatio = 1;
@@ -147,7 +148,10 @@ Future<GpsTrackPageHarness> pumpGpsTrackPage(
         gpsTrackEditSaveServiceProvider.overrideWith(
           (ref) => FakeGpsTrackSave(ref.watch(_storedProvider.notifier)),
         ),
-        evictGpsTrackProvider.overrideWithValue((id) async => evicted.add(id)),
+        evictGpsTrackProvider.overrideWithValue((id) async {
+          if (evictFails) throw StateError('the local cache is locked');
+          evicted.add(id);
+        }),
         splitTrackProvider.overrideWith(
           (ref) => (String id, int at) async {
             splits.add((id, at));

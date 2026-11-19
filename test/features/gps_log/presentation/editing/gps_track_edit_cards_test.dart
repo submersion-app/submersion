@@ -75,4 +75,24 @@ void main() {
     expect(session.valueOf(gpsTrackNameField), 'Reef');
     expect(session.changedCardIds, {'header'});
   });
+
+  testWidgets('dragging one handle leaves the other end open', (tester) async {
+    final session = EditSession(track);
+    addTearDown(session.dispose);
+    await pump(tester, GpsTrackTrimCardEditor(session: session));
+
+    final slider = tester.getRect(find.byType(RangeSlider));
+    // The end handle, dragged in from the right.
+    final gesture = await tester.startGesture(
+      Offset(slider.right - 24, slider.center.dy),
+    );
+    await gesture.moveBy(Offset(-slider.width * 0.3, 0));
+    await tester.pump();
+    await gesture.up();
+    await tester.pumpAndSettle();
+
+    final trim = session.valueOf(gpsTrackTrimField);
+    expect(trim.startMs, isNull);
+    expect(trim.endMs, lessThan(startMs + 4 * 3600 * 1000));
+  });
 }

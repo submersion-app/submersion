@@ -165,12 +165,15 @@ final trackDateFilterProvider = StateProvider<DateTimeRange?>((ref) => null);
 /// eviction tick does reach each LOD, but asynchronously; invalidating them by
 /// name means a read straight after a trim is already fresh, rather than the
 /// map drawing the pre-trim polyline while the stats header updates.
-Future<void> _evictTrack(Ref ref, String id) async {
+///
+/// [rereadTrack] false leaves the decoded track alone, for a caller that
+/// reads it back itself: rereading it twice decodes the whole blob twice.
+Future<void> _evictTrack(Ref ref, String id, {bool rereadTrack = true}) async {
   await ref.read(trackGeometryCacheRepositoryProvider).invalidate(id);
   for (final lod in TrackLod.values) {
     ref.invalidate(gpsTrackGeometryProvider((id, lod)));
   }
-  ref.invalidate(gpsTrackDetailProvider(id));
+  if (rereadTrack) ref.invalidate(gpsTrackDetailProvider(id));
 }
 
 /// Trims a track and drops its cached geometry.
@@ -188,10 +191,11 @@ final trimTrackProvider = Provider(
 
 /// Drops a track's cached geometry after its page saved a sitting that
 /// changed the trim (issue #4527): the save writes through the repository,
-/// which knows nothing of the presentation cache.
+/// which knows nothing of the presentation cache. The page reads the track
+/// back itself, so the decoded track is left for it.
 final evictGpsTrackProvider = Provider(
   (ref) =>
-      (String id) => _evictTrack(ref, id),
+      (String id) => _evictTrack(ref, id, rereadTrack: false),
 );
 
 /// Splits a track and drops the parent's cached geometry.

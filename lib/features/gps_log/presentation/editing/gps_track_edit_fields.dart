@@ -58,10 +58,3 @@ final gpsTrackTrimField = EditField<GpsTrack, GpsTrackTrim>(
   read: (t) => (startMs: t.trimStartTime, endMs: t.trimEndTime),
   write: (t, v) => _with(t, trimStartTime: v.startMs, trimEndTime: v.endMs),
 );
-
-/// Whether [a] and [b] hold the same name and trim: the only values a
-/// sitting writes. [GpsTrack] has no value equality of its own.
-bool gpsTrackSameEdit(GpsTrack a, GpsTrack b) =>
-    a.name == b.name &&
-    a.trimStartTime == b.trimStartTime &&
-    a.trimEndTime == b.trimEndTime;

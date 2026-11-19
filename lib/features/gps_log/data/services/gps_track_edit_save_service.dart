@@ -2,7 +2,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/change_log/record_sitting_writer.dart';
 import 'package:submersion/features/gps_log/data/repositories/gps_track_repository.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
-import 'package:submersion/features/gps_log/presentation/editing/gps_track_edit_fields.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
 
 /// Writes a GPS track page's editing sitting (issue #4527, phase 3): its
@@ -31,7 +30,7 @@ class GpsTrackEditSaveService {
     // "nothing to write": the writer compares with ==.
     apply: (stored) {
       final merged = apply(stored);
-      return gpsTrackSameEdit(merged, stored) ? stored : merged;
+      return _sameEdit(merged, stored) ? stored : merged;
     },
     write: (_, merged) => _tracks.writeEditedColumns(
       trackId,
@@ -41,6 +40,13 @@ class GpsTrackEditSaveService {
     ),
   );
 }
+
+/// Whether [a] and [b] hold the same name and trim: the only values a
+/// sitting writes.
+bool _sameEdit(GpsTrack a, GpsTrack b) =>
+    a.name == b.name &&
+    a.trimStartTime == b.trimStartTime &&
+    a.trimEndTime == b.trimEndTime;
 
 final gpsTrackEditSaveServiceProvider = Provider<GpsTrackEditSaveService>(
   (ref) => GpsTrackEditSaveService(ref.watch(gpsTrackRepositoryProvider)),

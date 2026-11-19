@@ -360,4 +360,83 @@ void main() {
       expect(find.byType(RecordEditBar), findsOneWidget);
     });
   });
+
+  testWidgets('a cache that fails to drop the old geometry does not fail the '
+      'save', (tester) async {
+    final harness = await pumpGpsTrackPage(tester, evictFails: true);
+    await unlock(tester);
+    await addFromStrip(tester, trimTitle);
+    await dragTrimStart(tester);
+
+    await save(tester);
+
+    expect(harness.save.calls, hasLength(1));
+    expect(find.byType(RecordEditBar), findsNothing);
+    expect(find.text(l.recordEdit_saveFailed), findsNothing);
+  });
+
+  testWidgets('a held trim with too few fixes shows neither statistics nor '
+      'map, and keeps the Trim card', (tester) async {
+    await pumpGpsTrackPage(tester);
+    await unlock(tester);
+    await addFromStrip(tester, trimTitle);
+    // The start handle dragged past the end: a trim around the last fix.
+    final slider = tester.getRect(find.byType(RangeSlider));
+    final gesture = await tester.startGesture(
+      Offset(slider.left + 24, slider.center.dy),
+    );
+    await gesture.moveBy(Offset(slider.width, 0));
+    await tester.pump();
+    await gesture.up();
+    await tester.pumpAndSettle();
+
+    expect(find.byType(TrackStatsHeader), findsNothing);
+    expect(find.text(l.gpsTrack_detail_noPoints), findsOneWidget);
+    expect(find.byType(RangeSlider), findsOneWidget);
+  });
+
+  group('the split panel', () {
+    Future<void> openSplit(WidgetTester tester) async {
+      await tester.tap(find.byKey(const ValueKey('gps-track-overflow')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l.gpsTrack_action_split));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('gps-track-edit-panel')),
+        findsOneWidget,
+      );
+    }
+
+    testWidgets('closes when the sitting ends', (tester) async {
+      await pumpGpsTrackPage(tester);
+      await unlock(tester);
+      await openSplit(tester);
+
+      await tester.tap(
+        find.descendant(
+          of: find.byType(RecordEditBar),
+          matching: find.text(l.forms_cancel),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(RecordEditBar), findsNothing);
+      expect(find.byKey(const ValueKey('gps-track-edit-panel')), findsNothing);
+    });
+
+    testWidgets('closes once the sitting has changes', (tester) async {
+      await pumpGpsTrackPage(tester);
+      await unlock(tester);
+      await openSplit(tester);
+
+      await openCard(tester, headerTitle);
+      await tester.enterText(
+        find.byKey(const ValueKey('gps-track-name-field')),
+        'Shore dive',
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const ValueKey('gps-track-edit-panel')), findsNothing);
+    });
+  });
 }
