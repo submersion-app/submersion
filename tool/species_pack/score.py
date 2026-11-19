@@ -706,6 +706,9 @@ def main(argv=None):
         "candidates": len(namer.candidates),
         "classifierId": runner.manifest["classifier"]["id"],
         "contents": pack_manifest.contents_of(runner.manifest["files"]),
+        # Every file the run scored, models included, so gate.py can tell
+        # these scores from a stale run or another pack's (issue #4724).
+        "files": {f["name"]: f["sha256"] for f in runner.manifest["files"]},
         "evaluations": {},
         "speed": {},
         "pair agreement": {},

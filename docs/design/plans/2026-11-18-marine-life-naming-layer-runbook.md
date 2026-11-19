@@ -448,8 +448,8 @@ cd $WT && python3.14 -I $TOOLS/gate.py --baseline $DATA/score-baseline --trained
   --check-pack $DATA/pack-check --set $CSV > $DATA/gate.txt; echo "exit $?"; cat $DATA/gate.txt
 ```
 
-`gate.py` first confirms that each scoring folder was made on its pack's
-naming files, that the three cover the same photos, that the check scores
+`gate.py` first confirms that each scoring folder was made on its pack (its
+version and every file's hash), that the three cover the same photos, that the check scores
 were named at the trained pack's bars, and that `pack-check` held back
 exactly the test set's held-back species; any mismatch stops it with a
 message, which is a STOP here. It writes `$DATA/score-trained/gate.json` and exits 0

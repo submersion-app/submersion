@@ -8,7 +8,8 @@ docs/design/specs/2026-11-18-marine-life-naming-layer-design.md, "The gate").
 W0, W1 and W2 are score.py work folders: the baseline pack P0, the trained
 pack P1, and the rare-species check pack P2 scored with `--naming-from` the
 trained pack. The gate first confirms that each folder was scored on its
-pack's naming files, that all three cover the same photos, that W2 was
+pack (its version and every file's hash), that all three cover the same
+photos, that W2 was
 named at the trained pack's bars, and that P2 held back exactly the test
 set's held-back species. A trained pack ships only when all five hold on
 the pair of detectors at centre crop:
@@ -32,7 +33,6 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import bars as bar_search  # noqa: E402
-import manifest as mf  # noqa: E402
 import testset  # noqa: E402
 import training_set as ts  # noqa: E402
 
@@ -105,10 +105,15 @@ def rare_check(check_per_photo, held_back):
 
 def confirm_scored(results, manifest, label):
     """Stops unless `results` (score.py's results.json) were scored on the
-    naming files `manifest` lists: the same hashes, not only the same pack
-    version, so a stale run or a rebuilt pack cannot stand in."""
-    if results.get("contents") != mf.contents_of(manifest["files"]):
-        raise SystemExit(f"the {label} scores were not made on the {label} pack's naming files")
+    pack `manifest` describes: its version and every file's hash, models
+    and naming files alike, so a stale run, or another pack that shares
+    some of its files, cannot stand in."""
+    if "files" not in results:
+        raise SystemExit(f"the {label} scores do not record their pack's files; score it again with this score.py")
+    if results.get("pack") != manifest.get("packVersion"):
+        raise SystemExit(f"the {label} scores were made on pack {results.get('pack')}, not {manifest.get('packVersion')}")
+    if results["files"] != {f["name"]: f["sha256"] for f in manifest["files"]}:
+        raise SystemExit(f"the {label} scores were not made on the {label} pack's files")
 
 
 def confirm_same_photos(*per_photo):

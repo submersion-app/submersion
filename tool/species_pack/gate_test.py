@@ -122,18 +122,33 @@ class CheckPackTest(unittest.TestCase):
 
 class ProvenanceTest(unittest.TestCase):
     FILES = [
+        {"name": "detector.coreml.zip", "sha256": "d" * 64},
+        {"name": "classifier.coreml.zip", "sha256": "e" * 64},
         {"name": "candidates.json", "sha256": "a" * 64},
         {"name": "text_embeddings.f16", "sha256": "b" * 64},
         {"name": "regions.bin", "sha256": "c" * 64},
     ]
+    MANIFEST = {"packVersion": "v1", "files": FILES}
+
+    def scored(self, **changes):
+        files = {f["name"]: f["sha256"] for f in self.FILES}
+        return {"pack": "v1", "files": {**files, **changes}}
 
     def test_scores_made_on_the_pack_files_pass(self):
-        gate.confirm_scored({"contents": gate.mf.contents_of(self.FILES)}, {"files": self.FILES}, "trained")
+        gate.confirm_scored(self.scored(), self.MANIFEST, "trained")
 
-    def test_scores_made_on_other_rows_are_refused(self):
-        other = {**gate.mf.contents_of(self.FILES), "text_embeddings.f16": "e" * 64}
-        with self.assertRaisesRegex(SystemExit, "trained"):
-            gate.confirm_scored({"contents": other}, {"files": self.FILES}, "trained")
+    def test_scores_made_on_other_rows_or_models_are_refused(self):
+        for name in ("text_embeddings.f16", "detector.coreml.zip", "classifier.coreml.zip"):
+            with self.subTest(name=name), self.assertRaisesRegex(SystemExit, "trained"):
+                gate.confirm_scored(self.scored(**{name: "f" * 64}), self.MANIFEST, "trained")
+
+    def test_scores_of_another_pack_version_are_refused(self):
+        with self.assertRaisesRegex(SystemExit, "v2"):
+            gate.confirm_scored({**self.scored(), "pack": "v2"}, self.MANIFEST, "trained")
+
+    def test_scores_from_before_files_were_recorded_are_refused(self):
+        with self.assertRaisesRegex(SystemExit, "score it again"):
+            gate.confirm_scored({"pack": "v1"}, self.MANIFEST, "baseline")
 
     def test_the_three_scores_must_cover_the_same_photos(self):
         photos = {"1": {}, "2": {}}
