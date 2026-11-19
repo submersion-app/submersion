@@ -37,6 +37,15 @@ class _SpeciesReviewPageState extends ConsumerState<SpeciesReviewPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    // A reload can settle a row elsewhere or move a photo to another
+    // species' row: decisions on what is no longer listed go, so Save and
+    // the leave check follow what the page shows.
+    ref.listen(speciesReviewProvider(widget.scope), (_, next) {
+      final groups = next.value;
+      if (groups == null) return;
+      final pruned = _edits.prunedTo(groups);
+      if (!identical(pruned, _edits)) setState(() => _edits = pruned);
+    });
     final groupsAsync = ref.watch(speciesReviewProvider(widget.scope));
     final groups = groupsAsync.value ?? const <ReviewGroup>[];
     final heading = widget.scope is DiveReviewScope && groups.isNotEmpty
@@ -204,7 +213,7 @@ class _SpeciesReviewPageState extends ConsumerState<SpeciesReviewPage> {
         ReviewGroupKind.dive => [
           if (group.diveNumber != null)
             l10n.speciesReview_diveNumber(group.diveNumber!),
-          ?group.siteName,
+          group.diveName ?? l10n.diveLog_listPage_unknownSite,
         ].join(', '),
       };
 }

@@ -85,7 +85,7 @@ void main() {
         onDive('a', 'old', may),
         ReviewMedia(
           item: media('s', siteId: 'site1'),
-          siteName: 'Punta Sur',
+          diveName: 'Punta Sur',
         ),
         ReviewMedia(item: media('o')),
         onDive('b', 'new', june),
@@ -115,7 +115,7 @@ void main() {
 
   test('review entities copy with each field', () {
     final m = onDive('a', 'd1', may);
-    expect(m.copyWith(siteName: () => 'Punta Sur').siteName, 'Punta Sur');
+    expect(m.copyWith(diveName: () => 'Punta Sur').diveName, 'Punta Sur');
     expect(m.copyWith(diveNumber: () => null).diveNumber, isNull);
     const row = ReviewRow(key: 's:x', items: []);
     expect(row.copyWith(key: 's:y').key, 's:y');

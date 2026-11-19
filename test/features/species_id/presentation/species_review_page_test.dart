@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/species_id/data/services/species_review_saver.dart';
@@ -83,7 +84,7 @@ void main() {
                   kind: ReviewGroupKind.dive,
                   diveId: 'd1',
                   diveNumber: 42,
-                  siteName: 'Punta Sur',
+                  diveName: 'Punta Sur',
                   tagged: taggedRows,
                   suggested: suggestedRows,
                 ),
@@ -182,5 +183,89 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text("Couldn't save. Try again."), findsOneWidget);
     expect(find.text('Confirmed'), findsOneWidget);
+  });
+
+  testWidgets('a decision whose row a reload replaced is dropped: nothing '
+      'is left to save', (tester) async {
+    saver = _Saver();
+    var rows = (tagged: const <ReviewRow>[], suggested: [suggestedRow]);
+    await tester.pumpWidget(
+      await mediaTestApp(
+        overrides: [
+          speciesReviewProvider(scope).overrideWith(
+            (ref) async => [
+              ReviewGroup(
+                kind: ReviewGroupKind.dive,
+                diveId: 'd1',
+                tagged: rows.tagged,
+                suggested: rows.suggested,
+              ),
+            ],
+          ),
+          speciesReviewSaverProvider.overrideWithValue(saver),
+        ],
+        home: const SpeciesReviewPage(scope: scope),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('species_review_drop_g:1')));
+    await tester.pumpAndSettle();
+    expect(tester.widget<AppBarTextAction>(save()).onPressed, isNotNull);
+
+    // A run applies the suggested species to photo b meanwhile: b is now
+    // the app's tag, in the species' own row, to decide afresh.
+    rows = (
+      tagged: [
+        ReviewRow(
+          key: 's:sp1',
+          species: tagRow.species,
+          items: [
+            ReviewItem(
+              media: suggestedRow.items.single.media,
+              tag: MediaSpeciesTag(
+                id: 't2',
+                mediaId: 'b',
+                speciesId: 'sp1',
+                createdAt: DateTime.utc(2026),
+                unconfirmed: true,
+              ),
+            ),
+          ],
+        ),
+      ],
+      suggested: const <ReviewRow>[],
+    );
+    ProviderScope.containerOf(
+      tester.element(find.byType(SpeciesReviewPage)),
+    ).invalidate(speciesReviewProvider(scope));
+    await tester.pumpAndSettle();
+
+    expect(tester.widget<AppBarTextAction>(save()).onPressed, isNull);
+  });
+
+  testWidgets('a dive with no number and no name is headed as the dive '
+      'pages head it', (tester) async {
+    saver = _Saver();
+    await tester.pumpWidget(
+      await mediaTestApp(
+        overrides: [
+          speciesReviewProvider(scope).overrideWith(
+            (ref) async => [
+              ReviewGroup(
+                kind: ReviewGroupKind.dive,
+                diveId: 'd1',
+                tagged: [tagRow],
+                suggested: const [],
+              ),
+            ],
+          ),
+          speciesReviewSaverProvider.overrideWithValue(saver),
+        ],
+        home: const SpeciesReviewPage(scope: scope),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Unknown Site'), findsOneWidget);
   });
 }

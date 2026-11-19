@@ -78,6 +78,22 @@ class SpeciesReviewEdits extends Equatable {
         e.key: e.value,
   });
 
+  /// These decisions less those on a row and media item [groups] no longer
+  /// list: a reload may have settled a row elsewhere, or moved a photo to
+  /// another species' row, where it is decided afresh.
+  SpeciesReviewEdits prunedTo(List<ReviewGroup> groups) {
+    final listed = {
+      for (final group in groups)
+        for (final row in [...group.tagged, ...group.suggested])
+          for (final item in row.items) _key(row.key, item.media.id),
+    };
+    if (_decisions.keys.every(listed.contains)) return this;
+    return SpeciesReviewEdits._({
+      for (final e in _decisions.entries)
+        if (listed.contains(e.key)) e.key: e.value,
+    });
+  }
+
   SpeciesReviewEdits undoItem(ReviewRow row, ReviewItem item) =>
       SpeciesReviewEdits._(
         {..._decisions}..remove(_key(row.key, item.media.id)),

@@ -95,10 +95,15 @@ class SpeciesReviewRepository {
         await _media.getMediaByIds(wanted.toList());
     final ids = [for (final m in items) m.id];
 
-    final found = await _identifications.forMediaIds(ids);
-    final runs = loose
-        ? await _identifications.runsFor(ids)
-        : const <String, MediaIdentificationRun>{};
+    // At a looser level the rows are named again by their run's pack, so
+    // both are read in one snapshot (issue #4721). No track paths: the
+    // review reads names, scores and decisions only.
+    final (runs, found) = loose
+        ? await _identifications.forMediaIdsWithRuns(ids, withPaths: false)
+        : (
+            const <String, MediaIdentificationRun>{},
+            await _identifications.forMediaIds(ids, withPaths: false),
+          );
     final tagged = open.isEmpty
         ? const <String, List<TaggedSpecies>>{}
         : await _identifications.taggedSpeciesFor([
@@ -131,7 +136,7 @@ class SpeciesReviewRepository {
         ? const []
         : await _species.getAllSpecies(ids: speciesIds.toList());
 
-    // Headings only: number, time and site, so no profile samples.
+    // Headings only: number, time and name, so no profile samples.
     final dives = {
       for (final dive in await _dives.getDivesByIdsWithoutSamples([
         ...{for (final m in items) ?m.diveId},
@@ -139,7 +144,8 @@ class SpeciesReviewRepository {
         dive.id: (
           number: dive.diveNumber,
           time: dive.effectiveEntryTime,
-          site: dive.site?.name,
+          // As the dive's pages title it (diveTitle): its own name first.
+          name: dive.effectiveName ?? dive.site?.name,
         ),
     };
     final media = [
@@ -148,7 +154,7 @@ class SpeciesReviewRepository {
           item: item,
           diveNumber: dives[item.diveId]?.number,
           diveTime: dives[item.diveId]?.time,
-          siteName: dives[item.diveId]?.site,
+          diveName: dives[item.diveId]?.name,
         ),
     ];
 

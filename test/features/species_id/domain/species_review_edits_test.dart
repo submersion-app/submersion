@@ -66,4 +66,37 @@ void main() {
       isTrue,
     );
   });
+
+  test('prunedTo drops decisions on a photo no longer in that row', () {
+    final edits = SpeciesReviewEdits.none.decideRow(row, keep: false);
+    // A reload moved b to another species' row; a stays where it was.
+    final pruned = edits.prunedTo([
+      ReviewGroup(
+        kind: ReviewGroupKind.dive,
+        tagged: [
+          ReviewRow(key: 's:sp1', items: [tagged]),
+          ReviewRow(key: 's:sp2', items: [suggested]),
+        ],
+        suggested: const [],
+      ),
+    ]);
+
+    expect(pruned.decisionFor('s:sp1', 'a'), ReviewDecision.remove);
+    expect(pruned.decisionFor('s:sp1', 'b'), isNull);
+  });
+
+  test('prunedTo keeps every decision still listed', () {
+    final edits = SpeciesReviewEdits.none.decideRow(row, keep: true);
+
+    expect(
+      edits.prunedTo([
+        ReviewGroup(
+          kind: ReviewGroupKind.dive,
+          tagged: [row],
+          suggested: const [],
+        ),
+      ]),
+      edits,
+    );
+  });
 }

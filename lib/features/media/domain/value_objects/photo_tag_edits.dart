@@ -49,7 +49,8 @@ class SpeciesTagEdits extends Equatable {
     required List<SpeciesTagChip> stored,
   }) {
     final id = chip.speciesId;
-    final isStored = stored.any((s) => s.speciesId == id);
+    final storedChip = stored.where((s) => s.speciesId == id).firstOrNull;
+    final isStored = storedChip != null;
     final nextAdded = {...added}..remove(id);
     final nextRemoved = {...removed}..remove(id);
     if (tagged && !isStored) nextAdded[id] = chip;
@@ -57,7 +58,13 @@ class SpeciesTagEdits extends Equatable {
     return SpeciesTagEdits(
       added: nextAdded,
       removed: nextRemoved,
-      confirmed: tagged ? confirmed : ({...confirmed}..remove(id)),
+      // Named by hand over the app's own tag of it (a fish named from a
+      // video frame, the picker): the diver's now (issue #4727).
+      confirmed: !tagged
+          ? ({...confirmed}..remove(id))
+          : storedChip?.unconfirmed ?? false
+          ? {...confirmed, id}
+          : confirmed,
     );
   }
 

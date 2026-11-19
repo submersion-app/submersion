@@ -77,4 +77,28 @@ void main() {
       appTag.copyWith(unconfirmed: false),
     ]);
   });
+
+  test('tagging by hand a species the app already tagged confirms it: the '
+      'diver named it (a fish named from a video frame, the picker)', () {
+    final edits = SpeciesTagEdits.none.toggled(
+      appTag.copyWith(unconfirmed: false),
+      tagged: true,
+      stored: const [appTag],
+    );
+
+    expect(edits.confirmed, {'sp_a'});
+    expect(edits.applyTo(const [appTag]), [
+      appTag.copyWith(unconfirmed: false),
+    ]);
+  });
+
+  test('tagging by hand a species the diver already tagged is no edit', () {
+    final edits = SpeciesTagEdits.none.toggled(
+      handTag,
+      tagged: true,
+      stored: const [handTag],
+    );
+
+    expect(edits.isEmpty, isTrue);
+  });
 }

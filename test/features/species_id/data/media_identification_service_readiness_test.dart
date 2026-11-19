@@ -11,11 +11,31 @@ import 'package:submersion/features/species_id/data/repositories/identification_
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
 import 'package:submersion/features/species_id/data/services/media_identification_service.dart';
+import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
 
 import '../../../helpers/temp_dir.dart';
 import 'fake_vision_engine.dart';
 import 'media_identification_service_fixtures.dart';
+
+/// Records how the readiness check reads identifications.
+class _SpyIdentifications extends MediaIdentificationRepository {
+  _SpyIdentifications({super.database});
+
+  final reads = <String>[];
+
+  @override
+  Future<
+    (
+      Map<String, MediaIdentificationRun>,
+      Map<String, List<MediaIdentification>>,
+    )
+  >
+  forMediaIdsWithRuns(List<String> mediaIds, {bool withPaths = true}) {
+    reads.add('snapshot${withPaths ? '+paths' : ''}');
+    return super.forMediaIdsWithRuns(mediaIds, withPaths: withPaths);
+  }
+}
 
 /// Which media a Find species run would find nothing to do on, by the rule
 /// the service itself applies when it takes an item (issue #4727): what
@@ -24,6 +44,7 @@ void main() {
   late AppDatabase library;
   late LocalCacheDatabase local;
   late Directory support;
+  late _SpyIdentifications identifications;
   late MediaIdentificationService service;
   final installed = pack().pack.manifest;
   const reef = GeoPoint(12.1, -68.9);
@@ -54,11 +75,12 @@ void main() {
     );
     local = LocalCacheDatabase(NativeDatabase.memory());
     support = await Directory.systemTemp.createTemp('identification_ready');
+    identifications = _SpyIdentifications(database: library);
     var ids = 0;
     service = MediaIdentificationService(
       engine: FakeEngine(),
       loadPack: () async => pack(),
-      identifications: MediaIdentificationRepository(database: library),
+      identifications: identifications,
       embeddings: IdentificationEmbeddingRepository(database: local),
       crops: IdentificationCropStore(supportPath: () async => support.path),
       resolveImage: (item) async =>
@@ -120,5 +142,15 @@ void main() {
   test('only the media looked at are listed', () async {
     await lookAt(photo('m1'));
     expect(await upToDate([photo('m1'), photo('m2')]), {'m1'});
+  });
+
+  test('reads each media\'s run and rows in one snapshot, without track '
+      'paths', () async {
+    await lookAt(photo('m1'));
+    identifications.reads.clear();
+
+    await upToDate([photo('m1'), photo('v1', type: MediaType.video)]);
+
+    expect(identifications.reads, ['snapshot']);
   });
 }

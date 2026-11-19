@@ -52,6 +52,25 @@ void main() {
     },
   );
 
+  test('many media runs and rows read in one snapshot, track paths left out '
+      'when not wanted (issue #4727)', () async {
+    await repo.storeRun(run(), insert: [identification('a')], deleteIds: []);
+    await repo.storeRun(videoRun(), insert: [track('t1')], deleteIds: []);
+
+    final (runs, rows) = await repo.forMediaIdsWithRuns([
+      'm1',
+      'v1',
+      'other',
+    ], withPaths: false);
+    expect(runs.keys.toSet(), {'m1', 'v1'});
+    expect(rows['m1']!.map((i) => i.id), ['a']);
+    expect(rows['v1']!.single.path, isEmpty);
+    expect(rows['v1']!.single.isPending, isFalse);
+
+    final (_, withPaths) = await repo.forMediaIdsWithRuns(['v1']);
+    expect(withPaths['v1']!.single.path, isNotEmpty);
+  });
+
   test('a run with nothing found is stored', () async {
     await repo.storeRun(run(count: 0), insert: const [], deleteIds: const []);
     expect((await repo.runFor('m1'))!.detectionCount, 0);

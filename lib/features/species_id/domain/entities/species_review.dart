@@ -32,28 +32,31 @@ class ReviewMedia extends Equatable {
     required this.item,
     this.diveNumber,
     this.diveTime,
-    this.siteName,
+    this.diveName,
   });
 
   final MediaItem item;
   final int? diveNumber;
   final DateTime? diveTime;
-  final String? siteName;
+
+  /// The dive's name as its pages title it: its own, else its site's
+  /// (`diveTitle`); null when it has neither.
+  final String? diveName;
 
   ReviewMedia copyWith({
     MediaItem? item,
     int? Function()? diveNumber,
     DateTime? Function()? diveTime,
-    String? Function()? siteName,
+    String? Function()? diveName,
   }) => ReviewMedia(
     item: item ?? this.item,
     diveNumber: diveNumber == null ? this.diveNumber : diveNumber(),
     diveTime: diveTime == null ? this.diveTime : diveTime(),
-    siteName: siteName == null ? this.siteName : siteName(),
+    diveName: diveName == null ? this.diveName : diveName(),
   );
 
   @override
-  List<Object?> get props => [item.id, diveNumber, diveTime, siteName];
+  List<Object?> get props => [item.id, diveNumber, diveTime, diveName];
 }
 
 /// One media item of a row: the app's unconfirmed [tag] on it, or a
@@ -170,14 +173,17 @@ class ReviewGroup extends Equatable {
     this.diveId,
     this.diveNumber,
     this.diveTime,
-    this.siteName,
+    this.diveName,
   });
 
   final ReviewGroupKind kind;
   final String? diveId;
   final int? diveNumber;
   final DateTime? diveTime;
-  final String? siteName;
+
+  /// The dive's name as its pages title it: its own, else its site's
+  /// (`diveTitle`); null when it has neither.
+  final String? diveName;
 
   /// Species with at least one unconfirmed tag, by name.
   final List<ReviewRow> tagged;
@@ -192,7 +198,7 @@ class ReviewGroup extends Equatable {
     String? Function()? diveId,
     int? Function()? diveNumber,
     DateTime? Function()? diveTime,
-    String? Function()? siteName,
+    String? Function()? diveName,
   }) => ReviewGroup(
     kind: kind ?? this.kind,
     tagged: tagged ?? this.tagged,
@@ -200,7 +206,7 @@ class ReviewGroup extends Equatable {
     diveId: diveId == null ? this.diveId : diveId(),
     diveNumber: diveNumber == null ? this.diveNumber : diveNumber(),
     diveTime: diveTime == null ? this.diveTime : diveTime(),
-    siteName: siteName == null ? this.siteName : siteName(),
+    diveName: diveName == null ? this.diveName : diveName(),
   );
 
   @override
@@ -209,7 +215,7 @@ class ReviewGroup extends Equatable {
     diveId,
     diveNumber,
     diveTime,
-    siteName,
+    diveName,
     tagged,
     suggested,
   ];

@@ -101,7 +101,7 @@ List<ReviewGroup> buildReviewGroups({
         diveId: first.item.diveId,
         diveNumber: first.diveNumber,
         diveTime: first.diveTime,
-        siteName: first.siteName,
+        diveName: first.diveName,
         tagged: [
           for (final r in built)
             if (r.isTagged) r,

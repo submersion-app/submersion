@@ -325,10 +325,14 @@ class MediaIdentificationRepository {
     return found.toList();
   }
 
-  /// [forMedia] for many media in one pass per chunk, by media id.
+  /// [forMedia] for many media in one pass per chunk, by media id. Without
+  /// [withPaths] a video track's path is left empty, not decoded: what reads
+  /// only names, scores and decisions (Species to review, the readiness
+  /// check) has no use for it.
   Future<Map<String, List<MediaIdentification>>> forMediaIds(
-    List<String> mediaIds,
-  ) async {
+    List<String> mediaIds, {
+    bool withPaths = true,
+  }) async {
     final result = <String, List<MediaIdentification>>{};
     for (final chunk in seriesIdChunks(mediaIds, size: _slice)) {
       final rows =
@@ -340,11 +344,31 @@ class MediaIdentificationRepository {
                 ]))
               .get();
       for (final row in rows) {
-        result.putIfAbsent(row.mediaId, () => []).add(_fromRow(row));
+        result
+            .putIfAbsent(row.mediaId, () => [])
+            .add(_fromRow(row, withPath: withPaths));
       }
     }
     return result;
   }
+
+  /// [runsFor] and [forMediaIds] in one transaction, so each media's run
+  /// and rows come from the same moment: a rename that moves them on
+  /// together is seen whole or not at all (issue #4721), as
+  /// [forMediaWithRun] reads one media.
+  Future<
+    (
+      Map<String, MediaIdentificationRun>,
+      Map<String, List<MediaIdentification>>,
+    )
+  >
+  forMediaIdsWithRuns(List<String> mediaIds, {bool withPaths = true}) =>
+      _db.transaction(
+        () async => (
+          await runsFor(mediaIds),
+          await forMediaIds(mediaIds, withPaths: withPaths),
+        ),
+      );
 
   /// [runFor] for many media, by media id; media with no run are absent.
   Future<Map<String, MediaIdentificationRun>> runsFor(
@@ -465,38 +489,40 @@ class MediaIdentificationRepository {
     ),
   );
 
-  static MediaIdentification _fromRow(MediaIdentificationRow row) =>
-      MediaIdentification(
-        id: row.id,
-        mediaId: row.mediaId,
-        box: IdentificationBox(
-          x: row.boxX,
-          y: row.boxY,
-          width: row.boxWidth,
-          height: row.boxHeight,
-        ),
-        boxPixelWidth: row.boxPixelWidth,
-        boxPixelHeight: row.boxPixelHeight,
-        detectorScore: row.detectorScore,
-        openScore: row.openScore,
-        candidates: _decodeCandidates(row.candidatesJson),
-        locationLimited: row.locationLimited,
-        suggestable: row.suggestable,
-        decision: IdentificationDecision.values.firstWhere(
-          (d) => d.name == row.decision,
-          orElse: () => IdentificationDecision.undecided,
-        ),
-        decidedSpeciesId: row.decidedSpeciesId,
-        decidedAt: row.decidedAt == null ? null : _time(row.decidedAt!),
-        createdAt: _time(row.createdAt),
-        startMs: row.startMs,
-        endMs: row.endMs,
-        bestMs: row.bestMs,
-        path: _decodePath(row),
-        claimedSpeciesId: row.claimedSpeciesId,
-        confident: row.confident,
-        specific: row.specific,
-      );
+  static MediaIdentification _fromRow(
+    MediaIdentificationRow row, {
+    bool withPath = true,
+  }) => MediaIdentification(
+    id: row.id,
+    mediaId: row.mediaId,
+    box: IdentificationBox(
+      x: row.boxX,
+      y: row.boxY,
+      width: row.boxWidth,
+      height: row.boxHeight,
+    ),
+    boxPixelWidth: row.boxPixelWidth,
+    boxPixelHeight: row.boxPixelHeight,
+    detectorScore: row.detectorScore,
+    openScore: row.openScore,
+    candidates: _decodeCandidates(row.candidatesJson),
+    locationLimited: row.locationLimited,
+    suggestable: row.suggestable,
+    decision: IdentificationDecision.values.firstWhere(
+      (d) => d.name == row.decision,
+      orElse: () => IdentificationDecision.undecided,
+    ),
+    decidedSpeciesId: row.decidedSpeciesId,
+    decidedAt: row.decidedAt == null ? null : _time(row.decidedAt!),
+    createdAt: _time(row.createdAt),
+    startMs: row.startMs,
+    endMs: row.endMs,
+    bestMs: row.bestMs,
+    path: withPath ? _decodePath(row) : const [],
+    claimedSpeciesId: row.claimedSpeciesId,
+    confident: row.confident,
+    specific: row.specific,
+  );
 
   static MediaIdentificationsCompanion _toCompanion(MediaIdentification i) =>
       MediaIdentificationsCompanion.insert(

@@ -1,9 +1,13 @@
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/database/database.dart';
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_species_repository.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
+import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/data/repositories/species_review_repository.dart';
 import 'package:submersion/features/species_id/domain/entities/naming_level.dart';
 import 'package:submersion/features/species_id/domain/entities/species_review.dart';
@@ -12,6 +16,38 @@ import 'package:submersion/features/species_id/domain/services/naming_levels.dar
 import '../../../helpers/test_database.dart';
 import '../../media/data/repositories/species_photo_fixtures.dart';
 import 'identification_fixtures.dart';
+
+/// Records how the review reads identifications.
+class _SpyIdentifications extends MediaIdentificationRepository {
+  final reads = <String>[];
+
+  @override
+  Future<Map<String, MediaIdentificationRun>> runsFor(List<String> mediaIds) {
+    reads.add('runs');
+    return super.runsFor(mediaIds);
+  }
+
+  @override
+  Future<Map<String, List<MediaIdentification>>> forMediaIds(
+    List<String> mediaIds, {
+    bool withPaths = true,
+  }) {
+    reads.add('rows${withPaths ? '+paths' : ''}');
+    return super.forMediaIds(mediaIds, withPaths: withPaths);
+  }
+
+  @override
+  Future<
+    (
+      Map<String, MediaIdentificationRun>,
+      Map<String, List<MediaIdentification>>,
+    )
+  >
+  forMediaIdsWithRuns(List<String> mediaIds, {bool withPaths = true}) {
+    reads.add('snapshot${withPaths ? '+paths' : ''}');
+    return super.forMediaIdsWithRuns(mediaIds, withPaths: withPaths);
+  }
+}
 
 /// Gathering what Species to review shows, for a dive or the log (issue
 /// #4727).
@@ -143,5 +179,60 @@ void main() {
     int suggested(List<ReviewGroup> g) =>
         g.single.suggested.fold(0, (n, r) => n + r.items.length);
     expect(suggested(loose), suggested(stored) + 1);
+  });
+
+  test('a looser level reads each media\'s run and rows in one snapshot '
+      '(issue #4721), and no track paths', () async {
+    final spy = _SpyIdentifications();
+    final spied = SpeciesReviewRepository(
+      tags: tags,
+      identifications: spy,
+      media: MediaRepository(),
+      species: SpeciesRepository(),
+      dives: DiveRepository(),
+    );
+    const level = LevelInForce(
+      level: NamingLevel.eager,
+      packVersion: '2026.11.1',
+      minCropSide: 64,
+      minOpenScore: 0.1,
+      suggestScore: 0.3,
+      suggestScoreNoLocation: 0.3,
+    );
+
+    await spied.load(
+      const DiveReviewScope('d1'),
+      withSuggestions: true,
+      level: level,
+    );
+    // The snapshot, then the two reads it makes inside its transaction;
+    // none of them decodes track paths.
+    expect(spy.reads, ['snapshot', 'runs', 'rows']);
+
+    spy.reads.clear();
+    await spied.load(const DiveReviewScope('d1'), withSuggestions: true);
+    expect(spy.reads, ['rows']);
+  });
+
+  test('a dive is headed by its own name before its site\'s', () async {
+    final db = DatabaseService.instance.database;
+    await insertTestSite('s1', 'Salt Pier');
+    await (db.update(db.dives)..where((t) => t.id.equals('d1'))).write(
+      const DivesCompanion(name: Value('Night dive'), siteId: Value('s1')),
+    );
+    await (db.update(db.dives)..where((t) => t.id.equals('d2'))).write(
+      const DivesCompanion(siteId: Value('s1')),
+    );
+
+    final groups = await review.load(
+      const LogReviewScope(),
+      withSuggestions: true,
+      diverId: 'me',
+    );
+
+    expect(
+      {for (final g in groups) g.diveId: g.diveName},
+      {'d1': 'Night dive', 'd2': 'Salt Pier'},
+    );
   });
 }

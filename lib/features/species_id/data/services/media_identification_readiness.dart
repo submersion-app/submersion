@@ -13,8 +13,10 @@ extension Readiness on MediaIdentificationService {
     required GeoPoint? Function(MediaItem item) locationOf,
   }) async {
     final ids = [for (final m in items) m.id];
-    final runs = await _identifications.runsFor(ids);
-    final stored = await _identifications.forMediaIds(ids);
+    final (runs, stored) = await _identifications.forMediaIdsWithRuns(
+      ids,
+      withPaths: false,
+    );
     final current = <String>{};
     for (final item in items) {
       final run = runs[item.id];
