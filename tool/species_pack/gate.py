@@ -10,10 +10,11 @@ pack P1, and the rare-species check pack P2 scored with `--naming-from` the
 trained pack. The gate first confirms that each folder was scored on its
 pack (its version and every file's hash), that all three cover the same
 photos, that W2 was named at the trained pack's bars, that each trained
-pack's training.json describes its own rows, and that P2 held back
-exactly the test set's held-back species and was trained with P1's
-chosen settings. A trained pack ships only when all five hold on the pair
-of detectors at centre crop:
+pack's training.json describes its own rows, that P1 and P2 were both
+built from P0 (every file but the rows the same, training started from
+its name rows), and that P2 held back exactly the test set's held-back
+species and was trained with P1's chosen settings. A trained pack ships
+only when all five hold on the pair of detectors at centre crop:
 
 1. significantly more held-out natural photos named right at each pack's
    own bars (paired McNemar test, p < 0.05);
@@ -126,6 +127,24 @@ def confirm_training_record(training, manifest, label):
         raise SystemExit(f"the {label} pack's training.json does not describe its rows; train it again")
 
 
+def _all_but_rows(manifest):
+    return {f["name"]: f["sha256"] for f in manifest["files"] if f["name"] != "text_embeddings.f16"}
+
+
+def confirm_same_base(base_manifest, packs, records):
+    """Stops unless every pack in `packs` (label to manifest) was built from
+    the baseline pack: each file but the rows the same, and its training
+    (records, label to training.json) started from the baseline's name
+    rows. So the check layer differs from the shipped one in its photos,
+    not in its candidates, regions, models or starting rows."""
+    for label, manifest in packs.items():
+        if _all_but_rows(manifest) != _all_but_rows(base_manifest):
+            raise SystemExit(f"the {label} pack's files other than its rows differ from the baseline pack's")
+    for label, record in records.items():
+        if record.get("base rows sha256") != ts.rows_sha256(base_manifest):
+            raise SystemExit(f"the {label} pack was not trained from the baseline pack's name rows")
+
+
 def confirm_same_photos(*per_photo):
     """Stops unless every per-photo map covers the same photos, so no
     comparison quietly drops the ones a stale or partial run missed."""
@@ -198,6 +217,7 @@ def main(argv=None):
     }
     for label, record in training.items():
         confirm_training_record(record, manifests[label], label)
+    confirm_same_base(manifests["baseline"], {label: manifests[label] for label in training}, training)
     trained_eval = results["trained"]["evaluations"][SET_KEY]
     confirm_check_pack(
         training["check"], held_back, results["check"]["evaluations"][SET_KEY], trained_eval, training["trained"]

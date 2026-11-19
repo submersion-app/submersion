@@ -329,6 +329,9 @@ def main(argv=None):
     # The record names the rows it describes, so a stale record beside other
     # rows (a rerun into the same folder that stopped early) is caught.
     settings["rows sha256"] = ts.rows_sha256(derived)
+    # And the name rows it started from, so the gate can confirm the shipped
+    # and check layers grew from the same base pack.
+    settings["base rows sha256"] = ts.rows_sha256(_read_manifest(args.base))
     with open(os.path.join(args.out, "training.json"), "w", encoding="utf-8") as fh:
         json.dump(settings, fh, indent=1)
     ts.write_credits(os.path.join(args.out, "training_photos.csv"), records)

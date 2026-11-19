@@ -140,6 +140,41 @@ class TrainingRecordTest(unittest.TestCase):
                 gate.confirm_training_record(record, self.MANIFEST, "check")
 
 
+class SameBaseTest(unittest.TestCase):
+    BASE = {
+        "files": [
+            {"name": "detector.coreml.zip", "sha256": "d" * 64},
+            {"name": "candidates.json", "sha256": "a" * 64},
+            {"name": "text_embeddings.f16", "sha256": "b" * 64},
+        ]
+    }
+
+    def pack(self, rows, **changes):
+        def sha(f):
+            return changes.get(f["name"], rows if f["name"] == "text_embeddings.f16" else f["sha256"])
+
+        return {"files": [{**f, "sha256": sha(f)} for f in self.BASE["files"]]}
+
+    def confirm(self, check=None, check_record=None):
+        gate.confirm_same_base(
+            self.BASE,
+            {"trained": self.pack("t" * 64), "check": check or self.pack("c" * 64)},
+            {"trained": {"base rows sha256": "b" * 64}, "check": check_record or {"base rows sha256": "b" * 64}},
+        )
+
+    def test_packs_built_from_the_baseline_pass(self):
+        self.confirm()
+
+    def test_a_pack_with_other_candidates_or_models_is_refused(self):
+        for name in ("candidates.json", "detector.coreml.zip"):
+            with self.subTest(name=name), self.assertRaisesRegex(SystemExit, "check"):
+                self.confirm(check=self.pack("c" * 64, **{name: "e" * 64}))
+
+    def test_a_pack_trained_from_other_name_rows_is_refused(self):
+        with self.assertRaisesRegex(SystemExit, "name rows"):
+            self.confirm(check_record={"base rows sha256": "e" * 64})
+
+
 class ProvenanceTest(unittest.TestCase):
     FILES = [
         {"name": "detector.coreml.zip", "sha256": "d" * 64},
