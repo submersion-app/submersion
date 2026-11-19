@@ -329,7 +329,8 @@ class CylindersCard extends ConsumerWidget {
   }
 
   /// An Avelo Hydrotank's figure as estimated water and gas (issue #4664),
-  /// with the water's label when the tank's [volume] is known, or null when
+  /// at [cursorSeconds] or, without a cursor, at the end of the dive, with
+  /// the water's label when the tank's [volume] is known, or null when
   /// the dive lacks what the estimate needs (a start pressure, a pressure
   /// at the moment shown, or the computer's gas remaining).
   ({TankFillLevels levels, String? label})? _hydrotankWater(
@@ -337,7 +338,6 @@ class CylindersCard extends ConsumerWidget {
     required double? start,
     required double? pressure,
     required int? cursorSeconds,
-    required bool cursorShown,
     required double? volume,
   }) {
     if (start == null || pressure == null) return null;
@@ -354,7 +354,7 @@ class CylindersCard extends ConsumerWidget {
       levels: TankFillLevels.hydrotank(
         water: contents.water,
         gasLeft: contents.gasLeft,
-        now: cursorShown ? contents.gasLeft : null,
+        now: cursorSeconds != null ? contents.gasLeft : null,
       ),
       label: liters == null
           ? null
@@ -447,7 +447,6 @@ class CylindersCard extends ConsumerWidget {
                 start: pressures.$1,
                 pressure: cursorShown ? now : pressures.$2,
                 cursorSeconds: cursorSeconds,
-                cursorShown: cursorShown,
                 volume: positive(tank.volume) ?? preset?.volumeLiters,
               )
             : null;
