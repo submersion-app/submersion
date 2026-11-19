@@ -11065,6 +11065,7 @@
   "universalImport_label_filledPlanned": "Ausgefüllte geplante Tauchgänge",
   "universalImport_fillPlanned_target": "Füllt geplanten Tauchgang: {label}",
   "universalImport_fillPlanned_replacesProfile": "Das skizzierte Profil wird ersetzt.",
+  "universalImport_review_tripLabel": "Reise: {trip}",
   "universalImport_fillPlanned_change": "Ändern",
   "universalImport_fillPlanned_pickerTitle": "Geplanten Tauchgang wählen",
   "universalImport_fillPlanned_importAsNew": "Stattdessen als neuen Tauchgang importieren",

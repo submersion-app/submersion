@@ -37294,6 +37294,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Its sketched profile will be replaced.';
 
   @override
+  String universalImport_review_tripLabel(String trip) {
+    return 'Trip: $trip';
+  }
+
+  @override
   String get universalImport_fillPlanned_change => 'Change';
 
   @override

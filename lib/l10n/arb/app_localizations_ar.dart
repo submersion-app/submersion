@@ -38459,6 +38459,11 @@ class AppLocalizationsAr extends AppLocalizations {
       'سيتم استبدال ملفها التقريبي.';
 
   @override
+  String universalImport_review_tripLabel(String trip) {
+    return 'الرحلة: $trip';
+  }
+
+  @override
   String get universalImport_fillPlanned_change => 'تغيير';
 
   @override

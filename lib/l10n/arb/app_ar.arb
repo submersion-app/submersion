@@ -10931,6 +10931,7 @@
   "universalImport_label_filledPlanned": "الغوصات المخططة المكتملة",
   "universalImport_fillPlanned_target": "تكمل الغوصة المخططة: {label}",
   "universalImport_fillPlanned_replacesProfile": "سيتم استبدال ملفها التقريبي.",
+  "universalImport_review_tripLabel": "الرحلة: {trip}",
   "universalImport_fillPlanned_change": "تغيير",
   "universalImport_fillPlanned_pickerTitle": "اختر غوصة مخططة",
   "universalImport_fillPlanned_importAsNew": "الاستيراد كغوصة جديدة بدلا من ذلك",

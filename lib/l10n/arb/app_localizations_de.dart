@@ -37846,6 +37846,11 @@ class AppLocalizationsDe extends AppLocalizations {
       'Das skizzierte Profil wird ersetzt.';
 
   @override
+  String universalImport_review_tripLabel(String trip) {
+    return 'Reise: $trip';
+  }
+
+  @override
   String get universalImport_fillPlanned_change => 'Ändern';
 
   @override

@@ -37938,6 +37938,11 @@ class AppLocalizationsIt extends AppLocalizations {
       'Il profilo abbozzato verrà sostituito.';
 
   @override
+  String universalImport_review_tripLabel(String trip) {
+    return 'Viaggio: $trip';
+  }
+
+  @override
   String get universalImport_fillPlanned_change => 'Cambia';
 
   @override

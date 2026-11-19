@@ -35663,6 +35663,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get universalImport_fillPlanned_replacesProfile => '其草绘的剖面将被替换。';
 
   @override
+  String universalImport_review_tripLabel(String trip) {
+    return '旅行：$trip';
+  }
+
+  @override
   String get universalImport_fillPlanned_change => '更改';
 
   @override

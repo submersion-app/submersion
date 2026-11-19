@@ -10931,6 +10931,7 @@
   "universalImport_label_filledPlanned": "Mergulhos planejados preenchidos",
   "universalImport_fillPlanned_target": "Preenche o mergulho planejado: {label}",
   "universalImport_fillPlanned_replacesProfile": "O perfil esboçado será substituído.",
+  "universalImport_review_tripLabel": "Viagem: {trip}",
   "universalImport_fillPlanned_change": "Alterar",
   "universalImport_fillPlanned_pickerTitle": "Escolher um mergulho planejado",
   "universalImport_fillPlanned_importAsNew": "Importar como um novo mergulho em vez disso",

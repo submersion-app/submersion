@@ -59351,6 +59351,12 @@ abstract class AppLocalizations {
   /// **'Its sketched profile will be replaced.'**
   String get universalImport_fillPlanned_replacesProfile;
 
+  /// No description provided for @universalImport_review_tripLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip: {trip}'**
+  String universalImport_review_tripLabel(String trip);
+
   /// No description provided for @universalImport_fillPlanned_change.
   ///
   /// In en, this message translates to:

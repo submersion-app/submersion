@@ -10931,6 +10931,7 @@
   "universalImport_label_filledPlanned": "Inmersiones planificadas completadas",
   "universalImport_fillPlanned_target": "Completa la inmersión planificada: {label}",
   "universalImport_fillPlanned_replacesProfile": "Su perfil esbozado será reemplazado.",
+  "universalImport_review_tripLabel": "Viaje: {trip}",
   "universalImport_fillPlanned_change": "Cambiar",
   "universalImport_fillPlanned_pickerTitle": "Elegir una inmersión planificada",
   "universalImport_fillPlanned_importAsNew": "Importar como inmersión nueva en su lugar",

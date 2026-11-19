@@ -37009,6 +37009,11 @@ class AppLocalizationsHe extends AppLocalizations {
       'הפרופיל המשורטט שלה יוחלף.';
 
   @override
+  String universalImport_review_tripLabel(String trip) {
+    return 'טיול: $trip';
+  }
+
+  @override
   String get universalImport_fillPlanned_change => 'שינוי';
 
   @override

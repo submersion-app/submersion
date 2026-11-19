@@ -10805,6 +10805,7 @@
   "universalImport_label_filledPlanned": "Kitöltött tervezett merülések",
   "universalImport_fillPlanned_target": "Kitölti a tervezett merülést: {label}",
   "universalImport_fillPlanned_replacesProfile": "A felvázolt profil lecserélődik.",
+  "universalImport_review_tripLabel": "Út: {trip}",
   "universalImport_fillPlanned_change": "Módosítás",
   "universalImport_fillPlanned_pickerTitle": "Válassz tervezett merülést",
   "universalImport_fillPlanned_importAsNew": "Inkább új merülésként importálás",

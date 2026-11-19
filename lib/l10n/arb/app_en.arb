@@ -22233,6 +22233,14 @@
     }
   },
   "universalImport_fillPlanned_replacesProfile": "Its sketched profile will be replaced.",
+  "universalImport_review_tripLabel": "Trip: {trip}",
+  "@universalImport_review_tripLabel": {
+    "placeholders": {
+      "trip": {
+        "type": "String"
+      }
+    }
+  },
   "universalImport_fillPlanned_change": "Change",
   "universalImport_fillPlanned_pickerTitle": "Choose a planned dive",
   "universalImport_fillPlanned_importAsNew": "Import as a new dive instead",

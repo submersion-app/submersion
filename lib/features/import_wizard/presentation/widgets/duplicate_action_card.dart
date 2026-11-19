@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_import/domain/services/dive_matcher.dar
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/import_target_chip.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/import_trip_line.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/needs_decision_pill.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -58,6 +59,11 @@ class DuplicateActionCard extends StatefulWidget {
   /// (#3110); the expanded card compares the two.
   final IncomingDiveData? inBatchPartner;
 
+  /// The trip this dive will be saved in when imported as new (issue
+  /// #3022). Only shown for [DuplicateAction.importAsNew]: any other action
+  /// leaves the matched dive's trip as it is.
+  final String? tripName;
+
   const DuplicateActionCard({
     super.key,
     required this.item,
@@ -71,6 +77,7 @@ class DuplicateActionCard extends StatefulWidget {
     this.plannedDiveLabel,
     this.onChangeFillTarget,
     this.inBatchPartner,
+    this.tripName,
   });
 
   @override
@@ -134,6 +141,9 @@ class _DuplicateActionCardState extends State<DuplicateActionCard> {
                 : null,
             plannedDiveLabel: widget.plannedDiveLabel,
             onChangeFillTarget: widget.onChangeFillTarget,
+            tripName: widget.selectedAction == DuplicateAction.importAsNew
+                ? widget.tripName
+                : null,
           ),
           if (_expanded) _buildExpanded(context, colorScheme),
         ],
@@ -192,6 +202,7 @@ class _CollapsedHeader extends StatelessWidget {
   final int? projectedDiveNumber;
   final String? plannedDiveLabel;
   final VoidCallback? onChangeFillTarget;
+  final String? tripName;
 
   const _CollapsedHeader({
     required this.item,
@@ -203,6 +214,7 @@ class _CollapsedHeader extends StatelessWidget {
     this.projectedDiveNumber,
     this.plannedDiveLabel,
     this.onChangeFillTarget,
+    this.tripName,
   });
 
   @override
@@ -277,6 +289,8 @@ class _CollapsedHeader extends StatelessWidget {
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
+                      if (tripName case final trip?)
+                        ImportTripLine(tripName: trip),
                       if (item.target case final target?)
                         ImportTargetChip(target: target),
                       // A planned-fill row names the dive it fills and offers

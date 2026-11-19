@@ -12,6 +12,7 @@ import 'package:submersion/features/import_wizard/presentation/providers/import_
     show DiveReviewSortField;
 import 'package:submersion/features/import_wizard/presentation/widgets/duplicate_action_card.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/import_target_chip.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/import_trip_line.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/needs_decision_pill.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -93,6 +94,10 @@ class EntityReviewList extends StatefulWidget {
   /// Opens the planned-dive picker for a fill row.
   final void Function(int index)? onChangeFillTarget;
 
+  /// Name of the trip a dive row will be saved in (issue #3022); null for a
+  /// row that joins none or when the caller does not resolve trips.
+  final String? Function(int index)? tripNameForIndex;
+
   const EntityReviewList({
     super.key,
     required this.group,
@@ -113,6 +118,7 @@ class EntityReviewList extends StatefulWidget {
     this.onSortFieldChanged,
     this.plannedDiveLabelForIndex,
     this.onChangeFillTarget,
+    this.tripNameForIndex,
   });
 
   static void _noopBulkAction(DuplicateAction _) {}
@@ -291,6 +297,7 @@ class _EntityReviewListState extends State<EntityReviewList> {
                 _lastToggledIndex = index;
               },
               projectedDiveNumber: widget.projectedDiveNumbers?[index],
+              tripName: widget.tripNameForIndex?.call(index),
             ),
         ],
 
@@ -349,6 +356,7 @@ class _EntityReviewListState extends State<EntityReviewList> {
       isSelected: widget.selectedIndices.contains(index),
       onToggle: () => widget.onToggleSelection(index),
       projectedDiveNumber: widget.projectedDiveNumbers?[index],
+      tripName: widget.tripNameForIndex?.call(index),
     );
   }
 
@@ -376,6 +384,7 @@ class _EntityReviewListState extends State<EntityReviewList> {
         onChangeFillTarget: widget.onChangeFillTarget == null
             ? null
             : () => widget.onChangeFillTarget!(index),
+        tripName: widget.tripNameForIndex?.call(index),
         inBatchPartner: _inBatchPartner(matchResult),
       ),
     );
@@ -622,6 +631,7 @@ class _NonDuplicateRow extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onToggle;
   final int? projectedDiveNumber;
+  final String? tripName;
 
   const _NonDuplicateRow({
     required this.item,
@@ -629,6 +639,7 @@ class _NonDuplicateRow extends StatelessWidget {
     required this.isSelected,
     required this.onToggle,
     this.projectedDiveNumber,
+    this.tripName,
   });
 
   @override
@@ -691,6 +702,7 @@ class _NonDuplicateRow extends StatelessWidget {
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
+                  if (tripName case final trip?) ImportTripLine(tripName: trip),
                   if (item.target case final target?)
                     ImportTargetChip(target: target),
                 ],

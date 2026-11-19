@@ -37733,6 +37733,11 @@ class AppLocalizationsHu extends AppLocalizations {
       'A felvázolt profil lecserélődik.';
 
   @override
+  String universalImport_review_tripLabel(String trip) {
+    return 'Út: $trip';
+  }
+
+  @override
   String get universalImport_fillPlanned_change => 'Módosítás';
 
   @override
