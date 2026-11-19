@@ -35,6 +35,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_centers/data/services/dive_center_edit_save_service.dart';
 import 'package:submersion/features/dive_centers/presentation/editing/dive_center_card_ids.dart';
 import 'package:submersion/features/dive_centers/presentation/editing/dive_center_edit_cards.dart';
+import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_routes.dart';
 import 'package:submersion/features/dive_centers/presentation/editing/dive_center_rental_sitting.dart';
 import 'package:submersion/features/documents/presentation/editing/record_document_links_sitting.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
@@ -112,7 +113,12 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage>
       _hasRedirected = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          context.go('/dive-centers?selected=${widget.centerId}');
+          context.go(
+            diveCenterPaneLocation(
+              widget.centerId,
+              openUnlocked: widget.openUnlocked,
+            ),
+          );
         }
       });
     }

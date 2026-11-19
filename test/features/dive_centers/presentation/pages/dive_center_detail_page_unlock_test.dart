@@ -229,4 +229,60 @@ void main() {
 
     expect(harness.save.calls.single.cards, {'contact', 'rentalGear'});
   });
+
+  group('opening and operations', () {
+    testWidgets('opened with mode=edit, the page is unlocked', (tester) async {
+      await pumpDiveCenterPage(tester, openUnlocked: true);
+
+      expect(find.byType(RecordEditBar), findsOneWidget);
+    });
+
+    testWidgets("the pane's edit opens the page unlocked, Cancel returns to "
+        'view', (tester) async {
+      var ended = 0;
+      await pumpDiveCenterPage(
+        tester,
+        embedded: true,
+        openUnlocked: true,
+        onSittingEnded: () => ended++,
+      );
+      expect(
+        find.text(l.recordEdit_editingTitle('Reef Divers')),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text(l.forms_cancel));
+      await tester.pumpAndSettle();
+
+      expect(ended, 1);
+    });
+
+    testWidgets('locked, Delete is disabled under "Unlock to use these"', (
+      tester,
+    ) async {
+      await pumpDiveCenterPage(tester);
+      await tester.tap(find.byType(PopupMenuButton<String>).first);
+      await tester.pumpAndSettle();
+
+      expect(find.text(l.recordEdit_unlockToUseThese), findsOneWidget);
+      final delete = tester.widget<PopupMenuItem<String>>(
+        find.widgetWithText(PopupMenuItem<String>, l.common_action_delete),
+      );
+      expect(delete.enabled, isFalse);
+    });
+
+    testWidgets('with the switch off, Delete is offered as before', (
+      tester,
+    ) async {
+      await pumpDiveCenterPage(tester, unlockEditing: false);
+      await tester.tap(find.byType(PopupMenuButton<String>).first);
+      await tester.pumpAndSettle();
+
+      expect(find.text(l.recordEdit_unlockToUseThese), findsNothing);
+      final delete = tester.widget<PopupMenuItem<String>>(
+        find.widgetWithText(PopupMenuItem<String>, l.common_action_delete),
+      );
+      expect(delete.enabled, isTrue);
+    });
+  });
 }

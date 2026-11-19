@@ -54,6 +54,7 @@ import 'package:submersion/features/courses/presentation/pages/course_detail_pag
 import 'package:submersion/features/courses/presentation/pages/course_edit_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_detail_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_page.dart';
+import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_routes.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_import_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_list_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_map_page.dart';
@@ -1158,6 +1159,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/dive-centers',
             name: 'diveCenters',
+            onExit: confirmLeaveRecordSitting,
             pageBuilder: (context, state) => NoTransitionPage(
               key: state.pageKey,
               child: const DiveCenterListPage(),
@@ -1181,13 +1183,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: ':centerId',
                 name: 'diveCenterDetail',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => DiveCenterDetailPage(
                   centerId: state.pathParameters['centerId']!,
+                  openUnlocked: state.uri.queryParameters['mode'] == 'edit',
                 ),
                 routes: [
                   GoRoute(
                     path: 'edit',
                     name: 'editDiveCenter',
+                    // Behind phase 3's switch, the page opened unlocked.
+                    redirect: diveCenterEditRedirect,
                     builder: (context, state) => DiveCenterEditPage(
                       centerId: state.pathParameters['centerId'],
                     ),
