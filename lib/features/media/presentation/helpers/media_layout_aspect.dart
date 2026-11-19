@@ -1,10 +1,9 @@
 import 'dart:ui' show Size;
 
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/value_objects/learned_aspect.dart';
 
-/// A displayed aspect ratio (width / height) learned from a decoded
-/// thumbnail, and the stored size it was learned against (issue #4738).
-typedef LearnedAspect = ({double ratio, int? width, int? height});
+export 'package:submersion/features/media/domain/value_objects/learned_aspect.dart';
 
 /// The shape an item is laid out at when its stored size is unknown. Most
 /// underwater cameras and phones shoot 4:3 by default.
