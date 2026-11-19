@@ -245,6 +245,31 @@ void main() {
     });
   });
 
+  // A sitting that unlinked a file may have it picked again (issue #4527).
+  test(
+    'linkedLocalPathsFor leaves out the rows it is told to ignore',
+    () async {
+      final item = await createItem('Reg');
+      final at = DateTime.utc(2026, 11, 3);
+      final row = await media.createMedia(
+        MediaItem(
+          id: '',
+          equipmentId: item.id,
+          localPath: '/Users/me/Pictures/label.jpg',
+          mediaType: MediaType.photo,
+          takenAt: at,
+          createdAt: at,
+          updatedAt: at,
+        ),
+      );
+
+      expect(
+        await repository.linkedLocalPathsFor(item.id, ignoring: {row.id}),
+        isEmpty,
+      );
+    },
+  );
+
   test('gearGallery drops a group whose item no longer exists', () async {
     final reg = await createItem('Reg');
     await addMedia(equipmentId: reg.id);

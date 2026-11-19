@@ -298,6 +298,30 @@ void main() {
       expect(row.isOrphaned, isFalse);
     });
 
+    // A sitting draws a held web photo before Save under the id the row
+    // is then written with, so a choice made on it (a gear item's cover,
+    // issue #4527) names the row Save writes.
+    test('a request carrying an id is written under it', () async {
+      const url = 'https://example.com/a.jpg';
+      await insertDiveRow('d1');
+      final pipeline = NetworkFetchPipeline(
+        db: db,
+        extractor: _StubExtractor(results: {url: _ok(url)}),
+      );
+      final resolved = await pipeline.resolve([Uri.parse(url)]);
+
+      final ids = await pipeline.insertResolved([
+        NetworkInsertRequest(
+          media: resolved.single,
+          diveId: 'd1',
+          id: 'held-1',
+        ),
+      ]);
+
+      expect(ids, ['held-1']);
+      expect((await rowOf('held-1')).url, url);
+    });
+
     test('stamps siteId when the request targets a site', () async {
       const url = 'https://example.com/a.jpg';
       // media.site_id carries a real FK, so the row has to point at a real

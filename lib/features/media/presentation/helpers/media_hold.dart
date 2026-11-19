@@ -31,6 +31,16 @@ final class HeldMediaRow extends HeldMediaAdd {
 final class HeldNetworkMedia extends HeldMediaAdd {
   const HeldNetworkMedia(this.request, this.preview);
 
+  /// [request] held: given an id of its own when it has none, and drawn
+  /// under that id, so a choice made on the photo before Save (a gear
+  /// item's cover) names the row Save writes.
+  factory HeldNetworkMedia.of(NetworkInsertRequest request) {
+    final keyed = request.id == null
+        ? request.withId(const Uuid().v4())
+        : request;
+    return HeldNetworkMedia(keyed, networkPreview(keyed));
+  }
+
   final NetworkInsertRequest request;
 
   @override
@@ -41,12 +51,13 @@ final class HeldNetworkMedia extends HeldMediaAdd {
 typedef MediaHoldSink = void Function(List<HeldMediaAdd> adds);
 
 /// The row [request] becomes, drawn before it is written: a network
-/// photo under a fresh id, at the time the fetch found for it.
+/// photo under the request's id, else a fresh one, at the time the fetch
+/// found for it.
 MediaItem networkPreview(NetworkInsertRequest request) {
   final media = request.media;
   final now = DateTime.now();
   return MediaItem(
-    id: const Uuid().v4(),
+    id: request.id ?? const Uuid().v4(),
     diveId: request.diveId,
     siteId: request.siteId,
     mediaType: MediaType.photo,

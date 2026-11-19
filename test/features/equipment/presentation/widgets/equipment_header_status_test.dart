@@ -75,6 +75,7 @@ void main() {
       WidgetTester tester,
       EquipmentItem item, {
       EquipmentRepository? repo,
+      bool offerPurchase = true,
     }) async {
       final overrides = await getBaseOverrides();
       await tester.pumpWidget(
@@ -87,7 +88,12 @@ void main() {
             locale: const Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(body: EquipmentHeaderStatus(item: item)),
+            home: Scaffold(
+              body: EquipmentHeaderStatus(
+                item: item,
+                offerPurchase: offerPurchase,
+              ),
+            ),
           ),
         ),
       );
@@ -142,6 +148,18 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.textContaining('database locked'), findsOneWidget);
       expect(find.text('Moved to your active gear'), findsNothing);
+    });
+
+    testWidgets('where the page edits in place, wanted gear offers no '
+        'purchase', (tester) async {
+      await pump(
+        tester,
+        _item(EquipmentStatus.wanted, isActive: false),
+        offerPurchase: false,
+      );
+
+      expect(find.text('Wanted'), findsOneWidget);
+      expect(find.text('Mark as purchased'), findsNothing);
     });
 
     testWidgets('active gear renders nothing', (tester) async {

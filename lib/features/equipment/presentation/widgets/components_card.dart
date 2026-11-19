@@ -33,7 +33,16 @@ import 'package:submersion/l10n/l10n_extension.dart';
 class ComponentsCard extends ConsumerWidget {
   final String equipmentId;
 
-  const ComponentsCard({super.key, required this.equipmentId});
+  /// Offers no action, keeping the links to the parts: the item page edits
+  /// in place, and its components are not yet held in its sitting (issue
+  /// #4527, phase 3).
+  final bool readOnly;
+
+  const ComponentsCard({
+    super.key,
+    required this.equipmentId,
+    this.readOnly = false,
+  });
 
   Future<void> _editRole(
     BuildContext context,
@@ -119,12 +128,13 @@ class ComponentsCard extends ConsumerWidget {
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const Spacer(),
-                TextButton.icon(
-                  onPressed: () =>
-                      showComponentPicker(context, parentId: equipmentId),
-                  icon: const Icon(Icons.add),
-                  label: Text(l10n.equipment_components_add),
-                ),
+                if (!readOnly)
+                  TextButton.icon(
+                    onPressed: () =>
+                        showComponentPicker(context, parentId: equipmentId),
+                    icon: const Icon(Icons.add),
+                    label: Text(l10n.equipment_components_add),
+                  ),
               ],
             ),
             const Divider(),
@@ -174,6 +184,7 @@ class ComponentsCard extends ConsumerWidget {
                 ], shownWith: (item) => roles[item.id] ?? '');
                 return _ComponentsList(
                   parts: parts,
+                  readOnly: readOnly,
                   detailsFor: (part) =>
                       labels[part.componentEquipmentId]?.subtitleParts ??
                       const [],
@@ -214,6 +225,7 @@ String _roleText(EquipmentComponent part, AppLocalizations l10n) =>
 /// would otherwise snap it back for up to 300 ms before catching up.
 class _ComponentsList extends StatefulWidget {
   final List<EquipmentComponent> parts;
+  final bool readOnly;
   final List<String> Function(EquipmentComponent part) detailsFor;
   final Color Function(EquipmentComponent part) dotColorFor;
   final void Function(EquipmentComponent part) onEditRole;
@@ -223,6 +235,7 @@ class _ComponentsList extends StatefulWidget {
 
   const _ComponentsList({
     required this.parts,
+    required this.readOnly,
     required this.detailsFor,
     required this.dotColorFor,
     required this.onEditRole,
@@ -271,6 +284,7 @@ class _ComponentsListState extends State<_ComponentsList> {
             part: part,
             details: widget.detailsFor(part),
             dotColor: widget.dotColorFor(part),
+            readOnly: widget.readOnly,
             onEditRole: () => widget.onEditRole(part),
             onReplace: () => widget.onReplace(part),
             onRemove: () => widget.onRemove(part),
@@ -288,6 +302,7 @@ class _PartTile extends StatelessWidget {
   /// labels; they follow the role so the row still says what the part does.
   final List<String> details;
   final Color dotColor;
+  final bool readOnly;
   final VoidCallback onEditRole;
   final VoidCallback onReplace;
   final VoidCallback onRemove;
@@ -298,6 +313,7 @@ class _PartTile extends StatelessWidget {
     required this.part,
     required this.details,
     required this.dotColor,
+    required this.readOnly,
     required this.onEditRole,
     required this.onReplace,
     required this.onRemove,
@@ -344,33 +360,35 @@ class _PartTile extends StatelessWidget {
         ],
       ),
       onTap: () => context.push('/equipment/${part.componentEquipmentId}'),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.edit_outlined),
-            tooltip: l10n.equipment_components_editRole,
-            onPressed: onEditRole,
-          ),
-          IconButton(
-            icon: const Icon(Icons.swap_horiz),
-            tooltip: l10n.equipment_components_replace,
-            onPressed: onReplace,
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline),
-            tooltip: l10n.equipment_components_remove,
-            onPressed: onRemove,
-          ),
-          ReorderableDragStartListener(
-            index: index,
-            child: Tooltip(
-              message: l10n.equipment_components_reorder,
-              child: const Icon(Icons.drag_handle),
+      trailing: readOnly
+          ? null
+          : Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined),
+                  tooltip: l10n.equipment_components_editRole,
+                  onPressed: onEditRole,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.swap_horiz),
+                  tooltip: l10n.equipment_components_replace,
+                  onPressed: onReplace,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline),
+                  tooltip: l10n.equipment_components_remove,
+                  onPressed: onRemove,
+                ),
+                ReorderableDragStartListener(
+                  index: index,
+                  child: Tooltip(
+                    message: l10n.equipment_components_reorder,
+                    child: const Icon(Icons.drag_handle),
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
     );
   }
 }

@@ -13,6 +13,7 @@ import 'package:submersion/features/species_id/domain/entities/dive_species_run_
 import 'package:submersion/features/species_id/domain/entities/species_review.dart';
 import 'package:submersion/features/species_id/domain/services/auto_apply_rules.dart';
 import 'package:submersion/features/species_id/presentation/providers/dive_species_run_providers.dart';
+import 'package:submersion/features/species_id/presentation/providers/species_download_prompt_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_review_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -32,6 +33,16 @@ bool diveFindSpeciesWanted(WidgetRef ref, Dive dive) {
 bool _canFind(WidgetRef ref, Dive dive) {
   if (!marineLifeIdEnabled) return false;
   if (ref.watch(installedSpeciesPackProvider).value == null) return false;
+  return _hasPhotosOrVideos(ref, dive);
+}
+
+/// Whether the dive's Marine life card offers the model download (issue
+/// #4773): the offer is wanted, and the dive has photos or videos it could
+/// look at.
+bool diveDownloadPromptWanted(WidgetRef ref, Dive dive) =>
+    ref.watch(speciesDownloadPromptProvider) && _hasPhotosOrVideos(ref, dive);
+
+bool _hasPhotosOrVideos(WidgetRef ref, Dive dive) {
   final media = ref.watch(mediaForDiveProvider(dive.id)).value ?? const [];
   return media.any(
     (m) => m.mediaType == MediaType.photo || m.mediaType == MediaType.video,

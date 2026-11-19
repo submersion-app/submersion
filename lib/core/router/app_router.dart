@@ -89,6 +89,7 @@ import 'package:submersion/features/dive_sites/presentation/pages/site_match_rev
 import 'package:submersion/features/equipment/presentation/pages/equipment_list_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_detail_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_edit_page.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_edit_routes.dart';
 import 'package:submersion/features/cylinder_configs/presentation/pages/cylinder_config_edit_page.dart';
 import 'package:submersion/features/cylinder_configs/presentation/pages/cylinder_config_list_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_list_page.dart';
@@ -767,8 +768,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/equipment',
             name: 'equipment',
-            // A sitting in the sets pane, or on a page pushed above it, is
-            // asked about before a tab or a link goes (issue #4527).
+            // A sitting in the gear or sets pane, or on a page pushed above
+            // it, is asked about before a tab or a link goes (issue #4527).
             onExit: confirmLeaveRecordSitting,
             pageBuilder: (context, state) => NoTransitionPage(
               key: state.pageKey,
@@ -896,13 +897,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: ':equipmentId',
                 name: 'equipmentDetail',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => EquipmentDetailPage(
                   equipmentId: state.pathParameters['equipmentId']!,
+                  openUnlocked: state.uri.queryParameters['mode'] == 'edit',
                 ),
                 routes: [
                   GoRoute(
                     path: 'edit',
                     name: 'editEquipment',
+                    // Behind phase 3's switch, the page opened unlocked.
+                    redirect: gearItemEditRedirect,
                     builder: (context, state) => EquipmentEditPage(
                       equipmentId: state.pathParameters['equipmentId'],
                     ),

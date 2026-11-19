@@ -16595,6 +16595,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get equipment_serviceClocks_remove => 'Eliminar';
 
   @override
+  String equipment_serviceClocks_remindersOwn(String days) {
+    return 'Recordatorios antes del vencimiento: $days';
+  }
+
+  @override
+  String get equipment_serviceClocks_remindersOff =>
+      'Sin recordatorios para este equipo';
+
+  @override
   String get equipment_serviceClocks_paused => 'En pausa';
 
   @override
@@ -29304,11 +29313,22 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_photosVideos_title => 'Fotos y vídeos';
 
   @override
-  String get settings_speciesId_title => 'Identificación de vida marina';
+  String get settings_speciesId_title => 'Identificación de especies';
 
   @override
   String get settings_speciesId_entrySubtitle =>
       'Encuentra peces en tus fotos y vídeos y sugiere qué especie son';
+
+  @override
+  String get speciesId_downloadPrompt_title =>
+      'Identifica los peces de tus fotos y vídeos';
+
+  @override
+  String get speciesId_downloadPrompt_subtitle =>
+      'Descarga el modelo de identificación de especies para recibir sugerencias';
+
+  @override
+  String get speciesId_downloadPrompt_dismiss => 'No volver a mostrar';
 
   @override
   String get settings_speciesId_intro =>
@@ -29479,7 +29499,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_speciesId_unsupported =>
-      'La identificación de vida marina aún no está disponible en este dispositivo.';
+      'La identificación de especies aún no está disponible en este dispositivo.';
 
   @override
   String get settings_speciesId_notEligible =>
@@ -62339,6 +62359,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_photos_sourcesHeader => 'De dónde vienen las fotos';
 
   @override
+  String get settings_photos_speciesHeader => 'Especies';
+
+  @override
   String get settings_photos_library => 'Fototeca y archivos';
 
   @override
@@ -63792,7 +63815,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get changeLog_label_mediaRepair => 'Enlaces multimedia reparados';
 
   @override
-  String get changeLog_label_marineLifeId => 'Identificación de vida marina';
+  String get changeLog_label_marineLifeId => 'Identificación de especies';
 
   @override
   String get changeLog_label_speciesReview => 'Revisión de especies';

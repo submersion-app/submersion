@@ -189,6 +189,30 @@ void main() {
     expect(list.loaded(session), isNull);
   });
 
+  // A list whose write needs what the sitting keeps beside its rows, such
+  // as the writers its photos go through (issue #4527, phase 3, plan 6).
+  test('a list written with its sitting is handed the session', () async {
+    EditSession<String>? handed;
+    final list = SittingList<String, String>.withSession(
+      key: 'withSession',
+      cardId: 'card',
+      read: (record) async => stored,
+      writeIn: (session, loaded, current) async {
+        handed = session;
+        writes.add((record: session.working, loaded: loaded, current: current));
+        return true;
+      },
+    );
+    await list.load(session);
+    list.set(session, ['a']);
+
+    await session.runHeldWrites();
+
+    expect(identical(handed, session), isTrue);
+    expect(writes.single.current, ['a']);
+    expect(list.wroteChange(session), isTrue);
+  });
+
   test('set before the load does nothing', () {
     final list = rows();
     list.set(session, ['a']);

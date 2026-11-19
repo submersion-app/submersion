@@ -20,6 +20,21 @@ void main() {
     expect(a.id, isNot(b.id));
   });
 
+  // Issue #4527, plan 6: a choice made on a held web photo (a gear item's
+  // cover) must name the row Save writes, so the request carries the id
+  // the photo is drawn with.
+  test('a held network photo is written under the id it is drawn with', () {
+    final request = NetworkInsertRequest(
+      media: ResolvedNetworkMedia(uri: Uri.parse('https://x.test/a.jpg')),
+      equipmentId: 'g1',
+    );
+    final held = HeldNetworkMedia.of(request);
+    expect(held.request.id, isNotNull);
+    expect(held.preview.id, held.request.id);
+    expect(held.request.equipmentId, 'g1');
+    expect(HeldNetworkMedia.of(request).request.id, isNot(held.request.id));
+  });
+
   testWidgets('the scope hands the tabs its sink; with none, nothing', (
     tester,
   ) async {

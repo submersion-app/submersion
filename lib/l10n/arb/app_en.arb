@@ -9971,6 +9971,19 @@
   "equipment_serviceClocks_pause": "Pause",
   "equipment_serviceClocks_resume": "Resume",
   "equipment_serviceClocks_remove": "Remove",
+  "equipment_serviceClocks_remindersOwn": "Reminders before due: {days}",
+  "@equipment_serviceClocks_remindersOwn": {
+    "description": "A row on a gear item's Service clocks card when the item has reminder days of its own. days is the list of reminder lead times, such as \"7 days, 30 days\".",
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_remindersOff": "No reminders for this item",
+  "@equipment_serviceClocks_remindersOff": {
+    "description": "A row on a gear item's Service clocks card when service reminders are turned off for that item."
+  },
   "equipment_serviceClocks_paused": "Paused",
   "equipment_serviceClocks_empty": "No service clocks",
   "equipment_serviceClocks_unconfigured": "No interval set - tap to configure",
@@ -17257,8 +17270,11 @@
   "settings_sync_title": "Sync between devices",
   "settings_backups_title": "Backups",
   "settings_photosVideos_title": "Photos & videos",
-  "settings_speciesId_title": "Marine life identification",
+  "settings_speciesId_title": "Species identification",
   "settings_speciesId_entrySubtitle": "Find fish in your photos and videos and suggest what they are",
+  "speciesId_downloadPrompt_title": "Identify fish in your photos and videos",
+  "speciesId_downloadPrompt_subtitle": "Download the species identification model to get suggestions",
+  "speciesId_downloadPrompt_dismiss": "Don't show again",
   "settings_speciesId_intro": "Finds fish in your photos and videos and suggests what they are. Runs on this device. Your photos and videos never leave it.",
   "settings_speciesId_model": "Model",
   "settings_speciesId_modelNotDownloaded": "Not downloaded",
@@ -17318,7 +17334,7 @@
   "settings_speciesId_clearConfirmTitle": "Clear all suggestions?",
   "settings_speciesId_clearConfirmBody": "This removes every suggestion and its cropped image. Species you have tagged are not affected.",
   "settings_speciesId_credits": "Credits and licences",
-  "settings_speciesId_unsupported": "Marine life identification is not available on this device yet.",
+  "settings_speciesId_unsupported": "Species identification is not available on this device yet.",
   "settings_speciesId_notEligible": "This device does not have enough memory to run the model.",
   "settings_section_data_tagline": "Backups, sync and photos",
   "settings_data_backups_status_never": "Not backed up yet",
@@ -37163,6 +37179,8 @@
   "@settings_photos_uploads": {"description": "Row and page title: the list of photo uploads (today's Transfers)"},
   "settings_photos_sourcesHeader": "Where photos come from",
   "@settings_photos_sourcesHeader": {"description": "Photos & videos: header over where photos are linked from"},
+  "settings_photos_speciesHeader": "Species",
+  "@settings_photos_speciesHeader": {"description": "Photos & videos: header over species identification (issue #4773)"},
   "settings_photos_library": "Photo library and files",
   "@settings_photos_library": {"description": "Row: the photo library and files a diver links photos from"},
   "settings_photos_quality": "Upload quality",
@@ -37762,7 +37780,7 @@
   },
   "changeLog_label_gearTransfer": "Transferred gear",
   "changeLog_label_mediaRepair": "Repaired media links",
-  "changeLog_label_marineLifeId": "Marine life identification",
+  "changeLog_label_marineLifeId": "Species identification",
   "changeLog_label_speciesReview": "Species review",
   "changeLog_label_gearFileConversion": "Moved gear files to Documents",
   "changeLog_label_galleryBackfill": "Linked photos to cloud copies",

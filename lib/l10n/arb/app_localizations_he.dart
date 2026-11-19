@@ -16257,6 +16257,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_serviceClocks_remove => 'הסרה';
 
   @override
+  String equipment_serviceClocks_remindersOwn(String days) {
+    return 'תזכורות לפני מועד השירות: $days';
+  }
+
+  @override
+  String get equipment_serviceClocks_remindersOff => 'אין תזכורות לפריט זה';
+
+  @override
   String get equipment_serviceClocks_paused => 'מושהה';
 
   @override
@@ -28564,11 +28572,22 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_photosVideos_title => 'תמונות וסרטונים';
 
   @override
-  String get settings_speciesId_title => 'זיהוי חיים ימיים';
+  String get settings_speciesId_title => 'זיהוי מינים';
 
   @override
   String get settings_speciesId_entrySubtitle =>
       'מציאת דגים בתמונות ובסרטונים שלך והצעת המין';
+
+  @override
+  String get speciesId_downloadPrompt_title =>
+      'זיהוי הדגים בתמונות ובסרטונים שלך';
+
+  @override
+  String get speciesId_downloadPrompt_subtitle =>
+      'יש להוריד את מודל זיהוי המינים כדי לקבל הצעות';
+
+  @override
+  String get speciesId_downloadPrompt_dismiss => 'לא להציג שוב';
 
   @override
   String get settings_speciesId_intro =>
@@ -28733,7 +28752,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_speciesId_unsupported =>
-      'זיהוי חיים ימיים עדיין לא זמין במכשיר הזה.';
+      'זיהוי מינים עדיין לא זמין במכשיר הזה.';
 
   @override
   String get settings_speciesId_notEligible =>
@@ -60992,6 +61011,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_photos_sourcesHeader => 'מאיפה מגיעות התמונות';
 
   @override
+  String get settings_photos_speciesHeader => 'מינים';
+
+  @override
   String get settings_photos_library => 'ספריית התמונות וקבצים';
 
   @override
@@ -62420,7 +62442,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get changeLog_label_mediaRepair => 'קישורי מדיה תוקנו';
 
   @override
-  String get changeLog_label_marineLifeId => 'זיהוי חיים ימיים';
+  String get changeLog_label_marineLifeId => 'זיהוי מינים';
 
   @override
   String get changeLog_label_speciesReview => 'בדיקת מינים';

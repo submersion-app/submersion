@@ -287,6 +287,20 @@ class FilesTab extends ConsumerWidget {
       navigator.pop();
       return;
     }
+    // Opened from a sitting on a gear item (issue #4527, phase 3, plan 6):
+    // every file is the item's, or its check-in's, held until Save.
+    final gear = target;
+    if (hold != null && gear is EquipmentAttachTarget) {
+      final rows = await notifier.heldEquipmentRows(
+        gear.equipmentId,
+        observationId: gear.observationId,
+      );
+      hold([
+        for (final row in rows) HeldMediaRow((item: row, enrichment: null)),
+      ]);
+      navigator.pop();
+      return;
+    }
     // commit() clears the staged state, so snapshot the dives first.
     final diveIds = ref
         .read(filesTabNotifierProvider)

@@ -27,9 +27,26 @@ class SittingList<T, E> {
     required this.key,
     required this.cardId,
     required this.read,
-    required this.write,
+    required Future<Object?> Function(T record, List<E> loaded, List<E> current)
+    this.write,
     this.same,
-  });
+  }) : writeIn = null;
+
+  /// A list whose write is handed the sitting itself ([writeIn]), for one
+  /// that needs what the sitting keeps beside its rows: the writers its
+  /// rows' photos go through, say.
+  const SittingList.withSession({
+    required this.key,
+    required this.cardId,
+    required this.read,
+    required Future<Object?> Function(
+      EditSession<T> session,
+      List<E> loaded,
+      List<E> current,
+    )
+    this.writeIn,
+    this.same,
+  }) : write = null;
 
   /// The held change's key, and the prefix of the notes this list keeps.
   final String key;
@@ -44,8 +61,16 @@ class SittingList<T, E> {
   /// rows in [loaded] missing from [current] go, changed ones are updated,
   /// new ones added. [record] is the sitting's working record. It may answer
   /// whether it changed any row ([wroteChange]); null says nothing.
-  final Future<Object?> Function(T record, List<E> loaded, List<E> current)
+  final Future<Object?> Function(T record, List<E> loaded, List<E> current)?
   write;
+
+  /// [write], handed the sitting rather than its working record.
+  final Future<Object?> Function(
+    EditSession<T> session,
+    List<E> loaded,
+    List<E> current,
+  )?
+  writeIn;
 
   /// Whether two lists are the same change. Null is [listEquals].
   final bool Function(List<E> a, List<E> b)? same;
@@ -205,11 +230,12 @@ class SittingList<T, E> {
         key,
         cardId: cardId,
         write: () async {
-          final wrote = await write(
-            session.working,
-            loaded(session) ?? const [],
-            current(session) ?? const [],
-          );
+          final rows = loaded(session) ?? const [];
+          final next = current(session) ?? const [];
+          final writeIn = this.writeIn;
+          final wrote = writeIn != null
+              ? await writeIn(session, rows, next)
+              : await write!(session.working, rows, next);
           if (!session.isDisposed) {
             session.remember(_wroteKey, wrote is bool ? wrote : null);
           }
