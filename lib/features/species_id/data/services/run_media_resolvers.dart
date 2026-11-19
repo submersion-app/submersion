@@ -15,15 +15,19 @@ Future<int> notOnDeviceCount(
   Set<String> checked = const {},
 }) async {
   final exists = fileExists ?? (path) => File(path).existsSync();
-  var missing = 0;
-  for (final item in items) {
-    if (checked.contains(item.id)) continue;
-    if (item.platformAssetId != null) {
-      if (!await libraryOriginalHere(item)) missing++;
-      continue;
-    }
+  final toOpen = [
+    for (final item in items)
+      if (!checked.contains(item.id)) item,
+  ];
+  // Library items are asked together: each may search the library first.
+  final libraryHere = await Future.wait([
+    for (final item in toOpen)
+      if (item.platformAssetId != null) libraryOriginalHere(item),
+  ]);
+  final filesMissing = toOpen.where((item) {
+    if (item.platformAssetId != null) return false;
     final path = item.localPath;
-    if (path == null || path.isEmpty || !exists(path)) missing++;
-  }
-  return missing;
+    return path == null || path.isEmpty || !exists(path);
+  }).length;
+  return filesMissing + libraryHere.where((here) => !here).length;
 }

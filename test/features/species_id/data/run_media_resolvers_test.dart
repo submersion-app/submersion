@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/species_id/data/services/run_media_resolvers.dart';
@@ -48,5 +50,22 @@ void main() {
       checked: const {'b', 'e'},
     );
     expect(count, 1);
+  });
+
+  test('library items are checked together, not one after another', () async {
+    final asked = <String>[];
+    final answer = Completer<bool>();
+    final count = notOnDeviceCount(
+      [item('a', asset: 'PH-1'), item('b', asset: 'PH-2')],
+      libraryOriginalHere: (m) {
+        asked.add(m.id);
+        return answer.future;
+      },
+    );
+    await pumpEventQueue();
+
+    expect(asked, ['a', 'b']);
+    answer.complete(false);
+    expect(await count, 2);
   });
 }
