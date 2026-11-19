@@ -6,7 +6,9 @@ import 'dart:math' as math;
 
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
+import 'package:submersion/features/species_id/domain/entities/video_detections.dart';
 import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
+import 'package:submersion/features/species_id/domain/services/species_namer.dart';
 import 'package:submersion/features/species_id/domain/services/track_labels.dart';
 import 'package:submersion/features/species_id/domain/services/video_tracker.dart';
 
@@ -163,6 +165,71 @@ MediaIdentification keepDecisionOnRename({
     at: before.decidedAt,
     claim: before.claimedSpeciesId,
   );
+}
+
+/// The worth ([momentWorth]) a stored track was named at, as far as its row
+/// tells: its best sampled box at its detector score. A scan compares new
+/// views with its detector's best view ([namesNow]), but the row shows the
+/// view that named it ([chooseNamingView]), which may be another (issue
+/// #4736); a resumed scan reading the shown box would name it again more
+/// readily than an unbroken one.
+double storedWorth(MediaIdentification row) {
+  double worth(IdentificationBox box) =>
+      momentWorth(DetectedBox(box: box, score: row.detectorScore));
+  return [
+    worth(row.box),
+    for (final s in row.path) worth(s.box),
+  ].reduce(math.max);
+}
+
+/// Which of a track's [views] (each of its best moments that could be
+/// cropped, named on its own) names the track, and whether it may be
+/// suggested; null when no view has names.
+///
+/// The view whose name is most decided, by its open score, names it; on a
+/// tie, the first, the detector's best view among those cropped. Each view
+/// is named
+/// as a photo's crop is, so its scores are on the scale the bars were
+/// measured on; an average of the views' embeddings never was, and one
+/// poor view in it pulled every score down. Taking the best of several
+/// views would also let more wrong names through, so with two or more
+/// usable views the chosen one is suggested only when another view's best
+/// name is the same species. A single usable view is judged as a photo is.
+/// A view with no names (an unusable embedding) neither names nor agrees.
+({int index, bool suggestable})? chooseNamingView(List<NamingResult> views) {
+  int? chosen;
+  for (var k = 0; k < views.length; k++) {
+    if (views[k].candidates.isEmpty) continue;
+    if (chosen == null || views[k].openScore > views[chosen].openScore) {
+      chosen = k;
+    }
+  }
+  if (chosen == null) return null;
+  final pick = views[chosen];
+  final others = [
+    for (var k = 0; k < views.length; k++)
+      if (k != chosen && views[k].candidates.isNotEmpty) views[k],
+  ];
+  final agreed =
+      others.isEmpty ||
+      others.any((v) => _sameName(v.candidates.first, pick.candidates.first));
+  return (index: chosen, suggestable: pick.suggestable && agreed);
+}
+
+/// Whether [renamed], a stored identification named again from its stored
+/// embedding for a new pack or place, may be suggested. A photo goes by the
+/// bars. A video track was stored from one view, so whether another view
+/// agrees with a new name cannot be told: it keeps a suggestion only when
+/// it had one under the same name. A changed name stays unsuggested until
+/// the video is scanned again, which a rename never asks for: only a new
+/// detector, classifier or tracker does.
+bool suggestableOnRename({
+  required MediaIdentification before,
+  required MediaIdentification renamed,
+}) {
+  if (!renamed.suggestable) return false;
+  if (!before.isTrack) return true;
+  return before.suggestable && _sameName(before.top, renamed.top);
 }
 
 bool _sameName(NamedCandidate? a, NamedCandidate? b) {
