@@ -73,9 +73,9 @@ void main() {
       scientificName: 'Clepticus parrae',
       category: SpeciesCategory.fish,
     );
-    final tagHlc = Hlc(1700, 0, 'dev-a').toString();
-    final before = Hlc(1600, 0, 'dev-a').toString();
-    final after = Hlc(1800, 0, 'dev-b').toString();
+    final tagHlc = const Hlc(1700, 0, 'dev-a').toString();
+    final before = const Hlc(1600, 0, 'dev-a').toString();
+    final after = const Hlc(1800, 0, 'dev-b').toString();
 
     test('removes a species unused and unwritten since the tag', () {
       expect(

@@ -11,7 +11,6 @@ import 'package:submersion/features/species_id/data/repositories/identification_
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
 import 'package:submersion/features/species_id/data/services/media_identification_service.dart';
-import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
 
 import '../../../helpers/temp_dir.dart';
 import 'fake_vision_engine.dart';

@@ -29180,29 +29180,30 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_speciesId_autoApply =>
-      'Tag confident matches automatically';
+      'Biztos találatok automatikus címkézése';
 
   @override
   String get settings_speciesId_autoApplyDescription =>
-      'The app adds a species tag when it is sure of a match. You confirm each one in Species to review.';
+      'Az alkalmazás fajcímkét ad hozzá, ha biztos egy találatban. Mindegyiket az Ellenőrizendő fajok között erősíted meg.';
 
   @override
   String get settings_speciesId_autoApplyNever =>
-      'The installed model isn\'t yet sure enough of any species to tag on its own. Suggestions still appear for you to add.';
+      'A telepített modell egyetlen fajban sem elég biztos még ahhoz, hogy magától címkézzen. A javaslatok továbbra is megjelennek, hogy hozzáadhasd őket.';
 
   @override
   String get settings_speciesId_autoApplyPlaceOnly =>
-      'Only for photos and videos with a location.';
+      'Csak helyadattal rendelkező fotókhoz és videókhoz.';
 
   @override
   String get settings_speciesId_sightingTiming =>
-      'Log sightings for these tags';
+      'Megfigyelések rögzítése ezekhez a címkékhez';
 
   @override
-  String get settings_speciesId_sightingOnConfirm => 'When I confirm the tag';
+  String get settings_speciesId_sightingOnConfirm =>
+      'Amikor megerősítem a címkét';
 
   @override
-  String get settings_speciesId_sightingStraightAway => 'Straight away';
+  String get settings_speciesId_sightingStraightAway => 'Azonnal';
 
   @override
   String get settings_speciesId_kept => 'Ezen az eszközön tárolt javaslatok';
@@ -55966,36 +55967,37 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String media_species_unconfirmedLabel(String name) {
-    return '$name, tagged by the app, not yet confirmed';
+    return '$name, az alkalmazás címkézte, még nincs megerősítve';
   }
 
   @override
-  String get media_species_confirm => 'Confirm';
+  String get media_species_confirm => 'Megerősítés';
 
   @override
-  String get speciesReview_title => 'Species to review';
+  String get speciesReview_title => 'Ellenőrizendő fajok';
 
   @override
-  String get speciesReview_tagged => 'Tagged by the app, not yet confirmed';
+  String get speciesReview_tagged =>
+      'Az alkalmazás címkézte, még nincs megerősítve';
 
   @override
-  String get speciesReview_suggested => 'Suggested';
+  String get speciesReview_suggested => 'Javasolt';
 
   @override
-  String get speciesReview_confirm => 'Confirm';
+  String get speciesReview_confirm => 'Megerősítés';
 
   @override
-  String get speciesReview_remove => 'Remove';
+  String get speciesReview_remove => 'Eltávolítás';
 
   @override
-  String get speciesReview_confirmAll => 'Confirm all';
+  String get speciesReview_confirmAll => 'Összes megerősítése';
 
   @override
-  String get speciesReview_add => 'Add';
+  String get speciesReview_add => 'Hozzáadás';
 
   @override
   String speciesReview_dismiss(String name) {
-    return 'Dismiss $name';
+    return '$name elvetése';
   }
 
   @override
@@ -56003,8 +56005,8 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'on $count photos',
-      one: 'on 1 photo',
+      other: '$count fotón',
+      one: '1 fotón',
     );
     return '$_temp0';
   }
@@ -56014,84 +56016,84 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'on $count videos',
-      one: 'on 1 video',
+      other: '$count videóban',
+      one: '1 videóban',
     );
     return '$_temp0';
   }
 
   @override
   String speciesReview_onPhotosAndVideos(int count) {
-    return 'on $count photos and videos';
+    return '$count fotón és videóban';
   }
 
   @override
   String speciesReview_mixed(int tagged, int suggested) {
-    return '($tagged tagged, $suggested suggested)';
+    return '($tagged címkézve, $suggested javasolva)';
   }
 
   @override
-  String get speciesReview_itemTagged => 'Tagged by the app';
+  String get speciesReview_itemTagged => 'Az alkalmazás címkézte';
 
   @override
-  String get speciesReview_itemSuggested => 'Suggested';
+  String get speciesReview_itemSuggested => 'Javasolt';
 
   @override
-  String get speciesReview_confirmed => 'Confirmed';
+  String get speciesReview_confirmed => 'Megerősítve';
 
   @override
-  String get speciesReview_removed => 'Removed';
+  String get speciesReview_removed => 'Eltávolítva';
 
   @override
-  String get speciesReview_added => 'Added';
+  String get speciesReview_added => 'Hozzáadva';
 
   @override
-  String get speciesReview_dismissed => 'Dismissed';
+  String get speciesReview_dismissed => 'Elvetve';
 
   @override
-  String get speciesReview_undo => 'Undo';
+  String get speciesReview_undo => 'Visszavonás';
 
   @override
   String speciesReview_diveNumber(int number) {
-    return 'Dive $number';
+    return '$number. merülés';
   }
 
   @override
-  String get speciesReview_sitePhotos => 'Site photos';
+  String get speciesReview_sitePhotos => 'A merülőhely fotói';
 
   @override
-  String get speciesReview_otherPhotos => 'Other photos';
+  String get speciesReview_otherPhotos => 'További fotók';
 
   @override
-  String get speciesReview_nothing => 'Nothing to review';
+  String get speciesReview_nothing => 'Nincs mit ellenőrizni';
 
   @override
-  String get speciesReview_find => 'Find species in photos';
+  String get speciesReview_find => 'Fajok keresése a fotókon';
 
   @override
   String speciesReview_finding(int done, int total) {
-    return 'Finding species: $done of $total';
+    return 'Fajok keresése: $done / $total';
   }
 
   @override
-  String get speciesReview_waiting => 'Waiting for another dive\'s search';
+  String get speciesReview_waiting => 'Egy másik merülés keresésére vár';
 
   @override
-  String get speciesReview_pausedHot => 'Paused: device too warm';
+  String get speciesReview_pausedHot => 'Szüneteltetve: az eszköz túl meleg';
 
   @override
-  String get speciesReview_resume => 'Resume';
+  String get speciesReview_resume => 'Folytatás';
 
   @override
-  String get speciesReview_allChecked => 'All photos checked';
+  String get speciesReview_allChecked => 'Minden fotó ellenőrizve';
 
   @override
   String speciesReview_count(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count species to review',
-      one: '1 species to review',
+      other: '$count ellenőrizendő faj',
+      one: '1 ellenőrizendő faj',
     );
     return '$_temp0';
   }
@@ -56102,15 +56104,14 @@ class AppLocalizationsHu extends AppLocalizations {
       count,
       locale: localeName,
       other:
-          '$count photos and videos aren\'t on this device. Finding species will download them.',
-      one:
-          '1 photo or video isn\'t on this device. Finding species will download it.',
+          '$count fotó és videó nincs ezen az eszközön. A fajkeresés letölti őket.',
+      one: '1 fotó vagy videó nincs ezen az eszközön. A fajkeresés letölti.',
     );
     return '$_temp0';
   }
 
   @override
-  String get speciesReview_downloadAndFind => 'Download and find';
+  String get speciesReview_downloadAndFind => 'Letöltés és keresés';
 
   @override
   String speciesReview_summary(
@@ -56119,7 +56120,7 @@ class AppLocalizationsHu extends AppLocalizations {
     int tagged,
     int toReview,
   ) {
-    return 'Checked $photos photos and $videos videos. Tagged $tagged species; $toReview to review.';
+    return '$photos fotó és $videos videó ellenőrizve. $tagged faj címkézve; $toReview ellenőrizendő.';
   }
 
   @override
@@ -56127,15 +56128,15 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count could not be opened.',
-      one: '1 could not be opened.',
+      other: '$count nem nyitható meg.',
+      one: '1 nem nyitható meg.',
     );
     return '$_temp0';
   }
 
   @override
   String media_species_confirmTag(String name) {
-    return 'Confirm $name';
+    return '$name megerősítése';
   }
 
   @override
@@ -63180,10 +63181,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get changeLog_label_mediaRepair => 'Médiahivatkozások javítva';
 
   @override
-  String get changeLog_label_marineLifeId => 'Marine life identification';
+  String get changeLog_label_marineLifeId => 'Tengeri élőlények felismerése';
 
   @override
-  String get changeLog_label_speciesReview => 'Species review';
+  String get changeLog_label_speciesReview => 'Fajok ellenőrzése';
 
   @override
   String get changeLog_label_gearFileConversion =>

@@ -53,6 +53,9 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
   Completer<void>? _resumed;
   bool _disposed = false;
 
+  /// [diveId]'s run, or null when it has none.
+  DiveSpeciesRunState? stateOf(String diveId) => state[diveId];
+
   /// Starts a run for [diveId], or queues it behind the one running.
   /// Completes when that dive's run ends.
   Future<void> start(String diveId) {

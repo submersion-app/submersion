@@ -279,6 +279,45 @@ flutter run -d macos --dart-define=SPECIES_PACK_MANIFEST_URL=http://localhost:87
 Then open Settings, Data, Photos and videos, Marine life identification,
 and download the model. Opening a photo in the viewer analyses it.
 
+## Find species, auto-apply and review
+
+Issue #4727, spec
+[2026-11-18-marine-life-identification-4-auto-apply-design.md](../design/specs/2026-11-18-marine-life-identification-4-auto-apply-design.md).
+
+- **Find species** (`DiveSpeciesRun`, `diveSpeciesRunProvider`) walks a
+  dive's photos, then its videos, through `MediaIdentificationService`'s run
+  lane (`requestFromRun`, in `media_identification_run_lane.dart`). The lane
+  is served only when no viewer request waits, is never dropped by the
+  viewer, ignores the identify-on-open toggle, and resolves media the way
+  playing it would (`runVideoFileOf`), so it may download. Each item returns
+  a `RunItemOutcome`; `tooHot` and `notForeground` pause the run.
+- **Auto-apply** (`AutoApplier`) tags what `identificationsToApply` picks:
+  undecided rows whose stored `confident` flag is set, on a video only once
+  `run.scanComplete`. It runs from the service's `onItemSettled` hook for
+  viewer requests (one automatic History entry per item) and once at the end
+  of a run for all its items (`applyAllInScope`, one entry). The setting is
+  disabled while the installed pack's confident bars are both above 1
+  (`packCanApply`).
+- **The marks** are three nullable columns on `media_species` (schema 378):
+  `unconfirmed`, `created_sighting`, `created_species`. Null is the diver's
+  own tag. They sync with the tag; a confirm clears them, and a strictly
+  newer copy's explicit nulls land through the #2644 clear path
+  (`SyncDataSerializer.clockGuardedClearTables`). The compatibility floor is
+  378. `SpeciesTaggingService.applyAppTag`, `confirmTag` and `rejectTag`
+  hold the sighting and species rules; the guards are pure
+  (`app_tag_guards.dart`).
+- **Species to review** (`/species/review`, `?dive=<id>` for one dive)
+  reads `SpeciesReviewRepository.load`, groups with `buildReviewGroups`, and
+  writes on Save through `SpeciesReviewSaver` (one History entry). It works
+  where the feature is off, listing the app's tags with thumbnails and no
+  suggestions.
+
+To see auto-apply work before a pack has a reachable confident bar, edit the
+local pack's `manifest.json` so `naming.confidentScore` is below 1 (for
+example 0.6), serve it as above, install it, and turn the setting on.
+Photos already analysed are applied the next time they are opened or a run
+reaches them.
+
 ## Video
 
 Opening a video in the viewer scans it, after the same dwell as a photo,

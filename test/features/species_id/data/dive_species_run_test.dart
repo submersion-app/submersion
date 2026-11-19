@@ -30,11 +30,7 @@ void main() {
 
   setUp(() {
     media = {
-      'd1': [
-        item('v1', type: MediaType.video),
-        item('p1'),
-        item('p2'),
-      ],
+      'd1': [item('v1', type: MediaType.video), item('p1'), item('p2')],
       'd2': [item('q1')],
     };
     dives = {'d1', 'd2'};
@@ -67,7 +63,7 @@ void main() {
   });
   tearDown(() => run.dispose());
 
-  DiveSpeciesRunState state(String diveId) => run.debugState[diveId]!;
+  DiveSpeciesRunState state(String diveId) => run.stateOf(diveId)!;
 
   test('photos before videos, and a summary at the end', () async {
     await run.start('d1');
@@ -125,20 +121,22 @@ void main() {
     expect(asked, ['p1', 'p2', 'v1']);
   });
 
-  test('cancel stops after the item in progress, and applies what was found',
-      () async {
-    gate = Completer<void>();
-    final running = run.start('d1');
-    await pumpEventQueue();
-    run.cancel('d1');
-    gate!.complete();
-    await running;
+  test(
+    'cancel stops after the item in progress, and applies what was found',
+    () async {
+      gate = Completer<void>();
+      final running = run.start('d1');
+      await pumpEventQueue();
+      run.cancel('d1');
+      gate!.complete();
+      await running;
 
-    expect(asked, ['p1']);
-    expect(cancelled, ['p1']);
-    expect(state('d1').phase, DiveRunPhase.cancelled);
-    expect(applied.single, ['p1']);
-  });
+      expect(asked, ['p1']);
+      expect(cancelled, ['p1']);
+      expect(state('d1').phase, DiveRunPhase.cancelled);
+      expect(applied.single, ['p1']);
+    },
+  );
 
   test('a second dive waits for the first', () async {
     gate = Completer<void>();
