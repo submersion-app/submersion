@@ -9546,6 +9546,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_legend_label_gtr => 'GTR';
 
   @override
+  String get diveLog_legend_label_aveloBuoyancy => 'Avelo-Auftrieb';
+
+  @override
+  String get diveLog_legend_label_aveloGasRemaining => 'Restgas';
+
+  @override
+  String get diveLog_legend_label_computerRmv => 'RMV (Tauchcomputer)';
+
+  @override
   String get diveLog_legend_source_dc => 'DC';
 
   @override
@@ -11329,6 +11338,34 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveLog_cylinders_hydrotankNote =>
       'Der Druck im Hydrotank misst nicht das verbrauchte Gas';
+
+  @override
+  String get diveLog_cylinders_aveloTitle => 'Avelo';
+
+  @override
+  String diveLog_cylinders_aveloGasRemaining(int start, int end) {
+    return 'Restgas $start % bis $end %';
+  }
+
+  @override
+  String diveLog_cylinders_aveloBuoyancy(String min, String max, String mean) {
+    return 'Avelo-Auftrieb $min bis $max, Durchschnitt $mean';
+  }
+
+  @override
+  String diveLog_cylinders_aveloRmv(String min, String max) {
+    return 'RMV (Computer) $min bis $max';
+  }
+
+  @override
+  String diveLog_cylinders_aveloMaxPressure(String pressure) {
+    return 'Maximaler Druck $pressure';
+  }
+
+  @override
+  String diveLog_cylinders_figureWater(String volume) {
+    return 'Wasser ~$volume (gesch.)';
+  }
 
   @override
   String diveLog_cylinders_modNote(String ppO2) {
@@ -22938,6 +22975,18 @@ class AppLocalizationsDe extends AppLocalizations {
       'Profil zeigt Auftrieb';
 
   @override
+  String get settings_conflict_field_defaultShowAveloBuoyancy =>
+      'Profil zeigt Avelo-Auftrieb';
+
+  @override
+  String get settings_conflict_field_defaultShowAveloGasRemaining =>
+      'Profil zeigt Restgas';
+
+  @override
+  String get settings_conflict_field_defaultShowComputerRmv =>
+      'Profil zeigt Computer-RMV';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Planungs-Hinweis bestätigt';
 
@@ -23928,6 +23977,15 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_buoyancy => 'Auftrieb';
+
+  @override
+  String get settings_appearance_metric_aveloBuoyancy => 'Avelo-Auftrieb';
+
+  @override
+  String get settings_appearance_metric_aveloGasRemaining => 'Restgas (Avelo)';
+
+  @override
+  String get settings_appearance_metric_computerRmv => 'RMV (Tauchcomputer)';
 
   @override
   String get settings_appearance_metric_events => 'Ereignisse';
@@ -56827,10 +56885,28 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_profileMetric_buoyancy => 'Auftrieb';
 
   @override
+  String get enum_profileMetric_aveloBuoyancy => 'Avelo-Auftrieb';
+
+  @override
+  String get enum_profileMetric_aveloGasRemaining => 'Restgas';
+
+  @override
+  String get enum_profileMetric_computerRmv => 'RMV (Tauchcomputer)';
+
+  @override
   String get enum_profileMetric_o2CellMv_short => 'Zellen';
 
   @override
   String get enum_profileMetric_buoyancy_short => 'Auftrieb';
+
+  @override
+  String get enum_profileMetric_aveloBuoyancy_short => 'Avelo';
+
+  @override
+  String get enum_profileMetric_aveloGasRemaining_short => 'Gas';
+
+  @override
+  String get enum_profileMetric_computerRmv_short => 'RMV';
 
   @override
   String get diveLog_o2CellSpread_label => 'O2-Zellenstreuung';
@@ -64555,6 +64631,13 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get info_term_buoyancyProfile_body =>
       'Die Linie zeigt deinen Nettoauftrieb während des Tauchgangs, aus demselben Modell wie die Auftriebskarte, für den Computer, den das Diagramm zeigt. Grün heißt, du hast Auftrieb, Magenta, du bist zu schwer; die gestrichelte Linie markiert neutral.';
+
+  @override
+  String get info_term_aveloProfile_label => 'Avelo-Werte';
+
+  @override
+  String get info_term_aveloProfile_body =>
+      'Der Avelo-Modus von Shearwater zeichnet diese Werte so auf, wie der Tauchcomputer sie erfasst hat: Avelo-Auftrieb (negativ heißt zu schwer), das Restgas im Hydrotank in Prozent und das computereigene RMV. Die App berechnet sie nicht, und der Auftrieb ist nicht der modellierte Auftrieb der Auftriebskarte.';
 
   @override
   String get info_term_hypercapnia_label => 'Hyperkapnie';

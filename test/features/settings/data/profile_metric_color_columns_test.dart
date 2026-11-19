@@ -84,7 +84,7 @@ void main() {
     final cols = c.toColumns(false);
     expect(
       cols.keys.where((k) => k.startsWith('profile_color_')),
-      hasLength(20),
+      hasLength(23),
     );
   });
 }

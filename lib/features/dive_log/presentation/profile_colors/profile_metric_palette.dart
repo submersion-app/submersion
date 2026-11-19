@@ -86,5 +86,12 @@ class ProfileMetricPalette {
     ProfileRightAxisMetric.o2CellMv => metric.color ?? temperatureAuto,
     // Two fixed colours that carry meaning; the axis takes the buoyant one.
     ProfileRightAxisMetric.buoyancy => ProfileMetricColors.buoyancyBuoyant,
+    ProfileRightAxisMetric.aveloBuoyancy => colorOf(
+      ProfileMetric.aveloBuoyancy,
+    ),
+    ProfileRightAxisMetric.aveloGasRemaining => colorOf(
+      ProfileMetric.aveloGasRemaining,
+    ),
+    ProfileRightAxisMetric.computerRmv => colorOf(ProfileMetric.computerRmv),
   };
 }

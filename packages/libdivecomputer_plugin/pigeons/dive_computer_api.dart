@@ -87,6 +87,9 @@ class ProfileSample {
     this.o2SensorMv4,
     this.o2SensorMv5,
     this.o2SensorMv6,
+    this.aveloBuoyancy,
+    this.aveloGasRemaining,
+    this.computerRmv,
     this.gasMixIndex,
   });
   final int timeSeconds;
@@ -136,6 +139,15 @@ class ProfileSample {
   final int? o2SensorMv4;
   final int? o2SensorMv5;
   final int? o2SensorMv6;
+
+  /// Shearwater Avelo mode (issue #4664): the computer's buoyancy figure in
+  /// kilograms (negative is heavy), the Hydrotank's gas remaining in percent,
+  /// and the computer's own respiratory minute volume in litres per minute.
+  /// Null on every sample outside Avelo mode and where the computer logged a
+  /// code instead of a value.
+  final double? aveloBuoyancy;
+  final int? aveloGasRemaining;
+  final double? computerRmv;
 
   /// Active gas mix index at this sample (from DC_SAMPLE_GASMIX), carried forward
   /// from the most recent gas switch; null if the computer reported no gas.

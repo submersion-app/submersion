@@ -96,6 +96,7 @@ part 'helpers/recent_equipment_colors_migrations.dart';
 part 'helpers/country_flags_migrations.dart';
 part 'helpers/counterdiffusion_migrations.dart';
 part 'helpers/buoyancy_line_migrations.dart';
+part 'helpers/avelo_line_migrations.dart';
 part 'helpers/dive_center_logo_migrations.dart';
 part 'helpers/scr_flow_migrations.dart';
 part 'helpers/dive_type_favourites_migrations.dart';

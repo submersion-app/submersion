@@ -241,6 +241,18 @@ your working ppO₂ limit, 1.4 by default) and **MND** for the mix.
 | **Pony Bottle** | A small independent reserve. |
 | **Diluent** | The diluent cylinder on a closed-circuit rebreather. |
 | **O₂ Supply** | The oxygen cylinder on a closed-circuit rebreather. |
+| **Hydrotank** | The Avelo Dive System's cylinder, which takes in water for buoyancy. Its pressure rises with the water, so it shows no gas used or SAC. |
+
+On a dive logged by a Shearwater computer in Avelo mode, the Hydrotank also
+shows an **Avelo** summary of what the computer recorded: gas remaining from
+start to end, the buoyancy range and average, the computer's own RMV, and the
+highest Hydrotank pressure, counting only time below the surface as Shearwater
+Cloud does. Its figure is drawn as the tank's contents instead of a pressure
+fill: estimated water in blue at the bottom, then the gas left, then the share
+of the gas already breathed, with the water's volume beneath it. The estimate
+assumes the tank held no water at the start of the dive. Move the cursor along
+the profile and the figure follows it, so you can watch the water rise as you
+pumped in and fall as you purged.
 
 > [!TIP]
 > You can set a **default tank preset** in [Settings](settings.md) so every new tank

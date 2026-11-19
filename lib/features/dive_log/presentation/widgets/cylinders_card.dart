@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -12,6 +13,8 @@ import 'package:submersion/features/dive_log/data/services/estimated_tank_pressu
 import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
+import 'package:submersion/features/dive_log/domain/services/avelo_summary.dart';
+import 'package:submersion/features/dive_log/domain/services/hydrotank_contents.dart';
 import 'package:submersion/features/dive_log/domain/services/logged_tank_mod.dart';
 import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_pressure_lookup.dart';
@@ -22,6 +25,7 @@ import 'package:submersion/features/dive_log/presentation/providers/chart_tank_p
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/avelo_summary_block.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/cylinder_block.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tank_series_exchange.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/field_attribution_badge.dart';
@@ -156,12 +160,28 @@ class CylindersCard extends ConsumerWidget {
     };
     bool checkInReadOnly(DiveTank tank) =>
         !storedGearIds.contains(tank.equipmentId);
+    // What the computer recorded in Avelo mode (issue #4664), under the
+    // Hydrotank, or under the first tank when none carries that role.
+    final aveloTank =
+        dive.tanks.where((t) => t.role == TankRole.hydrotank).firstOrNull ??
+        dive.tanks.firstOrNull;
+    final aveloSummary = aveloTank == null
+        ? null
+        : aveloSummaryOf(
+            dive.profile,
+            // Only a Hydrotank's pressure is the Avelo max pressure; under
+            // another tank the summary leaves it out.
+            aveloTank.role == TankRole.hydrotank
+                ? seriesByTank[aveloTank.id]
+                : null,
+          );
     final rows = [
       for (final entry in dive.tanks.asMap().entries)
         _tankRow(
           context,
           index: entry.key,
           tank: entry.value,
+          aveloSummary: entry.value.id == aveloTank?.id ? aveloSummary : null,
           cylinderSac: sacByTankId[entry.value.id],
           cursorLine: cursorLines[entry.value.id],
           series: seriesByTank[entry.value.id],
@@ -308,6 +328,47 @@ class CylindersCard extends ConsumerWidget {
     );
   }
 
+  /// An Avelo Hydrotank's figure as estimated water and gas (issue #4664),
+  /// at [cursorSeconds] or, without a cursor, at the end of the dive, with
+  /// the water's label when the tank's [volume] is known, or null when
+  /// the dive lacks what the estimate needs (a start pressure, a pressure
+  /// at the moment shown, or the computer's gas remaining).
+  ({TankFillLevels levels, String? label})? _hydrotankWater(
+    AppLocalizations l10n, {
+    required double? start,
+    required double? pressure,
+    required int? cursorSeconds,
+    required double? volume,
+  }) {
+    if (start == null || pressure == null) return null;
+    final gas = gasRemainingAt(dive.profile, cursorSeconds);
+    if (gas == null) return null;
+    final contents = hydrotankContents(
+      startBar: start,
+      nowBar: pressure,
+      gasRemainingPercent: gas,
+    );
+    if (contents == null) return null;
+    final liters = volume == null ? null : contents.water * volume;
+    return (
+      levels: TankFillLevels.hydrotank(
+        water: contents.water,
+        gasLeft: contents.gasLeft,
+        now: cursorSeconds != null ? contents.gasLeft : null,
+      ),
+      label: liters == null
+          ? null
+          : l10n.diveLog_cylinders_figureWater(
+              units.formatVolume(
+                liters,
+                decimals: units.settings.volumeUnit == VolumeUnit.liters
+                    ? 1
+                    : 2,
+              ),
+            ),
+    );
+  }
+
   /// Where the profile cursor is, in seconds into the dive. The cursor is an
   /// index into the chart's own series, so it is resolved against that
   /// series (#543), which is only watched while the cursor is on the chart.
@@ -332,6 +393,7 @@ class CylindersCard extends ConsumerWidget {
     required String? operationReason,
     required RecordOperationRunner runAsOperation,
     required bool checkInReadOnly,
+    AveloSummary? aveloSummary,
   }) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
@@ -364,7 +426,8 @@ class CylindersCard extends ConsumerWidget {
     // rebuilds on every hover frame, not the whole card.
     final figure = Consumer(
       builder: (context, ref, _) {
-        final now = cursorLine?.pressureAt(_cursorSeconds(ref));
+        final cursorSeconds = _cursorSeconds(ref);
+        final now = cursorLine?.pressureAt(cursorSeconds);
         String? nowLabel(double? pressure) {
           if (pressure == null) return null;
           final shown = units.formatPressure(pressure);
@@ -373,13 +436,31 @@ class CylindersCard extends ConsumerWidget {
               : l10n.diveLog_cylinders_figureNow(shown);
         }
 
-        return TankFigure(
-          levels: TankFillLevels.resolve(
-            start: pressures.$1,
-            end: pressures.$2,
-            rated: positive(tank.workingPressure) ?? preset?.workingPressureBar,
-            now: now,
-          ),
+        // An Avelo Hydrotank with gas remaining is drawn as its estimated
+        // water and gas (issue #4664), at the cursor or at the end. With the
+        // cursor on the chart but no Hydrotank reading there, it keeps the
+        // pressure figure rather than showing the end in the cursor's place.
+        final cursorShown = cursorSeconds != null;
+        final water = waterDriven
+            ? _hydrotankWater(
+                l10n,
+                start: pressures.$1,
+                pressure: cursorShown ? now : pressures.$2,
+                cursorSeconds: cursorSeconds,
+                volume: positive(tank.volume) ?? preset?.volumeLiters,
+              )
+            : null;
+        final figure = TankFigure(
+          levels:
+              water?.levels ??
+              TankFillLevels.resolve(
+                start: pressures.$1,
+                end: pressures.$2,
+                rated:
+                    positive(tank.workingPressure) ??
+                    preset?.workingPressureBar,
+                now: now,
+              ),
           gasColor: GasColors.forGasMix(tank.gasMix),
           volumeLiters: positive(tank.volume) ?? preset?.volumeLiters,
           startLabel: l10n.diveLog_cylinders_figureStart(
@@ -397,6 +478,20 @@ class CylindersCard extends ConsumerWidget {
           markEnd: pressures.$2 != null,
           nowLabel: nowLabel(now),
           nowLabelReserve: nowLabel(cursorLine?.peak),
+        );
+        final waterLabel = water?.label;
+        if (waterLabel == null) return figure;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            figure,
+            Text(
+              waterLabel,
+              key: Key('tank-water-label-${tank.id}'),
+              style: theme.textTheme.bodySmall,
+            ),
+          ],
         );
       },
     );
@@ -491,6 +586,12 @@ class CylindersCard extends ConsumerWidget {
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
+          ),
+        if (aveloSummary != null)
+          AveloSummaryBlock(
+            key: Key('tank-avelo-summary-${tank.id}'),
+            summary: aveloSummary,
+            units: units,
           ),
         if (slotLabel != null)
           Text(

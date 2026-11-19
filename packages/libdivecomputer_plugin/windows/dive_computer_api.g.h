@@ -205,6 +205,9 @@ class ProfileSample {
     const int64_t* o2_sensor_mv4,
     const int64_t* o2_sensor_mv5,
     const int64_t* o2_sensor_mv6,
+    const double* avelo_buoyancy,
+    const int64_t* avelo_gas_remaining,
+    const double* computer_rmv,
     const int64_t* gas_mix_index);
 
   int64_t time_seconds() const;
@@ -332,6 +335,23 @@ class ProfileSample {
   void set_o2_sensor_mv6(const int64_t* value_arg);
   void set_o2_sensor_mv6(int64_t value_arg);
 
+  // Shearwater Avelo mode (issue #4664): the computer's buoyancy figure in
+  // kilograms (negative is heavy), the Hydrotank's gas remaining in percent,
+  // and the computer's own respiratory minute volume in litres per minute.
+  // Null on every sample outside Avelo mode and where the computer logged a
+  // code instead of a value.
+  const double* avelo_buoyancy() const;
+  void set_avelo_buoyancy(const double* value_arg);
+  void set_avelo_buoyancy(double value_arg);
+
+  const int64_t* avelo_gas_remaining() const;
+  void set_avelo_gas_remaining(const int64_t* value_arg);
+  void set_avelo_gas_remaining(int64_t value_arg);
+
+  const double* computer_rmv() const;
+  void set_computer_rmv(const double* value_arg);
+  void set_computer_rmv(double value_arg);
+
   // Active gas mix index at this sample (from DC_SAMPLE_GASMIX), carried forward
   // from the most recent gas switch; null if the computer reported no gas.
   const int64_t* gas_mix_index() const;
@@ -373,6 +393,9 @@ class ProfileSample {
   std::optional<int64_t> o2_sensor_mv4_;
   std::optional<int64_t> o2_sensor_mv5_;
   std::optional<int64_t> o2_sensor_mv6_;
+  std::optional<double> avelo_buoyancy_;
+  std::optional<int64_t> avelo_gas_remaining_;
+  std::optional<double> computer_rmv_;
   std::optional<int64_t> gas_mix_index_;
 
 };

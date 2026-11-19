@@ -475,7 +475,7 @@ LineChartBarData buildTtsLine(
 /// is blank, i.e. the line should break rather than bridge them. Decimation
 /// also skips present samples, so a gap is only a gap when nothing present
 /// was dropped in between.
-bool gtrGapBetween(List<int?> curve, int from, int to) {
+bool gtrGapBetween(List<num?> curve, int from, int to) {
   if (to - from < 2) return false;
   for (var j = from + 1; j < to; j++) {
     if (curve[j] != null) return false;

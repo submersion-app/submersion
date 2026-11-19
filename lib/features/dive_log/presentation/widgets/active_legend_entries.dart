@@ -175,6 +175,25 @@ List<ActiveLegendEntry> activeLegendEntries(
     ProfileMetricColors.buoyancyBuoyant,
     secondColor: ProfileMetricColors.buoyancyHeavy,
   );
+  // The computer's Avelo values (#4664).
+  add(
+    config.hasAveloBuoyancy,
+    state.showAveloBuoyancy,
+    l10n.diveLog_legend_label_aveloBuoyancy,
+    palette.colorOf(ProfileMetric.aveloBuoyancy),
+  );
+  add(
+    config.hasAveloGasRemaining,
+    state.showAveloGasRemaining,
+    l10n.diveLog_legend_label_aveloGasRemaining,
+    palette.colorOf(ProfileMetric.aveloGasRemaining),
+  );
+  add(
+    config.hasComputerRmv,
+    state.showComputerRmv,
+    l10n.diveLog_legend_label_computerRmv,
+    palette.colorOf(ProfileMetric.computerRmv),
+  );
   add(
     config.hasAscentRates,
     state.showAscentRateColors,

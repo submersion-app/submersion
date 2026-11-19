@@ -516,6 +516,14 @@ class DiverSettings extends Table {
   // (issue #4593).
   BoolColumn get defaultShowBuoyancy =>
       boolean().withDefault(const Constant(false))();
+  // v379: default visibility for the three Avelo lines on the dive profile
+  // (issue #4664): the computer's buoyancy, gas remaining and RMV.
+  BoolColumn get defaultShowAveloBuoyancy =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get defaultShowAveloGasRemaining =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get defaultShowComputerRmv =>
+      boolean().withDefault(const Constant(false))();
   // v371: the dive types this diver starred to list first in the pickers, a
   // sorted JSON list of ids (issue #4413). Null means none.
   TextColumn get favouriteDiveTypeIds => text().nullable()();
@@ -580,6 +588,10 @@ class DiverSettings extends Table {
   IntColumn get profileColorGf => integer().nullable()();
   IntColumn get profileColorSurfaceGf => integer().nullable()();
   IntColumn get profileColorMeanDepth => integer().nullable()();
+  // v379: the three Avelo lines (issue #4664).
+  IntColumn get profileColorAveloBuoyancy => integer().nullable()();
+  IntColumn get profileColorAveloGasRemaining => integer().nullable()();
+  IntColumn get profileColorComputerRmv => integer().nullable()();
   // coverage:ignore-end
   // Data source badge visibility (v55)
   BoolColumn get showDataSourceBadges =>

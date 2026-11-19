@@ -1339,6 +1339,11 @@ class DiveProfilePoint extends Equatable {
   // source carried none. Never computed by the app.
   final int? gf99; // Computer-reported GF99, percent
   final int? n2Load; // Computer-reported aggregate N2 tissue loading, percent
+  // Shearwater Avelo mode (issue #4664), as the computer logged them; null
+  // outside Avelo mode and where the computer logged no value.
+  final double? aveloBuoyancy; // kg, negative is heavy
+  final int? aveloGasRemaining; // Hydrotank gas remaining, percent
+  final double? computerRmv; // The computer's own RMV, L/min
 
   const DiveProfilePoint({
     required this.timestamp,
@@ -1370,6 +1375,9 @@ class DiveProfilePoint extends Equatable {
     this.tts,
     this.gf99,
     this.n2Load,
+    this.aveloBuoyancy,
+    this.aveloGasRemaining,
+    this.computerRmv,
   });
 
   DiveProfilePoint copyWith({
@@ -1402,6 +1410,9 @@ class DiveProfilePoint extends Equatable {
     int? tts,
     int? gf99,
     int? n2Load,
+    double? aveloBuoyancy,
+    int? aveloGasRemaining,
+    double? computerRmv,
   }) {
     return DiveProfilePoint(
       timestamp: timestamp ?? this.timestamp,
@@ -1433,6 +1444,9 @@ class DiveProfilePoint extends Equatable {
       tts: tts ?? this.tts,
       gf99: gf99 ?? this.gf99,
       n2Load: n2Load ?? this.n2Load,
+      aveloBuoyancy: aveloBuoyancy ?? this.aveloBuoyancy,
+      aveloGasRemaining: aveloGasRemaining ?? this.aveloGasRemaining,
+      computerRmv: computerRmv ?? this.computerRmv,
     );
   }
 
@@ -1467,6 +1481,9 @@ class DiveProfilePoint extends Equatable {
     tts,
     gf99,
     n2Load,
+    aveloBuoyancy,
+    aveloGasRemaining,
+    computerRmv,
   ];
 }
 

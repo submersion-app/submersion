@@ -9342,6 +9342,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_legend_label_gtr => 'GTR';
 
   @override
+  String get diveLog_legend_label_aveloBuoyancy => 'ציפה של Avelo';
+
+  @override
+  String get diveLog_legend_label_aveloGasRemaining => 'גז נותר';
+
+  @override
+  String get diveLog_legend_label_computerRmv => 'RMV (מחשב)';
+
+  @override
   String get diveLog_legend_source_dc => 'DC';
 
   @override
@@ -11086,6 +11095,34 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get diveLog_cylinders_hydrotankNote =>
       'הלחץ ב-Hydrotank אינו מודד את הגז שנצרך';
+
+  @override
+  String get diveLog_cylinders_aveloTitle => 'Avelo';
+
+  @override
+  String diveLog_cylinders_aveloGasRemaining(int start, int end) {
+    return 'גז נותר $start% עד $end%';
+  }
+
+  @override
+  String diveLog_cylinders_aveloBuoyancy(String min, String max, String mean) {
+    return 'ציפה של Avelo $min עד $max, ממוצע $mean';
+  }
+
+  @override
+  String diveLog_cylinders_aveloRmv(String min, String max) {
+    return 'RMV (מחשב) $min עד $max';
+  }
+
+  @override
+  String diveLog_cylinders_aveloMaxPressure(String pressure) {
+    return 'לחץ מרבי $pressure';
+  }
+
+  @override
+  String diveLog_cylinders_figureWater(String volume) {
+    return 'מים ~$volume (משוער)';
+  }
 
   @override
   String diveLog_cylinders_modNote(String ppO2) {
@@ -22464,6 +22501,18 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_defaultShowBuoyancy => 'הפרופיל מציג ציפה';
 
   @override
+  String get settings_conflict_field_defaultShowAveloBuoyancy =>
+      'הפרופיל מציג ציפה של Avelo';
+
+  @override
+  String get settings_conflict_field_defaultShowAveloGasRemaining =>
+      'הפרופיל מציג גז נותר';
+
+  @override
+  String get settings_conflict_field_defaultShowComputerRmv =>
+      'הפרופיל מציג RMV של המחשב';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'אזהרת תכנון אושרה';
 
@@ -23436,6 +23485,15 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_buoyancy => 'ציפה';
+
+  @override
+  String get settings_appearance_metric_aveloBuoyancy => 'ציפה של Avelo';
+
+  @override
+  String get settings_appearance_metric_aveloGasRemaining => 'גז נותר (Avelo)';
+
+  @override
+  String get settings_appearance_metric_computerRmv => 'RMV (מחשב)';
 
   @override
   String get settings_appearance_metric_events => 'אירועים';
@@ -55756,10 +55814,28 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_profileMetric_buoyancy => 'ציפה';
 
   @override
+  String get enum_profileMetric_aveloBuoyancy => 'ציפה של Avelo';
+
+  @override
+  String get enum_profileMetric_aveloGasRemaining => 'גז נותר';
+
+  @override
+  String get enum_profileMetric_computerRmv => 'RMV (מחשב)';
+
+  @override
   String get enum_profileMetric_o2CellMv_short => 'תאים';
 
   @override
   String get enum_profileMetric_buoyancy_short => 'ציפה';
+
+  @override
+  String get enum_profileMetric_aveloBuoyancy_short => 'Avelo';
+
+  @override
+  String get enum_profileMetric_aveloGasRemaining_short => 'גז';
+
+  @override
+  String get enum_profileMetric_computerRmv_short => 'RMV';
 
   @override
   String get diveLog_o2CellSpread_label => 'פיזור תאי O2';
@@ -63344,6 +63420,13 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get info_term_buoyancyProfile_body =>
       'הקו מציג את הציפה הנטו שלך לאורך הצלילה, לפי אותו מודל של כרטיס הציפה, עבור המחשב שהתרשים מציג. הוא ירוק כשאתה צף ומג\'נטה כשאתה כבד, והקו המקווקו מסמן ציפה ניטרלית.';
+
+  @override
+  String get info_term_aveloProfile_label => 'ערכי Avelo';
+
+  @override
+  String get info_term_aveloProfile_body =>
+      'מצב Avelo של Shearwater רושם ערכים אלה כפי שמחשב הצלילה תיעד אותם: ציפה של Avelo (שלילי פירושו כבד), הגז שנותר ב-Hydrotank באחוזים, וה-RMV של המחשב עצמו. האפליקציה אינה מחשבת אותם, והציפה כאן אינה הציפה המחושבת בכרטיס הציפה.';
 
   @override
   String get info_term_hypercapnia_label => 'היפרקפניה';

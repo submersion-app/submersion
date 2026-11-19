@@ -43,6 +43,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_l
 import 'package:submersion/features/dive_log/presentation/widgets/legend_candidates.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_decimator.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_plot_frame.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_avelo_lines.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_avelo_readout.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_buoyancy_line.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_band.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_bands.dart';
@@ -1028,6 +1030,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   bool _showMeanDepth = false;
   bool _showTts = false;
   bool _showGtr = false;
+  // The three Avelo lines (#4664).
+  bool _showAveloBuoyancy = false;
+  bool _showAveloGasRemaining = false;
+  bool _showComputerRmv = false;
   bool _showLateGasSwitches = true;
   bool _showCounterdiffusion = false;
   bool _counterdiffusionShowAll = false;
@@ -2605,6 +2611,21 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       );
     }
 
+    // The computer's Avelo values (issue #4664), shown once enabled on a
+    // dive that carries them.
+    rows.addAll(
+      aveloReadoutRows(
+        // The readout's own point: on the surface lead-in it is the
+        // synthetic surface sample, which carries no Avelo values.
+        point: point,
+        shown: (metric) => _aveloShown(metric) && _hasDataForMetric(metric),
+        l10n: l10n,
+        units: units,
+        direction: Directionality.of(context),
+        colorOf: _metricColor,
+      ),
+    );
+
     // GF% (always shown once enabled; see the Ceiling row comment).
     if (_showGf) {
       final gf = _curveValueAt(widget.gfCurve, spot.spotIndex);
@@ -3115,6 +3136,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showMeanDepth = false;
     _showTts = false;
     _showGtr = false;
+    _showAveloBuoyancy = false;
+    _showAveloGasRemaining = false;
+    _showComputerRmv = false;
     _showCns = false;
     _showOtu = false;
     _showPressure = true;
@@ -3233,6 +3257,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showMeanDepth = legendState.showMeanDepth;
     _showTts = legendState.showTts;
     _showGtr = legendState.showGtr;
+    _showAveloBuoyancy = legendState.showAveloBuoyancy;
+    _showAveloGasRemaining = legendState.showAveloGasRemaining;
+    _showComputerRmv = legendState.showComputerRmv;
     _showCns = legendState.showCns;
     _showOtu = legendState.showOtu;
     // Sync per-tank pressure visibility. Replace rather than merge: the
@@ -3323,6 +3350,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       hasDensityData: hasDensityData,
       hasBuoyancy: widget.buoyancyAvailable,
       hasBuoyancyLine: _hasDataForMetric(ProfileRightAxisMetric.buoyancy),
+      hasAveloBuoyancy: _hasDataForMetric(ProfileRightAxisMetric.aveloBuoyancy),
+      hasAveloGasRemaining: _hasDataForMetric(
+        ProfileRightAxisMetric.aveloGasRemaining,
+      ),
+      hasComputerRmv: _hasDataForMetric(ProfileRightAxisMetric.computerRmv),
       hasGfData: hasGfData,
       hasSurfaceGfData: hasSurfaceGfData,
       hasMeanDepthData: hasMeanDepthData,
@@ -4412,6 +4444,15 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               ? const <LineChartBarData>[]
               : [_buildNeutralRule(metricBand, buoyancyRange)];
 
+          // The three Avelo lines (if showing), straight from the samples
+          // (#4664).
+          final aveloLines = [
+            for (final metric in aveloLineMetrics)
+              if (_aveloShown(metric))
+                if (_buildAveloLine(metric, metricBand) case final bar?)
+                  (bar: bar, tag: metric),
+          ];
+
           return [
             ..._tagAll(decoStopBand, ChartOnlyMetric.decoStop),
             ..._tagAll(ceilingLines, ChartOnlyMetric.ceiling),
@@ -4433,6 +4474,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             ..._tagAll(otuLines, ProfileRightAxisMetric.otu),
             ..._tagAll(neutralRule, null),
             ..._tagAll(buoyancyLines, ProfileRightAxisMetric.buoyancy),
+            ...aveloLines,
           ];
         }),
         ..._barsCache.series('markers', _markersSig, () {
@@ -7386,6 +7428,50 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// Null samples are where the computer (or the calculation) blanked the
   /// value, so the line breaks there instead of dropping to zero. No surface
   /// lead-in: GTR is blank on the surface by definition.
+  /// [metric]'s Avelo curve, read once per profile: the decimation cache is
+  /// keyed by the curve's identity and kept until the profile or viewport
+  /// changes, so a fresh list on every rebuild would never hit it and would
+  /// pile up in it.
+  List<double?> _aveloCurveOf(ProfileRightAxisMetric metric) {
+    if (!identical(_aveloCurvesProfile, widget.profile)) {
+      _aveloCurves.clear();
+      _aveloCurvesProfile = widget.profile;
+    }
+    return _aveloCurves.putIfAbsent(
+      metric,
+      () => aveloCurve(metric, widget.profile),
+    );
+  }
+
+  final Map<ProfileRightAxisMetric, List<double?>> _aveloCurves = {};
+  List<DiveProfilePoint>? _aveloCurvesProfile;
+
+  /// Whether the legend has [metric], one of the Avelo lines, switched on.
+  bool _aveloShown(ProfileRightAxisMetric metric) => switch (metric) {
+    ProfileRightAxisMetric.aveloBuoyancy => _showAveloBuoyancy,
+    ProfileRightAxisMetric.aveloGasRemaining => _showAveloGasRemaining,
+    _ => _showComputerRmv,
+  };
+
+  /// One Avelo line (issue #4664), decimated like the other nullable lines,
+  /// or null when the dive has nothing to draw for [metric].
+  LineChartBarData? _buildAveloLine(
+    ProfileRightAxisMetric metric,
+    MetricBand band,
+  ) {
+    final curve = _aveloCurveOf(metric);
+    final range = aveloCurveRange(metric, curve);
+    if (range == null) return null;
+    return buildAveloLine(
+      color: _palette.rightAxisColor(metric),
+      band: band,
+      curve: curve,
+      range: range,
+      profile: widget.profile,
+      indices: _decimatedNullableCurveIndices(curve),
+    );
+  }
+
   LineChartBarData _buildGtrLine(MetricBand band) => buildGtrLine(
     _metricColor(ProfileMetric.gtr),
     band,

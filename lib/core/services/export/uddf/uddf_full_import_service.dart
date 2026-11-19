@@ -6,6 +6,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/export/models/uddf_import_result.dart';
 import 'package:submersion/core/services/export/uddf/uddf_certification_currency.dart';
 import 'package:submersion/core/services/export/uddf/uddf_buddy_roles.dart';
+import 'package:submersion/core/services/export/uddf/uddf_avelo_samples.dart';
 import 'package:submersion/core/services/export/uddf/uddf_computer_tissue.dart';
 import 'package:submersion/core/services/export/uddf/uddf_visibility_range.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dive_custom_fields.dart';
@@ -626,6 +627,12 @@ class UddfFullImportService {
           for (final dive in dives) {
             final data = byDive[dive['sourceUuid']];
             if (data != null) UddfComputerTissue.apply(dive, data);
+          }
+          // The Avelo samples that ride in the same block (issue #4664).
+          final aveloByDive = UddfAveloSamples.parse(computerTissueSection);
+          for (final dive in dives) {
+            final data = aveloByDive[dive['sourceUuid']];
+            if (data != null) UddfAveloSamples.apply(dive, data);
           }
         }
 

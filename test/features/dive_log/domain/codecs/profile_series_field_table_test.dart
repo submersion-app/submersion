@@ -49,10 +49,30 @@ const frozenFieldTableV2 = <(String, ProfileFieldKind)>[
   ('n2_load', ProfileFieldKind.deltaInt),
 ];
 
+/// The v3 field table, frozen the same way: v2 in full, then the three
+/// Shearwater Avelo fields (issue #4664).
+const frozenFieldTableV3 = <(String, ProfileFieldKind)>[
+  ...frozenFieldTableV2,
+  ('avelo_buoyancy', ProfileFieldKind.float64),
+  ('avelo_gas_remaining', ProfileFieldKind.deltaInt),
+  ('computer_rmv', ProfileFieldKind.float64),
+];
+
 void main() {
-  test('codec v2 is the version new blobs are written with', () {
-    expect(ProfileSeriesCodec.version, 2);
-    expect(const ProfileSeriesCodec().fieldTables.keys, {1, 2});
+  test('codec v3 is the newest version', () {
+    expect(ProfileSeriesCodec.version, 3);
+    expect(const ProfileSeriesCodec().fieldTables.keys, {1, 2, 3});
+  });
+
+  test('codec v3 carries exactly the frozen field table, in order', () {
+    expect(
+      [for (final f in ProfileSeriesCodec.fieldTableV3) (f.name, f.kind)],
+      frozenFieldTableV3,
+      reason:
+          'fieldTableV3 changed. Every v3 blob already written decodes '
+          'against this exact order. Append the new field under a NEW '
+          'version in ProfileSeriesCodec; never edit fieldTableV3.',
+    );
   });
 
   test('codec v2 carries exactly the frozen field table, in order', () {
@@ -83,7 +103,7 @@ void main() {
     // sample field added without a matching field-table entry would be
     // silently dropped on encode, and this is what says so.
     expect(
-      kProfileFieldTableV2.length,
+      kProfileFieldTableV3.length,
       const ProfileSample(timestamp: 0, depth: 0.0).props.length,
     );
   });

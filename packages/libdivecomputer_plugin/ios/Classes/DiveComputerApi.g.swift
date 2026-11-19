@@ -200,6 +200,14 @@ struct ProfileSample {
   var o2SensorMv4: Int64? = nil
   var o2SensorMv5: Int64? = nil
   var o2SensorMv6: Int64? = nil
+  /// Shearwater Avelo mode (issue #4664): the computer's buoyancy figure in
+  /// kilograms (negative is heavy), the Hydrotank's gas remaining in percent,
+  /// and the computer's own respiratory minute volume in litres per minute.
+  /// Null on every sample outside Avelo mode and where the computer logged a
+  /// code instead of a value.
+  var aveloBuoyancy: Double? = nil
+  var aveloGasRemaining: Int64? = nil
+  var computerRmv: Double? = nil
   /// Active gas mix index at this sample (from DC_SAMPLE_GASMIX), carried forward
   /// from the most recent gas switch; null if the computer reported no gas.
   var gasMixIndex: Int64? = nil
@@ -235,7 +243,10 @@ struct ProfileSample {
     let o2SensorMv4: Int64? = nilOrValue(pigeonVar_list[25])
     let o2SensorMv5: Int64? = nilOrValue(pigeonVar_list[26])
     let o2SensorMv6: Int64? = nilOrValue(pigeonVar_list[27])
-    let gasMixIndex: Int64? = nilOrValue(pigeonVar_list[28])
+    let aveloBuoyancy: Double? = nilOrValue(pigeonVar_list[28])
+    let aveloGasRemaining: Int64? = nilOrValue(pigeonVar_list[29])
+    let computerRmv: Double? = nilOrValue(pigeonVar_list[30])
+    let gasMixIndex: Int64? = nilOrValue(pigeonVar_list[31])
 
     return ProfileSample(
       timeSeconds: timeSeconds,
@@ -266,6 +277,9 @@ struct ProfileSample {
       o2SensorMv4: o2SensorMv4,
       o2SensorMv5: o2SensorMv5,
       o2SensorMv6: o2SensorMv6,
+      aveloBuoyancy: aveloBuoyancy,
+      aveloGasRemaining: aveloGasRemaining,
+      computerRmv: computerRmv,
       gasMixIndex: gasMixIndex
     )
   }
@@ -299,6 +313,9 @@ struct ProfileSample {
       o2SensorMv4,
       o2SensorMv5,
       o2SensorMv6,
+      aveloBuoyancy,
+      aveloGasRemaining,
+      computerRmv,
       gasMixIndex,
     ]
   }

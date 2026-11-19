@@ -11,10 +11,21 @@ internal const val LIBDC_MAX_TANKS = 16
  * inserting a field silently renumbers every field after it, with no error on
  * either side.
  */
-internal const val SAMPLE_FIELD_COUNT = 28 + LIBDC_MAX_TANKS
+internal const val SAMPLE_FIELD_COUNT = 31 + LIBDC_MAX_TANKS
 
 /** Index of the first per-tank pressure slot. Matches LIBDC_TANK_PRESSURE_OFFSET in libdc_jni.cpp. */
 private const val TANK_PRESSURE_OFFSET = 28
+
+/**
+ * Index of the first Shearwater Avelo slot (buoyancy, gas remaining, computer
+ * RMV; issue #4664), after the tank-pressure slots so those keep their place.
+ * Matches LIBDC_AVELO_OFFSET in libdc_jni.cpp.
+ */
+private const val AVELO_OFFSET = TANK_PRESSURE_OFFSET + LIBDC_MAX_TANKS
+
+/** A NaN-coded double slot, or null when the array predates it (stale .so). */
+private fun aveloDouble(s: DoubleArray, i: Int): Double? =
+    if (s.size <= i || s[i].isNaN()) null else s[i]
 
 private fun sentinelLong(s: DoubleArray, i: Int): Long? =
     if (s[i].toLong() == UINT32_SENTINEL) null else s[i].toLong()
@@ -32,7 +43,9 @@ private fun cellMillivolt(s: DoubleArray, i: Int): Long? =
  * only the last of them.
  */
 private fun tankPressures(s: DoubleArray): List<Double?>? {
-    if (s.size < SAMPLE_FIELD_COUNT) return null
+    // The tank block, not the whole array: a .so from before the Avelo slots
+    // (issue #4664) still carries every tank pressure.
+    if (s.size < TANK_PRESSURE_OFFSET + LIBDC_MAX_TANKS) return null
     val values = ArrayList<Double?>(LIBDC_MAX_TANKS)
     for (t in 0 until LIBDC_MAX_TANKS) {
         val v = s[TANK_PRESSURE_OFFSET + t]
@@ -77,5 +90,8 @@ internal fun decodeProfileSample(s: DoubleArray): ProfileSample = ProfileSample(
     o2SensorMv4 = cellMillivolt(s, 25),
     o2SensorMv5 = cellMillivolt(s, 26),
     o2SensorMv6 = cellMillivolt(s, 27),
+    aveloBuoyancy = aveloDouble(s, AVELO_OFFSET),
+    aveloGasRemaining = if (s.size <= AVELO_OFFSET + 1) null else sentinelLong(s, AVELO_OFFSET + 1),
+    computerRmv = aveloDouble(s, AVELO_OFFSET + 2),
     gasMixIndex = sentinelLong(s, 20),
 )
