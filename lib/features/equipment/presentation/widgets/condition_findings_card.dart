@@ -35,7 +35,15 @@ bool hasVisibleConditionFindings(
 class ConditionFindingsCard extends ConsumerStatefulWidget {
   final EquipmentItem equipment;
 
-  const ConditionFindingsCard({super.key, required this.equipment});
+  /// Offers no dismiss or restore: the item page edits in place, and its
+  /// findings are not yet held in its sitting (issue #4527, phase 3).
+  final bool readOnly;
+
+  const ConditionFindingsCard({
+    super.key,
+    required this.equipment,
+    this.readOnly = false,
+  });
 
   @override
   ConsumerState<ConditionFindingsCard> createState() =>
@@ -104,7 +112,9 @@ class _ConditionFindingsCardState extends ConsumerState<ConditionFindingsCard> {
               equipment: widget.equipment,
               finding: f,
             ),
-      onDismissChanged: (dismissed) => _setDismissed(f, dismissed),
+      onDismissChanged: widget.readOnly
+          ? null
+          : (dismissed) => _setDismissed(f, dismissed),
     );
 
     return Padding(
@@ -194,7 +204,9 @@ class _FindingTile extends StatelessWidget {
 
   /// Null when the finding names no dive, which hides the action.
   final VoidCallback? onEvidence;
-  final ValueChanged<bool> onDismissChanged;
+
+  /// Null offers no dismiss or restore.
+  final ValueChanged<bool>? onDismissChanged;
 
   const _FindingTile({
     required this.finding,
@@ -246,17 +258,19 @@ class _FindingTile extends StatelessWidget {
             ),
         ],
       ),
-      trailing: IconButton(
-        icon: Icon(
-          dismissed ? Icons.undo : Icons.close,
-          size: 18,
-          color: scheme.onSurfaceVariant,
-        ),
-        tooltip: dismissed
-            ? l10n.equipmentCondition_findings_restore
-            : l10n.equipmentCondition_findings_dismiss,
-        onPressed: () => onDismissChanged(!dismissed),
-      ),
+      trailing: onDismissChanged == null
+          ? null
+          : IconButton(
+              icon: Icon(
+                dismissed ? Icons.undo : Icons.close,
+                size: 18,
+                color: scheme.onSurfaceVariant,
+              ),
+              tooltip: dismissed
+                  ? l10n.equipmentCondition_findings_restore
+                  : l10n.equipmentCondition_findings_dismiss,
+              onPressed: () => onDismissChanged!(!dismissed),
+            ),
     );
   }
 }
