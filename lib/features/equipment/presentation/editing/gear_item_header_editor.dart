@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/dive_sites/presentation/editing/site_classification_sitting.dart'
+    show mergedIds;
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_tag_repository.dart';
@@ -29,17 +31,13 @@ final gearItemTagsList = SittingList<EquipmentItem, Tag>(
     final now = [
       for (final t in await repository.getTagsForEquipment(item.id)) t.id,
     ];
-    final removed = {for (final t in loaded) t.id}
-      ..removeAll([for (final t in current) t.id]);
-    final merged = [
-      for (final id in now)
-        if (!removed.contains(id)) id,
-      for (final t in current)
-        if (!now.contains(t.id)) t.id,
-    ];
-    if (merged.length == now.length && merged.toSet().containsAll(now)) {
-      return false;
-    }
+    final merged = mergedIds(
+      stored: now,
+      loaded: [for (final t in loaded) t.id],
+      current: [for (final t in current) t.id],
+    );
+    // Nothing to write when a sync made the same change meanwhile.
+    if (sameIdSets(merged, now, (id) => id)) return false;
     await repository.replaceTags(item.id, merged, notify: false);
     return true;
   },

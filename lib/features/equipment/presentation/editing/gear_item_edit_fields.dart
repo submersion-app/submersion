@@ -240,9 +240,11 @@ final gearCustomReminderField = EditField<EquipmentItem, GearCustomReminder>(
     customReminderEnabled: v.enabled,
     customReminderDays: v.enabled == true ? v.days : null,
   ),
+  // The days are a set: the same days in another order are no change.
   equals: (a, b) =>
       a.enabled == b.enabled &&
-      (a.enabled != true || const ListEquality<int>().equals(a.days, b.days)),
+      (a.enabled != true ||
+          const SetEquality<int>().equals(a.days?.toSet(), b.days?.toSet())),
 );
 
 /// The photo that stands for the item, chosen on the Photos card.
@@ -327,31 +329,55 @@ List<EquipmentAttribute> gearAttributesToSave(
   ];
 }
 
-/// [merged], the sitting's item, as the form would save it: only the type's
-/// catalogue attributes and its custom fields kept ([gearAttributesToSave]).
-/// [stored] itself when the sitting changed nothing on the row.
+/// [merged], the sitting's item, as the form would save it, touching only
+/// what the sitting changed: a new type keeps only its catalogue attributes
+/// (a colour on a type without one kept as a custom field), and edited
+/// custom fields are de-duplicated by key with their order re-packed
+/// ([gearAttributesToSave]). An attribute the sitting never touched is
+/// written as stored, a key this build's catalogue lacks included. [stored]
+/// itself when the sitting changed nothing on the row.
 EquipmentItem gearItemToSave(EquipmentItem stored, EquipmentItem merged) {
   if (merged == stored) return stored;
-  final attributes = keepStrayColorAsCustom(merged.type, merged.attributes);
+  List<EquipmentAttribute> customOf(EquipmentItem e) =>
+      e.attributes.where((a) => a.isCustom).toList()
+        ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+  final typeChanged = merged.type != stored.type;
+  final customChanged = !const ListEquality<EquipmentAttribute>().equals(
+    customOf(merged),
+    customOf(stored),
+  );
+  if (!typeChanged && !customChanged) return merged;
+  final attributes = typeChanged
+      ? keepStrayColorAsCustom(merged.type, merged.attributes)
+      : merged.attributes;
+  final curated = attributes.where((a) => !a.isCustom).toList();
+  final custom = attributes.where((a) => a.isCustom).toList()
+    ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+  if (typeChanged) {
+    return _with(
+      merged,
+      attributes: gearAttributesToSave(merged.type, curated, custom),
+    );
+  }
+  // Only the custom fields changed: the curated ones go as they are.
   return _with(
     merged,
-    attributes: gearAttributesToSave(
-      merged.type,
-      attributes.where((a) => !a.isCustom).toList(),
-      attributes.where((a) => a.isCustom).toList()
-        ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder)),
-    ),
+    attributes: [
+      ...curated,
+      ...gearAttributesToSave(merged.type, const [], custom),
+    ],
   );
 }
 
 /// [days] with [day] switched: added, or removed unless it is the last.
+/// In ascending order, as the chips show them.
 List<int> gearReminderDaysToggled(List<int> days, int day) {
-  if (!days.contains(day)) return [...days, day];
+  if (!days.contains(day)) return [...days, day]..sort();
   if (days.length == 1) return days;
   return [
     for (final d in days)
       if (d != day) d,
-  ];
+  ]..sort();
 }
 
 /// The currency typed, or [fallback] when it is blank, as the form saves.

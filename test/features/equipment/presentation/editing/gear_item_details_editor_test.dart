@@ -212,6 +212,40 @@ void main() {
     expect(session.working.purchaseCurrency, 'EUR');
   });
 
+  testWidgets('reopening the editor after an unreadable price unblocks the '
+      'card', (tester) async {
+    final session = await pumpEditor(
+      tester,
+      regulator.copyWith(purchasePrice: 400, purchaseCurrency: 'EUR'),
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('equipment-purchase-price')),
+      '4x0',
+    );
+    await tester.pumpAndSettle();
+    expect(gearDetailsValid(session), isFalse);
+
+    // The card closes and opens again: the field shows the readable price.
+    await tester.pumpWidget(const SizedBox());
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: ProviderScope(
+            overrides: (await getBaseOverrides()).cast(),
+            child: SingleChildScrollView(
+              child: GearItemDetailsEditor(session: session),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(gearDetailsValid(session), isTrue);
+  });
+
   test('a unit picked with no number yet is kept', () {
     final key = EquipmentAttributeCatalog.attributesFor(
       EquipmentType.bcd,

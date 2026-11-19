@@ -24,7 +24,6 @@ class HeldCheckIn {
     this.added = const [],
     this.removedPhotoIds = const {},
     this.deleted = false,
-    this.writers,
   });
 
   final EquipmentObservation observation;
@@ -39,10 +38,6 @@ class HeldCheckIn {
   /// the same write.
   final bool deleted;
 
-  /// How its photos are written: the page's, which outlive it. Not part of
-  /// what it is.
-  final SittingMediaWriters? writers;
-
   bool get hasPhotoChanges => added.isNotEmpty || removedPhotoIds.isNotEmpty;
 
   HeldCheckIn copyWith({
@@ -50,13 +45,11 @@ class HeldCheckIn {
     List<HeldMediaAdd>? added,
     Set<String>? removedPhotoIds,
     bool? deleted,
-    SittingMediaWriters? writers,
   }) => HeldCheckIn(
     observation: observation ?? this.observation,
     added: added ?? this.added,
     removedPhotoIds: removedPhotoIds ?? this.removedPhotoIds,
     deleted: deleted ?? this.deleted,
-    writers: writers ?? this.writers,
   );
 
   @override
@@ -83,61 +76,62 @@ class HeldCheckIn {
 }
 
 /// The item's check-ins held in its page's sitting: added, edited and
-/// deleted there, with their photos, written at Save.
-final gearItemCheckInsList = SittingList<EquipmentItem, HeldCheckIn>(
-  key: 'equipment.checkIns',
-  cardId: GearItemCardId.observations.name,
-  read: (item) async => [
-    for (final o in await EquipmentObservationRepository().getForEquipment(
-      item.id,
-    ))
-      HeldCheckIn(observation: o),
-  ],
-  write: (item, loaded, current) async {
-    final repository = EquipmentObservationRepository();
-    final byId = {for (final c in loaded) c.observation.id: c};
-    final kept = {for (final c in current) c.observation.id};
-    var changed = false;
-    for (final row in current) {
-      final before = byId[row.observation.id];
-      if (row == before) continue;
-      changed = true;
-      if (row.deleted) {
-        if (before == null) continue;
-        await _deleteWithPhotos(repository, row.observation.id, row.writers);
-        continue;
-      }
-      final o = row.observation;
-      if (before == null) {
-        await repository.create(
-          id: o.id,
-          equipmentId: o.equipmentId,
-          diveId: o.diveId,
-          diverId: o.diverId,
-          observedAt: o.observedAt,
-          status: o.status,
-          issueTags: o.issueTags,
-          unrecognizedTags: o.unrecognizedTags,
-          note: o.note,
-        );
-      } else if (before.observation != o) {
-        await repository.update(o);
-      }
-      // After its row, so a new check-in exists before its photos.
-      await _writePhotos(row);
-    }
-    for (final row in loaded) {
-      if (kept.contains(row.observation.id)) continue;
-      await _deleteWithPhotos(repository, row.observation.id, null);
-      changed = true;
-    }
-    if (changed) scheduleConditionFindingsRefresh([item.id]);
-    return changed;
-  },
-);
+/// deleted there, with their photos, written at Save through the writers
+/// the sitting keeps ([holdCheckIns]).
+final gearItemCheckInsList =
+    SittingList<EquipmentItem, HeldCheckIn>.withSession(
+      key: 'equipment.checkIns',
+      cardId: GearItemCardId.observations.name,
+      read: (item) async => [
+        for (final o in await EquipmentObservationRepository().getForEquipment(
+          item.id,
+        ))
+          HeldCheckIn(observation: o),
+      ],
+      writeIn: (session, loaded, current) async {
+        final writers = checkInWriters(session);
+        final repository = EquipmentObservationRepository();
+        final byId = {for (final c in loaded) c.observation.id: c};
+        final kept = {for (final c in current) c.observation.id};
+        var changed = false;
+        for (final row in current) {
+          final before = byId[row.observation.id];
+          if (row == before) continue;
+          changed = true;
+          if (row.deleted) {
+            if (before == null) continue;
+            await _deleteWithPhotos(repository, row.observation.id, writers);
+            continue;
+          }
+          final o = row.observation;
+          if (before == null) {
+            await repository.create(
+              id: o.id,
+              equipmentId: o.equipmentId,
+              diveId: o.diveId,
+              diverId: o.diverId,
+              observedAt: o.observedAt,
+              status: o.status,
+              issueTags: o.issueTags,
+              unrecognizedTags: o.unrecognizedTags,
+              note: o.note,
+            );
+          } else if (before.observation != o) {
+            await repository.update(o);
+          }
+          // After its row, so a new check-in exists before its photos.
+          await _writePhotos(row, writers);
+        }
+        for (final row in loaded) {
+          if (kept.contains(row.observation.id)) continue;
+          await _deleteWithPhotos(repository, row.observation.id, writers);
+          changed = true;
+        }
+        return changed;
+      },
+    );
 
-Future<void> _writePhotos(HeldCheckIn row) async {
-  final writers = row.writers;
+Future<void> _writePhotos(HeldCheckIn row, SittingMediaWriters? writers) async {
   if (writers == null || !row.hasPhotoChanges) return;
   final rows = [
     for (final a in row.added)
@@ -187,11 +181,10 @@ SittingMediaWriters? checkInWriters(EditSession<EquipmentItem> session) =>
 void holdCheckIn(EditSession<EquipmentItem> session, HeldCheckIn row) {
   final rows = gearItemCheckInsList.current(session);
   if (rows == null) return;
-  final held = row.copyWith(writers: checkInWriters(session));
   final known = rows.any((c) => c.observation.id == row.observation.id);
   gearItemCheckInsList.set(session, [
-    if (!known) held,
-    for (final c in rows) c.observation.id == row.observation.id ? held : c,
+    if (!known) row,
+    for (final c in rows) c.observation.id == row.observation.id ? row : c,
   ]);
 }
 
@@ -210,12 +203,14 @@ void deleteHeldCheckIn(EditSession<EquipmentItem> session, String id) {
       if (c.observation.id != id)
         c
       else if (stored.contains(id))
-        c.copyWith(deleted: true, writers: checkInWriters(session)),
+        c.copyWith(deleted: true),
   ]);
 }
 
 /// What must happen once the sitting's write has committed: an upload
-/// queued for each photo written, and the remote deletes its unlinks held.
+/// queued for each photo it wrote (none for a check-in it deleted), the
+/// remote deletes its unlinks held, and the item's condition findings
+/// refreshed from what is now stored.
 List<Future<void> Function()> checkInsAfterCommit(
   EditSession<EquipmentItem> session,
 ) {
@@ -227,11 +222,32 @@ List<Future<void> Function()> checkInsAfterCommit(
     return const [];
   }
   final unlinked = rows.any((c) => c.deleted || c.removedPhotoIds.isNotEmpty);
+  final itemId = session.stored.id;
   return [
     for (final c in rows)
-      for (final a in c.added)
-        if (a is HeldMediaRow)
-          () async => writers.enqueueUpload(a.prepared.item.id),
+      if (!c.deleted)
+        for (final a in c.added)
+          if (a is HeldMediaRow)
+            () async => writers.enqueueUpload(a.prepared.item.id),
     if (unlinked) writers.drainDeletes,
+    () async => scheduleConditionFindingsRefresh([itemId]),
+  ];
+}
+
+/// [held] with [adds] put after it, less any photo [held] already has (the
+/// same gallery asset, file or address): a photo picked twice is held once.
+List<HeldMediaAdd> withHeldPhotosAdded(
+  List<HeldMediaAdd> held,
+  List<HeldMediaAdd> adds,
+) {
+  final seen = {for (final a in held) ?mediaSameFileKey(a.preview)};
+  return [
+    ...held,
+    for (final a in adds)
+      if (switch (mediaSameFileKey(a.preview)) {
+        null => true,
+        final key => seen.add(key),
+      })
+        a,
   ];
 }

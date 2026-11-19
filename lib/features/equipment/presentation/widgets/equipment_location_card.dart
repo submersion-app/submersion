@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/equipment/presentation/editing/gear_item_list_pending.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_location_picker_sheet.dart';
@@ -58,6 +59,14 @@ class _EquipmentLocationCardState extends ConsumerState<EquipmentLocationCard> {
   bool get _canAct =>
       !widget.readOnly && (widget.shown == null || widget.editing != null);
 
+  /// Whether a past move may be edited: as [_canAct], and in the open card
+  /// only once the sitting has read the moves, so an edit has a list to go
+  /// into.
+  bool get _canEditPastMoves =>
+      _canAct &&
+      (widget.editing == null ||
+          gearItemMovesList.current(widget.editing!) != null);
+
   @override
   Widget build(BuildContext context) {
     final sitting = widget.editing ?? widget.shown;
@@ -77,7 +86,9 @@ class _EquipmentLocationCardState extends ConsumerState<EquipmentLocationCard> {
       await showMoveEquipmentFlow(context, ref, items: [widget.equipment]);
       return;
     }
-    final move = await planGearItemMove(context, ref, editing.stored);
+    // The item as the sitting has it: a status changed in it decides what
+    // the move offers.
+    final move = await planGearItemMove(context, ref, editing.working);
     if (move != null) holdGearItemMove(editing, move);
   }
 
@@ -181,6 +192,8 @@ class _EquipmentLocationCardState extends ConsumerState<EquipmentLocationCard> {
                   : () => context.push('/buddies/${buddy.id}'),
             ),
             if (moves.isNotEmpty) const Divider(),
+            if (widget.editing case final session?)
+              ?gearItemListPending(gearItemMovesList, session),
             for (final m in shown) _historyRow(context, m, places, units),
             if (!_showAll && moves.length > _recentCount)
               TextButton(
@@ -211,8 +224,10 @@ class _EquipmentLocationCardState extends ConsumerState<EquipmentLocationCard> {
       subtitle: Text(
         [units.formatDate(m.movedAt), if (m.note.isNotEmpty) m.note].join(', '),
       ),
-      trailing: _canAct ? const Icon(Icons.edit_outlined, size: 18) : null,
-      onTap: !_canAct
+      trailing: _canEditPastMoves
+          ? const Icon(Icons.edit_outlined, size: 18)
+          : null,
+      onTap: !_canEditPastMoves
           ? null
           : widget.editing == null
           ? () => showLocationMoveEditDialog(context, ref, m)

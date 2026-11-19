@@ -322,7 +322,14 @@ class _ObservationSheetState extends ConsumerState<_ObservationSheet> {
       return;
     }
     if (widget.onHold case final hold?) {
-      await _hold(draft, hold);
+      // A second tap while the diver is read must not hand the check-in
+      // over twice, nor close the page under the sheet.
+      setState(() => _saving = true);
+      try {
+        await _hold(draft, hold);
+      } finally {
+        if (mounted) setState(() => _saving = false);
+      }
       return;
     }
     setState(() => _saving = true);

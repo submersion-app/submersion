@@ -73,17 +73,28 @@ class FakeGearItemSave implements GearItemEditSaveService {
 }
 
 class GearPageHarness {
-  GearPageHarness(this.save, this.stored);
+  GearPageHarness(this.save, this.stored, this.serviceRecords);
 
   final FakeGearItemSave save;
   final StateController<EquipmentItem?> stored;
+
+  /// Counts the service record reloads, which reschedule the reminders.
+  final CountingServiceRecords serviceRecords;
 }
 
 final _storedProvider = StateProvider<EquipmentItem?>((ref) => apex);
 
-class _NoServiceRecords extends StateNotifier<AsyncValue<List<ServiceRecord>>>
+/// No service records, counting each reload (which reschedules the item's
+/// service reminders).
+class CountingServiceRecords
+    extends StateNotifier<AsyncValue<List<ServiceRecord>>>
     implements ServiceRecordNotifier {
-  _NoServiceRecords() : super(const AsyncValue.data([]));
+  CountingServiceRecords() : super(const AsyncValue.data([]));
+
+  int refreshes = 0;
+
+  @override
+  Future<void> refresh() async => refreshes++;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
@@ -111,6 +122,7 @@ Future<GearPageHarness> pumpGearPage(
   addTearDown(tester.view.reset);
   final overrides = await getBaseOverrides();
   late GearPageHarness harness;
+  final serviceRecords = CountingServiceRecords();
   final page = EquipmentDetailPage(
     equipmentId: shown.id,
     unlockEditing: unlockEditing,
@@ -156,10 +168,14 @@ Future<GearPageHarness> pumpGearPage(
         equipmentWorstClockProvider.overrideWith((ref) async => {}),
         serviceRecordNotifierProvider(
           shown.id,
-        ).overrideWith((ref) => _NoServiceRecords()),
+        ).overrideWith((ref) => serviceRecords),
         gearItemEditSaveServiceProvider.overrideWith((ref) {
           final save = FakeGearItemSave(ref.watch(_storedProvider.notifier));
-          harness = GearPageHarness(save, ref.watch(_storedProvider.notifier));
+          harness = GearPageHarness(
+            save,
+            ref.watch(_storedProvider.notifier),
+            serviceRecords,
+          );
           return save;
         }),
         ...extraOverrides,

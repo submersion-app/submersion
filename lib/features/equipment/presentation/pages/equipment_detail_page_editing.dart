@@ -53,10 +53,10 @@ mixin _EquipmentDetailPageEditing
     gearItemMovesList.load(session);
     gearItemClocksList.load(session);
     gearItemServiceRecordsList.load(session);
-    // Who it is shared with, where it can be: an item with an owner, among
-    // two or more profiles.
-    if (session.stored.diverId != null &&
-        container.read(hasMultipleDiversProvider)) {
+    // Who it is shared with, for an item with an owner. Read whether or not
+    // the profiles are known yet: the sharing row shows once they are, and
+    // a choice made there must find the sharing read.
+    if (session.stored.diverId != null) {
       gearItemSharing.load(
         session,
         EquipmentSharesSharingAdapter(
@@ -71,15 +71,12 @@ mixin _EquipmentDetailPageEditing
       owner: DocumentOwner(DocumentOwnerKind.equipment, session.stored.id),
       cardId: GearItemCardId.documents.name,
     );
-    // The photos and the older linked files are written with the
-    // container's readers, which outlive the page.
-    holdSittingMedia(
-      session,
-      SittingMediaWriters.forEquipment(container.read),
-      cardId: GearItemCardId.photos.name,
-    );
-    holdLegacyFiles(session, SittingMediaWriters.forEquipment(container.read));
-    holdCheckIns(session, SittingMediaWriters.forEquipment(container.read));
+    // The photos, the older linked files and the check-ins' photos are
+    // written with the container's readers, which outlive the page.
+    final writers = SittingMediaWriters.forEquipment(container.read);
+    holdSittingMedia(session, writers, cardId: GearItemCardId.photos.name);
+    holdLegacyFiles(session, writers);
+    holdCheckIns(session, writers);
     gearItemCheckInsList.load(session);
   }
 
@@ -93,6 +90,7 @@ mixin _EquipmentDetailPageEditing
     final container = ProviderScope.containerOf(context, listen: false);
     // Read now: the sitting ends with the Save.
     final clockSync = heldClockSync(session);
+    final changedCards = session.changedCardIds;
     // A failed write takes back what the media write did outside the
     // database.
     final result = await undoMediaOnFailure(
@@ -114,8 +112,9 @@ mixin _EquipmentDetailPageEditing
     if (after != null && widget.embedded && mounted) {
       unawaited(
         offerViewRevealingSavedItem(
-          context,
-          ref,
+          messenger: ScaffoldMessenger.of(context),
+          l10n: context.l10n,
+          container: container,
           equipmentId: after.id,
           status: after.status,
         ),
@@ -134,6 +133,7 @@ mixin _EquipmentDetailPageEditing
       after: result?.after,
       clockSync: clockSync,
       afterCommit: afterCommit,
+      changedCardIds: changedCards,
     );
   }
 
@@ -201,6 +201,7 @@ void afterGearItemSave(
   EquipmentItem? after,
   HeldClockSync? clockSync,
   List<Future<void> Function()> afterCommit = const [],
+  Set<String> changedCardIds = const {},
 }) {
   void bestEffort(Future<void> Function() work, String task) =>
       logFailure(Future.sync(work), EquipmentDetailPage, task);
@@ -247,19 +248,29 @@ void afterGearItemSave(
       'rescan dives for the transmitter item',
     );
   }
-  // The service reminders follow the clocks, the records and the item's
-  // own reminder days.
-  bestEffort(
-    () => container
-        .read(serviceRecordNotifierProvider(equipmentId).notifier)
-        .refresh(),
-    'reschedule service reminders after a save',
-  );
+  // The service reminders follow the clocks, the records, the item's own
+  // reminder days and its dates (Details): rescheduled when one of those
+  // cards changed, not on every Save.
+  if (changedCardIds.any(_serviceCards.contains)) {
+    bestEffort(
+      () => container
+          .read(serviceRecordNotifierProvider(equipmentId).notifier)
+          .refresh(),
+      'reschedule service reminders after a save',
+    );
+  }
   bestEffort(
     () => container.read(equipmentListNotifierProvider.notifier).refresh(),
     'refresh the equipment lists after a save',
   );
 }
+
+/// The cards whose changes move the item's service reminders.
+final Set<String> _serviceCards = {
+  GearItemCardId.serviceClocks.name,
+  GearItemCardId.serviceHistory.name,
+  GearItemCardId.details.name,
+};
 
 /// [child], a section the page calculates, faded and labelled
 /// "Calculated" while unlocked; untouched where the page does not edit in

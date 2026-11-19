@@ -127,6 +127,24 @@ void main() {
       );
     });
 
+    testWidgets('open, past moves open nothing until the sitting has read '
+        'them', (tester) async {
+      final session = EditSession(reg);
+      addTearDown(session.dispose);
+      await pump(tester, [
+        move('b', 'shop', 3),
+      ], card: EquipmentLocationCard(equipment: reg, editing: session));
+      // A progress bar waiting for a read never settles.
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('equipment_location_move_b')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.byType(AlertDialog), findsNothing);
+    });
+
     testWidgets('open, a past move edited is held in the sitting', (
       tester,
     ) async {

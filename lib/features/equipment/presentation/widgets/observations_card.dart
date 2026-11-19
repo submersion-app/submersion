@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/features/equipment/presentation/editing/gear_item_list_pending.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
@@ -51,7 +52,12 @@ class ObservationsCard extends ConsumerWidget {
 
   /// Whether a tap may act: not on a locked page, and in a sitting only in
   /// the open card.
-  bool get _canAct => !readOnly && (shown == null || editing != null);
+  /// In the open card, only once the sitting has read its check-ins: an
+  /// action before then would have no list to go into.
+  bool get _canAct =>
+      !readOnly &&
+      (shown == null || editing != null) &&
+      (editing == null || gearItemCheckInsList.current(editing!) != null);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -129,6 +135,8 @@ class ObservationsCard extends ConsumerWidget {
               ],
             ),
             const Divider(),
+            if (editing case final session?)
+              ?gearItemListPending(gearItemCheckInsList, session),
             observationsAsync.when(
               loading: () => const Padding(
                 padding: EdgeInsets.all(16),

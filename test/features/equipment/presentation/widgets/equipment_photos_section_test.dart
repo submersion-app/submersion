@@ -235,6 +235,38 @@ void main() {
       expect(find.byType(MediaThumbnailTile), findsOneWidget);
     });
 
+    testWidgets('a second cover choice in the sitting moves the badge, and '
+        'choosing it again clears it', (tester) async {
+      final session = sitting();
+      await tester.pumpWidget(
+        await host(
+          photos: [photo('m1'), photo('m2')],
+          section: EquipmentPhotosSection(equipment: item(), editing: session),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      Future<void> toggleCover(int index) async {
+        await tester.tap(find.byKey(const ValueKey('enter_selection')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byType(MediaThumbnailTile).at(index));
+        await tester.pumpAndSettle();
+        await tester.tap(
+          find.byKey(const ValueKey('selection_action_setCover')),
+        );
+        await tester.pumpAndSettle();
+      }
+
+      await toggleCover(0);
+      await toggleCover(1);
+      expect(session.working.coverMediaId, 'm2');
+      expect(find.byKey(const ValueKey('cover_badge_m2')), findsOneWidget);
+      expect(find.byKey(const ValueKey('cover_badge_m1')), findsNothing);
+
+      await toggleCover(1);
+      expect(session.working.coverMediaId, isNull);
+    });
+
     testWidgets('choosing the cover is held, not written', (tester) async {
       final gearPhotos = _RecordingGearPhotos();
       final session = sitting();

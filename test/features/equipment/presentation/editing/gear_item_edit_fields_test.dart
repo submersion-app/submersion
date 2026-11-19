@@ -204,6 +204,28 @@ void main() {
       expect(gearReminderDaysToggled(const [7], 30), [7, 30]);
     });
 
+    test('a day ticked off and on again leaves the reminder unchanged', () {
+      final stored = regulator.copyWith(
+        customReminderEnabled: true,
+        customReminderDays: const [7, 14, 30],
+      );
+      final off = gearReminderDaysToggled(const [7, 14, 30], 14);
+      final on = gearReminderDaysToggled(off, 14);
+      final session = EditSession(stored)
+        ..set(gearCustomReminderField, (enabled: true, days: on));
+
+      expect(on, [7, 14, 30]);
+      expect(session.isDirty, isFalse);
+      // Stored out of order (an older build), the same days are no change.
+      final unsorted = regulator.copyWith(
+        customReminderEnabled: true,
+        customReminderDays: const [30, 7],
+      );
+      final again = EditSession(unsorted)
+        ..set(gearCustomReminderField, (enabled: true, days: const [7, 30]));
+      expect(again.isDirty, isFalse);
+    });
+
     test('a blank currency falls back to the default', () {
       expect(gearCurrencyOrDefault('  ', 'EUR'), 'EUR');
       expect(gearCurrencyOrDefault(' gbp ', 'EUR'), 'gbp');
@@ -251,6 +273,64 @@ void main() {
         identical(gearItemToSave(regulator, regulator), regulator),
         isTrue,
       );
+    });
+
+    test(
+      'an attribute the sitting never touched survives a change elsewhere',
+      () {
+        // A key this build's catalogue lacks: a newer peer's, say.
+        final stored = item(
+          attributes: [
+            EquipmentAttribute.curated(
+              equipmentId: 'g1',
+              key: 'from_a_newer_build',
+              valueText: 'kept',
+            ),
+          ],
+        );
+        final merged = (EditSession(
+          stored,
+        )..set(gearNotesField, 'Rinse')).applyTo(stored);
+
+        final saved = gearItemToSave(stored, merged);
+
+        expect(saved.attrText('from_a_newer_build'), 'kept');
+      },
+    );
+
+    test('custom fields edited are de-duplicated, the rest kept', () {
+      final stored = item(
+        attributes: [
+          EquipmentAttribute.curated(
+            equipmentId: 'g1',
+            key: 'from_a_newer_build',
+            valueText: 'kept',
+          ),
+        ],
+      );
+      final session = EditSession(stored)
+        ..set(gearCustomFieldsField, const [
+          EquipmentAttribute(
+            id: '',
+            equipmentId: 'g1',
+            key: 'Hose',
+            isCustom: true,
+            valueText: 'blue',
+          ),
+          EquipmentAttribute(
+            id: '',
+            equipmentId: 'g1',
+            key: 'Hose ',
+            isCustom: true,
+            valueText: 'red',
+            sortOrder: 1,
+          ),
+        ]);
+
+      final saved = gearItemToSave(stored, session.applyTo(stored));
+
+      expect(saved.attrText('from_a_newer_build'), 'kept');
+      expect(saved.attributes.where((a) => a.isCustom), hasLength(1));
     });
 
     test('a changed item keeps only its type\'s catalogue attributes', () {

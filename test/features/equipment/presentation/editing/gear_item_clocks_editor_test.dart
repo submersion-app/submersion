@@ -67,7 +67,11 @@ void main() {
   });
   tearDown(tearDownTestDatabase);
 
-  Future<void> pump(WidgetTester tester, Widget child) async {
+  Future<void> pump(
+    WidgetTester tester,
+    Widget child, {
+    bool settle = true,
+  }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(800, 2000);
     addTearDown(tester.view.reset);
@@ -83,7 +87,8 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    // A progress bar waiting for a read never settles.
+    settle ? await tester.pumpAndSettle() : await tester.pump();
   }
 
   EditSession<EquipmentItem> sitting() {
@@ -253,6 +258,21 @@ void main() {
         await ServiceRecordRepository().getRecordsForEquipment('g1'),
         hasLength(1),
       );
+    });
+
+    testWidgets('in a sitting nothing is offered until the records are read', (
+      tester,
+    ) async {
+      // Not loaded: the read has not been asked for.
+      final session = sitting();
+      await pump(
+        tester,
+        ServiceHistorySection(equipmentId: 'g1', editing: session),
+        settle: false,
+      );
+
+      expect(find.text(l.equipment_service_addButton), findsNothing);
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
     });
 
     testWidgets('locked, it offers no Add and its records open nothing', (

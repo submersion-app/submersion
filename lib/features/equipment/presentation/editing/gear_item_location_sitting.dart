@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_location_move_repository.dart';
@@ -39,6 +40,10 @@ class HeldGearItemMove {
 const String _moveKey = 'equipment.move';
 const String _moveNote = 'equipment.move.held';
 const String _statusNote = 'equipment.move.setStatus';
+
+/// The status a held move set on the item ([set]), and the one it had
+/// before ([before]).
+typedef _MoveStatus = ({EquipmentStatus before, EquipmentStatus set});
 
 /// The item's past moves, edited and deleted in its sitting, written at
 /// Save. Only those the diver changed are written.
@@ -131,22 +136,28 @@ void holdGearItemMove(
 ) {
   if (session.isDisposed || session.isFrozen) return;
   final item = session.stored;
+  final now = session.valueOf(gearStatusField);
+  // The status a move held before set, and what the item had before it:
+  // taken back only while the diver has not changed it since.
+  final previous = session.recall<_MoveStatus>(_statusNote);
+  final ours = previous != null && previous.set == now;
+  final before = ours ? previous.before : now;
   final status = move.plan.status;
   final forItem =
       status != null &&
       offeredStatusAfterMove(
             targetKindOf(move.pick),
-            move.plan.items[item.id] ?? item.status,
+            move.plan.items[item.id] ?? now,
           ) ==
           status;
   if (forItem) {
     session.set(gearStatusField, status);
-  } else if (session.recall<bool>(_statusNote) == true) {
+  } else if (ours) {
     // A move held before set the item's status; this one does not.
-    session.set(gearStatusField, gearShownStatus(item));
+    session.set(gearStatusField, before);
   }
   session
-    ..remember(_statusNote, forItem)
+    ..remember(_statusNote, forItem ? (before: before, set: status) : null)
     ..remember(_moveNote, move)
     ..holdChange(
       _moveKey,

@@ -76,6 +76,10 @@ class _GearItemDetailsEditorState extends ConsumerState<GearItemDetailsEditor> {
     super.initState();
     final price = _session.valueOf(gearPriceField);
     _initialCurrency = price.currency;
+    // The field opens on the last readable price, so nothing unreadable is
+    // left in it: a flag left by an earlier opening would block the Save
+    // with no error to see.
+    _session.remember(_priceUnreadableKey, null);
     // Seeded in the diver's decimal convention, read back the same way, so
     // an untouched price is not misread (#1091).
     _price = TextEditingController(
@@ -95,10 +99,9 @@ class _GearItemDetailsEditorState extends ConsumerState<GearItemDetailsEditor> {
     super.dispose();
   }
 
-  String get _fallbackCurrency {
-    final code = ref.read(defaultCurrencyProvider).trim().toUpperCase();
-    return code.isEmpty ? 'USD' : code;
-  }
+  /// The diver's default currency, for a currency left blank.
+  String get _fallbackCurrency =>
+      normalizeCurrencyCode(ref.read(defaultCurrencyProvider), fallback: 'USD');
 
   /// A readable price is the item's; blank is none; unreadable text keeps
   /// the last readable one and blocks the Save until it is fixed.

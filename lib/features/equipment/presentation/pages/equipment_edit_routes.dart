@@ -12,7 +12,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/query/presentation/providers/query_cache_awaits.dart';
 import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
 final _log = LoggerService.forClass(EquipmentDetailPage);
@@ -71,29 +71,31 @@ Widget gearItemEditPane(
 /// shows item [equipmentId] of [status] and offers the view that does, as
 /// the edit form does (#3068): an item the list hides seemed not to have
 /// saved at all. A check that fails says the item was updated instead.
-Future<void> offerViewRevealingSavedItem(
-  BuildContext context,
-  WidgetRef ref, {
+///
+/// Runs on [container] and [messenger], taken before the Save ended the
+/// pane's sitting: the pane's page is replaced as it ends, so its own ref
+/// may be gone before the check answers.
+Future<void> offerViewRevealingSavedItem({
+  required ScaffoldMessengerState messenger,
+  required AppLocalizations l10n,
+  required ProviderContainer container,
   required String equipmentId,
   required EquipmentStatus status,
 }) async {
-  final messenger = ScaffoldMessenger.of(context);
-  final l10n = context.l10n;
-  // Captured now: the page may be gone by the time the action runs.
-  final filterNotifier = ref.read(equipmentFilterProvider.notifier);
-  final highlightNotifier = ref.read(highlightedEquipmentIdProvider.notifier);
-  final runner = ref.read(queryIdSetRunnerProvider);
-  final filter = ref.read(effectiveEquipmentFilterProvider);
-  final defaults = ref.read(equipmentDefaultStatusesProvider);
+  final filterNotifier = container.read(equipmentFilterProvider.notifier);
+  final highlightNotifier = container.read(
+    highlightedEquipmentIdProvider.notifier,
+  );
   try {
     final view = await viewRevealingSavedEquipment(
-      runner: runner,
-      filter: filter,
-      diverId: await ref.read(validatedCurrentDiverIdProvider.future),
+      runner: container.read(queryIdSetRunnerProvider),
+      filter: container.read(effectiveEquipmentFilterProvider),
+      diverId: await container.read(validatedCurrentDiverIdProvider.future),
       equipmentId: equipmentId,
       status: status,
-      beforeQuery: (tables) => awaitQueryCachesIfReadFromWidget(ref, tables),
-      defaultStatuses: defaults,
+      beforeQuery: (tables) =>
+          awaitQueryCachesIfReadFromContainer(container, tables),
+      defaultStatuses: container.read(equipmentDefaultStatusesProvider),
     );
     if (view == null) return;
     messenger.showSnackBar(

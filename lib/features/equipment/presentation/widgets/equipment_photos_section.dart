@@ -70,6 +70,14 @@ class _EquipmentPhotosSectionState
   /// A browser shows the photos it can and links none (issue #4121).
   bool get _canAttach => ref.watch(deviceCapabilitiesProvider).mediaAttach;
 
+  /// The item's cover: the sitting's while it holds one, since an open
+  /// card's [EquipmentPhotosSection.equipment] is the record as it was when
+  /// the card opened.
+  String? get _coverId => switch (widget.editing ?? widget.shown) {
+    final session? => session.valueOf(gearCoverField),
+    null => widget.equipment.coverMediaId,
+  };
+
   /// Whether a change may be made: not on a locked page, and in a sitting
   /// only in the open card.
   bool get _canAct =>
@@ -141,7 +149,7 @@ class _EquipmentPhotosSectionState
     final ids = _selection.value.checkedIds;
     if (ids.length != 1 || !_canAct) return BulkActionOutcome.cancelled;
     final id = ids.single;
-    final isCover = widget.equipment.coverMediaId == id;
+    final isCover = _coverId == id;
     if (widget.editing case final editing?) {
       editing.set(gearCoverField, isCover ? null : id);
       return BulkActionOutcome.completed;
@@ -213,7 +221,7 @@ class _EquipmentPhotosSectionState
     final l10n = context.l10n;
     final colorScheme = Theme.of(context).colorScheme;
     final photos = photosAsync.value ?? const <MediaItem>[];
-    final coverId = widget.equipment.coverMediaId;
+    final coverId = _coverId;
     final singleChecked = selection.checkedIds.length == 1
         ? selection.checkedIds.single
         : null;

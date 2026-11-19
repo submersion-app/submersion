@@ -214,6 +214,30 @@ void main() {
     },
   );
 
+  test('a second move leaves a status the diver set by hand', () async {
+    final session = EditSession(await stored('h1'));
+    addTearDown(session.dispose);
+    holdGearItemMove(session, await lendToSam());
+    session.set(gearStatusField, EquipmentStatus.inService);
+    final plan = await EquipmentMoveFlow(
+      moves: moves,
+      askMoveParts: (_) async => false,
+      askStatus: (_, _) async => false,
+      setStatus: (_, _) async {},
+    ).plan(
+      items: [session.working],
+      targetKind: EquipmentLocationKind.storage,
+      movedAt: DateTime(2026, 6, 2),
+    );
+
+    holdGearItemMove(
+      session,
+      HeldGearItemMove(pick: PlacePick(home), plan: plan),
+    );
+
+    expect(session.working.status, EquipmentStatus.inService);
+  });
+
   test('a past move edited and one deleted are written at Save', () async {
     await moves.recordMoves(
       equipmentIds: ['h1'],

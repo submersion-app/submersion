@@ -42,6 +42,7 @@ void main() {
     List<EquipmentObservation> observations, {
     Map<String, List<MediaItem>> photos = const {},
     Widget? card,
+    bool settle = true,
   }) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -75,7 +76,8 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    // A progress bar waiting for a read never settles.
+    settle ? await tester.pumpAndSettle() : await tester.pump();
   }
 
   // Where the item page edits in place (issue #4527, phase 3).
@@ -99,6 +101,24 @@ void main() {
       expect(find.byIcon(Icons.edit_outlined), findsNothing);
       expect(find.byIcon(Icons.delete_outline), findsNothing);
     });
+
+    testWidgets(
+      'in a sitting nothing is offered until the check-ins are read',
+      (tester) async {
+        final session = EditSession(reg);
+        addTearDown(session.dispose);
+        await pump(
+          tester,
+          [issue],
+          card: ObservationsCard(equipment: reg, editing: session),
+          settle: false,
+        );
+
+        expect(find.byType(LinearProgressIndicator), findsOneWidget);
+        expect(find.byIcon(Icons.add), findsNothing);
+        expect(find.byIcon(Icons.edit_outlined), findsNothing);
+      },
+    );
 
     testWidgets('in a sitting a delete asks nothing and is held', (
       tester,

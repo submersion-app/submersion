@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -92,6 +94,7 @@ void main() {
     List<Override> extra = const [],
     HeldCheckIn? held,
     void Function(HeldCheckIn)? onHold,
+    Future<String?> Function()? diverId,
   }) async {
     // The editor's photos row (issue #3355) makes it taller than the default
     // 800x600 window, which would leave Save off screen.
@@ -107,7 +110,9 @@ void main() {
           ),
           // The raw id above is null; the validated one falls back to the
           // default diver, as the real provider does for a stale id.
-          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'kept'),
+          validatedCurrentDiverIdProvider.overrideWith(
+            (ref) => diverId?.call() ?? Future.value('kept'),
+          ),
           equipmentObservationRepositoryProvider.overrideWithValue(repo),
           ...extra,
         ],
@@ -180,6 +185,25 @@ void main() {
       expect(back.single.observation.note, 'Now leaking');
       expect(back.single.removedPhotoIds, {'p1'});
       expect(await repo.getForEquipment('reg'), isEmpty);
+    });
+
+    testWidgets('a second Save tap while the first is held hands back one '
+        'check-in and closes only the sheet', (tester) async {
+      final held = <HeldCheckIn>[];
+      final slow = Completer<String?>();
+      await pumpAndOpen(tester, onHold: held.add, diverId: () => slow.future);
+
+      final save = find.text('Save');
+      await tester.tap(save);
+      await tester.pump();
+      await tester.tap(save, warnIfMissed: false);
+      await tester.pump();
+      slow.complete('kept');
+      await tester.pumpAndSettle();
+
+      expect(held, hasLength(1));
+      // The page under the sheet is still there.
+      expect(find.text('open'), findsOneWidget);
     });
 
     testWidgets('Cancel closes the sheet and hands back nothing', (

@@ -260,9 +260,9 @@ class ServiceClocksCard extends ConsumerWidget {
                             : () async {
                                 final kind = kindsById[schedule.serviceKindId];
                                 if (kind == null) return;
-                                // The dialog invalidates the clock providers itself on
-                                // Save (and on Cancel nothing changed), so no extra
-                                // invalidation here -- matches the 'edit' action.
+                                // The dialog invalidates the clock providers itself
+                                // on Save (and on Cancel nothing changed), so none
+                                // is needed here, as for the 'edit' action.
                                 await showScheduleOverrideDialog(
                                   context,
                                   ref,

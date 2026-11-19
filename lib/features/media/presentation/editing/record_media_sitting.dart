@@ -180,7 +180,7 @@ SittingMedia sittingMedia<T>(EditSession<T> session) =>
 /// the address it was fetched from, or the connector's asset (a Lightroom
 /// scan run twice in one sitting finds its held photos again). Null for
 /// one with none of them.
-String? _sameFileKey(MediaItem m) => m.platformAssetId != null
+String? mediaSameFileKey(MediaItem m) => m.platformAssetId != null
     ? 'asset:${m.platformAssetId}'
     : m.localPath != null
     ? 'file:${m.localPath}'
@@ -195,10 +195,10 @@ String? _sameFileKey(MediaItem m) => m.platformAssetId != null
 /// and then picked) is left out: the pickers check only what is stored.
 void addMediaToSitting<T>(EditSession<T> session, List<HeldMediaAdd> adds) {
   final held = sittingMedia(session);
-  final seen = {for (final a in held.added) ?_sameFileKey(a.preview)};
+  final seen = {for (final a in held.added) ?mediaSameFileKey(a.preview)};
   final fresh = [
     for (final a in adds)
-      if (switch (_sameFileKey(a.preview)) {
+      if (switch (mediaSameFileKey(a.preview)) {
         null => true,
         final key => seen.add(key),
       })

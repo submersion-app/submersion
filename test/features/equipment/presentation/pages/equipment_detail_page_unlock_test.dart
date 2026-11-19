@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/features/equipment/presentation/editing/gear_item_sharing_sitting.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -230,6 +231,14 @@ void main() {
       expect(call.after.brand, 'Scubapro');
       expect(call.after.attrNum(key), 2);
       expect(call.cards, {'details'});
+    });
+
+    testWidgets('an owned item\'s sharing is read as the sitting starts, '
+        'whether or not the profiles are known yet', (tester) async {
+      await pumpGearPage(tester, item: apex.copyWith(diverId: 'd1'));
+      await unlock(tester);
+
+      expect(gearItemSharing.loaded(sessionOf(tester)), isNotNull);
     });
 
     testWidgets('an unreadable price keeps the Save from writing', (
@@ -604,6 +613,24 @@ void main() {
       await paneSave(tester, apex);
 
       expect(find.text(l.equipment_edit_snackbar_hiddenByView), findsNothing);
+    });
+
+    testWidgets('service reminders are rescheduled only when the service '
+        'cards changed', (tester) async {
+      final harness = await pumpGearPage(tester);
+      await unlock(tester);
+      sessionOf(tester).set(gearNotesField, 'Rinse');
+      await tester.pumpAndSettle();
+      await save(tester);
+      expect(harness.serviceRecords.refreshes, 0);
+
+      await unlock(tester);
+      sessionOf(
+        tester,
+      ).set(gearCustomReminderField, (enabled: true, days: const [7]));
+      await tester.pumpAndSettle();
+      await save(tester);
+      expect(harness.serviceRecords.refreshes, 1);
     });
 
     testWidgets('a full page Save stays on the item', (tester) async {

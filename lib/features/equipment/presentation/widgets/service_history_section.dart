@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/equipment/presentation/editing/gear_item_list_pending.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_service_sitting.dart';
@@ -22,6 +23,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/export_destination_sheet.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
+
+part 'service_history_filter_dropdown.dart';
 
 /// Service History Section Widget
 ///
@@ -69,8 +72,13 @@ class _ServiceHistorySectionState extends ConsumerState<ServiceHistorySection> {
 
   /// Whether a tap may act: not on a locked page, and in a sitting only in
   /// the open card.
+  /// In the open card, only once the sitting has read its records: an
+  /// action before then would have no list to go into.
   bool get _canAct =>
-      !widget.readOnly && (widget.shown == null || widget.editing != null);
+      !widget.readOnly &&
+      (widget.shown == null || widget.editing != null) &&
+      (widget.editing == null ||
+          gearItemServiceRecordsList.current(widget.editing!) != null);
 
   @override
   Widget build(BuildContext context) {
@@ -166,6 +174,8 @@ class _ServiceHistorySectionState extends ConsumerState<ServiceHistorySection> {
               ],
             ),
             const Divider(),
+            if (widget.editing case final session?)
+              ?gearItemListPending(gearItemServiceRecordsList, session),
             recordsAsync.when(
               data: (records) {
                 if (records.isEmpty) {
@@ -749,46 +759,5 @@ class _ServiceRecordTile extends ConsumerWidget {
       case ServiceCategory.other:
         return Icons.handyman;
     }
-  }
-}
-
-/// One compact dropdown in the maintenance history filter bar.
-///
-/// Bordered container with the underline suppressed, matching the filter
-/// dropdown in EquipmentListContent so the two read as the same control.
-class _FilterDropdown<T> extends StatelessWidget {
-  final T value;
-  final List<T> options;
-  final String Function(T) labelOf;
-  final ValueChanged<T> onChanged;
-
-  const _FilterDropdown({
-    required this.value,
-    required this.options,
-    required this.labelOf,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        border: Border.all(color: Theme.of(context).colorScheme.outline),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: DropdownButton<T>(
-        value: value,
-        underline: const SizedBox(),
-        isDense: true,
-        items: [
-          for (final option in options)
-            DropdownMenuItem<T>(value: option, child: Text(labelOf(option))),
-        ],
-        onChanged: (selected) {
-          if (selected is T) onChanged(selected);
-        },
-      ),
-    );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/equipment/presentation/editing/gear_item_check_ins_sitting.dart';
 import 'package:submersion/features/media/presentation/helpers/media_hold.dart';
 import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -71,7 +72,7 @@ class CheckInPhotosRow extends ConsumerWidget {
       equipmentId: equipmentId,
       observationId: observationId,
       ignoringMediaIds: heldRemoved,
-      onHold: (adds) => hold([...heldAdded, ...adds], heldRemoved),
+      onHold: (adds) => hold(withHeldPhotosAdded(heldAdded, adds), heldRemoved),
     );
   }
 

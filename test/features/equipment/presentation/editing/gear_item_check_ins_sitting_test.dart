@@ -11,6 +11,7 @@ import 'package:submersion/features/equipment/data/repositories/equipment_observ
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/gear_photo_repository.dart';
 import 'package:submersion/features/equipment/data/services/gear_item_edit_save_service.dart';
+import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_check_ins_sitting.dart';
@@ -179,6 +180,52 @@ void main() {
     deleteHeldCheckIn(session, 'o2');
 
     expect(session.isDirty, isFalse);
+  });
+
+  test('uploads are queued only for photos the write made', () async {
+    final session = await sitting();
+    final row = gearItemCheckInsList.current(session)!.single;
+    holdCheckIn(session, row.copyWith(added: [photo('np1', 'o1')]));
+    deleteHeldCheckIn(session, 'o1');
+
+    await save(session);
+
+    expect(await exists('media', 'np1'), isFalse);
+    // The remote deletes of the unlinked photo and the findings refresh
+    // wait for the commit; no upload for the photo never written.
+    expect(checkInsAfterCommit(session), hasLength(2));
+  });
+
+  test('the findings refresh waits for the commit', () async {
+    final requests = <Set<String>>[];
+    final scheduler = SensorSummaryScheduler.instance;
+    final previous = scheduler.findingsRequestListener;
+    scheduler.findingsRequestListener = requests.add;
+    addTearDown(() => scheduler.findingsRequestListener = previous);
+    final session = await sitting();
+    holdCheckIn(session, HeldCheckIn(observation: fresh('o2')));
+
+    await save(session);
+    expect(requests, isEmpty);
+
+    for (final step in checkInsAfterCommit(session)) {
+      await step();
+    }
+    expect(requests, [
+      {'g1'},
+    ]);
+  });
+
+  test('a photo picked twice is held once', () {
+    final once = withHeldPhotosAdded(const [], [photo('np1', 'o1')]);
+    final twice = withHeldPhotosAdded(once, [
+      HeldMediaRow((
+        item: (once.single as HeldMediaRow).prepared.item.copyWith(id: 'np2'),
+        enrichment: null,
+      )),
+    ]);
+
+    expect(twice.map((a) => a.preview.id), ['np1']);
   });
 
   test('an edited check-in and a brand change are one entry, and reverting '
