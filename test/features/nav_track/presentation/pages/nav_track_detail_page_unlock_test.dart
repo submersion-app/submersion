@@ -51,6 +51,14 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  /// Unlocked, the 3D views are in the menu (the bar keeps room for the
+  /// editing title).
+  Future<void> openPreviewFromMenu(WidgetTester tester) async {
+    await tester.tap(find.byType(PopupMenuButton<String>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('nav-track-menu-3d-preview')));
+  }
+
   GeoPoint? drawnAnchor(WidgetTester tester) => tester
       .widget<NavTrackMarkerLayer>(find.byType(NavTrackMarkerLayer))
       .route
@@ -359,7 +367,7 @@ void main() {
       tester.element(find.byType(NavTrackDetailPage)),
     );
 
-    await tester.tap(find.byKey(const ValueKey('nav-track-open-3d-preview')));
+    await openPreviewFromMenu(tester);
     await tester.pumpAndSettle();
 
     expect(find.byType(NavTrack3dPage), findsOneWidget);
@@ -386,7 +394,7 @@ void main() {
       tester.element(find.byType(NavTrackDetailPage)),
     );
 
-    await tester.tap(find.byKey(const ValueKey('nav-track-open-3d-preview')));
+    await openPreviewFromMenu(tester);
     await tester.pumpAndSettle();
 
     expect(container.read(navTrackPreviewProvider('r1')), isNull);
@@ -424,5 +432,54 @@ void main() {
 
     expect(find.text('first route'), findsOneWidget);
     expect(container.read(navTrackPreviewProvider('r1')), isNull);
+  });
+
+  testWidgets('locked, the bar keeps its two 3D buttons', (tester) async {
+    await pumpNavTrackPage(tester);
+
+    expect(
+      find.byKey(const ValueKey('nav-track-open-3d-preview')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const ValueKey('nav-track-open-3d')), findsOneWidget);
+    await tester.tap(find.byType(PopupMenuButton<String>));
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('nav-track-menu-3d-preview')),
+      findsNothing,
+    );
+  });
+
+  testWidgets('unlocked, the 3D views move from the bar into the menu', (
+    tester,
+  ) async {
+    await pumpNavTrackPage(tester);
+    await unlock(tester);
+
+    expect(
+      find.byKey(const ValueKey('nav-track-open-3d-preview')),
+      findsNothing,
+    );
+    expect(find.byKey(const ValueKey('nav-track-open-3d')), findsNothing);
+    expect(find.byKey(const ValueKey('nav-track-align')), findsOneWidget);
+    await tester.tap(find.byType(PopupMenuButton<String>));
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('nav-track-menu-3d-preview')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const ValueKey('nav-track-menu-3d')), findsOneWidget);
+  });
+
+  testWidgets("the menu's 3D view opens it", (tester) async {
+    await pumpNavTrackPage(tester);
+    await unlock(tester);
+    await tester.tap(find.byType(PopupMenuButton<String>));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('nav-track-menu-3d-preview')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(NavTrack3dPage), findsOneWidget);
   });
 }

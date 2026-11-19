@@ -225,13 +225,14 @@ class _NavTrackDetailPageState extends ConsumerState<NavTrackDetailPage>
 
   // The bar and the menu.
 
-  /// Align, the two 3D views, and (from [menu]) the overflow menu: the
-  /// bar's actions, locked or unlocked. The 3D views draw [shown], the
-  /// route as a sitting holds it, without writing it.
+  /// The bar's actions: Align, the two 3D views and (from [menu]) the
+  /// overflow menu. Unlocked ([in3dMenu]), the 3D views are in the menu
+  /// instead, leaving the editing title room on a phone.
   List<Widget> _barActions(
     NavTrack shown,
     NavTrack stored, {
     required Widget menu,
+    bool in3dMenu = false,
   }) {
     final l10n = context.l10n;
     return [
@@ -241,35 +242,46 @@ class _NavTrackDetailPageState extends ConsumerState<NavTrackDetailPage>
         tooltip: l10n.navTrack_align_title,
         onPressed: () => _openAlign(stored),
       ),
-      IconButton(
-        key: const ValueKey('nav-track-open-3d-preview'),
-        icon: const Icon(Icons.view_in_ar),
-        tooltip: l10n.navTrack3d_previewTitle,
-        onPressed: () => showNavTrackIn3d(
-          ref,
-          shown: shown,
-          stored: stored,
-          push: () => Navigator.of(context).push(
-            MaterialPageRoute<void>(
-              builder: (_) => NavTrack3dPage(trackId: shown.id),
-            ),
-          ),
+      if (!in3dMenu) ...[
+        IconButton(
+          key: const ValueKey('nav-track-open-3d-preview'),
+          icon: const Icon(Icons.view_in_ar),
+          tooltip: l10n.navTrack3d_previewTitle,
+          onPressed: () => _open3dPreview(shown, stored),
         ),
-      ),
-      IconButton(
-        key: const ValueKey('nav-track-open-3d'),
-        icon: const Icon(Icons.terrain),
-        tooltip: l10n.navTrack_common_open3dTooltip,
-        onPressed: () => showNavTrackIn3d(
-          ref,
-          shown: shown,
-          stored: stored,
-          push: () => context.push(underwaterTrackSeascapeLocation(shown.id)),
+        IconButton(
+          key: const ValueKey('nav-track-open-3d'),
+          icon: const Icon(Icons.terrain),
+          tooltip: l10n.navTrack_common_open3dTooltip,
+          onPressed: () => _openSeascape(shown, stored),
         ),
-      ),
+      ],
       menu,
     ];
   }
+
+  /// The route's own 3D view, drawing [shown] (the route as a sitting holds
+  /// it) without writing it.
+  Future<void> _open3dPreview(NavTrack shown, NavTrack stored) =>
+      showNavTrackIn3d(
+        ref,
+        shown: shown,
+        stored: stored,
+        push: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => NavTrack3dPage(trackId: shown.id),
+          ),
+        ),
+      );
+
+  /// The seascape, drawing [shown] without writing it.
+  Future<void> _openSeascape(NavTrack shown, NavTrack stored) =>
+      showNavTrackIn3d(
+        ref,
+        shown: shown,
+        stored: stored,
+        push: () => context.push(underwaterTrackSeascapeLocation(shown.id)),
+      );
 
   /// The align page: its own address where the page does not edit in
   /// place; otherwise pushed with this page's sitting, if one is open, so
@@ -292,10 +304,17 @@ class _NavTrackDetailPageState extends ConsumerState<NavTrackDetailPage>
   /// dive link are cards, so Rename and Unlink are not here.
   // A Builder so the export can anchor the iPad share popover to this
   // button rather than to the whole page.
-  Widget _menu(NavTrack route) => Builder(
+  ///
+  /// With [stored] (unlocked), it also offers the two 3D views, moved there
+  /// from the bar.
+  Widget _menu(NavTrack route, {NavTrack? stored}) => Builder(
     builder: (menuContext) => PopupMenuButton<String>(
       onSelected: (value) async {
         switch (value) {
+          case '3dPreview' when stored != null:
+            await _open3dPreview(route, stored);
+          case '3dSeascape' when stored != null:
+            await _openSeascape(route, stored);
           case 'rename':
             await _rename(route);
           case 'unlink':
@@ -322,6 +341,19 @@ class _NavTrackDetailPageState extends ConsumerState<NavTrackDetailPage>
       itemBuilder: (context) {
         final l10n = context.l10n;
         return [
+          if (stored != null) ...[
+            PopupMenuItem(
+              key: const ValueKey('nav-track-menu-3d-preview'),
+              value: '3dPreview',
+              child: Text(l10n.navTrack3d_previewTitle),
+            ),
+            PopupMenuItem(
+              key: const ValueKey('nav-track-menu-3d'),
+              value: '3dSeascape',
+              child: Text(l10n.navTrack_common_open3dTooltip),
+            ),
+            const PopupMenuDivider(),
+          ],
           changeLogHistoryMenuItem(
             context,
             rootTable: 'nav_tracks',
@@ -406,7 +438,12 @@ class _NavTrackDetailPageState extends ConsumerState<NavTrackDetailPage>
               ..._barActions(shown, stored, menu: _menu(shown)),
             ],
           ),
-          unlockedActions: _barActions(shown, stored, menu: _menu(shown)),
+          unlockedActions: _barActions(
+            shown,
+            stored,
+            menu: _menu(shown, stored: stored),
+            in3dMenu: true,
+          ),
           content: _body(stored, shown),
         );
       },
