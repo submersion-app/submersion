@@ -99,6 +99,11 @@ void main() {
       );
     });
 
+    test('a parent is kept while the candidates load', () {
+      expect(gearParentAfterType(EquipmentType.o2Cell, 'r1', null), 'r1');
+      expect(gearParentAfterType(EquipmentType.mask, 'r1', null), isNull);
+    });
+
     test('a parent that is not a candidate of the right type is dropped', () {
       expect(
         gearParentAfterType(EquipmentType.o2Cell, 'm1', const [mask]),

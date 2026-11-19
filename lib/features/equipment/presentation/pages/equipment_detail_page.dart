@@ -35,6 +35,7 @@ import 'package:submersion/features/equipment/figure/presentation/figure_positio
 import 'package:submersion/features/equipment/presentation/editing/gear_item_card_ids.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_edit_cards.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_edit_fields.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_header_editor.dart';
 import 'package:submersion/features/equipment/presentation/helpers/equipment_web_link_launcher.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -305,11 +306,14 @@ class _EquipmentDetailContent extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHeaderSection(
-            context,
-            equipment,
-            isServiceOverdue,
-            headerClock,
+          _framed(
+            GearItemCardId.header,
+            _buildHeaderSection(
+              context,
+              equipment,
+              isServiceOverdue,
+              headerClock,
+            ),
           ),
           const SizedBox(height: 24),
           // The device's controls (issue #3676): this item is its one entry.

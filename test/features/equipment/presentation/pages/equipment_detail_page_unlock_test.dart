@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/documents/presentation/editing/record_document_links_sitting.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_edit_fields.dart';
@@ -16,6 +17,7 @@ import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart'
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
+import '../../../../helpers/test_database.dart';
 import 'equipment_detail_page_unlock_harness.dart';
 
 /// The gear item page edits in place behind the phase 3 switch (issue
@@ -23,6 +25,14 @@ import 'equipment_detail_page_unlock_harness.dart';
 /// writes it.
 void main() {
   final l = AppLocalizationsEn();
+
+  // The cards read their rows themselves (the tags, the moves); an empty
+  // test database answers them with none.
+  setUp(() async {
+    await setUpTestDatabase();
+    addTearDown(SyncCoordinator.reset);
+  });
+  tearDown(tearDownTestDatabase);
 
   Future<void> unlock(WidgetTester tester) async {
     await tester.tap(find.byIcon(Icons.lock_outline));
@@ -174,6 +184,67 @@ void main() {
 
       expect(find.byType(RecordEditBar), findsOneWidget);
       expect(find.text(l.recordEdit_editingTitle('Apex')), findsOneWidget);
+    });
+  });
+
+  group('the header block', () {
+    final header = l.settings_conflict_ref_equipment;
+    final wanted = apex.copyWith(
+      status: EquipmentStatus.wanted,
+      isActive: false,
+    );
+
+    testWidgets('with the switch on the chip offers no purchase', (
+      tester,
+    ) async {
+      await pumpGearPage(tester, item: wanted);
+
+      expect(find.text(l.equipment_detail_markPurchased), findsNothing);
+    });
+
+    testWidgets('with the switch off the chip still buys in one tap', (
+      tester,
+    ) async {
+      await pumpGearPage(tester, item: wanted, unlockEditing: false);
+
+      expect(find.text(l.equipment_detail_markPurchased), findsOneWidget);
+    });
+
+    testWidgets('Mark purchased, then Cancel: still wanted', (tester) async {
+      final harness = await pumpGearPage(tester, item: wanted);
+      await unlock(tester);
+      await openCard(tester, header);
+
+      await tester.tap(find.byKey(const ValueKey('gear-edit-mark-purchased')));
+      await tester.pumpAndSettle();
+      expect(sessionOf(tester).working.status, EquipmentStatus.active);
+
+      await tester.tap(find.text(l.common_action_cancel));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l.forms_discard_discard));
+      await tester.pumpAndSettle();
+
+      expect(harness.save.calls, isEmpty);
+      expect(harness.stored.state!.status, EquipmentStatus.wanted);
+      expect(find.byIcon(Icons.lock_outline), findsOneWidget);
+    });
+
+    testWidgets('a renamed item saves the name under the header block', (
+      tester,
+    ) async {
+      final harness = await pumpGearPage(tester);
+      await unlock(tester);
+      await openCard(tester, header);
+      await tester.enterText(
+        find.byKey(const ValueKey('gear-edit-name')),
+        'Apex XTX',
+      );
+      await tester.pumpAndSettle();
+
+      await save(tester);
+
+      expect(harness.save.calls.single.after.name, 'Apex XTX');
+      expect(harness.save.calls.single.cards, {'header'});
     });
   });
 }

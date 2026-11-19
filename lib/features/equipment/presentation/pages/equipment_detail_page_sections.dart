@@ -3,6 +3,19 @@ part of 'equipment_detail_page.dart';
 /// The gear item page's read sections, each a card that the editing host
 /// frames where the page edits in place (issue #4527, phase 3, plan 6).
 extension _EquipmentDetailSections on _EquipmentDetailContent {
+  /// The item's tags under its name: the sitting's while it holds them.
+  Widget _headerTagChips() {
+    final session = host?.maybeEditController?.session;
+    if (session == null) return EquipmentTagChips(equipmentId: equipmentId);
+    return ListenableBuilder(
+      listenable: gearItemTagsList.changes(session),
+      builder: (context, _) => EquipmentTagChips(
+        equipmentId: equipmentId,
+        tags: gearItemTagsList.current(session),
+      ),
+    );
+  }
+
   Widget _buildHeaderSection(
     BuildContext context,
     EquipmentItem equipment,
@@ -33,9 +46,19 @@ extension _EquipmentDetailSections on _EquipmentDetailContent {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        equipment.name,
-                        style: Theme.of(context).textTheme.titleLarge,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              equipment.name,
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                          ),
+                          RecordCardPencil(
+                            cardTitle: GearItemCardId.header
+                                .localizedDisplayName(context.l10n),
+                          ),
+                        ],
                       ),
                       Text(
                         equipment.type.localizedName(context.l10n),
@@ -45,9 +68,15 @@ extension _EquipmentDetailSections on _EquipmentDetailContent {
                       ),
                       // Why the item is out of the kit, and the purchase
                       // action for wishlist gear (#2025).
-                      EquipmentHeaderStatus(item: equipment),
-                      // Tags (issue #1942), under the name and type.
-                      EquipmentTagChips(equipmentId: equipment.id),
+                      // Where the page edits in place, the purchase is made
+                      // in the header block's editor.
+                      EquipmentHeaderStatus(
+                        item: equipment,
+                        offerPurchase: !_editing,
+                      ),
+                      // Tags (issue #1942), under the name and type: the
+                      // sitting's while unlocked.
+                      _headerTagChips(),
                     ],
                   ),
                 ),

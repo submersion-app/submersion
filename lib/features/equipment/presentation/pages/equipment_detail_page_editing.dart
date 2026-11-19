@@ -49,6 +49,7 @@ mixin _EquipmentDetailPageEditing
     EditSession<EquipmentItem> session,
     ProviderContainer container,
   ) {
+    gearItemTagsList.load(session);
     holdDocumentLinks(
       session,
       container.read,

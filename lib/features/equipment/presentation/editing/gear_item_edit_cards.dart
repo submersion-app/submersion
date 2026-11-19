@@ -5,6 +5,7 @@ import 'package:submersion/features/documents/presentation/widgets/documents_sec
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_card_ids.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_edit_fields.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_header_editor.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
@@ -14,6 +15,15 @@ import 'package:submersion/shared/widgets/record_editing/field_text_binding.dart
 /// The gear item page's cards that can be edited in place (issue #4527,
 /// phase 3, plan 6), by card id, in page order.
 final Map<GearItemCardId, EditCard<EquipmentItem>> gearItemEditCards = {
+  GearItemCardId.header: EditCard<EquipmentItem>(
+    id: GearItemCardId.header.name,
+    title: (context) =>
+        GearItemCardId.header.localizedDisplayName(context.l10n),
+    isEmpty: (_) => false,
+    // A name, as the form's validator has it.
+    isValid: (session) => gearNameValid(session.working.name),
+    editorBuilder: (context, session) => GearItemHeaderEditor(session: session),
+  ),
   GearItemCardId.notes: EditCard<EquipmentItem>(
     id: GearItemCardId.notes.name,
     title: (context) => GearItemCardId.notes.localizedDisplayName(context.l10n),

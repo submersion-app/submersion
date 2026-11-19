@@ -282,16 +282,19 @@ EquipmentStatus gearShownStatus(EquipmentItem item) =>
     : item.status;
 
 /// The parent to keep once the type is [type]: [parentId] only when it
-/// names one of [candidates] whose type can hold [type]. A type that is
-/// fitted to nothing keeps none.
+/// names one of [candidates], the active items, whose type can hold [type].
+/// While [candidates] are still loading (null) the id is kept, as the form
+/// keeps it: a quick change must not drop a link never checked. A type that
+/// is fitted to nothing keeps none.
 String? gearParentAfterType(
   EquipmentType type,
   String? parentId,
-  List<EquipmentItem> candidates,
+  List<EquipmentItem>? candidates,
 ) {
   if (parentId == null) return null;
   final allowed = parentTypesFor(type);
   if (allowed.isEmpty) return null;
+  if (candidates == null) return parentId;
   return candidates.any((e) => e.id == parentId && allowed.contains(e.type))
       ? parentId
       : null;
