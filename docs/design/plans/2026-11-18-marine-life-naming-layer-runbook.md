@@ -6,8 +6,9 @@ other context, on a local model, over several days.
 
 - **Design (read first):** `docs/design/specs/2026-11-18-marine-life-naming-layer-design.md`
 - **Implementation plan (tasks 1 to 6 are done):** `docs/design/plans/2026-11-18-marine-life-naming-layer.md`
-- **Branch:** `ericgriffin/feat-4724-naming-layer`, pushed, with the tools
-  pull request open (see Phase 7.0)
+- **Branch:** the tools merged from `ericgriffin/feat-4724-naming-layer`;
+  the worktree is on `ericgriffin/feat-4724-check-settings`, the check
+  layer's settings (see Phase 7.0)
 - **Worktree:** `/Users/ericgriffin/repos/submersion-app/submersion/.claude/worktrees/feat-4724-naming-layer`
 
 ## How to use this runbook
@@ -485,15 +486,17 @@ step is approach B, which is a new design, not something to start here).
 
 The tools (the fetcher, the trainer, the gate, the scorer's per-photo output
 and the CI wiring) went to main in their own pull request, which refers to
-#4724 without closing it (opened 2026-11-19). Phases 7 and 8 make a second
-pull request that closes #4724. Check where the first one stands:
+#4724 without closing it (merged 2026-11-19). Training the check layer at the
+shipped layer's settings (`--settings-from`) followed in a second one, from
+`ericgriffin/feat-4724-check-settings`. Phases 7 and 8 make a third pull
+request that closes #4724. Check that the second one has merged:
 
 ```bash
 source /Users/ericgriffin/repos/submersion-app/naming-training/env.sh
-cd $WT && gh pr list --head ericgriffin/feat-4724-naming-layer --state all --json number,state,url
+cd $WT && gh pr list --head ericgriffin/feat-4724-check-settings --state all --json number,state,url
 ```
 
-- `MERGED`: start the second branch from main in the same worktree:
+- `MERGED`: start the third branch from main in the same worktree:
   `git fetch origin && git switch -c ericgriffin/feat-4724-naming-measured origin/main`.
 - `OPEN` or `CLOSED`: STOP, and ask Eric whether to wait, or to add these
   commits to that pull request.
