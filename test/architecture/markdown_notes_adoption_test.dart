@@ -21,6 +21,9 @@ void main() {
   const editors = <String, String>{
     'lib/features/buddies/presentation/pages/buddy_edit_page.dart':
         'MarkdownNotesField(',
+    // A certification's Notes card edited in place (issue #4527).
+    'lib/features/certifications/presentation/editing/certification_card_editors.dart':
+        'MarkdownNotesField(',
     'lib/features/certifications/presentation/pages/certification_edit_page.dart':
         'MarkdownNotesField(',
     'lib/features/courses/presentation/pages/course_edit_page.dart':
