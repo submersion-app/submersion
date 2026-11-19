@@ -27,6 +27,7 @@ class SampleDecoderTest {
         a[25] = UINT32_SENTINEL.toDouble()
         a[26] = UINT32_SENTINEL.toDouble()
         a[27] = UINT32_SENTINEL.toDouble()
+        a[45] = UINT32_SENTINEL.toDouble() // gas remaining
         return a
     }
 
@@ -70,6 +71,48 @@ class SampleDecoderTest {
         val a = sampleArray()
         a[22] = 0.0
         assertEquals(0L, decodeProfileSample(a).o2SensorMv1)
+    }
+
+    /** Issue #4664: the Avelo fields follow the tank-pressure slots. */
+    @Test
+    fun `avelo fields decode from indices 44 through 46`() {
+        val a = sampleArray()
+        a[44] = -0.393 // avelo buoyancy, kg
+        a[45] = 35.0 // gas remaining, percent
+        a[46] = 10.68 // computer RMV, L/min
+        val s = decodeProfileSample(a)
+        assertEquals(-0.393, s.aveloBuoyancy!!, 1e-9)
+        assertEquals(35L, s.aveloGasRemaining)
+        assertEquals(10.68, s.computerRmv!!, 1e-9)
+    }
+
+    @Test
+    fun `absent avelo fields decode as null`() {
+        val a = sampleArray()
+        a[45] = UINT32_SENTINEL.toDouble()
+        val s = decodeProfileSample(a)
+        assertNull(s.aveloBuoyancy)
+        assertNull(s.aveloGasRemaining)
+        assertNull(s.computerRmv)
+    }
+
+    /** A .so built before the Avelo slots returns the 44-wide array. */
+    @Test
+    fun `array without avelo slots yields null avelo fields`() {
+        val s = decodeProfileSample(sampleArray().copyOf(28 + LIBDC_MAX_TANKS))
+        assertNull(s.aveloBuoyancy)
+        assertNull(s.aveloGasRemaining)
+        assertNull(s.computerRmv)
+        assertEquals(12.5, s.depthMeters, 1e-9)
+    }
+
+    /** The tank pressures do not depend on the Avelo slots being there. */
+    @Test
+    fun `array without avelo slots keeps its tank pressures`() {
+        val a = sampleArray()
+        a[28] = 192.6
+        val s = decodeProfileSample(a.copyOf(28 + LIBDC_MAX_TANKS))
+        assertEquals(192.6, s.tankPressuresBar!![0]!!, 1e-9)
     }
 
     /** Issue #1223: a sample can carry one pressure per air-integrated

@@ -39,7 +39,9 @@ String formatRightAxisTick(
   final rounded = double.parse(display.toStringAsFixed(decimals));
   final label = formatFixedForDisplay(rounded == 0 ? 0 : display, decimals);
   // Net buoyancy reads by its sign: buoyant above 0, heavy below (#4593).
-  if (metric == ProfileRightAxisMetric.buoyancy && rounded > 0) {
+  if ((metric == ProfileRightAxisMetric.buoyancy ||
+          metric == ProfileRightAxisMetric.aveloBuoyancy) &&
+      rounded > 0) {
     return '+$label';
   }
   return label;
@@ -66,7 +68,10 @@ double _displayValue(
   ProfileRightAxisMetric.ascentRate ||
   ProfileRightAxisMetric.meanDepth => units.convertDepth(value),
   // Stored in kilograms.
-  ProfileRightAxisMetric.buoyancy => units.convertWeight(value),
+  ProfileRightAxisMetric.buoyancy ||
+  ProfileRightAxisMetric.aveloBuoyancy => units.convertWeight(value),
+  // Stored in litres per minute.
+  ProfileRightAxisMetric.computerRmv => units.convertRmv(value),
   // Stored in seconds, labelled in minutes.
   ProfileRightAxisMetric.ndl ||
   ProfileRightAxisMetric.tts ||
@@ -80,7 +85,8 @@ double _displayValue(
   ProfileRightAxisMetric.gasDensity ||
   ProfileRightAxisMetric.cns ||
   ProfileRightAxisMetric.otu ||
-  ProfileRightAxisMetric.o2CellMv => value,
+  ProfileRightAxisMetric.o2CellMv ||
+  ProfileRightAxisMetric.aveloGasRemaining => value,
 };
 
 int _baseDecimals(ProfileRightAxisMetric metric) => switch (metric) {
@@ -89,6 +95,8 @@ int _baseDecimals(ProfileRightAxisMetric metric) => switch (metric) {
   ProfileRightAxisMetric.ppN2 ||
   ProfileRightAxisMetric.ppHe ||
   ProfileRightAxisMetric.gasDensity ||
-  ProfileRightAxisMetric.buoyancy => 1,
+  ProfileRightAxisMetric.buoyancy ||
+  ProfileRightAxisMetric.aveloBuoyancy ||
+  ProfileRightAxisMetric.computerRmv => 1,
   _ => 0,
 };

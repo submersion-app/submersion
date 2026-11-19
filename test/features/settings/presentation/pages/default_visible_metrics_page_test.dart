@@ -39,6 +39,18 @@ class _StubSettingsNotifier extends StateNotifier<AppSettings>
       state = state.copyWith(defaultShowBuoyancy: value);
 
   @override
+  Future<void> setDefaultShowAveloBuoyancy(bool value) async =>
+      state = state.copyWith(defaultShowAveloBuoyancy: value);
+
+  @override
+  Future<void> setDefaultShowAveloGasRemaining(bool value) async =>
+      state = state.copyWith(defaultShowAveloGasRemaining: value);
+
+  @override
+  Future<void> setDefaultShowComputerRmv(bool value) async =>
+      state = state.copyWith(defaultShowComputerRmv: value);
+
+  @override
   Future<void> setO2CellUnit(O2CellUnit value) async =>
       state = state.copyWith(o2CellUnit: value);
 
@@ -154,7 +166,12 @@ void main() {
     await tester.pumpAndSettle();
 
     final tile = find.widgetWithText(SwitchListTile, 'Photo Markers');
-    await tester.ensureVisible(tile);
+    // The list builds lazily; scroll the tile into the built range first.
+    await tester.dragUntilVisible(
+      tile,
+      find.byType(Scrollable),
+      const Offset(0, -200),
+    );
     await tester.pumpAndSettle();
     expect(tester.widget<SwitchListTile>(tile).value, isTrue);
 
@@ -263,4 +280,30 @@ void main() {
 
     expect(notifier.state.defaultShowEstimatedTankPressure, isFalse);
   });
+
+  // Issue #4664: the three Avelo lines are off until the diver turns them on.
+  for (final (label, read) in <(String, bool Function(AppSettings))>[
+    ('Avelo buoyancy', (s) => s.defaultShowAveloBuoyancy),
+    ('Gas remaining (Avelo)', (s) => s.defaultShowAveloGasRemaining),
+    ('RMV (computer)', (s) => s.defaultShowComputerRmv),
+  ]) {
+    testWidgets('toggles the $label default', (tester) async {
+      final notifier = _StubSettingsNotifier();
+      await tester.pumpWidget(buildPage(notifier));
+      await tester.pumpAndSettle();
+
+      final tile = find.widgetWithText(SwitchListTile, label);
+      await tester.dragUntilVisible(
+        tile,
+        find.byType(Scrollable),
+        const Offset(0, -200),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.widget<SwitchListTile>(tile).value, isFalse);
+
+      await tester.tap(tile);
+      await tester.pumpAndSettle();
+      expect(read(notifier.state), isTrue);
+    });
+  }
 }

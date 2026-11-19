@@ -332,7 +332,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 378;
+  static const int currentSchemaVersion = 379;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1767,6 +1767,9 @@ class AppDatabase extends _$AppDatabase {
     // the marks on a tag the app applied (issue #4727). Synced columns, no
     // backfill; the floor rises to 378.
     378,
+    // v379: diver_settings visibility and colour of the three Avelo profile
+    // lines (issue #4664). Additive and defaulted; the floor does not move.
+    379,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

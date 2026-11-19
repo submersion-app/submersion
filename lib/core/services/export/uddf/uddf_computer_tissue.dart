@@ -1,5 +1,6 @@
 import 'package:xml/xml.dart';
 
+import 'package:submersion/core/services/export/uddf/uddf_avelo_samples.dart';
 import 'package:submersion/features/dive_log/domain/entities/computer_tissue_legacy_scalars.dart';
 import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -43,9 +44,12 @@ abstract final class UddfComputerTissue {
   static const _snapshotElement = 'snapshot';
   static const _n2LoadElement = 'n2load';
 
-  /// Whether [dive] has anything for the block to carry.
+  /// Whether [dive] has anything for the block to carry, the Avelo samples
+  /// that ride in it included (see `UddfAveloSamples`).
   static bool hasData(Dive dive) =>
-      dive.computerTissue != null || dive.profile.any((p) => p.n2Load != null);
+      dive.computerTissue != null ||
+      dive.profile.any((p) => p.n2Load != null) ||
+      UddfAveloSamples.hasData(dive);
 
   /// Writes the block for the [dives] that have data; writes nothing when
   /// none has.
@@ -71,6 +75,7 @@ abstract final class UddfComputerTissue {
               if (pairs.isNotEmpty) {
                 builder.element(_n2LoadElement, nest: pairs.join(' '));
               }
+              UddfAveloSamples.writeChildren(builder, dive);
             },
           );
         }

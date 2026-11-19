@@ -36,6 +36,10 @@ List<DiveTerm> profileOverlayTerms(
     if (config.hasMeanDepthData && state.showMeanDepth) DiveTerm.meanDepth,
     if (config.hasSacCurve && state.showSac) DiveTerm.sac,
     if (config.hasBuoyancyLine && state.showBuoyancy) DiveTerm.buoyancyProfile,
+    if ((config.hasAveloBuoyancy && state.showAveloBuoyancy) ||
+        (config.hasAveloGasRemaining && state.showAveloGasRemaining) ||
+        (config.hasComputerRmv && state.showComputerRmv))
+      DiveTerm.aveloProfile,
     if (config.hasAscentRates &&
         (state.showAscentRateColors || state.showAscentRateLine))
       DiveTerm.ascentRate,

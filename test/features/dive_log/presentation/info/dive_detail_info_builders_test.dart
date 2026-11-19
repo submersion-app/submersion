@@ -52,6 +52,31 @@ void main() {
       expect(terms, isNot(contains(DiveTerm.ppHe)));
     });
 
+    test('names the Avelo values once any Avelo line is drawn', () {
+      // Issue #4664.
+      expect(
+        profileOverlayTerms(
+          const ProfileLegendConfig(hasComputerRmv: true),
+          const ProfileLegendState(showComputerRmv: true),
+        ),
+        contains(DiveTerm.aveloProfile),
+      );
+      expect(
+        profileOverlayTerms(
+          const ProfileLegendConfig(),
+          const ProfileLegendState(showAveloBuoyancy: true),
+        ),
+        isNot(contains(DiveTerm.aveloProfile)),
+      );
+      expect(
+        profileOverlayTerms(
+          const ProfileLegendConfig(hasAveloGasRemaining: true),
+          const ProfileLegendState(),
+        ),
+        isNot(contains(DiveTerm.aveloProfile)),
+      );
+    });
+
     test('lists the buoyancy line only when it can be drawn and is on', () {
       // Issue #4593.
       const on = ProfileLegendState(showBuoyancy: true);

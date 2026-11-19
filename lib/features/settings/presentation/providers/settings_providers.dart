@@ -667,6 +667,12 @@ class AppSettings implements UnitFormatterSettings {
   /// (issue #4593)
   final bool defaultShowBuoyancy;
 
+  /// Default visibility of the three Avelo lines on the dive profile (issue
+  /// #4664): the computer's buoyancy, gas remaining and RMV.
+  final bool defaultShowAveloBuoyancy;
+  final bool defaultShowAveloGasRemaining;
+  final bool defaultShowComputerRmv;
+
   /// The dive types this diver starred, listed first in the dive type
   /// pickers (issue #4413). Ids that match no type are ignored.
   final Set<String> favouriteDiveTypeIds;
@@ -973,6 +979,9 @@ class AppSettings implements UnitFormatterSettings {
     this.defaultShowO2CellMv = false,
     this.defaultShowCounterdiffusion = false,
     this.defaultShowBuoyancy = false,
+    this.defaultShowAveloBuoyancy = false,
+    this.defaultShowAveloGasRemaining = false,
+    this.defaultShowComputerRmv = false,
     this.favouriteDiveTypeIds = const {},
     this.defaultShowEstimatedTankPressure = true,
     this.defaultShowAscentRateLine = false,
@@ -1214,6 +1223,9 @@ class AppSettings implements UnitFormatterSettings {
     bool? defaultShowO2CellMv,
     bool? defaultShowCounterdiffusion,
     bool? defaultShowBuoyancy,
+    bool? defaultShowAveloBuoyancy,
+    bool? defaultShowAveloGasRemaining,
+    bool? defaultShowComputerRmv,
     Set<String>? favouriteDiveTypeIds,
     bool? defaultShowEstimatedTankPressure,
     bool? defaultShowAscentRateLine,
@@ -1461,6 +1473,12 @@ class AppSettings implements UnitFormatterSettings {
       defaultShowCounterdiffusion:
           defaultShowCounterdiffusion ?? this.defaultShowCounterdiffusion,
       defaultShowBuoyancy: defaultShowBuoyancy ?? this.defaultShowBuoyancy,
+      defaultShowAveloBuoyancy:
+          defaultShowAveloBuoyancy ?? this.defaultShowAveloBuoyancy,
+      defaultShowAveloGasRemaining:
+          defaultShowAveloGasRemaining ?? this.defaultShowAveloGasRemaining,
+      defaultShowComputerRmv:
+          defaultShowComputerRmv ?? this.defaultShowComputerRmv,
       favouriteDiveTypeIds: favouriteDiveTypeIds ?? this.favouriteDiveTypeIds,
       defaultShowEstimatedTankPressure:
           defaultShowEstimatedTankPressure ??
@@ -3242,6 +3260,15 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setDefaultShowBuoyancy(bool value) =>
       _update((s) => s.copyWith(defaultShowBuoyancy: value));
+
+  Future<void> setDefaultShowAveloBuoyancy(bool value) =>
+      _update((s) => s.copyWith(defaultShowAveloBuoyancy: value));
+
+  Future<void> setDefaultShowAveloGasRemaining(bool value) =>
+      _update((s) => s.copyWith(defaultShowAveloGasRemaining: value));
+
+  Future<void> setDefaultShowComputerRmv(bool value) =>
+      _update((s) => s.copyWith(defaultShowComputerRmv: value));
 
   Future<void> setDefaultShowEstimatedTankPressure(bool value) =>
       _update((s) => s.copyWith(defaultShowEstimatedTankPressure: value));

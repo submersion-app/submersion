@@ -220,6 +220,18 @@ final Map<String, ConflictField> diverSettingsFields = {
     (l) => l.settings_conflict_field_defaultShowBuoyancy,
     FieldKind.boolean,
   ),
+  'defaultShowAveloBuoyancy': ConflictField(
+    (l) => l.settings_conflict_field_defaultShowAveloBuoyancy,
+    FieldKind.boolean,
+  ),
+  'defaultShowAveloGasRemaining': ConflictField(
+    (l) => l.settings_conflict_field_defaultShowAveloGasRemaining,
+    FieldKind.boolean,
+  ),
+  'defaultShowComputerRmv': ConflictField(
+    (l) => l.settings_conflict_field_defaultShowComputerRmv,
+    FieldKind.boolean,
+  ),
   'defaultShowO2CellMv': ConflictField(
     (l) => l.settings_conflict_field_defaultShowO2CellMv,
     FieldKind.boolean,

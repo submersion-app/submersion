@@ -327,6 +327,13 @@ class ProfileSample {
   final int? o2SensorMv5;
   final int? o2SensorMv6;
 
+  /// Shearwater Avelo mode (issue #4664): the computer's buoyancy figure in
+  /// kilograms (negative is heavy), the Hydrotank's gas remaining in percent
+  /// and the computer's own RMV in litres per minute.
+  final double? aveloBuoyancy;
+  final int? aveloGasRemaining;
+  final double? computerRmv;
+
   const ProfileSample({
     required this.timeSeconds,
     required this.depth,
@@ -359,6 +366,9 @@ class ProfileSample {
     this.o2SensorMv4,
     this.o2SensorMv5,
     this.o2SensorMv6,
+    this.aveloBuoyancy,
+    this.aveloGasRemaining,
+    this.computerRmv,
   });
 }
 

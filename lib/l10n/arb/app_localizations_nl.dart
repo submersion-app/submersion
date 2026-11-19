@@ -9494,6 +9494,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_legend_label_gtr => 'GTR';
 
   @override
+  String get diveLog_legend_label_aveloBuoyancy => 'Avelo-drijfvermogen';
+
+  @override
+  String get diveLog_legend_label_aveloGasRemaining => 'Resterend gas';
+
+  @override
+  String get diveLog_legend_label_computerRmv => 'RMV (duikcomputer)';
+
+  @override
   String get diveLog_legend_source_dc => 'DC';
 
   @override
@@ -11265,6 +11274,34 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveLog_cylinders_hydrotankNote =>
       'De druk van de Hydrotank meet het verbruikte gas niet';
+
+  @override
+  String get diveLog_cylinders_aveloTitle => 'Avelo';
+
+  @override
+  String diveLog_cylinders_aveloGasRemaining(int start, int end) {
+    return 'Resterend gas $start% tot $end%';
+  }
+
+  @override
+  String diveLog_cylinders_aveloBuoyancy(String min, String max, String mean) {
+    return 'Avelo-drijfvermogen $min tot $max, gemiddeld $mean';
+  }
+
+  @override
+  String diveLog_cylinders_aveloRmv(String min, String max) {
+    return 'RMV (computer) $min tot $max';
+  }
+
+  @override
+  String diveLog_cylinders_aveloMaxPressure(String pressure) {
+    return 'Maximale druk $pressure';
+  }
+
+  @override
+  String diveLog_cylinders_figureWater(String volume) {
+    return 'Water ~$volume (geschat)';
+  }
 
   @override
   String diveLog_cylinders_modNote(String ppO2) {
@@ -22815,6 +22852,18 @@ class AppLocalizationsNl extends AppLocalizations {
       'Profiel toont drijfvermogen';
 
   @override
+  String get settings_conflict_field_defaultShowAveloBuoyancy =>
+      'Profiel toont Avelo-drijfvermogen';
+
+  @override
+  String get settings_conflict_field_defaultShowAveloGasRemaining =>
+      'Profiel toont resterend gas';
+
+  @override
+  String get settings_conflict_field_defaultShowComputerRmv =>
+      'Profiel toont computer-RMV';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Planningswaarschuwing geaccepteerd';
 
@@ -23804,6 +23853,16 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_buoyancy => 'Drijfvermogen';
+
+  @override
+  String get settings_appearance_metric_aveloBuoyancy => 'Avelo-drijfvermogen';
+
+  @override
+  String get settings_appearance_metric_aveloGasRemaining =>
+      'Resterend gas (Avelo)';
+
+  @override
+  String get settings_appearance_metric_computerRmv => 'RMV (duikcomputer)';
 
   @override
   String get settings_appearance_metric_events => 'Gebeurtenissen';
@@ -56587,10 +56646,28 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_profileMetric_buoyancy => 'Drijfvermogen';
 
   @override
+  String get enum_profileMetric_aveloBuoyancy => 'Avelo-drijfvermogen';
+
+  @override
+  String get enum_profileMetric_aveloGasRemaining => 'Resterend gas';
+
+  @override
+  String get enum_profileMetric_computerRmv => 'RMV (duikcomputer)';
+
+  @override
   String get enum_profileMetric_o2CellMv_short => 'Cellen';
 
   @override
   String get enum_profileMetric_buoyancy_short => 'Drijfverm.';
+
+  @override
+  String get enum_profileMetric_aveloBuoyancy_short => 'Avelo';
+
+  @override
+  String get enum_profileMetric_aveloGasRemaining_short => 'Gas';
+
+  @override
+  String get enum_profileMetric_computerRmv_short => 'RMV';
 
   @override
   String get diveLog_o2CellSpread_label => 'O2-celspreiding';
@@ -64283,6 +64360,13 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get info_term_buoyancyProfile_body =>
       'De lijn toont je netto drijfvermogen tijdens de duik, uit hetzelfde model als de kaart Drijfvermogen, voor de computer die de grafiek toont. Hij is groen zolang je drijft en magenta zolang je te zwaar bent, en de stippellijn markeert neutraal.';
+
+  @override
+  String get info_term_aveloProfile_label => 'Avelo-waarden';
+
+  @override
+  String get info_term_aveloProfile_body =>
+      'De Avelo-modus van Shearwater legt deze waarden vast zoals de duikcomputer ze registreerde: Avelo-drijfvermogen (negatief is zwaar), het resterende gas in de Hydrotank als percentage en de eigen RMV van de computer. De app berekent ze niet, en dit drijfvermogen is niet het gemodelleerde drijfvermogen van de drijfvermogenkaart.';
 
   @override
   String get info_term_hypercapnia_label => 'Hypercapnie';

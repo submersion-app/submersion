@@ -91,6 +91,16 @@ class ParsedDiveProfileMapper {
           sampleMap['o2SensorMv${cell + 1}'] = cellMv[cell];
         }
       }
+      // Shearwater Avelo mode (issue #4664).
+      if (s.aveloBuoyancy != null) {
+        sampleMap['aveloBuoyancy'] = s.aveloBuoyancy;
+      }
+      if (s.aveloGasRemaining != null) {
+        sampleMap['aveloGasRemaining'] = s.aveloGasRemaining;
+      }
+      if (s.computerRmv != null) {
+        sampleMap['computerRmv'] = s.computerRmv;
+      }
       if (s.heartRate != null) {
         sampleMap['heartRate'] = s.heartRate;
       }

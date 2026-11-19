@@ -9554,6 +9554,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_legend_label_gtr => 'GTR';
 
   @override
+  String get diveLog_legend_label_aveloBuoyancy => 'Flutuabilidade Avelo';
+
+  @override
+  String get diveLog_legend_label_aveloGasRemaining => 'Gás restante';
+
+  @override
+  String get diveLog_legend_label_computerRmv => 'RMV (computador)';
+
+  @override
   String get diveLog_legend_source_dc => 'DC';
 
   @override
@@ -11333,6 +11342,34 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diveLog_cylinders_hydrotankNote =>
       'A pressão do Hydrotank não mede o gás consumido';
+
+  @override
+  String get diveLog_cylinders_aveloTitle => 'Avelo';
+
+  @override
+  String diveLog_cylinders_aveloGasRemaining(int start, int end) {
+    return 'Gás restante de $start% a $end%';
+  }
+
+  @override
+  String diveLog_cylinders_aveloBuoyancy(String min, String max, String mean) {
+    return 'Flutuabilidade Avelo de $min a $max, média $mean';
+  }
+
+  @override
+  String diveLog_cylinders_aveloRmv(String min, String max) {
+    return 'RMV (computador) de $min a $max';
+  }
+
+  @override
+  String diveLog_cylinders_aveloMaxPressure(String pressure) {
+    return 'Pressão máxima $pressure';
+  }
+
+  @override
+  String diveLog_cylinders_figureWater(String volume) {
+    return 'Água ~$volume (est.)';
+  }
 
   @override
   String diveLog_cylinders_modNote(String ppO2) {
@@ -22955,6 +22992,18 @@ class AppLocalizationsPt extends AppLocalizations {
       'Perfil mostra a flutuabilidade';
 
   @override
+  String get settings_conflict_field_defaultShowAveloBuoyancy =>
+      'Perfil mostra a flutuabilidade Avelo';
+
+  @override
+  String get settings_conflict_field_defaultShowAveloGasRemaining =>
+      'Perfil mostra o gás restante';
+
+  @override
+  String get settings_conflict_field_defaultShowComputerRmv =>
+      'Perfil mostra o RMV do computador';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Aviso de planejamento aceito';
 
@@ -23947,6 +23996,16 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_buoyancy => 'Flutuabilidade';
+
+  @override
+  String get settings_appearance_metric_aveloBuoyancy => 'Flutuabilidade Avelo';
+
+  @override
+  String get settings_appearance_metric_aveloGasRemaining =>
+      'Gás restante (Avelo)';
+
+  @override
+  String get settings_appearance_metric_computerRmv => 'RMV (computador)';
 
   @override
   String get settings_appearance_metric_events => 'Eventos';
@@ -56931,10 +56990,28 @@ class AppLocalizationsPt extends AppLocalizations {
   String get enum_profileMetric_buoyancy => 'Flutuabilidade';
 
   @override
+  String get enum_profileMetric_aveloBuoyancy => 'Flutuabilidade Avelo';
+
+  @override
+  String get enum_profileMetric_aveloGasRemaining => 'Gás restante';
+
+  @override
+  String get enum_profileMetric_computerRmv => 'RMV (computador)';
+
+  @override
   String get enum_profileMetric_o2CellMv_short => 'Células';
 
   @override
   String get enum_profileMetric_buoyancy_short => 'Flutuab.';
+
+  @override
+  String get enum_profileMetric_aveloBuoyancy_short => 'Avelo';
+
+  @override
+  String get enum_profileMetric_aveloGasRemaining_short => 'Gás';
+
+  @override
+  String get enum_profileMetric_computerRmv_short => 'RMV';
 
   @override
   String get diveLog_o2CellSpread_label => 'Dispersão das células O2';
@@ -64655,6 +64732,13 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get info_term_buoyancyProfile_body =>
       'A linha mostra a tua flutuabilidade líquida durante o mergulho, com o mesmo modelo do cartão Flutuabilidade, para o computador que o gráfico mostra. É verde enquanto flutuas e magenta quando tens peso a mais, e a linha tracejada marca o neutro.';
+
+  @override
+  String get info_term_aveloProfile_label => 'Valores Avelo';
+
+  @override
+  String get info_term_aveloProfile_body =>
+      'O modo Avelo da Shearwater registra estes valores tal como o computador de mergulho os registrou: a flutuabilidade Avelo (negativa significa pesado), o gás restante no Hydrotank em porcentagem e o RMV do próprio computador. O app não os calcula, e esta flutuabilidade não é a flutuabilidade modelada do cartão de flutuabilidade.';
 
   @override
   String get info_term_hypercapnia_label => 'Hipercapnia';

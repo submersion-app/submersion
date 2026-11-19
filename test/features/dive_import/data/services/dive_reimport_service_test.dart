@@ -758,6 +758,42 @@ void main() {
       );
     });
 
+    test('a replaced profile keeps the Avelo samples (#4664)', () async {
+      final diveId = await seedDive(notes: '', buddy: '');
+      await seedComputer('computer-perdix');
+      await seedSource(diveId, id: 'src-file', computerId: 'computer-perdix');
+      await ProfileSeriesRepository(database: db).insertSeries(
+        diveId: diveId,
+        samples: const [codec.ProfileSample(timestamp: 0, depth: 0.0)],
+      );
+
+      await service.applyReimport(
+        diveId: diveId,
+        diveData: {
+          'maxDepth': 9.0,
+          'profile': [
+            {
+              'timestamp': 0,
+              'depth': 3.0,
+              'aveloBuoyancy': -0.393,
+              'aveloGasRemaining': 100,
+              'computerRmv': 10.68,
+            },
+            {'timestamp': 60, 'depth': 9.0},
+          ],
+        },
+        now: DateTime(2026, 9, 3),
+      );
+
+      final samples = (await ProfileSeriesRepository(
+        database: db,
+      ).getSeriesForDive(diveId)).single.samples;
+      expect(samples[0].aveloBuoyancy, -0.393);
+      expect(samples[0].aveloGasRemaining, 100);
+      expect(samples[0].computerRmv, 10.68);
+      expect(samples[1].aveloGasRemaining, isNull);
+    });
+
     test('a profile the diver hand-edited survives the resync', () async {
       // saveEditedProfile writes the correction as a primary, null-computer
       // series owned by the primary source and demotes the parsed strand it

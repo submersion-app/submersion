@@ -44,6 +44,9 @@ ProfileSample fullSample(int i) => ProfileSample(
   o2SensorMv6: 52,
   gf99: 30 + i,
   n2Load: 60 + i * 2,
+  aveloBuoyancy: -0.4 + i * 0.125,
+  aveloGasRemaining: 100 - i,
+  computerRmv: 10.68 + i,
 );
 
 /// Depth and timestamp only, like a manually entered profile.
@@ -120,7 +123,71 @@ void main() {
       for (var i = 0; i < 6; i++) {
         expect(decoded[i].gf99, isNull);
         expect(decoded[i].n2Load, isNull);
-        expect(decoded[i], samples[i].withTissue());
+        expect(decoded[i], samples[i].withTissue().withAvelo());
+      }
+    });
+
+    test('v3 carries the Avelo fields', () {
+      final samples = [
+        for (var i = 0; i < 6; i++)
+          ProfileSample(
+            timestamp: i * 10,
+            depth: 10.0,
+            aveloBuoyancy: i.isEven ? -0.393 + i : null,
+            aveloGasRemaining: 100 - i * 13,
+            computerRmv: i == 2 ? null : 10.68 + i,
+          ),
+      ];
+      final encoded = codec.encode(samples);
+      expect(encoded.codecVersion, 3);
+      final decoded = codec.decode(encoded.bytes);
+      expect(decoded, samples);
+      expect(decoded[0].aveloBuoyancy, -0.393);
+      expect(decoded[1].aveloBuoyancy, isNull);
+      expect(decoded[5].aveloGasRemaining, 35);
+      expect(decoded[2].computerRmv, isNull);
+      expect(decoded[3].computerRmv, 13.68);
+    });
+
+    test('a series with gf99 and no Avelo field is still written as v2', () {
+      final samples = [
+        for (var i = 0; i < 6; i++) minimalSample(i).withTissue(gf99: 20 + i),
+      ];
+      expect(codec.encode(samples).codecVersion, 2);
+    });
+
+    test('one sample with any Avelo field makes the series v3', () {
+      for (final avelo in [
+        (b: -0.1, g: null, r: null),
+        (b: null, g: 50, r: null),
+        (b: null, g: null, r: 9.5),
+      ]) {
+        final samples = [
+          for (var i = 0; i < 6; i++)
+            i == 3
+                ? minimalSample(i).withAvelo(
+                    aveloBuoyancy: avelo.b,
+                    aveloGasRemaining: avelo.g,
+                    computerRmv: avelo.r,
+                  )
+                : minimalSample(i),
+        ];
+        final encoded = codec.encode(samples);
+        expect(encoded.codecVersion, 3, reason: '$avelo');
+        expect(codec.decode(encoded.bytes), samples);
+      }
+    });
+
+    test('a v2 blob decodes with the Avelo fields null', () {
+      final samples = [for (var i = 0; i < 6; i++) fullSample(i)];
+      final encoded = codec.encode(samples, version: 2);
+      expect(encoded.codecVersion, 2);
+      final decoded = codec.decode(encoded.bytes);
+      for (var i = 0; i < 6; i++) {
+        expect(decoded[i].aveloBuoyancy, isNull);
+        expect(decoded[i].aveloGasRemaining, isNull);
+        expect(decoded[i].computerRmv, isNull);
+        expect(decoded[i], samples[i].withAvelo());
       }
     });
 

@@ -9404,6 +9404,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_legend_label_gtr => 'GTR';
 
   @override
+  String get diveLog_legend_label_aveloBuoyancy => 'Avelo buoyancy';
+
+  @override
+  String get diveLog_legend_label_aveloGasRemaining => 'Gas remaining';
+
+  @override
+  String get diveLog_legend_label_computerRmv => 'RMV (computer)';
+
+  @override
   String get diveLog_legend_source_dc => 'DC';
 
   @override
@@ -11159,6 +11168,34 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveLog_cylinders_hydrotankNote =>
       'Hydrotank pressure does not measure gas used';
+
+  @override
+  String get diveLog_cylinders_aveloTitle => 'Avelo';
+
+  @override
+  String diveLog_cylinders_aveloGasRemaining(int start, int end) {
+    return 'Gas remaining $start% to $end%';
+  }
+
+  @override
+  String diveLog_cylinders_aveloBuoyancy(String min, String max, String mean) {
+    return 'Avelo buoyancy $min to $max, average $mean';
+  }
+
+  @override
+  String diveLog_cylinders_aveloRmv(String min, String max) {
+    return 'RMV (computer) $min to $max';
+  }
+
+  @override
+  String diveLog_cylinders_aveloMaxPressure(String pressure) {
+    return 'Max pressure $pressure';
+  }
+
+  @override
+  String diveLog_cylinders_figureWater(String volume) {
+    return 'Water ~$volume (est.)';
+  }
 
   @override
   String diveLog_cylinders_modNote(String ppO2) {
@@ -22616,6 +22653,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'Profile shows buoyancy';
 
   @override
+  String get settings_conflict_field_defaultShowAveloBuoyancy =>
+      'Profile shows Avelo buoyancy';
+
+  @override
+  String get settings_conflict_field_defaultShowAveloGasRemaining =>
+      'Profile shows gas remaining';
+
+  @override
+  String get settings_conflict_field_defaultShowComputerRmv =>
+      'Profile shows computer RMV';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Planning disclaimer accepted';
 
@@ -23598,6 +23647,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_buoyancy => 'Buoyancy';
+
+  @override
+  String get settings_appearance_metric_aveloBuoyancy => 'Avelo buoyancy';
+
+  @override
+  String get settings_appearance_metric_aveloGasRemaining =>
+      'Gas remaining (Avelo)';
+
+  @override
+  String get settings_appearance_metric_computerRmv => 'RMV (computer)';
 
   @override
   String get settings_appearance_metric_events => 'Events';
@@ -56055,10 +56114,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_profileMetric_buoyancy => 'Buoyancy';
 
   @override
+  String get enum_profileMetric_aveloBuoyancy => 'Avelo buoyancy';
+
+  @override
+  String get enum_profileMetric_aveloGasRemaining => 'Gas remaining';
+
+  @override
+  String get enum_profileMetric_computerRmv => 'RMV (computer)';
+
+  @override
   String get enum_profileMetric_o2CellMv_short => 'Cells';
 
   @override
   String get enum_profileMetric_buoyancy_short => 'Buoyancy';
+
+  @override
+  String get enum_profileMetric_aveloBuoyancy_short => 'Avelo';
+
+  @override
+  String get enum_profileMetric_aveloGasRemaining_short => 'Gas';
+
+  @override
+  String get enum_profileMetric_computerRmv_short => 'RMV';
 
   @override
   String get diveLog_o2CellSpread_label => 'O2 Cell Spread';
@@ -63670,6 +63747,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get info_term_buoyancyProfile_body =>
       'The line shows your net buoyancy through the dive, from the same model as the Buoyancy card, for the computer the chart is showing. It is green while you are buoyant and magenta while you are heavy, and the dashed line marks neutral.';
+
+  @override
+  String get info_term_aveloProfile_label => 'Avelo values';
+
+  @override
+  String get info_term_aveloProfile_body =>
+      'Shearwater\'s Avelo mode logs these as the dive computer recorded them: Avelo buoyancy (negative is heavy), the gas left in the Hydrotank as a percentage, and the computer\'s own RMV. They are not calculated by the app, and the buoyancy is not the modelled buoyancy of the Buoyancy card.';
 
   @override
   String get info_term_hypercapnia_label => 'Hypercapnia';

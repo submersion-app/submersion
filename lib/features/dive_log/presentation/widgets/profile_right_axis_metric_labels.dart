@@ -6,6 +6,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_position.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_avelo_lines.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_buoyancy_line.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -72,6 +73,10 @@ bool hasDataForMetric(
     case ProfileRightAxisMetric.buoyancy:
       final curve = config.buoyancyCurve;
       return curve != null && buoyancyAxisRange(curve) != null;
+    case ProfileRightAxisMetric.aveloBuoyancy:
+    case ProfileRightAxisMetric.aveloGasRemaining:
+    case ProfileRightAxisMetric.computerRmv:
+      return aveloLineRange(metric, config.profile) != null;
   }
 }
 
@@ -188,6 +193,12 @@ bool hasDataForMetric(
       // Kilograms, always spanning 0 so the neutral rule is on the plot.
       final curve = config.buoyancyCurve;
       return curve == null ? null : buoyancyAxisRange(curve);
+
+    case ProfileRightAxisMetric.aveloBuoyancy:
+    case ProfileRightAxisMetric.aveloGasRemaining:
+    case ProfileRightAxisMetric.computerRmv:
+      // Kilograms, percent and litres per minute (#4664).
+      return aveloLineRange(metric, config.profile);
   }
 }
 
@@ -211,7 +222,10 @@ String rightAxisLabel(
     case ProfileRightAxisMetric.ascentRate:
       return '$name (${units.depthSymbol}/$perMin)';
     case ProfileRightAxisMetric.buoyancy:
+    case ProfileRightAxisMetric.aveloBuoyancy:
       return '$name (${units.weightSymbol})';
+    case ProfileRightAxisMetric.computerRmv:
+      return '$name (${units.rmvSymbol})';
     default:
       final suffix = profileMetricUnitSuffix(l10n, metric);
       if (suffix != null) return '$name ($suffix)';
@@ -247,6 +261,10 @@ String profileMetricName(
   ProfileRightAxisMetric.otu => l10n.enum_profileMetric_otu,
   ProfileRightAxisMetric.o2CellMv => l10n.enum_profileMetric_o2CellMv,
   ProfileRightAxisMetric.buoyancy => l10n.enum_profileMetric_buoyancy,
+  ProfileRightAxisMetric.aveloBuoyancy => l10n.enum_profileMetric_aveloBuoyancy,
+  ProfileRightAxisMetric.aveloGasRemaining =>
+    l10n.enum_profileMetric_aveloGasRemaining,
+  ProfileRightAxisMetric.computerRmv => l10n.enum_profileMetric_computerRmv,
 };
 
 /// Localized short name for a right-axis metric, used on the axis itself
@@ -275,6 +293,12 @@ String profileMetricShortName(
   ProfileRightAxisMetric.otu => l10n.enum_profileMetric_otu_short,
   ProfileRightAxisMetric.o2CellMv => l10n.enum_profileMetric_o2CellMv_short,
   ProfileRightAxisMetric.buoyancy => l10n.enum_profileMetric_buoyancy_short,
+  ProfileRightAxisMetric.aveloBuoyancy =>
+    l10n.enum_profileMetric_aveloBuoyancy_short,
+  ProfileRightAxisMetric.aveloGasRemaining =>
+    l10n.enum_profileMetric_aveloGasRemaining_short,
+  ProfileRightAxisMetric.computerRmv =>
+    l10n.enum_profileMetric_computerRmv_short,
 };
 
 /// Localized unit suffix for the metrics whose unit is fixed rather than
@@ -295,7 +319,8 @@ String? profileMetricUnitSuffix(
   ProfileRightAxisMetric.gasDensity => l10n.units_profileMetric_gPerL,
   ProfileRightAxisMetric.gf ||
   ProfileRightAxisMetric.surfaceGf ||
-  ProfileRightAxisMetric.cns => l10n.units_profileMetric_percent,
+  ProfileRightAxisMetric.cns ||
+  ProfileRightAxisMetric.aveloGasRemaining => l10n.units_profileMetric_percent,
   _ => null,
 };
 
