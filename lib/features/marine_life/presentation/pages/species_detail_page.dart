@@ -29,6 +29,11 @@ import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dar
 import 'package:submersion/features/marine_life/data/services/species_edit_save_service.dart';
 import 'package:submersion/features/marine_life/presentation/editing/species_card_ids.dart';
 import 'package:submersion/features/marine_life/presentation/editing/species_edit_cards.dart';
+import 'package:submersion/features/marine_life/presentation/editing/species_photos_sitting.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
@@ -217,15 +222,19 @@ class _SpeciesDetailPageState extends ConsumerState<SpeciesDetailPage>
           ],
           const SizedBox(height: 24),
           _calculated(_buildStatisticsSection(context, ref)),
-          SpeciesPhotosSection(
-            speciesId: speciesId,
-            onTagPhotos: () => _openTagPicker(context),
-            onAddPhotos: () => SpeciesPhotoImportHelper.importPhotosForSpecies(
-              context,
-              ref,
+          if (hostsEditing)
+            _photosInSitting()
+          else
+            SpeciesPhotosSection(
               speciesId: speciesId,
+              onTagPhotos: () => _openTagPicker(context),
+              onAddPhotos: () =>
+                  SpeciesPhotoImportHelper.importPhotosForSpecies(
+                    context,
+                    ref,
+                    speciesId: speciesId,
+                  ),
             ),
-          ),
           _calculated(SpeciesWhereSeenSection(speciesId: speciesId)),
           _calculated(SpeciesSightingsSection(speciesId: speciesId)),
         ],

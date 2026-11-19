@@ -6,6 +6,7 @@ import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/domain/entities/species_lookup.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
+import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_fade.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
@@ -219,6 +220,56 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(AlertDialog), findsOneWidget);
+  });
+  group('photos tagged in a sitting', () {
+    Future<void> tagOne(WidgetTester tester) async {
+      await tester.tap(find.byKey(const ValueKey('species_tag_photos')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(MediaThumbnailTile).first);
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('tag_picker_confirm')));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('Tag photos while locked is not offered', (tester) async {
+      await pumpSpeciesPage(tester);
+
+      expect(find.byKey(const ValueKey('species_tag_photos')), findsNothing);
+    });
+
+    testWidgets('tagged in a sitting, Save tags them once', (tester) async {
+      final harness = await pumpSpeciesPage(tester);
+      await unlock(tester);
+      await tagOne(tester);
+
+      expect(harness.tagging.tagged, isEmpty);
+      expect(
+        find.byKey(const ValueKey('species_pending_remove_p1')),
+        findsOneWidget,
+      );
+      await save(tester);
+
+      expect(harness.save.calls.single.cards, {'photos'});
+      expect(harness.tagging.tagged, ['p1']);
+    });
+
+    testWidgets('Cancel tags nothing', (tester) async {
+      final harness = await pumpSpeciesPage(tester);
+      await unlock(tester);
+      await tagOne(tester);
+
+      await tester.tap(find.text(l.forms_cancel));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l.forms_discard_discard).last);
+      await tester.pumpAndSettle();
+
+      expect(harness.save.calls, isEmpty);
+      expect(harness.tagging.tagged, isEmpty);
+      expect(
+        find.byKey(const ValueKey('species_pending_remove_p1')),
+        findsNothing,
+      );
+    });
   });
 }
 

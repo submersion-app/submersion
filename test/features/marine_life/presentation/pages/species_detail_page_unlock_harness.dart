@@ -13,9 +13,16 @@ import 'package:submersion/features/marine_life/presentation/pages/species_detai
 import 'package:submersion/features/marine_life/presentation/providers/seen_species_providers.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_map_providers.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
+import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
+import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/data/repositories/media_species_repository.dart';
+import 'package:submersion/features/media/data/services/species_tagging_service.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/species_tag_candidate_group.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../media/presentation/support/media_widget_harness.dart';
 import '../../../../helpers/test_app.dart';
 
 /// The species the page shows, as stored.
@@ -60,13 +67,40 @@ class FakeSpeciesSave implements SpeciesEditSaveService {
   }
 }
 
-/// What a test pumped: the fake save, and the stored species to change
-/// underneath.
+/// Records each photo tagged instead of touching a database.
+class RecordingTagging extends SpeciesTaggingService {
+  RecordingTagging()
+    : super(
+        tags: MediaSpeciesRepository(),
+        media: MediaRepository(),
+        species: SpeciesRepository(),
+      );
+
+  final tagged = <String>[];
+
+  @override
+  Future<MediaSpeciesTag> tagPhoto({
+    required String mediaId,
+    required String speciesId,
+  }) async {
+    tagged.add(mediaId);
+    return MediaSpeciesTag(
+      id: 't-$mediaId',
+      mediaId: mediaId,
+      speciesId: speciesId,
+      createdAt: DateTime(2024),
+    );
+  }
+}
+
+/// What a test pumped: the fake save, the stored species to change
+/// underneath, and the photos tagged.
 class SpeciesPageHarness {
-  SpeciesPageHarness(this.save, this.stored);
+  SpeciesPageHarness(this.save, this.stored, this.tagging);
 
   final FakeSpeciesSave save;
   final StateController<Species?> stored;
+  final RecordingTagging tagging;
 }
 
 final _storedProvider = StateProvider<Species?>((ref) => manta);
@@ -86,6 +120,7 @@ Future<SpeciesPageHarness> pumpSpeciesPage(
   addTearDown(tester.view.reset);
   final overrides = await getBaseOverrides();
   late SpeciesPageHarness harness;
+  final tagging = RecordingTagging();
   await tester.pumpWidget(
     testApp(
       locale: locale,
@@ -110,9 +145,23 @@ Future<SpeciesPageHarness> pumpSpeciesPage(
           harness = SpeciesPageHarness(
             save,
             ref.watch(_storedProvider.notifier),
+            tagging,
           );
           return save;
         }),
+        speciesTaggingServiceProvider.overrideWithValue(tagging),
+        speciesTagCandidatesProvider(species.id).overrideWith(
+          (ref) async => [
+            SpeciesTagCandidateGroup(
+              diveId: 'd1',
+              diveNumber: 1,
+              diveDateTime: DateTime(2024, 1, 10),
+              siteName: 'Blue Hole',
+              sightingId: 'sg1',
+              items: [testMediaItem(id: 'p1', diveId: 'd1')],
+            ),
+          ],
+        ),
         speciesLookupLauncherProvider.overrideWithValue(
           (context, query) async => lookupAnswer,
         ),

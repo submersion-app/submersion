@@ -109,4 +109,74 @@ mixin _SpeciesDetailPageEditing
       child: child,
     );
   }
+
+  /// The Photos card on a page that edits in place: locked it offers
+  /// nothing that writes; unlocked its Tag photos holds the choice for Save,
+  /// and the photos held show ahead of the stored ones, each with a way to
+  /// take it back.
+  Widget _photosInSitting() {
+    final session = maybeEditController?.session;
+    final held = session == null
+        ? const <MediaItem>[]
+        : heldSpeciesTags(session);
+    final settings = ref.watch(unitFormatterProvider).settings;
+    final l10n = context.l10n;
+    return SpeciesPhotosSection(
+      speciesId: widget.speciesId,
+      onTagPhotos: session == null ? null : () => _tagInSitting(session),
+      changedMark:
+          session != null &&
+              session.changedCardIds.contains(SpeciesCardId.photos.name)
+          ? const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8),
+              child: RecordChangedDot(),
+            )
+          : null,
+      pendingTiles: [
+        for (final item in held)
+          Stack(
+            fit: StackFit.expand,
+            children: [
+              MediaThumbnailTile(
+                item: item,
+                settings: settings,
+                isSelectionMode: false,
+                isSelected: false,
+                semanticsLabel: l10n.marineLife_speciesPhotos_thumbnailLabel,
+              ),
+              Align(
+                alignment: AlignmentDirectional.topEnd,
+                child: IconButton.filledTonal(
+                  key: ValueKey('species_pending_remove_${item.id}'),
+                  visualDensity: VisualDensity.compact,
+                  icon: const Icon(Icons.close, size: 16),
+                  tooltip: l10n.forms_cancel,
+                  onPressed: session == null
+                      ? null
+                      : () => releaseSpeciesTag(session, item.id),
+                ),
+              ),
+            ],
+          ),
+      ],
+    );
+  }
+
+  /// Opens the tag picker to choose photos, and holds the choice in
+  /// [session] to be tagged at Save.
+  Future<void> _tagInSitting(EditSession<Species> session) async {
+    final tagging = ref.read(speciesTaggingServiceProvider);
+    final choice = await Navigator.of(context).push<Object?>(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => SpeciesTagPickerPage(
+          speciesId: widget.speciesId,
+          chooseOnly: true,
+          alreadyChosen: {for (final m in heldSpeciesTags(session)) m.id},
+        ),
+      ),
+    );
+    if (choice is! SpeciesTagChoice || choice.items.isEmpty) return;
+    holdSpeciesTags(session, choice.items, tagging);
+  }
 }
