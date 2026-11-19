@@ -94,6 +94,19 @@ class SittingList<T, E> {
     return work;
   }
 
+  /// Starts the list empty without a read: for a record not yet created,
+  /// which has no rows stored (a new site, issue #4527), so no read can
+  /// fail and leave it unloaded. A read asked before is dropped when it
+  /// answers. Does nothing once the list is changed, or while the sitting
+  /// is frozen or has ended.
+  void loadNone(EditSession<T> session) {
+    if (session.isDisposed || session.isFrozen || isChanged(session)) return;
+    session
+      ..remember(_readKey, Object())
+      ..remember(_failedKey, null)
+      ..remember(_loadedKey, List<E>.unmodifiable(<E>[]));
+  }
+
   /// Whether the last read failed, so an editor can say so and ask again
   /// ([load]) rather than wait for rows that are not coming.
   bool failed(EditSession<T> session) =>

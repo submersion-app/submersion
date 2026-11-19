@@ -197,26 +197,26 @@ Future<void> applyNewSitePrefill(
       if (_ended(session)) return;
       applyPlaceLookup(session, place, overwrite: false);
     }
-    if (duplicate != null) await _copy(session, duplicate, duplicateName);
+    if (duplicate != null) _copy(session, duplicate, duplicateName);
   }();
   session.track(work);
   return work;
 }
 
-Future<void> _copy(
+void _copy(
   EditSession<DiveSite> session,
   SiteDuplicateSource duplicate,
   String? name,
-) async {
+) {
   for (final field in siteSittingFields) {
     field.copyFrom(session, duplicate.site);
   }
   if (name != null) session.set(siteNameField, name);
-  // A list takes the copy only once its own load has answered: loaded
-  // again here, since the sitting's first loads cannot be awaited by name
-  // without waiting on this work too.
-  await Future.wait([for (final list in siteHeldLists) list.load(session)]);
-  if (_ended(session)) return;
+  // Nothing is stored for the copy: each list starts empty, so its copy
+  // is always taken and never waits on a read that might fail.
+  for (final list in siteHeldLists) {
+    list.loadNone(session);
+  }
   siteTypesList.set(session, duplicate.types);
   siteTagsList.set(session, duplicate.tags);
   siteSpeciesList.set(session, duplicate.species);
