@@ -219,16 +219,17 @@ void main() {
     addTearDown(session.dispose);
     holdGearItemMove(session, await lendToSam());
     session.set(gearStatusField, EquipmentStatus.inService);
-    final plan = await EquipmentMoveFlow(
-      moves: moves,
-      askMoveParts: (_) async => false,
-      askStatus: (_, _) async => false,
-      setStatus: (_, _) async {},
-    ).plan(
-      items: [session.working],
-      targetKind: EquipmentLocationKind.storage,
-      movedAt: DateTime(2026, 6, 2),
-    );
+    final plan =
+        await EquipmentMoveFlow(
+          moves: moves,
+          askMoveParts: (_) async => false,
+          askStatus: (_, _) async => false,
+          setStatus: (_, _) async {},
+        ).plan(
+          items: [session.working],
+          targetKind: EquipmentLocationKind.storage,
+          movedAt: DateTime(2026, 6, 2),
+        );
 
     holdGearItemMove(
       session,
