@@ -8416,6 +8416,7 @@
   "settings_speciesId_levelSurerUnmeasured": "Minste namen, het vaakst juist",
   "settings_speciesId_levelBalancedAccuracy": "Meer namen. Ongeveer {percent}% juist",
   "settings_speciesId_levelEagerAccuracy": "Meeste namen. Ongeveer {percent}% juist",
+  "settings_speciesId_levelFallback": "‘{chosen}’ zit niet in deze versie van het model, dus de app gebruikt ‘{inForce}’ tot een update het toevoegt. Kies ‘{inForce}’ om het te houden.",
   "settings_speciesId_kept": "Suggesties op dit apparaat",
   "settings_speciesId_keptValue": "{count} ({size})",
   "settings_speciesId_clear": "Suggesties wissen",

@@ -29443,6 +29443,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String settings_speciesId_levelFallback(String chosen, String inForce) {
+    return '« $chosen » n\'est pas disponible dans cette version du modèle, l\'app utilise donc « $inForce » jusqu\'à ce qu\'une mise à jour l\'ajoute. Choisissez « $inForce » pour le conserver.';
+  }
+
+  @override
   String get settings_speciesId_kept =>
       'Suggestions conservées sur cet appareil';
 

@@ -397,6 +397,53 @@ void main() {
         findsNothing,
       );
     });
+
+    const fallbackNote =
+        'Eager is not in this version of the model, so the app uses '
+        'Balanced until an update adds it. Choose Balanced to keep it.';
+    const balancedKey = ValueKey('species_id_level_balanced');
+
+    testWidgets('a level the pack lacks says which one is in use', (
+      tester,
+    ) async {
+      await pumpLevels(
+        tester,
+        withLevels(const [balanced]),
+        chosen: NamingLevel.eager,
+      );
+      expect(find.text(fallbackNote), findsOneWidget);
+    });
+
+    testWidgets('a level the pack carries has no note', (tester) async {
+      await pumpLevels(
+        tester,
+        withLevels(const [balanced, eager]),
+        chosen: NamingLevel.eager,
+      );
+      expect(find.textContaining('not in this version'), findsNothing);
+    });
+
+    testWidgets('choosing the level in use keeps it over one the pack lacks', (
+      tester,
+    ) async {
+      await pumpLevels(
+        tester,
+        withLevels(const [balanced]),
+        chosen: NamingLevel.eager,
+      );
+      await tester.ensureVisible(find.byKey(balancedKey));
+      await tester.tap(find.byKey(balancedKey));
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(MarineLifeIdentificationPage)),
+      );
+      expect(container.read(namingLevelNotifierProvider), NamingLevel.balanced);
+      expect(find.text(fallbackNote), findsNothing);
+      final group = tester.widget<RadioGroup<NamingLevel>>(
+        find.byType(RadioGroup<NamingLevel>),
+      );
+      expect(group.groupValue, NamingLevel.balanced);
+    });
   });
 
   group('the entry on Photos and videos', () {

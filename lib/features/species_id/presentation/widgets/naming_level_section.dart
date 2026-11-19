@@ -22,21 +22,22 @@ class NamingLevelSection extends ConsumerWidget {
         : offeredLevels(manifest.naming);
     if (manifest == null || offered.isEmpty) return const SizedBox.shrink();
     final l10n = context.l10n;
-    final inForce = levelInForce(
-      manifest,
-      ref.watch(namingLevelNotifierProvider),
-    )!.level;
+    final chosen = ref.watch(namingLevelNotifierProvider);
+    final inForce = levelInForce(manifest, chosen)!.level;
+    // The diver chose a level this pack lacks: the list shows the one in
+    // force, and a note says so.
+    final fallback = chosen != inForce;
 
     return RadioGroup<NamingLevel>(
       groupValue: inForce,
-      // A tap on the tile already selected reports nothing, and setLevel
-      // skips the level already chosen. An arrow key onto it reports the
-      // level shown, which the diver then chose over one the pack lacks.
-      onChanged: (level) {
-        if (level != null) {
-          ref.read(namingLevelNotifierProvider.notifier).setLevel(level);
-        }
-      },
+      // A tap on the selected tile reports nothing, unless the tile is
+      // toggleable, when it reports null. Only the tile in force is, and
+      // only while the chosen level is another, so null means the diver
+      // chose the level shown over the one the pack lacks. setLevel skips
+      // the level already chosen.
+      onChanged: (level) => ref
+          .read(namingLevelNotifierProvider.notifier)
+          .setLevel(level ?? inForce),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -52,11 +53,13 @@ class NamingLevelSection extends ConsumerWidget {
             RadioListTile<NamingLevel>(
               key: ValueKey('species_id_level_${level.id}'),
               value: level,
+              toggleable: fallback && level == inForce,
               title: Text(_title(l10n, level)),
               subtitle: Text(
                 _hint(l10n, level, precisionOf(manifest.naming, level)),
               ),
             ),
+          if (fallback) _FallbackNote(chosen: chosen, inForce: inForce),
         ],
       ),
     );
@@ -90,5 +93,41 @@ class NamingLevelSection extends ConsumerWidget {
         percent ?? 0,
       ),
     };
+  }
+}
+
+/// Under the levels when the pack lacks the one the diver chose: which
+/// level is in force until an update brings the chosen one, and that
+/// choosing it keeps it.
+class _FallbackNote extends StatelessWidget {
+  const _FallbackNote({required this.chosen, required this.inForce});
+
+  final NamingLevel chosen;
+  final NamingLevel inForce;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final color = theme.colorScheme.onSurfaceVariant;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.info_outline, size: 18, color: color),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              l10n.settings_speciesId_levelFallback(
+                NamingLevelSection._title(l10n, chosen),
+                NamingLevelSection._title(l10n, inForce),
+              ),
+              style: theme.textTheme.bodySmall?.copyWith(color: color),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

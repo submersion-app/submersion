@@ -29305,6 +29305,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String settings_speciesId_levelFallback(String chosen, String inForce) {
+    return '„$chosen“ ist in dieser Version des Modells nicht enthalten, daher nutzt die App „$inForce“, bis ein Update die Stufe nachliefert. Wähle „$inForce“, um dabei zu bleiben.';
+  }
+
+  @override
   String get settings_speciesId_kept =>
       'Auf diesem Gerät gespeicherte Vorschläge';
 

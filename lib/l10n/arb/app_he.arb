@@ -8420,6 +8420,7 @@
   "settings_speciesId_levelSurerUnmeasured": "פחות שמות, לרוב נכונים",
   "settings_speciesId_levelBalancedAccuracy": "יותר שמות. כ-{percent}% נכונים",
   "settings_speciesId_levelEagerAccuracy": "הכי הרבה שמות. כ-{percent}% נכונים",
+  "settings_speciesId_levelFallback": "{chosen} לא זמין בגרסה זו של המודל, ולכן האפליקציה משתמשת ב-{inForce} עד שעדכון יוסיף אותו. בחרו ב-{inForce} כדי להישאר עם הרמה הזו.",
   "settings_speciesId_kept": "הצעות שנשמרו במכשיר הזה",
   "settings_speciesId_keptValue": "{count} ({size})",
   "settings_speciesId_clear": "ניקוי ההצעות",

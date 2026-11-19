@@ -46714,6 +46714,12 @@ abstract class AppLocalizations {
   /// **'Most names. About {percent}% right'**
   String settings_speciesId_levelEagerAccuracy(int percent);
 
+  /// Under the naming levels when the level the diver chose is not in the installed model: the app names at the nearest surer level it has, and choosing that one keeps it
+  ///
+  /// In en, this message translates to:
+  /// **'{chosen} is not in this version of the model, so the app uses {inForce} until an update adds it. Choose {inForce} to keep it.'**
+  String settings_speciesId_levelFallback(String chosen, String inForce);
+
   /// No description provided for @settings_speciesId_kept.
   ///
   /// In en, this message translates to:

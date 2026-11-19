@@ -28872,6 +28872,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String settings_speciesId_levelFallback(String chosen, String inForce) {
+    return '$chosen is not in this version of the model, so the app uses $inForce until an update adds it. Choose $inForce to keep it.';
+  }
+
+  @override
   String get settings_speciesId_kept => 'Suggestions kept on this device';
 
   @override
