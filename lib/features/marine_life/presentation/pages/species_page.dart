@@ -20,6 +20,7 @@ import 'package:submersion/features/query/presentation/widgets/entity_search_hea
 import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
 import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
+import 'package:submersion/features/species_id/presentation/widgets/species_review_banner.dart';
 
 /// The species the diver has seen across every dive, searchable and sortable.
 ///
@@ -88,6 +89,8 @@ class _SpeciesPageState extends ConsumerState<SpeciesPage> {
       ),
       body: Column(
         children: [
+          // What the app tagged on its own, to confirm (issue #4727).
+          const SpeciesReviewBanner(),
           EntitySearchHeader(
             subject: QuerySubject.species,
             root: speciesQueryEntity,

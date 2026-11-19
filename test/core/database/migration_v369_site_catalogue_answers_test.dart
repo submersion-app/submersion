@@ -64,7 +64,9 @@ void main() {
   test('v369 is in the ladder and keeps the floor', () {
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(369));
     expect(AppDatabase.migrationVersions, contains(369));
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(369));
+    // A later rung (v378, the marks on app-applied species tags) raised the
+    // floor; v369 itself did not set it.
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(369));
   });
 
   test('upgrading adds the columns and leaves existing rows empty', () async {

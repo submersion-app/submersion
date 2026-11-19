@@ -5,13 +5,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/platform/app_directories.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/media/data/streaming/video_playback_plan.dart';
 import 'package:submersion/features/media/presentation/providers/media_bytes_providers.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
+import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/video_color_track_provider.dart';
 import 'package:submersion/features/media/presentation/providers/video_playback_providers.dart';
+import 'package:submersion/features/media/domain/value_objects/sighting_timing.dart';
 import 'package:submersion/features/settings/presentation/providers/media_badge_settings_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/serial_preference_writes.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -19,6 +22,8 @@ import 'package:submersion/features/species_id/data/engines/channel_vision_engin
 import 'package:submersion/features/species_id/data/pack/species_pack_store.dart';
 import 'package:submersion/features/species_id/data/repositories/identification_embedding_repository.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
+import 'package:submersion/features/species_id/data/services/auto_applier.dart';
+import 'package:submersion/features/species_id/domain/services/auto_apply_rules.dart';
 import 'package:submersion/features/species_id/data/services/identification_cleanup.dart';
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
 import 'package:submersion/features/species_id/data/services/media_identification_service.dart';
@@ -74,6 +79,59 @@ class IdentifyFishOnOpenNotifier extends DeviceBadgeToggleNotifier {
 final identifyFishOnOpenProvider =
     StateNotifierProvider<IdentifyFishOnOpenNotifier, bool>(
       (ref) => IdentifyFishOnOpenNotifier.unstored(true),
+    );
+
+/// Whether matches the app is confident of are tagged with no tap (issue
+/// #4727). Per device, off by default.
+class AutoApplyNotifier extends DeviceBadgeToggleNotifier {
+  AutoApplyNotifier(SharedPreferences prefs)
+    : super(prefs, SettingsKeys.speciesIdAutoApply, defaultValue: false);
+
+  /// Fixed state with nothing behind it; see
+  /// [DeviceBadgeToggleNotifier.unstored].
+  AutoApplyNotifier.unstored(bool enabled)
+    : super.unstored(enabled, SettingsKeys.speciesIdAutoApply);
+}
+
+/// Off, with no storage behind it; `rootProviderOverrides` gives it the
+/// stored preference.
+final autoApplyProvider = StateNotifierProvider<AutoApplyNotifier, bool>(
+  (ref) => AutoApplyNotifier.unstored(false),
+);
+
+/// When a tag the app applied logs its sighting (issue #4727). Per device,
+/// [SightingTiming.onConfirm] by default.
+class SightingTimingNotifier extends StateNotifier<SightingTiming>
+    with SerialPreferenceWrites {
+  SightingTimingNotifier(SharedPreferences prefs)
+    : _prefs = prefs,
+      super(
+        SightingTiming.fromName(
+          prefs.getString(SettingsKeys.speciesIdSightingTiming),
+        ),
+      );
+
+  /// Fixed state with nothing behind it.
+  SightingTimingNotifier.unstored(super.timing) : _prefs = null;
+
+  final SharedPreferences? _prefs;
+
+  Future<void> setTiming(SightingTiming timing) {
+    if (state == timing) return Future<void>.value();
+    state = timing;
+    final prefs = _prefs;
+    if (prefs == null) return Future<void>.value();
+    return writeInTurn(
+      () => prefs.setString(SettingsKeys.speciesIdSightingTiming, timing.name),
+    );
+  }
+}
+
+/// When I confirm, with no storage behind it; `rootProviderOverrides` gives
+/// it the stored preference.
+final sightingTimingProvider =
+    StateNotifierProvider<SightingTimingNotifier, SightingTiming>(
+      (ref) => SightingTimingNotifier.unstored(SightingTiming.onConfirm),
     );
 
 /// How sure the app must be before it names a fish (issue #4721). Per
@@ -198,35 +256,45 @@ Future<void> sweepIdentificationOrphansAtLaunch(
   await cleanup.sweepOrphans();
 }
 
-final mediaIdentificationServiceProvider = Provider<MediaIdentificationService>(
-  (ref) {
-    final store = ref.watch(speciesPackStoreProvider);
-    final identifications = ref.watch(mediaIdentificationRepositoryProvider);
-    final engine = ref.watch(visionEngineProvider);
-    final service = MediaIdentificationService(
-      engine: engine,
-      memoryReadout: MemoryReadout(engine: engine),
-      loadPack: () async {
-        final pack = await store.installed();
-        return pack == null ? null : store.load(pack);
-      },
-      identifications: identifications,
-      embeddings: ref.watch(identificationEmbeddingRepositoryProvider),
-      crops: ref.watch(identificationCropStoreProvider),
-      resolveImage: (item) => _imageOf(ref, item),
-      resolveVideo: (item) => ref.read(videoFileReaderProvider(item).future),
-      taggedSpecies: identifications.taggedSpecies,
-      enabled: () =>
-          marineLifeIdEnabled && ref.read(identifyFishOnOpenProvider),
-      // Waits for the installed pack, unlike [levelInForceProvider]: a
-      // reconcile before it has been read would otherwise decide by the
-      // stored flags, not the level the diver chose.
-      namingLevel: () => awaitLevelInForce(ref.container),
-    );
-    ref.onDispose(service.dispose);
-    return service;
-  },
-);
+// Typed: it and [autoApplierProvider] read each other when called.
+final Provider<MediaIdentificationService> mediaIdentificationServiceProvider =
+    Provider<MediaIdentificationService>((ref) {
+      final store = ref.watch(speciesPackStoreProvider);
+      final identifications = ref.watch(mediaIdentificationRepositoryProvider);
+      final engine = ref.watch(visionEngineProvider);
+      final service = MediaIdentificationService(
+        engine: engine,
+        memoryReadout: MemoryReadout(engine: engine),
+        loadPack: () async {
+          final pack = await store.installed();
+          return pack == null ? null : store.load(pack);
+        },
+        identifications: identifications,
+        embeddings: ref.watch(identificationEmbeddingRepositoryProvider),
+        crops: ref.watch(identificationCropStoreProvider),
+        resolveImage: (item) => identificationImageOf(ref, item),
+        resolveVideo: (item) => ref.read(videoFileReaderProvider(item).future),
+        taggedSpecies: identifications.taggedSpecies,
+        enabled: () =>
+            marineLifeIdEnabled && ref.read(identifyFishOnOpenProvider),
+        // A Find species run is the diver's own request (issue #4727).
+        runEnabled: () => marineLifeIdEnabled,
+        onItemSettled: (item, generation) => ref
+            .read(autoApplierProvider)
+            .applyInScope(
+              item.id,
+              isVideo: item.mediaType == MediaType.video,
+              generation: generation,
+            )
+            .then((_) {}),
+        // Waits for the installed pack, unlike [levelInForceProvider]: a
+        // reconcile before it has been read would otherwise decide by the
+        // stored flags, not the level the diver chose.
+        namingLevel: () => awaitLevelInForce(ref.container),
+      );
+      ref.onDispose(service.dispose);
+      return service;
+    });
 
 /// The file the player opened for a video, read one call at a time
 /// through its bookmark where it has one (issue #4675). Null when the video
@@ -262,7 +330,10 @@ final videoFileReaderProvider =
 
 /// A readable file when the photo has one here; otherwise the bytes the
 /// viewer itself would show. Starts no download of its own beyond that.
-Future<IdentificationImage?> _imageOf(Ref ref, MediaItem item) async {
+Future<IdentificationImage?> identificationImageOf(
+  Ref ref,
+  MediaItem item,
+) async {
   final local = item.localPath;
   if (local != null && local.isNotEmpty) {
     try {
@@ -332,6 +403,28 @@ final mediaIdentificationBusyProvider = StreamProvider.autoDispose
         yield service.isBusy(mediaId);
       }
     });
+
+/// Tags confident matches with no tap, when the setting is on (issue
+/// #4727).
+final Provider<AutoApplier> autoApplierProvider = Provider<AutoApplier>(
+  (ref) => AutoApplier(
+    identifications: ref.watch(mediaIdentificationRepositoryProvider),
+    acceptor: ref.watch(suggestionAcceptorProvider),
+    tagging: ref.watch(speciesTaggingServiceProvider),
+    enabled: () => ref.read(autoApplyProvider),
+    timing: () => ref.read(sightingTimingProvider),
+    // Read when called: the service calls this applier from its own hook.
+    reconcile: (mediaId) =>
+        ref.read(mediaIdentificationServiceProvider).reconcile(mediaId),
+    databaseGeneration: () => DatabaseService.instance.generation,
+    // Off while the installed pack can never be confident, as its switch
+    // shows; with none installed the stored names still count.
+    packAllows: () {
+      final installed = ref.read(installedSpeciesPackProvider).value;
+      return installed == null || packCanApply(installed.manifest.naming);
+    },
+  ),
+);
 
 final suggestionAcceptorProvider = Provider<SuggestionAcceptor>(
   (ref) => SuggestionAcceptor(species: ref.watch(speciesRepositoryProvider)),

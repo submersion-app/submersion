@@ -66,7 +66,9 @@ void main() {
   });
 
   test('the floor does not move', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(376));
+    // A later rung (v378, the marks on app-applied species tags) raised the
+    // floor; v376 itself did not set it.
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(376));
   });
 
   test('a fresh database has the video columns, still with no hlc', () async {

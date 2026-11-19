@@ -332,7 +332,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 377;
+  static const int currentSchemaVersion = 378;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -497,7 +497,18 @@ class AppDatabase extends _$AppDatabase {
   /// an exact 1 on every device. Peers below 350 are held until they
   /// update. Their own payloads still arrive here and decode cleanly: a
   /// missing abundance is null, an exact count.
-  static const int minimumCompatibleSchemaVersion = 350;
+  ///
+  /// Raised 350 -> 378 by the marks on a species tag the app applied
+  /// (#4727): v378 adds the synced columns media_species.unconfirmed,
+  /// created_sighting and created_species, where null is the diver's own
+  /// tag. A peer below 378 stores an app-applied tag as a plain tag. Once
+  /// that peer upgrades, the columns are null there, and its next full
+  /// publish sends them as explicit nulls, which the merge applies as real
+  /// values (only an omitted key is refilled from the local row), silently
+  /// confirming the app's tags on every device. Peers below 378 are held
+  /// until they update. Their own payloads still arrive here and decode
+  /// cleanly: a missing column is null, the diver's own tag.
+  static const int minimumCompatibleSchemaVersion = 378;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1752,6 +1763,10 @@ class AppDatabase extends _$AppDatabase {
     // video scanned (issue #4709). A column on a table that never syncs, no
     // backfill; the floor does not move.
     377,
+    // v378: media_species.unconfirmed, created_sighting and created_species,
+    // the marks on a tag the app applied (issue #4727). Synced columns, no
+    // backfill; the floor rises to 378.
+    378,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

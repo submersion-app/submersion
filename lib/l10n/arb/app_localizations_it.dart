@@ -1538,6 +1538,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get equipment_color_sheetTitle => 'Scegli un colore';
 
   @override
+  String get equipment_setEdit_bundleTitle => 'Pacchetto';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'Geofence';
 
   @override
@@ -3414,6 +3417,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get buddies_action_lendGear => 'Presta attrezzatura';
+
+  @override
+  String get buddies_editCard_gear => 'Attrezzatura prestata';
 
   @override
   String buddies_gear_title(String name) {
@@ -7308,6 +7314,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveCenters_section_basicInfo => 'Informazioni di Base';
+
+  @override
+  String get diveCenters_editCard_map => 'Mappa';
 
   @override
   String get diveCenters_section_contact => 'Contatto';
@@ -20082,6 +20091,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get marineLife_suggest_copyLink => 'Copia link';
 
   @override
+  String get marineLife_editCard_photos => 'Foto';
+
+  @override
   String marineLife_speciesPhotos_title(Object count) {
     return 'Foto ($count)';
   }
@@ -26972,6 +26984,18 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_conflict_field_measuredAt => 'Misurato';
 
   @override
+  String get settings_conflict_field_mediaSpecies_unconfirmed =>
+      'Tag non ancora confermato';
+
+  @override
+  String get settings_conflict_field_mediaSpecies_createdSighting =>
+      'Avvistamento registrato dall\'app';
+
+  @override
+  String get settings_conflict_field_mediaSpecies_createdSpecies =>
+      'Specie aggiunta dall\'app';
+
+  @override
   String get settings_conflict_field_medicalClearanceExpiryDate =>
       'Scadenza del certificato medico';
 
@@ -28221,6 +28245,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get documents_field_notes => 'Note';
 
   @override
+  String get documents_editCard_details => 'Dettagli';
+
+  @override
   String get documents_pages_title => 'Pagine';
 
   @override
@@ -29356,6 +29383,32 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_speciesId_toggle =>
       'Identifica i pesci quando apro una foto o un video';
+
+  @override
+  String get settings_speciesId_autoApply =>
+      'Tagga automaticamente le corrispondenze sicure';
+
+  @override
+  String get settings_speciesId_autoApplyDescription =>
+      'L\'app aggiunge un tag di specie quando è sicura di una corrispondenza. Confermi ognuno in Specie da verificare.';
+
+  @override
+  String get settings_speciesId_autoApplyNever =>
+      'Il modello installato non è ancora abbastanza sicuro di nessuna specie per taggarla da solo. I suggerimenti continuano a comparire perché tu li aggiunga.';
+
+  @override
+  String get settings_speciesId_autoApplyPlaceOnly =>
+      'Solo per foto e video con una posizione.';
+
+  @override
+  String get settings_speciesId_sightingTiming =>
+      'Registra gli avvistamenti di questi tag';
+
+  @override
+  String get settings_speciesId_sightingOnConfirm => 'Quando confermo il tag';
+
+  @override
+  String get settings_speciesId_sightingStraightAway => 'Subito';
 
   @override
   String get settings_speciesId_levelTitle =>
@@ -39149,6 +39202,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String gpsLogger_trackSubtitleTrimmed(String duration) {
     return 'Ritagliata, $duration';
   }
+
+  @override
+  String get gpsTrack_editCard_trim => 'Ritaglia';
 
   @override
   String get gpsTrack_action_trim => 'Ritaglia...';
@@ -56336,6 +56392,220 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String media_species_unconfirmedLabel(String name) {
+    return '$name, taggata dall\'app, non ancora confermata';
+  }
+
+  @override
+  String get media_species_confirm => 'Conferma';
+
+  @override
+  String get speciesReview_title => 'Specie da verificare';
+
+  @override
+  String get speciesReview_tagged => 'Taggate dall\'app, non ancora confermate';
+
+  @override
+  String get speciesReview_suggested => 'Suggerite';
+
+  @override
+  String get speciesReview_confirm => 'Conferma';
+
+  @override
+  String get speciesReview_remove => 'Rimuovi';
+
+  @override
+  String get speciesReview_confirmAll => 'Conferma tutte';
+
+  @override
+  String get speciesReview_add => 'Aggiungi';
+
+  @override
+  String speciesReview_dismiss(String name) {
+    return 'Ignora $name';
+  }
+
+  @override
+  String speciesReview_onPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'in $count foto',
+      one: 'in 1 foto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_onVideos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'in $count video',
+      one: 'in 1 video',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_onPhotosAndVideos(int count) {
+    return 'in $count foto e video';
+  }
+
+  @override
+  String speciesReview_mixed(int tagged, int suggested) {
+    return '($tagged taggate, $suggested suggerite)';
+  }
+
+  @override
+  String get speciesReview_itemTagged => 'Taggata dall\'app';
+
+  @override
+  String get speciesReview_itemSuggested => 'Suggerita';
+
+  @override
+  String get speciesReview_confirmed => 'Confermata';
+
+  @override
+  String get speciesReview_removed => 'Rimossa';
+
+  @override
+  String get speciesReview_added => 'Aggiunta';
+
+  @override
+  String get speciesReview_dismissed => 'Ignorata';
+
+  @override
+  String get speciesReview_undo => 'Annulla';
+
+  @override
+  String speciesReview_diveNumber(int number) {
+    return 'Immersione $number';
+  }
+
+  @override
+  String get speciesReview_sitePhotos => 'Foto del sito';
+
+  @override
+  String get speciesReview_otherPhotos => 'Altre foto';
+
+  @override
+  String get speciesReview_nothing => 'Niente da verificare';
+
+  @override
+  String get speciesReview_find => 'Trova le specie nelle foto';
+
+  @override
+  String speciesReview_finding(int done, int total) {
+    return 'Ricerca delle specie: $done di $total';
+  }
+
+  @override
+  String get speciesReview_waiting =>
+      'In attesa della ricerca di un\'altra immersione';
+
+  @override
+  String get speciesReview_pausedHot => 'In pausa: dispositivo troppo caldo';
+
+  @override
+  String get speciesReview_resume => 'Riprendi';
+
+  @override
+  String get speciesReview_allChecked => 'Tutte le foto controllate';
+
+  @override
+  String speciesReview_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count specie da verificare',
+      one: '1 specie da verificare',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_downloadBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count foto e video non sono su questo dispositivo. La ricerca delle specie li scaricherà.',
+      one:
+          '1 foto o video non è su questo dispositivo. La ricerca delle specie lo scaricherà.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesReview_downloadAndFind => 'Scarica e cerca';
+
+  @override
+  String speciesReview_photos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count foto',
+      one: '1 foto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_videos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count video',
+      one: '1 video',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_speciesTagged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count specie',
+      one: '1 specie',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_summary(
+    String photos,
+    String videos,
+    String species,
+    int toReview,
+  ) {
+    return 'Controllati $photos e $videos. Taggate $species; $toReview da verificare.';
+  }
+
+  @override
+  String get speciesReview_decided => 'Decisa';
+
+  @override
+  String get speciesReview_saveFailed => 'Impossibile salvare. Riprova.';
+
+  @override
+  String speciesReview_summaryUnreadable(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count non è stato possibile aprirli.',
+      one: '1 non è stato possibile aprirlo.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_species_confirmTag(String name) {
+    return 'Conferma $name';
+  }
+
+  @override
   String get media_people_me => 'Io';
 
   @override
@@ -59183,6 +59453,18 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get navTrack_detail_deleteMessage =>
       'Questa azione non può essere annullata.';
+
+  @override
+  String get navTrack_editCard_dive => 'Immersione';
+
+  @override
+  String get navTrack_editCard_site => 'Sito';
+
+  @override
+  String get navTrack_editCard_device => 'Dispositivo';
+
+  @override
+  String get navTrack_editCard_correction => 'Correzione';
 
   @override
   String get navTrack_detail_defaultTrackTitle => 'Traccia subacquea';
@@ -63422,6 +63704,13 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get changeLog_label_mediaRepair =>
       'Collegamenti multimediali riparati';
+
+  @override
+  String get changeLog_label_marineLifeId =>
+      'Identificazione della vita marina';
+
+  @override
+  String get changeLog_label_speciesReview => 'Verifica delle specie';
 
   @override
   String get changeLog_label_gearFileConversion =>

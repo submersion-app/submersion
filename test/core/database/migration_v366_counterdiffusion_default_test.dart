@@ -40,7 +40,9 @@ void main() {
   });
 
   test('the new column is defaulted and kept the floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(366));
+    // A later rung (v378, the marks on app-applied species tags) raised the
+    // floor; v366 itself did not set it.
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(366));
   });
 
   test('upgrading from v365 adds the column switched off', () async {

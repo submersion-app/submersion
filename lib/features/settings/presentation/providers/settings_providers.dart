@@ -104,6 +104,14 @@ class SettingsKeys {
   /// opened in the viewer (issue #4668).
   static const String identifyFishOnOpen = 'species_id_identify_on_open';
 
+  /// Device-local: whether matches the app is confident of are tagged with
+  /// no tap, marked unconfirmed (issue #4727). Off by default.
+  static const String speciesIdAutoApply = 'species_id_auto_apply';
+
+  /// Device-local: when such a tag logs its dive's sighting, by
+  /// `SightingTiming` name (issue #4727).
+  static const String speciesIdSightingTiming = 'species_id_sighting_timing';
+
   /// Device-local: how sure the app must be before it names a fish, a
   /// naming level's id (issue #4721).
   static const String marineLifeNamingLevel = 'species_id_naming_level';

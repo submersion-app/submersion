@@ -71,15 +71,18 @@ class TrackLabel extends Equatable {
 }
 
 /// The label [track] gets, or null for none. [minDotMs] keeps a fleeting
-/// box (a fin, a bubble) from showing a dot.
+/// box (a fin, a bubble) from showing a dot. An accepted track whose tag
+/// the app applied and the diver has not confirmed ([unconfirmed]) keeps
+/// the outlined pill of the app's confident name (issue #4727).
 TrackLabelKind? labelKind(
   MediaIdentification track, {
   required bool playing,
   int minDotMs = 1000,
+  bool unconfirmed = false,
 }) {
   switch (track.decision) {
     case IdentificationDecision.accepted:
-      return TrackLabelKind.accepted;
+      return unconfirmed ? TrackLabelKind.confident : TrackLabelKind.accepted;
     case IdentificationDecision.rejected:
       return null;
     case IdentificationDecision.undecided:
@@ -132,16 +135,27 @@ IdentificationBox? boxAt(
 
 /// The labels to draw at [ms]: one per visible animal, at most
 /// [maxLabels], the largest first so a school does not bury the picture.
+/// [unconfirmedSpeciesIds] are the video's tags the app applied and the
+/// diver has not confirmed (issue #4727).
 List<TrackLabel> labelsAt(
   List<MediaIdentification> shown,
   int ms, {
   required bool playing,
   int maxLabels = 6,
+  Set<String> unconfirmedSpeciesIds = const {},
 }) {
   final labels = <TrackLabel>[];
   for (final track in shown) {
     if (!track.isTrack) continue;
-    final kind = labelKind(track, playing: playing);
+    final kind = labelKind(
+      track,
+      playing: playing,
+      // A fish the diver named from the frame is theirs, whatever the tag.
+      unconfirmed:
+          track.decision == IdentificationDecision.accepted &&
+          track.claimedSpeciesId == null &&
+          unconfirmedSpeciesIds.contains(track.decidedSpeciesId),
+    );
     if (kind == null) continue;
     final box = boxAt(track, ms);
     if (box == null) continue;

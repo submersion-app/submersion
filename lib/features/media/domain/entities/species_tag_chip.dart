@@ -10,11 +10,16 @@ class SpeciesTagChip extends Equatable {
   final SpeciesCategory category;
   final bool isBuiltIn;
 
+  /// The app applied the tag and the diver has not confirmed it yet (issue
+  /// #4727): drawn apart from the diver's own tags.
+  final bool unconfirmed;
+
   const SpeciesTagChip({
     required this.speciesId,
     required this.storedName,
     required this.category,
     required this.isBuiltIn,
+    this.unconfirmed = false,
   });
 
   SpeciesTagChip copyWith({
@@ -22,15 +27,23 @@ class SpeciesTagChip extends Equatable {
     String? storedName,
     SpeciesCategory? category,
     bool? isBuiltIn,
+    bool? unconfirmed,
   }) {
     return SpeciesTagChip(
       speciesId: speciesId ?? this.speciesId,
       storedName: storedName ?? this.storedName,
       category: category ?? this.category,
       isBuiltIn: isBuiltIn ?? this.isBuiltIn,
+      unconfirmed: unconfirmed ?? this.unconfirmed,
     );
   }
 
   @override
-  List<Object?> get props => [speciesId, storedName, category, isBuiltIn];
+  List<Object?> get props => [
+    speciesId,
+    storedName,
+    category,
+    isBuiltIn,
+    unconfirmed,
+  ];
 }

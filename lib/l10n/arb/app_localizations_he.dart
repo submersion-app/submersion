@@ -1514,6 +1514,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_color_sheetTitle => 'בחירת צבע';
 
   @override
+  String get equipment_setEdit_bundleTitle => 'חבילה';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'גדרות גאוגרפיות';
 
   @override
@@ -3348,6 +3351,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get buddies_action_lendGear => 'השאלת ציוד';
+
+  @override
+  String get buddies_editCard_gear => 'ציוד שהושאל';
 
   @override
   String buddies_gear_title(String name) {
@@ -7147,6 +7153,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveCenters_section_basicInfo => 'מידע בסיסי';
+
+  @override
+  String get diveCenters_editCard_map => 'מפה';
 
   @override
   String get diveCenters_section_contact => 'יצירת קשר';
@@ -19632,6 +19641,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get marineLife_suggest_copyLink => 'העתקת קישור';
 
   @override
+  String get marineLife_editCard_photos => 'תמונות';
+
+  @override
   String marineLife_speciesPhotos_title(Object count) {
     return 'תמונות ($count)';
   }
@@ -26308,6 +26320,18 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_measuredAt => 'נמדד';
 
   @override
+  String get settings_conflict_field_mediaSpecies_unconfirmed =>
+      'תיוג שטרם אושר';
+
+  @override
+  String get settings_conflict_field_mediaSpecies_createdSighting =>
+      'תצפית שנרשמה על ידי האפליקציה';
+
+  @override
+  String get settings_conflict_field_mediaSpecies_createdSpecies =>
+      'מין שנוסף על ידי האפליקציה';
+
+  @override
   String get settings_conflict_field_medicalClearanceExpiryDate =>
       'תפוגת האישור הרפואי';
 
@@ -27495,6 +27519,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get documents_field_notes => 'הערות';
 
   @override
+  String get documents_editCard_details => 'פרטים';
+
+  @override
   String get documents_pages_title => 'עמודים';
 
   @override
@@ -28613,6 +28640,30 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_speciesId_toggle =>
       'זיהוי דגים כשאני פותח תמונה או סרטון';
+
+  @override
+  String get settings_speciesId_autoApply => 'תיוג אוטומטי של התאמות ודאיות';
+
+  @override
+  String get settings_speciesId_autoApplyDescription =>
+      'האפליקציה מוסיפה תגית מין כשהיא בטוחה בהתאמה. כל אחת מאשרים במינים לבדיקה.';
+
+  @override
+  String get settings_speciesId_autoApplyNever =>
+      'המודל המותקן עדיין אינו בטוח מספיק באף מין כדי לתייג בעצמו. הצעות ממשיכות להופיע כדי שתוסיפו אותן.';
+
+  @override
+  String get settings_speciesId_autoApplyPlaceOnly =>
+      'רק לתמונות ולסרטונים עם מיקום.';
+
+  @override
+  String get settings_speciesId_sightingTiming => 'רישום תצפיות לתגיות אלה';
+
+  @override
+  String get settings_speciesId_sightingOnConfirm => 'כשאני מאשר את התגית';
+
+  @override
+  String get settings_speciesId_sightingStraightAway => 'מיד';
 
   @override
   String get settings_speciesId_levelTitle =>
@@ -38185,6 +38236,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String gpsLogger_trackSubtitleTrimmed(String duration) {
     return 'נחתך, $duration';
   }
+
+  @override
+  String get gpsTrack_editCard_trim => 'חיתוך';
 
   @override
   String get gpsTrack_action_trim => 'חיתוך...';
@@ -55155,6 +55209,217 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String media_species_unconfirmedLabel(String name) {
+    return '$name, תויג על ידי האפליקציה, טרם אושר';
+  }
+
+  @override
+  String get media_species_confirm => 'אישור';
+
+  @override
+  String get speciesReview_title => 'מינים לבדיקה';
+
+  @override
+  String get speciesReview_tagged => 'תויגו על ידי האפליקציה, טרם אושרו';
+
+  @override
+  String get speciesReview_suggested => 'מוצעים';
+
+  @override
+  String get speciesReview_confirm => 'אישור';
+
+  @override
+  String get speciesReview_remove => 'הסרה';
+
+  @override
+  String get speciesReview_confirmAll => 'אישור הכול';
+
+  @override
+  String get speciesReview_add => 'הוספה';
+
+  @override
+  String speciesReview_dismiss(String name) {
+    return 'דחיית $name';
+  }
+
+  @override
+  String speciesReview_onPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ב-$count תמונות',
+      one: 'בתמונה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_onVideos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ב-$count סרטונים',
+      one: 'בסרטון אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_onPhotosAndVideos(int count) {
+    return 'ב-$count תמונות וסרטונים';
+  }
+
+  @override
+  String speciesReview_mixed(int tagged, int suggested) {
+    return '($tagged מתויגים, $suggested מוצעים)';
+  }
+
+  @override
+  String get speciesReview_itemTagged => 'תויג על ידי האפליקציה';
+
+  @override
+  String get speciesReview_itemSuggested => 'מוצע';
+
+  @override
+  String get speciesReview_confirmed => 'אושר';
+
+  @override
+  String get speciesReview_removed => 'הוסר';
+
+  @override
+  String get speciesReview_added => 'נוסף';
+
+  @override
+  String get speciesReview_dismissed => 'נדחה';
+
+  @override
+  String get speciesReview_undo => 'ביטול';
+
+  @override
+  String speciesReview_diveNumber(int number) {
+    return 'צלילה $number';
+  }
+
+  @override
+  String get speciesReview_sitePhotos => 'תמונות מאתר הצלילה';
+
+  @override
+  String get speciesReview_otherPhotos => 'תמונות נוספות';
+
+  @override
+  String get speciesReview_nothing => 'אין מה לבדוק';
+
+  @override
+  String get speciesReview_find => 'חיפוש מינים בתמונות';
+
+  @override
+  String speciesReview_finding(int done, int total) {
+    return 'מחפש מינים: $done מתוך $total';
+  }
+
+  @override
+  String get speciesReview_waiting => 'ממתין לחיפוש של צלילה אחרת';
+
+  @override
+  String get speciesReview_pausedHot => 'מושהה: המכשיר חם מדי';
+
+  @override
+  String get speciesReview_resume => 'המשך';
+
+  @override
+  String get speciesReview_allChecked => 'כל התמונות נבדקו';
+
+  @override
+  String speciesReview_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מינים לבדיקה',
+      one: 'מין אחד לבדיקה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_downloadBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count תמונות וסרטונים אינם במכשיר זה. חיפוש המינים יוריד אותם.',
+      one: 'תמונה או סרטון אחד אינם במכשיר זה. חיפוש המינים יוריד אותם.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesReview_downloadAndFind => 'הורדה וחיפוש';
+
+  @override
+  String speciesReview_photos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count תמונות',
+      one: 'תמונה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_videos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count סרטונים',
+      one: 'סרטון אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_speciesTagged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מינים',
+      one: 'מין אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_summary(
+    String photos,
+    String videos,
+    String species,
+    int toReview,
+  ) {
+    return 'נבדקו $photos ו$videos. תויגו $species; $toReview לבדיקה.';
+  }
+
+  @override
+  String get speciesReview_decided => 'הוחלט';
+
+  @override
+  String get speciesReview_saveFailed => 'השמירה נכשלה. נסו שוב.';
+
+  @override
+  String speciesReview_summaryUnreadable(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים לא נפתחו.',
+      one: 'פריט אחד לא נפתח.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_species_confirmTag(String name) {
+    return 'אישור $name';
+  }
+
+  @override
   String get media_people_me => 'אני';
 
   @override
@@ -57917,6 +58182,18 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get navTrack_detail_deleteMessage => 'לא ניתן לבטל פעולה זו.';
+
+  @override
+  String get navTrack_editCard_dive => 'צלילה';
+
+  @override
+  String get navTrack_editCard_site => 'אתר';
+
+  @override
+  String get navTrack_editCard_device => 'מכשיר';
+
+  @override
+  String get navTrack_editCard_correction => 'תיקון';
 
   @override
   String get navTrack_detail_defaultTrackTitle => 'מסלול תת-ימי';
@@ -62096,6 +62373,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get changeLog_label_mediaRepair => 'קישורי מדיה תוקנו';
+
+  @override
+  String get changeLog_label_marineLifeId => 'זיהוי חיים ימיים';
+
+  @override
+  String get changeLog_label_speciesReview => 'בדיקת מינים';
 
   @override
   String get changeLog_label_gearFileConversion => 'קובצי ציוד הועברו למסמכים';

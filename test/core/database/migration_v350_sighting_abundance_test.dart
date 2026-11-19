@@ -36,7 +36,12 @@ void main() {
   });
 
   test('the column raises the sync floor to 350', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 350);
+    // A later rung (v378) raised it again; the v378 test pins the exact
+    // value.
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(350),
+    );
   });
 
   test('upgrading from v347 keeps every existing sighting exact', () async {

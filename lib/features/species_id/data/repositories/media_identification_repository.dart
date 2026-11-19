@@ -6,6 +6,7 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
@@ -328,6 +329,159 @@ class MediaIdentificationRepository {
     return row.read(countExp) ?? 0;
   }
 
+  /// Every media id with a suggestion still open: an undecided
+  /// identification that passed the bars (issue #4727). With [anyUndecided]
+  /// every undecided one counts, for a naming level that may suggest what
+  /// the pack's bars did not. [among] limits it to those media; [diverId]
+  /// to that diver's dives and the media on no dive.
+  Future<List<String>> mediaIdsWithSuggestions({
+    bool anyUndecided = false,
+    List<String>? among,
+    String? diverId,
+  }) async {
+    // One logbook for every chunk (issue #4721).
+    final db = _db;
+    if (among != null && among.isEmpty) return const [];
+    final where = <String>["i.decision = 'undecided'"];
+    final variables = <Variable<Object>>[];
+    if (!anyUndecided) where.add('i.suggestable = 1');
+    if (diverId != null) {
+      where.add('(m.dive_id IS NULL OR d.diver_id = ?)');
+      variables.add(Variable.withString(diverId));
+    }
+    final found = <String>{};
+    Future<void> read(List<String>? chunk) async {
+      final clauses = [
+        ...where,
+        if (chunk != null)
+          'i.media_id IN (${List.filled(chunk.length, '?').join(', ')})',
+      ];
+      final rows = await db
+          .customSelect(
+            'SELECT DISTINCT i.media_id AS media_id '
+            'FROM media_identifications i '
+            'JOIN media m ON m.id = i.media_id '
+            'LEFT JOIN dives d ON d.id = m.dive_id '
+            'WHERE ${clauses.join(' AND ')}',
+            variables: [
+              ...variables,
+              if (chunk != null)
+                for (final id in chunk) Variable.withString(id),
+            ],
+            readsFrom: {db.mediaIdentifications, db.media, db.dives},
+          )
+          .get();
+      found.addAll([for (final row in rows) row.read<String>('media_id')]);
+    }
+
+    if (among == null) {
+      await read(null);
+    } else {
+      for (final chunk in seriesIdChunks(among, size: _slice)) {
+        await read(chunk);
+      }
+    }
+    return found.toList();
+  }
+
+  /// [forMedia] for many media in one pass per chunk, by media id. Without
+  /// [withPaths] a video track's path is left empty, not decoded: what reads
+  /// only names, scores and decisions (Species to review, the readiness
+  /// check) has no use for it.
+  Future<Map<String, List<MediaIdentification>>> forMediaIds(
+    List<String> mediaIds, {
+    bool withPaths = true,
+  }) async {
+    // One logbook for every chunk (issue #4721).
+    final db = _db;
+    final result = <String, List<MediaIdentification>>{};
+    for (final chunk in seriesIdChunks(mediaIds, size: _slice)) {
+      final rows =
+          await (db.select(db.mediaIdentifications)
+                ..where((r) => r.mediaId.isIn(chunk))
+                ..orderBy([
+                  (r) => OrderingTerm.asc(r.createdAt),
+                  (r) => OrderingTerm.asc(r.id),
+                ]))
+              .get();
+      for (final row in rows) {
+        result
+            .putIfAbsent(row.mediaId, () => [])
+            .add(_fromRow(row, withPath: withPaths));
+      }
+    }
+    return result;
+  }
+
+  /// [runsFor] and [forMediaIds] in one transaction on one logbook, so
+  /// each media's run and rows come from the same moment and a logbook
+  /// opened during the read is not mixed in (issue #4721), as
+  /// [forMediaWithRun] reads one media.
+  Future<
+    (
+      Map<String, MediaIdentificationRun>,
+      Map<String, List<MediaIdentification>>,
+    )
+  >
+  forMediaIdsWithRuns(List<String> mediaIds, {bool withPaths = true}) =>
+      _transaction(
+        (_) async => (
+          await runsFor(mediaIds),
+          await forMediaIds(mediaIds, withPaths: withPaths),
+        ),
+      );
+
+  /// [runFor] for many media, by media id; media with no run are absent.
+  Future<Map<String, MediaIdentificationRun>> runsFor(
+    List<String> mediaIds,
+  ) async {
+    // One logbook for every chunk (issue #4721).
+    final db = _db;
+    final result = <String, MediaIdentificationRun>{};
+    for (final chunk in seriesIdChunks(mediaIds, size: _slice)) {
+      final rows = await (db.select(
+        db.mediaIdentificationRuns,
+      )..where((r) => r.mediaId.isIn(chunk))).get();
+      for (final row in rows) {
+        result[row.mediaId] = _runFromRow(row);
+      }
+    }
+    return result;
+  }
+
+  /// [taggedSpecies] for many media, by media id; untagged media are
+  /// absent.
+  Future<Map<String, List<TaggedSpecies>>> taggedSpeciesFor(
+    List<String> mediaIds,
+  ) async {
+    // One logbook for every chunk (issue #4721).
+    final db = _db;
+    final result = <String, List<TaggedSpecies>>{};
+    for (final chunk in seriesIdChunks(mediaIds, size: _slice)) {
+      final rows = await db
+          .customSelect(
+            'SELECT ms.media_id AS media_id, ms.species_id AS species_id, '
+            's.scientific_name AS sci '
+            'FROM media_species ms LEFT JOIN species s ON s.id = ms.species_id '
+            'WHERE ms.media_id IN (${List.filled(chunk.length, '?').join(', ')})',
+            variables: [for (final id in chunk) Variable.withString(id)],
+            readsFrom: {db.mediaSpecies, db.species},
+          )
+          .get();
+      for (final row in rows) {
+        result
+            .putIfAbsent(row.read<String>('media_id'), () => [])
+            .add(
+              TaggedSpecies(
+                speciesId: row.read<String>('species_id'),
+                scientificName: row.readNullable<String>('sci'),
+              ),
+            );
+      }
+    }
+    return result;
+  }
+
   /// Every media id with a run or an identification in this logbook.
   Future<List<String>> mediaIds() async {
     final db = _db;
@@ -401,38 +555,40 @@ class MediaIdentificationRepository {
     ),
   );
 
-  static MediaIdentification _fromRow(MediaIdentificationRow row) =>
-      MediaIdentification(
-        id: row.id,
-        mediaId: row.mediaId,
-        box: IdentificationBox(
-          x: row.boxX,
-          y: row.boxY,
-          width: row.boxWidth,
-          height: row.boxHeight,
-        ),
-        boxPixelWidth: row.boxPixelWidth,
-        boxPixelHeight: row.boxPixelHeight,
-        detectorScore: row.detectorScore,
-        openScore: row.openScore,
-        candidates: _decodeCandidates(row.candidatesJson),
-        locationLimited: row.locationLimited,
-        suggestable: row.suggestable,
-        decision: IdentificationDecision.values.firstWhere(
-          (d) => d.name == row.decision,
-          orElse: () => IdentificationDecision.undecided,
-        ),
-        decidedSpeciesId: row.decidedSpeciesId,
-        decidedAt: row.decidedAt == null ? null : _time(row.decidedAt!),
-        createdAt: _time(row.createdAt),
-        startMs: row.startMs,
-        endMs: row.endMs,
-        bestMs: row.bestMs,
-        path: _decodePath(row),
-        claimedSpeciesId: row.claimedSpeciesId,
-        confident: row.confident,
-        specific: row.specific,
-      );
+  static MediaIdentification _fromRow(
+    MediaIdentificationRow row, {
+    bool withPath = true,
+  }) => MediaIdentification(
+    id: row.id,
+    mediaId: row.mediaId,
+    box: IdentificationBox(
+      x: row.boxX,
+      y: row.boxY,
+      width: row.boxWidth,
+      height: row.boxHeight,
+    ),
+    boxPixelWidth: row.boxPixelWidth,
+    boxPixelHeight: row.boxPixelHeight,
+    detectorScore: row.detectorScore,
+    openScore: row.openScore,
+    candidates: _decodeCandidates(row.candidatesJson),
+    locationLimited: row.locationLimited,
+    suggestable: row.suggestable,
+    decision: IdentificationDecision.values.firstWhere(
+      (d) => d.name == row.decision,
+      orElse: () => IdentificationDecision.undecided,
+    ),
+    decidedSpeciesId: row.decidedSpeciesId,
+    decidedAt: row.decidedAt == null ? null : _time(row.decidedAt!),
+    createdAt: _time(row.createdAt),
+    startMs: row.startMs,
+    endMs: row.endMs,
+    bestMs: row.bestMs,
+    path: withPath ? _decodePath(row) : const [],
+    claimedSpeciesId: row.claimedSpeciesId,
+    confident: row.confident,
+    specific: row.specific,
+  );
 
   static MediaIdentificationsCompanion _toCompanion(MediaIdentification i) =>
       MediaIdentificationsCompanion.insert(

@@ -1535,6 +1535,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_color_sheetTitle => 'Szín választása';
 
   @override
+  String get equipment_setEdit_bundleTitle => 'Csomag';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'Geokerítések';
 
   @override
@@ -3399,6 +3402,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get buddies_action_lendGear => 'Felszerelés kölcsönadása';
+
+  @override
+  String get buddies_editCard_gear => 'Kölcsönadott felszerelés';
 
   @override
   String buddies_gear_title(String name) {
@@ -7289,6 +7295,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveCenters_section_basicInfo => 'Alapvető információk';
+
+  @override
+  String get diveCenters_editCard_map => 'Térkép';
 
   @override
   String get diveCenters_section_contact => 'Kapcsolat';
@@ -20012,6 +20021,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get marineLife_suggest_copyLink => 'Link másolása';
 
   @override
+  String get marineLife_editCard_photos => 'Fotók';
+
+  @override
   String marineLife_speciesPhotos_title(Object count) {
     return 'Fotók ($count)';
   }
@@ -26852,6 +26864,18 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_measuredAt => 'Mérve';
 
   @override
+  String get settings_conflict_field_mediaSpecies_unconfirmed =>
+      'Címke még nincs megerősítve';
+
+  @override
+  String get settings_conflict_field_mediaSpecies_createdSighting =>
+      'Az alkalmazás rögzítette az észlelést';
+
+  @override
+  String get settings_conflict_field_mediaSpecies_createdSpecies =>
+      'Az alkalmazás vette fel a fajt';
+
+  @override
   String get settings_conflict_field_medicalClearanceExpiryDate =>
       'Orvosi alkalmasság lejárata';
 
@@ -28076,6 +28100,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get documents_field_notes => 'Jegyzetek';
 
   @override
+  String get documents_editCard_details => 'Részletek';
+
+  @override
   String get documents_pages_title => 'Oldalak';
 
   @override
@@ -29208,6 +29235,33 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_speciesId_toggle =>
       'Halak felismerése fotó vagy videó megnyitásakor';
+
+  @override
+  String get settings_speciesId_autoApply =>
+      'Biztos találatok automatikus címkézése';
+
+  @override
+  String get settings_speciesId_autoApplyDescription =>
+      'Az alkalmazás fajcímkét ad hozzá, ha biztos egy találatban. Mindegyiket az Ellenőrizendő fajok között erősíted meg.';
+
+  @override
+  String get settings_speciesId_autoApplyNever =>
+      'A telepített modell egyetlen fajban sem elég biztos még ahhoz, hogy magától címkézzen. A javaslatok továbbra is megjelennek, hogy hozzáadhasd őket.';
+
+  @override
+  String get settings_speciesId_autoApplyPlaceOnly =>
+      'Csak helyadattal rendelkező fotókhoz és videókhoz.';
+
+  @override
+  String get settings_speciesId_sightingTiming =>
+      'Megfigyelések rögzítése ezekhez a címkékhez';
+
+  @override
+  String get settings_speciesId_sightingOnConfirm =>
+      'Amikor megerősítem a címkét';
+
+  @override
+  String get settings_speciesId_sightingStraightAway => 'Azonnal';
 
   @override
   String get settings_speciesId_levelTitle =>
@@ -38938,6 +38992,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String gpsLogger_trackSubtitleTrimmed(String duration) {
     return 'Levágva, $duration';
   }
+
+  @override
+  String get gpsTrack_editCard_trim => 'Vágás';
 
   @override
   String get gpsTrack_action_trim => 'Vágás...';
@@ -56034,6 +56091,219 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String media_species_unconfirmedLabel(String name) {
+    return '$name, az alkalmazás címkézte, még nincs megerősítve';
+  }
+
+  @override
+  String get media_species_confirm => 'Megerősítés';
+
+  @override
+  String get speciesReview_title => 'Ellenőrizendő fajok';
+
+  @override
+  String get speciesReview_tagged =>
+      'Az alkalmazás címkézte, még nincs megerősítve';
+
+  @override
+  String get speciesReview_suggested => 'Javasolt';
+
+  @override
+  String get speciesReview_confirm => 'Megerősítés';
+
+  @override
+  String get speciesReview_remove => 'Eltávolítás';
+
+  @override
+  String get speciesReview_confirmAll => 'Összes megerősítése';
+
+  @override
+  String get speciesReview_add => 'Hozzáadás';
+
+  @override
+  String speciesReview_dismiss(String name) {
+    return '$name elvetése';
+  }
+
+  @override
+  String speciesReview_onPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fotón',
+      one: '1 fotón',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_onVideos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count videóban',
+      one: '1 videóban',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_onPhotosAndVideos(int count) {
+    return '$count fotón és videóban';
+  }
+
+  @override
+  String speciesReview_mixed(int tagged, int suggested) {
+    return '($tagged címkézve, $suggested javasolva)';
+  }
+
+  @override
+  String get speciesReview_itemTagged => 'Az alkalmazás címkézte';
+
+  @override
+  String get speciesReview_itemSuggested => 'Javasolt';
+
+  @override
+  String get speciesReview_confirmed => 'Megerősítve';
+
+  @override
+  String get speciesReview_removed => 'Eltávolítva';
+
+  @override
+  String get speciesReview_added => 'Hozzáadva';
+
+  @override
+  String get speciesReview_dismissed => 'Elvetve';
+
+  @override
+  String get speciesReview_undo => 'Visszavonás';
+
+  @override
+  String speciesReview_diveNumber(int number) {
+    return '$number. merülés';
+  }
+
+  @override
+  String get speciesReview_sitePhotos => 'A merülőhely fotói';
+
+  @override
+  String get speciesReview_otherPhotos => 'További fotók';
+
+  @override
+  String get speciesReview_nothing => 'Nincs mit ellenőrizni';
+
+  @override
+  String get speciesReview_find => 'Fajok keresése a fotókon';
+
+  @override
+  String speciesReview_finding(int done, int total) {
+    return 'Fajok keresése: $done / $total';
+  }
+
+  @override
+  String get speciesReview_waiting => 'Egy másik merülés keresésére vár';
+
+  @override
+  String get speciesReview_pausedHot => 'Szüneteltetve: az eszköz túl meleg';
+
+  @override
+  String get speciesReview_resume => 'Folytatás';
+
+  @override
+  String get speciesReview_allChecked => 'Minden fotó ellenőrizve';
+
+  @override
+  String speciesReview_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ellenőrizendő faj',
+      one: '1 ellenőrizendő faj',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_downloadBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count fotó és videó nincs ezen az eszközön. A fajkeresés letölti őket.',
+      one: '1 fotó vagy videó nincs ezen az eszközön. A fajkeresés letölti.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesReview_downloadAndFind => 'Letöltés és keresés';
+
+  @override
+  String speciesReview_photos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fotó',
+      one: '1 fotó',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_videos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count videó',
+      one: '1 videó',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_speciesTagged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count faj',
+      one: '1 faj',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_summary(
+    String photos,
+    String videos,
+    String species,
+    int toReview,
+  ) {
+    return '$photos és $videos ellenőrizve. $species címkézve; $toReview ellenőrizendő.';
+  }
+
+  @override
+  String get speciesReview_decided => 'Eldöntve';
+
+  @override
+  String get speciesReview_saveFailed => 'A mentés nem sikerült. Próbáld újra.';
+
+  @override
+  String speciesReview_summaryUnreadable(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nem nyitható meg.',
+      one: '1 nem nyitható meg.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_species_confirmTag(String name) {
+    return '$name megerősítése';
+  }
+
+  @override
   String get media_people_me => 'Én';
 
   @override
@@ -58862,6 +59132,18 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get navTrack_detail_deleteMessage => 'Ez nem vonható vissza.';
+
+  @override
+  String get navTrack_editCard_dive => 'Merülés';
+
+  @override
+  String get navTrack_editCard_site => 'Merülőhely';
+
+  @override
+  String get navTrack_editCard_device => 'Eszköz';
+
+  @override
+  String get navTrack_editCard_correction => 'Korrekció';
 
   @override
   String get navTrack_detail_defaultTrackTitle => 'Víz alatti nyomvonal';
@@ -63073,6 +63355,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get changeLog_label_mediaRepair => 'Médiahivatkozások javítva';
+
+  @override
+  String get changeLog_label_marineLifeId => 'Tengeri élőlények felismerése';
+
+  @override
+  String get changeLog_label_speciesReview => 'Fajok ellenőrzése';
 
   @override
   String get changeLog_label_gearFileConversion =>

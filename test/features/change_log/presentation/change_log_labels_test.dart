@@ -5,6 +5,17 @@ import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/change_log/record_edit_label.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/buddies/presentation/editing/buddy_card_ids.dart';
+import 'package:submersion/features/certifications/presentation/editing/certification_card_ids.dart';
+import 'package:submersion/features/courses/presentation/editing/course_card_ids.dart';
+import 'package:submersion/features/dive_centers/presentation/editing/dive_center_card_ids.dart';
+import 'package:submersion/features/documents/presentation/editing/document_card_ids.dart';
+import 'package:submersion/features/equipment/presentation/editing/equipment_set_card_ids.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_card_ids.dart';
+import 'package:submersion/features/gps_log/presentation/editing/gps_track_card_ids.dart';
+import 'package:submersion/features/marine_life/presentation/editing/species_card_ids.dart';
+import 'package:submersion/features/nav_track/presentation/editing/nav_track_card_ids.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_operation.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_event.dart';
 import 'package:submersion/features/change_log/presentation/change_log_labels.dart';
@@ -110,6 +121,66 @@ void main() {
         changeLogStoredLabel(l, 'record_edit:dive_sites:s1:notes,zzz'),
         'Edited: $siteNotes, zzz',
       );
+    });
+
+    // Phase 3's record pages name their cards through their own card ids
+    // (issue #4527, phase 3 plan 1).
+    test('a buddy sitting names the header block and Contact', () {
+      expect(
+        changeLogStoredLabel(l, 'record_edit:buddies:b1:header,contact'),
+        l.changeLog_label_recordEdit(
+          [
+            BuddyCardId.header.localizedDisplayName(l),
+            BuddyCardId.contact.localizedDisplayName(l),
+          ].join(l.changeLog_label_recordEditSeparator),
+        ),
+      );
+    });
+
+    test('every phase 3 table names its cards', () {
+      final cases = <String, String>{
+        'record_edit:dive_centers:c1:rentalGear': DiveCenterCardId.rentalGear
+            .localizedDisplayName(l),
+        'record_edit:certifications:c1:currency': CertificationCardId.currency
+            .localizedDisplayName(l),
+        'record_edit:courses:c1:requirements': CourseCardId.requirements
+            .localizedDisplayName(l),
+        'record_edit:documents:d1:pages': DocumentCardId.pages
+            .localizedDisplayName(l),
+        'record_edit:species:s1:photos': SpeciesCardId.photos
+            .localizedDisplayName(l),
+        'record_edit:gps_tracks:g1:trim': GpsTrackCardId.trim
+            .localizedDisplayName(l),
+        'record_edit:nav_tracks:n1:correction': NavTrackCardId.correction
+            .localizedDisplayName(l),
+        'record_edit:trips:t1:checklists': TripCardId.checklists
+            .localizedDisplayName(l),
+        'record_edit:equipment:e1:serviceClocks': GearItemCardId.serviceClocks
+            .localizedDisplayName(l),
+        'record_edit:equipment:e1:passportFills': GearItemCardId.passportFills
+            .localizedDisplayName(l),
+        'record_edit:equipment_sets:s1:members': EquipmentSetCardId.members
+            .localizedDisplayName(l),
+      };
+      for (final MapEntry(key: label, value: card) in cases.entries) {
+        expect(
+          changeLogStoredLabel(l, label),
+          l.changeLog_label_recordEdit(card),
+          reason: label,
+        );
+      }
+    });
+
+    test('a phase 3 card id with no title is shown as written', () {
+      final notes = TripCardId.notes.localizedDisplayName(l);
+      expect(
+        changeLogStoredLabel(l, 'record_edit:trips:t1:notes,zzz'),
+        'Edited: $notes, zzz',
+      );
+    });
+
+    test('a GPS track is named as one', () {
+      expect(changeLogTableLabel(l, 'gps_tracks'), 'GPS Track');
     });
 
     // A photo's sitting reads apart from the dive's own cards, as its entry

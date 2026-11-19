@@ -2182,25 +2182,53 @@ class SyncDataSerializer {
   /// whichever database is open.
   final Map<String, Map<String, String>> _clearableChildColumns = {};
 
+  /// Clock-guarded types whose explicit nulls land the way a parent-gated
+  /// child's do (#2644): applied with the same blind upsert, which drops
+  /// nulls, so a deliberate clear needs [clearChildColumns] too. A species
+  /// tag the app applied is confirmed by clearing its marks to null (issue
+  /// #4727); without this the confirm would never reach a peer.
+  static const Map<String, String> clockGuardedClearTables = {
+    'mediaSpecies': 'media_species',
+  };
+
+  /// The only JSON keys a clock-guarded type's copy may clear: the marks a
+  /// confirm clears. Its other nullable columns (a tag's notes, box and
+  /// sighting) keep the blind upsert's rule, so a newer copy that simply
+  /// lacks them never erases what this device holds.
+  static const Map<String, Set<String>> clockGuardedClearKeys = {
+    'mediaSpecies': {'unconfirmed', 'createdSighting', 'createdSpecies'},
+  };
+
+  /// The SQL table [clearChildColumns] writes for [entityType], or null for
+  /// a type whose clears it does not handle.
+  static String? clearTableFor(String entityType) =>
+      parentGatedTables[entityType] ?? clockGuardedClearTables[entityType];
+
   TableInfo<Table, Object?> _parentGatedTable(String entityType) {
-    final tableName = parentGatedTables[entityType]!;
+    final tableName = clearTableFor(entityType)!;
     return _db.allTables.firstWhere((t) => t.actualTableName == tableName);
   }
 
   Map<String, String> _clearableFor(String entityType) =>
-      _clearableChildColumns.putIfAbsent(
-        entityType,
-        () => clearableColumns(
+      _clearableChildColumns.putIfAbsent(entityType, () {
+        final all = clearableColumns(
           _parentGatedTable(entityType),
           keyColumns: _parentGatedKeyColumns[entityType] ?? const ['id'],
-        ),
-      );
+        );
+        final allowed = clockGuardedClearKeys[entityType];
+        return allowed == null
+            ? all
+            : {
+                for (final e in all.entries)
+                  if (allowed.contains(e.key)) e.key: e.value,
+              };
+      });
 
   /// The JSON keys a clear on [entityType] may name (see clearableColumns):
   /// empty for a type outside [parentGatedChildEntities] or one with nothing
   /// clearable, so a caller can skip collecting clears for it (#2644).
   Iterable<String> clearableChildKeys(String entityType) =>
-      parentGatedTables.containsKey(entityType)
+      clearTableFor(entityType) != null
       ? _clearableFor(entityType).keys
       : const [];
 
@@ -2226,7 +2254,7 @@ class SyncDataSerializer {
     String entityType,
     Map<String, Set<String>> clears,
   ) async {
-    final tableName = parentGatedTables[entityType];
+    final tableName = clearTableFor(entityType);
     if (tableName == null || clears.isEmpty) return;
     final table = _parentGatedTable(entityType);
     final keys = _parentGatedKeyColumns[entityType] ?? const ['id'];

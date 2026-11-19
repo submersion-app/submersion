@@ -78,6 +78,12 @@ class VideoIdentificationLayer extends ConsumerWidget {
             now: DateTime.now().toUtc(),
           )
         : tracks;
+    // The app's tags the diver has not confirmed keep the app's outlined
+    // pill (issue #4727).
+    final unconfirmed = {
+      for (final chip in speciesChipsShown(ref, item.id, sitting))
+        if (chip.unconfirmed) chip.speciesId,
+    };
     final byId = {for (final t in shown) t.id: t};
     final species = {
       for (final s in ref.watch(allSpeciesProvider).value ?? const <Species>[])
@@ -91,6 +97,7 @@ class VideoIdentificationLayer extends ConsumerWidget {
           shown,
           value.position.inMilliseconds,
           playing: value.isPlaying,
+          unconfirmedSpeciesIds: unconfirmed,
         );
         if (labels.isEmpty) return const SizedBox.shrink();
         // A name picked here is held in the video's sitting until Save

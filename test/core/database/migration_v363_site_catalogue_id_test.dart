@@ -30,7 +30,9 @@ void main() {
   test('v363 is in the ladder and keeps the floor', () {
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(363));
     expect(AppDatabase.migrationVersions, contains(363));
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(363));
+    // A later rung (v378, the marks on app-applied species tags) raised the
+    // floor; v363 itself did not set it.
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(363));
   });
 
   test(

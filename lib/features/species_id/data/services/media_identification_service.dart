@@ -29,6 +29,8 @@ import 'package:submersion/features/species_id/domain/services/video_scan_order.
 import 'package:submersion/features/species_id/domain/services/video_tracker.dart';
 import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 
+part 'media_identification_readiness.dart';
+part 'media_identification_run_lane.dart';
 part 'media_identification_video.dart';
 
 /// The image to analyse: a readable file, or its bytes.
@@ -58,12 +60,14 @@ class MediaIdentificationService {
     Future<VideoFileReader?> Function(MediaItem item)? resolveVideo,
     required Future<List<TaggedSpecies>> Function(String mediaId) taggedSpecies,
     required bool Function() enabled,
+    bool Function()? runEnabled,
     int Function()? databaseGeneration,
     DateTime Function()? now,
     String Function()? newId,
     Duration idleUnload = const Duration(seconds: 60),
     MemoryReadout? memoryReadout,
     int firstVideoChunkMs = 2000,
+    Future<void> Function(MediaItem item, int generation)? onItemSettled,
     Future<LevelInForce?> Function()? namingLevel,
   }) : _engine = engine,
        _loadPack = loadPack,
@@ -74,6 +78,7 @@ class MediaIdentificationService {
        _resolveVideo = resolveVideo ?? ((_) async => null),
        _taggedSpecies = taggedSpecies,
        _enabled = enabled,
+       _runEnabled = runEnabled ?? enabled,
        _databaseGeneration =
            databaseGeneration ?? (() => DatabaseService.instance.generation),
        _now = now ?? DateTime.now,
@@ -81,6 +86,7 @@ class MediaIdentificationService {
        _idleUnload = idleUnload,
        _memoryReadout = memoryReadout,
        _firstVideoChunkMs = firstVideoChunkMs,
+       _onItemSettled = onItemSettled ?? ((_, _) async {}),
        _namingLevel = namingLevel ?? (() async => null);
 
   final VisionEngine _engine;
@@ -95,6 +101,10 @@ class MediaIdentificationService {
   final Future<List<TaggedSpecies>> Function(String) _taggedSpecies;
   final bool Function() _enabled;
 
+  /// Whether a Find species run is served (issue #4727): the feature, not
+  /// the identify-on-open toggle, since the diver asked for the run.
+  final bool Function() _runEnabled;
+
   /// Moves when another logbook is opened: what an analysis found for the
   /// one it started in is then dropped, not stored in the new one.
   final int Function() _databaseGeneration;
@@ -106,6 +116,13 @@ class MediaIdentificationService {
   /// nothing (the iPhone memory test, docs/developer/species-identification.md).
   final MemoryReadout? _memoryReadout;
 
+  /// Called once an item is settled and its decisions reconciled: analysed,
+  /// renamed, found to need nothing, or looked at with no model installed.
+  /// Auto-apply hangs here (issue #4727), told the logbook the item was
+  /// looked at in so it writes nothing once another is open. Its failure
+  /// never fails the item.
+  final Future<void> Function(MediaItem item, int generation) _onItemSettled;
+
   /// The naming level the diver chose, as the installed pack names at it,
   /// or null for the pack's own bars (issue #4721).
   final Future<LevelInForce?> Function() _namingLevel;
@@ -114,6 +131,10 @@ class MediaIdentificationService {
   /// Insertion-ordered (a map literal is a LinkedHashMap): the newest
   /// request is last.
   var _waiting = <String, _Job>{};
+
+  /// A Find species run's requests (issue #4727), oldest first: served only
+  /// when no viewer request waits, and never dropped by the viewer.
+  var _runWaiting = <String, _Job>{};
   _Job? _running;
 
   /// Completes when the running job's work is over, whether or not its
@@ -162,8 +183,11 @@ class MediaIdentificationService {
     final queued = _waiting.remove(item.id);
     // A later location replaces a queued one; the callers' future stays.
     final job = queued == null
-        ? _Job(item, location)
-        : queued.withLocation(location ?? queued.location);
+        ? _Job(item, location, _databaseGeneration())
+        : queued.withLocation(
+            location ?? queued.location,
+            _databaseGeneration(),
+          );
     // Re-inserting moves it to the newest end.
     _waiting[item.id] = job;
     _changed();
@@ -185,7 +209,11 @@ class MediaIdentificationService {
       return true;
     }
     final running = _running;
+    // A run's scan is the run's to stop (cancelRun), not the viewer's: a
+    // diver swiping past a video the run is scanning must not cut it short
+    // (issue #4727).
     if (running != null &&
+        !running.fromRun &&
         running.item.id == mediaId &&
         running.item.mediaType == MediaType.video &&
         !running.cancelled) {
@@ -230,7 +258,9 @@ class MediaIdentificationService {
   PlayheadReport? playheadOf(String mediaId) => _playheads[mediaId];
 
   bool isBusy(String mediaId) =>
-      _running?.item.id == mediaId || _waiting.containsKey(mediaId);
+      _running?.item.id == mediaId ||
+      _waiting.containsKey(mediaId) ||
+      _runWaiting.containsKey(mediaId);
 
   /// How far the scan of the video [mediaId] has got, 0 to 1, while it is
   /// being scanned; null otherwise.
@@ -315,6 +345,7 @@ class MediaIdentificationService {
     final ids = mediaIds.toSet();
     for (final id in ids) {
       cancelPending(id);
+      cancelRun(id);
     }
     while (_running != null && ids.contains(_running!.item.id)) {
       await _runningEnded;
@@ -324,7 +355,8 @@ class MediaIdentificationService {
   /// Before every identification is cleared: drops every queued request
   /// and waits for the one running, stopping a video's scan after its
   /// chunk, so nothing is written back after the clear.
-  Future<void> settleAll() => settle({..._waiting.keys, ?_running?.item.id});
+  Future<void> settleAll() =>
+      settle({..._waiting.keys, ..._runWaiting.keys, ?_running?.item.id});
 
   /// Runs [change] (installing, updating or removing the pack) with no
   /// analysis under way: waits for the one running, holds queued requests,
@@ -353,21 +385,29 @@ class MediaIdentificationService {
   Future<void> dispose() async {
     _disposed = true;
     _idleTimer?.cancel();
-    for (final job in _waiting.values) {
+    for (final job in [..._waiting.values, ..._runWaiting.values]) {
+      job.outcome = RunItemOutcome.skipped;
       job.done.complete();
     }
     _waiting.clear();
+    _runWaiting.clear();
     await _runningEnded;
     await _unloadModels();
     await _activity.close();
   }
 
   void _pump() {
-    if (_running != null || _waiting.isEmpty || _disposed || _paused > 0) {
+    if (_running != null ||
+        (_waiting.isEmpty && _runWaiting.isEmpty) ||
+        _disposed ||
+        _paused > 0) {
       return;
     }
-    final id = _waiting.keys.last;
-    final job = _waiting.remove(id)!;
+    // The viewer's newest request first; a run's oldest only when none
+    // waits (issue #4727).
+    final job = _waiting.isNotEmpty
+        ? _waiting.remove(_waiting.keys.last)!
+        : _runWaiting.remove(_runWaiting.keys.first)!;
     _running = job;
     _changed();
     final ended = _process(job).then((putBack) {
@@ -375,7 +415,9 @@ class MediaIdentificationService {
       _videoProgress = null;
       // A video stopped for a newer request or a pack change goes to the
       // oldest end, to carry on once the rest is done.
-      if (putBack && !_disposed && !_waiting.containsKey(job.item.id)) {
+      if (putBack && !_disposed && job.fromRun) {
+        _runWaiting = {job.item.id: job, ..._runWaiting};
+      } else if (putBack && !_disposed && !_waiting.containsKey(job.item.id)) {
         _waiting = {job.item.id: job, ..._waiting};
       } else {
         job.done.complete();
@@ -395,29 +437,36 @@ class MediaIdentificationService {
   /// between chunks for other work.
   Future<bool> _process(_Job job) async {
     final item = job.item;
-    final generation = _databaseGeneration();
+    final generation = job.generation;
+    // Asked for in a logbook since closed: the item is not this one's.
+    if (_databaseGeneration() != generation) {
+      job.outcome = RunItemOutcome.skipped;
+      return false;
+    }
     try {
       final video = item.mediaType == MediaType.video;
-      if (!_enabled() || (!video && item.mediaType != MediaType.photo)) {
+      if (!video && item.mediaType != MediaType.photo) {
+        job.outcome = RunItemOutcome.skipped;
+        return false;
+      }
+      if (!(job.fromRun ? _runEnabled() : _enabled())) {
+        job.outcome = RunItemOutcome.skipped;
         return false;
       }
       if (await _engine.availability() != VisionAvailability.available) {
+        job.outcome = RunItemOutcome.failed;
         return false;
       }
       final pack = _pack ??= await _loadPack();
-      if (pack == null) return false;
+      if (pack == null) {
+        // Stored names still count with no model installed (issue #4727).
+        if (_databaseGeneration() != generation) return false;
+        await reconcile(item.id);
+        await _settled(job);
+        return false;
+      }
       final manifest = pack.pack.manifest;
-      final location = job.location;
-      // A position that is not a number (a bad EXIF read) is no position:
-      // the photo is named without a region rather than not at all.
-      final cell =
-          location == null ||
-              !location.latitude.isFinite ||
-              !location.longitude.isFinite
-          ? null
-          : RegionGrid(
-              cellDegrees: manifest.region.cellDegrees,
-            ).cellOf(location.latitude, location.longitude);
+      final cell = _regionCell(manifest, job.location);
 
       final run = await _identifications.runFor(item.id);
       final stored = await _identifications.forMedia(item.id);
@@ -431,14 +480,7 @@ class MediaIdentificationService {
         for (final i in named)
           if (i.decision == IdentificationDecision.undecided) i,
       ];
-      // A suggestion's crop must be here. A decided identification's crop
-      // is restored by analysing once on this device (after a restore onto
-      // a new one); if that analysis could not bring it back, it stays
-      // without one rather than the photo being analysed at every opening.
-      final cropsPresent =
-          await _crops.allPresent(item.id, [for (final i in undecided) i.id]) &&
-          (undecided.length == named.length ||
-              await _crops.wasAnalysedHere(item.id));
+      final cropsPresent = await _cropsPresent(_crops, item.id, named);
       // A video's tracks are named again only when their pack or place
       // changed: its embeddings are not read otherwise.
       final namesCurrent =
@@ -471,7 +513,7 @@ class MediaIdentificationService {
         switch (decideRefresh(
           run: run,
           packVersion: manifest.packVersion,
-          detectorId: manifest.detectorSetId,
+          detectorId: _runDetectorId(manifest, video: false),
           classifierId: manifest.classifier.embeddingId,
           cell: cell,
           cropsPresent: cropsPresent,
@@ -489,15 +531,29 @@ class MediaIdentificationService {
               generation,
             );
           case RefreshAction.analyse:
-            await _analyse(pack, item, stored, cell, generation);
+            await _analyse(pack, job, stored, cell, generation);
         }
       }
       if (_databaseGeneration() != generation) return false;
       await reconcile(item.id);
+      await _settled(job);
       return putBack;
     } on Object catch (e) {
       _log.debug('Could not identify marine life in ${item.id}', error: e);
+      job.outcome = runOutcomeOf(e);
       return false;
+    }
+  }
+
+  /// [_onItemSettled] for [job]'s item, its failure logged and swallowed.
+  /// A run's items are left to the run, which applies them together.
+  Future<void> _settled(_Job job) async {
+    if (job.fromRun) return;
+    final item = job.item;
+    try {
+      await _onItemSettled(item, job.generation);
+    } on Object catch (e) {
+      _log.debug('Could not auto-apply species on ${item.id}', error: e);
     }
   }
 
@@ -530,13 +586,17 @@ class MediaIdentificationService {
 
   Future<void> _analyse(
     LoadedPack pack,
-    MediaItem item,
+    _Job job,
     List<MediaIdentification> stored,
     int? cell,
     int generation,
   ) async {
-    final image = await _resolveImage(item);
-    if (image == null) return;
+    final item = job.item;
+    final image = await (job.resolveImage ?? _resolveImage)(item);
+    if (image == null) {
+      job.outcome = RunItemOutcome.unreadable;
+      return;
+    }
     final VisionAnalysis analysis;
     try {
       analysis = await _analyseImage(pack, image);
@@ -729,18 +789,4 @@ Future<List<MediaIdentification>> identificationsAtLevel(
   }
   final (run, rows) = await repository.forMediaWithRun(mediaId);
   return applyNamingLevel(rows, level: level, namedWithPack: run?.packVersion);
-}
-
-class _Job {
-  _Job(this.item, this.location, [Completer<void>? done])
-    : done = done ?? Completer<void>();
-
-  final MediaItem item;
-  final GeoPoint? location;
-  final Completer<void> done;
-
-  /// A video the diver left: its scan stops after the chunk in progress.
-  var cancelled = false;
-
-  _Job withLocation(GeoPoint? location) => _Job(item, location, done);
 }

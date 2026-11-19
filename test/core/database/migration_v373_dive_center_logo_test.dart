@@ -45,7 +45,9 @@ void main() {
   });
 
   test('the new column kept the floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(373));
+    // A later rung (v378, the marks on app-applied species tags) raised the
+    // floor; v373 itself did not set it.
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(373));
   });
 
   test('upgrading from v372 adds a null logo and keeps the row', () async {

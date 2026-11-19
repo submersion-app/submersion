@@ -1580,6 +1580,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_color_sheetTitle => 'اختر لونًا';
 
   @override
+  String get equipment_setEdit_bundleTitle => 'الحزمة';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'الأسوار الجغرافية';
 
   @override
@@ -3494,6 +3497,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get buddies_action_lendGear => 'إعارة معدات';
+
+  @override
+  String get buddies_editCard_gear => 'المعدات المُعارة';
 
   @override
   String buddies_gear_title(String name) {
@@ -7419,6 +7425,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveCenters_section_basicInfo => 'المعلومات الأساسية';
+
+  @override
+  String get diveCenters_editCard_map => 'الخريطة';
 
   @override
   String get diveCenters_section_contact => 'الاتصال';
@@ -20320,6 +20329,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get marineLife_suggest_copyLink => 'نسخ الرابط';
 
   @override
+  String get marineLife_editCard_photos => 'الصور';
+
+  @override
   String marineLife_speciesPhotos_title(Object count) {
     return 'الصور ($count)';
   }
@@ -27273,6 +27285,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_measuredAt => 'تم القياس';
 
   @override
+  String get settings_conflict_field_mediaSpecies_unconfirmed =>
+      'وسم لم يُؤكَّد بعد';
+
+  @override
+  String get settings_conflict_field_mediaSpecies_createdSighting =>
+      'مشاهدة سجّلها التطبيق';
+
+  @override
+  String get settings_conflict_field_mediaSpecies_createdSpecies =>
+      'نوع أضافه التطبيق';
+
+  @override
   String get settings_conflict_field_medicalClearanceExpiryDate =>
       'انتهاء الشهادة الطبية';
 
@@ -28488,6 +28512,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get documents_field_notes => 'ملاحظات';
 
   @override
+  String get documents_editCard_details => 'التفاصيل';
+
+  @override
   String get documents_pages_title => 'الصفحات';
 
   @override
@@ -29629,6 +29656,30 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_speciesId_toggle =>
       'التعرّف على الأسماك عند فتح صورة أو مقطع فيديو';
+
+  @override
+  String get settings_speciesId_autoApply => 'وسم المطابقات المؤكدة تلقائيًا';
+
+  @override
+  String get settings_speciesId_autoApplyDescription =>
+      'يضيف التطبيق وسم نوع عندما يكون متأكدًا من المطابقة. تؤكد كل وسم في الأنواع المطلوب مراجعتها.';
+
+  @override
+  String get settings_speciesId_autoApplyNever =>
+      'النموذج المثبت ليس متأكدًا بما يكفي بعد من أي نوع ليسمه بنفسه. تستمر الاقتراحات في الظهور لتضيفها.';
+
+  @override
+  String get settings_speciesId_autoApplyPlaceOnly =>
+      'للصور ومقاطع الفيديو ذات الموقع فقط.';
+
+  @override
+  String get settings_speciesId_sightingTiming => 'تسجيل المشاهدات لهذه الوسوم';
+
+  @override
+  String get settings_speciesId_sightingOnConfirm => 'عندما أؤكد الوسم';
+
+  @override
+  String get settings_speciesId_sightingStraightAway => 'فورًا';
 
   @override
   String get settings_speciesId_levelTitle =>
@@ -39658,6 +39709,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String gpsLogger_trackSubtitleTrimmed(String duration) {
     return 'مقتطع، $duration';
   }
+
+  @override
+  String get gpsTrack_editCard_trim => 'اقتصاص';
 
   @override
   String get gpsTrack_action_trim => 'اقتصاص...';
@@ -57129,6 +57183,245 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String media_species_unconfirmedLabel(String name) {
+    return '$name، وسمه التطبيق، لم يُؤكَّد بعد';
+  }
+
+  @override
+  String get media_species_confirm => 'تأكيد';
+
+  @override
+  String get speciesReview_title => 'الأنواع المطلوب مراجعتها';
+
+  @override
+  String get speciesReview_tagged => 'وسمها التطبيق، لم تُؤكَّد بعد';
+
+  @override
+  String get speciesReview_suggested => 'مقترحة';
+
+  @override
+  String get speciesReview_confirm => 'تأكيد';
+
+  @override
+  String get speciesReview_remove => 'إزالة';
+
+  @override
+  String get speciesReview_confirmAll => 'تأكيد الكل';
+
+  @override
+  String get speciesReview_add => 'إضافة';
+
+  @override
+  String speciesReview_dismiss(String name) {
+    return 'تجاهل $name';
+  }
+
+  @override
+  String speciesReview_onPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'في $count صورة',
+      many: 'في $count صورة',
+      few: 'في $count صور',
+      two: 'في صورتين',
+      one: 'في صورة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_onVideos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'في $count مقطع فيديو',
+      many: 'في $count مقطع فيديو',
+      few: 'في $count مقاطع فيديو',
+      two: 'في مقطعي فيديو',
+      one: 'في مقطع فيديو واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_onPhotosAndVideos(int count) {
+    return 'في $count من الصور ومقاطع الفيديو';
+  }
+
+  @override
+  String speciesReview_mixed(int tagged, int suggested) {
+    return '($tagged موسومة، $suggested مقترحة)';
+  }
+
+  @override
+  String get speciesReview_itemTagged => 'وسمه التطبيق';
+
+  @override
+  String get speciesReview_itemSuggested => 'مقترح';
+
+  @override
+  String get speciesReview_confirmed => 'تم التأكيد';
+
+  @override
+  String get speciesReview_removed => 'تمت الإزالة';
+
+  @override
+  String get speciesReview_added => 'تمت الإضافة';
+
+  @override
+  String get speciesReview_dismissed => 'تم التجاهل';
+
+  @override
+  String get speciesReview_undo => 'تراجع';
+
+  @override
+  String speciesReview_diveNumber(int number) {
+    return 'الغوصة $number';
+  }
+
+  @override
+  String get speciesReview_sitePhotos => 'صور موقع الغوص';
+
+  @override
+  String get speciesReview_otherPhotos => 'صور أخرى';
+
+  @override
+  String get speciesReview_nothing => 'لا شيء للمراجعة';
+
+  @override
+  String get speciesReview_find => 'البحث عن الأنواع في الصور';
+
+  @override
+  String speciesReview_finding(int done, int total) {
+    return 'جارٍ البحث عن الأنواع: $done من $total';
+  }
+
+  @override
+  String get speciesReview_waiting => 'في انتظار بحث غوصة أخرى';
+
+  @override
+  String get speciesReview_pausedHot => 'متوقف مؤقتًا: الجهاز ساخن جدًا';
+
+  @override
+  String get speciesReview_resume => 'استئناف';
+
+  @override
+  String get speciesReview_allChecked => 'تم فحص جميع الصور';
+
+  @override
+  String speciesReview_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count نوع للمراجعة',
+      many: '$count نوعًا للمراجعة',
+      few: '$count أنواع للمراجعة',
+      two: 'نوعان للمراجعة',
+      one: 'نوع واحد للمراجعة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_downloadBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count من الصور ومقاطع الفيديو غير موجودة على هذا الجهاز. ستُنزَّل للبحث عن الأنواع.',
+      many:
+          '$count من الصور ومقاطع الفيديو غير موجودة على هذا الجهاز. ستُنزَّل للبحث عن الأنواع.',
+      few:
+          '$count من الصور ومقاطع الفيديو غير موجودة على هذا الجهاز. ستُنزَّل للبحث عن الأنواع.',
+      two: 'عنصران غير موجودين على هذا الجهاز. سيُنزَّلان للبحث عن الأنواع.',
+      one:
+          'صورة أو مقطع فيديو واحد غير موجود على هذا الجهاز. سيُنزَّل للبحث عن الأنواع.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesReview_downloadAndFind => 'تنزيل وبحث';
+
+  @override
+  String speciesReview_photos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صورة',
+      many: '$count صورة',
+      few: '$count صور',
+      two: 'صورتان',
+      one: 'صورة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_videos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مقطع فيديو',
+      many: '$count مقطع فيديو',
+      few: '$count مقاطع فيديو',
+      two: 'مقطعا فيديو',
+      one: 'مقطع فيديو واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_speciesTagged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count نوع',
+      many: '$count نوعًا',
+      few: '$count أنواع',
+      two: 'نوعان',
+      one: 'نوع واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_summary(
+    String photos,
+    String videos,
+    String species,
+    int toReview,
+  ) {
+    return 'تم فحص $photos و$videos. وُسم $species؛ $toReview للمراجعة.';
+  }
+
+  @override
+  String get speciesReview_decided => 'تم القرار';
+
+  @override
+  String get speciesReview_saveFailed => 'تعذر الحفظ. حاول مرة أخرى.';
+
+  @override
+  String speciesReview_summaryUnreadable(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تعذر فتح $count عنصر.',
+      many: 'تعذر فتح $count عنصرًا.',
+      few: 'تعذر فتح $count عناصر.',
+      two: 'تعذر فتح عنصرين.',
+      one: 'تعذر فتح عنصر واحد.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_species_confirmTag(String name) {
+    return 'تأكيد $name';
+  }
+
+  @override
   String get media_people_me => 'أنا';
 
   @override
@@ -59968,6 +60261,18 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get navTrack_detail_deleteMessage => 'لا يمكن التراجع عن هذا.';
+
+  @override
+  String get navTrack_editCard_dive => 'الغوصة';
+
+  @override
+  String get navTrack_editCard_site => 'الموقع';
+
+  @override
+  String get navTrack_editCard_device => 'الجهاز';
+
+  @override
+  String get navTrack_editCard_correction => 'التصحيح';
 
   @override
   String get navTrack_detail_defaultTrackTitle => 'مسار تحت الماء';
@@ -64318,6 +64623,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get changeLog_label_mediaRepair => 'تم إصلاح روابط الوسائط';
+
+  @override
+  String get changeLog_label_marineLifeId => 'التعرّف على الحياة البحرية';
+
+  @override
+  String get changeLog_label_speciesReview => 'مراجعة الأنواع';
 
   @override
   String get changeLog_label_gearFileConversion =>

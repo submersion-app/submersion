@@ -599,7 +599,14 @@ class _SettlePass {
       );
     }
     final spec = _specs[root.table];
-    for (final column in const ['name', 'title', 'label', 'display_name']) {
+    // A species has a common name, not a name.
+    for (final column in const [
+      'name',
+      'title',
+      'label',
+      'display_name',
+      'common_name',
+    ]) {
       if (spec != null && spec.columns.contains(column)) {
         final value = await _columnOf(root.table, root.id, column);
         return (label: value is String ? value : null, ordinal: null);

@@ -3,6 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_plain_fields.dart';
+import 'package:submersion/features/buddies/presentation/editing/buddy_card_ids.dart';
+import 'package:submersion/features/certifications/presentation/editing/certification_card_ids.dart';
+import 'package:submersion/features/courses/presentation/editing/course_card_ids.dart';
+import 'package:submersion/features/dive_centers/presentation/editing/dive_center_card_ids.dart';
+import 'package:submersion/features/documents/presentation/editing/document_card_ids.dart';
+import 'package:submersion/features/equipment/presentation/editing/equipment_set_card_ids.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_card_ids.dart';
+import 'package:submersion/features/gps_log/presentation/editing/gps_track_card_ids.dart';
+import 'package:submersion/features/marine_life/presentation/editing/species_card_ids.dart';
+import 'package:submersion/features/nav_track/presentation/editing/nav_track_card_ids.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/change_log/record_edit_label.dart';
 import 'package:submersion/core/services/sync/conflict_reference.dart';
@@ -58,6 +69,8 @@ String changeLogStoredLabel(AppLocalizations l, String label) =>
       ChangeLogLabels.splitDive => l.changeLog_label_splitDive,
       ChangeLogLabels.gearTransfer => l.changeLog_label_gearTransfer,
       ChangeLogLabels.mediaRepair => l.changeLog_label_mediaRepair,
+      ChangeLogLabels.marineLifeId => l.changeLog_label_marineLifeId,
+      ChangeLogLabels.speciesReview => l.changeLog_label_speciesReview,
       ChangeLogLabels.gearFileConversion =>
         l.changeLog_label_gearFileConversion,
       ChangeLogLabels.galleryBackfill => l.changeLog_label_galleryBackfill,
@@ -79,19 +92,48 @@ final _diveSectionsByName = DiveDetailSectionId.values.asNameMap();
 /// The site page's cards by id, as [_diveSectionsByName] is for a dive's.
 final _siteSectionsByName = SiteDetailSectionId.values.asNameMap();
 
+/// Phase 3's record pages' cards by id, each as [_diveSectionsByName] is for
+/// a dive's (issue #4527, phase 3).
+final _buddyCardsByName = BuddyCardId.values.asNameMap();
+final _diveCenterCardsByName = DiveCenterCardId.values.asNameMap();
+final _certificationCardsByName = CertificationCardId.values.asNameMap();
+final _courseCardsByName = CourseCardId.values.asNameMap();
+final _documentCardsByName = DocumentCardId.values.asNameMap();
+final _speciesCardsByName = SpeciesCardId.values.asNameMap();
+final _gpsTrackCardsByName = GpsTrackCardId.values.asNameMap();
+final _navTrackCardsByName = NavTrackCardId.values.asNameMap();
+final _tripCardsByName = TripCardId.values.asNameMap();
+final _gearItemCardsByName = GearItemCardId.values.asNameMap();
+final _equipmentSetCardsByName = EquipmentSetCardId.values.asNameMap();
+
 /// The title of the card [id] of a sitting on a record of [table], or [id]
 /// as written when this version of the app has no title for it.
-String _recordCardName(AppLocalizations l, String table, String id) =>
-    switch (table) {
-      // The dive page's header block is a card but not a section.
-      'dives' when id == diveHeaderCardId => l.diveLog_detail_section_header,
-      'dives' => _diveSectionsByName[id]?.localizedDisplayName(l) ?? id,
-      // The site page's header block is a card but not a section too.
-      'dive_sites' when id == siteHeaderCardId =>
-        l.diveSites_detail_section_header,
-      'dive_sites' => _siteSectionsByName[id]?.localizedDisplayName(l) ?? id,
-      _ => id,
-    };
+String _recordCardName(
+  AppLocalizations l,
+  String table,
+  String id,
+) => switch (table) {
+  // The dive page's header block is a card but not a section.
+  'dives' when id == diveHeaderCardId => l.diveLog_detail_section_header,
+  'dives' => _diveSectionsByName[id]?.localizedDisplayName(l) ?? id,
+  // The site page's header block is a card but not a section too.
+  'dive_sites' when id == siteHeaderCardId => l.diveSites_detail_section_header,
+  'dive_sites' => _siteSectionsByName[id]?.localizedDisplayName(l) ?? id,
+  'buddies' => _buddyCardsByName[id]?.localizedDisplayName(l) ?? id,
+  'dive_centers' => _diveCenterCardsByName[id]?.localizedDisplayName(l) ?? id,
+  'certifications' =>
+    _certificationCardsByName[id]?.localizedDisplayName(l) ?? id,
+  'courses' => _courseCardsByName[id]?.localizedDisplayName(l) ?? id,
+  'documents' => _documentCardsByName[id]?.localizedDisplayName(l) ?? id,
+  'species' => _speciesCardsByName[id]?.localizedDisplayName(l) ?? id,
+  'gps_tracks' => _gpsTrackCardsByName[id]?.localizedDisplayName(l) ?? id,
+  'nav_tracks' => _navTrackCardsByName[id]?.localizedDisplayName(l) ?? id,
+  'trips' => _tripCardsByName[id]?.localizedDisplayName(l) ?? id,
+  'equipment' => _gearItemCardsByName[id]?.localizedDisplayName(l) ?? id,
+  'equipment_sets' =>
+    _equipmentSetCardsByName[id]?.localizedDisplayName(l) ?? id,
+  _ => id,
+};
 
 /// "Edited: Notes, Tags" for the label of an editing sitting, naming each
 /// card by its title, or "Edited" when it named none; null for any other
@@ -147,6 +189,8 @@ String changeLogTableLabel(AppLocalizations l, String table) => switch (table) {
   'dive_safety_findings' => l.changeLog_table_safetyFinding,
   'tank_pressure_series' => l.changeLog_table_pressureSeries,
   'nav_tracks' => l.changeLog_table_navTrack,
+  // Named as the GPS track page names itself; a track rarely has a name.
+  'gps_tracks' => l.gpsTrack_detail_title,
   // A dive's link to one of its types, named as the type it links.
   'dive_dive_types' => l.settings_conflict_ref_diveType,
   _ => conflictReferenceLabel(
