@@ -24,13 +24,15 @@ class AutoApplier {
     required SightingTiming Function() timing,
     required Future<void> Function(String mediaId) reconcile,
     required int Function() databaseGeneration,
+    required bool Function() packAllows,
   }) : _identifications = identifications,
        _acceptor = acceptor,
        _tagging = tagging,
        _enabled = enabled,
        _timing = timing,
        _reconcile = reconcile,
-       _generation = databaseGeneration;
+       _generation = databaseGeneration,
+       _packAllows = packAllows;
 
   final MediaIdentificationRepository _identifications;
   final SuggestionAcceptor _acceptor;
@@ -48,9 +50,14 @@ class AutoApplier {
   /// Moves when another logbook is opened. Each apply names the logbook its
   /// identifications were read in, and writes nothing once another is open.
   final int Function() _generation;
+
+  /// Whether the installed pack can call a match confident at all
+  /// (`packCanApply`), as the setting shows; true with none installed,
+  /// when the names already stored still count (issue #4727).
+  final bool Function() _packAllows;
   final _log = LoggerService.forClass(AutoApplier);
 
-  bool get isOn => marineLifeIdEnabled && _enabled();
+  bool get isOn => marineLifeIdEnabled && _enabled() && _packAllows();
 
   /// Applies on [mediaId] as one automatic History entry of its own, as applying
   /// from the viewer is. Returns how many species it tagged. The entry

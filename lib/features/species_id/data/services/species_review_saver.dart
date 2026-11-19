@@ -91,10 +91,10 @@ class SpeciesReviewSaver {
       // A tag the diver confirmed meanwhile is theirs already.
       return;
     }
-    // The app's tag goes; so does one the diver held as Remove that was
-    // confirmed elsewhere since. A tag the diver made is not a suggestion's
-    // to take.
-    if (appTag || (current != null && item.isTagged)) {
+    // Only the app's tag goes: one confirmed elsewhere since is the
+    // diver's now, whatever was held here, and a suggestion's Dismiss never
+    // takes a tag.
+    if (appTag) {
       await _tagging.rejectTag(mediaId: mediaId, speciesId: speciesId!);
     }
     if (suggestion != null) {

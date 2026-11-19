@@ -23,6 +23,7 @@ import 'package:submersion/features/species_id/data/pack/species_pack_store.dart
 import 'package:submersion/features/species_id/data/repositories/identification_embedding_repository.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
 import 'package:submersion/features/species_id/data/services/auto_applier.dart';
+import 'package:submersion/features/species_id/domain/services/auto_apply_rules.dart';
 import 'package:submersion/features/species_id/data/services/identification_cleanup.dart';
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
 import 'package:submersion/features/species_id/data/services/media_identification_service.dart';
@@ -416,6 +417,12 @@ final Provider<AutoApplier> autoApplierProvider = Provider<AutoApplier>(
     reconcile: (mediaId) =>
         ref.read(mediaIdentificationServiceProvider).reconcile(mediaId),
     databaseGeneration: () => DatabaseService.instance.generation,
+    // Off while the installed pack can never be confident, as its switch
+    // shows; with none installed the stored names still count.
+    packAllows: () {
+      final installed = ref.read(installedSpeciesPackProvider).value;
+      return installed == null || packCanApply(installed.manifest.naming);
+    },
   ),
 );
 

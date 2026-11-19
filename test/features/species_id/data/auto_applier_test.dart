@@ -44,6 +44,7 @@ void main() {
   late SpeciesRepository species;
   var autoApply = true;
   var generation = 0;
+  var packAllows = true;
   final changeLog = ChangeLogRepository();
 
   /// The service's reconcile, without a naming level: decisions in step
@@ -72,6 +73,7 @@ void main() {
     timing: () => SightingTiming.onConfirm,
     reconcile: reconcile ?? reconcileStored,
     databaseGeneration: () => generation,
+    packAllows: () => packAllows,
   );
 
   Future<void> store(String mediaId, {bool confident = true}) =>
@@ -92,6 +94,7 @@ void main() {
     addTearDown(resetMarineLifeIdEnabled);
     autoApply = true;
     generation = 0;
+    packAllows = true;
     identifications = MediaIdentificationRepository();
     tags = MediaSpeciesRepository();
     species = SpeciesRepository();
@@ -157,6 +160,23 @@ void main() {
       0,
     );
     expect(await tags.getTagsForMedia('p1'), isEmpty);
+  });
+
+  test('nothing while the installed pack can never be confident, as the '
+      'setting shows', () async {
+    await store('p1');
+    packAllows = false;
+
+    expect(
+      await applier().applyInScope('p1', isVideo: false, generation: 0),
+      0,
+    );
+    expect(
+      await applier().applyAllInScope(const [
+        (mediaId: 'p1', isVideo: false),
+      ], generation: 0),
+      0,
+    );
   });
 
   test('nothing with the setting off', () async {

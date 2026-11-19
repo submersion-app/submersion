@@ -230,6 +230,25 @@ void main() {
       expect(await tags.findTag('p2', 'sp_queen_parrotfish'), isNull);
     });
 
+    test('a held Remove leaves a tag confirmed elsewhere since: the '
+        'diver\'s now', () async {
+      final stale = await load();
+      final row = stale.single.tagged.single;
+      final appItem = row.items.singleWhere((i) => i.media.id == 'p1');
+      final edits = SpeciesReviewEdits.none.decideItem(
+        row,
+        appItem,
+        keep: false,
+      );
+      await tagging.confirmTag(mediaId: 'p1', speciesId: 'sp_queen_parrotfish');
+
+      await saver().save(edits, stale);
+
+      final tag = await tags.findTag('p1', 'sp_queen_parrotfish');
+      expect(tag, isNotNull);
+      expect(tag!.unconfirmed, isFalse);
+    });
+
     test('a held Add confirms the app\'s tag', () async {
       final (edits, stale) = await heldOnP2(keep: true, tagged: true);
       await appTagsP2();
