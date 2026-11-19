@@ -221,8 +221,11 @@ tank whose pressure rises with the water pumped in.
   gas remaining of the last sample at or before it), so pump-ins and purges
   move the water as the diver scrubs; the cursor's label sits at the top of
   the gas left.
-- A "Water ~X (est.)" label, in the diver's volume unit, joins the Start
-  and End pressure labels; no label without a tank volume.
+- A "Water ~X (est.)" label, in the diver's volume unit, sits under the
+  figure (the builder's call: the side labels are laid out for Start, End,
+  Used and Now only); no label without a tank volume. While the cursor is
+  shown the End mark has no level, since the gas level is then the
+  cursor's moment, not the end of the dive's.
 - When the dive has no gas remaining, no start pressure or no pressure at
   the moment shown, the Hydrotank keeps today's pressure figure.
 - The water estimate rests on the same assumption turned down for SAC; here

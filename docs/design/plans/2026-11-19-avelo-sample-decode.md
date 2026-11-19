@@ -116,7 +116,7 @@
 ### Task 5: UDDF backup carriage
 
 **Files:**
-- Create: `lib/core/services/export/uddf/uddf_avelo_samples.dart` (modelled on `uddf_computer_tissue.dart`: a private `<avelosamples><dive ref>` block with `<buoyancy>`, `<gasremaining>`, `<rmv>` children holding space-separated `t:value` pairs; `hasData`, write, parse, apply-by-timestamp)
+- Create: `lib/core/services/export/uddf/uddf_avelo_samples.dart` (modelled on `uddf_computer_tissue.dart`: space-separated `t:value` pairs; `hasData`, write, parse, apply-by-timestamp). As built, the pairs ride as `<avelobuoyancy>`, `<avelogasremaining>` and `<computerrmv>` children of the dive's entry in the existing private `<computertissue>` block, not a block of their own, so they reuse its place in both writers and the streamed export.
 - Modify: `uddf_dive_stream_writer.dart:183`, `uddf_export_builders.dart` (fallback writer ~:1505 and `hasData` use ~:802), `uddf_full_import_service.dart:619-630`
 - Test: `test/core/services/export/uddf/uddf_avelo_samples_round_trip_test.dart`
 
