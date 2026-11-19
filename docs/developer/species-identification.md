@@ -147,6 +147,14 @@ python3.14 tool/species_pack/manifest_test.py
 ```
 
 ```bash
+python3.14 tool/species_pack/candidates_test.py
+```
+
+```bash
+python3.14 tool/species_pack/build_pack_test.py
+```
+
+```bash
 python3.14 tool/species_pack/region_grid_test.py
 ```
 
