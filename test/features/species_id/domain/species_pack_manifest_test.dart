@@ -705,6 +705,24 @@ void main() {
       );
     });
 
+    test('a level lower in one bar only, and as often right, is kept', () {
+      // The published pair's Eager: Balanced's bar with a location, a lower
+      // one without, and the same measured precision.
+      expect(
+        ids(
+          naming([
+            balanced(),
+            eager({
+              'suggestScore': 0.4,
+              'suggestScoreNoLocation': 0.5,
+              'precision': 0.81,
+            }),
+          ]),
+        ),
+        [NamingLevel.balanced, NamingLevel.eager],
+      );
+    });
+
     test('a level more often right than the one above is dropped', () {
       expect(
         ids(
