@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart';
 
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set_geofence.dart';
+import 'package:submersion/features/equipment/domain/services/set_bundle_resolver.dart';
 import 'package:submersion/features/equipment/presentation/editing/equipment_set_card_ids.dart';
 import 'package:submersion/features/equipment/presentation/helpers/equipment_set_form_values.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
@@ -222,3 +224,23 @@ SetGeofencesEdit geofencesEdited(
   EditSession<EquipmentSet> session,
   List<EquipmentSetGeofence> next,
 ) => (base: session.valueOf(setGeofencesField).base, held: next);
+
+/// The gear [working] applies, as a sitting has it (Question 4): its own
+/// members and those of the sets it includes, in the order the set page
+/// reads them. Each is read from [everyItem], the diver's gear, or else
+/// from [storedItems], what the stored set applies (a member no longer
+/// shared with the diver is only there); one found in neither is left out.
+List<EquipmentItem> setItemsInSitting(
+  EquipmentSet working, {
+  required List<EquipmentItem> storedItems,
+  required List<EquipmentItem> everyItem,
+  required List<EquipmentSet> allSets,
+}) {
+  final setsById = {for (final s in allSets) s.id: s, working.id: working};
+  final every = {for (final item in everyItem) item.id: item};
+  final kept = {for (final item in storedItems) item.id: item};
+  return [
+    for (final id in SetBundleResolver.effectiveGearIds(working, setsById))
+      ?(every[id] ?? kept[id]),
+  ];
+}

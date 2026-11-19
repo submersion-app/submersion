@@ -1,8 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set_geofence.dart';
 import 'package:submersion/features/equipment/presentation/editing/equipment_set_edit_fields.dart';
+import 'package:submersion/features/equipment/presentation/helpers/equipment_set_form_values.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 EquipmentSetGeofence _fence(String id, {double radius = 100, String? label}) =>
@@ -176,6 +179,55 @@ void main() {
       expect(setMembersField.cardId, 'members');
       expect(setBundleListsField.cardId, 'bundle');
       expect(setGeofencesField.cardId, 'geofences');
+    });
+  });
+
+  group('setItemsInSitting', () {
+    EquipmentItem item(String id) =>
+        EquipmentItem(id: id, name: id, type: EquipmentType.bcd);
+    final every = [item('e1'), item('e2'), item('e3')];
+    final included = EquipmentSet(
+      id: 's0',
+      name: 'Fins',
+      equipmentIds: const ['e3'],
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+
+    test("includes an included set's gear", () {
+      final working = _set().copyWith(includedSetIds: ['s0']);
+      final items = setItemsInSitting(
+        working,
+        storedItems: const [],
+        everyItem: every,
+        allSets: [included],
+      );
+      expect(items.map((i) => i.id), ['e3', 'e1', 'e2']);
+    });
+
+    test('keeps a member no longer shared from the stored items', () {
+      final items = setItemsInSitting(
+        _set(members: const ['e1', 'gone']),
+        storedItems: [item('gone')],
+        everyItem: every,
+        allSets: const [],
+      );
+      expect(items.map((i) => i.id), ['e1', 'gone']);
+    });
+
+    test('follows an included set added in the sitting', () {
+      final session = EditSession(_set());
+      session.set(
+        setBundleListsField,
+        const SetBundleListValues(includedSetIds: ['s0']),
+      );
+      final items = setItemsInSitting(
+        session.working,
+        storedItems: const [],
+        everyItem: every,
+        allSets: [included, _set()],
+      );
+      expect(items.map((i) => i.id), ['e3', 'e1', 'e2']);
     });
   });
 }

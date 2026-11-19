@@ -237,6 +237,26 @@ class EquipmentSetListNotifier
     return diff;
   }
 
+  /// Refreshes what a set page's editing sitting on [id] can have changed
+  /// (issue #4527): the list, every set's page (a default moved demotes
+  /// another set), its geofences and the default the dive editor applies.
+  /// The sitting is already written, so a reload that fails is logged, not
+  /// thrown: a retry would find nothing left to save.
+  Future<void> afterSittingSaved(String id) async {
+    try {
+      await refresh();
+    } catch (e, st) {
+      LoggerService.forClass(
+        EquipmentSetListNotifier,
+      ).error('Reload after a set sitting failed', error: e, stackTrace: st);
+    }
+    _ref.invalidate(equipmentSetsProvider);
+    _ref.invalidate(equipmentSetProvider);
+    _ref.invalidate(equipmentSetGeofencesProvider(id));
+    _ref.invalidate(defaultEquipmentSetProvider);
+    _ref.invalidate(equipmentSetSelectionInputsProvider);
+  }
+
   Future<void> deleteSet(String id) async {
     await _repository.deleteSet(id);
     await refresh();
