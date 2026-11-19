@@ -114,6 +114,7 @@ void main() {
     bool playing = false,
     bool editable = true,
     EditSession<PhotoRecord>? sitting,
+    double bottomInset = 0,
   }) async {
     playerTaps = 0;
     playback.value = playback.value.copyWith(isPlaying: playing);
@@ -153,6 +154,7 @@ void main() {
                   item: testMediaItem(id: 'v1', mediaType: MediaType.video),
                   sitting: sitting,
                   editable: editable,
+                  bottomInset: bottomInset,
                 ),
               ],
             ),
@@ -504,5 +506,46 @@ void main() {
     final centre = tester.getCenter(dot('c')) - origin;
     expect(centre.dx, closeTo(88, 0.5));
     expect(centre.dy, closeTo(87.5 + 0.75 * 225, 0.5));
+  });
+
+  testWidgets('a pill that would drop onto the controls stays above them '
+      '(#4762)', (tester) async {
+    // At y 0.1 there is no room above the fish, so its pill goes below it:
+    // the fish ends at 87.5 + 0.2 * 225 = 132.5, and the pill would reach
+    // 132.5 + 10 + 26 = 168.5. The controls cover the layer from 150 down.
+    await pump(tester, tracks: [suggestion], playing: true, bottomInset: 250);
+    final layer = tester.getRect(find.byType(VideoIdentificationLayer));
+    final pillRect = tester.getRect(
+      find.descendant(of: pill('b'), matching: find.byType(TrackPill)),
+    );
+    expect(pillRect.bottom, lessThanOrEqualTo(layer.top + 150 + 0.5));
+    expect(pillRect.top, greaterThanOrEqualTo(layer.top + 87.5 - 0.5));
+  });
+
+  testWidgets('a fish under the controls keeps its pill above them (#4762)', (
+    tester,
+  ) async {
+    // The fish starts at 87.5 + 0.7 * 225 = 245, under controls that cover
+    // the layer from 200 down: its pill, above the fish from 209 to 235,
+    // would still sit on them.
+    final low = at(track('d', confident: false), 0.7);
+    await pump(tester, tracks: [low], playing: true, bottomInset: 200);
+    final layer = tester.getRect(find.byType(VideoIdentificationLayer));
+    final pillRect = tester.getRect(
+      find.descendant(of: pill('d'), matching: find.byType(TrackPill)),
+    );
+    expect(pillRect.bottom, lessThanOrEqualTo(layer.top + 200 + 0.5));
+  });
+
+  testWidgets('a pill with room below still goes below its fish', (
+    tester,
+  ) async {
+    // As above, with controls that leave the pill below the fish its room.
+    await pump(tester, tracks: [suggestion], playing: true, bottomInset: 100);
+    final layer = tester.getRect(find.byType(VideoIdentificationLayer));
+    final pillRect = tester.getRect(
+      find.descendant(of: pill('b'), matching: find.byType(TrackPill)),
+    );
+    expect(pillRect.top, closeTo(layer.top + 132.5 + 10, 0.5));
   });
 }

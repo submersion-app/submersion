@@ -37,6 +37,11 @@ class _PhotoGallery extends ConsumerWidget {
   /// Whether a video's fish labels are hidden: while picking a white point.
   final bool hideIdentifications;
 
+  /// How far up from the bottom the viewer's panel and its scrub bar reach
+  /// outside fullscreen, which a video's fish labels keep above (issue
+  /// #4762); 0 while the panel is hidden.
+  final double videoControlsInset;
+
   const _PhotoGallery({
     required this.mediaList,
     required this.pageController,
@@ -52,6 +57,7 @@ class _PhotoGallery extends ConsumerWidget {
     this.pagingLocked = false,
     this.identificationsEditable = true,
     this.hideIdentifications = false,
+    this.videoControlsInset = 0,
   });
 
   @override
@@ -107,6 +113,7 @@ class _PhotoGallery extends ConsumerWidget {
               people: people,
               identificationsEditable: identificationsEditable,
               hideIdentifications: hideIdentifications,
+              controlsInset: videoControlsInset,
             ),
           );
         }

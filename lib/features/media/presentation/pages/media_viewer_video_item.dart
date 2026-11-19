@@ -23,8 +23,9 @@ class _VideoItem extends ConsumerStatefulWidget {
   final bool showOverlay;
 
   /// The viewer's fullscreen mode: the centre play indicator follows the
-  /// controls' visibility, and the controls bar sits at the bottom edge
-  /// because no metadata panel is drawn under it.
+  /// controls' visibility, and this page draws the controls bar at the
+  /// bottom edge. Outside it the bar is the top row of the viewer's bottom
+  /// panel (issue #4762).
   final bool fullscreen;
   final ValueChanged<bool> onSetOverlay;
 
@@ -45,6 +46,10 @@ class _VideoItem extends ConsumerStatefulWidget {
   final bool identificationsEditable;
   final bool hideIdentifications;
 
+  /// How far up from the bottom the viewer's panel and its scrub bar reach
+  /// outside fullscreen; the fish labels keep above it (issue #4762).
+  final double controlsInset;
+
   const _VideoItem({
     required this.item,
     required this.isCurrent,
@@ -56,6 +61,7 @@ class _VideoItem extends ConsumerStatefulWidget {
     required this.people,
     this.identificationsEditable = true,
     this.hideIdentifications = false,
+    this.controlsInset = 0,
   });
 
   @override
@@ -327,6 +333,16 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
       _focusNode.requestFocus();
     }
 
+    // Fullscreen draws its bar here, at the bottom edge; elsewhere the bar
+    // is the top row of the viewer's bottom panel (issue #4762). Not in
+    // tag mode: the video stays on the frame its boxes are drawn on.
+    final barBottom = MediaQuery.paddingOf(context).bottom + 24;
+    final showBar =
+        widget.fullscreen && widget.showOverlay && !widget.people.active;
+    final controlsInset = widget.fullscreen
+        ? (showBar ? barBottom + VideoControlsBar.height : 0.0)
+        : widget.controlsInset;
+
     return Focus(
       focusNode: _focusNode,
       onKeyEvent: _handleKeyEvent,
@@ -380,6 +396,7 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
                 item: widget.item,
                 sitting: widget.people.sitting,
                 editable: widget.identificationsEditable,
+                bottomInset: controlsInset,
               ),
             ),
 
@@ -425,17 +442,12 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
                     ),
             ),
 
-          // Video controls overlay (bottom). Not in tag mode: the video stays
-          // on the frame its boxes are drawn on.
-          if (widget.showOverlay && !widget.people.active)
+          // Fullscreen's controls bar, at the bottom edge.
+          if (showBar)
             Positioned(
               left: 0,
               right: 0,
-              // Above the metadata overlay and mini profile; at the edge in
-              // fullscreen, where neither is drawn.
-              bottom: widget.fullscreen
-                  ? MediaQuery.paddingOf(context).bottom + 24
-                  : 160,
+              bottom: barBottom,
               child: VideoControlsBar(
                 controller: controller,
                 mediaId: widget.item.id,

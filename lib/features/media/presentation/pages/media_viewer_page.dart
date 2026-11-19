@@ -61,6 +61,7 @@ import 'package:submersion/features/media/presentation/widgets/media_viewer_tool
 import 'package:submersion/features/media/presentation/widgets/video_color_filter.dart';
 import 'package:submersion/features/media/presentation/widgets/video_controls_auto_hide.dart';
 import 'package:submersion/features/media/presentation/widgets/video_controls_bar.dart';
+import 'package:submersion/shared/widgets/size_reporter.dart';
 import 'package:submersion/features/media/presentation/helpers/color_pick_white.dart';
 import 'package:submersion/features/media/presentation/widgets/color_adjust/color_adjust_viewer_mixin.dart';
 import 'package:submersion/features/media/presentation/widgets/color_adjust/pick_white_hint.dart';
@@ -168,6 +169,15 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
   int _navTargetIndex = 0;
 
   bool _showOverlay = true;
+
+  /// The bottom panel's height as last laid out, which the fish labels on
+  /// a video keep above (issue #4762).
+  double _bottomPanelHeight = 0;
+
+  void _onBottomPanelHeight(double height) {
+    if (!mounted || height == _bottomPanelHeight) return;
+    setState(() => _bottomPanelHeight = height);
+  }
 
   @override
   bool get videoOverlayShown => _showOverlay;
@@ -464,6 +474,16 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                 pauseVideo: (id) => unawaited(_videoControllers[id]?.pause()),
               );
 
+              // The bottom panel, a video's scrub bar its top row so no tag
+              // can cover it (issue #4762).
+              final panelShown =
+                  (_showOverlay || photoUnlocked) &&
+                  !isFullscreen &&
+                  !pickingWhite &&
+                  !taggingPeople;
+              final miniProfileShown =
+                  diveProfile != null && diveProfile.isNotEmpty && positioned;
+
               final viewer = GestureDetector(
                 // Swipe down to close (common pattern for fullscreen viewers)
                 onVerticalDragEnd: (details) {
@@ -511,6 +531,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                         people: peopleSession,
                         identificationsEditable: !photoLocked,
                         hideIdentifications: pickingWhite,
+                        videoControlsInset: panelShown ? _bottomPanelHeight : 0,
                       ),
                     ),
 
@@ -635,35 +656,17 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                           ),
 
                         // Bottom metadata
-                        _BottomMetadataOverlay(
+                        _bottomPanel(
+                          context,
                           item: currentItem,
                           settings: units.settings,
-                          onMomentTap: (tag) => _showMoment(currentItem, tag),
-                          sitting: photoSitting,
-                          onSuggestionTap: photoSitting == null
-                              ? null
-                              : () {
-                                  // Read at the tap, as Tag species does.
-                                  final sitting = photoSitting;
-                                  if (sitting == null) return;
-                                  showMediaSpeciesSheet(
-                                    context,
-                                    currentItem,
-                                    sitting: sitting,
-                                  );
-                                },
-                          profileLengthSeconds: profileLength,
-                          // Pinning needs a profile to pin against; a dive with
-                          // none has no moments to choose from.
-                          onSetTime:
-                              diveProfile == null ||
-                                  diveProfile.isEmpty ||
-                                  photoLocked
-                              ? null
-                              : () => _setTimeInDive(currentItem, diveProfile),
+                          diveProfile: diveProfile,
+                          profileLength: profileLength,
+                          photoLocked: photoLocked,
                           siteName: diveAsync.whenOrNull(
                             data: (dive) => dive?.site?.name,
                           ),
+                          miniProfileShown: miniProfileShown,
                         ),
                       ],
                     ],

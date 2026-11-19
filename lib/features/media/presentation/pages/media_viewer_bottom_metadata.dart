@@ -1,6 +1,64 @@
 part of 'media_viewer_page.dart';
 
+/// The viewer's bottom panel, built for the page.
+extension _ViewerBottomPanel on _MediaViewerPageState {
+  /// The bottom panel for [item]; for a video, its scrub bar is the panel's
+  /// top row, so no tag can cover it (issue #4762).
+  Widget _bottomPanel(
+    BuildContext context, {
+    required MediaItem item,
+    required UnitFormatterSettings settings,
+    required List<DiveProfilePoint>? diveProfile,
+    required int profileLength,
+    required bool photoLocked,
+    required String? siteName,
+    required bool miniProfileShown,
+  }) {
+    final video = item.isVideo ? _videoControllers[item.id] : null;
+    return _BottomMetadataOverlay(
+      item: item,
+      settings: settings,
+      onMomentTap: (tag) => _showMoment(item, tag),
+      sitting: photoSitting,
+      onSuggestionTap: photoSitting == null
+          ? null
+          : () {
+              // Read at the tap, as Tag species does.
+              final sitting = photoSitting;
+              if (sitting == null) return;
+              showMediaSpeciesSheet(context, item, sitting: sitting);
+            },
+      profileLengthSeconds: profileLength,
+      // Pinning needs a profile to pin against; a dive with none has no
+      // moments to choose from.
+      onSetTime: diveProfile == null || diveProfile.isEmpty || photoLocked
+          ? null
+          : () => _setTimeInDive(item, diveProfile),
+      siteName: siteName,
+      controls: video == null
+          ? null
+          : VideoControlsBar(
+              key: ValueKey('video_controls_${item.id}'),
+              controller: video,
+              mediaId: item.id,
+              // The controls hide 3 s after a reveal: hold them up while
+              // scrubbing or under the mouse, so the bar is not pulled from
+              // under the pointer.
+              onHoldChanged: (held) => videoHoldChanged(video, held),
+            ),
+      // Clear of the mini profile in the corner.
+      controlsClearance: miniProfileShown
+          ? PositionedMiniProfileOverlay.reach + 8
+          : 0,
+      onHeightChanged: _onBottomPanelHeight,
+    );
+  }
+}
+
 /// Bottom overlay showing dive metadata for the current photo.
+///
+/// For a video, the playback [controls] are its top row (issue #4762): the
+/// tags under them can push them up but never cover them.
 class _BottomMetadataOverlay extends StatelessWidget {
   final MediaItem item;
   final UnitFormatterSettings settings;
@@ -23,6 +81,18 @@ class _BottomMetadataOverlay extends StatelessWidget {
   /// while the photo is locked.
   final VoidCallback? onSuggestionTap;
 
+  /// A video's scrub bar, drawn above everything else in the panel; null
+  /// for a photo.
+  final Widget? controls;
+
+  /// How far up from the viewer's bottom edge the panel keeps clear under
+  /// [controls], so they clear the mini profile chart in the corner.
+  final double controlsClearance;
+
+  /// The panel's height, whenever it changes: the fish labels on a video
+  /// keep above it.
+  final ValueChanged<double>? onHeightChanged;
+
   const _BottomMetadataOverlay({
     required this.item,
     required this.settings,
@@ -32,6 +102,9 @@ class _BottomMetadataOverlay extends StatelessWidget {
     this.onMomentTap,
     this.sitting,
     this.onSuggestionTap,
+    this.controls,
+    this.controlsClearance = 0,
+    this.onHeightChanged,
   });
 
   @override
@@ -45,162 +118,194 @@ class _BottomMetadataOverlay extends StatelessWidget {
         item.enrichment?.isWithinDiveWindow(profileLengthSeconds) ?? false;
     final enrichment = positioned ? item.enrichment : null;
     final formatter = UnitFormatter(settings);
+    final controls = this.controls;
+    final onHeightChanged = this.onHeightChanged;
+
+    final panel = Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.bottomCenter,
+          end: Alignment.topCenter,
+          colors: [Colors.black.withValues(alpha: 0.8), Colors.transparent],
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (controls != null)
+            Padding(padding: const EdgeInsets.only(top: 24), child: controls),
+          ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: controls == null ? 0 : controlsClearance,
+            ),
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  16,
+                  controls == null ? 32 : 8,
+                  16,
+                  16,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  // Held to the clearance, the details keep to the bottom.
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Site name
+                    if (siteName != null && siteName!.isNotEmpty) ...[
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.location_on,
+                            color: Colors.white.withValues(alpha: 0.9),
+                            size: 18,
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              siteName!,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+                    MediaPeopleChipsRow(
+                      mediaId: item.id,
+                      onMomentTap: onMomentTap,
+                      sitting: sitting,
+                    ),
+                    MediaSpeciesChipsRow(
+                      mediaId: item.id,
+                      sitting: sitting,
+                      onSuggestionTap: onSuggestionTap,
+                    ),
+                    // Metadata row
+                    Row(
+                      children: [
+                        // Depth
+                        if (enrichment?.depthMeters != null) ...[
+                          _MetadataChip(
+                            icon: Icons.arrow_downward,
+                            value: formatter.formatDepth(
+                              enrichment!.depthMeters,
+                              decimals: 1,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                        ],
+
+                        // Temperature
+                        if (enrichment?.temperatureCelsius != null) ...[
+                          _MetadataChip(
+                            icon: Icons.thermostat,
+                            value: formatter.formatTemperature(
+                              enrichment!.temperatureCelsius,
+                              decimals: 0,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                        ],
+
+                        // Elapsed time: the diver's pin, the automatic
+                        // position, or an explicit unknown for a linked item
+                        // whose capture time fell outside the dive.
+                        if (enrichment?.elapsedSeconds != null)
+                          _MetadataChip(
+                            icon: enrichment!.isManual
+                                ? Icons.push_pin_outlined
+                                : Icons.timer_outlined,
+                            value: _formatElapsedTime(
+                              enrichment.elapsedSeconds!,
+                            ),
+                            onTap: onSetTime,
+                            tooltip: l10n.media_timeInDive_setAction,
+                          )
+                        else if (item.diveId != null && onSetTime != null)
+                          _MetadataChip(
+                            icon: Icons.timer_off_outlined,
+                            value: l10n.media_timeInDive_unknown,
+                            onTap: onSetTime,
+                            tooltip: l10n.media_timeInDive_setAction,
+                          ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    // Timestamp row
+                    Row(
+                      children: [
+                        Text(
+                          formatter.formatDateTime(item.takenAt, l10n: l10n),
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.8),
+                            fontSize: 14,
+                          ),
+                        ),
+
+                        // Confidence indicator. A manual position is the
+                        // diver's own statement, not an estimate, so it gets
+                        // the pin icon on the chip instead of a warning here.
+                        if (enrichment != null &&
+                            enrichment.matchConfidence !=
+                                MatchConfidence.exact &&
+                            enrichment.matchConfidence !=
+                                MatchConfidence.interpolated &&
+                            !enrichment.isManual) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.withValues(alpha: 0.3),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              enrichment.matchConfidence.localizedName(
+                                context.l10n,
+                              ),
+                              style: const TextStyle(
+                                color: Colors.orange,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
 
     return Positioned(
       bottom: 0,
       left: 0,
       right: 0,
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.bottomCenter,
-            end: Alignment.topCenter,
-            colors: [Colors.black.withValues(alpha: 0.8), Colors.transparent],
-          ),
-        ),
-        child: SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 32, 16, 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Site name
-                if (siteName != null && siteName!.isNotEmpty) ...[
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.location_on,
-                        color: Colors.white.withValues(alpha: 0.9),
-                        size: 18,
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          siteName!,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                ],
-                MediaPeopleChipsRow(
-                  mediaId: item.id,
-                  onMomentTap: onMomentTap,
-                  sitting: sitting,
-                ),
-                MediaSpeciesChipsRow(
-                  mediaId: item.id,
-                  sitting: sitting,
-                  onSuggestionTap: onSuggestionTap,
-                ),
-                // Metadata row
-                Row(
-                  children: [
-                    // Depth
-                    if (enrichment?.depthMeters != null) ...[
-                      _MetadataChip(
-                        icon: Icons.arrow_downward,
-                        value: formatter.formatDepth(
-                          enrichment!.depthMeters,
-                          decimals: 1,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                    ],
-
-                    // Temperature
-                    if (enrichment?.temperatureCelsius != null) ...[
-                      _MetadataChip(
-                        icon: Icons.thermostat,
-                        value: formatter.formatTemperature(
-                          enrichment!.temperatureCelsius,
-                          decimals: 0,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                    ],
-
-                    // Elapsed time: the diver's pin, the automatic
-                    // position, or an explicit unknown for a linked item
-                    // whose capture time fell outside the dive.
-                    if (enrichment?.elapsedSeconds != null)
-                      _MetadataChip(
-                        icon: enrichment!.isManual
-                            ? Icons.push_pin_outlined
-                            : Icons.timer_outlined,
-                        value: _formatElapsedTime(enrichment.elapsedSeconds!),
-                        onTap: onSetTime,
-                        tooltip: l10n.media_timeInDive_setAction,
-                      )
-                    else if (item.diveId != null && onSetTime != null)
-                      _MetadataChip(
-                        icon: Icons.timer_off_outlined,
-                        value: l10n.media_timeInDive_unknown,
-                        onTap: onSetTime,
-                        tooltip: l10n.media_timeInDive_setAction,
-                      ),
-                  ],
-                ),
-
-                const SizedBox(height: 8),
-
-                // Timestamp row
-                Row(
-                  children: [
-                    Text(
-                      formatter.formatDateTime(item.takenAt, l10n: l10n),
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.8),
-                        fontSize: 14,
-                      ),
-                    ),
-
-                    // Confidence indicator. A manual position is the
-                    // diver's own statement, not an estimate, so it gets
-                    // the pin icon on the chip instead of a warning here.
-                    if (enrichment != null &&
-                        enrichment.matchConfidence != MatchConfidence.exact &&
-                        enrichment.matchConfidence !=
-                            MatchConfidence.interpolated &&
-                        !enrichment.isManual) ...[
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.orange.withValues(alpha: 0.3),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          enrichment.matchConfidence.localizedName(
-                            context.l10n,
-                          ),
-                          style: const TextStyle(
-                            color: Colors.orange,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ],
+      child: onHeightChanged == null
+          ? panel
+          : SizeReporter(
+              onChange: (size) => onHeightChanged(size.height),
+              child: panel,
             ),
-          ),
-        ),
-      ),
     );
   }
 

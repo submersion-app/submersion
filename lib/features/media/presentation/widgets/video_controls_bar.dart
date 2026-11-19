@@ -48,6 +48,9 @@ class VideoControlsBar extends StatefulWidget {
   /// How far a screen reader's increase and decrease actions move.
   static const accessibilityStep = Duration(seconds: 5);
 
+  /// The bar's height, which is also its touch area's.
+  static const double height = 40;
+
   const VideoControlsBar({
     super.key,
     required this.controller,
@@ -402,7 +405,7 @@ class _VideoControlsBarState extends State<VideoControlsBar>
                         onHorizontalDragCancel: () => unawaited(_onScrubEnd()),
                         child: SizedBox(
                           key: VideoControlsBar.trackKey,
-                          height: 40, // Larger touch target
+                          height: VideoControlsBar.height,
                           child: Center(
                             child: ValueListenableBuilder<Duration>(
                               valueListenable: _shown,

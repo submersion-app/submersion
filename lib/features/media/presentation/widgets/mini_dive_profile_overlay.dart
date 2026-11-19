@@ -14,6 +14,9 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Shows the depth profile with a marker indicating where the photo was taken.
 /// Designed to be displayed in the corner of full-screen photo views.
 class MiniDiveProfileOverlay extends StatelessWidget {
+  /// The chart's height.
+  static const double height = 100;
+
   /// The dive profile data points.
   final List<DiveProfilePoint> profile;
 
@@ -50,7 +53,7 @@ class MiniDiveProfileOverlay extends StatelessWidget {
         onTap: onTap,
         child: Container(
           width: 160,
-          height: 100,
+          height: MiniDiveProfileOverlay.height,
           decoration: BoxDecoration(
             color: Colors.black.withValues(alpha: 0.7),
             borderRadius: BorderRadius.circular(12),
@@ -292,6 +295,12 @@ class PositionedMiniProfileOverlay extends StatelessWidget {
   final bool visible;
   final VoidCallback? onTap;
 
+  /// How far in from the viewer's bottom right corner the chart sits.
+  static const double margin = 16;
+
+  /// How far up from the viewer's bottom edge the chart reaches.
+  static const double reach = margin + MiniDiveProfileOverlay.height;
+
   const PositionedMiniProfileOverlay({
     super.key,
     required this.profile,
@@ -305,8 +314,8 @@ class PositionedMiniProfileOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      right: 16,
-      bottom: 16, // Lower right corner
+      right: margin,
+      bottom: margin, // Lower right corner
       child: AnimatedOpacity(
         opacity: visible ? 1.0 : 0.0,
         duration: const Duration(milliseconds: 200),
