@@ -13,10 +13,14 @@ import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
+import 'package:submersion/features/courses/data/services/course_edit_save_service.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/course_status_colors.dart';
+import 'package:submersion/features/courses/presentation/editing/course_card_ids.dart';
+import 'package:submersion/features/courses/presentation/editing/course_edit_cards.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/courses/presentation/widgets/course_certification_thumbnail.dart';
 import 'package:submersion/features/courses/presentation/widgets/course_requirements_section.dart';
@@ -25,50 +29,181 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
+import 'package:submersion/features/documents/presentation/editing/record_document_links_sitting.dart';
 import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
+import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_fade.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
+import 'package:submersion/shared/widgets/record_editing/record_open_unlocked.dart';
+import 'package:submersion/shared/widgets/record_editing/record_pane_row.dart';
+import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
-class CourseDetailPage extends ConsumerWidget {
+part 'course_detail_page_editing.dart';
+part 'course_detail_page_sections.dart';
+
+/// A course's page. Behind phase 3's switch ([unlockEditing]) it opens
+/// locked and edits in place (issue #4527): its cards are held in one
+/// sitting and written by one Save.
+class CourseDetailPage extends ConsumerStatefulWidget {
   final String courseId;
   final bool embedded;
   final VoidCallback? onDeleted;
+
+  /// Whether the page edits in place: phase 3's switch, a parameter so a
+  /// test can turn it on.
+  final bool unlockEditing;
+
+  /// Opens unlocked, as the old edit address asks (`?mode=edit`).
+  final bool openUnlocked;
+
+  /// Told when a sitting the page opened unlocked ends: the list pane's
+  /// edit returns to the course in view.
+  final VoidCallback? onSittingEnded;
 
   const CourseDetailPage({
     super.key,
     required this.courseId,
     this.embedded = false,
     this.onDeleted,
+    this.unlockEditing = kUnlockRecordEditing,
+    this.openUnlocked = false,
+    this.onSittingEnded,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CourseDetailPage> createState() => _CourseDetailPageState();
+}
+
+class _CourseDetailPageState extends ConsumerState<CourseDetailPage>
+    with
+        RecordEditHost<CourseDetailPage, Course>,
+        RecordOpenUnlocked<CourseDetailPage, Course>,
+        _CourseDetailPageEditing {
+  @override
+  void dispose() {
+    disposeEditing();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     ref.watch(certificationCatalogSyncProvider);
-    final courseAsync = ref.watch(courseByIdProvider(courseId));
-    final divesAsync = ref.watch(courseDivesProvider(courseId));
+    final courseAsync = ref.watch(courseByIdProvider(widget.courseId));
+    if (hostsEditing) followStored(courseByIdProvider(widget.courseId));
 
     return courseAsync.when(
       data: (course) {
-        if (course == null) {
-          return _buildNotFound(context);
+        if (course == null) return _buildNotFound(context);
+        if (!hostsEditing) {
+          return _CourseDetailContent(
+            course: course,
+            stored: course,
+            embedded: widget.embedded,
+            onDeleted: widget.onDeleted,
+          );
         }
-        return _buildContent(context, ref, course, divesAsync);
+        openUnlockedOnce(course);
+        return _CourseDetailContent(
+          course: shownRecord(course),
+          stored: course,
+          embedded: widget.embedded,
+          onDeleted: widget.onDeleted,
+          host: this,
+        );
       },
       loading: () => _buildLoading(context),
       error: (error, stack) => _buildError(context, error),
     );
   }
 
-  Widget _buildContent(
-    BuildContext context,
-    WidgetRef ref,
-    Course course,
-    AsyncValue<List<Dive>> divesAsync,
-  ) {
+  Widget _buildLoading(BuildContext context) {
+    if (widget.embedded) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    return Scaffold(
+      appBar: AppBar(title: Text(context.l10n.courses_title_singular)),
+      body: const Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  Widget _buildNotFound(BuildContext context) {
+    if (widget.embedded) {
+      return Center(child: Text(context.l10n.courses_detail_notFound));
+    }
+    return Scaffold(
+      appBar: AppBar(title: Text(context.l10n.courses_title_singular)),
+      body: Center(child: Text(context.l10n.courses_detail_notFound)),
+    );
+  }
+
+  Widget _buildError(BuildContext context, Object error) {
     final colorScheme = Theme.of(context).colorScheme;
+    final content = Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.error_outline, size: 48, color: colorScheme.error),
+          const SizedBox(height: 16),
+          Text('${context.l10n.common_label_error}: $error'),
+        ],
+      ),
+    );
+
+    if (widget.embedded) return content;
+
+    return Scaffold(
+      appBar: AppBar(title: Text(context.l10n.courses_title_singular)),
+      body: content,
+    );
+  }
+}
+
+class _CourseDetailContent extends ConsumerWidget {
+  /// The course the cards show: the sitting's while unlocked.
+  final Course course;
+
+  /// The course as stored.
+  final Course stored;
+  final bool embedded;
+  final VoidCallback? onDeleted;
+
+  /// The page, where it edits in place.
+  final _CourseDetailPageState? host;
+
+  const _CourseDetailContent({
+    required this.course,
+    required this.stored,
+    this.embedded = false,
+    this.onDeleted,
+    this.host,
+  });
+
+  bool get _editing => host != null;
+
+  /// [child] as the card [id] where the page edits in place.
+  Widget _framed(CourseCardId id, Widget child) =>
+      host?._framed(id, child) ?? child;
+
+  /// Whether the empty card [id] is shown in the sitting.
+  bool _shows(CourseCardId id) => host?._showsWhileEmpty(id) ?? false;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     final formatter = ref.watch(unitFormatterProvider);
+    final divesAsync = ref.watch(courseDivesProvider(course.id));
+    final trainingDives = _buildTrainingDivesCard(
+      context,
+      divesAsync,
+      formatter,
+    );
 
     final body = SingleChildScrollView(
       controller: DetailScrollController.maybeOf(context),
@@ -76,201 +211,49 @@ class CourseDetailPage extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Status card
-          _buildStatusCard(context, course),
+          _framed(CourseCardId.status, _buildStatusCard(context)),
           const SizedBox(height: 16),
 
-          // Course details
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: DetailRowGroup(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildSectionHeader(
-                      context,
-                      context.l10n.courses_section_details,
-                      Icons.school,
-                    ),
-                    const SizedBox(height: 12),
-                    _buildDetailRow(
-                      context,
-                      context.l10n.courses_label_agency,
-                      context.certificationCatalog
-                          .agency(course.agency)
-                          .localizedName(context.l10n),
-                      Icons.business,
-                    ),
-                    _buildDetailRow(
-                      context,
-                      context.l10n.courses_label_startDate,
-                      formatter.formatDate(course.startDate),
-                      Icons.calendar_today,
-                    ),
-                    if (course.completionDate != null)
-                      _buildDetailRow(
-                        context,
-                        context.l10n.courses_label_completed,
-                        formatter.formatDate(course.completionDate!),
-                        Icons.check_circle,
-                      ),
-                    if (course.location != null)
-                      _buildDetailRow(
-                        context,
-                        context.l10n.courses_label_location,
-                        course.location!,
-                        Icons.place,
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          ),
+          _framed(CourseCardId.details, _buildDetailsCard(context, formatter)),
           const SizedBox(height: 16),
 
-          // Instructor
-          if (course.instructorName != null) ...[
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: DetailRowGroup(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildSectionHeader(
-                        context,
-                        context.l10n.courses_section_instructor,
-                        Icons.person,
-                      ),
-                      const SizedBox(height: 12),
-                      _buildDetailRow(
-                        context,
-                        context.l10n.courses_label_name,
-                        course.instructorName!,
-                        Icons.badge,
-                      ),
-                      if (course.instructorNumber != null)
-                        _buildDetailRow(
-                          context,
-                          context.l10n.courses_label_instructorNumber,
-                          course.instructorNumber!,
-                          Icons.numbers,
-                          copyable: true,
-                        ),
-                    ],
-                  ),
-                ),
-              ),
+          if (_showsInstructor()) ...[
+            _framed(
+              CourseCardId.instructor,
+              _buildInstructorCard(context, ref),
             ),
             const SizedBox(height: 16),
           ],
 
           // Earned certifications, one row each (#2515)
-          _buildCertificationSection(context, ref, course.id),
+          _buildCertificationSection(context, ref),
 
           // Requirement tracker
           CourseRequirementsSection(courseId: course.id),
 
-          // Training dives
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildSectionHeader(
-                    context,
-                    context.l10n.courses_section_trainingDives,
-                    Icons.scuba_diving,
-                  ),
-                  const SizedBox(height: 12),
-                  divesAsync.when(
-                    data: (dives) {
-                      if (dives.isEmpty) {
-                        return Text(
-                          context.l10n.courses_detail_noTrainingDives,
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                                fontStyle: FontStyle.italic,
-                              ),
-                        );
-                      }
-                      return Column(
-                        children: dives.map((dive) {
-                          return ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: colorScheme.primary.withValues(
-                                alpha: 0.15,
-                              ),
-                              child: Text(
-                                '${dive.diveNumber ?? '-'}',
-                                style: TextStyle(color: colorScheme.primary),
-                              ),
-                            ),
-                            title: Text(
-                              dive.site?.name ??
-                                  context.l10n.diveLog_listPage_unknownSite,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            subtitle: Text(formatter.formatDate(dive.dateTime)),
-                            trailing: Icon(
-                              Icons.chevron_right,
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                            onTap: () => context.push('/dives/${dive.id}'),
-                          );
-                        }).toList(),
-                      );
-                    },
-                    loading: () => const Center(
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                    error: (error, stack) => Text(
-                      context.l10n.courses_error_loadingDives,
-                      style: TextStyle(color: colorScheme.error),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          // Training dives: set from the dive's side.
+          if (_editing) _calculated(trainingDives) else trainingDives,
           const SizedBox(height: 16),
 
-          // Notes
-          if (course.notes.isNotEmpty) ...[
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildSectionHeader(
-                      context,
-                      context.l10n.courses_section_notes,
-                      Icons.notes,
-                    ),
-                    const SizedBox(height: 12),
-                    MarkdownNotesView(course.notes),
-                  ],
-                ),
-              ),
-            ),
+          if (course.notes.isNotEmpty || _shows(CourseCardId.notes)) ...[
+            _framed(CourseCardId.notes, _buildNotesCard(context)),
             const SizedBox(height: 16),
           ],
-          DocumentsSection(
-            owner: DocumentOwner(DocumentOwnerKind.course, course.id),
+          _framed(
+            CourseCardId.documents,
+            DocumentsSection<Course>(
+              owner: DocumentOwner(DocumentOwnerKind.course, course.id),
+            ),
           ),
           const SizedBox(height: 16),
 
-          // Actions
-          if (!course.isCompleted) ...[
+          // Where the page edits in place, Mark completed is on the Status
+          // card's editor.
+          if (!course.isCompleted && !_editing) ...[
             SizedBox(
               width: double.infinity,
               child: FilledButton.icon(
-                onPressed: () => _markCompleted(context, ref, course),
+                onPressed: () => _markCompleted(context, ref),
                 icon: const Icon(Icons.check),
                 label: Text(context.l10n.courses_action_markCompleted),
               ),
@@ -281,238 +264,62 @@ class CourseDetailPage extends ConsumerWidget {
       ),
     );
 
+    final host = this.host;
     if (embedded) {
+      final header = _buildEmbeddedHeader(context, ref);
+      if (host != null) {
+        return host.editPane(
+          header: RecordPaneRow(
+            locked: header,
+            unlocked: host.isSittingOpen
+                ? host.editingPaneRow(
+                    stored,
+                    menu: _buildMoreMenu(context, ref),
+                  )
+                : null,
+          ),
+          shown: course,
+          content: body,
+        );
+      }
       return Column(
         children: [
-          _buildEmbeddedHeader(context, ref, course),
+          header,
           Expanded(child: body),
         ],
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(course.name),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit),
-            tooltip: context.l10n.courses_action_edit,
-            onPressed: () => context.push('/courses/${course.id}/edit'),
-          ),
-          _buildMoreMenu(context, ref, course),
-        ],
-      ),
-      body: body,
-    );
-  }
-
-  Widget _buildStatusCard(BuildContext context, Course course) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final statusAccent = courseStatusAccent(
-      colorScheme,
-      completed: course.isCompleted,
-    );
-    final statusLabel = course.isCompleted
-        ? context.l10n.courses_status_completed
-        : context.l10n.courses_status_inProgress;
-    final durationLabel = course.durationDays != null
-        ? context.l10n.courses_status_durationDays(course.durationDays!)
-        : context.l10n.courses_status_daysSinceStart(course.daysSinceStart);
-
-    return Semantics(
-      label: context.l10n.courses_status_semanticLabel(
-        statusLabel,
-        durationLabel,
-      ),
-      child: Card(
-        color: courseStatusSurface(colorScheme, completed: course.isCompleted),
-        // The card colour above is already blended onto the theme surface;
-        // letting the elevation tint composite on top would undo that.
-        surfaceTintColor: Colors.transparent,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Icon(
-                course.isCompleted ? Icons.check_circle : Icons.pending,
-                size: 40,
-                color: statusAccent,
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      course.isCompleted
-                          ? context.l10n.courses_status_completed
-                          : context.l10n.courses_status_inProgress,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: statusAccent,
-                      ),
-                    ),
-                    if (course.durationDays != null)
-                      Text(
-                        context.l10n.courses_status_durationDays(
-                          course.durationDays!,
-                        ),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      )
-                    else
-                      Text(
-                        context.l10n.courses_status_daysSinceStart(
-                          course.daysSinceStart,
-                        ),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+    final bar = AppBar(
+      title: Text(course.name),
+      actions: [
+        if (host != null) host.lockButton(course),
+        IconButton(
+          icon: const Icon(Icons.edit),
+          tooltip: context.l10n.courses_action_edit,
+          // Where the page edits in place, Edit unlocks it as the lock does.
+          onPressed: host != null
+              ? () => host.editController.unlock(course)
+              : () => context.push('/courses/${course.id}/edit'),
         ),
-      ),
-    );
-  }
-
-  Widget _buildSectionHeader(
-    BuildContext context,
-    String title,
-    IconData icon,
-  ) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Row(
-      children: [
-        Icon(icon, size: 20, color: colorScheme.primary),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-        ),
+        _buildMoreMenu(context, ref),
       ],
     );
-  }
-
-  Widget _buildDetailRow(
-    BuildContext context,
-    String label,
-    String value,
-    IconData icon, {
-    bool copyable = false,
-  }) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final row = DetailRow.text(
-      icon: icon,
-      iconSize: 16,
-      iconGap: 8,
-      iconColor: colorScheme.onSurfaceVariant,
-      label: label,
-      value: value,
-      valueStyle: Theme.of(context).textTheme.bodyMedium,
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      copyable: copyable,
-    );
-    // A copyable row reads as one node by itself, beside its copy button.
-    if (copyable && DetailRow.canCopy(value)) return row;
-
-    return Semantics(label: '$label: $value', child: row);
-  }
-
-  Widget _buildCertificationSection(
-    BuildContext context,
-    WidgetRef ref,
-    String courseId,
-  ) {
-    final certsAsync = ref.watch(certificationsForCourseProvider(courseId));
-    // The retained value, so a reload after a link change keeps the rows on
-    // screen; nothing on the very first load, since an empty course shows no
-    // section at all.
-    final certs = certsAsync.value;
-    final failed = certs == null && certsAsync.hasError;
-    if (!failed && (certs == null || certs.isEmpty)) {
-      return const SizedBox.shrink();
+    if (host != null) {
+      return host.editScaffold(
+        record: stored,
+        shown: course,
+        lockedBar: bar,
+        unlockedActions: [_buildMoreMenu(context, ref)],
+        content: body,
+      );
     }
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Column(
-      children: [
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildSectionHeader(
-                  context,
-                  context.l10n.courses_section_earnedCertifications,
-                  Icons.card_membership,
-                ),
-                const SizedBox(height: 12),
-                if (failed)
-                  Text(
-                    context.l10n.courses_error_loadingCertification,
-                    style: TextStyle(color: colorScheme.error),
-                  )
-                else
-                  for (final cert in certs!)
-                    _buildCertificationRow(context, cert, colorScheme),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-      ],
-    );
+    return Scaffold(appBar: bar, body: body);
   }
 
-  Widget _buildCertificationRow(
-    BuildContext context,
-    Certification cert,
-    ColorScheme colorScheme,
-  ) {
-    final agency = context.certificationCatalog
-        .agency(cert.agency)
-        .localizedName(context.l10n);
-    final card = cert.cardNumber;
-    return ListTile(
-      // Keyed so a row is never reused for another certification: the card
-      // photo keeps its last frame while new bytes decode.
-      key: ValueKey(cert.id),
-      contentPadding: EdgeInsets.zero,
-      leading: CourseCertificationThumbnail(
-        certification: cert,
-        agencyName: agency,
-      ),
-      // Not cert.name: a certification with no custom title stores an empty
-      // name and is titled by its level (#3436).
-      title: Text(
-        certificationTitleL10n(
-          cert,
-          context.l10n,
-          catalog: context.certificationCatalog,
-        ),
-      ),
-      subtitle: Text(
-        card != null && card.isNotEmpty ? '$agency - $card' : agency,
-      ),
-      trailing: Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
-      onTap: () => context.push('/certifications/${cert.id}'),
-    );
-  }
-
-  Widget _buildEmbeddedHeader(
-    BuildContext context,
-    WidgetRef ref,
-    Course course,
-  ) {
+  Widget _buildEmbeddedHeader(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
+    final host = this.host;
     return Container(
       padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 8, 8),
       decoration: BoxDecoration(
@@ -528,37 +335,43 @@ class CourseDetailPage extends ConsumerWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
+          if (host != null) host.lockButton(course, compact: true),
           IconButton(
             icon: const Icon(Icons.edit),
             tooltip: context.l10n.courses_action_edit,
-            onPressed: () {
-              if (ResponsiveBreakpoints.isMasterDetail(context)) {
-                final state = GoRouterState.of(context);
-                final currentPath = state.uri.path;
-                // Use 'selected' param (not 'id') per MasterDetailScaffold convention
-                context.go('$currentPath?selected=${course.id}&mode=edit');
-              } else {
-                context.push('/courses/${course.id}/edit');
-              }
-            },
+            onPressed: host != null
+                ? () => host.editController.unlock(course)
+                : () {
+                    if (ResponsiveBreakpoints.isMasterDetail(context)) {
+                      final state = GoRouterState.of(context);
+                      final currentPath = state.uri.path;
+                      // Use 'selected' param (not 'id') per
+                      // MasterDetailScaffold convention
+                      context.go(
+                        '$currentPath?selected=${course.id}&mode=edit',
+                      );
+                    } else {
+                      context.push('/courses/${course.id}/edit');
+                    }
+                  },
           ),
-          _buildMoreMenu(context, ref, course),
+          _buildMoreMenu(context, ref),
         ],
       ),
     );
   }
 
   /// The overflow menu shared by the standalone and embedded headers.
-  Widget _buildMoreMenu(BuildContext context, WidgetRef ref, Course course) {
+  Widget _buildMoreMenu(BuildContext context, WidgetRef ref) {
     return PopupMenuButton<String>(
       tooltip: context.l10n.courses_action_moreOptions,
       onSelected: (value) {
         if (value == kOpenInConnectionsAction) {
           openInConnections(context, NodeRef(ConnectionKind.course, course.id));
         } else if (value == 'delete') {
-          _confirmDelete(context, ref, course);
+          _confirmDelete(context, ref);
         } else if (value == 'export') {
-          _exportTrainingLog(context, ref, course);
+          _exportTrainingLog(context, ref);
         }
       },
       itemBuilder: (context) => [
@@ -599,52 +412,7 @@ class CourseDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildLoading(BuildContext context) {
-    if (embedded) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.courses_title_singular)),
-      body: const Center(child: CircularProgressIndicator()),
-    );
-  }
-
-  Widget _buildNotFound(BuildContext context) {
-    if (embedded) {
-      return Center(child: Text(context.l10n.courses_detail_notFound));
-    }
-    return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.courses_title_singular)),
-      body: Center(child: Text(context.l10n.courses_detail_notFound)),
-    );
-  }
-
-  Widget _buildError(BuildContext context, Object error) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final content = Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.error_outline, size: 48, color: colorScheme.error),
-          const SizedBox(height: 16),
-          Text('${context.l10n.common_label_error}: $error'),
-        ],
-      ),
-    );
-
-    if (embedded) return content;
-
-    return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.courses_title_singular)),
-      body: content,
-    );
-  }
-
-  Future<void> _markCompleted(
-    BuildContext context,
-    WidgetRef ref,
-    Course course,
-  ) async {
+  Future<void> _markCompleted(BuildContext context, WidgetRef ref) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -670,11 +438,7 @@ class CourseDetailPage extends ConsumerWidget {
     }
   }
 
-  Future<void> _confirmDelete(
-    BuildContext context,
-    WidgetRef ref,
-    Course course,
-  ) async {
+  Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -708,11 +472,7 @@ class CourseDetailPage extends ConsumerWidget {
     }
   }
 
-  Future<void> _exportTrainingLog(
-    BuildContext context,
-    WidgetRef ref,
-    Course course,
-  ) async {
+  Future<void> _exportTrainingLog(BuildContext context, WidgetRef ref) async {
     // Printed in the app language (#2252); read before any await.
     final localization = PdfLocalization.forLanguageCode(
       Localizations.localeOf(context).languageCode,

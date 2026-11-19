@@ -32,6 +32,9 @@ void main() {
         'MarkdownNotesField(',
     'lib/features/certifications/presentation/pages/certification_edit_page.dart':
         'MarkdownNotesField(',
+    // A course's Notes card edited in place (issue #4527).
+    'lib/features/courses/presentation/editing/course_card_editors.dart':
+        'MarkdownNotesField(',
     'lib/features/courses/presentation/pages/course_edit_page.dart':
         'MarkdownNotesField(',
     // A dive centre's Notes card edited in place (issue #4527).
@@ -103,7 +106,7 @@ void main() {
   const views = <String>[
     'lib/features/buddies/presentation/pages/buddy_detail_page.dart',
     'lib/features/certifications/presentation/pages/certification_detail_page.dart',
-    'lib/features/courses/presentation/pages/course_detail_page.dart',
+    'lib/features/courses/presentation/pages/course_detail_page_sections.dart',
     'lib/features/dive_centers/presentation/pages/dive_center_detail_page.dart',
     'lib/features/dive_log/presentation/widgets/dive_detail/dive_detail_text_sections.dart',
     'lib/features/dive_sites/presentation/pages/site_detail_page.dart',
