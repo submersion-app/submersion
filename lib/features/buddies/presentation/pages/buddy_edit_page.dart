@@ -16,7 +16,6 @@ import 'package:submersion/features/certifications/presentation/pages/certificat
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
-import 'package:submersion/features/buddies/domain/services/buddy_card_merge.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_country_providers.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_profile_link_providers.dart';
@@ -25,8 +24,6 @@ import 'package:submersion/features/buddies/presentation/widgets/linked_profile_
 import 'package:submersion/features/buddies/presentation/widgets/linked_profile_suggestion.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_profile_link_repository.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_country_columns.dart';
-import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
-import 'package:submersion/features/buddies/presentation/pages/buddy_merge_form_controller.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
@@ -51,10 +48,6 @@ class BuddyEditPage extends ConsumerStatefulWidget {
   /// Callback when user cancels editing.
   final VoidCallback? onCancel;
 
-  /// Loaded buddies to merge into one. Mutually exclusive with [buddyId].
-  /// Data loading is handled by [BuddyMergePage].
-  final List<Buddy>? mergeBuddies;
-
   const BuddyEditPage({
     super.key,
     this.buddyId,
@@ -65,13 +58,7 @@ class BuddyEditPage extends ConsumerStatefulWidget {
     this.embedded = false,
     this.onSaved,
     this.onCancel,
-    this.mergeBuddies,
-  }) : assert(
-         buddyId == null || mergeBuddies == null,
-         'buddyId and mergeBuddies are mutually exclusive',
-       );
-
-  bool get isMerging => mergeBuddies != null && mergeBuddies!.length > 1;
+  });
 
   @override
   ConsumerState<BuddyEditPage> createState() => _BuddyEditPageState();
@@ -97,12 +84,6 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
   bool _isSaving = false;
   bool _hasChanges = false;
 
-  /// In merge mode, the merged buddy whose card figures survive.
-  Buddy? _cardSource;
-
-  /// Where the saved buddy's card figures come from: the merge's card
-  /// source, or the buddy being edited.
-  Buddy? get _cardBuddy => widget.isMerging ? _cardSource : _originalBuddy;
   Buddy? _originalBuddy;
   Uint8List? _photo;
 
@@ -116,8 +97,6 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
   /// The rankings exclusion (issue #3624), as edited on this page.
   bool _excludedFromRankings = false;
 
-  BuddyMergeFormController? _mergeCtrl;
-
   bool get isEditing => widget.buddyId != null;
   bool get hasInitialData =>
       widget.initialName != null ||
@@ -127,24 +106,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
   @override
   void initState() {
     super.initState();
-    if (widget.isMerging) {
-      _mergeCtrl = BuddyMergeFormController();
-      _originalBuddy = widget.mergeBuddies!.first;
-      // The merge controller fills the other fields; the social handle and
-      // the buddy card figures (issue #3728) come from whichever buddy has
-      // them, not only the first.
-      _socialController.text = mergedSocialHandle(widget.mergeBuddies!) ?? '';
-      _cardSource = mergedBuddyCardSource(widget.mergeBuddies!);
-      _mergeCtrl!.initialize(
-        buddies: widget.mergeBuddies!,
-        nameController: _nameController,
-        emailController: _emailController,
-        phoneController: _phoneController,
-        countryController: _countryController,
-        notesController: _notesController,
-      );
-      _excludedFromRankings = _mergeCtrl!.mergedExcludedFromRankings;
-    } else if (isEditing) {
+    if (isEditing) {
       _loadBuddy();
     } else if (hasInitialData) {
       // Pre-fill from imported contact
@@ -225,63 +187,6 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
     }
   }
 
-  Widget _buildMergeCycleButton(VoidCallback onPressed) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return IconButton(
-      onPressed: onPressed,
-      tooltip: context.l10n.buddies_edit_merge_fieldSourceCycleTooltip,
-      icon: const Icon(Icons.sync_alt, size: 18),
-      iconSize: 18,
-      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-      padding: const EdgeInsets.all(6),
-      style: IconButton.styleFrom(
-        backgroundColor: colorScheme.primaryContainer,
-        foregroundColor: colorScheme.onPrimaryContainer,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
-  }
-
-  InputDecoration _withMergeTextDecoration({
-    required String key,
-    required InputDecoration decoration,
-  }) {
-    final ctrl = _mergeCtrl;
-    if (!widget.isMerging || ctrl == null) return decoration;
-
-    final candidates = ctrl.textCandidates[key];
-    if (candidates == null || candidates.length < 2) return decoration;
-
-    final currentIndex = ctrl.fieldIndices[key] ?? 0;
-    final current = candidates[currentIndex];
-    final controller = switch (key) {
-      'name' => _nameController,
-      'email' => _emailController,
-      'phone' => _phoneController,
-      'country' => _countryController,
-      'notes' => _notesController,
-      _ => _nameController,
-    };
-
-    return decoration.copyWith(
-      helperText: context.l10n.buddies_edit_merge_fieldSourceLabel(
-        current.buddyName,
-        currentIndex + 1,
-        candidates.length,
-      ),
-      suffixIcon: Padding(
-        padding: const EdgeInsets.only(right: 6),
-        child: _buildMergeCycleButton(
-          () => setState(() {
-            ctrl.cycleTextField(key, controller: controller);
-            _hasChanges = true;
-          }),
-        ),
-      ),
-      suffixIconConstraints: const BoxConstraints(minWidth: 44, minHeight: 36),
-    );
-  }
-
   @override
   void dispose() {
     _nameController.dispose();
@@ -343,9 +248,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(
-            widget.isMerging
-                ? context.l10n.buddies_edit_merge_title
-                : isEditing
+            isEditing
                 ? context.l10n.buddies_title_edit
                 : context.l10n.buddies_title_add,
           ),
@@ -419,13 +322,10 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
             // Name field
             TextFormField(
               controller: _nameController,
-              decoration: _withMergeTextDecoration(
-                key: 'name',
-                decoration: InputDecoration(
-                  labelText: context.l10n.buddies_field_nameRequired,
-                  prefixIcon: const Icon(Icons.person),
-                  hintText: context.l10n.buddies_field_nameHint,
-                ),
+              decoration: InputDecoration(
+                labelText: context.l10n.buddies_field_nameRequired,
+                prefixIcon: const Icon(Icons.person),
+                hintText: context.l10n.buddies_field_nameHint,
               ),
               textCapitalization: TextCapitalization.words,
               validator: (value) {
@@ -440,13 +340,10 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
             // Email field
             TextFormField(
               controller: _emailController,
-              decoration: _withMergeTextDecoration(
-                key: 'email',
-                decoration: InputDecoration(
-                  labelText: context.l10n.buddies_field_email,
-                  prefixIcon: const Icon(Icons.email),
-                  hintText: context.l10n.buddies_field_emailHint,
-                ),
+              decoration: InputDecoration(
+                labelText: context.l10n.buddies_field_email,
+                prefixIcon: const Icon(Icons.email),
+                hintText: context.l10n.buddies_field_emailHint,
               ),
               keyboardType: TextInputType.emailAddress,
               validator: (value) {
@@ -466,13 +363,10 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
             // Phone field
             TextFormField(
               controller: _phoneController,
-              decoration: _withMergeTextDecoration(
-                key: 'phone',
-                decoration: InputDecoration(
-                  labelText: context.l10n.buddies_field_phone,
-                  prefixIcon: const Icon(Icons.phone),
-                  hintText: context.l10n.buddies_field_phoneHint,
-                ),
+              decoration: InputDecoration(
+                labelText: context.l10n.buddies_field_phone,
+                prefixIcon: const Icon(Icons.phone),
+                hintText: context.l10n.buddies_field_phoneHint,
               ),
               keyboardType: TextInputType.phone,
             ),
@@ -489,36 +383,28 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
               controller: _countryController,
               suggestions:
                   ref.watch(buddyCountrySuggestionsProvider).value ?? const [],
-              decoration: _withMergeTextDecoration(
-                key: 'country',
-                decoration: InputDecoration(
-                  labelText: context.l10n.buddies_field_country,
-                  prefixIcon: const Icon(Icons.public),
-                  hintText: context.l10n.buddies_field_countryHint,
-                ),
+              decoration: InputDecoration(
+                labelText: context.l10n.buddies_field_country,
+                prefixIcon: const Icon(Icons.public),
+                hintText: context.l10n.buddies_field_countryHint,
               ),
             ),
             const SizedBox(height: 24),
 
             // Linked profile (issue #2002): which local diver this buddy is.
-            // Hidden in merge mode, where the surviving link is settled by
-            // the controller and the repository.
-            if (!widget.isMerging) ...[
-              if (!_suggestionDismissed && _linkedDiverId == null)
-                _buildLinkedProfileSuggestion(),
-              LinkedProfileField(
-                ownerDiverId: _originalBuddy?.diverId,
-                linkedDiverId: _linkedDiverId,
-                onChanged: (id) => setState(() {
-                  _linkedDiverId = id;
-                  _hasChanges = true;
-                }),
-              ),
-              const SizedBox(height: 24),
-            ],
+            if (!_suggestionDismissed && _linkedDiverId == null)
+              _buildLinkedProfileSuggestion(),
+            LinkedProfileField(
+              ownerDiverId: _originalBuddy?.diverId,
+              linkedDiverId: _linkedDiverId,
+              onChanged: (id) => setState(() {
+                _linkedDiverId = id;
+                _hasChanges = true;
+              }),
+            ),
+            const SizedBox(height: 24),
 
-            // Rankings exclusion (issue #3624). Shown in merge mode too, where
-            // it starts on only if every merged buddy has it on.
+            // Rankings exclusion (issue #3624).
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(context.l10n.buddies_field_excludedFromRankings),
@@ -534,63 +420,59 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
             const SizedBox(height: 24),
 
             // Certifications (issue #553): staged in memory, committed on
-            // Save. Hidden in merge mode -- the survivor inherits the union of
-            // certs at the repository level (no per-field cycling).
-            if (!widget.isMerging) ...[
-              Text(
-                context.l10n.buddies_section_certifications,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 12),
-              for (final (index, cert) in _certifications.indexed)
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.card_membership),
-                  title: Text(
-                    certificationTitleL10n(
-                      cert,
-                      context.l10n,
-                      catalog: context.certificationCatalog,
-                    ),
-                  ),
-                  subtitle: Text(
-                    certificationAgencyAndLevelL10n(
-                      cert,
-                      context.l10n,
-                      catalog: context.certificationCatalog,
-                    ),
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit),
-                        onPressed: () => _openCertEditor(index),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline),
-                        onPressed: () => setState(() {
-                          _certifications = [..._certifications]
-                            ..removeAt(index);
-                          _hasChanges = true;
-                          _certificationsDirty = true;
-                        }),
-                      ),
-                    ],
+            // Save.
+            Text(
+              context.l10n.buddies_section_certifications,
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            for (final (index, cert) in _certifications.indexed)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.card_membership),
+                title: Text(
+                  certificationTitleL10n(
+                    cert,
+                    context.l10n,
+                    catalog: context.certificationCatalog,
                   ),
                 ),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: TextButton.icon(
-                  icon: const Icon(Icons.add),
-                  label: Text(context.l10n.buddies_action_addCertification),
-                  onPressed: () => _openCertEditor(null),
+                subtitle: Text(
+                  certificationAgencyAndLevelL10n(
+                    cert,
+                    context.l10n,
+                    catalog: context.certificationCatalog,
+                  ),
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit),
+                      onPressed: () => _openCertEditor(index),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline),
+                      onPressed: () => setState(() {
+                        _certifications = [..._certifications]..removeAt(index);
+                        _hasChanges = true;
+                        _certificationsDirty = true;
+                      }),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 24),
-            ],
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                icon: const Icon(Icons.add),
+                label: Text(context.l10n.buddies_action_addCertification),
+                onPressed: () => _openCertEditor(null),
+              ),
+            ),
+            const SizedBox(height: 24),
 
             // Notes section header
             Text(
@@ -604,14 +486,11 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
             // Notes field
             MarkdownNotesField(
               controller: _notesController,
-              decoration: _withMergeTextDecoration(
-                key: 'notes',
-                decoration: InputDecoration(
-                  labelText: context.l10n.buddies_field_notes,
-                  prefixIcon: const Icon(Icons.notes),
-                  hintText: context.l10n.buddies_field_notesHint,
-                  alignLabelWithHint: true,
-                ),
+              decoration: InputDecoration(
+                labelText: context.l10n.buddies_field_notes,
+                prefixIcon: const Icon(Icons.notes),
+                hintText: context.l10n.buddies_field_notesHint,
+                alignLabelWithHint: true,
               ),
               maxLines: 4,
             ),
@@ -627,9 +506,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : Text(
-                      widget.isMerging
-                          ? context.l10n.buddies_edit_merge_title
-                          : isEditing
+                      isEditing
                           ? context.l10n.buddies_action_update
                           : context.l10n.buddies_action_add,
                     ),
@@ -756,28 +633,6 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
     );
   }
 
-  Future<bool> _confirmMerge() async {
-    final count = widget.mergeBuddies?.length ?? 0;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.l10n.buddies_edit_merge_confirmTitle),
-        content: Text(context.l10n.buddies_edit_merge_confirmBody(count)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(context.l10n.common_action_cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(context.l10n.buddies_edit_merge_title),
-          ),
-        ],
-      ),
-    );
-    return confirmed == true;
-  }
-
   /// Open the certification editor (staging mode) in a dialog to add or edit a
   /// staged cert; the buddy's cert list commits on Save (issue #553).
   Future<void> _openCertEditor(int? index) async {
@@ -828,9 +683,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
       // The profile link is validated before anything is written: at most
       // one buddy per owner list may be a given profile, and never the
       // owner itself (issue #2002).
-      final linkedDiverId = widget.isMerging
-          ? _mergeCtrl?.mergedLinkedDiverId
-          : _linkedDiverId;
+      final linkedDiverId = _linkedDiverId;
       if (linkedDiverId != null) {
         try {
           await ref
@@ -860,10 +713,8 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
         phone: _phoneController.text.trim().isEmpty
             ? null
             : _phoneController.text.trim(),
-        photoPath: widget.isMerging
-            ? _mergeCtrl?.mergedPhotoPath
-            : _originalBuddy?.photoPath,
-        photo: widget.isMerging ? _mergeCtrl?.mergedPhoto : _photo,
+        photoPath: _originalBuddy?.photoPath,
+        photo: _photo,
         notes: _notesController.text.trim(),
         // Preserve favorite status (issue #638): this form has no favorite
         // control, so a full-constructor rebuild would otherwise silently
@@ -874,7 +725,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
         updatedAt: now,
         // The buddy card figures (issue #3728) have no form field: only a
         // card writes them, so an edit carries them over as they were.
-        cardId: _cardBuddy?.cardId,
+        cardId: _originalBuddy?.cardId,
         socialHandle: _socialController.text.trim().isEmpty
             ? null
             : _socialController.text.trim(),
@@ -886,34 +737,11 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
             code: _originalBuddy?.countryCode,
           ),
         ),
-        cardDiveCount: _cardBuddy?.cardDiveCount,
-        cardDivingSince: _cardBuddy?.cardDivingSince,
-        cardLastDive: _cardBuddy?.cardLastDive,
-        cardReceivedAt: _cardBuddy?.cardReceivedAt,
+        cardDiveCount: _originalBuddy?.cardDiveCount,
+        cardDivingSince: _originalBuddy?.cardDivingSince,
+        cardLastDive: _originalBuddy?.cardLastDive,
+        cardReceivedAt: _originalBuddy?.cardReceivedAt,
       );
-
-      if (widget.isMerging) {
-        final confirmed = await _confirmMerge();
-        if (!confirmed) {
-          setState(() => _isSaving = false);
-          return;
-        }
-
-        final buddyIds = widget.mergeBuddies!
-            .map((b) => b.id)
-            .toList(growable: false);
-        final mergeSnapshot = await ref
-            .read(buddyListNotifierProvider.notifier)
-            .mergeBuddies(buddy, buddyIds);
-        final savedId = buddyIds.first;
-
-        if (mounted) {
-          context.pop(
-            BuddyMergeResult(survivorId: savedId, snapshot: mergeSnapshot),
-          );
-        }
-        return;
-      }
 
       Buddy savedBuddy;
       if (isEditing) {
@@ -927,7 +755,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
 
       // issue #553: commit the staged certifications onto the saved buddy --
       // only when the user actually changed them here, so an unrelated save
-      // doesn't clobber certs added concurrently (sync) or the merge-time union.
+      // doesn't clobber certs added concurrently (sync).
       if (_certificationsDirty) {
         await ref
             .read(certificationRepositoryProvider)
@@ -952,10 +780,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
       }
     } catch (e) {
       if (mounted) {
-        final message =
-            e is StateError && e.message.contains('different profiles')
-            ? context.l10n.buddies_merge_refusedDifferentLinks
-            : context.l10n.buddies_message_errorSaving(e.toString());
+        final message = context.l10n.buddies_message_errorSaving(e.toString());
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(message),

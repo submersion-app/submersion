@@ -27,16 +27,39 @@ class BuddyFavoriteButton extends ConsumerWidget {
   final double iconSize;
   final Color? unselectedColor;
 
+  /// Shows whether the buddy is a favourite and writes nothing on a tap:
+  /// where buddies edit in place (issue #4527, phase 3), the favourite is
+  /// set on the buddy's page, in its sitting.
+  final bool readOnly;
+
   const BuddyFavoriteButton({
     super.key,
     required this.buddyId,
     required this.isFavorite,
     this.iconSize = 24,
     this.unselectedColor,
+    this.readOnly = false,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (readOnly) {
+      return Semantics(
+        label: isFavorite ? context.l10n.query_buddies_favorite : null,
+        child: SizedBox.square(
+          dimension: 32,
+          child: Center(
+            child: Icon(
+              isFavorite ? Icons.star : Icons.star_border,
+              size: iconSize,
+              color: isFavorite
+                  ? Theme.of(context).colorScheme.primary
+                  : unselectedColor,
+            ),
+          ),
+        ),
+      );
+    }
     return IconButton(
       icon: Icon(
         isFavorite ? Icons.star : Icons.star_border,

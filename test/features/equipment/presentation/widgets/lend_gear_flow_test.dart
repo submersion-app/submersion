@@ -12,7 +12,9 @@ import 'package:submersion/features/equipment/domain/entities/equipment_location
 import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/lend_gear_flow.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_location_picker_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -97,6 +99,7 @@ void main() {
   Future<({_FakeLocations locations, _FakeMoves moves})> pump(
     WidgetTester tester, {
     bool failRead = false,
+    List<HeldLend?>? held,
   }) async {
     tester.view.physicalSize = const Size(900, 1200);
     tester.view.devicePixelRatio = 1.0;
@@ -126,7 +129,10 @@ void main() {
         ],
         child: Consumer(
           builder: (context, ref, _) => TextButton(
-            onPressed: () => showLendGearFlow(context, ref, anna),
+            onPressed: () async {
+              if (held == null) return showLendGearFlow(context, ref, anna);
+              held.add(await planLendGear(context, ref, anna));
+            },
             child: const Text('open'),
           ),
         ),
@@ -182,5 +188,45 @@ void main() {
 
     expect(find.byKey(const ValueKey('move_equipment_confirm')), findsNothing);
     expect(fakes.locations.calls, 0);
+  });
+
+  group('held on a page that edits in place (issue #4527, phase 3)', () {
+    testWidgets('a lend asks its questions and writes nothing', (tester) async {
+      final held = <HeldLend?>[];
+      final fakes = await pump(tester, held: held);
+
+      await tester.tap(find.text('Blue 5mm'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(FilledButton).last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('move_equipment_confirm')));
+      await tester.pumpAndSettle();
+      // Lent to a person: Loaned Out is offered, and taken.
+      final l = AppLocalizationsEn();
+      await tester.tap(find.text(l.equipment_location_status_yes));
+      await tester.pumpAndSettle();
+
+      final lend = held.single!;
+      expect([for (final i in lend.items) i.id], ['wet']);
+      expect((lend.pick as BuddyPick).buddy.id, 'anna');
+      expect(lend.plan.status, EquipmentStatus.loaned);
+      expect(lend.diverId, 'me');
+      expect(fakes.locations.calls, 0);
+      expect(fakes.moves.recorded, isEmpty);
+    });
+
+    testWidgets('backing out of the move sheet holds nothing', (tester) async {
+      final held = <HeldLend?>[];
+      await pump(tester, held: held);
+
+      await tester.tap(find.text('Blue 5mm'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(FilledButton).last);
+      await tester.pumpAndSettle();
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle();
+
+      expect(held, [null]);
+    });
   });
 }

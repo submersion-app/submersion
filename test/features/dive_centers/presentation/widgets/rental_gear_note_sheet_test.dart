@@ -51,6 +51,8 @@ void main() {
     WidgetTester tester, {
     DiveCenterGearNote? editing,
     MockSettingsNotifier? settings,
+    bool holdOnly = false,
+    List<RentalNoteEdit?>? results,
   }) async {
     tester.view.physicalSize = const Size(800, 1600);
     tester.view.devicePixelRatio = 1.0;
@@ -69,12 +71,16 @@ void main() {
           home: Scaffold(
             body: Builder(
               builder: (context) => TextButton(
-                onPressed: () => showRentalGearNoteSheet(
-                  context,
-                  diveCenterId: 'c1',
-                  diveId: 'd1',
-                  editing: editing,
-                ),
+                onPressed: () async {
+                  final result = await showRentalGearNoteSheet(
+                    context,
+                    diveCenterId: 'c1',
+                    diveId: 'd1',
+                    editing: editing,
+                    holdOnly: holdOnly,
+                  );
+                  results?.add(result);
+                },
                 child: const Text('open'),
               ),
             ),
@@ -321,5 +327,45 @@ void main() {
       ..sort((a, b) => normalize(a).compareTo(normalize(b)));
     expect(shown, hasLength(EquipmentType.values.length));
     expect(shown, alphabetical);
+  });
+
+  testWidgets('hold-only writes nothing and returns the note', (tester) async {
+    final results = <RentalNoteEdit?>[];
+    await pumpAndOpen(tester, holdOnly: true, results: results);
+    await tester.enterText(fieldLabelled('Label or number'), 'blue 3');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final edit = results.single!;
+    expect(edit.removed, isFalse);
+    expect(edit.note.label, 'blue 3');
+    expect(edit.note.id, isNotEmpty);
+    expect(await tester.runAsync(() => repo.getForCenter('c1')), isEmpty);
+  });
+
+  testWidgets('hold-only delete asks nothing and returns the removal', (
+    tester,
+  ) async {
+    final note = (await tester.runAsync(
+      () => repo.create(
+        DiveCenterGearNote(
+          id: '',
+          diveCenterId: 'c1',
+          gearType: EquipmentType.bcd,
+          verdict: RentalVerdict.worked,
+          notedAt: DateTime.utc(2026),
+          createdAt: DateTime.utc(2026),
+          updatedAt: DateTime.utc(2026),
+        ),
+      ),
+    ))!;
+    final results = <RentalNoteEdit?>[];
+    await pumpAndOpen(tester, editing: note, holdOnly: true, results: results);
+    await tester.tap(find.text('Delete'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(results.single!.removed, isTrue);
+    expect(await tester.runAsync(() => repo.getForCenter('c1')), hasLength(1));
   });
 }

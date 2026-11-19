@@ -23,6 +23,7 @@ import 'package:submersion/features/dive_centers/presentation/widgets/dive_cente
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_summary_widget.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_detail_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_page.dart';
+import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_routes.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_query_providers.dart';
@@ -112,12 +113,14 @@ class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage>
           },
         ),
         summaryBuilder: (context) => const DiveCenterSummaryWidget(),
+        // Behind phase 3's switch, the page opened unlocked (issue #4527).
         editBuilder: (context, centerId, onSaved, onCancel) =>
-            DiveCenterEditPage(
-              centerId: centerId,
-              embedded: true,
-              onSaved: onSaved,
-              onCancel: onCancel,
+            diveCenterEditPane(
+              context,
+              centerId,
+              onSaved,
+              onCancel,
+              onDeleted: () => context.go(GoRouterState.of(context).uri.path),
             ),
         createBuilder: (context, onSaved, onCancel) => DiveCenterEditPage(
           embedded: true,
@@ -246,12 +249,14 @@ class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage>
                 onDetailsTap: (centerId) =>
                     context.push('/dive-centers/$centerId'),
               ),
+          // Behind phase 3's switch, the page opened unlocked (issue #4527).
           editBuilder: (context, centerId, onSaved, onCancel) =>
-              DiveCenterEditPage(
-                centerId: centerId,
-                embedded: true,
-                onSaved: onSaved,
-                onCancel: onCancel,
+              diveCenterEditPane(
+                context,
+                centerId,
+                onSaved,
+                onCancel,
+                onDeleted: () => context.go(GoRouterState.of(context).uri.path),
               ),
           createBuilder: (context, onSaved, onCancel) => DiveCenterEditPage(
             embedded: true,

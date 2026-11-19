@@ -7,6 +7,7 @@ import 'package:submersion/features/buddies/data/repositories/buddy_repository.d
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_edit_page.dart';
+import 'package:submersion/features/buddies/presentation/pages/buddy_merge_page.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -74,12 +75,9 @@ void main() {
       supportedLocales: AppLocalizations.supportedLocales,
       locale: const Locale('en'),
       home: Scaffold(
-        body: BuddyEditPage(
-          buddyId: buddyId,
-          mergeBuddies: mergeBuddies,
-          embedded: true,
-          onSaved: onSaved,
-        ),
+        body: mergeBuddies != null
+            ? BuddyMergeForm(buddies: mergeBuddies)
+            : BuddyEditPage(buddyId: buddyId, embedded: true, onSaved: onSaved),
       ),
     ),
   );

@@ -169,4 +169,89 @@ void main() {
       });
     },
   );
+
+  group('plan and write (issue #4527, phase 3)', () {
+    test('plan asks and writes nothing', () async {
+      int? partsAsked;
+      (EquipmentStatus, int)? statusAsked;
+      var statusWritten = false;
+      final flow = EquipmentMoveFlow(
+        moves: EquipmentLocationMoveRepository(),
+        askMoveParts: (n) async {
+          partsAsked = n;
+          return true;
+        },
+        askStatus: (status, n) async {
+          statusAsked = (status, n);
+          return true;
+        },
+        setStatus: (_, _) async => statusWritten = true,
+      );
+
+      final plan = await flow.plan(
+        items: [item('reg', EquipmentStatus.active)],
+        targetKind: EquipmentLocationKind.serviceShop,
+        movedAt: DateTime(2026, 9, 3),
+        note: 'annual',
+      );
+
+      expect(partsAsked, 1);
+      expect(statusAsked, (EquipmentStatus.inService, 2));
+      expect(plan.withParts, isTrue);
+      expect(plan.partIds, {'second'});
+      expect(plan.status, EquipmentStatus.inService);
+      expect(statusWritten, isFalse);
+      expect(
+        await EquipmentLocationMoveRepository().getCurrentLocationIds(),
+        isEmpty,
+      );
+    });
+
+    test('write records the moves and the status the plan chose', () async {
+      List<String>? statusIds;
+      var asked = false;
+      final flow = EquipmentMoveFlow(
+        moves: EquipmentLocationMoveRepository(),
+        askMoveParts: (_) async => asked = true,
+        askStatus: (_, _) async => asked = true,
+        setStatus: (ids, status) async => statusIds = ids,
+      );
+      final plan = EquipmentMovePlan(
+        items: const {'reg': EquipmentStatus.active},
+        movedAt: DateTime(2026, 9, 3),
+        withParts: true,
+        status: EquipmentStatus.inService,
+      );
+
+      final moved = await flow.write(plan, target: shop);
+
+      expect(moved, 2);
+      expect(asked, isFalse);
+      expect(await EquipmentLocationMoveRepository().getCurrentLocationIds(), {
+        'reg': 'shop',
+        'second': 'shop',
+      });
+      expect(statusIds, unorderedEquals(['reg', 'second']));
+    });
+
+    test('write with the status declined keeps each one\'s', () async {
+      List<String>? statusIds;
+      final flow = EquipmentMoveFlow(
+        moves: EquipmentLocationMoveRepository(),
+        askMoveParts: (_) async => false,
+        askStatus: (_, _) async => false,
+        setStatus: (ids, status) async => statusIds = ids,
+      );
+
+      await flow.write(
+        EquipmentMovePlan(
+          items: const {'bcd': EquipmentStatus.active},
+          movedAt: DateTime(2026, 9, 3),
+        ),
+        target: shop,
+      );
+
+      expect(statusIds, isNull);
+    });
+  });
 }

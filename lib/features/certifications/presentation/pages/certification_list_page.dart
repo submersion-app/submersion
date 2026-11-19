@@ -20,6 +20,7 @@ import 'package:submersion/features/certifications/presentation/widgets/certific
 import 'package:submersion/features/certifications/presentation/widgets/certification_summary_widget.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_detail_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_edit_page.dart';
+import 'package:submersion/features/certifications/presentation/pages/certification_edit_routes.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_query_providers.dart';
 import 'package:submersion/features/certifications/query/certification_query_entity.dart';
@@ -100,12 +101,14 @@ class _CertificationListPageState extends ConsumerState<CertificationListPage>
             },
           ),
           summaryBuilder: (context) => const CertificationSummaryWidget(),
+          // Behind phase 3's switch, the page opened unlocked (issue #4527).
           editBuilder: (context, certificationId, onSaved, onCancel) =>
-              CertificationEditPage(
-                certificationId: certificationId,
-                embedded: true,
-                onSaved: onSaved,
-                onCancel: onCancel,
+              certificationEditPane(
+                context,
+                certificationId,
+                onSaved,
+                onCancel,
+                onDeleted: () => context.go(GoRouterState.of(context).uri.path),
               ),
           createBuilder: (context, onSaved, onCancel) => CertificationEditPage(
             embedded: true,
@@ -209,12 +212,14 @@ class _CertificationListPageState extends ConsumerState<CertificationListPage>
           },
         ),
         summaryBuilder: (context) => const CertificationSummaryWidget(),
+        // Behind phase 3's switch, the page opened unlocked (issue #4527).
         editBuilder: (context, certificationId, onSaved, onCancel) =>
-            CertificationEditPage(
-              certificationId: certificationId,
-              embedded: true,
-              onSaved: onSaved,
-              onCancel: onCancel,
+            certificationEditPane(
+              context,
+              certificationId,
+              onSaved,
+              onCancel,
+              onDeleted: () => context.go(GoRouterState.of(context).uri.path),
             ),
         createBuilder: (context, onSaved, onCancel) => CertificationEditPage(
           embedded: true,
