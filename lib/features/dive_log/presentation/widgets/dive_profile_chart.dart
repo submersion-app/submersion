@@ -4449,11 +4449,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           final aveloLines = [
             for (final metric in aveloLineMetrics)
               if (_aveloShown(metric))
-                if (aveloLineRange(metric, widget.profile) case final range?)
-                  (
-                    bar: _buildAveloLine(metric, metricBand, range),
-                    tag: metric,
-                  ),
+                if (_buildAveloLine(metric, metricBand) case final bar?)
+                  (bar: bar, tag: metric),
           ];
 
           return [
@@ -7438,13 +7435,15 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _ => _showComputerRmv,
   };
 
-  /// One Avelo line (issue #4664), decimated like the other nullable lines.
-  LineChartBarData _buildAveloLine(
+  /// One Avelo line (issue #4664), decimated like the other nullable lines,
+  /// or null when the dive has nothing to draw for [metric].
+  LineChartBarData? _buildAveloLine(
     ProfileRightAxisMetric metric,
     MetricBand band,
-    ({double min, double max}) range,
   ) {
     final curve = aveloCurve(metric, widget.profile);
+    final range = aveloCurveRange(metric, curve);
+    if (range == null) return null;
     return buildAveloLine(
       color: _palette.rightAxisColor(metric),
       band: band,

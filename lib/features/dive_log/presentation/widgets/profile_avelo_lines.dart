@@ -40,8 +40,14 @@ List<double?> aveloCurve(
 ({double min, double max})? aveloLineRange(
   ProfileRightAxisMetric metric,
   List<DiveProfilePoint> profile,
+) => aveloCurveRange(metric, aveloCurve(metric, profile));
+
+/// [aveloLineRange] for a [curve] already read by [aveloCurve], so a caller
+/// that draws the line too reads the samples once.
+({double min, double max})? aveloCurveRange(
+  ProfileRightAxisMetric metric,
+  List<double?> curve,
 ) {
-  final curve = aveloCurve(metric, profile);
   if (!curve.any((v) => v != null)) return null;
   return switch (metric) {
     ProfileRightAxisMetric.aveloBuoyancy => buoyancyAxisRange(curve),
