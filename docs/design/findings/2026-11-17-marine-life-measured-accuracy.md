@@ -13,6 +13,7 @@ Pack `2026.11.18.0356` carries both detectors and the same naming files
 as `2026.11.18.0030`; scored on it, every number below came out the same,
 and "Two detectors in one pack" adds what is new (#4691,
 [design](../specs/2026-11-17-marine-life-two-detectors-design.md)).
+A rerun on it measured the naming levels, in "Naming levels" (#4721).
 All use BioCLIP 2 (`bioclip-2-vitl14-2957b32`), 16-bit Core ML on an
 Apple M5 Pro, through the app's own Swift pipeline. The numbers below are
 for the 9,151 pack unless they say otherwise; "The candidate list with
@@ -425,6 +426,57 @@ detector and classifier; the pair's extra 120 to 140 MB at its peaks is
 Megalodon's working memory on top of the media decode. These are Mac
 figures on the GPU path; the iPhone test is still open.
 
+## Naming levels
+
+Pack `2026.11.18.0356` was scored again on 2026-11-19 for the naming
+levels (#4721,
+[design](../specs/2026-11-18-marine-life-naming-levels-design.md)); the
+rerun reproduced every bar and Surer number above exactly. A level moves
+only the two suggest bars, under each set's own measured bars: Balanced
+aims for 75% right and Eager for 65%, by the same Wilson test as the 85%
+bars, with the same rule (the bars that name the most animals right, ties
+to the higher bar), the same 2% junk cap on the tune half and the same
+held-out gate. Every set keeps both levels, and all are in
+`tool/species_pack/manifest.py`.
+
+With a location ("suggested right" is what the app shows, rounded down to
+a multiple of 5):
+
+| Set (fitting) | Level | suggest | suggest, no location | suggested right | coverage | junk named |
+| --- | --- | --- | --- | --- | --- | --- |
+| Both (centre crop), published | Surer | 0.74 | 0.81 | 89.7% (86.0 to 92.5) | 32.4% (29.7 to 35.3) | 1.6% (0.3 to 8.6) |
+| | Balanced | 0.25 | 0.63 | 82.5% (78.8 to 85.6) | 45.4% (42.4 to 48.4) | 3.2% (0.9 to 11.0) |
+| | Eager | 0.25 | 0.44 | 82.5% (78.8 to 85.6) | 45.4% (42.4 to 48.4) | 3.2% (0.9 to 11.0) |
+| Fish detector (centre crop) | Surer | 0.64 | 0.79 | 87.1% (83.1 to 90.2) | 36.9% (33.9 to 40.1) | 2.9% (0.5 to 14.5) |
+| | Balanced | 0.25 | 0.56 | 82.1% (78.2 to 85.4) | 45.6% (42.5 to 48.8) | 5.7% (1.6 to 18.6) |
+| | Eager | 0.25 | 0.39 | 82.1% (78.2 to 85.4) | 45.6% (42.5 to 48.8) | 5.7% (1.6 to 18.6) |
+| Megalodon (pad-to-square) | Surer | 0.75 | 0.70 | 92.3% (88.5 to 94.9) | 30.9% (27.9 to 34.0) | 0.0% (0.0 to 11.4) |
+| | Balanced | 0.57 | 0.59 | 84.9% (81.1 to 88.1) | 45.8% (42.6 to 49.1) | 0.0% (0.0 to 11.4) |
+| | Eager | 0.36 | 0.44 | 75.7% (72.0 to 79.1) | 62.4% (59.2 to 65.6) | 0.0% (0.0 to 11.4) |
+
+- **The published pair.** Balanced names 45.4% of the animals the
+  detectors box against Surer's 32.4%, about 40% more, and is right 82.5%
+  of the time against 89.7%. The app shows "About 80% right" against
+  "About 85% right".
+- **Balanced and Eager share a bar with a location.** Below 0.25 the pair
+  names no more animals right, and a tie goes to the higher bar, so the
+  65% target adds nothing there. Eager differs only without a location
+  (0.44 against 0.63). The table is with a location, so Eager's accuracy
+  without one is not reported on its own, and the app shows the same
+  figure for both. Eager is kept as measured, the maintainer's call, so a
+  diver whose photos have no location still gets more names from it. The
+  fish detector alone shows the same pattern; Megalodon alone is the one
+  set whose Eager names more everywhere.
+- **Junk.** The cap holds on the tune half (55 junk boxes for the pair),
+  as for the pack's own bars. On the held-out half the pair's levels named
+  2 of 62 junk boxes against Surer's 1, and the fish detector's 2 of 35
+  against 1; with sets this small the intervals overlap widely (see
+  Limits).
+
+`relevel_manifest.py` adds the pair's levels and Surer's precision to the
+published manifest under the same pack version, so the app takes the new
+manifest in place, with nothing downloaded.
+
 ## Licence notes
 
 Stated, not settled:
@@ -492,3 +544,12 @@ Megalodon, and run `score.py`; see "Measuring accuracy" in
 [the developer page](../../developer/species-identification.md). The tables
 here come from `report.md` and `results.json` in the work folder, written by
 `tool/species_pack/score.py`, except where noted.
+
+The naming levels were measured on the published pack's own files
+(`gh release download species-pack`, checked against its manifest's sizes
+and hashes), since they hold only for those bytes. With a pack that
+carries Megalodon there is nothing to convert, and the scorer needs only
+numpy and Pillow. Each set's `precision` and `levels` go from
+`results.json`'s `measured` entries into `NAMING_MEASURED`, and
+`relevel_manifest.py --in <published manifest.json> --out <new manifest.json>`
+adds them to the published manifest, changing nothing else.

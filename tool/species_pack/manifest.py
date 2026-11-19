@@ -80,7 +80,9 @@ CONTENT_FILES = ("candidates.json", "text_embeddings.f16", "regions.bin")
 # run on it. A bar of 1.01 is never: no confident names, since at each
 # set's chosen fitting no bar proved 95% right. Measured on the pack with
 # surveyed species (9,151 candidates); the earlier 7,646 pack's bars no
-# longer apply.
+# longer apply. Each set's `precision` (its own bars, held-out, with a
+# location) and naming levels (issue #4721) were measured on pack
+# 2026.11.18.0356 under these bars.
 _MEASURED_CONTENTS = {
     "candidates.json": "4f0dc61c95ab06de3a0b2ecb1401260e23907c3d2ff09d2da165bd9c8c34d50c",
     "text_embeddings.f16": "9aa97fc27a4b91039bd8eb9b6ad7be2da0cc97e4818a1ad81bb7f61b111cde33",
@@ -99,10 +101,29 @@ NAMING_MEASURED = [
             "confidentScoreNoLocation": 1.01,
             "minAllowedCandidates": 200,
             "topK": 5,
+            "precision": 0.871,
+            "levels": [
+                {
+                    "id": "balanced",
+                    "target": 0.75,
+                    "suggestScore": 0.25,
+                    "suggestScoreNoLocation": 0.56,
+                    "precision": 0.821,
+                },
+                {
+                    "id": "eager",
+                    "target": 0.65,
+                    "suggestScore": 0.25,
+                    "suggestScoreNoLocation": 0.39,
+                    "precision": 0.821,
+                },
+            ],
         },
         "detectorIds": [DETECTORS["cfd"]["id"]],
         "classifierId": "bioclip-2-vitl14-2957b32",
         "cropFit": "centreCrop",
+        # The bars' pack. Its precision and levels came from 2026.11.18.0356,
+        # which carries this detector and the same naming files.
         "packVersion": "2026.11.18.0030",
         "contents": _MEASURED_CONTENTS,
         "findings": _FINDINGS,
@@ -120,6 +141,23 @@ NAMING_MEASURED = [
             "confidentScoreNoLocation": 1.01,
             "minAllowedCandidates": 200,
             "topK": 5,
+            "precision": 0.923,
+            "levels": [
+                {
+                    "id": "balanced",
+                    "target": 0.75,
+                    "suggestScore": 0.57,
+                    "suggestScoreNoLocation": 0.59,
+                    "precision": 0.849,
+                },
+                {
+                    "id": "eager",
+                    "target": 0.65,
+                    "suggestScore": 0.36,
+                    "suggestScoreNoLocation": 0.44,
+                    "precision": 0.757,
+                },
+            ],
         },
         "detectorIds": [DETECTORS["megalodon"]["id"]],
         "classifierId": "bioclip-2-vitl14-2957b32",
@@ -139,6 +177,23 @@ NAMING_MEASURED = [
             "confidentScoreNoLocation": 1.01,
             "minAllowedCandidates": 200,
             "topK": 5,
+            "precision": 0.897,
+            "levels": [
+                {
+                    "id": "balanced",
+                    "target": 0.75,
+                    "suggestScore": 0.25,
+                    "suggestScoreNoLocation": 0.63,
+                    "precision": 0.825,
+                },
+                {
+                    "id": "eager",
+                    "target": 0.65,
+                    "suggestScore": 0.25,
+                    "suggestScoreNoLocation": 0.44,
+                    "precision": 0.825,
+                },
+            ],
         },
         "detectorIds": [DETECTORS["cfd"]["id"], DETECTORS["megalodon"]["id"]],
         "classifierId": "bioclip-2-vitl14-2957b32",
@@ -407,6 +462,44 @@ def build_manifest(
         "files": list(files),
         "credits": list(credits),
     }
+
+
+def training_credit(photos, list_url):
+    """The credit for naming rows trained on `photos` iNaturalist photos,
+    whose list with each photo's credit is at `list_url` (issue #4724). The
+    rows are licensed CC BY-NC 4.0, as the photos' licences allow."""
+    return {
+        "name": "iNaturalist photos",
+        "licence": "CC BY-NC 4.0",
+        "text": (
+            f"Naming rows trained on {photos:,} research-grade iNaturalist photos under CC0, "
+            f"CC BY 4.0 and CC BY-NC 4.0; not for commercial use. Each photo and its author: {list_url}"
+        ),
+    }
+
+
+def derive_manifest(base, files, *, pack_version, credits, measured=NAMING_MEASURED):
+    """A copy of the manifest `base` for a pack that differs from it only
+    in `files` (trained rows), with `pack_version`, `credits`, and the
+    naming bars `naming_for` gives the new files: measured ones only when
+    the scorer measured exactly these files."""
+    out = copy.deepcopy(base)
+    detectors, _ = pack_detectors(base)
+    out["packVersion"] = pack_version
+    out["files"] = copy.deepcopy(list(files))
+    out["credits"] = copy.deepcopy(list(credits))
+    out["naming"] = naming_for(
+        [d["id"] for d in detectors],
+        base["classifier"]["id"],
+        base["classifier"]["cropFit"],
+        contents_of(files),
+        measured,
+    )
+    # A derived pack's levels reach devices as a new pack's do, so they are
+    # held to build_manifest's checks (issue #4721).
+    if out["naming"].get("provisional") is not True:
+        _check_levels(out["naming"])
+    return out
 
 
 def write_manifest(path, manifest):
