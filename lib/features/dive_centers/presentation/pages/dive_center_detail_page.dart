@@ -202,11 +202,12 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage>
                   center: center,
                   units: units,
                   pencil: _pencil(DiveCenterCardId.contact),
-                  // Shown though empty while brought in from the strip, or
-                  // while it holds a value it cannot show (one fill time).
+                  // Shown though empty while brought in from the strip, or,
+                  // unlocked, while it holds a value it cannot show (one
+                  // fill time), so it can be reached to fix it.
                   showEmpty:
                       _showsWhileEmpty(DiveCenterCardId.contact) ||
-                      (hostsEditing &&
+                      (isSittingOpen &&
                           !diveCenterEditCards[DiveCenterCardId.contact]!
                               .isEmpty(center)),
                 ),

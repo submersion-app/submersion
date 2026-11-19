@@ -301,6 +301,8 @@ void main() {
         updatedAt: DateTime(2020),
       ),
     );
+    // Locked, there is nothing to show under Contact: no heading.
+    expect(find.text(l.diveCenters_section_contact), findsNothing);
     await unlock(tester);
 
     expect(

@@ -97,4 +97,26 @@ void main() {
     };
     expect(names, {'Nitrox', 'Synced'});
   });
+
+  test('the held list is ordered as the stored one', () {
+    Certification cert(String name, DateTime? issued) => Certification(
+      id: name,
+      name: name,
+      agency: 'padi',
+      issueDate: issued,
+      createdAt: DateTime(2020),
+      updatedAt: DateTime(2020),
+    );
+
+    final ordered = buddyCertificationsInOrder([
+      cert('Open Water', DateTime(2015)),
+      cert('Undated', null),
+      cert('Nitrox', DateTime(2024)),
+    ]);
+
+    expect(
+      [for (final c in ordered) c.name],
+      ['Nitrox', 'Open Water', 'Undated'],
+    );
+  });
 }

@@ -48,6 +48,21 @@ final buddyCertificationsList = SittingList<Buddy, Certification>(
   },
 );
 
+/// [certs] in the order the buddy's page lists them when stored: newest
+/// issued first, undated last, then by title; one added in the sitting
+/// takes its place, not the end.
+List<Certification> buddyCertificationsInOrder(List<Certification> certs) =>
+    [...certs]..sort((a, b) {
+      final ai = a.issueDate;
+      final bi = b.issueDate;
+      if (ai != bi) {
+        if (ai == null) return 1;
+        if (bi == null) return -1;
+        return bi.compareTo(ai);
+      }
+      return a.name.compareTo(b.name);
+    });
+
 /// A new certification for [buddy], with an id of its own so the sitting
 /// can hold it.
 Certification newBuddyCertification(Buddy buddy) =>
@@ -117,7 +132,8 @@ class _BuddyCertificationsCardEditorState
     return ListenableBuilder(
       listenable: session,
       builder: (context, _) {
-        final current = buddyCertificationsList.current(session);
+        final held = buddyCertificationsList.current(session);
+        final current = held == null ? null : buddyCertificationsInOrder(held);
         if (current == null) {
           if (buddyCertificationsList.failed(session)) {
             return SittingLoadFailed(onRetry: _load);

@@ -584,7 +584,9 @@ class _BuddyDetailContent extends ConsumerWidget {
     final held = session != null && buddyCertificationsList.isChanged(session)
         ? buddyCertificationsList.current(session)
         : null;
-    final certsAsync = held != null ? AsyncValue.data(held) : stored;
+    final certsAsync = held != null
+        ? AsyncValue.data(buddyCertificationsInOrder(held))
+        : stored;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),

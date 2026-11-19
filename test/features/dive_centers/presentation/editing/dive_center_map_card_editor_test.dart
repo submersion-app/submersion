@@ -177,6 +177,98 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.text(l.diveCenters_error_geocodeFailed), findsOneWidget);
   });
+
+  group('Use my location', () {
+    Future<EditSession<DiveCenter>> pumpWith(
+      WidgetTester tester,
+      LocationService locations,
+    ) async {
+      tester.view.physicalSize = const Size(700, 1200);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final session = EditSession(centre());
+      addTearDown(session.dispose);
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            ...overrides,
+            locationServiceProvider.overrideWithValue(locations),
+          ],
+          child: Scaffold(
+            body: SingleChildScrollView(
+              child: DiveCenterMapCardEditor(session: session),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return session;
+    }
+
+    final l = AppLocalizationsEn();
+
+    testWidgets('sets the coordinates where the diver is', (tester) async {
+      final session = await pumpWith(
+        tester,
+        _HereLocations(const LocationResult(latitude: 28.5, longitude: 34.5)),
+      );
+
+      await tester.tap(find.text(l.diveCenters_action_useMyLocation));
+      await tester.pumpAndSettle();
+
+      expect(session.valueOf(diveCenterCoordinatesField), (
+        latitude: 28.5,
+        longitude: 34.5,
+      ));
+    });
+
+    testWidgets('no position says so and sets nothing', (tester) async {
+      final session = await pumpWith(tester, _HereLocations(null));
+
+      await tester.tap(find.text(l.diveCenters_action_useMyLocation));
+      await tester.pumpAndSettle();
+
+      expect(session.isDirty, isFalse);
+      expect(
+        find.text(l.diveCenters_error_locationUnavailable),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a position that throws says so as one not found', (
+      tester,
+    ) async {
+      final session = await pumpWith(tester, _HereLocations(null, fail: true));
+
+      await tester.tap(find.text(l.diveCenters_action_useMyLocation));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(session.isDirty, isFalse);
+      expect(
+        find.text(l.diveCenters_error_locationUnavailable),
+        findsOneWidget,
+      );
+    });
+  });
+}
+
+class _HereLocations extends Fake implements LocationService {
+  _HereLocations(this.here, {this.fail = false});
+
+  final LocationResult? here;
+  final bool fail;
+
+  @override
+  Future<LocationResult?> getCurrentLocation({
+    bool includeGeocoding = true,
+    Duration timeout = const Duration(seconds: 15),
+    String languageCode = LocationService.defaultLanguageCode,
+  }) async {
+    if (fail) throw StateError('no fix');
+    return here;
+  }
 }
 
 class _ThrowingLocations extends Fake implements LocationService {

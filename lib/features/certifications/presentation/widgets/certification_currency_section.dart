@@ -90,7 +90,9 @@ class CertificationCurrencySection extends ConsumerWidget {
     final sitting = editing ?? shown;
     final events = sitting == null
         ? storedEvents
-        : certificationEventsList.current(sitting) ?? storedEvents;
+        : newestEventsFirst(
+            certificationEventsList.current(sitting) ?? storedEvents,
+          );
     if (groups.isEmpty && events.isEmpty) return const SizedBox.shrink();
 
     final l10n = context.l10n;

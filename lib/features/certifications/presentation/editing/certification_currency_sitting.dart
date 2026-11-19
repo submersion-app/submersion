@@ -43,6 +43,14 @@ final certificationEventsList = SittingList<Certification, CurrencyEvent>(
   same: (a, b) => sameIdSets(a, b, (e) => e.id),
 );
 
+/// [events] newest first, as the history lists them when stored: one
+/// logged in the sitting takes its place by date, not at the end.
+List<CurrencyEvent> newestEventsFirst(List<CurrencyEvent> events) =>
+    [...events]..sort((a, b) {
+      final byDate = b.eventDate.compareTo(a.eventDate);
+      return byDate != 0 ? byDate : b.createdAt.compareTo(a.createdAt);
+    });
+
 /// A new event for [certificationId] on [ruleId], with an id of its own so
 /// the sitting can hold and release it.
 CurrencyEvent newCurrencyEvent({

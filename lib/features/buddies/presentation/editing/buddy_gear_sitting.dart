@@ -65,7 +65,10 @@ void _set(EditSession<Buddy> session, List<HeldGearMove> moves) {
   session.holdChange(
     _key,
     cardId: BuddyCardId.gear.name,
-    write: () => writeBuddyGearMoves(heldBuddyGearMoves(session)),
+    write: () => writeBuddyGearMoves(
+      heldBuddyGearMoves(session),
+      buddy: session.working,
+    ),
   );
 }
 
@@ -73,7 +76,13 @@ void _set(EditSession<Buddy> session, List<HeldGearMove> moves) {
 /// or creates the buddy's place first, then moves the gear as the diver
 /// answered; a return sends each item back to where it was before the
 /// loan, worked out from what is stored now.
-Future<void> writeBuddyGearMoves(List<HeldGearMove> moves) async {
+///
+/// A place made for [buddy] takes the name the sitting gives them, which a
+/// rename in the same sitting may have changed since the lend was held.
+Future<void> writeBuddyGearMoves(
+  List<HeldGearMove> moves, {
+  Buddy? buddy,
+}) async {
   final locations = EquipmentLocationRepository();
   final moveRepository = EquipmentLocationMoveRepository();
   final setStatus = EquipmentRepository().setStatusForMany;
@@ -83,10 +92,10 @@ Future<void> writeBuddyGearMoves(List<HeldGearMove> moves) async {
       final target = switch (lend.pick) {
         PlacePick(:final location) => location,
         NoLocationPick() => null,
-        BuddyPick(:final buddy) => await locations.findOrCreateForBuddy(
+        BuddyPick(buddy: final pick) => await locations.findOrCreateForBuddy(
           diverId: lend.diverId,
-          buddyId: buddy.id,
-          name: buddy.name,
+          buddyId: pick.id,
+          name: pick.id == buddy?.id ? buddy!.name : pick.name,
         ),
       };
       await EquipmentMoveFlow(

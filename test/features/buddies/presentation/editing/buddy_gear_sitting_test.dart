@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart' hide Buddy;
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/buddies/presentation/editing/buddy_edit_fields.dart';
 import 'package:submersion/features/buddies/presentation/editing/buddy_gear_sitting.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_location_move_repository.dart';
 import 'package:submersion/features/equipment/data/services/equipment_move_flow.dart';
@@ -274,4 +275,27 @@ void main() {
 
     expect([for (final r in rows) r.gear.item.id], ['reg', 'second']);
   });
+
+  test(
+    "a lend's new place takes the name the sitting gives the buddy",
+    () async {
+      final session = EditSession(alex);
+      addTearDown(session.dispose);
+      holdBuddyLend(session, lend());
+      session.set(buddyNameField, 'Alexander');
+
+      await session.runHeldWrites();
+
+      final names = [
+        for (final row
+            in await db
+                .customSelect(
+                  "SELECT name FROM equipment_locations WHERE buddy_id = 'b1'",
+                )
+                .get())
+          row.read<String>('name'),
+      ];
+      expect(names, ['Alexander']);
+    },
+  );
 }

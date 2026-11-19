@@ -245,4 +245,24 @@ void main() {
       expect(kept.id, isNotEmpty);
     });
   });
+
+  test('a logged event takes its place newest first', () {
+    CurrencyEvent at(String id, DateTime date) => CurrencyEvent(
+      id: id,
+      certificationId: 'c',
+      ruleId: 'r',
+      eventType: CurrencyEventType.refresher,
+      eventDate: date,
+      createdAt: t0,
+      updatedAt: t0,
+    );
+
+    final ordered = newestEventsFirst([
+      at('old', DateTime(2019)),
+      at('mid', DateTime(2021)),
+      at('new', DateTime(2024)),
+    ]);
+
+    expect([for (final e in ordered) e.id], ['new', 'mid', 'old']);
+  });
 }
