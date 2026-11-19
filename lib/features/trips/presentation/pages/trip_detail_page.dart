@@ -22,6 +22,7 @@ import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigat
 import 'package:submersion/features/trips/presentation/helpers/trip_scan_actions.dart';
 import 'package:submersion/features/trips/presentation/providers/side_trip_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/features/trips/presentation/widgets/dive_assignment_dialog.dart';
 import 'package:submersion/features/trips/presentation/widgets/part_of_trip_link.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_view.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_detail_tabs.dart';

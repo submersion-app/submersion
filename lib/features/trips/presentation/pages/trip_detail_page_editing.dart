@@ -63,11 +63,73 @@ mixin _TripDetailPageEditing
     );
   }
 
+  /// The held write that assigns the dives the diver chose at Save.
+  static const _assignDivesKey = 'trip.assignDives';
+
+  /// What that write assigns, for the notice and the old trips' pages once
+  /// it has been written.
+  ({int count, Set<String> oldTripIds})? _assigned;
+
+  /// When the dates changed in the sitting, the dives in the new dates that
+  /// are not on the trip are offered before anything is written, as the
+  /// form offered them after its save. The ones chosen are assigned in the
+  /// sitting's transaction, so Cancel or a failed Save assigns none and one
+  /// History entry holds them. Asked once per Save: the answer replaces any
+  /// earlier one, and dates put back drop it. Dismissing the question saves
+  /// with no dives, as the form did.
+  @override
+  Future<bool> beforeSave() async {
+    final session = maybeEditController?.session;
+    if (session == null) return true;
+    session.releaseWrite(_assignDivesKey);
+    _assigned = null;
+    final stored = session.stored;
+    final working = session.working;
+    if (stored.startDate == working.startDate &&
+        stored.endDate == working.endDate) {
+      return true;
+    }
+    final diverId = ref.read(validatedCurrentDiverIdProvider).value;
+    if (diverId == null) return true;
+    final trips = ref.read(tripRepositoryProvider);
+    final candidates = await trips.findCandidateDivesForTrip(
+      tripId: stored.id,
+      startDate: working.startDate,
+      endDate: working.endDate,
+      diverId: diverId,
+    );
+    if (!mounted || session.isDisposed) return false;
+    if (candidates.isEmpty) return true;
+    final chosen = await showDiveAssignmentDialog(
+      context: context,
+      candidates: candidates,
+    );
+    if (!mounted || session.isDisposed) return false;
+    if (chosen == null || chosen.isEmpty) return true;
+    final picked = chosen.toSet();
+    _assigned = (
+      count: chosen.length,
+      oldTripIds: {
+        for (final c in candidates)
+          if (picked.contains(c.dive.id) && !c.isUnassigned) c.currentTripId!,
+      },
+    );
+    session.holdWrite(
+      _assignDivesKey,
+      () => trips.assignDivesToTrip(chosen, stored.id),
+    );
+    return true;
+  }
+
   /// Writes the sitting through the trip's save service: its changed values
   /// and its held writes, in one transaction and one History entry.
   @override
   Future<void> saveSitting(EditSession<Trip> session) async {
     // Read before the write: the page can be gone by the time it is done.
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final l10n = context.l10n;
+    final container = ProviderScope.containerOf(context, listen: false);
+    final assigned = session.isHeld(_assignDivesKey) ? _assigned : null;
     final service = ref.read(tripEditSaveServiceProvider);
     // The profile acting now, which the update checks before it writes the
     // Everyone flag; the sitting never changes that flag on the row itself,
@@ -84,6 +146,20 @@ mixin _TripDetailPageEditing
       alsoWriteIsAChange: session.hasHeldChanges,
     );
     justSavedRecord = result?.after ?? session.working;
+    if (assigned != null) {
+      _assigned = null;
+      // The dives' old trips count them no more.
+      final tripId = session.stored.id;
+      for (final id in {tripId, ...assigned.oldTripIds}) {
+        container
+          ..invalidate(tripWithStatsProvider(id))
+          ..invalidate(diveIdsForTripProvider(id))
+          ..invalidate(divesForTripProvider(id));
+      }
+      messenger?.showSnackBar(
+        SnackBar(content: Text(l10n.trips_diveScan_added(assigned.count))),
+      );
+    }
   }
 
   @override

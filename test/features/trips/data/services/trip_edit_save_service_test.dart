@@ -365,6 +365,53 @@ void main() {
     expect(after.last.notes, 'Reef');
   });
 
+  test('dives assigned at Save are in the same entry, and reverting takes '
+      'them back off', () async {
+    await db
+        .into(db.dives)
+        .insert(
+          DivesCompanion.insert(
+            id: 'v1',
+            diveDateTime: DateTime(2026, 5, 31, 9).millisecondsSinceEpoch,
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+    await changeLog.settleAll();
+    await db.customStatement('DELETE FROM change_log_operations');
+    final session = EditSession(await stored())
+      ..set(tripDatesField, (
+        start: DateTime(2026, 5, 31),
+        end: DateTime(2026, 6, 8),
+      ))
+      ..holdWrite(
+        'trip.assignDives',
+        () => trips.assignDivesToTrip(['v1'], 't1'),
+      );
+
+    await service.save(
+      tripId: 't1',
+      apply: session.applyTo,
+      changedCardIds: session.changedCardIds,
+      actingDiverId: 'me',
+      alsoWrite: session.runHeldWrites,
+    );
+
+    Future<String?> tripOf() async =>
+        (await db
+                .customSelect("SELECT trip_id FROM dives WHERE id = 'v1'")
+                .getSingle())
+            .readNullable<String>('trip_id');
+    expect(await tripOf(), 't1');
+    final ops = await operations();
+    expect(ops, hasLength(1));
+
+    await revert(ops.single['id']! as String);
+
+    expect(await tripOf(), isNull);
+    expect((await stored()).startDate, DateTime(2026, 6, 1));
+  });
+
   test('a parent chosen drops foreign slot links on the trip dives', () async {
     final cylinders = TripCylinderRepository();
     await trips.createTrip(

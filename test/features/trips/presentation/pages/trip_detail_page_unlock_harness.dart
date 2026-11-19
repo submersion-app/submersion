@@ -16,7 +16,9 @@ import 'package:submersion/features/divers/presentation/providers/profile_hides_
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/trips/data/repositories/itinerary_day_repository.dart';
 import 'package:submersion/features/trips/data/repositories/liveaboard_details_repository.dart';
+import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/data/services/trip_edit_save_service.dart';
+import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/liveaboard_details.dart';
 import 'package:submersion/features/trips/domain/entities/scrubber_margin.dart';
@@ -151,6 +153,34 @@ class FakeItineraryDays implements ItineraryDayRepository {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// The trip repository's dives questions, without a database: [candidates]
+/// found for any dates, and each assignment recorded.
+class FakeTripDives implements TripRepository {
+  FakeTripDives([this.candidates = const []]);
+
+  List<DiveCandidate> candidates;
+  final asked = <({DateTime start, DateTime end})>[];
+  final assigned = <List<String>>[];
+
+  @override
+  Future<List<DiveCandidate>> findCandidateDivesForTrip({
+    required String tripId,
+    required DateTime startDate,
+    required DateTime endDate,
+    required String diverId,
+  }) async {
+    asked.add((start: startDate, end: endDate));
+    return candidates;
+  }
+
+  @override
+  Future<void> assignDivesToTrip(List<String> diveIds, String tripId) async =>
+      assigned.add(diveIds);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 class TripPageHarness {
   TripPageHarness(
     this.save,
@@ -159,6 +189,7 @@ class TripPageHarness {
     this.shares,
     this.vessels,
     this.itinerary,
+    this.tripDives,
   );
 
   final FakeTripSave save;
@@ -167,6 +198,7 @@ class TripPageHarness {
   final FakeItemShares shares;
   final FakeVessels vessels;
   final FakeItineraryDays itinerary;
+  final FakeTripDives tripDives;
 }
 
 final _storedProvider = StateProvider<Trip?>((ref) => redSea);
@@ -194,10 +226,12 @@ Future<TripPageHarness> pumpTripPage(
   List<Diver>? divers,
   String? activeDiverId,
   bool hasSideTrips = false,
+  List<DiveCandidate> candidates = const [],
 }) async {
   final itemShares = shares ?? FakeItemShares();
   final vessels = FakeVessels(vessel);
   final itinerary = FakeItineraryDays(days);
+  final tripDives = FakeTripDives(candidates);
   final shown = trip ?? redSea;
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -247,6 +281,7 @@ Future<TripPageHarness> pumpTripPage(
         liveaboardDetailsProvider(shown.id).overrideWith((ref) async => vessel),
         liveaboardDetailsRepositoryProvider.overrideWithValue(vessels),
         itineraryDayRepositoryProvider.overrideWithValue(itinerary),
+        tripRepositoryProvider.overrideWithValue(tripDives),
         tripDayWeatherProvider(shown.id).overrideWith((ref) async => const {}),
         tripDayWeatherBackfillProvider(shown.id).overrideWith((ref) async {}),
         tripGearProvider(shown.id).overrideWith((ref) async => const []),
@@ -287,6 +322,7 @@ Future<TripPageHarness> pumpTripPage(
             itemShares,
             vessels,
             itinerary,
+            tripDives,
           );
           return save;
         }),
