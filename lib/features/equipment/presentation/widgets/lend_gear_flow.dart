@@ -73,6 +73,8 @@ Future<HeldLend?> planLendGear(
     initialPick: BuddyPick(buddy),
   );
   if (draft == null || !context.mounted) return null;
+  final messenger = ScaffoldMessenger.of(context);
+  final failed = context.l10n.common_error_tryAgain;
   final flow = EquipmentMoveFlow(
     moves: moves,
     askMoveParts: (n) => askMoveParts(context, n),
@@ -80,16 +82,24 @@ Future<HeldLend?> planLendGear(
     // Nothing is written now: the status is set at Save.
     setStatus: (_, _) async {},
   );
-  final plan = await flow.plan(
-    items: items,
-    targetKind: switch (draft.pick) {
-      PlacePick(:final location) => location.kind,
-      NoLocationPick() => null,
-      BuddyPick() => EquipmentLocationKind.person,
-    },
-    movedAt: draft.movedAt,
-    note: draft.note,
-  );
+  final EquipmentMovePlan plan;
+  try {
+    plan = await flow.plan(
+      items: items,
+      targetKind: switch (draft.pick) {
+        PlacePick(:final location) => location.kind,
+        NoLocationPick() => null,
+        BuddyPick() => EquipmentLocationKind.person,
+      },
+      movedAt: draft.movedAt,
+      note: draft.note,
+    );
+  } catch (_) {
+    // The parts could not be read: nothing is held, and the diver can
+    // simply try again, as the move flow says.
+    messenger.showSnackBar(SnackBar(content: Text(failed)));
+    return null;
+  }
   String? diverId;
   try {
     diverId = await diverIdFuture;

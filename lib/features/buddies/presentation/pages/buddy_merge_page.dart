@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/geography/country_code_save.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -200,9 +199,11 @@ class _BuddyMergeFormState extends ConsumerState<BuddyMergeForm> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return PopScope(
-      canPop: !_hasChanges || _isSaving,
+      // Not while the merge is being saved; once merged, the form pops
+      // itself with Navigator.pop, which asks no PopScope.
+      canPop: !_hasChanges && !_isSaving,
       onPopInvokedWithResult: (didPop, result) async {
-        if (didPop) return;
+        if (didPop || _isSaving) return;
         final navigator = Navigator.of(context);
         if (await _discardChanges() && mounted) navigator.pop();
       },

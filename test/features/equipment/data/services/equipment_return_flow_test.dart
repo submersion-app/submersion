@@ -453,4 +453,25 @@ void main() {
       expect(statusWrites.single.$2, EquipmentStatus.active);
     });
   });
+
+  test('plan names the parts the diver agreed to return', () async {
+    final moves = _FakeMoves(
+      history: {
+        'a': history('a', ['shelf']),
+      },
+      parts: {'p': EquipmentStatus.loaned},
+      current: {'p': 'anna'},
+    );
+
+    final plan = await flow(moves).plan(
+      items: [item('a')],
+      buddyId: 'b1',
+      places: places,
+      movedAt: returnAt,
+    );
+
+    expect(plan.withParts, isTrue);
+    expect(plan.partIds, {'p'});
+    expect(moves.recorded, isEmpty);
+  });
 }

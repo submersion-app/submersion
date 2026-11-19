@@ -127,7 +127,8 @@ List<BuddyGearRow> buddyGearInSitting(
   for (var i = 0; i < moves.length; i++) {
     final move = moves[i];
     if (move.returned case final returned?) {
-      final ids = returned.plan.items.keys.toSet();
+      // The parts the diver agreed to return go with their items.
+      final ids = {...returned.plan.items.keys, ...returned.plan.partIds};
       rows = [
         for (final row in rows)
           if (!ids.contains(row.gear.item.id)) row,

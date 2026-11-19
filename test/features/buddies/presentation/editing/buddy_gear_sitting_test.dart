@@ -205,4 +205,43 @@ void main() {
     expect([for (final r in rows) r.gear.item.id], ['reg']);
     expect(rows.single.heldIndex, 0);
   });
+
+  test('a held return leaves out the parts that go with it', () {
+    final session = EditSession(alex);
+    addTearDown(session.dispose);
+    final place = EquipmentLocation(
+      id: 'p',
+      name: 'Alex',
+      kind: EquipmentLocationKind.person,
+      buddyId: 'b1',
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+    const second = EquipmentItem(
+      id: 'second',
+      name: 'Second stage',
+      type: EquipmentType.regulator,
+      status: EquipmentStatus.loaned,
+    );
+
+    holdBuddyReturn(
+      session,
+      HeldReturn(
+        items: const [reg],
+        plan: EquipmentReturnPlan(
+          items: const {'reg': EquipmentStatus.loaned},
+          buddyId: 'b1',
+          movedAt: DateTime(2026, 11, 1),
+          withParts: true,
+          partIds: const {'second'},
+        ),
+      ),
+    );
+    final rows = buddyGearInSitting(session, [
+      (item: reg, place: place),
+      (item: second, place: place),
+    ]);
+
+    expect(rows, isEmpty);
+  });
 }

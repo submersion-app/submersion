@@ -142,9 +142,9 @@ extension _BuddyMergeSave on _BuddyMergeFormState {
       final buddyIds = [for (final b in widget.buddies) b.id];
       final snapshot = await notifier.mergeBuddies(buddy, buddyIds);
       if (mounted) {
-        context.pop(
-          BuddyMergeResult(survivorId: buddyIds.first, snapshot: snapshot),
-        );
+        Navigator.of(
+          context,
+        ).pop(BuddyMergeResult(survivorId: buddyIds.first, snapshot: snapshot));
       }
     } catch (e) {
       if (!mounted) return;

@@ -15,6 +15,7 @@ class EquipmentReturnPlan {
     required this.movedAt,
     this.note = '',
     this.withParts = false,
+    this.partIds = const {},
     this.setActive = false,
   });
 
@@ -26,6 +27,11 @@ class EquipmentReturnPlan {
 
   /// Whether their parts with the buddy come back too.
   final bool withParts;
+
+  /// The parts with the buddy when the diver agreed, for showing the
+  /// return before it is written; [EquipmentReturnFlow.write] finds them
+  /// again from what is stored then.
+  final Set<String> partIds;
 
   /// Whether what was Loaned Out goes back to Active.
   final bool setActive;
@@ -154,6 +160,7 @@ class EquipmentReturnFlow {
       movedAt: movedAt,
       note: note,
       withParts: withParts,
+      partIds: withParts ? parts.keys.toSet() : const {},
       setActive: setActive,
     );
   }
