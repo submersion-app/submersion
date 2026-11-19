@@ -9,6 +9,7 @@ import 'package:submersion/features/media/data/services/species_tagging_service.
 import 'package:submersion/features/media/domain/value_objects/sighting_timing.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
 import 'package:submersion/features/species_id/data/services/auto_applier.dart';
+import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
 import 'package:submersion/features/species_id/data/services/suggestion_acceptor.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 
@@ -25,17 +26,30 @@ void main() {
   var autoApply = true;
   final changeLog = ChangeLogRepository();
 
-  AutoApplier applier() => AutoApplier(
-    identifications: identifications,
-    acceptor: SuggestionAcceptor(species: species),
-    tagging: SpeciesTaggingService(
-      tags: tags,
-      media: MediaRepository(),
-      species: species,
-    ),
-    enabled: () => autoApply,
-    timing: () => SightingTiming.onConfirm,
-  );
+  /// The service's reconcile, without a naming level: decisions in step
+  /// with the tags from the stored flags.
+  Future<void> reconcileStored(String mediaId) async {
+    final changed = reconcileDecisions(
+      await identifications.forMedia(mediaId),
+      await identifications.taggedSpecies(mediaId),
+      now: DateTime.utc(2026, 11, 18),
+    );
+    if (changed.isNotEmpty) await identifications.updateDecisions(changed);
+  }
+
+  AutoApplier applier({Future<void> Function(String mediaId)? reconcile}) =>
+      AutoApplier(
+        identifications: identifications,
+        acceptor: SuggestionAcceptor(species: species),
+        tagging: SpeciesTaggingService(
+          tags: tags,
+          media: MediaRepository(),
+          species: species,
+        ),
+        enabled: () => autoApply,
+        timing: () => SightingTiming.onConfirm,
+        reconcile: reconcile ?? reconcileStored,
+      );
 
   Future<void> store(String mediaId, {bool confident = true}) =>
       identifications.storeRun(
@@ -79,6 +93,24 @@ void main() {
     expect(tag.createdSpecies, isFalse);
     final row = (await identifications.forMedia('p1')).single;
     expect(row.decision, IdentificationDecision.accepted);
+  });
+
+  test('reconciles through the service, which follows the naming level, '
+      'and only when it tagged something', () async {
+    await insertTestSpecies(
+      id: 'sp_queen_parrotfish',
+      name: 'Queen Parrotfish',
+    );
+    await insertTestMedia(id: 'p2', diveId: 'd1');
+    await store('p1');
+    await store('p2', confident: false);
+    final reconciled = <String>[];
+    final spied = applier(reconcile: (id) async => reconciled.add(id));
+
+    await spied.applyInScope('p1', isVideo: false);
+    await spied.applyInScope('p2', isVideo: false);
+
+    expect(reconciled, ['p1']);
   });
 
   test('records the species it had to create', () async {

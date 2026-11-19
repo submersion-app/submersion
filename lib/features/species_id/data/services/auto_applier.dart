@@ -8,13 +8,13 @@ import 'package:submersion/features/species_id/data/repositories/media_identific
 import 'package:submersion/features/species_id/data/services/suggestion_acceptor.dart';
 import 'package:submersion/features/species_id/domain/entities/dive_species_run_state.dart';
 import 'package:submersion/features/species_id/domain/services/auto_apply_rules.dart';
-import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
 
 /// Tags the species the app is confident of on a media item, with no tap
 /// (issue #4727). Each tag is marked unconfirmed and, by the diver's
-/// [timing], links or logs its sighting. The existing reconcile then
-/// accepts the identifications behind it. Never throws for one item: a
-/// species that cannot be tagged is left for the next time.
+/// [timing], links or logs its sighting. The identification service's
+/// [reconcile] then accepts the identifications behind it, at the naming
+/// level in force. Never throws for one item: a species that cannot be
+/// tagged is left for the next time.
 class AutoApplier {
   AutoApplier({
     required MediaIdentificationRepository identifications,
@@ -22,11 +22,13 @@ class AutoApplier {
     required SpeciesTaggingService tagging,
     required bool Function() enabled,
     required SightingTiming Function() timing,
+    required Future<void> Function(String mediaId) reconcile,
   }) : _identifications = identifications,
        _acceptor = acceptor,
        _tagging = tagging,
        _enabled = enabled,
-       _timing = timing;
+       _timing = timing,
+       _reconcile = reconcile;
 
   final MediaIdentificationRepository _identifications;
   final SuggestionAcceptor _acceptor;
@@ -35,6 +37,11 @@ class AutoApplier {
   /// The auto-apply setting on this device.
   final bool Function() _enabled;
   final SightingTiming Function() _timing;
+
+  /// The identification service's reconcile: which identifications a tag
+  /// accepts follows the naming level (issue #4721), so it is not redone
+  /// here from the stored flags.
+  final Future<void> Function(String mediaId) _reconcile;
   final _log = LoggerService.forClass(AutoApplier);
 
   bool get isOn => marineLifeIdEnabled && _enabled();
@@ -141,16 +148,5 @@ class AutoApplier {
     }
     if (tagged.isNotEmpty) await _reconcile(mediaId);
     return tagged;
-  }
-
-  /// The decisions in step with the new tags, as the service's reconcile
-  /// records them.
-  Future<void> _reconcile(String mediaId) async {
-    final changed = reconcileDecisions(
-      await _identifications.forMedia(mediaId),
-      await _identifications.taggedSpecies(mediaId),
-      now: DateTime.now().toUtc(),
-    );
-    if (changed.isNotEmpty) await _identifications.updateDecisions(changed);
   }
 }

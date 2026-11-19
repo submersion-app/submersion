@@ -163,6 +163,22 @@ void main() {
       expect(await species.getSpeciesById(own.id), isNull);
     });
 
+    test('takes the sighting it created even after the photo moved to '
+        'another dive', () async {
+      await insertTestDive(id: 'd2', at: DateTime(2024, 1, 11));
+      await service.applyAppTag(
+        mediaId: 'p1',
+        speciesId: 'sp_a',
+        timing: SightingTiming.straightAway,
+        createdSpecies: false,
+      );
+      await MediaRepository().reassignMediaToDive(['p1'], 'd2');
+
+      await service.rejectTag(mediaId: 'p1', speciesId: 'sp_a');
+
+      expect(await species.getSightingsForDive('d1'), isEmpty);
+    });
+
     test('keeps the sighting while another tag points at it', () async {
       await service.applyAppTag(
         mediaId: 'p1',

@@ -279,24 +279,36 @@ class SpeciesRepository {
       results,
       (r) => r.data['common_name'] as String,
       groupOf: (r) => r.data['category'],
-    ).map((row) {
-      return domain.Sighting(
-        id: row.data['id'] as String,
-        diveId: row.data['dive_id'] as String,
-        speciesId: row.data['species_id'] as String,
-        speciesName: row.data['common_name'] as String,
-        speciesCategory: SpeciesCategory.values.firstWhere(
-          (c) => c.name == row.data['category'],
-          orElse: () => SpeciesCategory.other,
-        ),
-        abundance: SightingAbundance.fromStorage(
-          row.data['abundance'] as String?,
-        ),
-        count: row.data['count'] as int,
-        notes: (row.data['notes'] as String?) ?? '',
-      );
-    }).toList();
+    ).map(_sightingFromRow).toList();
   }
+
+  /// The sighting [id], on whichever dive it is, or null.
+  Future<domain.Sighting?> getSightingById(String id) async {
+    final row = await _db
+        .customSelect(
+          'SELECT s.*, sp.common_name, sp.category '
+          'FROM sightings s '
+          'JOIN species sp ON s.species_id = sp.id '
+          'WHERE s.id = ?',
+          variables: [Variable.withString(id)],
+        )
+        .getSingleOrNull();
+    return row == null ? null : _sightingFromRow(row);
+  }
+
+  static domain.Sighting _sightingFromRow(QueryRow row) => domain.Sighting(
+    id: row.data['id'] as String,
+    diveId: row.data['dive_id'] as String,
+    speciesId: row.data['species_id'] as String,
+    speciesName: row.data['common_name'] as String,
+    speciesCategory: SpeciesCategory.values.firstWhere(
+      (c) => c.name == row.data['category'],
+      orElse: () => SpeciesCategory.other,
+    ),
+    abundance: SightingAbundance.fromStorage(row.data['abundance'] as String?),
+    count: row.data['count'] as int,
+    notes: (row.data['notes'] as String?) ?? '',
+  );
 
   /// Batched variant of [getSightingsForDive]: one query for many dives.
   /// Returns a map keyed by dive id; dives without sightings are absent.

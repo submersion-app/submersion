@@ -70,6 +70,7 @@ void main() {
     DiveSpeciesRun? run,
     List<MediaItem>? media,
     Set<String> upToDate = const {},
+    bool autoApply = false,
   }) async {
     final controller = RecordEditController<Dive>(onSave: (_) async {});
     addTearDown(controller.dispose);
@@ -85,6 +86,9 @@ void main() {
             const DiveReviewScope('d1'),
           ).overrideWith((ref) async => toReview),
           installedSpeciesPackProvider.overrideWith((ref) async => installed),
+          autoApplyProvider.overrideWith(
+            (ref) => AutoApplyNotifier.unstored(autoApply),
+          ),
           mediaForDiveProvider('d1').overrideWith(
             (ref) async => media ?? [testMediaItem(id: 'p1', diveId: 'd1')],
           ),
@@ -191,8 +195,44 @@ void main() {
 
   testWidgets('all checked, but something to review: a run can still apply '
       'it', (tester) async {
-    await pumpCard(tester, installed: pack, toReview: 2, checked: true);
+    await pumpCard(
+      tester,
+      installed: pack,
+      toReview: 2,
+      checked: true,
+      autoApply: true,
+    );
     expect(find.text('Find species in photos'), findsOneWidget);
+  });
+
+  testWidgets('all checked with something to review, but auto-apply off: '
+      'a run would do nothing', (tester) async {
+    await pumpCard(tester, installed: pack, toReview: 2, checked: true);
+    expect(find.text('All photos checked'), findsOneWidget);
+  });
+
+  testWidgets('all checked with something to review, but the pack is never '
+      'confident: a run would do nothing', (tester) async {
+    final never = InstalledPack(
+      manifest: SpeciesPackManifest.parse(
+        manifestJson((m) {
+          final naming = m['naming']! as Map;
+          naming['confidentScore'] = 1.01;
+          naming['confidentScoreNoLocation'] = 1.01;
+        }),
+      ),
+      directory: '/pack',
+      detectorPaths: const ['/pack/detector.mlpackage'],
+      classifierPath: '/pack/classifier.mlpackage',
+    );
+    await pumpCard(
+      tester,
+      installed: never,
+      toReview: 2,
+      checked: true,
+      autoApply: true,
+    );
+    expect(find.text('All photos checked'), findsOneWidget);
   });
 
   testWidgets('all checked and nothing to review', (tester) async {

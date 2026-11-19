@@ -167,10 +167,9 @@ class SpeciesTaggingService {
     MediaSpeciesTag tag,
     String sightingId,
   ) async {
-    final diveId = (await _media.getMediaById(tag.mediaId))?.diveId;
-    if (diveId == null) return;
-    final sightings = await _species.getSightingsForDive(diveId);
-    final sighting = sightings.where((s) => s.id == sightingId).firstOrNull;
+    // By its id, not through the photo's dive: the photo may have moved to
+    // another dive since, keeping its link to this sighting.
+    final sighting = await _species.getSightingById(sightingId);
     if (sighting == null) return;
     final others = await _tags.tagsForSighting(sightingId);
     if (mayRemoveCreatedSighting(

@@ -254,41 +254,41 @@ Future<void> sweepIdentificationOrphansAtLaunch(
   await cleanup.sweepOrphans();
 }
 
-final mediaIdentificationServiceProvider = Provider<MediaIdentificationService>(
-  (ref) {
-    final store = ref.watch(speciesPackStoreProvider);
-    final identifications = ref.watch(mediaIdentificationRepositoryProvider);
-    final engine = ref.watch(visionEngineProvider);
-    final service = MediaIdentificationService(
-      engine: engine,
-      memoryReadout: MemoryReadout(engine: engine),
-      loadPack: () async {
-        final pack = await store.installed();
-        return pack == null ? null : store.load(pack);
-      },
-      identifications: identifications,
-      embeddings: ref.watch(identificationEmbeddingRepositoryProvider),
-      crops: ref.watch(identificationCropStoreProvider),
-      resolveImage: (item) => identificationImageOf(ref, item),
-      resolveVideo: (item) => ref.read(videoFileReaderProvider(item).future),
-      taggedSpecies: identifications.taggedSpecies,
-      enabled: () =>
-          marineLifeIdEnabled && ref.read(identifyFishOnOpenProvider),
-      // A Find species run is the diver's own request (issue #4727).
-      runEnabled: () => marineLifeIdEnabled,
-      onItemSettled: (item) => ref
-          .read(autoApplierProvider)
-          .applyInScope(item.id, isVideo: item.mediaType == MediaType.video)
-          .then((_) {}),
-      // Waits for the installed pack, unlike [levelInForceProvider]: a
-      // reconcile before it has been read would otherwise decide by the
-      // stored flags, not the level the diver chose.
-      namingLevel: () => awaitLevelInForce(ref.container),
-    );
-    ref.onDispose(service.dispose);
-    return service;
-  },
-);
+// Typed: it and [autoApplierProvider] read each other when called.
+final Provider<MediaIdentificationService> mediaIdentificationServiceProvider =
+    Provider<MediaIdentificationService>((ref) {
+      final store = ref.watch(speciesPackStoreProvider);
+      final identifications = ref.watch(mediaIdentificationRepositoryProvider);
+      final engine = ref.watch(visionEngineProvider);
+      final service = MediaIdentificationService(
+        engine: engine,
+        memoryReadout: MemoryReadout(engine: engine),
+        loadPack: () async {
+          final pack = await store.installed();
+          return pack == null ? null : store.load(pack);
+        },
+        identifications: identifications,
+        embeddings: ref.watch(identificationEmbeddingRepositoryProvider),
+        crops: ref.watch(identificationCropStoreProvider),
+        resolveImage: (item) => identificationImageOf(ref, item),
+        resolveVideo: (item) => ref.read(videoFileReaderProvider(item).future),
+        taggedSpecies: identifications.taggedSpecies,
+        enabled: () =>
+            marineLifeIdEnabled && ref.read(identifyFishOnOpenProvider),
+        // A Find species run is the diver's own request (issue #4727).
+        runEnabled: () => marineLifeIdEnabled,
+        onItemSettled: (item) => ref
+            .read(autoApplierProvider)
+            .applyInScope(item.id, isVideo: item.mediaType == MediaType.video)
+            .then((_) {}),
+        // Waits for the installed pack, unlike [levelInForceProvider]: a
+        // reconcile before it has been read would otherwise decide by the
+        // stored flags, not the level the diver chose.
+        namingLevel: () => awaitLevelInForce(ref.container),
+      );
+      ref.onDispose(service.dispose);
+      return service;
+    });
 
 /// The file the player opened for a video, read one call at a time
 /// through its bookmark where it has one (issue #4675). Null when the video
@@ -400,13 +400,16 @@ final mediaIdentificationBusyProvider = StreamProvider.autoDispose
 
 /// Tags confident matches with no tap, when the setting is on (issue
 /// #4727).
-final autoApplierProvider = Provider<AutoApplier>(
+final Provider<AutoApplier> autoApplierProvider = Provider<AutoApplier>(
   (ref) => AutoApplier(
     identifications: ref.watch(mediaIdentificationRepositoryProvider),
     acceptor: ref.watch(suggestionAcceptorProvider),
     tagging: ref.watch(speciesTaggingServiceProvider),
     enabled: () => ref.read(autoApplyProvider),
     timing: () => ref.read(sightingTimingProvider),
+    // Read when called: the service calls this applier from its own hook.
+    reconcile: (mediaId) =>
+        ref.read(mediaIdentificationServiceProvider).reconcile(mediaId),
   ),
 );
 

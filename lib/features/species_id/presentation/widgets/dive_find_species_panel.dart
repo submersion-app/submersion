@@ -9,6 +9,7 @@ import 'package:submersion/features/media/presentation/providers/media_providers
 import 'package:submersion/features/species_id/data/services/run_media_resolvers.dart';
 import 'package:submersion/features/species_id/domain/entities/dive_species_run_state.dart';
 import 'package:submersion/features/species_id/domain/entities/species_review.dart';
+import 'package:submersion/features/species_id/domain/services/auto_apply_rules.dart';
 import 'package:submersion/features/species_id/presentation/providers/dive_species_run_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_review_providers.dart';
@@ -128,15 +129,23 @@ class DiveFindSpeciesPanel extends ConsumerWidget {
         ],
       );
     }
-    // Nothing new to look at and nothing left to review: a run would do
-    // nothing. With something to review, a run applies what is confident.
+    // Nothing new to look at: a run would do nothing, unless something is
+    // left to review and auto-apply would tag what is confident, which needs
+    // it switched on and a pack that can be confident.
     final toReview =
         ref.watch(speciesReviewCountProvider(DiveReviewScope(dive.id))).value ??
         0;
     // Watched whatever the count, so Find reads the set it was built from.
     final upToDate =
         ref.watch(diveSpeciesCheckedProvider(dive.id)).value == true;
-    final checked = toReview == 0 && upToDate;
+    final naming = ref
+        .watch(installedSpeciesPackProvider)
+        .value
+        ?.manifest
+        .naming;
+    final runCanApply =
+        ref.watch(autoApplyProvider) && naming != null && packCanApply(naming);
+    final checked = upToDate && (toReview == 0 || !runCanApply);
     return Padding(
       padding: const EdgeInsets.only(top: 8),
       child: OutlinedButton.icon(
