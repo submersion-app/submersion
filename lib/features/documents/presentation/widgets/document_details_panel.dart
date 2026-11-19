@@ -22,7 +22,27 @@ import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dar
 class DocumentDetailsPanel extends ConsumerStatefulWidget {
   final DocumentListEntry entry;
 
-  const DocumentDetailsPanel({super.key, required this.entry});
+  /// Keeps the details open, with no toggle: while the page is unlocked
+  /// its Details card must stay in view (issue #4527, phase 3).
+  final bool forceOpen;
+
+  /// Wraps the details as the page's Details card, framed for editing.
+  final Widget Function(Widget details)? frame;
+
+  /// Passed to [DocumentDetailsCard.showReminder].
+  final bool showReminder;
+
+  /// Passed to [DocumentDetailsCard.pencil].
+  final Widget? pencil;
+
+  const DocumentDetailsPanel({
+    super.key,
+    required this.entry,
+    this.forceOpen = false,
+    this.frame,
+    this.showReminder = false,
+    this.pencil,
+  });
 
   @override
   ConsumerState<DocumentDetailsPanel> createState() =>
@@ -57,16 +77,24 @@ class _DocumentDetailsPanelState extends ConsumerState<DocumentDetailsPanel> {
                     child: DocumentExpiryBadge(status: status),
                   )
                 : null,
-            trailing: Icon(_expanded ? Icons.expand_more : Icons.expand_less),
-            onTap: () => setState(() => _expanded = !_expanded),
+            trailing: widget.forceOpen
+                ? null
+                : Icon(_expanded ? Icons.expand_more : Icons.expand_less),
+            onTap: widget.forceOpen
+                ? null
+                : () => setState(() => _expanded = !_expanded),
           ),
-          if (_expanded)
+          if (_expanded || widget.forceOpen)
             Flexible(
               child: SingleChildScrollView(
-                child: DocumentDetailsCard(
-                  document: doc,
-                  ownerLabel: owner,
-                  flat: true,
+                child: (widget.frame ?? (details) => details)(
+                  DocumentDetailsCard(
+                    document: doc,
+                    ownerLabel: owner,
+                    flat: true,
+                    showReminder: widget.showReminder,
+                    pencil: widget.pencil,
+                  ),
                 ),
               ),
             ),
@@ -102,11 +130,22 @@ class DocumentDetailsCard extends ConsumerWidget {
   /// True inside [DocumentDetailsPanel], which is already a card.
   final bool flat;
 
+  /// Shows the expiry reminder when it is set and not the default, which
+  /// the page showed nowhere before it edited in place (issue #4527,
+  /// phase 3).
+  final bool showReminder;
+
+  /// The Details card's pencil and changed dot, at its top while the page
+  /// is unlocked.
+  final Widget? pencil;
+
   const DocumentDetailsCard({
     super.key,
     required this.document,
     required this.ownerLabel,
     this.flat = false,
+    this.showReminder = false,
+    this.pencil,
   });
 
   @override
@@ -127,6 +166,8 @@ class DocumentDetailsCard extends ConsumerWidget {
     String? text(String? v) => (v == null || v.trim().isEmpty) ? null : v;
     final rows = Column(
       children: [
+        if (pencil case final pencil?)
+          Align(alignment: AlignmentDirectional.topEnd, child: pencil),
         _DetailRow(
           icon: documentTypeIcon(doc.type),
           label: l10n.documents_field_type,
@@ -161,6 +202,13 @@ class DocumentDetailsCard extends ConsumerWidget {
             value: units.formatDate(expiry),
             trailing: DocumentExpiryBadge(status: status),
           ),
+        if (showReminder && doc.expiryDate != null)
+          if (doc.reminderLeadDays case final days?)
+            _DetailRow(
+              icon: Icons.notifications_outlined,
+              label: l10n.documents_field_reminderLead,
+              value: l10n.documents_field_reminderLeadDays(days),
+            ),
         if (insurance && text(doc.emergencyPhone) != null)
           _DetailRow(
             icon: Icons.emergency_outlined,

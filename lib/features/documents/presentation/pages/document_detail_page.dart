@@ -12,8 +12,29 @@ import 'package:submersion/features/documents/presentation/widgets/document_deta
 import 'package:submersion/features/documents/presentation/widgets/document_page_viewer.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/features/documents/data/repositories/document_repository.dart';
+import 'package:submersion/features/documents/data/services/document_edit_save_service.dart';
+import 'package:submersion/features/documents/domain/entities/document_page.dart';
+import 'package:submersion/features/documents/presentation/editing/document_card_ids.dart';
+import 'package:submersion/features/documents/presentation/editing/document_edit_cards.dart';
+import 'package:submersion/features/documents/presentation/editing/document_record.dart';
+import 'package:submersion/features/documents/presentation/providers/document_record_provider.dart';
+import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
+import 'package:submersion/shared/widgets/record_editing/record_open_unlocked.dart';
+import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
+import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
-/// One document: its pages, its details and what it is filed under.
+part 'document_detail_page_editing.dart';
+
+/// One document: its pages, its details and what it is filed under. Behind
+/// phase 3's switch ([unlockEditing]) it opens locked and edits in place
+/// (issue #4527): its details and pages are held in one sitting and
+/// written by one Save.
 class DocumentDetailPage extends ConsumerStatefulWidget {
   final String documentId;
 
@@ -21,18 +42,42 @@ class DocumentDetailPage extends ConsumerStatefulWidget {
   final bool embedded;
   final VoidCallback? onDeleted;
 
+  /// Whether the page edits in place: phase 3's switch, a parameter so a
+  /// test can turn it on.
+  final bool unlockEditing;
+
+  /// Opens unlocked, as the old edit addresses ask (`?mode=edit`).
+  final bool openUnlocked;
+
+  /// Told once when the sitting it opened unlocked ends, so a pane opened
+  /// for editing returns to view mode.
+  final VoidCallback? onSittingEnded;
+
   const DocumentDetailPage({
     super.key,
     required this.documentId,
     this.embedded = false,
     this.onDeleted,
+    this.unlockEditing = kUnlockRecordEditing,
+    this.openUnlocked = false,
+    this.onSittingEnded,
   });
 
   @override
   ConsumerState<DocumentDetailPage> createState() => _DocumentDetailPageState();
 }
 
-class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
+class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage>
+    with
+        RecordEditHost<DocumentDetailPage, DocumentRecord>,
+        RecordOpenUnlocked<DocumentDetailPage, DocumentRecord>,
+        _DocumentDetailPageEditing {
+  @override
+  void dispose() {
+    disposeEditing();
+    super.dispose();
+  }
+
   /// Wide enough for a readable page beside the details column.
   static const double _sideBySideWidth = 840;
   static const double _sideColumnWidth = 360;
@@ -57,6 +102,10 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
     final entry = ref.watch(documentEntryProvider(widget.documentId));
     final pages = ref.watch(documentPagesProvider(widget.documentId));
     final units = ref.watch(unitFormatterProvider);
+    if (hostsEditing) followStored(documentRecordProvider(widget.documentId));
+    final record = hostsEditing
+        ? ref.watch(documentRecordProvider(widget.documentId)).value
+        : null;
     return entry.when(
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),
@@ -73,121 +122,182 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
             body: Center(child: Text(l10n.documents_empty)),
           );
         }
-        final entry = withCertificationOwnerTitle(
+        final named = withCertificationOwnerTitle(
           stored,
           l10n,
           catalog: ref.watch(certificationCatalogSyncProvider),
         );
-        final doc = entry.document;
-        final owner = entry.ownerText(units);
-        return Scaffold(
-          appBar: AppBar(
-            automaticallyImplyLeading: !widget.embedded,
-            title: Text(
-              documentDisplayTitle(l10n, doc, ownerLabel: entry.ownerLabel),
-            ),
-            actions: [
-              IconButton(
-                tooltip: l10n.common_action_edit,
-                icon: const Icon(Icons.edit_outlined),
-                onPressed: () => _edit(doc.id),
-              ),
-              // Delete waits behind the overflow menu, as on the other
-              // detail pages, not one tap away beside Edit (#3384).
-              PopupMenuButton<String>(
-                onSelected: (value) {
-                  if (value == 'delete') _delete(doc);
-                },
-                itemBuilder: (context) {
-                  final error = Theme.of(context).colorScheme.error;
-                  return [
-                    changeLogHistoryMenuItem(
-                      context,
-                      rootTable: 'documents',
-                      rootId: doc.id,
-                    ),
-                    PopupMenuItem(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          Icon(Icons.delete, color: error),
-                          const SizedBox(width: 8),
-                          Text(
-                            l10n.common_action_delete,
-                            style: TextStyle(color: error),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ];
-                },
-              ),
-            ],
-          ),
-          body: LayoutBuilder(
-            builder: (context, constraints) {
-              // Nothing to show but the details (an insurance kept as its
-              // numbers alone): show them, not an empty viewer over a
-              // folded panel.
-              if (pages.value?.isEmpty ?? false) {
-                return ListView(
-                  padding: const EdgeInsets.all(16),
-                  children: [
-                    // A readable line length on a wide window.
-                    Align(
-                      alignment: Alignment.topCenter,
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 640),
-                        child: DocumentDetailsCard(
-                          document: doc,
-                          ownerLabel: owner,
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              }
-              final viewer = pages.when(
-                data: (list) => DocumentPageViewer(pages: list),
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, _) => Center(child: Text('$e')),
-              );
-              if (constraints.maxWidth >= _sideBySideWidth) {
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Expanded(child: viewer),
-                    SizedBox(
-                      width: _sideColumnWidth,
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(16),
-                        child: DocumentDetailsCard(
-                          document: doc,
-                          ownerLabel: owner,
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              }
-              // The pages own every vertical drag here: inside a scrolling
-              // list a PDF could neither fill the screen nor scroll.
-              return Column(
-                children: [
-                  Expanded(child: viewer),
-                  ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxHeight: constraints.maxHeight / 2,
-                    ),
-                    child: DocumentDetailsPanel(entry: entry),
-                  ),
-                ],
-              );
-            },
-          ),
+        if (!hostsEditing) {
+          final doc = named.document;
+          return Scaffold(
+            appBar: _bar(named, doc),
+            body: _body(named, doc, named.ownerText(units), pages),
+          );
+        }
+        if (record == null) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+        openUnlockedOnce(record);
+        final shown = shownRecord(record);
+        final doc = shown.document;
+        // The entry with the sitting's document, so the details and the
+        // panel show what the diver is editing.
+        final entry = DocumentListEntry(
+          doc,
+          named.ownerLabel,
+          named.pageCount,
+          ownerDate: named.ownerDate,
+          certification: named.certification,
+        );
+        return editScaffold(
+          record: record,
+          shown: shown,
+          lockedBar: _bar(entry, doc, shown),
+          unlockedActions: [_menu(doc)],
+          content: _body(entry, doc, entry.ownerText(units), pages),
         );
       },
     );
+  }
+
+  /// The page's top bar while locked: its title, the lock where the page
+  /// edits in place, Edit and the menu.
+  PreferredSizeWidget _bar(
+    DocumentListEntry entry,
+    Document doc, [
+    DocumentRecord? shown,
+  ]) {
+    final l10n = context.l10n;
+    return AppBar(
+      automaticallyImplyLeading: !widget.embedded,
+      title: Text(
+        documentDisplayTitle(l10n, doc, ownerLabel: entry.ownerLabel),
+      ),
+      actions: [
+        if (shown != null) lockButton(shown),
+        IconButton(
+          tooltip: l10n.common_action_edit,
+          icon: const Icon(Icons.edit_outlined),
+          onPressed: () => _edit(doc.id),
+        ),
+        _menu(doc),
+      ],
+    );
+  }
+
+  /// The menu: History, and Delete behind the overflow, as on the other
+  /// detail pages, not one tap away beside Edit (#3384).
+  Widget _menu(Document doc) {
+    final l10n = context.l10n;
+    return PopupMenuButton<String>(
+      onSelected: (value) {
+        if (value == 'delete') _requestDelete(doc);
+      },
+      itemBuilder: (context) {
+        final error = Theme.of(context).colorScheme.error;
+        return [
+          changeLogHistoryMenuItem(
+            context,
+            rootTable: 'documents',
+            rootId: doc.id,
+          ),
+          ..._documentRecordCaption(),
+          PopupMenuItem(
+            value: 'delete',
+            enabled: _documentOperationsAvailable,
+            child: Row(
+              children: [
+                Icon(Icons.delete, color: error),
+                const SizedBox(width: 8),
+                Text(l10n.common_action_delete, style: TextStyle(color: error)),
+              ],
+            ),
+          ),
+        ];
+      },
+    );
+  }
+
+  /// The page's pages and details, laid out for the window's width.
+  Widget _body(
+    DocumentListEntry entry,
+    Document doc,
+    String? owner,
+    AsyncValue<List<DocumentPage>> pages,
+  ) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Nothing to show but the details (an insurance kept as its
+        // numbers alone): show them, not an empty viewer over a folded
+        // panel.
+        if (pages.value?.isEmpty ?? false) {
+          return ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              // A readable line length on a wide window.
+              Align(
+                alignment: Alignment.topCenter,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 640),
+                  child: _detailsCard(doc, owner),
+                ),
+              ),
+            ],
+          );
+        }
+        final viewer = pages.when(
+          data: (list) => DocumentPageViewer(pages: list),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => Center(child: Text('$e')),
+        );
+        if (constraints.maxWidth >= _sideBySideWidth) {
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: viewer),
+              SizedBox(
+                width: _sideColumnWidth,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: _detailsCard(doc, owner),
+                ),
+              ),
+            ],
+          );
+        }
+        // The pages own every vertical drag here: inside a scrolling list
+        // a PDF could neither fill the screen nor scroll.
+        return Column(
+          children: [
+            Expanded(child: viewer),
+            ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: constraints.maxHeight / 2),
+              child: DocumentDetailsPanel(
+                entry: entry,
+                forceOpen: isSittingOpen,
+                frame: hostsEditing ? _framedDetails : null,
+                showReminder: hostsEditing,
+                pencil: _detailsPencil(),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// The details as a card, framed as the Details card where the page
+  /// edits in place.
+  Widget _detailsCard(Document doc, String? owner) {
+    final card = DocumentDetailsCard(
+      document: doc,
+      ownerLabel: owner,
+      showReminder: hostsEditing,
+      pencil: _detailsPencil(),
+    );
+    return hostsEditing ? _framedDetails(card) : card;
   }
 
   /// In the list's detail pane the editor opens in that pane, as every
@@ -211,7 +321,9 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
     );
   }
 
-  Future<void> _delete(Document doc) async {
+  /// Deletes [doc] after asking, and leaves the page. Answers whether it
+  /// deleted.
+  Future<bool> _delete(Document doc) async {
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
     final confirmed = await showDialog<bool>(
@@ -231,10 +343,10 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
         ],
       ),
     );
-    if (confirmed != true || !mounted) return;
+    if (confirmed != true || !mounted) return false;
     await ref.read(documentMutationsProvider).delete(doc.id);
     messenger.showSnackBar(SnackBar(content: Text(l10n.documents_deleted)));
-    if (!mounted) return;
+    if (!mounted) return true;
     if (widget.onDeleted != null) {
       widget.onDeleted!();
     } else if (context.canPop()) {
@@ -242,5 +354,6 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
     } else {
       context.go('/documents');
     }
+    return true;
   }
 }

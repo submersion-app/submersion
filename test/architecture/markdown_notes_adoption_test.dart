@@ -49,6 +49,8 @@ void main() {
         'markdown: true',
     'lib/features/dive_sites/presentation/widgets/edit_sections/life_notes_section.dart':
         'markdown: true',
+    'lib/features/documents/presentation/editing/document_details_card_editor.dart':
+        'MarkdownNotesField(',
     'lib/features/documents/presentation/pages/document_edit_page.dart':
         'MarkdownNotesField(',
     'lib/features/equipment/presentation/pages/equipment_edit_page.dart':
