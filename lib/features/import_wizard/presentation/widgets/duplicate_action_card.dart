@@ -59,9 +59,10 @@ class DuplicateActionCard extends StatefulWidget {
   /// (#3110); the expanded card compares the two.
   final IncomingDiveData? inBatchPartner;
 
-  /// The trip this dive will be saved in when imported as new (issue
-  /// #3022). Only shown for [DuplicateAction.importAsNew]: any other action
-  /// leaves the matched dive's trip as it is.
+  /// The trip this dive will be saved in (issue #3022), when imported as new
+  /// or merged into a dive that has no trip (the merge passes its trip on).
+  /// Shown for those two actions only: any other leaves the matched dive's
+  /// trip as it is.
   final String? tripName;
 
   const DuplicateActionCard({
@@ -141,9 +142,11 @@ class _DuplicateActionCardState extends State<DuplicateActionCard> {
                 : null,
             plannedDiveLabel: widget.plannedDiveLabel,
             onChangeFillTarget: widget.onChangeFillTarget,
-            tripName: widget.selectedAction == DuplicateAction.importAsNew
-                ? widget.tripName
-                : null,
+            tripName: switch (widget.selectedAction) {
+              DuplicateAction.importAsNew ||
+              DuplicateAction.consolidate => widget.tripName,
+              _ => null,
+            },
           ),
           if (_expanded) _buildExpanded(context, colorScheme),
         ],

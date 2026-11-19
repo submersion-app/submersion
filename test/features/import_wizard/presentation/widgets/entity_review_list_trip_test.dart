@@ -83,6 +83,54 @@ void main() {
       expect(find.byIcon(Icons.flight_outlined), findsOneWidget);
     });
 
+    testWidgets('a duplicate merged into its match names the trip', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _list(
+          group: const EntityGroup(
+            items: [_dup],
+            duplicateIndices: {0},
+            matchResults: {
+              0: DiveMatchResult(
+                diveId: 'existing',
+                score: 0.85,
+                timeDifferenceMs: 60000,
+              ),
+            },
+          ),
+          selected: const {0},
+          actions: const {0: DuplicateAction.consolidate},
+          tripNameForIndex: (_) => 'Bonaire 2026',
+        ),
+      );
+
+      expect(find.text('Bonaire 2026'), findsOneWidget);
+    });
+
+    testWidgets('a skipped duplicate shows no trip', (tester) async {
+      await tester.pumpWidget(
+        _list(
+          group: const EntityGroup(
+            items: [_dup],
+            duplicateIndices: {0},
+            matchResults: {
+              0: DiveMatchResult(
+                diveId: 'existing',
+                score: 0.85,
+                timeDifferenceMs: 60000,
+              ),
+            },
+          ),
+          selected: const {},
+          actions: const {0: DuplicateAction.skip},
+          tripNameForIndex: (_) => 'Bonaire 2026',
+        ),
+      );
+
+      expect(find.text('Bonaire 2026'), findsNothing);
+    });
+
     testWidgets('no name, no trip line', (tester) async {
       await tester.pumpWidget(
         _list(

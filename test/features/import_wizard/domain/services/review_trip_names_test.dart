@@ -67,6 +67,7 @@ void main() {
     Map<int, DuplicateAction> tripActions = const {},
     Map<int, EntityMatchResult>? tripMatches,
     List<Trip> Function(EntityItem dive)? existingTripsFor,
+    Set<int> mergesIntoTripless = const {},
   }) => reviewTripNames(
     dives: EntityGroup(items: dives, duplicateIndices: duplicateIndices),
     trips: trips == null
@@ -78,6 +79,7 @@ void main() {
     tripSelections: tripSelections,
     tripActions: tripActions,
     existingTripsFor: existingTripsFor ?? (_) => [bonaire],
+    mergesIntoTripless: mergesIntoTripless,
     now: now,
   );
 
@@ -319,6 +321,21 @@ void main() {
       diveSelections: const {},
       duplicateIndices: {0},
       diveActions: {0: DuplicateAction.importAsNew},
+    );
+    expect(result, {0: 'Bonaire'});
+  });
+
+  test('a merge into a dive with no trip passes its trip on', () {
+    // The merge saves the dive standalone, placed by date, then copies its
+    // trip onto the matched dive when that one has none.
+    final result = names(
+      [dive(3, 10), dive(3, 11)],
+      duplicateIndices: {0, 1},
+      diveActions: {
+        0: DuplicateAction.consolidate,
+        1: DuplicateAction.consolidate,
+      },
+      mergesIntoTripless: {0},
     );
     expect(result, {0: 'Bonaire'});
   });

@@ -1,8 +1,11 @@
+import 'package:collection/collection.dart';
+
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_match_review_notifier.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/domain/services/review_trip_names.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
@@ -55,34 +58,56 @@ final importReviewTripNamesProvider = Provider.autoDispose<Map<int, String>>((
     return id == null ? (false, null) : (true, id);
   }
 
-  final tripsByOwner = <String?, List<Trip>?>{};
-  for (final dive in dives.items) {
-    final (reads, owner) = ownerOf(dive);
-    if (!reads || tripsByOwner.containsKey(owner)) continue;
-    tripsByOwner[owner] = ref.watch(importOwnerTripsProvider(owner)).value;
-  }
+  final owners = [for (final dive in dives.items) ownerOf(dive)];
+  final tripsByOwner = {
+    for (final (reads, owner) in owners)
+      if (reads) owner: ref.watch(importOwnerTripsProvider(owner)).value,
+  };
 
-  bool loading(EntityItem dive) {
-    final (reads, owner) = ownerOf(dive);
-    return reads && tripsByOwner[owner] == null;
-  }
+  // A merge passes the dive's trip to its match only when that has none.
+  final diveActions =
+      state.duplicateActions[ImportEntityType.dives] ?? const {};
+  final mergeTargets = {
+    for (final entry in diveActions.entries)
+      if (entry.value == DuplicateAction.consolidate)
+        entry.key: ?dives.matchResults?[entry.key]?.diveId,
+  };
+  final tripless = mergeTargets.isEmpty
+      ? const <String>{}
+      : ref
+                .watch(
+                  importMergeTargetsWithoutTripProvider(
+                    ImportedDiveIds(mergeTargets.values.toSet().sorted()),
+                  ),
+                )
+                .value ??
+            const <String>{};
 
   final names = reviewTripNames(
     dives: dives,
     trips: bundle.groups[ImportEntityType.trips],
     diveSelections: state.selections[ImportEntityType.dives] ?? const {},
-    diveActions: state.duplicateActions[ImportEntityType.dives] ?? const {},
+    diveActions: diveActions,
     tripSelections: state.selections[ImportEntityType.trips] ?? const {},
     tripActions: state.duplicateActions[ImportEntityType.trips] ?? const {},
-    existingTripsFor: (dive) {
-      final (reads, owner) = ownerOf(dive);
-      return reads ? tripsByOwner[owner] ?? const [] : const [];
+    mergesIntoTripless: {
+      for (final entry in mergeTargets.entries)
+        if (tripless.contains(entry.value)) entry.key,
+    },
+    existingTripsFor: (dive) => switch (ownerOf(dive)) {
+      (true, final owner) => tripsByOwner[owner] ?? const [],
+      _ => const [],
     },
     now: DateTime.now(),
   );
+  // While a profile's trips load, its rows get no name rather than a guess.
   return {
     for (final entry in names.entries)
-      if (!loading(dives.items[entry.key])) entry.key: entry.value,
+      if (owners[entry.key] case (
+        final reads,
+        final owner,
+      ) when !reads || tripsByOwner[owner] != null)
+        entry.key: entry.value,
   };
 }, dependencies: [importWizardNotifierProvider]);
 
@@ -107,14 +132,27 @@ final importedDiveTripCountsProvider = FutureProvider.autoDispose
           countByTrip[tripId] = (countByTrip[tripId] ?? 0) + 1;
         }
       }
-      final rows = <({String name, int count})>[
-        for (final entry in countByTrip.entries)
-          if (await trips.getTripById(entry.key) case final trip?)
-            (name: trip.name, count: entry.value),
-      ];
-      rows.sort((a, b) {
+      final found = await Future.wait(countByTrip.keys.map(trips.getTripById));
+      return [
+        for (final trip in found.nonNulls)
+          (name: trip.name, count: countByTrip[trip.id]!),
+      ].sorted((a, b) {
         final byCount = b.count.compareTo(a.count);
         return byCount != 0 ? byCount : compareTextForSort(a.name, b.name);
       });
-      return rows;
+    });
+
+/// Of the dives that reviewed rows would merge into, the ids of those in no
+/// trip (issue #3022): a merge saves the incoming dive on its own, placed in
+/// a trip by date, then copies that trip onto its match only when the match
+/// has none, so the review names the trip for those rows alone.
+final importMergeTargetsWithoutTripProvider = FutureProvider.autoDispose
+    .family<Set<String>, ImportedDiveIds>((ref, arg) async {
+      if (arg.ids.isEmpty) return const {};
+      final dives = ref.watch(diveRepositoryProvider);
+      ref.invalidateSelfWhen(dives.watchDivesChanges());
+      return {
+        for (final dive in await dives.getDivesByIdsWithoutSamples(arg.ids))
+          if (dive.tripId == null) dive.id,
+      };
     });
