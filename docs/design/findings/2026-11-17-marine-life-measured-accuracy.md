@@ -439,34 +439,39 @@ to the higher bar), the same 2% junk cap on the tune half and the same
 held-out gate. Every set keeps both levels, and all are in
 `tool/species_pack/manifest.py`.
 
-With a location ("suggested right" is what the app shows, rounded down to
-a multiple of 5):
+The figure shown for each level, and for Surer, is the lower of its
+held-out precision with a location and without one
+([design](../specs/2026-11-19-marine-life-level-accuracy-without-location-design.md)),
+so its settings line never overstates for photos named without a
+location; the app rounds it down to a multiple of 5. Coverage is with a
+location:
 
-| Set (fitting) | Level | suggest | suggest, no location | suggested right | coverage | junk named |
-| --- | --- | --- | --- | --- | --- | --- |
-| Both (centre crop), published | Surer | 0.74 | 0.81 | 89.7% (86.0 to 92.5) | 32.4% (29.7 to 35.3) | 1.6% (0.3 to 8.6) |
-| | Balanced | 0.25 | 0.63 | 82.5% (78.8 to 85.6) | 45.4% (42.4 to 48.4) | 3.2% (0.9 to 11.0) |
-| | Eager | 0.25 | 0.44 | 82.5% (78.8 to 85.6) | 45.4% (42.4 to 48.4) | 3.2% (0.9 to 11.0) |
-| Fish detector (centre crop) | Surer | 0.64 | 0.79 | 87.1% (83.1 to 90.2) | 36.9% (33.9 to 40.1) | 2.9% (0.5 to 14.5) |
-| | Balanced | 0.25 | 0.56 | 82.1% (78.2 to 85.4) | 45.6% (42.5 to 48.8) | 5.7% (1.6 to 18.6) |
-| | Eager | 0.25 | 0.39 | 82.1% (78.2 to 85.4) | 45.6% (42.5 to 48.8) | 5.7% (1.6 to 18.6) |
-| Megalodon (pad-to-square) | Surer | 0.75 | 0.70 | 92.3% (88.5 to 94.9) | 30.9% (27.9 to 34.0) | 0.0% (0.0 to 11.4) |
-| | Balanced | 0.57 | 0.59 | 84.9% (81.1 to 88.1) | 45.8% (42.6 to 49.1) | 0.0% (0.0 to 11.4) |
-| | Eager | 0.36 | 0.44 | 75.7% (72.0 to 79.1) | 62.4% (59.2 to 65.6) | 0.0% (0.0 to 11.4) |
+| Set (fitting) | Level | suggest | suggest, no location | right, with a location | right, without | coverage | shown | junk named |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Both (centre crop), published | Surer | 0.74 | 0.81 | 89.7% (86.0 to 92.5) | 90.3% (84.6 to 94.0) | 32.4% (29.7 to 35.3) | 89.7% | 1.6% (0.3 to 8.6) |
+| | Balanced | 0.25 | 0.63 | 82.5% (78.8 to 85.6) | 80.8% (76.0 to 84.8) | 45.4% (42.4 to 48.4) | 80.8% | 3.2% (0.9 to 11.0) |
+| | Eager | 0.25 | 0.44 | 82.5% (78.8 to 85.6) | 75.5% (71.4 to 79.1) | 45.4% (42.4 to 48.4) | 75.5% | 3.2% (0.9 to 11.0) |
+| Fish detector (centre crop) | Surer | 0.64 | 0.79 | 87.1% (83.1 to 90.2) | 89.2% (82.7 to 93.5) | 36.9% (33.9 to 40.1) | 87.1% | 2.9% (0.5 to 14.5) |
+| | Balanced | 0.25 | 0.56 | 82.1% (78.2 to 85.4) | 81.0% (76.1 to 85.0) | 45.6% (42.5 to 48.8) | 81.0% | 5.7% (1.6 to 18.6) |
+| | Eager | 0.25 | 0.39 | 82.1% (78.2 to 85.4) | 73.7% (69.4 to 77.6) | 45.6% (42.5 to 48.8) | 73.7% | 5.7% (1.6 to 18.6) |
+| Megalodon (pad-to-square) | Surer | 0.75 | 0.70 | 92.3% (88.5 to 94.9) | 89.0% (83.6 to 92.8) | 30.9% (27.9 to 34.0) | 89.0% | 0.0% (0.0 to 11.4) |
+| | Balanced | 0.57 | 0.59 | 84.9% (81.1 to 88.1) | 85.9% (81.1 to 89.6) | 45.8% (42.6 to 49.1) | 84.9% | 0.0% (0.0 to 11.4) |
+| | Eager | 0.36 | 0.44 | 75.7% (72.0 to 79.1) | 79.9% (75.6 to 83.7) | 62.4% (59.2 to 65.6) | 75.7% | 0.0% (0.0 to 11.4) |
 
 - **The published pair.** Balanced names 45.4% of the animals the
   detectors box against Surer's 32.4%, about 40% more, and is right 82.5%
-  of the time against 89.7%. The app shows "About 80% right" against
-  "About 85% right".
+  of the time against 89.7%. The app shows "About 85% right" for Surer,
+  "About 80% right" for Balanced and "About 75% right" for Eager.
 - **Balanced and Eager share a bar with a location.** Below 0.25 the pair
   names no more animals right, and a tie goes to the higher bar, so the
   65% target adds nothing there. Eager differs only without a location
-  (0.44 against 0.63). The table is with a location, so Eager's accuracy
-  without one is not reported on its own, and the app shows the same
-  figure for both. Eager is kept as measured, the maintainer's call, so a
-  diver whose photos have no location still gets more names from it. The
-  fish detector alone shows the same pattern; Megalodon alone is the one
-  set whose Eager names more everywhere.
+  (0.44 against 0.63): there it names 46.4% of the animals against
+  Balanced's 28.9%, and is right 75.5% of the time against 80.8%. Its
+  shown figure is that no-location accuracy, so its line describes the
+  photos where it differs, and with a location it understates by about a
+  step. Eager is kept as measured, the maintainer's call. The fish
+  detector alone shows the same pattern; Megalodon alone is the one set
+  whose Eager names more everywhere.
 - **Junk.** The cap holds on the tune half (55 junk boxes for the pair),
   as for the pack's own bars. On the held-out half the pair's levels named
   2 of 62 junk boxes against Surer's 1, and the fish detector's 2 of 35
