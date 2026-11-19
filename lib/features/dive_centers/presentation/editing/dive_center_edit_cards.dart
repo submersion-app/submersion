@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_centers/presentation/editing/dive_cente
 import 'package:submersion/features/dive_centers/presentation/editing/dive_center_header_card_editor.dart';
 import 'package:submersion/features/dive_centers/presentation/editing/dive_center_map_card_editor.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_fill_hours_section.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/rental_gear_section.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -62,6 +63,15 @@ final Map<DiveCenterCardId, EditCard<DiveCenter>> diveCenterEditCards = {
     isEmpty: (c) => c.notes.trim().isEmpty,
     editorBuilder: (context, session) =>
         DiveCenterNotesCardEditor(session: session),
+  ),
+  DiveCenterCardId.rentalGear: EditCard<DiveCenter>(
+    id: DiveCenterCardId.rentalGear.name,
+    title: (context) =>
+        DiveCenterCardId.rentalGear.localizedDisplayName(context.l10n),
+    // Always on the page: with none, it says so.
+    isEmpty: (_) => false,
+    editorBuilder: (context, session) =>
+        RentalGearSection(centerId: session.stored.id, editing: session),
   ),
   DiveCenterCardId.documents: EditCard<DiveCenter>(
     id: DiveCenterCardId.documents.name,

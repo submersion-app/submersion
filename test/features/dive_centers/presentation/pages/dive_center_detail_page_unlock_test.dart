@@ -5,6 +5,9 @@ import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/editing/dive_center_card_ids.dart';
 import 'package:submersion/features/dive_centers/presentation/editing/dive_center_edit_fields.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_centers/domain/entities/dive_center_gear_note.dart';
+import 'package:submersion/features/dive_centers/presentation/editing/dive_center_rental_sitting.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
@@ -198,5 +201,32 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(AlertDialog), findsOneWidget);
+  });
+
+  testWidgets('a rental note and a phone change are one entry', (tester) async {
+    final harness = await pumpDiveCenterPage(tester);
+    harness.save.runHeld = false;
+    await unlock(tester);
+    final session = sessionOf(tester);
+    // The harness has no database: the list starts empty instead of read.
+    diveCenterRentalList.loadNone(session);
+    diveCenterRentalList.set(session, [
+      DiveCenterGearNote(
+        id: 'n1',
+        diveCenterId: 'dc1',
+        gearType: EquipmentType.bcd,
+        label: 'blue 3',
+        verdict: RentalVerdict.worked,
+        notedAt: DateTime.utc(2026),
+        createdAt: DateTime.utc(2026),
+        updatedAt: DateTime.utc(2026),
+      ),
+    ]);
+    session.set(diveCenterPhoneField, '+20 1');
+    await tester.pumpAndSettle();
+
+    await save(tester);
+
+    expect(harness.save.calls.single.cards, {'contact', 'rentalGear'});
   });
 }

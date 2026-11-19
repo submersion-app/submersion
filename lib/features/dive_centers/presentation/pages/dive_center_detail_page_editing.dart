@@ -46,6 +46,9 @@ mixin _DiveCenterDetailPageEditing
     EditSession<DiveCenter> session,
     ProviderContainer container,
   ) {
+    // Read now, so the Rental gear card shows the sitting's list once it
+    // changes.
+    diveCenterRentalList.load(session);
     holdDocumentLinks(
       session,
       container.read,

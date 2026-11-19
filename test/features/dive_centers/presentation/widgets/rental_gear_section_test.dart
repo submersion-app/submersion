@@ -23,20 +23,24 @@ void main() {
         updatedAt: DateTime(2026, 1, 1),
       );
 
-  Future<void> pump(WidgetTester tester, List<DiveCenterGearNote> notes) async {
+  Future<void> pump(
+    WidgetTester tester,
+    List<DiveCenterGearNote> notes, {
+    bool readOnly = false,
+  }) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           diveCenterGearNotesProvider('c1').overrideWith((ref) async => notes),
         ],
-        child: const MaterialApp(
-          locale: Locale('en'),
+        child: MaterialApp(
+          locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: SingleChildScrollView(
-              child: RentalGearSection(centerId: 'c1'),
+              child: RentalGearSection(centerId: 'c1', readOnly: readOnly),
             ),
           ),
         ),
@@ -84,5 +88,12 @@ void main() {
     await tester.tap(find.text('fins'));
     await tester.pumpAndSettle();
     expect(find.text('Edit rental note'), findsOneWidget);
+  });
+
+  testWidgets('locked with the switch on, no add is offered', (tester) async {
+    await pump(tester, const [], readOnly: true);
+
+    expect(find.byKey(const ValueKey('rental_gear_add')), findsNothing);
+    expect(find.byIcon(Icons.add), findsNothing);
   });
 }

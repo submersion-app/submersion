@@ -35,6 +35,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_centers/data/services/dive_center_edit_save_service.dart';
 import 'package:submersion/features/dive_centers/presentation/editing/dive_center_card_ids.dart';
 import 'package:submersion/features/dive_centers/presentation/editing/dive_center_edit_cards.dart';
+import 'package:submersion/features/dive_centers/presentation/editing/dive_center_rental_sitting.dart';
 import 'package:submersion/features/documents/presentation/editing/record_document_links_sitting.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
@@ -220,7 +221,14 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage>
               ),
               _calculated(GearHereSection(centerId: widget.centerId)),
               const Divider(height: 32),
-              RentalGearSection(centerId: widget.centerId),
+              _framed(
+                DiveCenterCardId.rentalGear,
+                RentalGearSection(
+                  centerId: widget.centerId,
+                  readOnly: hostsEditing,
+                  shown: maybeEditController?.session,
+                ),
+              ),
               const Divider(height: 32),
               _calculated(_DivesSection(centerId: widget.centerId)),
               const SizedBox(height: 32),
