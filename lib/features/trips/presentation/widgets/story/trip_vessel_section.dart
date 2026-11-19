@@ -28,7 +28,7 @@ class TripVesselSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final session = this.session;
     if (session != null) {
-      final list = tripVesselDetails();
+      final list = tripVesselState;
       return ListenableBuilder(
         listenable: list.changes(session),
         builder: (context, _) {

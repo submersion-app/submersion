@@ -162,4 +162,19 @@ void main() {
     expect(pane, isA<TripEditPage>());
     expect((pane as TripEditPage).tripId, 't1');
   });
+
+  testWidgets('opened at section=planning on a trip under way, the story '
+      'shows the Trip page with the Plan card open', (tester) async {
+    await pumpTripPage(
+      tester,
+      trip: redSea.copyWith(
+        startDate: today.subtract(const Duration(days: 1)),
+        endDate: today.add(const Duration(days: 1)),
+      ),
+      openUnlocked: true,
+      openSection: TripEditSection.planning,
+    );
+
+    expect(find.byType(TripPlanCardEditor), findsOneWidget);
+  });
 }

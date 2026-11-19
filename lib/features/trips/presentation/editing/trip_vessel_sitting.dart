@@ -39,6 +39,11 @@ SittingList<Trip, LiveaboardDetails> _vesselList(
   },
 );
 
+/// The sitting's vessel, for what only reads it (the Vessel card's check,
+/// the card itself while closed): what the list holds lives in the sitting,
+/// so this copy sees what the page's holds, and it never reads or writes.
+final tripVesselState = tripVesselDetails();
+
 /// The details of a trip [tripId] that has none yet: an empty vessel name,
 /// which the Vessel card asks for, and no id, so the repository gives it
 /// one at Save.

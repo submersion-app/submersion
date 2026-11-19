@@ -309,4 +309,25 @@ void main() {
 
     expect(harness.save.calls, hasLength(1));
   });
+
+  testWidgets('a Save refused for the vessel name while the story shows a '
+      'day brings the Trip page and its Vessel card into view', (tester) async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final harness = await pumpTripPage(
+      tester,
+      trip: liveaboard.copyWith(
+        startDate: today.subtract(const Duration(days: 1)),
+        endDate: today.add(const Duration(days: 1)),
+      ),
+    );
+    await unlock(tester);
+    sessionOf(tester).set(tripNotesField, 'Windy');
+    await tester.pumpAndSettle();
+
+    await save(tester);
+
+    expect(harness.save.calls, isEmpty);
+    expect(find.byType(TripVesselCardEditor), findsOneWidget);
+  });
 }

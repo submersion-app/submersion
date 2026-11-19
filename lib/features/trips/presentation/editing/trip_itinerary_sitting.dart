@@ -14,7 +14,8 @@ import 'package:submersion/shared/widgets/record_editing/sitting_list.dart';
 /// reads and writes.
 ///
 /// At Save the days the sitting added are written with `saveAll`, keeping
-/// the ids the sitting gave them, and each day it changed with `updateDay`.
+/// the ids the sitting gave them (but not over a date stored meanwhile),
+/// and each day it changed with `updateDay`.
 /// No day is removed in a sitting, as none is on the page today; the plan
 /// days the trip's dates leave behind go in the trip's save service.
 SittingList<Trip, ItineraryDay> tripItineraryDays([
@@ -29,9 +30,14 @@ SittingList<Trip, ItineraryDay> _itineraryList(
   read: (trip) => repository.getByTripId(trip.id),
   write: (trip, loaded, current) async {
     final before = {for (final d in loaded) d.id: d};
+    // A day stored meanwhile for a date the sitting generated one for
+    // (another device's) stands: the table does not stop two rows a date.
+    final stored = {
+      for (final d in await repository.getByTripId(trip.id)) tripDay(d.date),
+    };
     final added = [
       for (final d in current)
-        if (!before.containsKey(d.id)) d,
+        if (!before.containsKey(d.id) && !stored.contains(tripDay(d.date))) d,
     ];
     final changed = [
       for (final d in current)

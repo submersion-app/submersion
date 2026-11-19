@@ -129,6 +129,9 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage>
   /// story at a day.
   final _storySelection = ValueNotifier<TripStorySelection?>(null);
 
+  @override
+  ValueNotifier<TripStorySelection?> get storySelection => _storySelection;
+
   /// Whether the card the address names has been opened, or tried.
   bool _openedAtCard = false;
 
@@ -148,11 +151,15 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage>
       if (noteDay != null) {
         _storySelection.value = TripStorySelection.day(noteDay.date);
         controller.openCard(TripCardId.notes.name);
-      } else if (section == TripEditSection.planning) {
-        controller.openCard(TripCardId.plan.name);
-      } else {
-        controller.openCard(TripCardId.notes.name);
+        return;
       }
+      // On the story, the Plan and the whole notes are on its Trip page.
+      _storySelection.value = const TripStorySelection.trip();
+      controller.openCard(
+        section == TripEditSection.planning
+            ? TripCardId.plan.name
+            : TripCardId.notes.name,
+      );
     });
   }
 

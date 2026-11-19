@@ -37,7 +37,7 @@ final Map<TripCardId, EditCard<Trip>> tripEditCards = {
     // On the page while the trip is a liveaboard, details or not.
     isEmpty: (_) => false,
     // A liveaboard needs a vessel name, as the form's validator has it.
-    isValid: (session) => tripVesselValid(_vessel, session),
+    isValid: (session) => tripVesselValid(tripVesselState, session),
     editorBuilder: (context, session) => TripVesselCardEditor(session: session),
   ),
   TripCardId.notes: EditCard<Trip>(
@@ -57,10 +57,6 @@ final Map<TripCardId, EditCard<Trip>> tripEditCards = {
     ),
   ),
 };
-
-/// The sitting's vessel, read for the Vessel card's check: what the list
-/// holds lives in the sitting, so this copy sees what the page's holds.
-final _vessel = tripVesselDetails();
 
 /// The cards the page leaves out while they are empty, offered in the
 /// strip on their tab, in page order.

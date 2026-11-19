@@ -11,6 +11,26 @@ mixin _TripDetailPageEditing
         RecordEditTabs<TripDetailPage, Trip> {
   TabController get tabController;
 
+  /// Which page of the Overview's story shows.
+  ValueNotifier<TripStorySelection?> get storySelection;
+
+  /// The cards only the story's Trip page draws, of those the Overview has.
+  static const _onStoryTripPage = {
+    TripCardId.vessel,
+    TripCardId.plan,
+    TripCardId.documents,
+  };
+
+  /// Shows the story's Trip page, where [id] is drawn, when the story is on
+  /// a day: a card asked to show itself there (a Save refused for it, one
+  /// brought in from the strip, an edit address naming it) would otherwise
+  /// be opened out of sight.
+  void showStoryPageOf(TripCardId id) {
+    if (!_onStoryTripPage.contains(id)) return;
+    const tripPage = TripStorySelection.trip();
+    if (storySelection.value != tripPage) storySelection.value = tripPage;
+  }
+
   @override
   String get hostRecordId => widget.tripId;
 
@@ -30,6 +50,10 @@ mixin _TripDetailPageEditing
   void onEditChanged() {
     noteOpenedSittingEnded();
     super.onEditChanged();
+    final request = maybeEditController?.revealRequest;
+    if (request == null) return;
+    final id = TripCardId.values.asNameMap()[request.cardId];
+    if (id != null) showStoryPageOf(id);
   }
 
   @override
@@ -89,11 +113,17 @@ mixin _TripDetailPageEditing
         stored.endDate == working.endDate) {
       return true;
     }
-    final diverId = ref.read(validatedCurrentDiverIdProvider).value;
-    if (diverId == null) return true;
     final trips = ref.read(tripRepositoryProvider);
     final List<DiveCandidate> candidates;
     try {
+      // The profile may still be being read just after the page opened;
+      // the form waited for it, and so does this.
+      final diverId =
+          ref.read(validatedCurrentDiverIdProvider).value ??
+          await ref.read(validatedCurrentDiverIdProvider.future);
+      if (diverId == null || !mounted || session.isDisposed) {
+        return mounted && !session.isDisposed;
+      }
       candidates = await trips.findCandidateDivesForTrip(
         tripId: stored.id,
         startDate: working.startDate,

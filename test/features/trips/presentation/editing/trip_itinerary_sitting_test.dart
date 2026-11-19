@@ -93,4 +93,30 @@ void main() {
     expect(repository.updated.single.id, 'i1');
     expect(repository.updated.single.notes, 'Wreck');
   });
+
+  test(
+    'a generated day for a date stored meanwhile is not written twice',
+    () async {
+      final repository = FakeItineraryDays([june1]);
+      final list = tripItineraryDays(repository);
+      final session = EditSession<Trip>(
+        redSea.copyWith(endDate: DateTime(2030, 6, 3)),
+      );
+      await list.load(session);
+      final held = list.current(session)!;
+      list.set(
+        session,
+        withDaysAdded(held, missingItineraryDays(held, session.working)),
+      );
+      // Another device adds 2 June before the Save.
+      repository.days.add(day('other', DateTime(2030, 6, 2)));
+
+      await session.runHeldWrites();
+
+      expect(
+        [for (final d in repository.saved) d.date],
+        [DateTime(2030, 6, 3)],
+      );
+    },
+  );
 }

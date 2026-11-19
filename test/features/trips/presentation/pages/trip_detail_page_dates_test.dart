@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_edit_fields.dart';
@@ -10,6 +11,7 @@ import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart'
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
+import '../../../../helpers/shared_items_fixture.dart';
 import 'trip_detail_page_unlock_harness.dart';
 
 /// A trip's dates changed in a sitting ask which dives in the new dates
@@ -177,5 +179,32 @@ void main() {
     expect(find.text(l.trips_diveScan_title), findsNothing);
     expect(harness.save.calls, hasLength(1));
     expect(harness.tripDives.assigned, isEmpty);
+  });
+
+  testWidgets('dates changed while the profile is still being read ask once '
+      'it answers', (tester) async {
+    final active = GatedActiveProfile();
+    final harness = await pumpTripPage(
+      tester,
+      candidates: candidates,
+      extraOverrides: [
+        validatedCurrentDiverIdProvider.overrideWith((_) => active.read()),
+      ],
+    );
+    await tester.tap(find.byIcon(Icons.lock_outline));
+    await tester.pumpAndSettle();
+    controllerOf(tester).session!.set(tripDatesField, (
+      start: DateTime(2030, 5, 30),
+      end: DateTime(2030, 6, 8),
+    ));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text(l.forms_save));
+    await tester.pump();
+    active.settle('d1');
+    await tester.pumpAndSettle();
+
+    expect(harness.tripDives.asked, hasLength(1));
+    expect(find.text(l.trips_diveScan_title), findsOneWidget);
   });
 }
