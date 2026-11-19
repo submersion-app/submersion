@@ -283,8 +283,10 @@ hands, divers and open water stay unnamed.
 
 **Measuring.** `score.py` measures the levels with `levels.measure`, which
 chooses each level's bars on the tune half after the pack's own
-(`bars.level_bars`): the lowest bars meeting the target by the same
-one-sided Wilson test, never above the level above them, and held to the
+(`bars.level_bars`): among the bars meeting the target by the same
+one-sided Wilson test, the ones naming the most animals right, ties to the
+higher (as for the pack's own bars: a lower bar naming no more right adds
+only wrong names), never above the level above them, and held to the
 same 2% junk cap: while a level names too much junk, each bar that names
 some (with a location or without) is raised 0.01 until it passes. A level
 that ends at the bars above it, whose held-out interval lies wholly below

@@ -196,6 +196,17 @@ class LevelTests(unittest.TestCase):
         self.assertEqual(level.min_open, 0.5)
         self.assertEqual((level.confident, level.confident_no_location), (NEVER, NEVER))
 
+    def test_level_takes_the_bar_naming_most_right_not_the_lowest(self):
+        # 0.55 also meets 0.75, but only adds a wrong name: the same 100
+        # right, so the tie goes to the higher bar, as for the pack's bars.
+        surer = bars.Bars(0.5, 0.90, 0.90, NEVER, NEVER)
+        fish = [s(0.6, 0.80, True)] * 100 + [s(0.6, 0.55, False)]
+        with_loc, without = both(fish)
+        level = bars.level_bars(
+            with_loc, without, [], [], surer=surer, ceiling=surer, min_side=64, target=0.75
+        )
+        self.assertEqual((level.suggest, level.suggest_no_location), (0.80, 0.80))
+
     def test_level_never_above_ceiling(self):
         ceiling = bars.Bars(0.5, 0.70, 0.80, NEVER, NEVER)
         _, no_loc = both(self.FISH)

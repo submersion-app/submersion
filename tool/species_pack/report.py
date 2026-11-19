@@ -34,7 +34,10 @@ def write_report(results, path):
             f"{_bar(b['confident'])} | {_bar(b['confident_no_location'])} | {', '.join(e['switched off']) or 'none'} |"
         )
     lines += ["", "## Naming levels", ""]
-    lines += ["Under the gated bars, each held to the same junk cap; precision and coverage with a location."]
+    lines += [
+        "Under the published pack's bars when it has measured ones, else this run's (each run is listed "
+        "below the table); each held to the same junk cap; precision and coverage with a location."
+    ]
     lines += ["", "| Run | level | target | suggest | suggest, no location | precision | coverage | junk named |"]
     lines += ["| --- | --- | --- | --- | --- | --- | --- | --- |"]
     for key, e in results["evaluations"].items():

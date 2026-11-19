@@ -172,9 +172,10 @@ def published_bars(naming):
     )
 
 
-# The naming levels below the pack's own bars (issue #4721), surest first:
-# each is the lowest bar whose precision meets its target, as the pack's
-# suggest bars meet 0.85.
+# The naming levels below the pack's own bars (issue #4721), surest first.
+# Each is chosen as the pack's suggest bars are for 0.85: among the bars
+# that meet its target, the one naming the most animals right, ties to the
+# higher. A lower bar naming no more right adds only wrong names.
 LEVEL_TARGETS = (("balanced", 0.75), ("eager", 0.65))
 
 
@@ -191,7 +192,8 @@ def level_bars(
     max_junk_rate=0.02,
 ):
     """A naming level's bars, chosen on the tune half: the pack's own
-    (`surer`) with only its two suggest bars lowered to meet `target`,
+    (`surer`) with only its two suggest bars moved to the bars meeting
+    `target` that name the most animals right (ties to the higher),
     never above `ceiling` (the level above it). Junk is held to the same
     cap as the pack's bars: while a level names too much, each bar that
     names junk is raised 0.01, so a bar that names none keeps its fish.
