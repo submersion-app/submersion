@@ -23,6 +23,7 @@ class _Refusing extends SiteEditSaveService {
     Future<void> Function()? alsoWrite,
     bool alsoWriteIsAChange = false,
     Set<String> Function()? heldLibraryFields,
+    bool privateOnly = false,
   }) async => throw const SiteEditRefused('s1');
 }
 

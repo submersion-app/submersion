@@ -19,10 +19,16 @@ Future<({DiveSite before, DiveSite after})?> saveSiteSitting(
   EditSession<DiveSite> session,
   SiteEditSaveService service, {
   String? actingDiverId,
+  Set<String>? privateCards,
 }) async {
   final ({DiveSite before, DiveSite after})? result;
   try {
-    result = await _save(session, service, actingDiverId: actingDiverId);
+    result = await _save(
+      session,
+      service,
+      actingDiverId: actingDiverId,
+      privateCards: privateCards,
+    );
   } on SiteEditRefused {
     // The page stays unlocked with the sitting, and says why.
     throw RecordSittingRefusal((l10n) => l10n.diveSites_edit_saveRefused);
@@ -43,24 +49,52 @@ Future<({DiveSite before, DiveSite after})?> saveSiteSitting(
   return result;
 }
 
+/// [privateCards], for a library reader's Send (issue #4527, plan 5),
+/// writes only those cards: the site's private fields, and the held
+/// changes of those cards alone.
 Future<({DiveSite before, DiveSite after})?> _save(
   EditSession<DiveSite> session,
   SiteEditSaveService service, {
   String? actingDiverId,
-}) => undoMediaOnFailure(
-  session,
-  () => service.save(
-    // The site the sitting was opened on, whatever the page shows by the
-    // time the write is asked for.
-    siteId: session.stored.id,
-    apply: session.applyTo,
-    changedCardIds: session.changedCardIds,
-    actingDiverId: actingDiverId,
-    writeFirst: session.hasHeldWritesBeforeRecord
-        ? () => session.runHeldWrites(beforeRecord: true)
-        : null,
-    alsoWrite: session.hasHeldWrites ? session.runHeldWrites : null,
-    alsoWriteIsAChange: session.hasHeldChanges,
-    heldLibraryFields: () => siteLibraryFields(session),
-  ),
-);
+  Set<String>? privateCards,
+}) {
+  final private = privateCards;
+  if (private == null) {
+    return undoMediaOnFailure(
+      session,
+      () => service.save(
+        // The site the sitting was opened on, whatever the page shows by
+        // the time the write is asked for.
+        siteId: session.stored.id,
+        apply: session.applyTo,
+        changedCardIds: session.changedCardIds,
+        actingDiverId: actingDiverId,
+        writeFirst: session.hasHeldWritesBeforeRecord
+            ? () => session.runHeldWrites(beforeRecord: true)
+            : null,
+        alsoWrite: session.hasHeldWrites ? session.runHeldWrites : null,
+        alsoWriteIsAChange: session.hasHeldChanges,
+        heldLibraryFields: () => siteLibraryFields(session),
+      ),
+    );
+  }
+  final changed = session.changedCardIds.where(private.contains).toSet();
+  return undoMediaOnFailure(
+    session,
+    () => service.save(
+      siteId: session.stored.id,
+      apply: session.applyTo,
+      changedCardIds: changed,
+      actingDiverId: actingDiverId,
+      writeFirst: session.hasHeldWritesBeforeRecord
+          ? () => session.runHeldWrites(beforeRecord: true, cardIds: private)
+          : null,
+      alsoWrite: session.hasHeldWrites
+          ? () => session.runHeldWrites(cardIds: private)
+          : null,
+      // A held change of one of these cards is a change in its own right.
+      alsoWriteIsAChange: changed.isNotEmpty,
+      privateOnly: true,
+    ),
+  );
+}

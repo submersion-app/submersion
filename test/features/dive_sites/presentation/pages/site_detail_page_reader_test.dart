@@ -9,6 +9,13 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_plain_fields.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_edit_fields.dart';
+import 'package:submersion/core/services/shared_library/suggestion_service.dart';
+import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_fade.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
@@ -238,4 +245,199 @@ void main() {
       expect(find.text(l.recordEdit_onlyYou), findsNothing);
     });
   });
+
+  // Send (plan 5): the role as stored decides, a note is asked only when
+  // something goes to the owner, and Cancel writes and proposes nothing.
+  group('Send', () {
+    late _Suggestions suggestions;
+
+    Future<SiteUnlockHarness> pumpSend(
+      WidgetTester tester, {
+      bool editorInStore = false,
+    }) {
+      suggestions = _Suggestions();
+      return pumpSitePage(
+        tester,
+        site: librarySite,
+        extra: [
+          ...library(),
+          suggestionServiceProvider.overrideWithValue(suggestions),
+          sharedLibraryStoreProvider.overrideWithValue(
+            _Store(editor: editorInStore),
+          ),
+        ],
+      );
+    }
+
+    EditSession<DiveSite> sitting(WidgetTester tester) =>
+        RecordEditScope.maybeOf<DiveSite>(
+          tester.element(find.byType(RecordCardFrame<DiveSite>).first),
+        )!.session!;
+
+    Future<void> unlockReader(WidgetTester tester) async {
+      await tester.tap(find.byKey(suggestKey));
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> tapSend(WidgetTester tester) async {
+      await tester.tap(find.text(l.sharedLibrary_suggest_send));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('Send asks for a note when something goes to the owner', (
+      tester,
+    ) async {
+      final page = await pumpSend(tester);
+      await unlockReader(tester);
+      sitting(tester).set(siteNameField, 'Big Hole');
+      await tester.pumpAndSettle();
+
+      await tapSend(tester);
+      expect(find.byType(AlertDialog), findsOneWidget);
+      await tester.enterText(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.byType(TextField),
+        ),
+        'Please',
+      );
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text(l.sharedLibrary_suggest_send),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(suggestions.calls.single.note, 'Please');
+      expect(suggestions.calls.single.proposed.name, 'Big Hole');
+      expect(page.save.calls, isEmpty);
+      expect(find.text(l.sharedLibrary_suggest_sent), findsOneWidget);
+    });
+
+    testWidgets('Send with only notes asks nothing and says saved privately', (
+      tester,
+    ) async {
+      final page = await pumpSend(tester);
+      await unlockReader(tester);
+      sitting(tester).set(siteNotesField, 'Choppy');
+      await tester.pumpAndSettle();
+
+      await tapSend(tester);
+
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(page.save.calls.single.privateOnly, isTrue);
+      expect(suggestions.calls, isEmpty);
+      expect(find.text(l.sharedLibrary_suggest_savedPrivate), findsOneWidget);
+    });
+
+    testWidgets('cancelling the note dialog keeps the sitting', (tester) async {
+      final page = await pumpSend(tester);
+      await unlockReader(tester);
+      sitting(tester).set(siteNameField, 'Big Hole');
+      await tester.pumpAndSettle();
+
+      await tapSend(tester);
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text(l.common_action_cancel),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(RecordEditBar), findsOneWidget);
+      expect(page.save.calls, isEmpty);
+      expect(suggestions.calls, isEmpty);
+    });
+
+    // Review Focus 4.
+    testWidgets('Cancel writes nothing and proposes nothing', (tester) async {
+      final page = await pumpSend(tester);
+      await unlockReader(tester);
+      sitting(tester)
+        ..set(siteNotesField, 'Choppy')
+        ..set(siteNameField, 'Big Hole');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text(l.forms_cancel));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l.forms_discard_discard));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(RecordEditBar), findsNothing);
+      expect(page.save.calls, isEmpty);
+      expect(suggestions.calls, isEmpty);
+    });
+
+    testWidgets('a reader\'s sitting that finds the profile an editor at Send '
+        'saves as an edit', (tester) async {
+      final page = await pumpSend(tester, editorInStore: true);
+      await unlockReader(tester);
+      sitting(tester).set(siteNotesField, 'Choppy');
+      await tester.pumpAndSettle();
+
+      await tapSend(tester);
+
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(page.save.calls.single.privateOnly, isFalse);
+      expect(suggestions.calls, isEmpty);
+    });
+  });
+}
+
+/// The library as stored, with this profile listed as an editor or not.
+class _Store extends SharedLibraryStore {
+  _Store({required this.editor});
+
+  final bool editor;
+
+  @override
+  Future<SharedLibrary?> getLibrary(String id) async => SharedLibrary(
+    id: 'L',
+    name: 'Club',
+    connectedAccountId: 'a',
+    prefix: 'p',
+    roles: SharedLibraryRoles(editors: editor ? {'mem1'} : const {}),
+  );
+
+  @override
+  Future<SharedLibraryMembership?> membership({
+    required String diverId,
+    required String libraryId,
+  }) async => const SharedLibraryMembership(
+    id: 'm1',
+    diverId: 'me',
+    libraryId: 'L',
+    memberId: 'mem1',
+    displayName: 'Me',
+    libraryName: 'Club',
+    backendKind: 'folder',
+  );
+}
+
+/// Records each proposal.
+class _Suggestions extends Fake implements SuggestionService {
+  final calls = <({DiveSite proposed, String note})>[];
+
+  @override
+  Future<SharedSiteSuggestion?> propose({
+    required DiveSite proposed,
+    required String diverId,
+    String note = '',
+    Map<String, Object?> childFields = const {},
+  }) async {
+    calls.add((proposed: proposed, note: note));
+    return SharedSiteSuggestion(
+      id: 'g1',
+      libraryId: 'L',
+      siteId: proposed.id,
+      memberId: 'mem1',
+      memberName: 'Me',
+      note: note,
+      fields: const {'name': 'x'},
+      createdAt: DateTime.utc(2026),
+      direction: SharedSiteSuggestion.outgoing,
+    );
+  }
 }

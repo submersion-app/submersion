@@ -21,6 +21,7 @@ typedef SiteSaveCall = ({
   List<String> cards,
   String? actingDiverId,
   bool hasHeldWrites,
+  bool privateOnly,
 });
 
 /// Stands in for the save service: records what it was asked to write, and
@@ -42,6 +43,7 @@ class FakeSiteSave implements SiteEditSaveService {
     Future<void> Function()? alsoWrite,
     bool alsoWriteIsAChange = false,
     Set<String> Function()? heldLibraryFields,
+    bool privateOnly = false,
   }) async {
     calls.add((
       siteId: siteId,
@@ -51,6 +53,7 @@ class FakeSiteSave implements SiteEditSaveService {
       // Not run: the page's held writes reach the database, which this
       // harness has none of.
       hasHeldWrites: writeFirst != null || alsoWrite != null,
+      privateOnly: privateOnly,
     ));
     final failure = failWith;
     if (failure != null) throw failure;

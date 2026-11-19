@@ -217,6 +217,30 @@ void main() {
     expect(await operations(), isEmpty);
   });
 
+  // A library reader's Send (plan 5): their notes and rating are their own,
+  // written as one History entry; no field of the library's site changes.
+  test(
+    'privateOnly writes a reader\'s notes and rating and nothing else',
+    () async {
+      final reader = SiteEditSaveService(sites, stamper: _MayNotEdit());
+
+      final result = await reader.save(
+        siteId: 's1',
+        apply: (site) =>
+            site.copyWith(notes: 'Choppy', rating: 4, name: 'Big Lake'),
+        changedCardIds: const ['notes', 'rating'],
+        privateOnly: true,
+      );
+
+      expect(result, isNotNull);
+      final after = await stored();
+      expect(after.notes, 'Choppy');
+      expect(after.rating, 4);
+      expect(after.name, 'Lake');
+      expect(await operations(), hasLength(1));
+    },
+  );
+
   test('a library stamp waits for the sitting to commit', () async {
     final recording = _RecordingSites();
     await SiteEditSaveService(recording).save(

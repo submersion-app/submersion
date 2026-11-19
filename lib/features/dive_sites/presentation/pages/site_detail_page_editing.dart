@@ -254,8 +254,36 @@ mixin _SiteDetailPageEditing
     return container.read(siteProvider(stored.id).future);
   }
 
+  /// Whether the next save is a library reader's Send, and the note it
+  /// carries to the owner, decided by [beforeSave] (plan 5).
+  bool _sendAtSave = false;
+  String _sendNote = '';
+
+  /// On a library site the role as stored now decides, however the sitting
+  /// was opened: an editor's save edits, anyone else's is a Send, which
+  /// asks for a note only when something goes to the owner.
+  @override
+  Future<bool> beforeSave() async {
+    _sendAtSave = false;
+    _sendNote = '';
+    final session = maybeEditController?.session;
+    final libraryId = widget.site.sharedLibraryId;
+    if (session == null || libraryId == null) return true;
+    final role = await libraryRoleNow(ref.read, libraryId);
+    if (!mounted) return false;
+    if (role != null && canEditLibrarySite(role)) return true;
+    if (readerSendProposes(session)) {
+      final note = await askSuggestionNote(context);
+      if (note == null || !mounted) return false;
+      _sendNote = note;
+    }
+    _sendAtSave = true;
+    return true;
+  }
+
   @override
   Future<void> saveSitting(EditSession<DiveSite> session) async {
+    if (_sendAtSave) return _sendReaderSitting(session);
     // Read now: the write may finish after the page has gone.
     final service = ref.read(siteEditSaveServiceProvider);
     final sites = ref.read(siteListNotifierProvider.notifier);
@@ -277,6 +305,53 @@ mixin _SiteDetailPageEditing
     } catch (error, stackTrace) {
       _editLog.error(
         'Site list refresh after saving site $siteId failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  /// A library reader's Send: their own changes written, the rest proposed,
+  /// and the snack bar saying which.
+  Future<void> _sendReaderSitting(EditSession<DiveSite> session) async {
+    // Read now: the write may finish after the page has gone.
+    final service = ref.read(siteEditSaveServiceProvider);
+    final suggestions = ref.read(suggestionServiceProvider);
+    final sites = ref.read(siteListNotifierProvider.notifier);
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+    if (diverId == null) throw StateError('no profile to send as');
+    final note = _sendNote;
+    _sendAtSave = false;
+    final result = await sendReaderSitting(
+      session,
+      service: service,
+      suggestions: suggestions,
+      diverId: diverId,
+      note: note,
+    );
+    final saved = result.saved;
+    if (saved != null && saved.id == widget.siteId) justSavedRecord = saved;
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(switch (result.outcome) {
+          SiteReaderSent.sent => l10n.sharedLibrary_suggest_sent,
+          SiteReaderSent.savedPrivate =>
+            l10n.sharedLibrary_suggest_savedPrivate,
+          SiteReaderSent.nothingChanged =>
+            l10n.sharedLibrary_suggest_nothingChanged,
+        }),
+      ),
+    );
+    if (saved == null) return;
+    // Committed: a refresh that fails must not read as a failed Send.
+    try {
+      await sites.refresh();
+    } catch (error, stackTrace) {
+      _editLog.error(
+        'Site list refresh after a reader\'s Send on ${session.stored.id} '
+        'failed',
         error: error,
         stackTrace: stackTrace,
       );
