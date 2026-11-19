@@ -178,6 +178,14 @@ final trimTrackProvider = Provider(
   },
 );
 
+/// Drops a track's cached geometry after its page saved a sitting that
+/// changed the trim (issue #4527): the save writes through the repository,
+/// which knows nothing of the presentation cache.
+final evictGpsTrackProvider = Provider(
+  (ref) =>
+      (String id) => _evictTrack(ref, id),
+);
+
 /// Splits a track and drops the parent's cached geometry.
 final splitTrackProvider = Provider(
   (ref) => (String id, int atWallClockMs) async {
