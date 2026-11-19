@@ -73,6 +73,52 @@ void main() {
     expect(rows.map((i) => i.id), ['a']);
   });
 
+  group('a transaction stays on the logbook open when it began', () {
+    late AppDatabase other;
+    late MediaIdentificationRepository switching;
+
+    setUp(() async {
+      other = AppDatabase(
+        NativeDatabase.memory(setup: registerAppSqlFunctions),
+      );
+      addTearDown(other.close);
+      await repo.storeRun(run(), insert: [identification('a')], deleteIds: []);
+      // The first lookup finds this logbook; every later one, another.
+      var lookups = 0;
+      switching = MediaIdentificationRepository(
+        currentDatabase: () => lookups++ == 0 ? db : other,
+      );
+    });
+
+    test('a store after reading reads and writes there', () async {
+      List<MediaIdentification>? read;
+      await switching.storeRunAfterReading(
+        'm1',
+        read: true,
+        build: (current) async {
+          read = current;
+          return (
+            run: run(count: 2),
+            insert: [identification('b')],
+            deleteIds: const <String>[],
+          );
+        },
+      );
+      expect(read?.map((i) => i.id), ['a']);
+      expect((await repo.forMedia('m1')).map((i) => i.id), ['a', 'b']);
+      expect(await other.select(other.mediaIdentifications).get(), isEmpty);
+    });
+
+    test('renaming moves the rows and the run on there', () async {
+      final renamed = run().copyWith(
+        packVersion: '2026.12.1',
+        locationCell: () => null,
+      );
+      await switching.updateNames([identification('a')], run: renamed);
+      expect(await repo.runFor('m1'), renamed);
+    });
+  });
+
   test('a run with nothing found is stored', () async {
     await repo.storeRun(run(count: 0), insert: const [], deleteIds: const []);
     expect((await repo.runFor('m1'))!.detectionCount, 0);
