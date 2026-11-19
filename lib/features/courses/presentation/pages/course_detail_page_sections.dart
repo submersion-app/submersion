@@ -290,40 +290,56 @@ extension _CourseDetailSections on _CourseDetailContent {
   }
 
   Widget _buildCertificationSection(BuildContext context, WidgetRef ref) {
+    final session = host?.maybeEditController?.session;
+    if (session == null) return _certificationCard(context, ref);
+    // What the sitting holds is drawn as it changes.
+    return ListenableBuilder(
+      listenable: session,
+      builder: (context, _) => _certificationCard(context, ref),
+    );
+  }
+
+  Widget _certificationCard(BuildContext context, WidgetRef ref) {
     final certsAsync = ref.watch(certificationsForCourseProvider(course.id));
     // The retained value, so a reload after a link change keeps the rows on
     // screen; nothing on the very first load, since an empty course shows no
-    // section at all.
-    final certs = certsAsync.value;
+    // section at all. In a sitting, the sitting's list once it is read.
+    final certs =
+        host?._certificationsInSitting(certsAsync.value) ?? certsAsync.value;
     final failed = certs == null && certsAsync.hasError;
-    if (!failed && (certs == null || certs.isEmpty)) {
+    final showsEmpty = _shows(CourseCardId.earnedCertifications);
+    if (!failed && (certs == null || certs.isEmpty) && !showsEmpty) {
       return const SizedBox.shrink();
     }
     final colorScheme = Theme.of(context).colorScheme;
 
     return Column(
       children: [
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _sectionHeader(
-                  context,
-                  context.l10n.courses_section_earnedCertifications,
-                  Icons.card_membership,
-                ),
-                const SizedBox(height: 12),
-                if (failed)
-                  Text(
-                    context.l10n.courses_error_loadingCertification,
-                    style: TextStyle(color: colorScheme.error),
-                  )
-                else
-                  for (final cert in certs!)
-                    _buildCertificationRow(context, cert, colorScheme),
-              ],
+        _framed(
+          CourseCardId.earnedCertifications,
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _sectionHeader(
+                    context,
+                    context.l10n.courses_section_earnedCertifications,
+                    Icons.card_membership,
+                    editing: _editing,
+                  ),
+                  const SizedBox(height: 12),
+                  if (failed)
+                    Text(
+                      context.l10n.courses_error_loadingCertification,
+                      style: TextStyle(color: colorScheme.error),
+                    )
+                  else
+                    for (final cert in certs ?? const <Certification>[])
+                      _buildCertificationRow(context, cert, colorScheme),
+                ],
+              ),
             ),
           ),
         ),

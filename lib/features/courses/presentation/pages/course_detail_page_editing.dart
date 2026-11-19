@@ -50,6 +50,7 @@ mixin _CourseDetailPageEditing
     // Read now, so the Requirements card shows the sitting's rows once they
     // change.
     courseRequirementsList.load(session);
+    courseCertificationsList.load(session);
     holdDocumentLinks(
       session,
       container.read,
@@ -98,9 +99,26 @@ mixin _CourseDetailPageEditing
     ];
   }
 
-  /// Whether the optional card [id] has nothing to show in the sitting.
-  bool _isEmptyInSitting(CourseCardId id, Course working) =>
-      courseEditCards[id]!.isEmpty(working);
+  /// Whether the optional card [id] has nothing to show in the sitting. The
+  /// earned certifications are the sitting's list, not the course's values.
+  bool _isEmptyInSitting(CourseCardId id, Course working) {
+    if (id == CourseCardId.earnedCertifications) {
+      return _certificationsInSitting(
+        ref.read(certificationsForCourseProvider(widget.courseId)).value,
+      ).isEmpty;
+    }
+    return courseEditCards[id]!.isEmpty(working);
+  }
+
+  /// The certifications the course earned as the sitting has them: its own
+  /// list once read, else [stored].
+  List<Certification> _certificationsInSitting(List<Certification>? stored) {
+    final session = maybeEditController?.session;
+    final held = session == null
+        ? null
+        : courseCertificationsList.current(session);
+    return held ?? stored ?? const [];
+  }
 
   /// Whether [id] is shown though empty: open or brought in from the strip
   /// during the sitting.

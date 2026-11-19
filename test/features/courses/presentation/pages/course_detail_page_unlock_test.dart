@@ -157,14 +157,14 @@ void main() {
     expect(find.text('Sam Instructor'), findsOneWidget);
   });
 
-  testWidgets('empty Instructor and Notes are offered in the strip', (
-    tester,
-  ) async {
+  testWidgets('empty Instructor, Earned certifications and Notes are offered '
+      'in the strip', (tester) async {
     await pumpCoursePage(tester);
     await unlock(tester);
 
     for (final title in [
       l.courses_section_instructor,
+      l.courses_section_earnedCertifications,
       l.courses_section_notes,
     ]) {
       expect(
@@ -178,12 +178,13 @@ void main() {
   testWidgets('notes added from the strip are saved', (tester) async {
     final harness = await pumpCoursePage(tester);
     await unlock(tester);
-    await tester.tap(
-      find.descendant(
-        of: find.byType(AddStrip),
-        matching: find.text(l.courses_section_notes),
-      ),
+    final chip = find.descendant(
+      of: find.byType(AddStrip),
+      matching: find.text(l.courses_section_notes),
     );
+    await tester.ensureVisible(chip);
+    await tester.pumpAndSettle();
+    await tester.tap(chip);
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).last, 'Pool sessions');
     await tester.pumpAndSettle();

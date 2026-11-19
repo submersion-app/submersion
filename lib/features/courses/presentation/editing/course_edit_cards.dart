@@ -2,6 +2,7 @@ import 'package:submersion/features/buddies/presentation/editing/instructor_card
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/editing/course_card_editors.dart';
 import 'package:submersion/features/courses/presentation/editing/course_card_ids.dart';
+import 'package:submersion/features/courses/presentation/editing/course_certifications_sitting.dart';
 import 'package:submersion/features/courses/presentation/editing/course_edit_fields.dart';
 import 'package:submersion/features/courses/presentation/widgets/course_requirements_section.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
@@ -44,6 +45,15 @@ final Map<CourseCardId, EditCard<Course>> courseEditCards = {
       keyPrefix: 'course-edit',
     ),
   ),
+  CourseCardId.earnedCertifications: EditCard<Course>(
+    id: CourseCardId.earnedCertifications.name,
+    title: (context) =>
+        CourseCardId.earnedCertifications.localizedDisplayName(context.l10n),
+    // Whether it has any is the sitting's list, which the page reads.
+    isEmpty: (_) => false,
+    editorBuilder: (context, session) =>
+        CourseEarnedCertificationsEditor(session: session),
+  ),
   CourseCardId.requirements: EditCard<Course>(
     id: CourseCardId.requirements.name,
     title: (context) =>
@@ -79,5 +89,6 @@ final Map<CourseCardId, EditCard<Course>> courseEditCards = {
 /// strip, in page order.
 const List<CourseCardId> courseOptionalCards = [
   CourseCardId.instructor,
+  CourseCardId.earnedCertifications,
   CourseCardId.notes,
 ];

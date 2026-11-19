@@ -20,6 +20,7 @@ import 'package:submersion/features/courses/data/services/course_edit_save_servi
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/course_status_colors.dart';
 import 'package:submersion/features/courses/presentation/editing/course_card_ids.dart';
+import 'package:submersion/features/courses/presentation/editing/course_certifications_sitting.dart';
 import 'package:submersion/features/courses/presentation/editing/course_edit_cards.dart';
 import 'package:submersion/features/courses/presentation/editing/course_requirements_sitting.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
