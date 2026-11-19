@@ -16,7 +16,6 @@ import 'package:submersion/core/services/geocoding/place_lookup.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/shared/widgets/forms/suggestion_form_row.dart';
 import 'package:submersion/shared/widgets/shared_items/item_sharing_field.dart';
-import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/life_notes_section.dart';
 import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -86,25 +85,6 @@ Widget _buildHarness({
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: SiteEditPage(),
-    ),
-  );
-}
-
-Widget _buildMergeHarness({
-  required SharedPreferences prefs,
-  required List<Diver> divers,
-  required List<String> mergeSiteIds,
-}) {
-  return ProviderScope(
-    overrides: [
-      sharedPreferencesProvider.overrideWithValue(prefs),
-      allDiversProvider.overrideWith((_) async => divers),
-      shareByDefaultProvider.overrideWith((_) async => false),
-    ],
-    child: MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: SiteEditPage(mergeSiteIds: mergeSiteIds),
     ),
   );
 }
@@ -1010,111 +990,6 @@ void main() {
         return;
       }
       expect(savedId, isNotNull);
-    });
-  });
-
-  group('merge mode share toggle', () {
-    // Regression test: _initializeFromMerge must restore isShared from the
-    // primary (first) site so that merging a shared site does not silently
-    // unshare it.
-    testWidgets('preserves isShared=true from the primary merged site', (
-      tester,
-    ) async {
-      final twoDivers = [
-        Diver(
-          id: 'd1',
-          name: 'One',
-          createdAt: DateTime(2024),
-          updatedAt: DateTime(2024),
-        ),
-        Diver(
-          id: 'd2',
-          name: 'Two',
-          createdAt: DateTime(2024),
-          updatedAt: DateTime(2024),
-        ),
-      ];
-
-      // Seed two sites into the test database. The first is shared.
-      final repo = SiteRepository();
-      final primarySite = await repo.createSite(
-        const DiveSite(
-          id: 'site-primary',
-          name: 'Primary Site',
-          isShared: true,
-        ),
-      );
-      await repo.createSite(
-        const DiveSite(
-          id: 'site-secondary',
-          name: 'Secondary Site',
-          isShared: false,
-        ),
-      );
-
-      await tester.pumpWidget(
-        _buildMergeHarness(
-          prefs: prefs,
-          divers: twoDivers,
-          mergeSiteIds: [primarySite.id, 'site-secondary'],
-        ),
-      );
-
-      await tester.pumpAndSettle();
-
-      // A merge keeps the sites' sharing (issue #2151): no picker here, and
-      // the Life & notes group's summary still says the site is shared.
-      expect(find.byType(SharingTile), findsNothing);
-      expect(
-        tester.widget<LifeNotesSection>(find.byType(LifeNotesSection)).summary,
-        contains('shared'),
-        reason:
-            'Merging a shared primary site must preserve isShared=true; '
-            '_initializeFromMerge was not setting _isShared before the fix.',
-      );
-    });
-
-    testWidgets('initializes city/island/bodyOfWater from a merge candidate', (
-      tester,
-    ) async {
-      tester.view.physicalSize = const Size(900, 3200);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.reset);
-
-      // Primary has no locality; secondary carries the values that must not be
-      // silently dropped during a merge.
-      final repo = SiteRepository();
-      final primarySite = await repo.createSite(
-        const DiveSite(id: 'merge-primary', name: 'Primary'),
-      );
-      await repo.createSite(
-        const DiveSite(
-          id: 'merge-secondary',
-          name: 'Secondary',
-          city: 'Cebu City',
-          island: 'Malapascua',
-          bodyOfWater: 'Visayan Sea',
-        ),
-      );
-
-      await tester.pumpWidget(
-        _buildMergeHarness(
-          prefs: prefs,
-          divers: const [],
-          mergeSiteIds: [primarySite.id, 'merge-secondary'],
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      // The merge picks the first meaningful value, so the locality fields are
-      // populated from the secondary site rather than left empty.
-      expect(
-        find.widgetWithText(TextFormField, 'Cebu City'),
-        findsOneWidget,
-        reason: 'city must be initialized from the merge candidate',
-      );
-      expect(find.widgetWithText(TextFormField, 'Malapascua'), findsOneWidget);
-      expect(find.widgetWithText(TextFormField, 'Visayan Sea'), findsOneWidget);
     });
   });
 

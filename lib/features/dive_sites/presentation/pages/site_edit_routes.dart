@@ -90,3 +90,14 @@ Future<void> openNewSite(BuildContext context) async {
   if (id == null || !context.mounted) return;
   await context.push('/sites/$id');
 }
+
+/// The site ids the merge address (`/sites/merge`) was handed as its
+/// `extra`: none for anything but a list of ids.
+List<String> siteMergeIds(Object? extra) =>
+    extra is List ? extra.whereType<String>().toList() : const [];
+
+/// The merge route's redirect: back to the site list when the address was
+/// handed fewer than two sites to merge, as a reload or a bookmark is
+/// (issue #4527, phase 2, plan 7).
+String? siteMergeRedirect(BuildContext context, GoRouterState state) =>
+    siteMergeIds(state.extra).length < 2 ? '/sites' : null;

@@ -719,12 +719,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'merge',
                 name: 'mergeSite',
-                builder: (context, state) {
-                  final siteIds =
-                      (state.extra as List<dynamic>?)?.cast<String>() ??
-                      const <String>[];
-                  return SiteMergePage(siteIds: siteIds);
-                },
+                // A reload or a bookmark hands it no sites: the list.
+                redirect: siteMergeRedirect,
+                builder: (context, state) =>
+                    SiteMergePage(siteIds: siteMergeIds(state.extra)),
               ),
               // A built-in catalogue record's own page. Before ':siteId',
               // which would otherwise read "catalogue" as a site id.
