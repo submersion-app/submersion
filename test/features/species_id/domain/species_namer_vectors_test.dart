@@ -11,12 +11,20 @@ import 'package:submersion/features/species_id/domain/entities/species_pack_mani
 import 'package:submersion/features/species_id/domain/services/region_grid.dart';
 import 'package:submersion/features/species_id/domain/services/species_namer.dart';
 
-/// The vectors the pack tools' copy of the namer writes
-/// (tool/species_pack/naming.py). The accuracy scorer chooses the pack's
-/// bars with that copy, so it must name every case exactly as the app does.
+/// The vectors the pack tools' copy of the namer writes (naming.py in
+/// submersion-app/species-pack, whose contract_test.py checks this copy is
+/// the same file). The accuracy scorer chooses the pack's bars with that
+/// copy, so it must name every case exactly as the app does.
 Map<String, Object?> _vectors() {
   final file = File(
-    p.join('tool', 'species_pack', 'testdata', 'naming_vectors.json'),
+    p.join(
+      'test',
+      'features',
+      'species_id',
+      'domain',
+      'fixtures',
+      'naming_vectors.json',
+    ),
   );
   return (jsonDecode(file.readAsStringSync()) as Map).cast<String, Object?>();
 }

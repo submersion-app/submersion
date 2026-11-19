@@ -4,9 +4,9 @@ import 'dart:typed_data';
 ///
 /// Cells are numbered row by row from latitude -90 and longitude -180.
 /// Latitude 90 falls in the last row; longitude 180 is longitude -180. The
-/// pack builder computes the same cells in
-/// `tool/species_pack/region_grid.py`, and both are checked against
-/// `tool/species_pack/testdata/region_vectors.json`.
+/// pack builder computes the same cells in `region_grid.py` of
+/// submersion-app/species-pack, and both are checked against
+/// `test/features/species_id/domain/fixtures/region_vectors.json`.
 class RegionGrid {
   const RegionGrid({required this.cellDegrees});
 

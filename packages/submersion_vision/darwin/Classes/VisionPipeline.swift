@@ -2,8 +2,8 @@ import CoreGraphics
 import CoreML
 import Foundation
 import ImageIO
-// Imported only where it exists, so the accuracy tool in
-// tool/species_pack/vision_cli can compile this file on its own.
+// Imported only where it exists, so the accuracy tool in vision_cli/ of
+// submersion-app/species-pack can compile this file on its own.
 #if canImport(Flutter)
 import Flutter
 #elseif canImport(FlutterMacOS)
@@ -271,7 +271,8 @@ final class VisionPipeline {
     }
     let embedStart = Date()
     let embedding = try embed(crop, settings: settings, model: classifier)
-    // Read by the accuracy tool (tool/species_pack); the app ignores it.
+    // Read by the accuracy tool (submersion-app/species-pack); the app
+    // ignores it.
     let embedMs = Date().timeIntervalSince(embedStart) * 1000
     return [
       "pixelWidth": Int(bw.rounded()), "pixelHeight": Int(bh.rounded()),
@@ -289,10 +290,10 @@ final class VisionPipeline {
   }
 
   /// Several detectors' boxes as one set, as the accuracy scorer merged
-  /// them (tool/species_pack/boxes.py `merge`): all boxes pooled in run
-  /// order, best score first (equal scores keep pool order, as Python's
-  /// stable sort does), each dropped if it overlaps a kept box by [iou] or
-  /// more, at most [limit].
+  /// them (boxes.py `merge` in submersion-app/species-pack): all boxes
+  /// pooled in run order, best score first (equal scores keep pool order,
+  /// as Python's stable sort does), each dropped if it overlaps a kept box
+  /// by [iou] or more, at most [limit].
   static func merge(_ runs: [[Box]], iou: Double, limit: Int) -> [Box] {
     let pooled = runs.flatMap { $0 }
     let order = pooled.indices.sorted { a, b in

@@ -1,10 +1,12 @@
 # Vision Merge Check
 #
 # Builds the marine life vision pipeline (packages/submersion_vision) into a
-# small check program and runs the cases of tool/species_pack/boxes_test.py
-# against its merge of two detectors' boxes (issue #4691). A pack's measured
-# bars hold only while the app merges exactly as the scorer measured; the
-# Linux test jobs cannot compile Core ML code, so this runs on macOS.
+# small check program and runs the cases of boxes_test.py, from the species
+# pack repository (submersion-app/species-pack), against its merge of two
+# detectors' boxes (issue #4691). A pack's measured bars hold only while the
+# app merges exactly as the scorer measured; the Linux test jobs cannot
+# compile Core ML code, so this runs on macOS. The species pack repository
+# runs the same check against this repository's main branch (issue #4769).
 
 name: Vision Merge Check
 
@@ -13,15 +15,11 @@ on:
     branches: [main]
     paths:
       - 'packages/submersion_vision/darwin/**'
-      - 'tool/species_pack/vision_cli/**'
-      - 'tool/species_pack/boxes.py'
       - '.github/workflows/vision-merge-check.yml'
   pull_request:
     branches: [main]
     paths:
       - 'packages/submersion_vision/darwin/**'
-      - 'tool/species_pack/vision_cli/**'
-      - 'tool/species_pack/boxes.py'
       - '.github/workflows/vision-merge-check.yml'
 
 permissions:
@@ -37,7 +35,25 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 15
     steps:
+      # Neither checkout keeps the token in .git/config: the check runs a
+      # script from another repository in this workspace.
       - uses: actions/checkout@v7
+        with:
+          sparse-checkout: |
+            packages/submersion_vision/darwin
+          persist-credentials: false
+
+      # Pinned, so a change on the pack side reaches this check only through
+      # a reviewed change here: move the ref to a species-pack commit when its
+      # boxes.py cases or check_merge.sh change.
+      - uses: actions/checkout@v7
+        with:
+          repository: submersion-app/species-pack
+          ref: 1cf61358902f40d9f74eae52dd8547d24d68ed01
+          path: species-pack
+          persist-credentials: false
 
       - name: Check the pipeline's merge against boxes.py's cases
-        run: tool/species_pack/vision_cli/check_merge.sh "$RUNNER_TEMP/merge_check"
+        env:
+          SUBMERSION_APP: ${{ github.workspace }}
+        run: species-pack/vision_cli/check_merge.sh "$RUNNER_TEMP/merge_check"
