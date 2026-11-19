@@ -377,6 +377,55 @@ void main() {
       );
     });
 
+    testWidgets('crossing the breakpoint moves the one toolbar and keeps a '
+        'selection', (tester) async {
+      final toolbar = find.byType(MediaLibraryToolbar);
+      Finder inHeader() =>
+          find.descendant(of: find.byType(PaneHeaderBar), matching: toolbar);
+      Finder inBody() =>
+          find.descendant(of: find.byType(MediaLibraryView), matching: toolbar);
+
+      setSize(tester, const Size(1400, 900));
+      await tester.pumpWidget(host());
+      await tester.pumpAndSettle();
+      final selection = tester
+          .widget<MediaLibraryView>(find.byType(MediaLibraryView))
+          .selection!;
+      selection.enterExplicit();
+      await tester.pump();
+      expect(toolbar, findsOneWidget);
+      expect(inHeader(), findsOneWidget);
+
+      setSize(tester, const Size(1000, 900));
+      await tester.pumpAndSettle();
+      expect(toolbar, findsOneWidget);
+      expect(inBody(), findsOneWidget);
+      expect(selection.value.isActive, isTrue);
+
+      setSize(tester, const Size(1100, 900));
+      await tester.pumpAndSettle();
+      expect(toolbar, findsOneWidget);
+      expect(inHeader(), findsOneWidget);
+      expect(selection.value.isActive, isTrue);
+    });
+
+    testWidgets('a rebuild within one layout hands the Library the same '
+        'widgets', (tester) async {
+      // The page reads the screen size to place the toolbar, so it rebuilds
+      // on every resize frame. Handing over the same widget instances lets
+      // Flutter skip the Library, whose build walks every loaded row.
+      setSize(tester, const Size(1400, 900));
+      await tester.pumpWidget(host());
+      await tester.pumpAndSettle();
+      final view = tester.widget(find.byType(MediaLibraryView));
+      final bar = tester.widget(find.byType(MediaLibraryHeaderToolbar));
+
+      setSize(tester, const Size(1500, 900));
+      await tester.pumpAndSettle();
+      expect(tester.widget(find.byType(MediaLibraryView)), same(view));
+      expect(tester.widget(find.byType(MediaLibraryHeaderToolbar)), same(bar));
+    });
+
     testWidgets('leaving the Library ends a selection', (tester) async {
       // The selection lives above the Library so the header's Select button
       // can reach it, but it must not outlive the Library view: a bulk

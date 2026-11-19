@@ -14,15 +14,16 @@ import 'package:submersion/shared/widgets/section_title_toggle.dart';
 
 /// The Media section's tabs, in the order they are shown: the places to
 /// browse. Import, Transfers and Sources are actions, so they are
-/// [MediaConsoleAction] buttons on the tab row instead (#4587).
+/// [MediaConsoleAction] buttons in the header instead (#4587).
 ///
 /// Nothing persists an ordinal: the selection lives in [MediaSectionPage]'s
 /// State as a value, and the `index`/`values[i]` pair below is a round trip
 /// through one TabController.
 enum MediaConsoleSection { library, gear }
 
-/// The buttons at the end of the Media section's tab row. Declaration order
-/// is display order.
+/// The buttons at the end of a Media header row: the tab row on a phone, the
+/// switch's row at desktop widths (#4777). Declaration order is display
+/// order.
 enum MediaConsoleAction { importMedia, transfers, sources }
 
 /// The buttons a device with [caps] offers: a browser can neither import

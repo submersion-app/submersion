@@ -49,13 +49,15 @@ class MediaLibraryView extends ConsumerStatefulWidget {
 }
 
 class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
-  /// Owns the bulk-selection state machine for the library.
+  /// The bulk-selection state machine for the library when no host passes
+  /// [MediaLibraryView.selection]; the view owns and disposes only this one.
   ///
-  /// Deliberately view state rather than a provider: the selection prunes to
-  /// what is on screen and does not outlive the surface, and a single owner
-  /// is what keeps "mode is active" and "something is checked" from being
-  /// the same fact -- which is exactly what the old id-set provider could
-  /// not express, and why long-press was its only way in.
+  /// Deliberately widget state rather than a provider: the selection prunes
+  /// to what is on screen and does not outlive the surface, and a single
+  /// owner (this view, or the page hosting it, #4777) is what keeps "mode is
+  /// active" and "something is checked" from being the same fact. That is
+  /// exactly what the old id-set provider could not express, and why
+  /// long-press was its only way in.
   SelectionController? _ownSelection;
 
   SelectionController get _selection =>
