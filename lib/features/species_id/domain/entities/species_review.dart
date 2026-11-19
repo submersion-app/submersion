@@ -40,6 +40,18 @@ class ReviewMedia extends Equatable {
   final DateTime? diveTime;
   final String? siteName;
 
+  ReviewMedia copyWith({
+    MediaItem? item,
+    int? Function()? diveNumber,
+    DateTime? Function()? diveTime,
+    String? Function()? siteName,
+  }) => ReviewMedia(
+    item: item ?? this.item,
+    diveNumber: diveNumber == null ? this.diveNumber : diveNumber(),
+    diveTime: diveTime == null ? this.diveTime : diveTime(),
+    siteName: siteName == null ? this.siteName : siteName(),
+  );
+
   @override
   List<Object?> get props => [item.id, diveNumber, diveTime, siteName];
 }
@@ -107,6 +119,18 @@ class ReviewRow extends Equatable {
   final PackCandidate? candidate;
   final List<ReviewItem> items;
 
+  ReviewRow copyWith({
+    String? key,
+    List<ReviewItem>? items,
+    Species? Function()? species,
+    PackCandidate? Function()? candidate,
+  }) => ReviewRow(
+    key: key ?? this.key,
+    items: items ?? this.items,
+    species: species == null ? this.species : species(),
+    candidate: candidate == null ? this.candidate : candidate(),
+  );
+
   String? get speciesId => species?.id;
   int get taggedCount => items.where((i) => i.isTagged).length;
   int get suggestedCount => items.length - taggedCount;
@@ -160,6 +184,24 @@ class ReviewGroup extends Equatable {
 
   /// Species only suggested, best score first.
   final List<ReviewRow> suggested;
+
+  ReviewGroup copyWith({
+    ReviewGroupKind? kind,
+    List<ReviewRow>? tagged,
+    List<ReviewRow>? suggested,
+    String? Function()? diveId,
+    int? Function()? diveNumber,
+    DateTime? Function()? diveTime,
+    String? Function()? siteName,
+  }) => ReviewGroup(
+    kind: kind ?? this.kind,
+    tagged: tagged ?? this.tagged,
+    suggested: suggested ?? this.suggested,
+    diveId: diveId == null ? this.diveId : diveId(),
+    diveNumber: diveNumber == null ? this.diveNumber : diveNumber(),
+    diveTime: diveTime == null ? this.diveTime : diveTime(),
+    siteName: siteName == null ? this.siteName : siteName(),
+  );
 
   @override
   List<Object?> get props => [

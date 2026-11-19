@@ -46,16 +46,25 @@ class AutoApplier {
   /// filed under it.
   Future<int> applyInScope(String mediaId, {required bool isVideo}) async {
     if (!isOn) return 0;
+    final List<SpeciesToApply> picked;
     try {
-      if ((await _picks(mediaId, isVideo: isVideo)).isEmpty) return 0;
+      picked = await _picks(mediaId, isVideo: isVideo);
     } on Object catch (e) {
       _log.debug('Could not read what to apply on $mediaId', error: e);
       return 0;
     }
+    if (picked.isEmpty) return 0;
     return ChangeLogScope.automatic(
       DatabaseService.instance.databaseOrNull,
       label: ChangeLogLabels.marineLifeId,
-      body: () => apply(mediaId, isVideo: isVideo),
+      body: () async {
+        try {
+          return (await _tagPicked(mediaId, picked)).length;
+        } on Object catch (e) {
+          _log.debug('Could not auto-apply on $mediaId', error: e);
+          return 0;
+        }
+      },
     );
   }
 
@@ -110,8 +119,13 @@ class AutoApplier {
     }
   }
 
-  Future<Set<String>> _tagAll(String mediaId, {required bool isVideo}) async {
-    final picked = await _picks(mediaId, isVideo: isVideo);
+  Future<Set<String>> _tagAll(String mediaId, {required bool isVideo}) async =>
+      _tagPicked(mediaId, await _picks(mediaId, isVideo: isVideo));
+
+  Future<Set<String>> _tagPicked(
+    String mediaId,
+    List<SpeciesToApply> picked,
+  ) async {
     final tagged = <String>{};
     for (final s in picked) {
       try {

@@ -112,4 +112,20 @@ void main() {
     );
     expect(groups, isEmpty);
   });
+
+  test('review entities copy with each field', () {
+    final m = onDive('a', 'd1', may);
+    expect(m.copyWith(siteName: () => 'Punta Sur').siteName, 'Punta Sur');
+    expect(m.copyWith(diveNumber: () => null).diveNumber, isNull);
+    final row = ReviewRow(key: 's:x', items: const []);
+    expect(row.copyWith(key: 's:y').key, 's:y');
+    final group = ReviewGroup(
+      kind: ReviewGroupKind.dive,
+      tagged: const [],
+      suggested: const [],
+      diveId: 'd1',
+    );
+    expect(group.copyWith(diveId: () => null).diveId, isNull);
+    expect(group.copyWith(tagged: [row]).tagged, [row]);
+  });
 }

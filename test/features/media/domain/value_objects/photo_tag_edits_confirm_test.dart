@@ -62,4 +62,19 @@ void main() {
       appTag.copyWith(unconfirmed: false),
     ]);
   });
+
+  test('a hand add the app tagged underneath survives the rebase as a '
+      'confirm', () {
+    final edits = SpeciesTagEdits.none
+        .toggled(
+          appTag.copyWith(unconfirmed: false),
+          tagged: true,
+          stored: const [],
+        )
+        .prunedTo(const [appTag]);
+    expect(edits.confirmed, {'sp_a'});
+    expect(edits.applyTo(const [appTag]), [
+      appTag.copyWith(unconfirmed: false),
+    ]);
+  });
 }

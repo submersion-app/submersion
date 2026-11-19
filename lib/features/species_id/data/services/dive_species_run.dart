@@ -209,6 +209,15 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
         continue;
       }
       refusedHere = 0;
+      if (outcome == RunItemOutcome.skipped) {
+        // Dropped before it ran: not checked, and not counted as such.
+        index++;
+        if (_cancelRequested) {
+          stoppedFor = _Stop.cancelled;
+          break;
+        }
+        continue;
+      }
       final video = item.mediaType == MediaType.video;
       if (outcome == RunItemOutcome.done) {
         looked.add((mediaId: item.id, isVideo: video));

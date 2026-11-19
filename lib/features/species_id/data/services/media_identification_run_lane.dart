@@ -24,7 +24,11 @@ extension RunLane on MediaIdentificationService {
     if (running != null && running.fromRun && running.item.id == item.id) {
       return running.done.future.then((_) => running.outcome);
     }
-    _runWaiting.remove(item.id)?.done.complete();
+    final replaced = _runWaiting.remove(item.id);
+    if (replaced != null) {
+      replaced.outcome = RunItemOutcome.skipped;
+      replaced.done.complete();
+    }
     _runWaiting[item.id] = job;
     _changed();
     _pump();

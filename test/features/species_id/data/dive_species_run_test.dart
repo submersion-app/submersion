@@ -233,4 +233,11 @@ void main() {
     await running;
     expect(state('d1').phase, DiveRunPhase.finished);
   });
+
+  test('an item dropped before it ran is not counted as checked', () async {
+    outcomes['p2'] = [RunItemOutcome.skipped];
+    await run.start('d1');
+    expect(state('d1').summary.photos, 1);
+    expect(applied.single, ['p1', 'v1']);
+  });
 }

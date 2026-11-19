@@ -92,9 +92,13 @@ class SpeciesTagEdits extends Equatable {
           if (!ids.contains(entry.key)) entry.key: entry.value,
       },
       removed: removed.intersection(ids),
+      // A species tagged by hand that the app tagged underneath meanwhile
+      // is now stored: the add becomes a confirm of the app's tag.
       confirmed: {
         for (final chip in stored)
-          if (chip.unconfirmed && confirmed.contains(chip.speciesId))
+          if (chip.unconfirmed &&
+              (confirmed.contains(chip.speciesId) ||
+                  added.containsKey(chip.speciesId)))
             chip.speciesId,
       },
     );

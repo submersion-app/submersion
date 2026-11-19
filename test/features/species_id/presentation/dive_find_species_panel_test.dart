@@ -16,6 +16,7 @@ import 'package:submersion/features/species_id/presentation/providers/dive_speci
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_review_providers.dart';
 import 'package:submersion/features/species_id/presentation/widgets/species_review_banner.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 import '../../media/presentation/support/media_widget_harness.dart';
 import '../domain/manifest_fixture.dart';
@@ -56,7 +57,11 @@ void main() {
     InstalledPack? installed,
     Map<String, DiveSpeciesRunState> runs = const {},
     bool checked = false,
+    bool unlocked = false,
   }) async {
+    final controller = RecordEditController<Dive>(onSave: (_) async {});
+    addTearDown(controller.dispose);
+    if (unlocked) controller.unlock(dive);
     await tester.pumpWidget(
       await mediaTestApp(
         overrides: [
@@ -76,7 +81,10 @@ void main() {
         ],
         home: Scaffold(
           body: SingleChildScrollView(
-            child: DiveSightingsSection(dive: dive, topGap: 0),
+            child: RecordEditScope<Dive>(
+              controller: controller,
+              child: DiveSightingsSection(dive: dive, topGap: 0),
+            ),
           ),
         ),
       ),
@@ -89,6 +97,12 @@ void main() {
     await pumpCard(tester, installed: pack);
     expect(find.byKey(const ValueKey('dive_species_find')), findsOneWidget);
     expect(find.text('Find species in photos'), findsOneWidget);
+  });
+
+  testWidgets('no panel while the dive is unlocked', (tester) async {
+    await pumpCard(tester, installed: pack, toReview: 3, unlocked: true);
+    expect(find.byKey(const ValueKey('dive_species_find')), findsNothing);
+    expect(find.text('3 species to review'), findsNothing);
   });
 
   testWidgets('no card at all with no model and nothing to review', (

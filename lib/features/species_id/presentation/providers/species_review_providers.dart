@@ -69,11 +69,15 @@ final diveSpeciesCheckedProvider = FutureProvider.autoDispose
       ref.invalidateSelfWhen(identifications.watchChanges());
       final installed = await ref.watch(installedSpeciesPackProvider.future);
       if (installed == null) return false;
-      final media = await ref.watch(mediaForDiveProvider(diveId).future);
+      final media = [
+        for (final m in await ref.watch(mediaForDiveProvider(diveId).future))
+          if (m.mediaType == MediaType.photo || m.mediaType == MediaType.video)
+            m,
+      ];
+      final runs = await identifications.runsFor([for (final m in media) m.id]);
       for (final item in media) {
         final video = item.mediaType == MediaType.video;
-        if (!video && item.mediaType != MediaType.photo) continue;
-        final run = await identifications.runFor(item.id);
+        final run = runs[item.id];
         if (run == null ||
             run.packVersion != installed.manifest.packVersion ||
             (video && !run.scanComplete)) {

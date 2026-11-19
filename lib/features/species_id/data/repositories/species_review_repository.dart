@@ -131,15 +131,17 @@ class SpeciesReviewRepository {
         ? const []
         : await _species.getAllSpecies(ids: speciesIds.toList());
 
-    final dives = <String, ({int? number, DateTime? time, String? site})>{};
-    for (final id in {for (final m in items) ?m.diveId}) {
-      final dive = await _dives.getDiveById(id);
-      dives[id] = (
-        number: dive?.diveNumber,
-        time: dive?.effectiveEntryTime,
-        site: dive?.site?.name,
-      );
-    }
+    // Headings only: number, time and site, so no profile samples.
+    final dives = {
+      for (final dive in await _dives.getDivesByIdsWithoutSamples([
+        ...{for (final m in items) ?m.diveId},
+      ]))
+        dive.id: (
+          number: dive.diveNumber,
+          time: dive.effectiveEntryTime,
+          site: dive.site?.name,
+        ),
+    };
     final media = [
       for (final item in items)
         ReviewMedia(
