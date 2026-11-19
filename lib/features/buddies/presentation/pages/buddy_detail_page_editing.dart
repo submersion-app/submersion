@@ -128,27 +128,6 @@ mixin _BuddyDetailPageEditing
   /// [child] as the card [id], framed for editing in place.
   Widget _framed(BuddyCardId id, Widget child) =>
       RecordCardFrame<Buddy>(card: buddyEditCards[id]!, child: child);
-
-  /// Whether the record's operations may run now, or why not.
-  RecordOperationBlock? get _operationBlock =>
-      recordOperationBlockOf(editController);
-
-  bool get _operationsAvailable {
-    final block = _operationBlock;
-    return block == null || block == RecordOperationBlock.none;
-  }
-
-  /// The caption over the menu's operations while they are unavailable.
-  List<PopupMenuEntry<String>> _operationCaption() {
-    final reason = recordOperationReason(
-      context.l10n,
-      _operationBlock,
-      plural: true,
-    );
-    return [
-      if (reason != null) recordOperationCaption<String>(context, reason),
-    ];
-  }
 }
 
 /// A section's title row: its title, and the card's pencil where the page
@@ -226,10 +205,10 @@ extension _BuddyDetailMenus on _BuddyDetailContent {
           ),
         ),
         // Delete is a whole-record operation, under the lock.
-        ...?host?._operationCaption(),
+        ...recordOperationMenuCaption<String>(context, host?.editController),
         PopupMenuItem(
           value: 'delete',
-          enabled: host?._operationsAvailable ?? true,
+          enabled: recordOperationsAvailable(host?.editController),
           child: Row(
             children: [
               Icon(Icons.delete, color: Colors.red, size: size),

@@ -127,4 +127,52 @@ void main() {
     await tester.pumpAndSettle();
     expect(chosen, isNull);
   });
+  test('available and the menu caption follow the controller', () {
+    expect(recordOperationsAvailable(null), isTrue);
+    final c = RecordEditController<String>(onSave: (_) async {});
+    addTearDown(c.dispose);
+    expect(recordOperationsAvailable(c), isFalse);
+    c.unlock('Calm');
+    expect(recordOperationsAvailable(c), isTrue);
+    c.session!.set(_notes, 'Surge');
+    expect(recordOperationsAvailable(c), isFalse);
+  });
+
+  testWidgets('the menu caption is there only while blocked', (tester) async {
+    final c = RecordEditController<String>(onSave: (_) async {});
+    addTearDown(c.dispose);
+    late List<PopupMenuEntry<String>> locked;
+    late List<PopupMenuEntry<String>> free;
+    late List<PopupMenuEntry<String>> none;
+    await tester.pumpWidget(
+      _app(
+        Builder(
+          builder: (context) {
+            locked = recordOperationMenuCaption<String>(context, c);
+            none = recordOperationMenuCaption<String>(context, null);
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+    c.unlock('Calm');
+    await tester.pumpWidget(
+      _app(
+        Builder(
+          builder: (context) {
+            free = recordOperationMenuCaption<String>(context, c);
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+
+    expect(locked, hasLength(1));
+    expect(
+      ((locked.single as PopupMenuItem<String>).child! as Text).data,
+      'Unlock to use these',
+    );
+    expect(free, isEmpty);
+    expect(none, isEmpty);
+  });
 }

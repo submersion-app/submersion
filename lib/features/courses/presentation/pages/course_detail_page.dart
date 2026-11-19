@@ -408,10 +408,10 @@ class _CourseDetailContent extends ConsumerWidget {
           ),
         ),
         // Delete is a whole-record operation, under the lock.
-        ...?host?._operationCaption(),
+        ...recordOperationMenuCaption<String>(context, host?.editController),
         PopupMenuItem(
           value: 'delete',
-          enabled: host?._operationsAvailable ?? true,
+          enabled: recordOperationsAvailable(host?.editController),
           child: Row(
             children: [
               const Icon(Icons.delete_outline, color: Colors.red),
