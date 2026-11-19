@@ -67,7 +67,10 @@ class SpeciesTagEdits extends Equatable {
     final kept = [
       for (final chip in stored)
         if (!removed.contains(chip.speciesId))
-          confirmed.contains(chip.speciesId)
+          // Confirmed in the sitting, or tagged by hand while the app's own
+          // tag of it landed underneath: the diver's either way.
+          confirmed.contains(chip.speciesId) ||
+                  added.containsKey(chip.speciesId)
               ? chip.copyWith(unconfirmed: false)
               : chip,
     ];

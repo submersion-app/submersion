@@ -56194,14 +56194,53 @@ class AppLocalizationsHu extends AppLocalizations {
   String get speciesReview_downloadAndFind => 'Letöltés és keresés';
 
   @override
+  String speciesReview_photos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fotó',
+      one: '1 fotó',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_videos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count videó',
+      one: '1 videó',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_speciesTagged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count faj',
+      one: '1 faj',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String speciesReview_summary(
-    int photos,
-    int videos,
-    int tagged,
+    String photos,
+    String videos,
+    String species,
     int toReview,
   ) {
-    return '$photos fotó és $videos videó ellenőrizve. $tagged faj címkézve; $toReview ellenőrizendő.';
+    return '$photos és $videos ellenőrizve. $species címkézve; $toReview ellenőrizendő.';
   }
+
+  @override
+  String get speciesReview_decided => 'Eldöntve';
+
+  @override
+  String get speciesReview_saveFailed => 'A mentés nem sikerült. Próbáld újra.';
 
   @override
   String speciesReview_summaryUnreadable(int count) {

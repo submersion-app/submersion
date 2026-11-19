@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
 import 'package:submersion/features/species_id/domain/entities/species_review.dart';
 import 'package:submersion/features/species_id/domain/value_objects/species_review_edits.dart';
@@ -25,6 +26,7 @@ class SpeciesReviewPage extends ConsumerStatefulWidget {
 }
 
 class _SpeciesReviewPageState extends ConsumerState<SpeciesReviewPage> {
+  static final _log = LoggerService.forClass(SpeciesReviewPage);
   var _edits = SpeciesReviewEdits.none;
   final _expanded = <String>{};
   var _saving = false;
@@ -114,7 +116,9 @@ class _SpeciesReviewPageState extends ConsumerState<SpeciesReviewPage> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),
             child: TextButton(
-              key: ValueKey('species_review_confirm_all_${group.diveId}'),
+              key: ValueKey(
+                'species_review_confirm_all_${group.diveId ?? group.kind.name}',
+              ),
               onPressed: group.tagged.every(_edits.isRowSettled)
                   ? null
                   : () => setState(() {
@@ -178,6 +182,14 @@ class _SpeciesReviewPageState extends ConsumerState<SpeciesReviewPage> {
     try {
       await ref.read(speciesReviewSaverProvider).save(_edits, groups);
       if (mounted) setState(() => _edits = SpeciesReviewEdits.none);
+    } on Object catch (e, stack) {
+      // The decisions stay, so Save can be tried again.
+      _log.error('Species review save failed', error: e, stackTrace: stack);
+      if (mounted) {
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+          SnackBar(content: Text(context.l10n.speciesReview_saveFailed)),
+        );
+      }
     } finally {
       if (mounted) setState(() => _saving = false);
     }

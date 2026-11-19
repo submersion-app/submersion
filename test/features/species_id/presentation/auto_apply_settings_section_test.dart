@@ -111,4 +111,15 @@ void main() {
       SightingTiming.straightAway.name,
     );
   });
+
+  testWidgets('switched on with the model removed, it can still be switched '
+      'off', (tester) async {
+    await prefs.setBool(SettingsKeys.speciesIdAutoApply, true);
+    await pump(tester, null);
+
+    expect(toggle(tester).value, isTrue);
+    await tester.tap(find.byKey(const ValueKey('species_id_auto_apply')));
+    await tester.pumpAndSettle();
+    expect(prefs.getBool(SettingsKeys.speciesIdAutoApply), isFalse);
+  });
 }

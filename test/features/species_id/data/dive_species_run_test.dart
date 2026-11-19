@@ -18,6 +18,7 @@ void main() {
   late int generation;
   Completer<void>? gate;
   Object? applyFailure;
+  late bool foreground;
   Object? listFailure;
   late DiveSpeciesRun run;
 
@@ -43,6 +44,7 @@ void main() {
     generation = 0;
     gate = null;
     applyFailure = null;
+    foreground = true;
     listFailure = null;
     run = DiveSpeciesRun(
       mediaForDive: (diveId) async {
@@ -67,6 +69,7 @@ void main() {
         return items.length;
       },
       databaseGeneration: () => generation,
+      inForeground: () => foreground,
     );
   });
   tearDown(() => run.dispose());
@@ -202,5 +205,32 @@ void main() {
     expect(state('d1').phase, DiveRunPhase.cancelled);
     await run.start('d2');
     expect(state('d2').phase, DiveRunPhase.finished);
+  });
+
+  test('a failed download counts as could not be opened', () async {
+    outcomes['p1'] = [RunItemOutcome.failed];
+    await run.start('d1');
+    expect(state('d1').summary.unreadable, 1);
+  });
+
+  test('a background refusal that arrives after the app is back retries at '
+      'once', () async {
+    outcomes['p2'] = [RunItemOutcome.notForeground];
+    await run.start('d1');
+    expect(asked, ['p1', 'p2', 'p2', 'v1']);
+    expect(state('d1').phase, DiveRunPhase.finished);
+  });
+
+  test('a refusal while really in the background pauses until the app is '
+      'back', () async {
+    foreground = false;
+    outcomes['p2'] = [RunItemOutcome.notForeground];
+    final running = run.start('d1');
+    await pumpEventQueue();
+    expect(state('d1').pauseReason, DiveRunPause.background);
+    foreground = true;
+    run.appResumed();
+    await running;
+    expect(state('d1').phase, DiveRunPhase.finished);
   });
 }

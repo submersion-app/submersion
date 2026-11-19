@@ -16,10 +16,13 @@ import '../data/identification_fixtures.dart';
 /// Records what Save was given, writing nothing.
 class _Saver implements SpeciesReviewSaver {
   final saved = <SpeciesReviewEdits>[];
+  Object? failure;
 
   @override
-  Future<void> save(SpeciesReviewEdits edits, List<ReviewGroup> groups) async =>
-      saved.add(edits);
+  Future<void> save(SpeciesReviewEdits edits, List<ReviewGroup> groups) async {
+    if (failure != null) throw failure!;
+    saved.add(edits);
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -144,5 +147,39 @@ void main() {
   testWidgets('nothing to review', (tester) async {
     await pump(tester, taggedRows: const []);
     expect(find.text('Nothing to review'), findsOneWidget);
+  });
+
+  testWidgets('a row decided differently per photo reads Decided', (
+    tester,
+  ) async {
+    final mixed = ReviewRow(
+      key: 's:sp1',
+      species: tagRow.species,
+      items: [tagged, ...suggestedRow.items],
+    );
+    await pump(tester, taggedRows: [mixed]);
+    await tester.tap(find.text('Rock Beauty'));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('species_review_item_keep_s:sp1_a')),
+    );
+    await tester.tap(
+      find.byKey(const ValueKey('species_review_item_drop_s:sp1_b')),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Decided'), findsOneWidget);
+  });
+
+  testWidgets('a save that fails says so and keeps the decisions', (
+    tester,
+  ) async {
+    await pump(tester, taggedRows: [tagRow]);
+    saver.failure = StateError('database closed');
+    await tester.tap(find.byKey(const ValueKey('species_review_keep_s:sp1')));
+    await tester.pumpAndSettle();
+    await tester.tap(save());
+    await tester.pumpAndSettle();
+    expect(find.text("Couldn't save. Try again."), findsOneWidget);
+    expect(find.text('Confirmed'), findsOneWidget);
   });
 }

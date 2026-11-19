@@ -52978,14 +52978,53 @@ class AppLocalizationsZh extends AppLocalizations {
   String get speciesReview_downloadAndFind => '下载并查找';
 
   @override
+  String speciesReview_photos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 张照片',
+      one: '1 张照片',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_videos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个视频',
+      one: '1 个视频',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_speciesTagged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个物种',
+      one: '1 个物种',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String speciesReview_summary(
-    int photos,
-    int videos,
-    int tagged,
+    String photos,
+    String videos,
+    String species,
     int toReview,
   ) {
-    return '已检查 $photos 张照片和 $videos 个视频。已标记 $tagged 个物种；$toReview 个待审核。';
+    return '已检查 $photos和 $videos。已标记 $species；$toReview 个待审核。';
   }
+
+  @override
+  String get speciesReview_decided => '已决定';
+
+  @override
+  String get speciesReview_saveFailed => '无法保存。请重试。';
 
   @override
   String speciesReview_summaryUnreadable(int count) {

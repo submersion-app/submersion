@@ -88583,16 +88583,46 @@ abstract class AppLocalizations {
   /// **'Download and find'**
   String get speciesReview_downloadAndFind;
 
+  /// No description provided for @speciesReview_photos.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 photo} other{{count} photos}}'**
+  String speciesReview_photos(int count);
+
+  /// No description provided for @speciesReview_videos.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 video} other{{count} videos}}'**
+  String speciesReview_videos(int count);
+
+  /// No description provided for @speciesReview_speciesTagged.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 species} other{{count} species}}'**
+  String speciesReview_speciesTagged(int count);
+
   /// No description provided for @speciesReview_summary.
   ///
   /// In en, this message translates to:
-  /// **'Checked {photos} photos and {videos} videos. Tagged {tagged} species; {toReview} to review.'**
+  /// **'Checked {photos} and {videos}. Tagged {species}; {toReview} to review.'**
   String speciesReview_summary(
-    int photos,
-    int videos,
-    int tagged,
+    String photos,
+    String videos,
+    String species,
     int toReview,
   );
+
+  /// No description provided for @speciesReview_decided.
+  ///
+  /// In en, this message translates to:
+  /// **'Decided'**
+  String get speciesReview_decided;
+
+  /// No description provided for @speciesReview_saveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save. Try again.'**
+  String get speciesReview_saveFailed;
 
   /// No description provided for @speciesReview_summaryUnreadable.
   ///

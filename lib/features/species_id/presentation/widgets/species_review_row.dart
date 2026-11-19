@@ -75,10 +75,7 @@ class SpeciesReviewRowTile extends StatelessWidget {
           ),
           trailing: settled
               ? _Settled(
-                  label: _decisionLabel(
-                    l10n,
-                    edits.decisionFor(row.key, row.items.first.media.id)!,
-                  ),
+                  label: _rowLabel(l10n),
                   onUndo: () => onRow(null),
                   undoKey: ValueKey('species_review_undo_${row.key}'),
                 )
@@ -139,6 +136,16 @@ class SpeciesReviewRowTile extends StatelessWidget {
               ),
       ),
     );
+  }
+
+  /// The row's one decision, or Decided when its items differ.
+  String _rowLabel(AppLocalizations l10n) {
+    final decisions = {
+      for (final i in row.items) edits.decisionFor(row.key, i.media.id),
+    };
+    return decisions.length == 1
+        ? _decisionLabel(l10n, decisions.single!)
+        : l10n.speciesReview_decided;
   }
 
   static String _counts(AppLocalizations l10n, ReviewRow row) {

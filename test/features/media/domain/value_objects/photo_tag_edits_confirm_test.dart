@@ -50,4 +50,16 @@ void main() {
     expect(edits.prunedTo(const []).isEmpty, isTrue);
     expect(edits.prunedTo(const [appTag]).confirmed, {'sp_a'});
   });
+
+  test('tagging by hand a species the app tagged meanwhile confirms it', () {
+    // Added in the sitting before the app's tag landed underneath it.
+    final edits = SpeciesTagEdits.none.toggled(
+      appTag.copyWith(unconfirmed: false),
+      tagged: true,
+      stored: const [],
+    );
+    expect(edits.applyTo(const [appTag]), [
+      appTag.copyWith(unconfirmed: false),
+    ]);
+  });
 }

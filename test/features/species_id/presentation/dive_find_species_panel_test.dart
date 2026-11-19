@@ -55,6 +55,7 @@ void main() {
     int toReview = 0,
     InstalledPack? installed,
     Map<String, DiveSpeciesRunState> runs = const {},
+    bool checked = false,
   }) async {
     await tester.pumpWidget(
       await mediaTestApp(
@@ -70,7 +71,7 @@ void main() {
           mediaForDiveProvider('d1').overrideWith(
             (ref) async => [testMediaItem(id: 'p1', diveId: 'd1')],
           ),
-          diveSpeciesCheckedProvider('d1').overrideWith((ref) async => false),
+          diveSpeciesCheckedProvider('d1').overrideWith((ref) async => checked),
           diveSpeciesRunProvider.overrideWith((ref) => _FixedRun(runs)),
         ],
         home: Scaffold(
@@ -135,6 +136,57 @@ void main() {
       },
     );
     expect(find.text('Paused: device too warm'), findsOneWidget);
+    expect(find.byKey(const ValueKey('dive_species_resume')), findsOneWidget);
+  });
+
+  testWidgets('a finished run says what it did, in the right plurals', (
+    tester,
+  ) async {
+    await pumpCard(
+      tester,
+      installed: pack,
+      toReview: 0,
+      runs: {
+        'd1': const DiveSpeciesRunState(
+          diveId: 'd1',
+          phase: DiveRunPhase.finished,
+          total: 1,
+          done: 1,
+          summary: DiveRunSummary(photos: 1, speciesTagged: 1),
+        ),
+      },
+    );
+    expect(
+      find.text('Checked 1 photo and 0 videos. Tagged 1 species; 0 to review.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('all checked, but something to review: a run can still apply '
+      'it', (tester) async {
+    await pumpCard(tester, installed: pack, toReview: 2, checked: true);
+    expect(find.text('Find species in photos'), findsOneWidget);
+  });
+
+  testWidgets('all checked and nothing to review', (tester) async {
+    await pumpCard(tester, installed: pack, checked: true);
+    expect(find.text('All photos checked'), findsOneWidget);
+  });
+
+  testWidgets('paused in the background offers Resume too', (tester) async {
+    await pumpCard(
+      tester,
+      installed: pack,
+      runs: {
+        'd1': const DiveSpeciesRunState(
+          diveId: 'd1',
+          phase: DiveRunPhase.paused,
+          pauseReason: DiveRunPause.background,
+          total: 3,
+          done: 1,
+        ),
+      },
+    );
     expect(find.byKey(const ValueKey('dive_species_resume')), findsOneWidget);
   });
 

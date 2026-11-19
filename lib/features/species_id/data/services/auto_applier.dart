@@ -40,15 +40,35 @@ class AutoApplier {
   bool get isOn => marineLifeIdEnabled && _enabled();
 
   /// [apply] filed as one automatic History entry of its own, as applying
-  /// from the viewer is. Returns how many species it tagged.
-  Future<int> applyInScope(String mediaId, {required bool isVideo}) {
-    if (!isOn) return Future.value(0);
+  /// from the viewer is. Returns how many species it tagged. The entry
+  /// opens only once there is something to tag, so a photo with nothing
+  /// confident leaves none, and a save the diver makes meanwhile is never
+  /// filed under it.
+  Future<int> applyInScope(String mediaId, {required bool isVideo}) async {
+    if (!isOn) return 0;
+    try {
+      if ((await _picks(mediaId, isVideo: isVideo)).isEmpty) return 0;
+    } on Object catch (e) {
+      _log.debug('Could not read what to apply on $mediaId', error: e);
+      return 0;
+    }
     return ChangeLogScope.automatic(
       DatabaseService.instance.databaseOrNull,
       label: ChangeLogLabels.marineLifeId,
       body: () => apply(mediaId, isVideo: isVideo),
     );
   }
+
+  Future<List<SpeciesToApply>> _picks(
+    String mediaId, {
+    required bool isVideo,
+  }) async => identificationsToApply(
+    await _identifications.forMedia(mediaId),
+    await _identifications.taggedSpecies(mediaId),
+    isVideo: isVideo,
+    scanComplete:
+        (await _identifications.runFor(mediaId))?.scanComplete ?? false,
+  );
 
   /// [apply] over a Find species run's [items], filed as one automatic
   /// History entry for the whole run (issue #4727). The scope opens only
@@ -91,13 +111,7 @@ class AutoApplier {
   }
 
   Future<Set<String>> _tagAll(String mediaId, {required bool isVideo}) async {
-    final picked = identificationsToApply(
-      await _identifications.forMedia(mediaId),
-      await _identifications.taggedSpecies(mediaId),
-      isVideo: isVideo,
-      scanComplete:
-          (await _identifications.runFor(mediaId))?.scanComplete ?? false,
-    );
+    final picked = await _picks(mediaId, isVideo: isVideo);
     final tagged = <String>{};
     for (final s in picked) {
       try {

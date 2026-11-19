@@ -374,9 +374,10 @@ Issue #4727, spec
 
 To see auto-apply work before a pack has a reachable confident bar, edit the
 local pack's `manifest.json` so `naming.confidentScore` is below 1 (for
-example 0.6), serve it as above, install it, and turn the setting on.
-Photos already analysed are applied the next time they are opened or a run
-reaches them.
+example 0.6) and bump its `packVersion`, serve it as above, install it, and
+turn the setting on. The new version is what makes media already analysed
+be named again, which sets their stored `confident` flags; they are then
+applied the next time they are opened or a run reaches them.
 
 ## Video
 

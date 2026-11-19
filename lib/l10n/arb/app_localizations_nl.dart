@@ -56144,14 +56144,54 @@ class AppLocalizationsNl extends AppLocalizations {
   String get speciesReview_downloadAndFind => 'Downloaden en zoeken';
 
   @override
+  String speciesReview_photos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count foto\'s',
+      one: '1 foto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_videos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count video\'s',
+      one: '1 video',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_speciesTagged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count soorten',
+      one: '1 soort',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String speciesReview_summary(
-    int photos,
-    int videos,
-    int tagged,
+    String photos,
+    String videos,
+    String species,
     int toReview,
   ) {
-    return '$photos foto\'s en $videos video\'s gecontroleerd. $tagged soorten getagd; $toReview te controleren.';
+    return '$photos en $videos gecontroleerd. $species getagd; $toReview te controleren.';
   }
+
+  @override
+  String get speciesReview_decided => 'Besloten';
+
+  @override
+  String get speciesReview_saveFailed =>
+      'Opslaan mislukt. Probeer het opnieuw.';
 
   @override
   String speciesReview_summaryUnreadable(int count) {

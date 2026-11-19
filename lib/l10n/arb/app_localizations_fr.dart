@@ -56627,14 +56627,54 @@ class AppLocalizationsFr extends AppLocalizations {
   String get speciesReview_downloadAndFind => 'Télécharger et chercher';
 
   @override
+  String speciesReview_photos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos',
+      one: '1 photo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_videos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count vidéos',
+      one: '1 vidéo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_speciesTagged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count espèces',
+      one: '1 espèce',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String speciesReview_summary(
-    int photos,
-    int videos,
-    int tagged,
+    String photos,
+    String videos,
+    String species,
     int toReview,
   ) {
-    return '$photos photos et $videos vidéos vérifiées. $tagged espèces étiquetées ; $toReview à vérifier.';
+    return '$photos et $videos vérifiées. $species étiquetées ; $toReview à vérifier.';
   }
+
+  @override
+  String get speciesReview_decided => 'Décidée';
+
+  @override
+  String get speciesReview_saveFailed =>
+      'Enregistrement impossible. Réessayez.';
 
   @override
   String speciesReview_summaryUnreadable(int count) {

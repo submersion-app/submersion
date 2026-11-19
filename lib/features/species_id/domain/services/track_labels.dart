@@ -150,8 +150,10 @@ List<TrackLabel> labelsAt(
     final kind = labelKind(
       track,
       playing: playing,
+      // A fish the diver named from the frame is theirs, whatever the tag.
       unconfirmed:
           track.decision == IdentificationDecision.accepted &&
+          track.claimedSpeciesId == null &&
           unconfirmedSpeciesIds.contains(track.decidedSpeciesId),
     );
     if (kind == null) continue;

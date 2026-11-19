@@ -442,6 +442,7 @@ class MediaIdentificationService {
         return false;
       }
       if (await _engine.availability() != VisionAvailability.available) {
+        job.outcome = RunItemOutcome.failed;
         return false;
       }
       final pack = _pack ??= await _loadPack();

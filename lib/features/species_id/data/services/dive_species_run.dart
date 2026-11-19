@@ -29,12 +29,14 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
     required void Function(String mediaId) cancel,
     required Future<int> Function(List<RunAppliedItem> items) applyAll,
     required int Function() databaseGeneration,
+    bool Function()? inForeground,
   }) : _mediaForDive = mediaForDive,
        _diveLocation = diveLocation,
        _request = request,
        _cancelItem = cancel,
        _applyAll = applyAll,
        _generation = databaseGeneration,
+       _inForeground = inForeground ?? (() => true),
        super(const {});
 
   final Future<List<MediaItem>> Function(String) _mediaForDive;
@@ -43,6 +45,11 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
   final void Function(String) _cancelItem;
   final Future<int> Function(List<RunAppliedItem>) _applyAll;
   final int Function() _generation;
+
+  /// Whether the app is in the foreground now: a refusal for being in the
+  /// background that arrives after the app came back is retried, not
+  /// waited out.
+  final bool Function() _inForeground;
 
   final _log = LoggerService.forClass(DiveSpeciesRun);
   final _queue = Queue<String>();
@@ -86,10 +93,12 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
     _wake();
   }
 
-  /// Carries on after the device cooled down.
+  /// Carries on after the device cooled down, or after a background pause
+  /// the app's return did not end.
   void resume(String diveId) {
     if (_current != diveId) return;
     _tooHot = false;
+    _inBackground = false;
     _wake();
   }
 
@@ -104,6 +113,12 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
   void dispose() {
     _disposed = true;
     _cancelRequested = true;
+    final item = _currentItem;
+    if (item != null) _cancelItem(item);
+    _queue.clear();
+    for (final done in _finished.values) {
+      if (!done.isCompleted) done.complete();
+    }
     _wake();
     super.dispose();
   }
@@ -140,12 +155,14 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
   Future<void> _run(String diveId) async {
     final generation = _generation();
     var where = await _diveLocation(diveId);
+    final all = await _mediaForDive(diveId);
     final items = [
-      for (final m in await _mediaForDive(diveId))
+      for (final m in all)
         if (m.mediaType == MediaType.photo) m,
-      for (final m in await _mediaForDive(diveId))
+      for (final m in all)
         if (m.mediaType == MediaType.video) m,
     ];
+    var refusedHere = 0;
     var s = (state[diveId] ?? DiveSpeciesRunState(diveId: diveId)).copyWith(
       phase: DiveRunPhase.running,
       total: items.length,
@@ -185,9 +202,13 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
         continue;
       }
       if (outcome == RunItemOutcome.notForeground && !_cancelRequested) {
-        _inBackground = true;
+        // Refused for the background: wait for the app to come back, or
+        // retry at once when it already has (once; then wait for Resume).
+        refusedHere++;
+        if (!_inForeground() || refusedHere > 1) _inBackground = true;
         continue;
       }
+      refusedHere = 0;
       final video = item.mediaType == MediaType.video;
       if (outcome == RunItemOutcome.done) {
         looked.add((mediaId: item.id, isVideo: video));
@@ -197,9 +218,13 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
         summary: s.summary.copyWith(
           photos: s.summary.photos + (video ? 0 : 1),
           videos: s.summary.videos + (video ? 1 : 0),
+          // Gone, unreachable, or failed to download: could not be opened.
           unreadable:
               s.summary.unreadable +
-              (outcome == RunItemOutcome.unreadable ? 1 : 0),
+              (outcome == RunItemOutcome.unreadable ||
+                      outcome == RunItemOutcome.failed
+                  ? 1
+                  : 0),
         ),
       );
       _set(s);

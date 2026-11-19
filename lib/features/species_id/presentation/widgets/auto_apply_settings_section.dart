@@ -17,14 +17,17 @@ class AutoApplySettingsSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final installed = ref.watch(installedSpeciesPackProvider).value;
-    if (installed == null) return const SizedBox.shrink();
-    final naming = installed.manifest.naming;
-    final canApply = packCanApply(naming);
-    final on = canApply && ref.watch(autoApplyProvider);
+    final stored = ref.watch(autoApplyProvider);
+    // With no model the setting still acts on names already stored, so a
+    // diver who left it on can see it and switch it off.
+    if (installed == null && !stored) return const SizedBox.shrink();
+    final naming = installed?.manifest.naming;
+    final canApply = naming == null || packCanApply(naming);
+    final on = canApply && stored;
     final timing = ref.watch(sightingTimingProvider);
     final description = !canApply
         ? l10n.settings_speciesId_autoApplyNever
-        : packAppliesOnlyWithPlace(naming)
+        : naming != null && packAppliesOnlyWithPlace(naming)
         ? '${l10n.settings_speciesId_autoApplyDescription} '
               '${l10n.settings_speciesId_autoApplyPlaceOnly}'
         : l10n.settings_speciesId_autoApplyDescription;

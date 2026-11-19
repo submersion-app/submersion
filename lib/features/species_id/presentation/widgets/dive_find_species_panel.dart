@@ -90,9 +90,8 @@ class DiveFindSpeciesPanel extends ConsumerWidget {
   ) {
     final runs = ref.read(diveSpeciesRunProvider.notifier);
     if (run != null && run.isActive) {
-      final hot =
-          run.phase == DiveRunPhase.paused &&
-          run.pauseReason == DiveRunPause.tooHot;
+      final paused = run.phase == DiveRunPhase.paused;
+      final hot = paused && run.pauseReason == DiveRunPause.tooHot;
       final text = run.phase == DiveRunPhase.waiting
           ? l10n.speciesReview_waiting
           : hot
@@ -113,7 +112,9 @@ class DiveFindSpeciesPanel extends ConsumerWidget {
               ),
             ),
           Expanded(child: Text(text)),
-          if (hot)
+          // Resume for a background pause too: the app's return normally
+          // ends it, but a diver is never left without a way on.
+          if (paused)
             TextButton(
               key: const ValueKey('dive_species_resume'),
               onPressed: () => runs.resume(dive.id),
@@ -127,18 +128,23 @@ class DiveFindSpeciesPanel extends ConsumerWidget {
         ],
       );
     }
-    final checked = ref.watch(diveSpeciesCheckedProvider(dive.id)).value;
+    // Nothing new to look at and nothing left to review: a run would do
+    // nothing. With something to review, a run applies what is confident.
+    final toReview =
+        ref.watch(speciesReviewCountProvider(DiveReviewScope(dive.id))).value ??
+        0;
+    final checked =
+        toReview == 0 &&
+        ref.watch(diveSpeciesCheckedProvider(dive.id)).value == true;
     return Padding(
       padding: const EdgeInsets.only(top: 8),
       child: OutlinedButton.icon(
         key: const ValueKey('dive_species_find'),
         icon: const Icon(Icons.travel_explore_outlined),
         label: Text(
-          checked == true
-              ? l10n.speciesReview_allChecked
-              : l10n.speciesReview_find,
+          checked ? l10n.speciesReview_allChecked : l10n.speciesReview_find,
         ),
-        onPressed: checked == true ? null : () => _start(context, ref),
+        onPressed: checked ? null : () => _start(context, ref),
       ),
     );
   }
@@ -191,9 +197,9 @@ class DiveFindSpeciesPanel extends ConsumerWidget {
     int toReview,
   ) {
     final text = l10n.speciesReview_summary(
-      summary.photos,
-      summary.videos,
-      summary.speciesTagged,
+      l10n.speciesReview_photos(summary.photos),
+      l10n.speciesReview_videos(summary.videos),
+      l10n.speciesReview_speciesTagged(summary.speciesTagged),
       toReview,
     );
     return summary.unreadable == 0

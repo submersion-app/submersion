@@ -47,4 +47,15 @@ void main() {
     expect(labels.single.kind, TrackLabelKind.accepted);
     expect(labels.single.speciesId, 'sp_a');
   });
+
+  test('a fish the diver named from the frame keeps the filled pill', () {
+    final claimed = applied.copyWith(claimedSpeciesId: () => 'sp_a');
+    final labels = labelsAt(
+      [claimed],
+      1500,
+      playing: false,
+      unconfirmedSpeciesIds: const {'sp_a'},
+    );
+    expect(labels.single.kind, TrackLabelKind.accepted);
+  });
 }

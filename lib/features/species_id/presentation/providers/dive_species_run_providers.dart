@@ -55,6 +55,8 @@ final diveSpeciesRunProvider =
         applyAll: (items) =>
             ref.read(autoApplierProvider).applyAllInScope(items),
         databaseGeneration: () => DatabaseService.instance.generation,
+        inForeground: () =>
+            WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed,
       );
       final lifecycle = _RunLifecycle(run);
       WidgetsBinding.instance.addObserver(lifecycle);
@@ -71,8 +73,11 @@ class _RunLifecycle with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Only paused: a Mac window minimised or covered is hidden, and the
+    // models run fine there; iOS reaches paused when it goes to the
+    // background, where they may not.
     switch (state) {
-      case AppLifecycleState.paused || AppLifecycleState.hidden:
+      case AppLifecycleState.paused:
         _run.appPaused();
       case AppLifecycleState.resumed:
         _run.appResumed();
