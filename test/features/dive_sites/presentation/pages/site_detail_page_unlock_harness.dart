@@ -269,6 +269,7 @@ Future<NewSiteHarness> pumpNewSitePage(
       ].cast<Override>(),
       child: MaterialApp(
         navigatorKey: navigator,
+        debugShowCheckedModeBanner: false,
         locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
