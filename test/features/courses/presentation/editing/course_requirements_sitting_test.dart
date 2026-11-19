@@ -329,6 +329,28 @@ void main() {
       expect(held.firstWhere((r) => r.requirement.id == b).isSatisfied, isTrue);
     });
 
+    test('two actions before the read answers are both kept', () async {
+      final session = EditSession(await stored());
+      addTearDown(session.dispose);
+      final rows = await storedRows();
+      final actions = HeldRequirementActions(session);
+
+      await Future.wait([
+        actions.tick(
+          rows.firstWhere((r) => r.requirement.id == b).requirement,
+          true,
+        ),
+        actions.uncredit(
+          rows.firstWhere((r) => r.requirement.id == a).requirement,
+          'v1',
+        ),
+      ]);
+
+      final held = courseRequirementsList.current(session)!;
+      expect(held.firstWhere((r) => r.requirement.id == b).isSatisfied, isTrue);
+      expect(creditsOf(held, a), isEmpty);
+    });
+
     test('the same, then Cancel: neither written', () async {
       final session = await sitting();
       change(

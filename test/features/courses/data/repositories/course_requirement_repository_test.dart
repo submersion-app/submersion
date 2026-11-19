@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/dive_course_links_schema.dart';
 import 'package:submersion/core/constants/course_templates.dart';
@@ -889,6 +890,33 @@ void main() {
       );
 
       expect(creditsOf(await stored(), a.id), ['dive-2']);
+    });
+
+    test('a removal of a requirement gone underneath logs no second '
+        'tombstone', () async {
+      await _seedDiverAndCourse();
+      final a = await repository.createRequirement(
+        courseId: 'course-1',
+        name: 'A',
+        kind: RequirementKind.dive,
+      );
+      final loaded = await stored();
+      await repository.deleteRequirement(a.id);
+
+      final wrote = await repository.writeRequirementChanges(
+        'course-1',
+        loaded: loaded,
+        current: const [],
+      );
+
+      expect(wrote, isFalse);
+      final tombstones = await DatabaseService.instance.database
+          .customSelect(
+            'SELECT 1 FROM deletion_log WHERE record_id = ?',
+            variables: [Variable.withString(a.id)],
+          )
+          .get();
+      expect(tombstones, hasLength(1));
     });
 
     test('nothing changed writes nothing', () async {

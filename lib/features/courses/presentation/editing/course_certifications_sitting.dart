@@ -24,13 +24,13 @@ final courseCertificationsList = SittingList<Course, Certification>(
   cardId: CourseCardId.earnedCertifications.name,
   read: (c) => CertificationRepository().getCertificationsForCourse(c.id),
   write: (c, loaded, current) async {
-    final stored = await CertificationRepository().getCertificationsForCourse(
+    final stored = await CertificationRepository().getCertificationIdsForCourse(
       c.id,
     );
     await CourseRepository().setCourseCertifications(
       c.id,
       earnedCertificationIdsAtSave(
-        stored: [for (final cert in stored) cert.id],
+        stored: stored,
         loaded: [for (final cert in loaded) cert.id],
         current: [for (final cert in current) cert.id],
       ),

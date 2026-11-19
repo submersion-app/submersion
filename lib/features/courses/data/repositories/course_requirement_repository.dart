@@ -654,7 +654,8 @@ class CourseRequirementRepository {
       }
     }
     for (final id in before.keys) {
-      if (after.containsKey(id)) continue;
+      // One deleted meanwhile has its tombstone already.
+      if (after.containsKey(id) || !await _requirementExists(id)) continue;
       await deleteRequirement(id);
       wrote = true;
     }

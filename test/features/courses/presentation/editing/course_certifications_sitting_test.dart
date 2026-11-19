@@ -195,11 +195,18 @@ void main() {
     expect(find.byType(LinearProgressIndicator), findsOneWidget);
     expect(find.byType(CertificationMultiSelectField), findsNothing);
 
-    // The editor reads the list itself and draws it once the read answers.
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 100)),
-    );
-    await tester.pump();
+    // The editor reads the list itself and draws it once the read answers,
+    // however long a busy machine takes.
+    for (
+      var i = 0;
+      i < 200 && find.byType(CertificationMultiSelectField).evaluate().isEmpty;
+      i++
+    ) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 25)),
+      );
+      await tester.pump();
+    }
 
     expect(find.byType(LinearProgressIndicator), findsNothing);
     expect(find.byType(CertificationMultiSelectField), findsOneWidget);

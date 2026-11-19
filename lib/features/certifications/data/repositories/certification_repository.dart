@@ -421,6 +421,15 @@ class CertificationRepository {
     }
   }
 
+  /// The ids of the certifications [courseId] earned, without their card
+  /// images: for a write that needs only which ones (issue #4527).
+  Future<List<String>> getCertificationIdsForCourse(String courseId) async {
+    final rows = await (_db.select(
+      _db.certifications,
+    )..where((t) => t.courseId.equals(courseId))).get();
+    return [for (final row in rows) row.id];
+  }
+
   /// The certifications earned through [courseId], earliest issued first
   /// (undated last), then by name and id (#2515). The first is the course's
   /// representative.

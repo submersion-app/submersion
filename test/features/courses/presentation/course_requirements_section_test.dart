@@ -309,14 +309,50 @@ void main() {
     await tester.enterText(find.byType(TextField), 'Deep dive');
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
-    for (var i = 0; i < 5; i++) {
+    // A real read: wait for it, however long a busy machine takes.
+    for (var i = 0; i < 200 && rowsWhenDone == -1; i++) {
       await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 50)),
+        () => Future<void>.delayed(const Duration(milliseconds: 25)),
       );
       await tester.pump();
     }
 
     // Done means held: the two stored rows and the new one.
     expect(rowsWhenDone, 3);
+  });
+  testWidgets('Choose dive before the read answers still opens the picker', (
+    tester,
+  ) async {
+    final ids = await seedTracker(tester);
+    late EditSession<Course> session;
+    late CourseRequirement dive;
+    await tester.runAsync(() async {
+      session = EditSession(
+        (await CourseRepository().getCourseById('course-1'))!,
+      );
+      dive = (await CourseRequirementRepository().getCourseProgress('course-1'))
+          .requirements
+          .firstWhere((r) => r.requirement.id == ids.dive)
+          .requirement;
+    });
+    addTearDown(session.dispose);
+    await tester.pumpWidget(_wrap(const SizedBox()));
+
+    final crediting = HeldRequirementActions(
+      session,
+    ).credit(tester.element(find.byType(SizedBox)), dive, null);
+    var opened = false;
+    for (var i = 0; i < 200 && !opened; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 25)),
+      );
+      await tester.pump();
+      opened = find.text('Choose dive').evaluate().isNotEmpty;
+    }
+
+    expect(opened, isTrue);
+    await tester.tapAt(const Offset(10, 10));
+    await tester.pumpAndSettle();
+    await tester.runAsync(() => crediting);
   });
 }
