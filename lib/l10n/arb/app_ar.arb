@@ -5658,6 +5658,7 @@
   "gpsLogger_trackSubtitle": "{count, plural, one{نقطة واحدة} two{نقطتان} few{{count} نقاط} many{{count} نقطة} other{{count} نقطة}}، {duration}",
   "gpsLogger_trackSubtitleTrimmed": "مقتطع، {duration}",
   "gpsTrack_editCard_trim": "اقتصاص",
+  "gpsTrack_editCard_nameHint": "اسم المسار",
   "gpsTrack_action_trim": "اقتصاص...",
   "gpsTrack_action_split": "تقسيم...",
   "gpsTrack_action_resetTrim": "إلغاء الاقتصاص",

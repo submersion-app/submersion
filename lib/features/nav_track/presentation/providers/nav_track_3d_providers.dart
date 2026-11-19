@@ -8,7 +8,7 @@ import 'package:submersion/features/nav_track/domain/track_3d/nav_track_3d_scene
 import 'package:submersion/features/nav_track/domain/track_3d/nav_track_scene_geometry_service.dart';
 import 'package:submersion/features/nav_track/domain/track_3d/track_scene_metric.dart';
 import 'package:submersion/features/nav_track/domain/track_3d/track_z_axis_input.dart';
-import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
+import 'package:submersion/features/nav_track/presentation/providers/nav_track_preview_provider.dart';
 
 /// Scene data for the track 3D preview. Null when the route is missing or
 /// has no usable profile (fewer than two active-range samples), which the
@@ -18,9 +18,8 @@ import 'package:submersion/features/nav_track/presentation/providers/nav_track_p
 final navTrack3dSceneDataProvider = FutureProvider.autoDispose
     .family<NavTrack3dSceneData?, String>((ref, trackId) async {
       retainDiveData(ref);
-      final route = await ref.watch(
-        navTrackWithMarkersProvider(trackId).future,
-      );
+      // A correction held in a sitting, while one is shown (issue #4527).
+      final route = await ref.watch(navTrackShownIn3dProvider(trackId).future);
       if (route == null) return null;
       final data = NavTrack3dSceneData.fromRoute(route);
       return data.hasProfile ? data : null;

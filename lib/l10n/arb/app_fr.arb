@@ -5532,6 +5532,7 @@
   "gpsLogger_trackSubtitle": "{count, plural, one{{count} point} other{{count} points}}, {duration}",
   "gpsLogger_trackSubtitleTrimmed": "Rognée, {duration}",
   "gpsTrack_editCard_trim": "Rogner",
+  "gpsTrack_editCard_nameHint": "Nom de la trace",
   "gpsTrack_action_trim": "Rogner...",
   "gpsTrack_action_split": "Diviser...",
   "gpsTrack_action_resetTrim": "Annuler le rognage",

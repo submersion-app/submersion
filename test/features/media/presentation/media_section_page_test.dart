@@ -15,6 +15,7 @@ import 'package:submersion/features/media/presentation/pages/media_sources_secti
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_watcher_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_console_scaffold.dart';
+import 'package:submersion/features/media/presentation/widgets/media_library_toolbar.dart';
 import 'package:submersion/features/media_documents/presentation/pages/media_documents_page.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/media_store/presentation/pages/transfers_page.dart';
@@ -22,6 +23,7 @@ import 'package:submersion/features/media_store/presentation/providers/media_sto
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/master_detail/pane_header_bar.dart';
 import 'package:submersion/shared/widgets/section_tabs/section_tabs_header_title.dart';
 
 class _SeededLibraryNotifier extends StateNotifier<MediaLibraryState>
@@ -300,6 +302,159 @@ void main() {
       });
     }
   }
+
+  group('two header rows at desktop widths (#4777)', () {
+    void setSize(WidgetTester tester, Size size) {
+      tester.view.physicalSize = size;
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+    }
+
+    for (final size in [const Size(1100, 800), const Size(1600, 900)]) {
+      testWidgets('at ${size.width.toInt()}px the buttons close the '
+          "switch's row and the Library toolbar shares the tabs' row", (
+        tester,
+      ) async {
+        setSize(tester, size);
+        await tester.pumpWidget(host());
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+
+        final switchCentre = tester.getCenter(find.text('Photos/Videos')).dy;
+        for (final a in MediaConsoleAction.values) {
+          expect(
+            tester.getCenter(action(a)).dy,
+            closeTo(switchCentre, 1),
+            reason: a.name,
+          );
+        }
+
+        final toolbar = find.byType(MediaLibraryToolbar);
+        expect(toolbar, findsOneWidget);
+        expect(
+          find.descendant(of: find.byType(PaneHeaderBar), matching: toolbar),
+          findsOneWidget,
+        );
+        expect(
+          tester.getCenter(toolbar).dy,
+          closeTo(tester.getCenter(find.text('Library')).dy, 1),
+        );
+        // Nothing of the toolbar is left in the library's own body.
+        expect(
+          find.descendant(of: find.byType(MediaLibraryView), matching: toolbar),
+          findsNothing,
+        );
+      });
+    }
+
+    testWidgets('the Equipment tab shows no Library toolbar', (tester) async {
+      setSize(tester, const Size(1400, 900));
+      await tester.pumpWidget(host());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Equipment'));
+      await tester.pumpAndSettle();
+      expect(find.byType(MediaLibraryToolbar), findsNothing);
+    });
+
+    testWidgets('a phone keeps the toolbar in the library body', (
+      tester,
+    ) async {
+      setSize(tester, const Size(400, 800));
+      await tester.pumpWidget(host());
+      await tester.pumpAndSettle();
+
+      final toolbar = find.byType(MediaLibraryToolbar);
+      expect(toolbar, findsOneWidget);
+      expect(
+        find.descendant(of: find.byType(MediaLibraryView), matching: toolbar),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: find.byType(AppBar), matching: toolbar),
+        findsNothing,
+      );
+    });
+
+    testWidgets('crossing the breakpoint moves the one toolbar and keeps a '
+        'selection', (tester) async {
+      final toolbar = find.byType(MediaLibraryToolbar);
+      Finder inHeader() =>
+          find.descendant(of: find.byType(PaneHeaderBar), matching: toolbar);
+      Finder inBody() =>
+          find.descendant(of: find.byType(MediaLibraryView), matching: toolbar);
+
+      setSize(tester, const Size(1400, 900));
+      await tester.pumpWidget(host());
+      await tester.pumpAndSettle();
+      final selection = tester
+          .widget<MediaLibraryView>(find.byType(MediaLibraryView))
+          .selection!;
+      selection.enterExplicit();
+      await tester.pump();
+      expect(toolbar, findsOneWidget);
+      expect(inHeader(), findsOneWidget);
+
+      setSize(tester, const Size(1000, 900));
+      await tester.pumpAndSettle();
+      expect(toolbar, findsOneWidget);
+      expect(inBody(), findsOneWidget);
+      expect(selection.value.isActive, isTrue);
+
+      setSize(tester, const Size(1100, 900));
+      await tester.pumpAndSettle();
+      expect(toolbar, findsOneWidget);
+      expect(inHeader(), findsOneWidget);
+      expect(selection.value.isActive, isTrue);
+    });
+
+    testWidgets('a rebuild within one layout hands the Library the same '
+        'widgets', (tester) async {
+      // The page reads the screen size to place the toolbar, so it rebuilds
+      // on every resize frame. Handing over the same widget instances lets
+      // Flutter skip the Library, whose build walks every loaded row.
+      setSize(tester, const Size(1400, 900));
+      await tester.pumpWidget(host());
+      await tester.pumpAndSettle();
+      final view = tester.widget(find.byType(MediaLibraryView));
+      final bar = tester.widget(find.byType(MediaLibraryHeaderToolbar));
+
+      setSize(tester, const Size(1500, 900));
+      await tester.pumpAndSettle();
+      expect(tester.widget(find.byType(MediaLibraryView)), same(view));
+      expect(tester.widget(find.byType(MediaLibraryHeaderToolbar)), same(bar));
+    });
+
+    testWidgets('leaving the Library ends a selection', (tester) async {
+      // The selection lives above the Library so the header's Select button
+      // can reach it, but it must not outlive the Library view: a bulk
+      // action may only touch rows the user can see.
+      setSize(tester, const Size(1400, 900));
+      await tester.pumpWidget(host());
+      await tester.pumpAndSettle();
+
+      final selection = tester
+          .widget<MediaLibraryView>(find.byType(MediaLibraryView))
+          .selection!;
+      selection.enterExplicit();
+      await tester.pump();
+      expect(selection.value.isActive, isTrue);
+
+      await tester.tap(find.text('Equipment'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Library'));
+      await tester.pumpAndSettle();
+
+      expect(selection.value.isActive, isFalse);
+      expect(
+        tester
+            .widget<MediaLibraryView>(find.byType(MediaLibraryView))
+            .selection,
+        same(selection),
+      );
+    });
+  });
 
   group('with the accented switch as the title', () {
     // The section tabs sit under the Photos/Videos and Documents switch at

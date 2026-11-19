@@ -5658,6 +5658,7 @@
   "gpsLogger_trackSubtitle": "{count, plural, one{{count} punt} other{{count} punten}}, {duration}",
   "gpsLogger_trackSubtitleTrimmed": "Bijgesneden, {duration}",
   "gpsTrack_editCard_trim": "Bijsnijden",
+  "gpsTrack_editCard_nameHint": "Naam van de track",
   "gpsTrack_action_trim": "Bijsnijden...",
   "gpsTrack_action_split": "Splitsen...",
   "gpsTrack_action_resetTrim": "Bijsnijden ongedaan maken",

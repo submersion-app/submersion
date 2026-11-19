@@ -5658,6 +5658,7 @@
   "gpsLogger_trackSubtitle": "{count, plural, one{{count} punto} other{{count} puntos}}, {duration}",
   "gpsLogger_trackSubtitleTrimmed": "Recortada, {duration}",
   "gpsTrack_editCard_trim": "Recortar",
+  "gpsTrack_editCard_nameHint": "Nombre del track",
   "gpsTrack_action_trim": "Recortar...",
   "gpsTrack_action_split": "Dividir...",
   "gpsTrack_action_resetTrim": "Quitar recorte",

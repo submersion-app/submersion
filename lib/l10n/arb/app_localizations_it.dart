@@ -39258,6 +39258,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get gpsTrack_editCard_trim => 'Ritaglia';
 
   @override
+  String get gpsTrack_editCard_nameHint => 'Nome della traccia';
+
+  @override
   String get gpsTrack_action_trim => 'Ritaglia...';
 
   @override

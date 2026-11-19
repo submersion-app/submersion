@@ -39228,6 +39228,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get gpsTrack_editCard_trim => 'Recortar';
 
   @override
+  String get gpsTrack_editCard_nameHint => 'Nome da trilha';
+
+  @override
   String get gpsTrack_action_trim => 'Recortar...';
 
   @override

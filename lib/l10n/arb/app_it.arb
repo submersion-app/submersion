@@ -5532,6 +5532,7 @@
   "gpsLogger_trackSubtitle": "{count, plural, one{{count} punto} other{{count} punti}}, {duration}",
   "gpsLogger_trackSubtitleTrimmed": "Ritagliata, {duration}",
   "gpsTrack_editCard_trim": "Ritaglia",
+  "gpsTrack_editCard_nameHint": "Nome della traccia",
   "gpsTrack_action_trim": "Ritaglia...",
   "gpsTrack_action_split": "Dividi...",
   "gpsTrack_action_resetTrim": "Annulla ritaglio",

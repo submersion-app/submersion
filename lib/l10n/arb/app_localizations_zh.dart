@@ -36904,6 +36904,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gpsTrack_editCard_trim => '裁剪';
 
   @override
+  String get gpsTrack_editCard_nameHint => '轨迹名称';
+
+  @override
   String get gpsTrack_action_trim => '裁剪...';
 
   @override
