@@ -73,6 +73,9 @@ void main() {
         'MarkdownNotesField(',
     'lib/features/equipment/presentation/pages/equipment_edit_page.dart':
         'MarkdownNotesField(',
+    // An equipment set's description edited in place (issue #4527).
+    'lib/features/equipment/presentation/editing/equipment_set_card_editors.dart':
+        'MarkdownNotesField(',
     'lib/features/equipment/presentation/pages/equipment_set_edit_page.dart':
         'MarkdownNotesField(',
     'lib/features/equipment/presentation/widgets/equipment_location_edit_dialog.dart':
@@ -116,7 +119,7 @@ void main() {
     'lib/features/documents/presentation/widgets/document_details_panel.dart',
     'lib/features/equipment/presentation/pages/equipment_detail_page_sections.dart',
     'lib/features/equipment/presentation/pages/equipment_location_detail_page.dart',
-    'lib/features/equipment/presentation/pages/equipment_set_detail_page.dart',
+    'lib/features/equipment/presentation/pages/equipment_set_detail_page_sections.dart',
     'lib/features/marine_life/presentation/pages/species_detail_page.dart',
     'lib/features/safety/presentation/pages/emergency_card_page.dart',
     'lib/features/shared_library/presentation/pages/connect_shared_library_page.dart',

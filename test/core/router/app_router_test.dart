@@ -63,6 +63,7 @@ import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blo
 import 'package:submersion/features/buddies/presentation/pages/buddy_edit_routes.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_edit_routes.dart';
 import 'package:submersion/features/courses/presentation/pages/course_edit_routes.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_set_edit_routes.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_routes.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_routes.dart';
 
@@ -449,6 +450,28 @@ void main() {
     final route = _findRouteByName(router.configuration.routes, 'editCourse');
     expect(route?.redirect, same(courseEditRedirect));
     for (final name in const ['courses', 'courseDetail']) {
+      final route = _findRouteByName(router.configuration.routes, name);
+      expect(route?.onExit, same(confirmLeaveRecordSitting), reason: name);
+    }
+  });
+
+  test('the equipment set edit address redirects with the switch', () {
+    expect(
+      equipmentSetEditLocation('s1', unlockEditing: true),
+      '/equipment/sets/s1?mode=edit',
+    );
+    expect(equipmentSetEditLocation('s1', unlockEditing: false), isNull);
+    final route = _findRouteByName(
+      router.configuration.routes,
+      'editEquipmentSet',
+    );
+    expect(route?.redirect, same(equipmentSetEditRedirect));
+    // The sets pane lives under the equipment list.
+    for (final name in const [
+      'equipment',
+      'equipmentSets',
+      'equipmentSetDetail',
+    ]) {
       final route = _findRouteByName(router.configuration.routes, name);
       expect(route?.onExit, same(confirmLeaveRecordSitting), reason: name);
     }
