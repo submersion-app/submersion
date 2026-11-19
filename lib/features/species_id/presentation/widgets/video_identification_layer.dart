@@ -33,7 +33,8 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 /// diver tagged it (issue #4709). Paused, others that look like something
 /// get a plain dot as well. Pills and
 /// dots take taps only while paused and [editable]; everywhere else taps
-/// fall through to the player.
+/// fall through to the player. No pill reaches into the [bottomInset] the
+/// viewer's controls cover (issue #4762).
 class VideoIdentificationLayer extends ConsumerWidget {
   const VideoIdentificationLayer({
     super.key,
@@ -41,6 +42,7 @@ class VideoIdentificationLayer extends ConsumerWidget {
     required this.item,
     this.sitting,
     required this.editable,
+    this.bottomInset = 0,
   });
 
   final ValueListenable<VideoPlayerValue> playback;
@@ -51,6 +53,10 @@ class VideoIdentificationLayer extends ConsumerWidget {
 
   /// Whether the viewer allows edits (not a locked video).
   final bool editable;
+
+  /// How far up from this layer's bottom edge the viewer's controls reach:
+  /// the scrub bar and the panel under it. Pills stay above it.
+  final double bottomInset;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -116,6 +122,9 @@ class VideoIdentificationLayer extends ConsumerWidget {
         return LayoutBuilder(
           builder: (context, box) {
             final video = containedImageRect(value.size, box.biggest);
+            final floor = bottomInset > 0
+                ? box.biggest.height - bottomInset
+                : null;
             return Stack(
               children: [
                 for (final label in labels)
@@ -126,6 +135,7 @@ class VideoIdentificationLayer extends ConsumerWidget {
                     byId[label.identificationId]!,
                     species,
                     video,
+                    floor: floor,
                     holdIn: holdIn,
                   ),
               ],
@@ -143,6 +153,7 @@ class VideoIdentificationLayer extends ConsumerWidget {
     MediaIdentification track,
     Map<String, Species> species,
     Rect video, {
+    required double? floor,
     required EditSession<PhotoRecord>? holdIn,
   }) {
     final l10n = context.l10n;
@@ -153,7 +164,7 @@ class VideoIdentificationLayer extends ConsumerWidget {
       b.width * video.width,
       b.height * video.height,
     );
-    final at = TrackLabelGeometry.of(onScreen, video);
+    final at = TrackLabelGeometry.of(onScreen, video, floor: floor);
     final dotTarget = touchTarget(at.dot);
 
     if (label.kind == TrackLabelKind.dot) {

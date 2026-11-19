@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -161,11 +162,13 @@ MediaItem video(String id) => MediaItem(
 );
 
 /// Opens the viewer on one clip ('v1') played by a fresh [FakeVideoPlatform],
-/// initialized and ready, and returns the platform.
+/// initialized and ready, and returns the platform. [overrides] go on top of
+/// the harness's own.
 Future<FakeVideoPlatform> pumpVideoViewer(
   WidgetTester tester,
-  SharedPreferences prefs,
-) async {
+  SharedPreferences prefs, {
+  List<Override> overrides = const [],
+}) async {
   final platform = FakeVideoPlatform();
   useVideoPlatform(platform);
   await tester.runAsync(() async {
@@ -181,6 +184,7 @@ Future<FakeVideoPlatform> pumpVideoViewer(
           resolvedFilePathProvider.overrideWith(
             (ref, MediaItem arg) async => tempVideoPath('v1'),
           ),
+          ...overrides,
         ],
         child: MaterialApp(
           locale: const Locale('en'),

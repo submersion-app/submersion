@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/species_id/domain/services/track_labels.dart';
@@ -17,28 +19,33 @@ class TrackLabelGeometry {
   /// Where the pill is centred, on screen.
   final Offset pillCentre;
 
-  /// The pill went below the animal: above it there was no room.
+  /// The pill sits below the animal's dot: above the animal there was no
+  /// room.
   final bool pillBelow;
 
   static const double pillHeight = 26;
   static const double gap = 10;
 
   /// [box] is the animal's box on screen; [video] the rect the video is
-  /// drawn in.
-  factory TrackLabelGeometry.of(Rect box, Rect video) {
+  /// drawn in. [floor], when given, is where the viewer's controls begin:
+  /// no pill reaches below it (issue #4762).
+  factory TrackLabelGeometry.of(Rect box, Rect video, {double? floor}) {
     final dot = box.center;
+    final bottom = floor == null ? video.bottom : math.min(video.bottom, floor);
     final above = box.top - gap - pillHeight / 2;
-    final below = above - pillHeight / 2 < video.top;
-    var centreY = below ? box.bottom + gap + pillHeight / 2 : above;
-    // A fish filling the frame's height has room neither above nor below:
-    // the pill then sits just inside the video's bottom edge.
-    if (centreY + pillHeight / 2 > video.bottom) {
-      centreY = video.bottom - pillHeight / 2;
+    final roomAbove = above - pillHeight / 2 >= video.top;
+    var centreY = roomAbove ? above : box.bottom + gap + pillHeight / 2;
+    // A fish filling the frame's height has room neither above nor below,
+    // and one near the controls has none below, or none at all: the pill
+    // then sits just above whichever comes first, the video's bottom edge
+    // or the controls.
+    if (centreY + pillHeight / 2 > bottom) {
+      centreY = bottom - pillHeight / 2;
     }
     return TrackLabelGeometry(
       dot: dot,
       pillCentre: Offset(dot.dx, centreY),
-      pillBelow: below,
+      pillBelow: centreY > dot.dy,
     );
   }
 }
