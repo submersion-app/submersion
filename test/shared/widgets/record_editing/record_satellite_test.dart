@@ -1,8 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/providers/provider.dart';
+
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_leave_guard.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_pane_header.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_shortcuts.dart';
 import 'package:submersion/shared/widgets/record_editing/record_satellite_bar.dart';
 
 import 'fake_note_record.dart';
@@ -155,4 +163,162 @@ void main() {
       expect(find.byIcon(Icons.lock_outline), findsNothing);
     },
   );
+
+  /// A sitting made here, unlocked on the stored note, as a record page's
+  /// would be; disposed after the page has gone.
+  RecordEditController<FakeNote> sittingOn(
+    WidgetTester tester,
+    FakeNoteProbe probe, {
+    bool unlocked = true,
+  }) {
+    final controller = RecordEditController<FakeNote>(onSave: (_) async {});
+    if (unlocked) controller.unlock(probe.notes['n1']!);
+    addTearDown(controller.dispose);
+    return controller;
+  }
+
+  testWidgets('Done leaves open the cards the record page had open', (
+    tester,
+  ) async {
+    await pumpFakeNotes(tester, const FakeNotePage());
+    await unlock(tester);
+    parent(tester).editController.openCard('extra');
+    await tester.pumpAndSettle();
+    await openSatellite(tester);
+
+    await tester.tap(barDone());
+    await tester.pumpAndSettle();
+
+    expect(find.byType(FakeSatellitePage), findsNothing);
+    expect(parent(tester).editController.openCardIds, contains('extra'));
+  });
+
+  testWidgets('a satellite handed another sitting follows it', (tester) async {
+    final probe = await pumpFakeNotes(tester, const SizedBox.shrink());
+    final first = sittingOn(tester, probe, unlocked: false);
+    final second = sittingOn(tester, probe);
+    late StateSetter swap;
+    var joined = first;
+    await tester.pumpWidget(
+      fakeNotesApp(
+        probe,
+        StatefulBuilder(
+          builder: (context, setState) {
+            swap = setState;
+            return FakeSatellitePage(joined: joined);
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(RecordSatelliteBar), findsNothing);
+
+    swap(() => joined = second);
+    await tester.pumpAndSettle();
+    expect(find.byType(RecordSatelliteBar), findsOneWidget);
+    second.lock();
+    await tester.pumpAndSettle();
+
+    expect(find.byType(RecordSatelliteBar), findsNothing);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('Done waits while the sitting is busy', (tester) async {
+    await pumpFakeNotes(tester, const FakeNotePage());
+    await unlock(tester);
+    await openSatellite(tester);
+    await tester.tap(find.text('Extra'));
+    await tester.pumpAndSettle();
+    final gate = Completer<bool>();
+    unawaited(parent(tester).editController.runOperation(() => gate.future));
+    await tester.pump();
+
+    await tester.tap(barDone());
+    await tester.pump();
+
+    expect(find.text(l.recordEdit_fixInvalid), findsNothing);
+    expect(find.byType(FakeSatellitePage), findsOneWidget);
+    gate.complete(false);
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('a satellite that offers no editing takes no sitting', (
+    tester,
+  ) async {
+    final probe = await pumpFakeNotes(tester, const SizedBox.shrink());
+    final sitting = sittingOn(tester, probe);
+    await tester.pumpWidget(
+      fakeNotesApp(
+        probe,
+        FakeSatellitePage(joined: sitting, hostsEditing: false),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final state = tester.state<FakeSatellitePageState>(
+      find.byType(FakeSatellitePage),
+    );
+
+    expect(state.maybeEditController, isNull);
+    expect(state.isSittingOpen, isFalse);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('a joined satellite in a pane shows Done and asks nothing', (
+    tester,
+  ) async {
+    final probe = await pumpFakeNotes(tester, const SizedBox.shrink());
+    final sitting = sittingOn(tester, probe);
+    await tester.pumpWidget(
+      fakeNotesApp(
+        probe,
+        Scaffold(body: FakeSatellitePage(joined: sitting, embedded: true)),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(RecordSatelliteBar), findsOneWidget);
+    expect(find.byType(RecordEditPaneHeader), findsNothing);
+    expect(find.byType(RecordEditLeaveGuard<FakeNote>), findsNothing);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('the editing keys finish a joined satellite', (tester) async {
+    await pumpFakeNotes(tester, const FakeNotePage());
+    await unlock(tester);
+    await openSatellite(tester);
+    final targets = ProviderScope.containerOf(
+      tester.element(find.byType(FakeSatellitePage)),
+    ).read(recordEditShortcutTargetsProvider);
+
+    final target = targets.current;
+    expect(target, isNotNull);
+    expect(target!.controller, same(parent(tester).editController));
+    target.cancel();
+    await tester.pumpAndSettle();
+
+    expect(find.byType(FakeSatellitePage), findsNothing);
+    expect(parent(tester).isSittingOpen, isTrue);
+  });
+
+  testWidgets('the satellite bar looks like the edit bar', (tester) async {
+    await pumpFakeNotes(
+      tester,
+      Scaffold(
+        appBar: RecordEditBar(
+          title: 'Edit',
+          canSave: false,
+          isSaving: false,
+          onCancel: () {},
+          onSave: () {},
+        ),
+        body: RecordSatelliteBar(title: 'Satellite', onDone: () {}),
+      ),
+    );
+    final bars = tester.widgetList<AppBar>(find.byType(AppBar)).toList();
+
+    expect(bars, hasLength(2));
+    expect(bars[1].backgroundColor, bars[0].backgroundColor);
+    expect(bars[1].foregroundColor, bars[0].foregroundColor);
+    expect(bars[1].shape, bars[0].shape);
+  });
 }

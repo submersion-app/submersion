@@ -1,4 +1,4 @@
-import 'package:submersion/features/trips/presentation/widgets/trip_detail_tabs.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_detail_tab.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// The cards of the trip page and its cylinder board that can be edited in

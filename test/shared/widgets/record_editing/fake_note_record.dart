@@ -202,10 +202,20 @@ class FakeNotePageState extends ConsumerState<FakeNotePage>
 /// A page of the same record holding only its `extra` card, as a passport
 /// is a page of a gear item.
 class FakeSatellitePage extends ConsumerStatefulWidget {
-  const FakeSatellitePage({super.key, this.noteId = 'n1', this.joined});
+  const FakeSatellitePage({
+    super.key,
+    this.noteId = 'n1',
+    this.joined,
+    this.hostsEditing = true,
+    this.embedded = false,
+  });
 
   final String noteId;
   final RecordEditController<FakeNote>? joined;
+  final bool hostsEditing;
+
+  /// Laid out as a list pane, with the pane's header.
+  final bool embedded;
 
   @override
   ConsumerState<FakeSatellitePage> createState() => FakeSatellitePageState();
@@ -222,6 +232,9 @@ class FakeSatellitePageState extends ConsumerState<FakeSatellitePage>
   RecordEditController<FakeNote>? get joinedSitting => widget.joined;
 
   @override
+  bool get hostsEditing => widget.hostsEditing;
+
+  @override
   Iterable<EditCard<FakeNote>> get hostEditCards => [fakeExtraCard];
 
   @override
@@ -236,6 +249,31 @@ class FakeSatellitePageState extends ConsumerState<FakeSatellitePage>
     final stored = ref.watch(fakeNoteProvider(widget.noteId)).value;
     if (stored == null) return const SizedBox.shrink();
     final shown = shownRecord(stored);
+    final content = ListView(
+      children: [
+        RecordCardFrame<FakeNote>(
+          card: fakeExtraCard,
+          child: Column(
+            children: [
+              const RecordCardHeader(title: 'Extra'),
+              Text(shown.extra, key: const ValueKey('satelliteExtra')),
+            ],
+          ),
+        ),
+      ],
+    );
+    if (!hostsEditing) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Satellite')),
+        body: content,
+      );
+    }
+    if (widget.embedded) {
+      final header = isSittingOpen
+          ? editingPaneRow(shown, menu: const SizedBox.shrink())
+          : Row(children: [const Text('Satellite'), lockButton(shown)]);
+      return editPane(header: header, shown: shown, content: content);
+    }
     return editScaffold(
       record: stored,
       shown: shown,
@@ -243,37 +281,26 @@ class FakeSatellitePageState extends ConsumerState<FakeSatellitePage>
         title: const Text('Satellite'),
         actions: [lockButton(shown)],
       ),
-      content: ListView(
-        children: [
-          RecordCardFrame<FakeNote>(
-            card: fakeExtraCard,
-            child: Column(
-              children: [
-                const RecordCardHeader(title: 'Extra'),
-                Text(shown.extra, key: const ValueKey('satelliteExtra')),
-              ],
-            ),
-          ),
-        ],
-      ),
+      content: content,
     );
   }
 }
 
+/// The app the fake pages run in, over [probe].
+Widget fakeNotesApp(FakeNoteProbe probe, Widget home) => ProviderScope(
+  overrides: [fakeNoteProbeProvider.overrideWithValue(probe)],
+  child: MaterialApp(
+    locale: const Locale('en'),
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    home: home,
+  ),
+);
+
 /// Pumps [home] over a fresh probe, and returns the probe.
 Future<FakeNoteProbe> pumpFakeNotes(WidgetTester tester, Widget home) async {
   final probe = FakeNoteProbe();
-  await tester.pumpWidget(
-    ProviderScope(
-      overrides: [fakeNoteProbeProvider.overrideWithValue(probe)],
-      child: MaterialApp(
-        locale: const Locale('en'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: home,
-      ),
-    ),
-  );
+  await tester.pumpWidget(fakeNotesApp(probe, home));
   await tester.pumpAndSettle();
   return probe;
 }

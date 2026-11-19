@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/features/divers/data/repositories/item_shares_repository.dart';
-import 'package:submersion/features/divers/data/repositories/item_shares_sharing_adapter.dart';
+import 'package:submersion/features/divers/presentation/editing/item_shares_sharing_adapter.dart';
 
 import '../../../../helpers/shared_items_fixture.dart';
 import '../../../../helpers/test_database.dart';

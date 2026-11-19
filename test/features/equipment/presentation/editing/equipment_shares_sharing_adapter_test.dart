@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_share_repository.dart';
-import 'package:submersion/features/equipment/data/repositories/equipment_shares_sharing_adapter.dart';
+import 'package:submersion/features/equipment/presentation/editing/equipment_shares_sharing_adapter.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -50,6 +50,18 @@ void main() {
 
   test('the owner shares, and the sharing reads back', () async {
     final done = await adapter.write('bcd', {'sam'}, actingDiverId: 'me');
+
+    expect(done, isTrue);
+    expect(await adapter.read('bcd'), {'sam'});
+  });
+
+  // A profile deleted on another device while the sitting was open is not
+  // the diver's to fix: the rest of the sharing is written.
+  test('a profile that no longer exists is left out, not refused', () async {
+    final done = await adapter.write('bcd', {
+      'sam',
+      'ghost',
+    }, actingDiverId: 'me');
 
     expect(done, isTrue);
     expect(await adapter.read('bcd'), {'sam'});

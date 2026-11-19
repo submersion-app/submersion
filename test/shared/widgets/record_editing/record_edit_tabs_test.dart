@@ -109,6 +109,24 @@ void main() {
     expect(find.byKey(const ValueKey('extraEditor')), findsOneWidget);
   });
 
+  testWidgets('Save refused for unreadable input on the other tab shows it', (
+    tester,
+  ) async {
+    await pump(tester);
+    await unlock(tester);
+    await typeText(tester, 'half');
+    await tester.enterText(find.byKey(const ValueKey('checkedEditor')), '12a');
+    await tester.pumpAndSettle();
+    await showTab(tester, 'Two');
+
+    await tester.tap(find.text(l.forms_save));
+    await tester.pumpAndSettle();
+
+    expect(page(tester).tabs.index, 0);
+    expect(find.byKey(const ValueKey('checkedEditor')), findsOneWidget);
+    expect(find.text('12a'), findsOneWidget);
+  });
+
   testWidgets('locked, an off-screen tab is not kept', (tester) async {
     final disposals = FakeTabDisposals();
     await pump(tester, disposals: disposals);

@@ -98,11 +98,16 @@ mixin RecordEditHost<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
   /// it (a passport, the cylinder board) pushed during that sitting
   /// (`pushRecordSatellite`); null when the page holds its own.
   ///
-  /// While it is given, the page creates no controller, exit blocker or key
-  /// target: the record's page owns them and saves or cancels what is
-  /// changed here. The page shows Done ([finishJoinedSitting]) in place of
-  /// Cancel and Save, offers no lock, and asks nothing on leaving.
+  /// While it is given, the page creates no controller or exit blocker: the
+  /// record's page owns them and saves or cancels what is changed here. The
+  /// page shows Done ([finishJoinedSitting]) in place of Cancel and Save,
+  /// and its Save and Cancel keys finish it too; it offers no lock and asks
+  /// nothing on leaving. A page that does not host editing
+  /// ([hostsEditing]) takes no sitting, joined or its own.
   RecordEditController<T>? get joinedSitting => null;
+
+  /// [joinedSitting], on a page that hosts editing.
+  RecordEditController<T>? get _joined => hostsEditing ? joinedSitting : null;
 
   // What the host provides.
 
@@ -111,20 +116,25 @@ mixin RecordEditHost<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
   /// Created on first use; the record page's own for a page that joined
   /// its sitting ([joinedSitting]).
   RecordEditController<T> get editController =>
-      joinedSitting ??
+      _joined ??
       (_editController ??= _newEditController(
         ProviderScope.containerOf(context, listen: false),
       ));
 
   /// The controller, or null before anything has asked for it.
   RecordEditController<T>? get maybeEditController =>
-      joinedSitting ?? _editController;
+      _joined ?? _editController;
 
   /// Whether a sitting is in progress.
   bool get isSittingOpen => maybeEditController?.isUnlocked ?? false;
 
   /// The joined sitting this page listens to, so its bar follows it.
   RecordEditController<T>? _listenedJoined;
+
+  /// This page's cards that were already open in the joined sitting when
+  /// the page joined it: the record's page opened them, so Done leaves them
+  /// open.
+  Set<String> _openWhenJoined = const {};
 
   /// The record as a sitting just saved it, shown until the stored record
   /// has been read back. Without it the page would show the old values, and
@@ -189,22 +199,37 @@ mixin RecordEditHost<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
     super.initState();
     _hostedRecordId = hostRecordId;
     if (!hostsEditing) return;
-    final joined = joinedSitting;
-    if (joined != null) {
-      _listenedJoined = joined..addListener(onEditChanged);
-      return;
-    }
-    final controller = editController;
+    final joined = _joined;
+    if (joined != null) _followJoined(joined);
+    _registerShortcutTarget(editController);
+  }
+
+  /// Listens to [joined] so the page's bar follows it, and notes which of
+  /// the page's cards it already had open.
+  void _followJoined(RecordEditController<T> joined) {
+    _listenedJoined = joined..addListener(onEditChanged);
+    _openWhenJoined = {
+      for (final card in hostEditCards)
+        if (joined.openCardIds.contains(card.id)) card.id,
+    };
+  }
+
+  /// Makes this page the editing keys' target for [controller]. On a page
+  /// that joined its record's sitting, Save and Cancel are Done, and there
+  /// is no unlock.
+  void _registerShortcutTarget(RecordEditController<T> controller) {
+    final joined = identical(controller, _joined);
     final target = _shortcutTarget = RecordEditShortcutTarget(
       controller: controller,
       unlock: () {
-        // A new record's page opens unlocked; there is nothing to unlock.
-        if (!offersEditing || isCreating) return;
+        // A new record's page opens unlocked, and a joined page has no lock
+        // of its own: there is nothing to unlock.
+        if (joined || !offersEditing || isCreating) return;
         final stored = storedForUnlock;
         if (stored != null) controller.unlock(shownRecord(stored));
       },
-      save: saveAndReport,
-      cancel: cancelOrLeave,
+      save: joined ? finishJoinedSitting : saveAndReport,
+      cancel: joined ? finishJoinedSitting : cancelOrLeave,
       // The page in view: not under a page, sheet or menu.
       isCurrent: () =>
           offersEditing &&
@@ -212,7 +237,8 @@ mixin RecordEditHost<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
           (ModalRoute.of(context)?.isCurrent ?? true) &&
           isShortcutTargetInView,
     );
-    final targets = ref.read(recordEditShortcutTargetsProvider);
+    final RecordEditShortcutTargets targets =
+        _shortcutTargets ?? ref.read(recordEditShortcutTargetsProvider);
     _shortcutTargets = targets;
     targets.add(target);
   }
@@ -227,6 +253,18 @@ mixin RecordEditHost<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
   @override
   void didUpdateWidget(W oldWidget) {
     super.didUpdateWidget(oldWidget);
+    // A page handed another sitting to join follows that one, and the keys
+    // act on it.
+    final joined = _joined;
+    if (hostsEditing && !identical(joined, _listenedJoined)) {
+      _listenedJoined?.removeListener(onEditChanged);
+      _listenedJoined = null;
+      _openWhenJoined = const {};
+      if (joined != null) _followJoined(joined);
+      final target = _shortcutTarget;
+      if (target != null) _shortcutTargets?.remove(target);
+      _registerShortcutTarget(editController);
+    }
     final id = hostRecordId;
     if (id == _hostedRecordId) return;
     _hostedRecordId = id;
@@ -323,7 +361,7 @@ mixin RecordEditHost<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
   ///
   /// A page that joined its record's sitting ([joinedSitting]) has no lock
   /// of its own: once that sitting ends it only reads.
-  Widget lockButton(T shown, {bool compact = false}) => joinedSitting != null
+  Widget lockButton(T shown, {bool compact = false}) => _joined != null
       ? const SizedBox.shrink()
       : IconButton(
           icon: Icon(Icons.lock_outline, size: compact ? 20 : null),
@@ -336,17 +374,23 @@ mixin RecordEditHost<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
   /// open cards and goes back to the record's page, which keeps every
   /// change. A card that cannot close (unreadable input, or its own check
   /// fails) keeps the page here, showing itself, as closing it would.
+  ///
+  /// Cards the record's page already had open when this page joined stay
+  /// open. While the sitting is busy (being saved, or a whole-record
+  /// operation running) Done waits: nothing can close then.
   Future<void> finishJoinedSitting() async {
-    final controller = joinedSitting;
-    if (controller == null) return;
-    for (final card in hostEditCards) {
-      if (controller.openCardIds.contains(card.id)) {
-        controller.closeCard(card.id);
-      }
+    final controller = _joined;
+    if (controller == null || controller.isBusy) return;
+    final ours = [
+      for (final card in hostEditCards)
+        if (controller.openCardIds.contains(card.id) &&
+            !_openWhenJoined.contains(card.id))
+          card.id,
+    ];
+    for (final id in ours) {
+      controller.closeCard(id);
     }
-    final stuck = hostEditCards.any(
-      (card) => controller.openCardIds.contains(card.id),
-    );
+    final stuck = ours.any(controller.openCardIds.contains);
     if (!mounted) return;
     if (stuck) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -360,6 +404,13 @@ mixin RecordEditHost<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
   /// The list pane's header row while unlocked: Cancel, the title, [menu]
   /// and Save, laid over the locked row.
   Widget editingPaneRow(T record, {required Widget menu}) {
+    // A page that joined its record's sitting finishes with Done.
+    if (_joined != null) {
+      return RecordSatelliteBar(
+        title: editingTitle(record),
+        onDone: finishJoinedSitting,
+      );
+    }
     final controller = editController;
     return RecordEditPaneHeader(
       title: editingTitle(record),
@@ -381,23 +432,24 @@ mixin RecordEditHost<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
     required Widget content,
   }) {
     final controller = editController;
-    return RecordEditLeaveGuard<T>(
+    final pane = RecordEditScope<T>(
       controller: controller,
-      child: RecordEditScope<T>(
-        controller: controller,
-        child: Column(
-          children: [
-            header,
-            Expanded(
-              child: AddStripLayout(
-                strip: _editStrip(controller, shown),
-                body: content,
-              ),
+      child: Column(
+        children: [
+          header,
+          Expanded(
+            child: AddStripLayout(
+              strip: _editStrip(controller, shown),
+              body: content,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
+    // A page that joined its record's sitting asks nothing on leaving: the
+    // changes stay in that sitting.
+    if (_joined != null) return pane;
+    return RecordEditLeaveGuard<T>(controller: controller, child: pane);
   }
 
   /// What lies under the edit bar while the record is unlocked: the cards
@@ -431,7 +483,7 @@ mixin RecordEditHost<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
     required Widget content,
     List<Widget> unlockedActions = const [],
   }) {
-    final joined = joinedSitting;
+    final joined = _joined;
     if (joined != null) {
       // The record's page owns the sitting: no leave check here, since
       // leaving keeps every change in it.

@@ -69,8 +69,8 @@ New, per feature:
 | `lib/features/trips/presentation/editing/trip_card_ids.dart` | `TripCardId`, with each card's tab |
 | `lib/features/equipment/presentation/editing/gear_item_card_ids.dart` | `GearItemCardId`, including the passports' cards |
 | `lib/features/equipment/presentation/editing/equipment_set_card_ids.dart` | `EquipmentSetCardId` |
-| `lib/features/divers/data/repositories/item_shares_sharing_adapter.dart` | `ItemSharesSharingAdapter` (trips; sites later) |
-| `lib/features/equipment/data/repositories/equipment_shares_sharing_adapter.dart` | `EquipmentSharesSharingAdapter` (gear) |
+| `lib/features/divers/presentation/editing/item_shares_sharing_adapter.dart` | `ItemSharesSharingAdapter` (trips; sites later) |
+| `lib/features/equipment/presentation/editing/equipment_shares_sharing_adapter.dart` | `EquipmentSharesSharingAdapter` (gear) |
 
 Modified:
 
@@ -238,9 +238,9 @@ git commit -m "feat(history): name the cards of every phase 3 record's sitting"
 
 **Files:**
 - Create: `lib/shared/widgets/record_editing/record_sharing_sitting.dart`
-- Create: `lib/features/divers/data/repositories/item_shares_sharing_adapter.dart`
-- Create: `lib/features/equipment/data/repositories/equipment_shares_sharing_adapter.dart`
-- Test: `test/shared/widgets/record_editing/record_sharing_sitting_test.dart`, `test/features/divers/data/repositories/item_shares_sharing_adapter_test.dart`, `test/features/equipment/data/repositories/equipment_shares_sharing_adapter_test.dart`
+- Create: `lib/features/divers/presentation/editing/item_shares_sharing_adapter.dart`
+- Create: `lib/features/equipment/presentation/editing/equipment_shares_sharing_adapter.dart`
+- Test: `test/shared/widgets/record_editing/record_sharing_sitting_test.dart`, `test/features/divers/presentation/editing/item_shares_sharing_adapter_test.dart`, `test/features/equipment/presentation/editing/equipment_shares_sharing_adapter_test.dart`
 
 **Interfaces:**
 - Consumes: `EditSession` (`remember`, `recall`, `track`, `holdChange`, `releaseWrite`, `isDisposed`, `isFrozen`), `RecordSittingRefusal`, `sharingRefusedMessage` (`lib/shared/widgets/shared_items/item_sharing_field.dart`).
@@ -273,7 +273,7 @@ git commit -m "feat(history): name the cards of every phase 3 record's sitting"
 - [ ] **Step 5: Commit**
 
 ```bash
-git add lib/shared/widgets/record_editing/record_sharing_sitting.dart lib/features/divers/data/repositories/item_shares_sharing_adapter.dart lib/features/equipment/data/repositories/equipment_shares_sharing_adapter.dart test/shared/widgets/record_editing/record_sharing_sitting_test.dart test/features/divers/data/repositories/item_shares_sharing_adapter_test.dart test/features/equipment/data/repositories/equipment_shares_sharing_adapter_test.dart
+git add lib/shared/widgets/record_editing/record_sharing_sitting.dart lib/features/divers/presentation/editing/item_shares_sharing_adapter.dart lib/features/equipment/presentation/editing/equipment_shares_sharing_adapter.dart test/shared/widgets/record_editing/record_sharing_sitting_test.dart test/features/divers/presentation/editing/item_shares_sharing_adapter_test.dart test/features/equipment/presentation/editing/equipment_shares_sharing_adapter_test.dart
 git commit -m "feat(editing): one held sharing write for trips and gear"
 ```
 

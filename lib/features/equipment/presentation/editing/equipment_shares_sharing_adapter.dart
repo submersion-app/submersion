@@ -15,9 +15,9 @@ class EquipmentSharesSharingAdapter
   };
 
   /// Refused with no acting profile, or when the repository skipped the
-  /// item (not the acting profile's) or rejected a profile (the item's
-  /// owner, or one that no longer exists): the sharing would not be what
-  /// the diver chose.
+  /// item because it is not the acting profile's. A profile the repository
+  /// rejected (deleted on another device while the sitting was open) is
+  /// left out, as there is nobody left to share with: the rest is written.
   @override
   Future<bool> write(
     String recordId,
@@ -30,6 +30,6 @@ class EquipmentSharesSharingAdapter
       diverIds: sharing,
       actingDiverId: actingDiverId,
     );
-    return result.skippedNotOwned == 0 && result.rejected == 0;
+    return result.skippedNotOwned == 0;
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 
 /// The top bar of a satellite page (a passport, the cylinder board) that
 /// joined its record's sitting (issue #4527, phase 3): the title and Done.
@@ -26,17 +27,13 @@ class RecordSatelliteBar extends StatelessWidget
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final style = unlockedRecordBarStyle(Theme.of(context).colorScheme);
     return AppBar(
       automaticallyImplyLeading: false,
       scrolledUnderElevation: 0,
-      // The same opaque blend and foreground as the edit bar.
-      backgroundColor: Color.alphaBlend(
-        scheme.primary.withValues(alpha: 0.14),
-        scheme.surface,
-      ),
-      foregroundColor: scheme.onSurface,
-      shape: Border(bottom: BorderSide(color: scheme.primary, width: 2)),
+      backgroundColor: style.background,
+      foregroundColor: style.foreground,
+      shape: style.shape,
       title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
       actions: [
         AppBarTextAction(
