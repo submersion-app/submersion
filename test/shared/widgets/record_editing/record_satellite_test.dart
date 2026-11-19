@@ -403,4 +403,38 @@ void main() {
     expect(state.isSittingOpen, isFalse);
     await tester.pumpWidget(const SizedBox.shrink());
   });
+
+  testWidgets('a satellite whose ended sitting was another record has a lock', (
+    tester,
+  ) async {
+    final probe = await pumpFakeNotes(tester, const SizedBox.shrink());
+    final sitting = sittingOn(tester, probe);
+    late StateSetter swap;
+    var noteId = 'n1';
+    await tester.pumpWidget(
+      fakeNotesApp(
+        probe,
+        StatefulBuilder(
+          builder: (context, setState) {
+            swap = setState;
+            return FakeSatellitePage(noteId: noteId, joined: sitting);
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    // The record's page ends its sitting, then the page shows another.
+    sitting.lock();
+    await tester.pumpAndSettle();
+
+    swap(() => noteId = 'n2');
+    await tester.pumpAndSettle();
+
+    final state = tester.state<FakeSatellitePageState>(
+      find.byType(FakeSatellitePage),
+    );
+    expect(state.maybeEditController, isNot(same(sitting)));
+    expect(find.byIcon(Icons.lock_outline), findsOneWidget);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
 }
