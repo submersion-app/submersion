@@ -245,6 +245,26 @@ void main() {
     expect(result, isEmpty);
   });
 
+  test('a tie between two file trips names neither', () {
+    final result = names(
+      [dive(3, 10, tripRef: 'c')],
+      trips: [
+        fileTrip('a', DateTime(2026, 3, 8), DateTime(2026, 3, 12)),
+        fileTrip('b', DateTime(2026, 3, 8), DateTime(2026, 3, 11)),
+        fileTrip('c', DateTime(2026, 6, 1), DateTime(2026, 6, 3)),
+      ],
+      tripSelections: {0, 1},
+    );
+    expect(result, isEmpty);
+  });
+
+  test('a tie between two existing trips is settled by their ids', () {
+    final other = trip('Zeeland', DateTime(2026, 3, 7), DateTime(2026, 3, 9));
+    expect(names([dive(3, 8)], existingTripsFor: (_) => [bonaire, other]), {
+      0: 'Zeeland',
+    });
+  });
+
   test('a file trip starting later than an existing one still wins', () {
     final result = names(
       [dive(3, 10, tripRef: 'b')],

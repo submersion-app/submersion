@@ -112,9 +112,10 @@ Trip? _tripOf(
   );
   if (trip == null || ownTrip != null || date == null) return trip;
   // Placed by date. Two covering trips starting at the same moment are
-  // told apart by id, and the importer gives a file trip a random one, so
-  // a tie between a file trip and an existing trip cannot be predicted:
-  // name neither rather than guess.
+  // told apart by id, and the importer gives each file trip a random one,
+  // so a tie involving a file trip (with an existing trip or another file
+  // trip) cannot be predicted: name none rather than guess. A tie between
+  // existing trips is settled by their real ids, as the save settles it.
   final tied = [
     for (final t in candidates)
       if (t.startDate.isAtSameMomentAs(trip.startDate) &&
@@ -122,9 +123,8 @@ Trip? _tripOf(
         t,
   ];
   final imported = profile?.imported ?? const <Trip>[];
-  final mixed =
-      tied.any(imported.contains) && tied.any((t) => !imported.contains(t));
-  return mixed ? null : trip;
+  final unpredictable = tied.length > 1 && tied.any(imported.contains);
+  return unpredictable ? null : trip;
 }
 
 /// One profile's file trips: the ones it imports, and the trip each source
