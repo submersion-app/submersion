@@ -461,6 +461,21 @@ void main() {
     expect(site.rootLabel, 'Blue Hole');
   });
 
+  // A species has a common name, not a name (issue #4527, phase 3 plan 1).
+  test('a species entry is titled by its common name', () async {
+    await db.customStatement(
+      'INSERT INTO species (id, common_name, category) '
+      "VALUES ('manta', 'Manta Ray', 'fish')",
+    );
+
+    await settler.settle();
+
+    final species = (await _operations(
+      db,
+    )).firstWhere((o) => o.rootTable == 'species');
+    expect(species.rootLabel, 'Manta Ray');
+  });
+
   test('a settings key record settles', () async {
     await db.customStatement(
       'INSERT INTO settings (key, value, updated_at) '
