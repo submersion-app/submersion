@@ -23,7 +23,9 @@ import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/liveaboard_details.dart';
 import 'package:submersion/features/trips/domain/entities/scrubber_margin.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/services/trip_day_notes.dart';
 import 'package:submersion/features/trips/domain/services/trip_story_builder.dart';
+import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/scrubber_margin_providers.dart';
@@ -213,6 +215,8 @@ Future<TripPageHarness> pumpTripPage(
   Trip? trip,
   bool unlockEditing = true,
   bool openUnlocked = false,
+  TripEditSection? openSection,
+  TripNoteDay? openNoteDay,
   bool embedded = false,
   Size size = const Size(600, 1600),
   VoidCallback? onSittingEnded,
@@ -243,6 +247,8 @@ Future<TripPageHarness> pumpTripPage(
     tripId: shown.id,
     unlockEditing: unlockEditing,
     openUnlocked: openUnlocked,
+    openSection: openSection,
+    openNoteDay: openNoteDay,
     embedded: embedded,
     onSittingEnded: onSittingEnded,
     onDeleted: onDeleted,

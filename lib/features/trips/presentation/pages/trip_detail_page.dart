@@ -17,6 +17,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/services/trip_day_notes.dart';
 import 'package:submersion/features/trips/presentation/helpers/side_trip_delete_lines.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_scan_actions.dart';
@@ -73,6 +74,14 @@ class TripDetailPage extends ConsumerStatefulWidget {
   /// edit returns to the trip in view.
   final VoidCallback? onSittingEnded;
 
+  /// The card a page opened unlocked opens at, as the form opened at a
+  /// section (`section=planning` or `section=notes`).
+  final TripEditSection? openSection;
+
+  /// The day whose note a page opened unlocked opens at: the story shows
+  /// that day with its Day plan open (`noteDate`, `noteDay`).
+  final TripNoteDay? openNoteDay;
+
   const TripDetailPage({
     super.key,
     required this.tripId,
@@ -81,6 +90,8 @@ class TripDetailPage extends ConsumerStatefulWidget {
     this.unlockEditing = kUnlockRecordEditing,
     this.openUnlocked = false,
     this.onSittingEnded,
+    this.openSection,
+    this.openNoteDay,
   });
 
   @override
@@ -107,6 +118,33 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage>
   /// Which page of the Overview's story shows, here so a link can open the
   /// story at a day.
   final _storySelection = ValueNotifier<TripStorySelection?>(null);
+
+  /// Whether the card the address names has been opened, or tried.
+  bool _openedAtCard = false;
+
+  /// Opens the card the address names, once, after the page has opened
+  /// unlocked (which happens after this frame).
+  void _openAtCardOnce() {
+    if (_openedAtCard || !widget.openUnlocked) return;
+    final noteDay = widget.openNoteDay;
+    final section = widget.openSection;
+    if (noteDay == null && section == null) return;
+    _openedAtCard = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final controller = maybeEditController;
+      if (controller == null || !controller.isUnlocked) return;
+      tabController.index = TripDetailTab.overview.index;
+      if (noteDay != null) {
+        _storySelection.value = TripStorySelection.day(noteDay.date);
+        controller.openCard(TripCardId.notes.name);
+      } else if (section == TripEditSection.planning) {
+        controller.openCard(TripCardId.plan.name);
+      } else {
+        controller.openCard(TripCardId.notes.name);
+      }
+    });
+  }
 
   void _onTabChanged() {
     // The strip offers the cards of the tab in view.
@@ -168,6 +206,7 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage>
         }
         final stored = tripWithStats.trip;
         openUnlockedOnce(stored);
+        _openAtCardOnce();
         final shown = shownRecord(stored);
         return _TripDetailContent(
           tripWithStats: tripWithStats,

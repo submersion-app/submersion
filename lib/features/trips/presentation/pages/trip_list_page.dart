@@ -30,6 +30,7 @@ import 'package:submersion/features/trips/presentation/widgets/trip_list_content
 import 'package:submersion/features/trips/presentation/widgets/trip_summary_widget.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
+import 'package:submersion/features/trips/presentation/pages/trip_edit_routes.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_list_count_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
@@ -223,23 +224,24 @@ class _TripListPageState extends ConsumerState<TripListPage>
   }
 }
 
-/// The pane's edit form, open at the section the URL names (#2880).
+/// The pane's edit, open at the section the URL names (#2880): behind
+/// phase 3's switch the trip page opened unlocked (issue #4527), else the
+/// edit form.
 Widget _buildEditPane(
   BuildContext context,
   String tripId,
   void Function(String savedId) onSaved,
   VoidCallback onCancel,
 ) {
-  return TripEditPage(
-    tripId: tripId,
-    embedded: true,
-    onSaved: onSaved,
-    onCancel: onCancel,
-    initialSection: TripEditSection.fromQuery(
-      GoRouterState.of(context).uri.queryParameters['section'],
-    ),
-    noteDay: tripNoteDayFromQuery(
-      GoRouterState.of(context).uri.queryParameters,
-    ),
+  final query = GoRouterState.of(context).uri.queryParameters;
+  return tripEditPane(
+    context,
+    tripId,
+    onSaved,
+    onCancel,
+    section: TripEditSection.fromQuery(query['section']),
+    noteDay: tripNoteDayFromQuery(query),
+    // A delete from the pane returns it to the list, as from view mode.
+    onDeleted: () => context.goInPlace(GoRouterState.of(context).uri.path),
   );
 }

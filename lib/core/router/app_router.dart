@@ -98,8 +98,8 @@ import 'package:submersion/features/equipment/presentation/pages/equipment_set_d
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_edit_page.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_list_page.dart';
-import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
+import 'package:submersion/features/trips/presentation/pages/trip_edit_routes.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_cylinder_board_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_gallery_page.dart';
 import 'package:submersion/features/connections/presentation/connections_links.dart';
@@ -1208,6 +1208,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/trips',
             name: 'trips',
+            // A trip pane's sitting asks before the list goes (issue #4527).
+            onExit: confirmLeaveRecordSitting,
             pageBuilder: (context, state) => NoTransitionPage(
               key: state.pageKey,
               // Set when openTripList pushed this list: what to put back
@@ -1230,12 +1232,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: ':tripId',
                 name: 'tripDetail',
-                builder: (context, state) =>
-                    TripDetailPage(tripId: state.pathParameters['tripId']!),
+                onExit: confirmLeaveRecordSitting,
+                builder: tripDetailRoutePage,
                 routes: [
                   GoRoute(
                     path: 'edit',
                     name: 'editTrip',
+                    // Behind phase 3's switch, the page opened unlocked.
+                    redirect: tripEditRedirect,
                     builder: (context, state) => TripEditPage(
                       tripId: state.pathParameters['tripId'],
                       initialSection: TripEditSection.fromQuery(
