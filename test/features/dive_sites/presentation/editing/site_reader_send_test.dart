@@ -215,6 +215,40 @@ void main() {
     },
   );
 
+  // The sitting goes on with only what goes to the owner, so a second Send
+  // proposes again without writing the reader's own part twice.
+  test('a failed proposal leaves only what goes to the owner in the '
+      'sitting', () async {
+    final ran = <String>[];
+    final session = await sitting()
+      ..set(siteNotesField, 'Choppy')
+      ..set(siteNameField, 'Big Lake')
+      ..holdChange(
+        'media.held',
+        cardId: 'media',
+        write: () async {
+          ran.add('media');
+        },
+      )
+      // As the controller's save holds it while it writes.
+      ..freeze();
+
+    await sendReaderSitting(
+      session,
+      service: service,
+      suggestions: _FailingSuggestions(),
+      diverId: 'me',
+      note: '',
+    );
+    session.thaw();
+
+    expect(session.changedCardIds, {siteHeaderCardId});
+    expect(session.heldChangeCardIds, isEmpty);
+    expect(await send(session), SiteReaderSent.sent);
+    expect(ran, ['media']);
+    expect(suggestions.calls.single.proposed.name, 'Big Lake');
+  });
+
   test('a failed proposal with nothing written fails the Send', () async {
     final session = await sitting()
       ..set(siteNameField, 'Big Lake');

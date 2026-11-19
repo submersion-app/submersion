@@ -57,7 +57,15 @@ class FakeSiteSave implements SiteEditSaveService {
     ));
     final failure = failWith;
     if (failure != null) throw failure;
-    final after = apply(stored);
+    final applied = apply(stored);
+    // As the service writes a reader's own changes: notes and rating only.
+    final after = privateOnly
+        ? stored.copyWith(
+            notes: applied.notes,
+            rating: applied.rating,
+            clearRating: applied.rating == null,
+          )
+        : applied;
     return (before: stored, after: after);
   }
 }

@@ -114,6 +114,7 @@ import 'package:submersion/shared/widgets/record_editing/record_open_unlocked.da
 import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 import 'package:submersion/shared/widgets/record_editing/record_pane_row.dart';
 import 'package:submersion/shared/widgets/record_editing/record_fold_pencil.dart';
+import 'package:submersion/shared/widgets/record_editing/record_sitting_refusal.dart';
 
 part 'site_detail_page_bars.dart';
 part 'site_detail_page_editing.dart';

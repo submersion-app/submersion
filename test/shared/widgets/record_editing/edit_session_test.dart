@@ -390,6 +390,23 @@ void main() {
       expect(session.heldChangeCardIds, {'header'});
     });
 
+    // A save that wrote part of the sitting and then stopped keeps the
+    // rest; the part it wrote must not run again (issue #4527).
+    test('of written cards are dropped, even while frozen', () {
+      final session = EditSession(const _Rec())
+        ..holdChange('m', cardId: 'media', write: () async {})
+        ..holdChange('k', cardId: 'header', write: () async {})
+        ..freeze();
+      var told = 0;
+      session.addListener(() => told++);
+
+      session.dropWrittenChanges({'media'});
+
+      expect(session.heldChangeCardIds, {'header'});
+      expect(session.changedCardIds, {'header'});
+      expect(told, 1);
+    });
+
     test('move their card, so a closed card is redrawn', () {
       final session = EditSession(const _Rec());
       var told = 0;

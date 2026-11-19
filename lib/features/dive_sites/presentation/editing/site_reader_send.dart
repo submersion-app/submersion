@@ -24,7 +24,8 @@ enum SiteReaderSent {
   savedPrivate,
 
   /// The reader's own changes were written, but the proposal to the owner
-  /// failed: the Send ends there, so the written part never runs twice.
+  /// failed: the sitting is left holding only what goes to the owner, so a
+  /// Send that tries again never writes the reader's part twice.
   savedPrivateNotSent,
 
   /// Nothing differed from what is stored.
@@ -124,7 +125,8 @@ class _SuggestionNoteDialogState extends State<_SuggestionNoteDialog> {
 /// with [note]. The library's site itself is never written. A failed
 /// write throws and proposes nothing; a failed proposal throws too, unless
 /// the reader's own write has committed, which is then reported as
-/// [SiteReaderSent.savedPrivateNotSent]. A sitting holding a change of the
+/// [SiteReaderSent.savedPrivateNotSent] with that part taken out of
+/// [session]. A sitting holding a change of the
 /// library's cards is refused ([RecordSittingRefusal]) with nothing
 /// written. Returns what was done, and the site as the write left it.
 Future<({SiteReaderSent outcome, DiveSite? saved})> sendReaderSitting(
@@ -173,6 +175,11 @@ Future<({SiteReaderSent outcome, DiveSite? saved})> sendReaderSitting(
       error: error,
       stackTrace: stackTrace,
     );
+    // The reader's own part is written: the sitting keeps only what goes
+    // to the owner, for a Send that proposes it again.
+    session
+      ..rebase(written.after)
+      ..dropWrittenChanges(siteReaderPrivateCards);
     return (outcome: SiteReaderSent.savedPrivateNotSent, saved: written.after);
   }
   return (

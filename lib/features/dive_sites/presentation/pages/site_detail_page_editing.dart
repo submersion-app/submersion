@@ -2,6 +2,9 @@ part of 'site_detail_page.dart';
 
 const _editLog = LoggerService('SiteDetailPage');
 
+/// What a reader's Save turns out to be once the stored role is read.
+enum _ReaderSave { refused, edit, send }
+
 /// In-place editing for the site page (issue #4527, phase 2): what is the
 /// site's own on top of [RecordEditHost], which holds what every record page
 /// shares (the lock, the bar, the strip, the leave check, the keys).
@@ -301,10 +304,11 @@ mixin _SiteDetailPageEditing
     return container.read(siteProvider(stored.id).future);
   }
 
-  /// A reader's sitting on a library site: the role as stored now decides.
-  /// An editor's role saves as an edit; anyone else's is a Send, held on
-  /// the sitting for [saveSitting], which asks for a note only when
-  /// something goes to the owner. An editor's sitting is never sent: one
+  /// A reader's sitting on a library site: the role as stored now decides,
+  /// read again once a note is written ([_readerSaveNow]). An editor's role
+  /// saves as an edit; anyone else's is a Send, held on the sitting for
+  /// [saveSitting], which asks for a note only when something goes to the
+  /// owner. An editor's sitting is never sent: one
   /// whose role has dropped is withdrawn, not sent (plan 5, Question 2). A
   /// demo profile, a role that cannot be read, or a library no longer
   /// connected here, saves nothing.
@@ -325,8 +329,45 @@ mixin _SiteDetailPageEditing
     if (!demoSealGuard(context, DemoSealedFeature.sharedLibrary)) {
       return false;
     }
+    var path = await _readerSaveNow(session, libraryId);
+    if (!mounted) return false;
+    var note = '';
+    if (path == _ReaderSave.send && readerSendProposes(session)) {
+      final asked = await askSuggestionNote(
+        context,
+        initial: readerSendNote(session) ?? '',
+      );
+      if (asked == null || !mounted) return false;
+      note = asked;
+      // The note is the diver's to take their time over: the role as
+      // stored once it is written decides.
+      path = await _readerSaveNow(session, libraryId);
+      if (!mounted) return false;
+    }
+    switch (path) {
+      case _ReaderSave.refused:
+        // Kept for the next attempt, which decides again.
+        if (note.isNotEmpty) holdReaderSend(session, note);
+        return false;
+      case _ReaderSave.edit:
+        clearReaderSend(session);
+        return true;
+      case _ReaderSave.send:
+        holdReaderSend(session, note);
+        return true;
+    }
+  }
+
+  /// What the role as stored now makes of a reader's Save on [libraryId]:
+  /// an edit for an editor's role, a Send for anyone else's, or refused,
+  /// and said so, when the role cannot be read or the library is no longer
+  /// connected here (no role to save or suggest as).
+  Future<_ReaderSave> _readerSaveNow(
+    EditSession<DiveSite> session,
+    String libraryId,
+  ) async {
     final messenger = ScaffoldMessenger.of(context);
-    final failed = context.l10n.recordEdit_saveFailed;
+    final l10n = context.l10n;
     final SharedLibraryRole? role;
     try {
       role = await libraryRoleNow(ref.read, libraryId);
@@ -337,33 +378,18 @@ mixin _SiteDetailPageEditing
         error: error,
         stackTrace: stackTrace,
       );
-      messenger.showSnackBar(SnackBar(content: Text(failed)));
-      return false;
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.recordEdit_saveFailed)),
+      );
+      return _ReaderSave.refused;
     }
-    if (!mounted) return false;
-    // The library is no longer connected here: no role to save or suggest
-    // as, so nothing is written or proposed, and the sitting stays.
     if (role == null) {
       messenger.showSnackBar(
-        SnackBar(content: Text(context.l10n.diveSites_edit_saveRefused)),
+        SnackBar(content: Text(l10n.diveSites_edit_saveRefused)),
       );
-      return false;
+      return _ReaderSave.refused;
     }
-    if (canEditLibrarySite(role)) {
-      clearReaderSend(session);
-      return true;
-    }
-    var note = '';
-    if (readerSendProposes(session)) {
-      final asked = await askSuggestionNote(
-        context,
-        initial: readerSendNote(session) ?? '',
-      );
-      if (asked == null || !mounted) return false;
-      note = asked;
-    }
-    holdReaderSend(session, note);
-    return true;
+    return canEditLibrarySite(role) ? _ReaderSave.edit : _ReaderSave.send;
   }
 
   @override
@@ -426,21 +452,19 @@ mixin _SiteDetailPageEditing
     );
     final saved = result.saved;
     if (saved != null && saved.id == shownId) justSavedRecord = saved;
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(switch (result.outcome) {
-          SiteReaderSent.sent => l10n.sharedLibrary_suggest_sent,
-          SiteReaderSent.savedPrivate =>
-            l10n.sharedLibrary_suggest_savedPrivate,
-          SiteReaderSent.savedPrivateNotSent =>
-            l10n.sharedLibrary_suggest_savedNotSent,
-          SiteReaderSent.nothingChanged =>
-            l10n.sharedLibrary_suggest_nothingChanged,
-        }),
+    if (saved != null) await _refreshSiteList(sites, saved.id);
+    final message = switch (result.outcome) {
+      SiteReaderSent.sent => l10n.sharedLibrary_suggest_sent,
+      SiteReaderSent.savedPrivate => l10n.sharedLibrary_suggest_savedPrivate,
+      SiteReaderSent.nothingChanged =>
+        l10n.sharedLibrary_suggest_nothingChanged,
+      // The sitting stays, holding the suggestion to send again; the save
+      // says so, as it does any refusal.
+      SiteReaderSent.savedPrivateNotSent => throw RecordSittingRefusal(
+        (l10n) => l10n.sharedLibrary_suggest_savedNotSent,
       ),
-    );
-    if (saved == null) return;
-    await _refreshSiteList(sites, saved.id);
+    };
+    messenger.showSnackBar(SnackBar(content: Text(message)));
   }
 
   /// The cards the page is not showing that can be edited, in section
@@ -540,13 +564,18 @@ mixin _SiteDetailPageEditing
   }
 
   /// The pencil on [id]'s folded row in the list layout while the site is
-  /// unlocked and its card can be edited and is not open; null otherwise.
+  /// unlocked and its card can be edited and is not open; null otherwise,
+  /// and for the library's cards on a reader's page.
   Widget? _foldPencil(SiteDetailSectionId id) {
     final controller = maybeEditController;
     final session = controller?.session;
     if (controller == null || session == null) return null;
     if (!siteEditCards.containsKey(id)) return null;
     if (controller.openCardIds.contains(id.name)) return null;
+    if (siteReaderCardRule(id.name) == SiteReaderCard.library &&
+        _readerPageNow()) {
+      return null;
+    }
     return RecordFoldPencil(
       title: id.localizedDisplayName(context.l10n),
       // Open, the card's own header carries the dot.

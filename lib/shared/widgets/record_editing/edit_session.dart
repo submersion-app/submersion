@@ -211,6 +211,24 @@ class EditSession<T> extends ChangeNotifier {
     if (held?.cardId case final cardId?) _moved({cardId});
   }
 
+  /// Drops the held changes of [cardIds], once a save that writes part of
+  /// the sitting has written them and stopped short of the rest (a library
+  /// reader's Send whose suggestion failed, issue #4527): the rest is saved
+  /// again, and these must not run twice. Unlike [releaseWrite] it works
+  /// while the session [isFrozen], since the save that wrote them still
+  /// holds it.
+  void dropWrittenChanges(Set<String> cardIds) {
+    if (_isDisposed) return;
+    final dropped = <String>{};
+    _held.removeWhere((_, held) {
+      final cardId = held.cardId;
+      if (cardId == null || !cardIds.contains(cardId)) return false;
+      dropped.add(cardId);
+      return true;
+    });
+    if (dropped.isNotEmpty) _moved(dropped);
+  }
+
   /// Runs the held writes and changes of one phase, one after another, in
   /// the order first held: those that go before the record when
   /// [beforeRecord], the rest otherwise. They are kept, so a save that

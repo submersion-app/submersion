@@ -22,6 +22,8 @@ import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/site_marine_life_section.dart';
 import 'package:submersion/core/constants/site_detail_sections.dart';
+import 'package:submersion/core/constants/dive_detail_layout.dart';
+import 'package:submersion/shared/widgets/record_editing/record_fold_pencil.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_reader_sitting.dart';
 
@@ -363,6 +365,39 @@ void main() {
       );
     });
 
+    // In the list layout a folded card has a pencil of its own; the
+    // library's cards are no reader's to open.
+    testWidgets('the list layout\'s folded Library cards have no pencil', (
+      tester,
+    ) async {
+      await pumpSitePage(
+        tester,
+        site: librarySite,
+        settings: const AppSettings(siteDetailLayout: DiveDetailLayout.list),
+        extra: library(),
+      );
+      await unlockReader(tester);
+
+      final titles = tester
+          .widgetList<RecordFoldPencil>(find.byType(RecordFoldPencil))
+          .map((p) => p.title)
+          .toSet();
+      expect(
+        titles,
+        contains(SiteDetailSectionId.notes.localizedDisplayName(l)),
+      );
+      for (final id in siteReaderLibraryCards) {
+        expect(
+          titles,
+          isNot(
+            contains(
+              SiteDetailSectionId.values.byName(id).localizedDisplayName(l),
+            ),
+          ),
+        );
+      }
+    });
+
     testWidgets('an editor\'s sitting shows no Library or Only you', (
       tester,
     ) async {
@@ -379,6 +414,7 @@ void main() {
   // something goes to the owner, and Cancel writes and proposes nothing.
   group('Send', () {
     late _Suggestions suggestions;
+    late _Store store;
 
     Future<SiteUnlockHarness> pumpSend(
       WidgetTester tester, {
@@ -397,7 +433,7 @@ void main() {
           ...library(role: () => Future.value(shownRole)),
           suggestionServiceProvider.overrideWithValue(suggestions),
           sharedLibraryStoreProvider.overrideWithValue(
-            _Store(
+            store = _Store(
               editor: editorInStore,
               fails: storeFails,
               gate: storeGate,
@@ -640,7 +676,12 @@ void main() {
         ..set(siteNameField, 'Big Hole');
       await tester.pumpAndSettle();
 
+      final noteField = find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(TextField),
+      );
       await tapSend(tester);
+      await tester.enterText(noteField, 'The shops call it Big Hole');
       await tester.tap(
         find.descendant(
           of: find.byType(AlertDialog),
@@ -651,6 +692,15 @@ void main() {
 
       expect(page.save.calls.single.privateOnly, isTrue);
       expect(find.text(l.sharedLibrary_suggest_savedNotSent), findsOneWidget);
+      // The sitting stays with the suggestion to send again; the notes,
+      // saved, are not saved a second time.
+      expect(find.byType(RecordEditBar), findsOneWidget);
+      expect(sitting(tester).changedCardIds, isNot(contains('notes')));
+      await tapSend(tester);
+      expect(
+        tester.widget<TextField>(noteField).controller!.text,
+        'The shops call it Big Hole',
+      );
     });
 
     testWidgets('a role that cannot be read at Send says the save failed', (
@@ -689,6 +739,29 @@ void main() {
       expect(find.byType(RecordEditBar), findsOneWidget);
     });
 
+    // The note is the diver's to take their time over: the role as stored
+    // once it is written decides.
+    testWidgets('a role that becomes an editor\'s while the note is written '
+        'saves as an edit', (tester) async {
+      final page = await pumpSend(tester);
+      await unlockReader(tester);
+      sitting(tester).set(siteNameField, 'Big Hole');
+      await tester.pumpAndSettle();
+
+      await tapSend(tester);
+      store.editor = true;
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text(l.sharedLibrary_suggest_send),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(page.save.calls.single.privateOnly, isFalse);
+      expect(suggestions.calls, isEmpty);
+    });
+
     testWidgets('a reader\'s sitting that finds the profile an editor at Send '
         'saves as an edit', (tester) async {
       final page = await pumpSend(tester, editorInStore: true);
@@ -714,7 +787,8 @@ class _Store extends SharedLibraryStore {
     this.missing = false,
   });
 
-  final bool editor;
+  /// Whether this profile is listed as an editor, as stored now.
+  bool editor;
   final bool fails;
 
   /// Whether the library is no longer connected here.
