@@ -194,8 +194,17 @@ class TripRepository {
     }
   }
 
-  /// Update an existing trip
-  Future<void> updateTrip(domain.Trip trip, {String? actingDiverId}) async {
+  /// Update an existing trip.
+  ///
+  /// With [dropBarePlanDays] (the default) the plan-only itinerary days the
+  /// new dates no longer cover are dropped afterwards, best effort. An
+  /// editing sitting passes false and drops them itself, after its own
+  /// itinerary writes (issue #4527).
+  Future<void> updateTrip(
+    domain.Trip trip, {
+    String? actingDiverId,
+    bool dropBarePlanDays = true,
+  }) async {
     try {
       _log.info('Updating trip: ${trip.id}');
       final now = DateTime.now().millisecondsSinceEpoch;
@@ -269,20 +278,9 @@ class TripRepository {
         localUpdatedAt: now,
       );
       // A shortened or moved trip drops the plan-only itinerary days it no
-      // longer covers (#2325). Cleanup only: the trip is saved, so a
-      // failure here is logged rather than reported as a failed save.
-      try {
-        await _itineraryDays.deleteBarePlanDaysOutside(
-          trip.id,
-          trip.startDate,
-          trip.endDate,
-        );
-      } catch (e, stackTrace) {
-        _log.error(
-          'Failed to drop plan-only itinerary days for trip: ${trip.id}',
-          error: e,
-          stackTrace: stackTrace,
-        );
+      // longer covers (#2325).
+      if (dropBarePlanDays) {
+        await _dropBarePlanDaysOutside(trip);
       }
       SyncEventBus.notifyLocalChange();
       _log.info('Updated trip: ${trip.id}');
@@ -293,6 +291,25 @@ class TripRepository {
         stackTrace: stackTrace,
       );
       rethrow;
+    }
+  }
+
+  /// Drops the plan-only itinerary days [trip]'s dates no longer cover
+  /// (#2325). Cleanup only: the trip is saved, so a failure here is logged
+  /// rather than reported as a failed save.
+  Future<void> _dropBarePlanDaysOutside(domain.Trip trip) async {
+    try {
+      await _itineraryDays.deleteBarePlanDaysOutside(
+        trip.id,
+        trip.startDate,
+        trip.endDate,
+      );
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to drop plan-only itinerary days for trip: ${trip.id}',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 

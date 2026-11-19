@@ -2789,7 +2789,11 @@ class _MockTripRepository implements TripRepository {
   Future<Trip> createTrip(Trip trip) async => trip;
 
   @override
-  Future<void> updateTrip(Trip trip, {String? actingDiverId}) async {}
+  Future<void> updateTrip(
+    Trip trip, {
+    String? actingDiverId,
+    bool dropBarePlanDays = true,
+  }) async {}
 
   @override
   Future<bool> deleteTrip(String id, {String? actingDiverId}) async => true;
@@ -2947,7 +2951,11 @@ class _MockTripRepositoryWithTrip implements TripRepository {
   Future<Trip> createTrip(Trip trip) async => trip;
 
   @override
-  Future<void> updateTrip(Trip trip, {String? actingDiverId}) async {}
+  Future<void> updateTrip(
+    Trip trip, {
+    String? actingDiverId,
+    bool dropBarePlanDays = true,
+  }) async {}
 
   @override
   Future<bool> deleteTrip(String id, {String? actingDiverId}) async => true;
@@ -3045,7 +3053,11 @@ class _MockTripRepositoryWithSharedTrip implements TripRepository {
   Future<Trip> createTrip(Trip trip) async => trip;
 
   @override
-  Future<void> updateTrip(Trip trip, {String? actingDiverId}) async {}
+  Future<void> updateTrip(
+    Trip trip, {
+    String? actingDiverId,
+    bool dropBarePlanDays = true,
+  }) async {}
 
   @override
   Future<bool> deleteTrip(String id, {String? actingDiverId}) async => true;
@@ -3233,7 +3245,11 @@ class _SlowTripRepository implements TripRepository {
   Future<Trip> createTrip(Trip trip) async => trip;
 
   @override
-  Future<void> updateTrip(Trip trip, {String? actingDiverId}) async {}
+  Future<void> updateTrip(
+    Trip trip, {
+    String? actingDiverId,
+    bool dropBarePlanDays = true,
+  }) async {}
 
   @override
   Future<bool> deleteTrip(String id, {String? actingDiverId}) async => true;
@@ -3315,7 +3331,11 @@ class _ErrorTripRepository implements TripRepository {
   Future<Trip> createTrip(Trip trip) async => trip;
 
   @override
-  Future<void> updateTrip(Trip trip, {String? actingDiverId}) async {}
+  Future<void> updateTrip(
+    Trip trip, {
+    String? actingDiverId,
+    bool dropBarePlanDays = true,
+  }) async {}
 
   @override
   Future<bool> deleteTrip(String id, {String? actingDiverId}) async => true;
