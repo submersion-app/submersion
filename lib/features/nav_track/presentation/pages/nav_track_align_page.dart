@@ -124,9 +124,17 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
 
   static const Duration _terrainDebounceDuration = Duration(milliseconds: 300);
 
+  /// Whether the page edited in a sitting when last told of one.
+  bool _wasJoined = false;
+
+  /// The route as stored, as last read: what the page goes back to once
+  /// its sitting ends underneath.
+  NavTrack? _storedRoute;
+
   @override
   void initState() {
     super.initState();
+    _wasJoined = _joined != null;
     widget.joinedSitting?.addListener(_onSittingChanged);
   }
 
@@ -147,9 +155,21 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
   }
 
   /// A sitting that ends underneath (saved or cancelled from elsewhere)
-  /// leaves this page reading only.
+  /// leaves this page reading only, showing the alignment as stored: what
+  /// was tweaked here is held nowhere any more.
   void _onSittingChanged() {
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    final joined = _joined != null;
+    final ended = _wasJoined && !joined;
+    _wasJoined = joined;
+    final stored = _storedRoute;
+    setState(() {
+      if (ended && stored != null) {
+        _correction = stored.correction;
+        _placing = _Placing.none;
+      }
+    });
+    if (ended && stored != null) _scheduleTerrainCheck(stored);
   }
 
   /// The track page's sitting this page edits in, while it is open.
@@ -179,7 +199,9 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
     // Propose "same as start" when the raw recording already ends close to
     // where it started -- only as a starting suggestion, so it never
     // overrides a correction the diver already set on a previous visit.
-    if (correction.endMode == NavTrackEndMode.none &&
+    // Reading only, the page shows the alignment as stored.
+    if (!_readOnly &&
+        correction.endMode == NavTrackEndMode.none &&
         route.points.length >= 2 &&
         _rawEndDistanceFromStart(route.points) <= 50) {
       correction = correction.copyWith(endMode: NavTrackEndMode.sameAsStart);
@@ -394,6 +416,7 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
             body: Center(child: Text(l10n.navTrack_common_trackLoadError)),
           );
         }
+        _storedRoute = route;
         _initFromRoute(route);
         return _AlignPageBody(state: this, route: route);
       },

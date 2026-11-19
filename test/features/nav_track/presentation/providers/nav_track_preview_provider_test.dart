@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -94,22 +96,29 @@ void main() {
     );
   });
 
-  test('two routes placed alike are not placed differently', () {
+  test('a held site alone is shown differently', () {
+    expect(
+      navTrackShownDifferently(route(siteId: 's2'), route(siteId: 's1')),
+      isTrue,
+    );
+  });
+
+  test('two routes placed alike are not shown differently', () {
     final a = route(anchor: const GeoPoint(1, 2));
     expect(
-      navTrackPlacedDifferently(a, route(anchor: const GeoPoint(1, 2))),
+      navTrackShownDifferently(a, route(anchor: const GeoPoint(1, 2))),
       isFalse,
     );
-    expect(navTrackPlacedDifferently(a, route()), isTrue);
+    expect(navTrackShownDifferently(a, route()), isTrue);
     expect(
-      navTrackPlacedDifferently(
+      navTrackShownDifferently(
         a,
         a.withCorrection(a.correction.copyWith(scaleFactor: 2)),
       ),
       isTrue,
     );
     expect(
-      navTrackPlacedDifferently(
+      navTrackShownDifferently(
         a,
         a.withCorrection(
           a.correction.copyWith(endMode: NavTrackEndMode.sameAsStart),
@@ -187,5 +196,56 @@ void main() {
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump(const Duration(seconds: 1));
+  });
+
+  testWidgets('the preview is cleared even when its opener has gone', (
+    tester,
+  ) async {
+    final overrides = await getBaseOverrides();
+    final showOpener = ValueNotifier(true);
+    final closeView = Completer<void>();
+    WidgetRef? openerRef;
+    late WidgetRef readerRef;
+    await tester.pumpWidget(
+      testApp(
+        overrides: overrides,
+        child: Column(
+          children: [
+            Consumer(
+              builder: (context, ref, _) {
+                readerRef = ref;
+                return const SizedBox.shrink();
+              },
+            ),
+            ValueListenableBuilder<bool>(
+              valueListenable: showOpener,
+              builder: (context, shown, _) => shown
+                  ? Consumer(
+                      builder: (context, ref, _) {
+                        openerRef = ref;
+                        return const SizedBox.shrink();
+                      },
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ],
+        ),
+      ),
+    );
+    final moved = route(anchor: const GeoPoint(3, 4));
+
+    final shown = showNavTrackIn3d(
+      openerRef!,
+      shown: moved,
+      stored: route(),
+      push: () => closeView.future,
+    );
+    expect(readerRef.read(navTrackPreviewProvider('t1')), moved);
+    showOpener.value = false;
+    await tester.pump();
+    closeView.complete();
+    await shown;
+
+    expect(readerRef.read(navTrackPreviewProvider('t1')), isNull);
   });
 }

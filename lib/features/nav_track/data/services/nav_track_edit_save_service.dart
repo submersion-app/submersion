@@ -20,7 +20,8 @@ class NavTrackEditSaveService {
   /// the primary route and gives a route with no site or anchor the dive's,
   /// and unlinking promotes a sibling. A site set in the same sitting is
   /// already in place, so linking inherits nothing over it. A dive chosen
-  /// here wins over a link another device made meanwhile.
+  /// here wins over a link another device made meanwhile; one another
+  /// device deleted meanwhile is not linked.
   ///
   /// Returns the route before and after, or null when nothing changed.
   /// Throws [StateError] when the route no longer exists.
@@ -46,6 +47,9 @@ class NavTrackEditSaveService {
       final from = stored.diveId;
       final to = merged.diveId;
       if (from == to) return;
+      // A dive deleted by another device meanwhile is not linked, and the
+      // route stays where it is; the sitting's other changes are saved.
+      if (to != null && !await _routes.diveExists(to)) return;
       if (to == null) {
         await _routes.unlink(routeId, onlyFromDiveId: from);
       } else if (from == null) {

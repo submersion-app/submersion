@@ -6,7 +6,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 /// True only when the diver never touched the start point away from the old
 /// site's pin: [currentAnchor] is unset, or still exactly equals
 /// [oldSiteLocation]. If the diver already corrected the start point by
-/// hand, changing the site must not silently move that correction -- the
+/// hand, changing the site must not silently move that correction: the
 /// safer, more predictable rule the design settled on.
 bool navTrackAnchorShouldFollowSiteChange(
   GeoPoint? currentAnchor,

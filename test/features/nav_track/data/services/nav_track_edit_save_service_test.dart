@@ -322,4 +322,21 @@ void main() {
 
     await expectLater(save(r1, session), throwsStateError);
   });
+
+  test(
+    'a dive deleted meanwhile is not linked, and the rest is saved',
+    () async {
+      final session = EditSession(await route(r1))
+        ..set(navTrackDiveField, 'd3')
+        ..set(navTrackNameField, 'Evening');
+      await db.customStatement("DELETE FROM dives WHERE id = 'd3'");
+
+      await save(r1, session);
+
+      final saved = await route(r1);
+      expect(saved.name, 'Evening');
+      expect(saved.diveId, 'd1');
+      expect((await route(r2)).isPrimary, isFalse);
+    },
+  );
 }

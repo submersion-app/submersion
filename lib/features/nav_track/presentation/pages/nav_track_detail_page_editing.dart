@@ -19,6 +19,33 @@ mixin _NavTrackDetailPageEditing
   @override
   Iterable<EditCard<NavTrack>> get hostEditCards => navTrackEditCards.values;
 
+  /// The 3D views' preview of this route, read as the page opens: the
+  /// provider cannot be read once the page is closing.
+  late final StateController<NavTrack?> _preview = ref.read(
+    navTrackPreviewProvider(widget.trackId).notifier,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _preview;
+  }
+
+  /// Drops the preview after this frame, as the page closes: a closing page
+  /// must not rebuild a view mid-frame.
+  void _dropPreviewLater() {
+    final preview = _preview;
+    Future.microtask(() => dropNavTrackPreview(preview));
+  }
+
+  /// Once the sitting has ended, nothing holds a correction for the 3D
+  /// views to preview: a preview a view left behind goes with it.
+  @override
+  void onEditChanged() {
+    if (hostsEditing && !isSittingOpen) dropNavTrackPreview(_preview);
+    super.onEditChanged();
+  }
+
   @override
   NavTrack? get storedForUnlock =>
       ref.read(navTrackWithMarkersProvider(widget.trackId)).value;

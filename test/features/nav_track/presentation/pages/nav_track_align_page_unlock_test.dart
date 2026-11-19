@@ -13,6 +13,7 @@ import 'package:submersion/features/nav_track/presentation/editing/nav_track_edi
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_align_page.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_preview_provider.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
+import 'package:submersion/features/nav_track/presentation/widgets/nav_track_polyline_layer.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
@@ -54,6 +55,31 @@ final _route = NavTrack(
   updatedAt: DateTime(2026, 8, 22),
 );
 
+/// A route whose recording ends where it started, with no end correction
+/// stored: the align page proposes "same as start" for it.
+final _loop = NavTrack(
+  id: 'r1',
+  source: NavTrackSource.seacraftEnc,
+  sourceRef: 'r1.csv',
+  startTime: 1755856800000,
+  endTime: 1755860400000,
+  pointCount: 11,
+  anchorLatitude: 28.5,
+  anchorLongitude: 34.5,
+  points: [
+    for (var i = 0; i <= 10; i++)
+      NavTrackPoint(
+        timestamp: 1755856800 + i * 10,
+        north: (i <= 5 ? i : 10 - i) * 10.0,
+        east: 0,
+        depth: 6,
+        distance: i * 10.0,
+      ),
+  ],
+  createdAt: DateTime(2026, 8, 22),
+  updatedAt: DateTime(2026, 8, 22),
+);
+
 /// A sitting on [_route], as the track page would hand it.
 RecordEditController<NavTrack> _sitting() {
   final controller = RecordEditController<NavTrack>(onSave: (_) async {});
@@ -65,6 +91,7 @@ RecordEditController<NavTrack> _sitting() {
 Future<_RecordingNavTrackRepository> _pump(
   WidgetTester tester, {
   RecordEditController<NavTrack>? joined,
+  NavTrack? route,
 }) async {
   final overrides = await getBaseOverrides();
   final repository = _RecordingNavTrackRepository();
@@ -95,7 +122,7 @@ Future<_RecordingNavTrackRepository> _pump(
     ProviderScope(
       overrides: [
         ...overrides,
-        navTrackByIdProvider('r1').overrideWith((ref) async => _route),
+        navTrackByIdProvider('r1').overrideWith((ref) async => route ?? _route),
         navTrackRepositoryProvider.overrideWithValue(repository),
         bathymetryGridProvider.overrideWith((ref, cell) async => null),
       ],
@@ -256,5 +283,42 @@ void main() {
 
     expect(find.byKey(const ValueKey('nav-track-align-done')), findsNothing);
     expect(find.byKey(const ValueKey('nav-track-align-save')), findsNothing);
+  });
+
+  NavTrackEndMode drawnEndMode(WidgetTester tester) => tester
+      .widget<NavTrackPolylineLayer>(find.byType(NavTrackPolylineLayer))
+      .route
+      .endMode;
+
+  testWidgets('read only, it draws the stored alignment, not its suggestion', (
+    tester,
+  ) async {
+    await _pump(tester, route: _loop);
+
+    expect(drawnEndMode(tester), NavTrackEndMode.none);
+  });
+
+  testWidgets('joined, it still proposes "same as start"', (tester) async {
+    final controller = RecordEditController<NavTrack>(onSave: (_) async {});
+    addTearDown(controller.dispose);
+    controller.unlock(_loop);
+    await _pump(tester, joined: controller, route: _loop);
+
+    expect(drawnEndMode(tester), NavTrackEndMode.sameAsStart);
+  });
+
+  testWidgets('a sitting that ends underneath drops the tweaks made here', (
+    tester,
+  ) async {
+    final sitting = _sitting();
+    await _pump(tester, joined: sitting);
+    await tester.drag(_slider, const Offset(80, 0));
+    await tester.pump();
+    expect(tester.widget<Slider>(_slider).value, greaterThan(0));
+
+    sitting.lock();
+    await tester.pumpAndSettle();
+
+    expect(tester.widget<Slider>(_slider).value, 0);
   });
 }

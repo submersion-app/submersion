@@ -391,4 +391,38 @@ void main() {
 
     expect(container.read(navTrackPreviewProvider('r1')), isNull);
   });
+
+  testWidgets('a preview left behind goes when the sitting ends', (
+    tester,
+  ) async {
+    await pumpNavTrackPage(tester);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(NavTrackDetailPage)),
+    );
+    await unlock(tester);
+    container.read(navTrackPreviewProvider('r1').notifier).state = navRoute();
+
+    await tester.tap(find.text(l.forms_cancel));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(RecordEditBar), findsNothing);
+    expect(container.read(navTrackPreviewProvider('r1')), isNull);
+  });
+
+  testWidgets('a preview left behind goes when the page closes', (
+    tester,
+  ) async {
+    await pumpNavTrackPage(tester);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(NavTrackDetailPage)),
+    );
+    await unlock(tester);
+    container.read(navTrackPreviewProvider('r1').notifier).state = navRoute();
+
+    Navigator.of(tester.element(find.byType(NavTrackDetailPage))).pop();
+    await tester.pumpAndSettle();
+
+    expect(find.text('first route'), findsOneWidget);
+    expect(container.read(navTrackPreviewProvider('r1')), isNull);
+  });
 }

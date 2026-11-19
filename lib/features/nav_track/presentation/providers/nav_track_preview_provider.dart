@@ -22,9 +22,11 @@ final navTrackShownIn3dProvider = FutureProvider.autoDispose
       return ref.watch(navTrackWithMarkersProvider(id).future);
     });
 
-/// Whether [a] and [b] are placed differently: another anchor, end,
-/// trust, rotation or scale.
-bool navTrackPlacedDifferently(NavTrack a, NavTrack b) =>
+/// Whether a 3D view would draw [a] differently from [b]: another site
+/// (whose terrain the seascape shows), anchor, end, trust, rotation or
+/// scale.
+bool navTrackShownDifferently(NavTrack a, NavTrack b) =>
+    a.siteId != b.siteId ||
     a.anchor != b.anchor ||
     a.endMode != b.endMode ||
     a.endPoint != b.endPoint ||
@@ -33,20 +35,36 @@ bool navTrackPlacedDifferently(NavTrack a, NavTrack b) =>
     a.scaleFactor != b.scaleFactor;
 
 /// Opens a 3D view with [push] showing [shown], the route as a sitting
-/// holds it: when it is placed differently from [stored], it is the 3D
+/// holds it: when it would be drawn differently from [stored], it is the 3D
 /// views' preview until the view closes. Writes nothing.
+///
+/// The preview is cleared through the provider's own controller, read
+/// before the view opens: the page that opened it may be gone by the time
+/// the view closes.
 Future<void> showNavTrackIn3d(
   WidgetRef ref, {
   required NavTrack shown,
   required NavTrack stored,
   required Future<void> Function() push,
 }) async {
-  final preview = navTrackPreviewProvider(shown.id).notifier;
-  final previewing = navTrackPlacedDifferently(shown, stored);
-  if (previewing) ref.read(preview).state = shown;
+  final preview = ref.read(navTrackPreviewProvider(shown.id).notifier);
+  final previewing = navTrackShownDifferently(shown, stored);
+  if (previewing) preview.state = shown;
   try {
     await push();
   } finally {
-    if (previewing) ref.read(preview).state = null;
+    // Only this view's preview: another opened since keeps its own.
+    if (previewing && preview.mounted && identical(preview.state, shown)) {
+      preview.state = null;
+    }
   }
+}
+
+/// Drops whatever preview [preview] holds: the track page does so when its
+/// sitting ends or the page closes, so a view that never reported closing
+/// cannot leave a correction nobody holds any more.
+///
+/// A controller whose provider has gone (the app closing) holds nothing.
+void dropNavTrackPreview(StateController<NavTrack?> preview) {
+  if (preview.mounted && preview.state != null) preview.state = null;
 }
