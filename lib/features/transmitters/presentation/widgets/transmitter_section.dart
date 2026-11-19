@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -98,14 +101,41 @@ class _SectionCard extends ConsumerWidget {
                     onPressed: () => context.push(addKey),
                     child: Text(l10n.transmitters_section_addKey),
                   ),
+                  // Where the item's page edits in place (issue #4527, phase
+                  // 3), Apply rewrites dives: a whole-record operation.
                   if (setup.isSetUp)
-                    TextButton(
-                      onPressed: () => applyTransmitterSetupToExistingDives(
-                        context,
-                        ref,
-                        keys,
-                      ),
-                      child: Text(l10n.transmitters_action_apply),
+                    Builder(
+                      builder: (context) {
+                        final controller =
+                            RecordEditScope.maybeOf<EquipmentItem>(context);
+                        Future<void> apply() =>
+                            applyTransmitterSetupToExistingDives(
+                              context,
+                              ref,
+                              keys,
+                            );
+                        return RecordOperationButton(
+                          reason: recordOperationReason(
+                            l10n,
+                            recordOperationBlockOf(controller),
+                          ),
+                          onPressed: controller == null
+                              ? apply
+                              : () =>
+                                    recordOperationRunnerOf(
+                                      controller,
+                                      record: 'equipment $equipmentId',
+                                    )(() async {
+                                      await apply();
+                                      return true;
+                                    }),
+                          builder: (onPressed) => TextButton(
+                            key: const ValueKey('transmitter_apply'),
+                            onPressed: onPressed,
+                            child: Text(l10n.transmitters_action_apply),
+                          ),
+                        );
+                      },
                     ),
                 ],
               ),

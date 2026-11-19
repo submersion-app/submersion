@@ -102,6 +102,7 @@ Future<GearPageHarness> pumpGearPage(
   Size size = const Size(600, 2400),
   VoidCallback? onSittingEnded,
   VoidCallback? onDeleted,
+  List<EquipmentItem> children = const [],
   List<Object> extraOverrides = const [],
 }) async {
   final shown = item ?? apex;
@@ -148,7 +149,7 @@ Future<GearPageHarness> pumpGearPage(
           equipmentId: shown.id,
           kind: ConditionTrendKind.scrubberMinutes,
         )).overrideWith((ref) async => null),
-        childEquipmentProvider(shown.id).overrideWith((ref) async => const []),
+        childEquipmentProvider(shown.id).overrideWith((ref) async => children),
         observationsForEquipmentProvider(
           shown.id,
         ).overrideWith((ref) async => const []),

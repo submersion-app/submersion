@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
+import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -381,6 +383,132 @@ void main() {
 
       expect(clockSyncOf(tester), ClockSyncOverride.inherit);
       expect(find.byIcon(Icons.lock_outline), findsNothing);
+    });
+  });
+
+  group('whole-record operations on the cards', () {
+    final torch = apex.copyWith(name: 'Torch', type: EquipmentType.light);
+    final cell = EquipmentItem(
+      id: 'c1',
+      name: 'Cell',
+      type: EquipmentType.battery,
+      parentEquipmentId: 'g1',
+      createdAt: DateTime(2026),
+    );
+
+    PopupMenuItem<Object?> replaceItem(WidgetTester tester) =>
+        tester.widget<PopupMenuItem<Object?>>(
+          find.ancestor(
+            of: find.text(l.equipmentCondition_children_replace),
+            matching: find.byWidgetPredicate((w) => w is PopupMenuItem),
+          ),
+        );
+
+    Future<void> openPartMenu(WidgetTester tester) async {
+      final menu = find.byKey(const ValueKey('child-menu-c1'));
+      await tester.ensureVisible(menu);
+      await tester.tap(menu);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('locked, Replace is disabled under "Unlock to use these"', (
+      tester,
+    ) async {
+      await pumpGearPage(tester, item: torch, children: [cell]);
+      await openPartMenu(tester);
+
+      expect(replaceItem(tester).enabled, isFalse);
+      expect(find.text(l.recordEdit_unlockToUseThis), findsOneWidget);
+    });
+
+    testWidgets('unlocked with unsaved changes, Replace is disabled', (
+      tester,
+    ) async {
+      await pumpGearPage(tester, item: torch, children: [cell]);
+      await unlock(tester);
+      sessionOf(tester).set(gearNotesField, 'Changed');
+      await tester.pumpAndSettle();
+      await openPartMenu(tester);
+
+      expect(replaceItem(tester).enabled, isFalse);
+      expect(find.text(l.recordEdit_saveOrCancelFirst), findsOneWidget);
+    });
+
+    testWidgets('unlocked and clean, Replace asks first', (tester) async {
+      await pumpGearPage(tester, item: torch, children: [cell]);
+      await unlock(tester);
+      await openPartMenu(tester);
+
+      expect(replaceItem(tester).enabled, isTrue);
+      await tester.tap(find.text(l.equipmentCondition_children_replace));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(l.equipmentCondition_children_replaceTitle('Cell')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('Add part works locked', (tester) async {
+      await pumpGearPage(tester, item: torch, children: [cell]);
+
+      final add = find.text(l.equipmentCondition_children_add);
+      await tester.ensureVisible(add);
+      final button = tester.widget<ButtonStyleButton>(
+        find.ancestor(of: add, matching: find.byType(TextButton)),
+      );
+      expect(button.onPressed, isNotNull);
+    });
+
+    final transmitter = apex.copyWith(
+      name: 'Swift',
+      type: EquipmentType.transmitter,
+    );
+    final key = Transmitter(
+      id: 't1',
+      label: 'Swift',
+      volumeL: 11,
+      transmitterEquipmentId: 'g1',
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+
+    TextButton apply(WidgetTester tester) => tester.widget<TextButton>(
+      find.byKey(const ValueKey('transmitter_apply')),
+    );
+
+    testWidgets('locked, Apply to existing dives is disabled', (tester) async {
+      await pumpGearPage(
+        tester,
+        item: transmitter,
+        extraOverrides: [
+          transmittersForEquipmentProvider(
+            'g1',
+          ).overrideWith((ref) async => [key]),
+        ],
+      );
+
+      expect(apply(tester).onPressed, isNull);
+      expect(find.byTooltip(l.recordEdit_unlockToUseThis), findsWidgets);
+    });
+
+    testWidgets('unlocked and clean, Apply is offered; with a change, it is '
+        'not', (tester) async {
+      await pumpGearPage(
+        tester,
+        item: transmitter,
+        extraOverrides: [
+          transmittersForEquipmentProvider(
+            'g1',
+          ).overrideWith((ref) async => [key]),
+        ],
+      );
+      await unlock(tester);
+      expect(apply(tester).onPressed, isNotNull);
+
+      sessionOf(tester).set(gearNotesField, 'Changed');
+      await tester.pumpAndSettle();
+      expect(apply(tester).onPressed, isNull);
     });
   });
 
