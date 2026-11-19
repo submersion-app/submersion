@@ -57,6 +57,7 @@ void main() {
     Object? error,
     void Function(MediaItem)? onOpen,
     List<Override> extraOverrides = const [],
+    bool readOnly = false,
   }) {
     return mediaTestApp(
       overrides: [
@@ -72,11 +73,27 @@ void main() {
           child: EquipmentDocumentsSection(
             equipmentId: 'e1',
             onOpenDocument: onOpen,
+            readOnly: readOnly,
           ),
         ),
       ),
     );
   }
+
+  // Where the item page edits in place and is locked (issue #4527, phase
+  // 3): the files still open, and none can be removed.
+  testWidgets('locked, a file can be opened but not removed', (tester) async {
+    final opened = <MediaItem>[];
+    await tester.pumpWidget(
+      await host(documents: [invoice], onOpen: opened.add, readOnly: true),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.close), findsNothing);
+    await tester.tap(find.text('invoice.pdf'));
+    await tester.pumpAndSettle();
+    expect(opened.single.id, 'doc-1');
+  });
 
   testWidgets('nothing linked shows no card at all', (tester) async {
     await tester.pumpWidget(await host());

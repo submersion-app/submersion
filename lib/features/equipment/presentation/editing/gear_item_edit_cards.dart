@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/media/presentation/helpers/document_open_helper.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_photos_section.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_documents_section.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_history_section.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_clocks_editor.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_location_card.dart';
@@ -72,6 +76,29 @@ final Map<GearItemCardId, EditCard<EquipmentItem>> gearItemEditCards = {
     isEmpty: (_) => false,
     editorBuilder: (context, session) =>
         ServiceHistorySection(equipmentId: session.stored.id, editing: session),
+  ),
+  GearItemCardId.photos: EditCard<EquipmentItem>(
+    id: GearItemCardId.photos.name,
+    title: (context) =>
+        GearItemCardId.photos.localizedDisplayName(context.l10n),
+    // Always on the page: with none, it says so.
+    isEmpty: (_) => false,
+    editorBuilder: (context, session) =>
+        EquipmentPhotosSection(equipment: session.working, editing: session),
+  ),
+  GearItemCardId.legacyFiles: EditCard<EquipmentItem>(
+    id: GearItemCardId.legacyFiles.name,
+    title: (context) =>
+        GearItemCardId.legacyFiles.localizedDisplayName(context.l10n),
+    // On the page only while files are left; nothing can be added to it.
+    isEmpty: (_) => false,
+    editorBuilder: (context, session) => Consumer(
+      builder: (context, ref, _) => EquipmentDocumentsSection(
+        equipmentId: session.stored.id,
+        editing: session,
+        onOpenDocument: (item) => DocumentOpenHelper.open(context, ref, item),
+      ),
+    ),
   ),
   GearItemCardId.notes: EditCard<EquipmentItem>(
     id: GearItemCardId.notes.name,

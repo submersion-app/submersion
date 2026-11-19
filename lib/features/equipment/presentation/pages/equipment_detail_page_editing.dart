@@ -71,6 +71,14 @@ mixin _EquipmentDetailPageEditing
       owner: DocumentOwner(DocumentOwnerKind.equipment, session.stored.id),
       cardId: GearItemCardId.documents.name,
     );
+    // The photos and the older linked files are written with the
+    // container's readers, which outlive the page.
+    holdSittingMedia(
+      session,
+      SittingMediaWriters.forEquipment(container.read),
+      cardId: GearItemCardId.photos.name,
+    );
+    holdLegacyFiles(session, SittingMediaWriters.forEquipment(container.read));
   }
 
   /// Writes the sitting through the item's save service: its changed values
@@ -83,22 +91,33 @@ mixin _EquipmentDetailPageEditing
     final container = ProviderScope.containerOf(context, listen: false);
     // Read now: the sitting ends with the Save.
     final clockSync = heldClockSync(session);
-    final result = await service.save(
-      // The item the sitting was opened on, whatever the page shows by the
-      // time the write is asked for.
-      equipmentId: session.stored.id,
-      apply: (stored) => gearItemToSave(stored, session.applyTo(stored)),
-      changedCardIds: session.changedCardIds,
-      alsoWrite: session.hasHeldWrites ? session.runHeldWrites : null,
-      alsoWriteIsAChange: session.hasHeldChanges,
+    // A failed write takes back what the media write did outside the
+    // database.
+    final result = await undoMediaOnFailure(
+      session,
+      () => service.save(
+        // The item the sitting was opened on, whatever the page shows by
+        // the time the write is asked for.
+        equipmentId: session.stored.id,
+        apply: (stored) => gearItemToSave(stored, session.applyTo(stored)),
+        changedCardIds: session.changedCardIds,
+        alsoWrite: session.hasHeldWrites ? session.runHeldWrites : null,
+        alsoWriteIsAChange: session.hasHeldChanges,
+      ),
     );
     justSavedRecord = result?.after ?? session.working;
+    // Uploads and the remote deletes the unlinks held, once committed.
+    final afterCommit = [
+      ...mediaAfterCommit(session),
+      ...legacyFilesAfterCommit(session),
+    ];
     afterGearItemSave(
       container,
       equipmentId: session.stored.id,
       before: result?.before,
       after: result?.after,
       clockSync: clockSync,
+      afterCommit: afterCommit,
     );
   }
 
@@ -165,9 +184,14 @@ void afterGearItemSave(
   EquipmentItem? before,
   EquipmentItem? after,
   HeldClockSync? clockSync,
+  List<Future<void> Function()> afterCommit = const [],
 }) {
   void bestEffort(Future<void> Function() work, String task) =>
       logFailure(Future.sync(work), EquipmentDetailPage, task);
+
+  for (final step in afterCommit) {
+    bestEffort(step, 'a media follow-up after a save');
+  }
 
   if (clockSync != null) {
     bestEffort(
@@ -191,7 +215,11 @@ void afterGearItemSave(
     // Clocks and service records may have changed: re-evaluate them.
     ..invalidate(serviceClockStatusesProvider(equipmentId))
     ..invalidate(serviceSchedulesForEquipmentProvider(equipmentId))
-    ..invalidate(activeEquipmentClocksProvider);
+    ..invalidate(activeEquipmentClocksProvider)
+    // Photos, check-in photos and linked files may have changed.
+    ..invalidate(identificationPhotosProvider(equipmentId))
+    ..invalidate(checkInPhotosProvider(equipmentId))
+    ..invalidate(mediaForEquipmentProvider(equipmentId));
   if (before != null &&
       after != null &&
       before.serialNumber != after.serialNumber) {

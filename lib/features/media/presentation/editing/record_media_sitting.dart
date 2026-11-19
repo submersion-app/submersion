@@ -94,6 +94,33 @@ class SittingMediaWriters {
     enqueueUpload: (mediaId) => read(mediaStoreEnqueueProvider)(mediaId),
   );
 
+  /// A gear item's (issue #4527, phase 3, plan 6): as
+  /// [SittingMediaWriters.forSite], unlinking from the item, which also
+  /// clears a cover that named an unlinked photo.
+  factory SittingMediaWriters.forEquipment(ProviderRead read) =>
+      SittingMediaWriters(
+        writeRows: (prepared) async => [
+          for (final row in await read(
+            mediaImportServiceProvider,
+          ).writePrepared(prepared))
+            row.id,
+        ],
+        insertNetwork: (requests) =>
+            read(networkFetchPipelineProvider).insertResolved(requests),
+        unlink: (ids) async => MediaUnlinkService(
+          repository: read(mediaRepositoryProvider),
+          deleteMedia: (ids) => read(
+            mediaDeletionCoordinatorProvider,
+          ).deleteMultipleMedia(ids, holdRemoteDelete: true),
+        ).unlinkFromEquipment(ids),
+        // A gear item's photos are not relinked from a sitting.
+        replace: (_, _, _) async =>
+            throw UnsupportedError('a gear item sitting relinks no media'),
+        drainDeletes: () =>
+            read(mediaDeletionCoordinatorProvider).drainHeldDeletes(),
+        enqueueUpload: (mediaId) => read(mediaStoreEnqueueProvider)(mediaId),
+      );
+
   final Future<List<String>> Function(List<PreparedMedia> prepared) writeRows;
   final Future<List<String>> Function(List<NetworkInsertRequest> requests)
   insertNetwork;

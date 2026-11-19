@@ -2,6 +2,10 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/media/presentation/providers/equipment_media_providers.dart';
+import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
+import 'package:submersion/features/equipment/presentation/providers/gear_photo_providers.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_media_sitting.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_service_sitting.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_location_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
@@ -408,7 +412,14 @@ class _EquipmentDetailContent extends ConsumerWidget {
           const SizedBox(height: 24),
           // Reference photos of the item (issue #3355), above the check-ins
           // that carry the condition photos.
-          EquipmentPhotosSection(equipment: equipment),
+          _framed(
+            GearItemCardId.photos,
+            EquipmentPhotosSection(
+              equipment: equipment,
+              shown: _session,
+              readOnly: _editing,
+            ),
+          ),
           const SizedBox(height: 24),
           ObservationsCard(equipment: equipment),
           const SizedBox(height: 24),
@@ -421,10 +432,16 @@ class _EquipmentDetailContent extends ConsumerWidget {
           ],
           // Brings its own top gap: it hides itself once every linked file
           // has moved into Documents.
-          EquipmentDocumentsSection(
-            equipmentId: equipmentId,
-            onOpenDocument: (item) =>
-                DocumentOpenHelper.open(context, ref, item),
+          _framed(
+            GearItemCardId.legacyFiles,
+            EquipmentDocumentsSection(
+              equipmentId: equipmentId,
+              onOpenDocument: (item) =>
+                  DocumentOpenHelper.open(context, ref, item),
+              shown: _session,
+              readOnly: _editing,
+            ),
+            topGap: 24,
           ),
           const SizedBox(height: 24),
           // Who used it and every share (issue #2046); only with two or more
