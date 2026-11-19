@@ -11,6 +11,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/services/sync/parent_clock_children.dart';
 import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/change_log/data/services/change_log_dependencies.dart';
@@ -427,6 +428,36 @@ class ChangeLogRevertService {
       localUpdatedAt: now,
       alsoStamp: SyncFactGroups.of(entity),
     );
+    await _markParentPending(table, event.recordId, now);
+  }
+
+  /// A row with no clock of its own reaches other devices through its
+  /// parent's ([syncRidesParentClockTables]): a finding's dismissal put back
+  /// is exported only once its gear item is marked too, as the dismissal
+  /// itself was.
+  Future<void> _markParentPending(
+    String table,
+    String recordId,
+    int now,
+  ) async {
+    if (!syncRidesParentClockTables.contains(table)) return;
+    final parent = changeLogParents[table];
+    final column = parent?.column;
+    if (parent == null || column == null) return;
+    final match = changeLogKeyMatch(_repository.specOf(table)!, recordId);
+    final row = await _db
+        .customSelect(
+          'SELECT "$column" AS parent FROM "$table" WHERE ${match.where}',
+          variables: match.variables,
+        )
+        .getSingleOrNull();
+    final parentId = row?.data['parent'] as String?;
+    if (parentId == null) return;
+    await _sync.markRecordPending(
+      entityType: changeLogEntityType(parent.rootTable),
+      recordId: parentId,
+      localUpdatedAt: now,
+    );
   }
 
   /// What the delete queued may already have taken the media's blobs, so
@@ -546,6 +577,7 @@ class ChangeLogRevertService {
       alsoStamp: groups,
       stampClock: !onlyFacts,
     );
+    await _markParentPending(table, recordId, now);
 
     // A dive put back on its old trip keeps no tank link into the trip it
     // leaves, as every other trip change does.

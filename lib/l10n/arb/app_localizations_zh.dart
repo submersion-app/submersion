@@ -59912,6 +59912,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get changeLog_table_safetyFinding => '安全发现';
 
   @override
+  String get changeLog_table_conditionFinding => '状态发现';
+
+  @override
   String get changeLog_table_pressureSeries => '压力读数';
 
   @override

@@ -29,6 +29,7 @@ void main() {
     expect(changeLogTableLabel(l, 'dive_safety_findings'), 'Safety finding');
     expect(changeLogTableLabel(l, 'tank_pressure_series'), 'Pressure readings');
     expect(changeLogTableLabel(l, 'nav_tracks'), 'Underwater track');
+    expect(changeLogTableLabel(l, 'equipment_findings'), 'Condition finding');
     // A dive's first type is a row of its own, not "Dive Dive Types".
     expect(changeLogTableLabel(l, 'dive_dive_types'), 'Dive type');
   });

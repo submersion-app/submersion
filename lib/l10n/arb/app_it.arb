@@ -18636,6 +18636,7 @@
   "changeLog_table_settings": "Impostazioni app",
   "changeLog_table_diverSettings": "Impostazioni subacqueo",
   "changeLog_table_safetyFinding": "Rilievo di sicurezza",
+  "changeLog_table_conditionFinding": "Rilievo sullo stato",
   "changeLog_table_pressureSeries": "Letture di pressione",
   "changeLog_table_navTrack": "Traccia subacquea",
   "changeLog_history": "Cronologia",

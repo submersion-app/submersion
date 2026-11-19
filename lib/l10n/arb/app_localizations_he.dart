@@ -62488,6 +62488,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get changeLog_table_safetyFinding => 'ממצא בטיחות';
 
   @override
+  String get changeLog_table_conditionFinding => 'ממצא מצב';
+
+  @override
   String get changeLog_table_pressureSeries => 'קריאות לחץ';
 
   @override
