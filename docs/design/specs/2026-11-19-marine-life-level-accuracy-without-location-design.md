@@ -65,6 +65,11 @@ overstates.
   precisions. A side that names nothing held out has no figure, and the
   other side stands. Surer's figure follows the same rule at the pack's own
   bars.
+- A side that names only a few crops still sets the figure, with no
+  minimum count (the maintainer's decision, 2026-11-19): it can only lower
+  a figure or drop a level, never make a line overstate. The report warns
+  when the deciding side names fewer than 30 held-out crops, so the
+  maintainer sees it before publishing.
 - The rules that drop a level use the shown figure: a level is dropped
   when its figure is higher than the level above's, or when it has none.
 - `score.py` writes the shown figures into its measured entries, and
