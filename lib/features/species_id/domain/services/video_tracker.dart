@@ -31,11 +31,15 @@ String videoRunDetectorId(String detectorSetId) =>
 /// falls under [minOverlap] though the fish is the same. Measured in boxes,
 /// the reach is the same on a portrait video as on a landscape one.
 class TrackLink {
+  /// [minOverlap] is above 0: an overlap link scores above 1 only then
+  /// ([isOverlap]), and at 0 every pair of boxes would be one.
   const TrackLink({
     this.minOverlap = 0.3,
     this.maxShift = 1.0,
     this.minAreaRatio = 0.4,
-  });
+  }) : assert(minOverlap > 0 && minOverlap <= 1),
+       assert(maxShift >= 0),
+       assert(minAreaRatio >= 0 && minAreaRatio <= 1);
 
   final double minOverlap;
   final double maxShift;
@@ -66,49 +70,65 @@ class TrackLink {
 }
 
 /// One-to-one pairs of `from` and `to` indexes by [score] (a [TrackLink]
-/// score, null for none), the best first. An overlap link always counts.
-/// A nearby link counts only when neither end has any other candidate: in
-/// a school, a box between two fish could be either, and handing it to
-/// the wrong one would mix two animals into one track and one name.
+/// score, null for none), the best first. The overlap links are made
+/// first. A nearby link is made only when neither end has another nearby
+/// candidate among those the overlap links left: in a school, a box
+/// between two fish could be either, and handing it to the wrong one would
+/// mix two animals into one track and one name. A fish that continues on a
+/// box it overlaps is no longer one of the two.
 List<({int from, int to})> matchLinks(
   int fromCount,
   int toCount,
   double? Function(int from, int to) score,
 ) {
-  final candidates = <({int from, int to, double score})>[];
-  final fromCandidates = List<int>.filled(fromCount, 0);
-  final toCandidates = List<int>.filled(toCount, 0);
+  final overlaps = <({int from, int to, double score})>[];
+  final nearby = <({int from, int to, double score})>[];
   for (var f = 0; f < fromCount; f++) {
     for (var t = 0; t < toCount; t++) {
       final s = score(f, t);
       if (s == null) continue;
-      candidates.add((from: f, to: t, score: s));
-      fromCandidates[f]++;
-      toCandidates[t]++;
+      (TrackLink.isOverlap(s) ? overlaps : nearby).add((
+        from: f,
+        to: t,
+        score: s,
+      ));
     }
   }
-  final usable = [
-    for (final c in candidates)
-      if (TrackLink.isOverlap(c.score) ||
-          (fromCandidates[c.from] == 1 && toCandidates[c.to] == 1))
-        c,
-  ];
-  // Ties in index order, as List.sort is not stable.
-  usable.sort((a, b) {
-    final byScore = b.score.compareTo(a.score);
-    if (byScore != 0) return byScore;
-    final byFrom = a.from.compareTo(b.from);
-    return byFrom != 0 ? byFrom : a.to.compareTo(b.to);
-  });
   final usedFrom = <int>{};
   final usedTo = <int>{};
   final pairs = <({int from, int to})>[];
-  for (final c in usable) {
-    if (usedFrom.contains(c.from) || usedTo.contains(c.to)) continue;
-    usedFrom.add(c.from);
-    usedTo.add(c.to);
-    pairs.add((from: c.from, to: c.to));
+  void take(List<({int from, int to, double score})> links) {
+    // Ties in index order, as List.sort is not stable.
+    final ranked = [...links]
+      ..sort((a, b) {
+        final byScore = b.score.compareTo(a.score);
+        if (byScore != 0) return byScore;
+        final byFrom = a.from.compareTo(b.from);
+        return byFrom != 0 ? byFrom : a.to.compareTo(b.to);
+      });
+    for (final c in ranked) {
+      if (usedFrom.contains(c.from) || usedTo.contains(c.to)) continue;
+      usedFrom.add(c.from);
+      usedTo.add(c.to);
+      pairs.add((from: c.from, to: c.to));
+    }
   }
+
+  take(overlaps);
+  final left = [
+    for (final c in nearby)
+      if (!usedFrom.contains(c.from) && !usedTo.contains(c.to)) c,
+  ];
+  final fromCandidates = <int, int>{};
+  final toCandidates = <int, int>{};
+  for (final c in left) {
+    fromCandidates.update(c.from, (n) => n + 1, ifAbsent: () => 1);
+    toCandidates.update(c.to, (n) => n + 1, ifAbsent: () => 1);
+  }
+  take([
+    for (final c in left)
+      if (fromCandidates[c.from] == 1 && toCandidates[c.to] == 1) c,
+  ]);
   return pairs;
 }
 

@@ -563,12 +563,18 @@ class VideoIdentificationScan {
           for (final c in continued)
             if (!c.saidByDiver) c,
         ];
+        // One with something said on it takes up the parts of its fish
+        // said the same on that this chunk reached (issue #4729).
         final found = carryTrackDecisions(
           decided: carry,
           fresh: [
             for (final n in named)
               if (!rows.containsKey(n.identification.id)) n.identification,
             ...unsaid,
+          ],
+          kept: [
+            for (final c in continued)
+              if (c.saidByDiver) c,
           ],
         );
         // An earlier part goes only when its joined row is stored.
