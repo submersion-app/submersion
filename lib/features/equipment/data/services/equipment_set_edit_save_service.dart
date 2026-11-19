@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/change_log/record_sitting_writer.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -45,9 +47,16 @@ class EquipmentSetEditSaveService {
     EquipmentSet merged, {
     required bool alsoLogged,
   }) async {
+    // The gear the set applies is its own and that of the sets it includes:
+    // with neither changed, no dive needs anything.
+    final gearMayChange =
+        !setEquals(stored.equipmentIds.toSet(), merged.equipmentIds.toSet()) ||
+        !listEquals(stored.includedSetIds, merged.includedSetIds);
     // Every set of the owner before the save: the dives of a set that
     // includes this one carry its gear too.
-    final allSets = await _sets.getAllSets(diverId: stored.diverId);
+    final allSets = gearMayChange
+        ? await _sets.getAllSets(diverId: stored.diverId)
+        : const <EquipmentSet>[];
     await _sets.updateSet(merged);
     if (merged.isDefault != stored.isDefault) {
       if (merged.isDefault) {
@@ -57,6 +66,7 @@ class EquipmentSetEditSaveService {
       }
     }
     await _writeGeofences(stored, merged);
+    if (!gearMayChange) return;
     // The save drops members whose gear has gone, so the replay goes by
     // what was written.
     final written = await _sets.getSetById(merged.id);

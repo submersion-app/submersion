@@ -58,7 +58,9 @@ mixin _EquipmentSetDetailPageEditing
       alsoLogged: session.recall<bool>(_alsoLoggedKey) ?? false,
     );
     justSavedRecord = result?.after ?? session.working;
-    if (result != null) await sets.afterSittingSaved(session.stored.id);
+    // The sitting has committed: the lists that show it catch up without
+    // holding the Save.
+    if (result != null) unawaited(sets.afterSittingSaved(session.stored.id));
   }
 
   /// Asks "Update past dives?" when the sitting changes the gear the set

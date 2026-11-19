@@ -66,23 +66,46 @@ class _EquipmentSetMembersEditorState
   /// in place.
   Set<String> _touchedIds = const {};
 
+  // The editor rebuilds itself on each change to the sitting, so every
+  // provider it reads is read in its own build.
+  @override
+  void initState() {
+    super.initState();
+    _session.addListener(_onSessionChanged);
+  }
+
+  @override
+  void didUpdateWidget(EquipmentSetMembersEditor oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.session, widget.session)) {
+      oldWidget.session.removeListener(_onSessionChanged);
+      widget.session.addListener(_onSessionChanged);
+    }
+  }
+
+  @override
+  void dispose() {
+    _session.removeListener(_onSessionChanged);
+    super.dispose();
+  }
+
+  void _onSessionChanged() {
+    if (mounted) setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final equipmentAsync = ref.watch(activeEquipmentProvider);
-    return ListenableBuilder(
-      listenable: _session,
-      builder: (context, _) {
-        final ticked = _session.working.equipmentIds.toSet();
-        return equipmentAsync.when(
+    final ticked = _session.working.equipmentIds.toSet();
+    return ref
+        .watch(activeEquipmentProvider)
+        .when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, _) => Center(
             child: Text(l10n.equipment_setEdit_errorMessage('$error')),
           ),
           data: (equipment) => _buildList(context, equipment, ticked),
         );
-      },
-    );
   }
 
   Widget _buildList(

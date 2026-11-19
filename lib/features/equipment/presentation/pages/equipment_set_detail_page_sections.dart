@@ -279,20 +279,29 @@ mixin _EquipmentSetDetailPageSections
                 children: [
                   Row(
                     children: [
-                      Flexible(
-                        child: Text(
-                          set.name,
-                          style: theme.textTheme.titleLarge,
+                      // The name and its chip take the whole row but the
+                      // pencil, the chip right after the name.
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                set.name,
+                                style: theme.textTheme.titleLarge,
+                              ),
+                            ),
+                            if (set.isDefault) ...[
+                              const SizedBox(width: 8),
+                              Chip(
+                                label: Text(
+                                  context.l10n.equipment_sets_defaultBadge,
+                                ),
+                                visualDensity: VisualDensity.compact,
+                              ),
+                            ],
+                          ],
                         ),
                       ),
-                      if (set.isDefault) ...[
-                        const SizedBox(width: 8),
-                        Chip(
-                          label: Text(context.l10n.equipment_sets_defaultBadge),
-                          visualDensity: VisualDensity.compact,
-                        ),
-                      ],
-                      const Spacer(),
                       if (hostsEditing)
                         RecordCardPencil(
                           cardTitle: _cardTitle(

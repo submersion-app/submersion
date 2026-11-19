@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_set_detail_page.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/equipment/figure/presentation/gear_figure.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
@@ -90,6 +93,56 @@ void main() {
     await openMenu(tester);
     expect(find.text(l.equipment_setDetail_showFigure), findsOneWidget);
     expect(find.text(l.equipment_setDetail_setAsDefault), findsOneWidget);
+  });
+
+  testWidgets('a long name fills the header row, with the switch on or off', (
+    tester,
+  ) async {
+    const long = 'Cold water expedition rig for the Baltic wrecks in winter';
+    await DatabaseService.instance.database.customStatement(
+      "UPDATE equipment_sets SET name = '$long' WHERE id = 's1'",
+    );
+    for (final unlockEditing in [false, true]) {
+      await pumpSetPage(tester, unlockEditing: unlockEditing);
+      final name = find.descendant(
+        of: find.byType(Card).first,
+        matching: find.text(long),
+      );
+      // The avatar and its gap take about 100 of the 600 wide page; the
+      // name must have the rest, not half of it.
+      expect(
+        tester.getSize(name).width,
+        greaterThan(330),
+        reason: 'unlockEditing: $unlockEditing',
+      );
+    }
+  });
+
+  testWidgets('default on in a sitting moves the default for the rest of the '
+      'app', (tester) async {
+    await pumpSetPage(tester);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(EquipmentSetDetailPage)),
+    );
+    final before = await tester.runAsync(
+      () => container.read(defaultEquipmentSetProvider.future),
+    );
+    expect(before?.id, 's2');
+    await unlock(tester);
+    await openCard(tester, header);
+    await tester.tap(find.byKey(const ValueKey('set-edit-default')));
+    await tester.pumpAndSettle();
+
+    await save(tester);
+
+    final after = await tester.runAsync(
+      () => container.read(defaultEquipmentSetProvider.future),
+    );
+    expect(after?.id, 's1');
+    final s2 = await tester.runAsync(
+      () => container.read(equipmentSetProvider('s2').future),
+    );
+    expect(s2?.isDefault, isFalse);
   });
 
   testWidgets('locked, no tap writes', (tester) async {

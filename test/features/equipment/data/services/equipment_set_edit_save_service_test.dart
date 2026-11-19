@@ -36,6 +36,17 @@ class _FailingReplay extends Fake implements DiveRepository {
   }) async => throw StateError('replay failed');
 }
 
+/// Counts the reads of every set a replay needs.
+class _CountingSets extends EquipmentSetRepository {
+  int allSetsReads = 0;
+
+  @override
+  Future<List<EquipmentSet>> getAllSets({String? diverId, List<String>? ids}) {
+    allSetsReads++;
+    return super.getAllSets(diverId: diverId, ids: ids);
+  }
+}
+
 /// An equipment set page's sitting is written as one History entry, with
 /// the default it demotes and the dives it rewrites, and writes only what
 /// it changed (issue #4527, phase 3).
@@ -382,6 +393,16 @@ void main() {
     expect(await isDefault('s2'), isTrue);
     expect(await gearOn('planned'), {'e1', 'e2'});
     expect(await operations(), isEmpty);
+  });
+
+  test('a save that cannot change the gear plans no replay', () async {
+    final counting = _CountingSets();
+    final session = EditSession(await stored())..set(setNameField, 'Kelp');
+
+    await save(session, using: EquipmentSetEditSaveService(counting, dives));
+
+    expect(counting.allSetsReads, 0);
+    expect(await gearOn('planned'), {'e1', 'e2'});
   });
 
   test('unchanged returns null and writes nothing', () async {

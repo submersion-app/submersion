@@ -243,6 +243,12 @@ class EquipmentSetListNotifier
   /// The sitting is already written, so a reload that fails is logged, not
   /// thrown: a retry would find nothing left to save.
   Future<void> afterSittingSaved(String id) async {
+    // The pages first; the list's own reload is the slower part.
+    _ref.invalidate(equipmentSetsProvider);
+    _ref.invalidate(equipmentSetProvider);
+    _ref.invalidate(equipmentSetGeofencesProvider(id));
+    _ref.invalidate(defaultEquipmentSetProvider);
+    _ref.invalidate(equipmentSetSelectionInputsProvider);
     try {
       await refresh();
     } catch (e, st) {
@@ -250,11 +256,6 @@ class EquipmentSetListNotifier
         EquipmentSetListNotifier,
       ).error('Reload after a set sitting failed', error: e, stackTrace: st);
     }
-    _ref.invalidate(equipmentSetsProvider);
-    _ref.invalidate(equipmentSetProvider);
-    _ref.invalidate(equipmentSetGeofencesProvider(id));
-    _ref.invalidate(defaultEquipmentSetProvider);
-    _ref.invalidate(equipmentSetSelectionInputsProvider);
   }
 
   Future<void> deleteSet(String id) async {

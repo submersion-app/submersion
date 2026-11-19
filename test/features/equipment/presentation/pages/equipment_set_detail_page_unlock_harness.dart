@@ -7,6 +7,7 @@ import 'package:submersion/core/database/database.dart'
     hide EquipmentSet, EquipmentSetGeofence;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
@@ -24,6 +25,8 @@ import '../../../../helpers/test_database.dart';
 /// diver's default.
 Future<void> seedSetPage({bool showFigure = false}) async {
   await setUpTestDatabase();
+  // A sitting's Save tells sync; CI runs many files in one isolate.
+  addTearDown(SyncCoordinator.reset);
   final db = DatabaseService.instance.database;
   final t = DateTime(2026).millisecondsSinceEpoch;
   await db

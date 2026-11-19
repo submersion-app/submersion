@@ -188,18 +188,6 @@ final setGeofencesField = EditField<EquipmentSet, SetGeofencesEdit>(
   equals: (a, b) => _sameGeofences(a.held, b.held),
 );
 
-/// Every value of the set a sitting edits.
-final List<EditField<EquipmentSet, Object?>> equipmentSetEditFields = [
-  setNameField,
-  setDescriptionField,
-  setDefaultField,
-  setAutoApplyField,
-  setShowFigureField,
-  setMembersField,
-  setBundleListsField,
-  setGeofencesField,
-];
-
 /// The members [session] holds with [equipmentId] ticked or not, keeping
 /// the base the sitting's first change took.
 SetMembersEdit membersTicked(
