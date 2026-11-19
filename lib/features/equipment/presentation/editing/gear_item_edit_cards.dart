@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/equipment/presentation/widgets/condition_findings_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/observations_card.dart';
 import 'package:submersion/features/media/presentation/helpers/document_open_helper.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_photos_section.dart';
@@ -77,6 +78,16 @@ final Map<GearItemCardId, EditCard<EquipmentItem>> gearItemEditCards = {
     isEmpty: (_) => false,
     editorBuilder: (context, session) =>
         ServiceHistorySection(equipmentId: session.stored.id, editing: session),
+  ),
+  GearItemCardId.conditionFindings: EditCard<EquipmentItem>(
+    id: GearItemCardId.conditionFindings.name,
+    title: (context) =>
+        GearItemCardId.conditionFindings.localizedDisplayName(context.l10n),
+    // Calculated rows the diver can dismiss; it hides itself when it has
+    // nothing to show.
+    isEmpty: (_) => false,
+    editorBuilder: (context, session) =>
+        ConditionFindingsCard(equipment: session.working, editing: session),
   ),
   GearItemCardId.photos: EditCard<EquipmentItem>(
     id: GearItemCardId.photos.name,

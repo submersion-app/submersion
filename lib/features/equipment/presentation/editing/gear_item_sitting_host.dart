@@ -11,6 +11,7 @@ import 'package:submersion/features/equipment/presentation/editing/equipment_sha
 import 'package:submersion/features/equipment/presentation/editing/gear_item_card_ids.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_check_ins_sitting.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_edit_fields.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_findings_sitting.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_header_editor.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_location_sitting.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_media_sitting.dart';
@@ -140,6 +141,7 @@ void loadGearItemSitting(
   holdLegacyFiles(session, writers);
   holdCheckIns(session, writers);
   gearItemCheckInsList.load(session);
+  holdFindingDismissals(session, container.read);
 }
 
 /// What a saved sitting still has to do outside the database: uploads and

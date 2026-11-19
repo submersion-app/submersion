@@ -21,7 +21,10 @@ import 'package:submersion/features/equipment/presentation/editing/gear_item_edi
 import 'package:submersion/features/equipment/presentation/editing/gear_item_sitting_host.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/components_card.dart';
-import 'package:submersion/features/equipment/presentation/widgets/condition_findings_card.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_findings_repository.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_card_ids.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_condition_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/exposure_card.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
@@ -177,18 +180,13 @@ void main() {
       );
     });
 
-    testWidgets('with the switch on, Components and Condition findings offer '
-        'no action', (tester) async {
+    testWidgets('with the switch on, Components offers no action', (
+      tester,
+    ) async {
       await pumpGearPage(tester);
 
       expect(
         tester.widget<ComponentsCard>(find.byType(ComponentsCard)).readOnly,
-        isTrue,
-      );
-      expect(
-        tester
-            .widget<ConditionFindingsCard>(find.byType(ConditionFindingsCard))
-            .readOnly,
         isTrue,
       );
       await unlock(tester);
@@ -214,6 +212,91 @@ void main() {
 
       expect(find.byType(RecordEditBar), findsOneWidget);
       expect(find.text(l.recordEdit_editingTitle('Apex')), findsOneWidget);
+    });
+  });
+
+  // Plan 7: a dismissal is held in the item's sitting.
+  group('condition findings', () {
+    final evidence = FindingEvidence(
+      n: 1,
+      windowStart: DateTime(2026, 3, 3),
+      windowEnd: DateTime(2026, 3, 3),
+    );
+    final incident = EquipmentFinding(
+      id: 'cf_g1_incidentLinked',
+      equipmentId: 'g1',
+      ruleId: ConditionRuleId.incidentLinked,
+      severity: ConditionSeverity.info,
+      value: 1,
+      evidence: evidence,
+      evidenceFingerprint: evidenceFingerprint(evidence),
+      engineVersion: 1,
+      createdAt: DateTime(2026, 3, 3),
+    );
+    final findingsTitle = l.equipmentCondition_findings_title;
+
+    Future<({GearPageHarness harness, _RecordingFindings repo})> pump(
+      WidgetTester tester,
+    ) async {
+      final repo = _RecordingFindings();
+      final harness = await pumpGearPage(
+        tester,
+        findings: [incident],
+        extraOverrides: [
+          equipmentFindingsRepositoryProvider.overrideWithValue(repo),
+        ],
+      );
+      return (harness: harness, repo: repo);
+    }
+
+    testWidgets('locked, a finding offers no dismiss', (tester) async {
+      final page = await pump(tester);
+
+      expect(find.text(findingsTitle), findsOneWidget);
+      expect(
+        find.byTooltip(l.equipmentCondition_findings_dismiss),
+        findsNothing,
+      );
+      expect(page.repo.calls, isEmpty);
+    });
+
+    testWidgets('a dismissal and a notes change are one save, written with '
+        'it', (tester) async {
+      final page = await pump(tester);
+      await unlock(tester);
+      await openCard(tester, findingsTitle);
+
+      await tester.tap(find.byTooltip(l.equipmentCondition_findings_dismiss));
+      await tester.pumpAndSettle();
+      expect(page.repo.calls, isEmpty);
+      sessionOf(tester).set(gearNotesField, 'Checked');
+      await save(tester);
+
+      expect(page.harness.save.calls.single.cards, {
+        GearItemCardId.conditionFindings.name,
+        GearItemCardId.notes.name,
+      });
+      expect(page.repo.calls, [(incident.id, true)]);
+    });
+
+    testWidgets('a dismissal, then Cancel: nothing written', (tester) async {
+      final page = await pump(tester);
+      await unlock(tester);
+      await openCard(tester, findingsTitle);
+      await tester.tap(find.byTooltip(l.equipmentCondition_findings_dismiss));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text(l.common_action_cancel));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l.forms_discard_discard));
+      await tester.pumpAndSettle();
+
+      expect(page.harness.save.calls, isEmpty);
+      expect(page.repo.calls, isEmpty);
+      expect(
+        find.byTooltip(l.equipmentCondition_findings_dismiss),
+        findsNothing,
+      );
     });
   });
 
@@ -806,4 +889,18 @@ void main() {
       expect(builds, 1);
     },
   );
+}
+
+/// Records the dismissals the page writes, writing none.
+class _RecordingFindings extends EquipmentFindingsRepository {
+  final calls = <(String, bool)>[];
+
+  @override
+  Future<void> setDismissed({
+    required String findingId,
+    required bool dismissed,
+    required DateTime now,
+  }) async {
+    calls.add((findingId, dismissed));
+  }
 }

@@ -393,7 +393,11 @@ class _EquipmentDetailContent extends ConsumerWidget {
           // The findings and trend cards carry their own top gap and render
           // nothing when they have nothing to say, so the page never shows
           // a blank slot for a rule engine.
-          ConditionFindingsCard(equipment: equipment, readOnly: _editing),
+          _framed(
+            GearItemCardId.conditionFindings,
+            ConditionFindingsCard(equipment: equipment),
+            topGap: 24,
+          ),
           _calculated(ConditionTrendCard(equipment: equipment)),
           if (equipment.type == EquipmentType.rebreather)
             _calculated(

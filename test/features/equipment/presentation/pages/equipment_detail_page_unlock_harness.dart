@@ -11,6 +11,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/equipment/data/services/gear_item_edit_save_service.dart';
 import 'package:submersion/features/equipment/domain/entities/condition_trend.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_exposure_totals.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_detail_page.dart';
@@ -114,6 +115,7 @@ Future<GearPageHarness> pumpGearPage(
   VoidCallback? onSittingEnded,
   VoidCallback? onDeleted,
   List<EquipmentItem> children = const [],
+  List<EquipmentFinding> findings = const [],
   List<Object> extraOverrides = const [],
 }) async {
   final shown = item ?? apex;
@@ -152,7 +154,7 @@ Future<GearPageHarness> pumpGearPage(
         ).overrideWith((ref) async => EquipmentExposureTotals.empty),
         equipmentConditionProvider(
           shown.id,
-        ).overrideWith((ref) async => const []),
+        ).overrideWith((ref) async => findings),
         conditionTrendProvider((
           equipmentId: shown.id,
           kind: null,
