@@ -187,6 +187,23 @@
 - [ ] **Step 5: After screenshots** of the same screens (see Screenshots).
 - [ ] **Step 6: Commit** `feat(dive-log): draw the Avelo buoyancy, gas remaining and computer RMV lines`.
 
+### Task 9: Hydrotank water-and-gas figure (follow-up, spec section 6)
+
+**Files:**
+- Create: `lib/features/dive_log/domain/services/hydrotank_contents.dart`
+- Modify: `lib/features/dive_log/presentation/widgets/tank_fill_levels.dart` (optional `water` level), `tank_figure.dart` (paint the water band, optional water label), `cylinders_card.dart` (Hydrotank figure inputs, end state and cursor), ARB files
+- Test: `test/features/dive_log/domain/services/hydrotank_contents_test.dart`, `tank_fill_levels` test, `cylinders_card_avelo_summary_test.dart`
+
+**Interfaces:**
+- Produces: `({double water, double gasLeft})? hydrotankContents({required double startBar, required double nowBar, required int gasRemainingPercent})` (fractions of the tank, `gasLeft` measured from the bottom, i.e. the top of the solid zone); `TankFillLevels.hydrotank({required double water, required double gasLeft, double? now})`.
+
+- [ ] **Step 1: Failing tests:** contents for dive 1636's end (3488 to 1302 psi, 36%) give water about 0.036; dive 1640's pump-in (3428 to 2532 psi, 41%) about 0.445; water clamps to 0 when the formula goes negative and to 1 at most; null for a non-positive pressure. The card draws the water figure (keyed `tank-water-label-<id>`) for a Hydrotank with gas remaining, and today's figure without it.
+- [ ] **Step 2:** Run by path; expect FAIL.
+- [ ] **Step 3:** Implement; the card picks the gas remaining at the cursor from the last profile sample at or before the cursor time.
+- [ ] **Step 4:** Run; expect PASS. `flutter analyze`.
+- [ ] **Step 5:** After screenshots of the Cylinders card (end state, and at a pump-in with the cursor).
+- [ ] **Step 6: Commit** `feat(dive-log): draw the Hydrotank as water and gas`.
+
 ## Screenshots
 
 Eric's sync is configured, so screenshots come from headless widget captures (the 2026-11-19 choice for #3022), never from launching the dev app. A scratch capture test (not committed) renders the Cylinders card and the profile chart for a synthesized Avelo dive (values from the findings table) at phone and desktop widths, light and dark. Before shots in Task 6 Step 0, after shots in Task 8 Step 5. They go to the project's current secret screenshot gist and into the PR description.

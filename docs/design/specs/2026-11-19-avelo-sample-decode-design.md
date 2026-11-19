@@ -203,6 +203,32 @@ Computation, from the dive's primary profile:
 The summary is a pure function over the profile and tank pressures, tested
 with values from the findings document.
 
+### 6. Hydrotank figure: water and gas (added 2026-11-19)
+
+Asked for by the maintainer during the build: the Cylinders card draws a
+Hydrotank as water and gas instead of a pressure fill, which misleads for a
+tank whose pressure rises with the water pumped in.
+
+- The body is the tank's volume. From the bottom: estimated water in blue,
+  then gas left (solid gas colour), then gas used (tint) to the top.
+- Estimate, assuming no water at the start: the gas space is
+  `(start pressure / pressure now) x gas remaining %` of the tank, and the
+  water is the rest, clamped to 0 through the whole tank. Gas left is
+  `gas space x gas remaining %`, gas used the rest of the gas space.
+- Without the cursor it shows the end of the dive: the end pressure and the
+  last underwater gas remaining. With the profile cursor on the chart it
+  shows the moment under the cursor (the cursor's Hydrotank pressure and the
+  gas remaining of the last sample at or before it), so pump-ins and purges
+  move the water as the diver scrubs; the cursor's label sits at the top of
+  the gas left.
+- A "Water ~X (est.)" label, in the diver's volume unit, joins the Start
+  and End pressure labels; no label without a tank volume.
+- When the dive has no gas remaining, no start pressure or no pressure at
+  the moment shown, the Hydrotank keeps today's pressure figure.
+- The water estimate rests on the same assumption turned down for SAC; here
+  it only draws a picture, marked as an estimate, and changes no number
+  anything else reads.
+
 ## Left to the builder
 
 - Exact C names for the new sample types and union members.
