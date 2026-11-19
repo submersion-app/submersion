@@ -230,24 +230,43 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
 /// shown: above the Library on a phone, in the page header's tab row at
 /// desktop widths (#4777).
 class MediaLibraryHeaderToolbar extends ConsumerWidget {
-  const MediaLibraryHeaderToolbar({super.key, required this.selection});
+  const MediaLibraryHeaderToolbar({
+    super.key,
+    required this.selection,
+    this.keyboardScope = false,
+  });
 
   final SelectionController selection;
+
+  /// Whether the toolbar brings its own [SelectableListScope]. A toolbar in
+  /// the page header sits outside the Library's scope, so without one,
+  /// Escape and Ctrl/Cmd-A would do nothing while focus is on one of its
+  /// controls, such as the Select button just used to enter the mode.
+  final bool keyboardScope;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final hasEntries = ref.watch(
       mediaLibraryNotifierProvider.select((s) => s.entries.isNotEmpty),
     );
-    return ValueListenableBuilder<SelectionState>(
+    final toolbar = ValueListenableBuilder<SelectionState>(
       valueListenable: selection,
       builder: (context, state, _) => MediaLibraryToolbar(
         selection: selection,
-        // Filter and sort stay reachable inside the mode -- narrow the
-        // list, then Select All -- but the control that opens a mode
-        // already open would just be dead weight.
+        // Filter and sort stay reachable inside the mode (narrow the list,
+        // then Select All), but the control that opens a mode already open
+        // would just be dead weight.
         canSelect: hasEntries && !state.isActive,
       ),
+    );
+    if (!keyboardScope) return toolbar;
+    final entries = ref.watch(
+      mediaLibraryNotifierProvider.select((s) => s.entries),
+    );
+    return SelectableListScope(
+      controller: selection,
+      selectableIds: [for (final e in entries) e.item.id],
+      child: toolbar,
     );
   }
 }

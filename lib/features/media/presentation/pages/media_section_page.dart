@@ -140,7 +140,10 @@ class _MediaSectionPageState extends ConsumerState<MediaSectionPage> {
       onAction: _onAction,
       badgeCounts: {MediaConsoleSection.library: missingCount},
       tabRowTrailing: library
-          ? MediaLibraryHeaderToolbar(selection: _librarySelection)
+          ? MediaLibraryHeaderToolbar(
+              selection: _librarySelection,
+              keyboardScope: true,
+            )
           : null,
       child: switch (_section) {
         MediaConsoleSection.library => MediaLibraryView(
