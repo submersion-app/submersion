@@ -19,10 +19,12 @@ Stages, each resumable:
 
 --wait: at a daily limit, sleep to the next UTC day and carry on.
 
-Stays at one iNaturalist request a second and under 9,000 a day, and under
-20 GB of photos a day: a stage that reaches a limit stops and says to run
-it again tomorrow. Downloads live under the work folder's photos/, apart
-from these scripts. Developer-run; not part of CI.
+Stays at one iNaturalist request a second and under 9,500 a day, and under
+20 GB a day of photos from any host but iNaturalist's AWS Open Data
+bucket, which states no limit and is not counted: a stage that reaches a
+limit stops and says to run it again tomorrow. Downloads live under the
+work folder's photos/, apart from these scripts. Developer-run; not part
+of CI.
 """
 
 import argparse
@@ -46,8 +48,13 @@ import training_set as ts  # noqa: E402
 
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 DEFAULT_WORK = os.path.join(REPO, "build", "naming_training")
-DAILY_REQUESTS = 9000
+# iNaturalist asks API users for under 10,000 requests a day.
+DAILY_REQUESTS = 9500
+# Its guidance for media from its own servers is under 24 GB a day. Photos
+# from its public AWS Open Data bucket, which states no limit, are not
+# counted (Eric, 2026-11-19); any other host stays under this.
 DAILY_BYTES = 20 * 10**9
+OPEN_DATA_HOST = "inaturalist-open-data.s3.amazonaws.com"
 BATCH = 2000
 MIN_SIDE = 64
 FIT = "centreCrop"
@@ -111,6 +118,13 @@ def _gone(error):
     return isinstance(error, urllib.error.HTTPError) and 400 <= error.code < 500 and error.code != 429
 
 
+def uncapped(url):
+    """Whether a photo comes from iNaturalist's AWS Open Data bucket, whose
+    downloads the daily byte cap does not count."""
+    parts = urllib.parse.urlsplit(url)
+    return parts.scheme == "https" and parts.hostname == OPEN_DATA_HOST
+
+
 def download_batch(batch, paths, budget, download=None, workers=8):
     """Downloads each record's photo to its path, charging `budget` photo by
     photo. LIMIT when the day's budget ran out first, RETRY when a photo
@@ -124,9 +138,11 @@ def download_batch(batch, paths, budget, download=None, workers=8):
         path = paths[r["id"]]
         if os.path.exists(path):
             return DONE
-        with lock:
-            if budget.exhausted():
-                return LIMIT
+        capped = not uncapped(r["photo_url"])
+        if capped:
+            with lock:
+                if budget.exhausted():
+                    return LIMIT
         try:
             download(r["photo_url"], path)
         except _MAY_PASS as e:
@@ -135,8 +151,9 @@ def download_batch(batch, paths, budget, download=None, workers=8):
                 return DONE
             print(f"left for a later run {r['id']}: {e}", flush=True)
             return RETRY
-        with lock:
-            budget.spend(os.path.getsize(path))
+        if capped:
+            with lock:
+                budget.spend(os.path.getsize(path))
         return DONE
 
     with concurrent.futures.ThreadPoolExecutor(workers) as pool:

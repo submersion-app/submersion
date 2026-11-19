@@ -6,9 +6,9 @@ other context, on a local model, over several days.
 
 - **Design (read first):** `docs/design/specs/2026-11-18-marine-life-naming-layer-design.md`
 - **Implementation plan (tasks 1 to 6 are done):** `docs/design/plans/2026-11-18-marine-life-naming-layer.md`
-- **Branch:** the tools merged from `ericgriffin/feat-4724-naming-layer`;
-  the worktree is on `ericgriffin/feat-4724-check-settings`, the check
-  layer's settings (see Phase 7.0)
+- **Branch:** the tools reached main in pull requests #4743 and #4752; the
+  worktree is on `ericgriffin/feat-4724-faster-fetch`, the faster fetch
+  (see Phase 7.0)
 - **Worktree:** `/Users/ericgriffin/repos/submersion-app/submersion/.claude/worktrees/feat-4724-naming-layer`
 
 ## How to use this runbook
@@ -46,8 +46,11 @@ other context, on a local model, over several days.
 8. **Do not contact anyone:** not iNaturalist, GBIF, model authors or dataset
    authors.
 9. **Stay within the download limits:** about one iNaturalist API request a
-   second, under 9,000 a day, and under 20 GB of photos a day. The fetcher
-   enforces these; never edit them upward.
+   second and under 9,500 a day (iNaturalist asks for under 10,000), and
+   under 20 GB a day of photos from any host but iNaturalist's AWS Open
+   Data bucket, which states no limit and is not capped (Eric,
+   2026-11-19). The fetcher enforces these; never raise them without
+   Eric.
 10. Commit messages follow `type(species-id): summary`, in plain words.
     Stage files by explicit path, never `git add -A` or `git add .`.
 
@@ -256,11 +259,12 @@ Good: the tests print `OK`. Mark Phase 1 done.
 
 ## Phase 2: Fetch, select and embed the training photos
 
-This phase runs for about five days: about 2.5 hours of lists (9,151
-requests, so it runs a little into a second day), then about 90 GB of photos
-at 20 GB a day. It is resumable: a candidate's list file, and a batch's
-`.jsonl`, mark that piece done, so restarting after any interruption loses
-nothing.
+This phase runs for about a day: about 9 hours of lists (9,151 requests at
+about 3.6 s each, within one day's 9,500), then about 90 GB of photos from
+the AWS Open Data bucket, uncapped, so as fast as the connection and the
+vision tool allow (about 37 ms a photo). It is resumable: a candidate's
+list file, and a batch's `.jsonl`, mark that piece done, so restarting
+after any interruption loses nothing.
 
 ### 2.1 Start it
 
@@ -290,17 +294,20 @@ cat $DATA/training/requests.json $DATA/training/downloads.json 2>/dev/null
 
 What you should see, in order:
 
-- `lists: N candidates this run, ...` lines every 100 candidates, about one a
-  second. The lists folder grows to 9,151 files.
-- `stopped at the day's 9000 requests` then `waiting X hours` once, near the
-  end of the lists. This is expected.
+- `lists: N candidates this run, ...` lines every 100 candidates, one every
+  few seconds. The lists folder grows to 9,151 files.
+- `stopped at the day's 9500 requests` then `waiting X hours`, only if a
+  run spans two UTC days. Expected then.
 - `select: ... training photos of ... species, ... validation photos`. Write
   this line into `progress.md`; the findings need it. Expect roughly 150,000
   to 250,000 training photos of roughly 5,000 to 7,000 species, and 15,000
   to 40,000 validation photos. Numbers far outside these: STOP.
 - `embed: batch K of M, kept of total photos kept` lines, about 90% kept
   each. A batch keeping under 70%: STOP.
-- `stopped at the day's 20 GB of photos` and `waiting ...` once a day. Expected.
+- `stopped at the day's 20 GB of photos` should not appear, since every
+  training photo so far comes from the uncapped open data bucket. If it
+  does, photos are coming from another host: note it in `progress.md` and
+  let it wait for the next day.
 
 If the process is `stopped` before the last batch is embedded, look at the
 end of `fetch.txt`:
@@ -484,22 +491,21 @@ step is approach B, which is a new design, not something to start here).
 
 ### 7.0 The branch
 
-The tools (the fetcher, the trainer, the gate, the scorer's per-photo output
-and the CI wiring) went to main in their own pull request, which refers to
-#4724 without closing it (merged 2026-11-19). Training the check layer at the
-shipped layer's settings (`--settings-from`) followed in a second one, from
-`ericgriffin/feat-4724-check-settings`. Phases 7 and 8 make a third pull
-request that closes #4724. Check that the second one has merged:
+The tools went to main in pull requests that refer to #4724 without closing
+it: the fetcher, trainer, gate and scorer output (#4743), the check layer at
+the shipped layer's settings (#4752), and the faster fetch. Phases 7 and 8
+make the last one, which closes #4724. Check that no earlier one is still
+open:
 
 ```bash
 source /Users/ericgriffin/repos/submersion-app/naming-training/env.sh
-cd $WT && gh pr list --head ericgriffin/feat-4724-check-settings --state all --json number,state,url
+cd $WT && gh pr list --state open --search "4724 in:body" --json number,title,url
 ```
 
-- `MERGED`: start the third branch from main in the same worktree:
+- `[]`: start the branch from main in the same worktree:
   `git fetch origin && git switch -c ericgriffin/feat-4724-naming-measured origin/main`.
-- `OPEN` or `CLOSED`: STOP, and ask Eric whether to wait, or to add these
-  commits to that pull request.
+- Any pull request listed: STOP, and ask Eric whether to wait for it, or to
+  add these commits to it.
 
 ### 7.1 Add the measured entry
 
