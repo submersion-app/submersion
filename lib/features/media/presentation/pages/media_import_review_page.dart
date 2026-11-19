@@ -23,10 +23,16 @@ class MediaImportReviewPage extends ConsumerStatefulWidget {
     super.key,
     required this.candidates,
     required this.onConfirm,
+    this.reportResult = true,
   });
 
   final List<ImportCandidate> candidates;
   final ImportReviewConfirm onConfirm;
+
+  /// Whether Confirm says what it linked. False where nothing is linked
+  /// yet: a species page in a sitting holds the photos until Save (issue
+  /// #4527, phase 3).
+  final bool reportResult;
 
   @override
   ConsumerState<MediaImportReviewPage> createState() =>
@@ -94,6 +100,10 @@ class _MediaImportReviewPageState extends ConsumerState<MediaImportReviewPage> {
       if (mounted) setState(() => _busy = false);
     }
     if (!mounted) return;
+    if (!widget.reportResult) {
+      Navigator.of(context).pop();
+      return;
+    }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(

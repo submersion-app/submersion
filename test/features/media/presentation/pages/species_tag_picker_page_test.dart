@@ -100,7 +100,84 @@ Future<TagPhotosResult? Function()> _open(
   return () => popped;
 }
 
+/// Opens the picker in its choose-only mode, as a species page in a sitting
+/// does, so the popped choice can be captured.
+Future<Object? Function()> _openChooseOnly(
+  WidgetTester tester,
+  List<SpeciesTagCandidateGroup> groups,
+  _RecordingTaggingService service, {
+  Set<String> alreadyChosen = const {},
+}) async {
+  Object? popped;
+  tester.view.physicalSize = const Size(800, 1800);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.reset);
+  await tester.pumpWidget(
+    await mediaTestApp(
+      home: Builder(
+        builder: (context) => Scaffold(
+          body: Center(
+            child: ElevatedButton(
+              onPressed: () async {
+                popped = await Navigator.of(context).push<Object?>(
+                  MaterialPageRoute(
+                    builder: (_) => SpeciesTagPickerPage(
+                      speciesId: 'sp_x',
+                      chooseOnly: true,
+                      alreadyChosen: alreadyChosen,
+                    ),
+                  ),
+                );
+              },
+              child: const Text('OPEN'),
+            ),
+          ),
+        ),
+      ),
+      overrides: [
+        speciesTagCandidatesProvider(
+          'sp_x',
+        ).overrideWith((ref) async => groups),
+        speciesTaggingServiceProvider.overrideWithValue(service),
+      ],
+    ),
+  );
+  await tester.tap(find.text('OPEN'));
+  await tester.pumpAndSettle();
+  return () => popped;
+}
+
 void main() {
+  // A species page in a sitting holds the choice until Save (issue #4527).
+  testWidgets('choose-only writes nothing and returns the choice', (
+    tester,
+  ) async {
+    final service = _RecordingTaggingService();
+    final read = await _openChooseOnly(tester, _groups(), service);
+
+    await tester.tap(find.byType(MediaThumbnailTile).at(1));
+    await tester.tap(find.byType(MediaThumbnailTile).at(2));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('tag_picker_confirm')));
+    await tester.pumpAndSettle();
+
+    expect(service.taggedIds, isEmpty);
+    final choice = read() as SpeciesTagChoice?;
+    expect(choice!.items.map((m) => m.id).toSet(), {'p2', 'p3'});
+  });
+
+  testWidgets('photos already chosen are not offered again', (tester) async {
+    final service = _RecordingTaggingService();
+    await _openChooseOnly(
+      tester,
+      _groups(),
+      service,
+      alreadyChosen: const {'p2'},
+    );
+
+    expect(find.byType(MediaThumbnailTile), findsNWidgets(2));
+  });
+
   testWidgets('groups candidates by dive with a header per dive', (
     tester,
   ) async {

@@ -22,7 +22,32 @@ import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dar
 class DocumentDetailsPanel extends ConsumerStatefulWidget {
   final DocumentListEntry entry;
 
-  const DocumentDetailsPanel({super.key, required this.entry});
+  /// Keeps the details open, with no toggle: while the page is unlocked
+  /// its Details card must stay in view (issue #4527, phase 3).
+  final bool forceOpen;
+
+  /// Wraps the panel as the page's Details card, framed for editing.
+  final Widget Function(Widget details)? frame;
+
+  /// Passed to [DocumentDetailsCard.showReminder].
+  final bool showReminder;
+
+  /// The Details card's pencil, shown in the header in place of the fold
+  /// arrow while [forceOpen].
+  final Widget? pencil;
+
+  /// Passed to [DocumentDetailsCard.tags].
+  final List<Tag>? tags;
+
+  const DocumentDetailsPanel({
+    super.key,
+    required this.entry,
+    this.forceOpen = false,
+    this.frame,
+    this.showReminder = false,
+    this.pencil,
+    this.tags,
+  });
 
   @override
   ConsumerState<DocumentDetailsPanel> createState() =>
@@ -42,38 +67,83 @@ class _DocumentDetailsPanelState extends ConsumerState<DocumentDetailsPanel> {
       documentTypeLabel(l10n, doc.type),
       owner ?? documentOwnerKindLabel(l10n, doc.owner.kind),
     ].join(' · ');
-    return Card(
-      margin: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListTile(
-            key: const ValueKey('document-details-toggle'),
-            leading: Icon(documentTypeIcon(doc.type)),
-            title: Text(summary, maxLines: 1, overflow: TextOverflow.ellipsis),
-            subtitle: status.needsAttention
-                ? Align(
-                    alignment: AlignmentDirectional.centerStart,
-                    child: DocumentExpiryBadge(status: status),
-                  )
-                : null,
-            trailing: Icon(_expanded ? Icons.expand_more : Icons.expand_less),
-            onTap: () => setState(() => _expanded = !_expanded),
+    final panel = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _toggle(context, doc, status, summary),
+        if (_expanded || widget.forceOpen)
+          Flexible(
+            child: SingleChildScrollView(
+              child: DocumentDetailsCard(
+                document: doc,
+                ownerLabel: owner,
+                flat: true,
+                showReminder: widget.showReminder,
+                tags: widget.tags,
+              ),
+            ),
           ),
-          if (_expanded)
-            Flexible(
-              child: SingleChildScrollView(
-                child: DocumentDetailsCard(
+      ],
+    );
+    final frame = widget.frame;
+    if (widget.forceOpen && frame != null) {
+      // Unlocked, the panel is the page's Details card, framed whole: its
+      // header keeps the pencil, and once open its editor, taller than the
+      // panel's half of the screen, takes the panel's place and scrolls.
+      return Card(
+        margin: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        child: SingleChildScrollView(
+          child: frame(
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _toggle(context, doc, status, summary),
+                DocumentDetailsCard(
                   document: doc,
                   ownerLabel: owner,
                   flat: true,
+                  showReminder: widget.showReminder,
+                  tags: widget.tags,
                 ),
-              ),
+              ],
             ),
-        ],
-      ),
+          ),
+        ),
+      );
+    }
+    return Card(
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      child: frame == null ? panel : frame(panel),
     );
   }
+
+  /// The panel's header: the type and owner, the expiry badge when it needs
+  /// attention, and the fold arrow; while [DocumentDetailsPanel.forceOpen]
+  /// the arrow's place holds the Details card's pencil.
+  Widget _toggle(
+    BuildContext context,
+    Document doc,
+    DocumentExpiryStatus status,
+    String summary,
+  ) => ListTile(
+    key: const ValueKey('document-details-toggle'),
+    leading: Icon(documentTypeIcon(doc.type)),
+    title: Text(summary, maxLines: 1, overflow: TextOverflow.ellipsis),
+    subtitle: status.needsAttention
+        ? Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: DocumentExpiryBadge(status: status),
+          )
+        : null,
+    // Kept open while the page is unlocked: the fold arrow's place
+    // holds the Details card's pencil.
+    trailing: widget.forceOpen
+        ? widget.pencil
+        : Icon(_expanded ? Icons.expand_more : Icons.expand_less),
+    onTap: widget.forceOpen
+        ? null
+        : () => setState(() => _expanded = !_expanded),
+  );
 }
 
 /// The route of the record a document is filed under; null for personal.
@@ -102,11 +172,27 @@ class DocumentDetailsCard extends ConsumerWidget {
   /// True inside [DocumentDetailsPanel], which is already a card.
   final bool flat;
 
+  /// Shows the expiry reminder when it is set and not the default, which
+  /// the page showed nowhere before it edited in place (issue #4527,
+  /// phase 3).
+  final bool showReminder;
+
+  /// The Details card's pencil and changed dot, at its top while the page
+  /// is unlocked.
+  final Widget? pencil;
+
+  /// The tags to show in place of the stored ones: those a sitting holds
+  /// (issue #4527, phase 3).
+  final List<Tag>? tags;
+
   const DocumentDetailsCard({
     super.key,
     required this.document,
     required this.ownerLabel,
     this.flat = false,
+    this.showReminder = false,
+    this.pencil,
+    this.tags,
   });
 
   @override
@@ -117,16 +203,19 @@ class DocumentDetailsCard extends ConsumerWidget {
     final insurance = doc.type == DocumentType.insurance;
     final ownerRoute = documentOwnerRoute(doc.owner);
     final status = documentExpiryStatus(doc, DateTime.now());
-    final tags =
+    final stored =
         ref
             .watch(
               tagsForItemProvider((scope: TagScope.documents, itemId: doc.id)),
             )
             .value ??
         const <Tag>[];
+    final tags = this.tags ?? stored;
     String? text(String? v) => (v == null || v.trim().isEmpty) ? null : v;
     final rows = Column(
       children: [
+        if (pencil case final pencil?)
+          Align(alignment: AlignmentDirectional.topEnd, child: pencil),
         _DetailRow(
           icon: documentTypeIcon(doc.type),
           label: l10n.documents_field_type,
@@ -161,6 +250,13 @@ class DocumentDetailsCard extends ConsumerWidget {
             value: units.formatDate(expiry),
             trailing: DocumentExpiryBadge(status: status),
           ),
+        if (showReminder && doc.expiryDate != null)
+          if (doc.reminderLeadDays case final days?)
+            _DetailRow(
+              icon: Icons.notifications_outlined,
+              label: l10n.documents_field_reminderLead,
+              value: l10n.documents_field_reminderLeadDays(days),
+            ),
         if (insurance && text(doc.emergencyPhone) != null)
           _DetailRow(
             icon: Icons.emergency_outlined,

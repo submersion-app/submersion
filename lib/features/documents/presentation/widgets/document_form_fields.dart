@@ -7,14 +7,30 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Lead times offered for the expiry reminder; 0 turns it off.
 const List<int> kDocumentReminderLeadChoices = [0, 7, 14, 30, 60, 90];
 
-/// The text controllers the document editor owns.
+/// The text controllers the document editor owns. A document page's
+/// Details editor hands in controllers bound to its sitting (issue #4527,
+/// phase 3); the form makes its own.
 class DocumentFormControllers {
-  final title = TextEditingController();
-  final issuer = TextEditingController();
-  final number = TextEditingController();
-  final emergencyPhone = TextEditingController();
-  final phone = TextEditingController();
-  final notes = TextEditingController();
+  DocumentFormControllers({
+    TextEditingController? title,
+    TextEditingController? issuer,
+    TextEditingController? number,
+    TextEditingController? emergencyPhone,
+    TextEditingController? phone,
+    TextEditingController? notes,
+  }) : title = title ?? TextEditingController(),
+       issuer = issuer ?? TextEditingController(),
+       number = number ?? TextEditingController(),
+       emergencyPhone = emergencyPhone ?? TextEditingController(),
+       phone = phone ?? TextEditingController(),
+       notes = notes ?? TextEditingController();
+
+  final TextEditingController title;
+  final TextEditingController issuer;
+  final TextEditingController number;
+  final TextEditingController emergencyPhone;
+  final TextEditingController phone;
+  final TextEditingController notes;
 
   List<TextEditingController> get all => [
     title,
