@@ -56274,6 +56274,99 @@ class AppLocalizationsIt extends AppLocalizations {
   String get media_species_confirm => 'Confirm';
 
   @override
+  String get speciesReview_title => 'Species to review';
+
+  @override
+  String get speciesReview_tagged => 'Tagged by the app, not yet confirmed';
+
+  @override
+  String get speciesReview_suggested => 'Suggested';
+
+  @override
+  String get speciesReview_confirm => 'Confirm';
+
+  @override
+  String get speciesReview_remove => 'Remove';
+
+  @override
+  String get speciesReview_confirmAll => 'Confirm all';
+
+  @override
+  String get speciesReview_add => 'Add';
+
+  @override
+  String speciesReview_dismiss(String name) {
+    return 'Dismiss $name';
+  }
+
+  @override
+  String speciesReview_onPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'on $count photos',
+      one: 'on 1 photo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_onVideos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'on $count videos',
+      one: 'on 1 video',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_onPhotosAndVideos(int count) {
+    return 'on $count photos and videos';
+  }
+
+  @override
+  String speciesReview_mixed(int tagged, int suggested) {
+    return '($tagged tagged, $suggested suggested)';
+  }
+
+  @override
+  String get speciesReview_itemTagged => 'Tagged by the app';
+
+  @override
+  String get speciesReview_itemSuggested => 'Suggested';
+
+  @override
+  String get speciesReview_confirmed => 'Confirmed';
+
+  @override
+  String get speciesReview_removed => 'Removed';
+
+  @override
+  String get speciesReview_added => 'Added';
+
+  @override
+  String get speciesReview_dismissed => 'Dismissed';
+
+  @override
+  String get speciesReview_undo => 'Undo';
+
+  @override
+  String speciesReview_diveNumber(int number) {
+    return 'Dive $number';
+  }
+
+  @override
+  String get speciesReview_sitePhotos => 'Site photos';
+
+  @override
+  String get speciesReview_otherPhotos => 'Other photos';
+
+  @override
+  String get speciesReview_nothing => 'Nothing to review';
+
+  @override
   String media_species_confirmTag(String name) {
     return 'Confirm $name';
   }

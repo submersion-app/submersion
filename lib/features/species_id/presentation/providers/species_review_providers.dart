@@ -5,6 +5,7 @@ import 'package:submersion/features/marine_life/presentation/providers/species_p
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 import 'package:submersion/features/species_id/data/repositories/species_review_repository.dart';
+import 'package:submersion/features/species_id/data/services/species_review_saver.dart';
 import 'package:submersion/features/species_id/domain/entities/species_review.dart';
 import 'package:submersion/features/species_id/domain/services/species_review_rules.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
@@ -35,3 +36,18 @@ final speciesReviewCountProvider = FutureProvider.autoDispose
       (ref, scope) async =>
           reviewCount(await ref.watch(speciesReviewProvider(scope).future)),
     );
+
+/// Writes Species to review's decisions (issue #4727). Suggestions are
+/// dismissed and decisions reconciled only where marine life identification
+/// runs: elsewhere there are none on this device.
+final speciesReviewSaverProvider = Provider<SpeciesReviewSaver>(
+  (ref) => SpeciesReviewSaver(
+    tagging: ref.watch(speciesTaggingServiceProvider),
+    acceptor: ref.watch(suggestionAcceptorProvider),
+    dismiss: (mediaId, ids) =>
+        ref.read(mediaIdentificationServiceProvider).reject(mediaId, ids),
+    reconcile: (mediaId) => marineLifeIdEnabled
+        ? ref.read(mediaIdentificationServiceProvider).reconcile(mediaId)
+        : Future<void>.value(),
+  ),
+);
