@@ -142,6 +142,29 @@ enum ProfileRightAxisMetric {
     color: Color(0xFF00936B),
     unitSuffix: null, // Uses unit formatter (kg or lbs)
     category: ProfileMetricCategory.other,
+  ),
+  // The three values Shearwater's Avelo mode logs (issue #4664), as the
+  // computer recorded them. Their colours are the diver's palette's.
+  aveloBuoyancy(
+    displayName: 'Avelo buoyancy',
+    shortName: 'Avelo',
+    color: Color(0xFF29B6F6),
+    unitSuffix: null, // Uses unit formatter (kg or lbs)
+    category: ProfileMetricCategory.other,
+  ),
+  aveloGasRemaining(
+    displayName: 'Gas remaining',
+    shortName: 'Gas',
+    color: Color(0xFF689F38),
+    unitSuffix: '%',
+    category: ProfileMetricCategory.gasAnalysis,
+  ),
+  computerRmv(
+    displayName: 'RMV (computer)',
+    shortName: 'RMV',
+    color: Color(0xFFFF7043),
+    unitSuffix: null, // Uses unit formatter (L/min or cuft/min)
+    category: ProfileMetricCategory.gasAnalysis,
   );
 
   final String displayName;

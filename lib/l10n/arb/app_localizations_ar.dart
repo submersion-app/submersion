@@ -9677,6 +9677,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_legend_label_gtr => 'GTR';
 
   @override
+  String get diveLog_legend_label_aveloBuoyancy => 'طفو Avelo';
+
+  @override
+  String get diveLog_legend_label_aveloGasRemaining => 'الغاز المتبقي';
+
+  @override
+  String get diveLog_legend_label_computerRmv => 'RMV (الكمبيوتر)';
+
+  @override
   String get diveLog_legend_source_dc => 'DC';
 
   @override
@@ -23333,6 +23342,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_defaultShowBuoyancy => 'الملف يعرض الطفو';
 
   @override
+  String get settings_conflict_field_defaultShowAveloBuoyancy =>
+      'الملف يعرض طفو Avelo';
+
+  @override
+  String get settings_conflict_field_defaultShowAveloGasRemaining =>
+      'الملف يعرض الغاز المتبقي';
+
+  @override
+  String get settings_conflict_field_defaultShowComputerRmv =>
+      'الملف يعرض RMV الكمبيوتر';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'تم قبول تنبيه التخطيط';
 
@@ -24339,6 +24360,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_buoyancy => 'الطفو';
+
+  @override
+  String get settings_appearance_metric_aveloBuoyancy => 'طفو Avelo';
+
+  @override
+  String get settings_appearance_metric_aveloGasRemaining =>
+      'الغاز المتبقي (Avelo)';
+
+  @override
+  String get settings_appearance_metric_computerRmv => 'RMV (الكمبيوتر)';
 
   @override
   String get settings_appearance_metric_events => 'الأحداث';
@@ -57776,10 +57807,28 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_profileMetric_buoyancy => 'الطفو';
 
   @override
+  String get enum_profileMetric_aveloBuoyancy => 'طفو Avelo';
+
+  @override
+  String get enum_profileMetric_aveloGasRemaining => 'الغاز المتبقي';
+
+  @override
+  String get enum_profileMetric_computerRmv => 'RMV (الكمبيوتر)';
+
+  @override
   String get enum_profileMetric_o2CellMv_short => 'الخلايا';
 
   @override
   String get enum_profileMetric_buoyancy_short => 'الطفو';
+
+  @override
+  String get enum_profileMetric_aveloBuoyancy_short => 'Avelo';
+
+  @override
+  String get enum_profileMetric_aveloGasRemaining_short => 'الغاز';
+
+  @override
+  String get enum_profileMetric_computerRmv_short => 'RMV';
 
   @override
   String get diveLog_o2CellSpread_label => 'تشتت خلايا O2';

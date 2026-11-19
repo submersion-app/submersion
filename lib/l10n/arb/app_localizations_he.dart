@@ -9342,6 +9342,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_legend_label_gtr => 'GTR';
 
   @override
+  String get diveLog_legend_label_aveloBuoyancy => 'ציפה של Avelo';
+
+  @override
+  String get diveLog_legend_label_aveloGasRemaining => 'גז נותר';
+
+  @override
+  String get diveLog_legend_label_computerRmv => 'RMV (מחשב)';
+
+  @override
   String get diveLog_legend_source_dc => 'DC';
 
   @override
@@ -22479,6 +22488,18 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_defaultShowBuoyancy => 'הפרופיל מציג ציפה';
 
   @override
+  String get settings_conflict_field_defaultShowAveloBuoyancy =>
+      'הפרופיל מציג ציפה של Avelo';
+
+  @override
+  String get settings_conflict_field_defaultShowAveloGasRemaining =>
+      'הפרופיל מציג גז נותר';
+
+  @override
+  String get settings_conflict_field_defaultShowComputerRmv =>
+      'הפרופיל מציג RMV של המחשב';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'אזהרת תכנון אושרה';
 
@@ -23451,6 +23472,15 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_buoyancy => 'ציפה';
+
+  @override
+  String get settings_appearance_metric_aveloBuoyancy => 'ציפה של Avelo';
+
+  @override
+  String get settings_appearance_metric_aveloGasRemaining => 'גז נותר (Avelo)';
+
+  @override
+  String get settings_appearance_metric_computerRmv => 'RMV (מחשב)';
 
   @override
   String get settings_appearance_metric_events => 'אירועים';
@@ -55771,10 +55801,28 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_profileMetric_buoyancy => 'ציפה';
 
   @override
+  String get enum_profileMetric_aveloBuoyancy => 'ציפה של Avelo';
+
+  @override
+  String get enum_profileMetric_aveloGasRemaining => 'גז נותר';
+
+  @override
+  String get enum_profileMetric_computerRmv => 'RMV (מחשב)';
+
+  @override
   String get enum_profileMetric_o2CellMv_short => 'תאים';
 
   @override
   String get enum_profileMetric_buoyancy_short => 'ציפה';
+
+  @override
+  String get enum_profileMetric_aveloBuoyancy_short => 'Avelo';
+
+  @override
+  String get enum_profileMetric_aveloGasRemaining_short => 'גז';
+
+  @override
+  String get enum_profileMetric_computerRmv_short => 'RMV';
 
   @override
   String get diveLog_o2CellSpread_label => 'פיזור תאי O2';

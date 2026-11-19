@@ -643,4 +643,43 @@ void main() {
       }
     },
   );
+
+  test('applies a pre-v379 diver_settings payload missing the Avelo line '
+      'defaults', () async {
+    await db.customStatement('PRAGMA foreign_keys = OFF');
+
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.diverSettings)
+        .insert(
+          DiverSettingsCompanion.insert(
+            id: 'ds-avelo',
+            diverId: 'diver-avelo',
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+    final exported = await serializer.fetchRecord('diverSettings', 'ds-avelo');
+    expect(exported, isNotNull);
+
+    // A peer still on v378 exports none of them. The columns are NOT NULL,
+    // so an unseeded import would throw in DiverSetting.fromJson (#4664).
+    final legacy = Map<String, dynamic>.from(exported!)
+      ..remove('defaultShowAveloBuoyancy')
+      ..remove('defaultShowAveloGasRemaining')
+      ..remove('defaultShowComputerRmv');
+
+    await (db.delete(
+      db.diverSettings,
+    )..where((t) => t.id.equals('ds-avelo'))).go();
+
+    await serializer.upsertRecord('diverSettings', legacy);
+
+    final row = await (db.select(
+      db.diverSettings,
+    )..where((t) => t.id.equals('ds-avelo'))).getSingle();
+    expect(row.defaultShowAveloBuoyancy, isFalse);
+    expect(row.defaultShowAveloGasRemaining, isFalse);
+    expect(row.defaultShowComputerRmv, isFalse);
+  });
 }

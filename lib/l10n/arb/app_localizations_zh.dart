@@ -9066,6 +9066,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_legend_label_gtr => 'GTR';
 
   @override
+  String get diveLog_legend_label_aveloBuoyancy => 'Avelo 浮力';
+
+  @override
+  String get diveLog_legend_label_aveloGasRemaining => '剩余气体';
+
+  @override
+  String get diveLog_legend_label_computerRmv => 'RMV（电脑）';
+
+  @override
   String get diveLog_legend_source_dc => '潜水电脑';
 
   @override
@@ -21839,6 +21848,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_defaultShowBuoyancy => '剖面显示浮力';
 
   @override
+  String get settings_conflict_field_defaultShowAveloBuoyancy =>
+      '剖面显示 Avelo 浮力';
+
+  @override
+  String get settings_conflict_field_defaultShowAveloGasRemaining => '剖面显示剩余气体';
+
+  @override
+  String get settings_conflict_field_defaultShowComputerRmv => '剖面显示电脑 RMV';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer => '已接受计划提示';
 
   @override
@@ -22759,6 +22778,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_buoyancy => '浮力';
+
+  @override
+  String get settings_appearance_metric_aveloBuoyancy => 'Avelo 浮力';
+
+  @override
+  String get settings_appearance_metric_aveloGasRemaining => '剩余气体（Avelo）';
+
+  @override
+  String get settings_appearance_metric_computerRmv => 'RMV（电脑）';
 
   @override
   String get settings_appearance_metric_events => '事件';
@@ -53434,10 +53462,28 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_profileMetric_buoyancy => '浮力';
 
   @override
+  String get enum_profileMetric_aveloBuoyancy => 'Avelo 浮力';
+
+  @override
+  String get enum_profileMetric_aveloGasRemaining => '剩余气体';
+
+  @override
+  String get enum_profileMetric_computerRmv => 'RMV（电脑）';
+
+  @override
   String get enum_profileMetric_o2CellMv_short => '电池';
 
   @override
   String get enum_profileMetric_buoyancy_short => '浮力';
+
+  @override
+  String get enum_profileMetric_aveloBuoyancy_short => 'Avelo';
+
+  @override
+  String get enum_profileMetric_aveloGasRemaining_short => '气体';
+
+  @override
+  String get enum_profileMetric_computerRmv_short => 'RMV';
 
   @override
   String get diveLog_o2CellSpread_label => 'O2电池离散度';

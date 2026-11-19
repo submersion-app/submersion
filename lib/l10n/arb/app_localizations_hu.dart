@@ -9532,6 +9532,15 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_legend_label_gtr => 'GTR';
 
   @override
+  String get diveLog_legend_label_aveloBuoyancy => 'Avelo felhajtóerő';
+
+  @override
+  String get diveLog_legend_label_aveloGasRemaining => 'Maradék gáz';
+
+  @override
+  String get diveLog_legend_label_computerRmv => 'RMV (komputer)';
+
+  @override
   String get diveLog_legend_source_dc => 'DC';
 
   @override
@@ -22903,6 +22912,18 @@ class AppLocalizationsHu extends AppLocalizations {
       'A profil mutatja a felhajtóerőt';
 
   @override
+  String get settings_conflict_field_defaultShowAveloBuoyancy =>
+      'A profil mutatja az Avelo felhajtóerőt';
+
+  @override
+  String get settings_conflict_field_defaultShowAveloGasRemaining =>
+      'A profil mutatja a maradék gázt';
+
+  @override
+  String get settings_conflict_field_defaultShowComputerRmv =>
+      'A profil mutatja a komputer RMV-jét';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Tervezési figyelmeztetés elfogadva';
 
@@ -23898,6 +23919,16 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_buoyancy => 'Felhajtóerő';
+
+  @override
+  String get settings_appearance_metric_aveloBuoyancy => 'Avelo felhajtóerő';
+
+  @override
+  String get settings_appearance_metric_aveloGasRemaining =>
+      'Maradék gáz (Avelo)';
+
+  @override
+  String get settings_appearance_metric_computerRmv => 'RMV (komputer)';
 
   @override
   String get settings_appearance_metric_events => 'Események';
@@ -56662,10 +56693,28 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_profileMetric_buoyancy => 'Felhajtóerő';
 
   @override
+  String get enum_profileMetric_aveloBuoyancy => 'Avelo felhajtóerő';
+
+  @override
+  String get enum_profileMetric_aveloGasRemaining => 'Maradék gáz';
+
+  @override
+  String get enum_profileMetric_computerRmv => 'RMV (komputer)';
+
+  @override
   String get enum_profileMetric_o2CellMv_short => 'Cellák';
 
   @override
   String get enum_profileMetric_buoyancy_short => 'Felhajtó';
+
+  @override
+  String get enum_profileMetric_aveloBuoyancy_short => 'Avelo';
+
+  @override
+  String get enum_profileMetric_aveloGasRemaining_short => 'Gáz';
+
+  @override
+  String get enum_profileMetric_computerRmv_short => 'RMV';
 
   @override
   String get diveLog_o2CellSpread_label => 'O2-cellák szórása';

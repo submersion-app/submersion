@@ -60,6 +60,24 @@ class DefaultVisibleMetricsPage extends ConsumerWidget {
             value: settings.defaultShowBuoyancy,
             onChanged: notifier.setDefaultShowBuoyancy,
           ),
+          // The three values Shearwater's Avelo mode logs (issue #4664).
+          SwitchListTile(
+            title: Text(context.l10n.settings_appearance_metric_aveloBuoyancy),
+            value: settings.defaultShowAveloBuoyancy,
+            onChanged: notifier.setDefaultShowAveloBuoyancy,
+          ),
+          SwitchListTile(
+            title: Text(
+              context.l10n.settings_appearance_metric_aveloGasRemaining,
+            ),
+            value: settings.defaultShowAveloGasRemaining,
+            onChanged: notifier.setDefaultShowAveloGasRemaining,
+          ),
+          SwitchListTile(
+            title: Text(context.l10n.settings_appearance_metric_computerRmv),
+            value: settings.defaultShowComputerRmv,
+            onChanged: notifier.setDefaultShowComputerRmv,
+          ),
           SwitchListTile(
             title: Text(context.l10n.settings_appearance_metric_events),
             value: settings.defaultShowEvents,

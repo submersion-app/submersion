@@ -814,6 +814,11 @@ class SectionAppearancePage extends ConsumerWidget {
       ProfileRightAxisMetric.otu => l10n.enum_profileMetric_otu,
       ProfileRightAxisMetric.o2CellMv => l10n.enum_profileMetric_o2CellMv,
       ProfileRightAxisMetric.buoyancy => l10n.enum_profileMetric_buoyancy,
+      ProfileRightAxisMetric.aveloBuoyancy =>
+        l10n.enum_profileMetric_aveloBuoyancy,
+      ProfileRightAxisMetric.aveloGasRemaining =>
+        l10n.enum_profileMetric_aveloGasRemaining,
+      ProfileRightAxisMetric.computerRmv => l10n.enum_profileMetric_computerRmv,
     };
   }
 
@@ -858,6 +863,9 @@ class SectionAppearancePage extends ConsumerWidget {
     settings.defaultShowO2CellMv,
     settings.defaultShowCounterdiffusion,
     settings.defaultShowBuoyancy,
+    settings.defaultShowAveloBuoyancy,
+    settings.defaultShowAveloGasRemaining,
+    settings.defaultShowComputerRmv,
     settings.defaultShowGf,
     settings.defaultShowSurfaceGf,
     settings.defaultShowMeanDepth,

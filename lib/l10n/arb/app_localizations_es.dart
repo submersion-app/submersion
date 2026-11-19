@@ -9558,6 +9558,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_legend_label_gtr => 'GTR';
 
   @override
+  String get diveLog_legend_label_aveloBuoyancy => 'Flotabilidad Avelo';
+
+  @override
+  String get diveLog_legend_label_aveloGasRemaining => 'Gas restante';
+
+  @override
+  String get diveLog_legend_label_computerRmv => 'RMV (ordenador)';
+
+  @override
   String get diveLog_legend_source_dc => 'DC';
 
   @override
@@ -22969,6 +22978,18 @@ class AppLocalizationsEs extends AppLocalizations {
       'El perfil muestra la flotabilidad';
 
   @override
+  String get settings_conflict_field_defaultShowAveloBuoyancy =>
+      'El perfil muestra la flotabilidad Avelo';
+
+  @override
+  String get settings_conflict_field_defaultShowAveloGasRemaining =>
+      'El perfil muestra el gas restante';
+
+  @override
+  String get settings_conflict_field_defaultShowComputerRmv =>
+      'El perfil muestra el RMV del ordenador';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Aviso de planificación aceptado';
 
@@ -23969,6 +23990,16 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_buoyancy => 'Flotabilidad';
+
+  @override
+  String get settings_appearance_metric_aveloBuoyancy => 'Flotabilidad Avelo';
+
+  @override
+  String get settings_appearance_metric_aveloGasRemaining =>
+      'Gas restante (Avelo)';
+
+  @override
+  String get settings_appearance_metric_computerRmv => 'RMV (ordenador)';
 
   @override
   String get settings_appearance_metric_events => 'Eventos';
@@ -57019,10 +57050,28 @@ class AppLocalizationsEs extends AppLocalizations {
   String get enum_profileMetric_buoyancy => 'Flotabilidad';
 
   @override
+  String get enum_profileMetric_aveloBuoyancy => 'Flotabilidad Avelo';
+
+  @override
+  String get enum_profileMetric_aveloGasRemaining => 'Gas restante';
+
+  @override
+  String get enum_profileMetric_computerRmv => 'RMV (ordenador)';
+
+  @override
   String get enum_profileMetric_o2CellMv_short => 'Células';
 
   @override
   String get enum_profileMetric_buoyancy_short => 'Flotab.';
+
+  @override
+  String get enum_profileMetric_aveloBuoyancy_short => 'Avelo';
+
+  @override
+  String get enum_profileMetric_aveloGasRemaining_short => 'Gas';
+
+  @override
+  String get enum_profileMetric_computerRmv_short => 'RMV';
 
   @override
   String get diveLog_o2CellSpread_label => 'Dispersión de células O2';

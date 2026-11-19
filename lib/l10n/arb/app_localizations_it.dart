@@ -9556,6 +9556,15 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_legend_label_gtr => 'GTR';
 
   @override
+  String get diveLog_legend_label_aveloBuoyancy => 'Assetto Avelo';
+
+  @override
+  String get diveLog_legend_label_aveloGasRemaining => 'Gas residuo';
+
+  @override
+  String get diveLog_legend_label_computerRmv => 'RMV (computer)';
+
+  @override
   String get diveLog_legend_source_dc => 'DC';
 
   @override
@@ -11352,7 +11361,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String diveLog_cylinders_aveloBuoyancy(String min, String max, String mean) {
-    return 'Galleggiabilità Avelo da $min a $max, media $mean';
+    return 'Assetto Avelo da $min a $max, media $mean';
   }
 
   @override
@@ -22981,6 +22990,18 @@ class AppLocalizationsIt extends AppLocalizations {
       'Il profilo mostra l\'assetto';
 
   @override
+  String get settings_conflict_field_defaultShowAveloBuoyancy =>
+      'Il profilo mostra l\'assetto Avelo';
+
+  @override
+  String get settings_conflict_field_defaultShowAveloGasRemaining =>
+      'Il profilo mostra il gas residuo';
+
+  @override
+  String get settings_conflict_field_defaultShowComputerRmv =>
+      'Il profilo mostra l\'RMV del computer';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Avviso di pianificazione accettato';
 
@@ -23974,6 +23995,16 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_buoyancy => 'Assetto';
+
+  @override
+  String get settings_appearance_metric_aveloBuoyancy => 'Assetto Avelo';
+
+  @override
+  String get settings_appearance_metric_aveloGasRemaining =>
+      'Gas residuo (Avelo)';
+
+  @override
+  String get settings_appearance_metric_computerRmv => 'RMV (computer)';
 
   @override
   String get settings_appearance_metric_events => 'Eventi';
@@ -56965,10 +56996,28 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_profileMetric_buoyancy => 'Assetto';
 
   @override
+  String get enum_profileMetric_aveloBuoyancy => 'Assetto Avelo';
+
+  @override
+  String get enum_profileMetric_aveloGasRemaining => 'Gas residuo';
+
+  @override
+  String get enum_profileMetric_computerRmv => 'RMV (computer)';
+
+  @override
   String get enum_profileMetric_o2CellMv_short => 'Celle';
 
   @override
   String get enum_profileMetric_buoyancy_short => 'Assetto';
+
+  @override
+  String get enum_profileMetric_aveloBuoyancy_short => 'Avelo';
+
+  @override
+  String get enum_profileMetric_aveloGasRemaining_short => 'Gas';
+
+  @override
+  String get enum_profileMetric_computerRmv_short => 'RMV';
 
   @override
   String get diveLog_o2CellSpread_label => 'Dispersione delle celle O2';

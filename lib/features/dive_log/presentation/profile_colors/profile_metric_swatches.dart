@@ -27,9 +27,11 @@ const List<Color> profileMetricSwatches = [
   ProfileMetricColors.meanDepth,
   ProfileMetricColors.events,
   ProfileMetricColors.ascentRateLine,
-  Color(0xFF689F38), // Light Green 700
-  Color(0xFFFF7043), // Deep Orange 400
-  Color(0xFF29B6F6), // Light Blue 400
+  // Light Green 700, Deep Orange 400 and Light Blue 400 are also the three
+  // Avelo lines' defaults (#4664).
+  ProfileMetricColors.aveloGasRemaining,
+  ProfileMetricColors.computerRmv,
+  ProfileMetricColors.aveloBuoyancy,
   Color(0xFFE040FB), // Purple A200
   Color(0xFFF50057), // Pink A400
   Color(0xFF00E676), // Green A400

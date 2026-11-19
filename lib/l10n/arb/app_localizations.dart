@@ -15106,6 +15106,24 @@ abstract class AppLocalizations {
   /// **'GTR'**
   String get diveLog_legend_label_gtr;
 
+  /// No description provided for @diveLog_legend_label_aveloBuoyancy.
+  ///
+  /// In en, this message translates to:
+  /// **'Avelo buoyancy'**
+  String get diveLog_legend_label_aveloBuoyancy;
+
+  /// No description provided for @diveLog_legend_label_aveloGasRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas remaining'**
+  String get diveLog_legend_label_aveloGasRemaining;
+
+  /// No description provided for @diveLog_legend_label_computerRmv.
+  ///
+  /// In en, this message translates to:
+  /// **'RMV (computer)'**
+  String get diveLog_legend_label_computerRmv;
+
   /// No description provided for @diveLog_legend_source_dc.
   ///
   /// In en, this message translates to:
@@ -36277,6 +36295,24 @@ abstract class AppLocalizations {
   /// **'Profile shows buoyancy'**
   String get settings_conflict_field_defaultShowBuoyancy;
 
+  /// No description provided for @settings_conflict_field_defaultShowAveloBuoyancy.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile shows Avelo buoyancy'**
+  String get settings_conflict_field_defaultShowAveloBuoyancy;
+
+  /// No description provided for @settings_conflict_field_defaultShowAveloGasRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile shows gas remaining'**
+  String get settings_conflict_field_defaultShowAveloGasRemaining;
+
+  /// No description provided for @settings_conflict_field_defaultShowComputerRmv.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile shows computer RMV'**
+  String get settings_conflict_field_defaultShowComputerRmv;
+
   /// No description provided for @settings_conflict_field_hasAcceptedPlanningDisclaimer.
   ///
   /// In en, this message translates to:
@@ -37824,6 +37860,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Buoyancy'**
   String get settings_appearance_metric_buoyancy;
+
+  /// No description provided for @settings_appearance_metric_aveloBuoyancy.
+  ///
+  /// In en, this message translates to:
+  /// **'Avelo buoyancy'**
+  String get settings_appearance_metric_aveloBuoyancy;
+
+  /// No description provided for @settings_appearance_metric_aveloGasRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas remaining (Avelo)'**
+  String get settings_appearance_metric_aveloGasRemaining;
+
+  /// No description provided for @settings_appearance_metric_computerRmv.
+  ///
+  /// In en, this message translates to:
+  /// **'RMV (computer)'**
+  String get settings_appearance_metric_computerRmv;
 
   /// No description provided for @settings_appearance_metric_events.
   ///
@@ -89326,6 +89380,24 @@ abstract class AppLocalizations {
   /// **'Buoyancy'**
   String get enum_profileMetric_buoyancy;
 
+  /// No description provided for @enum_profileMetric_aveloBuoyancy.
+  ///
+  /// In en, this message translates to:
+  /// **'Avelo buoyancy'**
+  String get enum_profileMetric_aveloBuoyancy;
+
+  /// No description provided for @enum_profileMetric_aveloGasRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas remaining'**
+  String get enum_profileMetric_aveloGasRemaining;
+
+  /// No description provided for @enum_profileMetric_computerRmv.
+  ///
+  /// In en, this message translates to:
+  /// **'RMV (computer)'**
+  String get enum_profileMetric_computerRmv;
+
   /// No description provided for @enum_profileMetric_o2CellMv_short.
   ///
   /// In en, this message translates to:
@@ -89337,6 +89409,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Buoyancy'**
   String get enum_profileMetric_buoyancy_short;
+
+  /// No description provided for @enum_profileMetric_aveloBuoyancy_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Avelo'**
+  String get enum_profileMetric_aveloBuoyancy_short;
+
+  /// No description provided for @enum_profileMetric_aveloGasRemaining_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas'**
+  String get enum_profileMetric_aveloGasRemaining_short;
+
+  /// No description provided for @enum_profileMetric_computerRmv_short.
+  ///
+  /// In en, this message translates to:
+  /// **'RMV'**
+  String get enum_profileMetric_computerRmv_short;
 
   /// No description provided for @diveLog_o2CellSpread_label.
   ///
