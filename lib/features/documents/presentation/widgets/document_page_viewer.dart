@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:pdfrx/pdfrx.dart';
 
@@ -53,6 +55,8 @@ class _DocumentPageViewerState extends ConsumerState<DocumentPageViewer> {
     // The page on screen first: reads run in the order they are asked for.
     for (final i in [_current, _current + 1, _current - 1]) {
       if (i < 0 || i >= pages.length || !pages[i].rendersInApp) continue;
+      // A page added in a sitting carries its content until Save.
+      if (pages[i].bytes != null) continue;
       ref.listen(documentPageContentProvider(pages[i].contentKey), (_, _) {});
     }
     return Column(
@@ -86,6 +90,9 @@ class _PageView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (!page.rendersInApp) return _FileTile(page: page);
+    // A page added in a sitting (issue #4527) carries its content until
+    // Save, and is not stored to be read.
+    if (page.bytes case final bytes?) return _shown(page, bytes);
     return ref
         .watch(documentPageContentProvider(page.contentKey))
         .when(
@@ -93,18 +100,21 @@ class _PageView extends ConsumerWidget {
           error: (_, _) => _CannotDisplay(page: page),
           data: (bytes) {
             if (bytes == null) return _FileTile(page: page);
-            final loaded = page.copyWith(bytes: bytes);
-            if (page.isPdf) return _PdfPage(page: loaded);
-            return InteractiveViewer(
-              maxScale: 6,
-              child: Image.memory(
-                bytes,
-                fit: BoxFit.contain,
-                errorBuilder: (context, _, _) => _CannotDisplay(page: loaded),
-              ),
-            );
+            return _shown(page.copyWith(bytes: bytes), bytes);
           },
         );
+  }
+
+  Widget _shown(DocumentPage loaded, Uint8List bytes) {
+    if (loaded.isPdf) return _PdfPage(page: loaded);
+    return InteractiveViewer(
+      maxScale: 6,
+      child: Image.memory(
+        bytes,
+        fit: BoxFit.contain,
+        errorBuilder: (context, _, _) => _CannotDisplay(page: loaded),
+      ),
+    );
   }
 }
 

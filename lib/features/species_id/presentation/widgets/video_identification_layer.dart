@@ -16,6 +16,7 @@ import 'package:submersion/features/media/presentation/editing/photo_sitting_sho
 import 'package:submersion/features/media/presentation/helpers/face_box_geometry.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_species_sheet.dart';
+import 'package:submersion/features/media/presentation/widgets/video_playhead_builder.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
 import 'package:submersion/features/species_id/domain/services/track_labels.dart';
@@ -89,13 +90,15 @@ class VideoIdentificationLayer extends ConsumerWidget {
       for (final s in ref.watch(allSpeciesProvider).value ?? const <Species>[])
         s.id: s,
     };
-    return ValueListenableBuilder<VideoPlayerValue>(
-      valueListenable: playback,
-      builder: (context, value, _) {
+    // Labels follow the playhead frame by frame, not the player's position
+    // reports a few times a second (issue #4759).
+    return VideoPlayheadBuilder(
+      playback: playback,
+      builder: (context, value, playhead) {
         if (value.size.isEmpty) return const SizedBox.shrink();
         final labels = labelsAt(
           shown,
-          value.position.inMilliseconds,
+          playhead.inMilliseconds,
           playing: value.isPlaying,
           unconfirmedSpeciesIds: unconfirmed,
         );

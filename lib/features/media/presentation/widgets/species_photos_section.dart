@@ -19,11 +19,20 @@ class SpeciesPhotosSection extends ConsumerWidget {
   final VoidCallback? onTagPhotos;
   final VoidCallback? onAddPhotos;
 
+  /// Photos a species page's sitting holds to tag or to add at Save (issue
+  /// #4527, phase 3), drawn ahead of the stored ones.
+  final List<Widget> pendingTiles;
+
+  /// Marks the section as changed by the sitting, beside its title.
+  final Widget? changedMark;
+
   const SpeciesPhotosSection({
     super.key,
     required this.speciesId,
     this.onTagPhotos,
     this.onAddPhotos,
+    this.pendingTiles = const [],
+    this.changedMark,
   });
 
   @override
@@ -47,6 +56,7 @@ class SpeciesPhotosSection extends ConsumerWidget {
                 ),
               ),
             ),
+            ?changedMark,
             if (onTagPhotos != null)
               TextButton.icon(
                 key: const ValueKey('species_tag_photos'),
@@ -76,7 +86,8 @@ class SpeciesPhotosSection extends ConsumerWidget {
             style: TextStyle(color: Theme.of(context).colorScheme.error),
           ),
           data: (items) {
-            if (items.isEmpty) {
+            final pending = pendingTiles;
+            if (items.isEmpty && pending.isEmpty) {
               return MediaEmptyState(
                 icon: Icons.photo_library_outlined,
                 message: l10n.marineLife_speciesPhotos_empty,
@@ -90,9 +101,10 @@ class SpeciesPhotosSection extends ConsumerWidget {
                 crossAxisSpacing: 8,
                 mainAxisSpacing: 8,
               ),
-              itemCount: items.length,
+              itemCount: pending.length + items.length,
               itemBuilder: (context, index) {
-                final item = items[index];
+                if (index < pending.length) return pending[index];
+                final item = items[index - pending.length];
                 return GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () => _openViewer(context, item),
