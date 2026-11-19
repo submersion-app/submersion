@@ -690,6 +690,8 @@ class GarminCloudAdapter implements ImportSourceAdapter {
       title: summary.title,
       subtitle: summary.subtitle,
       diveData: diveData,
+      // A stand-in time places the dive in no trip (#3022).
+      hasSourceTime: parsed.dive.startTimeReported,
     );
   }
 

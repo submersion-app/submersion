@@ -51,6 +51,13 @@ void main() {
     expect(tripForDiveDate(dive(5, 3, 20), [t]), t);
   });
 
+  test('of trips starting the same day, the larger id wins', () {
+    final b = trip('b', DateTime(2026, 3, 7), DateTime(2026, 3, 14));
+    final c = trip('c', DateTime(2026, 3, 7), DateTime(2026, 3, 20));
+    expect(tripForDiveDate(dive(3, 10), [b, c]), c);
+    expect(tripForDiveDate(dive(3, 10), [c, b]), c);
+  });
+
   test('of overlapping trips the one that started last wins', () {
     final season = trip('season', DateTime(2026, 3, 1), DateTime(2026, 3, 31));
     final listed = [season, bonaire];

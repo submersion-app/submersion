@@ -161,12 +161,37 @@ class EntityItem {
   /// The profile this item goes to, when the import writes to several.
   final ImportTarget? target;
 
+  /// The source's reference for a trip, so the review can show the trip a
+  /// dive will join (issue #3022). On a dive, the ref of the trip its source
+  /// put it in; on a trip, its own ref. Null when there is none.
+  final String? tripRef;
+
+  /// On a dive of a merged multi-file batch, whether its own file had trips
+  /// (`PayloadMerger.sourceHasTripsKey`); null otherwise, when the trip rows
+  /// of the dive's profile say whether its source had trips. Such a source
+  /// leaves a dive outside its trips on purpose, so only a dive whose own
+  /// trip is not imported is placed by date (see `placesImportedDiveByDate`).
+  final bool? sourceHasTrips;
+
+  /// On a dive, false when its source reported no start time: its time is a
+  /// stand-in, so the download places it in no trip.
+  final bool hasSourceTime;
+
+  /// On a trip, the trip the importer would create from it: its name and
+  /// dates as given (a missing one is the import moment). Null when the
+  /// importer creates none, as for a trip with no name.
+  final ({String name, DateTime? start, DateTime? end})? sourceTrip;
+
   const EntityItem({
     required this.title,
     required this.subtitle,
     this.icon,
     this.diveData,
     this.target,
+    this.tripRef,
+    this.sourceHasTrips,
+    this.hasSourceTime = true,
+    this.sourceTrip,
   });
 
   EntityItem copyWith({ImportTarget? target}) => EntityItem(
@@ -175,6 +200,10 @@ class EntityItem {
     icon: icon,
     diveData: diveData,
     target: target ?? this.target,
+    tripRef: tripRef,
+    sourceHasTrips: sourceHasTrips,
+    hasSourceTime: hasSourceTime,
+    sourceTrip: sourceTrip,
   );
 }
 

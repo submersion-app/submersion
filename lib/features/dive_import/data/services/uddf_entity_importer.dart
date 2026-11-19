@@ -97,6 +97,7 @@ import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/services/imported_dive_trip.dart';
 import 'package:submersion/features/trips/domain/services/trip_for_dive_date.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/core/text/blank_text.dart';
@@ -3050,9 +3051,14 @@ class UddfEntityImporter {
       // A merged batch says per dive whether its own file had trips.
       final fileHasTrips =
           diveData[PayloadMerger.sourceHasTripsKey] as bool? ?? sourceHasTrips;
-      if (linkedTripId == null &&
-          sourceDateTime != null &&
-          (tripRef != null || !fileHasTrips)) {
+      // The rule is shared with the import review, which shows the trip
+      // (#3022).
+      if (sourceDateTime != null &&
+          placesImportedDiveByDate(
+            hasOwnTrip: linkedTripId != null,
+            hasTripRef: tripRef != null,
+            sourceHasTrips: fileHasTrips,
+          )) {
         diverTrips ??= await repos.tripRepository.getAllTrips(diverId: diverId);
         linkedTripId = tripForDiveDate(sourceDateTime, diverTrips)?.id;
       }

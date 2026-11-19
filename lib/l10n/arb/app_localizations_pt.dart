@@ -37532,6 +37532,20 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_tripsTitle => 'Viagens';
+
+  @override
+  String universalImport_summary_tripCount(String trip, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$trip: $count mergulhos',
+      one: '$trip: $count mergulho',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get universalImport_summary_noticeSitesUnresolvedTitle =>
       'Alguns mergulhos sem ponto de mergulho';
 
@@ -37961,6 +37975,11 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get universalImport_fillPlanned_replacesProfile =>
       'O perfil esboçado será substituído.';
+
+  @override
+  String universalImport_review_tripLabel(String trip) {
+    return 'Viagem: $trip';
+  }
 
   @override
   String get universalImport_fillPlanned_change => 'Alterar';

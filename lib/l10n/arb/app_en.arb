@@ -21927,6 +21927,18 @@
       }
     }
   },
+  "universalImport_summary_tripsTitle": "Trips",
+  "universalImport_summary_tripCount": "{count, plural, =1{{trip}: {count} dive} other{{trip}: {count} dives}}",
+  "@universalImport_summary_tripCount": {
+    "placeholders": {
+      "trip": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "universalImport_summary_noticeSitesUnresolvedTitle": "Some dives have no dive site",
   "universalImport_summary_noticeSitesUnresolvedBody": "These dives referred to a dive site the file does not describe, so they were imported without one. You can set a site by editing the dive.",
   "universalImport_summary_noticeGearUnavailableTitle": "Gear not imported",
@@ -22263,6 +22275,14 @@
     }
   },
   "universalImport_fillPlanned_replacesProfile": "Its sketched profile will be replaced.",
+  "universalImport_review_tripLabel": "Trip: {trip}",
+  "@universalImport_review_tripLabel": {
+    "placeholders": {
+      "trip": {
+        "type": "String"
+      }
+    }
+  },
   "universalImport_fillPlanned_change": "Change",
   "universalImport_fillPlanned_pickerTitle": "Choose a planned dive",
   "universalImport_fillPlanned_importAsNew": "Import as a new dive instead",

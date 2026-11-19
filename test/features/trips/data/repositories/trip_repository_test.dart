@@ -303,6 +303,26 @@ void main() {
     });
 
     group('findTripForDate', () {
+      test('of trips starting the same day, the larger id wins', () async {
+        // Overlapping trips stored at the same local midnight tie on the
+        // start; the id breaks it so the import review, which reads all
+        // trips, names the same one (issue #3022).
+        for (final id in ['trip-b', 'trip-c', 'trip-a']) {
+          await repository.createTrip(
+            createTestTrip(
+              id: id,
+              name: id,
+              startDate: DateTime(2024, 6, 1),
+              endDate: DateTime(2024, 6, 15),
+            ),
+          );
+        }
+
+        final result = await repository.findTripForDate(DateTime(2024, 6, 10));
+
+        expect(result?.id, 'trip-c');
+      });
+
       test('should find trip containing the given date', () async {
         final trip = await repository.createTrip(
           createTestTrip(

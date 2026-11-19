@@ -35319,6 +35319,20 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_tripsTitle => '旅行';
+
+  @override
+  String universalImport_summary_tripCount(String trip, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$trip：$count 次潜水',
+      one: '$trip：$count 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get universalImport_summary_noticeSitesUnresolvedTitle => '部分潜水没有潜水点';
 
   @override
@@ -35708,6 +35722,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get universalImport_fillPlanned_replacesProfile => '其草绘的剖面将被替换。';
+
+  @override
+  String universalImport_review_tripLabel(String trip) {
+    return '旅行：$trip';
+  }
 
   @override
   String get universalImport_fillPlanned_change => '更改';

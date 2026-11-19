@@ -14,6 +14,7 @@ import 'package:submersion/features/import_wizard/domain/models/import_notice.da
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
 import 'package:submersion/features/rules/presentation/widgets/import_rules_box.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/import_cylinders_tile.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/import_trips_tile.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/import_summary_diver_outcomes.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/missing_dives_card.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/undo_fills_button.dart';
@@ -335,6 +336,14 @@ class _SuccessView extends StatelessWidget {
                     ? ImportCylindersTile(importedDiveIds: importedDiveIds)
                     : const SizedBox.shrink(),
               ),
+            // The trips the new dives were saved in (issue #3022).
+            ImportTripsTile(
+              importedDiveIds: tripCountDiveIds(
+                importedDiveIds: importedDiveIds,
+                diverOutcomes: diverOutcomes,
+                filledDiveIds: [for (final f in fillOutcomes) f.diveId],
+              ),
+            ),
             if (partialError != null ||
                 ImportSummaryDiverOutcomes.isWorthShowing(diverOutcomes)) ...[
               const SizedBox(height: 16),

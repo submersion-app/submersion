@@ -74,6 +74,7 @@ import 'package:submersion/features/import_wizard/domain/models/diver_import_out
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/universal_import/data/services/diver_slice_duplicates.dart';
 import 'package:submersion/features/universal_import/data/services/payload_slicer.dart';
+import 'package:submersion/features/universal_import/data/services/payload_merger.dart';
 import 'package:submersion/features/import_wizard/data/adapters/import_notice_grouper.dart';
 import 'package:submersion/features/import_wizard/data/adapters/remote_photo_attacher.dart';
 import 'package:submersion/features/import_wizard/data/adapters/import_photo_linker.dart';
@@ -1525,7 +1526,16 @@ class UniversalAdapter implements ImportSourceAdapter {
 
     final diveData = IncomingDiveData.fromImportMap(data);
 
-    return EntityItem(title: title, subtitle: subtitle, diveData: diveData);
+    return EntityItem(
+      title: title,
+      subtitle: subtitle,
+      diveData: diveData,
+      tripRef: data['tripRef'] as String?,
+      // Only a merged batch says per dive whether its own file had trips
+      // (#2743); otherwise the review asks the trip rows of the dive's
+      // profile, as each profile's slice is imported on its own.
+      sourceHasTrips: data[PayloadMerger.sourceHasTripsKey] as bool?,
+    );
   }
 
   EntityItem _siteToEntityItem(Map<String, dynamic> data) {
@@ -1589,7 +1599,8 @@ class UniversalAdapter implements ImportSourceAdapter {
   }
 
   EntityItem _tripToEntityItem(Map<String, dynamic> data) {
-    final name = (data['name'] as String?) ?? 'Unnamed';
+    final sourceName = data['name'] as String?;
+    final name = sourceName ?? 'Unnamed';
     final startDate = data['startDate'] as DateTime?;
     final endDate = data['endDate'] as DateTime?;
 
@@ -1605,7 +1616,15 @@ class UniversalAdapter implements ImportSourceAdapter {
       subtitle = '';
     }
 
-    return EntityItem(title: name, subtitle: subtitle);
+    return EntityItem(
+      title: name,
+      subtitle: subtitle,
+      tripRef: data['uddfId'] as String?,
+      // The importer creates no trip without a name.
+      sourceTrip: sourceName == null || sourceName.isEmpty
+          ? null
+          : (name: sourceName, start: startDate, end: endDate),
+    );
   }
 
   EntityItem _certificationToEntityItem(Map<String, dynamic> data) {

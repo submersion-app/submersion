@@ -58916,6 +58916,18 @@ abstract class AppLocalizations {
   /// **'These trips have no dates, and none of their dives has one, so they could not be imported: {names}. You can add them again under Trips.'**
   String universalImport_summary_noticeTripsNotImportedBody(String names);
 
+  /// No description provided for @universalImport_summary_tripsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Trips'**
+  String get universalImport_summary_tripsTitle;
+
+  /// No description provided for @universalImport_summary_tripCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{trip}: {count} dive} other{{trip}: {count} dives}}'**
+  String universalImport_summary_tripCount(String trip, int count);
+
   /// No description provided for @universalImport_summary_noticeSitesUnresolvedTitle.
   ///
   /// In en, this message translates to:
@@ -59440,6 +59452,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Its sketched profile will be replaced.'**
   String get universalImport_fillPlanned_replacesProfile;
+
+  /// No description provided for @universalImport_review_tripLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip: {trip}'**
+  String universalImport_review_tripLabel(String trip);
 
   /// No description provided for @universalImport_fillPlanned_change.
   ///

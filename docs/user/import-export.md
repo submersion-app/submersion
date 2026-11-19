@@ -160,7 +160,14 @@ Dives arrive in the trips their file assigns them. A dive with no trip of its
 own joins your existing trip whose dates cover it, when the file has no trips at
 all (MacDive, for example) or when the dive's trip was not imported. A file that
 has trips but leaves a dive out of them is respected, and an undated dive is
-never placed.
+never placed. Dives downloaded from a dive computer or Apple Health join the trip
+that covers them the same way.
+
+The review step shows, under each new dive, the trip it will join, and follows
+your choices: untick one of the file's trips, or skip a dive, and the row
+updates. A dive you merge into one already in your log names a trip too when
+that dive has none, since the merge moves it into the new dive's trip. To put a dive in another trip, change it on the dive after the
+import. The summary then lists how many of the new dives went into each trip.
 
 ### Re-importing all dives from a computer
 

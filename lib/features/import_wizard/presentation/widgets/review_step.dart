@@ -5,6 +5,7 @@ import 'package:submersion/features/dive_import/domain/services/dive_matcher.dar
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/presentation/providers/import_trip_providers.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/computer_owner_notice.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/entity_review_list.dart';
@@ -516,6 +517,10 @@ class _EntityTab extends ConsumerWidget {
               const <Dive>[]
         : const <Dive>[];
     final units = ref.watch(unitFormatterProvider);
+    // The trip each new dive will be saved in (issue #3022).
+    final tripNames = type == ImportEntityType.dives
+        ? ref.watch(importReviewTripNamesProvider)
+        : const <int, String>{};
     String? plannedLabelFor(int index) {
       final plannedId = group.matchResults?[index]?.fillTarget?.diveId;
       if (plannedId == null) return null;
@@ -596,6 +601,9 @@ class _EntityTab extends ConsumerWidget {
             : null,
         plannedDiveLabelForIndex: offersFill ? plannedLabelFor : null,
         onChangeFillTarget: offersFill ? changeFillTarget : null,
+        tripNameForIndex: type == ImportEntityType.dives
+            ? (i) => tripNames[i]
+            : null,
       ),
     );
   }
