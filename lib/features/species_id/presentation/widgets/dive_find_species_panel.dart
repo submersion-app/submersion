@@ -133,9 +133,10 @@ class DiveFindSpeciesPanel extends ConsumerWidget {
     final toReview =
         ref.watch(speciesReviewCountProvider(DiveReviewScope(dive.id))).value ??
         0;
-    final checked =
-        toReview == 0 &&
+    // Watched whatever the count, so Find reads the set it was built from.
+    final upToDate =
         ref.watch(diveSpeciesCheckedProvider(dive.id)).value == true;
+    final checked = toReview == 0 && upToDate;
     return Padding(
       padding: const EdgeInsets.only(top: 8),
       child: OutlinedButton.icon(
@@ -154,21 +155,10 @@ class DiveFindSpeciesPanel extends ConsumerWidget {
       for (final m in await ref.read(mediaForDiveProvider(dive.id).future))
         if (m.mediaType == MediaType.photo || m.mediaType == MediaType.video) m,
     ];
-    // Only what the run will open: media checked with the installed model
-    // (a video to its end) is not read again.
-    final installed = await ref.read(installedSpeciesPackProvider.future);
-    final runs = await ref.read(mediaIdentificationRepositoryProvider).runsFor([
-      for (final m in media) m.id,
-    ]);
+    // Only what the run will open: media up to date is not read again.
     final missing = notOnDeviceCount(
       media,
-      checked: {
-        for (final m in media)
-          if (runs[m.id] case final run?
-              when run.packVersion == installed?.manifest.packVersion &&
-                  (m.mediaType != MediaType.video || run.scanComplete))
-            m.id,
-      },
+      checked: await ref.read(diveMediaUpToDateProvider(dive.id).future),
     );
     if (missing > 0) {
       if (!context.mounted) return;

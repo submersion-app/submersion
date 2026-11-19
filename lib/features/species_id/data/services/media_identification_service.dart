@@ -28,6 +28,7 @@ import 'package:submersion/features/species_id/domain/services/video_identificat
 import 'package:submersion/features/species_id/domain/services/video_scan_order.dart';
 import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 
+part 'media_identification_readiness.dart';
 part 'media_identification_run_lane.dart';
 part 'media_identification_video.dart';
 
@@ -454,17 +455,7 @@ class MediaIdentificationService {
         return false;
       }
       final manifest = pack.pack.manifest;
-      final location = job.location;
-      // A position that is not a number (a bad EXIF read) is no position:
-      // the photo is named without a region rather than not at all.
-      final cell =
-          location == null ||
-              !location.latitude.isFinite ||
-              !location.longitude.isFinite
-          ? null
-          : RegionGrid(
-              cellDegrees: manifest.region.cellDegrees,
-            ).cellOf(location.latitude, location.longitude);
+      final cell = _regionCell(manifest, job.location);
 
       final run = await _identifications.runFor(item.id);
       final stored = await _identifications.forMedia(item.id);
@@ -478,14 +469,7 @@ class MediaIdentificationService {
         for (final i in named)
           if (i.decision == IdentificationDecision.undecided) i,
       ];
-      // A suggestion's crop must be here. A decided identification's crop
-      // is restored by analysing once on this device (after a restore onto
-      // a new one); if that analysis could not bring it back, it stays
-      // without one rather than the photo being analysed at every opening.
-      final cropsPresent =
-          await _crops.allPresent(item.id, [for (final i in undecided) i.id]) &&
-          (undecided.length == named.length ||
-              await _crops.wasAnalysedHere(item.id));
+      final cropsPresent = await _cropsPresent(_crops, item.id, named);
       // A video's tracks are named again only when their pack or place
       // changed: its embeddings are not read otherwise.
       final namesCurrent =
