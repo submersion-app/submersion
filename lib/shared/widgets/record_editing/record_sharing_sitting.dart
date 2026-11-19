@@ -72,7 +72,10 @@ class RecordSharingSitting<T, S> {
   /// ([RecordSharingAdapter.needsRewrite]) is written again, as read, by
   /// [actingDiverId] with any Save the sitting makes. That write is not a change of its own, and a
   /// refusal of it (a profile that may not share) fails nothing: the save
-  /// that clears such rows is the owner's.
+  /// that clears such rows is the owner's. A sitting with no change of its
+  /// own writes nothing at all, so the rows wait for the next Save that
+  /// changes something: upkeep the diver never asked for does not mark the
+  /// sitting changed, which would make Cancel ask about it.
   Future<void> load(
     EditSession<T> session,
     RecordSharingAdapter<S> adapter, {

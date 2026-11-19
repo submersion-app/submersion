@@ -107,17 +107,37 @@ mixin RecordEditHost<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
   /// ([hostsEditing]) takes no sitting, joined or its own.
   RecordEditController<T>? get joinedSitting => null;
 
-  /// [joinedSitting], on a page that hosts editing, while that sitting is
-  /// on the record the page shows: a page handed another record does not
-  /// edit the one it was opened for.
+  /// [joinedSitting], on a page that hosts editing, while it belongs to the
+  /// record the page shows: the one the page was showing when handed it,
+  /// and the one its sitting, if any, is on. A page handed another record
+  /// does not edit, or follow, the one it was opened for.
   RecordEditController<T>? get _joined {
     if (!hostsEditing) return null;
     final joined = joinedSitting;
-    final session = joined?.session;
+    if (joined == null) return null;
+    final joinedFor = _joinedFor;
+    if (identical(joinedFor?.controller, joined) &&
+        joinedFor!.recordId != hostRecordId) {
+      return null;
+    }
+    final session = joined.session;
     if (session != null && recordIdOf(session.stored) != hostRecordId) {
       return null;
     }
     return joined;
+  }
+
+  /// The joined sitting the page was handed, and the record it was showing
+  /// then, which that sitting belongs to.
+  ({RecordEditController<T> controller, String recordId})? _joinedFor;
+
+  /// Notes [joinedSitting] against the record shown, when it is a new one.
+  void _noteJoinedFor() {
+    final joined = joinedSitting;
+    if (identical(joined, _joinedFor?.controller)) return;
+    _joinedFor = joined == null
+        ? null
+        : (controller: joined, recordId: hostRecordId);
   }
 
   // What the host provides.
@@ -210,6 +230,7 @@ mixin RecordEditHost<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
     super.initState();
     _hostedRecordId = hostRecordId;
     if (!hostsEditing) return;
+    _noteJoinedFor();
     final joined = _joined;
     if (joined != null) _followJoined(joined);
     _registerShortcutTarget(editController);
@@ -266,6 +287,7 @@ mixin RecordEditHost<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
     super.didUpdateWidget(oldWidget);
     // A page handed another sitting to join follows that one, and the keys
     // act on it.
+    if (hostsEditing) _noteJoinedFor();
     final joined = _joined;
     if (hostsEditing && !identical(joined, _listenedJoined)) {
       _listenedJoined?.removeListener(onEditChanged);
