@@ -28,7 +28,9 @@ class MediaIdentificationRuns extends Table {
 
   /// The detector and embedding model that analysed it. A pack that changes
   /// either one means analysing again; one that changes neither means only
-  /// naming the stored crops again.
+  /// naming the stored crops again. A video's detector id also names the
+  /// version of the tracker that linked its tracks (`videoRunDetectorId`),
+  /// so a new tracker scans it again.
   TextColumn get detectorId => text()();
   TextColumn get classifierId => text()();
 

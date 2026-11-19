@@ -25,6 +25,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_suggestions.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_enum_chips_row.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_plain_fields.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_reader_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/similar_value_hint.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -225,6 +226,9 @@ class _SiteHeaderCardEditorState extends ConsumerState<SiteHeaderCardEditor>
                     child: SiteCatalogueOfferLine(
                       site: session.stored,
                       onReviewed: (pair, result) => _holdReview(pair, result),
+                      // A fill writes the library's site, which a reader's
+                      // sitting cannot (plan 5): the offer reads only.
+                      reviewable: !isReaderSitting(session),
                     ),
                   ),
           ),

@@ -15,6 +15,7 @@ import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_reader_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/utils/suggestion_child_fields.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
@@ -2099,23 +2100,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
   }
 
   /// The profile's effective role in [libraryId] from the store, or null
-  /// when the library is not connected here. Read from the store, not the
-  /// providers: in requested suggestion mode nothing watches them, and a
-  /// one-shot read of a paused stream provider never returns.
-  Future<SharedLibraryRole?> _libraryRoleNow(String libraryId) async {
-    final store = ref.read(sharedLibraryStoreProvider);
-    final library = await store.getLibrary(libraryId);
-    if (library == null) return null;
-    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
-    final membership = diverId == null
-        ? null
-        : await store.membership(diverId: diverId, libraryId: libraryId);
-    if (membership == null) return SharedLibraryRole.reader;
-    return effectiveRole(
-      listed: library.roles.roleOf(membership.memberId),
-      readOnlyDetected: library.writesHeld,
-    );
-  }
+  /// when the library is not connected here ([libraryRoleNow]).
+  Future<SharedLibraryRole?> _libraryRoleNow(String libraryId) =>
+      libraryRoleNow(ref.read, libraryId);
 
   /// Notes and rating on a library site are the member's own (issue #2567):
   /// saved on the row, never proposed. True when either changed.

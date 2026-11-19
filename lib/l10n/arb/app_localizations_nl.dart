@@ -9950,6 +9950,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get recordEdit_imported => 'Geïmporteerd';
 
   @override
+  String get recordEdit_library => 'Bibliotheek';
+
+  @override
+  String get recordEdit_onlyYou => 'Alleen jij';
+
+  @override
   String get recordEdit_saveFailed =>
       'Kon de wijzigingen niet opslaan. Er is niets gewijzigd.';
 
@@ -24826,6 +24832,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get sharedLibrary_suggest_savedPrivate =>
       'Je notities en beoordeling zijn opgeslagen.';
+
+  @override
+  String get sharedLibrary_suggest_savedNotSent =>
+      'Je notities en beoordeling zijn opgeslagen. De suggestie kon niet worden verzonden.';
 
   @override
   String sharedLibrary_suggest_pending(int count) {

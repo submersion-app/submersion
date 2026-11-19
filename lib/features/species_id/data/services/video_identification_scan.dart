@@ -387,11 +387,7 @@ class VideoIdentificationScan {
     );
     final joins = <TrackedAnimal, TrackedAnimal>{};
     for (final (:open, :later) in pairs) {
-      final laterWorth = later.isPending
-          ? null
-          : momentWorth(
-              DetectedBox(box: later.box, score: later.detectorScore),
-            );
+      final laterWorth = later.isPending ? null : storedWorth(later);
       final joined = TrackedAnimal(
         [
           ...open.points,
@@ -457,11 +453,7 @@ class VideoIdentificationScan {
           ],
           storedId: row.id,
           pending: row.isPending,
-          namedWorth: row.isPending
-              ? null
-              : momentWorth(
-                  DetectedBox(box: row.box, score: row.detectorScore),
-                ),
+          namedWorth: row.isPending ? null : storedWorth(row),
         ),
         missed: math.max(0, math.min(missed, _tracker.maxGapSamples)),
       );
@@ -571,12 +563,18 @@ class VideoIdentificationScan {
           for (final c in continued)
             if (!c.saidByDiver) c,
         ];
+        // One with something said on it takes up the parts of its fish
+        // said the same on that this chunk reached (issue #4729).
         final found = carryTrackDecisions(
           decided: carry,
           fresh: [
             for (final n in named)
               if (!rows.containsKey(n.identification.id)) n.identification,
             ...unsaid,
+          ],
+          kept: [
+            for (final c in continued)
+              if (c.saidByDiver) c,
           ],
         );
         // An earlier part goes only when its joined row is stored.

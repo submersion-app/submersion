@@ -3,17 +3,17 @@ part of 'video_identification_scan.dart';
 /// Naming a scan's tracks: pass 2 and the rows it makes, kept beside the
 /// scan in the same library so it shares the scan's private state.
 extension _Naming on VideoIdentificationScan {
-  /// Crops and embeds each track's best moments in batches, and names each
-  /// track from the average of its moments' embeddings. A track none of
-  /// whose moments could be cropped is left out, unless it continues a
-  /// stored row: that is kept as named before, with its path grown
-  /// ([_unnamed]). When [stopping], only one
-  /// batch is named, the tracks with no name yet and then the longest
-  /// first; the others are kept without naming them. [rows] are the stored
-  /// rows the tracks continue, by id. Between batches (not when stopping)
-  /// it stops on [VideoIdentificationScan._keepGoing], and drops the chunk
-  /// when [dropped] says the diver moved the scan elsewhere. Null when the
-  /// file cannot be opened.
+  /// Crops and embeds each track's best moments in batches, names each
+  /// moment on its own, and names each track from the view
+  /// [chooseNamingView] picks (issue #4736). A track none of whose moments
+  /// could be cropped, or named, is left out, unless it continues a stored
+  /// row: that is kept as named before, with its path grown ([_unnamed]).
+  /// When [stopping], only one batch is named, the tracks with no name yet
+  /// and then the longest first; the others are kept without naming them.
+  /// [rows] are the stored rows the tracks continue, by id. Between batches
+  /// (not when stopping) it stops on [VideoIdentificationScan._keepGoing],
+  /// and drops the chunk when [dropped] says the diver moved the scan
+  /// elsewhere. Null when the file cannot be opened.
   Future<List<_Stored>?> _nameTracks(
     List<TrackedAnimal> all, {
     required bool stopping,
@@ -76,62 +76,75 @@ extension _Naming on VideoIdentificationScan {
         <
           ({
             TrackedAnimal track,
-            ({int ms, DetectedBox detection}) moment,
-            VisionMomentCrop crop,
+            List<
+              ({
+                ({int ms, DetectedBox detection}) moment,
+                VisionMomentCrop crop,
+              })
+            >
+            views,
           })
         >[];
-    final averaged = <Float32List>[];
     // Tracks that could not be named now but continue a stored row.
     final unnameable = <TrackedAnimal>[];
     var at = 0;
     for (var t = 0; t < closed.length; t++) {
-      final own = [
+      final usable = [
         for (var k = 0; k < picks[t].length; k++)
-          (index: k, crop: crops[at + k]),
+          if (crops[at + k] case final crop?) (moment: picks[t][k], crop: crop),
       ];
       at += picks[t].length;
-      final usable = [
-        for (final o in own)
-          if (o.crop != null) (index: o.index, crop: o.crop!),
-      ];
-      final embedding = usable.isEmpty
-          ? null
-          : _averaged([for (final u in usable) u.crop.embedding]);
-      if (embedding == null) {
+      if (usable.isEmpty) {
         if (rows.containsKey(closed[t].storedId)) unnameable.add(closed[t]);
         continue;
       }
-      kept.add((
-        track: closed[t],
-        moment: picks[t][usable.first.index],
-        crop: usable.first.crop,
-      ));
-      averaged.add(embedding);
+      kept.add((track: closed[t], views: usable));
     }
     final results = await _name([
-      for (var k = 0; k < kept.length; k++)
-        (
-          embedding: averaged[k],
-          shorterSide: math.min(
-            kept[k].crop.pixelWidth,
-            kept[k].crop.pixelHeight,
+      for (final k in kept)
+        for (final v in k.views)
+          (
+            embedding: v.crop.embedding,
+            shorterSide: math.min(v.crop.pixelWidth, v.crop.pixelHeight),
           ),
-        ),
     ]);
     final now = _now().toUtc();
     final naming = _pack.pack.manifest.naming;
-    return [
-      for (var k = 0; k < kept.length; k++)
+    final named = <_Stored>[];
+    var from = 0;
+    for (final k in kept) {
+      final own = results.sublist(from, from + k.views.length);
+      from += k.views.length;
+      final pick = chooseNamingView(own);
+      // No view could be named: as when none could be cropped.
+      if (pick == null) {
+        if (rows.containsKey(k.track.storedId)) unnameable.add(k.track);
+        continue;
+      }
+      final result = own[pick.index];
+      final chosen = k.views[pick.index];
+      named.add(
         _identification(
-          kept[k].track,
-          kept[k].moment,
-          kept[k].crop,
-          averaged[k],
-          results[k],
+          k.track,
+          chosen.moment,
+          chosen.crop,
+          NamingResult(
+            openScore: result.openScore,
+            candidates: result.candidates,
+            locationLimited: result.locationLimited,
+            suggestable: pick.suggestable,
+          ),
           naming,
           now,
           rows,
+          // The detector's best view among those cropped: a later view
+          // worth clearly more names the track again ([namesNow]).
+          worth: momentWorth(k.views.first.moment.detection),
         ),
+      );
+    }
+    return [
+      ...named,
       for (final t in unnameable) _unnamed(t, now, rows),
       ...left,
     ];
@@ -188,16 +201,18 @@ extension _Naming on VideoIdentificationScan {
     );
   }
 
+  /// [track] named from its view at [best], whose [crop] is shown and
+  /// whose embedding is stored for renaming.
   _Stored _identification(
     TrackedAnimal track,
     ({int ms, DetectedBox detection}) best,
     VisionMomentCrop crop,
-    Float32List embedding,
     NamingResult result,
     NamingConfig naming,
     DateTime now,
-    Map<String, MediaIdentification> rows,
-  ) {
+    Map<String, MediaIdentification> rows, {
+    required double worth,
+  }) {
     final flags = namingFlags(result, naming);
     final storedId = track.storedId;
     final row = storedId == null ? null : rows[storedId];
@@ -226,37 +241,10 @@ extension _Naming on VideoIdentificationScan {
     );
     return (
       identification: identification,
-      embedding: embedding,
+      embedding: crop.embedding,
       cropJpeg: crop.cropJpeg,
       track: track,
-      worth: momentWorth(best.detection),
+      worth: worth,
     );
   }
-}
-
-/// The mean of [embeddings], each first scaled to unit length, itself
-/// scaled to unit length. Null when they disagree in length or sum to
-/// nothing.
-Float32List? _averaged(List<Float32List> embeddings) {
-  final width = embeddings.first.length;
-  if (width == 0 || embeddings.any((e) => e.length != width)) return null;
-  final sum = Float64List(width);
-  for (final e in embeddings) {
-    var norm = 0.0;
-    for (final v in e) {
-      norm += v * v;
-    }
-    norm = math.sqrt(norm);
-    if (norm == 0 || !norm.isFinite) continue;
-    for (var k = 0; k < width; k++) {
-      sum[k] += e[k] / norm;
-    }
-  }
-  var total = 0.0;
-  for (final v in sum) {
-    total += v * v;
-  }
-  total = math.sqrt(total);
-  if (total == 0 || !total.isFinite) return null;
-  return Float32List.fromList([for (final v in sum) v / total]);
 }

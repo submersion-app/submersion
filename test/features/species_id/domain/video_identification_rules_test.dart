@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/app_enums.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
 import 'package:submersion/features/species_id/domain/entities/video_detections.dart';
+import 'package:submersion/features/species_id/domain/services/species_namer.dart';
 import 'package:submersion/features/species_id/domain/services/video_identification_rules.dart';
 import 'package:submersion/features/species_id/domain/services/video_tracker.dart';
 
@@ -153,6 +154,97 @@ void main() {
       );
       expect(result.insert.single.claimedSpeciesId, 'sp_x');
       expect(result.deleteIds, ['old']);
+    });
+
+    /// [of]'s path from [from] to [to], as a track of its own: a part of
+    /// the same fish that an earlier tracker split off (issue #4729).
+    MediaIdentification part(
+      String id,
+      MediaIdentification of,
+      int from,
+      int to, {
+      IdentificationDecision decision = IdentificationDecision.rejected,
+      String? decidedSpeciesId,
+    }) =>
+        track(
+          id,
+          startMs: from,
+          endMs: to,
+          decision: decision,
+          decidedSpeciesId: decidedSpeciesId,
+        ).copyWith(
+          path: [
+            for (final s in of.path)
+              if (s.ms >= from && s.ms <= to) s,
+          ],
+        );
+
+    test('every part of a fish said the same on goes with the track that '
+        'joins them', () {
+      final whole = track('new', startMs: 1000, endMs: 4000);
+      final result = carryTrackDecisions(
+        decided: [part('p1', whole, 1000, 2000), part('p2', whole, 2500, 3500)],
+        fresh: [whole],
+      );
+      expect(result.insert.single.id, 'new');
+      expect(result.insert.single.decision, IdentificationDecision.rejected);
+      expect(result.deleteIds, ['p1', 'p2']);
+    });
+
+    test('a part the diver said something else on stays apart', () {
+      final whole = track('new', startMs: 1000, endMs: 4000);
+      final result = carryTrackDecisions(
+        decided: [
+          part('p1', whole, 1000, 2000),
+          part(
+            'p2',
+            whole,
+            2500,
+            3500,
+            decision: IdentificationDecision.accepted,
+            decidedSpeciesId: 'sp_x',
+          ),
+        ],
+        fresh: [whole],
+      );
+      expect(result.deleteIds, ['p1']);
+    });
+
+    test('a part goes with a kept track said the same on', () {
+      final kept = track(
+        'kept',
+        startMs: 1000,
+        endMs: 4000,
+        decision: IdentificationDecision.rejected,
+      );
+      final result = carryTrackDecisions(
+        decided: [part('p2', kept, 2500, 3500)],
+        fresh: const [],
+        kept: [kept],
+      );
+      expect(result.insert, isEmpty);
+      expect(result.deleteIds, ['p2']);
+    });
+
+    test('a kept track takes no part of another fish', () {
+      final kept = track(
+        'kept',
+        startMs: 1000,
+        endMs: 4000,
+        decision: IdentificationDecision.rejected,
+      );
+      final elsewhere = part('p2', kept, 2500, 3500).copyWith(
+        path: [
+          for (final s in part('p2', kept, 2500, 3500).path)
+            s.copyWith(box: s.box.copyWith(x: s.box.x + 0.5)),
+        ],
+      );
+      final result = carryTrackDecisions(
+        decided: [elsewhere],
+        fresh: const [],
+        kept: [kept],
+      );
+      expect(result.deleteIds, isEmpty);
     });
   });
 
@@ -399,6 +491,30 @@ void main() {
       );
     });
 
+    test('a stored track starting longer after the open fish was last seen '
+        'than the tracker bridges is not', () {
+      // Last seen 750 ms before the seam: the tracker links it no later
+      // than the seam itself.
+      expect(
+        seamJoins(
+          open: [openUntil(29250)],
+          openRows: const {},
+          stored: [later()],
+          seamMs: 30000,
+        ),
+        hasLength(1),
+      );
+      expect(
+        seamJoins(
+          open: [openUntil(29250)],
+          openRows: const {},
+          stored: [later(startMs: 30500)],
+          seamMs: 30000,
+        ),
+        isEmpty,
+      );
+    });
+
     test('a stored track elsewhere in the frame is not', () {
       final elsewhere = later().copyWith(
         path: [
@@ -558,6 +674,223 @@ void main() {
       );
       expect(pairs, hasLength(1));
       expect(identical(pairs.single.open, near), isTrue);
+    });
+  });
+
+  group('naming a track from its views', () {
+    PackCandidate species(String scientificName) => PackCandidate(
+      gbifKey: scientificName.hashCode,
+      scientificName: scientificName,
+      commonName: scientificName,
+      category: SpeciesCategory.fish,
+    );
+
+    /// One view's naming: [open] is its open score, [top] its best name.
+    NamingResult view(double open, String top, {bool suggestable = true}) =>
+        NamingResult(
+          openScore: open,
+          candidates: [NamedCandidate(candidate: species(top), score: 0.9)],
+          locationLimited: true,
+          suggestable: suggestable,
+        );
+
+    const stoplight = 'Sparisoma viride';
+    const chromis = 'Chromis multilineata';
+
+    test('the most decided view names the track', () {
+      final pick = chooseNamingView([
+        view(0.3, stoplight),
+        view(0.8, stoplight),
+        view(0.5, stoplight),
+      ])!;
+      expect(pick.index, 1);
+      expect(pick.suggestable, isTrue);
+    });
+
+    test("a tie goes to the first view, the detector's best", () {
+      expect(
+        chooseNamingView([view(0.6, stoplight), view(0.6, stoplight)])!.index,
+        0,
+      );
+    });
+
+    test('a decided view no other view agrees with is not suggested', () {
+      final pick = chooseNamingView([
+        view(0.3, chromis),
+        view(0.8, stoplight),
+        view(0.5, chromis),
+      ])!;
+      expect(pick.index, 1);
+      expect(pick.suggestable, isFalse);
+    });
+
+    test('a view agrees by its name, whether or not it clears the bars', () {
+      final pick = chooseNamingView([
+        view(0.8, stoplight),
+        view(0.2, stoplight, suggestable: false),
+      ])!;
+      expect(pick.suggestable, isTrue);
+    });
+
+    test('the names are compared ignoring case and surrounding space', () {
+      expect(
+        chooseNamingView([
+          view(0.8, stoplight),
+          view(0.2, ' sparisoma VIRIDE '),
+        ])!.suggestable,
+        isTrue,
+      );
+    });
+
+    test('agreement never lifts a view that misses the bars', () {
+      expect(
+        chooseNamingView([
+          view(0.8, stoplight, suggestable: false),
+          view(0.5, stoplight),
+        ])!.suggestable,
+        isFalse,
+      );
+    });
+
+    test('a single view is judged as a photo is', () {
+      expect(chooseNamingView([view(0.8, stoplight)])!.suggestable, isTrue);
+      expect(
+        chooseNamingView([
+          view(0.8, stoplight, suggestable: false),
+        ])!.suggestable,
+        isFalse,
+      );
+    });
+
+    test('no view with names names nothing', () {
+      expect(
+        chooseNamingView([NamingResult.unusable, NamingResult.unusable]),
+        isNull,
+      );
+      expect(chooseNamingView(const []), isNull);
+    });
+
+    test('a view with no names neither names the track nor agrees', () {
+      final pick = chooseNamingView([
+        NamingResult.unusable,
+        view(0.4, chromis),
+      ])!;
+      expect(pick.index, 1);
+      // Only one usable view: judged as a photo is.
+      expect(pick.suggestable, isTrue);
+      expect(
+        chooseNamingView([
+          view(0.4, chromis),
+          NamingResult.unusable,
+          NamingResult.unusable,
+        ])!.suggestable,
+        isTrue,
+      );
+    });
+  });
+
+  group('storedWorth', () {
+    test("a stored track is worth its best sampled box, not the view it "
+        'shows (issue #4736)', () {
+      final t = track('t1');
+      final row = t.copyWith(
+        box: const IdentificationBox(x: 0.1, y: 0.4, width: 0.1, height: 0.1),
+        detectorScore: 0.5,
+        path: [
+          ...t.path,
+          t.path.last.copyWith(
+            ms: 2250,
+            box: const IdentificationBox(
+              x: 0.1,
+              y: 0.4,
+              width: 0.4,
+              height: 0.2,
+            ),
+          ),
+        ],
+      );
+      expect(storedWorth(row), closeTo(0.5 * 0.4 * 0.2, 1e-12));
+    });
+
+    test('a row with no path is worth its box', () {
+      final row = identification('p1');
+      expect(storedWorth(row), closeTo(0.91 * 0.3 * 0.25, 1e-12));
+    });
+  });
+
+  group('renaming a stored track', () {
+    MediaIdentification renamedTo(
+      MediaIdentification before,
+      String scientificName, {
+      bool suggestable = true,
+    }) => before.copyWith(
+      candidates: [
+        NamedCandidate(
+          candidate: PackCandidate(
+            gbifKey: 9,
+            scientificName: scientificName,
+            commonName: scientificName,
+            category: SpeciesCategory.fish,
+          ),
+          score: 0.9,
+        ),
+      ],
+      suggestable: suggestable,
+    );
+
+    test('keeps its suggestion when its name stays the same', () {
+      final before = track('a');
+      expect(
+        suggestableOnRename(
+          before: before,
+          renamed: renamedTo(before, 'Scarus vetula'),
+        ),
+        isTrue,
+      );
+    });
+
+    test('loses it when its name changes, until it is scanned again', () {
+      final before = track('a');
+      expect(
+        suggestableOnRename(
+          before: before,
+          renamed: renamedTo(before, 'Sparisoma viride'),
+        ),
+        isFalse,
+      );
+    });
+
+    test('gains none it did not have', () {
+      final before = track('a', suggestable: false);
+      expect(
+        suggestableOnRename(
+          before: before,
+          renamed: renamedTo(before, 'Scarus vetula'),
+        ),
+        isFalse,
+      );
+    });
+
+    test('loses it when the new name misses the bars', () {
+      final before = track('a');
+      expect(
+        suggestableOnRename(
+          before: before,
+          renamed: renamedTo(before, 'Scarus vetula', suggestable: false),
+        ),
+        isFalse,
+      );
+    });
+
+    test('a photo is renamed by the bars alone', () {
+      final before = identification('p').copyWith(suggestable: false);
+      expect(
+        suggestableOnRename(
+          before: before,
+          renamed: renamedTo(before, 'Sparisoma viride'),
+        ),
+        isTrue,
+      );
     });
   });
 }

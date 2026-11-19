@@ -10006,6 +10006,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get recordEdit_imported => 'Importiert';
 
   @override
+  String get recordEdit_library => 'Bibliothek';
+
+  @override
+  String get recordEdit_onlyYou => 'Nur du';
+
+  @override
   String get recordEdit_saveFailed =>
       'Die Änderungen konnten nicht gespeichert werden. Es wurde nichts geändert.';
 
@@ -24945,6 +24951,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get sharedLibrary_suggest_savedPrivate =>
       'Deine Notizen und deine Bewertung wurden gespeichert.';
+
+  @override
+  String get sharedLibrary_suggest_savedNotSent =>
+      'Deine Notizen und deine Bewertung wurden gespeichert. Der Vorschlag konnte nicht gesendet werden.';
 
   @override
   String sharedLibrary_suggest_pending(int count) {

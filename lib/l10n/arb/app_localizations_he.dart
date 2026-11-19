@@ -9790,6 +9790,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get recordEdit_imported => 'מיובא';
 
   @override
+  String get recordEdit_library => 'ספרייה';
+
+  @override
+  String get recordEdit_onlyYou => 'רק לך';
+
+  @override
   String get recordEdit_saveFailed =>
       'לא ניתן היה לשמור את השינויים. שום דבר לא השתנה.';
 
@@ -24423,6 +24429,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get sharedLibrary_suggest_savedPrivate => 'ההערות והדירוג שלך נשמרו.';
+
+  @override
+  String get sharedLibrary_suggest_savedNotSent =>
+      'ההערות והדירוג שלך נשמרו. לא ניתן היה לשלוח את ההצעה.';
 
   @override
   String sharedLibrary_suggest_pending(int count) {

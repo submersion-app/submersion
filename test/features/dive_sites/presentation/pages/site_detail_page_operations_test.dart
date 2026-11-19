@@ -239,7 +239,9 @@ void main() {
     expect(find.text(l.diveSites_detail_deleteMenu_label), findsOneWidget);
   });
 
-  testWidgets('a library reader still removes the site from the profile', (
+  // A reader is offered a sitting too (plan 5), so their Remove waits for
+  // the unlock, as an editor's whole-record actions do.
+  testWidgets('a library reader\'s Remove waits for the unlock', (
     tester,
   ) async {
     final (_, sites) = await pump(
@@ -266,18 +268,20 @@ void main() {
         ),
       ],
     );
-    // The page offers a reader no lock, so its record actions act as today.
-    expect(find.byIcon(Icons.lock_outline), findsNothing);
     await openMenu(tester);
+    expect(find.text(l.recordEdit_unlockToUseThese), findsOneWidget);
+    expect(menuItem(tester, 'remove').enabled, isFalse);
+    await tester.tapAt(const Offset(4, 4));
+    await tester.pumpAndSettle();
 
+    await tester.tap(find.byKey(const ValueKey('site_suggest_unlock')));
+    await tester.pumpAndSettle();
+    await openMenu(tester);
     expect(find.text(l.recordEdit_unlockToUseThese), findsNothing);
     expect(menuItem(tester, 'remove').enabled, isTrue);
     expect(sites.hidden, isEmpty);
   });
 
-  // A library delete may keep the site here, detached as this profile's
-  // own: the page stays, so the end of its sitting is still told, and a
-  // pane opened for editing returns to view mode.
   testWidgets('a library delete that keeps the site still tells the end of '
       'the sitting', (tester) async {
     var ended = 0;

@@ -217,6 +217,56 @@ void main() {
     expect(await operations(), isEmpty);
   });
 
+  // A library reader's Send (plan 5): their notes and rating are their own,
+  // written as one History entry; no field of the library's site changes.
+  test(
+    'privateOnly writes a reader\'s notes and rating and nothing else',
+    () async {
+      // In a library: there the notes and rating are the reader's own.
+      await db.customStatement(
+        "UPDATE dive_sites SET shared_library_id = 'L' WHERE id = 's1'",
+      );
+      // That setup is not the sitting.
+      await changeLog.settleAll();
+      await db.customStatement('DELETE FROM change_log_operations');
+      final reader = SiteEditSaveService(sites, stamper: _MayNotEdit());
+
+      final result = await reader.save(
+        siteId: 's1',
+        apply: (site) =>
+            site.copyWith(notes: 'Choppy', rating: 4, name: 'Big Lake'),
+        changedCardIds: const ['notes', 'rating'],
+        privateOnly: true,
+      );
+
+      expect(result, isNotNull);
+      final after = await stored();
+      expect(after.notes, 'Choppy');
+      expect(after.rating, 4);
+      expect(after.name, 'Lake');
+      expect(await operations(), hasLength(1));
+    },
+  );
+
+  // Only a library site keeps notes and rating per member; elsewhere they
+  // are the site's own, and the right to edit is asked as for any field.
+  test('privateOnly on a site in no library saves nothing', () async {
+    final reader = SiteEditSaveService(sites, stamper: _MayNotEdit());
+
+    await expectLater(
+      reader.save(
+        siteId: 's1',
+        apply: notes('Choppy'),
+        changedCardIds: const ['notes'],
+        privateOnly: true,
+      ),
+      throwsA(isA<SiteEditRefused>()),
+    );
+
+    expect((await stored()).notes, 'Calm');
+    expect(await operations(), isEmpty);
+  });
+
   test('a library stamp waits for the sitting to commit', () async {
     final recording = _RecordingSites();
     await SiteEditSaveService(recording).save(

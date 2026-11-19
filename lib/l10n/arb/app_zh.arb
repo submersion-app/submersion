@@ -3398,6 +3398,8 @@
   "recordEdit_loadFailed": "无法加载此卡片。",
   "recordEdit_tryAgain": "重试",
   "recordEdit_imported": "已导入",
+  "recordEdit_library": "库",
+  "recordEdit_onlyYou": "仅你自己",
   "recordEdit_saveFailed": "无法保存更改。未做任何更改。",
   "recordEdit_fixInvalid": "部分数值无法识别。请更正后再保存。",
   "recordEdit_unlockToUseThis": "解锁后才能使用",
@@ -7345,6 +7347,7 @@
   "sharedLibrary_suggest_sent": "建议已发送",
   "sharedLibrary_suggest_nothingChanged": "没有任何更改。",
   "sharedLibrary_suggest_savedPrivate": "你的笔记和评分已保存。",
+  "sharedLibrary_suggest_savedNotSent": "你的笔记和评分已保存。建议未能发送。",
   "sharedLibrary_suggest_pending": "{count, plural, other{{count} 条待处理建议}}",
   "@sharedLibrary_suggest_pending": {
     "placeholders": {

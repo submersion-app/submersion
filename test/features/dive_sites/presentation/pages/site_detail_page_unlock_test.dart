@@ -177,9 +177,11 @@ void main() {
     expect(landed.queryParameters.containsKey('mode'), isFalse);
   });
 
-  // A stale edit link on a site this profile only reads opens it locked,
-  // not unlocked and then withdrawn.
-  testWidgets('a reader asked to open unlocked stays locked', (tester) async {
+  // An edit link on a site this profile only reads opens the reader's
+  // sitting (plan 5): suggesting, never editing, and not withdrawn.
+  testWidgets('a reader asked to open unlocked opens a reader\'s sitting', (
+    tester,
+  ) async {
     await pumpSitePage(
       tester,
       openUnlocked: true,
@@ -194,7 +196,8 @@ void main() {
       ],
     );
 
-    expect(find.byType(RecordEditBar), findsNothing);
+    expect(find.byType(RecordEditBar), findsOneWidget);
+    expect(find.text(l.sharedLibrary_suggest_send), findsOneWidget);
     expect(find.text(l.diveSites_edit_editingWithdrawn), findsNothing);
   });
 
@@ -542,9 +545,10 @@ void main() {
     expect(find.byIcon(Icons.lock_outline), findsOneWidget);
   });
 
-  testWidgets('a library site this profile only reads offers no lock', (
-    tester,
-  ) async {
+  // A reader's is "Suggest changes" (plan 5), and the editing keys act on
+  // it as on an editor's.
+  testWidgets('a library site this profile only reads offers the reader\'s '
+      'unlock, not the lock', (tester) async {
     final page = await pumpSitePage(
       tester,
       site: harnessSite.copyWith(sharedLibraryId: 'L'),
@@ -559,10 +563,10 @@ void main() {
     );
 
     expect(find.byIcon(Icons.lock_outline), findsNothing);
-    // Nor do the editing keys act on it.
+    expect(find.byKey(const ValueKey('site_suggest_unlock')), findsOneWidget);
     expect(
       page.container.read(recordEditShortcutTargetsProvider).current,
-      isNull,
+      isNotNull,
     );
   });
 
