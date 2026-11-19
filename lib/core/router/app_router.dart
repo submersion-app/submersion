@@ -702,7 +702,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newSite',
-                builder: (context, state) => SiteEditPage.fromNewSiteExtra(
+                // A new site with something entered asks before a `go`
+                // leaves it (issue #4527, plan 6).
+                onExit: confirmLeaveRecordSitting,
+                builder: (context, state) => newSitePage(
                   state.extra,
                   duplicateOfId: state.uri.queryParameters['duplicateOf'],
                 ),

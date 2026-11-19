@@ -18,6 +18,7 @@ import 'package:submersion/features/dive_sites/presentation/widgets/built_in_ove
 import 'package:submersion/features/dive_sites/presentation/widgets/built_in_layers_button.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/built_in_map_selection.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_list_content.dart';
+import 'package:submersion/features/dive_sites/presentation/pages/site_edit_routes.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/presentation/providers/heat_map_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/heat_map_controls.dart';
@@ -187,7 +188,7 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
                 ? _buildMapInfoCard(context, selectedSite)
                 : null),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/sites/new'),
+        onPressed: () => openNewSite(context),
         icon: const Icon(Icons.add_location),
         label: Text(context.l10n.diveSites_fab_label),
       ),

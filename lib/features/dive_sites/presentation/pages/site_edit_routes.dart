@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/dive_sites/domain/models/new_site_seed.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/unlock_site_editing_flag.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
@@ -101,4 +102,56 @@ Widget siteInDivesPane(
     onCancel: onCancel,
     onDeleted: onDeleted,
   );
+}
+
+/// The new-site address (`/sites/new`, `?duplicateOf=` for a duplicate),
+/// with what the route was handed as [extra] (issue #4527, plan 6): with
+/// [unlockEditing], the site page opened unlocked on a new site; the form,
+/// as today, otherwise.
+Widget newSitePage(
+  Object? extra, {
+  String? duplicateOfId,
+  bool unlockEditing = kUnlockSiteEditing,
+}) {
+  if (!unlockEditing) {
+    return SiteEditPage.fromNewSiteExtra(extra, duplicateOfId: duplicateOfId);
+  }
+  return SiteDetailPage.newSite(
+    seed: NewSiteSeed.fromRouteExtra(extra),
+    duplicateOfId: duplicateOfId,
+  );
+}
+
+/// The site list's new-site pane (`?mode=new`), as the master-detail
+/// scaffold's `createBuilder`: with [unlockEditing], the site page on a new
+/// site, whose created id is handed to [onSaved], which selects it; the
+/// form, as today, otherwise.
+Widget newSitePane(
+  BuildContext context,
+  void Function(String savedId) onSaved,
+  VoidCallback onCancel, {
+  bool unlockEditing = kUnlockSiteEditing,
+}) {
+  if (!unlockEditing) {
+    return SiteEditPage(embedded: true, onSaved: onSaved, onCancel: onCancel);
+  }
+  return SiteDetailPage.newSite(
+    embedded: true,
+    onCreated: onSaved,
+    onCreateCancelled: onCancel,
+  );
+}
+
+/// Opens a new site on its own page, from an opener that has no place of
+/// its own to show it (the list's Add on a phone, its empty state, the
+/// map): with [unlockEditing], the site opens, locked, once created (plan
+/// 6, Question 1); as today, the opener is shown again, otherwise.
+Future<void> openNewSite(
+  BuildContext context, {
+  Object? extra,
+  bool unlockEditing = kUnlockSiteEditing,
+}) async {
+  final id = await context.push<String>('/sites/new', extra: extra);
+  if (!unlockEditing || id == null || !context.mounted) return;
+  await context.push('/sites/$id');
 }
