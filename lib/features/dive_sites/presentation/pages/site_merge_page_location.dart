@@ -135,6 +135,8 @@ mixin _SiteMergeLocation on _SiteMergeFields {
         return;
       }
 
+      // The diver may have left while the position was being found.
+      if (!mounted) return;
       setState(() {
         _latitudeController.text = result.latitude.toStringAsFixed(6);
         _longitudeController.text = result.longitude.toStringAsFixed(6);

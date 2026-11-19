@@ -1,10 +1,21 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:submersion/core/database/database.dart' hide Diver;
+import 'package:submersion/core/database/database.dart' hide Diver, DiveSite;
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/providers/location_service_provider.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/location_service.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/dive_info_section.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/identity_section.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/life_notes_section.dart';
+import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
@@ -19,6 +30,24 @@ import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import '../../../../helpers/fake_hosts.dart';
 import '../../../../helpers/shared_items_fixture.dart';
 import '../../../../helpers/test_database.dart';
+
+/// A position that answers only when [answer] completes.
+class _SlowFix implements LocationService {
+  final answer = Completer<void>();
+
+  @override
+  Future<LocationResult?> getCurrentLocation({
+    bool includeGeocoding = true,
+    Duration timeout = const Duration(seconds: 15),
+    String languageCode = LocationService.defaultLanguageCode,
+  }) async {
+    await answer.future;
+    return const LocationResult(latitude: 17.3, longitude: -87.5);
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 /// The merge page's save (issue #4527, phase 2, plan 7): a finished merge
 /// returns its result, a merge the repository or the library refuses stays
@@ -56,6 +85,7 @@ void main() {
     WidgetTester tester,
     List<String> siteIds, {
     required String active,
+    List<Override> extra = const [],
   }) async {
     tester.view.physicalSize = const Size(900, 3200);
     tester.view.devicePixelRatio = 1.0;
@@ -82,6 +112,7 @@ void main() {
           sharedPreferencesProvider.overrideWithValue(prefs),
           allDiversProvider.overrideWith((_) async => divers),
           validatedCurrentDiverIdProvider.overrideWith((_) async => active),
+          ...extra,
         ],
         child: MaterialApp.router(
           locale: const Locale('en'),
@@ -129,6 +160,107 @@ void main() {
     expect((merged as SiteMergeResult).snapshot, isNotNull);
     expect(await stored('a'), isTrue);
     expect(await stored('b'), isFalse);
+  });
+
+  // What a merge stores (final review): the chosen candidates, the chosen
+  // country's code, and the expected species as the page shows them.
+  testWidgets('a merge stores the chosen values and the shown species', (
+    tester,
+  ) async {
+    final sites = SiteRepository();
+    await sites.createSite(
+      const DiveSite(
+        id: 'a',
+        name: 'Salt Pier',
+        country: 'Mexico',
+        countryCode: 'MX',
+        region: 'Yucatan',
+        difficulty: SiteDifficulty.beginner,
+        altitude: 10,
+      ),
+    );
+    await sites.createSite(
+      const DiveSite(
+        id: 'b',
+        name: 'Salt Pier North',
+        // A name the country table cannot read: only the stored code
+        // carries it.
+        country: 'The Cayes',
+        countryCode: 'BZ',
+        region: 'Turneffe',
+        difficulty: SiteDifficulty.advanced,
+      ),
+    );
+    final species = SpeciesRepository();
+    final turtle = await species.createSpecies(
+      commonName: 'Turtle',
+      category: SpeciesCategory.fish,
+    );
+    final ray = await species.createSpecies(
+      commonName: 'Ray',
+      category: SpeciesCategory.fish,
+    );
+    await species.addExpectedSpecies(siteId: 'a', speciesId: turtle.id);
+    await species.addExpectedSpecies(siteId: 'b', speciesId: ray.id);
+    await pump(tester, const ['a', 'b'], active: 'd2');
+
+    final identity = tester.widget<IdentitySection>(
+      find.byType(IdentitySection),
+    );
+    identity.mergeExtras!('country')!.onCycle();
+    identity.mergeExtras!('region')!.onCycle();
+    tester
+        .widget<DiveInfoSection>(find.byType(DiveInfoSection))
+        .difficultyExtras!
+        .onCycle();
+    await tester.pump();
+    final life = tester.widget<LifeNotesSection>(find.byType(LifeNotesSection));
+    life.onRemoveSpecies(life.species.firstWhere((s) => s.id == turtle.id));
+    await tester.pump();
+
+    await saveAndMerge(tester);
+
+    final merged = (await sites.getSiteById('a'))!;
+    expect(merged.name, 'Salt Pier');
+    expect(merged.country, 'The Cayes');
+    expect(merged.countryCode, 'BZ');
+    expect(merged.region, 'Turneffe');
+    expect(merged.difficulty, SiteDifficulty.advanced);
+    expect(merged.altitude, 10);
+    expect(
+      [
+        for (final e in await species.getExpectedSpeciesForSite('a'))
+          e.speciesId,
+      ],
+      [ray.id],
+    );
+  });
+
+  // A position that arrives once the diver has left the page changes
+  // nothing and throws nothing (final review).
+  testWidgets('Use my location answering after the page closed is dropped', (
+    tester,
+  ) async {
+    await seedSite(db, 'a', owner: 'd2', name: 'Salt Pier');
+    await seedSite(db, 'b', owner: 'd2', name: 'Salt Pier North');
+    final fix = _SlowFix();
+    await pump(
+      tester,
+      const ['a', 'b'],
+      active: 'd2',
+      extra: [locationServiceProvider.overrideWithValue(fix)],
+    );
+
+    await tester.ensureVisible(find.text(l.diveSites_edit_gps_useMyLocation));
+    await tester.tap(find.text(l.diveSites_edit_gps_useMyLocation));
+    await tester.pump();
+    Navigator.of(tester.element(find.byType(SiteMergePage))).pop();
+    await tester.pumpAndSettle();
+    expect(find.text('SITES'), findsOneWidget);
+
+    fix.answer.complete();
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('a merge the repository refuses stays on the page and says so', (
