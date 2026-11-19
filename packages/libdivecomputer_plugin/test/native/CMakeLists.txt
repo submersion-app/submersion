@@ -384,6 +384,23 @@ if(WIN32)
     target_link_libraries(test_shearwater_o2_millivolt PRIVATE SetupAPI.lib ws2_32.lib)
 endif()
 
+# Issue #4664: Shearwater's Avelo sample record repurposes dive sample bytes
+# for buoyancy, gas remaining and the computer's RMV. Public API only.
+add_executable(test_shearwater_avelo_samples
+    test_shearwater_avelo_samples.c
+    ${LIBDC_ALL_SOURCES}
+)
+target_include_directories(test_shearwater_avelo_samples PRIVATE
+    ${LIBDC_DIR}/include
+    ${LIBDC_DIR}/src
+    ${PLATFORM_CONFIG_DIR}
+)
+target_compile_definitions(test_shearwater_avelo_samples PRIVATE HAVE_CONFIG_H)
+if(WIN32)
+    target_compile_definitions(test_shearwater_avelo_samples PRIVATE _CRT_SECURE_NO_WARNINGS)
+    target_link_libraries(test_shearwater_avelo_samples PRIVATE SetupAPI.lib ws2_32.lib)
+endif()
+
 # Regression test for issue #1223: a sample carrying two transmitter pressures
 # must keep both. Goes through the wrapper, since the loss was in its per-sample
 # accumulator rather than in libdivecomputer.
@@ -563,6 +580,9 @@ add_test(NAME test_tank_transmitter_serial COMMAND test_tank_transmitter_serial
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 add_test(NAME test_shearwater_avelo_hydrotank COMMAND test_shearwater_avelo_hydrotank
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+)
+add_test(NAME test_shearwater_avelo_samples COMMAND test_shearwater_avelo_samples
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 add_test(NAME test_ratio_ix3m2_record_type COMMAND test_ratio_ix3m2_record_type)
