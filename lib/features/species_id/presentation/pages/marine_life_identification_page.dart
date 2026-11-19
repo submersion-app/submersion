@@ -5,6 +5,7 @@ import 'package:submersion/core/utils/byte_format.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_section_helpers.dart';
 import 'package:submersion/features/species_id/data/pack/species_pack_downloader.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
+import 'package:submersion/features/species_id/presentation/providers/species_download_prompt_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_pack_controller.dart';
 import 'package:submersion/features/species_id/presentation/widgets/naming_level_section.dart';
@@ -255,6 +256,10 @@ class _MarineLifeIdentificationPageState
       ),
     );
     if (go ?? false) {
+      // Removed on purpose: the app stops offering it (issue #4773).
+      await ref
+          .read(speciesDownloadPromptDismissedProvider.notifier)
+          .setEnabled(true);
       await ref.read(speciesPackControllerProvider.notifier).remove();
     }
   }

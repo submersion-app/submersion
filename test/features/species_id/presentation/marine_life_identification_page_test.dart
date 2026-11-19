@@ -16,6 +16,7 @@ import 'package:submersion/features/species_id/domain/entities/naming_level.dart
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
 import 'package:submersion/features/species_id/presentation/pages/marine_life_identification_page.dart';
+import 'package:submersion/features/species_id/presentation/providers/species_download_prompt_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_pack_controller.dart';
 
@@ -192,6 +193,30 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('species_id_remove_confirm')));
     await tester.pumpAndSettle();
     expect(controller.removals, 1);
+  });
+
+  // A diver who removed the model chose to: no offer to download it again
+  // across the app (#4773).
+  testWidgets('removing the model also ends the offer to download it', (
+    tester,
+  ) async {
+    await pump(tester, const PackInstalled(version: '2026.11.1', bytes: 660));
+    bool dismissed() => ProviderScope.containerOf(
+      tester.element(find.byType(MarineLifeIdentificationPage)),
+    ).read(speciesDownloadPromptDismissedProvider);
+    expect(dismissed(), isFalse);
+
+    await tester.tap(find.byKey(const ValueKey('species_id_remove')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(dismissed(), isFalse);
+
+    await tester.tap(find.byKey(const ValueKey('species_id_remove')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('species_id_remove_confirm')));
+    await tester.pumpAndSettle();
+    expect(dismissed(), isTrue);
   });
 
   testWidgets('installing says so and offers nothing to tap', (tester) async {
