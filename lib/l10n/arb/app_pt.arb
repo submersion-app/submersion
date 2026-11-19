@@ -10224,6 +10224,7 @@
     }
   },
   "trips_overview_plan_notSet": "Não definido",
+  "trips_overview_plan_runtime": "{minutes} min por mergulho",
   "trips_detail_tab_itinerary": "Itinerário",
   "trips_detail_tab_overview": "Visão geral",
   "trips_detail_tab_photos": "Fotos",

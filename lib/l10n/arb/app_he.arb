@@ -10224,6 +10224,7 @@
     }
   },
   "trips_overview_plan_notSet": "לא הוגדר",
+  "trips_overview_plan_runtime": "{minutes} דק׳ לצלילה",
   "trips_detail_tab_itinerary": "מסלול",
   "trips_detail_tab_overview": "סקירה",
   "trips_detail_tab_photos": "תמונות",

@@ -14,6 +14,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/profile_hides_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/trips/data/repositories/liveaboard_details_repository.dart';
 import 'package:submersion/features/trips/data/services/trip_edit_save_service.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/liveaboard_details.dart';
@@ -105,13 +106,42 @@ class FakeTripList extends StateNotifier<AsyncValue<List<TripWithStats>>>
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// A liveaboard's details without a database: [details] as stored, and
+/// each write recorded.
+class FakeVessels implements LiveaboardDetailsRepository {
+  FakeVessels([this.details]);
+
+  LiveaboardDetails? details;
+  final writes = <LiveaboardDetails>[];
+
+  @override
+  Future<LiveaboardDetails?> getByTripId(String tripId) async => details;
+
+  @override
+  Future<LiveaboardDetails> createOrUpdate(LiveaboardDetails details) async {
+    writes.add(details);
+    this.details = details;
+    return details;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 class TripPageHarness {
-  TripPageHarness(this.save, this.stored, this.trips, this.shares);
+  TripPageHarness(
+    this.save,
+    this.stored,
+    this.trips,
+    this.shares,
+    this.vessels,
+  );
 
   final FakeTripSave save;
   final StateController<Trip?> stored;
   final FakeTripList trips;
   final FakeItemShares shares;
+  final FakeVessels vessels;
 }
 
 final _storedProvider = StateProvider<Trip?>((ref) => redSea);
@@ -141,6 +171,7 @@ Future<TripPageHarness> pumpTripPage(
   bool hasSideTrips = false,
 }) async {
   final itemShares = shares ?? FakeItemShares();
+  final vessels = FakeVessels(vessel);
   final shown = trip ?? redSea;
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -188,6 +219,7 @@ Future<TripPageHarness> pumpTripPage(
           shown.id,
         ).overrideWith((ref) async => days),
         liveaboardDetailsProvider(shown.id).overrideWith((ref) async => vessel),
+        liveaboardDetailsRepositoryProvider.overrideWithValue(vessels),
         tripDayWeatherProvider(shown.id).overrideWith((ref) async => const {}),
         tripDayWeatherBackfillProvider(shown.id).overrideWith((ref) async {}),
         tripGearProvider(shown.id).overrideWith((ref) async => const []),
@@ -226,6 +258,7 @@ Future<TripPageHarness> pumpTripPage(
             ref.watch(_storedProvider.notifier),
             trips,
             itemShares,
+            vessels,
           );
           return save;
         }),
@@ -275,3 +308,13 @@ final twoDivers = [
     updatedAt: DateTime(2026),
   ),
 ];
+
+/// [liveaboard]'s vessel as stored.
+final mvBlue = LiveaboardDetails(
+  id: 'v1',
+  tripId: 't1',
+  vesselName: 'MV Blue',
+  operatorName: 'Blue Waters',
+  createdAt: DateTime(2026),
+  updatedAt: DateTime(2026),
+);

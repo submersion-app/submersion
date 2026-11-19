@@ -10098,6 +10098,7 @@
     }
   },
   "trips_overview_plan_notSet": "Non défini",
+  "trips_overview_plan_runtime": "{minutes} min par plongée",
   "trips_detail_tab_itinerary": "Itinéraire",
   "trips_detail_tab_overview": "Aperçu",
   "trips_detail_tab_photos": "Photos",

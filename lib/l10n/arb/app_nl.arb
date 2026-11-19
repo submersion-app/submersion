@@ -10224,6 +10224,7 @@
     }
   },
   "trips_overview_plan_notSet": "Niet ingesteld",
+  "trips_overview_plan_runtime": "{minutes} min per duik",
   "trips_detail_tab_itinerary": "Reisschema",
   "trips_detail_tab_overview": "Overzicht",
   "trips_detail_tab_photos": "Foto's",

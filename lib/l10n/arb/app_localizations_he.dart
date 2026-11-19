@@ -36226,6 +36226,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_overview_plan_notSet => 'לא הוגדר';
 
   @override
+  String trips_overview_plan_runtime(int minutes) {
+    return '$minutes דק׳ לצלילה';
+  }
+
+  @override
   String get trips_detail_sectionTitle_vessel => 'ספינה';
 
   @override

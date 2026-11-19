@@ -37602,6 +37602,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_overview_plan_notSet => 'غير محدد';
 
   @override
+  String trips_overview_plan_runtime(int minutes) {
+    return '$minutes دقيقة لكل غوصة';
+  }
+
+  @override
   String get trips_detail_sectionTitle_vessel => 'السفينة';
 
   @override

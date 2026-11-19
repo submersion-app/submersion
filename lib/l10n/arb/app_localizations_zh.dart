@@ -34948,6 +34948,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_overview_plan_notSet => '未设置';
 
   @override
+  String trips_overview_plan_runtime(int minutes) {
+    return '每次潜水 $minutes 分钟';
+  }
+
+  @override
   String get trips_detail_sectionTitle_vessel => '船只';
 
   @override

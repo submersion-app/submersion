@@ -10224,6 +10224,7 @@
     }
   },
   "trips_overview_plan_notSet": "Sin definir",
+  "trips_overview_plan_runtime": "{minutes} min por inmersión",
   "trips_detail_tab_itinerary": "Itinerario",
   "trips_detail_tab_overview": "Resumen",
   "trips_detail_tab_photos": "Fotos",

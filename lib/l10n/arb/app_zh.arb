@@ -10365,6 +10365,7 @@
     }
   },
   "trips_overview_plan_notSet": "未设置",
+  "trips_overview_plan_runtime": "每次潜水 {minutes} 分钟",
   "trips_detail_tab_itinerary": "行程",
   "trips_detail_tab_overview": "概览",
   "trips_detail_tab_photos": "照片",

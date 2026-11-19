@@ -49,6 +49,9 @@ mixin _TripDetailPageEditing
     // Read now: an owner's Save clears share rows a sync race left beside
     // the Everyone flag, as the form's did, whichever card it changed.
     loadTripSharing(session, container.read);
+    tripVesselDetails(
+      container.read(liveaboardDetailsRepositoryProvider),
+    ).load(session);
     holdDocumentLinks(
       session,
       container.read,
@@ -106,13 +109,24 @@ mixin _TripDetailPageEditing
     if (session == null) return const [];
     return [
       for (final id in tripOptionalCards)
-        if (tripEditCards[id]!.isEmpty(working) && !_showsWhileEmpty(id))
+        if (_offered(id, working) && !_showsWhileEmpty(id))
           AddStripEntry(
             cardId: id.name,
             label: tripEditCards[id]!.title(context),
             changed: session.changedCardIds.contains(id.name),
           ),
     ];
+  }
+
+  /// Whether the strip offers [id]: an empty card, or the Plan from the
+  /// trip's first day, when the story has no place of its own for it. The
+  /// Overview is laid out from the trip as stored while unlocked.
+  bool _offered(TripCardId id, Trip working) {
+    if (id == TripCardId.plan) {
+      final stored = maybeEditController?.session?.stored ?? working;
+      return !stored.startsAfter(clock.now());
+    }
+    return tripEditCards[id]!.isEmpty(working);
   }
 
   /// Whether [id] is shown though empty: open or brought in from the strip

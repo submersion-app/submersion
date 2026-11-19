@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -34,6 +35,8 @@ import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dar
 import 'package:submersion/features/trips/presentation/editing/trip_card_slots.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_edit_cards.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_header_card_editor.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_vessel_sitting.dart';
+import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';

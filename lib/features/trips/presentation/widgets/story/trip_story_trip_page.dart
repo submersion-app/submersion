@@ -8,6 +8,7 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_card_slots.dart';
+import 'package:submersion/features/trips/presentation/widgets/overview/trip_overview_summary_card.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_line.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_empty_state.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_under_way_cards.dart';
@@ -152,7 +153,32 @@ class TripStoryTripPage extends ConsumerWidget {
           if (trip.isLiveaboard)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-              child: TripVesselSection(tripId: trip.id),
+              child: framed(
+                TripCardId.vessel,
+                TripVesselSection(tripId: trip.id, session: slots?.session),
+              ),
+            ),
+          // The plan, from the trip's first day, only once brought in from
+          // the strip or open (issue #4527).
+          if (slots?.showsWhileEmpty(TripCardId.plan) ?? false)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: framed(
+                TripCardId.plan,
+                Card(
+                  margin: EdgeInsets.zero,
+                  child: ListTile(
+                    leading: Icon(Icons.tune, color: scheme.primary),
+                    title: Text(l10n.trips_overview_plan),
+                    subtitle: Text(
+                      tripPlanText(l10n, trip, editsInPlace: true),
+                    ),
+                    trailing: RecordCardPencil(
+                      cardTitle: l10n.trips_overview_plan,
+                    ),
+                  ),
+                ),
+              ),
             ),
           if (trip.notes.isNotEmpty ||
               (slots?.showsWhileEmpty(TripCardId.notes) ?? false))

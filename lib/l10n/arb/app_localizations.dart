@@ -58364,6 +58364,12 @@ abstract class AppLocalizations {
   /// **'Not set'**
   String get trips_overview_plan_notSet;
 
+  /// On the trip Overview's Plan row: the expected runtime of each dive, in minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min per dive'**
+  String trips_overview_plan_runtime(int minutes);
+
   /// No description provided for @trips_detail_sectionTitle_vessel.
   ///
   /// In en, this message translates to:

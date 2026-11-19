@@ -1,11 +1,22 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/trips/domain/entities/liveaboard_details.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_edit_fields.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_vessel_sitting.dart';
+import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/field_text_binding.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/record_editing/record_field_marks.dart';
+import 'package:submersion/shared/widgets/record_editing/reveal_answering.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
 
 /// The editors of the trip Overview's cards (issue #4527, phase 3).
 
@@ -45,4 +56,380 @@ class _TripNotesCardEditorState extends State<TripNotesCardEditor> {
     ),
     maxLines: 4,
   );
+}
+
+/// Plan: the four numbers the fill forecast and the scrubber margin plan
+/// with. Blank, zero or below is none (divers sharing: one), as the form
+/// stored them. Each field carries the form's label above and its hint
+/// below: the labels are too long for a number row's label column.
+class TripPlanCardEditor extends StatelessWidget {
+  const TripPlanCardEditor({super.key, required this.session});
+
+  final EditSession<Trip> session;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _PlanNumberField(
+          key: const Key('trip-edit-dives-per-day'),
+          session: session,
+          field: tripDivesPerDayField,
+          label: l10n.trips_edit_label_divesPerDay,
+          hint: l10n.trips_edit_hint_divesPerDay,
+          icon: Icons.today_outlined,
+          autofocus: true,
+        ),
+        const SizedBox(height: 12),
+        _PlanNumberField(
+          key: const Key('trip-edit-divers-sharing'),
+          session: session,
+          field: tripDiversSharingField,
+          label: l10n.trips_edit_label_diversSharing,
+          hint: l10n.trips_edit_hint_diversSharing,
+          icon: Icons.groups_outlined,
+        ),
+        const SizedBox(height: 12),
+        _PlanNumberField(
+          key: const Key('trip-edit-expected-dives'),
+          session: session,
+          field: tripExpectedDivesField,
+          label: l10n.trips_edit_label_expectedDives,
+          hint: l10n.trips_edit_hint_expectedDives,
+          icon: Icons.scuba_diving,
+        ),
+        const SizedBox(height: 12),
+        _PlanNumberField(
+          key: const Key('trip-edit-expected-runtime'),
+          session: session,
+          field: tripExpectedRuntimeField,
+          label: l10n.trips_edit_label_expectedRuntime,
+          hint: l10n.trips_edit_hint_expectedRuntime,
+          icon: Icons.timer_outlined,
+        ),
+      ],
+    );
+  }
+}
+
+/// One whole-number field of the Plan card. Text that is not a whole
+/// number never reaches the sitting: the field says so, and the card stays
+/// open and refuses the Save until it is fixed, as a number row does.
+class _PlanNumberField extends StatefulWidget {
+  const _PlanNumberField({
+    super.key,
+    required this.session,
+    required this.field,
+    required this.label,
+    required this.hint,
+    required this.icon,
+    this.autofocus = false,
+  });
+
+  final EditSession<Trip> session;
+  final EditField<Trip, double?> field;
+  final String label;
+  final String hint;
+  final IconData icon;
+  final bool autofocus;
+
+  @override
+  State<_PlanNumberField> createState() => _PlanNumberFieldState();
+}
+
+class _PlanNumberFieldState extends State<_PlanNumberField>
+    with
+        RevealAnswering<_PlanNumberField>,
+        RecordFieldMarks<Trip, _PlanNumberField> {
+  late final FieldTextBinding<Trip, double?> _binding =
+      FieldTextBinding<Trip, double?>(
+        session: widget.session,
+        field: widget.field,
+        format: (v) => v == null ? '' : '${v.toInt()}',
+        parse: (text) => switch (readNumber(text, integer: true)) {
+          NumberBlank() => const FieldValue<double?>(null),
+          NumberInvalid() => const FieldUnreadable<double?>(),
+          NumberValue(:final value) => FieldValue<double?>(value),
+        },
+        onUnreadableChanged: reportUnreadable,
+      );
+
+  @override
+  String get markCardId => widget.field.cardId;
+
+  @override
+  String get markFieldId => widget.field.id;
+
+  @override
+  void dispose() {
+    _binding.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: _binding.controller,
+      builder: (context, _) => TextField(
+        controller: _binding.controller,
+        autofocus: widget.autofocus,
+        // The filter keeps '-', so "-3" stores none rather than 3.
+        inputFormatters: numberInputFormatters(),
+        keyboardType: TextInputType.number,
+        decoration: InputDecoration(
+          labelText: widget.label,
+          prefixIcon: Icon(widget.icon),
+          helperText: widget.hint,
+          helperMaxLines: 3,
+          errorText: invalidNumberText(
+            context,
+            _binding.controller.text,
+            integer: true,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Vessel: a liveaboard's details, held as the sitting's one row of them.
+/// The vessel name is required, as the form required it.
+class TripVesselCardEditor extends ConsumerStatefulWidget {
+  const TripVesselCardEditor({super.key, required this.session});
+
+  final EditSession<Trip> session;
+
+  @override
+  ConsumerState<TripVesselCardEditor> createState() =>
+      _TripVesselCardEditorState();
+}
+
+class _TripVesselCardEditorState extends ConsumerState<TripVesselCardEditor> {
+  static const _capacityId = 'capacity';
+
+  late final _list = tripVesselDetails(
+    ref.read(liveaboardDetailsRepositoryProvider),
+  );
+  late final Listenable _changes = _list.changes(widget.session);
+
+  final _name = TextEditingController();
+  final _operator = TextEditingController();
+  final _cabin = TextEditingController();
+  final _capacity = TextEditingController();
+  final _embark = TextEditingController();
+  final _disembark = TextEditingController();
+
+  /// Whether the controllers hold the sitting's row yet.
+  bool _filled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _changes.addListener(_onChanged);
+    _list.load(widget.session);
+    _fill();
+  }
+
+  @override
+  void dispose() {
+    _changes.removeListener(_onChanged);
+    for (final c in [
+      _name,
+      _operator,
+      _cabin,
+      _capacity,
+      _embark,
+      _disembark,
+    ]) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  void _onChanged() {
+    if (!mounted) return;
+    _fill();
+    setState(() {});
+  }
+
+  /// Puts the sitting's row into the fields once it has been read.
+  void _fill() {
+    if (_filled || _list.current(widget.session) == null) return;
+    final row = _row;
+    _filled = true;
+    _name.text = row.vesselName;
+    _operator.text = row.operatorName ?? '';
+    _cabin.text = row.cabinType ?? '';
+    _capacity.text = row.capacity?.toString() ?? '';
+    _embark.text = row.embarkPort ?? '';
+    _disembark.text = row.disembarkPort ?? '';
+  }
+
+  /// The row the sitting holds, or a new one for a liveaboard with none.
+  LiveaboardDetails get _row =>
+      tripVesselInSitting(_list, widget.session) ??
+      tripVesselDraft(widget.session.stored.id);
+
+  void _set(LiveaboardDetails next) => _list.set(widget.session, [next]);
+
+  /// Blank stores none, as the form stored it.
+  static String? _text(String text) {
+    final trimmed = text.trim();
+    return trimmed.isEmpty ? null : trimmed;
+  }
+
+  void _onCapacity(String text) {
+    final read = readNumber(text, integer: true);
+    RecordEditScope.maybeOf<Trip>(context)?.setFieldInvalid(
+      TripCardId.vessel.name,
+      _capacityId,
+      invalid: read is NumberInvalid,
+    );
+    switch (read) {
+      case NumberValue(:final value):
+        // Zero or below is no capacity, as the form stored it.
+        _set(_row.copyWith(capacity: tripPositiveOrNull(value)));
+      case NumberBlank():
+        _set(_row.copyWith(capacity: null));
+      case NumberInvalid():
+        setState(() {});
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    if (_list.current(widget.session) == null) {
+      // A read that failed says so; the Save waits for one still running.
+      if (_list.failed(widget.session)) {
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(l10n.common_error_tryAgain),
+        );
+      }
+      return const Padding(
+        padding: EdgeInsets.all(16),
+        child: Center(child: CircularProgressIndicator.adaptive()),
+      );
+    }
+    final row = _row;
+    final nameBlank = row.vesselName.trim().isEmpty;
+    final capacityError = invalidNumberText(
+      context,
+      _capacity.text,
+      integer: true,
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        TextField(
+          key: const Key('trip-edit-vessel-name'),
+          controller: _name,
+          autofocus: true,
+          textCapitalization: TextCapitalization.words,
+          onChanged: (v) => _set(_row.copyWith(vesselName: v.trim())),
+          decoration: InputDecoration(
+            labelText: l10n.trips_edit_label_vesselName,
+            prefixIcon: const Icon(Icons.directions_boat),
+            hintText: l10n.trips_edit_hint_vesselName,
+            errorText: nameBlank
+                ? l10n.trips_edit_validation_vesselRequired
+                : null,
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          key: const Key('trip-edit-vessel-operator'),
+          controller: _operator,
+          textCapitalization: TextCapitalization.words,
+          onChanged: (v) => _set(_row.copyWith(operatorName: _text(v))),
+          decoration: InputDecoration(
+            labelText: l10n.trips_edit_label_operatorName,
+            prefixIcon: const Icon(Icons.business),
+            hintText: l10n.trips_edit_hint_operatorName,
+          ),
+        ),
+        const SizedBox(height: 12),
+        DropdownButtonFormField<String>(
+          key: const Key('trip-edit-vessel-type'),
+          initialValue: row.vesselType,
+          decoration: InputDecoration(
+            labelText: l10n.trips_edit_label_vesselType,
+            prefixIcon: const Icon(Icons.category),
+          ),
+          items: [
+            DropdownMenuItem(
+              value: 'catamaran',
+              child: Text(l10n.trips_vesselType_catamaran),
+            ),
+            DropdownMenuItem(
+              value: 'motorYacht',
+              child: Text(l10n.trips_vesselType_motorYacht),
+            ),
+            DropdownMenuItem(
+              value: 'sailingYacht',
+              child: Text(l10n.trips_vesselType_sailingYacht),
+            ),
+            DropdownMenuItem(
+              value: 'other',
+              child: Text(l10n.trips_vesselType_other),
+            ),
+          ],
+          onChanged: (v) => _set(_row.copyWith(vesselType: v)),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          key: const Key('trip-edit-vessel-cabin'),
+          controller: _cabin,
+          textCapitalization: TextCapitalization.words,
+          onChanged: (v) => _set(_row.copyWith(cabinType: _text(v))),
+          decoration: InputDecoration(
+            labelText: l10n.trips_edit_label_cabinType,
+            prefixIcon: const Icon(Icons.bed),
+            hintText: l10n.trips_edit_hint_cabinType,
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          key: const Key('trip-edit-vessel-capacity'),
+          controller: _capacity,
+          // The filter keeps '-', so "-3" stores none rather than 3.
+          inputFormatters: numberInputFormatters(),
+          keyboardType: TextInputType.number,
+          onChanged: _onCapacity,
+          decoration: InputDecoration(
+            labelText: l10n.trips_edit_label_capacity,
+            prefixIcon: const Icon(Icons.people),
+            errorText: capacityError,
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          key: const Key('trip-edit-vessel-embark'),
+          controller: _embark,
+          textCapitalization: TextCapitalization.words,
+          onChanged: (v) => _set(_row.copyWith(embarkPort: _text(v))),
+          decoration: InputDecoration(
+            labelText: l10n.trips_edit_label_embarkPort,
+            prefixIcon: const Icon(Icons.login),
+            hintText: l10n.trips_edit_hint_embarkPort,
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          key: const Key('trip-edit-vessel-disembark'),
+          controller: _disembark,
+          textCapitalization: TextCapitalization.words,
+          onChanged: (v) => _set(_row.copyWith(disembarkPort: _text(v))),
+          decoration: InputDecoration(
+            labelText: l10n.trips_edit_label_disembarkPort,
+            prefixIcon: const Icon(Icons.logout),
+            hintText: l10n.trips_edit_hint_disembarkPort,
+          ),
+        ),
+      ],
+    );
+  }
 }

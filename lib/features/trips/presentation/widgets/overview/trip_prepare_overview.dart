@@ -5,6 +5,7 @@ import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dar
 import 'package:submersion/features/trips/presentation/editing/trip_card_slots.dart';
 import 'package:submersion/features/trips/presentation/widgets/overview/trip_overview_summary_card.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_hero.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_vessel_section.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_detail_tabs.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
@@ -55,6 +56,16 @@ class TripPrepareOverview extends StatelessWidget {
           onOpenTab: onOpenTab,
           onEditPlan: onEditPlan,
         ),
+        // A liveaboard's vessel, before departure too, where the page edits
+        // in place (issue #4527).
+        if (slots != null && trip.isLiveaboard)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: framed(
+              TripCardId.vessel,
+              TripVesselSection(tripId: trip.id, session: slots.session),
+            ),
+          ),
         if (trip.notes.isNotEmpty ||
             (slots?.showsWhileEmpty(TripCardId.notes) ?? false))
           Padding(

@@ -5,6 +5,7 @@ import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dar
 import 'package:submersion/features/trips/presentation/editing/trip_edit_fields.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_header_card_editor.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_overview_card_editors.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_vessel_sitting.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
 
@@ -19,6 +20,25 @@ final Map<TripCardId, EditCard<Trip>> tripEditCards = {
     // A name, as the form's validator has it.
     isValid: (session) => tripNameValid(session.working.name),
     editorBuilder: (context, session) => TripHeaderCardEditor(session: session),
+  ),
+  TripCardId.plan: EditCard<Trip>(
+    id: TripCardId.plan.name,
+    title: (context) => TripCardId.plan.localizedDisplayName(context.l10n),
+    isEmpty: (t) =>
+        t.divesPerDayTarget == null &&
+        t.expectedDives == null &&
+        t.expectedRuntimeMinutes == null &&
+        t.diversSharingCylinders == 1,
+    editorBuilder: (context, session) => TripPlanCardEditor(session: session),
+  ),
+  TripCardId.vessel: EditCard<Trip>(
+    id: TripCardId.vessel.name,
+    title: (context) => TripCardId.vessel.localizedDisplayName(context.l10n),
+    // On the page while the trip is a liveaboard, details or not.
+    isEmpty: (_) => false,
+    // A liveaboard needs a vessel name, as the form's validator has it.
+    isValid: (session) => tripVesselValid(tripVesselDetails(), session),
+    editorBuilder: (context, session) => TripVesselCardEditor(session: session),
   ),
   TripCardId.notes: EditCard<Trip>(
     id: TripCardId.notes.name,
@@ -40,4 +60,7 @@ final Map<TripCardId, EditCard<Trip>> tripEditCards = {
 
 /// The cards the page leaves out while they are empty, offered in the
 /// strip on their tab, in page order.
-const List<TripCardId> tripOptionalCards = [TripCardId.notes];
+///
+/// The Plan card is on the prepare page; from the trip's first day it is
+/// offered here, the story having no place of its own for it.
+const List<TripCardId> tripOptionalCards = [TripCardId.plan, TripCardId.notes];

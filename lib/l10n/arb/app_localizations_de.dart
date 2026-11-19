@@ -37050,6 +37050,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trips_overview_plan_notSet => 'Nicht festgelegt';
 
   @override
+  String trips_overview_plan_runtime(int minutes) {
+    return '$minutes Min. pro Tauchgang';
+  }
+
+  @override
   String get trips_detail_sectionTitle_vessel => 'Schiff';
 
   @override
