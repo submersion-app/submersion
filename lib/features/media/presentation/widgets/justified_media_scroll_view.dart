@@ -130,9 +130,14 @@ class _JustifiedMediaScrollViewState extends State<JustifiedMediaScrollView> {
           newHeight: newRect.height,
         ),
       );
-    } else if (previous.hasSameCellsAs(next) && position.pixels > top) {
+    } else if (position.pixels > top) {
+      // Only the cells up to the one at the top edge need to match: a page
+      // that grows the groups below it, arriving with a shape learned above
+      // it, must not move the view.
       final place = previous.placeAt(position.pixels - top);
-      position.correctPixels(next.offsetOf(place) + top);
+      if (previous.sharesCellsThrough(next, place.cell)) {
+        position.correctPixels(next.offsetOf(place) + top);
+      }
     }
   }
 

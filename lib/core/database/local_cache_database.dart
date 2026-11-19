@@ -736,6 +736,7 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
       // v23 mirror, for a database a colliding branch stamped at v23 first.
       await customStatement(kCreateDiveVerticalDistanceCacheSql);
       await customStatement(kCreateIdentificationEmbeddingsSql);
+      // v26 mirror, for a database a colliding branch stamped at v26 first.
       await customStatement(kCreateMediaAspectCacheSql);
       // v24 mirror, for a database a colliding branch stamped at v24 first.
       await addSiteCataloguePositionFrom(this);

@@ -250,6 +250,24 @@ class JustifiedMediaTable {
     return _tops[place.cell] + place.fraction * _heights[place.cell];
   }
 
+  /// Whether [other] holds the same cells as this table from the start
+  /// through [cell]'s group, so [cell] and every cell before it mean the same
+  /// thing in both. A page that only grows later groups keeps this true.
+  bool sharesCellsThrough(JustifiedMediaTable other, int cell) {
+    if (cell < 0 || cell >= cellCount) return false;
+    final last = sectionOf(cell);
+    if (other._sections.length <= last) return false;
+    for (var s = 0; s <= last; s++) {
+      final mine = _sections[s];
+      final theirs = other._sections[s];
+      if (mine.ratios.length != theirs.ratios.length ||
+          mine.headerExtents.length != theirs.headerExtents.length) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   /// Whether [other] holds the same cells in the same order, however it lays
   /// them out, so a cell index means the same thing in both.
   bool hasSameCellsAs(JustifiedMediaTable other) {

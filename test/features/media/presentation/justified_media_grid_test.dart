@@ -242,6 +242,33 @@ void main() {
     });
   });
 
+  group('sharesCellsThrough', () {
+    test('holds up to a cell when only later groups grew', () {
+      final table = _table(_twoSections);
+      final paged = _table(const [
+        JustifiedSection(headerExtents: [40], ratios: [0.75, 0.75, 1, 1, 1, 1]),
+        JustifiedSection(headerExtents: [48, 30], ratios: [..._three, 1, 1]),
+      ]);
+      final inFirst = _tilesOf(table, 0).last;
+
+      expect(table.sharesCellsThrough(paged, inFirst), isTrue);
+      expect(
+        table.sharesCellsThrough(paged, _tilesOf(table, 1).first),
+        isFalse,
+      );
+    });
+
+    test('fails when a group up to the cell changed size', () {
+      final table = _table(_twoSections);
+      final grown = _table(const [
+        JustifiedSection(headerExtents: [40], ratios: [..._six, 1]),
+        JustifiedSection(headerExtents: [48, 30], ratios: _three),
+      ]);
+
+      expect(table.sharesCellsThrough(grown, 1), isFalse);
+    });
+  });
+
   test('JustifiedSection compares by value', () {
     expect(
       const JustifiedSection(headerExtents: [40.0], ratios: [1.5]),
