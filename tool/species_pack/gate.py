@@ -2,11 +2,14 @@
 """The naming layer's ship gate (issue #4724;
 docs/design/specs/2026-11-18-marine-life-naming-layer-design.md, "The gate").
 
-    python -I tool/species_pack/gate.py --baseline W0 --trained W1 --check W2
+    python -I tool/species_pack/gate.py --baseline W0 --trained W1 --check W2 --check-pack P2
 
 W0, W1 and W2 are score.py work folders: the baseline pack, the trained pack,
-and the rare-species check pack scored with `--naming-from` the trained
-pack. A trained pack ships only when all five hold on the pair of detectors:
+and the rare-species check pack P2 scored with `--naming-from` the trained
+pack. The gate first confirms that W2 was scored on P2, at the trained
+pack's bars, and that P2 held back exactly the test set's held-back
+species. A trained pack ships only when all five hold on the pair of
+detectors:
 
 1. significantly more held-out natural photos named right at each pack's
    own bars (paired McNemar test, p < 0.05);
@@ -97,6 +100,20 @@ def rare_check(check_per_photo, held_back):
     }
 
 
+def confirm_check_pack(training, manifest, check_results, trained_eval, held_back, set_key):
+    """Stops unless the check scores stand for the rare-species check: the
+    pack they were scored on held back exactly `held_back` (its
+    training.json), and they were named at the trained pack's bars."""
+    if sorted(training.get("held back species") or []) != sorted(held_back):
+        raise SystemExit("the check pack held back other species than the test set's held-back ones")
+    if check_results.get("pack") != manifest.get("packVersion"):
+        raise SystemExit(f"--check was scored on pack {check_results.get('pack')}, not {manifest.get('packVersion')}")
+    named_at = check_results["evaluations"][set_key]["bars after held-out gate"]
+    shipped = trained_eval["bars after held-out gate"]
+    if any(abs(named_at[k] - shipped[k]) > 1e-9 for k in shipped):
+        raise SystemExit(f"--check was named at bars {named_at}, not the trained pack's {shipped}")
+
+
 def verdict(baseline, trained, trained_eval, rare):
     out = {
         "more_named_right": more_named_right(baseline, trained),
@@ -119,14 +136,24 @@ def main(argv=None):
     parser.add_argument("--baseline", required=True)
     parser.add_argument("--trained", required=True)
     parser.add_argument("--check", required=True)
+    parser.add_argument("--check-pack", required=True, help="the check layer's pack, to confirm what it held back")
     parser.add_argument("--set", default=os.path.join(os.path.dirname(__file__), "testdata", "accuracy_set.csv"))
     parser.add_argument("--set-key", default=SET_KEY, help="the scorer's detector set and fitting to gate on")
     args = parser.parse_args(argv)
     held_back = set(ts.held_back_species(testset.read_rows(args.set)))
+    trained_eval = _read(args.trained, "results.json")["evaluations"][args.set_key]
+    confirm_check_pack(
+        _read(args.check_pack, "training.json"),
+        _read(args.check_pack, "manifest.json"),
+        _read(args.check, "results.json"),
+        trained_eval,
+        held_back,
+        args.set_key,
+    )
     result = verdict(
         _read(args.baseline, "per_photo.json")[args.set_key],
         _read(args.trained, "per_photo.json")[args.set_key],
-        _read(args.trained, "results.json")["evaluations"][args.set_key],
+        trained_eval,
         rare_check(_read(args.check, "per_photo.json")[args.set_key], held_back),
     )
     with open(os.path.join(args.trained, "gate.json"), "w", encoding="utf-8") as fh:

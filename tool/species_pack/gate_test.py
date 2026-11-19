@@ -96,6 +96,36 @@ class RareTest(unittest.TestCase):
         self.assertFalse(gate.rare_check({}, {5})["pass"])
 
 
+class CheckPackTest(unittest.TestCase):
+    BARS = {"min_open": 0.1, "suggest": 0.7, "suggest_no_location": 0.8, "confident": 0.93, "confident_no_location": 1.01}
+
+    def confirm(self, held=(5, 6), scored="check-v", named_at=None):
+        gate.confirm_check_pack(
+            {"held back species": list(held)},
+            {"packVersion": "check-v"},
+            {"pack": scored, "evaluations": {gate.SET_KEY: {"bars after held-out gate": named_at or self.BARS}}},
+            {"bars after held-out gate": self.BARS},
+            [6, 5],
+            gate.SET_KEY,
+        )
+
+    def test_a_check_pack_that_held_back_the_test_species_passes(self):
+        self.confirm()
+
+    def test_a_pack_that_held_back_other_species_is_refused(self):
+        for held in ((), (5,), (5, 6, 7)):
+            with self.subTest(held=held), self.assertRaisesRegex(SystemExit, "held back"):
+                self.confirm(held=held)
+
+    def test_scores_of_another_pack_are_refused(self):
+        with self.assertRaisesRegex(SystemExit, "scored"):
+            self.confirm(scored="trained-v")
+
+    def test_scores_named_at_other_bars_are_refused(self):
+        with self.assertRaisesRegex(SystemExit, "bars"):
+            self.confirm(named_at={**self.BARS, "confident": 0.95})
+
+
 class VerdictTest(unittest.TestCase):
     def test_ship_only_when_all_pass(self):
         base, trained = build([pair(False, True)] * 30)

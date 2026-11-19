@@ -426,8 +426,9 @@ def evaluate(
     # half and kept only if it stands held out. They are measured under the
     # bars the pack ships with when it has measured ones (`published`), so
     # a run whose own bars come out slightly different never states an
-    # accuracy the app does not name at; otherwise under this run's.
-    surer = published or gated
+    # accuracy the app does not name at; otherwise under this run's. Bars
+    # given with `fixed_bars` come first: they are the ones asked for.
+    surer = gated if fixed_bars is not None else published or gated
     levels, surer_precision = level_search.measure(surer, tune_nat, tune_junk, held_nat, held_junk, min_side=min_side)
 
     def naming_rates(records, confident=False):
@@ -765,7 +766,11 @@ def main(argv=None):
                 fixed_bars=fixed_bars,
                 published=published,
             )
-            if published is not None and kept[key]["bars after held-out gate"] != published.__dict__:
+            if (
+                fixed_bars is None
+                and published is not None
+                and kept[key]["bars after held-out gate"] != published.__dict__
+            ):
                 print(
                     f"warning: {key} bars came out {kept[key]['bars after held-out gate']}, not the published "
                     f"{published.__dict__}; its levels are measured under the published bars",

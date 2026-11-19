@@ -208,8 +208,8 @@ def stage_lists(work, pack, limit=None):
                 "fields": ft.FIELDS,
             }
         )
-        page = ft._get(f"{ft.INAT}?{query}")
-        budget.spend(1)
+        # Every attempt counts toward the day's limit, retries included.
+        page = ft._get(f"{ft.INAT}?{query}", on_attempt=lambda: budget.spend(1))
         time.sleep(1.0)  # iNaturalist asks for at most one request a second.
         records = []
         for o in page.get("results") or []:

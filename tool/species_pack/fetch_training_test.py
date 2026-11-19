@@ -2,6 +2,7 @@
 """Unit tests for fetch_training.py's pure helpers (issue #4724)."""
 
 import importlib.util
+import json
 import os
 import sys
 import tempfile
@@ -156,6 +157,42 @@ class DownloadBatchTest(unittest.TestCase):
                 fetch_training.download_batch(
                     records, paths, _Budget(10_000), self.failing_on_photo_1(KeyError("bug")), workers=1
                 )
+
+
+class _Response:
+    def __init__(self, body):
+        self.body = body
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+    def read(self):
+        return self.body
+
+
+class RequestBudgetTest(unittest.TestCase):
+    def test_every_attempt_at_a_list_counts_against_the_day(self):
+        busy = urllib.error.HTTPError("https://api.inaturalist.org", 503, "Busy", None, None)
+        answers = [busy, busy, _Response(b'{"results": []}')]
+
+        def urlopen(request, timeout):
+            answer = answers.pop(0)
+            if isinstance(answer, Exception):
+                raise answer
+            return answer
+
+        with tempfile.TemporaryDirectory() as root:
+            pack, work = os.path.join(root, "pack"), os.path.join(root, "work")
+            os.makedirs(pack)
+            with open(os.path.join(pack, "candidates.json"), "w", encoding="utf-8") as fh:
+                json.dump([{"gbifKey": 1, "scientificName": "Scarus vetula"}], fh)
+            with mock.patch("urllib.request.urlopen", urlopen), mock.patch("time.sleep"):
+                self.assertTrue(fetch_training.stage_lists(work, pack))
+            with open(os.path.join(work, "requests.json"), encoding="utf-8") as fh:
+                self.assertEqual(list(json.load(fh).values()), [3])
 
 
 try:
