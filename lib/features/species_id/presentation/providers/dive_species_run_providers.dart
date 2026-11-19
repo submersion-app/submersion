@@ -55,7 +55,7 @@ final diveSpeciesRunProvider =
         inForeground: () =>
             WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed,
       );
-      final lifecycle = _RunLifecycle(run);
+      final lifecycle = RunLifecycle(run);
       WidgetsBinding.instance.addObserver(lifecycle);
       ref.onDispose(() => WidgetsBinding.instance.removeObserver(lifecycle));
       return run;
@@ -63,8 +63,9 @@ final diveSpeciesRunProvider =
 
 /// Pauses a run while the app is in the background, where the models may
 /// not run, and carries on when it is back.
-class _RunLifecycle with WidgetsBindingObserver {
-  _RunLifecycle(this._run);
+@visibleForTesting
+class RunLifecycle with WidgetsBindingObserver {
+  RunLifecycle(this._run);
 
   final DiveSpeciesRun _run;
 

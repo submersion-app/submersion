@@ -7,6 +7,7 @@ import 'package:submersion/features/media/presentation/providers/media_providers
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_sightings_section.dart';
 import 'package:submersion/features/species_id/data/pack/species_pack_store.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/species_id/data/services/dive_species_run.dart';
 import 'package:submersion/features/species_id/data/services/media_identification_service.dart';
 import 'package:submersion/features/species_id/domain/entities/dive_species_run_state.dart';
@@ -36,6 +37,14 @@ class _FixedRun extends DiveSpeciesRun {
   }
 }
 
+/// Records the dives a run was started for, running nothing.
+class _RecordingRun extends _FixedRun {
+  final started = <String>[];
+
+  @override
+  Future<void> start(String diveId) async => started.add(diveId);
+}
+
 /// Find species on a dive, and the ways to Species to review (issue #4727).
 void main() {
   final dive = Dive(id: 'd1', dateTime: DateTime.utc(2026, 3, 9));
@@ -58,6 +67,9 @@ void main() {
     Map<String, DiveSpeciesRunState> runs = const {},
     bool checked = false,
     bool unlocked = false,
+    DiveSpeciesRun? run,
+    List<MediaItem>? media,
+    Set<String> upToDate = const {},
   }) async {
     final controller = RecordEditController<Dive>(onSave: (_) async {});
     addTearDown(controller.dispose);
@@ -74,10 +86,11 @@ void main() {
           ).overrideWith((ref) async => toReview),
           installedSpeciesPackProvider.overrideWith((ref) async => installed),
           mediaForDiveProvider('d1').overrideWith(
-            (ref) async => [testMediaItem(id: 'p1', diveId: 'd1')],
+            (ref) async => media ?? [testMediaItem(id: 'p1', diveId: 'd1')],
           ),
+          diveMediaUpToDateProvider('d1').overrideWith((ref) async => upToDate),
           diveSpeciesCheckedProvider('d1').overrideWith((ref) async => checked),
-          diveSpeciesRunProvider.overrideWith((ref) => _FixedRun(runs)),
+          diveSpeciesRunProvider.overrideWith((ref) => run ?? _FixedRun(runs)),
         ],
         home: Scaffold(
           body: SingleChildScrollView(
@@ -227,6 +240,59 @@ void main() {
     testWidgets('says how many', (tester) async {
       await pumpBanner(tester, 12);
       expect(find.text('12 species to review'), findsOneWidget);
+    });
+  });
+
+  group('Find species asks before downloading', () {
+    // A path no test machine has: the photo is not on this device.
+    final away = testMediaItem(
+      id: 'p1',
+      diveId: 'd1',
+      originalFilename: 'find-species-not-on-this-device-4727.jpg',
+    );
+
+    testWidgets('Cancel starts nothing; Download and find starts the run', (
+      tester,
+    ) async {
+      final run = _RecordingRun();
+      await pumpCard(tester, installed: pack, run: run, media: [away]);
+
+      await tester.tap(find.byKey(const ValueKey('dive_species_find')));
+      await tester.pumpAndSettle();
+      expect(
+        find.text(
+          "1 photo or video isn't on this device. Finding species will "
+          'download it.',
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(run.started, isEmpty);
+
+      await tester.tap(find.byKey(const ValueKey('dive_species_find')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('dive_species_download')));
+      await tester.pumpAndSettle();
+      expect(run.started, ['d1']);
+    });
+
+    testWidgets('media already checked is not counted: the run starts at '
+        'once', (tester) async {
+      final run = _RecordingRun();
+      await pumpCard(
+        tester,
+        installed: pack,
+        run: run,
+        media: [away],
+        upToDate: {'p1'},
+      );
+
+      await tester.tap(find.byKey(const ValueKey('dive_species_find')));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(run.started, ['d1']);
     });
   });
 }
