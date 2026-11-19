@@ -11,6 +11,7 @@ import 'package:submersion/features/equipment/data/repositories/equipment_set_re
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 import 'package:submersion/features/equipment/domain/entities/set_history_rewrite.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
@@ -30,6 +31,21 @@ class _FailingReplay extends Fake implements DiveRepository {
     required bool alsoLogged,
     bool notify = true,
   }) async => throw StateError('replay failed');
+}
+
+/// Reads every set but the edited one, then fails to read them all: the
+/// sets the question needs cannot be read.
+class _FailingAllSets extends EquipmentSetRepository {
+  bool fail = false;
+
+  @override
+  Future<List<EquipmentSet>> getAllSets({
+    String? diverId,
+    List<String>? ids,
+  }) async {
+    if (fail) throw StateError('sets unreadable');
+    return super.getAllSets(diverId: diverId, ids: ids);
+  }
 }
 
 /// A set page's sitting that changes the gear the set applies asks "Update
@@ -214,6 +230,25 @@ void main() {
     expect(question, findsNothing);
     expect(await gearOn(tester, 'planned'), {'e1'});
     expect((await storedSet(tester)).equipmentIds, ['e1']);
+  });
+
+  testWidgets('sets that cannot be read stop the Save, asking nothing', (
+    tester,
+  ) async {
+    final sets = _FailingAllSets();
+    await pumpSetPage(
+      tester,
+      extraOverrides: [equipmentSetRepositoryProvider.overrideWithValue(sets)],
+    );
+    sets.fail = true;
+    await untickRegAndSave(tester);
+    await settleSave(tester);
+
+    expect(question, findsNothing);
+    expect(find.text(l.recordEdit_saveFailed), findsOneWidget);
+    expect(find.byType(RecordEditBar), findsOneWidget);
+    expect(await gearOn(tester, 'logged'), {'e1', 'e2'});
+    expect(await setPageOperations(tester), isEmpty);
   });
 
   testWidgets('a failed replay saves nothing and leaves the page unlocked', (

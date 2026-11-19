@@ -164,8 +164,8 @@ class EquipmentSetBundleEditor extends StatelessWidget {
         setId: set.id,
         diverId: set.diverId,
         ownGearIds: set.equipmentIds.toSet(),
-        values: session.valueOf(setBundleListsField),
-        onChanged: (lists) => session.set(setBundleListsField, lists),
+        values: bundleListsOf(session),
+        onChanged: (lists) => setBundleLists(session, lists),
       );
     },
   );

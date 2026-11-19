@@ -160,19 +160,54 @@ final setMembersField = EditField<EquipmentSet, SetMembersEdit>(
   equals: (a, b) => setEquals(a.held, b.held),
 );
 
-/// The included sets, weight presets and cylinder configurations. Their
-/// order matters, so a list the diver changed is written as they left it.
-final setBundleListsField = EditField<EquipmentSet, SetBundleListValues>(
-  id: 'bundleLists',
+/// The sets this set includes, in order. With the weight presets and the
+/// cylinder configurations, the Bundle card's lists. Each is a field of its
+/// own, so one the diver did not touch keeps what another device wrote; a
+/// list they changed is written as they left it, its order mattering.
+final setIncludedSetsField = EditField<EquipmentSet, List<String>>(
+  id: 'includedSetIds',
   cardId: _bundle,
+  // What a set includes is gear it applies.
   alsoShownOn: _showsGear,
-  read: SetBundleListValues.of,
-  write: (s, v) => s.copyWith(
-    includedSetIds: v.includedSetIds,
-    weightPresetIds: v.weightPresetIds,
-    cylinderConfigIds: v.cylinderConfigIds,
-  ),
+  read: (s) => s.includedSetIds,
+  write: (s, v) => s.copyWith(includedSetIds: v),
+  equals: listEquals,
 );
+
+final setWeightPresetsField = EditField<EquipmentSet, List<String>>(
+  id: 'weightPresetIds',
+  cardId: _bundle,
+  read: (s) => s.weightPresetIds,
+  write: (s, v) => s.copyWith(weightPresetIds: v),
+  equals: listEquals,
+);
+
+final setCylinderConfigsField = EditField<EquipmentSet, List<String>>(
+  id: 'cylinderConfigIds',
+  cardId: _bundle,
+  read: (s) => s.cylinderConfigIds,
+  write: (s, v) => s.copyWith(cylinderConfigIds: v),
+  equals: listEquals,
+);
+
+/// The Bundle card's three lists as [session] holds them.
+SetBundleListValues bundleListsOf(EditSession<EquipmentSet> session) =>
+    SetBundleListValues(
+      includedSetIds: session.valueOf(setIncludedSetsField),
+      weightPresetIds: session.valueOf(setWeightPresetsField),
+      cylinderConfigIds: session.valueOf(setCylinderConfigsField),
+    );
+
+/// Holds [lists], the Bundle editor's change, list by list.
+void setBundleLists(
+  EditSession<EquipmentSet> session,
+  SetBundleListValues lists,
+) {
+  session
+    ..set(setIncludedSetsField, lists.includedSetIds)
+    ..set(setWeightPresetsField, lists.weightPresetIds)
+    ..set(setCylinderConfigsField, lists.cylinderConfigIds);
+}
 
 final setGeofencesField = EditField<EquipmentSet, SetGeofencesEdit>(
   id: 'geofences',

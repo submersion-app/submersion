@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/change_log/record_sitting_writer.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
@@ -14,10 +15,17 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_s
 /// its gear, in one transaction and one History entry labelled with the
 /// cards it changed.
 class EquipmentSetEditSaveService {
-  EquipmentSetEditSaveService(this._sets, this._dives);
+  EquipmentSetEditSaveService(
+    this._sets,
+    this._dives, {
+    void Function(Iterable<String> diveIds) scheduleScan = scheduleQualityScan,
+  }) : _scheduleScan = scheduleScan;
 
   final EquipmentSetRepository _sets;
   final DiveRepository _dives;
+
+  /// Queues the quality rescan of dives whose gear the save rewrote.
+  final void Function(Iterable<String> diveIds) _scheduleScan;
 
   /// Saves [apply] onto set [setId] as stored now, so a value changed
   /// underneath on a card the diver never touched is kept. Writes, in
@@ -26,26 +34,36 @@ class EquipmentSetEditSaveService {
   /// carry it or a set that includes it: planned dives always, logged ones
   /// when [alsoLogged], else the logged ones stop naming the set and keep
   /// their gear (issues #4283, #4500, #4525). A failure anywhere writes
-  /// nothing. Returns the set before and after, or null when nothing
-  /// changed. Throws [StateError] when it no longer exists.
+  /// nothing, and the dives it rewrote are queued for a quality rescan
+  /// only once it has committed. Returns the set before and after, or null
+  /// when nothing changed. Throws [StateError] when it no longer exists.
   Future<({EquipmentSet before, EquipmentSet after})?> save({
     required String setId,
     required EquipmentSet Function(EquipmentSet stored) apply,
     required Iterable<String> changedCardIds,
     bool alsoLogged = false,
-  }) => writeRecordSitting<EquipmentSet>(
-    table: 'equipment_sets',
-    recordId: setId,
-    changedCardIds: changedCardIds,
-    read: () => _sets.getSetById(setId, includeGeofences: true),
-    apply: apply,
-    write: (stored, merged) => _write(stored, merged, alsoLogged: alsoLogged),
-  );
+  }) async {
+    final rewritten = <String>{};
+    final result = await writeRecordSitting<EquipmentSet>(
+      table: 'equipment_sets',
+      recordId: setId,
+      changedCardIds: changedCardIds,
+      read: () => _sets.getSetById(setId, includeGeofences: true),
+      apply: apply,
+      write: (stored, merged) =>
+          _write(stored, merged, alsoLogged: alsoLogged, rewritten: rewritten),
+    );
+    // As a rewrite outside a sitting does (issue #2853): a gear overlap can
+    // appear or go with the gear.
+    if (rewritten.isNotEmpty) _scheduleScan(rewritten);
+    return result;
+  }
 
   Future<void> _write(
     EquipmentSet stored,
     EquipmentSet merged, {
     required bool alsoLogged,
+    required Set<String> rewritten,
   }) async {
     // The gear the set applies is its own and that of the sets it includes:
     // with neither changed, no dive needs anything.
@@ -77,10 +95,14 @@ class EquipmentSetEditSaveService {
       allSets: allSets,
     );
     for (final change in changes) {
-      await _dives.rewriteSetOnDives(
-        change.setId,
-        change.rewrites,
-        alsoLogged: alsoLogged,
+      // The sitting tells sync once it commits, and the rescan follows it.
+      rewritten.addAll(
+        await _dives.rewriteSetOnDives(
+          change.setId,
+          change.rewrites,
+          alsoLogged: alsoLogged,
+          notify: false,
+        ),
       );
       if (!alsoLogged) await _dives.unlinkSetFromLoggedDives(change.setId);
     }

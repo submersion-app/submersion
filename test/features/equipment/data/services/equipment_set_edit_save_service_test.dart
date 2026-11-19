@@ -20,7 +20,6 @@ import 'package:submersion/features/equipment/domain/entities/equipment_set_geof
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 import 'package:submersion/features/equipment/domain/entities/set_history_rewrite.dart';
 import 'package:submersion/features/equipment/presentation/editing/equipment_set_edit_fields.dart';
-import 'package:submersion/features/equipment/presentation/helpers/equipment_set_form_values.dart';
 import 'package:submersion/features/weight_presets/data/repositories/weight_preset_repository.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
@@ -35,6 +34,29 @@ class _FailingReplay extends Fake implements DiveRepository {
     required bool alsoLogged,
     bool notify = true,
   }) async => throw StateError('replay failed');
+}
+
+/// Rewrites dives as the real repository does, then fails to unlink them:
+/// a failure after a rewrite that worked.
+class _FailingUnlink extends Fake implements DiveRepository {
+  final _real = DiveRepository();
+
+  @override
+  Future<List<String>> rewriteSetOnDives(
+    String setId,
+    List<SetHistoryRewrite> rewrites, {
+    required bool alsoLogged,
+    bool notify = true,
+  }) => _real.rewriteSetOnDives(
+    setId,
+    rewrites,
+    alsoLogged: alsoLogged,
+    notify: notify,
+  );
+
+  @override
+  Future<List<String>> unlinkSetFromLoggedDives(String setId) async =>
+      throw StateError('unlink failed');
 }
 
 /// Counts the reads of every set a replay needs.
@@ -339,7 +361,7 @@ void main() {
 
   test('the bundle lists are written as held', () async {
     final session = EditSession(await stored('s3'))
-      ..set(setBundleListsField, const SetBundleListValues());
+      ..set(setIncludedSetsField, const <String>[]);
 
     await save(session);
 
@@ -403,6 +425,47 @@ void main() {
     await save(session, using: EquipmentSetEditSaveService(counting, dives));
 
     expect(counting.allSetsReads, 0);
+    expect(await gearOn('planned'), {'e1', 'e2'});
+  });
+
+  test('the rewritten dives are rescanned once, after the commit', () async {
+    final scanned = <Set<String>>[];
+    final session = EditSession(await stored());
+    session.set(setMembersField, membersTicked(session, 'e2', false));
+
+    await save(
+      session,
+      alsoLogged: true,
+      using: EquipmentSetEditSaveService(
+        sets,
+        dives,
+        scheduleScan: (ids) => scanned.add(ids.toSet()),
+      ),
+    );
+
+    expect(scanned, [
+      {'logged', 'planned', 'outer'},
+    ]);
+  });
+
+  test('a save that rolls back queues no rescan', () async {
+    final scanned = <Set<String>>[];
+    final session = EditSession(await stored());
+    session.set(setMembersField, membersTicked(session, 'e2', false));
+
+    await expectLater(
+      save(
+        session,
+        using: EquipmentSetEditSaveService(
+          sets,
+          _FailingUnlink(),
+          scheduleScan: (ids) => scanned.add(ids.toSet()),
+        ),
+      ),
+      throwsStateError,
+    );
+
+    expect(scanned, isEmpty);
     expect(await gearOn('planned'), {'e1', 'e2'});
   });
 

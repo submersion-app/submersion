@@ -157,6 +157,24 @@ void main() {
       expect(fences.first.radiusMeters, 250);
     });
 
+    test('a weight preset added keeps the included sets another device '
+        'changed', () {
+      final session = EditSession(_set().copyWith(includedSetIds: ['s0']));
+      setBundleLists(
+        session,
+        const SetBundleListValues(
+          includedSetIds: ['s0'],
+          weightPresetIds: ['p1'],
+        ),
+      );
+      final underneath = _set().copyWith(includedSetIds: ['s9']);
+
+      final merged = session.applyTo(underneath);
+      expect(merged.includedSetIds, ['s9']);
+      expect(merged.weightPresetIds, ['p1']);
+      expect(session.changedCardIds, {'bundle'});
+    });
+
     test('name and description are trimmed', () {
       final session = EditSession(_set())
         ..set(setNameField, '  Warm  ')
@@ -177,7 +195,9 @@ void main() {
       expect(setAutoApplyField.cardId, 'header');
       expect(setShowFigureField.cardId, 'figure');
       expect(setMembersField.cardId, 'members');
-      expect(setBundleListsField.cardId, 'bundle');
+      expect(setIncludedSetsField.cardId, 'bundle');
+      expect(setWeightPresetsField.cardId, 'bundle');
+      expect(setCylinderConfigsField.cardId, 'bundle');
       expect(setGeofencesField.cardId, 'geofences');
     });
   });
@@ -217,10 +237,7 @@ void main() {
 
     test('follows an included set added in the sitting', () {
       final session = EditSession(_set());
-      session.set(
-        setBundleListsField,
-        const SetBundleListValues(includedSetIds: ['s0']),
-      );
+      session.set(setIncludedSetsField, const ['s0']);
       final items = setItemsInSitting(
         session.working,
         storedItems: const [],

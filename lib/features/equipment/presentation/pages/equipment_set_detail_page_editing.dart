@@ -87,11 +87,24 @@ mixin _EquipmentSetDetailPageEditing
     final session = maybeEditController?.session;
     if (session == null) return true;
     session.remember(_alsoLoggedKey, false);
-    List<EquipmentSet> allSets;
+    // Every set of the owner, as the save reads them: a set that includes
+    // this one has dives to ask about too. Without them the question could
+    // leave out dives the save then rewrites, so the Save stops.
+    final messenger = ScaffoldMessenger.of(context);
+    final failed = context.l10n.recordEdit_saveFailed;
+    final List<EquipmentSet> allSets;
     try {
-      allSets = await ref.read(equipmentSetsProvider.future);
-    } catch (_) {
-      allSets = [session.stored];
+      allSets = await ref
+          .read(equipmentSetRepositoryProvider)
+          .getAllSets(diverId: session.stored.diverId);
+    } catch (e, st) {
+      LoggerService.forClass(EquipmentSet).error(
+        'Reading the sets before a save failed',
+        error: e,
+        stackTrace: st,
+      );
+      messenger.showSnackBar(SnackBar(content: Text(failed)));
+      return false;
     }
     if (!mounted) return false;
     final planned = setHistoryRewrites(
