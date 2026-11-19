@@ -97,10 +97,13 @@ bool shouldRedirectToMasterDetail(
 /// `Navigator.pop` would close it anyway and its guard would drop the
 /// changes unasked. It is asked instead, as Back asks it, and the caller
 /// must not navigate.
+///
+/// A navigator with no page (one started from `home:`) keeps its first
+/// route: popping it would leave the navigator with nothing on it.
 bool closeRoutesAboveRouterPage(NavigatorState navigator) {
   var guarded = false;
   navigator.popUntil((route) {
-    if (route.settings is Page) return true;
+    if (route.settings is Page || route.isFirst) return true;
     if (route.popDisposition == RoutePopDisposition.doNotPop) {
       guarded = true;
       return true;
