@@ -262,6 +262,19 @@ class MediaIdentificationRepository {
     return row.read(countExp) ?? 0;
   }
 
+  /// Every media id with a suggestion still open: an undecided
+  /// identification that passed the bars (issue #4727).
+  Future<List<String>> mediaIdsWithSuggestions() async {
+    final rows = await _db
+        .customSelect(
+          'SELECT DISTINCT media_id FROM media_identifications '
+          "WHERE decision = 'undecided' AND suggestable = 1",
+          readsFrom: {_db.mediaIdentifications},
+        )
+        .get();
+    return [for (final row in rows) row.read<String>('media_id')];
+  }
+
   /// Every media id with a run or an identification in this logbook.
   Future<List<String>> mediaIds() async {
     final rows = await _db
