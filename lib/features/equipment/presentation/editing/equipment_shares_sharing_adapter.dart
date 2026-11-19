@@ -3,8 +3,7 @@ import 'package:submersion/shared/widgets/record_editing/record_sharing_sitting.
 
 /// The profiles a gear item is shared with, for its editing sitting (issue
 /// #4527, phase 3), through [EquipmentShareRepository].
-class EquipmentSharesSharingAdapter
-    implements RecordSharingAdapter<Set<String>> {
+class EquipmentSharesSharingAdapter extends RecordSharingAdapter<Set<String>> {
   EquipmentSharesSharingAdapter(this._repository);
 
   final EquipmentShareRepository _repository;

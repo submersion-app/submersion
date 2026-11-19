@@ -33,8 +33,9 @@ mixin RecordEditTabs<W extends ConsumerStatefulWidget, T>
   List<AddStripEntry> addStripEntriesOnEveryTab(T working);
 
   /// The last request to show a card that this page answered by changing
-  /// tab, so one request moves the page once.
-  int _revealServed = 0;
+  /// tab, and the controller it came from (serials count per controller),
+  /// so one request moves the page once.
+  ({Object controller, int serial})? _revealServed;
 
   @override
   List<AddStripEntry> addStripEntries(T working) {
@@ -54,11 +55,18 @@ mixin RecordEditTabs<W extends ConsumerStatefulWidget, T>
   void onEditChanged() {
     super.onEditChanged();
     if (!mounted) return;
-    final request = maybeEditController?.revealRequest;
-    if (request == null || request.serial == _revealServed) return;
+    final controller = maybeEditController;
+    final request = controller?.revealRequest;
+    if (controller == null || request == null) return;
+    final served = _revealServed;
+    if (served != null &&
+        identical(served.controller, controller) &&
+        served.serial == request.serial) {
+      return;
+    }
     final tab = tabOfCard(request.cardId);
     if (tab == null || tab == tabInView) return;
-    _revealServed = request.serial;
+    _revealServed = (controller: controller, serial: request.serial);
     // The card's frame on that tab answers the request as it is built.
     showTab(tab);
   }

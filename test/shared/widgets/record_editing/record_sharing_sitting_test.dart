@@ -15,7 +15,7 @@ class _Rec {
 
 /// Answers reads from [current], records writes, and refuses or fails on
 /// demand.
-class _FakeAdapter implements RecordSharingAdapter<Set<String>> {
+class _FakeAdapter extends RecordSharingAdapter<Set<String>> {
   _FakeAdapter(this.current);
 
   Set<String> current;
@@ -23,6 +23,12 @@ class _FakeAdapter implements RecordSharingAdapter<Set<String>> {
   bool refuse = false;
   bool failRead = false;
   Completer<void>? readGate;
+
+  /// Rows stored beside what [read] reports, which an owner's save clears.
+  bool stale = false;
+
+  @override
+  Future<bool> needsRewrite(String recordId) async => stale;
 
   @override
   Future<Set<String>> read(String recordId) async {
@@ -119,6 +125,43 @@ void main() {
       session.runHeldWrites(),
       throwsA(isA<RecordSittingRefusal>()),
     );
+  });
+
+  // A trip shared with Everyone can also hold share rows from a sync race;
+  // an owner's save clears them, as the trip form did (issue #4527).
+  test('stale rows are rewritten with any save, and are no change', () async {
+    adapter.stale = true;
+
+    await _sharing.load(session, adapter, actingDiverId: 'me');
+
+    expect(session.isDirty, isFalse);
+    await session.runHeldWrites();
+    final write = adapter.writes.single;
+    expect(write.sharing, {'sam'});
+    expect(write.actingDiverId, 'me');
+  });
+
+  test('a refused rewrite of stale rows does not fail the save', () async {
+    adapter
+      ..stale = true
+      ..refuse = true;
+    await _sharing.load(session, adapter, actingDiverId: 'sam');
+
+    await session.runHeldWrites();
+
+    expect(adapter.writes, hasLength(1));
+  });
+
+  test('a choice taken back still rewrites stale rows', () async {
+    adapter.stale = true;
+    await _sharing.load(session, adapter, actingDiverId: 'me');
+
+    _sharing.set(session, {'alex'}, actingDiverId: 'me');
+    _sharing.set(session, {'sam'}, actingDiverId: 'me');
+    await session.runHeldWrites();
+
+    expect(session.isDirty, isFalse);
+    expect(adapter.writes.single.sharing, {'sam'});
   });
 
   test('nothing is held before the read answers', () async {

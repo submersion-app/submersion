@@ -10,9 +10,15 @@ const _log = LoggerService('RecordSharingSitting');
 /// Reads and writes who one record is shared with, in the shape [S] its
 /// repository keeps (who sees a trip, the profiles a gear item is shared
 /// with).
-abstract interface class RecordSharingAdapter<S> {
+abstract class RecordSharingAdapter<S> {
   /// Who [recordId] is shared with now.
   Future<S> read(String recordId);
+
+  /// Whether what is stored for [recordId] differs from what [read] reports
+  /// in a way an owner's save clears: share rows left beside a trip's
+  /// Everyone flag by a sync race. Such a sharing is written again with any
+  /// Save, unchanged.
+  Future<bool> needsRewrite(String recordId) async => false;
 
   /// Makes [recordId] shared as [sharing], by [actingDiverId], the profile
   /// acting (never the owner on its behalf). Returns false when the
@@ -53,20 +59,40 @@ class RecordSharingSitting<T, S> {
   String get _loadedKey => '$key.loaded';
   String get _currentKey => '$key.current';
   String get _unreadKey => '$key.unread';
+  String get _rewriteKey => '$key.rewrite';
 
   /// Reads who the record is shared with into [session], tracked, so a
   /// Save waits for it, and keeps [adapter] for the held write. A read that
   /// fails is noted ([unread]): the card then shows the sharing read only.
-  Future<void> load(EditSession<T> session, RecordSharingAdapter<S> adapter) {
+  ///
+  /// A sharing the adapter says needs rewriting
+  /// ([RecordSharingAdapter.needsRewrite]) is written again, as read, by
+  /// [actingDiverId] with any Save the sitting makes. That write is not a change of its own, and a
+  /// refusal of it (a profile that may not share) fails nothing: the save
+  /// that clears such rows is the owner's.
+  Future<void> load(
+    EditSession<T> session,
+    RecordSharingAdapter<S> adapter, {
+    String? actingDiverId,
+  }) {
     session.remember(_adapterKey, adapter);
     final recordId = recordIdOf(session.stored);
     final work = () async {
       try {
         final sharing = await adapter.read(recordId);
+        final rewrite = await adapter.needsRewrite(recordId);
         if (session.isDisposed) return;
         session
           ..remember(_loadedKey, sharing)
           ..remember(_unreadKey, null);
+        if (rewrite) {
+          session.remember(
+            _rewriteKey,
+            () =>
+                adapter.write(recordId, sharing, actingDiverId: actingDiverId),
+          );
+          _holdRewrite(session);
+        }
       } catch (error, stackTrace) {
         _log.warning(
           'Could not read who $recordId is shared with',
@@ -109,6 +135,7 @@ class RecordSharingSitting<T, S> {
       session
         ..remember(_currentKey, null)
         ..releaseWrite(key);
+      _holdRewrite(session);
       return;
     }
     final recordId = recordIdOf(session.stored);
@@ -127,5 +154,17 @@ class RecordSharingSitting<T, S> {
           if (!done) throw const RecordSittingRefusal(sharingRefusedMessage);
         },
       );
+  }
+
+  /// Holds the rewrite of a sharing read with rows to clear, if there is
+  /// one, as a write that is not a change: any Save makes it. Its result is
+  /// ignored, as only the owner's save clears such rows.
+  void _holdRewrite(EditSession<T> session) {
+    if (session.isDisposed) return;
+    final rewrite = session.recall<Future<bool> Function()>(_rewriteKey);
+    if (rewrite == null) return;
+    session.holdWrite(key, () async {
+      await rewrite();
+    });
   }
 }

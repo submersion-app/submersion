@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 import 'fake_note_record.dart';
 
@@ -107,6 +108,20 @@ void main() {
     expect(probe.saves, isEmpty);
     expect(page(tester).tabs.index, 1);
     expect(find.byKey(const ValueKey('extraEditor')), findsOneWidget);
+    // The tab view rests on that tab, not part way: the card's scroll into
+    // view must not move the pages.
+    final pages = tester.state<ScrollableState>(
+      find
+          .descendant(
+            of: find.byType(TabBarView),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+    expect(
+      pages.position.pixels,
+      tester.getSize(find.byType(TabBarView)).width,
+    );
   });
 
   testWidgets('Save refused for unreadable input on the other tab shows it', (
@@ -134,5 +149,44 @@ void main() {
     await showTab(tester, 'Two');
 
     expect(disposals.count, 1);
+  });
+
+  testWidgets('a page handed another sitting still moves to its card', (
+    tester,
+  ) async {
+    final probe = await pump(tester);
+    // The page's own sitting serves a first request on the second tab.
+    await unlock(tester);
+    page(tester).editController.session!.set(fakeExtraField, 'bad');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l.forms_save));
+    await tester.pumpAndSettle();
+    expect(page(tester).tabs.index, 1);
+    await showTab(tester, 'One');
+    // Then it joins another sitting, whose own first request is also its
+    // first.
+    final other = RecordEditController<FakeNote>(
+      onSave: (_) async {},
+      invalidCards: (session) => [
+        if (session.valueOf(fakeExtraField) == 'bad') 'extra',
+      ],
+    );
+    addTearDown(other.dispose);
+    other.unlock(probe.notes['n1']!);
+    await tester.pumpWidget(
+      fakeNotesApp(
+        probe,
+        FakeTabbedPage(disposals: FakeTabDisposals(), joined: other),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(page(tester).tabs.index, 0);
+
+    other.session!.set(fakeExtraField, 'bad');
+    await other.save();
+    await tester.pumpAndSettle();
+
+    expect(page(tester).tabs.index, 1);
+    await tester.pumpWidget(const SizedBox.shrink());
   });
 }

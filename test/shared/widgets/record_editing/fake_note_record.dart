@@ -169,6 +169,18 @@ class FakeNotePageState extends ConsumerState<FakeNotePage>
       record: stored,
       shown: shown,
       lockedBar: AppBar(title: Text(shown.title), actions: [lockButton(shown)]),
+      // Built with the page's own context, above its scope, as a bar's
+      // actions are: the host hands the satellite its sitting.
+      unlockedActions: [
+        IconButton(
+          key: const ValueKey('barSatellite'),
+          icon: const Icon(Icons.open_in_new),
+          onPressed: () => pushSatellite<void>(
+            (joined) =>
+                FakeSatellitePage(noteId: widget.noteId, joined: joined),
+          ),
+        ),
+      ],
       content: ListView(
         children: [
           RecordCardFrame<FakeNote>(
@@ -389,10 +401,14 @@ class FakeTabbedPage extends ConsumerStatefulWidget {
     super.key,
     this.noteId = 'n1',
     required this.disposals,
+    this.joined,
   });
 
   final String noteId;
   final FakeTabDisposals disposals;
+
+  /// A sitting the page joins, as a satellite would.
+  final RecordEditController<FakeNote>? joined;
 
   @override
   ConsumerState<FakeTabbedPage> createState() => FakeTabbedPageState();
@@ -422,6 +438,9 @@ class FakeTabbedPageState extends ConsumerState<FakeTabbedPage>
 
   @override
   String editingTitle(FakeNote record) => 'Editing ${record.title}';
+
+  @override
+  RecordEditController<FakeNote>? get joinedSitting => widget.joined;
 
   @override
   int? tabOfCard(String cardId) => _tabOf[cardId];

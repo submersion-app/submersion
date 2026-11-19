@@ -5,7 +5,7 @@ import 'package:submersion/shared/widgets/record_editing/record_sharing_sitting.
 
 /// Who a trip or a site is shared with, for its editing sitting (issue
 /// #4527, phase 3), through [ItemSharesRepository].
-class ItemSharesSharingAdapter implements RecordSharingAdapter<ItemSharing> {
+class ItemSharesSharingAdapter extends RecordSharingAdapter<ItemSharing> {
   ItemSharesSharingAdapter(this._repository, this._kind);
 
   final ItemSharesRepository _repository;
@@ -14,6 +14,13 @@ class ItemSharesSharingAdapter implements RecordSharingAdapter<ItemSharing> {
   @override
   Future<ItemSharing> read(String recordId) =>
       _repository.sharingOf(_kind, recordId);
+
+  /// Share rows stored beside the Everyone flag, which a sync race can
+  /// leave and [ItemSharesRepository.setSharing] clears.
+  @override
+  Future<bool> needsRewrite(String recordId) async =>
+      (await _repository.sharingOf(_kind, recordId)).everyone &&
+      (await _repository.storedProfileIds(_kind, recordId)).isNotEmpty;
 
   @override
   Future<bool> write(

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/app/app_exit_guard.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
@@ -320,5 +321,52 @@ void main() {
     expect(bars[1].backgroundColor, bars[0].backgroundColor);
     expect(bars[1].foregroundColor, bars[0].foregroundColor);
     expect(bars[1].shape, bars[0].shape);
+  });
+
+  testWidgets("opened from the page's own bar it joins the sitting", (
+    tester,
+  ) async {
+    await pumpFakeNotes(tester, const FakeNotePage());
+    await unlock(tester);
+
+    await tester.tap(find.byKey(const ValueKey('barSatellite')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(RecordSatelliteBar), findsOneWidget);
+    expect(find.byIcon(Icons.lock_outline), findsNothing);
+  });
+
+  testWidgets('a page that starts joining a sitting ends its own', (
+    tester,
+  ) async {
+    final probe = await pumpFakeNotes(tester, const SizedBox.shrink());
+    final sitting = sittingOn(tester, probe);
+    late StateSetter swap;
+    RecordEditController<FakeNote>? joined;
+    await tester.pumpWidget(
+      fakeNotesApp(
+        probe,
+        StatefulBuilder(
+          builder: (context, setState) {
+            swap = setState;
+            return FakeSatellitePage(joined: joined);
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await unlock(tester);
+    await editExtra(tester, 'Half');
+
+    swap(() => joined = sitting);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(RecordSatelliteBar), findsOneWidget);
+    final guard = ProviderScope.containerOf(
+      tester.element(find.byType(FakeSatellitePage)),
+    ).read(appExitGuardProvider);
+    expect(await guard.mayLeave(), isTrue);
+    expect(find.byType(AlertDialog), findsNothing);
+    await tester.pumpWidget(const SizedBox.shrink());
   });
 }

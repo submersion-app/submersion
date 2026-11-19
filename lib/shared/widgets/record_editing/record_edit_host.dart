@@ -13,6 +13,7 @@ import 'package:submersion/shared/widgets/record_editing/record_edit_controller.
 import 'package:submersion/shared/widgets/record_editing/record_edit_leave_guard.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_pane_header.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_shortcuts.dart';
+import 'package:submersion/shared/widgets/record_editing/record_satellite.dart';
 import 'package:submersion/shared/widgets/record_editing/record_satellite_bar.dart';
 import 'package:submersion/shared/widgets/record_editing/record_sitting_refusal.dart';
 import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blocker.dart';
@@ -260,7 +261,12 @@ mixin RecordEditHost<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
       _listenedJoined?.removeListener(onEditChanged);
       _listenedJoined = null;
       _openWhenJoined = const {};
-      if (joined != null) _followJoined(joined);
+      if (joined != null) {
+        // The page now edits the record's sitting: one of its own ends, so
+        // nothing unseen is left for the app to ask about on leaving.
+        _editController?.lock();
+        _followJoined(joined);
+      }
       final target = _shortcutTarget;
       if (target != null) _shortcutTargets?.remove(target);
       _registerShortcutTarget(editController);
@@ -400,6 +406,17 @@ mixin RecordEditHost<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
     }
     await Navigator.of(context).maybePop();
   }
+
+  /// Pushes a satellite page of this record (a passport, the cylinder
+  /// board) from the page itself, its bar or its menu, handing it this
+  /// page's sitting while one is open ([pushRecordSatellite]).
+  Future<R?> pushSatellite<R>(
+    Widget Function(RecordEditController<T>? joined) builder,
+  ) => pushRecordSatellite<T, R>(
+    context,
+    builder: builder,
+    sitting: maybeEditController,
+  );
 
   /// The list pane's header row while unlocked: Cancel, the title, [menu]
   /// and Save, laid over the locked row.
