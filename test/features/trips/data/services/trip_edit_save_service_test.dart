@@ -16,6 +16,7 @@ import 'package:submersion/features/trips/domain/entities/liveaboard_details.dar
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_edit_fields.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_itinerary_sitting.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
@@ -291,6 +292,77 @@ void main() {
       DateTime(2026, 6, 8),
     ]);
     expect((await stored()).endDate, DateTime(2026, 6, 8));
+  });
+
+  test('the end moved earlier with a non-bare day edited outside the new '
+      'dates: Save keeps the edited day, drops the bare one, one entry, and '
+      'reverting restores both', () async {
+    final session = EditSession(await stored());
+    final list = tripItineraryDays(days);
+    await list.load(session);
+    // Day 8 gets notes, so it is no longer a bare plan day; day 4 stays.
+    list.set(
+      session,
+      withDayEdited(
+        list.current(session)!,
+        (await days.getByTripId('t1')).last.copyWith(notes: 'Last wreck'),
+      ),
+    );
+    session.set(tripDatesField, (
+      start: DateTime(2026, 6, 1),
+      end: DateTime(2026, 6, 4),
+    ));
+
+    await service.save(
+      tripId: 't1',
+      apply: session.applyTo,
+      changedCardIds: session.changedCardIds,
+      actingDiverId: 'me',
+      alsoWrite: session.runHeldWrites,
+      alsoWriteIsAChange: session.hasHeldChanges,
+    );
+
+    final after = await days.getByTripId('t1');
+    expect([for (final d in after) d.id], ['i1', 'i2', 'i3']);
+    expect(after.last.notes, 'Last wreck');
+    final ops = await operations();
+    expect(ops, hasLength(1));
+
+    await revert(ops.single['id']! as String);
+
+    expect((await days.getByTripId('t1')).last.notes, '');
+    expect((await stored()).endDate, DateTime(2026, 6, 8));
+  });
+
+  test('a day edited inside the dates and a shortened trip drop only the '
+      'bare day outside', () async {
+    final session = EditSession(await stored());
+    final list = tripItineraryDays(days);
+    await list.load(session);
+    list.set(
+      session,
+      withDayEdited(
+        list.current(session)!,
+        (await days.getByTripId('t1'))[1].copyWith(notes: 'Reef'),
+      ),
+    );
+    session.set(tripDatesField, (
+      start: DateTime(2026, 6, 1),
+      end: DateTime(2026, 6, 7),
+    ));
+
+    await service.save(
+      tripId: 't1',
+      apply: session.applyTo,
+      changedCardIds: session.changedCardIds,
+      actingDiverId: 'me',
+      alsoWrite: session.runHeldWrites,
+      alsoWriteIsAChange: session.hasHeldChanges,
+    );
+
+    final after = await days.getByTripId('t1');
+    expect([for (final d in after) d.id], ['i1', 'i2']);
+    expect(after.last.notes, 'Reef');
   });
 
   test('a parent chosen drops foreign slot links on the trip dives', () async {

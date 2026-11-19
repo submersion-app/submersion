@@ -52,6 +52,9 @@ mixin _TripDetailPageEditing
     tripVesselDetails(
       container.read(liveaboardDetailsRepositoryProvider),
     ).load(session);
+    tripItineraryDays(
+      container.read(itineraryDayRepositoryProvider),
+    ).load(session);
     holdDocumentLinks(
       session,
       container.read,

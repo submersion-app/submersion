@@ -20,10 +20,15 @@ class TripItineraryGenerateButton extends ConsumerStatefulWidget {
   final Trip trip;
   final List<ItineraryDay> days;
 
+  /// Takes the missing days in place of writing them: a trip page that
+  /// edits in place holds them in its sitting until Save (issue #4527).
+  final ValueChanged<List<ItineraryDay>>? hold;
+
   const TripItineraryGenerateButton({
     super.key,
     required this.trip,
     required this.days,
+    this.hold,
   });
 
   @override
@@ -61,6 +66,11 @@ class _TripItineraryGenerateButtonState
     // A second tap while the first save is in flight would insert the days
     // twice: the table has no (trip, date) uniqueness.
     if (_saving) return;
+    final hold = widget.hold;
+    if (hold != null) {
+      hold(_missing());
+      return;
+    }
     setState(() => _saving = true);
     final tripId = widget.trip.id;
     try {

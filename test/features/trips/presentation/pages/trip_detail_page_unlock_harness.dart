@@ -14,6 +14,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/profile_hides_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/trips/data/repositories/itinerary_day_repository.dart';
 import 'package:submersion/features/trips/data/repositories/liveaboard_details_repository.dart';
 import 'package:submersion/features/trips/data/services/trip_edit_save_service.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
@@ -128,6 +129,28 @@ class FakeVessels implements LiveaboardDetailsRepository {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// A trip's itinerary days without a database: [days] as stored, and each
+/// write recorded.
+class FakeItineraryDays implements ItineraryDayRepository {
+  FakeItineraryDays([List<ItineraryDay> days = const []]) : days = [...days];
+
+  final List<ItineraryDay> days;
+  final saved = <ItineraryDay>[];
+  final updated = <ItineraryDay>[];
+
+  @override
+  Future<List<ItineraryDay>> getByTripId(String tripId) async => [...days];
+
+  @override
+  Future<void> saveAll(List<ItineraryDay> days) async => saved.addAll(days);
+
+  @override
+  Future<void> updateDay(ItineraryDay day) async => updated.add(day);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 class TripPageHarness {
   TripPageHarness(
     this.save,
@@ -135,6 +158,7 @@ class TripPageHarness {
     this.trips,
     this.shares,
     this.vessels,
+    this.itinerary,
   );
 
   final FakeTripSave save;
@@ -142,6 +166,7 @@ class TripPageHarness {
   final FakeTripList trips;
   final FakeItemShares shares;
   final FakeVessels vessels;
+  final FakeItineraryDays itinerary;
 }
 
 final _storedProvider = StateProvider<Trip?>((ref) => redSea);
@@ -172,6 +197,7 @@ Future<TripPageHarness> pumpTripPage(
 }) async {
   final itemShares = shares ?? FakeItemShares();
   final vessels = FakeVessels(vessel);
+  final itinerary = FakeItineraryDays(days);
   final shown = trip ?? redSea;
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -220,6 +246,7 @@ Future<TripPageHarness> pumpTripPage(
         ).overrideWith((ref) async => days),
         liveaboardDetailsProvider(shown.id).overrideWith((ref) async => vessel),
         liveaboardDetailsRepositoryProvider.overrideWithValue(vessels),
+        itineraryDayRepositoryProvider.overrideWithValue(itinerary),
         tripDayWeatherProvider(shown.id).overrideWith((ref) async => const {}),
         tripDayWeatherBackfillProvider(shown.id).overrideWith((ref) async {}),
         tripGearProvider(shown.id).overrideWith((ref) async => const []),
@@ -259,6 +286,7 @@ Future<TripPageHarness> pumpTripPage(
             trips,
             itemShares,
             vessels,
+            itinerary,
           );
           return save;
         }),

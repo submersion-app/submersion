@@ -35,6 +35,7 @@ import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dar
 import 'package:submersion/features/trips/presentation/editing/trip_card_slots.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_edit_cards.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_header_card_editor.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_itinerary_sitting.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_overview_card_editors.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_vessel_sitting.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
