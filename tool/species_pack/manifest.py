@@ -464,6 +464,44 @@ def build_manifest(
     }
 
 
+def training_credit(photos, list_url):
+    """The credit for naming rows trained on `photos` iNaturalist photos,
+    whose list with each photo's credit is at `list_url` (issue #4724). The
+    rows are licensed CC BY-NC 4.0, as the photos' licences allow."""
+    return {
+        "name": "iNaturalist photos",
+        "licence": "CC BY-NC 4.0",
+        "text": (
+            f"Naming rows trained on {photos:,} research-grade iNaturalist photos under CC0, "
+            f"CC BY 4.0 and CC BY-NC 4.0; not for commercial use. Each photo and its author: {list_url}"
+        ),
+    }
+
+
+def derive_manifest(base, files, *, pack_version, credits, measured=NAMING_MEASURED):
+    """A copy of the manifest `base` for a pack that differs from it only
+    in `files` (trained rows), with `pack_version`, `credits`, and the
+    naming bars `naming_for` gives the new files: measured ones only when
+    the scorer measured exactly these files."""
+    out = copy.deepcopy(base)
+    detectors, _ = pack_detectors(base)
+    out["packVersion"] = pack_version
+    out["files"] = copy.deepcopy(list(files))
+    out["credits"] = copy.deepcopy(list(credits))
+    out["naming"] = naming_for(
+        [d["id"] for d in detectors],
+        base["classifier"]["id"],
+        base["classifier"]["cropFit"],
+        contents_of(files),
+        measured,
+    )
+    # A derived pack's levels reach devices as a new pack's do, so they are
+    # held to build_manifest's checks (issue #4721).
+    if out["naming"].get("provisional") is not True:
+        _check_levels(out["naming"])
+    return out
+
+
 def write_manifest(path, manifest):
     with open(path, "w", encoding="utf-8") as fh:
         json.dump(manifest, fh, indent=1, ensure_ascii=False)
