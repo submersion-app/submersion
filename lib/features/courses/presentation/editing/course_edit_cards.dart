@@ -3,6 +3,7 @@ import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/editing/course_card_editors.dart';
 import 'package:submersion/features/courses/presentation/editing/course_card_ids.dart';
 import 'package:submersion/features/courses/presentation/editing/course_edit_fields.dart';
+import 'package:submersion/features/courses/presentation/widgets/course_requirements_section.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -41,6 +42,17 @@ final Map<CourseCardId, EditCard<Course>> courseEditCards = {
       nameLabel: context.l10n.courses_field_instructorName,
       numberLabel: context.l10n.courses_field_instructorNumber,
       keyPrefix: 'course-edit',
+    ),
+  ),
+  CourseCardId.requirements: EditCard<Course>(
+    id: CourseCardId.requirements.name,
+    title: (context) =>
+        CourseCardId.requirements.localizedDisplayName(context.l10n),
+    // Always on the page: with none, it says so.
+    isEmpty: (_) => false,
+    editorBuilder: (context, session) => CourseRequirementsSection(
+      courseId: session.stored.id,
+      editing: session,
     ),
   ),
   CourseCardId.notes: EditCard<Course>(

@@ -21,6 +21,7 @@ import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/course_status_colors.dart';
 import 'package:submersion/features/courses/presentation/editing/course_card_ids.dart';
 import 'package:submersion/features/courses/presentation/editing/course_edit_cards.dart';
+import 'package:submersion/features/courses/presentation/editing/course_requirements_sitting.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/courses/presentation/widgets/course_certification_thumbnail.dart';
 import 'package:submersion/features/courses/presentation/widgets/course_requirements_section.dart';
@@ -189,8 +190,8 @@ class _CourseDetailContent extends ConsumerWidget {
   bool get _editing => host != null;
 
   /// [child] as the card [id] where the page edits in place.
-  Widget _framed(CourseCardId id, Widget child) =>
-      host?._framed(id, child) ?? child;
+  Widget _framed(CourseCardId id, Widget child, {double topGap = 0}) =>
+      host?._framed(id, child, topGap: topGap) ?? child;
 
   /// Whether the empty card [id] is shown in the sitting.
   bool _shows(CourseCardId id) => host?._showsWhileEmpty(id) ?? false;
@@ -228,8 +229,19 @@ class _CourseDetailContent extends ConsumerWidget {
           // Earned certifications, one row each (#2515)
           _buildCertificationSection(context, ref),
 
-          // Requirement tracker
-          CourseRequirementsSection(courseId: course.id),
+          // Requirement tracker. Carries its own top gap.
+          if (_editing)
+            _framed(
+              CourseCardId.requirements,
+              CourseRequirementsSection(
+                courseId: course.id,
+                readOnly: true,
+                shown: this.host?.maybeEditController?.session,
+              ),
+              topGap: 16,
+            )
+          else
+            CourseRequirementsSection(courseId: course.id),
 
           // Training dives: set from the dive's side.
           if (_editing) _calculated(trainingDives) else trainingDives,

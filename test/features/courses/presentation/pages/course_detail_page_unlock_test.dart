@@ -3,7 +3,10 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
+import 'package:submersion/features/courses/domain/entities/course_progress.dart';
+import 'package:submersion/features/courses/domain/entities/course_requirement.dart';
 import 'package:submersion/features/courses/presentation/editing/course_edit_fields.dart';
+import 'package:submersion/features/courses/presentation/editing/course_requirements_sitting.dart';
 import 'package:submersion/features/documents/presentation/editing/record_document_links_sitting.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
@@ -250,5 +253,58 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(AlertDialog), findsOneWidget);
+  });
+  group('requirements', () {
+    final knowledge = CourseRequirementProgress(
+      requirement: CourseRequirement(
+        id: 'r1',
+        courseId: 'k1',
+        name: 'Knowledge development',
+        kind: RequirementKind.checklist,
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      ),
+      linkedDives: const [],
+    );
+    final progress = CourseProgress(courseId: 'k1', requirements: [knowledge]);
+
+    testWidgets('locked, the Requirements card offers no action', (
+      tester,
+    ) async {
+      final harness = await pumpCoursePage(tester, progress: progress);
+
+      expect(find.text('Knowledge development'), findsOneWidget);
+      expect(find.byIcon(Icons.library_add_outlined), findsNothing);
+      await tester.tap(find.byType(Checkbox));
+      await tester.pumpAndSettle();
+
+      expect(
+        tester
+            .widget<CheckboxListTile>(find.byType(CheckboxListTile))
+            .onChanged,
+        isNull,
+      );
+      expect(harness.save.calls, isEmpty);
+    });
+
+    testWidgets('a tick and a name change are one save', (tester) async {
+      final harness = await pumpCoursePage(tester, progress: progress);
+      harness.save.runHeld = false;
+      await unlock(tester);
+      final session = sessionOf(tester);
+      // The harness has no database: the list starts empty instead of read.
+      courseRequirementsList.loadNone(session);
+      courseRequirementsList.set(session, [knowledge]);
+      courseRequirementsList.set(
+        session,
+        withRequirementTicked([knowledge], 'r1', true),
+      );
+      session.set(courseNameField, 'Rescue Diver');
+      await tester.pumpAndSettle();
+
+      await save(tester);
+
+      expect(harness.save.calls.single.cards, {'status', 'requirements'});
+    });
   });
 }

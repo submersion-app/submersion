@@ -47,6 +47,9 @@ mixin _CourseDetailPageEditing
     EditSession<Course> session,
     ProviderContainer container,
   ) {
+    // Read now, so the Requirements card shows the sitting's rows once they
+    // change.
+    courseRequirementsList.load(session);
     holdDocumentLinks(
       session,
       container.read,
@@ -108,9 +111,14 @@ mixin _CourseDetailPageEditing
         controller.addedCardIds.contains(id.name);
   }
 
-  /// [child] as the card [id], framed for editing in place.
-  Widget _framed(CourseCardId id, Widget child) =>
-      RecordCardFrame<Course>(card: courseEditCards[id]!, child: child);
+  /// [child] as the card [id], framed for editing in place; [topGap] is the
+  /// gap a card that places its own puts above itself.
+  Widget _framed(CourseCardId id, Widget child, {double topGap = 0}) =>
+      RecordCardFrame<Course>(
+        card: courseEditCards[id]!,
+        topGap: topGap,
+        child: child,
+      );
 }
 
 /// A section's title row: its icon and title, and the card's pencil where
