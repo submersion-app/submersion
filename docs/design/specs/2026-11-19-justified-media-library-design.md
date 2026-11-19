@@ -127,7 +127,7 @@ panorama from counting as a mismatch on every draw.
 
 - Reported ratios go into an in-memory map (one provider for the app), which
   the layout reads, and are written to a new table in the **local cache
-  database**: `media_aspect_ratios` with the media id (primary key), the
+  database**: `media_aspect_cache` with the media id (primary key), the
   learned ratio, and the stored `width` / `height` it was learned against.
   Schema 25 to 26, created with `m.createTable` in `onUpgrade`, plus the
   idempotent create in the file's existing "table may be missing" backstop if
