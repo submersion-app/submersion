@@ -13,11 +13,12 @@ import 'package:flutter/widgets.dart';
 /// diver. The body's scroll offset is moved by the same amount instead, in
 /// the same layout pass, so no frame shows the page anywhere else.
 ///
-/// At the top of the page the strip lies over the first rows rather than
-/// push them down; they are a scroll away. A page already less than the
-/// strip's height from its top when the strip leaves settles at the top.
-/// A page that fits on screen has nothing to scroll, and is pushed down:
-/// hiding its top under the strip would leave no way to reach it.
+/// A page at its very top is pushed down instead: its first rows hold the
+/// record's header card and that card's pencil, which the strip would
+/// otherwise cover the moment the page unlocks (issue #4756). A page that
+/// fits on screen has nothing to scroll, so it is always at its top. A page
+/// already less than the strip's height from its top when the strip leaves
+/// settles at the top.
 class AddStripLayout extends StatefulWidget {
   const AddStripLayout({super.key, required this.strip, required this.body});
 
@@ -60,6 +61,9 @@ class _AddStripLayoutState extends State<AddStripLayout> {
     // The viewport's top edge moves down by [delta]; the content moves up
     // by as much within it, so it stays where it is on screen.
     final delta = height - previous;
+    // At the very top the page is pushed down rather than scrolled under
+    // the strip, which would hide the header card's first row.
+    if (delta > 0 && position.pixels <= position.minScrollExtent) return;
     final target = math.max(position.minScrollExtent, position.pixels + delta);
     position.correctBy(target - position.pixels);
   }

@@ -18,6 +18,7 @@ import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_header.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_editing_page_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
@@ -266,6 +267,34 @@ void main() {
         reason: title,
       );
     }
+  });
+
+  // Unlocked at the top of a page taller than the screen, the Add strip
+  // pushes the page down rather than lie over the header card, whose
+  // pencil sits in its first row (issue #4756).
+  testWidgets('unlocked at the top, the Add strip leaves the header pencil '
+      'in view', (tester) async {
+    await pumpSitePage(tester, size: const Size(600, 300));
+    // The page scrolls: one that fits was always pushed down.
+    final page = tester
+        .state<ScrollableState>(find.byType(Scrollable).first)
+        .position;
+    expect(page.maxScrollExtent, greaterThan(0));
+    await unlock(tester);
+
+    final strip = tester.getRect(find.byType(AddStrip));
+    expect(strip.height, greaterThan(0));
+    final pencil = tester.getRect(
+      find.byTooltip(
+        l.recordEdit_editCardTooltip(l.diveSites_detail_section_header),
+      ),
+    );
+    expect(page.pixels, page.minScrollExtent);
+    expect(
+      tester.getTopLeft(find.byType(SiteDetailHeader)).dy,
+      greaterThanOrEqualTo(strip.bottom),
+    );
+    expect(pencil.top, greaterThanOrEqualTo(strip.bottom));
   });
 
   testWidgets('the old edit form cannot be opened over an open sitting', (
