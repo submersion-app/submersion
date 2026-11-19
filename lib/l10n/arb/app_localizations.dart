@@ -42586,6 +42586,24 @@ abstract class AppLocalizations {
   /// **'Measured'**
   String get settings_conflict_field_measuredAt;
 
+  /// No description provided for @settings_conflict_field_mediaSpecies_unconfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag not yet confirmed'**
+  String get settings_conflict_field_mediaSpecies_unconfirmed;
+
+  /// No description provided for @settings_conflict_field_mediaSpecies_createdSighting.
+  ///
+  /// In en, this message translates to:
+  /// **'Sighting logged by the app'**
+  String get settings_conflict_field_mediaSpecies_createdSighting;
+
+  /// No description provided for @settings_conflict_field_mediaSpecies_createdSpecies.
+  ///
+  /// In en, this message translates to:
+  /// **'Species added by the app'**
+  String get settings_conflict_field_mediaSpecies_createdSpecies;
+
   /// No description provided for @settings_conflict_field_medicalClearanceExpiryDate.
   ///
   /// In en, this message translates to:

@@ -25453,6 +25453,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_measuredAt => '测量时间';
 
   @override
+  String get settings_conflict_field_mediaSpecies_unconfirmed => '标记尚未确认';
+
+  @override
+  String get settings_conflict_field_mediaSpecies_createdSighting => '由应用记录的目击';
+
+  @override
+  String get settings_conflict_field_mediaSpecies_createdSpecies => '由应用添加的物种';
+
+  @override
   String get settings_conflict_field_medicalClearanceExpiryDate => '体检合格证明到期';
 
   @override

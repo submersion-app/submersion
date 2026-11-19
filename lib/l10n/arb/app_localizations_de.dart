@@ -26904,6 +26904,18 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_field_measuredAt => 'Gemessen';
 
   @override
+  String get settings_conflict_field_mediaSpecies_unconfirmed =>
+      'Markierung noch nicht bestätigt';
+
+  @override
+  String get settings_conflict_field_mediaSpecies_createdSighting =>
+      'Sichtung von der App erfasst';
+
+  @override
+  String get settings_conflict_field_mediaSpecies_createdSpecies =>
+      'Art von der App hinzugefügt';
+
+  @override
   String get settings_conflict_field_medicalClearanceExpiryDate =>
       'Ablauf der Tauchtauglichkeit';
 

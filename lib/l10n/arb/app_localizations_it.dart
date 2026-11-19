@@ -26962,6 +26962,18 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_conflict_field_measuredAt => 'Misurato';
 
   @override
+  String get settings_conflict_field_mediaSpecies_unconfirmed =>
+      'Tag non ancora confermato';
+
+  @override
+  String get settings_conflict_field_mediaSpecies_createdSighting =>
+      'Avvistamento registrato dall\'app';
+
+  @override
+  String get settings_conflict_field_mediaSpecies_createdSpecies =>
+      'Specie aggiunta dall\'app';
+
+  @override
   String get settings_conflict_field_medicalClearanceExpiryDate =>
       'Scadenza del certificato medico';
 

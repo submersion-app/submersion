@@ -26842,6 +26842,18 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_measuredAt => 'Mérve';
 
   @override
+  String get settings_conflict_field_mediaSpecies_unconfirmed =>
+      'Címke még nincs megerősítve';
+
+  @override
+  String get settings_conflict_field_mediaSpecies_createdSighting =>
+      'Az alkalmazás rögzítette az észlelést';
+
+  @override
+  String get settings_conflict_field_mediaSpecies_createdSpecies =>
+      'Az alkalmazás vette fel a fajt';
+
+  @override
   String get settings_conflict_field_medicalClearanceExpiryDate =>
       'Orvosi alkalmasság lejárata';
 

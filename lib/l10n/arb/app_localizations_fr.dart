@@ -27025,6 +27025,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_conflict_field_measuredAt => 'Mesuré';
 
   @override
+  String get settings_conflict_field_mediaSpecies_unconfirmed =>
+      'Étiquette pas encore confirmée';
+
+  @override
+  String get settings_conflict_field_mediaSpecies_createdSighting =>
+      'Observation enregistrée par l\'app';
+
+  @override
+  String get settings_conflict_field_mediaSpecies_createdSpecies =>
+      'Espèce ajoutée par l\'app';
+
+  @override
   String get settings_conflict_field_medicalClearanceExpiryDate =>
       'Expiration du certificat médical';
 

@@ -26298,6 +26298,18 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_measuredAt => 'נמדד';
 
   @override
+  String get settings_conflict_field_mediaSpecies_unconfirmed =>
+      'תיוג שטרם אושר';
+
+  @override
+  String get settings_conflict_field_mediaSpecies_createdSighting =>
+      'תצפית שנרשמה על ידי האפליקציה';
+
+  @override
+  String get settings_conflict_field_mediaSpecies_createdSpecies =>
+      'מין שנוסף על ידי האפליקציה';
+
+  @override
   String get settings_conflict_field_medicalClearanceExpiryDate =>
       'תפוגת האישור הרפואי';
 

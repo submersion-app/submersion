@@ -27263,6 +27263,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_measuredAt => 'تم القياس';
 
   @override
+  String get settings_conflict_field_mediaSpecies_unconfirmed =>
+      'وسم لم يُؤكَّد بعد';
+
+  @override
+  String get settings_conflict_field_mediaSpecies_createdSighting =>
+      'مشاهدة سجّلها التطبيق';
+
+  @override
+  String get settings_conflict_field_mediaSpecies_createdSpecies =>
+      'نوع أضافه التطبيق';
+
+  @override
   String get settings_conflict_field_medicalClearanceExpiryDate =>
       'انتهاء الشهادة الطبية';
 

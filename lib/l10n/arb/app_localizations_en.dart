@@ -26511,6 +26511,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_measuredAt => 'Measured';
 
   @override
+  String get settings_conflict_field_mediaSpecies_unconfirmed =>
+      'Tag not yet confirmed';
+
+  @override
+  String get settings_conflict_field_mediaSpecies_createdSighting =>
+      'Sighting logged by the app';
+
+  @override
+  String get settings_conflict_field_mediaSpecies_createdSpecies =>
+      'Species added by the app';
+
+  @override
   String get settings_conflict_field_medicalClearanceExpiryDate =>
       'Medical clearance expiry';
 

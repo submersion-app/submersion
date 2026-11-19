@@ -26785,6 +26785,18 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_field_measuredAt => 'Gemeten';
 
   @override
+  String get settings_conflict_field_mediaSpecies_unconfirmed =>
+      'Tag nog niet bevestigd';
+
+  @override
+  String get settings_conflict_field_mediaSpecies_createdSighting =>
+      'Waarneming vastgelegd door de app';
+
+  @override
+  String get settings_conflict_field_mediaSpecies_createdSpecies =>
+      'Soort toegevoegd door de app';
+
+  @override
   String get settings_conflict_field_medicalClearanceExpiryDate =>
       'Vervaldatum van de medische keuring';
 

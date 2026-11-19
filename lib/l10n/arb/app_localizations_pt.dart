@@ -26938,6 +26938,18 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_conflict_field_measuredAt => 'Medido';
 
   @override
+  String get settings_conflict_field_mediaSpecies_unconfirmed =>
+      'Marcação ainda não confirmada';
+
+  @override
+  String get settings_conflict_field_mediaSpecies_createdSighting =>
+      'Avistamento registrado pelo app';
+
+  @override
+  String get settings_conflict_field_mediaSpecies_createdSpecies =>
+      'Espécie adicionada pelo app';
+
+  @override
   String get settings_conflict_field_medicalClearanceExpiryDate =>
       'Vencimento do atestado médico';
 
