@@ -369,4 +369,38 @@ void main() {
     expect(find.byType(AlertDialog), findsNothing);
     await tester.pumpWidget(const SizedBox.shrink());
   });
+
+  testWidgets('a joined satellite handed another record stops joining', (
+    tester,
+  ) async {
+    final probe = await pumpFakeNotes(tester, const SizedBox.shrink());
+    final sitting = sittingOn(tester, probe);
+    late StateSetter swap;
+    var noteId = 'n1';
+    await tester.pumpWidget(
+      fakeNotesApp(
+        probe,
+        StatefulBuilder(
+          builder: (context, setState) {
+            swap = setState;
+            return FakeSatellitePage(noteId: noteId, joined: sitting);
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(RecordSatelliteBar), findsOneWidget);
+
+    swap(() => noteId = 'n2');
+    await tester.pumpAndSettle();
+
+    // The sitting is n1's: the page shows n2 locked, on a lock of its own.
+    final state = tester.state<FakeSatellitePageState>(
+      find.byType(FakeSatellitePage),
+    );
+    expect(find.byType(RecordSatelliteBar), findsNothing);
+    expect(state.maybeEditController, isNot(same(sitting)));
+    expect(state.isSittingOpen, isFalse);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
 }

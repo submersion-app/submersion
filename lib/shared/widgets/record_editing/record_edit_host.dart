@@ -107,8 +107,18 @@ mixin RecordEditHost<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
   /// ([hostsEditing]) takes no sitting, joined or its own.
   RecordEditController<T>? get joinedSitting => null;
 
-  /// [joinedSitting], on a page that hosts editing.
-  RecordEditController<T>? get _joined => hostsEditing ? joinedSitting : null;
+  /// [joinedSitting], on a page that hosts editing, while that sitting is
+  /// on the record the page shows: a page handed another record does not
+  /// edit the one it was opened for.
+  RecordEditController<T>? get _joined {
+    if (!hostsEditing) return null;
+    final joined = joinedSitting;
+    final session = joined?.session;
+    if (session != null && recordIdOf(session.stored) != hostRecordId) {
+      return null;
+    }
+    return joined;
+  }
 
   // What the host provides.
 
