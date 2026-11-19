@@ -228,6 +228,51 @@ void main() {
     expect(twice.map((a) => a.preview.id), ['np1']);
   });
 
+  // The stored path treats every photo on the item as linked already, so
+  // one asset is on the item once: a sitting keeps to that across the
+  // Photos card and its check-ins.
+  test('a photo the sitting holds elsewhere is not held again', () async {
+    final session = await sitting();
+    HeldMediaAdd sameFile(String of, String id, String observationId) =>
+        HeldMediaRow((
+          item: (photo(of, observationId) as HeldMediaRow).prepared.item
+              .copyWith(id: id),
+          enrichment: null,
+        ));
+    // As the page holds the Photos card's media at the sitting's start.
+    holdSittingMedia(
+      session,
+      SittingMediaWriters.forEquipment(container.read),
+      cardId: 'photos',
+    );
+    addMediaToSitting(session, [photo('p1', 'none')]);
+    holdCheckIn(
+      session,
+      HeldCheckIn(observation: fresh('o2'), added: [photo('p2', 'o2')]),
+    );
+
+    expect(checkInPhotoKeys(session), {'file:/p2.jpg'});
+    expect(checkInPhotoKeys(session, except: 'o2'), isEmpty);
+    expect(heldPhotoKeysOutside(session, checkIn: 'o3'), {
+      'file:/p1.jpg',
+      'file:/p2.jpg',
+    });
+    expect(heldPhotoKeysOutside(session, checkIn: 'o2'), {'file:/p1.jpg'});
+    // On a third check-in, the Photos card's and the other check-in's
+    // photos are left out; a new one goes in.
+    final held = withHeldPhotosAdded(const [], [
+      sameFile('p1', 'p1b', 'o3'),
+      sameFile('p2', 'p2b', 'o3'),
+      photo('p3', 'o3'),
+    ], heldElsewhere: heldPhotoKeysOutside(session, checkIn: 'o3'));
+    expect(held.map((a) => a.preview.id), ['p3']);
+    // On the Photos card, a check-in's photo is left out.
+    expect(
+      photosNotHeld([sameFile('p2', 'p2c', 'none')], checkInPhotoKeys(session)),
+      isEmpty,
+    );
+  });
+
   test('an edited check-in and a brand change are one entry, and reverting '
       'restores the check-in', () async {
     final session = await sitting();

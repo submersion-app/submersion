@@ -16,6 +16,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/field_text_binding.dart';
 import 'package:submersion/shared/widgets/record_editing/sitting_list.dart';
+import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dart';
 
 /// The item's tags held in its page's sitting (issue #4527, phase 3, plan
 /// 6): chosen on the header block, written at Save. Only the difference is
@@ -178,6 +179,9 @@ class _GearItemHeaderEditorState extends ConsumerState<GearItemHeaderEditor> {
               selectedTags: tags ?? const [],
               onTagsChanged: (next) => gearItemTagsList.set(_session, next),
             ),
+            // A read that failed says so, and can be tried again.
+            if (gearItemTagsList.failed(_session))
+              SittingLoadFailed(onRetry: () => gearItemTagsList.load(_session)),
             if (working.isWanted) ...[
               const SizedBox(height: 16),
               Align(

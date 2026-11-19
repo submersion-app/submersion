@@ -218,26 +218,9 @@ void afterGearItemSave(
       'write the held clock sync choice',
     );
   }
-  // The computer's own settings may have been written with the item.
-  for (final computer
-      in container.read(computersForEquipmentProvider(equipmentId)).value ??
-          const <DiveComputer>[]) {
-    container.invalidate(diveComputerByIdProvider(computer.id));
-  }
-  container
-    ..invalidate(computersForEquipmentProvider(equipmentId))
-    ..invalidate(allDiveComputersProvider)
-    ..invalidate(favoriteDiveComputerProvider)
-    ..invalidate(equipmentItemProvider(equipmentId))
-    // Clocks and service records may have changed: re-evaluate them.
-    ..invalidate(serviceClockStatusesProvider(equipmentId))
-    ..invalidate(serviceSchedulesForEquipmentProvider(equipmentId))
-    ..invalidate(activeEquipmentClocksProvider)
-    // Photos, check-in photos and linked files may have changed.
-    ..invalidate(identificationPhotosProvider(equipmentId))
-    ..invalidate(checkInPhotosProvider(equipmentId))
-    ..invalidate(mediaForEquipmentProvider(equipmentId))
-    ..invalidate(observationsForEquipmentProvider(equipmentId));
+  // The item, its computer, clocks, photos, files and check-ins need no
+  // invalidation here: each of their providers refreshes itself when its
+  // table changes, so one here would only read it twice.
   if (before != null &&
       after != null &&
       before.serialNumber != after.serialNumber) {

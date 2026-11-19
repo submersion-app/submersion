@@ -30,6 +30,7 @@ class CheckInPhotosRow extends ConsumerWidget {
     required this.equipmentId,
     required this.observationId,
     this.heldAdded = const [],
+    this.heldElsewhere = const {},
     this.heldRemoved = const {},
     this.onHeldChanged,
   });
@@ -37,6 +38,10 @@ class CheckInPhotosRow extends ConsumerWidget {
   final String equipmentId;
   final String observationId;
   final List<HeldMediaAdd> heldAdded;
+
+  /// The same-file keys of the photos the sitting holds outside this
+  /// check-in: a pick of one is left out, as the item has it already.
+  final Set<String> heldElsewhere;
   final Set<String> heldRemoved;
   final void Function(List<HeldMediaAdd> added, Set<String> removed)?
   onHeldChanged;
@@ -72,7 +77,10 @@ class CheckInPhotosRow extends ConsumerWidget {
       equipmentId: equipmentId,
       observationId: observationId,
       ignoringMediaIds: heldRemoved,
-      onHold: (adds) => hold(withHeldPhotosAdded(heldAdded, adds), heldRemoved),
+      onHold: (adds) => hold(
+        withHeldPhotosAdded(heldAdded, adds, heldElsewhere: heldElsewhere),
+        heldRemoved,
+      ),
     );
   }
 

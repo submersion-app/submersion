@@ -46,80 +46,73 @@ class SittingMediaWriters {
   /// it is used: a sitting starts on every unlock, and most never write
   /// media. [read] must outlive the page (the provider container's), since
   /// a save can finish after the page has gone.
-  factory SittingMediaWriters.forDive(ProviderRead read) => SittingMediaWriters(
-    writeRows: (prepared) async => [
-      for (final row in await read(
-        mediaImportServiceProvider,
-      ).writePrepared(prepared))
-        row.id,
-    ],
-    insertNetwork: (requests) =>
-        read(networkFetchPipelineProvider).insertResolved(requests),
-    unlink: (ids) async => MediaUnlinkService(
-      repository: read(mediaRepositoryProvider),
-      deleteMedia: (ids) => read(
-        mediaDeletionCoordinatorProvider,
-      ).deleteMultipleMedia(ids, holdRemoteDelete: true),
-    ).unlinkFromDive(ids),
-    replace: (proposals, afterCommit, onRollback) async => read(
-      mediaRepairServiceProvider,
-    ).apply(proposals, afterCommit: afterCommit, onRollback: onRollback),
-    drainDeletes: () =>
-        read(mediaDeletionCoordinatorProvider).drainHeldDeletes(),
-    enqueueUpload: (mediaId) => read(mediaStoreEnqueueProvider)(mediaId),
-  );
+  factory SittingMediaWriters.forDive(ProviderRead read) =>
+      SittingMediaWriters._app(
+        read,
+        unlinkFrom: (service, ids) => service.unlinkFromDive(ids),
+        replace: (proposals, afterCommit, onRollback) async => read(
+          mediaRepairServiceProvider,
+        ).apply(proposals, afterCommit: afterCommit, onRollback: onRollback),
+      );
 
   /// A site's (issue #4527, phase 2): as [SittingMediaWriters.forDive],
   /// unlinking from the site.
-  factory SittingMediaWriters.forSite(ProviderRead read) => SittingMediaWriters(
-    writeRows: (prepared) async => [
-      for (final row in await read(
-        mediaImportServiceProvider,
-      ).writePrepared(prepared))
-        row.id,
-    ],
-    insertNetwork: (requests) =>
-        read(networkFetchPipelineProvider).insertResolved(requests),
-    unlink: (ids) async => MediaUnlinkService(
-      repository: read(mediaRepositoryProvider),
-      deleteMedia: (ids) => read(
-        mediaDeletionCoordinatorProvider,
-      ).deleteMultipleMedia(ids, holdRemoteDelete: true),
-    ).unlinkFromSite(ids),
-    // A site's attachments are not relinked from a sitting.
-    replace: (_, _, _) async =>
-        throw UnsupportedError('a site sitting relinks no media'),
-    drainDeletes: () =>
-        read(mediaDeletionCoordinatorProvider).drainHeldDeletes(),
-    enqueueUpload: (mediaId) => read(mediaStoreEnqueueProvider)(mediaId),
-  );
+  factory SittingMediaWriters.forSite(ProviderRead read) =>
+      SittingMediaWriters._app(
+        read,
+        unlinkFrom: (service, ids) => service.unlinkFromSite(ids),
+        // A site's attachments are not relinked from a sitting.
+        replace: (_, _, _) async =>
+            throw UnsupportedError('a site sitting relinks no media'),
+      );
 
   /// A gear item's (issue #4527, phase 3, plan 6): as
   /// [SittingMediaWriters.forSite], unlinking from the item, which also
   /// clears a cover that named an unlinked photo.
   factory SittingMediaWriters.forEquipment(ProviderRead read) =>
-      SittingMediaWriters(
-        writeRows: (prepared) async => [
-          for (final row in await read(
-            mediaImportServiceProvider,
-          ).writePrepared(prepared))
-            row.id,
-        ],
-        insertNetwork: (requests) =>
-            read(networkFetchPipelineProvider).insertResolved(requests),
-        unlink: (ids) async => MediaUnlinkService(
-          repository: read(mediaRepositoryProvider),
-          deleteMedia: (ids) => read(
-            mediaDeletionCoordinatorProvider,
-          ).deleteMultipleMedia(ids, holdRemoteDelete: true),
-        ).unlinkFromEquipment(ids),
+      SittingMediaWriters._app(
+        read,
+        unlinkFrom: (service, ids) => service.unlinkFromEquipment(ids),
         // A gear item's photos are not relinked from a sitting.
         replace: (_, _, _) async =>
             throw UnsupportedError('a gear item sitting relinks no media'),
-        drainDeletes: () =>
-            read(mediaDeletionCoordinatorProvider).drainHeldDeletes(),
-        enqueueUpload: (mediaId) => read(mediaStoreEnqueueProvider)(mediaId),
       );
+
+  /// The app's writers, every record's alike but for what an unlink
+  /// unlinks from ([unlinkFrom]) and how a link is replaced ([replace]).
+  factory SittingMediaWriters._app(
+    ProviderRead read, {
+    required Future<void> Function(MediaUnlinkService service, List<String> ids)
+    unlinkFrom,
+    required Future<void> Function(
+      List<RepairProposal> proposals,
+      List<Future<void> Function()> afterCommit,
+      List<Future<void> Function()> onRollback,
+    )
+    replace,
+  }) => SittingMediaWriters(
+    writeRows: (prepared) async => [
+      for (final row in await read(
+        mediaImportServiceProvider,
+      ).writePrepared(prepared))
+        row.id,
+    ],
+    insertNetwork: (requests) =>
+        read(networkFetchPipelineProvider).insertResolved(requests),
+    unlink: (ids) => unlinkFrom(
+      MediaUnlinkService(
+        repository: read(mediaRepositoryProvider),
+        deleteMedia: (ids) => read(
+          mediaDeletionCoordinatorProvider,
+        ).deleteMultipleMedia(ids, holdRemoteDelete: true),
+      ),
+      ids,
+    ),
+    replace: replace,
+    drainDeletes: () =>
+        read(mediaDeletionCoordinatorProvider).drainHeldDeletes(),
+    enqueueUpload: (mediaId) => read(mediaStoreEnqueueProvider)(mediaId),
+  );
 
   final Future<List<String>> Function(List<PreparedMedia> prepared) writeRows;
   final Future<List<String>> Function(List<NetworkInsertRequest> requests)

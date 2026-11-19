@@ -7,6 +7,7 @@ import 'package:submersion/features/equipment/domain/entities/service_clock_stat
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_edit_fields.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_list_pending.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_service_sitting.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/service_severity_colors.dart';
@@ -116,6 +117,9 @@ class _GearItemClocksEditorState extends ConsumerState<GearItemClocksEditor> {
       ]),
       builder: (context, _) {
         final clocks = gearItemClocksList.current(_session);
+        // A service logged from a clock is held among the service records,
+        // so it waits for them as well.
+        final canLog = gearItemServiceRecordsList.current(_session) != null;
         final loaded = {
           for (final s
               in gearItemClocksList.loaded(_session) ??
@@ -134,14 +138,14 @@ class _GearItemClocksEditorState extends ConsumerState<GearItemClocksEditor> {
                 label: Text(l10n.equipment_serviceClocks_addClock),
               ),
             ),
-            if (clocks == null)
-              const LinearProgressIndicator()
-            else if (clocks.isEmpty)
+            ?gearItemListPending(gearItemClocksList, _session) ??
+                gearItemListPending(gearItemServiceRecordsList, _session),
+            if (clocks != null && clocks.isEmpty)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Text(l10n.equipment_serviceClocks_empty),
-              )
-            else
+              ),
+            if (clocks != null)
               for (final schedule in clocks)
                 _ClockRow(
                   schedule: schedule,
@@ -152,6 +156,7 @@ class _GearItemClocksEditorState extends ConsumerState<GearItemClocksEditor> {
                       ? statuses[schedule.id]
                       : null,
                   changed: loaded[schedule.id] != schedule,
+                  canLog: canLog,
                   units: units,
                   onAction: (action) => _onAction(
                     action,
@@ -174,6 +179,7 @@ class _ClockRow extends StatelessWidget {
     required this.kind,
     required this.status,
     required this.changed,
+    required this.canLog,
     required this.units,
     required this.onAction,
   });
@@ -182,6 +188,10 @@ class _ClockRow extends StatelessWidget {
   final ServiceKind? kind;
   final ServiceClockStatus? status;
   final bool changed;
+
+  /// Whether Log service may be chosen: the sitting has read the service
+  /// records the logged one is held among.
+  final bool canLog;
   final UnitFormatter units;
   final void Function(String action) onAction;
 
@@ -230,6 +240,7 @@ class _ClockRow extends StatelessWidget {
         itemBuilder: (context) => [
           PopupMenuItem(
             value: 'log',
+            enabled: canLog,
             child: Text(l10n.equipment_serviceClocks_logService),
           ),
           PopupMenuItem(

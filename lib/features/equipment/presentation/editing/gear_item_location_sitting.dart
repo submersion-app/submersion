@@ -13,6 +13,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_location
 import 'package:submersion/features/equipment/domain/services/location_status_offer.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_card_ids.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_edit_fields.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_row_writes.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_location_picker_sheet.dart';
 import 'package:submersion/features/equipment/presentation/widgets/move_equipment_sheet.dart';
@@ -51,23 +52,17 @@ final gearItemMovesList = SittingList<EquipmentItem, EquipmentLocationMove>(
   key: 'equipment.moveHistory',
   cardId: GearItemCardId.location.name,
   read: (item) => EquipmentLocationMoveRepository().getMovesFor(item.id),
-  write: (item, loaded, current) async {
+  // Past moves are only edited and deleted here: a move is made by the
+  // move flow ([holdGearItemMove]).
+  write: (item, loaded, current) {
     final repository = EquipmentLocationMoveRepository();
-    final byId = {for (final m in loaded) m.id: m};
-    final kept = {for (final m in current) m.id};
-    var changed = false;
-    for (final move in current) {
-      if (byId[move.id] != move) {
-        await repository.updateMove(move);
-        changed = true;
-      }
-    }
-    for (final move in loaded) {
-      if (kept.contains(move.id)) continue;
-      await repository.deleteMove(move.id);
-      changed = true;
-    }
-    return changed;
+    return writeRowChanges(
+      loaded: loaded,
+      current: current,
+      idOf: (m) => m.id,
+      update: repository.updateMove,
+      delete: repository.deleteMove,
+    );
   },
 );
 

@@ -6,6 +6,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_card_ids.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_row_writes.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/sitting_list.dart';
 
@@ -18,27 +19,16 @@ final gearItemClocksList = SittingList<EquipmentItem, ServiceSchedule>(
   key: 'equipment.clocks',
   cardId: GearItemCardId.serviceClocks.name,
   read: (item) => ServiceScheduleRepository().getSchedulesForEquipment(item.id),
-  write: (item, loaded, current) async {
+  write: (item, loaded, current) {
     final repository = ServiceScheduleRepository();
-    final byId = {for (final s in loaded) s.id: s};
-    final kept = {for (final s in current) s.id};
-    var changed = false;
-    for (final schedule in current) {
-      final before = byId[schedule.id];
-      if (before == null) {
-        await repository.createSchedule(schedule, notify: false);
-        changed = true;
-      } else if (before != schedule) {
-        await repository.updateSchedule(schedule, notify: false);
-        changed = true;
-      }
-    }
-    for (final schedule in loaded) {
-      if (kept.contains(schedule.id)) continue;
-      await repository.deleteSchedule(schedule.id);
-      changed = true;
-    }
-    return changed;
+    return writeRowChanges(
+      loaded: loaded,
+      current: current,
+      idOf: (s) => s.id,
+      create: (s) => repository.createSchedule(s, notify: false),
+      update: (s) => repository.updateSchedule(s, notify: false),
+      delete: repository.deleteSchedule,
+    );
   },
 );
 
@@ -49,27 +39,16 @@ final gearItemServiceRecordsList = SittingList<EquipmentItem, ServiceRecord>(
   key: 'equipment.serviceRecords',
   cardId: GearItemCardId.serviceHistory.name,
   read: (item) => ServiceRecordRepository().getRecordsForEquipment(item.id),
-  write: (item, loaded, current) async {
+  write: (item, loaded, current) {
     final repository = ServiceRecordRepository();
-    final byId = {for (final r in loaded) r.id: r};
-    final kept = {for (final r in current) r.id};
-    var changed = false;
-    for (final record in current) {
-      final before = byId[record.id];
-      if (before == null) {
-        await repository.createRecord(record);
-        changed = true;
-      } else if (before != record) {
-        await repository.updateRecord(record);
-        changed = true;
-      }
-    }
-    for (final record in loaded) {
-      if (kept.contains(record.id)) continue;
-      await repository.deleteRecord(record.id);
-      changed = true;
-    }
-    return changed;
+    return writeRowChanges(
+      loaded: loaded,
+      current: current,
+      idOf: (r) => r.id,
+      create: repository.createRecord,
+      update: repository.updateRecord,
+      delete: repository.deleteRecord,
+    );
   },
 );
 

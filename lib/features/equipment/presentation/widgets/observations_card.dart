@@ -74,6 +74,7 @@ class ObservationsCard extends ConsumerWidget {
       context,
       equipment: equipment,
       onHold: (held) => holdCheckIn(session, held),
+      heldElsewhere: heldPhotoKeysOutside(session),
     ),
     null => showEquipmentObservationSheet(context, equipment: equipment),
   };
@@ -177,6 +178,10 @@ class ObservationsCard extends ConsumerWidget {
                                     held: heldById[o.id],
                                     onHold: (next) =>
                                         holdCheckIn(session, next),
+                                    heldElsewhere: heldPhotoKeysOutside(
+                                      session,
+                                      checkIn: o.id,
+                                    ),
                                   ),
                                 null => () => showEquipmentObservationSheet(
                                   context,

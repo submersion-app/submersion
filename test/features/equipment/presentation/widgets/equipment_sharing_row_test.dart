@@ -132,6 +132,20 @@ void main() {
     expect(find.byType(AlertDialog), findsNothing);
   });
 
+  // A choice made before the sitting has read the shares (or after that
+  // read failed) has nothing to be held against, and would be lost.
+  testWidgets('in a sitting the row waits for the sharing read', (
+    tester,
+  ) async {
+    final session = EditSession(bcd);
+    addTearDown(session.dispose);
+    await pumpRow(tester, editing: session);
+
+    await tester.tap(find.text(l.equipment_sharing_sharedWithLabel));
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+  });
+
   testWidgets('in a sitting a share is held until Save', (tester) async {
     final session = EditSession(bcd);
     addTearDown(session.dispose);

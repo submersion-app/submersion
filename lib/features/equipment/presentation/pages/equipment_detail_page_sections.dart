@@ -304,7 +304,10 @@ extension _EquipmentDetailSections on _EquipmentDetailContent {
                 _buildDetailRow(
                   context,
                   context.l10n.equipment_detail_ownedForLabel,
-                  _formatDuration(context, equipment.ownershipDuration!),
+                  equipmentOwnedForText(
+                    context.l10n,
+                    equipment.ownershipDuration!,
+                  ),
                 ),
             ],
           ),
@@ -507,9 +510,6 @@ extension _EquipmentDetailSections on _EquipmentDetailContent {
       copyable: copyable,
     );
   }
-
-  String _formatDuration(BuildContext context, Duration duration) =>
-      equipmentOwnedForText(context.l10n, duration);
 }
 
 /// The header's service banner: which service is due, on which part, and

@@ -4,6 +4,7 @@ import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_edit_fields.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_check_ins_sitting.dart';
 import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -98,7 +99,11 @@ class _EquipmentPhotosSectionState
       ref: ref,
       equipmentId: _equipmentId,
       ignoringMediaIds: sittingMedia(editing).unlinked,
-      onHold: (adds) => addMediaToSitting(editing, adds),
+      // A photo a check-in in the sitting holds is on the item already.
+      onHold: (adds) => addMediaToSitting(
+        editing,
+        photosNotHeld(adds, checkInPhotoKeys(editing)),
+      ),
     );
   }
 

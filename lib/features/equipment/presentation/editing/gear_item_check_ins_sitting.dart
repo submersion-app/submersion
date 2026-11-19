@@ -235,12 +235,18 @@ List<Future<void> Function()> checkInsAfterCommit(
 }
 
 /// [held] with [adds] put after it, less any photo [held] already has (the
-/// same gallery asset, file or address): a photo picked twice is held once.
+/// same gallery asset, file or address), or that the sitting holds
+/// elsewhere ([heldElsewhere], same-file keys): a photo picked twice is
+/// held once.
 List<HeldMediaAdd> withHeldPhotosAdded(
   List<HeldMediaAdd> held,
-  List<HeldMediaAdd> adds,
-) {
-  final seen = {for (final a in held) ?mediaSameFileKey(a.preview)};
+  List<HeldMediaAdd> adds, {
+  Set<String> heldElsewhere = const {},
+}) {
+  final seen = {
+    ...heldElsewhere,
+    for (final a in held) ?mediaSameFileKey(a.preview),
+  };
   return [
     ...held,
     for (final a in adds)
@@ -251,3 +257,32 @@ List<HeldMediaAdd> withHeldPhotosAdded(
         a,
   ];
 }
+
+/// The same-file keys of the photos held on the sitting's check-ins, check-in
+/// [except]'s left out. The item has each photo once, as its stored photos
+/// already are: a pick of one held here is not held again elsewhere.
+Set<String> checkInPhotoKeys(
+  EditSession<EquipmentItem> session, {
+  String? except,
+}) => {
+  for (final c
+      in gearItemCheckInsList.current(session) ?? const <HeldCheckIn>[])
+    if (c.observation.id != except && !c.deleted)
+      for (final a in c.added) ?mediaSameFileKey(a.preview),
+};
+
+/// The same-file keys of the photos the sitting holds outside check-in
+/// [checkIn]: on the Photos card and on every other check-in.
+Set<String> heldPhotoKeysOutside(
+  EditSession<EquipmentItem> session, {
+  String? checkIn,
+}) => {
+  for (final a in sittingMedia(session).added) ?mediaSameFileKey(a.preview),
+  ...checkInPhotoKeys(session, except: checkIn),
+};
+
+/// [adds] less those whose file is among [keys].
+List<HeldMediaAdd> photosNotHeld(List<HeldMediaAdd> adds, Set<String> keys) => [
+  for (final a in adds)
+    if (!keys.contains(mediaSameFileKey(a.preview))) a,
+];

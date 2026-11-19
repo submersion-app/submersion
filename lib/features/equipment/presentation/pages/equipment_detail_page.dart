@@ -6,16 +6,11 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_edit_routes.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_check_ins_sitting.dart';
-import 'package:submersion/features/media/presentation/providers/equipment_media_providers.dart';
 import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
-import 'package:submersion/features/equipment/presentation/providers/gear_photo_providers.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_media_sitting.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_service_sitting.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_location_sitting.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/clock_sync_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/editing/dive_computer_settings_sitting.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -478,7 +473,9 @@ class _EquipmentDetailContent extends ConsumerWidget {
               readOnly: _editing,
             ),
           ),
-          if (equipment.notes.isNotEmpty || _shows(GearItemCardId.notes)) ...[
+          // Notes of only spaces are empty, as the card counts them.
+          if (equipment.notes.trim().isNotEmpty ||
+              _shows(GearItemCardId.notes)) ...[
             const SizedBox(height: 24),
             _framed(
               GearItemCardId.notes,

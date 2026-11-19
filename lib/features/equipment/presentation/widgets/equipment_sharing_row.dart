@@ -76,8 +76,13 @@ class EquipmentSharingRow extends ConsumerWidget {
     final shareIds =
         held ?? {for (final s in sharesAsync.requireValue) s.diverId};
     final isOwner = canShareEquipment(equipment, activeDiverId);
+    // In the open card, only once the sitting has read the shares: a
+    // choice made before then, or after the read failed, could not be held.
     final canEdit =
-        isOwner && !readOnly && (sitting == null || editing != null);
+        isOwner &&
+        !readOnly &&
+        (sitting == null || editing != null) &&
+        (editing == null || gearItemSharing.loaded(editing!) != null);
     String nameOf(String id) => names[id] ?? l10n.equipment_owner_unknown;
 
     final sharedWith = shareIds.isEmpty

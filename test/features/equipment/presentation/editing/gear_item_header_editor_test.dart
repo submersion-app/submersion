@@ -16,6 +16,7 @@ import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/widgets/scoped_tags_field.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
@@ -80,6 +81,18 @@ void main() {
       tester.widget<DropdownButton<EquipmentType>>(
         find.byType(DropdownButton<EquipmentType>),
       );
+
+  testWidgets('a tag read that failed says so and offers to read again', (
+    tester,
+  ) async {
+    await DatabaseService.instance.database.customStatement(
+      'DROP TABLE equipment_tags',
+    );
+    final session = await pumpEditor(tester);
+
+    expect(gearItemTagsList.failed(session), isTrue);
+    expect(find.byType(SittingLoadFailed), findsOneWidget);
+  });
 
   testWidgets('the type is locked for an item a computer names', (
     tester,

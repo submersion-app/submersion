@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/service_record_repository.dart';
@@ -18,6 +19,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
+import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
@@ -160,6 +162,38 @@ void main() {
         'k-o2',
       ]);
       expect(await storedClocks(), hasLength(1));
+    });
+
+    testWidgets('a clocks read that failed says so and offers to read '
+        'again', (tester) async {
+      final db = DatabaseService.instance.database;
+      await db.customStatement('DROP TABLE service_schedules');
+      final session = sitting();
+      await pump(tester, GearItemClocksEditor(session: session));
+
+      expect(gearItemClocksList.failed(session), isTrue);
+      expect(find.byType(SittingLoadFailed), findsOneWidget);
+      expect(find.byType(LinearProgressIndicator), findsNothing);
+    });
+
+    testWidgets('Log service waits for the service records, which it is held '
+        'among', (tester) async {
+      final db = DatabaseService.instance.database;
+      await db.customStatement('DROP TABLE service_records');
+      final session = sitting();
+      await pump(tester, GearItemClocksEditor(session: session));
+
+      expect(gearItemServiceRecordsList.failed(session), isTrue);
+      expect(find.byType(SittingLoadFailed), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('gear-clock-menu-s1')));
+      await tester.pumpAndSettle();
+      final log = tester.widget<PopupMenuItem<String>>(
+        find.ancestor(
+          of: find.text(l.equipment_serviceClocks_logService),
+          matching: find.byType(PopupMenuItem<String>),
+        ),
+      );
+      expect(log.enabled, isFalse);
     });
 
     testWidgets('custom reminder days are the Service clocks card\'s change', (

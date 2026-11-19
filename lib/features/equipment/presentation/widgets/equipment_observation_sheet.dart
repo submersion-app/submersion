@@ -49,6 +49,7 @@ Future<void> showEquipmentObservationSheet(
   bool offerNearMiss = true,
   HeldCheckIn? held,
   void Function(HeldCheckIn checkIn)? onHold,
+  Set<String> heldElsewhere = const {},
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -61,6 +62,7 @@ Future<void> showEquipmentObservationSheet(
       offerNearMiss: offerNearMiss,
       held: held,
       onHold: onHold,
+      heldElsewhere: heldElsewhere,
     ),
   );
 }
@@ -128,6 +130,10 @@ class _ObservationSheet extends ConsumerStatefulWidget {
   final HeldCheckIn? held;
   final void Function(HeldCheckIn checkIn)? onHold;
 
+  /// The same-file keys of the photos the sitting holds outside this
+  /// check-in: a pick of one is left out, as the item has it already.
+  final Set<String> heldElsewhere;
+
   const _ObservationSheet({
     required this.equipment,
     this.dive,
@@ -135,6 +141,7 @@ class _ObservationSheet extends ConsumerStatefulWidget {
     required this.offerNearMiss,
     this.held,
     this.onHold,
+    this.heldElsewhere = const {},
   });
 
   @override
@@ -265,6 +272,7 @@ class _ObservationSheetState extends ConsumerState<_ObservationSheet> {
                   onCancel: _closeEditor,
                   onSave: _saving ? null : () => _save(draft),
                   holding: _holding,
+                  heldElsewhere: widget.heldElsewhere,
                 ),
               ),
             )
@@ -492,6 +500,9 @@ class _Editor extends ConsumerStatefulWidget {
   /// Whether its photos are held in the item page's sitting.
   final bool holding;
 
+  /// The photos the sitting holds outside this check-in, by same-file key.
+  final Set<String> heldElsewhere;
+
   const _Editor({
     required this.draft,
     required this.equipment,
@@ -499,6 +510,7 @@ class _Editor extends ConsumerStatefulWidget {
     required this.onCancel,
     required this.onSave,
     this.holding = false,
+    this.heldElsewhere = const {},
   });
 
   @override
@@ -615,6 +627,7 @@ class _EditorState extends ConsumerState<_Editor> {
           equipmentId: widget.equipment.id,
           observationId: draft.id,
           heldAdded: draft.added,
+          heldElsewhere: widget.heldElsewhere,
           heldRemoved: draft.removed,
           onHeldChanged: widget.holding
               ? (added, removed) => setState(() {

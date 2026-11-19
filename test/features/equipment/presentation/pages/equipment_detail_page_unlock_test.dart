@@ -18,6 +18,7 @@ import 'package:submersion/features/equipment/domain/constants/equipment_attribu
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_edit_fields.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/components_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/condition_findings_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/exposure_card.dart';
@@ -132,6 +133,22 @@ void main() {
         find.descendant(of: find.byType(AddStrip), matching: find.text(notes)),
         findsOneWidget,
       );
+    });
+
+    // Notes of only spaces are empty, as the card counts them: the strip
+    // offers them and the page shows no blank card beside it.
+    testWidgets('notes of only spaces are offered in the strip, not shown', (
+      tester,
+    ) async {
+      await pumpGearPage(tester, item: apex.copyWith(notes: '   '));
+      await unlock(tester);
+
+      expect(
+        find.descendant(of: find.byType(AddStrip), matching: find.text(notes)),
+        findsOneWidget,
+      );
+      // The strip's entry is the only Notes on the page.
+      expect(find.text(notes), findsOneWidget);
     });
 
     testWidgets('the documents card holds a detach until Save', (tester) async {
@@ -736,4 +753,33 @@ void main() {
       expect(harness.save.calls.single.cards, {'header'});
     });
   });
+
+  // Every provider the page shows refreshes itself from its own table, so
+  // a Save that invalidated them as well would read each one twice.
+  test(
+    'after a Save, a provider that follows its table is read once',
+    () async {
+      var builds = 0;
+      final container = ProviderContainer(
+        overrides: [
+          observationsForEquipmentProvider('g1').overrideWith((ref) async {
+            builds++;
+            return const [];
+          }),
+        ],
+      );
+      addTearDown(container.dispose);
+      final sub = container.listen(
+        observationsForEquipmentProvider('g1'),
+        (_, _) {},
+      );
+      addTearDown(sub.close);
+      await container.read(observationsForEquipmentProvider('g1').future);
+
+      afterGearItemSave(container, equipmentId: 'g1');
+      await container.read(observationsForEquipmentProvider('g1').future);
+
+      expect(builds, 1);
+    },
+  );
 }
