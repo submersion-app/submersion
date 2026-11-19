@@ -2,6 +2,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/change_log/record_sitting_writer.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
+import 'package:submersion/features/documents/presentation/editing/document_edit_fields.dart';
 import 'package:submersion/features/documents/presentation/editing/document_record.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 import 'package:submersion/features/tags/data/repositories/tag_link_repository.dart';
@@ -65,7 +66,7 @@ class DocumentEditSaveService {
       final tagsChanged =
           tags != null && !DocumentRecord.sameTags(tags, stored.tagIds);
       await _documents.save(
-        merged.document,
+        documentAsSaved(merged.document),
         merged.pages,
         tagIds: tagsChanged ? tags : null,
         // The sitting tells sync once, after its commit.

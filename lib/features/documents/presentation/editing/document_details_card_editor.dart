@@ -21,11 +21,15 @@ import 'package:submersion/shared/widgets/record_editing/field_text_binding.dart
 const String _tagObjectsKey = 'document.tags.objects';
 
 /// Holds [tags] as the document's tags in [session]: the ids for the save,
-/// the tags themselves for the page to show while the sitting is open.
+/// the tags themselves for the page to show while the sitting is open. Back
+/// to the stored set holds nothing, so the page follows the stored tags
+/// again.
 void holdDocumentTags(EditSession<DocumentRecord> session, List<Tag> tags) {
+  final ids = [for (final t in tags) t.id];
+  final unchanged = DocumentRecord.sameTags(ids, session.stored.tagIds);
   session
-    ..remember(_tagObjectsKey, tags)
-    ..set(documentTagsField, [for (final t in tags) t.id]);
+    ..remember(_tagObjectsKey, unchanged ? null : tags)
+    ..set(documentTagsField, ids);
 }
 
 /// The tags [session] holds for the document, or null when the diver has

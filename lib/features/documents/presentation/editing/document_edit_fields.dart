@@ -154,16 +154,19 @@ final documentTagsField = EditField<DocumentRecord, List<String>?>(
   equals: DocumentRecord.sameTags,
 );
 
-/// Sets the document's type in [session]; one other than insurance drops
-/// the phones and the primary mark, which only insurance keeps.
-void setDocumentType(EditSession<DocumentRecord> session, DocumentType type) {
-  session.set(documentTypeField, type);
-  if (type == DocumentType.insurance) return;
-  session
-    ..set(documentEmergencyPhoneField, null)
-    ..set(documentPhoneField, null)
-    ..set(documentPrimaryField, false);
-}
+/// Sets the document's type in [session]. The insurance-only values (its
+/// phones and the primary mark) stay in the sitting whatever the type, as
+/// the form's fields keep them, so switching away and back loses nothing;
+/// they are dropped when a document of another type is saved
+/// ([documentAsSaved]).
+void setDocumentType(EditSession<DocumentRecord> session, DocumentType type) =>
+    session.set(documentTypeField, type);
+
+/// [d] as it is saved: a document other than insurance keeps no phones and
+/// is not primary, as the form saves it.
+Document documentAsSaved(Document d) => documentKeepsPhonesAndPrimary(d)
+    ? d
+    : d.copyWith(emergencyPhone: null, phone: null, isPrimary: false);
 
 /// The document's pages, in the order the viewer pages through them: the
 /// Pages card's value. A page added in the sitting carries its content

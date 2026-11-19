@@ -355,4 +355,28 @@ void main() {
 
     expect(find.text('Club'), findsOneWidget);
   });
+
+  testWidgets('tags changed back to the stored set follow the stored tags', (
+    tester,
+  ) async {
+    await pumpDocumentPage(tester);
+    await unlock(tester);
+    final page = tester.state(find.byType(DocumentDetailPage)) as dynamic;
+    final session = page.editController.session as EditSession<DocumentRecord>;
+    final club = Tag(
+      id: 't2',
+      name: 'Club',
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+
+    holdDocumentTags(session, [club]);
+    // Back to the stored set (none): no change, and nothing held to show.
+    holdDocumentTags(session, const []);
+    await tester.pumpAndSettle();
+
+    expect(session.isDirty, isFalse);
+    expect(heldDocumentTags(session), isNull);
+    expect(find.text('Club'), findsNothing);
+  });
 }

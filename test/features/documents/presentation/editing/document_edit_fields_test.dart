@@ -56,17 +56,31 @@ void main() {
     expect(documentKeepsPhonesAndPrimary(_doc(DocumentType.permit)), isFalse);
   });
 
-  test('leaving insurance clears the phones and primary', () {
+  test('switching away from insurance and back keeps the phones', () {
     final session = EditSession(_record(DocumentType.insurance, primary: true));
     addTearDown(session.dispose);
 
     setDocumentType(session, DocumentType.permit);
+    setDocumentType(session, DocumentType.insurance);
 
     final working = session.working.document;
-    expect(working.type, DocumentType.permit);
-    expect(working.emergencyPhone, isNull);
-    expect(working.phone, isNull);
-    expect(working.isPrimary, isFalse);
+    expect(working.emergencyPhone, '911');
+    expect(working.phone, '555');
+    expect(working.isPrimary, isTrue);
+    expect(session.isDirty, isFalse);
+  });
+
+  test('a document saved as other than insurance keeps no phones', () {
+    final saved = documentAsSaved(
+      _doc(
+        DocumentType.insurance,
+        primary: true,
+      ).copyWith(type: DocumentType.permit),
+    );
+
+    expect(saved.emergencyPhone, isNull);
+    expect(saved.phone, isNull);
+    expect(saved.isPrimary, isFalse);
   });
 
   test('the default reminder is stored as none', () {
