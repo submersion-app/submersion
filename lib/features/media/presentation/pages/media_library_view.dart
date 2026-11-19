@@ -270,7 +270,6 @@ class MediaLibraryHeaderToolbar extends ConsumerWidget {
     return SelectableListScope(
       controller: selection,
       selectableIds: [for (final e in entries) e.item.id],
-      skipTraversal: true,
       child: toolbar,
     );
   }

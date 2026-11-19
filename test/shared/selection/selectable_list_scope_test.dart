@@ -36,36 +36,56 @@ void main() {
   }
 
   group('SelectableListScope', () {
-    testWidgets('skipTraversal keeps keys working but takes the scope off '
-        'the Tab order', (tester) async {
-      // A scope around a row of controls (the Media header toolbar, #4777)
-      // must not add a blank stop before them.
-      Future<FocusNode> pumpScope({required bool skip}) async {
-        await tester.pumpWidget(
-          MaterialApp(
-            home: SelectableListScope(
-              controller: controller,
-              selectableIds: const ['a', 'b', 'c'],
-              skipTraversal: skip,
-              child: const SizedBox.expand(key: Key('inside')),
+    testWidgets('the scope answers keys but is never a Tab stop of its own', (
+      tester,
+    ) async {
+      // Its focus node exists only to hear Escape and Ctrl/Cmd-A. As a Tab
+      // stop it was a blank one spanning the whole list (or, around the
+      // Media header's toolbar, the whole row of controls), which reads as
+      // focus lost (#4777).
+      final before = FocusNode();
+      final after = FocusNode();
+      addTearDown(before.dispose);
+      addTearDown(after.dispose);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Column(
+              children: [
+                TextField(focusNode: before),
+                Expanded(
+                  child: SelectableListScope(
+                    controller: controller,
+                    selectableIds: const ['a', 'b', 'c'],
+                    child: const SizedBox.expand(key: Key('inside')),
+                  ),
+                ),
+                TextField(focusNode: after),
+              ],
             ),
           ),
-        );
-        await tester.pumpAndSettle();
-        return Focus.of(tester.element(find.byKey(const Key('inside'))));
-      }
+        ),
+      );
+      await tester.pumpAndSettle();
 
-      expect((await pumpScope(skip: false)).skipTraversal, isFalse);
-
-      final node = await pumpScope(skip: true);
-      expect(node.skipTraversal, isTrue);
+      final scopeNode = Focus.of(
+        tester.element(find.byKey(const Key('inside'))),
+      );
       // Still the autofocused node that answers the keys.
-      expect(node.hasPrimaryFocus, isTrue);
+      expect(scopeNode.hasPrimaryFocus, isTrue);
       controller.enterImplicit('a');
       await tester.pump();
       await tester.sendKeyEvent(LogicalKeyboardKey.escape);
       await tester.pump();
       expect(controller.value.isActive, isFalse);
+
+      // Tab from the field before the list goes straight to the one after.
+      before.requestFocus();
+      await tester.pump();
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      expect(scopeNode.hasPrimaryFocus, isFalse);
+      expect(after.hasPrimaryFocus, isTrue);
     });
 
     testWidgets('Escape exits selection mode', (tester) async {

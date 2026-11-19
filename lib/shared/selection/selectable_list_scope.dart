@@ -20,18 +20,11 @@ class SelectableListScope extends StatelessWidget {
 
   final Widget child;
 
-  /// Whether Tab skips the scope's own focus node. A scope around a row of
-  /// controls rather than a list (the Media header's toolbar, #4777) sets
-  /// it, so Tab goes straight to the controls instead of first stopping on
-  /// a blank node that spans them.
-  final bool skipTraversal;
-
   const SelectableListScope({
     super.key,
     required this.controller,
     required this.selectableIds,
     required this.child,
-    this.skipTraversal = false,
   });
 
   /// True when the platform's multi-select modifier is held: Cmd on macOS,
@@ -84,9 +77,14 @@ class SelectableListScope extends StatelessWidget {
             // changes. A held Escape's repeats are kept here: they are the
             // press that left selection mode, not a new one asking to
             // cancel.
+            //
+            // Never a Tab stop: the node is here only to hear the keys, and
+            // as a stop it was a blank one spanning the whole list, which
+            // reads as focus lost (#4777). Autofocus and the keys still
+            // reach it.
             child: Focus(
               autofocus: true,
-              skipTraversal: skipTraversal,
+              skipTraversal: true,
               onKeyEvent: (_, event) {
                 if (event.logicalKey != LogicalKeyboardKey.escape) {
                   return KeyEventResult.ignored;
