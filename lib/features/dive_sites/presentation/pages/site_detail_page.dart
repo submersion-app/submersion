@@ -100,6 +100,13 @@ import 'package:submersion/features/dive_sites/presentation/editing/site_plain_f
 import 'package:submersion/features/dive_sites/presentation/editing/site_species_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/unlock_site_editing_flag.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_edit_save_provider.dart';
+import 'package:submersion/core/providers/location_service_provider.dart';
+import 'package:submersion/features/dive_sites/domain/models/new_site_seed.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_new_sitting.dart';
+import 'package:submersion/features/rules/domain/rule_subject.dart';
+import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
+import 'package:submersion/features/weather/presentation/providers/weather_providers.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_leave_guard.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_editing_page_provider.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
@@ -117,6 +124,7 @@ import 'package:submersion/shared/widgets/record_editing/record_fold_pencil.dart
 import 'package:submersion/shared/widgets/record_editing/record_sitting_refusal.dart';
 
 part 'site_detail_page_bars.dart';
+part 'site_detail_page_creating.dart';
 part 'site_detail_page_editing.dart';
 part 'site_detail_page_fullscreen_scape.dart';
 part 'site_detail_page_operations.dart';
@@ -139,6 +147,16 @@ class SiteDetailPage extends ConsumerStatefulWidget {
   /// opened for editing returns to view mode.
   final VoidCallback? onSittingEnded;
 
+  /// A new site, from [NewSiteSeed] or as a duplicate of a stored site
+  /// (issue #4527, phase 2, plan 6); null for a stored site's page.
+  final ({NewSiteSeed? seed, String? duplicateOfId})? newSite;
+
+  /// Told the new site's id once it is created, in a pane.
+  final void Function(String siteId)? onCreated;
+
+  /// Told when a new site is left without one, in a pane.
+  final VoidCallback? onCreateCancelled;
+
   const SiteDetailPage({
     super.key,
     required this.siteId,
@@ -148,7 +166,26 @@ class SiteDetailPage extends ConsumerStatefulWidget {
     this.unlockEditing = kUnlockSiteEditing,
     this.openUnlocked = false,
     this.onSittingEnded,
-  });
+  }) : newSite = null,
+       onCreated = null,
+       onCreateCancelled = null;
+
+  /// The site page opened unlocked on a new site (plan 6): a full page
+  /// leaves with the new id, a pane ([embedded]) tells [onCreated].
+  const SiteDetailPage.newSite({
+    super.key,
+    NewSiteSeed? seed,
+    String? duplicateOfId,
+    this.embedded = false,
+    this.onCreated,
+    this.onCreateCancelled,
+  }) : newSite = (seed: seed, duplicateOfId: duplicateOfId),
+       siteId = '',
+       onDeleted = null,
+       onClose = null,
+       unlockEditing = true,
+       openUnlocked = false,
+       onSittingEnded = null;
 
   @override
   ConsumerState<SiteDetailPage> createState() => _SiteDetailPageState();
@@ -188,6 +225,8 @@ class _SiteDetailPageState extends ConsumerState<SiteDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    // A new site is built from a seed, not from a stored site.
+    if (widget.newSite != null) return _NewSiteLoader(page: widget);
     final firstBuild = !_built;
     _built = true;
     // Desktop redirect: a root visit (deep link, sidebar) moves into the
@@ -286,6 +325,9 @@ class _SiteDetailContent extends ConsumerStatefulWidget {
   /// Told whether the sitting is open each time it changes.
   final ValueChanged<bool>? onSittingOpenChanged;
 
+  /// A new site's request, while [site] is its seed (plan 6).
+  final _NewSite? newSite;
+
   const _SiteDetailContent({
     required this.site,
     required this.siteId,
@@ -296,6 +338,7 @@ class _SiteDetailContent extends ConsumerStatefulWidget {
     this.openUnlocked = false,
     this.onSittingEnded,
     this.onSittingOpenChanged,
+    this.newSite,
   });
 
   @override
@@ -308,7 +351,8 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
         _SiteDetailPageEditing,
         RecordOpenUnlocked<_SiteDetailContent, DiveSite>,
         _SiteDetailFullscreen,
-        _SiteDetailPageOperations {
+        _SiteDetailPageOperations,
+        _SiteDetailPageCreating {
   @override
   bool openUnlockedOf(_SiteDetailContent widget) => widget.openUnlocked;
 
@@ -354,6 +398,8 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
 
   @override
   Widget build(BuildContext context) {
+    final waiting = _newSiteWaiting(context);
+    if (waiting != null) return waiting;
     final embedded = widget.embedded;
     // Unlock-to-edit in place (issue #4527, phase 2), behind the switch.
     final edit = _editingInBuild();
@@ -463,13 +509,14 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
         // The menu stays while unlocked, as a dive's: its whole-record
         // actions run from it with nothing to save.
         unlockedActions: [
-          _siteMenu(
-            context,
-            site,
-            historyItem: true,
-            hosts: true,
-            controller: _unlockedDisplayOptionsMenu,
-          ),
+          if (!isCreating)
+            _siteMenu(
+              context,
+              site,
+              historyItem: true,
+              hosts: true,
+              controller: _unlockedDisplayOptionsMenu,
+            ),
         ],
       );
     }

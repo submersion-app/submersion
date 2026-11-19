@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -5,12 +7,15 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/data/services/site_edit_save_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/models/new_site_seed.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_new_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_edit_save_provider.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blocker.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
@@ -24,6 +29,13 @@ typedef SiteSaveCall = ({
   bool privateOnly,
 });
 
+/// One create the page asked for (a new site's Save).
+typedef SiteCreateCall = ({
+  DiveSite site,
+  List<String> cards,
+  bool hasHeldWrites,
+});
+
 /// Stands in for the save service: records what it was asked to write, and
 /// fails on demand.
 class FakeSiteSave implements SiteEditSaveService {
@@ -32,6 +44,10 @@ class FakeSiteSave implements SiteEditSaveService {
   DiveSite stored;
   Object? failWith;
   final calls = <SiteSaveCall>[];
+  final creates = <SiteCreateCall>[];
+
+  /// While set and not completed, a create waits, as a slow write does.
+  Completer<void>? createGate;
 
   @override
   Future<({DiveSite before, DiveSite after})?> save({
@@ -67,6 +83,24 @@ class FakeSiteSave implements SiteEditSaveService {
           )
         : applied;
     return (before: stored, after: after);
+  }
+
+  @override
+  Future<DiveSite> create({
+    required DiveSite site,
+    required Iterable<String> changedCardIds,
+    Future<void> Function()? alsoWrite,
+  }) async {
+    await createGate?.future;
+    creates.add((
+      site: site,
+      cards: changedCardIds.toList()..sort(),
+      // Not run, as for [save].
+      hasHeldWrites: alsoWrite != null,
+    ));
+    final failure = failWith;
+    if (failure != null) throw failure;
+    return site;
   }
 }
 
@@ -178,5 +212,144 @@ Future<SiteUnlockHarness> pumpSitePage(
       find.byType(router == null ? SiteDetailPage : Scaffold).first,
     ),
   );
+  return harness;
+}
+
+/// The new-site page under test (issue #4527, phase 2, plan 6), with its
+/// save, and what it handed back as it left.
+class NewSiteHarness {
+  NewSiteHarness(this.save);
+
+  final FakeSiteSave save;
+
+  /// Whether the full page has left, and the value it left with.
+  bool left = false;
+  Object? leftWith;
+
+  /// The pane's callbacks: the id created, and whether it was cancelled.
+  String? created;
+  bool cancelled = false;
+
+  /// Whether the pane shows the page: false takes it away, as the list
+  /// pane does when another site is picked.
+  final shown = ValueNotifier<bool>(true);
+}
+
+/// Pumps the new-site page, as a pushed route or ([embedded]) in a pane,
+/// from [seed], or as a duplicate of [duplicate] (null when that site is
+/// gone).
+Future<NewSiteHarness> pumpNewSitePage(
+  WidgetTester tester, {
+  NewSiteSeed? seed,
+  SiteDuplicateSource? duplicate,
+  bool duplicateGone = false,
+  Object? duplicateReadError,
+  Future<SiteDuplicateSource?> Function()? duplicateRead,
+  bool embedded = false,
+  bool viaRouter = false,
+  AppSettings settings = const AppSettings(),
+  Size size = const Size(600, 1400),
+  List<Override> extra = const [],
+}) async {
+  tester.view.devicePixelRatio = 1.0;
+  tester.view.physicalSize = size;
+  addTearDown(tester.view.reset);
+  final harness = NewSiteHarness(FakeSiteSave(harnessSite));
+  final duplicateOfId =
+      duplicate?.site.id ??
+      (duplicateGone ? 'gone' : null) ??
+      (duplicateReadError != null || duplicateRead != null
+          ? 'unreadable'
+          : null);
+  final page = embedded
+      ? SiteDetailPage.newSite(
+          seed: seed,
+          duplicateOfId: duplicateOfId,
+          embedded: true,
+          onCreated: (id) => harness.created = id,
+          onCreateCancelled: () => harness.cancelled = true,
+        )
+      : SiteDetailPage.newSite(seed: seed, duplicateOfId: duplicateOfId);
+  final navigator = GlobalKey<NavigatorState>();
+  // As the app opens it: pushed by go_router onto a list, at a route with
+  // the new site's leave check.
+  final router = viaRouter
+      ? GoRouter(
+          initialLocation: '/list',
+          routes: [
+            GoRoute(
+              path: '/list',
+              builder: (_, _) => const Scaffold(body: Text('list')),
+            ),
+            GoRoute(
+              path: '/sites/new',
+              onExit: confirmLeaveRecordSitting,
+              builder: (_, _) => page,
+            ),
+          ],
+        )
+      : null;
+  if (router != null) addTearDown(router.dispose);
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        ...await getBaseOverrides(
+          settingsNotifier: MockSettingsNotifier(settings),
+        ),
+        validatedCurrentDiverIdProvider.overrideWith((_) async => 'me'),
+        shareByDefaultProvider.overrideWith((_) async => false),
+        siteEditSaveServiceProvider.overrideWithValue(harness.save),
+        if (duplicateOfId != null)
+          siteDuplicateSourceProvider(duplicateOfId).overrideWith(
+            (_) async => duplicateRead != null
+                ? await duplicateRead()
+                : duplicateReadError == null
+                ? duplicate
+                : throw duplicateReadError,
+          ),
+        ...extra,
+      ].cast<Override>(),
+      child: router != null
+          ? MaterialApp.router(
+              debugShowCheckedModeBanner: false,
+              locale: const Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              routerConfig: router,
+            )
+          : MaterialApp(
+              navigatorKey: navigator,
+              debugShowCheckedModeBanner: false,
+              locale: const Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: embedded
+                  ? Scaffold(
+                      body: ValueListenableBuilder<bool>(
+                        valueListenable: harness.shown,
+                        builder: (_, shown, _) =>
+                            shown ? page : const SizedBox.shrink(),
+                      ),
+                    )
+                  : const Scaffold(),
+            ),
+    ),
+  );
+  if (router != null) {
+    router.push<String>('/sites/new').then((value) {
+      harness
+        ..left = true
+        ..leftWith = value;
+    });
+  } else if (!embedded) {
+    navigator.currentState!
+        .push<Object?>(MaterialPageRoute(builder: (_) => page))
+        .then((value) {
+          harness
+            ..left = true
+            ..leftWith = value;
+        });
+  }
+  await tester.pumpAndSettle();
   return harness;
 }

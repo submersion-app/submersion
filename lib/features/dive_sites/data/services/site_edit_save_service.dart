@@ -132,6 +132,37 @@ class SiteEditSaveService {
         return result;
       });
 
+  /// Creates [site], a new site's sitting (issue #4527, phase 2, plan 6),
+  /// keeping its id: the row, then [alsoWrite], the sitting's held writes,
+  /// which all point at it, in one transaction and one change log operation
+  /// naming [changedCardIds]. If any of them throws nothing is left. Returns
+  /// the site as stored at the end. Throws [StateError] when [site] has no
+  /// id, or one a stored site already has.
+  Future<DiveSite> create({
+    required DiveSite site,
+    required Iterable<String> changedCardIds,
+    Future<void> Function()? alsoWrite,
+  }) {
+    if (site.id.isEmpty) {
+      return Future.error(
+        StateError('A new site needs its id before it is created'),
+      );
+    }
+    return runRecordSitting(
+      table: 'dive_sites',
+      recordId: site.id,
+      changedCardIds: changedCardIds,
+      body: () async {
+        if (await _sites.getSiteById(site.id) != null) {
+          throw StateError('Site ${site.id} already exists');
+        }
+        final created = await _sites.createSite(site);
+        await alsoWrite?.call();
+        return await _sites.getSiteById(created.id) ?? created;
+      },
+    );
+  }
+
   /// [stored] with only the private notes and rating [apply] gives it.
   static DiveSite _privateOf(
     DiveSite stored,

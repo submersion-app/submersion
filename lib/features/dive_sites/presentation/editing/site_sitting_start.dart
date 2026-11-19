@@ -15,6 +15,7 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 typedef SiteHeldList = ({
   String key,
   Future<void> Function(EditSession<DiveSite> session) load,
+  void Function(EditSession<DiveSite> session) loadNone,
   bool? Function(EditSession<DiveSite> session) wroteChange,
   Set<String> libraryFields,
 });
@@ -28,24 +29,28 @@ final List<SiteHeldList> siteHeldLists = [
   (
     key: siteTypesList.key,
     load: siteTypesList.load,
+    loadNone: siteTypesList.loadNone,
     wroteChange: siteTypesList.wroteChange,
     libraryFields: {'siteTypes'},
   ),
   (
     key: siteTagsList.key,
     load: siteTagsList.load,
+    loadNone: siteTagsList.loadNone,
     wroteChange: siteTagsList.wroteChange,
     libraryFields: {'tags'},
   ),
   (
     key: siteSpeciesList.key,
     load: siteSpeciesList.load,
+    loadNone: siteSpeciesList.loadNone,
     wroteChange: siteSpeciesList.wroteChange,
     libraryFields: {'species'},
   ),
   (
     key: siteFeaturesList.key,
     load: siteFeaturesList.load,
+    loadNone: siteFeaturesList.loadNone,
     wroteChange: siteFeaturesList.wroteChange,
     libraryFields: {'features'},
   ),
@@ -57,7 +62,12 @@ final List<SiteHeldList> siteHeldLists = [
 /// once they change.
 void startSiteSitting(EditSession<DiveSite> session, ProviderRead read) {
   for (final list in siteHeldLists) {
-    list.load(session);
+    // A new site has no rows stored: nothing to read, or to fail reading.
+    if (session.isNew) {
+      list.loadNone(session);
+    } else {
+      list.load(session);
+    }
   }
   loadSiteSharing(session, read);
   holdSittingMedia(

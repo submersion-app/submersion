@@ -364,6 +364,24 @@ void main() {
     expect(session.isDirty, isFalse);
   });
 
+  // A new record copied from another (a duplicate site, issue #4527)
+  // sets every field from a list of fields of mixed types.
+  test('a field copies its value from another record through its own '
+      'type', () {
+    final fields = <EditField<_Rec, Object?>>[_notes, _tags, _depth];
+    final session = EditSession(const _Rec(), isNew: true);
+    const from = _Rec(notes: 'Choppy', tags: ['night'], depth: 18);
+
+    for (final field in fields) {
+      field.copyFrom(session, from);
+    }
+
+    expect(session.working.notes, 'Choppy');
+    expect(session.working.tags, ['night']);
+    expect(session.working.depth, 18);
+    expect(session.changedCardIds, {'notes', 'tags', 'details'});
+  });
+
   // A write to another table can be the diver's change in its own right: a
   // dismissed suggestion, a location added to a site. No record value moves,
   // yet the sitting has something to save (issue #4527, plan 4).

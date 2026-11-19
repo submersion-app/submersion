@@ -30,6 +30,11 @@ final siteFeaturesList = SittingList<DiveSite, SiteFeature>(
       for (final f in await repository.getFeaturesForSite(site.id)) f.id,
     };
     var changed = false;
+    // Features list by creation time: the ones added here a millisecond
+    // apart, in the sitting's order (a duplicate's copy keeps the
+    // original's, as the form's copy did).
+    final start = DateTime.now().millisecondsSinceEpoch;
+    var added = 0;
     for (final feature in loaded) {
       if (!currentIds.contains(feature.id) && onSite.contains(feature.id)) {
         await repository.deleteFeature(feature.id, stampLibrary: false);
@@ -50,6 +55,7 @@ final siteFeaturesList = SittingList<DiveSite, SiteFeature>(
           name: feature.name,
           notes: feature.notes,
           stampLibrary: false,
+          createdAt: start + added++,
         );
       } else if (before != feature && onSite.contains(feature.id)) {
         await repository.updateFeature(feature, stampLibrary: false);

@@ -59,6 +59,7 @@ import 'package:submersion/features/dive_sites/domain/services/site_location_bac
 import 'package:submersion/features/dive_sites/presentation/widgets/site_location_backfill_dialog.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_list_count_provider.dart';
+import 'package:submersion/features/dive_sites/presentation/pages/site_edit_routes.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_picker_dialog.dart';
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
@@ -1802,7 +1803,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                   final routerState = GoRouterState.of(context);
                   context.go('${routerState.uri.path}?mode=new');
                 } else {
-                  context.push('/sites/new');
+                  openNewSite(context);
                 }
               },
               icon: const Icon(Icons.add_location),

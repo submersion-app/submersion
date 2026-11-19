@@ -495,7 +495,9 @@ mixin _SiteDetailPageEditing
                 !(reader &&
                     siteReaderCardRule(card.id) == SiteReaderCard.library) &&
                 (!section.visible ||
-                    (card.isEmptyDuring(presence, session) &&
+                    // Neither open nor added (above): on a new site it
+                    // waits here ([_waitsInStrip]).
+                    ((card.isEmptyDuring(presence, session) || isCreating) &&
                         (session == null || card.isOfferedWhenEmpty(session)))))
           AddStripEntry(
             cardId: card.id,
@@ -504,6 +506,18 @@ mixin _SiteDetailPageEditing
             changed: changed.contains(card.id),
           ),
     ];
+  }
+
+  /// Whether [cardId] waits in the strip on a new site: one the new site
+  /// did not lay out and the diver has not added, even a card a stored
+  /// site always shows (Description, Rating), since every card but the
+  /// starter set is a chip there (plan 6).
+  bool _waitsInStrip(String cardId) {
+    if (!isCreating) return false;
+    final controller = maybeEditController;
+    if (controller == null) return true;
+    return !controller.openCardIds.contains(cardId) &&
+        !controller.addedCardIds.contains(cardId);
   }
 
   /// [list] as the sitting has it, once the diver has changed it; null
@@ -650,6 +664,9 @@ mixin _SiteDetailPageEditing
     if (!editing) return builder;
     final card = siteEditCards[id];
     if (card == null) {
+      // Worked out from the site's dives and position: nothing until the
+      // site exists (plan 6).
+      if (isCreating) return null;
       if (builder == null || !kSiteCalculatedSections.contains(id)) {
         return builder;
       }
@@ -658,6 +675,7 @@ mixin _SiteDetailPageEditing
         child: builder(context),
       );
     }
+    if (_waitsInStrip(card.id)) return null;
     // A library reader's page (plan 5): the library's cards fade with no
     // pencil, and the reader's own say so. While locked the page decides,
     // so unlocking never remounts a card; while unlocked the sitting does,

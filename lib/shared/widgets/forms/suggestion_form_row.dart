@@ -30,6 +30,7 @@ class SuggestionFormRow extends StatefulWidget {
     this.caption,
     this.trailing,
     this.markdown = false,
+    this.autofocus = false,
   }) : assert(
          !markdown || suggestions.length == 0,
          'A Markdown notes row offers no suggestions',
@@ -50,6 +51,10 @@ class SuggestionFormRow extends StatefulWidget {
   /// notes editor with its formatting bar, in place of the autocomplete
   /// field.
   final bool markdown;
+
+  /// Whether the field takes the focus as it first appears: where a new
+  /// record starts (a new site's name, issue #4527).
+  final bool autofocus;
 
   @override
   State<SuggestionFormRow> createState() => _SuggestionFormRowState();
@@ -112,6 +117,7 @@ class _SuggestionFormRowState extends State<SuggestionFormRow> {
           MarkdownNotesField(
             controller: widget.controller,
             focusNode: _focusNode,
+            autofocus: widget.autofocus,
             semanticsLabel: widget.label,
             validator: widget.validator,
             maxLines: widget.maxLines,
@@ -163,6 +169,7 @@ class _SuggestionFormRowState extends State<SuggestionFormRow> {
                           TextFormField(
                             controller: controller,
                             focusNode: focusNode,
+                            autofocus: widget.autofocus,
                             validator: widget.validator,
                             textCapitalization: widget.textCapitalization,
                             maxLines: widget.maxLines,

@@ -30,7 +30,6 @@ import 'package:submersion/features/dive_sites/presentation/widgets/site_map_con
 import 'package:submersion/features/dive_sites/presentation/widgets/site_summary_widget.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_routes.dart';
-import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_list_count_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
@@ -91,7 +90,7 @@ class _SiteListPageState extends ConsumerState<SiteListPage>
           final currentPath = state.uri.path;
           context.go('$currentPath?mode=new');
         } else {
-          context.push('/sites/new');
+          openNewSite(context);
         }
       },
       tooltip: context.l10n.diveSites_fab_tooltip,
@@ -127,8 +126,7 @@ class _SiteListPageState extends ConsumerState<SiteListPage>
           onCancel,
           onDeleted: () => _leaveDeletedSite(context),
         ),
-        createBuilder: (context, onSaved, onCancel) =>
-            SiteEditPage(embedded: true, onSaved: onSaved, onCancel: onCancel),
+        createBuilder: newSitePane,
         mapContent: SiteMapContent(
           selectedId: ref.watch(highlightedSiteIdProvider),
           onItemSelected: (siteId) {
@@ -305,11 +303,7 @@ class _SiteListPageState extends ConsumerState<SiteListPage>
             onCancel,
             onDeleted: () => _leaveDeletedSite(context),
           ),
-          createBuilder: (context, onSaved, onCancel) => SiteEditPage(
-            embedded: true,
-            onSaved: onSaved,
-            onCancel: onCancel,
-          ),
+          createBuilder: newSitePane,
           floatingActionButton: fab,
         ),
       );

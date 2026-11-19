@@ -407,7 +407,8 @@ void main() {
   });
 
   test('leaving a site page goes through its sitting check', () {
-    for (final name in const ['sites', 'siteDetail']) {
+    // A new site with something entered asks too (issue #4527, plan 6).
+    for (final name in const ['sites', 'siteDetail', 'newSite']) {
       final route = _findRouteByName(router.configuration.routes, name);
       expect(route?.onExit, same(confirmLeaveRecordSitting), reason: name);
     }

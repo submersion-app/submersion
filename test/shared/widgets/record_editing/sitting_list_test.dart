@@ -110,6 +110,27 @@ void main() {
     expect(list.current(session), ['a', 'b']);
   });
 
+  // A record not yet created has no rows stored: its list starts empty
+  // without a read, so a read that would fail cannot leave it unloaded.
+  test('loadNone starts the list empty without a read', () async {
+    final list = rows();
+    gate = Completer<List<String>>();
+    list.load(session);
+
+    list.loadNone(session);
+    expect(list.loaded(session), isEmpty);
+    expect(list.failed(session), isFalse);
+    // The read asked before answers late and is dropped.
+    gate!.complete(['a']);
+    await session.settled();
+    expect(list.loaded(session), isEmpty);
+    expect(reads, 1);
+
+    list.set(session, ['x']);
+    expect(list.current(session), ['x']);
+    expect(session.isDirty, isTrue);
+  });
+
   test("a changed list is not read again: the diver's list stays", () async {
     final list = rows();
     list.load(session);

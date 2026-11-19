@@ -5,6 +5,38 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/shared/widgets/forms/suggestion_form_row.dart';
 
 void main() {
+  // Where a new record starts (a new site's name, issue #4527): asked for,
+  // the field takes the focus as it appears; by default it does not.
+  for (final autofocus in [true, false]) {
+    testWidgets('autofocus $autofocus', (tester) async {
+      final controller = TextEditingController();
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Material(
+              child: SuggestionFormRow(
+                label: 'Name',
+                controller: controller,
+                suggestions: const [],
+                autofocus: autofocus,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(
+        tester
+            .widget<EditableText>(find.byType(EditableText))
+            .focusNode
+            .hasFocus,
+        autofocus,
+      );
+    });
+  }
+
   testWidgets('typing surfaces suggestions; tapping one fills controller', (
     tester,
   ) async {

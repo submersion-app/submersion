@@ -34,7 +34,46 @@ Future<({DiveSite before, DiveSite after})?> saveSiteSitting(
     throw RecordSittingRefusal((l10n) => l10n.diveSites_edit_saveRefused);
   }
   if (result == null) return null;
-  // Uploads, the remote deletes the unlinks held: each on its own.
+  await _mediaAfterCommit(session);
+  return result;
+}
+
+/// A new site's sitting (issue #4527, plan 6): the site created with
+/// everything the sitting held, in one transaction
+/// ([SiteEditSaveService.create]), then what the media write left for
+/// after the commit, each step guarded. A seed with no diver takes
+/// [activeDiverId]. Returns the site as stored.
+Future<DiveSite> createSiteSitting(
+  EditSession<DiveSite> session,
+  SiteEditSaveService service, {
+  String? activeDiverId,
+}) async {
+  var site = session.applyTo(session.stored);
+  if (site.diverId == null && activeDiverId != null) {
+    site = site.copyWith(diverId: activeDiverId);
+  }
+  final created = await undoMediaOnFailure(
+    session,
+    () => service.create(
+      site: site,
+      changedCardIds: session.changedCardIds,
+      // Everything held points at the site: all of it runs after the row.
+      alsoWrite: session.hasHeldWrites
+          ? () async {
+              await session.runHeldWrites(beforeRecord: true);
+              await session.runHeldWrites();
+            }
+          : null,
+    ),
+  );
+  await _mediaAfterCommit(session);
+  return created;
+}
+
+/// Uploads, and the remote deletes the unlinks held, once the sitting has
+/// committed: each on its own, so one that fails never reads as a failed
+/// save.
+Future<void> _mediaAfterCommit(EditSession<DiveSite> session) async {
   for (final step in mediaAfterCommit(session)) {
     try {
       await step();
@@ -46,7 +85,6 @@ Future<({DiveSite before, DiveSite after})?> saveSiteSitting(
       );
     }
   }
-  return result;
 }
 
 /// [privateCards], for a library reader's Send (issue #4527, plan 5),
