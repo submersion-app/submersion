@@ -232,6 +232,7 @@ Future<NewSiteHarness> pumpNewSitePage(
   NewSiteSeed? seed,
   SiteDuplicateSource? duplicate,
   bool duplicateGone = false,
+  Object? duplicateReadError,
   bool embedded = false,
   AppSettings settings = const AppSettings(),
   Size size = const Size(600, 1400),
@@ -241,7 +242,10 @@ Future<NewSiteHarness> pumpNewSitePage(
   tester.view.physicalSize = size;
   addTearDown(tester.view.reset);
   final harness = NewSiteHarness(FakeSiteSave(harnessSite));
-  final duplicateOfId = duplicate?.site.id ?? (duplicateGone ? 'gone' : null);
+  final duplicateOfId =
+      duplicate?.site.id ??
+      (duplicateGone ? 'gone' : null) ??
+      (duplicateReadError != null ? 'unreadable' : null);
   final page = embedded
       ? SiteDetailPage.newSite(
           seed: seed,
@@ -262,9 +266,11 @@ Future<NewSiteHarness> pumpNewSitePage(
         shareByDefaultProvider.overrideWith((_) async => false),
         siteEditSaveServiceProvider.overrideWithValue(harness.save),
         if (duplicateOfId != null)
-          siteDuplicateSourceProvider(
-            duplicateOfId,
-          ).overrideWith((_) async => duplicate),
+          siteDuplicateSourceProvider(duplicateOfId).overrideWith(
+            (_) async => duplicateReadError == null
+                ? duplicate
+                : throw duplicateReadError,
+          ),
         ...extra,
       ].cast<Override>(),
       child: MaterialApp(

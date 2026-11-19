@@ -64,20 +64,26 @@ class _NewSiteLoaderState extends ConsumerState<_NewSiteLoader> {
     final source = duplicateOfId == null
         ? null
         : ref.watch(siteDuplicateSourceProvider(duplicateOfId));
+    final l10n = context.l10n;
+    // A read that failed says what failed, as the stored site's page does;
+    // only a site that is gone reads as not found.
+    if (source != null && !source.isLoading && source.hasError) {
+      _editLog.error(
+        'Reading site $duplicateOfId to duplicate failed',
+        error: source.error,
+        stackTrace: source.stackTrace,
+      );
+      return _newSiteMessage(
+        page,
+        title: l10n.diveSites_detail_error_title,
+        body: l10n.diveSites_detail_error_body('${source.error}'),
+      );
+    }
     if (source != null && !source.isLoading && source.value == null) {
-      if (source.hasError) {
-        _editLog.error(
-          'Reading site $duplicateOfId to duplicate failed',
-          error: source.error,
-          stackTrace: source.stackTrace,
-        );
-      }
-      final l10n = context.l10n;
-      final body = Center(child: Text(l10n.diveSites_detail_siteNotFound_body));
-      if (page.embedded) return body;
-      return Scaffold(
-        appBar: AppBar(title: Text(l10n.diveSites_detail_siteNotFound_title)),
-        body: body,
+      return _newSiteMessage(
+        page,
+        title: l10n.diveSites_detail_siteNotFound_title,
+        body: l10n.diveSites_detail_siteNotFound_body,
       );
     }
     final seed = _seed;
@@ -101,6 +107,21 @@ class _NewSiteLoaderState extends ConsumerState<_NewSiteLoader> {
       ),
     );
   }
+}
+
+/// The page in place of a new site that cannot open: [body] alone in a
+/// pane, under [title] on a full page.
+Widget _newSiteMessage(
+  SiteDetailPage page, {
+  required String title,
+  required String body,
+}) {
+  final message = Center(child: Text(body));
+  if (page.embedded) return message;
+  return Scaffold(
+    appBar: AppBar(title: Text(title)),
+    body: message,
+  );
 }
 
 /// The new-site page's title: today's form's, for a new site or a

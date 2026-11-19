@@ -358,6 +358,19 @@ void main() {
     expect(container.exists(siteDuplicateSourceProvider('site-1')), isFalse);
   });
 
+  // A read that failed is not a site that is gone: it says what failed,
+  // as the stored site's page does.
+  testWidgets('a duplicate whose site cannot be read says why', (tester) async {
+    await pumpNewSitePage(
+      tester,
+      duplicateReadError: StateError('database is locked'),
+    );
+
+    expect(find.textContaining('database is locked'), findsOneWidget);
+    expect(find.text(l.diveSites_detail_siteNotFound_body), findsNothing);
+    expect(find.byType(RecordEditBar), findsNothing);
+  });
+
   testWidgets('a duplicate of a site that is gone says so', (tester) async {
     await pumpNewSitePage(tester, duplicateGone: true);
 
