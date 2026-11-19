@@ -49,22 +49,15 @@ extension _VideoScanning on MediaIdentificationService {
         }
         // A rescan stopped part-way: what the diver said about a fish not
         // yet reached is still to be carried to its fresh track (rows this
-        // scan stored end at or before where it got to).
-        final scanned = from.scannedMs ?? 0;
+        // scan stored lie inside the stretches it scanned).
+        final scanned = from.scanned;
         final ahead = [
           for (final i in now)
-            if (_saidByDiver(i) && (i.endMs ?? 0) > scanned) i,
+            if (i.saidByDiver &&
+                !scanned.coversRange(i.startMs ?? 0, i.endMs ?? 0))
+              i,
         ];
-        return _scanVideo(
-          job,
-          pack,
-          cell,
-          reader,
-          from,
-          generation,
-          ahead,
-          stored: now,
-        );
+        return _scanVideo(job, pack, cell, reader, from, generation, ahead);
       case VideoRefreshAction.rescan:
         final reader = await _resolveVideo(job.item);
         if (reader == null) return false;
@@ -73,7 +66,7 @@ extension _VideoScanning on MediaIdentificationService {
         // app's own guesses are found again.
         final carry = [
           for (final i in stored)
-            if (_saidByDiver(i)) i,
+            if (i.saidByDiver) i,
         ];
         final dropped = [
           for (final i in stored)
@@ -108,11 +101,6 @@ extension _VideoScanning on MediaIdentificationService {
   /// what was found for the new place, rather than stopping the scan.
   bool _otherWaiting(_Job job) => _waiting.keys.any((id) => id != job.item.id);
 
-  /// Whether the diver decided on [i], or named it from the frame.
-  static bool _saidByDiver(MediaIdentification i) =>
-      i.decision != IdentificationDecision.undecided ||
-      i.claimedSpeciesId != null;
-
   /// Scans [job]'s video a chunk at a time from [from]. Between chunks it
   /// stops when the video was left, another logbook opened, a pack change
   /// or a newer request is waiting (then it returns true, to be put back),
@@ -124,9 +112,8 @@ extension _VideoScanning on MediaIdentificationService {
     VideoFileReader reader,
     MediaIdentificationRun from,
     int generation,
-    List<MediaIdentification> carry, {
-    List<MediaIdentification> stored = const [],
-  }) async {
+    List<MediaIdentification> carry,
+  ) async {
     // One worker holds the candidate table for the whole scan; without it
     // each chunk's naming copies the table into a new isolate.
     CropNamingWorker? worker;
@@ -151,7 +138,9 @@ extension _VideoScanning on MediaIdentificationService {
       generation: generation,
       resumeFrom: from,
       carry: carry,
-      stored: stored,
+      playhead: () => _playheads[job.item.id],
+      onFollowed: (sequence) => _followedPlayheads[job.item.id] = sequence,
+      firstChunkMs: _firstVideoChunkMs,
       reload: () async {
         _loadedModels = null;
         await _ensureLoaded(pack);
@@ -193,6 +182,9 @@ extension _VideoScanning on MediaIdentificationService {
               _databaseGeneration() == generation &&
               (_paused > 0 || _otherWaiting(job));
         }
+        // The chip row and sheet agree with the labels, which reconcile in
+        // memory, while the scan is still running (issue #4709).
+        await reconcile(job.item.id);
         _videoProgress = scan.progress;
         _changed();
         if (!more) {

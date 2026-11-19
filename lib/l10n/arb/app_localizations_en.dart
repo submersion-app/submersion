@@ -11077,6 +11077,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_tank_label_he => 'He';
 
   @override
+  String get diveLog_tank_error_impossibleMix =>
+      'O2 and He must each be 0 to 100 and total 100 or less';
+
+  @override
   String get diveLog_tank_label_material => 'Material';
 
   @override
@@ -44232,6 +44236,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dataQuality_detector_gas_mod => 'Gas/MOD inconsistency';
 
   @override
+  String get dataQuality_detector_impossible_gas_mix => 'Impossible gas mix';
+
+  @override
   String get dataQuality_detector_tank_assignment => 'Wrong cylinder';
 
   @override
@@ -44422,6 +44429,25 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String dataQuality_msg_hypoxic(String gas) {
     return 'Hypoxic mix ($gas) shown in use at the surface';
+  }
+
+  @override
+  String dataQuality_msg_impossibleGasMix(
+    int tankNumber,
+    String o2,
+    String he,
+  ) {
+    return 'Cylinder $tankNumber is recorded as $o2% O2 and $he% He, which no gas can be. Correct the mix on the dive.';
+  }
+
+  @override
+  String dataQuality_msg_impossibleGasMixScaled(
+    int tankNumber,
+    String o2,
+    String he,
+    String gas,
+  ) {
+    return 'Cylinder $tankNumber is recorded as $o2% O2 and $he% He, which no gas can be. An older import most likely stored $gas 100 times too high.';
   }
 
   @override
@@ -44708,6 +44734,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_convertTemp => 'Convert temperature';
+
+  @override
+  String dataQuality_repairLabel_rescaleGasMix(String gas) {
+    return 'Correct to $gas';
+  }
 
   @override
   String get dataQuality_repairLabel_recompute => 'Recalculate from profile';

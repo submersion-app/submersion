@@ -1,4 +1,6 @@
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    show GasMix;
 
 /// A repair option offered for a finding. Pure data; the UI/executor turn a
 /// selected action into the actual write.
@@ -181,6 +183,21 @@ class ConvertWaterTempRepair extends QualityRepairAction {
 class RecomputeMetricsRepair extends QualityRepairAction {
   const RecomputeMetricsRepair(this.diveId);
   final String diveId;
+}
+
+/// Divide a cylinder's mix stored 100 times too high by an older import
+/// back to [mix] (issue #4714). [mix] is what the finding offered, for the
+/// button; the executor writes it only while the stored mix still divides
+/// to it, so a mix corrected by hand since the scan is left alone.
+class RescaleGasMixRepair extends QualityRepairAction {
+  const RescaleGasMixRepair({
+    required this.diveId,
+    required this.tankId,
+    required this.mix,
+  });
+  final String diveId;
+  final String tankId;
+  final GasMix mix;
 }
 
 class SwapTankRecordPressuresRepair extends QualityRepairAction {
@@ -507,6 +524,20 @@ List<QualityRepairAction> repairOptionsFor(QualityFinding f) {
 
     case 'gas_mod':
       return [GoToDiveRepair(diveId)];
+
+    case 'impossible_gas_mix':
+      final tankId = p['tankId'] as String?;
+      final o2 = _num(p, 'correctedO2Percent');
+      final he = _num(p, 'correctedHePercent');
+      return [
+        if (tankId != null && o2 != null && he != null)
+          RescaleGasMixRepair(
+            diveId: diveId,
+            tankId: tankId,
+            mix: GasMix(o2: o2, he: he),
+          ),
+        GoToDiveRepair(diveId),
+      ];
 
     case 'unknown_transmitter':
       final serial = p['serial'] as String?;

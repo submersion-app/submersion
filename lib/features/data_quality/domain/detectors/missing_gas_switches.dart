@@ -11,6 +11,7 @@ import 'package:submersion/features/data_quality/domain/quality_thresholds.dart'
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/cylinder_breath_starts.dart';
 import 'package:submersion/features/dive_log/domain/services/gas_switch_time_suggestions.dart';
+import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_usage_range.dart';
 
 /// A moment the cylinder pressures say the diver started breathing a
@@ -61,6 +62,15 @@ MissedSwitches missedGasSwitches(DiveQualityContext ctx) {
   if (ctx.gasSwitches.isNotEmpty) return _none;
   if (ctx.dive.gasSwitchesEdited) return _none;
   if (ctx.dive.diveMode != DiveMode.oc) return _none;
+  // Every start on a mix no gas can have (3200% O2 from an older import)
+  // would read as deeper than its MOD; the impossible gas mix finding names
+  // it instead (issue #4714). Unlike the gas/MOD check, which skips only the
+  // time such a mix is breathed, this waits for the whole dive: the
+  // inference follows the cylinders in turn, and a switch onto one whose mix
+  // is unknown can neither be checked against its MOD nor stepped over.
+  if (!breathingTanks(ctx.tanks).every((t) => t.gasMix.isPossible)) {
+    return _none;
+  }
   return inferredGasSwitches(
     tanks: ctx.tanks,
     pressuresByTankId: ctx.pressuresByTankId,

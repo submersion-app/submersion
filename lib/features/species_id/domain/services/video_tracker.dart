@@ -9,13 +9,26 @@ import 'package:submersion/features/species_id/domain/entities/video_detections.
 class TrackedAnimal {
   /// [pending]: the stored row was kept without a name when a scan
   /// stopped, so all of [points] still count as new and it is named.
-  TrackedAnimal(this.points, {this.storedId, bool pending = false})
-    : storedLength = storedId == null || pending ? 0 : points.length;
+  TrackedAnimal(
+    this.points, {
+    this.storedId,
+    bool pending = false,
+    this.namedWorth,
+  }) : storedLength = storedId == null || pending ? 0 : points.length;
 
   TrackedAnimal._copy(TrackedAnimal other)
     : points = [...other.points],
       storedId = other.storedId,
-      storedLength = other.storedLength;
+      storedLength = other.storedLength,
+      namedWorth = other.namedWorth;
+
+  /// Stored as [storedId] with all of [points]: what is seen next is new.
+  TrackedAnimal._stored(
+    List<({int ms, DetectedBox detection})> points, {
+    required this.storedId,
+    required this.namedWorth,
+  }) : points = [...points],
+       storedLength = points.length;
 
   /// Where it was seen, oldest first.
   final List<({int ms, DetectedBox detection})> points;
@@ -26,6 +39,11 @@ class TrackedAnimal {
 
   /// How many of [points] were already stored and named.
   final int storedLength;
+
+  /// The worth ([momentWorth]) of the moment it was last named from, so a
+  /// clearly better view can name it again (issue #4709); null when it has
+  /// no name yet.
+  final double? namedWorth;
 
   /// Whether it has been seen since it was named, or is not named yet.
   bool get hasNewPoints => points.length > storedLength;
@@ -61,6 +79,31 @@ class VideoTracker {
   final _open = <_Open>[];
 
   int get openCount => _open.length;
+
+  /// The open animals, oldest first.
+  List<TrackedAnimal> get openTracks => [for (final open in _open) open.animal];
+
+  /// Records that the open track [animal] is stored as [storedId], named
+  /// from a moment worth [namedWorth] (null: kept without a name). It stays
+  /// open, and only what is seen from now on counts as new (issue #4709).
+  void markStored(
+    TrackedAnimal animal, {
+    required String storedId,
+    required double? namedWorth,
+  }) {
+    for (var k = 0; k < _open.length; k++) {
+      final open = _open[k];
+      if (!identical(open.animal, animal)) continue;
+      _open[k] = _Open(
+        TrackedAnimal._stored(
+          animal.points,
+          storedId: storedId,
+          namedWorth: namedWorth,
+        ),
+      )..missed = open.missed;
+      return;
+    }
+  }
 
   /// The open tracks as they are now, for [restore].
   VideoTrackerState save() => VideoTrackerState._([
@@ -150,6 +193,11 @@ class VideoTrackerState {
   final List<({TrackedAnimal animal, int missed})> _open;
 }
 
+/// How good a view of an animal [detection] is: its detector score times
+/// its box's area.
+double momentWorth(DetectedBox detection) =>
+    detection.score * detection.box.area;
+
 /// Up to [max] moments of [track] worth cropping and naming: the highest
 /// detector score times box area first, at least [minSpacingMs] apart.
 /// When spacing leaves fewer than [max], the next best fill in.
@@ -158,8 +206,7 @@ List<({int ms, DetectedBox detection})> bestMoments(
   int max = 3,
   int minSpacingMs = 1000,
 }) {
-  double worth(({int ms, DetectedBox detection}) p) =>
-      p.detection.score * p.detection.box.area;
+  double worth(({int ms, DetectedBox detection}) p) => momentWorth(p.detection);
   final ranked = [...track.points]
     ..sort((a, b) {
       final byWorth = worth(b).compareTo(worth(a));

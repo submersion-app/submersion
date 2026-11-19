@@ -6462,6 +6462,10 @@
   "diveLog_tank_surfaceBreathing_helper": "Minutes on this cylinder after the computer stopped logging, such as oxygen on the boat",
   "diveLog_tank_surfaceBreathing_unit": "min",
   "diveLog_tank_label_he": "He",
+  "diveLog_tank_error_impossibleMix": "O2 and He must each be 0 to 100 and total 100 or less",
+  "@diveLog_tank_error_impossibleMix": {
+    "description": "Error under the tank editor's O2 and He fields when the two describe no gas, such as a typed 1000."
+  },
   "diveLog_tank_label_material": "Material",
   "diveLog_tank_label_mnd": "MND",
   "diveLog_tank_label_n2": "N2",
@@ -27409,6 +27413,7 @@
   "dataQuality_detector_temp_anomaly": "Temperature anomaly",
   "dataQuality_detector_pressure_anomaly": "Pressure anomaly",
   "dataQuality_detector_gas_mod": "Gas/MOD inconsistency",
+  "dataQuality_detector_impossible_gas_mix": "Impossible gas mix",
   "dataQuality_detector_tank_assignment": "Wrong cylinder",
   "dataQuality_detector_missing_gas_switch": "Missing gas switch",
   "dataQuality_detector_source_conflict": "Conflicting sources",
@@ -27681,6 +27686,39 @@
   "dataQuality_msg_hypoxic": "Hypoxic mix ({gas}) shown in use at the surface",
   "@dataQuality_msg_hypoxic": {
     "placeholders": {
+      "gas": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_impossibleGasMix": "Cylinder {tankNumber} is recorded as {o2}% O2 and {he}% He, which no gas can be. Correct the mix on the dive.",
+  "@dataQuality_msg_impossibleGasMix": {
+    "description": "A cylinder whose stored mix no gas can have, such as a share over 100%; {o2} and {he} are the stored percentages.",
+    "placeholders": {
+      "tankNumber": {
+        "type": "int"
+      },
+      "o2": {
+        "type": "String"
+      },
+      "he": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_impossibleGasMixScaled": "Cylinder {tankNumber} is recorded as {o2}% O2 and {he}% He, which no gas can be. An older import most likely stored {gas} 100 times too high.",
+  "@dataQuality_msg_impossibleGasMixScaled": {
+    "description": "A cylinder mix an older import stored 100 times too high; {o2} and {he} are the stored percentages and {gas} the mix divided by 100, such as EAN32.",
+    "placeholders": {
+      "tankNumber": {
+        "type": "int"
+      },
+      "o2": {
+        "type": "String"
+      },
+      "he": {
+        "type": "String"
+      },
       "gas": {
         "type": "String"
       }
@@ -28022,6 +28060,15 @@
   "dataQuality_repairLabel_fillGaps": "Fill gaps",
   "dataQuality_repairLabel_smoothTemp": "Smooth temperature",
   "dataQuality_repairLabel_convertTemp": "Convert temperature",
+  "dataQuality_repairLabel_rescaleGasMix": "Correct to {gas}",
+  "@dataQuality_repairLabel_rescaleGasMix": {
+    "description": "Repair button that divides a cylinder mix stored 100 times too high; {gas} is the corrected mix, such as EAN32.",
+    "placeholders": {
+      "gas": {
+        "type": "String"
+      }
+    }
+  },
   "dataQuality_repairLabel_recompute": "Recalculate from profile",
   "dataQuality_repairLabel_swapPressures": "Swap start/end pressure",
   "dataQuality_repairLabel_setFromSeries": "Use sensor values",

@@ -282,5 +282,11 @@ extension RungsFromV340 on AppDatabase {
     // #4675). Columns only, no backfill.
     if (from < 376) await _assertIdentificationVideoColumns();
     if (from < 376) await reportProgress();
+
+    // v377: the stretches of a video already scanned, on its run (issue
+    // #4709). Column only, no backfill: a null reads as one stretch from 0
+    // to scanned_ms.
+    if (from < 377) await _assertIdentificationScannedRanges();
+    if (from < 377) await reportProgress();
   }
 }

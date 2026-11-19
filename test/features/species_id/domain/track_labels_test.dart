@@ -34,10 +34,17 @@ void main() {
       expect(kind(t, playing: false), TrackLabelKind.confident);
     });
 
-    test('a suggestion under the confident bar has a pill only paused', () {
+    test('a suggestion under the confident bar has a pill, playing or '
+        'paused (issue #4709)', () {
       final t = track('a', confident: false);
-      expect(kind(t, playing: true), isNull);
+      expect(kind(t, playing: true), TrackLabelKind.suggestion);
       expect(kind(t, playing: false), TrackLabelKind.suggestion);
+    });
+
+    test('a dot is still paused only', () {
+      final t = track('a', suggestable: false, confident: false);
+      expect(kind(t, playing: true), isNull);
+      expect(kind(t, playing: false), TrackLabelKind.dot);
     });
 
     test('an unnamed fish has a dot only paused', () {

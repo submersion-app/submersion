@@ -24,8 +24,10 @@ class MissingGasSwitchDetector extends QualityDetector {
   // timeline's starts with a switch to it (#4335).
   // v3: an Avelo Hydrotank's pressure falls give no breathing starts
   // (#4657).
+  // v4: a dive breathing an impossible mix is left alone (#4714), which
+  // retires the too-deep starts a mix stored 100 times too high raised.
   @override
-  int get version => 3;
+  int get version => 4;
   @override
   QualityCategory get category => QualityCategory.tank;
 

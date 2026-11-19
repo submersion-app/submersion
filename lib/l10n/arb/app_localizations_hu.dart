@@ -11231,6 +11231,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_tank_label_he => 'He';
 
   @override
+  String get diveLog_tank_error_impossibleMix =>
+      'Az O2 és a He értéke 0 és 100 közé essen, összegük legfeljebb 100 lehet';
+
+  @override
   String get diveLog_tank_label_material => 'Anyag';
 
   @override
@@ -44734,6 +44738,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get dataQuality_detector_gas_mod => 'Gáz/MOD-ellentmondás';
 
   @override
+  String get dataQuality_detector_impossible_gas_mix => 'Lehetetlen gázkeverék';
+
+  @override
   String get dataQuality_detector_tank_assignment => 'Rossz palack';
 
   @override
@@ -44924,6 +44931,25 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String dataQuality_msg_hypoxic(String gas) {
     return 'Hipoxikus keverék ($gas) használatban a felszínen';
+  }
+
+  @override
+  String dataQuality_msg_impossibleGasMix(
+    int tankNumber,
+    String o2,
+    String he,
+  ) {
+    return 'A(z) $tankNumber. palack keveréke $o2% O2 és $he% He, ami egyetlen gáz sem lehet. Érdemes javítani a keveréket a merülésnél.';
+  }
+
+  @override
+  String dataQuality_msg_impossibleGasMixScaled(
+    int tankNumber,
+    String o2,
+    String he,
+    String gas,
+  ) {
+    return 'A(z) $tankNumber. palack keveréke $o2% O2 és $he% He, ami egyetlen gáz sem lehet. Egy korábbi importálás valószínűleg 100-szor nagyobb értékkel mentette a(z) $gas keveréket.';
   }
 
   @override
@@ -45212,6 +45238,11 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_convertTemp => 'Hőmérséklet átváltása';
+
+  @override
+  String dataQuality_repairLabel_rescaleGasMix(String gas) {
+    return 'Javítás erre: $gas';
+  }
 
   @override
   String get dataQuality_repairLabel_recompute => 'Újraszámítás a profilból';

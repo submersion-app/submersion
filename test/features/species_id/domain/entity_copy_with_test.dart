@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
+import 'package:submersion/features/species_id/domain/entities/scanned_ranges.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
 import 'package:submersion/features/species_id/domain/entities/track_sample.dart';
 import 'package:submersion/features/species_id/domain/entities/video_detections.dart';
@@ -148,6 +149,13 @@ void main() {
       expect(changed.confident, isFalse);
       expect(changed.specific, isFalse);
       expect(track.copyWith(startMs: () => null).isTrack, isFalse);
+      // The diver's say: a claim from the frame, or a decision.
+      expect(track.saidByDiver, isTrue);
+      expect(changed.saidByDiver, isFalse);
+      expect(
+        changed.copyWith(decision: IdentificationDecision.rejected).saidByDiver,
+        isTrue,
+      );
 
       final run = MediaIdentificationRun(
         mediaId: 'v1',
@@ -166,6 +174,18 @@ void main() {
       final done = run.copyWith(scannedMs: () => 25000);
       expect(done.scanComplete, isTrue);
       expect(run.copyWith(videoDurationMs: () => null).scanComplete, isFalse);
+      final stretched = run.copyWith(
+        scannedRanges: () => const ScannedRanges().add(0, 25000),
+      );
+      expect(stretched.scannedRanges, const ScannedRanges().add(0, 25000));
+      expect(stretched.scanComplete, isTrue);
+      expect(stretched.copyWith(scannedRanges: () => null), run);
+      final gapped = run.copyWith(
+        scannedRanges: () =>
+            const ScannedRanges().add(0, 10000).add(15000, 25000),
+      );
+      expect(gapped.scanComplete, isFalse);
+      expect(run.scanned.stretches, [(startMs: 0, endMs: 10000)]);
     });
 
     test('video detections and moments', () {

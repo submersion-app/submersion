@@ -121,6 +121,9 @@ void main() {
       now: () => DateTime.utc(2026, 11, 17),
       newId: () => 'id-${ids++}',
       idleUnload: const Duration(milliseconds: 50),
+      // Whole 10 s chunks from the start, as these tests were written for;
+      // the short first chunk has its own tests (issue #4709).
+      firstVideoChunkMs: 10000,
     );
   });
   tearDown(() async {
@@ -156,7 +159,7 @@ void main() {
     test('a video is scanned to the end and its fish stored', () async {
       oneFish();
       await service.request(video());
-      expect(engine.detectCalls, [(0, 10000), (10000, 20000), (20000, 30000)]);
+      expect(engine.detectCalls, [(0, 10000), (10000, 20000), (20000, 25000)]);
       expect((await identifications.runFor('v1'))!.scanComplete, isTrue);
       final fish = (await identifications.forMedia('v1')).single;
       expect(fish.isTrack, isTrue);
@@ -281,7 +284,7 @@ void main() {
 
         engine.videoFailureAt = null;
         await service.request(video());
-        expect(engine.detectCalls.last, (20000, 30000));
+        expect(engine.detectCalls.last, (20000, 25000));
         expect((await identifications.runFor('v1'))!.scanComplete, isTrue);
       },
     );
@@ -455,13 +458,17 @@ void main() {
       addTearDown(again.dispose);
       await again.request(video());
       expect((await identifications.runFor('v1'))!.scanComplete, isTrue);
-      expect(reads, 2);
+      // One read to decide, one where the scan's run starts (issue #4709),
+      // one reconcile after each of its three chunks and one at the end.
+      expect(reads, 6);
     });
 
     test('fish kept to name later at a stop do not make the video scan '
         'again from the start', () async {
+      // Arriving under a second before the first chunk's end, so none is
+      // named early (issue #4709).
       engine.videoFrames = {
-        for (var ms = 1000; ms < 15000; ms += 250)
+        for (var ms = 9250; ms < 15000; ms += 250)
           ms: [
             for (var k = 0; k < 6; k++)
               DetectedBox(
@@ -495,8 +502,10 @@ void main() {
 
     test('leaving a video while pass 2 runs keeps the fish open since the '
         'chunk before', () async {
+      // The crossing fish is in view under a second at the first chunk's
+      // end, so it is not named early (issue #4709).
       engine.videoFrames = {
-        for (var ms = 8000; ms < 14000; ms += 250)
+        for (var ms = 9000; ms < 14000; ms += 250)
           ms: [
             if (ms < 12000)
               const DetectedBox(
@@ -526,13 +535,13 @@ void main() {
       expect(engine.embedCalls, hasLength(1));
       final kept = (await identifications.forMedia('v1')).single;
       expect(kept.isPending, isTrue);
-      expect((kept.startMs, kept.endMs), (8000, 9750));
+      expect((kept.startMs, kept.endMs), (9000, 9750));
     });
 
     test('a file that cannot be opened mid-scan keeps the fish open where '
         'the scan stopped', () async {
       engine.videoFrames = {
-        for (var ms = 8000; ms < 12000; ms += 250)
+        for (var ms = 9000; ms < 12000; ms += 250)
           ms: [
             const DetectedBox(
               box: IdentificationBox(x: 0.05, y: 0.8, width: 0.1, height: 0.1),
@@ -546,7 +555,7 @@ void main() {
       expect(engine.detectCalls, hasLength(1));
       final kept = (await identifications.forMedia('v1')).single;
       expect(kept.isPending, isTrue);
-      expect((kept.startMs, kept.endMs), (8000, 9750));
+      expect((kept.startMs, kept.endMs), (9000, 9750));
     });
 
     test('a new pack renames a scanned video without the engine', () async {
@@ -558,6 +567,113 @@ void main() {
       await service.request(video());
       expect(engine.detectCalls, isEmpty);
       expect((await identifications.runFor('v1'))!.packVersion, '2026.12.1');
+    });
+  });
+
+  group('following the playhead (issue #4709)', () {
+    MediaItem video([String id = 'v1']) => photo(id, type: MediaType.video);
+
+    Future<void> until(bool Function() done) async {
+      for (var k = 0; k < 200 && !done(); k++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      expect(done(), isTrue);
+    }
+
+    setUp(() => engine.videoDurationMs = 60000);
+
+    test('a seek reported while a video is scanned moves its next '
+        'chunk', () async {
+      engine.videoGate = Completer<void>();
+      final done = service.request(video());
+      await until(() => engine.detectCalls.length == 1);
+      service.followPlayhead('v1', 40000, seek: true);
+      engine.videoGate!.complete();
+      engine.videoGate = null;
+      await done;
+      expect(engine.detectCalls.take(3), [
+        (0, 10000),
+        (40000, 50000),
+        (50000, 60000),
+      ]);
+      expect((await identifications.runFor('v1'))!.scanComplete, isTrue);
+    });
+
+    test('a report made before the scan starts is used for its first '
+        'chunk', () async {
+      service.followPlayhead('v1', 30000, seek: true);
+      await service.request(video());
+      expect(engine.detectCalls.first, (30000, 40000));
+    });
+
+    test('leaving the video forgets its report', () async {
+      service.followPlayhead('v1', 30000, seek: true);
+      service.forgetPlayhead('v1');
+      await service.request(video());
+      expect(engine.detectCalls.first, (0, 10000));
+    });
+
+    test('a page covering the video keeps its report', () async {
+      service.followPlayhead('v1', 30000, seek: true);
+      // The trigger stops the scan while a full page covers the viewer.
+      service.cancelPending('v1');
+      await service.request(video());
+      expect(engine.detectCalls.first, (30000, 40000));
+    });
+
+    test('a pause does not replace a seek the scan has not followed '
+        'yet', () async {
+      service.followPlayhead('v1', 35000, seek: true);
+      service.followPlayhead('v1', 36000, seek: false);
+      expect(service.playheadOf('v1')!.seek, isTrue);
+      expect(service.playheadOf('v1')!.ms, 36000);
+    });
+
+    test('a pause after a seek the scan followed stays a pause', () async {
+      service.followPlayhead('v1', 30000, seek: true);
+      await service.request(video());
+      service.followPlayhead('v1', 31000, seek: false);
+      expect(service.playheadOf('v1')!.seek, isFalse);
+    });
+
+    test('a report for another video changes nothing', () async {
+      service.followPlayhead('v2', 30000, seek: true);
+      await service.request(video());
+      expect(engine.detectCalls.first, (0, 10000));
+    });
+
+    test('a tag accepts a fish named mid-scan before the scan ends', () async {
+      engine.videoFrames = {
+        for (var ms = 1000; ms < 4000; ms += 250)
+          ms: [
+            const DetectedBox(
+              box: IdentificationBox(x: 0.1, y: 0.4, width: 0.2, height: 0.1),
+              score: 0.9,
+            ),
+          ],
+      };
+      tagged = [
+        TaggedSpecies(
+          speciesId: 'sp_queen_parrotfish',
+          scientificName: parrotfish.scientificName,
+        ),
+      ];
+      // Hold the second chunk, so the first is stored and the scan is
+      // still running.
+      engine.videoFailureAt = (start) {
+        if (start == 0) engine.videoGate = Completer<void>();
+        return null;
+      };
+      final done = service.request(video());
+      await until(() => engine.detectCalls.length == 2);
+      await until(() => service.progressOf('v1') != null);
+      final fish = (await identifications.forMedia('v1')).single;
+      expect(fish.decision, IdentificationDecision.accepted);
+      expect(fish.decidedSpeciesId, 'sp_queen_parrotfish');
+      engine.videoFailureAt = null;
+      engine.videoGate!.complete();
+      engine.videoGate = null;
+      await done;
     });
   });
 }

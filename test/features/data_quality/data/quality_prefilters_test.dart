@@ -113,9 +113,44 @@ void main() {
     expect(candidates['unknown_transmitter'], {'real'});
   });
 
-  test('registry contains all 16 detectors with unique ids', () {
+  // Issue #4714: a mix stored 100 times too high needs no profile to flag.
+  test('impossible gas mix candidates hold a mix no gas can have', () async {
+    for (final (id, o2, he) in [
+      ('ean32', 32.0, 0.0),
+      ('stored100x', 3200.0, 0.0),
+      ('helium100x', 21.0, 3500.0),
+      ('overfull', 60.0, 50.0),
+      ('negative', -1.0, 0.0),
+      ('full', 21.0, 79.0),
+    ]) {
+      await diveRepo.createDive(
+        domain.Dive(
+          id: id,
+          dateTime: DateTime.utc(2026, 6, 1),
+          tanks: [
+            domain.DiveTank(
+              id: 't-$id',
+              gasMix: domain.GasMix(o2: o2, he: he),
+            ),
+          ],
+        ),
+      );
+    }
+    await diveRepo.createDive(
+      domain.Dive(id: 'no-tanks', dateTime: DateTime.utc(2026, 6, 1)),
+    );
+    final candidates = await prefilters.candidatesByDetector();
+    expect(candidates['impossible_gas_mix'], {
+      'stored100x',
+      'helium100x',
+      'overfull',
+      'negative',
+    });
+  });
+
+  test('registry contains all 17 detectors with unique ids', () {
     final ids = kQualityDetectors.map((d) => d.id).toList();
-    expect(ids.toSet(), hasLength(16));
+    expect(ids.toSet(), hasLength(17));
     expect(
       ids.toSet(),
       containsAll({
@@ -128,6 +163,7 @@ void main() {
         'temp_anomaly',
         'pressure_anomaly',
         'gas_mod',
+        'impossible_gas_mix',
         'tank_assignment',
         'missing_gas_switch',
         'unknown_transmitter',

@@ -47,9 +47,10 @@ in `MemoryReading.swift`, 6.5 GiB as the device reports it, checked by
 | Pack format, download, install | `lib/features/species_id/data/pack/` |
 | Naming and decision rules (pure Dart) | `lib/features/species_id/domain/services/` |
 | Analysis queue | `lib/features/species_id/data/services/media_identification_service.dart` |
-| A video's scan, chunk by chunk | `lib/features/species_id/data/services/video_identification_scan.dart` |
-| Tracking and labels (pure Dart) | `lib/features/species_id/domain/services/video_tracker.dart`, `track_labels.dart` |
+| A video's scan, chunk by chunk | `lib/features/species_id/data/services/video_identification_scan.dart` (naming in `video_identification_scan_naming.dart`) |
+| Tracking, scan order and labels (pure Dart) | `lib/features/species_id/domain/services/video_tracker.dart`, `video_scan_order.dart`, `video_identification_rules.dart`, `track_labels.dart` |
 | Labels over a video | `lib/features/species_id/presentation/widgets/video_identification_layer.dart` |
+| Where the diver is watching | `lib/features/species_id/presentation/widgets/video_playhead_reporter.dart` |
 | Viewer trigger and suggestions | `lib/features/species_id/presentation/widgets/` |
 | Settings page | `lib/features/species_id/presentation/pages/` |
 | Pack builder | `tool/species_pack/` |
@@ -281,7 +282,8 @@ and download the model. Opening a photo in the viewer analyses it.
 ## Video
 
 Opening a video in the viewer scans it, after the same dwell as a photo,
-while it plays. The scan works in 10 second chunks:
+while it plays. The scan works in chunks: 2 seconds for the first one after
+opening or a move, so the first labels come soon, then 10 seconds:
 
 1. **Pass 1, native.** `detectVideo` decodes the chunk in order with
    `AVAssetReader`, frames at most 960 pixels on the longer side, and runs
@@ -290,16 +292,72 @@ while it plays. The scan works in 10 second chunks:
 2. **Tracking, Dart.** `VideoTracker` links each frame's boxes to the open
    tracks by overlap. A track missed for more than two samples closes; one
    seen once is dropped. Open tracks carry into the next chunk.
-3. **Pass 2, native.** For the tracks a chunk closed, `embedMoments` seeks to
-   each track's best moments (up to three, a second apart) at full size and
-   crops and embeds them, exactly as a photo's boxes are.
-4. **Naming, Dart.** A track is named once, from the average of its moments'
+3. **Pass 2, native.** For the tracks to name, `embedMoments` seeks to each
+   track's best moments (up to three, a second apart) at full size and crops
+   and embeds them, exactly as a photo's boxes are.
+4. **Naming, Dart.** A track is named from the average of its moments'
    embeddings, with the same rules as a photo crop. Whether it is confident
    and whether it looks specific enough for a dot are stored with it.
 
-Each chunk is stored with how far the scan got (`scanned_ms` on the run), so
-leaving the video, a newer request, a pack change or the app going to the
-background stops the scan between chunks and the next opening resumes it.
+### Following the playhead (issue #4709)
+
+The scan follows where the diver is watching. `VideoPlayheadReporter`, in
+the viewer's video item, tells the service (`followPlayhead`) of a seek once
+the playhead has settled for half a second (a jump of over 1.5 s forward or
+0.25 s back between player updates, or, while paused, a move of over 0.25 s
+from where the playhead rested, so a slow scrub counts too) and of a pause
+once it has lasted half a second, so the pause a scrub starts with never
+moves the scan; nothing during steady playback. The service keeps the
+latest report per video and forgets it when the diver leaves the video. The
+reporter is keyed in the video item's stack: the name labels beside it come
+and go with tag mode, and a reporter rebuilt then would forget its report.
+Before each chunk, `nextVideoChunk` (`video_scan_order.dart`) picks where to
+go: the first unscanned point at or after a new report (a pause on scanned
+video counts as none, except for a scan that has not run a chunk yet, which
+starts from wherever the diver last was), otherwise on from where the last
+chunk ended, and once the end is reached, the gaps from the start. During
+playback the scan never chases the playhead, so a slow device scans the
+same stretches in the same order. A report that points outside the running
+chunk drops it (after pass 1, or between pass 2 batches): nothing of it is
+stored, and it is scanned again later.
+
+The stretches scanned are kept on the run (`scanned_ranges`, packed by
+`scanned_ranges_codec.dart`). `scanned_ms` stays the end of the stretch that
+starts at 0, and a run stored before v377 (no stretches) reads that mark as
+one stretch from 0. The scan is complete when the stretches cover the video.
+
+Consecutive chunks share one tracker. When the scan moves, the open tracks
+are stored as at a stop and the stored tracks that end just before the new
+point are taken up again, so a fish in view there stays one track.
+
+- **Naming in view.** At each chunk's end a track still open and seen for
+  at least a second is named and stored, with its path to the end of the
+  chunk, so its pill shows while it is still in view. It is named again
+  only when a moment seen since is worth 1.5 times the one it was named from
+  (detector score times box area); otherwise its path just grows, as it
+  does when none of the better view's moments can be cropped.
+- **Renaming and decisions.** A renamed fish the diver accepted by a name
+  match (accepted, no claim) goes back to undecided if its name changed, and
+  the service, which reconciles after every chunk, decides it again under
+  the current tags. A claim or a dismissal never changes. In a rescan, a
+  fish named while in view can take over what the diver said on the
+  previous scan's track of it at any later chunk while nothing is said on
+  it yet: named early, it may only later reach far enough to match.
+- **Seams.** A chunk that ends where a stretch scanned earlier starts joins
+  each open track to a stored track that starts within the gap allowance and
+  overlaps its last box, under the later row's id; the earlier row is
+  deleted. Two parts the diver said different things about stay apart,
+  checked again as the chunk is stored: a decision made while it was named
+  undoes the join, and the earlier part keeps its path up to the seam.
+
+Labels: while playing, every undecided fish the app could suggest a name for
+shows its outlined pill, as when paused; dots stay paused only.
+
+### Stopping and resuming
+
+Each chunk is stored with the stretches scanned, so leaving the video, a
+newer request, a pack change or the app going to the background stops the
+scan between chunks and the next opening resumes it.
 The tracks still open at a stop are stored too. As many as one batch of
 moments (12) are named, the fish with no name yet first, so stopping stays
 quick. The rest keep their path with no best moment, crop or name (a pending
@@ -327,7 +385,7 @@ where they can be copied or shared. With debug mode off, or with no log
 file to write to, nothing is read.
 
 Each stage writes one line: after the models load, after a photo, after
-each 10 second chunk's pass 1 and pass 2, and after the models unload. A
+each chunk's pass 1 and pass 2, and after the models unload. A
 chunk with no fish to name runs no pass 2 and so has no pass 2 line. The
 reading is taken without holding up identification. A line from an iPhone
 17 Pro Max:

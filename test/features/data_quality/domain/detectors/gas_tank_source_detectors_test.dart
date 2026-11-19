@@ -59,6 +59,87 @@ void main() {
       expect(out.single.params['peakPpO2'], closeTo(2.25, 1e-9));
     });
 
+    // Issue #4714: EAN32 stored 100 times too high read as ppO2 128 at 30 m,
+    // a critical finding on every such dive. The impossible gas mix finding
+    // names the mix; the time it is breathed is not judged until it is put
+    // right.
+    test('an impossible breathing mix leaves the dive to its own finding', () {
+      final ctx = makeContext(
+        dive: makeTestDive(tanks: [tank(o2: 3200)]),
+        samples: flatProfile(depth: 30),
+      );
+      expect(det.detect(ctx), isEmpty);
+      // v5 is the bump that retires the findings such a mix produced.
+      expect(det.version, 5);
+    });
+
+    test('a fine back gas is still judged beside an impossible stage', () {
+      // 150% O2 is no mix dividing explains, so it stays until the diver
+      // corrects it; the EAN50 breathed at 35 m is still too rich.
+      final ctx = makeContext(
+        dive: makeTestDive(
+          tanks: [
+            tank(o2: 50),
+            tank(id: 'stage', o2: 150, order: 1),
+          ],
+        ),
+        samples: flatProfile(depth: 35),
+      );
+      final out = det.detect(ctx);
+      expect(out.single.params['peakPpO2'], closeTo(2.25, 1e-9));
+    });
+
+    test('a fine gas switched to from an impossible one is judged', () {
+      final ctx = makeContext(
+        dive: makeTestDive(
+          tanks: [
+            tank(o2: 3200),
+            tank(id: 'ean50', o2: 50, order: 1),
+          ],
+        ),
+        samples: flatProfile(depth: 35),
+        gasSwitches: [sw(id: 's1', t: 1200, tankId: 'ean50', depth: 35)],
+      );
+      final out = det.detect(ctx);
+      // The ppO2 run on EAN50 from 1200 s; the switch itself is beyond its
+      // MOD too. Nothing is said about the 3200% before the switch.
+      expect(out.map((f) => f.params['o2Percent']), everyElement(50.0));
+      expect(out.any((f) => f.params.containsKey('peakPpO2')), isTrue);
+      expect(out.any((f) => f.params.containsKey('switchDepth')), isTrue);
+    });
+
+    test('a switch onto an impossible mix is not judged', () {
+      final ctx = makeContext(
+        dive: makeTestDive(
+          tanks: [
+            tank(),
+            tank(id: 'stage', o2: 5000, order: 1),
+          ],
+        ),
+        samples: flatProfile(depth: 30),
+        gasSwitches: [sw(id: 's1', t: 1200, tankId: 'stage', depth: 30)],
+      );
+      expect(det.detect(ctx), isEmpty);
+    });
+
+    test('an impossible mix on a suit inflation bottle does not count', () {
+      final ctx = makeContext(
+        dive: makeTestDive(
+          tanks: [
+            tank(o2: 50),
+            const domain.DiveTank(
+              id: 'argon',
+              order: 1,
+              role: TankRole.suitInflation,
+              gasMix: domain.GasMix(o2: 2100),
+            ),
+          ],
+        ),
+        samples: flatProfile(depth: 35),
+      );
+      expect(det.detect(ctx), hasLength(1));
+    });
+
     test('air at 30 m is clean (ppO2 0.84)', () {
       final ctx = makeContext(
         dive: makeTestDive(tanks: [tank(o2: 21)]),
