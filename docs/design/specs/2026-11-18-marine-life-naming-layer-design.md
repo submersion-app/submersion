@@ -83,6 +83,10 @@ The layer fails, even if it names more animals right overall, when:
   The rare-species check layer trains at the shipped layer's chosen pull,
   epochs, blend and sharpness, and its seed, instead of searching its own,
   so it differs from the shipped layer only in its photos.
+- **The training fetch's limits (2026-11-19): speed it up.** No daily cap
+  on photos from the AWS Open Data bucket, where every training photo
+  lives, and up to 9,500 API requests a day, still under iNaturalist's
+  10,000.
 
 ## Constraints
 
@@ -102,7 +106,9 @@ The layer fails, even if it names more animals right overall, when:
   "Publishing a pack").
 - **Downloads.** Downloaded data lives in its own folder, and any Python
   that reads it runs with `-I`. iNaturalist API calls stay at about one a
-  second and under 10,000 a day, and photo downloads under 24 GB a day.
+  second and under 10,000 a day, and photo downloads from iNaturalist's
+  own servers under 24 GB a day. Photos from its public AWS Open Data
+  bucket, which states no download limit, are not capped.
 - **Measured bars are tied to bytes.** `NAMING_MEASURED` in `manifest.py`
   matches a pack by the SHA-256 of `candidates.json`,
   `text_embeddings.f16` and `regions.bin`. The file that is scored is the

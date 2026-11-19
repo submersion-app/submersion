@@ -117,6 +117,29 @@ class DownloadBatchTest(unittest.TestCase):
             self.assertEqual(outcome, fetch_training.DONE)
             self.assertEqual(tomorrow.spent, 700)
 
+    def test_photos_from_the_open_data_bucket_are_not_capped(self):
+        with tempfile.TemporaryDirectory() as folder:
+            records = [
+                {"id": str(i), "photo_url": f"https://inaturalist-open-data.s3.amazonaws.com/photos/{i}/large.jpg"}
+                for i in range(5)
+            ]
+            paths = {r["id"]: os.path.join(folder, f"{r['id']}.jpg") for r in records}
+            spent = _Budget(0)
+            outcome = fetch_training.download_batch(records, paths, spent, _write_100_bytes, workers=1)
+            self.assertEqual(outcome, fetch_training.DONE)
+            self.assertEqual(spent.spent, 0)
+            self.assertEqual(sum(os.path.exists(p) for p in paths.values()), 5)
+
+    def test_only_the_open_data_bucket_itself_is_uncapped(self):
+        self.assertTrue(fetch_training.uncapped("https://inaturalist-open-data.s3.amazonaws.com/photos/1/large.jpg"))
+        for url in (
+            "https://static.inaturalist.org/photos/1/large.jpg",
+            "https://inaturalist-open-data.s3.amazonaws.com.example.com/photos/1/large.jpg",
+            "http://inaturalist-open-data.s3.amazonaws.com/photos/1/large.jpg",
+        ):
+            with self.subTest(url=url):
+                self.assertFalse(fetch_training.uncapped(url))
+
     def failing_on_photo_1(self, error):
         def download(url, path):
             if "/1/" in url:

@@ -46,8 +46,11 @@ other context, on a local model, over several days.
 8. **Do not contact anyone:** not iNaturalist, GBIF, model authors or dataset
    authors.
 9. **Stay within the download limits:** about one iNaturalist API request a
-   second, under 9,000 a day, and under 20 GB of photos a day. The fetcher
-   enforces these; never edit them upward.
+   second and under 9,500 a day (iNaturalist asks for under 10,000), and
+   under 20 GB a day of photos from any host but iNaturalist's AWS Open
+   Data bucket, which states no limit and is not capped (Eric,
+   2026-11-19). The fetcher enforces these; never raise them without
+   Eric.
 10. Commit messages follow `type(species-id): summary`, in plain words.
     Stage files by explicit path, never `git add -A` or `git add .`.
 
@@ -256,11 +259,12 @@ Good: the tests print `OK`. Mark Phase 1 done.
 
 ## Phase 2: Fetch, select and embed the training photos
 
-This phase runs for about five days: about 2.5 hours of lists (9,151
-requests, so it runs a little into a second day), then about 90 GB of photos
-at 20 GB a day. It is resumable: a candidate's list file, and a batch's
-`.jsonl`, mark that piece done, so restarting after any interruption loses
-nothing.
+This phase runs for about a day: about 9 hours of lists (9,151 requests at
+about 3.6 s each, within one day's 9,500), then about 90 GB of photos from
+the AWS Open Data bucket, uncapped, so as fast as the connection and the
+vision tool allow (about 37 ms a photo). It is resumable: a candidate's
+list file, and a batch's `.jsonl`, mark that piece done, so restarting
+after any interruption loses nothing.
 
 ### 2.1 Start it
 
@@ -290,17 +294,20 @@ cat $DATA/training/requests.json $DATA/training/downloads.json 2>/dev/null
 
 What you should see, in order:
 
-- `lists: N candidates this run, ...` lines every 100 candidates, about one a
-  second. The lists folder grows to 9,151 files.
-- `stopped at the day's 9000 requests` then `waiting X hours` once, near the
-  end of the lists. This is expected.
+- `lists: N candidates this run, ...` lines every 100 candidates, one every
+  few seconds. The lists folder grows to 9,151 files.
+- `stopped at the day's 9500 requests` then `waiting X hours`, only if a
+  run spans two UTC days. Expected then.
 - `select: ... training photos of ... species, ... validation photos`. Write
   this line into `progress.md`; the findings need it. Expect roughly 150,000
   to 250,000 training photos of roughly 5,000 to 7,000 species, and 15,000
   to 40,000 validation photos. Numbers far outside these: STOP.
 - `embed: batch K of M, kept of total photos kept` lines, about 90% kept
   each. A batch keeping under 70%: STOP.
-- `stopped at the day's 20 GB of photos` and `waiting ...` once a day. Expected.
+- `stopped at the day's 20 GB of photos` should not appear, since every
+  training photo so far comes from the uncapped open data bucket. If it
+  does, photos are coming from another host: note it in `progress.md` and
+  let it wait for the next day.
 
 If the process is `stopped` before the last batch is embedded, look at the
 end of `fetch.txt`:
