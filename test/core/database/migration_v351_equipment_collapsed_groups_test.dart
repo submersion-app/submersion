@@ -35,7 +35,9 @@ void main() {
   });
 
   test('the new column is additive and kept the floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(351));
+    // A later rung (v378, the marks on app-applied species tags) raised the
+    // floor; v351 itself did not set it.
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(351));
   });
 
   test('upgrading from v350 adds a null column', () async {

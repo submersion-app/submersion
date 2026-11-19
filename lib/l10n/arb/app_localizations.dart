@@ -42628,6 +42628,24 @@ abstract class AppLocalizations {
   /// **'Measured'**
   String get settings_conflict_field_measuredAt;
 
+  /// No description provided for @settings_conflict_field_mediaSpecies_unconfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag not yet confirmed'**
+  String get settings_conflict_field_mediaSpecies_unconfirmed;
+
+  /// No description provided for @settings_conflict_field_mediaSpecies_createdSighting.
+  ///
+  /// In en, this message translates to:
+  /// **'Sighting logged by the app'**
+  String get settings_conflict_field_mediaSpecies_createdSighting;
+
+  /// No description provided for @settings_conflict_field_mediaSpecies_createdSpecies.
+  ///
+  /// In en, this message translates to:
+  /// **'Species added by the app'**
+  String get settings_conflict_field_mediaSpecies_createdSpecies;
+
   /// No description provided for @settings_conflict_field_medicalClearanceExpiryDate.
   ///
   /// In en, this message translates to:
@@ -46713,6 +46731,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Identify fish when I open a photo or video'**
   String get settings_speciesId_toggle;
+
+  /// No description provided for @settings_speciesId_autoApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag confident matches automatically'**
+  String get settings_speciesId_autoApply;
+
+  /// No description provided for @settings_speciesId_autoApplyDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'The app adds a species tag when it is sure of a match. You confirm each one in Species to review.'**
+  String get settings_speciesId_autoApplyDescription;
+
+  /// No description provided for @settings_speciesId_autoApplyNever.
+  ///
+  /// In en, this message translates to:
+  /// **'The installed model isn\'t yet sure enough of any species to tag on its own. Suggestions still appear for you to add.'**
+  String get settings_speciesId_autoApplyNever;
+
+  /// No description provided for @settings_speciesId_autoApplyPlaceOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Only for photos and videos with a location.'**
+  String get settings_speciesId_autoApplyPlaceOnly;
+
+  /// No description provided for @settings_speciesId_sightingTiming.
+  ///
+  /// In en, this message translates to:
+  /// **'Log sightings for these tags'**
+  String get settings_speciesId_sightingTiming;
+
+  /// No description provided for @settings_speciesId_sightingOnConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'When I confirm the tag'**
+  String get settings_speciesId_sightingOnConfirm;
+
+  /// No description provided for @settings_speciesId_sightingStraightAway.
+  ///
+  /// In en, this message translates to:
+  /// **'Straight away'**
+  String get settings_speciesId_sightingStraightAway;
 
   /// Heading over the naming levels: how sure marine life identification must be before it names a fish. Each level's name completes the sentence.
   ///
@@ -88397,6 +88457,263 @@ abstract class AppLocalizations {
   /// **'Remove {name}'**
   String media_species_removeTag(String name);
 
+  /// No description provided for @media_species_unconfirmedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}, tagged by the app, not yet confirmed'**
+  String media_species_unconfirmedLabel(String name);
+
+  /// No description provided for @media_species_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get media_species_confirm;
+
+  /// No description provided for @speciesReview_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Species to review'**
+  String get speciesReview_title;
+
+  /// No description provided for @speciesReview_tagged.
+  ///
+  /// In en, this message translates to:
+  /// **'Tagged by the app, not yet confirmed'**
+  String get speciesReview_tagged;
+
+  /// No description provided for @speciesReview_suggested.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested'**
+  String get speciesReview_suggested;
+
+  /// No description provided for @speciesReview_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get speciesReview_confirm;
+
+  /// No description provided for @speciesReview_remove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get speciesReview_remove;
+
+  /// No description provided for @speciesReview_confirmAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm all'**
+  String get speciesReview_confirmAll;
+
+  /// No description provided for @speciesReview_add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get speciesReview_add;
+
+  /// No description provided for @speciesReview_dismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss {name}'**
+  String speciesReview_dismiss(String name);
+
+  /// No description provided for @speciesReview_onPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{on 1 photo} other{on {count} photos}}'**
+  String speciesReview_onPhotos(int count);
+
+  /// No description provided for @speciesReview_onVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{on 1 video} other{on {count} videos}}'**
+  String speciesReview_onVideos(int count);
+
+  /// No description provided for @speciesReview_onPhotosAndVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'on {count} photos and videos'**
+  String speciesReview_onPhotosAndVideos(int count);
+
+  /// No description provided for @speciesReview_mixed.
+  ///
+  /// In en, this message translates to:
+  /// **'({tagged} tagged, {suggested} suggested)'**
+  String speciesReview_mixed(int tagged, int suggested);
+
+  /// No description provided for @speciesReview_itemTagged.
+  ///
+  /// In en, this message translates to:
+  /// **'Tagged by the app'**
+  String get speciesReview_itemTagged;
+
+  /// No description provided for @speciesReview_itemSuggested.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested'**
+  String get speciesReview_itemSuggested;
+
+  /// No description provided for @speciesReview_confirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed'**
+  String get speciesReview_confirmed;
+
+  /// No description provided for @speciesReview_removed.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed'**
+  String get speciesReview_removed;
+
+  /// No description provided for @speciesReview_added.
+  ///
+  /// In en, this message translates to:
+  /// **'Added'**
+  String get speciesReview_added;
+
+  /// No description provided for @speciesReview_dismissed.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismissed'**
+  String get speciesReview_dismissed;
+
+  /// No description provided for @speciesReview_undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get speciesReview_undo;
+
+  /// No description provided for @speciesReview_diveNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive {number}'**
+  String speciesReview_diveNumber(int number);
+
+  /// No description provided for @speciesReview_sitePhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Site photos'**
+  String get speciesReview_sitePhotos;
+
+  /// No description provided for @speciesReview_otherPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Other photos'**
+  String get speciesReview_otherPhotos;
+
+  /// No description provided for @speciesReview_nothing.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to review'**
+  String get speciesReview_nothing;
+
+  /// No description provided for @speciesReview_find.
+  ///
+  /// In en, this message translates to:
+  /// **'Find species in photos'**
+  String get speciesReview_find;
+
+  /// No description provided for @speciesReview_finding.
+  ///
+  /// In en, this message translates to:
+  /// **'Finding species: {done} of {total}'**
+  String speciesReview_finding(int done, int total);
+
+  /// No description provided for @speciesReview_waiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for another dive\'s search'**
+  String get speciesReview_waiting;
+
+  /// No description provided for @speciesReview_pausedHot.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused: device too warm'**
+  String get speciesReview_pausedHot;
+
+  /// No description provided for @speciesReview_resume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get speciesReview_resume;
+
+  /// No description provided for @speciesReview_allChecked.
+  ///
+  /// In en, this message translates to:
+  /// **'All photos checked'**
+  String get speciesReview_allChecked;
+
+  /// No description provided for @speciesReview_count.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 species to review} other{{count} species to review}}'**
+  String speciesReview_count(int count);
+
+  /// No description provided for @speciesReview_downloadBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 photo or video isn\'t on this device. Finding species will download it.} other{{count} photos and videos aren\'t on this device. Finding species will download them.}}'**
+  String speciesReview_downloadBody(int count);
+
+  /// No description provided for @speciesReview_downloadAndFind.
+  ///
+  /// In en, this message translates to:
+  /// **'Download and find'**
+  String get speciesReview_downloadAndFind;
+
+  /// No description provided for @speciesReview_photos.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 photo} other{{count} photos}}'**
+  String speciesReview_photos(int count);
+
+  /// No description provided for @speciesReview_videos.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 video} other{{count} videos}}'**
+  String speciesReview_videos(int count);
+
+  /// No description provided for @speciesReview_speciesTagged.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 species} other{{count} species}}'**
+  String speciesReview_speciesTagged(int count);
+
+  /// No description provided for @speciesReview_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked {photos} and {videos}. Tagged {species}; {toReview} to review.'**
+  String speciesReview_summary(
+    String photos,
+    String videos,
+    String species,
+    int toReview,
+  );
+
+  /// No description provided for @speciesReview_decided.
+  ///
+  /// In en, this message translates to:
+  /// **'Decided'**
+  String get speciesReview_decided;
+
+  /// No description provided for @speciesReview_saveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save. Try again.'**
+  String get speciesReview_saveFailed;
+
+  /// No description provided for @speciesReview_summaryUnreadable.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 could not be opened.} other{{count} could not be opened.}}'**
+  String speciesReview_summaryUnreadable(int count);
+
+  /// No description provided for @media_species_confirmTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm {name}'**
+  String media_species_confirmTag(String name);
+
   /// No description provided for @media_people_me.
   ///
   /// In en, this message translates to:
@@ -99532,6 +99849,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Repaired media links'**
   String get changeLog_label_mediaRepair;
+
+  /// No description provided for @changeLog_label_marineLifeId.
+  ///
+  /// In en, this message translates to:
+  /// **'Marine life identification'**
+  String get changeLog_label_marineLifeId;
+
+  /// No description provided for @changeLog_label_speciesReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Species review'**
+  String get changeLog_label_speciesReview;
 
   /// No description provided for @changeLog_label_gearFileConversion.
   ///

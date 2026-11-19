@@ -637,6 +637,9 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
   },
   'media_species': {
     'bbox_x': 'Reserved for future spatial annotation (nullable for now)',
+    'created_sighting': '1 when the app\'s tag created its dive\'s sighting (sightings logged straight away), so rejecting the tag may remove it too',
+    'created_species': '1 when the app created the tag\'s species for it (a candidate the catalogue lacks), so rejecting the tag may remove it too',
+    'unconfirmed': '1 while the app applied the tag and the diver has not confirmed it',
   },
   'media_stores': {
     'display_hint': 'e.g. \'dive-media @ minio.host\'',

@@ -195,14 +195,32 @@ class MediaSpecies extends Table {
   TextColumn get notes => text().nullable()();
   IntColumn get createdAt => integer()();
 
-  /// Hybrid Logical Clock, added in v195 (issue #1638). The row is
-  /// write-once, so the clock is not here to resolve conflicts: it is what
-  /// makes the tag visible to the incremental export, which ships rows whose
-  /// `hlc` is above the peer watermark. Before v195 this table rode the
-  /// parent `media.hlc`, and since tagging a photo never edits the photo,
-  /// a tag reached peers only on a full base publish. Nullable: rows written
+  /// Hybrid Logical Clock, added in v195 (issue #1638). It makes the tag
+  /// visible to the incremental export, which ships rows whose `hlc` is
+  /// above the peer watermark. Before v195 this table rode the parent
+  /// `media.hlc`, and since tagging a photo never edits the photo, a tag
+  /// reached peers only on a full base publish. Nullable: rows written
   /// before v195 are stamped by `SyncRepository.backfillMissingHlc`.
+  ///
+  /// The row was write-once until v378: confirming a tag the app applied
+  /// now updates it, and the restamped clock is what lets that confirm win
+  /// over an older copy on a peer.
   TextColumn get hlc => text().nullable()();
+
+  /// v378 (issue #4727): 1 while the app applied the tag and the diver has
+  /// not confirmed it. Null is the diver's own tag, which every tag from
+  /// before v378 is.
+  IntColumn get unconfirmed => integer().nullable()();
+
+  /// v378: 1 when the app's tag created its dive's sighting (sightings
+  /// logged straight away), so rejecting the tag may remove it too. Cleared
+  /// on confirm.
+  IntColumn get createdSighting => integer().nullable()();
+
+  /// v378: 1 when the app created the tag's species for it (a candidate the
+  /// catalogue lacks), so rejecting the tag may remove it too. Cleared on
+  /// confirm.
+  IntColumn get createdSpecies => integer().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

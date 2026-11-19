@@ -275,6 +275,20 @@ final Map<String, ConflictField> mediaLibraryOverrides = {
     (l) => l.settings_conflict_field_accountIdentifier,
     FieldKind.opaque,
   ),
+  // The marks on a species tag the app applied (issue #4727): 1, or null
+  // for the diver's own tag.
+  'mediaSpecies.createdSighting': ConflictField(
+    (l) => l.settings_conflict_field_mediaSpecies_createdSighting,
+    FieldKind.boolean,
+  ),
+  'mediaSpecies.createdSpecies': ConflictField(
+    (l) => l.settings_conflict_field_mediaSpecies_createdSpecies,
+    FieldKind.boolean,
+  ),
+  'mediaSpecies.unconfirmed': ConflictField(
+    (l) => l.settings_conflict_field_mediaSpecies_unconfirmed,
+    FieldKind.boolean,
+  ),
   'settings.key': ConflictField(
     (l) => l.settings_conflict_field_settings_key,
     FieldKind.shortText,

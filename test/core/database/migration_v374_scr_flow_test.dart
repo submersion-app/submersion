@@ -39,7 +39,9 @@ void main() {
   });
 
   test('the floor does not move', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(374));
+    // A later rung (v378, the marks on app-applied species tags) raised the
+    // floor; v374 itself did not set it.
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(374));
   });
 
   test('upgrading adds empty plan columns', () async {

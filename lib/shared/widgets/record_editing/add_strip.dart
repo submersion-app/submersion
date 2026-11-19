@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip_layout.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
+import 'package:submersion/shared/widgets/dashed_outline_painter.dart';
 
 /// One card an unlocked page is leaving out, offered in the [AddStrip].
 @immutable
@@ -122,7 +123,7 @@ class _AddChip extends StatelessWidget {
       excludeSemantics: true,
       onTap: () => onAdd(entry.cardId),
       child: CustomPaint(
-        foregroundPainter: _DashedOutlinePainter(
+        foregroundPainter: DashedOutlinePainter(
           color: scheme.outline,
           radius: _radius,
         ),
@@ -130,39 +131,4 @@ class _AddChip extends StatelessWidget {
       ),
     );
   }
-}
-
-/// A dashed rounded rectangle, marking a chip for a card the diver hid.
-class _DashedOutlinePainter extends CustomPainter {
-  const _DashedOutlinePainter({required this.color, required this.radius});
-
-  static const double _dash = 4;
-  static const double _gap = 3;
-
-  final Color color;
-  final double radius;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
-    final outline = Path()
-      ..addRRect(
-        RRect.fromRectAndRadius(
-          (Offset.zero & size).deflate(0.5),
-          Radius.circular(radius),
-        ),
-      );
-    for (final metric in outline.computeMetrics()) {
-      for (var at = 0.0; at < metric.length; at += _dash + _gap) {
-        canvas.drawPath(metric.extractPath(at, at + _dash), paint);
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(_DashedOutlinePainter oldDelegate) =>
-      color != oldDelegate.color || radius != oldDelegate.radius;
 }

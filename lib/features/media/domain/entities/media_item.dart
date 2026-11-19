@@ -653,6 +653,21 @@ class MediaSpeciesTag extends Equatable {
   final String? notes;
   final DateTime createdAt;
 
+  /// The app applied this tag and the diver has not confirmed it yet
+  /// (issue #4727). False for the diver's own tags.
+  final bool unconfirmed;
+
+  /// The app's tag created its dive's sighting; cleared on confirm.
+  final bool createdSighting;
+
+  /// The app created the tag's species for it; cleared on confirm.
+  final bool createdSpecies;
+
+  /// The row's sync clock. The species guard compares it with the
+  /// species' own clock, to tell whether the diver has edited the species
+  /// since the app created both.
+  final String? hlc;
+
   const MediaSpeciesTag({
     required this.id,
     required this.mediaId,
@@ -664,7 +679,39 @@ class MediaSpeciesTag extends Equatable {
     this.bboxHeight,
     this.notes,
     required this.createdAt,
+    this.unconfirmed = false,
+    this.createdSighting = false,
+    this.createdSpecies = false,
+    this.hlc,
   });
+
+  MediaSpeciesTag copyWith({
+    String? id,
+    String? mediaId,
+    String? speciesId,
+    String? Function()? sightingId,
+    String? Function()? notes,
+    DateTime? createdAt,
+    bool? unconfirmed,
+    bool? createdSighting,
+    bool? createdSpecies,
+    String? Function()? hlc,
+  }) => MediaSpeciesTag(
+    id: id ?? this.id,
+    mediaId: mediaId ?? this.mediaId,
+    speciesId: speciesId ?? this.speciesId,
+    sightingId: sightingId == null ? this.sightingId : sightingId(),
+    bboxX: bboxX,
+    bboxY: bboxY,
+    bboxWidth: bboxWidth,
+    bboxHeight: bboxHeight,
+    notes: notes == null ? this.notes : notes(),
+    createdAt: createdAt ?? this.createdAt,
+    unconfirmed: unconfirmed ?? this.unconfirmed,
+    createdSighting: createdSighting ?? this.createdSighting,
+    createdSpecies: createdSpecies ?? this.createdSpecies,
+    hlc: hlc == null ? this.hlc : hlc(),
+  );
 
   @override
   List<Object?> get props => [
@@ -678,6 +725,10 @@ class MediaSpeciesTag extends Equatable {
     bboxHeight,
     notes,
     createdAt,
+    unconfirmed,
+    createdSighting,
+    createdSpecies,
+    hlc,
   ];
 }
 

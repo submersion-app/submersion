@@ -54,6 +54,25 @@ void main() {
     },
   );
 
+  test('many media runs and rows read in one snapshot, track paths left out '
+      'when not wanted (issue #4727)', () async {
+    await repo.storeRun(run(), insert: [identification('a')], deleteIds: []);
+    await repo.storeRun(videoRun(), insert: [track('t1')], deleteIds: []);
+
+    final (runs, rows) = await repo.forMediaIdsWithRuns([
+      'm1',
+      'v1',
+      'other',
+    ], withPaths: false);
+    expect(runs.keys.toSet(), {'m1', 'v1'});
+    expect(rows['m1']!.map((i) => i.id), ['a']);
+    expect(rows['v1']!.single.path, isEmpty);
+    expect(rows['v1']!.single.isPending, isFalse);
+
+    final (_, withPaths) = await repo.forMediaIdsWithRuns(['v1']);
+    expect(withPaths['v1']!.single.path, isNotEmpty);
+  });
+
   test('a fixed logbook and a way to find one are refused together, '
       'in every build', () {
     expect(
@@ -86,6 +105,34 @@ void main() {
       final (stored, rows) = await switching.forMediaWithRun('m1');
       expect(stored?.packVersion, '2026.11.1');
       expect(rows.map((i) => i.id), ['a']);
+    });
+
+    test('a batched read stays on one logbook across its chunks', () async {
+      // 500 to a chunk: m1 is read in the second.
+      final ids = [for (var i = 0; i < 500; i++) 'x$i', 'm1'];
+      // The suggestions read joins the media row.
+      await addMedia('m1');
+      var lookups = 0;
+      MediaIdentificationRepository fresh() => MediaIdentificationRepository(
+        currentDatabase: () => lookups++ == 0 ? db : other,
+      );
+
+      expect((await fresh().forMediaIds(ids))['m1']!.map((i) => i.id), ['a']);
+      lookups = 0;
+      expect((await fresh().runsFor(ids)).keys, ['m1']);
+      lookups = 0;
+      expect(
+        await fresh().mediaIdsWithSuggestions(anyUndecided: true, among: ids),
+        ['m1'],
+      );
+    });
+
+    test('a snapshot of many media reads both from there', () async {
+      final (runs, rows) = await switching.forMediaIdsWithRuns([
+        'm1',
+      ], withPaths: false);
+      expect(runs['m1']?.packVersion, '2026.11.1');
+      expect(rows['m1']!.map((i) => i.id), ['a']);
     });
 
     test('a store after reading reads and writes there', () async {

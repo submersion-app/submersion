@@ -270,6 +270,8 @@ import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/router/web_unavailable_routes.dart';
 import 'package:submersion/shared/widgets/web_unavailable_page.dart';
 import 'package:submersion/features/species_id/presentation/pages/marine_life_identification_page.dart';
+import 'package:submersion/features/species_id/presentation/pages/species_review_page.dart';
+import 'package:submersion/features/species_id/domain/entities/species_review.dart';
 
 /// Root navigator key, so app-wide modals (e.g. the replaced-library adopt
 /// dialog surfaced from the app root) can be shown above the shell.
@@ -2293,6 +2295,21 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'new',
                 name: 'newSpecies',
                 builder: (context, state) => const SpeciesEditPage(),
+              ),
+              // Species to review (issue #4727): one dive with `?dive=`,
+              // else the whole log. Before `:speciesId`, which would take
+              // it for an id.
+              GoRoute(
+                path: 'review',
+                name: 'speciesReview',
+                builder: (context, state) {
+                  final dive = state.uri.queryParameters['dive'];
+                  return SpeciesReviewPage(
+                    scope: dive == null
+                        ? const LogReviewScope()
+                        : DiveReviewScope(dive),
+                  );
+                },
               ),
               GoRoute(
                 path: ':speciesId',

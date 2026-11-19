@@ -69,6 +69,8 @@ String changeLogStoredLabel(AppLocalizations l, String label) =>
       ChangeLogLabels.splitDive => l.changeLog_label_splitDive,
       ChangeLogLabels.gearTransfer => l.changeLog_label_gearTransfer,
       ChangeLogLabels.mediaRepair => l.changeLog_label_mediaRepair,
+      ChangeLogLabels.marineLifeId => l.changeLog_label_marineLifeId,
+      ChangeLogLabels.speciesReview => l.changeLog_label_speciesReview,
       ChangeLogLabels.gearFileConversion =>
         l.changeLog_label_gearFileConversion,
       ChangeLogLabels.galleryBackfill => l.changeLog_label_galleryBackfill,

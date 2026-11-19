@@ -48,6 +48,8 @@ abstract final class ChangeLogLabels {
   static const splitDive = 'split_dive';
   static const gearTransfer = 'gear_transfer';
   static const mediaRepair = 'media_repair';
+  static const marineLifeId = 'marine_life_id';
+  static const speciesReview = 'species_review';
   static const gearFileConversion = 'gear_file_conversion';
   static const galleryBackfill = 'gallery_backfill';
   static const mediaCleanup = 'media_cleanup';

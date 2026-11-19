@@ -288,5 +288,12 @@ extension RungsFromV340 on AppDatabase {
     // to scanned_ms.
     if (from < 377) await _assertIdentificationScannedRanges();
     if (from < 377) await reportProgress();
+
+    // v378: the marks on a species tag the app applied (issue #4727):
+    // unconfirmed, and whether it created its sighting or species. Columns
+    // only, no backfill: null is the diver's own tag. The floor rises to
+    // 378 (see minimumCompatibleSchemaVersion).
+    if (from < 378) await _assertMediaSpeciesAppTagColumns();
+    if (from < 378) await reportProgress();
   }
 }

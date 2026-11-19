@@ -63,6 +63,8 @@ List<dynamic> rootProviderOverrides({
     identifyFishOnOpenProvider.overrideWith(
       (ref) => IdentifyFishOnOpenNotifier(prefs),
     ),
+    autoApplyProvider.overrideWith((ref) => AutoApplyNotifier(prefs)),
+    sightingTimingProvider.overrideWith((ref) => SightingTimingNotifier(prefs)),
     namingLevelNotifierProvider.overrideWith(
       (ref) => NamingLevelNotifier(prefs),
     ),

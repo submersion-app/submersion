@@ -185,6 +185,43 @@ void main() {
       expect((await identifications.runFor('v1'))!.scanComplete, isTrue);
     });
 
+    // A Find species run scans its videos to the end (issue #4727).
+    Future<RunItemOutcome> fromRun(MediaItem item) => service.requestFromRun(
+      item,
+      resolveImage: (_) async => null,
+      resolveVideo: (item) async =>
+          <T>(Future<T> Function(String path) read) =>
+              read('/videos/${item.id}.mp4'),
+    );
+
+    test(
+      'the viewer leaving a video does not stop a run\'s scan of it',
+      () async {
+        engine.videoGate = Completer<void>();
+        final run = fromRun(video());
+        await until(() => engine.detectCalls.length == 1);
+        expect(service.cancelPending('v1'), isFalse);
+        engine.videoGate!.complete();
+        engine.videoGate = null;
+        expect(await run, RunItemOutcome.done);
+        expect((await identifications.runFor('v1'))!.scanComplete, isTrue);
+      },
+    );
+
+    test('a run asking for a video the viewer is scanning still scans it to '
+        'the end when the viewer leaves', () async {
+      engine.videoGate = Completer<void>();
+      final viewing = service.request(video());
+      await until(() => engine.detectCalls.length == 1);
+      final run = fromRun(video());
+      expect(service.cancelPending('v1'), isTrue);
+      engine.videoGate!.complete();
+      engine.videoGate = null;
+      await viewing;
+      expect(await run, RunItemOutcome.done);
+      expect((await identifications.runFor('v1'))!.scanComplete, isTrue);
+    });
+
     test(
       'coming back before the stopped chunk ends keeps the scan going',
       () async {

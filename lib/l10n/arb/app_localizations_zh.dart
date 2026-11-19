@@ -25474,6 +25474,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_measuredAt => '测量时间';
 
   @override
+  String get settings_conflict_field_mediaSpecies_unconfirmed => '标记尚未确认';
+
+  @override
+  String get settings_conflict_field_mediaSpecies_createdSighting => '由应用记录的目击';
+
+  @override
+  String get settings_conflict_field_mediaSpecies_createdSpecies => '由应用添加的物种';
+
+  @override
   String get settings_conflict_field_medicalClearanceExpiryDate => '体检合格证明到期';
 
   @override
@@ -27696,6 +27705,29 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_speciesId_toggle => '打开照片或视频时识别鱼类';
+
+  @override
+  String get settings_speciesId_autoApply => '自动标记有把握的匹配';
+
+  @override
+  String get settings_speciesId_autoApplyDescription =>
+      '应用确定匹配时会添加物种标签。你可以在待审核物种中逐一确认。';
+
+  @override
+  String get settings_speciesId_autoApplyNever =>
+      '已安装的模型目前对任何物种都还没有足够把握自行标记。建议仍会显示，供你添加。';
+
+  @override
+  String get settings_speciesId_autoApplyPlaceOnly => '仅适用于带位置的照片和视频。';
+
+  @override
+  String get settings_speciesId_sightingTiming => '为这些标签记录目击';
+
+  @override
+  String get settings_speciesId_sightingOnConfirm => '在我确认标签时';
+
+  @override
+  String get settings_speciesId_sightingStraightAway => '立即';
 
   @override
   String get settings_speciesId_levelTitle => '应用需要多确定才为鱼命名';
@@ -52841,6 +52873,217 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String media_species_unconfirmedLabel(String name) {
+    return '$name，由应用标记，尚未确认';
+  }
+
+  @override
+  String get media_species_confirm => '确认';
+
+  @override
+  String get speciesReview_title => '待审核物种';
+
+  @override
+  String get speciesReview_tagged => '由应用标记，尚未确认';
+
+  @override
+  String get speciesReview_suggested => '建议';
+
+  @override
+  String get speciesReview_confirm => '确认';
+
+  @override
+  String get speciesReview_remove => '移除';
+
+  @override
+  String get speciesReview_confirmAll => '全部确认';
+
+  @override
+  String get speciesReview_add => '添加';
+
+  @override
+  String speciesReview_dismiss(String name) {
+    return '忽略$name';
+  }
+
+  @override
+  String speciesReview_onPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '在 $count 张照片中',
+      one: '在 1 张照片中',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_onVideos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '在 $count 个视频中',
+      one: '在 1 个视频中',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_onPhotosAndVideos(int count) {
+    return '在 $count 张照片和视频中';
+  }
+
+  @override
+  String speciesReview_mixed(int tagged, int suggested) {
+    return '（$tagged 个已标记，$suggested 个建议）';
+  }
+
+  @override
+  String get speciesReview_itemTagged => '由应用标记';
+
+  @override
+  String get speciesReview_itemSuggested => '建议';
+
+  @override
+  String get speciesReview_confirmed => '已确认';
+
+  @override
+  String get speciesReview_removed => '已移除';
+
+  @override
+  String get speciesReview_added => '已添加';
+
+  @override
+  String get speciesReview_dismissed => '已忽略';
+
+  @override
+  String get speciesReview_undo => '撤销';
+
+  @override
+  String speciesReview_diveNumber(int number) {
+    return '第 $number 次潜水';
+  }
+
+  @override
+  String get speciesReview_sitePhotos => '潜点照片';
+
+  @override
+  String get speciesReview_otherPhotos => '其他照片';
+
+  @override
+  String get speciesReview_nothing => '没有需要审核的内容';
+
+  @override
+  String get speciesReview_find => '在照片中查找物种';
+
+  @override
+  String speciesReview_finding(int done, int total) {
+    return '正在查找物种：$done/$total';
+  }
+
+  @override
+  String get speciesReview_waiting => '正在等待另一次潜水的查找';
+
+  @override
+  String get speciesReview_pausedHot => '已暂停：设备过热';
+
+  @override
+  String get speciesReview_resume => '继续';
+
+  @override
+  String get speciesReview_allChecked => '所有照片均已检查';
+
+  @override
+  String speciesReview_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个物种待审核',
+      one: '1 个物种待审核',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_downloadBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 张照片和视频不在此设备上。查找物种时会下载它们。',
+      one: '1 张照片或视频不在此设备上。查找物种时会下载它。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesReview_downloadAndFind => '下载并查找';
+
+  @override
+  String speciesReview_photos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 张照片',
+      one: '1 张照片',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_videos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个视频',
+      one: '1 个视频',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_speciesTagged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个物种',
+      one: '1 个物种',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_summary(
+    String photos,
+    String videos,
+    String species,
+    int toReview,
+  ) {
+    return '已检查 $photos和 $videos。已标记 $species；$toReview 个待审核。';
+  }
+
+  @override
+  String get speciesReview_decided => '已决定';
+
+  @override
+  String get speciesReview_saveFailed => '无法保存。请重试。';
+
+  @override
+  String speciesReview_summaryUnreadable(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个无法打开。',
+      one: '1 个无法打开。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_species_confirmTag(String name) {
+    return '确认$name';
+  }
+
+  @override
   String get media_people_me => '我';
 
   @override
@@ -59556,6 +59799,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get changeLog_label_mediaRepair => '已修复媒体链接';
+
+  @override
+  String get changeLog_label_marineLifeId => '海洋生物识别';
+
+  @override
+  String get changeLog_label_speciesReview => '物种审核';
 
   @override
   String get changeLog_label_gearFileConversion => '已将装备文件移至文档';

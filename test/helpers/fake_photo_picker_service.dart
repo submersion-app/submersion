@@ -188,6 +188,9 @@ class FakePhotoPickerService
   @override
   Future<bool> exists(String assetId) async => _visible(assetId) != null;
 
+  @override
+  Future<bool> originIsLocal(String assetId) async => _visible(assetId) != null;
+
   // CloudIdentifierSource
 
   /// How many batch lookups ran: resolution must not ask for a row that
