@@ -27,6 +27,15 @@ def record(top, correct):
     }
 
 
+def split(with_top, without_top, correct):
+    """One crop whose two namings score differently: limiting it to a place
+    moves its top score, as it does for a real crop."""
+    return {
+        "with": bars.Scored(open_score=0.6, top_score=with_top, correct=correct, shorter_side=100, limited=True),
+        "without": bars.Scored(open_score=0.6, top_score=without_top, correct=correct, shorter_side=100, limited=False),
+    }
+
+
 def measure(fish, junk=()):
     """Levels measured with the same crops as the tune and held-out halves."""
     return levels.measure(SURER, fish, list(junk), fish, list(junk), min_side=64)
@@ -76,6 +85,44 @@ class MeasureTests(unittest.TestCase):
         held = levels.rates(SURER, [record(0.9, True)], junk, min_side=64)
         self.assertEqual((held["junk named"]["hits"], held["junk named"]["n"]), (2, 4))
         self.assertEqual(held["coverage"]["value"], 1.0)
+
+    def test_rates_measure_both_sides(self):
+        level = bars.Bars(min_open=0.5, suggest=0.5, suggest_no_location=0.7, confident=NEVER, confident_no_location=NEVER)
+        held = [record(0.6, True)] * 8 + [record(0.6, False)] * 2 + [record(0.8, True)] * 3
+        out = levels.rates(level, held, [], min_side=64)
+        self.assertAlmostEqual(out["precision"]["value"], 11 / 13)
+        self.assertEqual(out["precision without location"]["value"], 1.0)
+        self.assertAlmostEqual(out["coverage without location"]["value"], 3 / 13)
+
+    def test_shown_precision_takes_the_lower_side_that_names_something(self):
+        def rate(value, n):
+            return {"value": value, "n": n}
+
+        self.assertEqual(levels.shown_precision(rate(0.8, 10), rate(0.7, 5)), 0.7)
+        self.assertEqual(levels.shown_precision(rate(0.8, 10), rate(None, 0)), 0.8)
+        self.assertEqual(levels.shown_precision(rate(0.0, 4), rate(0.9, 9)), 0.0)
+        self.assertIsNone(levels.shown_precision(rate(None, 0), rate(None, 0)))
+
+    def test_surers_figure_is_its_lower_side(self):
+        # 90 right both ways; 20 wrong crops the location limit keeps below
+        # Surer's bar are named without a location.
+        fish = [record(0.9, True)] * 90 + [split(0.5, 0.85, False)] * 20
+        _, surer_precision = measure(fish)
+        self.assertAlmostEqual(surer_precision, 90 / 110)
+
+    def test_a_level_less_often_right_without_a_location_shows_that(self):
+        fish = (
+            [record(0.9, True)] * 100
+            + [record(0.55, True)] * 70
+            + [record(0.55, False)] * 30
+            + [split(0.3, 0.56, False)] * 5
+        )
+        found, _ = measure(fish)
+        self.assertEqual([level["id"] for level in found], ["balanced"])
+        held = found[0]["held-out"]
+        self.assertEqual(held["precision"]["value"], 0.85)
+        self.assertAlmostEqual(held["precision without location"]["value"], 170 / 205)
+        self.assertEqual(found[0]["precision"], 0.829)
 
 
 if __name__ == "__main__":
