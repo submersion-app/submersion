@@ -276,8 +276,15 @@ void main() {
       'in view', (tester) async {
     await pumpSitePage(tester, size: const Size(600, 300));
     // The page scrolls: one that fits was always pushed down.
+    // The page's own scroll view, not a sideways one such as the strip's.
     final page = tester
-        .state<ScrollableState>(find.byType(Scrollable).first)
+        .state<ScrollableState>(
+          find
+              .byWidgetPredicate(
+                (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
+              )
+              .first,
+        )
         .position;
     expect(page.maxScrollExtent, greaterThan(0));
     await unlock(tester);
