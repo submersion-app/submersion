@@ -2615,9 +2615,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     // dive that carries them.
     rows.addAll(
       aveloReadoutRows(
-        point: spot.spotIndex < widget.profile.length
-            ? widget.profile[spot.spotIndex]
-            : null,
+        // The readout's own point: on the surface lead-in it is the
+        // synthetic surface sample, which carries no Avelo values.
+        point: point,
         shown: (metric) => _aveloShown(metric) && _hasDataForMetric(metric),
         l10n: l10n,
         units: units,
@@ -7428,6 +7428,24 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// Null samples are where the computer (or the calculation) blanked the
   /// value, so the line breaks there instead of dropping to zero. No surface
   /// lead-in: GTR is blank on the surface by definition.
+  /// [metric]'s Avelo curve, read once per profile: the decimation cache is
+  /// keyed by the curve's identity and kept until the profile or viewport
+  /// changes, so a fresh list on every rebuild would never hit it and would
+  /// pile up in it.
+  List<double?> _aveloCurveOf(ProfileRightAxisMetric metric) {
+    if (!identical(_aveloCurvesProfile, widget.profile)) {
+      _aveloCurves.clear();
+      _aveloCurvesProfile = widget.profile;
+    }
+    return _aveloCurves.putIfAbsent(
+      metric,
+      () => aveloCurve(metric, widget.profile),
+    );
+  }
+
+  final Map<ProfileRightAxisMetric, List<double?>> _aveloCurves = {};
+  List<DiveProfilePoint>? _aveloCurvesProfile;
+
   /// Whether the legend has [metric], one of the Avelo lines, switched on.
   bool _aveloShown(ProfileRightAxisMetric metric) => switch (metric) {
     ProfileRightAxisMetric.aveloBuoyancy => _showAveloBuoyancy,
@@ -7441,7 +7459,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     ProfileRightAxisMetric metric,
     MetricBand band,
   ) {
-    final curve = aveloCurve(metric, widget.profile);
+    final curve = _aveloCurveOf(metric);
     final range = aveloCurveRange(metric, curve);
     if (range == null) return null;
     return buildAveloLine(

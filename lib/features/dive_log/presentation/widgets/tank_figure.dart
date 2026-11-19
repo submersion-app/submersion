@@ -169,11 +169,14 @@ class TankFigure extends StatelessWidget {
     // (start) or bottom (end) of the cylinder.
     final fill = levels.hasFill;
     final startY = fill && markStart ? y(levels.start!) : bodyTop;
-    final endY = fill && markEnd ? y(levels.end!) : bodyBottom;
+    // The End mark points at the end of the dive's level only (a Hydrotank
+    // shown at the cursor has the cursor's moment there instead).
+    final endMark = markEnd && levels.endMarked;
+    final endY = fill && endMark ? y(levels.end!) : bodyBottom;
     // A label pointing at a level gets a leader when it was moved off it;
     // one without a level (a missing value, an outline) points at nothing.
     final startMarked = fill && markStart;
-    final endMarked = fill && markEnd;
+    final endMarked = fill && endMark;
     final hasBracket =
         usedLabel != null && startMarked && endMarked && endY - startY > 1;
     final labels = <_Label>[

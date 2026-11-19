@@ -34,17 +34,26 @@ HydrotankContents? hydrotankContents({
 /// as the Avelo summary reads it); at [seconds], the last value logged at or
 /// before that time. Null when there is none.
 int? gasRemainingAt(List<DiveProfilePoint> profile, int? seconds) {
-  int? found;
-  for (final p in profile) {
-    final value = p.aveloGasRemaining;
-    if (value == null) continue;
-    if (seconds == null) {
-      if (p.depth > 0) found = value;
-    } else if (p.timestamp <= seconds) {
-      found = value;
-    } else {
-      break;
+  // The profile is time-ordered (the series codec enforces it), so the
+  // cursor's sample is found by binary search: this runs on every cursor
+  // frame.
+  var end = profile.length;
+  if (seconds != null) {
+    var low = 0;
+    while (low < end) {
+      final mid = (low + end) >> 1;
+      if (profile[mid].timestamp <= seconds) {
+        low = mid + 1;
+      } else {
+        end = mid;
+      }
     }
   }
-  return found;
+  for (var i = end - 1; i >= 0; i--) {
+    final p = profile[i];
+    if (p.aveloGasRemaining == null) continue;
+    if (seconds == null && p.depth <= 0) continue;
+    return p.aveloGasRemaining;
+  }
+  return null;
 }

@@ -113,4 +113,17 @@ void main() {
       isNull,
     );
   });
+
+  test('a pressure between samples counts when the sample before it is '
+      'underwater', () {
+    // Readings logged off the depth samples' times: 15 s follows the
+    // underwater sample at 10 s, 45 s follows the surface sample at 40 s.
+    const offset = [
+      TankPressurePoint(tankId: 'h', timestamp: 5, pressure: 260.0),
+      TankPressurePoint(tankId: 'h', timestamp: 15, pressure: 245.0),
+      TankPressurePoint(tankId: 'h', timestamp: 25, pressure: 230.0),
+      TankPressurePoint(tankId: 'h', timestamp: 45, pressure: 250.0),
+    ];
+    expect(aveloSummaryOf(profile, offset)!.maxPressureBar, 245.0);
+  });
 }

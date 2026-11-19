@@ -38,8 +38,9 @@ class AveloSummary {
 /// Only samples below the surface count: the computer logs a constant
 /// buoyancy and a full tank before the dive, and Shearwater Cloud's own
 /// statistics leave those out (checked on eight real dives, where this rule
-/// reproduces every one of them). A pressure counts when it was logged at
-/// the time of an underwater sample.
+/// reproduces every one of them). A pressure counts when the profile sample
+/// at or before its time is underwater, so readings logged between the
+/// depth samples count too.
 ///
 /// Null when no underwater sample carries any of the three Avelo values: a
 /// dive outside Avelo mode, or one that never went below the surface.
@@ -56,10 +57,9 @@ AveloSummary? aveloSummaryOf(
   final gas = [for (final p in underwater) ?p.aveloGasRemaining];
   if (buoyancy.isEmpty && rmv.isEmpty && gas.isEmpty) return null;
 
-  final underwaterTimes = {for (final p in underwater) p.timestamp};
   final pressures = [
     for (final p in hydrotankPressures ?? const <TankPressurePoint>[])
-      if (underwaterTimes.contains(p.timestamp)) p.pressure,
+      if (_underwaterAt(profile, p.timestamp)) p.pressure,
   ];
 
   double? minOf(List<double> v) =>
@@ -79,4 +79,20 @@ AveloSummary? aveloSummaryOf(
     gasRemainingEnd: gas.isEmpty ? null : gas.last,
     maxPressureBar: maxOf(pressures),
   );
+}
+
+/// Whether the last sample of the time-ordered [profile] at or before
+/// [seconds] is below the surface.
+bool _underwaterAt(List<DiveProfilePoint> profile, int seconds) {
+  var low = 0;
+  var high = profile.length;
+  while (low < high) {
+    final mid = (low + high) >> 1;
+    if (profile[mid].timestamp <= seconds) {
+      low = mid + 1;
+    } else {
+      high = mid;
+    }
+  }
+  return low > 0 && profile[low - 1].depth > 0;
 }

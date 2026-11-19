@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'package:submersion/core/utils/bidi_isolate.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/services/avelo_summary.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_buoyancy_line.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// What an Avelo dive's computer recorded (issue #4664), shown in the
@@ -20,13 +20,10 @@ class AveloSummaryBlock extends StatelessWidget {
   final AveloSummary summary;
   final UnitFormatter units;
 
-  /// A buoyancy weight with its sign: negative is heavy, positive light.
-  /// Isolated in right-to-left text so the sign stays beside its number.
+  /// A buoyancy weight with its sign, as the chart's buoyancy readout
+  /// writes it: negative is heavy, positive light.
   String _signedWeight(double kg, TextDirection direction) =>
-      isolateForDirection(
-        kg > 0 ? '+${units.formatWeight(kg)}' : units.formatWeight(kg),
-        direction,
-      );
+      formatSignedBuoyancy(kg, units, direction: direction);
 
   @override
   Widget build(BuildContext context) {

@@ -476,10 +476,7 @@ class CylindersCard extends ConsumerWidget {
                 )
               : null,
           markStart: pressures.$1 != null,
-          // In the water figure the gas-left level is the cursor's moment
-          // while the cursor is shown; the End mark is the end of the dive's,
-          // so it has no level to point at then.
-          markEnd: pressures.$2 != null && !(water != null && cursorShown),
+          markEnd: pressures.$2 != null,
           nowLabel: nowLabel(now),
           nowLabelReserve: nowLabel(cursorLine?.peak),
         );

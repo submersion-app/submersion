@@ -418,7 +418,7 @@ void main() {
 
       final figure = tester.widget<TankFigure>(find.byType(TankFigure));
       expect(find.text('Water ~5.2 L (est.)'), findsOneWidget);
-      expect(figure.markEnd, isFalse);
+      expect(figure.levels.endMarked, isFalse);
     });
 
     testWidgets(

@@ -39,4 +39,27 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets('a buoyancy that rounds to zero shows no sign', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        locale: Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: AveloSummaryBlock(
+          summary: AveloSummary(
+            minBuoyancyKg: -0.03,
+            maxBuoyancyKg: 0.02,
+            meanBuoyancyKg: 0.0,
+          ),
+          units: UnitFormatter(AppSettings()),
+        ),
+      ),
+    );
+
+    expect(
+      find.text('Avelo buoyancy 0.0 kg to 0.0 kg, average 0.0 kg'),
+      findsOneWidget,
+    );
+  });
 }

@@ -214,6 +214,22 @@ void main() {
       expect(levels.hasFill, isTrue);
     });
 
+    test('with the cursor shown the End mark has no level', () {
+      // Its gas level is the cursor's moment, not the end of the dive.
+      expect(
+        TankFillLevels.hydrotank(water: 0.3, gasLeft: 0.6, now: 0.6).endMarked,
+        isFalse,
+      );
+      expect(
+        TankFillLevels.hydrotank(water: 0.3, gasLeft: 0.6).endMarked,
+        isTrue,
+      );
+      expect(
+        TankFillLevels.resolve(start: 200, end: 60, now: 120).endMarked,
+        isTrue,
+      );
+    });
+
     test('the water level takes part in equality', () {
       expect(
         TankFillLevels.hydrotank(water: 0.3, gasLeft: 0.6),
