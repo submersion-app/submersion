@@ -124,14 +124,15 @@ Future<void> pumpSetPage(
   bool openUnlocked = false,
   Size size = const Size(600, 2400),
   VoidCallback? onSittingEnded,
+  List<Override> extraOverrides = const [],
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
   final overrides = await getBaseOverrides();
-  overrides.add(
-    validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
-  );
+  overrides
+    ..add(validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'))
+    ..addAll(extraOverrides);
   final router = GoRouter(
     initialLocation: '/equipment/sets/$setId',
     routes: [

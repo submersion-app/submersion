@@ -61,6 +61,44 @@ mixin _EquipmentSetDetailPageEditing
     if (result != null) await sets.afterSittingSaved(session.stored.id);
   }
 
+  /// Asks "Update past dives?" when the sitting changes the gear the set
+  /// applies (its members, counting the sets it includes) and logged dives
+  /// carry it or a set that includes it (issues #4283, #4525), before
+  /// anything is written, as the form does. Cancel leaves the sitting as it
+  /// is. The answer goes to [saveSitting] through the session: planned
+  /// dives follow the set always, logged ones when the diver says so.
+  @override
+  Future<bool> beforeSave() async {
+    final session = maybeEditController?.session;
+    if (session == null) return true;
+    session.remember(_alsoLoggedKey, false);
+    List<EquipmentSet> allSets;
+    try {
+      allSets = await ref.read(equipmentSetsProvider.future);
+    } catch (_) {
+      allSets = [session.stored];
+    }
+    if (!mounted) return false;
+    final planned = setHistoryRewrites(
+      before: session.stored,
+      after: session.working,
+      allSets: allSets,
+    );
+    if (planned.isEmpty) return true;
+    final asked = await askSetHistory(
+      context,
+      ref,
+      setId: session.stored.id,
+      alsoSetIds: [
+        for (final change in planned)
+          if (change.setId != session.stored.id) change.setId,
+      ],
+    );
+    if (asked == null || !mounted) return false;
+    session.remember(_alsoLoggedKey, asked == AssemblyHistoryChoice.alsoPast);
+    return true;
+  }
+
   @override
   Future<EquipmentSet?> rereadStored(
     ProviderContainer container,
