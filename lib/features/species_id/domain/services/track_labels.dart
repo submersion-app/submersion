@@ -10,6 +10,7 @@ import 'package:submersion/features/species_id/domain/entities/media_identificat
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
 import 'package:submersion/features/species_id/domain/entities/track_sample.dart';
 import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
+import 'package:submersion/features/species_id/domain/services/video_tracker.dart';
 
 enum TrackLabelKind {
   /// The app's confident name: an outlined pill, playing or paused.
@@ -113,8 +114,20 @@ IdentificationBox? boxAt(
 
 /// [boxAt] on [path] at a moment between whole milliseconds.
 IdentificationBox? _pathBoxAt(List<TrackSample> path, double ms, int maxGapMs) {
-  if (path.isEmpty || ms < path.first.ms || ms > path.last.ms) return null;
-  final low = _lastAtOrBefore(path, ms);
+  if (!_within(path, ms)) return null;
+  return _boxFrom(path, _lastAtOrBefore(path, ms), ms, maxGapMs);
+}
+
+bool _within(List<TrackSample> path, double ms) =>
+    path.isNotEmpty && ms >= path.first.ms && ms <= path.last.ms;
+
+/// The box at [ms] from [low], the last sample at or before it.
+IdentificationBox? _boxFrom(
+  List<TrackSample> path,
+  int low,
+  double ms,
+  int maxGapMs,
+) {
   final here = path[low];
   if (here.ms == ms || low + 1 >= path.length) return here.box;
   final next = path[low + 1];
@@ -130,7 +143,7 @@ IdentificationBox? _pathBoxAt(List<TrackSample> path, double ms, int maxGapMs) {
 }
 
 /// The index of the last sample at or before [ms], which is within [path],
-/// found by halving: smoothing runs it ten times for each fish in view on
+/// found by halving: smoothing runs it nine times for each fish in view on
 /// every frame while the video plays.
 int _lastAtOrBefore(List<TrackSample> path, double ms) {
   var low = 0;
@@ -147,17 +160,23 @@ int _lastAtOrBefore(List<TrackSample> path, double ms) {
 }
 
 /// How far either side of a moment a label looks to smooth out the
-/// detector's noise (issue #4759). The stored boxes wander off a fish's
-/// line by up to a fiftieth of the frame from one 250 ms sample to the
-/// next; a second's window steadies that without trailing far behind a
-/// fish that turns.
+/// detector's noise (issue #4759). From one 250 ms sample to the next, the
+/// stored boxes wander off a fish's line by a fiftieth of the frame at the
+/// 90th percentile, and by as much as a fifth; a second's window steadies
+/// that without trailing far behind a fish that turns.
 const int labelSmoothingMs = 500;
 
-/// The longest step between two samples a label rides over (issue #4759).
-/// The tracker keeps a fish through two missed samples, 750 ms at the
-/// scan's 250 ms beat, and a sample's time lands a millisecond or so off
-/// the beat; a label that went out there blinked.
-const int labelMaxGapMs = 800;
+/// The longest step between two samples a label rides over (issue #4759):
+/// every step the tracker bridges, so a label never blinks out where the
+/// fish is still followed. A sample's time is its frame's, which lands off
+/// the scan's beat: stored steps over two missed samples reach 764 ms.
+const int labelMaxGapMs =
+    (VideoTracker.defaultMaxGapSamples + 1) * videoSampleIntervalMs +
+    _frameSlackMs;
+
+/// How far a sample's frame time may land from the scan's beat, with room
+/// to spare over the 14 ms seen in real logs.
+const int _frameSlackMs = 50;
 
 /// Where a label for [track] goes at [ms]: [boxAt], averaged over
 /// [radiusMs] either side with the nearest moments counting most. Null
@@ -176,9 +195,10 @@ IdentificationBox? smoothedBoxAt(
 }) {
   if (!track.isTrack) return null;
   final path = track.path;
-  final centre = _pathBoxAt(path, ms.toDouble(), maxGapMs);
-  if (centre == null) return null;
+  if (!_within(path, ms.toDouble())) return null;
   final at = _lastAtOrBefore(path, ms.toDouble());
+  final centre = _boxFrom(path, at, ms.toDouble(), maxGapMs);
+  if (centre == null) return null;
   // The unbroken run of samples around [ms], as far as the window reaches.
   var first = at;
   while (first > 0 &&
@@ -210,9 +230,15 @@ IdentificationBox? smoothedBoxAt(
   add(centre, _taps + 1);
   for (var k = 1; k <= _taps; k++) {
     final offset = reach * k / _taps;
+    final before = _pathBoxAt(path, ms - offset, maxGapMs);
+    final after = _pathBoxAt(path, ms + offset, maxGapMs);
+    // Every moment in the run has a box while the path is in time order,
+    // as every scan stores it; nothing checks a stored one, so a moment
+    // without a box stops the window there, both sides alike.
+    if (before == null || after == null) break;
     final weight = (_taps + 1 - k).toDouble();
-    add(_pathBoxAt(path, ms - offset, maxGapMs)!, weight);
-    add(_pathBoxAt(path, ms + offset, maxGapMs)!, weight);
+    add(before, weight);
+    add(after, weight);
   }
   return IdentificationBox(
     x: x / total,

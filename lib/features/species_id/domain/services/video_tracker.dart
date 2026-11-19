@@ -16,6 +16,9 @@ import 'package:submersion/features/species_id/domain/entities/video_detections.
 /// (issue #4747).
 const int videoTrackerVersion = 4;
 
+/// How far apart a scan samples a video's frames, in milliseconds.
+const int videoSampleIntervalMs = 250;
+
 /// What a video's run stores as its detector id: the pack's detector set
 /// and the tracker version. A change to either scans the video again.
 String videoRunDetectorId(String detectorSetId) =>
@@ -198,7 +201,14 @@ class _Open {
 /// missed for more than [maxGapSamples] frames in a row is closed. A track
 /// seen in one frame only is dropped as flicker.
 class VideoTracker {
-  VideoTracker({this.link = const TrackLink(), this.maxGapSamples = 2});
+  VideoTracker({
+    this.link = const TrackLink(),
+    this.maxGapSamples = defaultMaxGapSamples,
+  });
+
+  /// How many frames in a row a track may be missed in and still go on. A
+  /// video's labels ride over the gaps this leaves (`labelMaxGapMs`).
+  static const int defaultMaxGapSamples = 2;
 
   /// Which box continues a track.
   final TrackLink link;

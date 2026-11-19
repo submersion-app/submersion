@@ -90,7 +90,7 @@ class VideoIdentificationScan {
     MemoryReadout? memoryReadout,
     this.chunkMs = 10000,
     this.firstChunkMs = 2000,
-    this.sampleIntervalMs = 250,
+    this.sampleIntervalMs = videoSampleIntervalMs,
   }) : _engine = engine,
        _pack = pack,
        _identifications = identifications,

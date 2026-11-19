@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/track_sample.dart';
 import 'package:submersion/features/species_id/domain/services/track_labels.dart';
+import 'package:submersion/features/species_id/domain/services/video_tracker.dart';
 
 import '../data/identification_fixtures.dart';
 
@@ -90,6 +91,19 @@ void main() {
       expect(smoothedBoxAt(gappy, 1800), isNull);
     });
 
+    test('a path out of time order narrows the window, it does not throw', () {
+      // No scan stores one, and nothing checks a stored path's order. Here
+      // the sample at index 8 reads 3250 ms: halving for 3000 ms is sent
+      // below it, onto what looks like a 1500 ms gap.
+      final misordered = steady.copyWith(
+        path: [
+          for (final (k, s) in steady.path.indexed)
+            k == 8 ? TrackSample(ms: 3250, box: s.box) : s,
+        ],
+      );
+      expect(smoothedBoxAt(misordered, 3500), isNotNull);
+    });
+
     test('a photo identification and an empty path have none', () {
       expect(smoothedBoxAt(identification('p'), 1000), isNull);
       expect(smoothedBoxAt(steady.copyWith(path: const []), 1500), isNull);
@@ -97,6 +111,13 @@ void main() {
   });
 
   group('labelsAt over the tracker\'s gaps', () {
+    test('a label rides over every step the tracker bridges', () {
+      expect(
+        labelMaxGapMs,
+        greaterThan((VideoTracker().maxGapSamples + 1) * videoSampleIntervalMs),
+      );
+    });
+
     test('a label stays on across samples the tracker missed', () {
       // The tracker bridges two missed samples: 750 ms between samples,
       // stored a millisecond either side of the scan's beat.

@@ -1,11 +1,8 @@
-import 'dart:async';
-
 import 'package:flutter/foundation.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:video_player/video_player.dart';
 
-import 'package:submersion/features/media/presentation/helpers/playhead_interpolator.dart';
+import 'package:submersion/features/media/presentation/helpers/playhead_glide.dart';
 
 /// Builds what is drawn over a video against where it is now: [playback]'s
 /// position carried on between the player's reports, one frame at a time
@@ -38,16 +35,13 @@ class VideoPlayheadBuilder extends StatefulWidget {
 
 class _VideoPlayheadBuilderState extends State<VideoPlayheadBuilder>
     with SingleTickerProviderStateMixin {
-  var _playhead = PlayheadInterpolator();
-
-  /// Asks for frames while the playhead can glide on, and no longer.
-  late final Ticker _ticker = createTicker(_onTick);
+  late final _glide = PlayheadGlide(this);
 
   @override
   void initState() {
     super.initState();
     widget.playback.addListener(_onUpdate);
-    _report();
+    _glide.report(widget.playback.value);
   }
 
   @override
@@ -56,48 +50,30 @@ class _VideoPlayheadBuilderState extends State<VideoPlayheadBuilder>
     if (oldWidget.playback != widget.playback) {
       oldWidget.playback.removeListener(_onUpdate);
       widget.playback.addListener(_onUpdate);
-      _playhead = PlayheadInterpolator();
-      _report();
+      _glide
+        ..restart()
+        ..report(widget.playback.value);
     }
   }
 
   @override
   void dispose() {
     widget.playback.removeListener(_onUpdate);
-    _ticker.dispose();
+    _glide.dispose();
     super.dispose();
   }
 
   void _onUpdate() {
-    if (mounted) setState(_report);
-  }
-
-  /// Hands the player's latest position to the playhead, and starts or stops
-  /// the frames that carry it on.
-  void _report() {
-    final value = widget.playback.value;
-    final moving = _playhead.report(
-      position: value.position,
-      advancing: value.isPlaying && !value.isBuffering,
-      speed: value.playbackSpeed,
-      duration: value.duration,
-    );
-    if (!moving) {
-      _ticker.stop();
-    } else if (!_ticker.isActive) {
-      unawaited(_ticker.start());
-    }
-  }
-
-  void _onTick(Duration elapsed) {
-    final before = _playhead.shown;
-    final moving = _playhead.advance(elapsed);
-    if (_playhead.shown != before) setState(() {});
-    // A stalled player, or the end of the clip: rest until the next report.
-    if (!moving) _ticker.stop();
+    if (!mounted) return;
+    _glide.report(widget.playback.value);
+    // The value itself changed too (its size, playing or not).
+    setState(() {});
   }
 
   @override
-  Widget build(BuildContext context) =>
-      widget.builder(context, widget.playback.value, _playhead.shown);
+  Widget build(BuildContext context) => ValueListenableBuilder<Duration>(
+    valueListenable: _glide.shown,
+    builder: (context, playhead, _) =>
+        widget.builder(context, widget.playback.value, playhead),
+  );
 }

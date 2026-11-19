@@ -80,6 +80,19 @@ void main() {
     expect(tester.binding.hasScheduledFrame, isFalse);
   });
 
+  testWidgets('a buffering player holds the playhead where it is', (
+    tester,
+  ) async {
+    playback.value = playback.value.copyWith(
+      isPlaying: true,
+      isBuffering: true,
+    );
+    await pumpBuilder(tester);
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(built.last, const Duration(milliseconds: 1500));
+    expect(tester.binding.hasScheduledFrame, isFalse);
+  });
+
   testWidgets('a new player is followed from its own position', (tester) async {
     await pumpBuilder(tester);
     final other = ValueNotifier(
