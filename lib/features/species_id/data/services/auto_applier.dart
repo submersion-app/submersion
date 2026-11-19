@@ -1,6 +1,7 @@
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/data/services/species_tagging_service.dart';
 import 'package:submersion/features/media/domain/value_objects/sighting_timing.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
@@ -34,6 +35,7 @@ class AutoApplier {
   /// The auto-apply setting on this device.
   final bool Function() _enabled;
   final SightingTiming Function() _timing;
+  final _log = LoggerService.forClass(AutoApplier);
 
   bool get isOn => marineLifeIdEnabled && _enabled();
 
@@ -51,26 +53,44 @@ class AutoApplier {
   /// [apply] over a Find species run's [items], filed as one automatic
   /// History entry for the whole run (issue #4727). The scope opens only
   /// now, at the run's end, so a save the diver made during the run is not
-  /// filed under it. Returns how many species it tagged.
+  /// filed under it. Returns how many distinct species it tagged.
   Future<int> applyAllInScope(List<RunAppliedItem> items) {
     if (!isOn || items.isEmpty) return Future.value(0);
     return ChangeLogScope.automatic(
       DatabaseService.instance.databaseOrNull,
       label: ChangeLogLabels.marineLifeId,
       body: () async {
-        var tagged = 0;
+        final species = <String>{};
         for (final item in items) {
-          tagged += await apply(item.mediaId, isVideo: item.isVideo);
+          species.addAll(await _applyItem(item.mediaId, isVideo: item.isVideo));
         }
-        return tagged;
+        return species.length;
       },
     );
   }
 
   /// Tags what [identificationsToApply] picks on [mediaId], with no scope
   /// of its own: a run files all of its items under one.
-  Future<int> apply(String mediaId, {required bool isVideo}) async {
-    if (!isOn) return 0;
+  Future<int> apply(String mediaId, {required bool isVideo}) async =>
+      (await _applyItem(mediaId, isVideo: isVideo)).length;
+
+  /// The species [apply] tagged on [mediaId]. A species that cannot be
+  /// tagged (its photo deleted meanwhile, say) is logged and skipped, and
+  /// an item whose rows cannot be read tags nothing: never throws.
+  Future<Set<String>> _applyItem(
+    String mediaId, {
+    required bool isVideo,
+  }) async {
+    if (!isOn) return const {};
+    try {
+      return await _tagAll(mediaId, isVideo: isVideo);
+    } on Object catch (e) {
+      _log.debug('Could not auto-apply on $mediaId', error: e);
+      return const {};
+    }
+  }
+
+  Future<Set<String>> _tagAll(String mediaId, {required bool isVideo}) async {
     final picked = identificationsToApply(
       await _identifications.forMedia(mediaId),
       await _identifications.taggedSpecies(mediaId),
@@ -78,18 +98,24 @@ class AutoApplier {
       scanComplete:
           (await _identifications.runFor(mediaId))?.scanComplete ?? false,
     );
-    var tagged = 0;
+    final tagged = <String>{};
     for (final s in picked) {
-      final resolved = await _acceptor.resolveWithOrigin(s.candidate.candidate);
-      await _tagging.applyAppTag(
-        mediaId: mediaId,
-        speciesId: resolved.species.id,
-        timing: _timing(),
-        createdSpecies: resolved.created,
-      );
-      tagged++;
+      try {
+        final resolved = await _acceptor.resolveWithOrigin(
+          s.candidate.candidate,
+        );
+        await _tagging.applyAppTag(
+          mediaId: mediaId,
+          speciesId: resolved.species.id,
+          timing: _timing(),
+          createdSpecies: resolved.created,
+        );
+        tagged.add(resolved.species.id);
+      } on Object catch (e) {
+        _log.debug('Could not tag a species on $mediaId', error: e);
+      }
     }
-    if (tagged > 0) await _reconcile(mediaId);
+    if (tagged.isNotEmpty) await _reconcile(mediaId);
     return tagged;
   }
 

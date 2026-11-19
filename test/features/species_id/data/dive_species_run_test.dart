@@ -17,6 +17,8 @@ void main() {
   late List<String> cancelled;
   late int generation;
   Completer<void>? gate;
+  Object? applyFailure;
+  Object? listFailure;
   late DiveSpeciesRun run;
 
   MediaItem item(String id, {MediaType type = MediaType.photo}) => MediaItem(
@@ -40,8 +42,13 @@ void main() {
     cancelled = [];
     generation = 0;
     gate = null;
+    applyFailure = null;
+    listFailure = null;
     run = DiveSpeciesRun(
-      mediaForDive: (diveId) async => media[diveId] ?? const [],
+      mediaForDive: (diveId) async {
+        if (listFailure != null && diveId == 'd1') throw listFailure!;
+        return media[diveId] ?? const [];
+      },
       diveLocation: (diveId) async => dives.contains(diveId)
           ? (exists: true, site: const GeoPoint(20, -87), entry: null)
           : (exists: false, site: null, entry: null),
@@ -55,6 +62,7 @@ void main() {
       },
       cancel: (mediaId) => cancelled.add(mediaId),
       applyAll: (items) async {
+        if (applyFailure != null) throw applyFailure!;
         applied.add([for (final i in items) i.mediaId]);
         return items.length;
       },
@@ -172,5 +180,27 @@ void main() {
 
     expect(asked, ['p1']);
     expect(state('d1').phase, DiveRunPhase.cancelled);
+  });
+
+  test(
+    'a failure applying ends the run, and the next dive still runs',
+    () async {
+      applyFailure = StateError('database closed');
+      final first = run.start('d1');
+      final second = run.start('d2');
+      await Future.wait([first, second]);
+
+      expect(state('d1').phase, DiveRunPhase.cancelled);
+      expect(state('d2').phase, DiveRunPhase.cancelled);
+      expect(asked, ['p1', 'p2', 'v1', 'q1']);
+    },
+  );
+
+  test('a failure listing the dive\'s media ends the run', () async {
+    listFailure = StateError('no database');
+    await run.start('d1');
+    expect(state('d1').phase, DiveRunPhase.cancelled);
+    await run.start('d2');
+    expect(state('d2').phase, DiveRunPhase.finished);
   });
 }

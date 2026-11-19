@@ -139,7 +139,8 @@ void main() {
       (mediaId: 'p2', isVideo: false),
     ]);
 
-    expect(tagged, 2);
+    // One species on two photos is one species tagged.
+    expect(tagged, 1);
     await changeLog.settleAll();
     // The test's own photo insert is an operation of its own.
     final ops = await db
@@ -150,4 +151,26 @@ void main() {
         .get();
     expect(ops, hasLength(1));
   });
+
+  test(
+    'an item that cannot be tagged does not stop the rest of a run',
+    () async {
+      await insertTestMedia(id: 'p2', diveId: 'd1');
+      await store('p1');
+      await store('p2');
+      // p1's photo is gone (held for undo, its identifications kept).
+      await db.customStatement("DELETE FROM media WHERE id = 'p1'");
+
+      final tagged = await applier().applyAllInScope(const [
+        (mediaId: 'p1', isVideo: false),
+        (mediaId: 'p2', isVideo: false),
+      ]);
+
+      expect(tagged, 1);
+      final created = await species.findSpeciesByScientificName(
+        'Scarus vetula',
+      );
+      expect(await tags.findTag('p2', created!.id), isNotNull);
+    },
+  );
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/services/media_location.dart';
@@ -43,6 +44,7 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
   final Future<int> Function(List<RunAppliedItem>) _applyAll;
   final int Function() _generation;
 
+  final _log = LoggerService.forClass(DiveSpeciesRun);
   final _queue = Queue<String>();
   final _finished = <String, Completer<void>>{};
   String? _current;
@@ -114,6 +116,19 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
       _tooHot = false;
       try {
         await _run(diveId);
+      } on Object catch (e, stack) {
+        // One dive's failure ends that run, never the queue or the card.
+        _log.error(
+          'Find species stopped on $diveId',
+          error: e,
+          stackTrace: stack,
+        );
+        final s = state[diveId];
+        if (s != null) {
+          _set(
+            s.copyWith(phase: DiveRunPhase.cancelled, pauseReason: () => null),
+          );
+        }
       } finally {
         _current = null;
         _currentItem = null;
