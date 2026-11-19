@@ -24,6 +24,13 @@ typedef SiteSaveCall = ({
   bool privateOnly,
 });
 
+/// One create the page asked for (a new site's Save).
+typedef SiteCreateCall = ({
+  DiveSite site,
+  List<String> cards,
+  bool hasHeldWrites,
+});
+
 /// Stands in for the save service: records what it was asked to write, and
 /// fails on demand.
 class FakeSiteSave implements SiteEditSaveService {
@@ -32,6 +39,7 @@ class FakeSiteSave implements SiteEditSaveService {
   DiveSite stored;
   Object? failWith;
   final calls = <SiteSaveCall>[];
+  final creates = <SiteCreateCall>[];
 
   @override
   Future<({DiveSite before, DiveSite after})?> save({
@@ -67,6 +75,23 @@ class FakeSiteSave implements SiteEditSaveService {
           )
         : applied;
     return (before: stored, after: after);
+  }
+
+  @override
+  Future<DiveSite> create({
+    required DiveSite site,
+    required Iterable<String> changedCardIds,
+    Future<void> Function()? alsoWrite,
+  }) async {
+    creates.add((
+      site: site,
+      cards: changedCardIds.toList()..sort(),
+      // Not run, as for [save].
+      hasHeldWrites: alsoWrite != null,
+    ));
+    final failure = failWith;
+    if (failure != null) throw failure;
+    return site;
   }
 }
 
