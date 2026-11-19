@@ -387,11 +387,7 @@ class VideoIdentificationScan {
     );
     final joins = <TrackedAnimal, TrackedAnimal>{};
     for (final (:open, :later) in pairs) {
-      final laterWorth = later.isPending
-          ? null
-          : momentWorth(
-              DetectedBox(box: later.box, score: later.detectorScore),
-            );
+      final laterWorth = later.isPending ? null : storedWorth(later);
       final joined = TrackedAnimal(
         [
           ...open.points,
@@ -457,11 +453,7 @@ class VideoIdentificationScan {
           ],
           storedId: row.id,
           pending: row.isPending,
-          namedWorth: row.isPending
-              ? null
-              : momentWorth(
-                  DetectedBox(box: row.box, score: row.detectorScore),
-                ),
+          namedWorth: row.isPending ? null : storedWorth(row),
         ),
         missed: math.max(0, math.min(missed, _tracker.maxGapSamples)),
       );

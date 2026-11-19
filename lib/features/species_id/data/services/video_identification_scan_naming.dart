@@ -5,16 +5,15 @@ part of 'video_identification_scan.dart';
 extension _Naming on VideoIdentificationScan {
   /// Crops and embeds each track's best moments in batches, names each
   /// moment on its own, and names each track from the view
-  /// [chooseNamingView] picks (issue #4736). A track none of
-  /// whose moments could be cropped is left out, unless it continues a
-  /// stored row: that is kept as named before, with its path grown
-  /// ([_unnamed]). When [stopping], only one
-  /// batch is named, the tracks with no name yet and then the longest
-  /// first; the others are kept without naming them. [rows] are the stored
-  /// rows the tracks continue, by id. Between batches (not when stopping)
-  /// it stops on [VideoIdentificationScan._keepGoing], and drops the chunk
-  /// when [dropped] says the diver moved the scan elsewhere. Null when the
-  /// file cannot be opened.
+  /// [chooseNamingView] picks (issue #4736). A track none of whose moments
+  /// could be cropped, or named, is left out, unless it continues a stored
+  /// row: that is kept as named before, with its path grown ([_unnamed]).
+  /// When [stopping], only one batch is named, the tracks with no name yet
+  /// and then the longest first; the others are kept without naming them.
+  /// [rows] are the stored rows the tracks continue, by id. Between batches
+  /// (not when stopping) it stops on [VideoIdentificationScan._keepGoing],
+  /// and drops the chunk when [dropped] says the diver moved the scan
+  /// elsewhere. Null when the file cannot be opened.
   Future<List<_Stored>?> _nameTracks(
     List<TrackedAnimal> all, {
     required bool stopping,
@@ -77,8 +76,13 @@ extension _Naming on VideoIdentificationScan {
         <
           ({
             TrackedAnimal track,
-            List<({int ms, DetectedBox detection})> moments,
-            List<VisionMomentCrop> crops,
+            List<
+              ({
+                ({int ms, DetectedBox detection}) moment,
+                VisionMomentCrop crop,
+              })
+            >
+            views,
           })
         >[];
     // Tracks that could not be named now but continue a stored row.
@@ -94,34 +98,36 @@ extension _Naming on VideoIdentificationScan {
         if (rows.containsKey(closed[t].storedId)) unnameable.add(closed[t]);
         continue;
       }
-      kept.add((
-        track: closed[t],
-        moments: [for (final u in usable) u.moment],
-        crops: [for (final u in usable) u.crop],
-      ));
+      kept.add((track: closed[t], views: usable));
     }
-    final views = await _name([
+    final results = await _name([
       for (final k in kept)
-        for (final crop in k.crops)
+        for (final v in k.views)
           (
-            embedding: crop.embedding,
-            shorterSide: math.min(crop.pixelWidth, crop.pixelHeight),
+            embedding: v.crop.embedding,
+            shorterSide: math.min(v.crop.pixelWidth, v.crop.pixelHeight),
           ),
     ]);
     final now = _now().toUtc();
     final naming = _pack.pack.manifest.naming;
     final named = <_Stored>[];
-    var view = 0;
+    var from = 0;
     for (final k in kept) {
-      final own = views.sublist(view, view + k.crops.length);
-      view += k.crops.length;
+      final own = results.sublist(from, from + k.views.length);
+      from += k.views.length;
       final pick = chooseNamingView(own);
+      // No view could be named: as when none could be cropped.
+      if (pick == null) {
+        if (rows.containsKey(k.track.storedId)) unnameable.add(k.track);
+        continue;
+      }
       final result = own[pick.index];
+      final chosen = k.views[pick.index];
       named.add(
         _identification(
           k.track,
-          k.moments[pick.index],
-          k.crops[pick.index],
+          chosen.moment,
+          chosen.crop,
           NamingResult(
             openScore: result.openScore,
             candidates: result.candidates,
@@ -131,9 +137,9 @@ extension _Naming on VideoIdentificationScan {
           naming,
           now,
           rows,
-          // The detector's best view: a later view worth clearly more
-          // names the track again ([namesNow]).
-          worth: momentWorth(k.moments.first.detection),
+          // The detector's best view among those cropped: a later view
+          // worth clearly more names the track again ([namesNow]).
+          worth: momentWorth(k.views.first.moment.detection),
         ),
       );
     }

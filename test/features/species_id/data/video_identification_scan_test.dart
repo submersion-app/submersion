@@ -21,6 +21,7 @@ import 'package:submersion/features/species_id/domain/entities/scanned_ranges.da
 import 'package:submersion/features/species_id/domain/entities/video_detections.dart';
 import 'package:submersion/features/species_id/domain/services/species_namer.dart';
 import 'package:submersion/features/species_id/domain/services/video_scan_order.dart';
+import 'package:submersion/features/species_id/domain/services/video_tracker.dart';
 import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 
 import '../../../helpers/temp_dir.dart';
@@ -91,6 +92,7 @@ void main() {
   var sequence = 0;
   PackCandidate Function(Float32List embedding)? nameBy;
   double Function(Float32List embedding)? openBy;
+  bool Function(Float32List embedding)? unusableBy;
 
   void seekTo(int ms) =>
       report = PlayheadReport(ms: ms, seek: true, sequence: ++sequence);
@@ -116,6 +118,7 @@ void main() {
     sequence = 0;
     nameBy = null;
     openBy = null;
+    unusableBy = null;
   });
   tearDown(() async {
     await crops.dispose();
@@ -125,22 +128,26 @@ void main() {
   });
 
   /// Names every crop the first candidate, confidently, unless [nameBy]
-  /// picks another from its embedding; [openBy] sets its open score.
+  /// picks another from its embedding; [openBy] sets its open score, and
+  /// [unusableBy] makes nothing of it.
   Future<List<NamingResult>> name(
     List<({Float32List embedding, int shorterSide})> crops,
   ) async => [
     for (final c in crops)
-      NamingResult(
-        openScore: openBy?.call(c.embedding) ?? 0.9,
-        candidates: [
-          NamedCandidate(
-            candidate: nameBy?.call(c.embedding) ?? fixtureParrotfish,
-            score: 0.9,
-          ),
-        ],
-        locationLimited: true,
-        suggestable: true,
-      ),
+      if (unusableBy?.call(c.embedding) ?? false)
+        NamingResult.unusable
+      else
+        NamingResult(
+          openScore: openBy?.call(c.embedding) ?? 0.9,
+          candidates: [
+            NamedCandidate(
+              candidate: nameBy?.call(c.embedding) ?? fixtureParrotfish,
+              score: 0.9,
+            ),
+          ],
+          locationLimited: true,
+          suggestable: true,
+        ),
   ];
 
   /// Chunks of 10 s from the start, as before live naming, unless
@@ -188,7 +195,7 @@ void main() {
     expect(run.videoDurationMs, 25000);
     expect(run.scanComplete, isTrue);
     expect(run.imageWidth, 1920);
-    expect(run.detectorId, 'det-a#tracker3');
+    expect(run.detectorId, videoRunDetectorId('det-a'));
     expect(s.progress, 1);
   });
 
@@ -783,6 +790,25 @@ void main() {
       expect(fish.top!.candidate, fixtureParrotfish);
       expect((fish.startMs, fish.endMs), (5000, 14750));
       expect(fish.path, hasLength(40));
+    });
+
+    test('a fish whose better views cannot be named keeps its name and '
+        'its whole path', () async {
+      closerInTheSecondChunk();
+      unusableBy = (e) => e[1] > 0.5;
+      await runAll(scan());
+      final fish = (await identifications.forMedia('v1')).single;
+      expect(fish.top!.candidate, fixtureParrotfish);
+      expect((fish.startMs, fish.endMs), (5000, 14750));
+      expect(fish.path, hasLength(40));
+    });
+
+    test('a new fish none of whose views can be named is not '
+        'stored', () async {
+      engine.videoFrames = _fish(1000, 4000);
+      unusableBy = (_) => true;
+      await runAll(scan());
+      expect(await identifications.forMedia('v1'), isEmpty);
     });
 
     test('a renamed fish accepted by a name match goes back to '

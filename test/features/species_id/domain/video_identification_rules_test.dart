@@ -587,14 +587,14 @@ void main() {
         view(0.3, stoplight),
         view(0.8, stoplight),
         view(0.5, stoplight),
-      ]);
+      ])!;
       expect(pick.index, 1);
       expect(pick.suggestable, isTrue);
     });
 
     test("a tie goes to the first view, the detector's best", () {
       expect(
-        chooseNamingView([view(0.6, stoplight), view(0.6, stoplight)]).index,
+        chooseNamingView([view(0.6, stoplight), view(0.6, stoplight)])!.index,
         0,
       );
     });
@@ -604,7 +604,7 @@ void main() {
         view(0.3, chromis),
         view(0.8, stoplight),
         view(0.5, chromis),
-      ]);
+      ])!;
       expect(pick.index, 1);
       expect(pick.suggestable, isFalse);
     });
@@ -613,7 +613,7 @@ void main() {
       final pick = chooseNamingView([
         view(0.8, stoplight),
         view(0.2, stoplight, suggestable: false),
-      ]);
+      ])!;
       expect(pick.suggestable, isTrue);
     });
 
@@ -622,7 +622,7 @@ void main() {
         chooseNamingView([
           view(0.8, stoplight),
           view(0.2, ' sparisoma VIRIDE '),
-        ]).suggestable,
+        ])!.suggestable,
         isTrue,
       );
     });
@@ -632,26 +632,34 @@ void main() {
         chooseNamingView([
           view(0.8, stoplight, suggestable: false),
           view(0.5, stoplight),
-        ]).suggestable,
+        ])!.suggestable,
         isFalse,
       );
     });
 
     test('a single view is judged as a photo is', () {
-      expect(chooseNamingView([view(0.8, stoplight)]).suggestable, isTrue);
+      expect(chooseNamingView([view(0.8, stoplight)])!.suggestable, isTrue);
       expect(
         chooseNamingView([
           view(0.8, stoplight, suggestable: false),
-        ]).suggestable,
+        ])!.suggestable,
         isFalse,
       );
+    });
+
+    test('no view with names names nothing', () {
+      expect(
+        chooseNamingView([NamingResult.unusable, NamingResult.unusable]),
+        isNull,
+      );
+      expect(chooseNamingView(const []), isNull);
     });
 
     test('a view with no names neither names the track nor agrees', () {
       final pick = chooseNamingView([
         NamingResult.unusable,
         view(0.4, chromis),
-      ]);
+      ])!;
       expect(pick.index, 1);
       // Only one usable view: judged as a photo is.
       expect(pick.suggestable, isTrue);
@@ -660,9 +668,38 @@ void main() {
           view(0.4, chromis),
           NamingResult.unusable,
           NamingResult.unusable,
-        ]).suggestable,
+        ])!.suggestable,
         isTrue,
       );
+    });
+  });
+
+  group('storedWorth', () {
+    test("a stored track is worth its best sampled box, not the view it "
+        'shows (issue #4736)', () {
+      final t = track('t1');
+      final row = t.copyWith(
+        box: const IdentificationBox(x: 0.1, y: 0.4, width: 0.1, height: 0.1),
+        detectorScore: 0.5,
+        path: [
+          ...t.path,
+          t.path.last.copyWith(
+            ms: 2250,
+            box: const IdentificationBox(
+              x: 0.1,
+              y: 0.4,
+              width: 0.4,
+              height: 0.2,
+            ),
+          ),
+        ],
+      );
+      expect(storedWorth(row), closeTo(0.5 * 0.4 * 0.2, 1e-12));
+    });
+
+    test('a row with no path is worth its box', () {
+      final row = identification('p1');
+      expect(storedWorth(row), closeTo(0.91 * 0.3 * 0.25, 1e-12));
     });
   });
 

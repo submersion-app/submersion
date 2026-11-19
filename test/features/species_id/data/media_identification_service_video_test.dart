@@ -18,6 +18,7 @@ import 'package:submersion/features/species_id/data/services/media_identificatio
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
 import 'package:submersion/features/species_id/domain/entities/video_detections.dart';
+import 'package:submersion/features/species_id/domain/services/video_tracker.dart';
 import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 
 import '../../../helpers/temp_dir.dart';
@@ -598,7 +599,7 @@ void main() {
       expect(engine.detectCalls, isNotEmpty);
       expect(
         (await identifications.runFor('v1'))!.detectorId,
-        'det-a#tracker3',
+        videoRunDetectorId('det-a'),
       );
       expect(await identifications.forMedia('v1'), hasLength(1));
     });
