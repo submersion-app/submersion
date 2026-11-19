@@ -268,4 +268,27 @@ void main() {
 
     expect(find.text('Unknown Site'), findsOneWidget);
   });
+
+  testWidgets('a review that cannot be read says so, not that there is '
+      'nothing', (tester) async {
+    saver = _Saver();
+    await tester.pumpWidget(
+      await mediaTestApp(
+        overrides: [
+          speciesReviewProvider(
+            scope,
+          ).overrideWith((ref) async => throw StateError('no logbook')),
+          speciesReviewSaverProvider.overrideWithValue(saver),
+        ],
+        home: const SpeciesReviewPage(scope: scope),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+    expect(find.text('Nothing to review'), findsNothing);
+  });
 }

@@ -107,6 +107,26 @@ void main() {
       expect(rows.map((i) => i.id), ['a']);
     });
 
+    test('a batched read stays on one logbook across its chunks', () async {
+      // 500 to a chunk: m1 is read in the second.
+      final ids = [for (var i = 0; i < 500; i++) 'x$i', 'm1'];
+      // The suggestions read joins the media row.
+      await addMedia('m1');
+      var lookups = 0;
+      MediaIdentificationRepository fresh() => MediaIdentificationRepository(
+        currentDatabase: () => lookups++ == 0 ? db : other,
+      );
+
+      expect((await fresh().forMediaIds(ids))['m1']!.map((i) => i.id), ['a']);
+      lookups = 0;
+      expect((await fresh().runsFor(ids)).keys, ['m1']);
+      lookups = 0;
+      expect(
+        await fresh().mediaIdsWithSuggestions(anyUndecided: true, among: ids),
+        ['m1'],
+      );
+    });
+
     test('a snapshot of many media reads both from there', () async {
       final (runs, rows) = await switching.forMediaIdsWithRuns([
         'm1',

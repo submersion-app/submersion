@@ -339,6 +339,8 @@ class MediaIdentificationRepository {
     List<String>? among,
     String? diverId,
   }) async {
+    // One logbook for every chunk (issue #4721).
+    final db = _db;
     if (among != null && among.isEmpty) return const [];
     final where = <String>["i.decision = 'undecided'"];
     final variables = <Variable<Object>>[];
@@ -354,7 +356,7 @@ class MediaIdentificationRepository {
         if (chunk != null)
           'i.media_id IN (${List.filled(chunk.length, '?').join(', ')})',
       ];
-      final rows = await _db
+      final rows = await db
           .customSelect(
             'SELECT DISTINCT i.media_id AS media_id '
             'FROM media_identifications i '
@@ -366,7 +368,7 @@ class MediaIdentificationRepository {
               if (chunk != null)
                 for (final id in chunk) Variable.withString(id),
             ],
-            readsFrom: {_db.mediaIdentifications, _db.media, _db.dives},
+            readsFrom: {db.mediaIdentifications, db.media, db.dives},
           )
           .get();
       found.addAll([for (final row in rows) row.read<String>('media_id')]);
@@ -390,10 +392,12 @@ class MediaIdentificationRepository {
     List<String> mediaIds, {
     bool withPaths = true,
   }) async {
+    // One logbook for every chunk (issue #4721).
+    final db = _db;
     final result = <String, List<MediaIdentification>>{};
     for (final chunk in seriesIdChunks(mediaIds, size: _slice)) {
       final rows =
-          await (_db.select(_db.mediaIdentifications)
+          await (db.select(db.mediaIdentifications)
                 ..where((r) => r.mediaId.isIn(chunk))
                 ..orderBy([
                   (r) => OrderingTerm.asc(r.createdAt),
@@ -431,10 +435,12 @@ class MediaIdentificationRepository {
   Future<Map<String, MediaIdentificationRun>> runsFor(
     List<String> mediaIds,
   ) async {
+    // One logbook for every chunk (issue #4721).
+    final db = _db;
     final result = <String, MediaIdentificationRun>{};
     for (final chunk in seriesIdChunks(mediaIds, size: _slice)) {
-      final rows = await (_db.select(
-        _db.mediaIdentificationRuns,
+      final rows = await (db.select(
+        db.mediaIdentificationRuns,
       )..where((r) => r.mediaId.isIn(chunk))).get();
       for (final row in rows) {
         result[row.mediaId] = _runFromRow(row);
@@ -448,16 +454,18 @@ class MediaIdentificationRepository {
   Future<Map<String, List<TaggedSpecies>>> taggedSpeciesFor(
     List<String> mediaIds,
   ) async {
+    // One logbook for every chunk (issue #4721).
+    final db = _db;
     final result = <String, List<TaggedSpecies>>{};
     for (final chunk in seriesIdChunks(mediaIds, size: _slice)) {
-      final rows = await _db
+      final rows = await db
           .customSelect(
             'SELECT ms.media_id AS media_id, ms.species_id AS species_id, '
             's.scientific_name AS sci '
             'FROM media_species ms LEFT JOIN species s ON s.id = ms.species_id '
             'WHERE ms.media_id IN (${List.filled(chunk.length, '?').join(', ')})',
             variables: [for (final id in chunk) Variable.withString(id)],
-            readsFrom: {_db.mediaSpecies, _db.species},
+            readsFrom: {db.mediaSpecies, db.species},
           )
           .get();
       for (final row in rows) {

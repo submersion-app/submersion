@@ -91,6 +91,9 @@ class _SpeciesReviewPageState extends ConsumerState<SpeciesReviewPage> {
         ),
         body: groupsAsync.isLoading && groupsAsync.value == null
             ? const Center(child: CircularProgressIndicator())
+            // A failed read is not "nothing to review".
+            : groupsAsync.hasError && groupsAsync.value == null
+            ? Center(child: Text(l10n.common_error_tryAgain))
             : groups.isEmpty
             ? Center(child: Text(l10n.speciesReview_nothing))
             : ListView(
