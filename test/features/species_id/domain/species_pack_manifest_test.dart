@@ -721,6 +721,20 @@ void main() {
         ),
         [NamingLevel.balanced, NamingLevel.eager],
       );
+      // The mirror case: lower with a location, Balanced's bar without.
+      expect(
+        ids(
+          naming([
+            balanced(),
+            eager({
+              'suggestScore': 0.3,
+              'suggestScoreNoLocation': 0.6,
+              'precision': 0.81,
+            }),
+          ]),
+        ),
+        [NamingLevel.balanced, NamingLevel.eager],
+      );
     });
 
     test('a level more often right than the one above is dropped', () {
