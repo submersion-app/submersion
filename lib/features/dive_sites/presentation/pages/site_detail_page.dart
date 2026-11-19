@@ -87,6 +87,7 @@ import 'package:submersion/features/dive_sites/presentation/editing/site_classif
 import 'package:submersion/features/dive_sites/presentation/editing/site_edit_cards.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_reader_send.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_reader_sitting.dart';
+import 'package:submersion/features/shared_library/presentation/providers/library_role_now.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_sitting_save.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_sitting_start.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_catalogue_sitting.dart';
@@ -387,7 +388,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
     final waiting = _newSiteWaiting(context);
     if (waiting != null) return waiting;
     final embedded = widget.embedded;
-    // Unlock-to-edit in place (issue #4527, phase 2), behind the switch.
+    // Unlock-to-edit in place (issue #4527, phase 2).
     final edit = _editingInBuild();
     // Only where the page offers editing now: an edit link opens an
     // editor's sitting, or a library reader's to suggest changes, and opens

@@ -19,7 +19,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/entry_method_list.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_country_code.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_location_merge.dart';
-import 'package:submersion/features/dive_sites/presentation/editing/site_reader_sitting.dart';
+import 'package:submersion/features/shared_library/presentation/providers/library_role_now.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/access_safety_section.dart';

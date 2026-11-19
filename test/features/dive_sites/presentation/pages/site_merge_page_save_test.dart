@@ -317,7 +317,10 @@ void main() {
     final result = await pump(tester, const ['lib', 'own'], active: 'd2');
     result.then((_) => popped = true).ignore();
 
-    await saveAndMerge(tester);
+    // Refused at Save: nothing to confirm (final review).
+    await tester.tap(find.text(l.forms_save).first);
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
 
     expect(find.text('SITES'), findsNothing);
     expect(find.text(l.sharedItems_notOwner_site), findsOneWidget);

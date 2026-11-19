@@ -8,8 +8,8 @@ import 'package:submersion/shared/widgets/forms/enum_multi_picker_row.dart';
 import 'package:submersion/shared/widgets/forms/form_section.dart';
 import 'package:submersion/shared/widgets/forms/suggestion_form_row.dart';
 
-/// Site group 4: access notes, mooring number, parking, hazards — plain
-/// merge-capable rows (inner icon headers and helper texts removed).
+/// The merge page's Access & safety group: access notes, mooring number,
+/// parking and hazards, as plain rows that take merge extras.
 class AccessSafetySection extends StatelessWidget {
   const AccessSafetySection({
     super.key,

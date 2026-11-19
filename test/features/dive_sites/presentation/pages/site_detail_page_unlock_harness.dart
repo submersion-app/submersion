@@ -180,10 +180,14 @@ Future<SiteUnlockHarness> pumpSitePage(
             // redirects to the page opened unlocked (issue #4527, plan 7).
             GoRoute(
               path: '/sites/:siteId',
-              builder: (_, state) => SiteDetailPage(
-                siteId: state.pathParameters['siteId']!,
-                openUnlocked: state.uri.queryParameters['mode'] == 'edit',
-              ),
+              builder: (_, state) {
+                final routed = SiteDetailPage(
+                  siteId: state.pathParameters['siteId']!,
+                  embedded: embedded,
+                  openUnlocked: state.uri.queryParameters['mode'] == 'edit',
+                );
+                return embedded ? Scaffold(body: routed) : routed;
+              },
               routes: [GoRoute(path: 'edit', redirect: siteEditRedirect)],
             ),
           ],

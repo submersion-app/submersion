@@ -9,8 +9,9 @@ enum _ReaderSave { refused, edit, send }
 /// site's own on top of [RecordEditHost], which holds what every record page
 /// shares (the lock, the bar, the strip, the leave check, the keys).
 ///
-/// Offered on the full page and in both list panes, for a site this profile may edit, and to a shared site library's
-/// reader, whose sitting suggests changes (plan 5).
+/// Offered on the full page and in both list panes, for a site this
+/// profile may edit, and to a shared site library's reader, whose sitting
+/// suggests changes (plan 5).
 mixin _SiteDetailPageEditing
     on
         ConsumerState<_SiteDetailContent>,

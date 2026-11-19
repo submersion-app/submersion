@@ -34,8 +34,6 @@ import 'package:submersion/shared/widgets/record_editing/record_fold_pencil.dart
 
 import 'site_detail_page_unlock_harness.dart';
 
-/// A site's page unlocks to edit Description and Notes in place, behind
-/// the switch (issue #4527, phase 2, plan 1).
 /// Records each run of the rules.
 class _RecordingRules extends Fake implements RuleEngine {
   final requests = <RuleRunRequest>[];
@@ -47,6 +45,8 @@ class _RecordingRules extends Fake implements RuleEngine {
   }
 }
 
+/// A site's page unlocks to edit Description and Notes in place (issue
+/// #4527, phase 2, plan 1).
 void main() {
   final l = AppLocalizationsEn();
 

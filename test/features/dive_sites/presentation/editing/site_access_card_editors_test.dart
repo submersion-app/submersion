@@ -148,10 +148,13 @@ void main() {
     expect(h.session.changedCardIds, contains('access'));
   });
 
+  // The null branch of the suggestion: an empty site with no dives to
+  // suggest from shows its method rows and no chip.
   testWidgets('no suggestion offers no chip', (tester) async {
     await pumpAccess(tester);
     await tester.pumpAndSettle();
 
+    expect(find.text(l.diveSites_edit_access_entryMethod_label), findsOne);
     expect(find.byType(ActionChip), findsNothing);
   });
 

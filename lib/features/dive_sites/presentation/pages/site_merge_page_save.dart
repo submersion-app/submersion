@@ -93,7 +93,8 @@ mixin _SiteMergeSave on _SiteMergeCandidates {
         validatedCurrentDiverIdProvider.future,
       );
       if (!mounted) return;
-      // An unowned survivor becomes the active profile's.
+      // The owner the form gave the merged site: the survivor's, or the
+      // active profile for an unowned one. The merge keeps what it allows.
       final site = _mergedSite(survivor, survivor.diverId ?? actingDiverId);
       // A shared site library not connected on this device: nothing here
       // could reach it (issue #2567).
@@ -103,10 +104,9 @@ mixin _SiteMergeSave on _SiteMergeCandidates {
         if (mounted) say(l10n.sharedLibrary_list_notConnected);
         return;
       }
-      if (!mounted || !await _confirmMerge() || !mounted) return;
-
       // A survivor this profile may not edit (a library site it only
-      // reads) is refused, never sent as a suggestion (plan 7, Question 3).
+      // reads) is refused, never sent as a suggestion (plan 7, Question 3),
+      // and before the confirmation, whose answer could not change that.
       final mayEdit = await LibraryEditStamper().mayEdit(
         survivor.id,
         actingDiverId: actingDiverId,
@@ -116,6 +116,7 @@ mixin _SiteMergeSave on _SiteMergeCandidates {
         say(l10n.sharedItems_notOwner_site);
         return;
       }
+      if (!await _confirmMerge() || !mounted) return;
 
       final snapshot = await notifier.mergeSites(site, widget.siteIds);
       if (!mounted) return;

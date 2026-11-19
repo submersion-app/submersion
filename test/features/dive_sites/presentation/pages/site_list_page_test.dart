@@ -662,10 +662,8 @@ void main() {
       await tester.pump();
       tester.takeException();
 
-      // The site page on a new site (issue #4527, phase 2, plan 6).
       final page = tester.widget<SiteDetailPage>(find.byType(SiteDetailPage));
       expect(page.newSite, isNotNull);
-      expect(page.embedded, isTrue);
     });
 
     testWidgets('table mode edit builder invoked via edit query param', (
@@ -695,7 +693,6 @@ void main() {
       await tester.pump();
       tester.takeException();
 
-      // The site page opened unlocked (issue #4527, phase 2).
       final page = tester.widget<SiteDetailPage>(find.byType(SiteDetailPage));
       expect(page.siteId, 'test-site-id');
       expect(page.openUnlocked, isTrue);

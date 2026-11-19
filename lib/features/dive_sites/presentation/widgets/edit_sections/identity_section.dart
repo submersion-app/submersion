@@ -8,10 +8,11 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/form_section.dart';
 import 'package:submersion/shared/widgets/forms/suggestion_form_row.dart';
 
-/// Site group 1 (always open): name, description, country, region, city,
-/// island, body of water — all as suggestion-capable rows. Merge mode adds
-/// a source caption + cycle button per field via [mergeExtras]. The section
-/// ends with [placeLookup], which fills the place fields above it.
+/// The merge page's Identity group (issue #4527, phase 2, plan 7): name,
+/// description, country, region, city, island and body of water, as
+/// suggestion-capable rows, each with the source caption and cycle button
+/// [mergeExtras] gives it. The section ends with [placeLookup], which fills
+/// the place fields above it.
 class IdentitySection extends StatelessWidget {
   const IdentitySection({
     super.key,

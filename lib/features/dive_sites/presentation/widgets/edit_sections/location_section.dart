@@ -12,7 +12,7 @@ import 'package:submersion/shared/widgets/forms/form_section.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/altitude_group_label.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
-/// Site group 2: latitude/longitude rows, locate/pick actions, altitude
+/// The merge page's Location group: latitude/longitude rows, locate/pick actions, altitude
 /// row with the altitude-group indicator.
 class LocationSection extends StatelessWidget {
   const LocationSection({

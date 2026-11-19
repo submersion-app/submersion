@@ -11,7 +11,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/environment_en
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
-/// Site group 3: min/max depth rows, difficulty chips row, rating row.
+/// The merge page's Dive info group: min/max depth rows, difficulty chips row, rating row.
 class DiveInfoSection extends StatelessWidget {
   const DiveInfoSection({
     super.key,

@@ -4,7 +4,8 @@ part of 'site_detail_page.dart';
 /// pane's header row (issue #4527, phase 2).
 extension _SiteDetailBars on _SiteDetailContentState {
   /// The full page's locked top bar. [offered] is whether the lock shows;
-  /// History sits beside the lock where the bar has room, else first in the menu, as on a dive.
+  /// History sits beside the lock where the bar has room, else first in
+  /// the menu, as on a dive.
   PreferredSizeWidget _lockedBar(
     BuildContext context,
     DiveSite site, {

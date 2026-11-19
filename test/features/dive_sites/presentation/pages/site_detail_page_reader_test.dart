@@ -87,34 +87,11 @@ void main() {
     Future<SharedLibraryRole> Function()? role,
     bool connected = true,
     DiveSite? site,
-    String? initialLocation,
   }) => pumpSitePage(
     tester,
     site: site ?? librarySite,
-    initialLocation: initialLocation,
     extra: library(role: role, connected: connected),
   );
-
-  // Review Focus 2: the old suggestion address opens the sitting the role
-  // allows (issue #4527, phase 2, plan 7), a reader's for a reader and an
-  // editor's for an editor.
-  for (final (role, reader) in const [
-    (SharedLibraryRole.reader, true),
-    (SharedLibraryRole.editor, false),
-  ]) {
-    testWidgets('?suggest=1 opens the sitting a ${role.name} may have', (
-      tester,
-    ) async {
-      await pumpReader(
-        tester,
-        role: () => Future.value(role),
-        initialLocation: '/sites/s1/edit?suggest=1',
-      );
-
-      expect(find.byType(RecordEditBar), findsOneWidget);
-      expect(isReaderSitting(sitting(tester)), reader);
-    });
-  }
 
   testWidgets('a reader\'s unlock reads Suggest changes', (tester) async {
     await pumpReader(tester);

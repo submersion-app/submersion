@@ -7,8 +7,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/form_overline.dart';
 
 /// The site types as multi-select chips, under their overline with its
-/// "manage types" link (issue #1765): the form's Type & Tags section and the
-/// site page's header block both use them.
+/// "manage types" link (issue #1765), as the site page's header block edits
+/// them.
 class SiteTypeChips extends StatelessWidget {
   const SiteTypeChips({
     super.key,

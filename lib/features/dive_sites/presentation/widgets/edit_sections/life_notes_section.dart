@@ -10,8 +10,9 @@ import 'package:submersion/shared/widgets/forms/form_overline.dart';
 import 'package:submersion/shared/widgets/forms/form_section.dart';
 import 'package:submersion/shared/widgets/forms/suggestion_form_row.dart';
 
-/// Site group 5: expected marine life (overline + chips), notes row, and
-/// who the site is shared with ([shareField]).
+/// The merge page's Life & notes group: expected marine life (overline and
+/// chips) and the notes row. A merge keeps each site's sharing, so it has
+/// no sharing row.
 class LifeNotesSection extends StatelessWidget {
   const LifeNotesSection({
     super.key,
@@ -24,7 +25,6 @@ class LifeNotesSection extends StatelessWidget {
     required this.onRemoveSpecies,
     required this.notesController,
     this.mergeExtras,
-    this.shareField,
   });
 
   final bool expanded;
@@ -37,9 +37,6 @@ class LifeNotesSection extends StatelessWidget {
   final TextEditingController notesController;
 
   final MergeFieldExtras? Function(String key)? mergeExtras;
-
-  /// Who the site is shared with (issue #2151); null to show nothing.
-  final Widget? shareField;
 
   @override
   Widget build(BuildContext context) {
@@ -104,7 +101,6 @@ class LifeNotesSection extends StatelessWidget {
               ? null
               : MergeCycleButton(onPressed: notesExtras.onCycle),
         ),
-        ?shareField,
       ],
     );
   }

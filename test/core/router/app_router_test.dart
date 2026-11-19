@@ -404,6 +404,13 @@ void main() {
     expect(route?.redirect, same(siteEditRedirect));
   });
 
+  // The merge address handed fewer than two sites goes back to the list
+  // (issue #4527, phase 2, plan 7).
+  test('the site merge address checks it was handed sites to merge', () {
+    final route = _findRouteByName(router.configuration.routes, 'mergeSite');
+    expect(route?.redirect, same(siteMergeRedirect));
+  });
+
   test('leaving a site page goes through its sitting check', () {
     // A new site with something entered asks too (issue #4527, plan 6).
     for (final name in const ['sites', 'siteDetail', 'newSite']) {
