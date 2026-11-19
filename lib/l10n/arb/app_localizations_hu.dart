@@ -11314,6 +11314,29 @@ class AppLocalizationsHu extends AppLocalizations {
       'A Hydrotank nyomása nem méri az elhasznált gázt';
 
   @override
+  String get diveLog_cylinders_aveloTitle => 'Avelo';
+
+  @override
+  String diveLog_cylinders_aveloGasRemaining(int start, int end) {
+    return 'Maradék gáz $start% és $end% között';
+  }
+
+  @override
+  String diveLog_cylinders_aveloBuoyancy(String min, String max, String mean) {
+    return 'Avelo felhajtóerő $min és $max között, átlag $mean';
+  }
+
+  @override
+  String diveLog_cylinders_aveloRmv(String min, String max) {
+    return 'RMV (komputer) $min és $max között';
+  }
+
+  @override
+  String diveLog_cylinders_aveloMaxPressure(String pressure) {
+    return 'Legnagyobb nyomás $pressure';
+  }
+
+  @override
   String diveLog_cylinders_modNote(String ppO2) {
     return 'MOD $ppO2 ppO₂-nél';
   }

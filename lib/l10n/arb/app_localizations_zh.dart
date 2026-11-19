@@ -10770,6 +10770,29 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_cylinders_hydrotankNote => 'Hydrotank 压力不代表已用气量';
 
   @override
+  String get diveLog_cylinders_aveloTitle => 'Avelo';
+
+  @override
+  String diveLog_cylinders_aveloGasRemaining(int start, int end) {
+    return '剩余气体 $start% 至 $end%';
+  }
+
+  @override
+  String diveLog_cylinders_aveloBuoyancy(String min, String max, String mean) {
+    return 'Avelo 浮力 $min 至 $max，平均 $mean';
+  }
+
+  @override
+  String diveLog_cylinders_aveloRmv(String min, String max) {
+    return 'RMV（电脑）$min 至 $max';
+  }
+
+  @override
+  String diveLog_cylinders_aveloMaxPressure(String pressure) {
+    return '最大压力 $pressure';
+  }
+
+  @override
   String diveLog_cylinders_modNote(String ppO2) {
     return '氧分压 $ppO2 时的最大作业深度';
   }

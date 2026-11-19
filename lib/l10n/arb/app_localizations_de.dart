@@ -11331,6 +11331,29 @@ class AppLocalizationsDe extends AppLocalizations {
       'Der Druck im Hydrotank misst nicht das verbrauchte Gas';
 
   @override
+  String get diveLog_cylinders_aveloTitle => 'Avelo';
+
+  @override
+  String diveLog_cylinders_aveloGasRemaining(int start, int end) {
+    return 'Restgas $start % bis $end %';
+  }
+
+  @override
+  String diveLog_cylinders_aveloBuoyancy(String min, String max, String mean) {
+    return 'Avelo-Auftrieb $min bis $max, Durchschnitt $mean';
+  }
+
+  @override
+  String diveLog_cylinders_aveloRmv(String min, String max) {
+    return 'RMV (Computer) $min bis $max';
+  }
+
+  @override
+  String diveLog_cylinders_aveloMaxPressure(String pressure) {
+    return 'Maximaler Druck $pressure';
+  }
+
+  @override
   String diveLog_cylinders_modNote(String ppO2) {
     return 'MOD bei ppO₂ $ppO2';
   }

@@ -11382,6 +11382,29 @@ class AppLocalizationsFr extends AppLocalizations {
       'La pression du Hydrotank ne mesure pas le gaz consommé';
 
   @override
+  String get diveLog_cylinders_aveloTitle => 'Avelo';
+
+  @override
+  String diveLog_cylinders_aveloGasRemaining(int start, int end) {
+    return 'Gaz restant de $start % à $end %';
+  }
+
+  @override
+  String diveLog_cylinders_aveloBuoyancy(String min, String max, String mean) {
+    return 'Flottabilité Avelo de $min à $max, moyenne $mean';
+  }
+
+  @override
+  String diveLog_cylinders_aveloRmv(String min, String max) {
+    return 'RMV (ordinateur) de $min à $max';
+  }
+
+  @override
+  String diveLog_cylinders_aveloMaxPressure(String pressure) {
+    return 'Pression maximale $pressure';
+  }
+
+  @override
   String diveLog_cylinders_modNote(String ppO2) {
     return 'PMU à ppO₂ $ppO2';
   }

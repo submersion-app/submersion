@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_log/data/services/estimated_tank_pressu
 import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
+import 'package:submersion/features/dive_log/domain/services/avelo_summary.dart';
 import 'package:submersion/features/dive_log/domain/services/logged_tank_mod.dart';
 import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_pressure_lookup.dart';
@@ -22,6 +23,7 @@ import 'package:submersion/features/dive_log/presentation/providers/chart_tank_p
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/avelo_summary_block.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/cylinder_block.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tank_series_exchange.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/field_attribution_badge.dart';
@@ -156,12 +158,21 @@ class CylindersCard extends ConsumerWidget {
     };
     bool checkInReadOnly(DiveTank tank) =>
         !storedGearIds.contains(tank.equipmentId);
+    // What the computer recorded in Avelo mode (issue #4664), under the
+    // Hydrotank, or under the first tank when none carries that role.
+    final aveloTank =
+        dive.tanks.where((t) => t.role == TankRole.hydrotank).firstOrNull ??
+        dive.tanks.firstOrNull;
+    final aveloSummary = aveloTank == null
+        ? null
+        : aveloSummaryOf(dive.profile, seriesByTank[aveloTank.id]);
     final rows = [
       for (final entry in dive.tanks.asMap().entries)
         _tankRow(
           context,
           index: entry.key,
           tank: entry.value,
+          aveloSummary: entry.value.id == aveloTank?.id ? aveloSummary : null,
           cylinderSac: sacByTankId[entry.value.id],
           cursorLine: cursorLines[entry.value.id],
           series: seriesByTank[entry.value.id],
@@ -332,6 +343,7 @@ class CylindersCard extends ConsumerWidget {
     required String? operationReason,
     required RecordOperationRunner runAsOperation,
     required bool checkInReadOnly,
+    AveloSummary? aveloSummary,
   }) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
@@ -491,6 +503,12 @@ class CylindersCard extends ConsumerWidget {
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
+          ),
+        if (aveloSummary != null)
+          AveloSummaryBlock(
+            key: Key('tank-avelo-summary-${tank.id}'),
+            summary: aveloSummary,
+            units: units,
           ),
         if (slotLabel != null)
           Text(

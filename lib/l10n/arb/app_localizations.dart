@@ -17974,6 +17974,36 @@ abstract class AppLocalizations {
   /// **'Hydrotank pressure does not measure gas used'**
   String get diveLog_cylinders_hydrotankNote;
 
+  /// Cylinders card heading of the Avelo summary under the Hydrotank (issue #4664): what the dive computer recorded in Shearwater's Avelo mode. Avelo is the product name of the Avelo Dive System and stays untranslated.
+  ///
+  /// In en, this message translates to:
+  /// **'Avelo'**
+  String get diveLog_cylinders_aveloTitle;
+
+  /// Avelo summary line: the Hydrotank's gas remaining, as a percentage the dive computer logged, at the start and end of the dive, e.g. "Gas remaining 97% to 36%"
+  ///
+  /// In en, this message translates to:
+  /// **'Gas remaining {start}% to {end}%'**
+  String diveLog_cylinders_aveloGasRemaining(int start, int end);
+
+  /// Avelo summary line: the lowest, highest and average buoyancy the dive computer logged in Avelo mode, each a signed weight (negative is heavy), e.g. "Avelo buoyancy -0.9 lbs to +2.7 lbs, average +0.6 lbs". Keep the word Avelo so it is not read as the app's own modelled buoyancy.
+  ///
+  /// In en, this message translates to:
+  /// **'Avelo buoyancy {min} to {max}, average {mean}'**
+  String diveLog_cylinders_aveloBuoyancy(String min, String max, String mean);
+
+  /// Avelo summary line: the lowest and highest respiratory minute volume the dive computer itself logged (not the app's calculated RMV), e.g. "RMV (computer) 10.7 L/min to 29.8 L/min"
+  ///
+  /// In en, this message translates to:
+  /// **'RMV (computer) {min} to {max}'**
+  String diveLog_cylinders_aveloRmv(String min, String max);
+
+  /// Avelo summary line: the highest Hydrotank pressure during the dive, e.g. "Max pressure 3498 psi"
+  ///
+  /// In en, this message translates to:
+  /// **'Max pressure {pressure}'**
+  String diveLog_cylinders_aveloMaxPressure(String pressure);
+
   /// Note under the Cylinders card table: the ppO2 every MOD on the card was computed at. {ppO2} is one value ("MOD at ppO₂ 1.4") or, when the cylinders use different limits, a list of diveLog_cylinders_modLimit items ("MOD at ppO₂ 1.4 (bottom limit), 1.6 (deco limit)")
   ///
   /// In en, this message translates to:
