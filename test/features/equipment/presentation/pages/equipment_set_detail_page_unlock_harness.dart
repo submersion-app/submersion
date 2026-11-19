@@ -116,7 +116,8 @@ Future<EquipmentSet> storedSet(WidgetTester tester, [String id = 's1']) async =>
 
 /// Pumps the set page for [setId] with the phase 3 switch on (unless
 /// [unlockEditing] is false), at phone width. A gear item's page is a
-/// placeholder reading "item" and its id, and the gear list "gear list".
+/// placeholder reading "item" and its id, the gear list "gear list", and
+/// the new set form "new set" and the set it clones.
 Future<void> pumpSetPage(
   WidgetTester tester, {
   String setId = 's1',
@@ -140,6 +141,12 @@ Future<void> pumpSetPage(
         path: '/equipment',
         builder: (_, _) => const Scaffold(body: Text('gear list')),
         routes: [
+          GoRoute(
+            path: 'sets/new',
+            builder: (_, state) => Scaffold(
+              body: Text('new set ${state.uri.queryParameters['cloneFrom']}'),
+            ),
+          ),
           GoRoute(
             path: 'sets/:setId',
             builder: (_, state) => EquipmentSetDetailPage(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 import 'package:submersion/features/equipment/figure/presentation/gear_figure.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
@@ -304,6 +305,95 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.widget<AppBarTextAction>(saveButton()).onPressed, isNull);
+  });
+
+  group('hosts and operations', () {
+    testWidgets('opened with mode=edit, the page is unlocked', (tester) async {
+      await pumpSetPage(tester, openUnlocked: true);
+
+      expect(find.byType(RecordEditBar), findsOneWidget);
+    });
+
+    testWidgets("the sets pane's edit opens the page unlocked, Cancel "
+        'returns to view', (tester) async {
+      var ended = 0;
+      await pumpSetPage(
+        tester,
+        openUnlocked: true,
+        onSittingEnded: () => ended++,
+      );
+
+      await tester.tap(find.text(l.forms_cancel));
+      await tester.pumpAndSettle();
+
+      expect(ended, 1);
+      expect(find.byType(RecordEditBar), findsNothing);
+    });
+
+    testWidgets("the pane's Save updates the set and returns to view", (
+      tester,
+    ) async {
+      var ended = 0;
+      await pumpSetPage(
+        tester,
+        openUnlocked: true,
+        onSittingEnded: () => ended++,
+      );
+      await openCard(tester, header);
+      await tester.enterText(
+        find.byKey(const ValueKey('set-edit-name')),
+        'Kelp',
+      );
+      await tester.pumpAndSettle();
+
+      await save(tester);
+
+      expect((await storedSet(tester)).name, 'Kelp');
+      expect(ended, 1);
+    });
+
+    testWidgets('unlocked and clean, Delete asks and deletes', (tester) async {
+      await pumpSetPage(tester);
+      await unlock(tester);
+      await openMenu(tester);
+      await tester.tap(find.text(l.equipment_setDetail_deleteMenuItem));
+      await tester.pumpAndSettle();
+      expect(find.text(l.equipment_setDetail_deleteDialog_title), findsOne);
+
+      await tester.tap(find.text(l.equipment_setDetail_deleteDialog_confirm));
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 200)),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('gear list'), findsOneWidget);
+      final gone = await tester.runAsync(
+        () => EquipmentSetRepository().getSetById('s1'),
+      );
+      expect(gone, isNull);
+    });
+
+    testWidgets('with unsaved changes Delete waits for Save or Cancel', (
+      tester,
+    ) async {
+      await pumpSetPage(tester);
+      await unlock(tester);
+      await openCard(tester, header);
+      await tester.enterText(find.byKey(const ValueKey('set-edit-name')), 'X');
+      await tester.pumpAndSettle();
+      await openMenu(tester);
+
+      expect(find.text(l.recordEdit_saveOrCancelFirst), findsOneWidget);
+    });
+
+    testWidgets('Clone works locked and opens the form', (tester) async {
+      await pumpSetPage(tester);
+      await openMenu(tester);
+      await tester.tap(find.text(l.equipment_menu_clone));
+      await tester.pumpAndSettle();
+
+      expect(find.text('new set s1'), findsOneWidget);
+    });
   });
 
   group('members follow the sitting', () {
