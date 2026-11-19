@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
+import 'package:submersion/features/dive_computer/presentation/editing/dive_computer_settings_sitting.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_computer/domain/services/dive_computer_merge_rules.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/dive_computer_merge_sheet.dart';
@@ -12,9 +14,17 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// number (#645). Shrinks to nothing while loading or when there is none,
 /// so the page never reserves space for a banner it may not show.
 class DiveComputerDuplicateBanner extends ConsumerWidget {
-  const DiveComputerDuplicateBanner({super.key, required this.computer});
+  const DiveComputerDuplicateBanner({
+    super.key,
+    required this.computer,
+    this.operations,
+  });
 
   final DiveComputer computer;
+
+  /// Where the computer's gear item edits in place (issue #4527, phase 3):
+  /// merging is a whole-record operation.
+  final DiveComputerOperations? operations;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -58,13 +68,25 @@ class DiveComputerDuplicateBanner extends ConsumerWidget {
               ),
               Align(
                 alignment: AlignmentDirectional.centerEnd,
-                child: TextButton.icon(
-                  key: const ValueKey('duplicate_banner_merge'),
-                  onPressed: () =>
-                      mergeDiveComputerWith(context, ref, computer, duplicates),
-                  icon: const Icon(Icons.merge_type),
-                  label: Text(
-                    context.l10n.diveComputer_detail_duplicateBannerAction,
+                child: RecordOperationButton(
+                  reason: operations?.reason,
+                  onPressed: () => runDiveComputerOperation(
+                    operations,
+                    () => mergeDiveComputerWith(
+                      context,
+                      ref,
+                      computer,
+                      duplicates,
+                    ),
+                    'merge from the duplicate banner',
+                  ),
+                  builder: (onPressed) => TextButton.icon(
+                    key: const ValueKey('duplicate_banner_merge'),
+                    onPressed: onPressed,
+                    icon: const Icon(Icons.merge_type),
+                    label: Text(
+                      context.l10n.diveComputer_detail_duplicateBannerAction,
+                    ),
                   ),
                 ),
               ),

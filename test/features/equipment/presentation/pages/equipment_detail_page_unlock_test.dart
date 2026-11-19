@@ -3,6 +3,13 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/dive_computer/domain/entities/clock_sync.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/clock_sync_providers.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_detail_page.dart';
 import 'package:submersion/features/documents/presentation/editing/record_document_links_sitting.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
@@ -239,6 +246,141 @@ void main() {
       await save(tester);
 
       expect(harness.save.calls, isEmpty);
+    });
+  });
+
+  group('the dive computer card', () {
+    final perdix = apex.copyWith(name: 'Perdix', type: EquipmentType.computer);
+    final computerCard = l.diveComputer_title;
+
+    setUp(() async {
+      final db = DatabaseService.instance.database;
+      await db.customStatement(
+        "INSERT INTO divers (id, name, created_at, updated_at) "
+        "VALUES ('d1', 'D', 0, 0)",
+      );
+      await EquipmentRepository().createEquipment(perdix);
+      await db.customStatement(
+        "INSERT INTO dive_computers (id, diver_id, name, equipment_id, "
+        "is_favorite, created_at, updated_at) VALUES "
+        "('c1', 'd1', 'Perdix', 'g1', 0, 0, 0)",
+      );
+    });
+
+    Future<bool> storedFavourite() async =>
+        (await DiveComputerRepository().getComputerById('c1'))!.isFavorite;
+
+    ClockSyncOverride clockSyncOf(WidgetTester tester) =>
+        ProviderScope.containerOf(
+          tester.element(find.byType(EquipmentDetailPage)),
+        ).read(clockSyncSettingsNotifierProvider).overrideFor('c1');
+
+    IconButton favourite(WidgetTester tester) => tester.widget<IconButton>(
+      find.byKey(const ValueKey('dive_computer_favourite')).first,
+    );
+
+    testWidgets('locked with the switch on, the star writes nothing', (
+      tester,
+    ) async {
+      await pumpGearPage(tester, item: perdix);
+
+      expect(favourite(tester).onPressed, isNull);
+      expect(await storedFavourite(), isFalse);
+    });
+
+    testWidgets('merge is disabled under "Unlock to use these"', (
+      tester,
+    ) async {
+      await pumpGearPage(tester, item: perdix);
+
+      final merge = tester.widget<IconButton>(
+        find.byKey(const ValueKey('dive_computer_merge')),
+      );
+      expect(merge.onPressed, isNull);
+      expect(find.byTooltip(l.recordEdit_unlockToUseThis), findsWidgets);
+    });
+
+    testWidgets('unlocked and clean, merge is offered; with a change, it is '
+        'not', (tester) async {
+      await pumpGearPage(tester, item: perdix);
+      await unlock(tester);
+
+      IconButton merge() => tester.widget<IconButton>(
+        find.byKey(const ValueKey('dive_computer_merge')),
+      );
+      expect(merge().onPressed, isNotNull);
+
+      sessionOf(tester).set(gearNotesField, 'Changed');
+      await tester.pumpAndSettle();
+      expect(merge().onPressed, isNull);
+    });
+
+    testWidgets('the favourite set in the open card is written with the Save', (
+      tester,
+    ) async {
+      final harness = await pumpGearPage(tester, item: perdix);
+      await unlock(tester);
+      await openCard(tester, computerCard);
+
+      await tester.tap(find.byKey(const ValueKey('dive_computer_favourite')));
+      await tester.pumpAndSettle();
+      expect(await storedFavourite(), isFalse);
+
+      await save(tester);
+
+      expect(harness.save.calls.single.cards, {'diveComputer'});
+      expect(await storedFavourite(), isTrue);
+    });
+
+    testWidgets('a clock sync choice is written after the commit, and not on '
+        'Cancel', (tester) async {
+      await pumpGearPage(tester, item: perdix);
+      await unlock(tester);
+      await openCard(tester, computerCard);
+      final always = find.descendant(
+        of: find.byKey(const ValueKey('clock_sync_override')),
+        matching: find.text(l.diveComputer_clockSync_overrideAlways),
+      );
+      await tester.ensureVisible(always);
+      await tester.tap(always);
+      await tester.pumpAndSettle();
+      expect(clockSyncOf(tester), ClockSyncOverride.inherit);
+
+      await tester.tap(find.text(l.common_action_cancel));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l.forms_discard_discard));
+      await tester.pumpAndSettle();
+      expect(clockSyncOf(tester), ClockSyncOverride.inherit);
+
+      await unlock(tester);
+      await openCard(tester, computerCard);
+      await tester.ensureVisible(always);
+      await tester.tap(always);
+      await tester.pumpAndSettle();
+      await save(tester);
+
+      expect(clockSyncOf(tester), ClockSyncOverride.always);
+    });
+
+    testWidgets('a failed Save leaves the clock sync choice as it was', (
+      tester,
+    ) async {
+      final harness = await pumpGearPage(tester, item: perdix);
+      harness.save.fail = true;
+      await unlock(tester);
+      await openCard(tester, computerCard);
+      final never = find.descendant(
+        of: find.byKey(const ValueKey('clock_sync_override')),
+        matching: find.text(l.diveComputer_clockSync_overrideNever),
+      );
+      await tester.ensureVisible(never);
+      await tester.tap(never);
+      await tester.pumpAndSettle();
+
+      await save(tester);
+
+      expect(clockSyncOf(tester), ClockSyncOverride.inherit);
+      expect(find.byIcon(Icons.lock_outline), findsNothing);
     });
   });
 

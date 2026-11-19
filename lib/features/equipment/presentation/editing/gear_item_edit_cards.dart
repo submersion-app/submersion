@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/dive_computer/presentation/widgets/dive_computer_section.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -24,6 +25,15 @@ final Map<GearItemCardId, EditCard<EquipmentItem>> gearItemEditCards = {
     // A name, as the form's validator has it.
     isValid: (session) => gearNameValid(session.working.name),
     editorBuilder: (context, session) => GearItemHeaderEditor(session: session),
+  ),
+  GearItemCardId.diveComputer: EditCard<EquipmentItem>(
+    id: GearItemCardId.diveComputer.name,
+    title: (context) =>
+        GearItemCardId.diveComputer.localizedDisplayName(context.l10n),
+    // Shown for a computer item only, as the page always has.
+    isEmpty: (_) => false,
+    editorBuilder: (context, session) =>
+        DiveComputerSection(equipmentId: session.stored.id, editing: session),
   ),
   GearItemCardId.details: EditCard<EquipmentItem>(
     id: GearItemCardId.details.name,

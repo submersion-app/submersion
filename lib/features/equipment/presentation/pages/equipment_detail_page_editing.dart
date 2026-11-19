@@ -78,6 +78,8 @@ mixin _EquipmentDetailPageEditing
     // Read before the write: the page can be gone by the time it is done.
     final service = ref.read(gearItemEditSaveServiceProvider);
     final container = ProviderScope.containerOf(context, listen: false);
+    // Read now: the sitting ends with the Save.
+    final clockSync = heldClockSync(session);
     final result = await service.save(
       // The item the sitting was opened on, whatever the page shows by the
       // time the write is asked for.
@@ -93,6 +95,7 @@ mixin _EquipmentDetailPageEditing
       equipmentId: session.stored.id,
       before: result?.before,
       after: result?.after,
+      clockSync: clockSync,
     );
   }
 
@@ -145,12 +148,32 @@ mixin _EquipmentDetailPageEditing
 /// 6): the lists refreshed, and the dives a transmitter item's registry
 /// entries match rescanned when its serial changed (best effort, as the
 /// edit form). [before] and [after] are null when the row did not change.
+///
+/// [clockSync], a dive computer's clock sync choice the sitting held, is
+/// written here, once the sitting has committed: it lives in this
+/// installation's preferences, outside the database and its History.
 Future<void> afterGearItemSave(
   ProviderContainer container, {
   required String equipmentId,
   EquipmentItem? before,
   EquipmentItem? after,
+  HeldClockSync? clockSync,
 }) async {
+  if (clockSync != null) {
+    await container
+        .read(clockSyncSettingsNotifierProvider.notifier)
+        .setOverride(clockSync.computerId, clockSync.value);
+  }
+  // The computer's own settings may have been written with the item.
+  for (final computer
+      in container.read(computersForEquipmentProvider(equipmentId)).value ??
+          const <DiveComputer>[]) {
+    container.invalidate(diveComputerByIdProvider(computer.id));
+  }
+  container
+    ..invalidate(computersForEquipmentProvider(equipmentId))
+    ..invalidate(allDiveComputersProvider)
+    ..invalidate(favoriteDiveComputerProvider);
   if (before != null &&
       after != null &&
       before.serialNumber != after.serialNumber) {

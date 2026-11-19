@@ -2,6 +2,10 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/clock_sync_providers.dart';
+import 'package:submersion/features/dive_computer/presentation/editing/dive_computer_settings_sitting.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/router/pushed_route.dart';
@@ -324,7 +328,10 @@ class _EquipmentDetailContent extends ConsumerWidget {
           // the Details card (issue #4622). Brings its own bottom gap: it
           // takes no room while it loads or when it fails.
           if (equipment.type == EquipmentType.computer)
-            DiveComputerSection(equipmentId: equipmentId),
+            _framed(
+              GearItemCardId.diveComputer,
+              DiveComputerSection(equipmentId: equipmentId),
+            ),
           _framed(
             GearItemCardId.details,
             _buildDetailsSection(context, ref, equipment, units),

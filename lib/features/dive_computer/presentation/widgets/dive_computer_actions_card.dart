@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
+import 'package:submersion/features/dive_computer/presentation/editing/dive_computer_settings_sitting.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
@@ -15,9 +17,17 @@ final _log = LoggerService.forClass(DiveComputerActionsCard);
 /// Download, view, re-import and re-parse, on a dive computer's Equipment
 /// page (issue #3676).
 class DiveComputerActionsCard extends ConsumerWidget {
-  const DiveComputerActionsCard({super.key, required this.computer});
+  const DiveComputerActionsCard({
+    super.key,
+    required this.computer,
+    this.operations,
+  });
 
   final DiveComputer computer;
+
+  /// Where the computer's gear item edits in place (issue #4527, phase 3):
+  /// re-parse all is a whole-record operation. Downloads work locked.
+  final DiveComputerOperations? operations;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -54,7 +64,7 @@ class DiveComputerActionsCard extends ConsumerWidget {
                 label: Text(context.l10n.diveComputer_detail_reimportAllButton),
               ),
             ],
-            _RawDataActions(computer: computer),
+            _RawDataActions(computer: computer, operations: operations),
           ],
         ),
       ),
@@ -91,9 +101,10 @@ class DiveComputerActionsCard extends ConsumerWidget {
 /// Re-parse all and discard raw data, shown only while the computer has
 /// stored raw dive data.
 class _RawDataActions extends ConsumerWidget {
-  const _RawDataActions({required this.computer});
+  const _RawDataActions({required this.computer, this.operations});
 
   final DiveComputer computer;
+  final DiveComputerOperations? operations;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -105,10 +116,19 @@ class _RawDataActions extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 12),
-            OutlinedButton.icon(
-              onPressed: () => _confirmReparseAll(context, ref, c),
-              icon: const Icon(Icons.refresh),
-              label: Text(context.l10n.diveComputer_detail_reparseAllButton),
+            RecordOperationButton(
+              reason: operations?.reason,
+              onPressed: () => runDiveComputerOperation(
+                operations,
+                () => _confirmReparseAll(context, ref, c),
+                're-parse all',
+              ),
+              builder: (onPressed) => OutlinedButton.icon(
+                key: const ValueKey('dive_computer_reparse_all'),
+                onPressed: onPressed,
+                icon: const Icon(Icons.refresh),
+                label: Text(context.l10n.diveComputer_detail_reparseAllButton),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.only(top: 4),

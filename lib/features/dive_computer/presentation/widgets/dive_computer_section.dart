@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/dive_computer_controls.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
@@ -16,9 +18,17 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// takes no room at all instead of leaving a doubled gap at the top of the
 /// page (issue #4622).
 class DiveComputerSection extends ConsumerWidget {
-  const DiveComputerSection({super.key, required this.equipmentId});
+  const DiveComputerSection({
+    super.key,
+    required this.equipmentId,
+    this.editing,
+  });
 
   final String equipmentId;
+
+  /// The gear item's sitting, where this is its open Dive computer card's
+  /// editor (issue #4527, phase 3).
+  final EditSession<EquipmentItem>? editing;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -28,7 +38,7 @@ class DiveComputerSection extends ConsumerWidget {
         padding: const EdgeInsets.only(bottom: 24),
         child: list.isEmpty
             ? _ConnectCard(equipmentId: equipmentId)
-            : DiveComputerControls(computerId: list.first.id),
+            : DiveComputerControls(computerId: list.first.id, editing: editing),
       ),
       loading: () => const SizedBox.shrink(),
       error: (error, stack) => const SizedBox.shrink(),
