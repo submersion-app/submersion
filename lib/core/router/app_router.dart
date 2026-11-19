@@ -31,6 +31,7 @@ import 'package:submersion/features/setup_wizard/domain/setup_wizard_models.dart
 import 'package:submersion/features/setup_wizard/presentation/pages/setup_wizard_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_edit_page.dart';
+import 'package:submersion/features/buddies/presentation/pages/buddy_edit_routes.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_merge_page.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
@@ -971,12 +972,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'merge',
                 name: 'mergeBuddy',
-                builder: (context, state) {
-                  final buddyIds =
-                      (state.extra as List<dynamic>?)?.cast<String>() ??
-                      const <String>[];
-                  return BuddyMergePage(buddyIds: buddyIds);
-                },
+                // Fewer than two buddies is nothing to merge: the list.
+                redirect: buddyMergeRedirect,
+                builder: (context, state) =>
+                    BuddyMergePage(buddyIds: buddyMergeIds(state.extra)),
               ),
               GoRoute(
                 path: 'swap',
