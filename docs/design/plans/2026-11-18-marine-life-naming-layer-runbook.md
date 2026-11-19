@@ -6,7 +6,8 @@ other context, on a local model, over several days.
 
 - **Design (read first):** `docs/design/specs/2026-11-18-marine-life-naming-layer-design.md`
 - **Implementation plan (tasks 1 to 6 are done):** `docs/design/plans/2026-11-18-marine-life-naming-layer.md`
-- **Branch:** `ericgriffin/feat-4724-naming-layer` (local only, not pushed)
+- **Branch:** `ericgriffin/feat-4724-naming-layer`, pushed, with the tools
+  pull request open (see Phase 7.0)
 - **Worktree:** `/Users/ericgriffin/repos/submersion-app/submersion/.claude/worktrees/feat-4724-naming-layer`
 
 ## How to use this runbook
@@ -459,6 +460,23 @@ step is approach B, which is a new design, not something to start here).
 
 ## Phase 7: Record the measured bars (only when the gate passed and Eric said go)
 
+### 7.0 The branch
+
+The tools (the fetcher, the trainer, the gate, the scorer's per-photo output
+and the CI wiring) went to main in their own pull request, which refers to
+#4724 without closing it (opened 2026-11-19). Phases 7 and 8 make a second
+pull request that closes #4724. Check where the first one stands:
+
+```bash
+source /Users/ericgriffin/repos/submersion-app/naming-training/env.sh
+cd $WT && gh pr list --head ericgriffin/feat-4724-naming-layer --state all --json number,state,url
+```
+
+- `MERGED`: start the second branch from main in the same worktree:
+  `git fetch origin && git switch -c ericgriffin/feat-4724-naming-measured origin/main`.
+- `OPEN` or `CLOSED`: STOP, and ask Eric whether to wait, or to add these
+  commits to that pull request.
+
 ### 7.1 Add the measured entry
 
 In `tool/species_pack/manifest.py`, after `_FINDINGS = ...`, add the trained
@@ -628,18 +646,20 @@ publish. If he says to open the pull request:
      && dart run build_runner build --delete-conflicting-outputs
    ```
 
-2. `git fetch origin && git rebase origin/main`, then rerun the Python test
-   files this branch touches:
-   `training_set_test.py`, `fetch_training_test.py`, `manifest_test.py`,
-   `gate_test.py` with `python3.14`, and `train_naming_test.py` with `$PY -I`.
-3. `git push -u origin ericgriffin/feat-4724-naming-layer` (the hook runs its
-   checks; a failure there is a STOP).
+2. `git fetch origin && git rebase origin/main`, then rerun
+   `manifest_test.py` with `python3.14`, the one test file this branch
+   touches.
+3. `git push -u origin ericgriffin/feat-4724-naming-measured` (the hook runs
+   its checks; a failure there is a STOP).
 4. Open the pull request with `gh pr create --base main`, title
    `feat(species-id): a naming layer trained on photos`, and a body from the
    repository template (`.github/pull_request_template.md`) with:
-   `Closes #4724` under Related Issue; a Summary of the design and the gate
-   numbers; the Changes as one bullet per tool; the Test Plan listing the
-   five test files; Browser: tick "Nothing device-only"; and the Screenshots
-   section deleted (nothing under a UI path changes). No mention of AI tools.
+   `Closes #4724` under Related Issue, naming the tools pull request it
+   builds on; a Summary of the gate numbers and what the measured bars
+   change; the Changes as one bullet each for the measured entry, the
+   findings and the developer guide; the Test Plan listing
+   `manifest_test.py`; Browser: tick "Nothing device-only"; and the
+   Screenshots section deleted (nothing under a UI path changes). No mention
+   of AI tools.
 5. Report the pull request link to Eric. Reviews, Copilot and publishing are
    his to start.
