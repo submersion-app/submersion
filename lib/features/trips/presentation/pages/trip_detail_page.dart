@@ -35,6 +35,7 @@ import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dar
 import 'package:submersion/features/trips/presentation/editing/trip_card_slots.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_edit_cards.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_header_card_editor.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_overview_card_editors.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_vessel_sitting.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
@@ -257,12 +258,16 @@ class _TripDetailContent extends ConsumerWidget {
               embedded: embedded,
               section: TripEditSection.planning,
             ),
-            onEditDayNote: (day) => openTripEdit(
-              context,
-              trip.id,
-              embedded: embedded,
-              noteDay: day,
-            ),
+            // Where the page edits in place, the day's note is its Day
+            // plan, opened where it is, unlocking first when locked.
+            onEditDayNote: host != null
+                ? (day) => host._openCard(TripCardId.notes, trip)
+                : (day) => openTripEdit(
+                    context,
+                    trip.id,
+                    embedded: embedded,
+                    noteDay: day,
+                  ),
           ),
         ),
       ],

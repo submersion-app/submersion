@@ -161,6 +161,19 @@ mixin _TripDetailPageEditing
         if (card == null) return child;
         return RecordCardFrame<Trip>(card: card, child: child);
       },
+      dayPlanFrame: (day, child) {
+        final notes = tripEditCards[TripCardId.notes]!;
+        return RecordCardFrame<Trip>(
+          card: EditCard<Trip>(
+            id: notes.id,
+            title: notes.title,
+            isEmpty: notes.isEmpty,
+            editorBuilder: (context, session) =>
+                TripDayPlanCardEditor(session: session, day: day),
+          ),
+          child: child,
+        );
+      },
       showsWhileEmpty: _showsWhileEmpty,
       openCard: (id) => _openCard(id, shown),
     );

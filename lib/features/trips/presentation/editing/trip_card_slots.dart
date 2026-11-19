@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/services/trip_day_notes.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
@@ -17,6 +18,7 @@ class TripCardSlots {
     required this.layout,
     required this.session,
     required this.frame,
+    required this.dayPlanFrame,
     required this.showsWhileEmpty,
     required this.openCard,
   });
@@ -36,6 +38,10 @@ class TripCardSlots {
   /// [child] framed as the card [id]: its pencil, its changed dot, and its
   /// editor in place of it while open.
   final Widget Function(TripCardId id, Widget child) frame;
+
+  /// [child], a day's Day plan on the story, framed as the Notes card there:
+  /// its editor holds that day's passage of the notes.
+  final Widget Function(TripNoteDay day, Widget child) dayPlanFrame;
 
   /// Whether the empty card [id] shows in the sitting: open, or brought in
   /// from the strip.

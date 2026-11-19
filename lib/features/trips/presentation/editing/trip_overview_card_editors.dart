@@ -3,9 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/trips/domain/entities/liveaboard_details.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/services/trip_day_notes.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_edit_fields.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_vessel_sitting.dart';
+import 'package:submersion/features/trips/presentation/helpers/trip_day_note_editing.dart';
+import 'package:submersion/features/trips/presentation/helpers/trip_day_notes_vocabulary.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
@@ -432,4 +435,84 @@ class _TripVesselCardEditorState extends ConsumerState<TripVesselCardEditor> {
       ],
     );
   }
+}
+
+/// Day plan, on a day of the trip's story: that day's passage of the
+/// Notes, alone. It is the Notes card there: what it writes is the notes,
+/// under the day's heading, placed as the form placed it, and an added
+/// heading with nothing under it is no change.
+class TripDayPlanCardEditor extends StatefulWidget {
+  const TripDayPlanCardEditor({
+    super.key,
+    required this.session,
+    required this.day,
+  });
+
+  final EditSession<Trip> session;
+  final TripNoteDay day;
+
+  @override
+  State<TripDayPlanCardEditor> createState() => _TripDayPlanCardEditorState();
+}
+
+class _TripDayPlanCardEditorState extends State<TripDayPlanCardEditor> {
+  /// Where the day's passage is in the notes as the editor opened them.
+  late DayNotePlacement _placement;
+  late DayPassage _parts;
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController();
+  }
+
+  bool _placed = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_placed) return;
+    _placed = true;
+    final l10n = context.l10n;
+    _placement = placeDayNoteIn(
+      widget.session.valueOf(tripNotesField),
+      widget.day,
+      l10n,
+    );
+    _parts = dayPassageOf(
+      _placement,
+      widget.day,
+      tripDayNotesVocabularyFor(l10n),
+    );
+    _controller.value = TextEditingValue(
+      text: _parts.passage,
+      selection: TextSelection.collapsed(offset: _parts.passage.length),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onChanged(String passage) => widget.session.set(
+    tripNotesField,
+    withDayPassage(_placement, _parts, passage),
+  );
+
+  @override
+  Widget build(BuildContext context) => MarkdownNotesField(
+    key: const Key('trip-edit-day-note'),
+    controller: _controller,
+    autofocus: true,
+    onChanged: _onChanged,
+    decoration: InputDecoration(
+      labelText: context.l10n.trips_story_dayLabel(widget.day.dayNumber),
+      prefixIcon: const Icon(Icons.edit_note),
+      alignLabelWithHint: true,
+    ),
+    maxLines: 4,
+  );
 }
