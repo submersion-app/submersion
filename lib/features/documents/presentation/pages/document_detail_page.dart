@@ -361,6 +361,7 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage>
 
   /// Deletes [doc] after asking, and leaves the page. Answers whether it
   /// deleted.
+  @override
   Future<bool> _delete(Document doc) async {
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
