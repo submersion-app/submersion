@@ -9562,7 +9562,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_legend_label_aveloGasRemaining => 'Gas residuo';
 
   @override
-  String get diveLog_legend_label_computerRmv => 'RMV (computer)';
+  String get diveLog_legend_label_computerRmv => 'RMV (del computer)';
 
   @override
   String get diveLog_legend_source_dc => 'DC';
@@ -24009,7 +24009,7 @@ class AppLocalizationsIt extends AppLocalizations {
       'Gas residuo (Avelo)';
 
   @override
-  String get settings_appearance_metric_computerRmv => 'RMV (computer)';
+  String get settings_appearance_metric_computerRmv => 'RMV (del computer)';
 
   @override
   String get settings_appearance_metric_events => 'Eventi';
@@ -57007,7 +57007,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_profileMetric_aveloGasRemaining => 'Gas residuo';
 
   @override
-  String get enum_profileMetric_computerRmv => 'RMV (computer)';
+  String get enum_profileMetric_computerRmv => 'RMV (del computer)';
 
   @override
   String get enum_profileMetric_o2CellMv_short => 'Celle';
