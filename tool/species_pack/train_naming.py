@@ -11,7 +11,9 @@ cross-entropy over every candidate plus a pull back toward the name rows;
 rows of candidates with no training photo stay their name rows. The pull,
 the epochs, a blend with the name rows and an overall sharpness are chosen
 on the validation photos (post-cutoff photos of observers kept out of
-training), never on the test set.
+training), never on the test set. The sharpness scales every row, trained
+or not: it is the same as changing logitScale, so it leaves each crop's
+ranking of trained and untrained candidates as it was.
 
 The derived pack copies every file of the base pack but the rows and the
 manifest, so candidates, regions and models stay byte for byte the same.
@@ -157,7 +159,9 @@ def train(name_rows, x, y, *, anchor, epochs, lr, seed, device=None, validation=
 
 
 def finish(trained, name_rows, *, blend, sharpness):
-    """`sharpness` times a blend of the trained and name rows."""
+    """`sharpness` times a blend of the trained and name rows. Every row is
+    scaled, untrained ones too: scaling only the trained rows would rank
+    untrained species lower whenever `sharpness` is above 1."""
     return (sharpness * (blend * trained + (1 - blend) * name_rows)).astype(np.float32)
 
 

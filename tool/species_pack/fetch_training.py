@@ -13,7 +13,8 @@ Stages, each resumable:
   (training_set.py), into selected.json.
 - embed: per batch of photos, download, run the app's vision pipeline (the
   pair of detectors, centre crop, BioCLIP 2), keep the largest box's
-  embedding, delete the photos.
+  embedding, delete the photos. A photo gone from the bucket is skipped;
+  one whose download may work later leaves its batch for the next run.
 - all: the three in order.
 
 --wait: at a daily limit, sleep to the next UTC day and carry on.
@@ -27,12 +28,14 @@ from these scripts. Developer-run; not part of CI.
 import argparse
 import concurrent.futures
 import datetime
+import http.client
 import json
 import os
 import shutil
 import sys
 import threading
 import time
+import urllib.error
 import urllib.parse
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -95,32 +98,50 @@ def _until_done(stage, wait):
     return True
 
 
+# What download_batch found: every photo there or gone for good, the day's
+# budget spent first, or a photo whose download may work on a later run.
+DONE, LIMIT, RETRY = "done", "limit", "retry"
+# Failures that may pass: ft._get has already retried these a few times.
+_MAY_PASS = (urllib.error.URLError, TimeoutError, ConnectionError, http.client.HTTPException)
+
+
+def _gone(error):
+    """Whether a download error means the photo is not there to fetch: a
+    client error other than too many requests."""
+    return isinstance(error, urllib.error.HTTPError) and 400 <= error.code < 500 and error.code != 429
+
+
 def download_batch(batch, paths, budget, download=None, workers=8):
     """Downloads each record's photo to its path, charging `budget` photo by
-    photo. False when the day's budget ran out first: the photos left wait
-    for the next day, and those already on disk are not charged again. A
-    photo that fails to download is skipped, not fatal."""
+    photo. LIMIT when the day's budget ran out first, RETRY when a photo
+    failed in a way that may pass later: either way the batch waits for
+    another run, which fetches only the photos still missing, so none is
+    charged twice. A photo gone from the bucket is skipped (DONE)."""
     download = download or ft._download
     lock = threading.Lock()
 
     def fetch(r):
         path = paths[r["id"]]
         if os.path.exists(path):
-            return True
+            return DONE
         with lock:
             if budget.exhausted():
-                return False
+                return LIMIT
         try:
             download(r["photo_url"], path)
-        except Exception as e:  # a photo gone from the bucket is skipped, not fatal
-            print(f"skipping {r['id']}: {e}", flush=True)
-            return True
+        except _MAY_PASS as e:
+            if _gone(e):
+                print(f"skipping {r['id']}: {e}", flush=True)
+                return DONE
+            print(f"left for a later run {r['id']}: {e}", flush=True)
+            return RETRY
         with lock:
             budget.spend(os.path.getsize(path))
-        return True
+        return DONE
 
     with concurrent.futures.ThreadPoolExecutor(workers) as pool:
-        return all(list(pool.map(fetch, batch)))
+        outcomes = set(pool.map(fetch, batch))
+    return LIMIT if LIMIT in outcomes else RETRY if RETRY in outcomes else DONE
 
 
 def embedding_array(vectors):
@@ -254,6 +275,7 @@ def stage_embed(work, pack):
     out_dir = os.path.join(work, "embeddings")
     os.makedirs(out_dir, exist_ok=True)
     batches = batch_of(selected["train"] + selected["validation"])
+    left = 0
     for n, batch in enumerate(batches):
         meta_path = os.path.join(out_dir, f"{n:04d}.jsonl")
         if os.path.exists(meta_path):
@@ -263,9 +285,15 @@ def stage_embed(work, pack):
             return False
         photos_dir = os.path.join(work, "photos", f"{n:04d}")
         paths = {r["id"]: os.path.join(photos_dir, f"{r['id']}.jpg") for r in batch}
-        if not download_batch(batch, paths, budget):
+        outcome = download_batch(batch, paths, budget)
+        if outcome == LIMIT:
             print(f"stopped at the day's {DAILY_BYTES // 10**9} GB of photos; run embed again tomorrow", flush=True)
             return False
+        if outcome == RETRY:
+            # Its photos stay on disk; a later run fetches only the rest.
+            left += 1
+            print(f"embed: batch {n + 1} of {len(batches)} left for a later run", flush=True)
+            continue
         present = [r for r in batch if os.path.exists(paths[r["id"]])]
         raw = os.path.join(out_dir, f"{n:04d}.raw.jsonl")
         results = {}
@@ -292,6 +320,9 @@ def stage_embed(work, pack):
         os.replace(meta_path + ".partial", meta_path)
         shutil.rmtree(photos_dir, ignore_errors=True)
         print(f"embed: batch {n + 1} of {len(batches)}, {len(kept)} of {len(batch)} photos kept", flush=True)
+    if left:
+        print(f"embed: {left} batches left for a later run; run embed again tomorrow", flush=True)
+        return False
     return True
 
 

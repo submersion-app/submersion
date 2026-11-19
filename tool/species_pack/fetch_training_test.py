@@ -6,6 +6,7 @@ import os
 import sys
 import tempfile
 import unittest
+import urllib.error
 from unittest import mock
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
@@ -106,26 +107,55 @@ class DownloadBatchTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             records, paths = self.batch(folder)
             today = _Budget(300)
-            self.assertFalse(fetch_training.download_batch(records, paths, today, _write_100_bytes, workers=1))
+            outcome = fetch_training.download_batch(records, paths, today, _write_100_bytes, workers=1)
+            self.assertEqual(outcome, fetch_training.LIMIT)
             self.assertEqual(today.spent, 300)
             self.assertEqual(sum(os.path.exists(p) for p in paths.values()), 3)
             tomorrow = _Budget(10_000)
-            self.assertTrue(fetch_training.download_batch(records, paths, tomorrow, _write_100_bytes, workers=1))
+            outcome = fetch_training.download_batch(records, paths, tomorrow, _write_100_bytes, workers=1)
+            self.assertEqual(outcome, fetch_training.DONE)
             self.assertEqual(tomorrow.spent, 700)
 
-    def test_a_photo_that_fails_is_skipped_not_fatal(self):
+    def failing_on_photo_1(self, error):
         def download(url, path):
             if "/1/" in url:
-                raise OSError("gone")
+                raise error
             _write_100_bytes(url, path)
 
+        return download
+
+    def test_a_photo_gone_from_the_bucket_is_skipped_not_fatal(self):
+        gone = urllib.error.HTTPError("https://x/1/large.jpg", 404, "Not Found", None, None)
         with tempfile.TemporaryDirectory() as folder:
             records, paths = self.batch(folder, count=3)
             budget = _Budget(10_000)
             with mock.patch("builtins.print"):
-                self.assertTrue(fetch_training.download_batch(records, paths, budget, download, workers=1))
+                outcome = fetch_training.download_batch(records, paths, budget, self.failing_on_photo_1(gone), workers=1)
+            self.assertEqual(outcome, fetch_training.DONE)
             self.assertEqual(budget.spent, 200)
             self.assertFalse(os.path.exists(paths["1"]))
+
+    def test_a_failure_that_may_pass_leaves_the_batch_for_a_later_run(self):
+        busy = urllib.error.HTTPError("https://x/1/large.jpg", 503, "Busy", None, None)
+        for error in (urllib.error.URLError("no route"), TimeoutError(), ConnectionResetError(), busy):
+            with self.subTest(error=error), tempfile.TemporaryDirectory() as folder:
+                records, paths = self.batch(folder, count=3)
+                budget = _Budget(10_000)
+                with mock.patch("builtins.print"):
+                    outcome = fetch_training.download_batch(
+                        records, paths, budget, self.failing_on_photo_1(error), workers=1
+                    )
+                self.assertEqual(outcome, fetch_training.RETRY)
+                self.assertEqual(budget.spent, 200, "the photos that did download are charged")
+                self.assertFalse(os.path.exists(paths["1"]))
+
+    def test_an_unexpected_error_is_not_swallowed(self):
+        with tempfile.TemporaryDirectory() as folder:
+            records, paths = self.batch(folder, count=3)
+            with self.assertRaises(KeyError):
+                fetch_training.download_batch(
+                    records, paths, _Budget(10_000), self.failing_on_photo_1(KeyError("bug")), workers=1
+                )
 
 
 try:
