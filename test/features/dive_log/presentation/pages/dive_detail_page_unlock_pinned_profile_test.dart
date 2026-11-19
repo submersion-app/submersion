@@ -183,6 +183,9 @@ void main() {
       'under the reason, and writes nothing', (tester) async {
     await pump(tester);
     await unlock(tester);
+    // Below the fold once the Add strip pushes the page down (#4756).
+    await tester.ensureVisible(find.byTooltip('Edit Notes'));
+    await settleLong(tester);
     await openNotes(tester);
     await tester.enterText(find.byType(TextField).first, 'Choppy');
     await settleLong(tester);

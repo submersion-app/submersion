@@ -72,21 +72,50 @@ void main() {
     expect(rowTop(tester, 10), before);
   });
 
-  // At the top the strip lies over the first rows rather than push them
-  // down. They are a scroll away.
-  testWidgets('at the top, the page stays and its first rows can be '
-      'scrolled to', (tester) async {
+  // At the top the strip pushes the page down rather than lie over its
+  // first rows: a header card's pencil sits there, and hiding it under the
+  // strip is the first thing the diver sees on unlocking (issue #4756).
+  testWidgets('at the top, the page is pushed down and its first row stays '
+      'in view', (tester) async {
     await tester.pumpWidget(_host(const [], scroll));
+    final before = rowTop(tester, 0);
+
+    await tester.pumpWidget(_host(const [_tags], scroll));
+    await tester.pumpAndSettle();
+
+    expect(scroll.offset, 0);
+    final strip = tester.getBottomLeft(find.byType(AddStrip)).dy;
+    expect(rowTop(tester, 0), strip);
+    expect(strip, greaterThan(before));
+  });
+
+  // Back at the top once the strip leaves, as before it came.
+  testWidgets('pushed down at the top, the page returns when the strip '
+      'leaves', (tester) async {
+    await tester.pumpWidget(_host(const [], scroll));
+    final before = rowTop(tester, 0);
+    await tester.pumpWidget(_host(const [_tags], scroll));
+    await tester.pumpAndSettle();
+
+    await tester.pumpWidget(_host(const [], scroll));
+    await tester.pumpAndSettle();
+
+    expect(scroll.offset, 0);
+    expect(rowTop(tester, 0), before);
+  });
+
+  // Only the very top is pushed down: a page scrolled even a little keeps
+  // still, as the diver is looking at it.
+  testWidgets('a page scrolled just off the top stays still', (tester) async {
+    await tester.pumpWidget(_host(const [], scroll));
+    scroll.jumpTo(1);
+    await tester.pump();
     final before = rowTop(tester, 3);
 
     await tester.pumpWidget(_host(const [_tags], scroll));
     await tester.pumpAndSettle();
-    expect(rowTop(tester, 3), before);
 
-    scroll.jumpTo(0);
-    await tester.pump();
-    final strip = tester.getBottomLeft(find.byType(AddStrip)).dy;
-    expect(rowTop(tester, 0), strip);
+    expect(rowTop(tester, 3), before);
   });
 
   // It cannot scroll above the top: what was under the strip comes back
