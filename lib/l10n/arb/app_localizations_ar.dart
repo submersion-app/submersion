@@ -10066,13 +10066,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_edit_group_location => 'الموقع الجغرافي';
 
   @override
-  String get diveSites_edit_group_typeTags => 'النوع والوسوم';
-
-  @override
-  String get diveSites_edit_snackbar_featuresNotCopied =>
-      'تمت إضافة الموقع، لكن تعذر نسخ معالمه على الخريطة.';
-
-  @override
   String get diveSites_edit_typeTags_manageTypes => 'إدارة الأنواع';
 
   @override
@@ -10080,24 +10073,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveSites_edit_typeTags_typesLabel => 'أنواع الموقع';
-
-  @override
-  String get diveSites_edit_invite_accessSafety =>
-      'إضافة الوصول أو المواقف أو المرساة أو المخاطر';
-
-  @override
-  String get diveSites_edit_invite_diveInfo =>
-      'إضافة نطاق العمق أو الصعوبة أو التقييم';
-
-  @override
-  String get diveSites_edit_invite_lifeNotes =>
-      'إضافة الأنواع أو الملاحظات أو المشاركة';
-
-  @override
-  String get diveSites_edit_invite_location => 'إضافة إحداثيات GPS أو الارتفاع';
-
-  @override
-  String get diveSites_edit_summary_shared => 'مشترك';
 
   @override
   String get forms_cancel => 'إلغاء';
@@ -12399,12 +12374,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_detail_diveCount_zero => 'لا توجد غوصات مسجلة بعد';
 
   @override
-  String get diveSites_detail_editTooltip => 'تعديل الموقع';
-
-  @override
-  String get diveSites_detail_editTooltipShort => 'تعديل';
-
-  @override
   String get diveSites_edit_editingWithdrawn =>
       'لم يعد بإمكانك تعديل هذا الموقع. تم تجاهل أي تغييرات غير محفوظة.';
 
@@ -12642,12 +12611,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_edit_altitude_validation => 'ارتفاع غير صالح';
 
   @override
-  String get diveSites_edit_appBar_deleteSiteTooltip => 'حذف الموقع';
-
-  @override
-  String get diveSites_edit_appBar_editSite => 'تعديل الموقع';
-
-  @override
   String get diveSites_edit_appBar_merge => 'دمج';
 
   @override
@@ -12853,18 +12816,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_edit_section_expectedMarineLife => 'الأنواع المتوقعة';
 
   @override
-  String get diveSites_edit_section_hazards => 'المخاطر والسلامة';
-
-  @override
   String get diveSites_edit_section_rating => 'التقييم';
 
   @override
   String get diveSites_edit_section_waterType => 'نوع المياه';
-
-  @override
-  String diveSites_edit_snackbar_errorDeleting(Object error) {
-    return 'خطأ في حذف الموقع: $error';
-  }
 
   @override
   String diveSites_edit_snackbar_errorSaving(Object error) {
@@ -12893,12 +12848,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveSites_edit_snackbar_locationUnavailableMobile =>
       'تعذر الحصول على الموقع. يرجى التحقق من الأذونات.';
-
-  @override
-  String get diveSites_edit_snackbar_siteAdded => 'تمت إضافة الموقع';
-
-  @override
-  String get diveSites_edit_snackbar_siteUpdated => 'تم تحديث الموقع';
 
   @override
   String get diveSites_fab_label => 'إضافة موقع';

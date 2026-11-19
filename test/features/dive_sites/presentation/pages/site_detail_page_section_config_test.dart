@@ -173,9 +173,8 @@ void main() {
     expect(find.byType(ReorderableListView), findsOneWidget);
   });
 
-  testWidgets('the standalone app bar overflow lists display options only', (
-    tester,
-  ) async {
+  testWidgets('the standalone app bar overflow lists display options, and '
+      'the record actions wait for the lock', (tester) async {
     await pumpPage(tester, embedded: false);
 
     expect(
@@ -189,7 +188,15 @@ void main() {
     await openOverflow(tester);
 
     expect(find.text('Display options'), findsOneWidget);
-    expect(find.text('Delete'), findsNothing);
+    expect(find.text('Unlock to use these'), findsOneWidget);
+    expect(
+      tester
+          .widget<PopupMenuItem<String>>(
+            find.widgetWithText(PopupMenuItem<String>, 'Delete'),
+          )
+          .enabled,
+      isFalse,
+    );
   });
 
   testWidgets('display options in the standalone overflow opens the panel', (

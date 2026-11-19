@@ -24,9 +24,10 @@ Every member has one role in each library:
 | **Editor** | Add sites to the library, and edit or delete library sites directly. |
 | **Reader** | See every library site, and suggest changes for an owner to review. Edits a reader's device writes directly do not count. |
 
-A reader who opens a library site and taps edit sees **Suggest changes**: the
-changed fields and an optional note are sent as a suggestion when they tap
-**Send**, and the site itself is not touched until an owner accepts it.
+A reader who opens a library site sees **Suggest changes** where an editor
+sees the lock. It unlocks the site for a suggestion: the changed fields and an
+optional note are sent when they tap **Send**, and the site itself is not
+touched until an owner accepts it.
 
 > [!IMPORTANT]
 > Roles in the app decide what each member's edits count for. What stops a key

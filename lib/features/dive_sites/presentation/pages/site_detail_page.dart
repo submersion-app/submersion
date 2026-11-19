@@ -18,7 +18,6 @@ import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/router/pushed_route.dart';
-import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/features/bathymetry/application/bathymetry_providers.dart';
 import 'package:submersion/features/bathymetry/data/bathymetry_repository.dart';
 import 'package:submersion/features/bathymetry/domain/grid_sampling.dart';
@@ -88,6 +87,7 @@ import 'package:submersion/features/dive_sites/presentation/editing/site_classif
 import 'package:submersion/features/dive_sites/presentation/editing/site_edit_cards.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_reader_send.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_reader_sitting.dart';
+import 'package:submersion/features/shared_library/presentation/providers/library_role_now.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_sitting_save.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_sitting_start.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_catalogue_sitting.dart';
@@ -98,7 +98,6 @@ import 'package:submersion/shared/widgets/shared_items/item_sharing_field.dart';
 import 'package:submersion/shared/widgets/shared_items/share_target_dialog.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_plain_fields.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_species_sitting.dart';
-import 'package:submersion/features/dive_sites/presentation/editing/unlock_site_editing_flag.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_edit_save_provider.dart';
 import 'package:submersion/core/providers/location_service_provider.dart';
 import 'package:submersion/features/dive_sites/domain/models/new_site_seed.dart';
@@ -135,10 +134,6 @@ class SiteDetailPage extends ConsumerStatefulWidget {
   final VoidCallback? onDeleted;
   final VoidCallback? onClose;
 
-  /// Whether the page offers unlock-to-edit (issue #4527, phase 2): off
-  /// until the site page has every card ([kUnlockSiteEditing]).
-  final bool unlockEditing;
-
   /// Opens the page already unlocked, as the old edit addresses ask
   /// (`/sites/<id>/edit`, a pane's `&mode=edit`).
   final bool openUnlocked;
@@ -163,7 +158,6 @@ class SiteDetailPage extends ConsumerStatefulWidget {
     this.embedded = false,
     this.onDeleted,
     this.onClose,
-    this.unlockEditing = kUnlockSiteEditing,
     this.openUnlocked = false,
     this.onSittingEnded,
   }) : newSite = null,
@@ -183,7 +177,6 @@ class SiteDetailPage extends ConsumerStatefulWidget {
        siteId = '',
        onDeleted = null,
        onClose = null,
-       unlockEditing = true,
        openUnlocked = false,
        onSittingEnded = null;
 
@@ -238,10 +231,7 @@ class _SiteDetailPageState extends ConsumerState<SiteDetailPage> {
       // An edit address the page has not opened yet keeps asking for edit
       // mode in the pane, which opens the site unlocked there (issue
       // #4527). Moved later (a window widened), the site moves as it is.
-      // With the switch off the pane's edit mode is the old form: not asked.
-      final mode = widget.unlockEditing && widget.openUnlocked && firstBuild
-          ? '&mode=edit'
-          : '';
+      final mode = widget.openUnlocked && firstBuild ? '&mode=edit' : '';
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           context.go('/sites?selected=${widget.siteId}$mode');
@@ -274,7 +264,6 @@ class _SiteDetailPageState extends ConsumerState<SiteDetailPage> {
           embedded: widget.embedded,
           onDeleted: widget.onDeleted,
           onClose: widget.onClose,
-          unlockEditing: widget.unlockEditing,
           // A page moving into the list pane leaves the unlock to the
           // pane's.
           openUnlocked: widget.openUnlocked && !_hasRedirected,
@@ -318,7 +307,6 @@ class _SiteDetailContent extends ConsumerStatefulWidget {
   final bool embedded;
   final VoidCallback? onDeleted;
   final VoidCallback? onClose;
-  final bool unlockEditing;
   final bool openUnlocked;
   final VoidCallback? onSittingEnded;
 
@@ -334,7 +322,6 @@ class _SiteDetailContent extends ConsumerStatefulWidget {
     required this.embedded,
     this.onDeleted,
     this.onClose,
-    this.unlockEditing = false,
     this.openUnlocked = false,
     this.onSittingEnded,
     this.onSittingOpenChanged,
@@ -401,7 +388,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
     final waiting = _newSiteWaiting(context);
     if (waiting != null) return waiting;
     final embedded = widget.embedded;
-    // Unlock-to-edit in place (issue #4527, phase 2), behind the switch.
+    // Unlock-to-edit in place (issue #4527, phase 2).
     final edit = _editingInBuild();
     // Only where the page offers editing now: an edit link opens an
     // editor's sitting, or a library reader's to suggest changes, and opens
@@ -429,19 +416,17 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
             _buildMapSection(context, ref, site),
             const SizedBox(height: kSiteDetailCardGap),
           ],
-          edit.hosts
-              ? RecordCardFrame<DiveSite>(
-                  card: siteHeaderCard,
-                  child: SiteDetailHeader(
-                    site: site,
-                    types: _heldList(siteTypesList),
-                    // The header block's editor reviews the offer.
-                    offerReviewable: false,
-                    showOffer: !_catalogueReviewed(),
-                  ),
-                )
-              : SiteDetailHeader(site: site),
-          if (edit.hosts) ?_sharedWithLine(context, site),
+          RecordCardFrame<DiveSite>(
+            card: siteHeaderCard,
+            child: SiteDetailHeader(
+              site: site,
+              types: _heldList(siteTypesList),
+              // The header block's editor reviews the offer.
+              offerReviewable: false,
+              showOffer: !_catalogueReviewed(),
+            ),
+          ),
+          ?_sharedWithLine(context, site),
           SharedByBanner(
             kind: SharedItemKind.site,
             itemId: site.id,
@@ -455,13 +440,12 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
               context,
               site,
               sections,
-              editing: edit.hosts,
               shownForSitting: edit.shownForSitting,
               presence: edit.presence,
             ),
             alsoShown: edit.shownForSitting,
             heldOpen: edit.heldOpen,
-            foldTrailing: edit.hosts ? _foldPencil : null,
+            foldTrailing: _foldPencil,
             onFoldChanged: (id, expanded) => ref
                 .read(settingsProvider.notifier)
                 .setSiteDetailSectionExpanded(id, expanded),
@@ -478,49 +462,32 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
         offered: edit.offered,
       );
       // The pane holds the sitting as the full page does (issue #4527).
-      if (edit.hosts) {
-        return editPane(
-          header: header,
-          shown: site,
-          content: _withFeaturePlacement(context, body),
-        );
-      }
-      return Column(
-        children: [
-          header,
-          Expanded(child: body),
-        ],
-      );
-    }
-
-    final appBar = _lockedBar(
-      context,
-      site,
-      offered: edit.offered,
-      hosts: edit.hosts,
-    );
-
-    if (edit.hosts) {
-      return editScaffold(
-        record: widget.site,
+      return editPane(
+        header: header,
         shown: site,
-        lockedBar: appBar,
         content: _withFeaturePlacement(context, body),
-        // The menu stays while unlocked, as a dive's: its whole-record
-        // actions run from it with nothing to save.
-        unlockedActions: [
-          if (!isCreating)
-            _siteMenu(
-              context,
-              site,
-              historyItem: true,
-              hosts: true,
-              controller: _unlockedDisplayOptionsMenu,
-            ),
-        ],
       );
     }
-    return Scaffold(appBar: appBar, body: body);
+
+    final appBar = _lockedBar(context, site, offered: edit.offered);
+
+    return editScaffold(
+      record: widget.site,
+      shown: site,
+      lockedBar: appBar,
+      content: _withFeaturePlacement(context, body),
+      // The menu stays while unlocked, as a dive's: its whole-record
+      // actions run from it with nothing to save.
+      unlockedActions: [
+        if (!isCreating)
+          _siteMenu(
+            context,
+            site,
+            historyItem: true,
+            controller: _unlockedDisplayOptionsMenu,
+          ),
+      ],
+    );
   }
 
   /// A builder for each card the diver has switched on, keyed by id; null
@@ -533,14 +500,13 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
   /// build inside their own [Consumer], so their lookups start only once the
   /// card is mounted, and a hidden or folded card starts none.
   ///
-  /// While the page offers [editing], the cards that can be edited are
-  /// framed, and a card the diver hid is built when the sitting has brought
-  /// it onto the page ([shownForSitting]).
+  /// The cards that can be edited are framed, and a card the diver hid is
+  /// built when the sitting has brought it onto the page
+  /// ([shownForSitting]).
   Map<SiteDetailSectionId, WidgetBuilder?> _sectionCards(
     BuildContext context,
     DiveSite site,
     List<SiteDetailSectionConfig> sections, {
-    bool editing = false,
     Set<SiteDetailSectionId> shownForSitting = const {},
     DiveSite? presence,
   }) {
@@ -609,17 +575,6 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
       SiteDetailSectionId.features: () => laidOut.hasCoordinates
           ? (_) => SiteFeaturesSection(
               siteId: site.id,
-              // A library site this profile only reads offers no edits, and
-              // a page that holds edits in a sitting edits them only in the
-              // card's editor (issue #4527).
-              onAddFeature: !editing && _canEditSite(ref, site)
-                  ? () => _showFullscreenMap(
-                      context,
-                      ref,
-                      site,
-                      startPlacing: true,
-                    )
-                  : null,
               features: _heldList(siteFeaturesList),
             )
           : null,
@@ -636,8 +591,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
       SiteDetailSectionId.marineLife: () =>
           (_) => SiteMarineLifeSection(
             siteId: site.id,
-            // Hosting editing, the card's pencil edits them, held.
-            readOnly: editing || !_canEditSite(ref, site),
+            // Shown only: the card's pencil edits them, in a sitting.
             location: site.location,
             species: _heldList(siteSpeciesList),
           ),
@@ -660,9 +614,9 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
               ref,
               item,
               editableSiteId: site.id,
-              // Where the page edits in place, the attachment opens under
-              // its own lock (issue #4527, phase 2).
-              attachmentLock: widget.unlockEditing,
+              // The page edits in place, so the attachment opens under its
+              // own lock (issue #4527, phase 2).
+              attachmentLock: true,
             ),
           ),
       // Tags (issue #1765), after media as on a dive. Shown only when the
@@ -706,14 +660,13 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
           ),
     };
     // One answer for every card in this build.
-    final readerPage = editing && _readerPageNow(watch: true);
+    final readerPage = _readerPageNow(watch: true);
     return {
       for (final section in sections)
         if (section.visible || shownForSitting.contains(section.id))
           section.id: _framed(
             section.id,
             cards[section.id]!(),
-            editing: editing,
             readerPage: readerPage,
           ),
     };
@@ -758,36 +711,24 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
         (access.connected && canEditLibrarySite(access.role));
   }
 
-  /// Suggest changes for a reader, Connect on this device for a library
-  /// the device has not connected.
+  /// Connect on this device, for a library site the device has not
+  /// connected.
   List<Widget> _libraryButtons(
     BuildContext context,
     WidgetRef ref,
     DiveSite site,
   ) {
     final access = _libraryAccess(ref, site);
-    if (!access.isLibrary) return const [];
-    final l10n = context.l10n;
-    if (!access.connected) {
-      return [
-        TextButton.icon(
-          icon: const Icon(Icons.link, size: 18),
-          label: Text(l10n.sharedLibrary_site_connectHere),
-          onPressed: () => _connectHere(context, ref, site),
-        ),
-      ];
-    }
-    // On a page that hosts editing a reader suggests through its unlock.
-    if (canSuggestOnLibrarySite(access.role) && !hostsEditing) {
-      return [
-        TextButton.icon(
-          icon: const Icon(Icons.rate_review_outlined, size: 18),
-          label: Text(l10n.sharedLibrary_suggest_title),
-          onPressed: () => context.push('/sites/${site.id}/edit?suggest=1'),
-        ),
-      ];
-    }
-    return const [];
+    // A connected library site needs none: an editor unlocks it, and a
+    // reader suggests changes through the same control (plan 5).
+    if (!access.isLibrary || access.connected) return const [];
+    return [
+      TextButton.icon(
+        icon: const Icon(Icons.link, size: 18),
+        label: Text(context.l10n.sharedLibrary_site_connectHere),
+        onPressed: () => _connectHere(context, ref, site),
+      ),
+    ];
   }
 
   /// The library's entries; [operationsEnabled] false disables the ones
@@ -1196,7 +1137,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
                   SiteFeatureMarkerLayer(
                     siteId: site.id,
                     // The page edits features only in their open card.
-                    readOnly: hostsEditing,
+                    readOnly: true,
                     features: _heldList(siteFeaturesList),
                   ),
                   MarkerLayer(

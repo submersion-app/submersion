@@ -11,14 +11,11 @@ import 'package:submersion/features/dive_log/presentation/widgets/environment_en
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
-/// Site group 3: min/max depth rows, difficulty chips row, rating row.
+/// The merge page's Dive info group, always open: the min and max depth
+/// rows, the difficulty chips, the rating and the water type.
 class DiveInfoSection extends StatelessWidget {
   const DiveInfoSection({
     super.key,
-    required this.expanded,
-    required this.onToggle,
-    required this.summary,
-    required this.isEmpty,
     required this.minDepthController,
     required this.maxDepthController,
     required this.depthSymbol,
@@ -35,10 +32,6 @@ class DiveInfoSection extends StatelessWidget {
     this.waterTypeExtras,
   });
 
-  final bool expanded;
-  final VoidCallback? onToggle;
-  final String summary;
-  final bool isEmpty;
   final TextEditingController minDepthController;
   final TextEditingController maxDepthController;
   final String depthSymbol;
@@ -80,11 +73,8 @@ class DiveInfoSection extends StatelessWidget {
     return FormSection(
       label: l10n.diveSites_edit_group_diveInfo,
       icon: Icons.info_outline,
-      expanded: expanded,
-      onToggle: onToggle,
-      summary: summary,
-      isEmpty: isEmpty,
-      emptyInvitation: l10n.diveSites_edit_invite_diveInfo,
+      expanded: true,
+      onToggle: null,
       children: [
         _depthRow(
           context,

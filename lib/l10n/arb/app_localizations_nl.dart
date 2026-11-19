@@ -9861,13 +9861,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveSites_edit_group_location => 'Locatie';
 
   @override
-  String get diveSites_edit_group_typeTags => 'Type & labels';
-
-  @override
-  String get diveSites_edit_snackbar_featuresNotCopied =>
-      'Stek toegevoegd, maar de kenmerken op de kaart konden niet worden gekopieerd.';
-
-  @override
   String get diveSites_edit_typeTags_manageTypes => 'Types beheren';
 
   @override
@@ -9875,25 +9868,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveSites_edit_typeTags_typesLabel => 'Duikstektypes';
-
-  @override
-  String get diveSites_edit_invite_accessSafety =>
-      'Toegang, parkeren, afmeren of gevaren toevoegen';
-
-  @override
-  String get diveSites_edit_invite_diveInfo =>
-      'Dieptebereik, moeilijkheid of beoordeling toevoegen';
-
-  @override
-  String get diveSites_edit_invite_lifeNotes =>
-      'Soorten, notities of delen toevoegen';
-
-  @override
-  String get diveSites_edit_invite_location =>
-      'GPS-positie of hoogte toevoegen';
-
-  @override
-  String get diveSites_edit_summary_shared => 'gedeeld';
 
   @override
   String get forms_cancel => 'Annuleren';
@@ -12159,12 +12133,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveSites_detail_diveCount_zero => 'Nog geen duiken gelogd';
 
   @override
-  String get diveSites_detail_editTooltip => 'Stek bewerken';
-
-  @override
-  String get diveSites_detail_editTooltipShort => 'Bewerken';
-
-  @override
   String get diveSites_edit_editingWithdrawn =>
       'Je kunt deze stek niet meer bewerken. Niet-opgeslagen wijzigingen zijn verwijderd.';
 
@@ -12394,12 +12362,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveSites_edit_altitude_validation => 'Ongeldige hoogte';
 
   @override
-  String get diveSites_edit_appBar_deleteSiteTooltip => 'Stek verwijderen';
-
-  @override
-  String get diveSites_edit_appBar_editSite => 'Stek bewerken';
-
-  @override
   String get diveSites_edit_appBar_merge => 'Samenvoegen';
 
   @override
@@ -12607,18 +12569,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveSites_edit_section_expectedMarineLife => 'Verwachte soorten';
 
   @override
-  String get diveSites_edit_section_hazards => 'Gevaren & veiligheid';
-
-  @override
   String get diveSites_edit_section_rating => 'Beoordeling';
 
   @override
   String get diveSites_edit_section_waterType => 'Watertype';
-
-  @override
-  String diveSites_edit_snackbar_errorDeleting(Object error) {
-    return 'Fout bij verwijderen van stek: $error';
-  }
 
   @override
   String diveSites_edit_snackbar_errorSaving(Object error) {
@@ -12647,12 +12601,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveSites_edit_snackbar_locationUnavailableMobile =>
       'Kan locatie niet ophalen. Controleer de machtigingen.';
-
-  @override
-  String get diveSites_edit_snackbar_siteAdded => 'Stek toegevoegd';
-
-  @override
-  String get diveSites_edit_snackbar_siteUpdated => 'Stek bijgewerkt';
 
   @override
   String get diveSites_fab_label => 'Stek toevoegen';

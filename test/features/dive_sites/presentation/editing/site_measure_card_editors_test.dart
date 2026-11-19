@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/constants/site_detail_sections.dart';
@@ -229,5 +230,59 @@ void main() {
     await tester.tap(find.byTooltip(l.common_action_clearRating));
     await tester.pump();
     expect(h.session.valueOf(siteRatingField), isNull);
+  });
+
+  // The form's locale cases, on the Depth card (plan 7).
+  group('in a locale with a decimal comma', () {
+    late String? previousLocale;
+    setUp(() => previousLocale = Intl.defaultLocale);
+    tearDown(() => Intl.defaultLocale = previousLocale);
+
+    testWidgets('comma decimals typed into the depth rows are held (fr)', (
+      tester,
+    ) async {
+      Intl.defaultLocale = 'fr';
+      final h = await pumpSiteEditor(
+        tester,
+        site,
+        (session) => SiteDepthCardEditor(session: session),
+      );
+
+      await tester.tap(find.text(l.diveSites_edit_depth_minLabel('m')));
+      await tester.pump();
+      await tester.enterText(find.byType(TextFormField), '12,5');
+      await tester.pump();
+      await tester.tap(find.text(l.diveSites_edit_depth_maxLabel('m')));
+      await tester.pump();
+      await tester.enterText(find.byType(TextFormField).last, '30,5');
+      await tester.pump();
+
+      expect(h.session.valueOf(siteMinDepthField), 12.5);
+      expect(h.session.valueOf(siteMaxDepthField), 30.5);
+      expect(h.controller.invalidCardIds, isNot(contains('depth')));
+    });
+
+    testWidgets('opening and leaving the rows changes nothing (de)', (
+      tester,
+    ) async {
+      Intl.defaultLocale = 'de';
+      final h = await pumpSiteEditor(
+        tester,
+        site.copyWith(minDepth: 12.5, maxDepth: 30),
+        (session) => SiteDepthCardEditor(session: session),
+      );
+      expect(find.textContaining('12,5'), findsOneWidget);
+
+      await tester.tap(find.text(l.diveSites_edit_depth_minLabel('m')));
+      await tester.pump();
+      await tester.tap(find.text(l.diveSites_edit_depth_maxLabel('m')));
+      await tester.pump();
+      await tester.tapAt(const Offset(5, 5));
+      await tester.pump();
+
+      expect(h.session.valueOf(siteMinDepthField), 12.5);
+      expect(h.session.valueOf(siteMaxDepthField), 30);
+      expect(h.session.isDirty, isFalse);
+    });
   });
 }

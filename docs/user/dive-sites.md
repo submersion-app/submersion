@@ -11,7 +11,9 @@ Build your personal database of the places you dive, with GPS coordinates, depth
 
 Tap the **Add Site** button (the floating button on a phone; on desktop the same button sits in the top-right area of the detail pane). You can also create a site while picking one for a dive: the name you searched for is filled in for you.
 
-The edit form is divided into collapsible sections. Only the **Name** field is required; everything else is optional and can be filled in later.
+The new site opens on its own page, unlocked, with a card for each part of the site. Open a card with its pencil, fill it in and tap **Done**; **Add** along the top brings in a card the site does not show yet. Only the **Name**, in the site's header, is required; everything else is optional and can be filled in later. **Save** creates the site and shows it, locked. **Cancel** on a new site you have not touched closes it without asking.
+
+The sections below list what each card holds.
 
 ### Identity
 
@@ -39,14 +41,14 @@ You can also type decimal latitude and longitude directly. Coordinates are valid
 
 ### Altitude
 
-Record the site's altitude above sea level in metres (or feet if you use imperial). When you enter a non-zero altitude, the form shows an **altitude group indicator**: a color-coded badge (informational, caution, warning, or severe) that signals how altitude affects decompression calculations. This matters for inland and high-altitude lake diving.
+Record the site's altitude above sea level in metres (or feet if you use imperial). When you enter a non-zero altitude, the Altitude card shows an **altitude group indicator**: a color-coded badge (informational, caution, warning, or severe) that signals how altitude affects decompression calculations. This matters for inland and high-altitude lake diving.
 
 ### Dive info
 
 | Field | Notes |
 |-------|-------|
 | **Min depth** | Shallowest point of the site, in your unit preference. |
-| **Max depth** | Deepest point. On narrow screens both fields appear in a condensed stat strip at the top of the section. |
+| **Max depth** | Deepest point. |
 | **Difficulty** | Choice chip: Beginner, Intermediate, Advanced, or Technical. |
 | **Rating** | Your 1 to 5 star rating. Tap a star to set; a **Clear** link removes it. |
 | **Water Type** | Salt, fresh, or brackish. |
@@ -63,15 +65,18 @@ Record the site's altitude above sea level in metres (or feet if you use imperia
 
 ### Site types and tags
 
-**Site types** describe the kind of site: reef, wreck, cave, and so on. Pick one or more from the built-in types or your own; **Manage types** (also **Settings > Manage > Site Types**) adds, renames or hides them. **Tags** work as they do for dives (see [Logging Dives](dive-logging.md#tags-and-dive-types)).
+**Site types** describe the kind of site: reef, wreck, cave, and so on. They are edited in the site's header, with its name, water type and **Shared with** (see [Sharing a site with other profiles](#sharing-a-site-with-other-profiles)). Pick one or more from the built-in types or your own; **Manage types** (also **Settings > Manage > Site Types**) adds, renames or hides them. **Tags** have a card of their own and work as they do for dives (see [Logging Dives](dive-logging.md#tags-and-dive-types)).
 
 ### Life and notes
 
 - **Expected Species**: link species you expect to encounter at this site. These appear on the site detail and feed into marine life tracking. (See [Marine Life and Photos](marine-life-and-photos.md).)
 - **Notes**: any other free-text information.
-- **Shared with**: visible only when two or more diver profiles exist. Choose **Everyone**, or tick only the profiles that should see the site. See [Sharing a site with other profiles](#sharing-a-site-with-other-profiles).
 
 <!-- screenshot: images/dive-sites/site-detail.png: site detail page showing all fields -->
+
+## Changing a site
+
+Open the site and tap the lock (in the top bar on a phone, in the pane's header on desktop). Each card shows its pencil: open the ones you want, change them and tap **Done**, then **Save** at the top. One Save writes every card you changed and adds one entry to the site's **History** (in the menu), from which you can put them all back at once. **Cancel**, or leaving the site with unsaved changes, asks before discarding them. **Delete**, **Remove from my profile** and the menu's other actions on the whole site need it unlocked first.
 
 ## On the site's page
 
@@ -246,7 +251,7 @@ Your answers are saved with the site and sync to your other devices. For a site 
 
 ## Merging duplicate sites
 
-If you end up with more than one entry for the same place, choose **Select items** from the list's overflow menu, select them, and tap **Merge Selected**. The merge form (**Merge Sites**) opens with all sections expanded and pre-filled from the first site. For every field that differs between the two sites, a cycle button (two-arrow icon) appears so you can step through the values from each source and keep the one you want. Coordinates, difficulty, and rating each have their own cycle control. Confirm to combine them into one site and relink every dive that was associated with any of them; **Undo** is offered right after. If the sites you merge were added from two different built-in records, the merged site stands for both, so neither record is offered to you again.
+If you end up with more than one entry for the same place, choose **Select items** from the list's overflow menu, select them, and tap **Merge Selected**. The **Merge Sites** page opens with every section expanded and pre-filled from the first site. For every field that differs between the two sites, a cycle button (two-arrow icon) appears so you can step through the values from each source and keep the one you want. Coordinates, difficulty, and rating each have their own cycle control. Confirm to combine them into one site and relink every dive that was associated with any of them; **Undo** is offered right after. If the sites you merge were added from two different built-in records, the merged site stands for both, so neither record is offered to you again.
 
 ## GPS auto-matching of dives to sites
 
@@ -295,7 +300,7 @@ Nothing is linked until you tap **Confirm N matches**, which writes every select
 
 Sites are shared the way trips are (see [Sharing a trip with other profiles](trips.md#sharing-a-trip-with-other-profiles)):
 
-- Edit the site and tap **Shared with** to choose **Everyone** or only the profiles you tick. To share several sites, select them in the list and choose **Share with...**; **Settings > Shared data > Share all my sites...** shares every site you own. Bulk sharing only ever adds profiles.
+- Unlock the site, open its header with the pencil and tap **Shared with** to choose **Everyone** or only the profiles you tick. To share several sites, select them in the list and choose **Share with...**; **Settings > Shared data > Share all my sites...** shares every site you own. Bulk sharing only ever adds profiles.
 - Only the profile that created the site can delete it, merge it away or change who it is shared with. Any other profile that sees it can edit its details, log its own dives there, or choose **Remove from my profile** to hide it for itself only.
 - When the owner unticks a profile, that profile's dives keep their site; the site just leaves its site list.
 - Merging sites keeps the profiles each site was shared with: the site that is kept is shared with all of them.

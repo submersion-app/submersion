@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/models/new_site_seed.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_new_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
+import 'package:submersion/features/dive_sites/presentation/pages/site_edit_routes.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_edit_save_provider.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -133,13 +134,12 @@ const harnessSite = DiveSite(
   notes: 'Calm',
 );
 
-/// Pumps the full site page for [site] at phone width, with editing
-/// [unlockEditing], and returns the harness.
+/// Pumps the full site page for [site] at phone width, and returns the
+/// harness.
 Future<SiteUnlockHarness> pumpSitePage(
   WidgetTester tester, {
   DiveSite site = harnessSite,
   AppSettings settings = const AppSettings(),
-  bool unlockEditing = true,
   bool embedded = false,
   bool openUnlocked = false,
   VoidCallback? onSittingEnded,
@@ -157,7 +157,6 @@ Future<SiteUnlockHarness> pumpSitePage(
   final page = SiteDetailPage(
     siteId: site.id,
     embedded: embedded,
-    unlockEditing: unlockEditing,
     openUnlocked: openUnlocked,
     onSittingEnded: onSittingEnded,
     onClose: onClose,
@@ -176,6 +175,20 @@ Future<SiteUnlockHarness> pumpSitePage(
             GoRoute(
               path: '/sites',
               builder: (_, _) => const Scaffold(body: Text('sites pane')),
+            ),
+            // The app's site address and its old edit address, which
+            // redirects to the page opened unlocked (issue #4527, plan 7).
+            GoRoute(
+              path: '/sites/:siteId',
+              builder: (_, state) {
+                final routed = SiteDetailPage(
+                  siteId: state.pathParameters['siteId']!,
+                  embedded: embedded,
+                  openUnlocked: state.uri.queryParameters['mode'] == 'edit',
+                );
+                return embedded ? Scaffold(body: routed) : routed;
+              },
+              routes: [GoRoute(path: 'edit', redirect: siteEditRedirect)],
             ),
           ],
         );

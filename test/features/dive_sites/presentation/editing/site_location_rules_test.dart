@@ -67,7 +67,7 @@ void main() {
         ),
       );
 
-      expect(differingPlaceValues(session, lookup, l10n), {
+      expect(differingPlaceValues(sittingPlaceNames(session), lookup, l10n), {
         l10n.diveSites_edit_field_region_label: 'Lighthouse Reef',
         l10n.diveSites_edit_field_city_label: 'Belize City',
         l10n.diveSites_edit_field_bodyOfWater_label: 'Caribbean Sea',
@@ -117,6 +117,21 @@ void main() {
         async.flushMicrotasks();
 
         expect(session.valueOf(siteAltitudeField), isNull);
+      });
+    });
+
+    // The form's case: an elevation service that fails fills nothing.
+    test('a failed lookup leaves the altitude empty and the card clean', () {
+      fakeAsync((async) {
+        final session = sitting();
+        session.set(siteLocationField, const GeoPoint(1, 2));
+        scheduleAltitudeAfterMove(session, (_) async => null);
+
+        async.elapse(const Duration(milliseconds: 1100));
+        async.flushMicrotasks();
+
+        expect(session.valueOf(siteAltitudeField), isNull);
+        expect(session.changedCardIds, isNot(contains('altitude')));
       });
     });
 

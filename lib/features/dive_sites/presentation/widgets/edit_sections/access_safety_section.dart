@@ -8,15 +8,11 @@ import 'package:submersion/shared/widgets/forms/enum_multi_picker_row.dart';
 import 'package:submersion/shared/widgets/forms/form_section.dart';
 import 'package:submersion/shared/widgets/forms/suggestion_form_row.dart';
 
-/// Site group 4: access notes, mooring number, parking, hazards — plain
-/// merge-capable rows (inner icon headers and helper texts removed).
+/// The merge page's Access & safety group: access notes, mooring number,
+/// parking and hazards, as plain rows that take merge extras.
 class AccessSafetySection extends StatelessWidget {
   const AccessSafetySection({
     super.key,
-    required this.expanded,
-    required this.onToggle,
-    required this.summary,
-    required this.isEmpty,
     required this.accessNotesController,
     required this.mooringNumberController,
     required this.parkingInfoController,
@@ -28,13 +24,8 @@ class AccessSafetySection extends StatelessWidget {
     this.mergeExtras,
     this.entryMethodExtras,
     this.exitMethodExtras,
-    this.entrySuggestion,
   });
 
-  final bool expanded;
-  final VoidCallback? onToggle;
-  final String summary;
-  final bool isEmpty;
   final TextEditingController accessNotesController;
   final TextEditingController mooringNumberController;
   final TextEditingController parkingInfoController;
@@ -53,10 +44,6 @@ class AccessSafetySection extends StatelessWidget {
   /// text-controller candidate map and returns null for an enum field.
   final MergeFieldExtras? entryMethodExtras;
   final MergeFieldExtras? exitMethodExtras;
-
-  /// Optional one-tap fill offered above the entry method row. Built by the
-  /// page so this widget stays free of provider dependencies.
-  final Widget? entrySuggestion;
 
   Widget _row(
     BuildContext context, {
@@ -115,11 +102,8 @@ class AccessSafetySection extends StatelessWidget {
     return FormSection(
       label: l10n.diveSites_edit_group_accessSafety,
       icon: Icons.shield_outlined,
-      expanded: expanded,
-      onToggle: onToggle,
-      summary: summary,
-      isEmpty: isEmpty,
-      emptyInvitation: l10n.diveSites_edit_invite_accessSafety,
+      expanded: true,
+      onToggle: null,
       children: [
         _row(
           context,
@@ -138,7 +122,6 @@ class AccessSafetySection extends StatelessWidget {
           maxLines: 3,
           markdown: true,
         ),
-        ?entrySuggestion,
         _methodRow(
           context,
           label: l10n.diveSites_edit_access_entryMethod_label,

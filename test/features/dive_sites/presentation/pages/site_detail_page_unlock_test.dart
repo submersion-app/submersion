@@ -2,6 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/rules/data/services/rule_engine.dart';
+import 'package:submersion/features/rules/domain/entities/rule_run.dart';
+import 'package:submersion/features/rules/presentation/providers/rule_providers.dart';
 import 'package:submersion/features/media/data/services/photo_edit_save_service.dart';
 import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
@@ -17,7 +20,6 @@ import 'package:submersion/core/app/app_exit_guard.dart';
 import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
-import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_header.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_editing_page_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -26,13 +28,25 @@ import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_shortcuts.dart';
 import 'package:submersion/shared/widgets/record_editing/record_fold_pencil.dart';
 
 import 'site_detail_page_unlock_harness.dart';
 
-/// A site's page unlocks to edit Description and Notes in place, behind
-/// the switch (issue #4527, phase 2, plan 1).
+/// Records each run of the rules.
+class _RecordingRules extends Fake implements RuleEngine {
+  final requests = <RuleRunRequest>[];
+
+  @override
+  Future<RuleRunResult> run(RuleRunRequest request) async {
+    requests.add(request);
+    throw StateError('no rules here');
+  }
+}
+
+/// A site's page unlocks to edit Description and Notes in place (issue
+/// #4527, phase 2, plan 1).
 void main() {
   final l = AppLocalizationsEn();
 
@@ -62,17 +76,6 @@ void main() {
       s.id == SiteDetailSectionId.notes ? s.copyWith(visible: false) : s,
   ];
 
-  testWidgets('with the switch off there is no lock', (tester) async {
-    final page = await pumpSitePage(tester, unlockEditing: false);
-
-    expect(find.byIcon(Icons.lock_outline), findsNothing);
-    expect(find.byTooltip(l.diveSites_detail_editTooltip), findsOneWidget);
-    expect(
-      page.container.read(recordEditShortcutTargetsProvider).current,
-      isNull,
-    );
-  });
-
   // A file dropped on the window finds the page: locked, it has no
   // sitting; unlocked, the sitting a drop is held in (issue #4527).
   testWidgets('the page tells a drop whether the site is unlocked', (
@@ -89,11 +92,6 @@ void main() {
     await tester.tap(find.text(l.forms_cancel));
     await tester.pumpAndSettle();
     expect(told()?.session, isNull);
-  });
-
-  testWidgets('with the switch off a drop finds no page', (tester) async {
-    final page = await pumpSitePage(tester, unlockEditing: false);
-    expect(page.container.read(siteEditingPageProvider), isNull);
   });
 
   // The old edit address opens the page unlocked (issue #4527, phase 2).
@@ -132,24 +130,6 @@ void main() {
       expect(landed.queryParameters['selected'], 's1');
       expect(landed.queryParameters['mode'], 'edit');
     });
-  });
-
-  // With the switch off an edit address is as before: a site in view mode,
-  // on desktop moved into the pane without asking for edit mode, which
-  // there would open the old form.
-  testWidgets('with the switch off, mode=edit on desktop moves into the pane '
-      'as it is', (tester) async {
-    final page = await pumpSitePage(
-      tester,
-      unlockEditing: false,
-      openUnlocked: true,
-      size: const Size(1400, 1000),
-      initialLocation: '/root-site',
-    );
-
-    final landed = page.router!.routerDelegate.currentConfiguration.uri;
-    expect(landed.path, '/sites');
-    expect(landed.queryParameters.containsKey('mode'), isFalse);
   });
 
   // A window widened during a sitting keeps the page, and the sitting,
@@ -228,15 +208,6 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text(l.changeLog_history), findsOneWidget);
     });
-
-    testWidgets('with the switch off the bar is as today', (tester) async {
-      await pumpSitePage(
-        tester,
-        unlockEditing: false,
-        size: const Size(900, 1400),
-      );
-      expect(inBar, findsNothing);
-    });
   });
 
   testWidgets('locked shows no pencil', (tester) async {
@@ -304,37 +275,49 @@ void main() {
     expect(pencil.top, greaterThanOrEqualTo(strip.bottom));
   });
 
-  testWidgets('the old edit form cannot be opened over an open sitting', (
-    tester,
-  ) async {
-    // The app bar's button to the form, not a card's pencil.
-    final oldEdit = find.descendant(
-      of: find.byType(AppBar),
-      matching: find.widgetWithIcon(IconButton, Icons.edit),
+  // The lock is the one way in (issue #4527, phase 2, plan 7): no Edit
+  // pencil beside it on the bar.
+  testWidgets('the locked bar has the lock and no Edit pencil', (tester) async {
+    await pumpSitePage(tester);
+
+    final bar = find.byType(AppBar);
+    expect(
+      find.descendant(of: bar, matching: find.byIcon(Icons.lock_outline)),
+      findsOneWidget,
     );
-    await pumpSitePage(tester);
-    expect(oldEdit, findsOneWidget);
-
-    await unlock(tester);
-
-    // The form would save over the sitting: not offered while it is open.
-    expect(oldEdit, findsNothing);
-  });
-
-  // With the switch on the old edit address opens this page unlocked, so
-  // Edit unlocks the page in place rather than pushing a second copy.
-  testWidgets('Edit unlocks the page in place', (tester) async {
-    await pumpSitePage(tester);
-    await tester.tap(
+    expect(
       find.descendant(
-        of: find.byType(AppBar),
+        of: bar,
         matching: find.widgetWithIcon(IconButton, Icons.edit),
       ),
+      findsNothing,
     );
-    await tester.pumpAndSettle();
+  });
+
+  // Review Focus 1: an old edit address, bookmarked before the site was
+  // deleted, finds the page's not-found state, with no sitting to open.
+  testWidgets('an old edit address for a deleted site shows not found, '
+      'locked', (tester) async {
+    await pumpSitePage(
+      tester,
+      initialLocation: '/sites/gone/edit',
+      extra: [siteProvider('gone').overrideWith((_) async => null)],
+    );
+
+    expect(find.text(l.diveSites_detail_siteNotFound_title), findsOneWidget);
+    expect(find.byType(RecordEditBar), findsNothing);
+    expect(find.byIcon(Icons.lock_outline), findsNothing);
+  });
+
+  // The old edit address opens the stored site unlocked.
+  testWidgets('an old edit address opens the site unlocked', (tester) async {
+    final page = await pumpSitePage(tester, initialLocation: '/sites/s1/edit');
 
     expect(find.byType(RecordEditBar), findsOneWidget);
-    expect(find.byType(SiteDetailPage), findsOneWidget);
+    expect(
+      page.router!.routerDelegate.currentConfiguration.uri.toString(),
+      '/sites/s1?mode=edit',
+    );
   });
 
   testWidgets('editing Notes and saving writes one sitting and locks', (
@@ -354,6 +337,24 @@ void main() {
     expect(call.apply(page.stored).notes, 'Choppy');
     expect(find.byType(RecordEditBar), findsNothing);
     expect(find.text('Choppy'), findsOneWidget);
+  });
+
+  // A site's logbook rules run once, when it is created (#3513); saving a
+  // stored site runs none (the form's case, plan 7).
+  testWidgets('saving a stored site runs no rules', (tester) async {
+    final rules = _RecordingRules();
+    final page = await pumpSitePage(
+      tester,
+      extra: [ruleEngineProvider.overrideWithValue(rules)],
+    );
+    await unlock(tester);
+    await openNotes(tester);
+    await typeNotes(tester, 'Choppy');
+
+    await save(tester);
+
+    expect(page.save.calls, hasLength(1));
+    expect(rules.requests, isEmpty);
   });
 
   // Review Focus 2 of plan 4b: an attachment's lock is its own, so a PDF

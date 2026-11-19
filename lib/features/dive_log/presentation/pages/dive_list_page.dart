@@ -432,11 +432,10 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
           final siteId = state.uri.queryParameters['site'];
           if (siteId != null && siteId.isNotEmpty) {
             /// [state]'s address with [drop] taken out of its query.
-            void replaceWithout(Set<String> drop, {String? site}) {
+            void replaceWithout(Set<String> drop) {
               final params = {
                 for (final entry in state.uri.queryParameters.entries)
                   if (!drop.contains(entry.key)) entry.key: entry.value,
-                'site': ?site,
               };
               context.replace(
                 Uri(path: state.uri.path, queryParameters: params).toString(),
@@ -449,8 +448,6 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
               context,
               siteId,
               // Back to the site in view mode, its id kept.
-              onSaved: (savedId) =>
-                  replaceWithout({'mode', 'site'}, site: savedId),
               onCancel: () => replaceWithout({'mode'}),
               // Back to the dive the site was opened from.
               onClose: () => replaceWithout({'mode', 'site'}),
