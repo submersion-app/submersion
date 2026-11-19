@@ -7,19 +7,11 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_edit_routes.dart';
-import 'package:submersion/features/equipment/presentation/editing/gear_item_check_ins_sitting.dart';
-import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
-import 'package:submersion/features/equipment/presentation/editing/gear_item_media_sitting.dart';
-import 'package:submersion/features/equipment/presentation/editing/gear_item_service_sitting.dart';
-import 'package:submersion/features/equipment/presentation/editing/gear_item_location_sitting.dart';
-import 'package:submersion/features/dive_computer/presentation/providers/clock_sync_providers.dart';
-import 'package:submersion/features/dive_computer/presentation/editing/dive_computer_settings_sitting.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/router/pushed_route.dart';
 import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/core/utils/currency.dart';
-import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
@@ -33,9 +25,7 @@ import 'package:submersion/features/dive_log/presentation/navigation/open_dive_l
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
-import 'package:submersion/features/documents/presentation/editing/record_document_links_sitting.dart';
 import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
-import 'package:submersion/features/equipment/data/services/gear_item_edit_save_service.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_colors.dart';
 import 'package:submersion/features/equipment/domain/entities/condition_trend.dart';
@@ -46,10 +36,8 @@ import 'package:submersion/features/equipment/domain/services/equipment_ownershi
 import 'package:submersion/features/equipment/figure/presentation/figure_position_label.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_card_ids.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_edit_cards.dart';
-import 'package:submersion/features/equipment/presentation/editing/gear_item_edit_fields.dart';
-import 'package:submersion/features/equipment/presentation/editing/equipment_shares_sharing_adapter.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_header_editor.dart';
-import 'package:submersion/features/equipment/presentation/editing/gear_item_sharing_sitting.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_sitting_host.dart';
 import 'package:submersion/features/equipment/presentation/helpers/equipment_web_link_launcher.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -87,7 +75,6 @@ import 'package:submersion/features/gear_passports/presentation/widgets/gear_pas
 import 'package:submersion/features/media/presentation/helpers/document_open_helper.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
-import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
 import 'package:submersion/features/transmitters/presentation/widgets/transmitter_section.dart';
 import 'package:submersion/features/trips/presentation/navigation/open_trip_list.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
@@ -150,6 +137,7 @@ class _EquipmentDetailPageState extends ConsumerState<EquipmentDetailPage>
     with
         RecordEditHost<EquipmentDetailPage, EquipmentItem>,
         RecordOpenUnlocked<EquipmentDetailPage, EquipmentItem>,
+        GearItemSittingHost<EquipmentDetailPage>,
         _EquipmentDetailPageEditing {
   bool _hasRedirected = false;
 
