@@ -10996,6 +10996,8 @@
   "universalImport_summary_noticeLogbookImagesTitle": "Einige Bilder nicht importiert",
   "universalImport_summary_noticeLogbookImagesBody": "{count, plural, one{{count} in der Logbuchdatei gespeichertes Bild (ein Ausrüstungsfoto, eine Tauchplatzkarte o. Ä.) konnte nicht importiert werden. Bewahre die Originaldatei auf, um es zu behalten.} other{{count} in der Logbuchdatei gespeicherte Bilder (Ausrüstungsfotos, Tauchplatzkarten o. Ä.) konnten nicht importiert werden. Bewahre die Originaldatei auf, um sie zu behalten.}}",
   "universalImport_summary_noticeTripsNotImportedTitle": "Einige Reisen nicht importiert",
+  "universalImport_summary_tripsTitle": "Reisen",
+  "universalImport_summary_tripCount": "{count, plural, =1{{trip}: {count} Tauchgang} other{{trip}: {count} Tauchgänge}}",
   "universalImport_summary_noticeTripsNotImportedBody": "Diese Reisen haben kein Datum, und keiner ihrer Tauchgänge hat eines, daher konnten sie nicht importiert werden: {names}. Du kannst sie unter Reisen erneut anlegen.",
   "universalImport_summary_noticeSitesUnresolvedTitle": "Einige Tauchgänge ohne Tauchplatz",
   "universalImport_summary_noticeSitesUnresolvedBody": "Diese Tauchgänge verwiesen auf einen Tauchplatz, den die Datei nicht beschreibt, und wurden daher ohne Tauchplatz importiert. Du kannst den Tauchplatz beim Bearbeiten des Tauchgangs festlegen.",

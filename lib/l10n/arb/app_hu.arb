@@ -10736,6 +10736,8 @@
   "universalImport_summary_noticeLogbookImagesTitle": "Néhány kép nem lett importálva",
   "universalImport_summary_noticeLogbookImagesBody": "{count, plural, one{A naplófájlban tárolt {count} képet (felszerelésfotót, merülőhely-térképet vagy hasonlót) nem sikerült importálni. Őrizd meg az eredeti fájlt, hogy ne vesszen el.} other{A naplófájlban tárolt {count} képet (felszerelésfotókat, merülőhely-térképeket vagy hasonlókat) nem sikerült importálni. Őrizd meg az eredeti fájlt, hogy ne vesszenek el.}}",
   "universalImport_summary_noticeTripsNotImportedTitle": "Néhány út nem lett importálva",
+  "universalImport_summary_tripsTitle": "Utak",
+  "universalImport_summary_tripCount": "{count, plural, =1{{trip}: {count} merülés} other{{trip}: {count} merülés}}",
   "universalImport_summary_noticeTripsNotImportedBody": "Ezeknek az utaknak nincs dátuma, és egyik merülésüknek sincs, ezért nem sikerült importálni őket: {names}. Az Utak résznél újra felveheted őket.",
   "universalImport_summary_noticeSitesUnresolvedTitle": "Néhány merülésnek nincs merülőhelye",
   "universalImport_summary_noticeSitesUnresolvedBody": "Ezek a merülések olyan merülőhelyre hivatkoztak, amelyet a fájl nem ír le, ezért merülőhely nélkül lettek importálva. A merülés szerkesztésével megadhatsz egyet.",

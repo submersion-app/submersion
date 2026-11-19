@@ -10862,6 +10862,8 @@
   "universalImport_summary_noticeLogbookImagesTitle": "Algumas imagens não importadas",
   "universalImport_summary_noticeLogbookImagesBody": "{count, plural, one{Imagens guardadas no arquivo do logbook que não puderam ser importadas (fotos de equipamento, mapas de pontos de mergulho e semelhantes): {count}. Mantenha o arquivo original para não as perder.} other{{count} imagens guardadas no arquivo do logbook (fotos de equipamento, mapas de pontos de mergulho e semelhantes) não puderam ser importadas. Mantenha o arquivo original para não as perder.}}",
   "universalImport_summary_noticeTripsNotImportedTitle": "Algumas viagens não importadas",
+  "universalImport_summary_tripsTitle": "Viagens",
+  "universalImport_summary_tripCount": "{count, plural, =1{{trip}: {count} mergulho} other{{trip}: {count} mergulhos}}",
   "universalImport_summary_noticeTripsNotImportedBody": "Estas viagens não têm datas e nenhum dos seus mergulhos tem uma, por isso não puderam ser importadas: {names}. Pode adicioná-las novamente em Viagens.",
   "universalImport_summary_noticeSitesUnresolvedTitle": "Alguns mergulhos sem ponto de mergulho",
   "universalImport_summary_noticeSitesUnresolvedBody": "Estes mergulhos faziam referência a um ponto de mergulho que o arquivo não descreve, por isso foram importados sem um. Você pode definir um editando o mergulho.",

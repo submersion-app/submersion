@@ -38001,6 +38001,23 @@ class AppLocalizationsAr extends AppLocalizations {
       'لم يتم استيراد بعض الرحلات';
 
   @override
+  String get universalImport_summary_tripsTitle => 'الرحلات';
+
+  @override
+  String universalImport_summary_tripCount(String trip, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$trip: $count غوصة',
+      many: '$trip: $count غوصة',
+      few: '$trip: $count غوصات',
+      two: '$trip: غوصتان',
+      one: '$trip: غوصة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String universalImport_summary_noticeTripsNotImportedBody(String names) {
     return 'لا تحمل هذه الرحلات تواريخ، ولا تحمل أي من غطساتها تاريخًا، لذا تعذّر استيرادها: $names. يمكنك إضافتها مجددًا من قسم الرحلات.';
   }

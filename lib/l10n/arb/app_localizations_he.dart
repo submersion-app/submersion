@@ -36579,6 +36579,20 @@ class AppLocalizationsHe extends AppLocalizations {
       'חלק מהטיולים לא יובאו';
 
   @override
+  String get universalImport_summary_tripsTitle => 'טיולים';
+
+  @override
+  String universalImport_summary_tripCount(String trip, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$trip: $count צלילות',
+      one: '$trip: צלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String universalImport_summary_noticeTripsNotImportedBody(String names) {
     return 'לטיולים אלה אין תאריכים, ולאף אחת מהצלילות שלהם אין תאריך, ולכן לא ניתן היה לייבא אותם: $names. אפשר להוסיף אותם שוב בקטע הטיולים.';
   }

@@ -58820,6 +58820,18 @@ abstract class AppLocalizations {
   /// **'Some trips not imported'**
   String get universalImport_summary_noticeTripsNotImportedTitle;
 
+  /// No description provided for @universalImport_summary_tripsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Trips'**
+  String get universalImport_summary_tripsTitle;
+
+  /// No description provided for @universalImport_summary_tripCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{trip}: {count} dive} other{{trip}: {count} dives}}'**
+  String universalImport_summary_tripCount(String trip, int count);
+
   /// No description provided for @universalImport_summary_noticeTripsNotImportedBody.
   ///
   /// In en, this message translates to:

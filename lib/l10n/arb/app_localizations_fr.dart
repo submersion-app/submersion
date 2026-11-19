@@ -37598,6 +37598,20 @@ class AppLocalizationsFr extends AppLocalizations {
       'Certains voyages non importés';
 
   @override
+  String get universalImport_summary_tripsTitle => 'Voyages';
+
+  @override
+  String universalImport_summary_tripCount(String trip, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$trip : $count plongées',
+      one: '$trip : $count plongée',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String universalImport_summary_noticeTripsNotImportedBody(String names) {
     return 'Ces voyages n\'ont pas de dates et aucune de leurs plongées n\'en a, ils n\'ont donc pas pu être importés : $names. Vous pouvez les ajouter à nouveau dans Voyages.';
   }

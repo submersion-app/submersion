@@ -10862,6 +10862,8 @@
   "universalImport_summary_noticeLogbookImagesTitle": "חלק מהתמונות לא יובאו",
   "universalImport_summary_noticeLogbookImagesBody": "{count, plural, one{לא ניתן היה לייבא תמונה אחת השמורה בקובץ היומן (תמונת ציוד, מפת אתר וכדומה). שמרו את הקובץ המקורי כדי לא לאבד אותה.} other{לא ניתן היה לייבא {count} תמונות השמורות בקובץ היומן (תמונות ציוד, מפות אתרים וכדומה). שמרו את הקובץ המקורי כדי לא לאבד אותן.}}",
   "universalImport_summary_noticeTripsNotImportedTitle": "חלק מהטיולים לא יובאו",
+  "universalImport_summary_tripsTitle": "טיולים",
+  "universalImport_summary_tripCount": "{count, plural, =1{{trip}: צלילה אחת} other{{trip}: {count} צלילות}}",
   "universalImport_summary_noticeTripsNotImportedBody": "לטיולים אלה אין תאריכים, ולאף אחת מהצלילות שלהם אין תאריך, ולכן לא ניתן היה לייבא אותם: {names}. אפשר להוסיף אותם שוב בקטע הטיולים.",
   "universalImport_summary_noticeSitesUnresolvedTitle": "לחלק מהצלילות אין אתר צלילה",
   "universalImport_summary_noticeSitesUnresolvedBody": "צלילות אלה הפנו לאתר צלילה שהקובץ אינו מתאר, ולכן יובאו ללא אתר. אפשר להגדיר אתר בעריכת הצלילה.",

@@ -37238,6 +37238,20 @@ class AppLocalizationsNl extends AppLocalizations {
       'Sommige reizen niet geïmporteerd';
 
   @override
+  String get universalImport_summary_tripsTitle => 'Reizen';
+
+  @override
+  String universalImport_summary_tripCount(String trip, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$trip: $count duiken',
+      one: '$trip: $count duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String universalImport_summary_noticeTripsNotImportedBody(String names) {
     return 'Deze reizen hebben geen datums en geen van hun duiken heeft er een, dus ze konden niet worden geïmporteerd: $names. Je kunt ze opnieuw toevoegen onder Reizen.';
   }

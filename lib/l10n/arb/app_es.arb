@@ -10862,6 +10862,8 @@
   "universalImport_summary_noticeLogbookImagesTitle": "Algunas imágenes no importadas",
   "universalImport_summary_noticeLogbookImagesBody": "{count, plural, one{No se pudo importar {count} imagen guardada en el archivo del libro de registro (una foto de equipo, un mapa del punto de buceo o similar). Conserva el archivo original para no perderla.} other{No se pudieron importar {count} imágenes guardadas en el archivo del libro de registro (fotos de equipo, mapas de puntos de buceo o similares). Conserva el archivo original para no perderlas.}}",
   "universalImport_summary_noticeTripsNotImportedTitle": "Algunos viajes no importados",
+  "universalImport_summary_tripsTitle": "Viajes",
+  "universalImport_summary_tripCount": "{count, plural, =1{{trip}: {count} inmersión} other{{trip}: {count} inmersiones}}",
   "universalImport_summary_noticeTripsNotImportedBody": "Estos viajes no tienen fechas y ninguna de sus inmersiones tiene una, así que no se pudieron importar: {names}. Puedes volver a añadirlos en Viajes.",
   "universalImport_summary_noticeSitesUnresolvedTitle": "Algunas inmersiones sin punto de buceo",
   "universalImport_summary_noticeSitesUnresolvedBody": "Estas inmersiones hacían referencia a un punto de buceo que el archivo no describe, así que se importaron sin él. Puedes asignar un punto de buceo editando la inmersión.",

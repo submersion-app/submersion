@@ -10862,6 +10862,8 @@
   "universalImport_summary_noticeLogbookImagesTitle": "لم يتم استيراد بعض الصور",
   "universalImport_summary_noticeLogbookImagesBody": "{count, plural, one{تعذّر استيراد صورة واحدة محفوظة في ملف السجل (صورة معدات أو خريطة موقع أو ما شابه). احتفظ بالملف الأصلي لكي لا تفقدها.} two{تعذّر استيراد صورتين محفوظتين في ملف السجل (صور معدات أو خرائط مواقع أو ما شابه). احتفظ بالملف الأصلي لكي لا تفقدهما.} few{تعذّر استيراد {count} صور محفوظة في ملف السجل (صور معدات أو خرائط مواقع أو ما شابه). احتفظ بالملف الأصلي لكي لا تفقدها.} many{تعذّر استيراد {count} صورة محفوظة في ملف السجل (صور معدات أو خرائط مواقع أو ما شابه). احتفظ بالملف الأصلي لكي لا تفقدها.} other{تعذّر استيراد {count} صورة محفوظة في ملف السجل (صور معدات أو خرائط مواقع أو ما شابه). احتفظ بالملف الأصلي لكي لا تفقدها.}}",
   "universalImport_summary_noticeTripsNotImportedTitle": "لم يتم استيراد بعض الرحلات",
+  "universalImport_summary_tripsTitle": "الرحلات",
+  "universalImport_summary_tripCount": "{count, plural, =1{{trip}: غوصة واحدة} two{{trip}: غوصتان} few{{trip}: {count} غوصات} many{{trip}: {count} غوصة} other{{trip}: {count} غوصة}}",
   "universalImport_summary_noticeTripsNotImportedBody": "لا تحمل هذه الرحلات تواريخ، ولا تحمل أي من غطساتها تاريخًا، لذا تعذّر استيرادها: {names}. يمكنك إضافتها مجددًا من قسم الرحلات.",
   "universalImport_summary_noticeSitesUnresolvedTitle": "بعض الغطسات بلا موقع غوص",
   "universalImport_summary_noticeSitesUnresolvedBody": "أشارت هذه الغطسات إلى موقع غوص لا يصفه الملف، فاستُوردت بدون موقع. يمكنك تعيين موقع بتحرير الغطسة.",

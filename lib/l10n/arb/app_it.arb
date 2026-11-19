@@ -10732,6 +10732,8 @@
   "universalImport_summary_noticeLogbookImagesTitle": "Alcune immagini non importate",
   "universalImport_summary_noticeLogbookImagesBody": "{count, plural, one{Non è stato possibile importare {count} immagine salvata nel file del logbook (una foto dell'attrezzatura, una mappa del sito o simili). Conserva il file originale per non perderla.} other{Non è stato possibile importare {count} immagini salvate nel file del logbook (foto dell'attrezzatura, mappe dei siti o simili). Conserva il file originale per non perderle.}}",
   "universalImport_summary_noticeTripsNotImportedTitle": "Alcuni viaggi non importati",
+  "universalImport_summary_tripsTitle": "Viaggi",
+  "universalImport_summary_tripCount": "{count, plural, =1{{trip}: {count} immersione} other{{trip}: {count} immersioni}}",
   "universalImport_summary_noticeTripsNotImportedBody": "Questi viaggi non hanno date e nessuna delle loro immersioni ne ha una, quindi non è stato possibile importarli: {names}. Puoi aggiungerli di nuovo in Viaggi.",
   "universalImport_summary_noticeSitesUnresolvedTitle": "Alcune immersioni senza sito di immersione",
   "universalImport_summary_noticeSitesUnresolvedBody": "Queste immersioni facevano riferimento a un sito di immersione che il file non descrive, quindi sono state importate senza sito. Puoi assegnarne uno modificando l'immersione.",
