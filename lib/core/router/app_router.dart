@@ -41,6 +41,7 @@ import 'package:submersion/features/documents/presentation/pages/document_edit_r
 import 'package:submersion/features/documents/presentation/pages/document_edit_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_detail_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_edit_page.dart';
+import 'package:submersion/features/certifications/presentation/pages/certification_edit_routes.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_wallet_page.dart';
 import 'package:submersion/features/checklists/presentation/pages/checklist_template_edit_page.dart';
 import 'package:submersion/features/checklists/presentation/pages/checklist_templates_page.dart';
@@ -1024,6 +1025,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/certifications',
             name: 'certifications',
+            onExit: confirmLeaveRecordSitting,
             // Both Training tabs build one host under one page key, so it
             // stays mounted across a switch (#3437).
             pageBuilder: (context, state) => trainingHostPage(
@@ -1043,13 +1045,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: ':certificationId',
                 name: 'certificationDetail',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => CertificationDetailPage(
                   certificationId: state.pathParameters['certificationId']!,
+                  openUnlocked: state.uri.queryParameters['mode'] == 'edit',
                 ),
                 routes: [
                   GoRoute(
                     path: 'edit',
                     name: 'editCertification',
+                    // Behind phase 3's switch, the page opened unlocked.
+                    redirect: certificationEditRedirect,
                     builder: (context, state) => CertificationEditPage(
                       certificationId: state.pathParameters['certificationId'],
                     ),

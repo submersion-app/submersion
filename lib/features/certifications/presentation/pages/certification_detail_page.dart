@@ -29,6 +29,8 @@ import 'package:submersion/features/certifications/data/services/certification_e
 import 'package:submersion/features/certifications/presentation/editing/certification_card_ids.dart';
 import 'package:submersion/features/certifications/presentation/editing/certification_currency_sitting.dart';
 import 'package:submersion/features/certifications/presentation/editing/certification_edit_cards.dart';
+import 'package:submersion/features/certifications/presentation/pages/certification_edit_routes.dart';
+import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 import 'package:submersion/features/documents/presentation/editing/record_document_links_sitting.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
@@ -108,7 +110,12 @@ class _CertificationDetailPageState
       _hasRedirected = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          context.go('/certifications?selected=${widget.certificationId}');
+          context.go(
+            certificationPaneLocation(
+              widget.certificationId,
+              openUnlocked: widget.openUnlocked,
+            ),
+          );
         }
       });
     }
@@ -360,10 +367,8 @@ class _CertificationDetailContent extends ConsumerWidget {
       PopupMenuButton<String>(
         icon: compact ? const Icon(Icons.more_vert, size: 20) : null,
         tooltip: context.l10n.certifications_detail_tooltip_moreOptions,
-        onSelected: (value) async {
-          if (value == 'delete') {
-            await _handleDelete(context, ref);
-          }
+        onSelected: (value) {
+          if (value == 'delete') _requestDelete(context, ref);
         },
         itemBuilder: (context) => [
           changeLogHistoryMenuItem(
@@ -371,8 +376,11 @@ class _CertificationDetailContent extends ConsumerWidget {
             rootTable: 'certifications',
             rootId: certification.id,
           ),
+          // Delete is a whole-record operation, under the lock.
+          ...?host?._operationCaption(),
           PopupMenuItem(
             value: 'delete',
+            enabled: host?._operationsAvailable ?? true,
             child: Row(
               children: [
                 Icon(
@@ -473,25 +481,37 @@ class _CertificationDetailContent extends ConsumerWidget {
     );
   }
 
-  Future<void> _handleDelete(BuildContext context, WidgetRef ref) async {
+  /// Delete, through the sitting where the page edits in place.
+  void _requestDelete(BuildContext context, WidgetRef ref) {
+    final host = this.host;
+    if (host == null) {
+      _handleDelete(context, ref);
+      return;
+    }
+    recordOperationRunnerOf(
+      host.editController,
+      record: 'certification ${certification.id}',
+    )(() => _handleDelete(context, ref));
+  }
+
+  /// Asks, then deletes; whether it was deleted.
+  Future<bool> _handleDelete(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final deleted = context.l10n.certifications_detail_snackBar_deleted;
     final confirmed = await _showDeleteConfirmation(context);
-    if (confirmed && context.mounted) {
-      await ref
-          .read(certificationListNotifierProvider.notifier)
-          .deleteCertification(certification.id);
-      if (context.mounted) {
-        if (embedded) {
-          onDeleted?.call();
-        } else {
-          context.pop();
-        }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.l10n.certifications_detail_snackBar_deleted),
-          ),
-        );
+    if (!confirmed || !context.mounted) return false;
+    await ref
+        .read(certificationListNotifierProvider.notifier)
+        .deleteCertification(certification.id);
+    if (context.mounted) {
+      if (embedded) {
+        onDeleted?.call();
+      } else {
+        context.pop();
       }
     }
+    messenger.showSnackBar(SnackBar(content: Text(deleted)));
+    return true;
   }
 
   Widget _buildStatusBanner(BuildContext context, UnitFormatter units) {

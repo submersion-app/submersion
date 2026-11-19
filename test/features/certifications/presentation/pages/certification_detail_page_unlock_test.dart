@@ -218,4 +218,97 @@ void main() {
 
     expect(find.byType(AlertDialog), findsOneWidget);
   });
+
+  group('opening and operations', () {
+    testWidgets('opened with mode=edit, the page is unlocked', (tester) async {
+      await pumpCertificationPage(tester, openUnlocked: true);
+
+      expect(find.byType(RecordEditBar), findsOneWidget);
+    });
+
+    testWidgets("the pane's edit opens the page unlocked, Cancel returns to "
+        'view', (tester) async {
+      var ended = 0;
+      await pumpCertificationPage(
+        tester,
+        embedded: true,
+        openUnlocked: true,
+        onSittingEnded: () => ended++,
+      );
+      expect(find.textContaining('Editing'), findsOneWidget);
+
+      await tester.tap(find.text(l.forms_cancel));
+      await tester.pumpAndSettle();
+
+      expect(ended, 1);
+    });
+
+    testWidgets('locked, Delete is disabled under "Unlock to use these"', (
+      tester,
+    ) async {
+      await pumpCertificationPage(tester);
+      await tester.tap(find.byType(PopupMenuButton<String>).first);
+      await tester.pumpAndSettle();
+
+      expect(find.text(l.recordEdit_unlockToUseThese), findsOneWidget);
+      final delete = tester.widget<PopupMenuItem<String>>(
+        find.widgetWithText(
+          PopupMenuItem<String>,
+          l.certifications_detail_action_delete,
+        ),
+      );
+      expect(delete.enabled, isFalse);
+    });
+
+    testWidgets('unlocked and clean, Delete asks', (tester) async {
+      await pumpCertificationPage(tester);
+      await unlock(tester);
+      await tester.tap(
+        find.descendant(
+          of: find.byType(RecordEditBar),
+          matching: find.byType(PopupMenuButton<String>),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final item = tester.widget<PopupMenuItem<String>>(
+        find.widgetWithText(
+          PopupMenuItem<String>,
+          l.certifications_detail_action_delete,
+        ),
+      );
+      expect(item.enabled, isTrue);
+      expect(find.text(l.recordEdit_unlockToUseThese), findsNothing);
+      await tester.tap(find.text(l.certifications_detail_action_delete));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(l.certifications_detail_dialog_deleteTitle),
+        findsOneWidget,
+      );
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text(l.certifications_detail_dialog_cancel),
+        ),
+      );
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('with the switch off, Delete is offered as before', (
+      tester,
+    ) async {
+      await pumpCertificationPage(tester, unlockEditing: false);
+      await tester.tap(find.byType(PopupMenuButton<String>).first);
+      await tester.pumpAndSettle();
+
+      expect(find.text(l.recordEdit_unlockToUseThese), findsNothing);
+      final delete = tester.widget<PopupMenuItem<String>>(
+        find.widgetWithText(
+          PopupMenuItem<String>,
+          l.certifications_detail_action_delete,
+        ),
+      );
+      expect(delete.enabled, isTrue);
+    });
+  });
 }
