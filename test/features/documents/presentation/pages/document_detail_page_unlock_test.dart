@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/documents/presentation/editing/document_edit_fields.dart';
+import 'package:submersion/features/documents/presentation/editing/document_record.dart';
+import 'package:submersion/features/documents/presentation/pages/document_detail_page.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
@@ -282,6 +286,48 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(harness.mutations.deleted, ['doc']);
+    });
+  });
+
+  group('review fixes', () {
+    testWidgets('on a narrow window the open Details editor scrolls', (
+      tester,
+    ) async {
+      await pumpDocumentPage(tester, pages: [storedPage(0)]);
+      await unlock(tester);
+
+      await tester.tap(
+        find.byTooltip(
+          l.recordEdit_editCardTooltip(l.documents_editCard_details),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.byKey(const Key('document-title')), findsOneWidget);
+    });
+
+    testWidgets("an owner changed in the sitting drops the old owner's name", (
+      tester,
+    ) async {
+      await pumpDocumentPage(
+        tester,
+        document: travel.copyWith(
+          owner: const DocumentOwner(DocumentOwnerKind.trip, 't1'),
+        ),
+        ownerLabel: 'Bonaire',
+      );
+      expect(find.text('Bonaire'), findsOneWidget);
+      await unlock(tester);
+
+      final page = tester.state(find.byType(DocumentDetailPage)) as dynamic;
+      (page.editController.session as EditSession<DocumentRecord>).set(
+        documentOwnerField,
+        const DocumentOwner.personal(),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Bonaire'), findsNothing);
     });
   });
 }

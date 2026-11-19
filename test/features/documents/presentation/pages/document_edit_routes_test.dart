@@ -29,6 +29,7 @@ void main() {
 
   testWidgets('the pane opens the page unlocked with the switch on, and the '
       'form without it', (tester) async {
+    void deleted() {}
     late Widget on;
     late Widget off;
     await tester.pumpWidget(
@@ -39,6 +40,7 @@ void main() {
             'doc',
             (_) {},
             () {},
+            onDeleted: deleted,
             unlockEditing: true,
           );
           off = documentEditPane(
@@ -55,6 +57,7 @@ void main() {
 
     expect(on, isA<DocumentDetailPage>());
     expect((on as DocumentDetailPage).openUnlocked, isTrue);
+    expect((on as DocumentDetailPage).onDeleted, equals(deleted));
     expect(off, isA<DocumentEditPage>());
   });
 }

@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
@@ -8,6 +9,7 @@ import 'package:submersion/features/media/data/services/photo_picker_service.dar
 import 'package:submersion/features/media/domain/entities/import_candidate.dart';
 import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
 import 'package:submersion/features/media/presentation/helpers/species_photo_import_helper.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/test_database.dart';
 import '../../data/repositories/species_photo_fixtures.dart';
@@ -138,5 +140,15 @@ void main() {
       expect(result.review.linked, 1);
       expect(result.review.skipped, 1);
     });
+  });
+
+  test('photos that could not be prepared are said; none, nothing', () {
+    final l = lookupAppLocalizations(const Locale('en'));
+
+    expect(
+      SpeciesPhotoImportHelper.speciesPrepareFailureMessage(l, 2),
+      l.marineLife_speciesPhotos_importFailed(2),
+    );
+    expect(SpeciesPhotoImportHelper.speciesPrepareFailureMessage(l, 0), isNull);
   });
 }

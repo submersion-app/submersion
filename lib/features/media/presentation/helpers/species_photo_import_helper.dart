@@ -16,6 +16,9 @@ import 'package:submersion/features/media/presentation/pages/media_import_view.d
 import 'package:submersion/features/media/presentation/pages/photo_picker_page.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// What an import into a species did, for its snackbar.
@@ -215,6 +218,11 @@ class SpeciesPhotoImportHelper {
     required String speciesId,
     Future<List<AssetInfo>?> Function(BuildContext context)? pick,
   }) async {
+    // The rows are written at Save, past the import service's own demo
+    // check: a demo stops here, before any work.
+    if (!demoSealGuard(context, DemoSealedFeature.mediaImport)) return null;
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     final assets =
         await (pick?.call(context) ??
             showPhotoPicker(
@@ -229,6 +237,7 @@ class SpeciesPhotoImportHelper {
     final dives = ref.read(diveRepositoryProvider);
     final picker = ref.read(photoPickerServiceProvider);
     List<PreparedMedia>? result;
+    var failed = 0;
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => MediaImportReviewPage(
@@ -258,11 +267,24 @@ class SpeciesPhotoImportHelper {
                   service.prepareForSite(selectedAssets: group, siteId: siteId),
             );
             result = done.prepared;
+            failed = done.review.failures.length;
             return done.review;
           },
         ),
       ),
     );
+    // The review says nothing while the photos wait for Save; photos that
+    // could not be prepared are said here, as the import says them.
+    if (speciesPrepareFailureMessage(l10n, failed) case final message?) {
+      messenger.showSnackBar(SnackBar(content: Text(message)));
+    }
     return result;
   }
+
+  /// What to say about [failed] photos that could not be prepared, or null
+  /// when there were none.
+  static String? speciesPrepareFailureMessage(
+    AppLocalizations l10n,
+    int failed,
+  ) => failed == 0 ? null : l10n.marineLife_speciesPhotos_importFailed(failed);
 }

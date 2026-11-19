@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -54,6 +56,10 @@ class FakeSpeciesSave implements SpeciesEditSaveService {
   /// inside its transaction.
   bool runHeld = true;
 
+  /// Holds the write until completed, so a test can leave the page while it
+  /// runs.
+  Completer<void>? gate;
+
   @override
   Future<({Species before, Species after})?> save({
     required String speciesId,
@@ -63,6 +69,7 @@ class FakeSpeciesSave implements SpeciesEditSaveService {
     bool alsoWriteIsAChange = false,
   }) async {
     if (fail) throw StateError('the save failed');
+    await gate?.future;
     final before = stored.state!;
     final after = apply(before);
     calls.add((after: after, cards: changedCardIds.toSet()));
@@ -102,13 +109,17 @@ class RecordingTagging extends SpeciesTaggingService {
 /// touching a database.
 class FakeSpeciesRepository extends SpeciesRepository {
   bool inUse = false;
+  Object? deleteFails;
   final deleted = <String>[];
 
   @override
   Future<bool> isSpeciesInUse(String id) async => inUse;
 
   @override
-  Future<void> deleteSpecies(String id) async => deleted.add(id);
+  Future<void> deleteSpecies(String id) async {
+    if (deleteFails case final error?) throw error;
+    deleted.add(id);
+  }
 }
 
 /// What a test pumped: the fake save, the stored species to change
@@ -120,6 +131,7 @@ class SpeciesPageHarness {
     this.tagging,
     this.written,
     this.species,
+    this.showPage,
   );
 
   final FakeSpeciesRepository species;
@@ -130,6 +142,12 @@ class SpeciesPageHarness {
 
   /// The media rows the held import wrote, by id.
   final List<String> written;
+
+  /// The media handed to the store's upload queue.
+  final List<String> enqueued = [];
+
+  /// Set false to take the page away while the app (its providers) stays.
+  final ValueNotifier<bool> showPage;
 }
 
 final _storedProvider = StateProvider<Species?>((ref) => manta);
@@ -153,6 +171,7 @@ Future<SpeciesPageHarness> pumpSpeciesPage(
   final tagging = RecordingTagging();
   final written = <String>[];
   final repository = FakeSpeciesRepository();
+  final pageShown = ValueNotifier(true);
   await tester.pumpWidget(
     testApp(
       locale: locale,
@@ -180,6 +199,7 @@ Future<SpeciesPageHarness> pumpSpeciesPage(
             tagging,
             written,
             repository,
+            pageShown,
           );
           return save;
         }),
@@ -195,7 +215,9 @@ Future<SpeciesPageHarness> pumpSpeciesPage(
           written.addAll([for (final p in prepared) p.item.id]);
           return [for (final p in prepared) p.item];
         }),
-        mediaStoreEnqueueProvider.overrideWithValue((mediaId) {}),
+        mediaStoreEnqueueProvider.overrideWithValue(
+          (mediaId) => harness.enqueued.add(mediaId),
+        ),
         speciesTagCandidatesProvider(species.id).overrideWith(
           (ref) async => [
             SpeciesTagCandidateGroup(
@@ -212,17 +234,22 @@ Future<SpeciesPageHarness> pumpSpeciesPage(
           (context, query) async => lookupAnswer,
         ),
       ],
-      child: Theme(
-        // The app's own theme, light or dark.
-        data: AppThemeRegistry.resolveTheme(
-          AppThemeRegistry.presets.first,
-          brightness,
-        ),
-        child: SpeciesDetailPage(
-          speciesId: species.id,
-          unlockEditing: unlockEditing,
-          openUnlocked: openUnlocked,
-        ),
+      child: ValueListenableBuilder<bool>(
+        valueListenable: pageShown,
+        builder: (context, shown, _) => shown
+            ? Theme(
+                // The app's own theme, light or dark.
+                data: AppThemeRegistry.resolveTheme(
+                  AppThemeRegistry.presets.first,
+                  brightness,
+                ),
+                child: SpeciesDetailPage(
+                  speciesId: species.id,
+                  unlockEditing: unlockEditing,
+                  openUnlocked: openUnlocked,
+                ),
+              )
+            : const SizedBox.shrink(),
       ),
     ),
   );

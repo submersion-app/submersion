@@ -95,12 +95,17 @@ class _DocumentDetailsCardEditorState
     if (picked != null) _session.set(field, picked);
   }
 
-  /// The tags shown: those the diver chose in this sitting, else the
-  /// stored ones.
-  List<Tag> _tags() {
-    final chosen = _session.recall<List<Tag>>(_tagObjectsKey);
-    if (chosen != null) return chosen;
-    return ref
+  /// The tags shown: those the diver chose in this sitting, else [stored].
+  List<Tag> _tags(List<Tag> stored) =>
+      _session.recall<List<Tag>>(_tagObjectsKey) ?? stored;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final units = ref.watch(unitFormatterProvider);
+    // Watched here, in the editor's own build, not in the builder below.
+    final storedTags =
+        ref
             .watch(
               tagsForItemProvider((
                 scope: TagScope.documents,
@@ -109,12 +114,6 @@ class _DocumentDetailsCardEditorState
             )
             .value ??
         const <Tag>[];
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final units = ref.watch(unitFormatterProvider);
     // Touch the controllers so every binding exists before the first frame.
     final controllers = _controllers;
     return ListenableBuilder(
@@ -168,7 +167,7 @@ class _DocumentDetailsCardEditorState
               scope: TagScope.documents,
               label: l10n.documents_field_tags,
               browseKey: const ValueKey('document_details_tags_browse'),
-              selectedTags: _tags(),
+              selectedTags: _tags(storedTags),
               enabled: tagsReadable,
               onTagsChanged: (tags) {
                 _session.remember(_tagObjectsKey, tags);

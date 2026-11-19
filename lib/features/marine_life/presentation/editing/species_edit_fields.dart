@@ -53,6 +53,8 @@ final speciesCommonNameField = EditField<Species, String>(
   cardId: _header,
   read: (s) => s.commonName,
   write: (s, v) => _with(s, commonName: v.trim()),
+  // Spaces around the name are not a change: the save trims them.
+  equals: (a, b) => a.trim() == b.trim(),
 );
 
 final speciesScientificNameField = EditField<Species, String?>(

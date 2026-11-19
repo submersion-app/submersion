@@ -151,6 +151,31 @@ void main() {
       expect(speciesImportsWritten(session), ['m1', 'm2']);
     });
 
+    test('the same photo added twice is held once', () {
+      // Prepared twice: two fresh row ids for one photo on one dive.
+      PreparedMedia again(String rowId) => (
+        item: testMediaItem(
+          id: rowId,
+          diveId: 'd1',
+        ).copyWith(platformAssetId: 'IMG_1'),
+        enrichment: null,
+      );
+      holdSpeciesImports(
+        session,
+        [again('m1')],
+        write: (list) async => const [],
+        tagging: tagging,
+      );
+      holdSpeciesImports(
+        session,
+        [again('m2')],
+        write: (list) async => const [],
+        tagging: tagging,
+      );
+
+      expect(heldSpeciesImports(session).map((p) => p.item.id), ['m1']);
+    });
+
     test('a write that fails tags nothing', () async {
       holdSpeciesImports(
         session,

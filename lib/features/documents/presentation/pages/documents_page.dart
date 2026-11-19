@@ -120,8 +120,13 @@ class DocumentsPage extends ConsumerWidget {
         ),
       ),
       // Behind phase 3's switch, the page opened unlocked (issue #4527).
-      editBuilder: (context, id, onSaved, onCancel) =>
-          documentEditPane(context, id, onSaved, onCancel),
+      editBuilder: (context, id, onSaved, onCancel) => documentEditPane(
+        context,
+        id,
+        onSaved,
+        onCancel,
+        onDeleted: () => context.go(GoRouterState.of(context).uri.path),
+      ),
       createBuilder: (context, onSaved, onCancel) => DocumentEditPage(
         embedded: true,
         initialType: initialType,

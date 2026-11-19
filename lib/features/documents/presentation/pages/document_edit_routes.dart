@@ -34,6 +34,7 @@ Widget documentEditPane(
   String id,
   void Function(String savedId) onSaved,
   VoidCallback onCancel, {
+  VoidCallback? onDeleted,
   bool unlockEditing = kUnlockRecordEditing,
 }) {
   if (unlockEditing) {
@@ -43,6 +44,8 @@ Widget documentEditPane(
       unlockEditing: unlockEditing,
       openUnlocked: true,
       onSittingEnded: onCancel,
+      // A delete from the pane returns it to the list, as from view mode.
+      onDeleted: onDeleted,
     );
   }
   return DocumentEditPage(

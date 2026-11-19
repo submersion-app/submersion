@@ -46,7 +46,9 @@ mixin _SpeciesDetailPageEditing
   /// transaction and one History entry.
   @override
   Future<void> saveSitting(EditSession<Species> session) async {
+    // Read before the write: the page can be gone by the time it is done.
     final service = ref.read(speciesEditSaveServiceProvider);
+    final enqueue = ref.read(mediaStoreEnqueueProvider);
     final result = await service.save(
       // The species the sitting was opened on, whatever the page shows by
       // the time the write is asked for.
@@ -59,7 +61,6 @@ mixin _SpeciesDetailPageEditing
     justSavedRecord = result?.after ?? session.working;
     // The photos the sitting added go to the media store once committed,
     // each on its own: a failure there is not a failed save.
-    final enqueue = ref.read(mediaStoreEnqueueProvider);
     for (final mediaId in speciesImportsWritten(session)) {
       try {
         enqueue(mediaId);
@@ -279,7 +280,21 @@ mixin _SpeciesDetailPageEditing
       ),
     );
     if (confirmed != true) return false;
-    await repository.deleteSpecies(species.id);
+    try {
+      await repository.deleteSpecies(species.id);
+    } catch (error) {
+      // Come into use since the check, or a failed write: say so, as the
+      // manage page does.
+      if (mounted) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(l10n.marineLife_species_delete_error('$error')),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+      return false;
+    }
     messenger.showSnackBar(
       SnackBar(content: Text(l10n.marineLife_species_delete_snackbar(name))),
     );

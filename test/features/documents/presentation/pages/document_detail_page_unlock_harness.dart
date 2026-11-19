@@ -113,6 +113,7 @@ Future<DocumentPageHarness> pumpDocumentPage(
   bool embedded = false,
   VoidCallback? onSittingEnded,
   Size size = const Size(600, 1000),
+  String? ownerLabel,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -133,7 +134,7 @@ Future<DocumentPageHarness> pumpDocumentPage(
         ).overrideWith((ref) async => ref.watch(_storedProvider)),
         documentEntryProvider(doc.id).overrideWith((ref) async {
           final now = ref.watch(_storedProvider)?.document ?? doc;
-          return DocumentListEntry(now, null, pages.length);
+          return DocumentListEntry(now, ownerLabel, pages.length);
         }),
         documentPagesProvider(doc.id).overrideWith((ref) async => pages),
         documentRepositoryProvider.overrideWithValue(FakeDocumentContent()),

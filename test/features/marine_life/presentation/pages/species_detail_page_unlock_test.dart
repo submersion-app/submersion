@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -407,6 +409,64 @@ void main() {
         ),
       );
       expect(item.enabled, isTrue);
+    });
+  });
+  group('review fixes', () {
+    testWidgets('photos added are queued for upload even if the page goes', (
+      tester,
+    ) async {
+      final harness = await pumpSpeciesPage(tester);
+      await unlock(tester);
+      await tester.tap(find.byKey(const ValueKey('species_add_photos')));
+      await tester.pumpAndSettle();
+      final gate = harness.save.gate = Completer<void>();
+
+      await tester.tap(find.text(l.forms_save));
+      await tester.pump();
+      // The diver leaves while the write runs; the app stays.
+      harness.showPage.value = false;
+      await tester.pump();
+      gate.complete();
+      await tester.pumpAndSettle();
+
+      expect(harness.written, ['new1']);
+      expect(harness.enqueued, ['new1']);
+    });
+
+    testWidgets('a delete that fails says so', (tester) async {
+      final harness = await pumpSpeciesPage(tester);
+      harness.species.deleteFails = StateError('in use');
+      await unlock(tester);
+      await tester.tap(find.byKey(const ValueKey('species_detail_menu')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l.marineLife_speciesManage_deleteButton));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l.marineLife_speciesManage_deleteButton).last);
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(l.marineLife_species_delete_error('Bad state: in use')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a trailing space on the name is no change', (tester) async {
+      await pumpSpeciesPage(tester);
+      await unlock(tester);
+      await openCard(tester, headerTitle());
+
+      await tester.enterText(
+        find.byKey(const ValueKey('species_header_common_name')),
+        'Manta ',
+      );
+      await tester.pumpAndSettle();
+
+      final saveButton = find.text(l.forms_save);
+      expect(saveButton, findsOneWidget);
+      expect(
+        tester.widget<RecordEditBar>(find.byType(RecordEditBar)).canSave,
+        isFalse,
+      );
     });
   });
 }

@@ -119,8 +119,23 @@ void holdSpeciesImports(
 }) {
   if (session.isDisposed || session.isFrozen) return;
   session.remember(_importsToolsKey, (write: write, tagging: tagging));
-  _holdImports(session, [...heldSpeciesImports(session), ...prepared]);
+  final held = heldSpeciesImports(session);
+  final seen = {for (final p in held) _sourceOf(p.item)};
+  _holdImports(session, [
+    ...held,
+    // A photo chosen again for the same dive or site is held once: each
+    // prepare gives it a fresh row id, and only stored links are skipped.
+    for (final p in prepared)
+      if (seen.add(_sourceOf(p.item))) p,
+  ]);
 }
+
+/// The photo [item] is of, and the dive or site it goes to.
+(String?, String?, String?) _sourceOf(MediaItem item) => (
+  item.platformAssetId ?? item.filePath ?? item.url ?? item.id,
+  item.diveId,
+  item.siteId,
+);
 
 /// Takes the prepared photo [mediaId] out of the photos to add; none left
 /// is no change.

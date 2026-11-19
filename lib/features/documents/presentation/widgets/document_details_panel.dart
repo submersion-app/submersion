@@ -66,25 +66,7 @@ class _DocumentDetailsPanelState extends ConsumerState<DocumentDetailsPanel> {
     final panel = Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        ListTile(
-          key: const ValueKey('document-details-toggle'),
-          leading: Icon(documentTypeIcon(doc.type)),
-          title: Text(summary, maxLines: 1, overflow: TextOverflow.ellipsis),
-          subtitle: status.needsAttention
-              ? Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: DocumentExpiryBadge(status: status),
-                )
-              : null,
-          // Kept open while the page is unlocked: the fold arrow's place
-          // holds the Details card's pencil.
-          trailing: widget.forceOpen
-              ? widget.pencil
-              : Icon(_expanded ? Icons.expand_more : Icons.expand_less),
-          onTap: widget.forceOpen
-              ? null
-              : () => setState(() => _expanded = !_expanded),
-        ),
+        _toggle(context, doc, status, summary),
         if (_expanded || widget.forceOpen)
           Flexible(
             child: SingleChildScrollView(
@@ -98,13 +80,64 @@ class _DocumentDetailsPanelState extends ConsumerState<DocumentDetailsPanel> {
           ),
       ],
     );
+    final frame = widget.frame;
+    if (widget.forceOpen && frame != null) {
+      // Unlocked, the panel is the page's Details card, framed whole: its
+      // header keeps the pencil, and once open its editor, taller than the
+      // panel's half of the screen, takes the panel's place and scrolls.
+      return Card(
+        margin: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        child: SingleChildScrollView(
+          child: frame(
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _toggle(context, doc, status, summary),
+                DocumentDetailsCard(
+                  document: doc,
+                  ownerLabel: owner,
+                  flat: true,
+                  showReminder: widget.showReminder,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
     return Card(
       margin: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-      // As the page's Details card, framed whole: its header keeps the
-      // pencil, and its editor takes the panel's place once open.
-      child: (widget.frame ?? (details) => details)(panel),
+      child: frame == null ? panel : frame(panel),
     );
   }
+
+  /// The panel's header: the type and owner, the expiry badge when it needs
+  /// attention, and the fold arrow; while [DocumentDetailsPanel.forceOpen]
+  /// the arrow's place holds the Details card's pencil.
+  Widget _toggle(
+    BuildContext context,
+    Document doc,
+    DocumentExpiryStatus status,
+    String summary,
+  ) => ListTile(
+    key: const ValueKey('document-details-toggle'),
+    leading: Icon(documentTypeIcon(doc.type)),
+    title: Text(summary, maxLines: 1, overflow: TextOverflow.ellipsis),
+    subtitle: status.needsAttention
+        ? Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: DocumentExpiryBadge(status: status),
+          )
+        : null,
+    // Kept open while the page is unlocked: the fold arrow's place
+    // holds the Details card's pencil.
+    trailing: widget.forceOpen
+        ? widget.pencil
+        : Icon(_expanded ? Icons.expand_more : Icons.expand_less),
+    onTap: widget.forceOpen
+        ? null
+        : () => setState(() => _expanded = !_expanded),
+  );
 }
 
 /// The route of the record a document is filed under; null for personal.

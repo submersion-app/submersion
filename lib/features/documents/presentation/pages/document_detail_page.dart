@@ -156,12 +156,15 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage>
         final doc = shown.document;
         // The entry with the sitting's document, so the details and the
         // panel show what the diver is editing.
+        // The stored owner's name, while the sitting keeps that owner: a new
+        // owner reads as its kind until saved and read back.
+        final sameOwner = doc.owner == named.document.owner;
         final entry = DocumentListEntry(
           doc,
-          named.ownerLabel,
+          sameOwner ? named.ownerLabel : null,
           named.pageCount,
-          ownerDate: named.ownerDate,
-          certification: named.certification,
+          ownerDate: sameOwner ? named.ownerDate : null,
+          certification: sameOwner ? named.certification : null,
         );
         return editScaffold(
           record: record,
