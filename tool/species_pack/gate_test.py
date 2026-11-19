@@ -99,14 +99,12 @@ class RareTest(unittest.TestCase):
 class CheckPackTest(unittest.TestCase):
     BARS = {"min_open": 0.1, "suggest": 0.7, "suggest_no_location": 0.8, "confident": 0.93, "confident_no_location": 1.01}
 
-    def confirm(self, held=(5, 6), scored="check-v", named_at=None):
+    def confirm(self, held=(5, 6), named_at=None):
         gate.confirm_check_pack(
             {"held back species": list(held)},
-            {"packVersion": "check-v"},
-            {"pack": scored, "evaluations": {gate.SET_KEY: {"bars after held-out gate": named_at or self.BARS}}},
-            {"bars after held-out gate": self.BARS},
             [6, 5],
-            gate.SET_KEY,
+            {"bars after held-out gate": named_at or self.BARS},
+            {"bars after held-out gate": self.BARS},
         )
 
     def test_a_check_pack_that_held_back_the_test_species_passes(self):
@@ -117,13 +115,31 @@ class CheckPackTest(unittest.TestCase):
             with self.subTest(held=held), self.assertRaisesRegex(SystemExit, "held back"):
                 self.confirm(held=held)
 
-    def test_scores_of_another_pack_are_refused(self):
-        with self.assertRaisesRegex(SystemExit, "scored"):
-            self.confirm(scored="trained-v")
-
     def test_scores_named_at_other_bars_are_refused(self):
         with self.assertRaisesRegex(SystemExit, "bars"):
             self.confirm(named_at={**self.BARS, "confident": 0.95})
+
+
+class ProvenanceTest(unittest.TestCase):
+    FILES = [
+        {"name": "candidates.json", "sha256": "a" * 64},
+        {"name": "text_embeddings.f16", "sha256": "b" * 64},
+        {"name": "regions.bin", "sha256": "c" * 64},
+    ]
+
+    def test_scores_made_on_the_pack_files_pass(self):
+        gate.confirm_scored({"contents": gate.mf.contents_of(self.FILES)}, {"files": self.FILES}, "trained")
+
+    def test_scores_made_on_other_rows_are_refused(self):
+        other = {**gate.mf.contents_of(self.FILES), "text_embeddings.f16": "e" * 64}
+        with self.assertRaisesRegex(SystemExit, "trained"):
+            gate.confirm_scored({"contents": other}, {"files": self.FILES}, "trained")
+
+    def test_the_three_scores_must_cover_the_same_photos(self):
+        photos = {"1": {}, "2": {}}
+        gate.confirm_same_photos(photos, dict(photos), dict(photos))
+        with self.assertRaisesRegex(SystemExit, "different photos"):
+            gate.confirm_same_photos(photos, {"1": {}}, dict(photos))
 
 
 class VerdictTest(unittest.TestCase):

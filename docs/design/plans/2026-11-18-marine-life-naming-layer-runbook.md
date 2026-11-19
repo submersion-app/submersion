@@ -444,13 +444,15 @@ Good: `exit 0`. Mark Phase 5 done.
 ```bash
 source /Users/ericgriffin/repos/submersion-app/naming-training/env.sh
 cd $WT && python3.14 -I $TOOLS/gate.py --baseline $DATA/score-baseline --trained $DATA/score-trained \
-  --check $DATA/score-check --check-pack $DATA/pack-check --set $CSV > $DATA/gate.txt; echo "exit $?"; cat $DATA/gate.txt
+  --check $DATA/score-check --baseline-pack $BASE --trained-pack $DATA/pack-trained \
+  --check-pack $DATA/pack-check --set $CSV > $DATA/gate.txt; echo "exit $?"; cat $DATA/gate.txt
 ```
 
-`gate.py` first confirms that the check scores came from `pack-check`,
-named at the trained pack's bars, and that `pack-check` held back exactly
-the test set's held-back species; any mismatch stops it with a message,
-which is a STOP here. It writes `$DATA/score-trained/gate.json` and exits 0
+`gate.py` first confirms that each scoring folder was made on its pack's
+naming files, that the three cover the same photos, that the check scores
+were named at the trained pack's bars, and that `pack-check` held back
+exactly the test set's held-back species; any mismatch stops it with a
+message, which is a STOP here. It writes `$DATA/score-trained/gate.json` and exits 0
 when the trained pack may ship, 1 when it may not. Its five items:
 
 | Item | Passes when |

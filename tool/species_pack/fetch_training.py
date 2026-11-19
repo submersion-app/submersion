@@ -174,6 +174,18 @@ class _Budget:
         return self.used() >= self.limit
 
 
+class _DailyLimit(Exception):
+    """The day's request budget has no room for another attempt."""
+
+
+def _charge(budget):
+    """Charges one request attempt to `budget`, or stops the request when
+    the day has no room for it."""
+    if budget.exhausted():
+        raise _DailyLimit
+    budget.spend(1)
+
+
 def _candidates(pack):
     with open(os.path.join(pack, "candidates.json"), encoding="utf-8") as fh:
         return json.load(fh)
@@ -193,9 +205,6 @@ def stage_lists(work, pack, limit=None):
         path = os.path.join(work, "lists", f"{c['gbifKey']}.json")
         if os.path.exists(path):
             continue
-        if budget.exhausted():
-            print(f"stopped at the day's {DAILY_REQUESTS} requests; run lists again tomorrow", flush=True)
-            return False
         query = urllib.parse.urlencode(
             {
                 "taxon_name": c["scientificName"],
@@ -208,8 +217,13 @@ def stage_lists(work, pack, limit=None):
                 "fields": ft.FIELDS,
             }
         )
-        # Every attempt counts toward the day's limit, retries included.
-        page = ft._get(f"{ft.INAT}?{query}", on_attempt=lambda: budget.spend(1))
+        # Every attempt counts toward the day's limit, retries included, and
+        # none is sent once the day has no room: the list waits for tomorrow.
+        try:
+            page = ft._get(f"{ft.INAT}?{query}", on_attempt=lambda: _charge(budget))
+        except _DailyLimit:
+            print(f"stopped at the day's {DAILY_REQUESTS} requests; run lists again tomorrow", flush=True)
+            return False
         time.sleep(1.0)  # iNaturalist asks for at most one request a second.
         records = []
         for o in page.get("results") or []:

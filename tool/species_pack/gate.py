@@ -2,14 +2,16 @@
 """The naming layer's ship gate (issue #4724;
 docs/design/specs/2026-11-18-marine-life-naming-layer-design.md, "The gate").
 
-    python -I tool/species_pack/gate.py --baseline W0 --trained W1 --check W2 --check-pack P2
+    python -I tool/species_pack/gate.py --baseline W0 --baseline-pack P0 \
+        --trained W1 --trained-pack P1 --check W2 --check-pack P2
 
-W0, W1 and W2 are score.py work folders: the baseline pack, the trained pack,
-and the rare-species check pack P2 scored with `--naming-from` the trained
-pack. The gate first confirms that W2 was scored on P2, at the trained
-pack's bars, and that P2 held back exactly the test set's held-back
-species. A trained pack ships only when all five hold on the pair of
-detectors:
+W0, W1 and W2 are score.py work folders: the baseline pack P0, the trained
+pack P1, and the rare-species check pack P2 scored with `--naming-from` the
+trained pack. The gate first confirms that each folder was scored on its
+pack's naming files, that all three cover the same photos, that W2 was
+named at the trained pack's bars, and that P2 held back exactly the test
+set's held-back species. A trained pack ships only when all five hold on
+the pair of detectors at centre crop:
 
 1. significantly more held-out natural photos named right at each pack's
    own bars (paired McNemar test, p < 0.05);
@@ -30,6 +32,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import bars as bar_search  # noqa: E402
+import manifest as mf  # noqa: E402
 import testset  # noqa: E402
 import training_set as ts  # noqa: E402
 
@@ -100,15 +103,29 @@ def rare_check(check_per_photo, held_back):
     }
 
 
-def confirm_check_pack(training, manifest, check_results, trained_eval, held_back, set_key):
+def confirm_scored(results, manifest, label):
+    """Stops unless `results` (score.py's results.json) were scored on the
+    naming files `manifest` lists: the same hashes, not only the same pack
+    version, so a stale run or a rebuilt pack cannot stand in."""
+    if results.get("contents") != mf.contents_of(manifest["files"]):
+        raise SystemExit(f"the {label} scores were not made on the {label} pack's naming files")
+
+
+def confirm_same_photos(*per_photo):
+    """Stops unless every per-photo map covers the same photos, so no
+    comparison quietly drops the ones a stale or partial run missed."""
+    first = set(per_photo[0])
+    if any(set(p) != first for p in per_photo[1:]):
+        raise SystemExit("the baseline, trained and check scores cover different photos")
+
+
+def confirm_check_pack(training, held_back, check_eval, trained_eval):
     """Stops unless the check scores stand for the rare-species check: the
-    pack they were scored on held back exactly `held_back` (its
-    training.json), and they were named at the trained pack's bars."""
+    check pack held back exactly `held_back` (its training.json), and was
+    named at the trained pack's bars."""
     if sorted(training.get("held back species") or []) != sorted(held_back):
         raise SystemExit("the check pack held back other species than the test set's held-back ones")
-    if check_results.get("pack") != manifest.get("packVersion"):
-        raise SystemExit(f"--check was scored on pack {check_results.get('pack')}, not {manifest.get('packVersion')}")
-    named_at = check_results["evaluations"][set_key]["bars after held-out gate"]
+    named_at = check_eval["bars after held-out gate"]
     shipped = trained_eval["bars after held-out gate"]
     if any(abs(named_at[k] - shipped[k]) > 1e-9 for k in shipped):
         raise SystemExit(f"--check was named at bars {named_at}, not the trained pack's {shipped}")
@@ -136,25 +153,34 @@ def main(argv=None):
     parser.add_argument("--baseline", required=True)
     parser.add_argument("--trained", required=True)
     parser.add_argument("--check", required=True)
+    parser.add_argument("--baseline-pack", required=True, help="the pack --baseline was scored on")
+    parser.add_argument("--trained-pack", required=True, help="the pack --trained was scored on")
     parser.add_argument("--check-pack", required=True, help="the check layer's pack, to confirm what it held back")
     parser.add_argument("--set", default=os.path.join(os.path.dirname(__file__), "testdata", "accuracy_set.csv"))
-    parser.add_argument("--set-key", default=SET_KEY, help="the scorer's detector set and fitting to gate on")
     args = parser.parse_args(argv)
     held_back = set(ts.held_back_species(testset.read_rows(args.set)))
-    trained_eval = _read(args.trained, "results.json")["evaluations"][args.set_key]
+    results = {}
+    for label, folder, pack in (
+        ("baseline", args.baseline, args.baseline_pack),
+        ("trained", args.trained, args.trained_pack),
+        ("check", args.check, args.check_pack),
+    ):
+        results[label] = _read(folder, "results.json")
+        confirm_scored(results[label], _read(pack, "manifest.json"), label)
+    per_photo = {
+        label: _read(folder, "per_photo.json")[SET_KEY]
+        for label, folder in (("baseline", args.baseline), ("trained", args.trained), ("check", args.check))
+    }
+    confirm_same_photos(*per_photo.values())
+    trained_eval = results["trained"]["evaluations"][SET_KEY]
     confirm_check_pack(
-        _read(args.check_pack, "training.json"),
-        _read(args.check_pack, "manifest.json"),
-        _read(args.check, "results.json"),
-        trained_eval,
-        held_back,
-        args.set_key,
+        _read(args.check_pack, "training.json"), held_back, results["check"]["evaluations"][SET_KEY], trained_eval
     )
     result = verdict(
-        _read(args.baseline, "per_photo.json")[args.set_key],
-        _read(args.trained, "per_photo.json")[args.set_key],
+        per_photo["baseline"],
+        per_photo["trained"],
         trained_eval,
-        rare_check(_read(args.check, "per_photo.json")[args.set_key], held_back),
+        rare_check(per_photo["check"], held_back),
     )
     with open(os.path.join(args.trained, "gate.json"), "w", encoding="utf-8") as fh:
         json.dump(result, fh, indent=1)

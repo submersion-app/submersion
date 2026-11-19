@@ -194,6 +194,31 @@ class RequestBudgetTest(unittest.TestCase):
             with open(os.path.join(work, "requests.json"), encoding="utf-8") as fh:
                 self.assertEqual(list(json.load(fh).values()), [3])
 
+    def test_a_retry_stops_at_the_day_s_limit_and_leaves_the_list_for_tomorrow(self):
+        busy = urllib.error.HTTPError("https://api.inaturalist.org", 503, "Busy", None, None)
+        sent = []
+
+        def urlopen(request, timeout):
+            sent.append(request)
+            raise busy
+
+        with tempfile.TemporaryDirectory() as root:
+            pack, work = os.path.join(root, "pack"), os.path.join(root, "work")
+            os.makedirs(pack)
+            with open(os.path.join(pack, "candidates.json"), "w", encoding="utf-8") as fh:
+                json.dump([{"gbifKey": 1, "scientificName": "Scarus vetula"}], fh)
+            with (
+                mock.patch.object(fetch_training, "DAILY_REQUESTS", 2),
+                mock.patch("urllib.request.urlopen", urlopen),
+                mock.patch("time.sleep"),
+                mock.patch("builtins.print"),
+            ):
+                self.assertFalse(fetch_training.stage_lists(work, pack))
+            self.assertEqual(len(sent), 2)
+            with open(os.path.join(work, "requests.json"), encoding="utf-8") as fh:
+                self.assertEqual(list(json.load(fh).values()), [2])
+            self.assertFalse(os.path.exists(os.path.join(work, "lists", "1.json")))
+
 
 try:
     import numpy  # noqa: F401
