@@ -188,6 +188,23 @@ void main() {
       expect(reportAt(1.0, advancing: false), isFalse);
     });
 
+    test('a report of the same position does not restart the glide', () {
+      final playhead = _playing(_ms(10000));
+      playhead.advance(_ms(60));
+
+      // A buffered-range update: the player notifies, the position has not
+      // been polled again.
+      playhead.report(
+        position: _ms(10000),
+        advancing: true,
+        speed: 1.0,
+        duration: _clip,
+      );
+      playhead.advance(_ms(76));
+
+      expect(playhead.shown, _ms(10076));
+    });
+
     test('keeps a held playhead inside a clip that turns out shorter', () {
       final playhead = _playing(_ms(10000));
       playhead.advance(_ms(400));

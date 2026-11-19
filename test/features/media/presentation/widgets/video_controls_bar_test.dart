@@ -799,6 +799,31 @@ void main() {
       await _finish(tester, controller);
     });
 
+    testWidgets('a buffered-range update does not stall the glide', (
+      tester,
+    ) async {
+      final (platform, controller) = await playingAt15(tester);
+      await tester.pump(const Duration(milliseconds: 30));
+
+      platform._events[controller.playerId]!.add(
+        VideoEvent(
+          eventType: VideoEventType.bufferingUpdate,
+          buffered: [DurationRange(Duration.zero, const Duration(seconds: 20))],
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 30));
+      await tester.pump(const Duration(milliseconds: 30));
+
+      expect(controller.value.position, const Duration(seconds: 15));
+      expect(
+        thumbX(tester),
+        closeTo(thumbXAt(tester, const Duration(milliseconds: 15090)), 0.01),
+      );
+
+      await controller.pause();
+      await _finish(tester, controller);
+    });
+
     testWidgets('buffering settles the thumb on the player\'s position and '
         'stops asking for frames', (tester) async {
       final (platform, controller) = await playingAt15(tester);

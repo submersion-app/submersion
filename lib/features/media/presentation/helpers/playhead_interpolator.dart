@@ -38,11 +38,16 @@ class PlayheadInterpolator {
     required Duration duration,
   }) {
     final wentBack = position < _reported;
+    final wasAdvancing = _advancing;
+    final sameMotion = position == _reported && speed == _speed;
     _reported = position;
     _duration = duration;
     _speed = speed;
     _advancing = advancing && speed > 0;
-    _reportedAt = null;
+    // The player also notifies for what does not move the playhead (its
+    // buffered ranges, a caption). Timing such a report afresh would restart
+    // the glide from a position already passed and stall the bar.
+    if (!(_advancing && wasAdvancing && sameMotion)) _reportedAt = null;
     // Paused, the player says exactly where it is. Gone back, it was sought
     // back or looped, and the playhead follows at once. Otherwise a report
     // just behind the playhead is one taken a moment before this frame:
