@@ -383,7 +383,7 @@ class VideoIdentificationScan {
       stored: stored,
       seamMs: seamMs,
       maxGapMs: (_tracker.maxGapSamples + 1) * sampleIntervalMs,
-      linkOverlap: _tracker.linkOverlap,
+      link: _tracker.link,
     );
     final joins = <TrackedAnimal, TrackedAnimal>{};
     for (final (:open, :later) in pairs) {
@@ -596,7 +596,7 @@ class VideoIdentificationScan {
         run = MediaIdentificationRun(
           mediaId: _item.id,
           packVersion: manifest.packVersion,
-          detectorId: manifest.detectorSetId,
+          detectorId: videoRunDetectorId(manifest.detectorSetId),
           classifierId: manifest.classifier.embeddingId,
           locationCell: _cell,
           analysedAt: _now().toUtc(),

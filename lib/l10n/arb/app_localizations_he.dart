@@ -28673,6 +28673,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String settings_speciesId_levelFallback(String chosen, String inForce) {
+    return '$chosen לא זמין בגרסה זו של המודל, ולכן האפליקציה משתמשת ב-$inForce עד שעדכון יוסיף את $chosen. בחרו ב-$inForce כדי להמשיך להשתמש בו.';
+  }
+
+  @override
   String get settings_speciesId_kept => 'הצעות שנשמרו במכשיר הזה';
 
   @override
