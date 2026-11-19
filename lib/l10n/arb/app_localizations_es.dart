@@ -9929,13 +9929,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveSites_edit_group_location => 'Ubicación';
 
   @override
-  String get diveSites_edit_group_typeTags => 'Tipo y etiquetas';
-
-  @override
-  String get diveSites_edit_snackbar_featuresNotCopied =>
-      'Sitio agregado, pero no se pudieron copiar sus características del mapa.';
-
-  @override
   String get diveSites_edit_typeTags_manageTypes => 'Gestionar tipos';
 
   @override
@@ -12237,12 +12230,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Aún no hay inmersiones registradas';
 
   @override
-  String get diveSites_detail_editTooltip => 'Editar sitio';
-
-  @override
-  String get diveSites_detail_editTooltipShort => 'Editar';
-
-  @override
   String get diveSites_edit_editingWithdrawn =>
       'Ya no puedes editar este sitio. Se descartaron los cambios sin guardar.';
 
@@ -12474,12 +12461,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveSites_edit_altitude_validation => 'Altitud no válida';
 
   @override
-  String get diveSites_edit_appBar_deleteSiteTooltip => 'Eliminar sitio';
-
-  @override
-  String get diveSites_edit_appBar_editSite => 'Editar sitio';
-
-  @override
   String get diveSites_edit_appBar_merge => 'Fusionar';
 
   @override
@@ -12698,11 +12679,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveSites_edit_section_waterType => 'Tipo de agua';
 
   @override
-  String diveSites_edit_snackbar_errorDeleting(Object error) {
-    return 'Error al eliminar el sitio: $error';
-  }
-
-  @override
   String diveSites_edit_snackbar_errorSaving(Object error) {
     return 'Error al guardar el sitio: $error';
   }
@@ -12729,12 +12705,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get diveSites_edit_snackbar_locationUnavailableMobile =>
       'No se pudo obtener la ubicación. Por favor verifica los permisos.';
-
-  @override
-  String get diveSites_edit_snackbar_siteAdded => 'Sitio agregado';
-
-  @override
-  String get diveSites_edit_snackbar_siteUpdated => 'Sitio actualizado';
 
   @override
   String get diveSites_fab_label => 'Agregar sitio';

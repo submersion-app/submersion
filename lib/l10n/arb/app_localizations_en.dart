@@ -9767,13 +9767,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveSites_edit_group_location => 'Location';
 
   @override
-  String get diveSites_edit_group_typeTags => 'Type & Tags';
-
-  @override
-  String get diveSites_edit_snackbar_featuresNotCopied =>
-      'Site added, but its map features could not be copied.';
-
-  @override
   String get diveSites_edit_typeTags_manageTypes => 'Manage types';
 
   @override
@@ -12045,12 +12038,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveSites_detail_diveCount_zero => 'No dives logged yet';
 
   @override
-  String get diveSites_detail_editTooltip => 'Edit Site';
-
-  @override
-  String get diveSites_detail_editTooltipShort => 'Edit';
-
-  @override
   String get diveSites_edit_editingWithdrawn =>
       'You can no longer edit this site. Any unsaved changes were discarded.';
 
@@ -12280,12 +12267,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveSites_edit_altitude_validation => 'Invalid altitude';
 
   @override
-  String get diveSites_edit_appBar_deleteSiteTooltip => 'Delete Site';
-
-  @override
-  String get diveSites_edit_appBar_editSite => 'Edit Site';
-
-  @override
   String get diveSites_edit_appBar_merge => 'Merge';
 
   @override
@@ -12500,11 +12481,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveSites_edit_section_waterType => 'Water Type';
 
   @override
-  String diveSites_edit_snackbar_errorDeleting(Object error) {
-    return 'Error deleting site: $error';
-  }
-
-  @override
   String diveSites_edit_snackbar_errorSaving(Object error) {
     return 'Error saving site: $error';
   }
@@ -12531,12 +12507,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveSites_edit_snackbar_locationUnavailableMobile =>
       'Unable to get location. Please check permissions.';
-
-  @override
-  String get diveSites_edit_snackbar_siteAdded => 'Site added';
-
-  @override
-  String get diveSites_edit_snackbar_siteUpdated => 'Site updated';
 
   @override
   String get diveSites_fab_label => 'Add Site';

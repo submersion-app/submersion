@@ -9901,13 +9901,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveSites_edit_group_location => 'Helyzet';
 
   @override
-  String get diveSites_edit_group_typeTags => 'Típus és címkék';
-
-  @override
-  String get diveSites_edit_snackbar_featuresNotCopied =>
-      'Helyszín hozzáadva, de a térképen jelölt jellemzőit nem sikerült átmásolni.';
-
-  @override
   String get diveSites_edit_typeTags_manageTypes => 'Típusok kezelése';
 
   @override
@@ -12212,12 +12205,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveSites_detail_diveCount_zero => 'Még nincs rögzített merülés';
 
   @override
-  String get diveSites_detail_editTooltip => 'Helyszín szerkesztése';
-
-  @override
-  String get diveSites_detail_editTooltipShort => 'Szerkesztés';
-
-  @override
   String get diveSites_edit_editingWithdrawn =>
       'Ezt a helyszínt már nem szerkesztheti. A nem mentett módosítások elvesztek.';
 
@@ -12450,12 +12437,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveSites_edit_altitude_validation => 'Érvénytelen magasság';
 
   @override
-  String get diveSites_edit_appBar_deleteSiteTooltip => 'Helyszín törlése';
-
-  @override
-  String get diveSites_edit_appBar_editSite => 'Helyszín szerkesztése';
-
-  @override
   String get diveSites_edit_appBar_merge => 'Egyesítés';
 
   @override
@@ -12673,11 +12654,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveSites_edit_section_waterType => 'Víztípus';
 
   @override
-  String diveSites_edit_snackbar_errorDeleting(Object error) {
-    return 'Hiba a helyszín törlésekor: $error';
-  }
-
-  @override
   String diveSites_edit_snackbar_errorSaving(Object error) {
     return 'Hiba a helyszín mentésekor: $error';
   }
@@ -12704,12 +12680,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveSites_edit_snackbar_locationUnavailableMobile =>
       'Nem sikerült a helyzet lekérdezés. Kérem ellenőrizze az engedélyeket.';
-
-  @override
-  String get diveSites_edit_snackbar_siteAdded => 'Helyszín hozzáadva';
-
-  @override
-  String get diveSites_edit_snackbar_siteUpdated => 'Helyszín frissítve';
 
   @override
   String get diveSites_fab_label => 'Helyszín hozzáadása';

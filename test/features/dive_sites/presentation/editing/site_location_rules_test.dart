@@ -120,6 +120,21 @@ void main() {
       });
     });
 
+    // The form's case: an elevation service that fails fills nothing.
+    test('a failed lookup leaves the altitude empty and the card clean', () {
+      fakeAsync((async) {
+        final session = sitting();
+        session.set(siteLocationField, const GeoPoint(1, 2));
+        scheduleAltitudeAfterMove(session, (_) async => null);
+
+        async.elapse(const Duration(milliseconds: 1100));
+        async.flushMicrotasks();
+
+        expect(session.valueOf(siteAltitudeField), isNull);
+        expect(session.changedCardIds, isNot(contains('altitude')));
+      });
+    });
+
     test('a typed altitude stands', () {
       fakeAsync((async) {
         final session = sitting();

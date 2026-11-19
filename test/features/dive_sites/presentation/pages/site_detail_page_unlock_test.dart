@@ -2,6 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/rules/data/services/rule_engine.dart';
+import 'package:submersion/features/rules/domain/entities/rule_run.dart';
+import 'package:submersion/features/rules/presentation/providers/rule_providers.dart';
 import 'package:submersion/features/media/data/services/photo_edit_save_service.dart';
 import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
@@ -33,6 +36,17 @@ import 'site_detail_page_unlock_harness.dart';
 
 /// A site's page unlocks to edit Description and Notes in place, behind
 /// the switch (issue #4527, phase 2, plan 1).
+/// Records each run of the rules.
+class _RecordingRules extends Fake implements RuleEngine {
+  final requests = <RuleRunRequest>[];
+
+  @override
+  Future<RuleRunResult> run(RuleRunRequest request) async {
+    requests.add(request);
+    throw StateError('no rules here');
+  }
+}
+
 void main() {
   final l = AppLocalizationsEn();
 
@@ -323,6 +337,24 @@ void main() {
     expect(call.apply(page.stored).notes, 'Choppy');
     expect(find.byType(RecordEditBar), findsNothing);
     expect(find.text('Choppy'), findsOneWidget);
+  });
+
+  // A site's logbook rules run once, when it is created (#3513); saving a
+  // stored site runs none (the form's case, plan 7).
+  testWidgets('saving a stored site runs no rules', (tester) async {
+    final rules = _RecordingRules();
+    final page = await pumpSitePage(
+      tester,
+      extra: [ruleEngineProvider.overrideWithValue(rules)],
+    );
+    await unlock(tester);
+    await openNotes(tester);
+    await typeNotes(tester, 'Choppy');
+
+    await save(tester);
+
+    expect(page.save.calls, hasLength(1));
+    expect(rules.requests, isEmpty);
   });
 
   // Review Focus 2 of plan 4b: an attachment's lock is its own, so a PDF

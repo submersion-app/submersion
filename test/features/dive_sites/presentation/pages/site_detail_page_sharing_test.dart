@@ -11,6 +11,8 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/profile_hides_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/core/services/shared_library/shared_library_models.dart';
+import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 import 'package:submersion/core/data/visibility/item_sharing.dart';
 
@@ -44,21 +46,27 @@ void main() {
     bool profileUnreadable = false,
     bool hidden = false,
     ItemSharing sharing = ItemSharing.all,
+    DiveSite shown = site,
+    bool refuseDelete = false,
+    List<Override> extra = const [],
+    Size size = const Size(390, 844),
   }) async {
     tester.view.devicePixelRatio = 1.0;
-    tester.view.physicalSize = const Size(390, 844);
+    tester.view.physicalSize = size;
     addTearDown(() {
       tester.view.resetPhysicalSize();
       tester.view.resetDevicePixelRatio();
     });
-    final notifier = _RecordingSiteListNotifier()..failHides = failHides;
+    final notifier = _RecordingSiteListNotifier()
+      ..failHides = failHides
+      ..refuseDelete = refuseDelete;
     final closed = <String>[];
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           ...overrides,
-          siteProvider(site.id).overrideWith((ref) async => site),
+          siteProvider(site.id).overrideWith((ref) async => shown),
           siteDiveCountProvider(site.id).overrideWith((ref) async => 0),
           allDiversProvider.overrideWith((_) async => divers),
           validatedCurrentDiverIdProvider.overrideWith(
@@ -75,7 +83,8 @@ void main() {
             FakeItemShares({site.id: sharing}),
           ),
           siteListNotifierProvider.overrideWith((ref) => notifier),
-        ],
+          ...extra,
+        ].cast<Override>(),
         child: MaterialApp(
           locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -138,6 +147,11 @@ void main() {
     expect(notifier.deleted, isEmpty);
     expect(closed, ['closed']);
     expect(find.text('Removed from your profile'), findsOneWidget);
+
+    // Undo brings it back (the form's case, plan 7).
+    await tester.tap(find.text('Undo'));
+    await tester.pumpAndSettle();
+    expect(notifier.unhidden, ['pier']);
   });
 
   testWidgets('a failed remove stays on the page and says to try again', (
@@ -265,6 +279,83 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Remove from my profile'), findsOneWidget);
   });
+
+  // The form's delete and Remove cases, on the page (plan 7).
+  Future<void> confirmDelete(WidgetTester tester) async {
+    await openUnlockedMenu(tester);
+    await tester.tap(find.text('Delete'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('the owner\'s confirmed delete removes the site and closes the '
+      'pane', (tester) async {
+    final (notifier, closed) = await pump(tester, active: 'd1');
+
+    await confirmDelete(tester);
+
+    expect(notifier.deleted, ['pier']);
+    expect(closed, ['closed']);
+  });
+
+  testWidgets('an owner whose site changed hands meanwhile is refused', (
+    tester,
+  ) async {
+    final (notifier, closed) = await pump(
+      tester,
+      active: 'd1',
+      refuseDelete: true,
+    );
+
+    await confirmDelete(tester);
+
+    expect(notifier.deleted, isEmpty);
+    expect(closed, isEmpty);
+    expect(find.text('Only its owner can delete this site'), findsOneWidget);
+    expect(find.byType(SiteDetailPage), findsOneWidget);
+  });
+
+  testWidgets('a site shared by name only warns on delete as a shared site', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      active: 'd1',
+      shown: site.copyWith(isShared: false),
+      sharing: const ItemSharing(profileIds: {'d2'}),
+    );
+
+    await openUnlockedMenu(tester);
+    await tester.tap(find.text('Delete'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Delete shared site?'), findsOneWidget);
+  });
+
+  testWidgets('a library site offers no Remove to a profile outside the '
+      'library', (tester) async {
+    await pump(
+      tester,
+      active: 'd2',
+      shown: site.copyWith(sharedLibraryId: 'L'),
+      // The list pane's width: its row also holds the library's buttons.
+      size: const Size(700, 844),
+      extra: [
+        libraryRoleProvider(
+          'L',
+        ).overrideWith((ref) async => SharedLibraryRole.reader),
+        libraryConnectedHereProvider('L').overrideWith((ref) async => true),
+        siteLibraryStateProvider('pier').overrideWith((ref) async => null),
+        libraryMemberNamesProvider('L').overrideWith((ref) async => const {}),
+        currentMembershipProvider('L').overrideWith((ref) async => null),
+      ],
+    );
+
+    await tester.tap(find.byIcon(Icons.more_vert).last);
+    await tester.pumpAndSettle();
+    expect(find.text('Remove from my profile'), findsNothing);
+  });
 }
 
 class _FakeHides extends Fake implements ProfileHidesRepository {
@@ -307,8 +398,12 @@ class _RecordingSiteListNotifier
     return ids.length;
   }
 
+  /// A delete the repository refuses (the site changed hands meanwhile).
+  bool refuseDelete = false;
+
   @override
   Future<bool> deleteSite(String id) async {
+    if (refuseDelete) return false;
     deleted.add(id);
     return true;
   }

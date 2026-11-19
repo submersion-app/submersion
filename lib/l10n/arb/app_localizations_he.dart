@@ -9703,13 +9703,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_edit_group_location => 'מיקום';
 
   @override
-  String get diveSites_edit_group_typeTags => 'סוג ותגיות';
-
-  @override
-  String get diveSites_edit_snackbar_featuresNotCopied =>
-      'האתר נוסף, אך לא ניתן היה להעתיק את המאפיינים שלו במפה.';
-
-  @override
   String get diveSites_edit_typeTags_manageTypes => 'ניהול סוגים';
 
   @override
@@ -11969,12 +11962,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_detail_diveCount_zero => 'אין עדיין צלילות רשומות';
 
   @override
-  String get diveSites_detail_editTooltip => 'ערוך אתר';
-
-  @override
-  String get diveSites_detail_editTooltipShort => 'ערוך';
-
-  @override
   String get diveSites_edit_editingWithdrawn =>
       'כבר אין לך הרשאה לערוך את האתר הזה. שינויים שלא נשמרו בוטלו.';
 
@@ -12203,12 +12190,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_edit_altitude_validation => 'גובה לא חוקי';
 
   @override
-  String get diveSites_edit_appBar_deleteSiteTooltip => 'מחק אתר';
-
-  @override
-  String get diveSites_edit_appBar_editSite => 'ערוך אתר';
-
-  @override
   String get diveSites_edit_appBar_merge => 'מיזוג';
 
   @override
@@ -12420,11 +12401,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_edit_section_waterType => 'סוג מים';
 
   @override
-  String diveSites_edit_snackbar_errorDeleting(Object error) {
-    return 'שגיאה במחיקת אתר: $error';
-  }
-
-  @override
   String diveSites_edit_snackbar_errorSaving(Object error) {
     return 'שגיאה בשמירת אתר: $error';
   }
@@ -12451,12 +12427,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get diveSites_edit_snackbar_locationUnavailableMobile =>
       'לא ניתן לקבל מיקום. אנא בדוק הרשאות.';
-
-  @override
-  String get diveSites_edit_snackbar_siteAdded => 'האתר נוסף';
-
-  @override
-  String get diveSites_edit_snackbar_siteUpdated => 'האתר עודכן';
 
   @override
   String get diveSites_fab_label => 'הוסף אתר';

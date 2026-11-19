@@ -27,6 +27,8 @@ import 'package:submersion/features/divers/data/repositories/item_shares_reposit
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/site_types/data/repositories/site_type_repository.dart';
+import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
@@ -106,6 +108,7 @@ void main() {
       fetchElevation: (_) async => null,
     );
 
+    expect(session.valueOf(siteNameField), 'Blue Hole');
     expect(session.isDirty, isTrue);
     expect(session.changedCardIds, {siteHeaderCardId});
   });
@@ -378,6 +381,103 @@ void main() {
         ),
         {'other'},
       );
+    });
+
+    /// A duplicate of [id], prefilled on a new sitting and created.
+    Future<EditSession<DiveSite>> createCopyOf(String id) async {
+      final source = (await readSiteDuplicate(container.read, id))!;
+      final session = await newSitting();
+      await applyNewSitePrefill(
+        session,
+        duplicate: source,
+        duplicateName: 'Copy',
+        lookUpPlace: place,
+        fetchElevation: (_) async => null,
+      );
+      await session.settled();
+      await createSiteSitting(session, SiteEditSaveService(SiteRepository()));
+      return session;
+    }
+
+    // The form's cases (plan 7).
+    test('of another profile\'s site copies only my own types', () async {
+      final now = DateTime(2026, 11, 19);
+      final types = SiteTypeRepository();
+      // The repository suffixes each id, so keep the ones it returns.
+      Future<String> custom(String name, String owner) async =>
+          (await types.createSiteType(
+            SiteTypeEntity(
+              id: '',
+              diverId: owner,
+              name: name,
+              createdAt: now,
+              updatedAt: now,
+            ),
+          )).id;
+      final theirType = await custom('Their reef', 'other');
+      final myType = await custom('My reef', 'me');
+      await SiteRepository().createSite(
+        _source.copyWith(id: 'theirs', diverId: 'other'),
+        classification: SiteClassification(
+          typeIds: ['wall', theirType, myType],
+        ),
+      );
+
+      final source = (await readSiteDuplicate(container.read, 'theirs'))!;
+      expect({for (final t in source.types) t.id}, {'wall', myType});
+
+      await createCopyOf('theirs');
+      expect(
+        {
+          for (final t in await SiteClassificationRepository().getTypesForSite(
+            'n1',
+          ))
+            t.id,
+        },
+        {'wall', myType},
+      );
+    });
+
+    test('leaves the original as it was', () async {
+      await createCopyOf('site-1');
+
+      final original = (await SiteRepository().getSiteById('site-1'))!;
+      expect(original.name, 'Salt Pier');
+      expect(original.hazards, 'Boat traffic');
+      final classification = SiteClassificationRepository();
+      expect(
+        [for (final t in await classification.getTypesForSite('site-1')) t.id],
+        ['wall'],
+      );
+      expect(
+        {for (final t in await classification.getTagsForSite('site-1')) t.id},
+        {'tag-1', 'tag-other'},
+      );
+      expect(
+        await SpeciesRepository().getExpectedSpeciesForSite('site-1'),
+        hasLength(1),
+      );
+      expect(
+        [
+          for (final f in await SiteFeatureRepository().getFeaturesForSite(
+            'site-1',
+          ))
+            f.name,
+        ],
+        ['North ball'],
+      );
+    });
+
+    test('of my site shared with everyone is shared with everyone', () async {
+      await SiteRepository().updateSite(
+        _source.copyWith(isShared: true),
+        actingDiverId: 'me',
+      );
+      final source = (await readSiteDuplicate(container.read, 'site-1'))!;
+      expect(source.sharing.everyone, isTrue);
+
+      await createCopyOf('site-1');
+      expect((await SiteRepository().getSiteById('n1'))!.isShared, isTrue);
     });
 
     test('of a site that is gone reads null', () async {

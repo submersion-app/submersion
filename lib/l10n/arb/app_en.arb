@@ -5855,12 +5855,6 @@
   "@diveSites_edit_group_location": {
     "description": "Site form group: GPS and altitude"
   },
-  "diveSites_edit_group_typeTags": "Type & Tags",
-  "@diveSites_edit_group_typeTags": {
-    "description": "Site form group: the site's types (reef, wreck, lake...) and its tags"
-  },
-  "diveSites_edit_snackbar_featuresNotCopied": "Site added, but its map features could not be copied.",
-  "@diveSites_edit_snackbar_featuresNotCopied": {"description": "Shown after a duplicated site saved but copying the original's map features failed"},
   "diveSites_edit_typeTags_manageTypes": "Manage types",
   "diveSites_edit_typeTags_tagsLabel": "Tags",
   "diveSites_edit_typeTags_typesLabel": "Site types",
@@ -7552,8 +7546,6 @@
   "diveSites_detail_diveCount_one": "1 dive logged",
   "diveSites_detail_diveCount_other": "{count} dives logged",
   "diveSites_detail_diveCount_zero": "No dives logged yet",
-  "diveSites_detail_editTooltip": "Edit Site",
-  "diveSites_detail_editTooltipShort": "Edit",
   "diveSites_edit_editingWithdrawn": "You can no longer edit this site. Any unsaved changes were discarded.",
   "@diveSites_edit_editingWithdrawn": {
     "description": "Snack bar when the site page locks during an editing sitting because this profile may no longer edit the site (its library role was taken away, or the library disconnected), so the unsaved changes were discarded"
@@ -7664,8 +7656,6 @@
   },
   "diveSites_edit_altitude_hint": "e.g., 2000",
   "diveSites_edit_altitude_validation": "Invalid altitude",
-  "diveSites_edit_appBar_deleteSiteTooltip": "Delete Site",
-  "diveSites_edit_appBar_editSite": "Edit Site",
   "diveSites_edit_appBar_merge": "Merge",
   "diveSites_edit_appBar_mergeSites": "Merge Sites",
   "diveSites_edit_appBar_newSite": "New Site",
@@ -7751,7 +7741,6 @@
   "diveSites_edit_section_hazards": "Hazards & Safety",
   "diveSites_edit_section_rating": "Rating",
   "diveSites_edit_section_waterType": "Water Type",
-  "diveSites_edit_snackbar_errorDeleting": "Error deleting site: {error}",
   "diveSites_edit_snackbar_errorSaving": "Error saving site: {error}",
   "diveSites_edit_snackbar_locationCaptured": "Location captured",
   "diveSites_edit_snackbar_locationCapturedWithAccuracy": "Location captured ({accuracy}m)",
@@ -7759,8 +7748,6 @@
   "diveSites_edit_snackbar_locationSettings": "Settings",
   "diveSites_edit_snackbar_locationUnavailableDesktop": "Unable to get location. Location services may not be available.",
   "diveSites_edit_snackbar_locationUnavailableMobile": "Unable to get location. Please check permissions.",
-  "diveSites_edit_snackbar_siteAdded": "Site added",
-  "diveSites_edit_snackbar_siteUpdated": "Site updated",
   "diveSites_fab_label": "Add Site",
   "diveSites_fab_tooltip": "Add a new dive site",
   "diveSites_filter_apply": "Apply Filters",
@@ -8173,13 +8160,6 @@
     "placeholders": {
       "count": {
         "type": "int"
-      }
-    }
-  },
-  "@diveSites_edit_snackbar_errorDeleting": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
       }
     }
   },

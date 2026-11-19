@@ -4,6 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/providers/location_service_provider.dart';
+import 'package:submersion/core/services/geocoding/place_lookup.dart';
+import 'package:submersion/core/services/location_service.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/weather/data/services/elevation_service.dart';
+import 'package:submersion/features/weather/presentation/providers/weather_providers.dart';
 
 import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -40,6 +46,32 @@ const SiteDuplicateSource _duplicate = (
   features: [],
   sharing: ItemSharing.none,
 );
+
+/// A geocoder that records each point and language it is asked about.
+class _RecordingGeocoder implements LocationService {
+  final asked = <(double, double, String)>[];
+
+  @override
+  Future<PlaceLookup> reverseGeocode(
+    double latitude,
+    double longitude, {
+    required String languageCode,
+  }) async {
+    asked.add((latitude, longitude, languageCode));
+    return const PlaceLookup(country: 'Schweiz', countryCode: 'CH');
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _NoElevation extends ElevationService {
+  @override
+  Future<double?> fetchElevation({
+    required double latitude,
+    required double longitude,
+  }) async => null;
+}
 
 /// The rules a site created by hand is owed, held until [gate] opens.
 class _GatedRules extends Fake implements RuleEngine {
@@ -471,5 +503,71 @@ void main() {
 
     expect(find.text(l.diveSites_detail_siteNotFound_body), findsOneWidget);
     expect(find.byType(RecordEditBar), findsNothing);
+  });
+
+  // The form's cases for a new site in a pane and a seeded point (plan 7).
+
+  /// Pumps frames until [done] or a second has passed.
+  Future<void> pumpFrames(WidgetTester tester, bool Function() done) async {
+    for (var i = 0; i < 20 && !done(); i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+  }
+
+  testWidgets('in the pane, Cancel on an untouched new site leaves at once', (
+    tester,
+  ) async {
+    final page = await pumpNewSitePage(tester, embedded: true);
+
+    // The pane's parent swaps the page out; here the page waits on a
+    // spinner, so frames are pumped, not settled.
+    await tester.tap(find.text(l.forms_cancel));
+    await pumpFrames(tester, () => page.cancelled);
+
+    expect(find.text(l.forms_discard_title), findsNothing);
+    expect(page.cancelled, isTrue);
+    expect(page.save.creates, isEmpty);
+  });
+
+  testWidgets('in the pane, Cancel with an entry asks first', (tester) async {
+    final page = await pumpNewSitePage(
+      tester,
+      embedded: true,
+      seed: const NewSiteSeed(name: 'Blue Hole'),
+    );
+
+    await tapText(tester, l.forms_cancel);
+    expect(find.text(l.forms_discard_title), findsOneWidget);
+    await tapText(tester, l.forms_discard_keepEditing);
+    expect(page.cancelled, isFalse);
+
+    await tapText(tester, l.forms_cancel);
+    await tester.tap(find.text(l.forms_discard_discard));
+    await pumpFrames(tester, () => page.cancelled);
+    expect(page.cancelled, isTrue);
+    expect(page.save.creates, isEmpty);
+  });
+
+  testWidgets('a seeded point is looked up in the place name language', (
+    tester,
+  ) async {
+    final geocoder = _RecordingGeocoder();
+    await pumpNewSitePage(
+      tester,
+      seed: const NewSiteSeed(location: GeoPoint(46.2, 6.1)),
+      settings: const AppSettings(placeNameLanguage: 'de'),
+      extra: [
+        locationServiceProvider.overrideWithValue(geocoder),
+        elevationServiceProvider.overrideWithValue(_NoElevation()),
+      ],
+    );
+    await tester.pump(const Duration(seconds: 2));
+
+    expect(geocoder.asked, [(46.2, 6.1, 'de')]);
+    expect(
+      sitting(tester).valueOf(siteLocationField),
+      const GeoPoint(46.2, 6.1),
+    );
+    expect(sitting(tester).valueOf(siteCountryField), 'Schweiz');
   });
 }

@@ -15628,18 +15628,6 @@ abstract class AppLocalizations {
   /// **'Location'**
   String get diveSites_edit_group_location;
 
-  /// Site form group: the site's types (reef, wreck, lake...) and its tags
-  ///
-  /// In en, this message translates to:
-  /// **'Type & Tags'**
-  String get diveSites_edit_group_typeTags;
-
-  /// Shown after a duplicated site saved but copying the original's map features failed
-  ///
-  /// In en, this message translates to:
-  /// **'Site added, but its map features could not be copied.'**
-  String get diveSites_edit_snackbar_featuresNotCopied;
-
   /// No description provided for @diveSites_edit_typeTags_manageTypes.
   ///
   /// In en, this message translates to:
@@ -19444,18 +19432,6 @@ abstract class AppLocalizations {
   /// **'No dives logged yet'**
   String get diveSites_detail_diveCount_zero;
 
-  /// No description provided for @diveSites_detail_editTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit Site'**
-  String get diveSites_detail_editTooltip;
-
-  /// No description provided for @diveSites_detail_editTooltipShort.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit'**
-  String get diveSites_detail_editTooltipShort;
-
   /// Snack bar when the site page locks during an editing sitting because this profile may no longer edit the site (its library role was taken away, or the library disconnected), so the unsaved changes were discarded
   ///
   /// In en, this message translates to:
@@ -19829,18 +19805,6 @@ abstract class AppLocalizations {
   /// **'Invalid altitude'**
   String get diveSites_edit_altitude_validation;
 
-  /// No description provided for @diveSites_edit_appBar_deleteSiteTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Delete Site'**
-  String get diveSites_edit_appBar_deleteSiteTooltip;
-
-  /// No description provided for @diveSites_edit_appBar_editSite.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit Site'**
-  String get diveSites_edit_appBar_editSite;
-
   /// No description provided for @diveSites_edit_appBar_merge.
   ///
   /// In en, this message translates to:
@@ -20193,12 +20157,6 @@ abstract class AppLocalizations {
   /// **'Water Type'**
   String get diveSites_edit_section_waterType;
 
-  /// No description provided for @diveSites_edit_snackbar_errorDeleting.
-  ///
-  /// In en, this message translates to:
-  /// **'Error deleting site: {error}'**
-  String diveSites_edit_snackbar_errorDeleting(Object error);
-
   /// No description provided for @diveSites_edit_snackbar_errorSaving.
   ///
   /// In en, this message translates to:
@@ -20240,18 +20198,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unable to get location. Please check permissions.'**
   String get diveSites_edit_snackbar_locationUnavailableMobile;
-
-  /// No description provided for @diveSites_edit_snackbar_siteAdded.
-  ///
-  /// In en, this message translates to:
-  /// **'Site added'**
-  String get diveSites_edit_snackbar_siteAdded;
-
-  /// No description provided for @diveSites_edit_snackbar_siteUpdated.
-  ///
-  /// In en, this message translates to:
-  /// **'Site updated'**
-  String get diveSites_edit_snackbar_siteUpdated;
 
   /// No description provided for @diveSites_fab_label.
   ///

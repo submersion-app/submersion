@@ -9413,12 +9413,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_edit_group_location => '位置';
 
   @override
-  String get diveSites_edit_group_typeTags => '类型和标签';
-
-  @override
-  String get diveSites_edit_snackbar_featuresNotCopied => '潜水点已添加，但无法复制其地图特征。';
-
-  @override
   String get diveSites_edit_typeTags_manageTypes => '管理类型';
 
   @override
@@ -11635,12 +11629,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_detail_diveCount_zero => '尚未记录潜水';
 
   @override
-  String get diveSites_detail_editTooltip => '编辑潜水点';
-
-  @override
-  String get diveSites_detail_editTooltipShort => '编辑';
-
-  @override
   String get diveSites_edit_editingWithdrawn => '您已无法编辑此潜水点。未保存的更改已被丢弃。';
 
   @override
@@ -11863,12 +11851,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_edit_altitude_validation => '无效的海拔';
 
   @override
-  String get diveSites_edit_appBar_deleteSiteTooltip => '删除潜水点';
-
-  @override
-  String get diveSites_edit_appBar_editSite => '编辑潜水点';
-
-  @override
   String get diveSites_edit_appBar_merge => '合并';
 
   @override
@@ -12069,11 +12051,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_edit_section_waterType => '水体类型';
 
   @override
-  String diveSites_edit_snackbar_errorDeleting(Object error) {
-    return '删除潜水点出错：$error';
-  }
-
-  @override
   String diveSites_edit_snackbar_errorSaving(Object error) {
     return '保存潜水点出错：$error';
   }
@@ -12099,12 +12076,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get diveSites_edit_snackbar_locationUnavailableMobile =>
       '无法获取位置。请检查权限设置。';
-
-  @override
-  String get diveSites_edit_snackbar_siteAdded => '潜水点已添加';
-
-  @override
-  String get diveSites_edit_snackbar_siteUpdated => '潜水点已更新';
 
   @override
   String get diveSites_fab_label => '添加潜水点';

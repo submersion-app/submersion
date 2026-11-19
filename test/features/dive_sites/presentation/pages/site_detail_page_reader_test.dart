@@ -494,6 +494,10 @@ void main() {
       expect(suggestions.calls.single.proposed.name, 'Big Hole');
       expect(page.save.calls, isEmpty);
       expect(find.text(l.sharedLibrary_suggest_sent), findsOneWidget);
+      // Sent, the sitting ends with nothing left to discard (the form's
+      // case, plan 7).
+      expect(find.byType(RecordEditBar), findsNothing);
+      expect(find.text(l.forms_discard_title), findsNothing);
     });
 
     testWidgets('Send with only notes asks nothing and says saved privately', (

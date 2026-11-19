@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -15,8 +17,32 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_catal
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
+import 'package:submersion/core/data/visibility/item_sharing.dart';
+import 'package:submersion/core/data/visibility/shared_item_policy.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_sharing_sitting.dart';
+import 'package:submersion/features/divers/data/repositories/item_shares_repository.dart';
+import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
+import 'package:submersion/shared/widgets/shared_items/item_sharing_field.dart';
+
+import '../../../../helpers/shared_items_fixture.dart';
 
 import 'site_editor_harness.dart';
+
+/// Share rows that answer only once [gate] completes, or never with
+/// [fails].
+class _SlowShares extends FakeItemShares {
+  _SlowShares({this.fails = false}) : super({'s1': ItemSharing.all});
+
+  final bool fails;
+  final gate = Completer<void>();
+
+  @override
+  Future<ItemSharing> sharingOf(SharedItemKind kind, String id) async {
+    if (fails) throw StateError('unreadable');
+    await gate.future;
+    return super.sharingOf(kind, id);
+  }
+}
 
 /// The site's header block edited in place: its name and its water (issue
 /// #4527, phase 2, plan 2).
@@ -82,19 +108,28 @@ void main() {
     final ana = Diver(id: 'ana', name: 'Ana', createdAt: at, updatedAt: at);
     const owned = DiveSite(id: 's1', diverId: 'me', name: 'Blue Hole');
 
-    Future<void> pumpWith(
+    Future<SiteEditorHarness> pumpWith(
       WidgetTester tester,
       DiveSite s,
-      List<Diver> divers,
-    ) => pumpSiteEditor(
+      List<Diver> divers, {
+      Future<String?> Function()? active,
+      ItemSharesRepository? shares,
+    }) => pumpSiteEditor(
       tester,
       s,
       (session) => SiteHeaderCardEditor(session: session),
       overrides: [
         allDiversProvider.overrideWith((_) async => divers),
-        validatedCurrentDiverIdProvider.overrideWith((_) async => 'me'),
+        validatedCurrentDiverIdProvider.overrideWith(
+          (_) => active?.call() ?? Future.value('me'),
+        ),
+        if (shares != null)
+          itemSharesRepositoryProvider.overrideWithValue(shares),
       ],
     );
+
+    SharingTile tile(WidgetTester tester) =>
+        tester.widget<SharingTile>(find.byType(SharingTile));
 
     testWidgets('offered with two or more divers', (tester) async {
       await pumpWith(tester, owned, [me, ana]);
@@ -104,6 +139,100 @@ void main() {
     testWidgets('not offered with one diver', (tester) async {
       await pumpWith(tester, owned, [me]);
       expect(find.text(l.sharedItems_sharedWith_label), findsNothing);
+    });
+
+    // The form's sharing cases, on the header block (plan 7).
+    testWidgets('the owner can change sharing', (tester) async {
+      await pumpWith(tester, owned, [me, ana], shares: FakeItemShares());
+      await tester.pumpAndSettle();
+
+      expect(tile(tester).onTap, isNotNull);
+    });
+
+    testWidgets('another profile cannot change sharing', (tester) async {
+      await pumpWith(
+        tester,
+        owned,
+        [me, ana],
+        active: () => Future.value('ana'),
+        shares: FakeItemShares(),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tile(tester).onTap, isNull);
+      expect(find.text(l.sharedItems_shareOwnerOnly('Me')), findsOneWidget);
+    });
+
+    testWidgets('an unreadable profile locks sharing', (tester) async {
+      await pumpWith(
+        tester,
+        owned,
+        [me, ana],
+        active: () => Future.error(StateError('no profile')),
+        shares: FakeItemShares(),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tile(tester).onTap, isNull);
+      expect(find.textContaining('can change sharing'), findsNothing);
+    });
+
+    testWidgets('waits for the share rows, and locks when they cannot be '
+        'read', (tester) async {
+      final slow = _SlowShares();
+      await pumpWith(tester, owned, [me, ana], shares: slow);
+      await tester.pump();
+      expect(find.text(l.sharedItems_sharedWith_label), findsNothing);
+
+      slow.gate.complete();
+      await tester.pumpAndSettle();
+      expect(tile(tester).onTap, isNotNull);
+
+      await pumpWith(tester, owned, [
+        me,
+        ana,
+      ], shares: _SlowShares(fails: true));
+      await tester.pumpAndSettle();
+      expect(tile(tester).onTap, isNull);
+    });
+
+    testWidgets('taking a profile off asks first', (tester) async {
+      final h = await pumpWith(tester, owned, [
+        me,
+        ana,
+      ], shares: FakeItemShares({'s1': ItemSharing.all}));
+      await tester.pumpAndSettle();
+
+      Future<void> untickEveryone() async {
+        await tester.tap(find.text(l.sharedItems_sharedWith_label));
+        await tester.pumpAndSettle();
+        await tester.tap(
+          find.descendant(
+            of: find.byType(AlertDialog),
+            matching: find.text('Everyone'),
+          ),
+        );
+        await tester.pump();
+        await tester.tap(find.text(l.forms_save));
+        await tester.pumpAndSettle();
+      }
+
+      await untickEveryone();
+      expect(find.text(l.sites_unshareConfirm_title), findsOneWidget);
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text('Cancel'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(h.session.isDirty, isFalse);
+
+      await untickEveryone();
+      await tester.tap(find.text(l.common_action_unshare));
+      await tester.pumpAndSettle();
+      expect(siteSharingInSitting(h.session)!.isShared, isFalse);
+      expect(h.session.changedCardIds, {siteHeaderCardId});
     });
 
     testWidgets('not offered for a library site', (tester) async {
