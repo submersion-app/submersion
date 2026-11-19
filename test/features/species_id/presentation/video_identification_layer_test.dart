@@ -462,12 +462,31 @@ void main() {
       chips: const [_rockBeautyTag],
       playing: true,
     );
-    final layer = tester.getRect(find.byType(VideoIdentificationLayer));
     final pillRect = tester.getRect(
       find.descendant(of: pill('a'), matching: find.byType(TrackPill)),
     );
-    // At 1.5 s the fish is at x 0.12, 0.2 wide: its centre is 0.22.
-    expect(pillRect.center.dx, closeTo(layer.left + 0.22 * 400, 0.5));
+    final dotCentre = tester.getCenter(find.byType(TrackDot));
+    expect(pillRect.center.dx, closeTo(dotCentre.dx, 0.5));
+  });
+
+  testWidgets('playing, a label glides between the player\'s position '
+      'reports (issue #4759)', (tester) async {
+    await pump(tester, tracks: [confident], playing: true);
+    // Back to the fish's first moment: the player reports only every
+    // 100 ms or so, and no report comes during these frames. The fish's dot
+    // is measured, as its long name pins the pill to the video's edge.
+    playback.value = playback.value.copyWith(
+      position: const Duration(milliseconds: 1000),
+    );
+    await tester.pump();
+    final xs = <double>[];
+    for (var k = 0; k < 4; k++) {
+      await tester.pump(const Duration(milliseconds: 16));
+      xs.add(tester.getCenter(find.byType(TrackDot)).dx);
+    }
+    for (var k = 1; k < xs.length; k++) {
+      expect(xs[k], greaterThan(xs[k - 1]), reason: 'frame $k');
+    }
   });
 
   testWidgets('a fish filling the frame keeps its pill inside the video', (

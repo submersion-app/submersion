@@ -1,12 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:video_player/video_player.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/presentation/helpers/elapsed_time_format.dart';
-import 'package:submersion/features/media/presentation/helpers/playhead_interpolator.dart';
+import 'package:submersion/features/media/presentation/helpers/playhead_glide.dart';
 import 'package:submersion/features/media/presentation/widgets/people_tags/video_tag_marks.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -63,15 +62,10 @@ class _VideoControlsBarState extends State<VideoControlsBar>
     with SingleTickerProviderStateMixin {
   static final _log = LoggerService.forClass(VideoControlsBar);
 
-  /// Carries the playhead on between the player's position reports.
-  var _playhead = PlayheadInterpolator();
-
-  /// Where the bar draws the playhead. It changes every frame while the
-  /// video plays, so only the track and thumb listen to it.
-  final _shown = ValueNotifier<Duration>(Duration.zero);
-
-  /// Asks for frames while the playhead can glide on, and no longer.
-  late final Ticker _ticker = createTicker(_onTick);
+  /// Carries the playhead on between the player's position reports. Where
+  /// it draws the playhead changes every frame while the video plays, so
+  /// only the track and thumb listen to it.
+  late final _glide = PlayheadGlide(this);
 
   /// Where the finger is along the track while scrubbing, as a fraction of
   /// its width; null when not scrubbing. The thumb and elapsed time follow
@@ -131,7 +125,7 @@ class _VideoControlsBarState extends State<VideoControlsBar>
       _pendingSeek = null;
       _seekGeneration++;
       _seeking = null;
-      _playhead = PlayheadInterpolator();
+      _glide.restart();
       _reportPlayhead();
     }
   }
@@ -139,8 +133,7 @@ class _VideoControlsBarState extends State<VideoControlsBar>
   @override
   void dispose() {
     widget.controller.removeListener(_onVideoUpdate);
-    _ticker.dispose();
-    _shown.dispose();
+    _glide.dispose();
     // Gone mid-scrub or under the mouse (Space can hide the overlay during
     // a drag): release the host's hold, or its controls never hide again.
     // After this frame, since the host may rebuild in answer.
@@ -168,30 +161,8 @@ class _VideoControlsBarState extends State<VideoControlsBar>
     }
   }
 
-  /// Hands the player's latest position to the playhead, and starts or stops
-  /// the frames that carry it on.
-  void _reportPlayhead() {
-    final value = widget.controller.value;
-    final advancing = _playhead.report(
-      position: value.position,
-      advancing: value.isPlaying && !value.isBuffering,
-      speed: value.playbackSpeed,
-      duration: value.duration,
-    );
-    _shown.value = _playhead.shown;
-    if (!advancing) {
-      _ticker.stop();
-    } else if (!_ticker.isActive) {
-      unawaited(_ticker.start());
-    }
-  }
-
-  void _onTick(Duration elapsed) {
-    final moving = _playhead.advance(elapsed);
-    _shown.value = _playhead.shown;
-    // A stalled player, or the end of the clip: rest until the next report.
-    if (!moving) _ticker.stop();
-  }
+  /// Hands the player's latest position to the playhead.
+  void _reportPlayhead() => _glide.report(widget.controller.value);
 
   String _formatDuration(Duration duration) =>
       formatElapsedMmSs(duration.inSeconds);
@@ -235,7 +206,7 @@ class _VideoControlsBarState extends State<VideoControlsBar>
   Future<void> _seekTo(Duration target) {
     _pendingSeek = target;
     _seekTarget = target;
-    _playhead.expectSeek(target);
+    _glide.expectSeek(target);
     return _seeking ??= _drainSeeks(widget.controller, _seekGeneration);
   }
 
@@ -266,7 +237,7 @@ class _VideoControlsBarState extends State<VideoControlsBar>
         _seeking = null;
         // Every seek has landed or failed: none is left for the playhead to
         // wait on.
-        _playhead.expectSeek(null);
+        _glide.expectSeek(null);
       }
     }
   }
@@ -405,7 +376,7 @@ class _VideoControlsBarState extends State<VideoControlsBar>
                           height: 40, // Larger touch target
                           child: Center(
                             child: ValueListenableBuilder<Duration>(
-                              valueListenable: _shown,
+                              valueListenable: _glide.shown,
                               // Still between frames: built once per update.
                               child: VideoTagMarks(
                                 mediaId: widget.mediaId,
