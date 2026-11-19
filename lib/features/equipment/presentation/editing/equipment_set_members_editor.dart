@@ -31,8 +31,10 @@ List<EquipmentItem>? setItemsShown(
     : setItemsShownFrom(
         shown,
         stored,
-        every: ref.watch(allEquipmentProvider).valueOrNull,
-        sets: ref.watch(equipmentSetsProvider).valueOrNull,
+        // The last read held through a reload, so a sitting does not
+        // fall back to the stored gear meanwhile.
+        every: ref.watch(allEquipmentProvider).value,
+        sets: ref.watch(equipmentSetsProvider).value,
       );
 
 /// [setItemsShown] from the diver's gear ([every]) and sets ([sets]) as

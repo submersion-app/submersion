@@ -232,6 +232,50 @@ void main() {
     expect((await storedSet(tester)).equipmentIds, ['e1']);
   });
 
+  testWidgets('a set that starts including this one while the question is '
+      'open refuses the Save, and the next Save asks again', (tester) async {
+    await pumpSetPage(tester);
+    await untickRegAndSave(tester);
+    expect(find.text(l.equipment_components_historyAlsoPast(2)), findsOne);
+    // Another device adds a set that includes s1, with a logged dive.
+    await tester.runAsync(() async {
+      await EquipmentSetRepository().createSet(
+        EquipmentSet(
+          id: 's4',
+          diverId: 'd1',
+          name: 'Liveaboard',
+          includedSetIds: const ['s1'],
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      );
+      await dives.createDive(
+        domain.Dive(id: 'trip', dateTime: DateTime(2026, 2, 1), diverId: 'd1'),
+      );
+      await dives.replaceGearRows('trip', const [
+        GearProvenance(equipmentId: 'e1', viaSetId: 's4'),
+        GearProvenance(equipmentId: 'e2', viaSetId: 's4'),
+      ]);
+    });
+
+    await tester.tap(find.text(l.equipment_components_historyAlsoPast(2)));
+    await settleSave(tester);
+
+    expect(find.text(l.recordEdit_saveFailed), findsOneWidget);
+    expect(find.byType(RecordEditBar), findsOneWidget);
+    expect(await gearOn(tester, 'trip'), {'e1', 'e2'});
+    expect(await gearOn(tester, 'logged'), {'e1', 'e2'});
+    // The other device's writes are entries of their own; the sitting is
+    // none.
+    expect(
+      await setPageOperations(tester),
+      isNot(contains(startsWith('record_edit:'))),
+    );
+
+    await tapSave(tester);
+    expect(find.text(l.equipment_components_historyAlsoPast(3)), findsOne);
+  });
+
   testWidgets('sets that cannot be read stop the Save, asking nothing', (
     tester,
   ) async {

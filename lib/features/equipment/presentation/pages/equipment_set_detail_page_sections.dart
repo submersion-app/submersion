@@ -67,7 +67,7 @@ mixin _EquipmentSetDetailPageSections
                 ? stored.items
                 : (
                     [for (final item in ordered) item.id].join('|'),
-                    ref.watch(allEquipmentProvider).valueOrNull,
+                    ref.watch(allEquipmentProvider).value,
                   ),
             components: components,
             arrangement: ref.watch(equipmentArrangementProvider),

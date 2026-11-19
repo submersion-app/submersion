@@ -10,6 +10,19 @@ import 'package:submersion/features/equipment/domain/entities/equipment_set.dart
 import 'package:submersion/features/equipment/domain/services/set_history_diff.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 
+/// The save would change the dives of a set the diver was not asked about
+/// ("Update past dives?" covered other sets): the sets that include this
+/// one changed after the question. Nothing is written; ask again.
+class SetHistoryNotConfirmed implements Exception {
+  const SetHistoryNotConfirmed(this.setIds);
+
+  /// The sets whose dives would change without the diver's answer.
+  final Set<String> setIds;
+
+  @override
+  String toString() => 'SetHistoryNotConfirmed($setIds)';
+}
+
 /// Writes an equipment set page's editing sitting (issue #4527, phase 3):
 /// its changed values, the default it demotes and the dives that follow
 /// its gear, in one transaction and one History entry labelled with the
@@ -37,11 +50,18 @@ class EquipmentSetEditSaveService {
   /// nothing, and the dives it rewrote are queued for a quality rescan
   /// only once it has committed. Returns the set before and after, or null
   /// when nothing changed. Throws [StateError] when it no longer exists.
+  ///
+  /// [coveredSetIds] are the sets whose dives "Update past dives?" was
+  /// asked about (none when it was not asked): a save that would change the
+  /// dives of another, because the sets including this one changed since,
+  /// throws [SetHistoryNotConfirmed] and writes nothing. Null skips the
+  /// check.
   Future<({EquipmentSet before, EquipmentSet after})?> save({
     required String setId,
     required EquipmentSet Function(EquipmentSet stored) apply,
     required Iterable<String> changedCardIds,
     bool alsoLogged = false,
+    Set<String>? coveredSetIds,
   }) async {
     final rewritten = <String>{};
     final result = await writeRecordSitting<EquipmentSet>(
@@ -50,8 +70,13 @@ class EquipmentSetEditSaveService {
       changedCardIds: changedCardIds,
       read: () => _sets.getSetById(setId, includeGeofences: true),
       apply: apply,
-      write: (stored, merged) =>
-          _write(stored, merged, alsoLogged: alsoLogged, rewritten: rewritten),
+      write: (stored, merged) => _write(
+        stored,
+        merged,
+        alsoLogged: alsoLogged,
+        rewritten: rewritten,
+        coveredSetIds: coveredSetIds,
+      ),
     );
     // As a rewrite outside a sitting does (issue #2853): a gear overlap can
     // appear or go with the gear.
@@ -64,6 +89,7 @@ class EquipmentSetEditSaveService {
     EquipmentSet merged, {
     required bool alsoLogged,
     required Set<String> rewritten,
+    required Set<String>? coveredSetIds,
   }) async {
     // The gear the set applies is its own and that of the sets it includes:
     // with neither changed, no dive needs anything.
@@ -94,6 +120,13 @@ class EquipmentSetEditSaveService {
       after: written,
       allSets: allSets,
     );
+    if (coveredSetIds != null) {
+      final unasked = {
+        for (final change in changes)
+          if (!coveredSetIds.contains(change.setId)) change.setId,
+      };
+      if (unasked.isNotEmpty) throw SetHistoryNotConfirmed(unasked);
+    }
     for (final change in changes) {
       // The sitting tells sync once it commits, and the rescan follows it.
       rewritten.addAll(

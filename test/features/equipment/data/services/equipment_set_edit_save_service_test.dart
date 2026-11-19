@@ -469,6 +469,45 @@ void main() {
     expect(await gearOn('planned'), {'e1', 'e2'});
   });
 
+  test(
+    'a set whose dives the question did not cover refuses the save',
+    () async {
+      // The question was asked about s1 only; s3, which includes s1, was not
+      // known then (another device added it while the dialog was open).
+      final session = EditSession(await stored());
+      session.set(setMembersField, membersTicked(session, 'e2', false));
+
+      await expectLater(
+        service.save(
+          setId: 's1',
+          apply: session.applyTo,
+          changedCardIds: session.changedCardIds,
+          coveredSetIds: const {'s1'},
+        ),
+        throwsA(isA<SetHistoryNotConfirmed>()),
+      );
+
+      expect((await stored()).equipmentIds, unorderedEquals(['e1', 'e2']));
+      expect(await setsOn('outer'), {'s3'});
+      expect(await operations(), isEmpty);
+    },
+  );
+
+  test('every set the question covered is written', () async {
+    final session = EditSession(await stored());
+    session.set(setMembersField, membersTicked(session, 'e2', false));
+
+    await service.save(
+      setId: 's1',
+      apply: session.applyTo,
+      changedCardIds: session.changedCardIds,
+      coveredSetIds: const {'s1', 's3'},
+    );
+
+    expect((await stored()).equipmentIds, ['e1']);
+    expect(await setsOn('outer'), {null});
+  });
+
   test('unchanged returns null and writes nothing', () async {
     final result = await save(EditSession(await stored()));
 

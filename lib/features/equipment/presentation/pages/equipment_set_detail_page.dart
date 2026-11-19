@@ -38,6 +38,7 @@ import 'package:submersion/features/equipment/presentation/widgets/assembly_hist
 import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/features/equipment/presentation/widgets/set_bundle_summary.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
@@ -48,6 +49,7 @@ import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart
 import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
 import 'package:submersion/shared/widgets/record_editing/record_open_unlocked.dart';
 import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
+import 'package:submersion/shared/widgets/record_editing/record_sitting_refusal.dart';
 import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
 part 'equipment_set_detail_page_editing.dart';

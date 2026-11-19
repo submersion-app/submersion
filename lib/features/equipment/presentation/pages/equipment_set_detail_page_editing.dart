@@ -49,16 +49,24 @@ mixin _EquipmentSetDetailPageEditing
     // Read before the write: the page can be gone by the time it is done.
     final service = ref.read(equipmentSetEditSaveServiceProvider);
     final sets = ref.read(equipmentSetListNotifierProvider.notifier);
-    final every = ref.read(allEquipmentProvider).valueOrNull;
-    final allSets = ref.read(equipmentSetsProvider).valueOrNull;
-    final result = await service.save(
-      // The set the sitting was opened on, whatever the page shows by the
-      // time the write is asked for.
-      setId: session.stored.id,
-      apply: session.applyTo,
-      changedCardIds: session.changedCardIds,
-      alsoLogged: session.recall<bool>(_alsoLoggedKey) ?? false,
-    );
+    final every = ref.read(allEquipmentProvider).value;
+    final allSets = ref.read(equipmentSetsProvider).value;
+    final ({EquipmentSet before, EquipmentSet after})? result;
+    try {
+      result = await service.save(
+        // The set the sitting was opened on, whatever the page shows by the
+        // time the write is asked for.
+        setId: session.stored.id,
+        apply: session.applyTo,
+        changedCardIds: session.changedCardIds,
+        alsoLogged: session.recall<bool>(_alsoLoggedKey) ?? false,
+        coveredSetIds: session.recall<Set<String>>(_coveredSetIdsKey),
+      );
+    } on SetHistoryNotConfirmed {
+      // The sets including this one changed while the diver answered: the
+      // sitting stays as it is, and the next Save asks again.
+      throw const RecordSittingRefusal(_setHistoryChangedMessage);
+    }
     // Shown until the page reads the set again, and a new sitting can start
     // from it: with its items, as the set the page reads has them, so the
     // count and the members no longer shared are right meanwhile.
@@ -87,6 +95,7 @@ mixin _EquipmentSetDetailPageEditing
     final session = maybeEditController?.session;
     if (session == null) return true;
     session.remember(_alsoLoggedKey, false);
+    session.remember(_coveredSetIdsKey, <String>{});
     // Every set of the owner, as the save reads them: a set that includes
     // this one has dives to ask about too. Without them the question could
     // leave out dives the save then rewrites, so the Save stops.
@@ -112,6 +121,10 @@ mixin _EquipmentSetDetailPageEditing
       after: session.working,
       allSets: allSets,
     );
+    // The save checks that the dives it changes are the ones asked about.
+    session.remember(_coveredSetIdsKey, {
+      for (final change in planned) change.setId,
+    });
     if (planned.isEmpty) return true;
     final asked = await askSetHistory(
       context,
@@ -175,3 +188,11 @@ mixin _EquipmentSetDetailPageEditing
 /// The session note holding the answer to "Update past dives?": whether
 /// the logged dives that carry the set are rewritten too.
 const _alsoLoggedKey = 'equipmentSet.alsoLogged';
+
+/// The session note holding the sets whose dives the question covered.
+const _coveredSetIdsKey = 'equipmentSet.coveredSetIds';
+
+/// What a Save refused because the sets including this one changed says:
+/// nothing was saved, and Save again asks about the dives afresh.
+String _setHistoryChangedMessage(AppLocalizations l10n) =>
+    l10n.recordEdit_saveFailed;
