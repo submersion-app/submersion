@@ -1,3 +1,5 @@
+export 'package:submersion/features/nav_track/domain/nav_track_site_anchor_rule.dart';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -11,7 +13,6 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/site_picker_sheet.dart';
-import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/track_camera.dart';
@@ -23,6 +24,7 @@ import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.
 import 'package:submersion/features/maps/presentation/widgets/world_copies.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_matcher.dart';
+import 'package:submersion/features/nav_track/domain/nav_track_site_anchor_rule.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_stats.dart';
 import 'package:submersion/features/nav_track/presentation/nav_track_dive_label.dart';
 import 'package:submersion/features/nav_track/presentation/nav_track_file_actions.dart';
@@ -38,38 +40,6 @@ import 'package:submersion/features/tracks/domain/track_list_item.dart';
 import 'package:submersion/features/tracks/presentation/track_item_location.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
-
-/// Whether changing a route's site should also move its anchor to the new
-/// site's pin (item 5).
-///
-/// True only when the diver never touched the start point away from the old
-/// site's pin: [currentAnchor] is unset, or still exactly equals
-/// [oldSiteLocation]. If the diver already corrected the start point by
-/// hand, changing the site must not silently move that correction -- the
-/// safer, more predictable rule the design settled on.
-bool navTrackAnchorShouldFollowSiteChange(
-  GeoPoint? currentAnchor,
-  GeoPoint? oldSiteLocation,
-) {
-  return currentAnchor == null || currentAnchor == oldSiteLocation;
-}
-
-/// What changing a route's site does to its stored anchor.
-///
-/// `write` false keeps the anchor as it is (the diver placed it by hand).
-/// Otherwise the anchor becomes `anchor`: the new site's pin, or null when
-/// the new site has none, since an anchor that followed the old pin would
-/// otherwise keep the route at the old site.
-({bool write, GeoPoint? anchor}) navTrackAnchorChangeForSite(
-  GeoPoint? currentAnchor,
-  GeoPoint? oldSiteLocation,
-  GeoPoint? newSiteLocation,
-) {
-  if (!navTrackAnchorShouldFollowSiteChange(currentAnchor, oldSiteLocation)) {
-    return (write: false, anchor: null);
-  }
-  return (write: true, anchor: newSiteLocation);
-}
 
 /// One route: stats, an inline map when anchored, its dive link, correction
 /// status, and 3D (spec 2026-09-10-underwater-nav-track-design.md, "The
