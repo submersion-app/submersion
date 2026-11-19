@@ -508,17 +508,35 @@ void main() {
 
     testWidgets('is there while the feature is on', (tester) async {
       await pumpPhotos(tester);
-      await tester.scrollUntilVisible(
-        find.text('Marine life identification'),
-        200,
-      );
-      expect(find.text('Marine life identification'), findsOneWidget);
+      await tester.scrollUntilVisible(find.text('Species identification'), 200);
+      expect(find.text('Species identification'), findsOneWidget);
     });
 
-    testWidgets('is absent while it is off', (tester) async {
+    // Not a photo source, so not under Where photos come from (#4773).
+    testWidgets('sits under its own Species header, after the photo sources', (
+      tester,
+    ) async {
+      await pumpPhotos(tester);
+      final row = find.text('Species identification');
+      await tester.scrollUntilVisible(row, 200);
+      final header = find.text('Species');
+      final sources = find.text('Where photos come from');
+      expect(header, findsOneWidget);
+      expect(
+        tester.getTopLeft(header).dy,
+        greaterThan(tester.getTopLeft(sources).dy),
+      );
+      expect(
+        tester.getTopLeft(row).dy,
+        greaterThan(tester.getTopLeft(header).dy),
+      );
+    });
+
+    testWidgets('is absent while it is off, header and all', (tester) async {
       marineLifeIdEnabled = false;
       await pumpPhotos(tester);
-      expect(find.text('Marine life identification'), findsNothing);
+      expect(find.text('Species identification'), findsNothing);
+      expect(find.text('Species'), findsNothing);
     });
   });
 }

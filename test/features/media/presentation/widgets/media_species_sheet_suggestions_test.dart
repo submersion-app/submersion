@@ -15,6 +15,7 @@ import 'package:submersion/features/media/domain/entities/species_tag_chip.dart'
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_species_sheet.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/presentation/providers/species_download_prompt_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
@@ -109,6 +110,7 @@ void main() {
     List<Species> allSpecies = const [],
     MediaItem? item,
     double? progress,
+    bool promptWanted = false,
   }) async {
     final shown =
         sitting ??
@@ -138,6 +140,7 @@ void main() {
           mediaIdentificationProgressProvider(
             'p1',
           ).overrideWith((ref) => Stream.value(progress)),
+          speciesDownloadPromptProvider.overrideWithValue(promptWanted),
         ],
         child: MediaSpeciesSheet(item: item ?? _photo(), sitting: shown),
       ),
@@ -175,6 +178,14 @@ void main() {
     ) async {
       await pump(tester);
       expect(find.text('Suggested'), findsNothing);
+    });
+
+    testWidgets('with no model it offers the download (#4773)', (tester) async {
+      await pump(tester, promptWanted: true);
+      expect(
+        find.byKey(const ValueKey('species_download_prompt')),
+        findsOneWidget,
+      );
     });
 
     testWidgets('a video says video in its title (issue #4675)', (

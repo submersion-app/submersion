@@ -108,6 +108,11 @@ class SettingsKeys {
   /// no tap, marked unconfirmed (issue #4727). Off by default.
   static const String speciesIdAutoApply = 'species_id_auto_apply';
 
+  /// Device-local: whether the diver dismissed the offer to download the
+  /// identification model (issue #4773). Off by default.
+  static const String speciesIdDownloadPromptDismissed =
+      'species_id_download_prompt_dismissed';
+
   /// Device-local: when such a tag logs its dive's sighting, by
   /// `SightingTiming` name (issue #4727).
   static const String speciesIdSightingTiming = 'species_id_sighting_timing';

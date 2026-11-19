@@ -17,6 +17,7 @@ import 'package:submersion/features/species_id/domain/entities/species_pack_mani
 import 'package:submersion/features/species_id/domain/entities/species_review.dart';
 import 'package:submersion/features/species_id/presentation/providers/dive_species_run_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
+import 'package:submersion/features/species_id/presentation/providers/species_download_prompt_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_review_providers.dart';
 import 'package:submersion/features/species_id/presentation/widgets/species_review_banner.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
@@ -74,6 +75,7 @@ void main() {
     Set<String> upToDate = const {},
     bool autoApply = false,
     Future<bool> Function(MediaItem item)? libraryOriginalHere,
+    bool promptWanted = false,
   }) async {
     final controller = RecordEditController<Dive>(onSave: (_) async {});
     addTearDown(controller.dispose);
@@ -101,6 +103,7 @@ void main() {
           ),
           diveSpeciesCheckedProvider('d1').overrideWith((ref) async => checked),
           diveSpeciesRunProvider.overrideWith((ref) => run ?? _FixedRun(runs)),
+          speciesDownloadPromptProvider.overrideWithValue(promptWanted),
         ],
         home: Scaffold(
           body: SingleChildScrollView(
@@ -134,6 +137,29 @@ void main() {
     await pumpCard(tester);
     expect(find.byKey(const ValueKey('dive_species_find')), findsNothing);
     expect(find.text('Marine life'), findsNothing);
+  });
+
+  group('with no model (#4773)', () {
+    final prompt = find.byKey(const ValueKey('species_download_prompt'));
+
+    testWidgets('a dive with photos offers the download', (tester) async {
+      await pumpCard(tester, promptWanted: true);
+      expect(prompt, findsOneWidget);
+      expect(find.text('Species'), findsOneWidget);
+    });
+
+    testWidgets('a dive with no photos or videos offers nothing', (
+      tester,
+    ) async {
+      await pumpCard(tester, promptWanted: true, media: const []);
+      expect(prompt, findsNothing);
+      expect(find.text('Species'), findsNothing);
+    });
+
+    testWidgets('no offer while the dive is unlocked', (tester) async {
+      await pumpCard(tester, promptWanted: true, unlocked: true);
+      expect(prompt, findsNothing);
+    });
   });
 
   testWidgets('with the feature off, the app\'s tags still lead to the '
