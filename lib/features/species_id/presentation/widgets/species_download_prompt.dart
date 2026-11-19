@@ -3,8 +3,8 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/router/pushed_route.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
-import 'package:submersion/features/media/presentation/media_tag_navigation.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_download_prompt_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -45,7 +45,7 @@ class SpeciesDownloadPrompt extends ConsumerWidget {
         icon: Icon(Icons.close, color: color),
         tooltip: l10n.speciesId_downloadPrompt_dismiss,
         onPressed: () => ref
-            .read(speciesDownloadPromptDismissedProvider.notifier)
+            .read(speciesDownloadPromptDismissedNotifierProvider.notifier)
             .setEnabled(true),
       ),
       onTap: () => _open(context),

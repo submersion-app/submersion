@@ -235,6 +235,12 @@ class _MarineLifeIdentificationPageState
 
   Future<void> _confirmRemove(BuildContext context, int bytes) async {
     final l10n = context.l10n;
+    // Read before the dialog: the page can go while it is up (the pane
+    // rebuilt under it), and a removal the diver confirms still runs.
+    final controller = ref.read(speciesPackControllerProvider.notifier);
+    final offer = ref.read(
+      speciesDownloadPromptDismissedNotifierProvider.notifier,
+    );
     final go = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -256,11 +262,9 @@ class _MarineLifeIdentificationPageState
       ),
     );
     if (go ?? false) {
+      await controller.remove();
       // Removed on purpose: the app stops offering it (issue #4773). Written
-      // after the removal, so a failed preference write cannot hold it up,
-      // through a notifier read now, as the page may be gone by then.
-      final offer = ref.read(speciesDownloadPromptDismissedProvider.notifier);
-      await ref.read(speciesPackControllerProvider.notifier).remove();
+      // after the removal, so a failed preference write cannot hold it up.
       await offer.setEnabled(true);
     }
   }

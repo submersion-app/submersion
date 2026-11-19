@@ -20,6 +20,7 @@ import 'package:submersion/features/settings/presentation/providers/media_cache_
 import 'package:submersion/features/settings/presentation/providers/network_proxy_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/viewer_fullscreen_mode_provider.dart';
+import 'package:submersion/features/species_id/presentation/providers/species_download_prompt_providers.dart';
 import 'package:submersion/shared/services/incoming_share.dart';
 import 'package:submersion/shared/services/navigation_ready_gate.dart';
 
@@ -149,6 +150,35 @@ void main() {
         .read(autoConnectKnownComputersProvider.notifier)
         .setEnabled(true);
     expect(prefs.getBool(SettingsKeys.autoConnectKnownComputers), isTrue);
+  });
+
+  // Unstored, a dismissal would be forgotten at every launch (#4773).
+  test('backs the download prompt dismissal with SharedPreferences', () async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final logFileService = LogFileService(
+      logDirectory: p.join(Directory.systemTemp.path, 'submersion-test'),
+    );
+
+    final container = ProviderContainer(
+      overrides: rootProviderOverrides(
+        prefs: prefs,
+        logFileService: logFileService,
+      ).cast(),
+    );
+    addTearDown(container.dispose);
+
+    expect(
+      container.read(speciesDownloadPromptDismissedNotifierProvider),
+      isFalse,
+    );
+    await container
+        .read(speciesDownloadPromptDismissedNotifierProvider.notifier)
+        .setEnabled(true);
+    expect(
+      prefs.getBool(SettingsKeys.speciesIdDownloadPromptDismissed),
+      isTrue,
+    );
   });
 
   test('backs the viewer fullscreen mode with SharedPreferences', () async {

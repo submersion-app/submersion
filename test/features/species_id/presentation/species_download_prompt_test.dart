@@ -51,7 +51,7 @@ void main() {
   }) => [
     visionAvailabilityProvider.overrideWith((ref) async => availability),
     installedSpeciesPackProvider.overrideWith((ref) async => installed),
-    speciesDownloadPromptDismissedProvider.overrideWith(
+    speciesDownloadPromptDismissedNotifierProvider.overrideWith(
       (ref) => SpeciesDownloadPromptDismissedNotifier.unstored(dismissed),
     ),
     speciesPackControllerProvider.overrideWith(

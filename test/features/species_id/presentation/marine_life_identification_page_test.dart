@@ -203,7 +203,7 @@ void main() {
     await pump(tester, const PackInstalled(version: '2026.11.1', bytes: 660));
     bool dismissed() => ProviderScope.containerOf(
       tester.element(find.byType(MarineLifeIdentificationPage)),
-    ).read(speciesDownloadPromptDismissedProvider);
+    ).read(speciesDownloadPromptDismissedNotifierProvider);
     expect(dismissed(), isFalse);
 
     await tester.tap(find.byKey(const ValueKey('species_id_remove')));
@@ -217,6 +217,59 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('species_id_remove_confirm')));
     await tester.pumpAndSettle();
     expect(dismissed(), isTrue);
+  });
+
+  // The page can go while its dialog stays up (the pane rebuilt under it):
+  // a confirmed removal must still run, and still end the offer.
+  testWidgets('a removal confirmed after the page went still runs', (
+    tester,
+  ) async {
+    final controller = _Controller(
+      const PackInstalled(version: '2026.11.1', bytes: 660),
+    );
+    final shown = ValueNotifier(true);
+    addTearDown(shown.dispose);
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        overrides: [
+          ...overrides,
+          speciesPackControllerProvider.overrideWith(() => controller),
+          identificationCleanupProvider.overrideWithValue(cleanup),
+          mediaIdentificationServiceProvider.overrideWithValue(
+            _SettlingService(),
+          ),
+          identificationCountProvider.overrideWith((ref) async => 0),
+          identificationCropBytesProvider.overrideWith((ref) async => 0),
+        ],
+        child: ValueListenableBuilder<bool>(
+          key: const ValueKey('page_host'),
+          valueListenable: shown,
+          builder: (_, on, _) =>
+              on ? const MarineLifeIdentificationPage() : const SizedBox(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byKey(const ValueKey('page_host'))),
+    );
+
+    await tester.tap(find.byKey(const ValueKey('species_id_remove')));
+    await tester.pumpAndSettle();
+    shown.value = false;
+    await tester.pumpAndSettle();
+    expect(find.byType(MarineLifeIdentificationPage), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('species_id_remove_confirm')));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(controller.removals, 1);
+    expect(
+      container.read(speciesDownloadPromptDismissedNotifierProvider),
+      true,
+    );
   });
 
   testWidgets('installing says so and offers nothing to tap', (tester) async {

@@ -26,7 +26,7 @@ class SpeciesDownloadPromptDismissedNotifier extends DeviceBadgeToggleNotifier {
 
 /// Not dismissed, with no storage behind it; `rootProviderOverrides` gives
 /// it the stored preference.
-final speciesDownloadPromptDismissedProvider =
+final speciesDownloadPromptDismissedNotifierProvider =
     StateNotifierProvider<SpeciesDownloadPromptDismissedNotifier, bool>(
       (ref) => SpeciesDownloadPromptDismissedNotifier.unstored(false),
     );
@@ -40,7 +40,7 @@ final speciesDownloadPromptDismissedProvider =
 /// download runs, nor once it is known that none can be had here.
 final speciesDownloadPromptProvider = Provider<bool>((ref) {
   if (!marineLifeIdEnabled) return false;
-  if (ref.watch(speciesDownloadPromptDismissedProvider)) return false;
+  if (ref.watch(speciesDownloadPromptDismissedNotifierProvider)) return false;
   final availability = ref.watch(visionAvailabilityProvider).value;
   if (availability != VisionAvailability.available) return false;
   final installed = ref.watch(installedSpeciesPackProvider);
