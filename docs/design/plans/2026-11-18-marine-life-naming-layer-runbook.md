@@ -6,9 +6,9 @@ other context, on a local model, over several days.
 
 - **Design (read first):** `docs/design/specs/2026-11-18-marine-life-naming-layer-design.md`
 - **Implementation plan (tasks 1 to 6 are done):** `docs/design/plans/2026-11-18-marine-life-naming-layer.md`
-- **Branch:** the tools merged from `ericgriffin/feat-4724-naming-layer`;
-  the worktree is on `ericgriffin/feat-4724-check-settings`, the check
-  layer's settings (see Phase 7.0)
+- **Branch:** the tools reached main in pull requests #4743 and #4752; the
+  worktree is on `ericgriffin/feat-4724-faster-fetch`, the faster fetch
+  (see Phase 7.0)
 - **Worktree:** `/Users/ericgriffin/repos/submersion-app/submersion/.claude/worktrees/feat-4724-naming-layer`
 
 ## How to use this runbook
@@ -491,22 +491,21 @@ step is approach B, which is a new design, not something to start here).
 
 ### 7.0 The branch
 
-The tools (the fetcher, the trainer, the gate, the scorer's per-photo output
-and the CI wiring) went to main in their own pull request, which refers to
-#4724 without closing it (merged 2026-11-19). Training the check layer at the
-shipped layer's settings (`--settings-from`) followed in a second one, from
-`ericgriffin/feat-4724-check-settings`. Phases 7 and 8 make a third pull
-request that closes #4724. Check that the second one has merged:
+The tools went to main in pull requests that refer to #4724 without closing
+it: the fetcher, trainer, gate and scorer output (#4743), the check layer at
+the shipped layer's settings (#4752), and the faster fetch. Phases 7 and 8
+make the last one, which closes #4724. Check that no earlier one is still
+open:
 
 ```bash
 source /Users/ericgriffin/repos/submersion-app/naming-training/env.sh
-cd $WT && gh pr list --head ericgriffin/feat-4724-check-settings --state all --json number,state,url
+cd $WT && gh pr list --state open --search "4724 in:body" --json number,title,url
 ```
 
-- `MERGED`: start the third branch from main in the same worktree:
+- `[]`: start the branch from main in the same worktree:
   `git fetch origin && git switch -c ericgriffin/feat-4724-naming-measured origin/main`.
-- `OPEN` or `CLOSED`: STOP, and ask Eric whether to wait, or to add these
-  commits to that pull request.
+- Any pull request listed: STOP, and ask Eric whether to wait for it, or to
+  add these commits to it.
 
 ### 7.1 Add the measured entry
 
