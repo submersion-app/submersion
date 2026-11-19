@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/gps_log/data/repositories/gps_track_repository.dart';
@@ -87,9 +88,13 @@ class GpsTrackPageHarness {
 
 /// Pushes [page] over a plain first route, so the page can pop.
 class _Launcher extends StatefulWidget {
-  const _Launcher({required this.page});
+  const _Launcher({required this.page, this.theme});
 
   final Widget page;
+
+  /// The app's own theme in this brightness, for screenshots; the test
+  /// app's default when null.
+  final Brightness? theme;
 
   @override
   State<_Launcher> createState() => _LauncherState();
@@ -100,9 +105,20 @@ class _LauncherState extends State<_Launcher> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Navigator.of(
-        context,
-      ).push(MaterialPageRoute<void>(builder: (_) => widget.page));
+      final theme = widget.theme;
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => theme == null
+              ? widget.page
+              : Theme(
+                  data: AppThemeRegistry.resolveTheme(
+                    AppThemeRegistry.presets.first,
+                    theme,
+                  ),
+                  child: widget.page,
+                ),
+        ),
+      );
     });
   }
 
@@ -121,8 +137,10 @@ Future<GpsTrackPageHarness> pumpGpsTrackPage(
   bool unlockEditing = true,
   List<Dive> dives = const [],
   bool evictFails = false,
+  Brightness? brightness,
+  Size size = const Size(600, 1200),
 }) async {
-  tester.view.physicalSize = const Size(600, 1200);
+  tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
   final overrides = await getBaseOverrides();
@@ -167,6 +185,7 @@ Future<GpsTrackPageHarness> pumpGpsTrackPage(
         ),
       ],
       child: _Launcher(
+        theme: brightness,
         page: GpsTrackDetailPage(
           trackId: initial.id,
           unlockEditing: unlockEditing,
