@@ -1456,12 +1456,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '$kTracksLocation/underwater/:id',
             name: 'underwaterTrackDetail',
+            onExit: confirmLeaveRecordSitting,
             builder: (context, state) =>
                 NavTrackDetailPage(trackId: state.pathParameters['id']!),
           ),
           GoRoute(
             path: '$kTracksLocation/underwater/:id/align',
             name: 'underwaterTrackAlign',
+            onExit: confirmLeaveRecordSitting,
             builder: (context, state) =>
                 NavTrackAlignPage(routeId: state.pathParameters['id']!),
           ),

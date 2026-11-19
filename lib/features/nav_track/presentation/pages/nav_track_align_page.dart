@@ -30,6 +30,7 @@ import 'package:submersion/features/nav_track/domain/nav_track_georef.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_scale_handle.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_segmenter.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_terrain_check.dart';
+import 'package:submersion/features/nav_track/presentation/editing/nav_track_edit_fields.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_align_geometry.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_align_map_layers.dart';
@@ -42,6 +43,8 @@ import 'package:submersion/features/nav_track/presentation/widgets/nav_track_sca
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
 part 'nav_track_align_controls_panel.dart';
 
@@ -63,10 +66,27 @@ enum _Placing { none, start, end }
 /// with a correction-override parameter: the layer already reads everything
 /// it needs from a [NavTrack], and building one here keeps that widget
 /// untouched.
+///
+/// Behind phase 3's switch ([unlockEditing]) it follows the track's lock
+/// (issue #4527, plan 5): handed the track page's sitting
+/// ([joinedSitting]) it hands its correction to that sitting with Done and
+/// writes nothing; otherwise it only reads.
 class NavTrackAlignPage extends ConsumerStatefulWidget {
-  const NavTrackAlignPage({super.key, required this.routeId});
+  const NavTrackAlignPage({
+    super.key,
+    required this.routeId,
+    this.joinedSitting,
+    this.unlockEditing = kUnlockRecordEditing,
+  });
 
   final String routeId;
+
+  /// The track page's sitting, when the page was pushed during one.
+  final RecordEditController<NavTrack>? joinedSitting;
+
+  /// Whether the track pages edit in place: phase 3's switch, a parameter
+  /// so a test can turn it on.
+  final bool unlockEditing;
 
   @override
   ConsumerState<NavTrackAlignPage> createState() => _NavTrackAlignPageState();
@@ -104,16 +124,57 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
   static const Duration _terrainDebounceDuration = Duration(milliseconds: 300);
 
   @override
+  void initState() {
+    super.initState();
+    widget.joinedSitting?.addListener(_onSittingChanged);
+  }
+
+  @override
+  void didUpdateWidget(NavTrackAlignPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (identical(oldWidget.joinedSitting, widget.joinedSitting)) return;
+    oldWidget.joinedSitting?.removeListener(_onSittingChanged);
+    widget.joinedSitting?.addListener(_onSittingChanged);
+  }
+
+  @override
   void dispose() {
+    widget.joinedSitting?.removeListener(_onSittingChanged);
     _terrainDebounce?.cancel();
     _panelScrollController.dispose();
     super.dispose();
   }
 
+  /// A sitting that ends underneath (saved or cancelled from elsewhere)
+  /// leaves this page reading only.
+  void _onSittingChanged() {
+    if (mounted) setState(() {});
+  }
+
+  /// The track page's sitting this page edits in, while it is open.
+  RecordEditController<NavTrack>? get _joined {
+    final joined = widget.joinedSitting;
+    if (!widget.unlockEditing || joined == null || !joined.isUnlocked) {
+      return null;
+    }
+    final session = joined.session;
+    if (session == null || session.stored.id != widget.routeId) return null;
+    return joined;
+  }
+
+  /// Whether the page only shows the alignment: the track pages edit in
+  /// place and no sitting of the track is open.
+  bool get _readOnly => widget.unlockEditing && _joined == null;
+
   void _initFromRoute(NavTrack route) {
     if (_initialized) return;
     _initialized = true;
-    var correction = route.correction;
+    // In a sitting, from the correction the sitting holds, so a second visit
+    // carries on from the first.
+    final session = _joined?.session;
+    var correction = session == null
+        ? route.correction
+        : navTrackCorrectionIn(session);
     // Propose "same as start" when the raw recording already ends close to
     // where it started -- only as a starting suggestion, so it never
     // overrides a correction the diver already set on a previous visit.
@@ -152,6 +213,7 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
     NavTrackCorrection Function(NavTrackCorrection) fn,
     NavTrack route,
   ) {
+    if (_readOnly) return;
     setState(() => _correction = fn(_correction));
     _scheduleTerrainCheck(route);
   }
@@ -169,6 +231,7 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
     NavTrackCorrection Function(NavTrackCorrection) fn,
     NavTrack route,
   ) {
+    if (_readOnly) return;
     setState(() {
       _placing = _Placing.none;
       _correction = fn(_correction);
@@ -225,23 +288,38 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
     if (mounted) context.pop();
   }
 
+  /// Done in a sitting: hands the page's correction to the track's sitting,
+  /// as a change of its Correction card, and goes back. Writes nothing.
+  void _done() {
+    final session = _joined?.session;
+    if (session != null) setNavTrackCorrection(session, _correction);
+    Navigator.of(context).maybePop();
+  }
+
   /// Saves the in-progress correction, then opens the 3D view for it.
   ///
   /// The 3D page loads the route fresh from the repository, so without
   /// saving first it would show whatever was last persisted -- not
   /// necessarily what the diver is currently looking at on this page.
+  ///
+  /// Where the track pages edit in place, nothing is saved from here: the
+  /// 3D view shows the alignment as it is stored.
   Future<void> _openIn3d(NavTrack route) async {
-    await _persistCorrection(route);
+    if (!widget.unlockEditing) await _persistCorrection(route);
     if (!mounted) return;
     context.push(underwaterTrackSeascapeLocation(route.id));
   }
 
-  void _startPlacing(_Placing target) => setState(() => _placing = target);
+  void _startPlacing(_Placing target) {
+    if (_readOnly) return;
+    setState(() => _placing = target);
+  }
 
   /// Starts the end-point crosshair flow and sets the end mode to [point]
   /// in one rebuild, instead of two separate `setState` calls for what is a
   /// single user action (pressing "Place end on map").
   void _startPlacingEndPoint(NavTrack route) {
+    if (_readOnly) return;
     setState(() {
       _placing = _Placing.end;
       _correction = _correction.copyWith(endMode: NavTrackEndMode.point);
@@ -249,12 +327,16 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
     _scheduleTerrainCheck(route);
   }
 
-  void _resetCorrection() => setState(() {
-    _correction = const NavTrackCorrection();
-    _terrainResult = null;
-  });
+  void _resetCorrection() {
+    if (_readOnly) return;
+    setState(() {
+      _correction = const NavTrackCorrection();
+      _terrainResult = null;
+    });
+  }
 
   void _setPointHere(NavTrack route) {
+    if (_readOnly) return;
     final center = _mapController.camera.center;
     final point = GeoPoint(center.latitude, center.longitude);
     if (_placing == _Placing.start) {
@@ -269,6 +351,7 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
   }
 
   void _dragPoint(NavTrack route, bool isStart, GeoPoint moved) {
+    if (_readOnly) return;
     if (isStart) {
       _updateCorrection((c) => c.copyWith(anchor: moved), route);
     } else {
@@ -365,12 +448,13 @@ class _AlignPageBody extends ConsumerWidget {
       appBar: AppBar(
         title: Text(l10n.navTrack_align_title),
         actions: [
-          IconButton(
-            key: const ValueKey('nav-track-align-reset'),
-            icon: const Icon(Icons.restore),
-            tooltip: l10n.navTrack_align_resetTooltip,
-            onPressed: state._resetCorrection,
-          ),
+          if (!state._readOnly)
+            IconButton(
+              key: const ValueKey('nav-track-align-reset'),
+              icon: const Icon(Icons.restore),
+              tooltip: l10n.navTrack_align_resetTooltip,
+              onPressed: state._resetCorrection,
+            ),
           IconButton(
             key: const ValueKey('nav-track-align-3d'),
             icon: const Icon(Icons.terrain),
@@ -438,7 +522,8 @@ class _AlignPageBody extends ConsumerWidget {
                           ),
                         if (anchor != null &&
                             scaleHandle != null &&
-                            state._placing == _Placing.none)
+                            state._placing == _Placing.none &&
+                            !state._readOnly)
                           NavTrackScaleHandleLayer(
                             mapKey: state._mapKey,
                             point: offsetToGeoPoint(
