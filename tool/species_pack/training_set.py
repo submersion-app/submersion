@@ -138,6 +138,13 @@ def without_species(records, keys):
     return [r for r in records if r["gbif_key"] not in keys]
 
 
+def rows_sha256(manifest):
+    """The hash of a pack's naming rows (text_embeddings.f16) as its
+    manifest lists it, or None. training.json records it, so the record
+    names the rows it describes."""
+    return next((f["sha256"] for f in manifest["files"] if f["name"] == "text_embeddings.f16"), None)
+
+
 def write_credits(path, records):
     """One row per training photo with its credit, by observation id."""
     with open(path + ".partial", "w", encoding="utf-8", newline="") as fh:

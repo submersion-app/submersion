@@ -128,6 +128,18 @@ class CheckPackTest(unittest.TestCase):
             self.confirm(named_at={**self.BARS, "confident": 0.95})
 
 
+class TrainingRecordTest(unittest.TestCase):
+    MANIFEST = {"files": [{"name": "text_embeddings.f16", "sha256": "b" * 64}]}
+
+    def test_a_record_of_the_pack_s_rows_passes(self):
+        gate.confirm_training_record({"rows sha256": "b" * 64}, self.MANIFEST, "check")
+
+    def test_a_record_of_other_rows_or_none_is_refused(self):
+        for record in ({"rows sha256": "c" * 64}, {}):
+            with self.subTest(record=record), self.assertRaisesRegex(SystemExit, "check"):
+                gate.confirm_training_record(record, self.MANIFEST, "check")
+
+
 class ProvenanceTest(unittest.TestCase):
     FILES = [
         {"name": "detector.coreml.zip", "sha256": "d" * 64},

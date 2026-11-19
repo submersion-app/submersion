@@ -140,6 +140,18 @@ class HeldBackTest(unittest.TestCase):
         self.assertEqual([r["id"] for r in training_set.without_species(records, {5})], ["2"])
 
 
+class RowsHashTest(unittest.TestCase):
+    def test_rows_hash_is_the_manifest_s_text_embeddings_hash(self):
+        manifest = {
+            "files": [
+                {"name": "candidates.json", "sha256": "a" * 64},
+                {"name": "text_embeddings.f16", "sha256": "b" * 64},
+            ]
+        }
+        self.assertEqual(training_set.rows_sha256(manifest), "b" * 64)
+        self.assertIsNone(training_set.rows_sha256({"files": []}))
+
+
 class CreditsTest(unittest.TestCase):
     def test_write_credits_sorted_one_row_per_record(self):
         with tempfile.TemporaryDirectory() as tmp:

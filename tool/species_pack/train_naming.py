@@ -324,7 +324,11 @@ def main(argv=None):
             "name rows validation top-1": top1(name_rows, xv, yv),
         }
     )
-    derive(args.base, args.out, rows, version=args.version, credit=mf.training_credit(len(records), args.list_url))
+    credit = mf.training_credit(len(records), args.list_url)
+    derived = derive(args.base, args.out, rows, version=args.version, credit=credit)
+    # The record names the rows it describes, so a stale record beside other
+    # rows (a rerun into the same folder that stopped early) is caught.
+    settings["rows sha256"] = ts.rows_sha256(derived)
     with open(os.path.join(args.out, "training.json"), "w", encoding="utf-8") as fh:
         json.dump(settings, fh, indent=1)
     ts.write_credits(os.path.join(args.out, "training_photos.csv"), records)
