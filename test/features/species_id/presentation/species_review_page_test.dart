@@ -4,11 +4,13 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/reef/domain/entities/nearby_species.dart';
 import 'package:submersion/features/species_id/data/services/species_review_saver.dart';
 import 'package:submersion/features/species_id/domain/entities/species_review.dart';
 import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
 import 'package:submersion/features/species_id/domain/value_objects/species_review_edits.dart';
 import 'package:submersion/features/species_id/presentation/pages/species_review_page.dart';
+import 'package:submersion/features/species_id/presentation/providers/recorded_nearby_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_review_providers.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 
@@ -67,12 +69,19 @@ void main() {
     ],
   );
 
+  /// The "Recorded nearby" list each row is asked about, by request.
+  late List<NearbyListRequest> nearbyAsked;
+
+  /// Pumps the page; the "Recorded nearby" list is [nearby], so no test
+  /// here reaches GBIF.
   Future<void> pump(
     WidgetTester tester, {
     required List<ReviewRow> taggedRows,
     List<ReviewRow> suggestedRows = const [],
+    NearbySpecies? nearby,
   }) async {
     saver = _Saver();
+    nearbyAsked = [];
     await tester.pumpWidget(
       await mediaTestApp(
         overrides: [
@@ -91,6 +100,10 @@ void main() {
             ],
           ),
           speciesReviewSaverProvider.overrideWithValue(saver),
+          recordedNearbyListProvider.overrideWith((ref, request) {
+            nearbyAsked.add(request);
+            return Future.value(nearby);
+          }),
         ],
         home: const SpeciesReviewPage(scope: scope),
       ),
@@ -99,6 +112,87 @@ void main() {
   }
 
   Finder save() => find.byKey(const ValueKey('species_review_save'));
+
+  group('Recorded nearby (issue #4668)', () {
+    Finder markerIn(String rowKey) => find.descendant(
+      of: find.byKey(ValueKey(rowKey)),
+      matching: find.text('Recorded nearby'),
+    );
+    const taggedRowKey = 'species_review_row_s:sp1_a';
+    const suggestedRowKey = 'species_review_row_g:1_b';
+    // The suggested row's candidate, by its GBIF key alone.
+    const keyOnly = NearbySpecies(speciesKeys: {2393681});
+
+    testWidgets('a suggested row recorded nearby says so', (tester) async {
+      await pump(
+        tester,
+        taggedRows: [tagRow],
+        suggestedRows: [suggestedRow],
+        nearby: keyOnly,
+      );
+      expect(markerIn(suggestedRowKey), findsOneWidget);
+      expect(markerIn(taggedRowKey), findsNothing);
+      // The dive's list: a review row passes no photo position.
+      expect(nearbyAsked.toSet(), {(diveId: 'd1', photo: null)});
+    });
+
+    testWidgets('a tagged row of a catalogue species on the list says so', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        taggedRows: [tagRow],
+        nearby: const NearbySpecies(
+          matched: [MatchedNearbySpecies(speciesId: 'sp1', occurrenceCount: 3)],
+        ),
+      );
+      expect(markerIn(taggedRowKey), findsOneWidget);
+    });
+
+    testWidgets('the marker is read with the row', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await pump(
+        tester,
+        taggedRows: [tagRow],
+        suggestedRows: [suggestedRow],
+        nearby: keyOnly,
+      );
+      expect(find.bySemanticsLabel(RegExp('Recorded nearby')), findsOneWidget);
+      semantics.dispose();
+    });
+
+    testWidgets('with no list, no row shows the marker', (tester) async {
+      await pump(tester, taggedRows: [tagRow], suggestedRows: [suggestedRow]);
+      expect(find.text('Rock Beauty'), findsOneWidget);
+      expect(find.text('Recorded nearby'), findsNothing);
+    });
+
+    testWidgets('an expanded row says it once, not on each photo', (
+      tester,
+    ) async {
+      final twoPhotos = ReviewRow(
+        key: 'g:1',
+        candidate: suggestedRow.candidate,
+        items: [
+          ...suggestedRow.items,
+          ReviewItem(
+            media: testMediaItem(id: 'c', diveId: 'd1'),
+            suggestion: suggestion,
+            score: 0.64,
+          ),
+        ],
+      );
+      await pump(
+        tester,
+        taggedRows: const [],
+        suggestedRows: [twoPhotos],
+        nearby: keyOnly,
+      );
+      await tester.tap(find.text('Queen Parrotfish'));
+      await tester.pumpAndSettle();
+      expect(find.text('Recorded nearby'), findsOneWidget);
+    });
+  });
 
   testWidgets('both sections, with the dive in the title', (tester) async {
     await pump(tester, taggedRows: [tagRow], suggestedRows: [suggestedRow]);
