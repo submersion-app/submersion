@@ -8,7 +8,6 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_merge_page.dart';
 import 'package:submersion/shared/widgets/forms/form_section.dart';
 import 'package:submersion/shared/widgets/shared_items/item_sharing_field.dart';
-import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/life_notes_section.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -704,10 +703,10 @@ void main() {
   });
 
   group('merge mode share toggle', () {
-    // Regression test: _initializeFromMerge must restore isShared from the
-    // primary (first) site so that merging a shared site does not silently
-    // unshare it.
-    testWidgets('preserves isShared=true from the primary merged site', (
+    // A merge keeps each site's sharing (issue #2151): the page offers no
+    // picker. That a shared survivor stays shared is pinned by what a merge
+    // stores (site_merge_page_save_test.dart).
+    testWidgets('offers no sharing picker for a shared survivor', (
       tester,
     ) async {
       // Seed two sites into the test database. The first is shared.
@@ -737,14 +736,7 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // A merge keeps the sites' sharing (issue #2151): no picker here, and
-      // the Life & notes group's summary still says the site is shared.
       expect(find.byType(SharingTile), findsNothing);
-      expect(
-        tester.widget<LifeNotesSection>(find.byType(LifeNotesSection)).summary,
-        contains('shared'),
-        reason: 'Merging a shared primary site must preserve isShared=true.',
-      );
     });
 
     testWidgets('initializes city/island/bodyOfWater from a merge candidate', (

@@ -9422,21 +9422,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_edit_typeTags_typesLabel => '潜水点类型';
 
   @override
-  String get diveSites_edit_invite_accessSafety => '添加通行、停车、系泊或危险信息';
-
-  @override
-  String get diveSites_edit_invite_diveInfo => '添加深度范围、难度或评分';
-
-  @override
-  String get diveSites_edit_invite_lifeNotes => '添加物种、笔记或共享';
-
-  @override
-  String get diveSites_edit_invite_location => '添加 GPS 位置或海拔';
-
-  @override
-  String get diveSites_edit_summary_shared => '已共享';
-
-  @override
   String get forms_cancel => '取消';
 
   @override
@@ -12040,9 +12025,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveSites_edit_section_expectedMarineLife => '预期物种';
-
-  @override
-  String get diveSites_edit_section_hazards => '危险 & 安全';
 
   @override
   String get diveSites_edit_section_rating => '评分';

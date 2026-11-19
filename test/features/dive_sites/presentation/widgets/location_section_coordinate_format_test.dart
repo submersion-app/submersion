@@ -32,10 +32,6 @@ void main() {
   );
 
   Widget section(CoordinateFormat format) => LocationSection(
-    expanded: true,
-    onToggle: () {},
-    summary: '',
-    isEmpty: false,
     latitudeController: latitude,
     longitudeController: longitude,
     coordinateFormat: format,

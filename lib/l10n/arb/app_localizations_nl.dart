@@ -9870,25 +9870,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveSites_edit_typeTags_typesLabel => 'Duikstektypes';
 
   @override
-  String get diveSites_edit_invite_accessSafety =>
-      'Toegang, parkeren, afmeren of gevaren toevoegen';
-
-  @override
-  String get diveSites_edit_invite_diveInfo =>
-      'Dieptebereik, moeilijkheid of beoordeling toevoegen';
-
-  @override
-  String get diveSites_edit_invite_lifeNotes =>
-      'Soorten, notities of delen toevoegen';
-
-  @override
-  String get diveSites_edit_invite_location =>
-      'GPS-positie of hoogte toevoegen';
-
-  @override
-  String get diveSites_edit_summary_shared => 'gedeeld';
-
-  @override
   String get forms_cancel => 'Annuleren';
 
   @override
@@ -12586,9 +12567,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveSites_edit_section_expectedMarineLife => 'Verwachte soorten';
-
-  @override
-  String get diveSites_edit_section_hazards => 'Gevaren & veiligheid';
 
   @override
   String get diveSites_edit_section_rating => 'Beoordeling';

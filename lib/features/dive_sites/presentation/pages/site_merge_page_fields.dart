@@ -135,67 +135,6 @@ mixin _SiteMergeFields on ConsumerState<SiteMergePage> {
         altitude < 0 ? context.l10n.diveSites_edit_altitude_validation : null,
   )(value);
 
-  int _identityErrorCount() =>
-      _nameValidatorFn(_nameController.text) == null ? 0 : 1;
-
-  int _locationErrorCount() {
-    var count = 0;
-    if (_latValidatorFn(_latitudeController.text) != null) count++;
-    if (_lonValidatorFn(_longitudeController.text) != null) count++;
-    return count;
-  }
-
-  String _locationSummary(UnitFormatter units) => [
-    if (_latitudeController.text.isNotEmpty &&
-        _longitudeController.text.isNotEmpty)
-      '${_latitudeController.text}, ${_longitudeController.text}',
-    if (_altitudeController.text.isNotEmpty)
-      '${_altitudeController.text} ${units.altitudeSymbol}',
-  ].join(' · ');
-
-  bool _locationIsEmpty() =>
-      _latitudeController.text.isEmpty &&
-      _longitudeController.text.isEmpty &&
-      _altitudeController.text.isEmpty;
-
-  String _diveInfoSummary() => [
-    if (_minDepthController.text.isNotEmpty ||
-        _maxDepthController.text.isNotEmpty)
-      '${_minDepthController.text.isEmpty ? '?' : _minDepthController.text}'
-          '-${_maxDepthController.text.isEmpty ? '?' : _maxDepthController.text}',
-    if (_difficulty != null) _difficulty!.localizedName(context.l10n),
-    if (_waterType != null) _waterType!.localizedName(context.l10n),
-    if (_rating > 0) '★' * _rating.round(),
-  ].join(' · ');
-
-  String _methodNames(List<EntryMethod> methods) =>
-      joinEntryMethodNames(methods, (m) => m.localizedName(context.l10n));
-
-  String _accessSummary() => [
-    if (_accessNotesController.text.trim().isNotEmpty)
-      context.l10n.diveSites_edit_access_accessNotes_label,
-    if (_entryMethods.isNotEmpty) _methodNames(_entryMethods),
-    // Only when it differs, so the common mirrored case does not read
-    // "Boat · Boat".
-    if (exitDiffersFromEntry(_entryMethods, _exitMethods))
-      _methodNames(_exitMethods),
-    if (_mooringNumberController.text.trim().isNotEmpty)
-      context.l10n.diveSites_edit_access_mooringNumber_label,
-    if (_parkingInfoController.text.trim().isNotEmpty)
-      context.l10n.diveSites_edit_access_parkingInfo_label,
-    if (_hazardsController.text.trim().isNotEmpty)
-      context.l10n.diveSites_edit_section_hazards,
-  ].join(' · ');
-
-  String _lifeNotesSummary() => [
-    if (_expectedSpecies.isNotEmpty)
-      context.l10n.diveLog_edit_summary_species(_expectedSpecies.length),
-    if (_notesController.text.trim().isNotEmpty)
-      context.l10n.diveLog_edit_summary_notes,
-    if (_survivor?.isShared ?? false)
-      context.l10n.diveSites_edit_summary_shared,
-  ].join(' · ');
-
   /// [controller]'s number, null when blank; validate() has already stopped
   /// unreadable text.
   static double? _validatedNumber(TextEditingController controller) =>

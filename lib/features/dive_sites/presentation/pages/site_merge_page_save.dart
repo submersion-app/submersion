@@ -28,7 +28,7 @@ mixin _SiteMergeSave on _SiteMergeCandidates {
   /// The survivor as the fields show it, with the survivor's id and
   /// sharing, owned by [diverId].
   DiveSite _mergedSite(DiveSite survivor, String? diverId) {
-    final units = UnitFormatter(ref.read(settingsProvider));
+    final units = ref.read(unitFormatterProvider);
     String? trimmed(TextEditingController controller) {
       final text = controller.text.trim();
       return text.isEmpty ? null : text;

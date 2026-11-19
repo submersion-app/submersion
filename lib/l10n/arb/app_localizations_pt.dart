@@ -9930,25 +9930,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveSites_edit_typeTags_typesLabel => 'Tipos de ponto';
 
   @override
-  String get diveSites_edit_invite_accessSafety =>
-      'Adicionar acesso, estacionamento, poita ou perigos';
-
-  @override
-  String get diveSites_edit_invite_diveInfo =>
-      'Adicionar faixa de profundidade, dificuldade ou avaliação';
-
-  @override
-  String get diveSites_edit_invite_lifeNotes =>
-      'Adicionar espécies, notas ou compartilhamento';
-
-  @override
-  String get diveSites_edit_invite_location =>
-      'Adicionar posição GPS ou altitude';
-
-  @override
-  String get diveSites_edit_summary_shared => 'compartilhado';
-
-  @override
   String get forms_cancel => 'Cancelar';
 
   @override
@@ -12666,9 +12647,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveSites_edit_section_expectedMarineLife => 'Espécies Esperadas';
-
-  @override
-  String get diveSites_edit_section_hazards => 'Perigos e Segurança';
 
   @override
   String get diveSites_edit_section_rating => 'Avaliação';

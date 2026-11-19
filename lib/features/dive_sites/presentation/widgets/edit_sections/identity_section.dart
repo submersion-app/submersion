@@ -17,7 +17,6 @@ class IdentitySection extends StatelessWidget {
   const IdentitySection({
     super.key,
     required this.allSites,
-    this.excludeId,
     required this.nameController,
     required this.descriptionController,
     required this.countryController,
@@ -28,11 +27,9 @@ class IdentitySection extends StatelessWidget {
     required this.nameValidator,
     required this.placeLookup,
     this.mergeExtras,
-    this.errorCount = 0,
   });
 
   final List<DiveSite> allSites;
-  final String? excludeId;
   final TextEditingController nameController;
   final TextEditingController descriptionController;
   final TextEditingController countryController;
@@ -43,7 +40,6 @@ class IdentitySection extends StatelessWidget {
   final String? Function(String?) nameValidator;
   final Widget placeLookup;
   final MergeFieldExtras? Function(String key)? mergeExtras;
-  final int errorCount;
 
   Widget _row(
     BuildContext context, {
@@ -87,7 +83,6 @@ class IdentitySection extends StatelessWidget {
       icon: Icons.bookmark_outline,
       expanded: true,
       onToggle: null,
-      errorCount: errorCount,
       children: [
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -97,7 +92,7 @@ class IdentitySection extends StatelessWidget {
               key: 'name',
               label: l10n.diveSites_edit_field_siteName_label,
               controller: nameController,
-              suggestions: suggestedSiteNames(allSites, excludeId: excludeId),
+              suggestions: suggestedSiteNames(allSites),
               enableFuzzy: true,
               placeholder: l10n.diveSites_edit_field_siteName_hint,
               validator: nameValidator,
@@ -109,10 +104,7 @@ class IdentitySection extends StatelessWidget {
                 builder: (context, name, _) {
                   return SimilarValueHint(
                     query: name.text,
-                    candidates: suggestedSiteNames(
-                      allSites,
-                      excludeId: excludeId,
-                    ),
+                    candidates: suggestedSiteNames(allSites),
                   );
                 },
               ),

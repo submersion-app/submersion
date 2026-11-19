@@ -10075,24 +10075,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_edit_typeTags_typesLabel => 'أنواع الموقع';
 
   @override
-  String get diveSites_edit_invite_accessSafety =>
-      'إضافة الوصول أو المواقف أو المرساة أو المخاطر';
-
-  @override
-  String get diveSites_edit_invite_diveInfo =>
-      'إضافة نطاق العمق أو الصعوبة أو التقييم';
-
-  @override
-  String get diveSites_edit_invite_lifeNotes =>
-      'إضافة الأنواع أو الملاحظات أو المشاركة';
-
-  @override
-  String get diveSites_edit_invite_location => 'إضافة إحداثيات GPS أو الارتفاع';
-
-  @override
-  String get diveSites_edit_summary_shared => 'مشترك';
-
-  @override
   String get forms_cancel => 'إلغاء';
 
   @override
@@ -12832,9 +12814,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveSites_edit_section_expectedMarineLife => 'الأنواع المتوقعة';
-
-  @override
-  String get diveSites_edit_section_hazards => 'المخاطر والسلامة';
 
   @override
   String get diveSites_edit_section_rating => 'التقييم';

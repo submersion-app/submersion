@@ -16,10 +16,6 @@ import 'package:submersion/shared/widgets/forms/suggestion_form_row.dart';
 class LifeNotesSection extends StatelessWidget {
   const LifeNotesSection({
     super.key,
-    required this.expanded,
-    required this.onToggle,
-    required this.summary,
-    required this.isEmpty,
     required this.species,
     required this.onAddSpecies,
     required this.onRemoveSpecies,
@@ -27,10 +23,6 @@ class LifeNotesSection extends StatelessWidget {
     this.mergeExtras,
   });
 
-  final bool expanded;
-  final VoidCallback? onToggle;
-  final String summary;
-  final bool isEmpty;
   final List<Species> species;
   final VoidCallback onAddSpecies;
   final ValueChanged<Species> onRemoveSpecies;
@@ -46,11 +38,8 @@ class LifeNotesSection extends StatelessWidget {
     return FormSection(
       label: l10n.diveSites_edit_group_lifeNotes,
       icon: Icons.menu_book_outlined,
-      expanded: expanded,
-      onToggle: onToggle,
-      summary: summary,
-      isEmpty: isEmpty,
-      emptyInvitation: l10n.diveSites_edit_invite_lifeNotes,
+      expanded: true,
+      onToggle: null,
       children: [
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,

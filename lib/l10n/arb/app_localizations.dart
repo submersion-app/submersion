@@ -15646,36 +15646,6 @@ abstract class AppLocalizations {
   /// **'Site types'**
   String get diveSites_edit_typeTags_typesLabel;
 
-  /// Empty-state invitation for the Access & safety group
-  ///
-  /// In en, this message translates to:
-  /// **'Add access, parking, mooring or hazards'**
-  String get diveSites_edit_invite_accessSafety;
-
-  /// Empty-state invitation for the Dive info group
-  ///
-  /// In en, this message translates to:
-  /// **'Add depth range, difficulty or rating'**
-  String get diveSites_edit_invite_diveInfo;
-
-  /// Empty-state invitation for the Life & notes group
-  ///
-  /// In en, this message translates to:
-  /// **'Add species, notes or sharing'**
-  String get diveSites_edit_invite_lifeNotes;
-
-  /// Empty-state invitation for the Location group
-  ///
-  /// In en, this message translates to:
-  /// **'Add GPS position or altitude'**
-  String get diveSites_edit_invite_location;
-
-  /// Collapsed summary fragment indicating the site is shared
-  ///
-  /// In en, this message translates to:
-  /// **'shared'**
-  String get diveSites_edit_summary_shared;
-
   /// Cancel action on shared edit form scaffold
   ///
   /// In en, this message translates to:
@@ -20138,12 +20108,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Expected Species'**
   String get diveSites_edit_section_expectedMarineLife;
-
-  /// No description provided for @diveSites_edit_section_hazards.
-  ///
-  /// In en, this message translates to:
-  /// **'Hazards & Safety'**
-  String get diveSites_edit_section_hazards;
 
   /// No description provided for @diveSites_edit_section_rating.
   ///

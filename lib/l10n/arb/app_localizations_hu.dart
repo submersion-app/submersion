@@ -9910,25 +9910,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveSites_edit_typeTags_typesLabel => 'Merülőhely-típusok';
 
   @override
-  String get diveSites_edit_invite_accessSafety =>
-      'Megközelítés, parkolás, kikötés vagy veszélyek hozzáadása';
-
-  @override
-  String get diveSites_edit_invite_diveInfo =>
-      'Mélységtartomány, nehézség vagy értékelés hozzáadása';
-
-  @override
-  String get diveSites_edit_invite_lifeNotes =>
-      'Fajok, jegyzetek vagy megosztás hozzáadása';
-
-  @override
-  String get diveSites_edit_invite_location =>
-      'GPS-pozíció vagy magasság hozzáadása';
-
-  @override
-  String get diveSites_edit_summary_shared => 'megosztva';
-
-  @override
   String get forms_cancel => 'Mégse';
 
   @override
@@ -12643,9 +12624,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveSites_edit_section_expectedMarineLife => 'Várható fajok';
-
-  @override
-  String get diveSites_edit_section_hazards => 'Veszélyek és biztonság';
 
   @override
   String get diveSites_edit_section_rating => 'Értékelés';

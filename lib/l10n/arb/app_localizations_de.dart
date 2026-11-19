@@ -9925,25 +9925,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveSites_edit_typeTags_typesLabel => 'Tauchplatztypen';
 
   @override
-  String get diveSites_edit_invite_accessSafety =>
-      'Zugang, Parken, Mooring oder Gefahren hinzufügen';
-
-  @override
-  String get diveSites_edit_invite_diveInfo =>
-      'Tiefenbereich, Schwierigkeit oder Bewertung hinzufügen';
-
-  @override
-  String get diveSites_edit_invite_lifeNotes =>
-      'Arten, Notizen oder Freigabe hinzufügen';
-
-  @override
-  String get diveSites_edit_invite_location =>
-      'GPS-Position oder Höhe hinzufügen';
-
-  @override
-  String get diveSites_edit_summary_shared => 'geteilt';
-
-  @override
   String get forms_cancel => 'Abbrechen';
 
   @override
@@ -12658,9 +12639,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveSites_edit_section_expectedMarineLife => 'Erwartete Arten';
-
-  @override
-  String get diveSites_edit_section_hazards => 'Gefahren & Sicherheit';
 
   @override
   String get diveSites_edit_section_rating => 'Bewertung';

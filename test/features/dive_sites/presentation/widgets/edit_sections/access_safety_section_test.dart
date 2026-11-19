@@ -39,10 +39,6 @@ void main() {
     home: Scaffold(
       body: SingleChildScrollView(
         child: AccessSafetySection(
-          expanded: true,
-          onToggle: () {},
-          summary: '',
-          isEmpty: false,
           accessNotesController: accessNotes,
           mooringNumberController: mooringNumber,
           parkingInfoController: parkingInfo,

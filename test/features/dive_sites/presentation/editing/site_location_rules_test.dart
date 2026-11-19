@@ -67,7 +67,7 @@ void main() {
         ),
       );
 
-      expect(differingPlaceValues(session, lookup, l10n), {
+      expect(differingPlaceValues(sittingPlaceNames(session), lookup, l10n), {
         l10n.diveSites_edit_field_region_label: 'Lighthouse Reef',
         l10n.diveSites_edit_field_city_label: 'Belize City',
         l10n.diveSites_edit_field_bodyOfWater_label: 'Caribbean Sea',

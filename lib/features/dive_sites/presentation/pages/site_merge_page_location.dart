@@ -35,7 +35,7 @@ mixin _SiteMergeLocation on _SiteMergeFields {
       return;
     }
 
-    final units = UnitFormatter(ref.read(settingsProvider));
+    final units = ref.read(unitFormatterProvider);
     setState(() {
       // A programmatic fill must not dirty the form on its own: opening a site
       // that predates this feature would otherwise prompt to discard changes.
@@ -257,7 +257,16 @@ mixin _SiteMergeLocation on _SiteMergeFields {
         if (filled) _hasChanges = true;
       });
 
-      final differing = _differingLookupValues(lookup);
+      final differing = differingPlaceValues(
+        SiteLocationDetails(
+          country: _countryController.text,
+          region: _regionController.text,
+          city: _cityController.text,
+          bodyOfWater: _bodyOfWaterController.text,
+        ),
+        lookup,
+        context.l10n,
+      );
       if (differing.isEmpty) {
         if (!filled) {
           _showLookupSnackBar(
@@ -266,7 +275,7 @@ mixin _SiteMergeLocation on _SiteMergeFields {
         }
         return;
       }
-      final replace = await _confirmReplaceLocationDetails(differing);
+      final replace = await confirmPlaceNameReplace(context, differing);
       if (!mounted || !replace) return;
       setState(() {
         if (_applyPlaceLookup(lookup, overwrite: true)) _hasChanges = true;
@@ -280,75 +289,5 @@ mixin _SiteMergeLocation on _SiteMergeFields {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
-  }
-
-  /// Field label to found value, for the fields whose found value is
-  /// non-blank and differs from what the form shows.
-  Map<String, String> _differingLookupValues(PlaceLookup lookup) {
-    final l10n = context.l10n;
-    final out = <String, String>{};
-    void compare(String label, String current, String? found) {
-      if (found == null || found.trim().isEmpty) return;
-      if (current.trim() == found.trim()) return;
-      out[label] = found.trim();
-    }
-
-    compare(
-      l10n.diveSites_edit_field_country_label,
-      _countryController.text,
-      lookup.country,
-    );
-    compare(
-      l10n.diveSites_edit_field_region_label,
-      _regionController.text,
-      lookup.region,
-    );
-    compare(
-      l10n.diveSites_edit_field_city_label,
-      _cityController.text,
-      lookup.locality,
-    );
-    compare(
-      l10n.diveSites_edit_field_bodyOfWater_label,
-      _bodyOfWaterController.text,
-      lookup.bodyOfWater,
-    );
-    return out;
-  }
-
-  Future<bool> _confirmReplaceLocationDetails(
-    Map<String, String> differing,
-  ) async {
-    final l10n = context.l10n;
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.diveSites_edit_lookupReplace_title),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(l10n.diveSites_edit_lookupReplace_body),
-            const SizedBox(height: 12),
-            for (final entry in differing.entries)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Text('${entry.key}: ${entry.value}'),
-              ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(l10n.diveSites_edit_lookupReplace_keep),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(l10n.diveSites_edit_lookupReplace_replace),
-          ),
-        ],
-      ),
-    );
-    return result ?? false;
   }
 }

@@ -218,6 +218,7 @@ void main() {
         region: 'Yucatan',
         difficulty: SiteDifficulty.beginner,
         altitude: 10,
+        isShared: true,
       ),
     );
     await sites.createSite(
@@ -268,6 +269,8 @@ void main() {
     expect(merged.region, 'Turneffe');
     expect(merged.difficulty, SiteDifficulty.advanced);
     expect(merged.altitude, 10);
+    // The survivor's sharing comes through the merge (issue #2151).
+    expect(merged.isShared, isTrue);
     expect(
       [
         for (final e in await species.getExpectedSpeciesForSite('a'))

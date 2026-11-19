@@ -9712,23 +9712,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_edit_typeTags_typesLabel => 'סוגי אתר';
 
   @override
-  String get diveSites_edit_invite_accessSafety =>
-      'הוספת גישה, חניה, עגינה או סכנות';
-
-  @override
-  String get diveSites_edit_invite_diveInfo =>
-      'הוספת טווח עומק, רמת קושי או דירוג';
-
-  @override
-  String get diveSites_edit_invite_lifeNotes => 'הוספת מינים, הערות או שיתוף';
-
-  @override
-  String get diveSites_edit_invite_location => 'הוספת מיקום GPS או גובה';
-
-  @override
-  String get diveSites_edit_summary_shared => 'משותף';
-
-  @override
   String get forms_cancel => 'ביטול';
 
   @override
@@ -12390,9 +12373,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveSites_edit_section_expectedMarineLife => 'מינים צפויים';
-
-  @override
-  String get diveSites_edit_section_hazards => 'סכנות ובטיחות';
 
   @override
   String get diveSites_edit_section_rating => 'דירוג';

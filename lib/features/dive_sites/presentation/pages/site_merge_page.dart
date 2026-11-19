@@ -13,15 +13,13 @@ import 'package:submersion/core/services/geocoding/place_lookup.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
-import 'package:submersion/features/dive_sites/domain/entry_method_list.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_country_code.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_location_merge.dart';
 import 'package:submersion/features/shared_library/presentation/providers/library_role_now.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_location_rules.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
-import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/access_safety_section.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/dive_info_section.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/identity_section.dart';
@@ -30,6 +28,7 @@ import 'package:submersion/features/dive_sites/presentation/widgets/edit_section
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/merge_field_extras.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/place_lookup_row.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/location_picker_map.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/place_name_replace_dialog.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
@@ -162,14 +161,8 @@ class _SiteMergePageState extends ConsumerState<SiteMergePage>
               ),
             ),
             mergeExtras: _mergeExtras,
-            errorCount: _identityErrorCount(),
           ),
           LocationSection(
-            expanded: true,
-            onToggle: null,
-            summary: _locationSummary(units),
-            isEmpty: _locationIsEmpty(),
-            errorCount: _locationErrorCount(),
             latitudeController: _latitudeController,
             longitudeController: _longitudeController,
             coordinateFormat: ref.watch(coordinateFormatProvider),
@@ -185,10 +178,6 @@ class _SiteMergePageState extends ConsumerState<SiteMergePage>
             altitudeExtras: _mergeExtras('altitude'),
           ),
           DiveInfoSection(
-            expanded: true,
-            onToggle: null,
-            summary: _diveInfoSummary(),
-            isEmpty: _diveInfoSummary().isEmpty,
             minDepthController: _minDepthController,
             maxDepthController: _maxDepthController,
             depthSymbol: units.depthSymbol,
@@ -217,10 +206,6 @@ class _SiteMergePageState extends ConsumerState<SiteMergePage>
             waterTypeExtras: _waterTypeExtras(),
           ),
           AccessSafetySection(
-            expanded: true,
-            onToggle: null,
-            summary: _accessSummary(),
-            isEmpty: _accessSummary().isEmpty,
             accessNotesController: _accessNotesController,
             mooringNumberController: _mooringNumberController,
             parkingInfoController: _parkingInfoController,
@@ -240,10 +225,6 @@ class _SiteMergePageState extends ConsumerState<SiteMergePage>
             exitMethodExtras: _exitMethodExtras(),
           ),
           LifeNotesSection(
-            expanded: true,
-            onToggle: null,
-            summary: _lifeNotesSummary(),
-            isEmpty: _lifeNotesSummary().isEmpty,
             species: _expectedSpecies,
             onAddSpecies: _showSpeciesPicker,
             onRemoveSpecies: (s) => setState(() {
