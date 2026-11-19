@@ -2,6 +2,7 @@ import 'package:submersion/features/certifications/domain/entities/certification
 import 'package:submersion/features/certifications/presentation/editing/certification_card_editors.dart';
 import 'package:submersion/features/certifications/presentation/editing/certification_card_ids.dart';
 import 'package:submersion/features/certifications/presentation/editing/certification_edit_fields.dart';
+import 'package:submersion/features/certifications/presentation/widgets/certification_currency_section.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -29,6 +30,18 @@ final Map<CertificationCardId, EditCard<Certification>> certificationEditCards =
         isEmpty: (_) => false,
         editorBuilder: (context, session) =>
             CertificationDatesCardEditor(session: session),
+      ),
+      CertificationCardId.currency: EditCard<Certification>(
+        id: CertificationCardId.currency.name,
+        title: (context) =>
+            CertificationCardId.currency.localizedDisplayName(context.l10n),
+        // On the page whenever a rule applies or anything is logged; with
+        // neither there is nothing to log against, so it is never offered.
+        isEmpty: (_) => false,
+        editorBuilder: (context, session) => CertificationCurrencySection(
+          certification: session.working,
+          editing: session,
+        ),
       ),
       CertificationCardId.instructor: EditCard<Certification>(
         id: CertificationCardId.instructor.name,

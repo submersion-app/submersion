@@ -27,6 +27,7 @@ import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 import 'package:submersion/features/certifications/data/services/certification_edit_save_service.dart';
 import 'package:submersion/features/certifications/presentation/editing/certification_card_ids.dart';
+import 'package:submersion/features/certifications/presentation/editing/certification_currency_sitting.dart';
 import 'package:submersion/features/certifications/presentation/editing/certification_edit_cards.dart';
 import 'package:submersion/features/documents/presentation/editing/record_document_links_sitting.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
@@ -241,7 +242,16 @@ class _CertificationDetailContent extends ConsumerWidget {
           const SizedBox(height: 16),
           // Refresher and renewal currency (issue #2267). Carries its own
           // bottom gap, so an absent section leaves no extra space.
-          CertificationCurrencySection(certification: certification),
+          if (_editing)
+            _framed(
+              CertificationCardId.currency,
+              CertificationCurrencySection(
+                certification: certification,
+                readOnly: true,
+              ),
+            )
+          else
+            CertificationCurrencySection(certification: certification),
 
           // Instructor info
           if (certification.instructorName != null ||

@@ -54,6 +54,9 @@ mixin _CertificationDetailPageEditing
     EditSession<Certification> session,
     ProviderContainer container,
   ) {
+    // Read now, so the Currency card shows the sitting's list once it
+    // changes.
+    certificationEventsList.load(session);
     holdDocumentLinks(
       session,
       container.read,

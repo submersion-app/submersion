@@ -14,7 +14,9 @@ import 'package:submersion/features/certifications/domain/entities/currency_rule
 import 'package:submersion/features/certifications/presentation/widgets/certification_currency_section.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/certifications/presentation/editing/certification_currency_sitting.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
@@ -86,7 +88,12 @@ void main() {
 
   tearDown(tearDownTestDatabase);
 
-  Future<void> pump(WidgetTester tester, Certification cert) async {
+  Future<void> pump(
+    WidgetTester tester,
+    Certification cert, {
+    EditSession<Certification>? editing,
+    bool readOnly = false,
+  }) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     await tester.pumpWidget(
@@ -104,7 +111,11 @@ void main() {
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: SingleChildScrollView(
-              child: CertificationCurrencySection(certification: cert),
+              child: CertificationCurrencySection(
+                certification: cert,
+                editing: editing,
+                readOnly: readOnly,
+              ),
             ),
           ),
         ),
@@ -416,6 +427,94 @@ void main() {
     expect(mine.lapseDaysOverride, 300);
     expect(mine.muted, isTrue, reason: 'the inherited mute is carried over');
     expect(find.text('Muted'), findsOneWidget);
+  });
+
+  testWidgets('locked with the switch on, no action is offered', (
+    tester,
+  ) async {
+    await currency.createEvent(
+      CurrencyEvent(
+        id: '',
+        certificationId: aow.id,
+        ruleId: 'padi_reactivate',
+        eventType: CurrencyEventType.refresher,
+        eventDate: DateTime(2024),
+        createdAt: t0,
+        updatedAt: t0,
+      ),
+    );
+    await pump(tester, aow, readOnly: true);
+
+    expect(find.text('PADI refresher (ReActivate)'), findsOneWidget);
+    expect(find.byType(PopupMenuButton<CurrencyRowAction>), findsNothing);
+    expect(find.byIcon(Icons.delete_outline), findsNothing);
+  });
+
+  testWidgets('in a sitting, logging writes nothing until Save', (
+    tester,
+  ) async {
+    final session = EditSession(aow);
+    addTearDown(session.dispose);
+    await tester.runAsync(() => certificationEventsList.load(session));
+    await pump(tester, aow, editing: session);
+    await openMenu(tester);
+    await tester.tap(find.text('Log refresher').last);
+    await settle(tester);
+    await tester.tap(find.text('Save'));
+    await settle(tester);
+
+    expect(await currency.getEvents(aow.id), isEmpty);
+    expect(certificationEventsList.current(session), hasLength(1));
+    expect(session.changedCardIds, {'currency'});
+    await tester.runAsync(session.runHeldWrites);
+    expect(await currency.getEvents(aow.id), hasLength(1));
+  });
+
+  testWidgets('in a sitting, a delete asks nothing and waits for Save', (
+    tester,
+  ) async {
+    await currency.createEvent(
+      CurrencyEvent(
+        id: '',
+        certificationId: aow.id,
+        ruleId: 'padi_reactivate',
+        eventType: CurrencyEventType.refresher,
+        eventDate: DateTime(2024),
+        createdAt: t0,
+        updatedAt: t0,
+      ),
+    );
+    final session = EditSession(aow);
+    addTearDown(session.dispose);
+    await tester.runAsync(() => certificationEventsList.load(session));
+    await pump(tester, aow, editing: session);
+
+    await tester.tap(find.byIcon(Icons.delete_outline));
+    await settle(tester);
+
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(certificationEventsList.current(session), isEmpty);
+    expect(await currency.getEvents(aow.id), hasLength(1));
+  });
+
+  testWidgets('in a sitting, muting holds every member until Save', (
+    tester,
+  ) async {
+    final session = EditSession(aow);
+    addTearDown(session.dispose);
+    await pump(tester, aow, editing: session);
+    await openMenu(tester);
+    await tester.tap(find.text('Mute').last);
+    await settle(tester);
+
+    expect(find.text('Muted'), findsOneWidget);
+    for (final c in [ow, aow]) {
+      expect(await currency.getPrefs(c.id), isEmpty);
+    }
+    await tester.runAsync(session.runHeldWrites);
+    for (final c in [ow, aow]) {
+      expect((await currency.getPrefs(c.id)).single.muted, isTrue);
+    }
   });
 
   testWidgets('the section is absent when nothing applies or is logged', (

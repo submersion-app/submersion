@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/certifications/domain/entities/currency_event.dart';
+import 'package:submersion/features/certifications/presentation/editing/certification_currency_sitting.dart';
 import 'package:submersion/features/certifications/presentation/editing/certification_edit_fields.dart';
 import 'package:submersion/features/documents/presentation/editing/record_document_links_sitting.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
@@ -171,6 +173,34 @@ void main() {
 
     expect(sittingDocumentLinks(session).detach, {'doc-1'});
     expect(session.changedCardIds, contains('documents'));
+  });
+
+  testWidgets('currency changes and a card number change are one History '
+      'entry', (tester) async {
+    final harness = await pumpCertificationPage(tester);
+    harness.save.runHeld = false;
+    await unlock(tester);
+    final element = tester.element(
+      find.byType(RecordCardFrame<Certification>).first,
+    );
+    final session = RecordEditScope.maybeOf<Certification>(element)!.session!;
+    // The harness has no database: the list starts empty instead of read.
+    certificationEventsList.loadNone(session);
+    certificationEventsList.set(session, [
+      newCurrencyEvent(
+        certificationId: 'c1',
+        ruleId: 'padi_reactivate',
+        type: CurrencyEventType.refresher,
+        date: DateTime(2024),
+      ),
+    ]);
+    session.set(certificationCardNumberField, '456');
+    await tester.pumpAndSettle();
+
+    await save(tester);
+
+    expect(harness.save.calls, hasLength(1));
+    expect(harness.save.calls.single.cards, {'details', 'currency'});
   });
 
   testWidgets('Cancel with changes asks first', (tester) async {
