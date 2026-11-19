@@ -74,14 +74,24 @@ final diveMediaUpToDateProvider = FutureProvider.autoDispose
       if (installed == null) return const {};
       // Its place names the media: a site set since a run names them again.
       final dive = await ref.watch(diveProvider(diveId).future);
-      final media = await ref.watch(mediaForDiveProvider(diveId).future);
+      final media = [
+        for (final m in await ref.watch(mediaForDiveProvider(diveId).future))
+          if (_looksAt(m)) m,
+      ];
+      // An analysis writes its crops after its rows, so follow the crops
+      // too. Subscribed once the media are known: a crop written before
+      // this is on disk when they are read below.
+      final ids = {for (final m in media) m.id};
+      ref.invalidateSelfWhen(
+        ref
+            .watch(identificationCropStoreProvider)
+            .watchChanges()
+            .where(ids.contains),
+      );
       return ref
           .watch(mediaIdentificationServiceProvider)
           .upToDate(
-            [
-              for (final m in media)
-                if (_looksAt(m)) m,
-            ],
+            media,
             manifest: installed.manifest,
             locationOf: (m) => mediaLocation(
               m,

@@ -1,11 +1,11 @@
 import 'dart:convert';
-import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
@@ -318,8 +318,8 @@ class MediaIdentificationRepository {
     if (among == null) {
       await read(null);
     } else {
-      for (var i = 0; i < among.length; i += 500) {
-        await read(among.sublist(i, math.min(i + 500, among.length)));
+      for (final chunk in seriesIdChunks(among, size: _slice)) {
+        await read(chunk);
       }
     }
     return found.toList();
@@ -330,8 +330,7 @@ class MediaIdentificationRepository {
     List<String> mediaIds,
   ) async {
     final result = <String, List<MediaIdentification>>{};
-    for (var i = 0; i < mediaIds.length; i += 500) {
-      final chunk = mediaIds.sublist(i, math.min(i + 500, mediaIds.length));
+    for (final chunk in seriesIdChunks(mediaIds, size: _slice)) {
       final rows =
           await (_db.select(_db.mediaIdentifications)
                 ..where((r) => r.mediaId.isIn(chunk))
@@ -352,8 +351,7 @@ class MediaIdentificationRepository {
     List<String> mediaIds,
   ) async {
     final result = <String, MediaIdentificationRun>{};
-    for (var i = 0; i < mediaIds.length; i += 500) {
-      final chunk = mediaIds.sublist(i, math.min(i + 500, mediaIds.length));
+    for (final chunk in seriesIdChunks(mediaIds, size: _slice)) {
       final rows = await (_db.select(
         _db.mediaIdentificationRuns,
       )..where((r) => r.mediaId.isIn(chunk))).get();
@@ -370,8 +368,7 @@ class MediaIdentificationRepository {
     List<String> mediaIds,
   ) async {
     final result = <String, List<TaggedSpecies>>{};
-    for (var i = 0; i < mediaIds.length; i += 500) {
-      final chunk = mediaIds.sublist(i, math.min(i + 500, mediaIds.length));
+    for (final chunk in seriesIdChunks(mediaIds, size: _slice)) {
       final rows = await _db
           .customSelect(
             'SELECT ms.media_id AS media_id, ms.species_id AS species_id, '

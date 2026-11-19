@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -31,6 +32,7 @@ void main() {
   late LocalCacheDatabase local;
   late Directory support;
   late MediaIdentificationRepository identifications;
+  late IdentificationCropStore crops;
   late MediaIdentificationService service;
   const reef = GeoPoint(12.1, -68.9);
 
@@ -41,13 +43,14 @@ void main() {
     local = LocalCacheDatabase(NativeDatabase.memory());
     support = await Directory.systemTemp.createTemp('dive_checked');
     identifications = MediaIdentificationRepository(database: library);
+    crops = IdentificationCropStore(supportPath: () async => support.path);
     var ids = 0;
     service = MediaIdentificationService(
       engine: FakeEngine(),
       loadPack: () async => pack(),
       identifications: identifications,
       embeddings: IdentificationEmbeddingRepository(database: local),
-      crops: IdentificationCropStore(supportPath: () async => support.path),
+      crops: crops,
       resolveImage: (item) async =>
           IdentificationImage.path('/viewer/${item.id}.jpeg'),
       taggedSpecies: (_) async => const [],
@@ -73,13 +76,14 @@ void main() {
     expect(outcome, RunItemOutcome.done);
   }
 
-  Future<bool> checked({GeoPoint? entry}) async {
+  ProviderContainer containerFor({GeoPoint? entry}) {
     final container = ProviderContainer(
       overrides: [
         mediaIdentificationRepositoryProvider.overrideWithValue(
           identifications,
         ),
         mediaIdentificationServiceProvider.overrideWithValue(service),
+        identificationCropStoreProvider.overrideWithValue(crops),
         installedSpeciesPackProvider.overrideWith((ref) async => pack().pack),
         diveProvider('d1').overrideWith(
           (ref) async => domain.Dive(
@@ -94,8 +98,11 @@ void main() {
     addTearDown(container.dispose);
     final sub = container.listen(diveSpeciesCheckedProvider('d1'), (_, _) {});
     addTearDown(sub.close);
-    return container.read(diveSpeciesCheckedProvider('d1').future);
+    return container;
   }
+
+  Future<bool> checked({GeoPoint? entry}) =>
+      containerFor(entry: entry).read(diveSpeciesCheckedProvider('d1').future);
 
   test('a dive whose photos were all looked at here is checked', () async {
     await lookAt(photo('m1'));
@@ -115,5 +122,29 @@ void main() {
       'its photos for it', () async {
     await lookAt(photo('m1'));
     expect(await checked(entry: reef), isFalse);
+  });
+
+  test('crops that land after the rows are seen: an analysis stores its '
+      'rows first', () async {
+    await lookAt(photo('m1'));
+    final ids = [for (final i in await identifications.forMedia('m1')) i.id];
+    await for (final entry in support.list()) {
+      await entry.delete(recursive: true);
+    }
+    final container = containerFor();
+    expect(
+      await container.read(diveSpeciesCheckedProvider('d1').future),
+      isFalse,
+    );
+
+    for (final id in ids) {
+      await crops.write('m1', id, Uint8List.fromList([0xFF, 0xD8]));
+    }
+    await pumpEventQueue();
+
+    expect(
+      await container.read(diveSpeciesCheckedProvider('d1').future),
+      isTrue,
+    );
   });
 }

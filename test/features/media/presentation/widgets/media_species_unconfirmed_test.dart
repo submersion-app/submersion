@@ -10,6 +10,7 @@ import 'package:submersion/features/media/presentation/editing/photo_edit_fields
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_species_chips_row.dart';
 import 'package:submersion/features/media/presentation/widgets/media_tagged_species_section.dart';
+import 'package:submersion/shared/widgets/dashed_outline_painter.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -146,6 +147,66 @@ void main() {
 
       expect(sitting.valueOf(photoSpeciesField).confirmed, {'sp_app'});
       expect(confirm, findsNothing);
+    });
+
+    Future<void> pumpSection(WidgetTester tester) async {
+      final overrides = await getBaseOverrides();
+      final item = testMediaItem(id: 'p1', diveId: 'd1');
+      final sitting = EditSession<PhotoRecord>(
+        PhotoRecord(item: item, species: const [handTag, appTag], people: []),
+      );
+      addTearDown(sitting.dispose);
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: [
+            ...overrides,
+            diveSightingsProvider('d1').overrideWith((ref) async => const []),
+          ],
+          child: SingleChildScrollView(
+            child: MediaTaggedSpeciesSection(item: item, sitting: sitting),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('a screen reader reaches the app\'s tag and its remove '
+        'action', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await pumpSection(tester);
+
+      expect(
+        find.bySemanticsLabel(
+          'Queen Parrotfish, tagged by the app, not yet confirmed',
+        ),
+        findsOneWidget,
+      );
+      // The chip's remove button: a node of its own that a screen reader
+      // can press, not swallowed by the chip's label.
+      expect(
+        tester.getSemantics(
+          find.byKey(const ValueKey('media_tagged_remove_sp_app')),
+        ),
+        isSemantics(
+          tooltip: 'Remove Queen Parrotfish',
+          isButton: true,
+          hasTapAction: true,
+        ),
+      );
+      semantics.dispose();
+    });
+
+    testWidgets('the dashed outline hugs the chip, not its tap area', (
+      tester,
+    ) async {
+      await pumpSection(tester);
+
+      final dashed = find.byWidgetPredicate(
+        (w) => w is CustomPaint && w.foregroundPainter is DashedOutlinePainter,
+      );
+      expect(dashed, findsOneWidget);
+      expect(tester.getSize(dashed).height, lessThan(kMinInteractiveDimension));
     });
   });
 }

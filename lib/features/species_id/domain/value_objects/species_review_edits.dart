@@ -15,7 +15,11 @@ enum ReviewDecision {
   add,
 
   /// The suggestion is wrong: it does not come back for that item.
-  dismiss,
+  dismiss;
+
+  /// Whether the diver kept the species on the item (Confirm or Add)
+  /// rather than dropping it (Remove or Dismiss).
+  bool get keeps => this == confirm || this == add;
 }
 
 /// What Species to review holds until Save (issue #4727), by row and media

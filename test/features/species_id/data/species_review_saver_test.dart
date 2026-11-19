@@ -150,4 +150,54 @@ void main() {
     final left = await species.getSightingsForDive('d1');
     expect(left.where((s) => s.speciesId == own.id), isEmpty);
   });
+
+  group('a suggestion the app tagged while the decision was held', () {
+    Future<SpeciesReviewEdits> heldOnSuggestion({required bool keep}) async {
+      final row = (await load()).single.tagged.single;
+      final suggested = row.items.singleWhere((i) => i.media.id == 'p2');
+      final edits = SpeciesReviewEdits.none.decideItem(
+        row,
+        suggested,
+        keep: keep,
+      );
+      // A Find species run, or a sync, applies the species to p2 meanwhile.
+      await tagging.applyAppTag(
+        mediaId: 'p2',
+        speciesId: 'sp_queen_parrotfish',
+        timing: SightingTiming.onConfirm,
+        createdSpecies: false,
+      );
+      return edits;
+    }
+
+    test('a dismiss removes the app\'s tag', () async {
+      final edits = await heldOnSuggestion(keep: false);
+      final groups = await load();
+      expect(
+        groups.single.tagged.single.items
+            .singleWhere((i) => i.media.id == 'p2')
+            .isTagged,
+        isTrue,
+      );
+
+      await saver().save(edits, groups);
+
+      expect(await tags.findTag('p2', 'sp_queen_parrotfish'), isNull);
+      expect(
+        (await tags.findTag('p1', 'sp_queen_parrotfish'))!.unconfirmed,
+        isTrue,
+      );
+    });
+
+    test('an add confirms the app\'s tag', () async {
+      final edits = await heldOnSuggestion(keep: true);
+
+      await saver().save(edits, await load());
+
+      expect(
+        (await tags.findTag('p2', 'sp_queen_parrotfish'))!.unconfirmed,
+        isFalse,
+      );
+    });
+  });
 }

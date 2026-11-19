@@ -121,31 +121,33 @@ class _UnconfirmedTag extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Semantics(
-          label: l10n.media_species_unconfirmedLabel(name),
-          excludeSemantics: true,
-          child: CustomPaint(
-            foregroundPainter: DashedOutlinePainter(
-              color: Theme.of(context).colorScheme.outline,
-              radius: 8,
+        CustomPaint(
+          foregroundPainter: DashedOutlinePainter(
+            color: Theme.of(context).colorScheme.outline,
+            radius: 8,
+          ),
+          child: Chip(
+            avatar: const Icon(Icons.auto_awesome_outlined, size: 16),
+            // On the label, not over the chip: its remove action stays a
+            // node of its own for a screen reader.
+            label: Text(
+              name,
+              semanticsLabel: l10n.media_species_unconfirmedLabel(name),
             ),
-            child: Chip(
-              avatar: const Icon(Icons.auto_awesome_outlined, size: 16),
-              label: Text(name),
-              side: BorderSide.none,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              deleteIcon: Icon(
-                Icons.close,
-                size: 18,
-                key: ValueKey('media_tagged_remove_${chip.speciesId}'),
-              ),
-              deleteButtonTooltipMessage: l10n.media_species_removeTag(name),
-              onDeleted: ended
-                  ? null
-                  : () => holdSpeciesUntagged(sitting, chip),
+            side: BorderSide.none,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
             ),
+            // The dashes trace the chip itself, not a padded tap area; the
+            // row's Confirm button keeps the line its full height.
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            deleteIcon: Icon(
+              Icons.close,
+              size: 18,
+              key: ValueKey('media_tagged_remove_${chip.speciesId}'),
+            ),
+            deleteButtonTooltipMessage: l10n.media_species_removeTag(name),
+            onDeleted: ended ? null : () => holdSpeciesUntagged(sitting, chip),
           ),
         ),
         const SizedBox(width: 4),

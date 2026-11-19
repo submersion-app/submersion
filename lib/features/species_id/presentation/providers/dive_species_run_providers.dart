@@ -2,11 +2,11 @@ import 'package:flutter/widgets.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media/presentation/providers/video_color_track_provider.dart';
+import 'package:submersion/features/species_id/data/repositories/dive_place_repository.dart';
 import 'package:submersion/features/species_id/data/services/dive_species_run.dart';
 import 'package:submersion/features/species_id/data/services/media_identification_service.dart';
 import 'package:submersion/features/species_id/data/services/video_identification_scan.dart';
@@ -25,6 +25,11 @@ Future<VideoFileReader?> runVideoFileOf(Ref ref, MediaItem item) async {
       access<T>(path: path, bookmarkRef: item.bookmarkRef, read: read);
 }
 
+/// Where a dive is, for a Find species run (issue #4727).
+final divePlaceRepositoryProvider = Provider<DivePlaceRepository>(
+  (ref) => DivePlaceRepository(),
+);
+
 /// Find species runs, by dive (issue #4727). Lives for the app session, so
 /// leaving the dive page does not stop a run.
 final diveSpeciesRunProvider =
@@ -35,16 +40,8 @@ final diveSpeciesRunProvider =
       final run = DiveSpeciesRun(
         mediaForDive: (diveId) =>
             ref.read(mediaRepositoryProvider).getMediaForDive(diveId),
-        diveLocation: (diveId) async {
-          final dive = await ref
-              .read(diveRepositoryProvider)
-              .getDiveById(diveId);
-          return (
-            exists: dive != null,
-            site: dive?.site?.location,
-            entry: dive?.entryLocation,
-          );
-        },
+        // Asked after every item: read lean, not the whole dive.
+        diveLocation: ref.read(divePlaceRepositoryProvider).placeOf,
         request: (item, location) => service.requestFromRun(
           item,
           location: location,

@@ -54,7 +54,10 @@ class SpeciesReviewSaver {
     ReviewDecision decision,
   ) async {
     final mediaId = item.media.id;
-    switch (decision) {
+    // What the diver meant, keep or drop, applied to the item as it is now:
+    // the page holds decisions across reloads, and an auto-apply or a sync
+    // may have turned a suggestion into the app's tag meanwhile.
+    switch (SpeciesReviewEdits.decisionOf(item, keep: decision.keeps)) {
       case ReviewDecision.confirm:
         await _tagging.confirmTag(
           mediaId: mediaId,

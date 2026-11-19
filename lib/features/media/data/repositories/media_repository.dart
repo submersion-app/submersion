@@ -197,8 +197,7 @@ class MediaRepository {
   /// [getMediaById] for many ids, in chunks; ids with no row are left out.
   Future<List<domain.MediaItem>> getMediaByIds(List<String> ids) async {
     final items = <domain.MediaItem>[];
-    for (var i = 0; i < ids.length; i += 500) {
-      final chunk = ids.sublist(i, i + 500 > ids.length ? ids.length : i + 500);
+    for (final chunk in seriesIdChunks(ids, size: 500)) {
       final rows = await (_db.select(_db.media).join([
         leftOuterJoin(
           _db.mediaEnrichment,
