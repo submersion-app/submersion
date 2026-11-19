@@ -240,6 +240,10 @@ class MediaIdentificationRun extends Equatable {
 
   /// The pack that analysed or last named it.
   final String packVersion;
+
+  /// The pack's detector set (`SpeciesPackManifest.detectorSetId`). A
+  /// video's detector id also names the version of the tracker that linked
+  /// its tracks (`videoRunDetectorId`), so a new tracker scans it again.
   final String detectorId;
   final String classifierId;
 

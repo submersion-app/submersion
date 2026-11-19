@@ -19,8 +19,10 @@ typedef _SiteOwnership = ({bool? canDestroy, bool hidden, bool reachesHere});
 /// site at once and is its own History entry, so on a page that offers
 /// editing it runs only while the site is unlocked with nothing to save,
 /// and the sitting then starts again from the site as stored
-/// ([RecordEditController.runOperation]). A page that offers no editing
-/// (the switch off, a library reader) runs them as it always has.
+/// ([RecordEditController.runOperation]); a library reader's page waits
+/// for the unlock too (plan 5, Question 3). A page that offers no editing
+/// (the switch off, or a profile that may neither edit nor suggest) runs
+/// them as it always has.
 mixin _SiteDetailPageOperations
     on
         ConsumerState<_SiteDetailContent>,

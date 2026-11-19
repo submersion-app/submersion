@@ -6,7 +6,9 @@ import 'dart:math' as math;
 
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
+import 'package:submersion/features/species_id/domain/entities/video_detections.dart';
 import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
+import 'package:submersion/features/species_id/domain/services/species_namer.dart';
 import 'package:submersion/features/species_id/domain/services/track_labels.dart';
 import 'package:submersion/features/species_id/domain/services/video_tracker.dart';
 
@@ -57,10 +59,19 @@ VideoRefreshAction decideVideoRefresh({
 /// track's samples in that overlap their boxes overlap by at least
 /// [sameAnimalOverlap] on average. Each decided track is carried at most
 /// once; those carried are in `deleteIds`, replaced by the fresh track.
+///
+/// A tracker that links farther joins parts of a fish an earlier one split
+/// apart (issue #4729), so one track may cover several decided tracks.
+/// After carrying, a decided track that is the same animal as a track with
+/// a say, fresh or [kept] (one this store keeps as it is), and on which the
+/// diver said the same, is in `deleteIds` too: that track stands for it.
+/// A decided track on which the diver said something different from that
+/// track (another decision, species or claim) is kept as it is.
 ({List<MediaIdentification> insert, List<String> deleteIds})
 carryTrackDecisions({
   required List<MediaIdentification> decided,
   required List<MediaIdentification> fresh,
+  List<MediaIdentification> kept = const [],
 }) {
   final taken = <String>{};
   final insert = <MediaIdentification>[];
@@ -85,6 +96,16 @@ carryTrackDecisions({
         claimedSpeciesId: () => match!.claimedSpeciesId,
       ),
     );
+  }
+  final said = [
+    for (final t in [...insert, ...kept])
+      if (t.saidByDiver) t,
+  ];
+  for (final d in decided) {
+    if (taken.contains(d.id)) continue;
+    if (said.any((t) => !saidDifferently(t, d) && _sameAnimal(d, t))) {
+      taken.add(d.id);
+    }
   }
   return (
     insert: insert,
@@ -165,6 +186,71 @@ MediaIdentification keepDecisionOnRename({
   );
 }
 
+/// The worth ([momentWorth]) a stored track was named at, as far as its row
+/// tells: its best sampled box at its detector score. A scan compares new
+/// views with its detector's best view ([namesNow]), but the row shows the
+/// view that named it ([chooseNamingView]), which may be another (issue
+/// #4736); a resumed scan reading the shown box would name it again more
+/// readily than an unbroken one.
+double storedWorth(MediaIdentification row) {
+  double worth(IdentificationBox box) =>
+      momentWorth(DetectedBox(box: box, score: row.detectorScore));
+  return [
+    worth(row.box),
+    for (final s in row.path) worth(s.box),
+  ].reduce(math.max);
+}
+
+/// Which of a track's [views] (each of its best moments that could be
+/// cropped, named on its own) names the track, and whether it may be
+/// suggested; null when no view has names.
+///
+/// The view whose name is most decided, by its open score, names it; on a
+/// tie, the first, the detector's best view among those cropped. Each view
+/// is named
+/// as a photo's crop is, so its scores are on the scale the bars were
+/// measured on; an average of the views' embeddings never was, and one
+/// poor view in it pulled every score down. Taking the best of several
+/// views would also let more wrong names through, so with two or more
+/// usable views the chosen one is suggested only when another view's best
+/// name is the same species. A single usable view is judged as a photo is.
+/// A view with no names (an unusable embedding) neither names nor agrees.
+({int index, bool suggestable})? chooseNamingView(List<NamingResult> views) {
+  int? chosen;
+  for (var k = 0; k < views.length; k++) {
+    if (views[k].candidates.isEmpty) continue;
+    if (chosen == null || views[k].openScore > views[chosen].openScore) {
+      chosen = k;
+    }
+  }
+  if (chosen == null) return null;
+  final pick = views[chosen];
+  final others = [
+    for (var k = 0; k < views.length; k++)
+      if (k != chosen && views[k].candidates.isNotEmpty) views[k],
+  ];
+  final agreed =
+      others.isEmpty ||
+      others.any((v) => _sameName(v.candidates.first, pick.candidates.first));
+  return (index: chosen, suggestable: pick.suggestable && agreed);
+}
+
+/// Whether [renamed], a stored identification named again from its stored
+/// embedding for a new pack or place, may be suggested. A photo goes by the
+/// bars. A video track was stored from one view, so whether another view
+/// agrees with a new name cannot be told: it keeps a suggestion only when
+/// it had one under the same name. A changed name stays unsuggested until
+/// the video is scanned again, which a rename never asks for: only a new
+/// detector, classifier or tracker does.
+bool suggestableOnRename({
+  required MediaIdentification before,
+  required MediaIdentification renamed,
+}) {
+  if (!renamed.suggestable) return false;
+  if (!before.isTrack) return true;
+  return before.suggestable && _sameName(before.top, renamed.top);
+}
+
 bool _sameName(NamedCandidate? a, NamedCandidate? b) {
   if (a == null || b == null) return a == b;
   String key(String s) => s.trim().toLowerCase();
@@ -206,11 +292,12 @@ MediaIdentification _decided(
 /// Where two scanned stretches meet at [seamMs] (issue #4709): which of
 /// the [open] tracks reaching the seam are the same animal as a [stored]
 /// track of the later stretch. A stored track pairs when it starts within
-/// [maxGapMs] after the seam and its first box continues the open track's
-/// last box by [link], as the tracker links boxes ([matchLinks]), each
-/// track used once. Two parts on which the diver said different things (a
-/// decision, its species, or a claim) stay apart; an open track's say is
-/// on its stored row in [openRows], by id.
+/// [maxGapMs] after the seam and after the open track was last seen (the
+/// tracker links across no longer gap), and its first box continues the
+/// open track's last box by [link], as the tracker links boxes
+/// ([matchLinks]), each track used once. Two parts on which the diver said
+/// different things (a decision, its species, or a claim) stay apart; an
+/// open track's say is on its stored row in [openRows], by id.
 List<({TrackedAnimal open, MediaIdentification later})> seamJoins({
   required List<TrackedAnimal> open,
   required Map<String, MediaIdentification> openRows,
@@ -221,20 +308,24 @@ List<({TrackedAnimal open, MediaIdentification later})> seamJoins({
 }) {
   final later = [
     for (final s in stored)
-      if (s.isTrack &&
-          s.path.isNotEmpty &&
-          s.startMs != null &&
-          s.startMs! >= seamMs &&
-          s.startMs! <= seamMs + maxGapMs)
-        s,
+      if (s.isTrack && s.path.isNotEmpty)
+        if (s.startMs case final start?
+            when start >= seamMs && start <= seamMs + maxGapMs)
+          (row: s, start: start),
+  ];
+  final said = [
+    for (final o in open) o.storedId == null ? null : openRows[o.storedId],
   ];
   final pairs = matchLinks(open.length, later.length, (o, l) {
     final track = open[o];
-    final row = track.storedId == null ? null : openRows[track.storedId];
-    if (row != null && saidDifferently(row, later[l])) return null;
-    return link.score(track.points.last.detection.box, later[l].path.first.box);
+    final next = later[l];
+    if (next.start - track.endMs > maxGapMs) return null;
+    if (said[o] case final row? when saidDifferently(row, next.row)) {
+      return null;
+    }
+    return link.score(track.points.last.detection.box, next.row.path.first.box);
   });
-  return [for (final p in pairs) (open: open[p.from], later: later[p.to])];
+  return [for (final p in pairs) (open: open[p.from], later: later[p.to].row)];
 }
 
 /// Whether the diver said something on both [a] and [b], and not the same:

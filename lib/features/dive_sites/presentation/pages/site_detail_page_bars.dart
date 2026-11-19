@@ -34,7 +34,7 @@ extension _SiteDetailBars on _SiteDetailContentState {
               rootId: site.id,
             ),
           ),
-        if (offered) lockButton(site),
+        if (offered) _unlockControl(site),
         // Only on the locked bar: an open sitting's bar replaces this one,
         // so the old form, which would save over the sitting through a
         // child route no leave check sees, is never offered over it.
@@ -195,6 +195,18 @@ extension _SiteDetailBars on _SiteDetailContentState {
     }
   }
 
+  /// The lock for an editor; for a shared site library's reader, "Suggest
+  /// changes", which opens a reader's sitting (issue #4527, plan 5).
+  Widget _unlockControl(DiveSite site, {bool compact = false}) {
+    if (!_suggestsNow(watch: true)) return lockButton(site, compact: compact);
+    return TextButton.icon(
+      key: const ValueKey('site_suggest_unlock'),
+      icon: Icon(Icons.rate_review_outlined, size: compact ? 18 : null),
+      label: Text(context.l10n.sharedLibrary_suggest_title),
+      onPressed: () => editController.unlock(site),
+    );
+  }
+
   /// The list pane's header row. [offered] is whether the lock shows;
   /// while the site is unlocked the shared pane header (Cancel, the title,
   /// the menu and Save) is laid over it ([RecordPaneRow]).
@@ -269,7 +281,7 @@ extension _SiteDetailBars on _SiteDetailContentState {
               onPressed: () =>
                   _showFullscreenMap(context, ref, site, initialScape3d: true),
             ),
-          if (offered) lockButton(site, compact: true),
+          if (offered) _unlockControl(site, compact: true),
           if (_canEditSite(ref, site))
             IconButton(
               icon: const Icon(Icons.edit, size: 20),

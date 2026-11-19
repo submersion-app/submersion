@@ -5,7 +5,7 @@ within the catalogue's higher taxa, then the species divers record most in
 shallow surveys there, photographed or not.
 
 Network access is only in `_get_json` and the `fetch_*` functions that call
-it; manifest_test.py tests the rest, and the facet queries with GBIF
+it; candidates_test.py tests the rest, and the facet queries with GBIF
 replaced by a stub.
 """
 

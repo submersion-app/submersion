@@ -86,6 +86,8 @@ import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dar
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_classification_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_edit_cards.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_reader_send.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_reader_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_sitting_save.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_sitting_start.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_catalogue_sitting.dart';
@@ -112,6 +114,7 @@ import 'package:submersion/shared/widgets/record_editing/record_open_unlocked.da
 import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 import 'package:submersion/shared/widgets/record_editing/record_pane_row.dart';
 import 'package:submersion/shared/widgets/record_editing/record_fold_pencil.dart';
+import 'package:submersion/shared/widgets/record_editing/record_sitting_refusal.dart';
 
 part 'site_detail_page_bars.dart';
 part 'site_detail_page_editing.dart';
@@ -354,8 +357,10 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
     final embedded = widget.embedded;
     // Unlock-to-edit in place (issue #4527, phase 2), behind the switch.
     final edit = _editingInBuild();
-    // Only where the page offers editing now: a reader's stale edit link
-    // opens the site locked. A role still loading unlocks once it allows.
+    // Only where the page offers editing now: an edit link opens an
+    // editor's sitting, or a library reader's to suggest changes, and opens
+    // the site locked for anyone else. A role still loading unlocks once it
+    // allows.
     if (edit.offered) openUnlockedOnce(widget.site);
     final site = edit.site;
     final sections = ref.watch(
@@ -653,6 +658,8 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
             owner: DocumentOwner(DocumentOwnerKind.site, site.id),
           ),
     };
+    // One answer for every card in this build.
+    final readerPage = editing && _readerPageNow(watch: true);
     return {
       for (final section in sections)
         if (section.visible || shownForSitting.contains(section.id))
@@ -660,12 +667,14 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
             section.id,
             cards[section.id]!(),
             editing: editing,
+            readerPage: readerPage,
           ),
     };
   }
 
   /// Role and connection state of a shared site library site (issue #2567). A
   /// personal site is editable by the usual rules.
+  @override
   ({bool isLibrary, bool connected, SharedLibraryRole role}) _libraryAccess(
     WidgetRef ref,
     DiveSite site, {
@@ -721,7 +730,8 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
         ),
       ];
     }
-    if (canSuggestOnLibrarySite(access.role)) {
+    // On a page that hosts editing a reader suggests through its unlock.
+    if (canSuggestOnLibrarySite(access.role) && !hostsEditing) {
       return [
         TextButton.icon(
           icon: const Icon(Icons.rate_review_outlined, size: 18),

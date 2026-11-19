@@ -15766,6 +15766,18 @@ abstract class AppLocalizations {
   /// **'Imported'**
   String get recordEdit_imported;
 
+  /// Short label on a faded card while a shared site library reader's site is unlocked to suggest changes: the card (features, expected species) belongs to the library and the reader's sitting does not change it. Like recordEdit_calculated.
+  ///
+  /// In en, this message translates to:
+  /// **'Library'**
+  String get recordEdit_library;
+
+  /// Short label on a card (notes, rating, photos and videos, documents) while a shared site library reader's site is unlocked to suggest changes: what is entered or attached there is the reader's own, saved for them and never sent to the library.
+  ///
+  /// In en, this message translates to:
+  /// **'Only you'**
+  String get recordEdit_onlyYou;
+
   /// Message shown when saving an unlocked record fails.
   ///
   /// In en, this message translates to:
@@ -39435,6 +39447,12 @@ abstract class AppLocalizations {
   /// **'Your notes and rating are saved.'**
   String get sharedLibrary_suggest_savedPrivate;
 
+  /// Snack bar after a shared site library reader's Send when their own notes and rating were saved but the suggestion to the library's owner could not be sent.
+  ///
+  /// In en, this message translates to:
+  /// **'Your notes and rating are saved. The suggestion could not be sent.'**
+  String get sharedLibrary_suggest_savedNotSent;
+
   /// No description provided for @sharedLibrary_suggest_pending.
   ///
   /// In en, this message translates to:
@@ -46713,6 +46731,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Most names. About {percent}% right'**
   String settings_speciesId_levelEagerAccuracy(int percent);
+
+  /// Under the naming levels when the level the diver chose is not in the installed model: the app names at the nearest surer level it has, and choosing that one keeps it
+  ///
+  /// In en, this message translates to:
+  /// **'{chosen} is not in this version of the model, so the app uses {inForce} until an update adds {chosen}. Choose {inForce} to keep using it.'**
+  String settings_speciesId_levelFallback(String chosen, String inForce);
 
   /// No description provided for @settings_speciesId_kept.
   ///

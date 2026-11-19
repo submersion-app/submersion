@@ -16,7 +16,9 @@ import 'package:submersion/features/species_id/data/repositories/media_identific
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
 import 'package:submersion/features/species_id/data/services/media_identification_service.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
 import 'package:submersion/features/species_id/domain/entities/video_detections.dart';
+import 'package:submersion/features/species_id/domain/services/video_tracker.dart';
 import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 
 import '../../../helpers/temp_dir.dart';
@@ -374,6 +376,67 @@ void main() {
       expect(again.decision, IdentificationDecision.rejected);
     });
 
+    test('the rescan by a new tracker takes up every dismissed part of a '
+        'fish it joins (issue #4729)', () async {
+      // In view across the first chunk's end: its second part is reached
+      // only after the track is stored with the first part's dismissal.
+      engine.videoFrames = {
+        for (var ms = 8000; ms < 12000; ms += 250)
+          ms: [
+            const DetectedBox(
+              box: IdentificationBox(x: 0.1, y: 0.4, width: 0.2, height: 0.1),
+              score: 0.9,
+            ),
+          ],
+      };
+      await service.request(video());
+      await service.reject('v1', [
+        (await identifications.forMedia('v1')).single.id,
+      ]);
+      final dismissed = (await identifications.forMedia('v1')).single;
+      MediaIdentification part(String id, int from, int to) {
+        final path = [
+          for (final s in dismissed.path)
+            if (s.ms >= from && s.ms <= to) s,
+        ];
+        return dismissed.copyWith(
+          id: id,
+          path: path,
+          startMs: () => path.first.ms,
+          endMs: () => path.last.ms,
+          bestMs: () => path.first.ms,
+        );
+      }
+
+      // As the earlier tracker left it: two parts, each dismissed.
+      final scanned = (await identifications.runFor('v1'))!;
+      await identifications.storeRun(
+        MediaIdentificationRun(
+          mediaId: scanned.mediaId,
+          packVersion: scanned.packVersion,
+          detectorId: 'det-a',
+          classifierId: scanned.classifierId,
+          locationCell: scanned.locationCell,
+          analysedAt: scanned.analysedAt,
+          imageWidth: scanned.imageWidth,
+          imageHeight: scanned.imageHeight,
+          detectionCount: 2,
+          scannedMs: scanned.scannedMs,
+          videoDurationMs: scanned.videoDurationMs,
+          scannedRanges: scanned.scannedRanges,
+        ),
+        insert: [part('p1', 8000, 9750), part('p2', 10000, 11750)],
+        deleteIds: [dismissed.id],
+      );
+      await service.request(video());
+      final found = await identifications.forMedia('v1');
+      expect(found, hasLength(1));
+      expect(found.single.decision, IdentificationDecision.rejected);
+      expect(found.single.startMs, 8000);
+      expect(found.single.endMs, 11750);
+      expect((await identifications.runFor('v1'))!.detectionCount, 1);
+    });
+
     test('a rescan stopped part-way still carries a dismissal after it '
         'resumes', () async {
       engine.videoFrames = {
@@ -597,9 +660,41 @@ void main() {
       expect(engine.detectCalls, isNotEmpty);
       expect(
         (await identifications.runFor('v1'))!.detectorId,
-        'det-a#tracker2',
+        videoRunDetectorId('det-a'),
       );
       expect(await identifications.forMedia('v1'), hasLength(1));
+    });
+
+    test('a renamed video track keeps a suggestion only under the same '
+        'name', () async {
+      oneFish();
+      await service.request(video());
+      final fish = (await identifications.forMedia('v1')).single;
+      expect(fish.top!.candidate, parrotfish);
+      expect(fish.suggestable, isTrue);
+      // As if the pack before had named it another species.
+      await identifications.updateNames([
+        fish.copyWith(
+          candidates: const [NamedCandidate(candidate: tang, score: 0.9)],
+        ),
+      ], run: (await identifications.runFor('v1'))!);
+
+      installed = pack(version: '2026.12.1');
+      await service.packChanged();
+      await service.request(video());
+      final renamed = (await identifications.forMedia('v1')).single;
+      expect(renamed.top!.candidate, parrotfish);
+      expect(renamed.suggestable, isFalse);
+    });
+
+    test('a renamed video track under the same name stays '
+        'suggested', () async {
+      oneFish();
+      await service.request(video());
+      installed = pack(version: '2026.12.1');
+      await service.packChanged();
+      await service.request(video());
+      expect((await identifications.forMedia('v1')).single.suggestable, isTrue);
     });
   });
 

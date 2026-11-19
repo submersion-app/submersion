@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -49,6 +51,8 @@ final _textCard = EditCard<_Note>(
   id: 'text',
   title: (_) => 'Text',
   isEmpty: (_) => false,
+  // 'bad' stands for input the card refuses at Save.
+  isValid: (session) => session.valueOf(_textField) != 'bad',
   editorBuilder: (context, session) => TextFormField(
     key: const ValueKey('textEditor'),
     initialValue: session.valueOf(_textField),
@@ -65,6 +69,14 @@ class _Probe {
   final saves = <Set<String>>[];
   bool failSave = false;
   Object? refuseWith;
+
+  /// How often the page's beforeSave was asked, and, while set, the answer
+  /// it is still waiting for.
+  int beforeSaveAsked = 0;
+  Completer<bool>? holdBeforeSave;
+
+  /// While set and not completed, the page's save is still being written.
+  Completer<void>? holdSave;
 }
 
 final _probeProvider = Provider<_Probe>((ref) => throw UnimplementedError());
@@ -82,9 +94,13 @@ class _NotePage extends ConsumerStatefulWidget {
     this.stripEntry = false,
     this.openUnlocked = false,
     this.onSittingEnded,
+    this.saveLabel,
+    this.allowSave = true,
   });
 
   final String noteId;
+  final String? saveLabel;
+  final bool allowSave;
   final bool embedded;
   final bool offersEditing;
   final bool hostsEditing;
@@ -134,6 +150,7 @@ class _NotePageState extends ConsumerState<_NotePage>
   Future<void> saveSitting(EditSession<_Note> session) async {
     final probe = ref.read(_probeProvider);
     probe.saves.add(session.changedCardIds);
+    await probe.holdSave?.future;
     if (probe.failSave) throw StateError('the save failed');
     if (probe.refuseWith case final refusal?) throw refusal;
     justSavedRecord = session.working;
@@ -145,6 +162,18 @@ class _NotePageState extends ConsumerState<_NotePage>
 
   @override
   String editingTitle(_Note record) => 'Editing ${record.title}';
+
+  @override
+  String? get saveLabel => widget.saveLabel;
+
+  @override
+  Future<bool> beforeSave() async {
+    final probe = ref.read(_probeProvider);
+    probe.beforeSaveAsked++;
+    final hold = probe.holdBeforeSave;
+    if (hold != null) return hold.future;
+    return widget.allowSave;
+  }
 
   @override
   List<AddStripEntry> addStripEntries(_Note working) => [
@@ -385,6 +414,114 @@ void main() {
     await tester.pumpAndSettle();
     expect(await leaving, isTrue);
     expect(find.byType(RecordEditBar), findsNothing);
+  });
+
+  // A sitting that ends otherwise (a reader's Send, issue #4527, phase 2)
+  // names its Save, and may stop before it.
+  group('save label and the check before Save', () {
+    testWidgets('the host\'s save label reaches the bar', (tester) async {
+      await pump(tester, const _NotePage(noteId: 'n1', saveLabel: 'Send'));
+      await unlock(tester);
+
+      expect(find.text('Send'), findsOneWidget);
+      expect(find.text(l.forms_save), findsNothing);
+    });
+
+    testWidgets('a beforeSave that answers false saves nothing and keeps the '
+        'sitting', (tester) async {
+      await pump(tester, const _NotePage(noteId: 'n1', allowSave: false));
+      await unlock(tester);
+      await editText(tester, 'Choppy');
+
+      await tester.tap(find.text(l.forms_save));
+      await tester.pumpAndSettle();
+
+      expect(probe.saves, isEmpty);
+      expect(find.byType(RecordEditBar), findsOneWidget);
+    });
+
+    testWidgets('a beforeSave that answers true saves', (tester) async {
+      await pump(tester, const _NotePage(noteId: 'n1'));
+      await unlock(tester);
+      await editText(tester, 'Choppy');
+
+      await tester.tap(find.text(l.forms_save));
+      await tester.pumpAndSettle();
+
+      expect(probe.saves, hasLength(1));
+    });
+
+    // A double tap, or the Save key pressed twice, while the check is still
+    // reading what it needs.
+    testWidgets('a second Save while beforeSave is asked asks once', (
+      tester,
+    ) async {
+      await pump(tester, const _NotePage(noteId: 'n1'));
+      await unlock(tester);
+      await editText(tester, 'Choppy');
+      final hold = probe.holdBeforeSave = Completer<bool>();
+
+      await tester.tap(find.text(l.forms_save));
+      await tester.pump();
+      await tester.tap(find.text(l.forms_save));
+      await tester.pump();
+      hold.complete(true);
+      await tester.pumpAndSettle();
+
+      expect(probe.beforeSaveAsked, 1);
+      expect(probe.saves, hasLength(1));
+    });
+
+    testWidgets('input to fix is refused before beforeSave is asked', (
+      tester,
+    ) async {
+      await pump(tester, const _NotePage(noteId: 'n1'));
+      await unlock(tester);
+      await editText(tester, 'bad');
+
+      await tester.tap(find.text(l.forms_save));
+      await tester.pumpAndSettle();
+
+      expect(probe.beforeSaveAsked, 0);
+      expect(probe.saves, isEmpty);
+      expect(find.text(l.recordEdit_fixInvalid), findsOneWidget);
+    });
+
+    testWidgets('a Save while the sitting is being written asks nothing', (
+      tester,
+    ) async {
+      await pump(tester, const _NotePage(noteId: 'n1'));
+      await unlock(tester);
+      await editText(tester, 'Choppy');
+      final writing = probe.holdSave = Completer<void>();
+      await tester.tap(find.text(l.forms_save));
+      await tester.pump();
+
+      unawaited(
+        tester.state<_NotePageState>(find.byType(_NotePage)).saveAndReport(),
+      );
+      await tester.pump();
+      writing.complete();
+      await tester.pumpAndSettle();
+
+      expect(probe.beforeSaveAsked, 1);
+      expect(probe.saves, hasLength(1));
+    });
+
+    testWidgets('a sitting with nothing changed ends without beforeSave', (
+      tester,
+    ) async {
+      await pump(tester, const _NotePage(noteId: 'n1'));
+      await unlock(tester);
+
+      await tester
+          .state<_NotePageState>(find.byType(_NotePage))
+          .saveAndReport();
+      await tester.pumpAndSettle();
+
+      expect(probe.beforeSaveAsked, 0);
+      expect(find.byType(RecordEditBar), findsNothing);
+    });
   });
 
   // A page asked to open unlocked (an old edit address, a pane's

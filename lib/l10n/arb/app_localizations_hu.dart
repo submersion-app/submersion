@@ -9990,6 +9990,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get recordEdit_imported => 'Importált';
 
   @override
+  String get recordEdit_library => 'Könyvtár';
+
+  @override
+  String get recordEdit_onlyYou => 'Csak te';
+
+  @override
   String get recordEdit_saveFailed =>
       'Nem sikerült menteni a módosításokat. Semmi sem változott.';
 
@@ -24895,6 +24901,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'A jegyzeteid és az értékelésed mentve.';
 
   @override
+  String get sharedLibrary_suggest_savedNotSent =>
+      'A jegyzeteid és az értékelésed mentve. A javaslatot nem sikerült elküldeni.';
+
+  @override
   String sharedLibrary_suggest_pending(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -29229,6 +29239,11 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String settings_speciesId_levelEagerAccuracy(int percent) {
     return 'A legtöbb név. Kb. $percent%-ban helyes';
+  }
+
+  @override
+  String settings_speciesId_levelFallback(String chosen, String inForce) {
+    return 'A(z) „$chosen” szint nem érhető el a modell ezen verziójában, ezért az app a(z) „$inForce” szintet használja, amíg egy frissítés hozzá nem adja a(z) „$chosen” szintet. Válaszd a(z) „$inForce” szintet, ha ennél szeretnél maradni.';
   }
 
   @override

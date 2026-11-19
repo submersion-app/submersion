@@ -29,6 +29,13 @@ SharedSiteSuggestion _incoming(String id, Map<String, Object?> fields) =>
       direction: SharedSiteSuggestion.incoming,
     );
 
+/// The library gone from the store between reading the membership and the
+/// library: a disconnect landing while a reader's Send is proposing.
+class _LibraryGone extends SharedLibraryStore {
+  @override
+  Future<SharedLibrary?> getLibrary(String id) async => null;
+}
+
 void main() {
   late FakeCloudStorageProvider cloud;
   late SuggestionService service;
@@ -252,6 +259,26 @@ void main() {
     cloud.failDeletes = false;
     await sync.sync('L', diverId: 'owner');
     expect(await t.listSuggestions(), isEmpty);
+    expect(await SharedLibraryStore().suggestions('L'), isEmpty);
+  });
+
+  // A missing library is no reader's: a suggestion stored for it would
+  // never reach anyone.
+  test('no proposal for a library no longer connected here', () async {
+    final gone = SuggestionService(
+      store: _LibraryGone(),
+      transportFor: (lib) async =>
+          SharedLibraryTransport(cloud, prefix: lib.prefix),
+    );
+    await expectLater(
+      gone.propose(
+        proposed: (await SiteRepository().getSiteById(
+          's',
+        ))!.copyWith(hazards: 'new'),
+        diverId: 'reader',
+      ),
+      throwsStateError,
+    );
     expect(await SharedLibraryStore().suggestions('L'), isEmpty);
   });
 

@@ -10157,6 +10157,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recordEdit_imported => 'مستورد';
 
   @override
+  String get recordEdit_library => 'المكتبة';
+
+  @override
+  String get recordEdit_onlyYou => 'أنت فقط';
+
+  @override
   String get recordEdit_saveFailed => 'تعذّر حفظ التغييرات. لم يتغيّر شيء.';
 
   @override
@@ -25345,6 +25351,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sharedLibrary_suggest_savedPrivate => 'تم حفظ ملاحظاتك وتقييمك.';
 
   @override
+  String get sharedLibrary_suggest_savedNotSent =>
+      'تم حفظ ملاحظاتك وتقييمك. تعذّر إرسال الاقتراح.';
+
+  @override
   String sharedLibrary_suggest_pending(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -29650,6 +29660,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String settings_speciesId_levelEagerAccuracy(int percent) {
     return 'أكبر عدد من الأسماء. نحو $percent% صحيحة';
+  }
+
+  @override
+  String settings_speciesId_levelFallback(String chosen, String inForce) {
+    return '«$chosen» غير متوفر في هذا الإصدار من النموذج، لذا يستخدم التطبيق «$inForce» إلى أن يضيف تحديثٌ «$chosen». اختر «$inForce» لمواصلة استخدامه.';
   }
 
   @override

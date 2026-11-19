@@ -10017,6 +10017,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get recordEdit_imported => 'Importado';
 
   @override
+  String get recordEdit_library => 'Biblioteca';
+
+  @override
+  String get recordEdit_onlyYou => 'Solo tú';
+
+  @override
   String get recordEdit_saveFailed =>
       'No se pudieron guardar los cambios. No se realizó ningún cambio.';
 
@@ -24977,6 +24983,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Tus notas y tu valoración se han guardado.';
 
   @override
+  String get sharedLibrary_suggest_savedNotSent =>
+      'Tus notas y tu valoración se han guardado. No se pudo enviar la sugerencia.';
+
+  @override
   String sharedLibrary_suggest_pending(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -29375,6 +29385,11 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String settings_speciesId_levelEagerAccuracy(int percent) {
     return 'La mayoría de los nombres. Aprox. $percent % correctos';
+  }
+
+  @override
+  String settings_speciesId_levelFallback(String chosen, String inForce) {
+    return '«$chosen» no está en esta versión del modelo, así que la app usa «$inForce» hasta que una actualización añada «$chosen». Elige «$inForce» para seguir usándolo.';
   }
 
   @override

@@ -9790,6 +9790,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get recordEdit_imported => 'מיובא';
 
   @override
+  String get recordEdit_library => 'ספרייה';
+
+  @override
+  String get recordEdit_onlyYou => 'רק לך';
+
+  @override
   String get recordEdit_saveFailed =>
       'לא ניתן היה לשמור את השינויים. שום דבר לא השתנה.';
 
@@ -24425,6 +24431,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get sharedLibrary_suggest_savedPrivate => 'ההערות והדירוג שלך נשמרו.';
 
   @override
+  String get sharedLibrary_suggest_savedNotSent =>
+      'ההערות והדירוג שלך נשמרו. לא ניתן היה לשלוח את ההצעה.';
+
+  @override
   String sharedLibrary_suggest_pending(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -28634,6 +28644,11 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String settings_speciesId_levelEagerAccuracy(int percent) {
     return 'הכי הרבה שמות. כ-$percent% נכונים';
+  }
+
+  @override
+  String settings_speciesId_levelFallback(String chosen, String inForce) {
+    return '$chosen לא זמין בגרסה זו של המודל, ולכן האפליקציה משתמשת ב-$inForce עד שעדכון יוסיף את $chosen. בחרו ב-$inForce כדי להמשיך להשתמש בו.';
   }
 
   @override

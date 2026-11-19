@@ -3398,6 +3398,8 @@
   "recordEdit_loadFailed": "无法加载此卡片。",
   "recordEdit_tryAgain": "重试",
   "recordEdit_imported": "已导入",
+  "recordEdit_library": "库",
+  "recordEdit_onlyYou": "仅你自己",
   "recordEdit_saveFailed": "无法保存更改。未做任何更改。",
   "recordEdit_fixInvalid": "部分数值无法识别。请更正后再保存。",
   "recordEdit_unlockToUseThis": "解锁后才能使用",
@@ -7345,6 +7347,7 @@
   "sharedLibrary_suggest_sent": "建议已发送",
   "sharedLibrary_suggest_nothingChanged": "没有任何更改。",
   "sharedLibrary_suggest_savedPrivate": "你的笔记和评分已保存。",
+  "sharedLibrary_suggest_savedNotSent": "你的笔记和评分已保存。建议未能发送。",
   "sharedLibrary_suggest_pending": "{count, plural, other{{count} 条待处理建议}}",
   "@sharedLibrary_suggest_pending": {
     "placeholders": {
@@ -8571,6 +8574,7 @@
   "settings_speciesId_levelSurerUnmeasured": "名称最少，最常正确",
   "settings_speciesId_levelBalancedAccuracy": "名称更多。约 {percent}% 正确",
   "settings_speciesId_levelEagerAccuracy": "名称最多。约 {percent}% 正确",
+  "settings_speciesId_levelFallback": "此版本的模型没有“{chosen}”级别，因此应用会使用“{inForce}”，直到更新加入“{chosen}”。选择“{inForce}”即可继续使用“{inForce}”。",
   "settings_speciesId_kept": "此设备上保留的建议",
   "settings_speciesId_keptValue": "{count}（{size}）",
   "settings_speciesId_clear": "清除建议",

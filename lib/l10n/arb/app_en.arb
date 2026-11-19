@@ -5956,6 +5956,14 @@
   "@recordEdit_imported": {
     "description": "Label on a card with nothing to edit, shown while its record is unlocked: its content was imported from a device or service."
   },
+  "recordEdit_library": "Library",
+  "@recordEdit_library": {
+    "description": "Short label on a faded card while a shared site library reader's site is unlocked to suggest changes: the card (features, expected species) belongs to the library and the reader's sitting does not change it. Like recordEdit_calculated."
+  },
+  "recordEdit_onlyYou": "Only you",
+  "@recordEdit_onlyYou": {
+    "description": "Short label on a card (notes, rating, photos and videos, documents) while a shared site library reader's site is unlocked to suggest changes: what is entered or attached there is the reader's own, saved for them and never sent to the library."
+  },
   "recordEdit_saveFailed": "Couldn't save your changes. Nothing was changed.",
   "@recordEdit_saveFailed": {
     "description": "Message shown when saving an unlocked record fails."
@@ -15698,6 +15706,10 @@
   "sharedLibrary_suggest_sent": "Suggestion sent",
   "sharedLibrary_suggest_nothingChanged": "Nothing changed.",
   "sharedLibrary_suggest_savedPrivate": "Your notes and rating are saved.",
+  "sharedLibrary_suggest_savedNotSent": "Your notes and rating are saved. The suggestion could not be sent.",
+  "@sharedLibrary_suggest_savedNotSent": {
+    "description": "Snack bar after a shared site library reader's Send when their own notes and rating were saved but the suggestion to the library's owner could not be sent."
+  },
   "sharedLibrary_suggest_pending": "{count, plural, =1{1 suggestion pending} other{{count} suggestions pending}}",
   "@sharedLibrary_suggest_pending": {"placeholders": {"count": {"type": "int"}}},
   "sharedLibrary_suggest_withdraw": "Withdraw",
@@ -17238,6 +17250,8 @@
   "@settings_speciesId_levelBalancedAccuracy": {"description": "Under Balanced: how often its names were right when measured", "placeholders": {"percent": {"type": "int"}}},
   "settings_speciesId_levelEagerAccuracy": "Most names. About {percent}% right",
   "@settings_speciesId_levelEagerAccuracy": {"description": "Under Eager: how often its names were right when measured", "placeholders": {"percent": {"type": "int"}}},
+  "settings_speciesId_levelFallback": "{chosen} is not in this version of the model, so the app uses {inForce} until an update adds {chosen}. Choose {inForce} to keep using it.",
+  "@settings_speciesId_levelFallback": {"description": "Under the naming levels when the level the diver chose is not in the installed model: the app names at the nearest surer level it has, and choosing that one keeps it", "placeholders": {"chosen": {"type": "String"}, "inForce": {"type": "String"}}},
   "settings_speciesId_kept": "Suggestions kept on this device",
   "settings_speciesId_keptValue": "{count} ({size})",
   "@settings_speciesId_keptValue": {"placeholders": {"count": {"type": "int"}, "size": {"type": "String"}}},

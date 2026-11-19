@@ -3166,6 +3166,8 @@
   "recordEdit_loadFailed": "לא ניתן היה לטעון כרטיס זה.",
   "recordEdit_tryAgain": "נסה שוב",
   "recordEdit_imported": "מיובא",
+  "recordEdit_library": "ספרייה",
+  "recordEdit_onlyYou": "רק לך",
   "recordEdit_saveFailed": "לא ניתן היה לשמור את השינויים. שום דבר לא השתנה.",
   "recordEdit_fixInvalid": "לא ניתן לקרוא חלק מהערכים. תקן אותם לפני השמירה.",
   "recordEdit_unlockToUseThis": "יש לבטל את הנעילה כדי להשתמש בזה",
@@ -7207,6 +7209,7 @@
   "sharedLibrary_suggest_sent": "ההצעה נשלחה",
   "sharedLibrary_suggest_nothingChanged": "שום דבר לא השתנה.",
   "sharedLibrary_suggest_savedPrivate": "ההערות והדירוג שלך נשמרו.",
+  "sharedLibrary_suggest_savedNotSent": "ההערות והדירוג שלך נשמרו. לא ניתן היה לשלוח את ההצעה.",
   "sharedLibrary_suggest_pending": "{count, plural, =1{הצעה אחת ממתינה} other{{count} הצעות ממתינות}}",
   "@sharedLibrary_suggest_pending": {
     "placeholders": {
@@ -8420,6 +8423,7 @@
   "settings_speciesId_levelSurerUnmeasured": "פחות שמות, לרוב נכונים",
   "settings_speciesId_levelBalancedAccuracy": "יותר שמות. כ-{percent}% נכונים",
   "settings_speciesId_levelEagerAccuracy": "הכי הרבה שמות. כ-{percent}% נכונים",
+  "settings_speciesId_levelFallback": "{chosen} לא זמין בגרסה זו של המודל, ולכן האפליקציה משתמשת ב-{inForce} עד שעדכון יוסיף את {chosen}. בחרו ב-{inForce} כדי להמשיך להשתמש בו.",
   "settings_speciesId_kept": "הצעות שנשמרו במכשיר הזה",
   "settings_speciesId_keptValue": "{count} ({size})",
   "settings_speciesId_clear": "ניקוי ההצעות",

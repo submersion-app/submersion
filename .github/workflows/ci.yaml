@@ -772,6 +772,10 @@ jobs:
           python3 -m coverage run --append --include="$guards" \
             tool/species_pack/manifest_test.py
           python3 -m coverage run --append --include="$guards" \
+            tool/species_pack/candidates_test.py
+          python3 -m coverage run --append --include="$guards" \
+            tool/species_pack/build_pack_test.py
+          python3 -m coverage run --append --include="$guards" \
             tool/species_pack/naming_test.py
           python3 -m coverage run --append --include="$guards" \
             tool/species_pack/bars_test.py

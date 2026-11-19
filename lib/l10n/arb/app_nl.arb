@@ -3292,6 +3292,8 @@
   "recordEdit_loadFailed": "Deze kaart kon niet worden geladen.",
   "recordEdit_tryAgain": "Opnieuw proberen",
   "recordEdit_imported": "Geïmporteerd",
+  "recordEdit_library": "Bibliotheek",
+  "recordEdit_onlyYou": "Alleen jij",
   "recordEdit_saveFailed": "Kon de wijzigingen niet opslaan. Er is niets gewijzigd.",
   "recordEdit_fixInvalid": "Sommige waarden kunnen niet worden gelezen. Corrigeer ze voordat je opslaat.",
   "recordEdit_unlockToUseThis": "Ontgrendel om dit te gebruiken",
@@ -7203,6 +7205,7 @@
   "sharedLibrary_suggest_sent": "Suggestie verzonden",
   "sharedLibrary_suggest_nothingChanged": "Niets gewijzigd.",
   "sharedLibrary_suggest_savedPrivate": "Je notities en beoordeling zijn opgeslagen.",
+  "sharedLibrary_suggest_savedNotSent": "Je notities en beoordeling zijn opgeslagen. De suggestie kon niet worden verzonden.",
   "sharedLibrary_suggest_pending": "{count, plural, =1{1 suggestie in behandeling} other{{count} suggesties in behandeling}}",
   "@sharedLibrary_suggest_pending": {
     "placeholders": {
@@ -8416,6 +8419,7 @@
   "settings_speciesId_levelSurerUnmeasured": "Minste namen, het vaakst juist",
   "settings_speciesId_levelBalancedAccuracy": "Meer namen. Ongeveer {percent}% juist",
   "settings_speciesId_levelEagerAccuracy": "Meeste namen. Ongeveer {percent}% juist",
+  "settings_speciesId_levelFallback": "‘{chosen}’ zit niet in deze versie van het model, dus de app gebruikt ‘{inForce}’ tot een update ‘{chosen}’ toevoegt. Kies ‘{inForce}’ om ‘{inForce}’ te blijven gebruiken.",
   "settings_speciesId_kept": "Suggesties op dit apparaat",
   "settings_speciesId_keptValue": "{count} ({size})",
   "settings_speciesId_clear": "Suggesties wissen",

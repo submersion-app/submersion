@@ -9496,6 +9496,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get recordEdit_imported => '已导入';
 
   @override
+  String get recordEdit_library => '库';
+
+  @override
+  String get recordEdit_onlyYou => '仅你自己';
+
+  @override
   String get recordEdit_saveFailed => '无法保存更改。未做任何更改。';
 
   @override
@@ -23683,6 +23689,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sharedLibrary_suggest_savedPrivate => '你的笔记和评分已保存。';
 
   @override
+  String get sharedLibrary_suggest_savedNotSent => '你的笔记和评分已保存。建议未能发送。';
+
+  @override
   String sharedLibrary_suggest_pending(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -27701,6 +27710,11 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String settings_speciesId_levelEagerAccuracy(int percent) {
     return '名称最多。约 $percent% 正确';
+  }
+
+  @override
+  String settings_speciesId_levelFallback(String chosen, String inForce) {
+    return '此版本的模型没有“$chosen”级别，因此应用会使用“$inForce”，直到更新加入“$chosen”。选择“$inForce”即可继续使用“$inForce”。';
   }
 
   @override

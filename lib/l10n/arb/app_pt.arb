@@ -3292,6 +3292,8 @@
   "recordEdit_loadFailed": "Não foi possível carregar este cartão.",
   "recordEdit_tryAgain": "Tentar novamente",
   "recordEdit_imported": "Importado",
+  "recordEdit_library": "Biblioteca",
+  "recordEdit_onlyYou": "Só você",
   "recordEdit_saveFailed": "Não foi possível guardar as alterações. Nada foi alterado.",
   "recordEdit_fixInvalid": "Alguns valores não podem ser lidos. Corrija-os antes de guardar.",
   "recordEdit_unlockToUseThis": "Desbloqueie para usar isto",
@@ -7203,6 +7205,7 @@
   "sharedLibrary_suggest_sent": "Sugestão enviada",
   "sharedLibrary_suggest_nothingChanged": "Nada foi alterado.",
   "sharedLibrary_suggest_savedPrivate": "As suas notas e a sua classificação foram guardadas.",
+  "sharedLibrary_suggest_savedNotSent": "As suas notas e a sua classificação foram guardadas. Não foi possível enviar a sugestão.",
   "sharedLibrary_suggest_pending": "{count, plural, =1{{count} sugestão pendente} other{{count} sugestões pendentes}}",
   "@sharedLibrary_suggest_pending": {
     "placeholders": {
@@ -8416,6 +8419,7 @@
   "settings_speciesId_levelSurerUnmeasured": "Menos nomes, corretos mais vezes",
   "settings_speciesId_levelBalancedAccuracy": "Mais nomes. Cerca de {percent}% corretos",
   "settings_speciesId_levelEagerAccuracy": "A maioria dos nomes. Cerca de {percent}% corretos",
+  "settings_speciesId_levelFallback": "“{chosen}” não está nesta versão do modelo, por isso o app usa “{inForce}” até que uma atualização adicione “{chosen}”. Escolha “{inForce}” para continuar a usá-lo.",
   "settings_speciesId_kept": "Sugestões guardadas neste dispositivo",
   "settings_speciesId_keptValue": "{count} ({size})",
   "settings_speciesId_clear": "Limpar sugestões",

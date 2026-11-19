@@ -294,6 +294,23 @@ void main() {
       expect(tracks.single.endMs, 500);
     });
 
+    test('a nearby box whose other rival keeps an overlapping box '
+        'continues the fish', () {
+      // The box at 0.135 is in reach of both fish, but the one at 0.10
+      // has a box it overlaps: only the fish at 0.17 is left for it.
+      final tracks = run(VideoTracker(), [
+        frame(0, [small(0.10), small(0.17)]),
+        frame(250, [small(0.10), small(0.17)]),
+        frame(500, [small(0.105), small(0.135)]),
+      ]);
+      expect(tracks, hasLength(2));
+      final second = tracks.firstWhere(
+        (t) => t.points.first.detection.box.x == 0.17,
+      );
+      expect(second.endMs, 500);
+      expect(second.samples.last.box.x, closeTo(0.135, 1e-9));
+    });
+
     test('a fish with two nearby boxes continues to neither', () {
       final tracks = run(VideoTracker(), [
         frame(0, [small(0.135)]),
@@ -362,9 +379,41 @@ void main() {
       const a = IdentificationBox(x: 0.1, y: 0.4, width: 0, height: 0);
       expect(link.score(a, a), isNull);
     });
+
+    test('an overlap link needs an overlap above 0', () {
+      // At 0, every pair of boxes would be an overlap link.
+      expect(() => TrackLink(minOverlap: 0), throwsAssertionError);
+      expect(() => TrackLink(minAreaRatio: 1.5), throwsAssertionError);
+      expect(() => TrackLink(maxShift: -1), throwsAssertionError);
+    });
+  });
+
+  group('matchLinks', () {
+    double? Function(int, int) scores(Map<(int, int), double> by) =>
+        (f, t) => by[(f, t)];
+
+    test('the best links first, each end used once', () {
+      expect(
+        matchLinks(2, 2, scores({(0, 0): 1.4, (0, 1): 1.9, (1, 1): 1.6})),
+        [(from: 0, to: 1)],
+      );
+    });
+
+    test('a nearby link with a rival on either end is not made', () {
+      expect(matchLinks(2, 1, scores({(0, 0): 0.3, (1, 0): 0.2})), isEmpty);
+      expect(matchLinks(1, 2, scores({(0, 0): 0.3, (0, 1): 0.2})), isEmpty);
+    });
+
+    test('a rival settled by an overlap link does not count', () {
+      // From 0 overlaps to 0, so to 1 has only from 1 left.
+      expect(
+        matchLinks(2, 2, scores({(0, 0): 1.8, (0, 1): 0.2, (1, 1): 0.3})),
+        [(from: 0, to: 0), (from: 1, to: 1)],
+      );
+    });
   });
 
   test('a video run names the tracker that made its tracks', () {
-    expect(videoRunDetectorId('det-a+det-m'), 'det-a+det-m#tracker2');
+    expect(videoRunDetectorId('det-a+det-m'), 'det-a+det-m#tracker3');
   });
 }

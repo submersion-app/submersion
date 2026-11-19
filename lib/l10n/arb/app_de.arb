@@ -3318,6 +3318,8 @@
   "recordEdit_loadFailed": "Diese Karte konnte nicht geladen werden.",
   "recordEdit_tryAgain": "Erneut versuchen",
   "recordEdit_imported": "Importiert",
+  "recordEdit_library": "Bibliothek",
+  "recordEdit_onlyYou": "Nur du",
   "recordEdit_saveFailed": "Die Änderungen konnten nicht gespeichert werden. Es wurde nichts geändert.",
   "recordEdit_fixInvalid": "Einige Werte können nicht gelesen werden. Korrigiere sie vor dem Speichern.",
   "recordEdit_unlockToUseThis": "Zum Verwenden entsperren",
@@ -7336,6 +7338,7 @@
   "sharedLibrary_suggest_sent": "Vorschlag gesendet",
   "sharedLibrary_suggest_nothingChanged": "Nichts geändert.",
   "sharedLibrary_suggest_savedPrivate": "Deine Notizen und deine Bewertung wurden gespeichert.",
+  "sharedLibrary_suggest_savedNotSent": "Deine Notizen und deine Bewertung wurden gespeichert. Der Vorschlag konnte nicht gesendet werden.",
   "sharedLibrary_suggest_pending": "{count, plural, =1{1 Vorschlag ausstehend} other{{count} Vorschläge ausstehend}}",
   "@sharedLibrary_suggest_pending": {
     "placeholders": {
@@ -8550,6 +8553,7 @@
   "settings_speciesId_levelSurerUnmeasured": "Wenigste Namen, am häufigsten richtig",
   "settings_speciesId_levelBalancedAccuracy": "Mehr Namen. Etwa {percent} % richtig",
   "settings_speciesId_levelEagerAccuracy": "Die meisten Namen. Etwa {percent} % richtig",
+  "settings_speciesId_levelFallback": "„{chosen}“ ist in dieser Version des Modells nicht enthalten, daher nutzt die App „{inForce}“, bis ein Update „{chosen}“ nachliefert. Wähle „{inForce}“, um bei „{inForce}“ zu bleiben.",
   "settings_speciesId_kept": "Auf diesem Gerät gespeicherte Vorschläge",
   "settings_speciesId_keptValue": "{count} ({size})",
   "settings_speciesId_clear": "Vorschläge löschen",
