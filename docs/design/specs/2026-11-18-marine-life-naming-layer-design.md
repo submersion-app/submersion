@@ -79,6 +79,10 @@ The layer fails, even if it names more animals right overall, when:
 - **Validation photos (2026-11-18): from after the cutoff**, photos
   BioCLIP 2 has not seen, with every post-cutoff observation by a test
   set observer left out.
+- **The check layer's settings (2026-11-19): reuse the shipped layer's.**
+  The rare-species check layer trains at the shipped layer's chosen pull,
+  epochs, blend and sharpness instead of searching its own, so it differs
+  from the shipped layer only in its photos.
 
 ## Constraints
 
@@ -276,8 +280,10 @@ species rare on purpose:
 
 - Choose 100 species at random (seed fixed and recorded) from the test
   set's underwater iNaturalist photos.
-- Train a check layer exactly as the shipped one, but with every training
-  photo of those 100 species removed, so their rows stay name rows.
+- Train a check layer exactly as the shipped one, at the shipped layer's
+  chosen settings (pull, epochs, blend, sharpness) with no search of its
+  own, but with every training photo of those 100 species removed, so
+  their rows stay name rows.
 - Name every test photo of those species (both halves) with the check
   layer, at **the shipped layer's measured bars**, each crop judged by the
   bar for its own case (with or without a place), as the fixed app does.
