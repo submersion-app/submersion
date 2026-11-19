@@ -21,6 +21,7 @@ import 'package:submersion/features/species_id/domain/entities/scanned_ranges.da
 import 'package:submersion/features/species_id/domain/entities/video_detections.dart';
 import 'package:submersion/features/species_id/domain/services/species_namer.dart';
 import 'package:submersion/features/species_id/domain/services/video_scan_order.dart';
+import 'package:submersion/features/species_id/domain/services/video_tracker.dart';
 import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 
 import '../../../helpers/temp_dir.dart';
@@ -186,7 +187,7 @@ void main() {
     expect(run.videoDurationMs, 25000);
     expect(run.scanComplete, isTrue);
     expect(run.imageWidth, 1920);
-    expect(run.detectorId, 'det-a#tracker2');
+    expect(run.detectorId, videoRunDetectorId('det-a'));
     expect(s.progress, 1);
   });
 

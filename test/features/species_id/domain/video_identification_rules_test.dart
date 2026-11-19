@@ -154,6 +154,97 @@ void main() {
       expect(result.insert.single.claimedSpeciesId, 'sp_x');
       expect(result.deleteIds, ['old']);
     });
+
+    /// [of]'s path from [from] to [to], as a track of its own: a part of
+    /// the same fish that an earlier tracker split off (issue #4729).
+    MediaIdentification part(
+      String id,
+      MediaIdentification of,
+      int from,
+      int to, {
+      IdentificationDecision decision = IdentificationDecision.rejected,
+      String? decidedSpeciesId,
+    }) =>
+        track(
+          id,
+          startMs: from,
+          endMs: to,
+          decision: decision,
+          decidedSpeciesId: decidedSpeciesId,
+        ).copyWith(
+          path: [
+            for (final s in of.path)
+              if (s.ms >= from && s.ms <= to) s,
+          ],
+        );
+
+    test('every part of a fish said the same on goes with the track that '
+        'joins them', () {
+      final whole = track('new', startMs: 1000, endMs: 4000);
+      final result = carryTrackDecisions(
+        decided: [part('p1', whole, 1000, 2000), part('p2', whole, 2500, 3500)],
+        fresh: [whole],
+      );
+      expect(result.insert.single.id, 'new');
+      expect(result.insert.single.decision, IdentificationDecision.rejected);
+      expect(result.deleteIds, ['p1', 'p2']);
+    });
+
+    test('a part the diver said something else on stays apart', () {
+      final whole = track('new', startMs: 1000, endMs: 4000);
+      final result = carryTrackDecisions(
+        decided: [
+          part('p1', whole, 1000, 2000),
+          part(
+            'p2',
+            whole,
+            2500,
+            3500,
+            decision: IdentificationDecision.accepted,
+            decidedSpeciesId: 'sp_x',
+          ),
+        ],
+        fresh: [whole],
+      );
+      expect(result.deleteIds, ['p1']);
+    });
+
+    test('a part goes with a kept track said the same on', () {
+      final kept = track(
+        'kept',
+        startMs: 1000,
+        endMs: 4000,
+        decision: IdentificationDecision.rejected,
+      );
+      final result = carryTrackDecisions(
+        decided: [part('p2', kept, 2500, 3500)],
+        fresh: const [],
+        kept: [kept],
+      );
+      expect(result.insert, isEmpty);
+      expect(result.deleteIds, ['p2']);
+    });
+
+    test('a kept track takes no part of another fish', () {
+      final kept = track(
+        'kept',
+        startMs: 1000,
+        endMs: 4000,
+        decision: IdentificationDecision.rejected,
+      );
+      final elsewhere = part('p2', kept, 2500, 3500).copyWith(
+        path: [
+          for (final s in part('p2', kept, 2500, 3500).path)
+            s.copyWith(box: s.box.copyWith(x: s.box.x + 0.5)),
+        ],
+      );
+      final result = carryTrackDecisions(
+        decided: [elsewhere],
+        fresh: const [],
+        kept: [kept],
+      );
+      expect(result.deleteIds, isEmpty);
+    });
   });
 
   group('naming in view (issue #4709)', () {
@@ -393,6 +484,30 @@ void main() {
           open: [openUntil(29750)],
           openRows: const {},
           stored: [later(startMs: 31000)],
+          seamMs: 30000,
+        ),
+        isEmpty,
+      );
+    });
+
+    test('a stored track starting longer after the open fish was last seen '
+        'than the tracker bridges is not', () {
+      // Last seen 750 ms before the seam: the tracker links it no later
+      // than the seam itself.
+      expect(
+        seamJoins(
+          open: [openUntil(29250)],
+          openRows: const {},
+          stored: [later()],
+          seamMs: 30000,
+        ),
+        hasLength(1),
+      );
+      expect(
+        seamJoins(
+          open: [openUntil(29250)],
+          openRows: const {},
+          stored: [later(startMs: 30500)],
           seamMs: 30000,
         ),
         isEmpty,

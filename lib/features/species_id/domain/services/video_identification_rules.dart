@@ -57,10 +57,18 @@ VideoRefreshAction decideVideoRefresh({
 /// track's samples in that overlap their boxes overlap by at least
 /// [sameAnimalOverlap] on average. Each decided track is carried at most
 /// once; those carried are in `deleteIds`, replaced by the fresh track.
+///
+/// A tracker that links farther joins parts of a fish an earlier one split
+/// apart (issue #4729), so one track may cover several decided tracks.
+/// After carrying, a decided track that is the same animal as a track with
+/// a say, fresh or [kept] (one this store keeps as it is), and on which the
+/// diver said the same, is in `deleteIds` too: that track stands for it.
+/// One the diver said something else on stays apart.
 ({List<MediaIdentification> insert, List<String> deleteIds})
 carryTrackDecisions({
   required List<MediaIdentification> decided,
   required List<MediaIdentification> fresh,
+  List<MediaIdentification> kept = const [],
 }) {
   final taken = <String>{};
   final insert = <MediaIdentification>[];
@@ -85,6 +93,16 @@ carryTrackDecisions({
         claimedSpeciesId: () => match!.claimedSpeciesId,
       ),
     );
+  }
+  final said = [
+    for (final t in [...insert, ...kept])
+      if (t.saidByDiver) t,
+  ];
+  for (final d in decided) {
+    if (taken.contains(d.id)) continue;
+    if (said.any((t) => !saidDifferently(t, d) && _sameAnimal(d, t))) {
+      taken.add(d.id);
+    }
   }
   return (
     insert: insert,
@@ -206,11 +224,12 @@ MediaIdentification _decided(
 /// Where two scanned stretches meet at [seamMs] (issue #4709): which of
 /// the [open] tracks reaching the seam are the same animal as a [stored]
 /// track of the later stretch. A stored track pairs when it starts within
-/// [maxGapMs] after the seam and its first box continues the open track's
-/// last box by [link], as the tracker links boxes ([matchLinks]), each
-/// track used once. Two parts on which the diver said different things (a
-/// decision, its species, or a claim) stay apart; an open track's say is
-/// on its stored row in [openRows], by id.
+/// [maxGapMs] after the seam and after the open track was last seen (the
+/// tracker links across no longer gap), and its first box continues the
+/// open track's last box by [link], as the tracker links boxes
+/// ([matchLinks]), each track used once. Two parts on which the diver said
+/// different things (a decision, its species, or a claim) stay apart; an
+/// open track's say is on its stored row in [openRows], by id.
 List<({TrackedAnimal open, MediaIdentification later})> seamJoins({
   required List<TrackedAnimal> open,
   required Map<String, MediaIdentification> openRows,
@@ -221,20 +240,24 @@ List<({TrackedAnimal open, MediaIdentification later})> seamJoins({
 }) {
   final later = [
     for (final s in stored)
-      if (s.isTrack &&
-          s.path.isNotEmpty &&
-          s.startMs != null &&
-          s.startMs! >= seamMs &&
-          s.startMs! <= seamMs + maxGapMs)
-        s,
+      if (s.isTrack && s.path.isNotEmpty)
+        if (s.startMs case final start?
+            when start >= seamMs && start <= seamMs + maxGapMs)
+          (row: s, start: start),
+  ];
+  final said = [
+    for (final o in open) o.storedId == null ? null : openRows[o.storedId],
   ];
   final pairs = matchLinks(open.length, later.length, (o, l) {
     final track = open[o];
-    final row = track.storedId == null ? null : openRows[track.storedId];
-    if (row != null && saidDifferently(row, later[l])) return null;
-    return link.score(track.points.last.detection.box, later[l].path.first.box);
+    final next = later[l];
+    if (next.start - track.endMs > maxGapMs) return null;
+    if (said[o] case final row? when saidDifferently(row, next.row)) {
+      return null;
+    }
+    return link.score(track.points.last.detection.box, next.row.path.first.box);
   });
-  return [for (final p in pairs) (open: open[p.from], later: later[p.to])];
+  return [for (final p in pairs) (open: open[p.from], later: later[p.to].row)];
 }
 
 /// Whether the diver said something on both [a] and [b], and not the same:
