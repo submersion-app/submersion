@@ -18,6 +18,7 @@ import 'package:submersion/features/certifications/presentation/editing/certific
 import 'package:submersion/features/certifications/presentation/editing/certification_edit_fields.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
@@ -498,6 +499,28 @@ void main() {
     expect(find.byType(AlertDialog), findsNothing);
     expect(certificationEventsList.current(session), isEmpty);
     expect(await currency.getEvents(aow.id), hasLength(1));
+  });
+
+  testWidgets('before the sitting has read the events, none is marked '
+      'changed', (tester) async {
+    await currency.createEvent(
+      CurrencyEvent(
+        id: '',
+        certificationId: aow.id,
+        ruleId: 'padi_reactivate',
+        eventType: CurrencyEventType.refresher,
+        eventDate: DateTime(2024),
+        createdAt: t0,
+        updatedAt: t0,
+      ),
+    );
+    final session = EditSession(aow);
+    addTearDown(session.dispose);
+    // No read yet: the stored events are shown, as stored.
+    await pump(tester, aow, readOnly: true, shown: session);
+
+    expect(find.byKey(const ValueKey('currencyEventTile')), findsOneWidget);
+    expect(find.byType(RecordChangedDot), findsNothing);
   });
 
   testWidgets('while the sitting changes the credential, no action is '

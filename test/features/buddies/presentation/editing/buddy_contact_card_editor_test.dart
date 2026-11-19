@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -6,6 +8,7 @@ import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/editing/buddy_contact_card_editor.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_country_providers.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_profile_link_providers.dart';
+import 'package:submersion/features/buddies/presentation/widgets/linked_profile_field.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
@@ -17,10 +20,13 @@ import '../../../../helpers/test_app.dart';
 /// Refuses every link as taken by Sam, as the repository does for a
 /// profile another buddy of the list holds.
 class _TakenLinks implements BuddyProfileLinkRepository {
-  _TakenLinks({this.fail = false});
+  _TakenLinks({this.fail = false, this.allowAfter});
 
   /// Fails the check outright instead of refusing.
   final bool fail;
+
+  /// Allows the link once this completes, instead of refusing.
+  final Completer<void>? allowAfter;
   final asked = <String>[];
 
   @override
@@ -31,6 +37,7 @@ class _TakenLinks implements BuddyProfileLinkRepository {
   }) async {
     asked.add(linkedDiverId);
     if (fail) throw StateError('database busy');
+    if (allowAfter case final gate?) return gate.future;
     throw BuddyLinkRefused(
       BuddyLinkRefusal.taken,
       existingBuddy: Buddy(
@@ -60,11 +67,12 @@ void main() {
     WidgetTester tester,
     EditSession<Buddy> s, {
     bool fail = false,
+    Completer<void>? allowAfter,
   }) async {
     tester.view.physicalSize = const Size(600, 1200);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    final links = _TakenLinks(fail: fail);
+    final links = _TakenLinks(fail: fail, allowAfter: allowAfter);
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
       testApp(
@@ -113,6 +121,27 @@ void main() {
     );
     expect(session.working.linkedDiverId, isNull);
     expect(session.isDirty, isFalse);
+  });
+
+  testWidgets('a check that answers after a later pick changes nothing', (
+    tester,
+  ) async {
+    final session = EditSession(alex());
+    addTearDown(session.dispose);
+    final gate = Completer<void>();
+    await pump(tester, session, allowAfter: gate);
+
+    // The suggestion's Link is checked; meanwhile the diver clears it.
+    await tester.tap(find.text(l.buddies_linkedProfile_link));
+    await tester.pump();
+    tester
+        .widget<LinkedProfileField>(find.byType(LinkedProfileField))
+        .onChanged(null);
+    await tester.pump();
+    gate.complete();
+    await tester.pumpAndSettle();
+
+    expect(session.working.linkedDiverId, isNull);
   });
 
   testWidgets('a bad email is flagged', (tester) async {

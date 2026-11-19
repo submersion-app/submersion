@@ -117,8 +117,10 @@ class BuddyGearSection extends ConsumerWidget {
     }
   }
 
-  /// What a row's Returned does: nothing while locked; for a lend the
-  /// sitting holds, takes it back; otherwise returns the item.
+  /// What a row's Returned does: nothing while locked; for an item a lend
+  /// the sitting holds, takes that item out of the lend, and for one of its
+  /// parts nothing, since a part follows its item; otherwise returns the
+  /// item.
   VoidCallback? _onReturned(
     BuildContext context,
     WidgetRef ref,
@@ -128,7 +130,12 @@ class BuddyGearSection extends ConsumerWidget {
     if (readOnly) return null;
     final index = row.heldIndex;
     if (editing != null && index != null) {
-      return () => releaseBuddyGearMove(editing, index);
+      final id = row.gear.item.id;
+      final lend = heldBuddyGearMoves(editing)[index].lend;
+      if (lend == null || !lend.items.any((i) => i.id == id)) return null;
+      final moves = ref.read(equipmentLocationMoveRepositoryProvider);
+      return () =>
+          releaseBuddyLendItem(editing, index, id, partsOf: moves.partsOf);
     }
     return () => _return(context, ref, editing, [row]);
   }

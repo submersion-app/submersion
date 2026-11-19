@@ -9,11 +9,14 @@ import 'package:submersion/features/buddies/presentation/widgets/buddy_gear_sect
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_location_move_repository.dart';
+import 'package:submersion/features/equipment/data/services/equipment_move_flow.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location_move.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_location_picker_sheet.dart';
+import 'package:submersion/features/equipment/presentation/widgets/lend_gear_flow.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -417,6 +420,80 @@ void main() {
       expect(find.byKey(const ValueKey('buddy_gear_lend')), findsNothing);
       expect(allReturned, findsNothing);
       expect(find.byKey(const ValueKey('buddy_gear_returned_a')), findsNothing);
+    });
+
+    testWidgets('Cancel on one lent item keeps the others', (tester) async {
+      final session = EditSession(anna);
+      addTearDown(session.dispose);
+      final drysuit = item('a', 'Drysuit');
+      final fins = item('b', 'Fins');
+      holdBuddyLend(
+        session,
+        HeldLend(
+          items: [drysuit, fins],
+          pick: BuddyPick(anna),
+          plan: EquipmentMovePlan(
+            items: const {
+              'a': EquipmentStatus.active,
+              'b': EquipmentStatus.active,
+            },
+            movedAt: DateTime(2026, 10, 1),
+          ),
+          diverId: 'me',
+        ),
+      );
+      await pump(
+        tester,
+        items: [drysuit, fins],
+        current: const {},
+        editing: session,
+      );
+      expect(find.text('Drysuit'), findsOneWidget);
+      expect(find.text('Fins'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('buddy_gear_returned_b')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Drysuit'), findsOneWidget);
+      expect(find.text('Fins'), findsNothing);
+      expect(heldBuddyGearMoves(session).single.lend!.items, [drysuit]);
+    });
+
+    testWidgets('a lent part offers no Cancel of its own', (tester) async {
+      final session = EditSession(anna);
+      addTearDown(session.dispose);
+      final reg = item('a', 'Regulator');
+      final hose = item('h', 'Hose');
+      holdBuddyLend(
+        session,
+        HeldLend(
+          items: [reg],
+          pick: BuddyPick(anna),
+          plan: EquipmentMovePlan(
+            items: const {'a': EquipmentStatus.active},
+            movedAt: DateTime(2026, 10, 1),
+            withParts: true,
+            partIds: const {'h'},
+          ),
+          diverId: 'me',
+        ),
+      );
+      final shelf = place('shelf', 'Shelf', buddyId: null);
+      await pump(
+        tester,
+        items: [reg, hose],
+        // Gear is listed only once it is somewhere.
+        current: {'a': shelf, 'h': shelf},
+        places: [hers, shelf],
+        editing: session,
+      );
+
+      expect(find.text('Hose'), findsOneWidget);
+      expect(find.byKey(const ValueKey('buddy_gear_returned_h')), findsNothing);
+      expect(
+        find.byKey(const ValueKey('buddy_gear_returned_a')),
+        findsOneWidget,
+      );
     });
 
     testWidgets('in a sitting, Returned is held and moves nothing', (

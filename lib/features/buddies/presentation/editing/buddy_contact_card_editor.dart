@@ -48,6 +48,10 @@ class _BuddyContactCardEditorState
   /// "Not now" on the suggestion hides it for this sitting's card.
   bool _suggestionDismissed = false;
 
+  /// Counts the picks, so a check that answers after a later pick (or a
+  /// clear) is dropped.
+  int _picks = 0;
+
   FieldTextBinding<Buddy, String?> _bind(EditField<Buddy, String?> field) =>
       FieldTextBinding<Buddy, String?>(
         session: _session,
@@ -66,6 +70,7 @@ class _BuddyContactCardEditorState
   }
 
   Future<void> _pickProfile(String? id) async {
+    final pick = ++_picks;
     if (id == null) {
       setState(() => _refused = null);
       _session.set(buddyLinkedDiverField, null);
@@ -80,7 +85,7 @@ class _BuddyContactCardEditorState
         buddyId: buddy.id,
       );
     } on BuddyLinkRefused catch (refusal) {
-      if (!mounted) return;
+      if (!mounted || pick != _picks) return;
       setState(
         () => _refused = (l10n) => switch (refusal.reason) {
           BuddyLinkRefusal.self => l10n.buddies_linkedProfile_refusedSelf,
@@ -93,11 +98,11 @@ class _BuddyContactCardEditorState
     } catch (_) {
       // The check could not be made: the link is not set, and the field
       // says to try again.
-      if (!mounted) return;
+      if (!mounted || pick != _picks) return;
       setState(() => _refused = (l10n) => l10n.common_error_tryAgain);
       return;
     }
-    if (!mounted || _session.isDisposed) return;
+    if (!mounted || _session.isDisposed || pick != _picks) return;
     setState(() => _refused = null);
     _session.set(buddyLinkedDiverField, id);
   }

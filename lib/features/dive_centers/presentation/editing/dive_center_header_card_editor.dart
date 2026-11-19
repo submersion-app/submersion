@@ -145,7 +145,7 @@ class _DiveCenterHeaderCardEditorState
             for (var index = 0; index < 5; index++)
               IconButton(
                 key: ValueKey('dive-center-edit-rating-${index + 1}'),
-                tooltip: '${index + 1} star${index > 0 ? 's' : ''}',
+                tooltip: l10n.diveSites_edit_rating_starTooltip(index + 1),
                 onPressed: () => _session.set(
                   diveCenterRatingField,
                   rating == index + 1 ? null : (index + 1).toDouble(),

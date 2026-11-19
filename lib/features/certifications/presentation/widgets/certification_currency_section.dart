@@ -99,9 +99,15 @@ class CertificationCurrencySection extends ConsumerWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final units = ref.watch(unitFormatterProvider);
+    // Before the sitting's read answers, or when it failed, the events are
+    // those stored, and none of them is a change.
     final loadedIds = sitting == null
         ? null
-        : {for (final e in certificationEventsList.loaded(sitting) ?? []) e.id};
+        : {
+            for (final e
+                in certificationEventsList.loaded(sitting) ?? storedEvents)
+              e.id,
+          };
     final title = l10n.certifications_detail_sectionTitle_currency;
     // The rules that apply follow the credential as stored: while the
     // sitting changes the agency or level, the rows are those of the old

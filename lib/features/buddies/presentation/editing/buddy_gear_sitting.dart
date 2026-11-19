@@ -1,3 +1,4 @@
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/editing/buddy_card_ids.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_location_move_repository.dart';
@@ -52,6 +53,60 @@ void releaseBuddyGearMove(EditSession<Buddy> session, int index) {
   if (index < 0 || index >= moves.length) return;
   moves.removeAt(index);
   _set(session, moves);
+}
+
+/// Takes item [itemId] out of the held lend at [index], keeping the rest of
+/// it: its parts, when they go too, are found again for what is left
+/// ([partsOf]), so the removed item's own stay. Its last item takes the
+/// whole lend back. A part is not taken out alone: it follows its item.
+Future<void> releaseBuddyLendItem(
+  EditSession<Buddy> session,
+  int index,
+  String itemId, {
+  required Future<Map<String, EquipmentStatus>> Function(Iterable<String> ids)
+  partsOf,
+}) async {
+  final moves = heldBuddyGearMoves(session);
+  if (index < 0 || index >= moves.length) return;
+  final lend = moves[index].lend;
+  if (lend == null || !lend.items.any((i) => i.id == itemId)) return;
+  final items = [
+    for (final item in lend.items)
+      if (item.id != itemId) item,
+  ];
+  if (items.isEmpty) return releaseBuddyGearMove(session, index);
+  final plan = lend.plan;
+  final kept = {
+    for (final entry in plan.items.entries)
+      if (entry.key != itemId) entry.key: entry.value,
+  };
+  final partIds = plan.withParts
+      ? plan.partIds.intersection((await partsOf(kept.keys)).keys.toSet())
+      : plan.partIds;
+  // Read again: the sitting may have ended, or its moves changed, while the
+  // parts were read.
+  final now = heldBuddyGearMoves(session);
+  if (index >= now.length || !identical(now[index].lend, lend)) return;
+  _set(session, [
+    for (var i = 0; i < now.length; i++)
+      i == index
+          ? HeldGearMove.lend(
+              HeldLend(
+                items: items,
+                pick: lend.pick,
+                plan: EquipmentMovePlan(
+                  items: kept,
+                  movedAt: plan.movedAt,
+                  note: plan.note,
+                  withParts: plan.withParts,
+                  partIds: partIds,
+                  status: plan.status,
+                ),
+                diverId: lend.diverId,
+              ),
+            )
+          : now[i],
+  ]);
 }
 
 void _set(EditSession<Buddy> session, List<HeldGearMove> moves) {

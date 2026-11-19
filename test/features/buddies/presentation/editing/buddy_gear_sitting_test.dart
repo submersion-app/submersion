@@ -171,6 +171,76 @@ void main() {
     expect(heldBuddyGearMoves(session), isEmpty);
   });
 
+  group('taking one item out of a held lend', () {
+    const torch = EquipmentItem(
+      id: 'torch',
+      name: 'Torch',
+      type: EquipmentType.light,
+      status: EquipmentStatus.active,
+    );
+    HeldLend lendOfTwo({bool withParts = false}) => HeldLend(
+      items: const [reg, torch],
+      pick: BuddyPick(alex),
+      plan: EquipmentMovePlan(
+        items: const {
+          'reg': EquipmentStatus.active,
+          'torch': EquipmentStatus.active,
+        },
+        movedAt: DateTime(2026, 10, 1),
+        withParts: withParts,
+        partIds: withParts ? const {'hose', 'clip'} : const {},
+        status: EquipmentStatus.loaned,
+      ),
+      diverId: 'me',
+    );
+    Future<Map<String, EquipmentStatus>> noParts(Iterable<String> _) async =>
+        const {};
+
+    test('keeps the rest of the lend', () async {
+      final session = EditSession(alex);
+      addTearDown(session.dispose);
+      holdBuddyLend(session, lendOfTwo());
+
+      await releaseBuddyLendItem(session, 0, 'torch', partsOf: noParts);
+
+      final held = heldBuddyGearMoves(session).single.lend!;
+      expect([for (final i in held.items) i.id], ['reg']);
+      expect(held.plan.items.keys, ['reg']);
+      expect(held.plan.status, EquipmentStatus.loaned);
+      expect(session.changedCardIds, {'gear'});
+    });
+
+    test('the last item takes the lend back', () async {
+      final session = EditSession(alex);
+      addTearDown(session.dispose);
+      holdBuddyLend(session, lend());
+
+      await releaseBuddyLendItem(session, 0, 'reg', partsOf: noParts);
+
+      expect(heldBuddyGearMoves(session), isEmpty);
+      expect(session.isDirty, isFalse);
+    });
+
+    test('the parts are found again for what is left', () async {
+      final session = EditSession(alex);
+      addTearDown(session.dispose);
+      holdBuddyLend(session, lendOfTwo(withParts: true));
+
+      await releaseBuddyLendItem(
+        session,
+        0,
+        'torch',
+        partsOf: (ids) async => {
+          if (ids.contains('reg')) 'hose': EquipmentStatus.active,
+        },
+      );
+
+      final held = heldBuddyGearMoves(session).single.lend!;
+      expect(held.plan.withParts, isTrue);
+      expect(held.plan.partIds, {'hose'});
+    });
+  });
+
   test('the sitting lists what it lends and leaves out what it returns', () {
     final session = EditSession(alex);
     addTearDown(session.dispose);

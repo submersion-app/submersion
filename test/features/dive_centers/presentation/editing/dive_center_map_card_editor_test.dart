@@ -98,8 +98,38 @@ void main() {
     await tester.pumpAndSettle();
 
     final l = AppLocalizationsEn();
-    expect(find.text(l.diveCenters_validation_invalidLongitude), findsWidgets);
-    expect(find.text(l.diveCenters_validation_invalidLatitude), findsNothing);
+    // Said once, under the field, as the site card says it.
+    expect(find.text(l.common_coordinates_invalidLongitude), findsOneWidget);
+    expect(find.text(l.common_coordinates_invalidLatitude), findsNothing);
+    expect(session.isDirty, isFalse);
+  });
+
+  testWidgets('half a position says once which half is missing', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(700, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final session = EditSession(centre());
+    addTearDown(session.dispose);
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        overrides: overrides,
+        child: Scaffold(
+          body: SingleChildScrollView(
+            child: DiveCenterMapCardEditor(session: session),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).at(0), '28.5');
+    await tester.pumpAndSettle();
+
+    final l = AppLocalizationsEn();
+    expect(find.text(l.common_coordinates_longitudeRequired), findsOneWidget);
+    expect(find.text(l.common_coordinates_invalidLongitude), findsNothing);
     expect(session.isDirty, isFalse);
   });
 
@@ -218,12 +248,12 @@ void main() {
     await tester.enterText(fields.at(1), 'abc');
     await tester.pumpAndSettle();
     final l = AppLocalizationsEn();
-    expect(find.text(l.diveCenters_validation_invalidLongitude), findsWidgets);
+    expect(find.text(l.common_coordinates_invalidLongitude), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('dive-center-edit-pick-map')));
     await tester.pumpAndSettle();
 
-    expect(find.text(l.diveCenters_validation_invalidLongitude), findsNothing);
+    expect(find.text(l.common_coordinates_invalidLongitude), findsNothing);
   });
 
   testWidgets('Save waits for a lookup asked for on the card', (tester) async {
