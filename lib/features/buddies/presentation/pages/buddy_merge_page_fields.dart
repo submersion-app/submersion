@@ -56,14 +56,6 @@ extension _BuddyMergeFields on _BuddyMergeFormState {
     );
   }
 
-  String _initials(String name) {
-    final parts = name.trim().split(' ');
-    if (parts.length >= 2) {
-      return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
-    }
-    return name.isNotEmpty ? name[0].toUpperCase() : '?';
-  }
-
   Widget _formBody(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
@@ -78,9 +70,7 @@ extension _BuddyMergeFields on _BuddyMergeFormState {
             Center(
               child: ProfileAvatar(
                 photo: _merge.mergedPhoto,
-                initials: _nameController.text.isNotEmpty
-                    ? _initials(_nameController.text)
-                    : '?',
+                initials: Buddy.initialsOf(_nameController.text),
                 radius: 50,
                 textStyle: TextStyle(
                   fontSize: 36,

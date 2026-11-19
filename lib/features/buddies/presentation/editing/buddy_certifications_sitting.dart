@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/editing/buddy_card_ids.dart';
 import 'package:submersion/features/buddies/presentation/editing/buddy_certification_dialog.dart';
@@ -60,7 +61,7 @@ List<Certification> buddyCertificationsInOrder(List<Certification> certs) =>
         if (bi == null) return -1;
         return bi.compareTo(ai);
       }
-      return a.name.compareTo(b.name);
+      return compareTextForSort(a.name, b.name);
     });
 
 /// A new certification for [buddy], with an id of its own so the sitting

@@ -90,6 +90,12 @@ class _BuddyContactCardEditorState
         },
       );
       return;
+    } catch (_) {
+      // The check could not be made: the link is not set, and the field
+      // says to try again.
+      if (!mounted) return;
+      setState(() => _refused = (l10n) => l10n.common_error_tryAgain);
+      return;
     }
     if (!mounted || _session.isDisposed) return;
     setState(() => _refused = null);

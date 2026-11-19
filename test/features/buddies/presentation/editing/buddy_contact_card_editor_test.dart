@@ -17,6 +17,10 @@ import '../../../../helpers/test_app.dart';
 /// Refuses every link as taken by Sam, as the repository does for a
 /// profile another buddy of the list holds.
 class _TakenLinks implements BuddyProfileLinkRepository {
+  _TakenLinks({this.fail = false});
+
+  /// Fails the check outright instead of refusing.
+  final bool fail;
   final asked = <String>[];
 
   @override
@@ -26,6 +30,7 @@ class _TakenLinks implements BuddyProfileLinkRepository {
     String? buddyId,
   }) async {
     asked.add(linkedDiverId);
+    if (fail) throw StateError('database busy');
     throw BuddyLinkRefused(
       BuddyLinkRefusal.taken,
       existingBuddy: Buddy(
@@ -51,11 +56,15 @@ void main() {
     updatedAt: DateTime(2020),
   );
 
-  Future<_TakenLinks> pump(WidgetTester tester, EditSession<Buddy> s) async {
+  Future<_TakenLinks> pump(
+    WidgetTester tester,
+    EditSession<Buddy> s, {
+    bool fail = false,
+  }) async {
     tester.view.physicalSize = const Size(600, 1200);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    final links = _TakenLinks();
+    final links = _TakenLinks(fail: fail);
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
       testApp(
@@ -119,5 +128,18 @@ void main() {
 
     expect(find.text(l.buddies_validation_emailInvalid), findsOneWidget);
     expect(session.changedCardIds, {'contact'});
+  });
+
+  testWidgets('a check that cannot be made says to try again', (tester) async {
+    final session = EditSession(alex());
+    addTearDown(session.dispose);
+    await pump(tester, session, fail: true);
+
+    await tester.tap(find.text(l.buddies_linkedProfile_link));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text(l.common_error_tryAgain), findsOneWidget);
+    expect(session.working.linkedDiverId, isNull);
   });
 }
