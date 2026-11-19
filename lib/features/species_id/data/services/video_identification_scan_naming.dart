@@ -115,7 +115,10 @@ extension _Naming on VideoIdentificationScan {
     for (final k in kept) {
       final own = results.sublist(from, from + k.views.length);
       from += k.views.length;
-      final pick = chooseNamingView(own);
+      final pick = chooseNamingView([
+        for (var v = 0; v < own.length; v++)
+          (naming: own[v], ms: k.views[v].moment.ms),
+      ]);
       // No view could be named: as when none could be cropped.
       if (pick == null) {
         if (rows.containsKey(k.track.storedId)) unnameable.add(k.track);

@@ -12,8 +12,9 @@ import 'package:submersion/features/species_id/domain/entities/video_detections.
 /// run so a video scanned by an earlier version is scanned again. 2: a
 /// fish may continue to a nearby box it barely overlaps ([TrackLink], issue
 /// #4729). 3: a track is named from its most decided view, not an average
-/// of its views (issue #4736).
-const int videoTrackerVersion = 3;
+/// of its views (issue #4736). 4: only a view a second away agrees with it
+/// (issue #4747).
+const int videoTrackerVersion = 4;
 
 /// What a video's run stores as its detector id: the pack's detector set
 /// and the tracker version. A change to either scans the video again.
@@ -318,13 +319,18 @@ class VideoTrackerState {
 double momentWorth(DetectedBox detection) =>
     detection.score * detection.box.area;
 
+/// How far apart a track's best moments are taken ([bestMoments]): views
+/// this far apart are of the animal at different moments, not nearly the
+/// same frame.
+const int momentSpacingMs = 1000;
+
 /// Up to [max] moments of [track] worth cropping and naming: the highest
 /// detector score times box area first, at least [minSpacingMs] apart.
 /// When spacing leaves fewer than [max], the next best fill in.
 List<({int ms, DetectedBox detection})> bestMoments(
   TrackedAnimal track, {
   int max = 3,
-  int minSpacingMs = 1000,
+  int minSpacingMs = momentSpacingMs,
 }) {
   double worth(({int ms, DetectedBox detection}) p) => momentWorth(p.detection);
   final ranked = [...track.points]

@@ -694,11 +694,20 @@ void main() {
           suggestable: suggestable,
         );
 
+    /// [chooseNamingView] over [views] seen at [at], by default a second
+    /// apart, as the detector's best moments usually are.
+    ({int index, bool suggestable})? choose(
+      List<NamingResult> views, {
+      List<int>? at,
+    }) => chooseNamingView([
+      for (final (k, v) in views.indexed) (naming: v, ms: at?[k] ?? k * 1000),
+    ]);
+
     const stoplight = 'Sparisoma viride';
     const chromis = 'Chromis multilineata';
 
     test('the most decided view names the track', () {
-      final pick = chooseNamingView([
+      final pick = choose([
         view(0.3, stoplight),
         view(0.8, stoplight),
         view(0.5, stoplight),
@@ -708,14 +717,11 @@ void main() {
     });
 
     test("a tie goes to the first view, the detector's best", () {
-      expect(
-        chooseNamingView([view(0.6, stoplight), view(0.6, stoplight)])!.index,
-        0,
-      );
+      expect(choose([view(0.6, stoplight), view(0.6, stoplight)])!.index, 0);
     });
 
     test('a decided view no other view agrees with is not suggested', () {
-      final pick = chooseNamingView([
+      final pick = choose([
         view(0.3, chromis),
         view(0.8, stoplight),
         view(0.5, chromis),
@@ -725,7 +731,7 @@ void main() {
     });
 
     test('a view agrees by its name, whether or not it clears the bars', () {
-      final pick = chooseNamingView([
+      final pick = choose([
         view(0.8, stoplight),
         view(0.2, stoplight, suggestable: false),
       ])!;
@@ -734,7 +740,7 @@ void main() {
 
     test('the names are compared ignoring case and surrounding space', () {
       expect(
-        chooseNamingView([
+        choose([
           view(0.8, stoplight),
           view(0.2, ' sparisoma VIRIDE '),
         ])!.suggestable,
@@ -744,7 +750,7 @@ void main() {
 
     test('agreement never lifts a view that misses the bars', () {
       expect(
-        chooseNamingView([
+        choose([
           view(0.8, stoplight, suggestable: false),
           view(0.5, stoplight),
         ])!.suggestable,
@@ -753,39 +759,79 @@ void main() {
     });
 
     test('a single view is judged as a photo is', () {
-      expect(chooseNamingView([view(0.8, stoplight)])!.suggestable, isTrue);
+      expect(choose([view(0.8, stoplight)])!.suggestable, isTrue);
       expect(
-        chooseNamingView([
-          view(0.8, stoplight, suggestable: false),
-        ])!.suggestable,
+        choose([view(0.8, stoplight, suggestable: false)])!.suggestable,
         isFalse,
       );
     });
 
     test('no view with names names nothing', () {
-      expect(
-        chooseNamingView([NamingResult.unusable, NamingResult.unusable]),
-        isNull,
-      );
-      expect(chooseNamingView(const []), isNull);
+      expect(choose([NamingResult.unusable, NamingResult.unusable]), isNull);
+      expect(choose(const []), isNull);
     });
 
     test('a view with no names neither names the track nor agrees', () {
-      final pick = chooseNamingView([
-        NamingResult.unusable,
-        view(0.4, chromis),
-      ])!;
+      final pick = choose([NamingResult.unusable, view(0.4, chromis)])!;
       expect(pick.index, 1);
       // Only one usable view: judged as a photo is.
       expect(pick.suggestable, isTrue);
       expect(
-        chooseNamingView([
+        choose([
           view(0.4, chromis),
           NamingResult.unusable,
           NamingResult.unusable,
         ])!.suggestable,
         isTrue,
       );
+    });
+
+    test('a view under a second from the chosen one does not agree '
+        '(issue #4747)', () {
+      // The one at 0 ms agrees but is nearly the same frame as the chosen
+      // one at 250 ms; the only view a second away names another species.
+      final pick = choose(
+        [view(0.5, stoplight), view(0.8, stoplight), view(0.6, chromis)],
+        at: [0, 250, 1500],
+      )!;
+      expect(pick.index, 1);
+      expect(pick.suggestable, isFalse);
+    });
+
+    test('a view a second from the chosen one agrees', () {
+      expect(
+        choose(
+          [view(0.8, stoplight), view(0.3, stoplight)],
+          at: [0, 1000],
+        )!.suggestable,
+        isTrue,
+      );
+    });
+
+    test("views all under a second apart are one view: the detector's best "
+        'names the track, as a photo', () {
+      final pick = choose(
+        [view(0.5, stoplight), view(0.9, chromis), view(0.7, chromis)],
+        at: [0, 250, 500],
+      )!;
+      expect(pick.index, 0);
+      expect(pick.suggestable, isTrue);
+      expect(
+        choose(
+          [view(0.5, stoplight, suggestable: false), view(0.9, stoplight)],
+          at: [0, 250],
+        )!.suggestable,
+        isFalse,
+      );
+    });
+
+    test('a view with no names does not set the views apart', () {
+      final pick = choose(
+        [view(0.5, stoplight), NamingResult.unusable, view(0.9, chromis)],
+        at: [0, 1500, 250],
+      )!;
+      expect(pick.index, 0);
+      expect(pick.suggestable, isTrue);
     });
   });
 
