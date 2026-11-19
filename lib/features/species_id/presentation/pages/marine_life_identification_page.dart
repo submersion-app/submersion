@@ -256,11 +256,12 @@ class _MarineLifeIdentificationPageState
       ),
     );
     if (go ?? false) {
-      // Removed on purpose: the app stops offering it (issue #4773).
-      await ref
-          .read(speciesDownloadPromptDismissedProvider.notifier)
-          .setEnabled(true);
+      // Removed on purpose: the app stops offering it (issue #4773). Written
+      // after the removal, so a failed preference write cannot hold it up,
+      // through a notifier read now, as the page may be gone by then.
+      final offer = ref.read(speciesDownloadPromptDismissedProvider.notifier);
       await ref.read(speciesPackControllerProvider.notifier).remove();
+      await offer.setEnabled(true);
     }
   }
 
