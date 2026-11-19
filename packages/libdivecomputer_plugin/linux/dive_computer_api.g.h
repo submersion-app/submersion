@@ -216,13 +216,16 @@ G_DECLARE_FINAL_TYPE(LibdivecomputerPluginProfileSample, libdivecomputer_plugin_
  * o2_sensor_mv4: field in this object.
  * o2_sensor_mv5: field in this object.
  * o2_sensor_mv6: field in this object.
+ * avelo_buoyancy: field in this object.
+ * avelo_gas_remaining: field in this object.
+ * computer_rmv: field in this object.
  * gas_mix_index: field in this object.
  *
  * Creates a new #ProfileSample object.
  *
  * Returns: a new #LibdivecomputerPluginProfileSample
  */
-LibdivecomputerPluginProfileSample* libdivecomputer_plugin_profile_sample_new(int64_t time_seconds, double depth_meters, double* temperature_celsius, double* pressure_bar, int64_t* tank_index, FlValue* tank_pressures_bar, int64_t* heart_rate, double* heading, double* setpoint, double* ppo2, double* cns, int64_t* rbt, int64_t* deco_type, int64_t* deco_time, double* deco_depth, int64_t* tts, double* o2_sensor1, double* o2_sensor2, double* o2_sensor3, double* o2_sensor4, double* o2_sensor5, double* o2_sensor6, int64_t* o2_sensor_mv1, int64_t* o2_sensor_mv2, int64_t* o2_sensor_mv3, int64_t* o2_sensor_mv4, int64_t* o2_sensor_mv5, int64_t* o2_sensor_mv6, int64_t* gas_mix_index);
+LibdivecomputerPluginProfileSample* libdivecomputer_plugin_profile_sample_new(int64_t time_seconds, double depth_meters, double* temperature_celsius, double* pressure_bar, int64_t* tank_index, FlValue* tank_pressures_bar, int64_t* heart_rate, double* heading, double* setpoint, double* ppo2, double* cns, int64_t* rbt, int64_t* deco_type, int64_t* deco_time, double* deco_depth, int64_t* tts, double* o2_sensor1, double* o2_sensor2, double* o2_sensor3, double* o2_sensor4, double* o2_sensor5, double* o2_sensor6, int64_t* o2_sensor_mv1, int64_t* o2_sensor_mv2, int64_t* o2_sensor_mv3, int64_t* o2_sensor_mv4, int64_t* o2_sensor_mv5, int64_t* o2_sensor_mv6, double* avelo_buoyancy, int64_t* avelo_gas_remaining, double* computer_rmv, int64_t* gas_mix_index);
 
 /**
  * libdivecomputer_plugin_profile_sample_get_time_seconds
@@ -514,6 +517,40 @@ int64_t* libdivecomputer_plugin_profile_sample_get_o2_sensor_mv5(Libdivecomputer
  * Returns: the field value.
  */
 int64_t* libdivecomputer_plugin_profile_sample_get_o2_sensor_mv6(LibdivecomputerPluginProfileSample* object);
+
+/**
+ * libdivecomputer_plugin_profile_sample_get_avelo_buoyancy
+ * @object: a #LibdivecomputerPluginProfileSample.
+ *
+ * Shearwater Avelo mode (issue #4664): the computer's buoyancy figure in
+ * kilograms (negative is heavy), the Hydrotank's gas remaining in percent,
+ * and the computer's own respiratory minute volume in litres per minute.
+ * Null on every sample outside Avelo mode and where the computer logged a
+ * code instead of a value.
+ *
+ * Returns: the field value.
+ */
+double* libdivecomputer_plugin_profile_sample_get_avelo_buoyancy(LibdivecomputerPluginProfileSample* object);
+
+/**
+ * libdivecomputer_plugin_profile_sample_get_avelo_gas_remaining
+ * @object: a #LibdivecomputerPluginProfileSample.
+ *
+ * Gets the value of the aveloGasRemaining field of @object.
+ *
+ * Returns: the field value.
+ */
+int64_t* libdivecomputer_plugin_profile_sample_get_avelo_gas_remaining(LibdivecomputerPluginProfileSample* object);
+
+/**
+ * libdivecomputer_plugin_profile_sample_get_computer_rmv
+ * @object: a #LibdivecomputerPluginProfileSample.
+ *
+ * Gets the value of the computerRmv field of @object.
+ *
+ * Returns: the field value.
+ */
+double* libdivecomputer_plugin_profile_sample_get_computer_rmv(LibdivecomputerPluginProfileSample* object);
 
 /**
  * libdivecomputer_plugin_profile_sample_get_gas_mix_index

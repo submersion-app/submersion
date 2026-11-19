@@ -279,6 +279,10 @@ typedef struct {
     unsigned int deco_time;    // seconds (NDL seconds or stop time remaining)
     double deco_depth;         // stop depth in meters (NAN if unavailable)
     unsigned int deco_tts;     // Time To Surface in seconds (UINT32_MAX if unavailable)
+    // Shearwater Avelo mode (issue #4664), from the fork's Avelo sample types.
+    double avelo_buoyancy;     // kg, negative is heavy (NAN if unavailable)
+    unsigned int gas_remaining; // percent 0-100 (UINT32_MAX if unavailable)
+    double computer_rmv;       // L/min, the computer's own figure (NAN if unavailable)
 } libdc_sample_t;
 
 typedef struct {

@@ -17,6 +17,7 @@
      T1 transmitter's pressure. */
 
 #include <assert.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -198,12 +199,72 @@ static void test_non_avelo_has_no_hydrotank(void) {
     printf("PASS: test_non_avelo_has_no_hydrotank\n");
 }
 
+/* Issue #4664: the Avelo sample's gas remaining, buoyancy and computer RMV
+   reach the wrapper's sample struct, with the absent markers where the
+   computer logged a code. Sample byte N is record byte N + 1. */
+static void set_avelo_fields(unsigned char *rec, unsigned int gas,
+                             unsigned int buoyancy, unsigned int rmv) {
+    rec[1 + 10] = (unsigned char)gas;
+    rec[1 + 11] = (unsigned char)(buoyancy >> 8);
+    rec[1 + 12] = (unsigned char)(buoyancy & 0xFF);
+    rec[1 + 29] = (unsigned char)(rmv >> 8);
+    rec[1 + 30] = (unsigned char)(rmv & 0xFF);
+}
+
+static void test_avelo_samples_reach_the_wrapper(void) {
+    unsigned char *data = NULL;
+    unsigned int size = load_fixture(&data);
+    assert(size == 22400);
+    make_avelo(data, size);
+    unsigned int n = 0;
+    for (unsigned int off = 0; off + RECORD_SIZE <= size; off += RECORD_SIZE) {
+        if (data[off] != AVELO_SAMPLE) continue;
+        if (n == 0) set_avelo_fields(data + off, 100, 0xFE77, 0x042C);
+        if (n == 1) set_avelo_fields(data + off, 0xFE, 0x7FFE, 0xFFFE);
+        if (++n == 2) break;
+    }
+
+    libdc_parsed_dive_t dive;
+    char err[256] = {0};
+    int rc = libdc_parse_raw_dive("Shearwater", "Petrel 3", 10, data, size,
+                                  &dive, err, sizeof(err));
+    free(data);
+    assert(rc == 0);
+    assert(dive.sample_count == 419);
+
+    assert(dive.samples[0].gas_remaining == 100);
+    assert(fabs(dive.samples[0].avelo_buoyancy - (-0.393)) < 1e-9);
+    assert(fabs(dive.samples[0].computer_rmv - 10.68) < 1e-9);
+    assert(dive.samples[1].gas_remaining == UINT32_MAX);
+    assert(isnan(dive.samples[1].avelo_buoyancy));
+    assert(isnan(dive.samples[1].computer_rmv));
+
+    release(&dive);
+    printf("PASS: test_avelo_samples_reach_the_wrapper\n");
+}
+
+/* Outside Avelo mode the same bytes hold CCR data: the wrapper reports the
+   Avelo fields as absent on every sample. */
+static void test_dive_samples_have_no_avelo_fields(void) {
+    libdc_parsed_dive_t dive;
+    parse(&dive, 0);
+    for (unsigned int i = 0; i < dive.sample_count; i++) {
+        assert(dive.samples[i].gas_remaining == UINT32_MAX);
+        assert(isnan(dive.samples[i].avelo_buoyancy));
+        assert(isnan(dive.samples[i].computer_rmv));
+    }
+    release(&dive);
+    printf("PASS: test_dive_samples_have_no_avelo_fields\n");
+}
+
 int main(void) {
     printf("Running Shearwater Avelo Hydrotank tests...\n");
     test_avelo_t1_is_hydrotank();
     test_avelo_without_t1_tags_nothing();
     test_avelo_t3_stays_untagged();
     test_non_avelo_has_no_hydrotank();
+    test_avelo_samples_reach_the_wrapper();
+    test_dive_samples_have_no_avelo_fields();
     printf("All Shearwater Avelo Hydrotank tests passed\n");
     return 0;
 }

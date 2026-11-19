@@ -322,6 +322,9 @@ static void sample_callback(dc_sample_type_t type,
         }
         state->current_sample.cns = NAN;
         state->current_sample.rbt = UINT32_MAX;
+        state->current_sample.avelo_buoyancy = NAN;
+        state->current_sample.gas_remaining = UINT32_MAX;
+        state->current_sample.computer_rmv = NAN;
         // Carry the deco state forward for the same reason as the gas: a
         // record that carries no deco field is not the computer saying the
         // obligation cleared. Divesoft reports deco only on its POINT_1
@@ -389,6 +392,15 @@ static void sample_callback(dc_sample_type_t type,
         break;
     case DC_SAMPLE_RBT:
         state->current_sample.rbt = value->rbt;
+        break;
+    case DC_SAMPLE_BUOYANCY:
+        state->current_sample.avelo_buoyancy = value->buoyancy;
+        break;
+    case DC_SAMPLE_GASREMAINING:
+        state->current_sample.gas_remaining = value->gasremaining;
+        break;
+    case DC_SAMPLE_RMV:
+        state->current_sample.computer_rmv = value->rmv;
         break;
     case DC_SAMPLE_DECO:
         state->current_deco_type = value->deco.type;
