@@ -35,6 +35,7 @@ void main() {
     acceptor: SuggestionAcceptor(species: species),
     dismiss: (mediaId, ids) async => dismissed.add((mediaId, ids)),
     reconcile: (_) async {},
+    taggedSpecies: (mediaId) => identifications.taggedSpecies(mediaId),
   );
 
   Future<List<ReviewGroup>> load() => SpeciesReviewRepository(
@@ -198,6 +199,58 @@ void main() {
         (await tags.findTag('p2', 'sp_queen_parrotfish'))!.unconfirmed,
         isFalse,
       );
+    });
+  });
+
+  group('the app tagged the photo after the page last read it', () {
+    Future<void> appTagsP2() => tagging.applyAppTag(
+      mediaId: 'p2',
+      speciesId: 'sp_queen_parrotfish',
+      timing: SightingTiming.onConfirm,
+      createdSpecies: false,
+    );
+
+    Future<(SpeciesReviewEdits, List<ReviewGroup>)> heldOnP2({
+      required bool keep,
+      required bool tagged,
+    }) async {
+      final stale = await load();
+      final group = stale.single;
+      final row = (tagged ? group.tagged : group.suggested).single;
+      final item = row.items.singleWhere((i) => i.media.id == 'p2');
+      return (SpeciesReviewEdits.none.decideItem(row, item, keep: keep), stale);
+    }
+
+    test('a held Dismiss removes the app\'s tag', () async {
+      final (edits, stale) = await heldOnP2(keep: false, tagged: true);
+      await appTagsP2();
+
+      await saver().save(edits, stale);
+
+      expect(await tags.findTag('p2', 'sp_queen_parrotfish'), isNull);
+    });
+
+    test('a held Add confirms the app\'s tag', () async {
+      final (edits, stale) = await heldOnP2(keep: true, tagged: true);
+      await appTagsP2();
+
+      await saver().save(edits, stale);
+
+      expect(
+        (await tags.findTag('p2', 'sp_queen_parrotfish'))!.unconfirmed,
+        isFalse,
+      );
+    });
+
+    test('a held Dismiss on a suggested species\' own row removes the '
+        'app\'s tag', () async {
+      await tagging.rejectTag(mediaId: 'p1', speciesId: 'sp_queen_parrotfish');
+      final (edits, stale) = await heldOnP2(keep: false, tagged: false);
+      await appTagsP2();
+
+      await saver().save(edits, stale);
+
+      expect(await tags.findTag('p2', 'sp_queen_parrotfish'), isNull);
     });
   });
 }

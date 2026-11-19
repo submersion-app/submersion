@@ -1,6 +1,8 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/hlc.dart';
 import 'package:submersion/core/services/sync/sync_clock.dart';
@@ -74,6 +76,34 @@ void main() {
     });
     expect(row['unconfirmed'], isNull);
     expect(row['createdSighting'], isNull);
+  });
+
+  test('a newer copy clears only the marks: the tag\'s notes, box and '
+      'sighting stay', () async {
+    final db = DatabaseService.instance.database;
+    await insertTestSighting(id: 'sg1', diveId: 'd1', speciesId: 'c1');
+    await (db.update(db.mediaSpecies)..where((t) => t.id.equals(tagId))).write(
+      const MediaSpeciesCompanion(
+        notes: Value('by the wreck'),
+        bboxX: Value(0.2),
+        sightingId: Value('sg1'),
+      ),
+    );
+
+    final row = await pull({
+      ...local,
+      'unconfirmed': null,
+      'createdSighting': null,
+      'notes': null,
+      'bboxX': null,
+      'sightingId': null,
+      'hlc': shifted(1000).toString(),
+    });
+
+    expect(row['unconfirmed'], isNull);
+    expect(row['notes'], 'by the wreck');
+    expect(row['bboxX'], 0.2);
+    expect(row['sightingId'], 'sg1');
   });
 
   test('a newer unconfirmed copy marks a tag this device has', () async {

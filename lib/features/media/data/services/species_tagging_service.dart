@@ -76,6 +76,10 @@ class SpeciesTaggingService {
     required String speciesId,
   }) => _tags.removeTag(mediaId: mediaId, speciesId: speciesId);
 
+  /// The tag linking [mediaId] and [speciesId], or null.
+  Future<MediaSpeciesTag?> findTag(String mediaId, String speciesId) =>
+      _tags.findTag(mediaId, speciesId);
+
   /// Tags [mediaId] the way the app does on its own (issue #4727): marked
   /// unconfirmed. With [SightingTiming.onConfirm] the tag only links a
   /// sighting the diver already logged; with [SightingTiming.straightAway]

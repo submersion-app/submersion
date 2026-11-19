@@ -59,6 +59,9 @@ final speciesReviewSaverProvider = Provider<SpeciesReviewSaver>(
     reconcile: (mediaId) => marineLifeIdEnabled
         ? ref.read(mediaIdentificationServiceProvider).reconcile(mediaId)
         : Future<void>.value(),
+    taggedSpecies: ref
+        .watch(mediaIdentificationRepositoryProvider)
+        .taggedSpecies,
   ),
 );
 

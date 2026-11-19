@@ -76,6 +76,31 @@ void main() {
 
   DiveSpeciesRunState state(String diveId) => run.stateOf(diveId)!;
 
+  test(
+    'disposed during a run, it ends without completing its run twice',
+    () async {
+      gate = Completer<void>();
+      final doomed = run;
+      final finished = doomed.start('d1');
+      await pumpEventQueue();
+
+      doomed.dispose();
+      gate!.complete();
+      await finished;
+      await pumpEventQueue();
+
+      // Disposed already: tearDown disposes a fresh one instead.
+      run = DiveSpeciesRun(
+        mediaForDive: (_) async => const [],
+        diveLocation: (_) async => (exists: true, site: null, entry: null),
+        request: (_, _) async => RunItemOutcome.done,
+        cancel: (_) {},
+        applyAll: (_) async => 0,
+        databaseGeneration: () => 0,
+      );
+    },
+  );
+
   test('photos before videos, and a summary at the end', () async {
     await run.start('d1');
 

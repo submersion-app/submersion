@@ -147,7 +147,9 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
       } finally {
         _current = null;
         _currentItem = null;
-        _finished[diveId]?.complete();
+        // dispose() may have completed it already.
+        final done = _finished[diveId];
+        if (done != null && !done.isCompleted) done.complete();
       }
     }
   }

@@ -180,8 +180,11 @@ class MediaIdentificationService {
     final queued = _waiting.remove(item.id);
     // A later location replaces a queued one; the callers' future stays.
     final job = queued == null
-        ? _Job(item, location)
-        : queued.withLocation(location ?? queued.location);
+        ? _Job(item, location, _databaseGeneration())
+        : queued.withLocation(
+            location ?? queued.location,
+            _databaseGeneration(),
+          );
     // Re-inserting moves it to the newest end.
     _waiting[item.id] = job;
     _changed();
@@ -431,7 +434,12 @@ class MediaIdentificationService {
   /// between chunks for other work.
   Future<bool> _process(_Job job) async {
     final item = job.item;
-    final generation = _databaseGeneration();
+    final generation = job.generation;
+    // Asked for in a logbook since closed: the item is not this one's.
+    if (_databaseGeneration() != generation) {
+      job.outcome = RunItemOutcome.skipped;
+      return false;
+    }
     try {
       final video = item.mediaType == MediaType.video;
       if (!video && item.mediaType != MediaType.photo) {

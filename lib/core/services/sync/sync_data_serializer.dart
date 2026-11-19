@@ -2191,6 +2191,14 @@ class SyncDataSerializer {
     'mediaSpecies': 'media_species',
   };
 
+  /// The only JSON keys a clock-guarded type's copy may clear: the marks a
+  /// confirm clears. Its other nullable columns (a tag's notes, box and
+  /// sighting) keep the blind upsert's rule, so a newer copy that simply
+  /// lacks them never erases what this device holds.
+  static const Map<String, Set<String>> clockGuardedClearKeys = {
+    'mediaSpecies': {'unconfirmed', 'createdSighting', 'createdSpecies'},
+  };
+
   /// The SQL table [clearChildColumns] writes for [entityType], or null for
   /// a type whose clears it does not handle.
   static String? clearTableFor(String entityType) =>
@@ -2202,13 +2210,19 @@ class SyncDataSerializer {
   }
 
   Map<String, String> _clearableFor(String entityType) =>
-      _clearableChildColumns.putIfAbsent(
-        entityType,
-        () => clearableColumns(
+      _clearableChildColumns.putIfAbsent(entityType, () {
+        final all = clearableColumns(
           _parentGatedTable(entityType),
           keyColumns: _parentGatedKeyColumns[entityType] ?? const ['id'],
-        ),
-      );
+        );
+        final allowed = clockGuardedClearKeys[entityType];
+        return allowed == null
+            ? all
+            : {
+                for (final e in all.entries)
+                  if (allowed.contains(e.key)) e.key: e.value,
+              };
+      });
 
   /// The JSON keys a clear on [entityType] may name (see clearableColumns):
   /// empty for a type outside [parentGatedChildEntities] or one with nothing

@@ -16,7 +16,15 @@ extension RunLane on MediaIdentificationService {
     required Future<VideoFileReader?> Function(MediaItem) resolveVideo,
   }) {
     if (_disposed) return Future.value(RunItemOutcome.skipped);
-    final job = _Job(item, location, null, true, resolveImage, resolveVideo);
+    final job = _Job(
+      item,
+      location,
+      _databaseGeneration(),
+      null,
+      true,
+      resolveImage,
+      resolveVideo,
+    );
     // Joins only a run's own job: a viewer's scan of the same video may be
     // stopped when the diver leaves it, so the run queues its own, which
     // carries on from wherever the viewer's stopped.
@@ -89,7 +97,8 @@ RunItemOutcome runOutcomeOf(Object e) => switch (e) {
 class _Job {
   _Job(
     this.item,
-    this.location, [
+    this.location,
+    this.generation, [
     Completer<void>? done,
     this.fromRun = false,
     this.resolveImage,
@@ -98,6 +107,11 @@ class _Job {
 
   final MediaItem item;
   final GeoPoint? location;
+
+  /// The logbook it was asked for in (the database generation): one opened
+  /// since drops it unprocessed, so the old logbook's media are never
+  /// analysed into the new one.
+  final int generation;
   final Completer<void> done;
 
   /// Asked for by a Find species run (issue #4727), with the run's own
@@ -112,6 +126,14 @@ class _Job {
   /// A video the diver left: its scan stops after the chunk in progress.
   var cancelled = false;
 
-  _Job withLocation(GeoPoint? location) =>
-      _Job(item, location, done, fromRun, resolveImage, resolveVideo);
+  /// This request asked again, in the logbook of [generation].
+  _Job withLocation(GeoPoint? location, int generation) => _Job(
+    item,
+    location,
+    generation,
+    done,
+    fromRun,
+    resolveImage,
+    resolveVideo,
+  );
 }

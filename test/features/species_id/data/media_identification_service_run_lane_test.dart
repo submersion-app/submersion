@@ -26,6 +26,7 @@ void main() {
   late FakeEngine engine;
   late bool viewerEnabled;
   late List<String> settled;
+  late int generation;
   late MediaIdentificationService service;
 
   Future<IdentificationImage?> runImage(MediaItem item) async =>
@@ -46,6 +47,7 @@ void main() {
     engine = FakeEngine();
     viewerEnabled = true;
     settled = [];
+    generation = 0;
     var ids = 0;
     service = MediaIdentificationService(
       engine: engine,
@@ -58,7 +60,7 @@ void main() {
       taggedSpecies: (_) async => const [],
       enabled: () => viewerEnabled,
       runEnabled: () => true,
-      databaseGeneration: () => 0,
+      databaseGeneration: () => generation,
       now: () => DateTime.utc(2026, 11, 18),
       newId: () => 'id-${ids++}',
       onItemSettled: (item) async => settled.add(item.id),
@@ -69,6 +71,22 @@ void main() {
     await library.close();
     await local.close();
     await deleteTempDir(support);
+  });
+
+  test('a request made before another logbook opened is dropped, not '
+      'analysed into the new one', () async {
+    engine.gate = Completer<void>();
+    final first = fromRun(photo('busy'));
+    await pumpEventQueue();
+    final queued = fromRun(photo('r1'));
+    final viewer = service.request(photo('v1'));
+
+    generation = 1;
+    engine.gate!.complete();
+    await Future.wait([first, viewer]);
+
+    expect(await queued, RunItemOutcome.skipped);
+    expect(engine.analysed, ['/run/busy.jpeg']);
   });
 
   test('a run analyses the image its own resolver gives', () async {
