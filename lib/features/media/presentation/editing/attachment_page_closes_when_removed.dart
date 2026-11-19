@@ -46,6 +46,12 @@ mixin AttachmentPageClosesWhenRemoved<W extends ConsumerStatefulWidget>
     if (leftSite) _endLeftSite(stored);
   }
 
+  /// The document found gone by the sitting itself, as a save refused
+  /// for it: its lock, next, closes the page, and a later read of the row
+  /// says nothing more.
+  @override
+  void onPhotoGone() => _removed = true;
+
   @override
   void onPhotoLocked() {
     // Remembered rather than read again: by the lock the row is often

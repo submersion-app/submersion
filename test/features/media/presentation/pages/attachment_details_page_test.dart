@@ -183,6 +183,31 @@ void main() {
     await settleViewer(tester);
   });
 
+  // The save itself finds the document gone (deleted or unlinked while it
+  // ran): the sitting ends unsaved and the page closes, saying so once.
+  testWidgets('a save that finds the document gone closes the page', (
+    tester,
+  ) async {
+    await pumpPage(
+      tester,
+      pushed: true,
+      overrides: [photoEditSaveServiceProvider.overrideWithValue(_GoneSave())],
+    );
+    await unlock(tester);
+    await pickCategory(tester, 'Site map');
+
+    await tester.tap(find.text('Save'));
+    await settleViewer(tester, rounds: 10);
+    await settleViewer(tester, rounds: 10);
+
+    expect(find.byType(AttachmentDetailsPage), findsNothing);
+    expect(
+      find.text('This document was removed. Your changes were not saved.'),
+      findsOneWidget,
+    );
+    expect(find.text('This document was removed.'), findsNothing);
+  });
+
   // Review Focus 1 on this page: the document goes while unlocked.
   // The page closes once its document is gone, saying so once.
   testWidgets('a document removed while unlocked ends the sitting in '
@@ -364,4 +389,20 @@ class _SlowSave extends Fake implements PhotoEditSaveService {
     await release;
     return null;
   }
+}
+
+/// A save that finds the document gone, as one deleted or unlinked while
+/// it ran does.
+class _GoneSave extends Fake implements PhotoEditSaveService {
+  @override
+  Future<({PhotoRecord before, PhotoRecord after})?> save({
+    required String mediaId,
+    required String? diverId,
+    required PhotoRecord Function(PhotoRecord stored) apply,
+    required Iterable<String> changedCardIds,
+    Future<void> Function()? alsoWrite,
+    bool alsoWriteIsAChange = false,
+    ({String? id})? diveAtStart,
+    String? siteAtStart,
+  }) async => throw PhotoGoneError(mediaId);
 }

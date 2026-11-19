@@ -185,8 +185,14 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
     });
   }
 
+  /// Told when the sitting's photo is found gone (deleted, or a site
+  /// document unlinked from its site), before the sitting ends: by the
+  /// stored row, or by a save refused for it.
+  void onPhotoGone() {}
+
   /// Ends the sitting over a photo that no longer exists, and says so.
   void _lockAsGone(RecordEditController<PhotoRecord> controller) {
+    onPhotoGone();
     final messenger = ScaffoldMessenger.maybeOf(context);
     final l10n = context.l10n;
     final item = controller.session?.stored.item;
