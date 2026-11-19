@@ -33,20 +33,25 @@ NearbyListRequest nearbyRequestForMedia(MediaItem item) {
 ///
 /// Read through [reefNearbySpeciesProvider], so every row at one place, and
 /// the site page, share one search and one saved copy.
+///
+/// Never retried: GBIF's failures already arrive as an answer (unavailable),
+/// so an error here is the logbook's, and asking again only holds a row
+/// that shows nothing either way.
 final recordedNearbyListProvider = FutureProvider.autoDispose
     .family<NearbySpecies?, NearbyListRequest>((ref, request) async {
-      // The place comes from the dive's row and its site's point.
-      ref.invalidateSelfWhen(
-        ref.read(diveRepositoryProvider).watchDivesChanges(),
-      );
-      ref.invalidateSelfWhen(
-        ref.read(siteRepositoryProvider).watchSitesChanges(),
-      );
       final diveId = request.diveId;
-      final place = diveId == null
-          ? null
-          : await ref.read(divePlaceRepositoryProvider).placeOf(diveId);
-      if (!ref.mounted) return null;
+      ({bool exists, GeoPoint? site, GeoPoint? entry})? place;
+      if (diveId != null) {
+        // The place comes from the dive's row and its site's point.
+        ref.invalidateSelfWhen(
+          ref.read(diveRepositoryProvider).watchDivesChanges(),
+        );
+        ref.invalidateSelfWhen(
+          ref.read(siteRepositoryProvider).watchSitesChanges(),
+        );
+        place = await ref.read(divePlaceRepositoryProvider).placeOf(diveId);
+        if (!ref.mounted) return null;
+      }
       // A dive that is gone has no site and no entry.
       final known = place != null && place.exists;
       final point = nearbyListLocation(
@@ -57,4 +62,4 @@ final recordedNearbyListProvider = FutureProvider.autoDispose
       if (point == null) return null;
       final part = await ref.watch(reefNearbySpeciesProvider(point).future);
       return part.status == ReefDataStatus.ok ? part.value : null;
-    });
+    }, retry: (_, _) => null);

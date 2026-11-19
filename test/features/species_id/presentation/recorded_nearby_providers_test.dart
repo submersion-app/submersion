@@ -2,7 +2,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/reef/domain/entities/nearby_species.dart';
 import 'package:submersion/features/reef/domain/entities/reef_data_status.dart';
 import 'package:submersion/features/reef/presentation/providers/reef_providers.dart';
@@ -17,11 +19,15 @@ import '../../media/presentation/support/media_widget_harness.dart';
 /// Each dive's site and entry point, as the run's lean read reports them.
 class _Places extends DivePlaceRepository {
   final places = <String, ({GeoPoint? site, GeoPoint? entry})>{};
+  var reads = 0;
+  Object? failure;
 
   @override
   Future<({bool exists, GeoPoint? site, GeoPoint? entry})> placeOf(
     String diveId,
   ) async {
+    reads++;
+    if (failure case final failure?) throw failure;
     final place = places[diveId];
     if (place == null) return (exists: false, site: null, entry: null);
     return (exists: true, site: place.site, entry: place.entry);
@@ -55,7 +61,9 @@ void main() {
   });
   tearDown(tearDownTestDatabase);
 
-  Future<ProviderContainer> container() async {
+  Future<ProviderContainer> container({
+    List<Override> overrides = const [],
+  }) async {
     final c = ProviderContainer(
       overrides: [
         ...await getBaseOverrides(),
@@ -64,6 +72,7 @@ void main() {
           asked.add(point);
           return parts[point] ?? const ReefPart.empty();
         }),
+        ...overrides,
       ],
     );
     addTearDown(c.dispose);
@@ -186,6 +195,44 @@ void main() {
 
     expect(list, listAtPhoto);
     expect(asked, [photo]);
+  });
+
+  test('a photo in no dive reads nothing of the logbook', () async {
+    // Where no logbook is open, as under a video's labels in a widget test.
+    final c = await container(
+      overrides: [
+        diveRepositoryProvider.overrideWith(
+          (ref) => throw StateError('no logbook'),
+        ),
+        siteRepositoryProvider.overrideWith(
+          (ref) => throw StateError('no logbook'),
+        ),
+      ],
+    );
+
+    final list = await c.read(
+      recordedNearbyListProvider((diveId: null, photo: photo)).future,
+    );
+
+    expect(list, listAtPhoto);
+    expect(places.reads, 0);
+  });
+
+  test('a list that cannot be read is not asked for again', () async {
+    places.failure = Exception('database closed');
+    final c = await container();
+    const request = (diveId: 'd1', photo: null);
+    c.listen(recordedNearbyListProvider(request), (_, _) {});
+
+    await expectLater(
+      c.read(recordedNearbyListProvider(request).future),
+      throwsException,
+    );
+    // Past the first automatic retry, were there one.
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+
+    expect(places.reads, 1);
+    expect(c.read(recordedNearbyListProvider(request)).value, isNull);
   });
 
   test('a dive moved to another site reads that site\'s list', () async {
