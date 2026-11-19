@@ -39,6 +39,11 @@ class TripChecklistBlock extends ConsumerWidget {
   final VoidCallback? onMoveUp;
   final VoidCallback? onMoveDown;
 
+  /// Shows the checklist without changing it: no reorder, menu, ticks,
+  /// item edits, Add item or section editing (a trip page that edits in
+  /// place, issue #4527, before checklists join its sitting).
+  final bool readOnly;
+
   const TripChecklistBlock({
     super.key,
     required this.trip,
@@ -46,6 +51,7 @@ class TripChecklistBlock extends ConsumerWidget {
     this.initiallyExpanded = false,
     this.onMoveUp,
     this.onMoveDown,
+    this.readOnly = false,
   });
 
   @override
@@ -81,22 +87,24 @@ class TripChecklistBlock extends ConsumerWidget {
                   items.length,
                 ),
               ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.keyboard_arrow_up),
-              onPressed: onMoveUp,
-              tooltip: WidgetsLocalizations.of(context).reorderItemUp,
-            ),
-            IconButton(
-              icon: const Icon(Icons.keyboard_arrow_down),
-              onPressed: onMoveDown,
-              tooltip: WidgetsLocalizations.of(context).reorderItemDown,
-            ),
-            _buildOverflowMenu(context, ref, items ?? const []),
-          ],
-        ),
+        trailing: readOnly
+            ? null
+            : Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.keyboard_arrow_up),
+                    onPressed: onMoveUp,
+                    tooltip: WidgetsLocalizations.of(context).reorderItemUp,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.keyboard_arrow_down),
+                    onPressed: onMoveDown,
+                    tooltip: WidgetsLocalizations.of(context).reorderItemDown,
+                  ),
+                  _buildOverflowMenu(context, ref, items ?? const []),
+                ],
+              ),
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -160,18 +168,19 @@ class TripChecklistBlock extends ConsumerWidget {
         // lives inside the editor this would otherwise hide.
         if (items.isEmpty && sections.isEmpty) _buildEmptyState(context),
         _buildGroupedItems(context, ref, items, sections, sectionTitles),
-        Align(
-          alignment: AlignmentDirectional.centerStart,
-          child: TextButton.icon(
-            icon: const Icon(Icons.add),
-            label: Text(context.l10n.checklists_addItem),
-            onPressed: () => showChecklistItemEditSheet(
-              context: context,
-              checklistId: checklist.id,
-              categorySuggestions: sectionTitles,
+        if (!readOnly)
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: TextButton.icon(
+              icon: const Icon(Icons.add),
+              label: Text(context.l10n.checklists_addItem),
+              onPressed: () => showChecklistItemEditSheet(
+                context: context,
+                checklistId: checklist.id,
+                categorySuggestions: sectionTitles,
+              ),
             ),
           ),
-        ),
       ],
     );
   }
@@ -432,14 +441,18 @@ class TripChecklistBlock extends ConsumerWidget {
       return ChecklistItemTile(
         item: item,
         showOverdue: trip.isUpcoming,
-        onToggle: (value) => repository.toggleDone(item.id, isDone: value),
-        onEdit: () => showChecklistItemEditSheet(
-          context: context,
-          checklistId: checklist.id,
-          item: item,
-          categorySuggestions: sectionTitles,
-          currentSectionTitle: sectionTitle,
-        ),
+        onToggle: readOnly
+            ? null
+            : (value) => repository.toggleDone(item.id, isDone: value),
+        onEdit: readOnly
+            ? null
+            : () => showChecklistItemEditSheet(
+                context: context,
+                checklistId: checklist.id,
+                item: item,
+                categorySuggestions: sectionTitles,
+                currentSectionTitle: sectionTitle,
+              ),
       );
     }
 
@@ -451,6 +464,7 @@ class TripChecklistBlock extends ConsumerWidget {
       unsectionedItems: unsectioned,
       itemId: (item) => item.id,
       itemBuilder: buildItem,
+      readOnly: readOnly,
       addSectionLabel: context.l10n.sectionEditor_addSection,
       newSectionTitle: context.l10n.sectionEditor_newSectionTitle,
       noSectionLabel: context.l10n.sectionEditor_noSection,

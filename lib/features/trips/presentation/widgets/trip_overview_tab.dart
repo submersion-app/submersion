@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/services/trip_day_notes.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_card_slots.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_scan_actions.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/overview/trip_prepare_overview.dart';
@@ -62,9 +63,13 @@ class TripOverviewTab extends ConsumerWidget {
       return const Center(child: CircularProgressIndicator.adaptive());
     }
 
+    // A page that edits in place lays the Overview out from the trip as
+    // stored while unlocked: it changes at Save (issue #4527).
+    final slots = TripCardSlotsScope.maybeOf(context);
+    final layout = slots?.layout ?? trip;
     // Before the first day there is nothing to tell: the page prepares.
     // From the first day on, in progress or past, it tells the story.
-    if (trip.startsAfter(clock.now())) {
+    if (layout.startsAfter(clock.now())) {
       return TripPrepareOverview(
         story: story,
         onOpenTab: onOpenTab,
@@ -75,7 +80,11 @@ class TripOverviewTab extends ConsumerWidget {
       story: story,
       stats: tripWithStats,
       selection: selection,
-      onScanForDives: () => scanForTripDives(context, ref, trip),
+      // Scanning joins the page's sitting in phase 3's next trip plan; until
+      // then a page that edits in place offers none here.
+      onScanForDives: slots != null
+          ? null
+          : () => scanForTripDives(context, ref, trip),
       onEditDayNote: onEditDayNote,
     );
   }

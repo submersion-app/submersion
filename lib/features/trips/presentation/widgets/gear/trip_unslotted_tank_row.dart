@@ -29,7 +29,10 @@ class TripUnslottedTankRow extends StatefulWidget {
   /// Null on an ended trip, which hides the "not on the board" line and
   /// the action both.
   final Future<void> Function()? onPutOnBoard;
-  final Future<void> Function() onUnpack;
+
+  /// Takes the tank off the trip; null offers no menu (a trip page that
+  /// only reads, issue #4527).
+  final Future<void> Function()? onUnpack;
 
   const TripUnslottedTankRow({
     super.key,
@@ -37,7 +40,7 @@ class TripUnslottedTankRow extends StatefulWidget {
     required this.units,
     this.alerts = const [],
     this.onPutOnBoard,
-    required this.onUnpack,
+    this.onUnpack,
   });
 
   @override
@@ -108,13 +111,16 @@ class _TripUnslottedTankRowState extends State<TripUnslottedTankRow> {
               mainAxisSize: MainAxisSize.min,
               children: lines,
             ),
-      trailing: PopupMenuButton<String>(
-        key: Key('trip-gear-menu-${item.id}'),
-        onSelected: (_) => widget.onUnpack(),
-        itemBuilder: (_) => [
-          PopupMenuItem(value: 'unpack', child: Text(l10n.trips_gear_remove)),
-        ],
-      ),
+      trailing: switch (widget.onUnpack) {
+        final unpack? => PopupMenuButton<String>(
+          key: Key('trip-gear-menu-${item.id}'),
+          onSelected: (_) => unpack(),
+          itemBuilder: (_) => [
+            PopupMenuItem(value: 'unpack', child: Text(l10n.trips_gear_remove)),
+          ],
+        ),
+        null => null,
+      },
       onTap: () => context.push('/equipment/${item.id}'),
     );
   }
