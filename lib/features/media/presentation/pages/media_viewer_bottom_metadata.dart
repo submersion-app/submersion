@@ -133,8 +133,16 @@ class _BottomMetadataOverlay extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // Inset from the sides as the rest of the panel is.
           if (controls != null)
-            Padding(padding: const EdgeInsets.only(top: 24), child: controls),
+            SafeArea(
+              top: false,
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 24),
+                child: controls,
+              ),
+            ),
           ConstrainedBox(
             constraints: BoxConstraints(
               minHeight: controls == null ? 0 : controlsClearance,

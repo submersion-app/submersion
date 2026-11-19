@@ -174,6 +174,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
   /// a video keep above (issue #4762).
   double _bottomPanelHeight = 0;
 
+  /// The bottom panel was laid out at [height].
   void _onBottomPanelHeight(double height) {
     if (!mounted || height == _bottomPanelHeight) return;
     setState(() => _bottomPanelHeight = height);

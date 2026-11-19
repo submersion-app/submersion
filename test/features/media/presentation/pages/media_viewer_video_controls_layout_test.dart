@@ -3,6 +3,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -12,6 +13,7 @@ import 'package:submersion/features/media/presentation/providers/media_providers
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/mini_dive_profile_overlay.dart';
 import 'package:submersion/features/media/presentation/widgets/video_controls_bar.dart';
+import 'package:submersion/features/species_id/presentation/widgets/video_identification_layer.dart';
 
 import '../../../../helpers/test_database.dart';
 import 'video_viewer_test_harness.dart';
@@ -151,6 +153,26 @@ void main() {
       ),
       isTrue,
       reason: 'the chart does not take the end of the bar',
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('the fish labels keep above the panel and its scrub bar', (
+    tester,
+  ) async {
+    marineLifeIdEnabled = true;
+    addTearDown(resetMarineLifeIdEnabled);
+    await pumpTagged(tester);
+
+    final layer = tester.widget<VideoIdentificationLayer>(
+      find.byType(VideoIdentificationLayer),
+    );
+    final layerRect = tester.getRect(find.byType(VideoIdentificationLayer));
+    final track = tester.getRect(find.byKey(VideoControlsBar.trackKey));
+    // Up from the layer's bottom edge at least as far as the bar's top.
+    expect(
+      layer.bottomInset,
+      greaterThanOrEqualTo(layerRect.bottom - track.top),
     );
     expect(tester.takeException(), isNull);
   });
