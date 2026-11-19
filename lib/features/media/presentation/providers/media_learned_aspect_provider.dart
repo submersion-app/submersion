@@ -33,9 +33,21 @@ class MediaLearnedAspectsNotifier
   final Map<String, LearnedAspect> _pending = {};
   bool _flushScheduled = false;
 
+  /// A cache that cannot be read costs the learned shapes, not the library:
+  /// the gallery lays out from stored sizes and learns again as it draws.
   @override
-  Future<Map<String, LearnedAspect>> build() =>
-      ref.watch(mediaAspectCacheRepositoryProvider).loadAll();
+  Future<Map<String, LearnedAspect>> build() async {
+    try {
+      return await ref.watch(mediaAspectCacheRepositoryProvider).loadAll();
+    } on Object catch (error, stack) {
+      _log.warning(
+        'Could not read learned thumbnail shapes',
+        error: error,
+        stackTrace: stack,
+      );
+      return const {};
+    }
+  }
 
   /// Called by a library tile with its thumbnail's decoded [decoded] size.
   ///

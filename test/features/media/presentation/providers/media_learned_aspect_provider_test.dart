@@ -8,13 +8,17 @@ import 'package:submersion/features/media/domain/value_objects/learned_aspect.da
 import 'package:submersion/features/media/presentation/providers/media_learned_aspect_provider.dart';
 
 class _FakeRepository implements MediaAspectCacheRepository {
-  _FakeRepository([this.stored = const {}]);
+  _FakeRepository([this.stored = const {}, this.failLoad = false]);
 
   final Map<String, LearnedAspect> stored;
+  final bool failLoad;
   final List<Map<String, LearnedAspect>> writes = [];
 
   @override
-  Future<Map<String, LearnedAspect>> loadAll() async => stored;
+  Future<Map<String, LearnedAspect>> loadAll() async {
+    if (failLoad) throw StateError('Local cache database not initialized.');
+    return stored;
+  }
 
   @override
   Future<void> putAll(Map<String, LearnedAspect> entries) async {
@@ -59,6 +63,25 @@ void main() {
 
   Map<String, LearnedAspect> learned() =>
       container.read(mediaLearnedAspectsProvider).requireValue;
+
+  testWidgets('a cache that cannot be read starts with nothing learned', (
+    tester,
+  ) async {
+    repository = _FakeRepository(const {}, true);
+    container = ProviderContainer(
+      overrides: [
+        mediaAspectCacheRepositoryProvider.overrideWithValue(repository),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    expect(
+      await tester.runAsync(
+        () => container.read(mediaLearnedAspectsProvider.future),
+      ),
+      isEmpty,
+    );
+  });
 
   testWidgets('loads the stored shapes', (tester) async {
     await tester.runAsync(

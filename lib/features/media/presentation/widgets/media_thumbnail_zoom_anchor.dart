@@ -3,8 +3,6 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-import 'package:submersion/features/media/presentation/providers/media_thumbnail_scale_provider.dart';
-
 /// Where a thumbnail sits in its view, attached to it with [MetaData] so a
 /// hit test at the cursor can tell which one it found.
 class MediaThumbnailSlot {
@@ -35,67 +33,35 @@ class MediaThumbnailZoomAnchor {
   final double cursorY;
   final double tileTop;
 
-  /// The thumbnail's side; thumbnails are square.
+  /// The thumbnail's height as it was laid out.
   final double tileExtent;
 
   /// The scroll offset that puts the thumbnail back on the cursor's line
-  /// once it is laid out [newColumns] across, never before the start.
-  /// The end is the scroll view's to enforce: it is not known until the
-  /// new layout is.
+  /// once the gallery is laid out again (issues #3297, #4738), never before
+  /// the start. The end is the scroll view's to enforce: it is not known
+  /// until the new layout is.
   ///
-  /// [heightChangeAbove] is how much taller the groups above the anchor's
-  /// become, negative for shorter.
-  ///
-  /// This predicts the new layout rather than measuring it, so that the
-  /// first frame at the new size is already in place. The prediction holds
-  /// only while the views keep to what it assumes: square tiles
-  /// [kMediaThumbnailGap] apart across and down, grids whose padding and
-  /// headers do not change with the column count, and only grids changing
-  /// height. The "zooming in and out" tests in media_library_grid_test.dart
-  /// compare it with the real layout in both views; change any of those
-  /// and they are the ones to run.
+  /// [pixels] is the offset the anchor was captured at, [oldTop] and
+  /// [newTop] the thumbnail's top in the old and new layouts, and
+  /// [newHeight] its new height. The layouts are exact, so this is exact:
+  /// the same fraction of the thumbnail stays under the cursor. Over a gap
+  /// or a header below the thumbnail, where the fraction is 1, its foot
+  /// stays put. Padding above the gallery is the same in both layouts and
+  /// cancels out.
   double scrollOffsetFor({
     required double pixels,
-    required int oldColumns,
-    required int newColumns,
-    double heightChangeAbove = 0,
+    required double oldTop,
+    required double newTop,
+    required double newHeight,
   }) {
-    final newExtent = mediaThumbnailExtentAfter(
-      tileExtent,
-      oldColumns: oldColumns,
-      newColumns: newColumns,
+    final fraction = tileExtent > 0
+        ? ((cursorY - tileTop) / tileExtent).clamp(0.0, 1.0)
+        : 0.0;
+    return math.max(
+      0,
+      pixels + (newTop - oldTop) + fraction * (newHeight - tileExtent),
     );
-    // How far down the thumbnail the cursor is. Below its foot, when the
-    // cursor is over a gap or a header, that distance is kept as it is:
-    // the foot stays put, it does not come down to meet the cursor.
-    final fraction = ((cursorY - tileTop) / tileExtent).clamp(0.0, 1.0);
-    final below = cursorY - (tileTop + fraction * tileExtent);
-    final oldTopInGrid =
-        (slot.index ~/ oldColumns) * (tileExtent + kMediaThumbnailGap);
-    final newTopInGrid =
-        (slot.index ~/ newColumns) * (newExtent + kMediaThumbnailGap);
-    final newTileTop =
-        tileTop - oldTopInGrid + heightChangeAbove + newTopInGrid;
-    final shift = newTileTop + fraction * newExtent + below - cursorY;
-    return math.max(0, pixels + shift);
   }
-}
-
-/// A thumbnail's side once its grid goes from [oldColumns] to [newColumns]
-/// across the same width.
-double mediaThumbnailExtentAfter(
-  double extent, {
-  required int oldColumns,
-  required int newColumns,
-}) {
-  final gridWidth = oldColumns * extent + (oldColumns - 1) * kMediaThumbnailGap;
-  return (gridWidth - (newColumns - 1) * kMediaThumbnailGap) / newColumns;
-}
-
-/// Height of a grid of [count] square thumbnails, [columns] across.
-double mediaThumbnailGridHeight(int count, int columns, double extent) {
-  final rows = (count / columns).ceil();
-  return rows * extent + math.max(0, rows - 1) * kMediaThumbnailGap;
 }
 
 /// Carries the anchor from the wheel event to the scroll view that will be
@@ -127,8 +93,9 @@ class MediaThumbnailZoomAnchorHolder {
     }
 
     boundary.visitChildrenForSemantics(visit);
-    // Just more than a gap, so a column beside the cursor is reached.
-    const stride = kMediaThumbnailGap + 1;
+    // Just more than the widest gap, so a thumbnail beside the cursor is
+    // reached.
+    const stride = 5.0;
     // Straight up first. Between two columns there is nothing straight up,
     // so then from one side of the gap, and from the other.
     for (final dx in const [0.0, -stride, stride]) {

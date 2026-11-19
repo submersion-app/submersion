@@ -170,6 +170,16 @@ class JustifiedMediaTable {
   int cellOf(int section, int tileIndex) =>
       _sectionFirstTile[section] + tileIndex;
 
+  /// The cell of thumbnail [tileIndex] in group [section], or null when this
+  /// table has no such thumbnail.
+  int? tileCellOf(int section, int tileIndex) {
+    if (section < 0 || section >= _sections.length) return null;
+    if (tileIndex < 0 || tileIndex >= _sections[section].ratios.length) {
+      return null;
+    }
+    return cellOf(section, tileIndex);
+  }
+
   /// Where [cell] sits, left to right, in the gallery's coordinates.
   Rect rectOf(int cell) =>
       Rect.fromLTWH(_lefts[cell], _tops[cell], _widths[cell], _heights[cell]);

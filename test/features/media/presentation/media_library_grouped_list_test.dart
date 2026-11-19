@@ -10,6 +10,7 @@ import 'package:submersion/features/media/domain/entities/media_source_type.dart
 import 'package:submersion/features/media/presentation/widgets/media_group_header.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_grid.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_grouped_list.dart';
+import 'package:submersion/features/media/presentation/widgets/justified_row_packer.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_groupers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -86,7 +87,7 @@ void main() {
               hasMore: hasMore,
               onLoadMore: onLoadMore ?? () {},
               onTileTap: onTileTap ?? (_) {},
-              columns: 4,
+              rowHeight: 200,
               selectedIds: selectedIds,
               isSelectionMode: isSelectionMode,
             ),
@@ -146,6 +147,16 @@ void main() {
     }
   });
 
+  // Entries with no stored size lay out at 4:3, packed into a usable width
+  // of 800 less 8 a side, 4 between, at a row height of 200 (issue #4738).
+  List<JustifiedRow> rowsFor(int count) => packJustifiedRows(
+    ratios: List.filled(count, 4 / 3),
+    paneWidth: 784,
+    targetHeight: 200,
+    gap: 4,
+    minTileWidth: 48,
+  );
+
   testWidgets('the gallery is exactly as tall as its headers and thumbnails', (
     tester,
   ) async {
@@ -161,15 +172,24 @@ void main() {
     );
     await tester.pump();
 
-    // A 48 header, then 3 rows of (800 - 16 - 3 * 4) / 4 = 193 with 2 gaps of
-    // 4, then 8 of padding, in a pane 600 tall.
+    // A 48 header, the rows with a gap of 4 between each, then 8 of
+    // padding, in a pane 600 tall.
+    final rows = rowsFor(10);
+    final rowsHeight =
+        rows.fold<double>(0, (sum, row) => sum + row.height) +
+        (rows.length - 1) * 4;
     final position = tester
         .state<ScrollableState>(find.byType(Scrollable).first)
         .position;
-    expect(position.maxScrollExtent, 48 + 3 * 193 + 2 * 4 + 8 - 600);
+    expect(
+      position.maxScrollExtent,
+      moreOrLessEquals(48 + rowsHeight + 8 - 600),
+    );
   });
 
-  testWidgets('thumbnails sit as the old grids put them', (tester) async {
+  testWidgets('thumbnails sit where the justified rows put them', (
+    tester,
+  ) async {
     setSize(tester);
     await tester.pumpWidget(
       host([
@@ -182,10 +202,32 @@ void main() {
     );
     await tester.pump();
 
+    final rows = rowsFor(5);
     final tiles = find.byType(MediaLibraryTile);
-    expect(tester.getRect(tiles.at(0)), const Rect.fromLTWH(8, 48, 193, 193));
-    expect(tester.getRect(tiles.at(3)), const Rect.fromLTWH(599, 48, 193, 193));
-    expect(tester.getRect(tiles.at(4)), const Rect.fromLTWH(8, 245, 193, 193));
+    final first = rows.first;
+    expect(
+      tester.getRect(tiles.at(0)),
+      rectMoreOrLessEquals(
+        Rect.fromLTWH(8, 48, first.widths.first, first.height),
+      ),
+    );
+    // The first row ends at the pane's edge, less its inset.
+    expect(
+      tester.getRect(tiles.at(first.count - 1)).right,
+      moreOrLessEquals(792),
+    );
+    final second = rows[1];
+    expect(
+      tester.getRect(tiles.at(second.start)),
+      rectMoreOrLessEquals(
+        Rect.fromLTWH(
+          8,
+          48 + first.height + 4,
+          second.widths.first,
+          second.height,
+        ),
+      ),
+    );
   });
 
   testWidgets('right to left mirrors the thumbnails', (tester) async {
@@ -201,10 +243,17 @@ void main() {
     );
     await tester.pump();
 
+    final rows = rowsFor(5);
     final tiles = find.byType(MediaLibraryTile);
-    expect(tester.getRect(tiles.at(0)).right, 792);
-    expect(tester.getRect(tiles.at(3)).left, 8);
-    expect(tester.getRect(tiles.at(4)).right, 792);
+    expect(tester.getRect(tiles.at(0)).right, moreOrLessEquals(792));
+    expect(
+      tester.getRect(tiles.at(rows.first.count - 1)).left,
+      moreOrLessEquals(8),
+    );
+    expect(
+      tester.getRect(tiles.at(rows[1].start)).right,
+      moreOrLessEquals(792),
+    );
   });
 
   testWidgets('a dive header reads as number and site', (tester) async {
@@ -279,7 +328,7 @@ void main() {
                 hasMore: false,
                 onLoadMore: () {},
                 onTileTap: (_) {},
-                columns: 4,
+                rowHeight: 200,
                 selectedIds: const {},
               ),
             ),

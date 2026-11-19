@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/media/data/repositories/media_aspect_cache_repository.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
@@ -16,6 +17,8 @@ import 'package:submersion/features/media/domain/services/media_source_resolver.
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
 import 'package:submersion/features/media/presentation/pages/media_library_view.dart';
+import 'package:submersion/features/media/domain/value_objects/learned_aspect.dart';
+import 'package:submersion/features/media/presentation/providers/media_learned_aspect_provider.dart';
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_thumbnail_scale_provider.dart';
@@ -60,6 +63,14 @@ class _SeededLibraryNotifier extends StateNotifier<MediaLibraryState>
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+class _NoShapesRepository implements MediaAspectCacheRepository {
+  @override
+  Future<Map<String, LearnedAspect>> loadAll() async => const {};
+
+  @override
+  Future<void> putAll(Map<String, LearnedAspect> entries) async {}
+}
+
 class _FakeSettingsRepo extends AppSettingsRepository {
   final Map<String, String> values = {};
 
@@ -91,6 +102,9 @@ void main() {
       overrides: [
         mediaLibraryNotifierProvider.overrideWith((ref) => notifier),
         appSettingsRepositoryProvider.overrideWithValue(_FakeSettingsRepo()),
+        mediaAspectCacheRepositoryProvider.overrideWithValue(
+          _NoShapesRepository(),
+        ),
         mediaSourceResolverRegistryProvider.overrideWithValue(
           MediaSourceResolverRegistry({
             MediaSourceType.localFile: _UnavailableResolver(),
@@ -123,57 +137,60 @@ void main() {
     );
   });
 
-  // Issue #3297: the toolbar's slider sizes the thumbnails, and a resize
-  // scales them instead of changing how many are across.
-  testWidgets('the size slider sets how many thumbnails go across, and a '
-      'resize keeps that number', (tester) async {
-    int tilesInFirstRow() {
-      final tiles = find.byType(MediaLibraryTile);
-      final top = tester.getTopLeft(tiles.first).dy;
-      return tiles
-          .evaluate()
-          .where((e) => tester.getTopLeft(find.byWidget(e.widget)).dy == top)
-          .length;
-    }
+  // Issues #3297 and #4738: the toolbar's slider sets the row height, and a
+  // resize re-packs the rows at that height.
+  testWidgets('the size slider sets the row height, and a resize keeps it', (
+    tester,
+  ) async {
+    // 41 photos with no stored size: 4:3 each, and the 41st alone in the
+    // open last row, which keeps the target height exactly.
+    double lastRowHeight() => tester
+        .getSize(
+          find.byWidgetPredicate(
+            (w) => w is MediaLibraryTile && w.entry.item.id == 'm40',
+            skipOffstage: false,
+          ),
+        )
+        .height;
 
+    // Tall enough that every row is built at each width.
     Future<void> resizeTo(double width) async {
-      tester.view.physicalSize = Size(width, 900);
+      tester.view.physicalSize = Size(width, 4000);
       await tester.pumpAndSettle();
     }
 
-    tester.view.physicalSize = const Size(1200, 900);
+    tester.view.physicalSize = const Size(1200, 4000);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
     final notifier = _SeededLibraryNotifier(
-      MediaLibraryState(entries: [for (var i = 0; i < 40; i++) entry('m$i')]),
+      MediaLibraryState(entries: [for (var i = 0; i < 41; i++) entry('m$i')]),
     );
     await tester.pumpWidget(host(notifier));
     await tester.pumpAndSettle();
-
-    // The middle of seven steps at 1200.
-    expect(tilesInFirstRow(), 6);
-    await resizeTo(900);
-    expect(tilesInFirstRow(), 6);
-    // (900 - 8 padding - 5 x 4 gaps) / 6: scaled down from 192 at 1200.
-    expect(
-      tester.getSize(find.byType(MediaLibraryTile).first).width,
-      moreOrLessEquals(145.33, epsilon: 0.01),
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(MediaLibraryView)),
     );
+    final held = container.read(mediaThumbnailScaleProvider).rowHeight!;
+
+    // The middle of seven stops.
+    expect(lastRowHeight(), moreOrLessEquals(held));
+    await resizeTo(900);
+    expect(lastRowHeight(), moreOrLessEquals(held));
 
     final slider = find.byKey(const ValueKey('thumbnail_size_slider'));
     await tester.tapAt(tester.getRect(slider).centerRight - const Offset(2, 0));
     await tester.pumpAndSettle();
 
-    // The largest: half the pane each.
-    expect(tilesInFirstRow(), 2);
+    // The largest: half the pane tall.
+    expect(lastRowHeight(), moreOrLessEquals(450));
     await resizeTo(1200);
-    expect(tilesInFirstRow(), 2);
+    expect(lastRowHeight(), moreOrLessEquals(450));
 
     // The same size carries into the grouped views.
     await tester.tap(find.byIcon(Icons.calendar_month));
     await tester.pumpAndSettle();
     expect(find.byType(MediaLibraryGroupedList), findsOneWidget);
-    expect(tilesInFirstRow(), 2);
+    expect(lastRowHeight(), moreOrLessEquals(450));
   });
 
   // Issue #3297. Enough entries to scroll is the point: a scroll view with
@@ -304,6 +321,57 @@ void main() {
       return (cursor.dy - rect.top) / rect.height;
     }
 
+    /// The thumbnail at [cursor], or the nearest one straight above it: what
+    /// a wheel zoom anchors. Justified rows re-pack on every size, so the
+    /// photo under the cursor can change from one zoom to the next; each
+    /// zoom holds the one it found (issue #4738).
+    String anchorAt(WidgetTester tester, Offset cursor) {
+      // Straight up, then from either side of a gap, as the zoom looks.
+      for (final dx in const [0.0, -5.0, 5.0]) {
+        final x = cursor.dx + dx;
+        String? best;
+        var bestTop = double.negativeInfinity;
+        for (final element in find.byType(MediaLibraryTile).evaluate()) {
+          final rect = tester.getRect(find.byWidget(element.widget));
+          if (x < rect.left || x >= rect.right) continue;
+          if (rect.top > cursor.dy || rect.top <= bestTop) continue;
+          best = (element.widget as MediaLibraryTile).entry.item.id;
+          bestTop = rect.top;
+        }
+        if (best != null) return best;
+      }
+      fail('no thumbnail at or above $cursor');
+    }
+
+    /// Zooms once and checks the anchored photo kept its place on the
+    /// cursor's line: the same fraction of it under the cursor, or, over a
+    /// gap or heading below it, its foot where it was.
+    Future<void> zoomHolds(
+      WidgetTester tester,
+      Offset cursor,
+      double dy, {
+      String? reason,
+    }) async {
+      final id = anchorAt(tester, cursor);
+      final before = tester.getRect(tileOf(id));
+      final over = cursor.dy < before.bottom;
+      final fraction = fractionDown(tester, id, cursor);
+      await ctrlWheel(tester, cursor, dy, settle: false);
+      if (over) {
+        expect(
+          fractionDown(tester, id, cursor),
+          moreOrLessEquals(fraction, epsilon: 0.01),
+          reason: reason,
+        );
+      } else {
+        expect(
+          tester.getRect(tileOf(id)).bottom,
+          moreOrLessEquals(before.bottom, epsilon: 0.5),
+          reason: reason,
+        );
+      }
+    }
+
     for (final (name, mode) in [
       ('gallery', Icons.grid_view),
       ('by date', Icons.calendar_month),
@@ -316,27 +384,14 @@ void main() {
         expect(fractionDown(tester, id, cursor), moreOrLessEquals(1 / 3));
 
         // Larger, twice: a single frame each, so nothing settles into place.
-        await ctrlWheel(tester, cursor, -100, settle: false);
-        expect(
-          fractionDown(tester, id, cursor),
-          moreOrLessEquals(1 / 3, epsilon: 0.01),
-        );
-        await ctrlWheel(tester, cursor, -100, settle: false);
-        expect(
-          fractionDown(tester, id, cursor),
-          moreOrLessEquals(1 / 3, epsilon: 0.01),
-        );
+        await zoomHolds(tester, cursor, -100, reason: 'wheel up 0');
+        await zoomHolds(tester, cursor, -100, reason: 'wheel up 1');
 
         // And smaller, past where it started. Not all the way: small
         // enough, the photo is nearer the gallery's start than the cursor
         // is to the top of the pane, which is the next tests' business.
         for (var i = 0; i < 3; i++) {
-          await ctrlWheel(tester, cursor, 100, settle: false);
-          expect(
-            fractionDown(tester, id, cursor),
-            moreOrLessEquals(1 / 3, epsilon: 0.01),
-            reason: 'wheel down $i',
-          );
+          await zoomHolds(tester, cursor, 100, reason: 'wheel down $i');
         }
         expect(tester.takeException(), isNull);
       }, variant: TargetPlatformVariant.only(TargetPlatform.windows));
@@ -354,12 +409,7 @@ void main() {
       final cursor = Offset(onTile.dx, foot + 2);
 
       for (final dy in [-100.0, -100.0, 100.0, 100.0, 100.0]) {
-        await ctrlWheel(tester, cursor, dy, settle: false);
-        expect(
-          tester.getRect(tileOf(id)).bottom,
-          moreOrLessEquals(foot, epsilon: 0.5),
-          reason: 'wheel $dy',
-        );
+        await zoomHolds(tester, cursor, dy, reason: 'wheel $dy');
       }
     }, variant: TargetPlatformVariant.only(TargetPlatform.windows));
 
@@ -373,12 +423,7 @@ void main() {
       final rect = tester.getRect(tileOf(id));
       final cursor = Offset(rect.right + 2, onTile.dy);
 
-      await ctrlWheel(tester, cursor, -100, settle: false);
-
-      expect(
-        fractionDown(tester, id, cursor),
-        moreOrLessEquals(1 / 3, epsilon: 0.01),
-      );
+      await zoomHolds(tester, cursor, -100);
     }, variant: TargetPlatformVariant.only(TargetPlatform.windows));
 
     testWidgets('over a date heading, holds the photo above it', (
@@ -416,13 +461,10 @@ void main() {
       }
       expect(cursor, isNotNull, reason: 'no heading under a photo on screen');
 
+      expect(id, isNotNull);
+      expect(foot, isNotNull);
       for (final dy in [-100.0, 100.0, 100.0]) {
-        await ctrlWheel(tester, cursor!, dy, settle: false);
-        expect(
-          tester.getRect(tileOf(id!)).bottom,
-          moreOrLessEquals(foot!, epsilon: 0.5),
-          reason: 'wheel $dy',
-        );
+        await zoomHolds(tester, cursor!, dy, reason: 'wheel $dy');
       }
     }, variant: TargetPlatformVariant.only(TargetPlatform.windows));
 

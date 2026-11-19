@@ -124,6 +124,15 @@ void main() {
     });
   });
 
+  test('tileCellOf answers null for a thumbnail the table lacks', () {
+    final table = _table(_twoSections);
+
+    expect(table.tileCellOf(1, 2), table.cellOf(1, 2));
+    expect(table.tileCellOf(1, 3), isNull);
+    expect(table.tileCellOf(2, 0), isNull);
+    expect(table.tileCellOf(-1, 0), isNull);
+  });
+
   group('lookups', () {
     test('return the start and end of a row', () {
       final table = _table(_twoSections);
