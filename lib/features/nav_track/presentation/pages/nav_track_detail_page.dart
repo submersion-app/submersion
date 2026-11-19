@@ -28,6 +28,7 @@ import 'package:submersion/features/nav_track/presentation/editing/nav_track_edi
 import 'package:submersion/features/nav_track/presentation/nav_track_file_actions.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_3d_page.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_align_page.dart';
+import 'package:submersion/features/nav_track/presentation/providers/nav_track_preview_provider.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_correction_card.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_detail_cards.dart';
@@ -224,23 +225,33 @@ class _NavTrackDetailPageState extends ConsumerState<NavTrackDetailPage>
   // The bar and the menu.
 
   /// Align, the two 3D views, and (from [menu]) the overflow menu: the
-  /// bar's actions, locked or unlocked.
-  List<Widget> _barActions(NavTrack route, {required Widget menu}) {
+  /// bar's actions, locked or unlocked. The 3D views draw [shown], the
+  /// route as a sitting holds it, without writing it.
+  List<Widget> _barActions(
+    NavTrack shown,
+    NavTrack stored, {
+    required Widget menu,
+  }) {
     final l10n = context.l10n;
     return [
       IconButton(
         key: const ValueKey('nav-track-align'),
         icon: const Icon(Icons.tune),
         tooltip: l10n.navTrack_align_title,
-        onPressed: () => _openAlign(route),
+        onPressed: () => _openAlign(stored),
       ),
       IconButton(
         key: const ValueKey('nav-track-open-3d-preview'),
         icon: const Icon(Icons.view_in_ar),
         tooltip: l10n.navTrack3d_previewTitle,
-        onPressed: () => Navigator.of(context).push(
-          MaterialPageRoute<void>(
-            builder: (_) => NavTrack3dPage(trackId: route.id),
+        onPressed: () => showNavTrackIn3d(
+          ref,
+          shown: shown,
+          stored: stored,
+          push: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => NavTrack3dPage(trackId: shown.id),
+            ),
           ),
         ),
       ),
@@ -248,8 +259,12 @@ class _NavTrackDetailPageState extends ConsumerState<NavTrackDetailPage>
         key: const ValueKey('nav-track-open-3d'),
         icon: const Icon(Icons.terrain),
         tooltip: l10n.navTrack_common_open3dTooltip,
-        onPressed: () =>
-            context.push(underwaterTrackSeascapeLocation(route.id)),
+        onPressed: () => showNavTrackIn3d(
+          ref,
+          shown: shown,
+          stored: stored,
+          push: () => context.push(underwaterTrackSeascapeLocation(shown.id)),
+        ),
       ),
       menu,
     ];
@@ -374,7 +389,9 @@ class _NavTrackDetailPageState extends ConsumerState<NavTrackDetailPage>
           // narrow window. It instead opens the body as its own
           // emphasized card, the same box the stats card uses right below.
           return Scaffold(
-            appBar: AppBar(actions: _barActions(stored, menu: _menu(stored))),
+            appBar: AppBar(
+              actions: _barActions(stored, stored, menu: _menu(stored)),
+            ),
             body: _body(stored, stored),
           );
         }
@@ -385,10 +402,10 @@ class _NavTrackDetailPageState extends ConsumerState<NavTrackDetailPage>
           lockedBar: AppBar(
             actions: [
               lockButton(shown),
-              ..._barActions(shown, menu: _menu(shown)),
+              ..._barActions(shown, stored, menu: _menu(shown)),
             ],
           ),
-          unlockedActions: _barActions(shown, menu: _menu(shown)),
+          unlockedActions: _barActions(shown, stored, menu: _menu(shown)),
           content: _body(stored, shown),
         );
       },

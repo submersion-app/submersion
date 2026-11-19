@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/nav_track/presentation/pages/nav_track_3d_page.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_align_page.dart';
+import 'package:submersion/features/nav_track/presentation/pages/nav_track_detail_page.dart';
+import 'package:submersion/features/nav_track/presentation/providers/nav_track_preview_provider.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_marker_layer.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
@@ -344,5 +348,47 @@ void main() {
       expect(find.byType(RecordEditBar), findsOneWidget);
       expect(find.text('Morning'), findsOneWidget);
     });
+  });
+
+  testWidgets('with a held correction the 3D preview draws it and nothing is '
+      'written', (tester) async {
+    final harness = await pumpNavTrackPage(tester);
+    await unlock(tester);
+    await pickNewSite(tester);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(NavTrackDetailPage)),
+    );
+
+    await tester.tap(find.byKey(const ValueKey('nav-track-open-3d-preview')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(NavTrack3dPage), findsOneWidget);
+    expect(
+      container.read(navTrackPreviewProvider('r1'))?.anchor,
+      newSite.location,
+    );
+    expect(harness.repository.writes, isEmpty);
+    expect(harness.save.calls, isEmpty);
+
+    Navigator.of(tester.element(find.byType(NavTrack3dPage))).pop();
+    await tester.pumpAndSettle();
+
+    expect(container.read(navTrackPreviewProvider('r1')), isNull);
+    expect(find.byType(RecordEditBar), findsOneWidget);
+  });
+
+  testWidgets('without a held change the 3D preview previews nothing', (
+    tester,
+  ) async {
+    await pumpNavTrackPage(tester);
+    await unlock(tester);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(NavTrackDetailPage)),
+    );
+
+    await tester.tap(find.byKey(const ValueKey('nav-track-open-3d-preview')));
+    await tester.pumpAndSettle();
+
+    expect(container.read(navTrackPreviewProvider('r1')), isNull);
   });
 }

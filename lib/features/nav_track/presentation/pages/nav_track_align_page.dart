@@ -31,6 +31,7 @@ import 'package:submersion/features/nav_track/domain/nav_track_scale_handle.dart
 import 'package:submersion/features/nav_track/domain/nav_track_segmenter.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_terrain_check.dart';
 import 'package:submersion/features/nav_track/presentation/editing/nav_track_edit_fields.dart';
+import 'package:submersion/features/nav_track/presentation/providers/nav_track_preview_provider.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_align_geometry.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_align_map_layers.dart';
@@ -302,12 +303,22 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
   /// saving first it would show whatever was last persisted -- not
   /// necessarily what the diver is currently looking at on this page.
   ///
-  /// Where the track pages edit in place, nothing is saved from here: the
-  /// 3D view shows the alignment as it is stored.
+  /// Where the track pages edit in place, nothing is saved from here.
   Future<void> _openIn3d(NavTrack route) async {
-    if (!widget.unlockEditing) await _persistCorrection(route);
-    if (!mounted) return;
-    context.push(underwaterTrackSeascapeLocation(route.id));
+    if (!widget.unlockEditing) {
+      await _persistCorrection(route);
+      if (!mounted) return;
+      context.push(underwaterTrackSeascapeLocation(route.id));
+      return;
+    }
+    // In a sitting the view previews the correction made here; reading
+    // only, it shows the stored one.
+    await showNavTrackIn3d(
+      ref,
+      shown: _joined == null ? route : route.withCorrection(_correction),
+      stored: route,
+      push: () => context.push(underwaterTrackSeascapeLocation(route.id)),
+    );
   }
 
   void _startPlacing(_Placing target) {

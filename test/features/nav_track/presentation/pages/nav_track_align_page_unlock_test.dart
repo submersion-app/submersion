@@ -11,6 +11,7 @@ import 'package:submersion/features/nav_track/domain/entities/nav_track_point.da
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 import 'package:submersion/features/nav_track/presentation/editing/nav_track_edit_fields.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_align_page.dart';
+import 'package:submersion/features/nav_track/presentation/providers/nav_track_preview_provider.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
@@ -221,15 +222,24 @@ void main() {
     expect(sitting.session!.changedCardIds, isEmpty);
   });
 
-  testWidgets('the 3D button writes nothing in a sitting', (tester) async {
+  testWidgets("the 3D button previews the page's correction and writes "
+      'nothing', (tester) async {
     final sitting = _sitting();
     final repository = await _pump(tester, joined: sitting);
     await tester.drag(_slider, const Offset(80, 0));
     await tester.pump();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(NavTrackAlignPage)),
+    );
 
     await tester.tap(find.byKey(const ValueKey('nav-track-align-3d')));
     await tester.pumpAndSettle();
 
+    expect(find.text('ROUTE_3D_PAGE'), findsOneWidget);
+    expect(
+      container.read(navTrackPreviewProvider('r1'))?.trustFraction,
+      greaterThan(0),
+    );
     expect(repository.corrections, isEmpty);
     expect(sitting.session!.changedCardIds, isEmpty);
   });
