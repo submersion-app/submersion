@@ -132,6 +132,11 @@ class _TripDetailTabsState extends ConsumerState<TripDetailTabs> {
               kept(
                 TripOverviewTab(
                   tripWithStats: tripWithStats,
+                  // With the page's controller there is no
+                  // DefaultTabController for the rows to find.
+                  onOpenTab: controller == null
+                      ? null
+                      : (tab) => controller.animateTo(tab.index),
                   onEditPlan: onEditPlan,
                   selection: _storySelection,
                   onEditDayNote: widget.onEditDayNote,

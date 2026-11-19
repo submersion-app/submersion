@@ -386,6 +386,15 @@ void main() {
 
     expect(find.byKey(const Key('trip-header-rows')), findsNothing);
   });
+
+  testWidgets('locked, blank header values draw no rows', (tester) async {
+    await pumpTripPage(
+      tester,
+      trip: liveaboard.copyWith(location: '  ', resortName: ''),
+    );
+
+    expect(find.byKey(const Key('trip-header-rows')), findsNothing);
+  });
 }
 
 /// Who items are shared with cannot be read.

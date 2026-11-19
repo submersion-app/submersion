@@ -92,12 +92,24 @@ mixin _TripDetailPageEditing
     final diverId = ref.read(validatedCurrentDiverIdProvider).value;
     if (diverId == null) return true;
     final trips = ref.read(tripRepositoryProvider);
-    final candidates = await trips.findCandidateDivesForTrip(
-      tripId: stored.id,
-      startDate: working.startDate,
-      endDate: working.endDate,
-      diverId: diverId,
-    );
+    final List<DiveCandidate> candidates;
+    try {
+      candidates = await trips.findCandidateDivesForTrip(
+        tripId: stored.id,
+        startDate: working.startDate,
+        endDate: working.endDate,
+        diverId: diverId,
+      );
+    } catch (e, stackTrace) {
+      // The question is an offer: a read that fails asks nothing, and the
+      // dates are saved as the diver set them.
+      _log.error(
+        'Failed to find the dives in trip ${stored.id}\'s new dates',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return mounted && !session.isDisposed;
+    }
     if (!mounted || session.isDisposed) return false;
     if (candidates.isEmpty) return true;
     final chosen = await showDiveAssignmentDialog(

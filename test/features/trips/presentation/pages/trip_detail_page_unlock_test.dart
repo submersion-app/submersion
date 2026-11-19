@@ -273,4 +273,16 @@ void main() {
     expect(find.byType(AlertDialog), findsOneWidget);
     expect(harness.save.calls, isEmpty);
   });
+
+  testWidgets("with the switch on the summary card's rows open their tab", (
+    tester,
+  ) async {
+    await pumpTripPage(tester);
+
+    await tester.tap(find.text(l.trips_detail_tab_checklist).last);
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text(l.trips_detail_preDive_action), findsOneWidget);
+  });
 }

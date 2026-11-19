@@ -32,7 +32,7 @@ void main() {
       tripType: TripType.liveaboard,
     );
 
-    final days = withMissingDays([june1], working);
+    final days = withDaysAdded([june1], missingItineraryDays([june1], working));
 
     expect(
       [for (final d in days) d.date],
@@ -75,9 +75,13 @@ void main() {
       redSea.copyWith(endDate: DateTime(2030, 6, 3)),
     );
     await list.load(session);
-    final held = withMissingDays(
-      withDayEdited(list.current(session)!, june1.copyWith(notes: 'Wreck')),
-      session.working,
+    final edited = withDayEdited(
+      list.current(session)!,
+      june1.copyWith(notes: 'Wreck'),
+    );
+    final held = withDaysAdded(
+      edited,
+      missingItineraryDays(edited, session.working),
     );
     list.set(session, held);
     final added = held.last;

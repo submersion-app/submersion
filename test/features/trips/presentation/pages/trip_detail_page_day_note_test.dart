@@ -136,4 +136,23 @@ void main() {
       'Intro\n\n## Day 2\nDrift\n\n## Day 3\nReef',
     );
   });
+
+  testWidgets('notes changed underneath while the Day plan is open are kept '
+      'when the diver types', (tester) async {
+    final harness = await pumpTripPage(tester, trip: underWay());
+    await addNote(tester);
+
+    // Another part of the sitting (or the stored trip followed) changes the
+    // notes before the diver types here.
+    controllerOf(tester).session!.set(tripNotesField, 'Intro, edited');
+    await tester.pumpAndSettle();
+    await tester.enterText(dayNote(), 'Sharks');
+    await tester.pumpAndSettle();
+    await save(tester);
+
+    expect(
+      harness.save.calls.single.after.notes,
+      'Intro, edited\n\n## Day 2\nSharks',
+    );
+  });
 }

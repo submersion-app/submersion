@@ -45,18 +45,23 @@ SittingList<Trip, ItineraryDay> _itineraryList(
   },
 );
 
-/// [days] with the days [working]'s dates have no row for, generated for
-/// its type as the Generate button generates them, in date order.
-List<ItineraryDay> withMissingDays(List<ItineraryDay> days, Trip working) {
+/// The days [trip]'s dates have no row for in [days], generated for its
+/// type: what the Generate button adds.
+List<ItineraryDay> missingItineraryDays(List<ItineraryDay> days, Trip trip) {
   final covered = {for (final d in days) tripDay(d.date)};
-  final missing = ItineraryDay.generateForTrip(
-    tripId: working.id,
-    startDate: working.startDate,
-    endDate: working.endDate,
-    tripType: working.tripType,
-  ).where((d) => !covered.contains(tripDay(d.date)));
-  return [...days, ...missing]..sort((a, b) => a.date.compareTo(b.date));
+  return ItineraryDay.generateForTrip(
+    tripId: trip.id,
+    startDate: trip.startDate,
+    endDate: trip.endDate,
+    tripType: trip.tripType,
+  ).where((d) => !covered.contains(tripDay(d.date))).toList();
 }
+
+/// [days] with [added] among them, in date order.
+List<ItineraryDay> withDaysAdded(
+  List<ItineraryDay> days,
+  List<ItineraryDay> added,
+) => [...days, ...added]..sort((a, b) => a.date.compareTo(b.date));
 
 /// [days] with the day [edited] is a copy of taking what the day sheet
 /// edits from it: the type, the place, the notes and the planned dives.

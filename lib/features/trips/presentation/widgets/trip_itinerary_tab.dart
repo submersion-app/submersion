@@ -106,7 +106,8 @@ class TripItineraryTab extends ConsumerWidget {
           days,
           dives,
           working,
-          onGenerate: (_) => list.set(session, withMissingDays(held, working)),
+          onGenerate: (missing) =>
+              list.set(session, withDaysAdded(held, missing)),
           onEditDay: (day) => list.set(session, withDayEdited(held, day)),
         );
       },

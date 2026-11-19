@@ -227,6 +227,29 @@ class _TripVesselCardEditorState extends ConsumerState<TripVesselCardEditor> {
   /// Whether the controllers hold the sitting's row yet.
   bool _filled = false;
 
+  /// The page's controller, told when the capacity cannot be read, kept so
+  /// the mark can be withdrawn when this editor goes away (the trip made a
+  /// resort trip, say), or it would refuse every Save for a card no longer
+  /// on the page.
+  RecordEditController<Trip>? _marks;
+  bool _capacityMarked = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _marks = RecordEditScope.maybeOf<Trip>(context);
+  }
+
+  void _markCapacity(bool unreadable) {
+    if (unreadable == _capacityMarked) return;
+    _capacityMarked = unreadable;
+    _marks?.setFieldInvalid(
+      TripCardId.vessel.name,
+      _capacityId,
+      invalid: unreadable,
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -237,6 +260,7 @@ class _TripVesselCardEditorState extends ConsumerState<TripVesselCardEditor> {
 
   @override
   void dispose() {
+    _markCapacity(false);
     _changes.removeListener(_onChanged);
     for (final c in [
       _name,
@@ -285,11 +309,7 @@ class _TripVesselCardEditorState extends ConsumerState<TripVesselCardEditor> {
 
   void _onCapacity(String text) {
     final read = readNumber(text, integer: true);
-    RecordEditScope.maybeOf<Trip>(context)?.setFieldInvalid(
-      TripCardId.vessel.name,
-      _capacityId,
-      invalid: read is NumberInvalid,
-    );
+    _markCapacity(read is NumberInvalid);
     switch (read) {
       case NumberValue(:final value):
         // Zero or below is no capacity, as the form stored it.
@@ -456,51 +476,74 @@ class TripDayPlanCardEditor extends StatefulWidget {
 }
 
 class _TripDayPlanCardEditorState extends State<TripDayPlanCardEditor> {
-  /// Where the day's passage is in the notes as the editor opened them.
+  /// Where the day's passage is in the notes the editor last placed it in.
   late DayNotePlacement _placement;
   late DayPassage _parts;
-  late final TextEditingController _controller;
+  final TextEditingController _controller = TextEditingController();
+
+  /// The notes as the sitting had them when this editor last placed the
+  /// passage or wrote it. Notes changed otherwise (another card, or the
+  /// stored trip followed while they are untouched) are placed again, so a
+  /// keystroke here never writes back notes from before that change.
+  String? _seen;
+
+  /// Whether this editor is writing the notes, so its own change is not
+  /// taken for one made elsewhere.
+  bool _writing = false;
 
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController();
+    widget.session.addListener(_onSession);
   }
-
-  bool _placed = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_placed) return;
-    _placed = true;
+    if (_seen == null) _place();
+  }
+
+  @override
+  void dispose() {
+    widget.session.removeListener(_onSession);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  /// Finds the day's passage in the sitting's notes, and shows it.
+  void _place() {
     final l10n = context.l10n;
-    _placement = placeDayNoteIn(
-      widget.session.valueOf(tripNotesField),
-      widget.day,
-      l10n,
-    );
+    final notes = widget.session.valueOf(tripNotesField);
+    _seen = notes;
+    _placement = placeDayNoteIn(notes, widget.day, l10n);
     _parts = dayPassageOf(
       _placement,
       widget.day,
       tripDayNotesVocabularyFor(l10n),
     );
+    if (_controller.text == _parts.passage) return;
     _controller.value = TextEditingValue(
       text: _parts.passage,
       selection: TextSelection.collapsed(offset: _parts.passage.length),
     );
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
+  void _onSession() {
+    if (_writing || !mounted || widget.session.isDisposed) return;
+    if (widget.session.valueOf(tripNotesField) == _seen) return;
+    _place();
   }
 
-  void _onChanged(String passage) => widget.session.set(
-    tripNotesField,
-    withDayPassage(_placement, _parts, passage),
-  );
+  void _onChanged(String passage) {
+    final session = widget.session;
+    _writing = true;
+    try {
+      session.set(tripNotesField, withDayPassage(_placement, _parts, passage));
+    } finally {
+      _writing = false;
+    }
+    _seen = session.valueOf(tripNotesField);
+  }
 
   @override
   Widget build(BuildContext context) => MarkdownNotesField(

@@ -16,6 +16,8 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/services/trip_day_notes.dart';
 import 'package:submersion/features/trips/presentation/helpers/side_trip_delete_lines.dart';
@@ -54,6 +56,8 @@ import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_f
 
 part 'trip_detail_page_editing.dart';
 part 'trip_detail_page_menu.dart';
+
+const _log = LoggerService('TripDetailPage');
 
 /// A trip's page: six tabs under its name. Behind phase 3's switch
 /// ([unlockEditing]) it opens locked and edits in place (issue #4527): its
@@ -110,10 +114,16 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage>
   /// The page's tabs, here so the sitting knows the tab in view and can
   /// bring another forward (a card refused at Save).
   @override
-  late final TabController tabController = TabController(
-    length: TripDetailTab.values.length,
-    vsync: this,
-  )..addListener(_onTabChanged);
+  late final TabController tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    tabController = TabController(
+      length: TripDetailTab.values.length,
+      vsync: this,
+    )..addListener(_onTabChanged);
+  }
 
   /// Which page of the Overview's story shows, here so a link can open the
   /// story at a day.
@@ -159,6 +169,13 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage>
     if (oldWidget.tripId != widget.tripId) {
       tabController.index = 0;
       _storySelection.value = null;
+    }
+    // A page handed another address opens at the card that one names.
+    if (oldWidget.tripId != widget.tripId ||
+        oldWidget.openUnlocked != widget.openUnlocked ||
+        oldWidget.openSection != widget.openSection ||
+        oldWidget.openNoteDay != widget.openNoteDay) {
+      _openedAtCard = false;
     }
   }
 
@@ -266,8 +283,9 @@ class _TripDetailContent extends ConsumerWidget {
     final host = this.host;
     // One layout for every trip type (#2845): the tab row under the "Shared
     // by" banner, embedded under the master-detail header or in a Scaffold.
-    // Who the trip is shared with is shown and changed on the edit page
-    // only (#3766).
+    // Who the trip is shared with is changed on the edit page (#3766), or,
+    // where the page edits in place, on its header block (issue #4527).
+    final slots = host?._slots(trip, stored);
     Widget body = Column(
       children: [
         SharedByBanner(
@@ -283,22 +301,22 @@ class _TripDetailContent extends ConsumerWidget {
         // The header block, on every tab, where the page edits in place:
         // the trip's values nothing else shows, and its editor (issue
         // #4527).
-        if (host != null)
-          host
-              ._slots(trip, stored)
-              .frame(TripCardId.header, TripHeaderRows(trip: trip)),
+        ?slots?.frame(TripCardId.header, TripHeaderRows(trip: trip)),
         Expanded(
           child: TripDetailTabs(
             tripWithStats: tripWithStats,
             controller: host?.tabController,
             storySelection: host?._storySelection,
             // In the master-detail pane the edit stays in the pane (#2880).
-            onEditPlan: () => openTripEdit(
-              context,
-              trip.id,
-              embedded: embedded,
-              section: TripEditSection.planning,
-            ),
+            // Where the page edits in place the Plan row opens its card.
+            onEditPlan: host != null
+                ? null
+                : () => openTripEdit(
+                    context,
+                    trip.id,
+                    embedded: embedded,
+                    section: TripEditSection.planning,
+                  ),
             // Where the page edits in place, the day's note is its Day
             // plan, opened where it is, unlocking first when locked.
             onEditDayNote: host != null
@@ -313,8 +331,8 @@ class _TripDetailContent extends ConsumerWidget {
         ),
       ],
     );
-    if (host != null) {
-      body = TripCardSlotsScope(slots: host._slots(trip, stored), child: body);
+    if (slots != null) {
+      body = TripCardSlotsScope(slots: slots, child: body);
     }
 
     if (embedded) {

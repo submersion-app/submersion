@@ -194,12 +194,8 @@ class TripRepository {
     }
   }
 
-  /// Update an existing trip.
-  ///
-  /// With [dropBarePlanDays] (the default) the plan-only itinerary days the
-  /// new dates no longer cover are dropped afterwards, best effort. An
-  /// editing sitting passes false and drops them itself, after its own
-  /// itinerary writes (issue #4527).
+  /// Update an existing trip. [dropBarePlanDays] false leaves the plan-only
+  /// days to an editing sitting, which drops them after its own (#4527).
   Future<void> updateTrip(
     domain.Trip trip, {
     String? actingDiverId,
@@ -261,15 +257,12 @@ class TripRepository {
         // own, drops its dives' links to the old larger trip's cylinders
         // (issue #3658). After the write, so the rule reads the new parent.
         if (parentChanged) {
-          for (final diveId in await _diveIdsOnTrip(trip.id)) {
-            await clearForeignTripCylinderLinks(
-              _db,
-              _syncRepository,
-              diveId,
-              tripId: trip.id,
-              now: now,
-            );
-          }
+          await clearForeignLinksOnTripDives(
+            _db,
+            _syncRepository,
+            trip.id,
+            now: now,
+          );
         }
       });
       await _syncRepository.markRecordPending(
@@ -278,9 +271,22 @@ class TripRepository {
         localUpdatedAt: now,
       );
       // A shortened or moved trip drops the plan-only itinerary days it no
-      // longer covers (#2325).
+      // longer covers (#2325). Cleanup only: the trip is saved, so a
+      // failure here is logged rather than reported as a failed save.
       if (dropBarePlanDays) {
-        await _dropBarePlanDaysOutside(trip);
+        try {
+          await _itineraryDays.deleteBarePlanDaysOutside(
+            trip.id,
+            trip.startDate,
+            trip.endDate,
+          );
+        } catch (e, stackTrace) {
+          _log.error(
+            'Failed to drop plan-only itinerary days for trip: ${trip.id}',
+            error: e,
+            stackTrace: stackTrace,
+          );
+        }
       }
       SyncEventBus.notifyLocalChange();
       _log.info('Updated trip: ${trip.id}');
@@ -292,37 +298,6 @@ class TripRepository {
       );
       rethrow;
     }
-  }
-
-  /// Drops the plan-only itinerary days [trip]'s dates no longer cover
-  /// (#2325). Cleanup only: the trip is saved, so a failure here is logged
-  /// rather than reported as a failed save.
-  Future<void> _dropBarePlanDaysOutside(domain.Trip trip) async {
-    try {
-      await _itineraryDays.deleteBarePlanDaysOutside(
-        trip.id,
-        trip.startDate,
-        trip.endDate,
-      );
-    } catch (e, stackTrace) {
-      _log.error(
-        'Failed to drop plan-only itinerary days for trip: ${trip.id}',
-        error: e,
-        stackTrace: stackTrace,
-      );
-    }
-  }
-
-  /// The ids of the dives whose own trip is [tripId], every profile's.
-  Future<List<String>> _diveIdsOnTrip(String tripId) async {
-    final rows = await _db
-        .customSelect(
-          // stats-scope-exempt: tank link cleanup, excluded dives included.
-          'SELECT id FROM dives WHERE trip_id = ?',
-          variables: [Variable.withString(tripId)],
-        )
-        .get();
-    return [for (final r in rows) r.read<String>('id')];
   }
 
   /// Delete a trip and all associated child records, when [actingDiverId]

@@ -74,19 +74,19 @@ class TripHeaderRows extends ConsumerWidget {
           label: l10n.enum_tripField_tripType,
           value: tripTypeName(l10n, trip.tripType),
         ),
-      if (trip.location case final location?)
+      if (_present(trip.location) case final location?)
         DetailRow.text(
           icon: Icons.place,
           label: l10n.trips_edit_label_location,
           value: location,
         ),
-      if (trip.resortName case final resort?)
+      if (_present(trip.resortName) case final resort?)
         DetailRow.text(
           icon: Icons.hotel,
           label: l10n.trips_edit_label_resortName,
           value: resort,
         ),
-      if (trip.liveaboardName case final boat?)
+      if (_present(trip.liveaboardName) case final boat?)
         DetailRow.text(
           icon: Icons.sailing,
           label: l10n.trips_edit_label_liveaboardName,
@@ -115,6 +115,13 @@ class TripHeaderRows extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  /// [value] trimmed, or null when blank: sync and imports can store
+  /// whitespace the form would have stored as none.
+  static String? _present(String? value) {
+    final trimmed = value?.trim();
+    return trimmed == null || trimmed.isEmpty ? null : trimmed;
   }
 
   /// "Shared with", for the owner of a trip shared with other profiles,
@@ -165,8 +172,9 @@ String tripTypeName(AppLocalizations l10n, TripType type) => switch (type) {
 
 /// The header block's editor: the trip's type, name, larger trip, dates,
 /// return flight, location, resort, the boat's name as older versions kept
-/// it, and who it is shared with, with the form's rules. At most half the
-/// page high, scrolling inside, so the tabs stay in sight below it.
+/// it, and who it is shared with, with the form's rules. At most two fifths
+/// of the screen the keyboard leaves, scrolling inside, so the tabs stay in
+/// sight below it.
 class TripHeaderCardEditor extends ConsumerStatefulWidget {
   const TripHeaderCardEditor({super.key, required this.session});
 
@@ -315,10 +323,13 @@ class _TripHeaderCardEditorState extends ConsumerState<TripHeaderCardEditor> {
         ref.watch(hasSideTripsProvider(_session.stored.id)).value ?? false;
     final nameBlank = !tripNameValid(_name.controller.text);
     final sharing = _sharingField();
+    // At most two fifths of what the keyboard leaves of the screen, so the
+    // tab row and some of the tab stay in sight below the open editor.
+    final visible =
+        MediaQuery.sizeOf(context).height -
+        MediaQuery.viewInsetsOf(context).bottom;
     return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.sizeOf(context).height / 2,
-      ),
+      constraints: BoxConstraints(maxHeight: visible * 0.4),
       child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,

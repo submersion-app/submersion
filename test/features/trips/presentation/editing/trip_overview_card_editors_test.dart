@@ -260,4 +260,28 @@ void main() {
       expect(find.text('MV Blue'), findsOneWidget);
     });
   });
+
+  testWidgets('an unreadable capacity left behind by a type change does not '
+      'refuse the Save', (tester) async {
+    final harness = await pumpTripPage(
+      tester,
+      trip: liveaboard,
+      vessel: mvBlue,
+    );
+    await unlock(tester);
+    await openCard(tester, vessel);
+    await tester.enterText(
+      find.byKey(const Key('trip-edit-vessel-capacity')),
+      '1.5',
+    );
+    await tester.pumpAndSettle();
+    expect(find.text(l.numberInput_invalidWholeNumber), findsOneWidget);
+
+    sessionOf(tester).set(tripTypeField, TripType.resort);
+    await tester.pumpAndSettle();
+    expect(find.byType(TripVesselCardEditor), findsNothing);
+    await save(tester);
+
+    expect(harness.save.calls, hasLength(1));
+  });
 }

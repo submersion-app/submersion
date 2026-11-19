@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_itinerary_sitting.dart';
 import 'package:submersion/features/trips/domain/services/trip_dive_days.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
@@ -52,15 +53,8 @@ class _TripItineraryGenerateButtonState
     ).any((d) => !covered.contains(d));
   }
 
-  List<ItineraryDay> _missing() {
-    final covered = _covered();
-    return ItineraryDay.generateForTrip(
-      tripId: widget.trip.id,
-      startDate: widget.trip.startDate,
-      endDate: widget.trip.endDate,
-      tripType: widget.trip.tripType,
-    ).where((d) => !covered.contains(tripDay(d.date))).toList();
-  }
+  List<ItineraryDay> _missing() =>
+      missingItineraryDays(widget.days, widget.trip);
 
   Future<void> _generate() async {
     // A second tap while the first save is in flight would insert the days

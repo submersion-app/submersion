@@ -165,4 +165,17 @@ void main() {
     expect(harness.tripDives.assigned, isEmpty);
     expect(find.byType(RecordEditBar), findsNothing);
   });
+
+  testWidgets('a candidate read that fails still saves, asking nothing', (
+    tester,
+  ) async {
+    final harness = await pumpWithNewStart(tester);
+    harness.tripDives.failRead = true;
+
+    await tapSave(tester);
+
+    expect(find.text(l.trips_diveScan_title), findsNothing);
+    expect(harness.save.calls, hasLength(1));
+    expect(harness.tripDives.assigned, isEmpty);
+  });
 }
