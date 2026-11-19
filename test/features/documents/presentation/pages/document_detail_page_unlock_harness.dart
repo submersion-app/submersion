@@ -1,9 +1,14 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/data/services/document_edit_save_service.dart';
+import 'package:submersion/core/services/images/profile_photo_codec.dart';
+import 'package:submersion/features/documents/data/services/document_page_capture.dart';
+import 'package:submersion/features/documents/presentation/editing/document_pages_card_editor.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
 import 'package:submersion/features/documents/presentation/editing/document_record.dart';
@@ -114,6 +119,17 @@ Future<DocumentPageHarness> pumpDocumentPage(
         }),
         documentPagesProvider(doc.id).overrideWith((ref) async => pages),
         documentRepositoryProvider.overrideWithValue(FakeDocumentContent()),
+        documentPageCaptureProvider.overrideWithValue(
+          DocumentPageCapture(
+            pickFile: (_) async =>
+                (bytes: Uint8List.fromList([1, 2]), name: 'scan.png'),
+            pickImage: (_) async => (bytes: Uint8List(4), name: 'shot.jpg'),
+            encode: (p) async => (
+              outcome: ImageEncodeOutcome.encoded,
+              bytes: Uint8List.fromList([9]),
+            ),
+          ),
+        ),
         tagsForItemProvider((
           scope: TagScope.documents,
           itemId: doc.id,

@@ -1,4 +1,7 @@
+import 'package:flutter/foundation.dart';
+
 import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/documents/domain/entities/document_page.dart';
 import 'package:submersion/features/documents/presentation/editing/document_card_ids.dart';
 import 'package:submersion/features/documents/presentation/editing/document_record.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
@@ -161,3 +164,14 @@ void setDocumentType(EditSession<DocumentRecord> session, DocumentType type) {
     ..set(documentPhoneField, null)
     ..set(documentPrimaryField, false);
 }
+
+/// The document's pages, in the order the viewer pages through them: the
+/// Pages card's value. A page added in the sitting carries its content
+/// until Save.
+final documentPagesField = EditField<DocumentRecord, List<DocumentPage>>(
+  id: 'pages',
+  cardId: DocumentCardId.pages.name,
+  read: (r) => r.pages,
+  write: (r, v) => r.copyWith(pages: List.unmodifiable(v)),
+  equals: listEquals,
+);

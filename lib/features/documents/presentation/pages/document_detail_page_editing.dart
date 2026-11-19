@@ -72,9 +72,42 @@ mixin _DocumentDetailPageEditing
     return container.read(documentRecordProvider(stored.id).future);
   }
 
-  /// Every card the page edits is always on it: the strip offers none.
+  /// Pages, while the document has none and the card is not open.
   @override
-  List<AddStripEntry> addStripEntries(DocumentRecord working) => const [];
+  List<AddStripEntry> addStripEntries(DocumentRecord working) {
+    final session = maybeEditController?.session;
+    if (session == null) return const [];
+    final card = documentEditCards[DocumentCardId.pages]!;
+    if (!card.isEmpty(working) || _pagesShownWhileEmpty) return const [];
+    return [
+      AddStripEntry(
+        cardId: card.id,
+        label: card.title(context),
+        changed: session.changedCardIds.contains(card.id),
+      ),
+    ];
+  }
+
+  /// Whether the Pages card is open or brought in from the strip.
+  bool get _pagesShownWhileEmpty {
+    final controller = maybeEditController;
+    if (controller == null || !controller.isUnlocked) return false;
+    final id = DocumentCardId.pages.name;
+    return controller.openCardIds.contains(id) ||
+        controller.addedCardIds.contains(id);
+  }
+
+  /// The Pages card: its header, with the pencil, while unlocked; its
+  /// editor once open.
+  Widget _framedPages() => RecordCardFrame<DocumentRecord>(
+    card: documentEditCards[DocumentCardId.pages]!,
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: RecordCardHeader(
+        title: DocumentCardId.pages.localizedDisplayName(context.l10n),
+      ),
+    ),
+  );
 
   /// [details] framed as the Details card.
   Widget _framedDetails(Widget details) => RecordCardFrame<DocumentRecord>(

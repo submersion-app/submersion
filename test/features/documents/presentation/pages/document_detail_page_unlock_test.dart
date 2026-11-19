@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
+import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 
@@ -93,7 +94,12 @@ void main() {
     await unlock(tester);
 
     expect(find.text('DAN'), findsOneWidget);
-    expect(find.byType(RecordPencilIcon), findsOneWidget);
+    expect(
+      find.byTooltip(
+        l.recordEdit_editCardTooltip(l.documents_editCard_details),
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets(
@@ -146,5 +152,75 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(AlertDialog), findsOneWidget);
+  });
+
+  group('the Pages card', () {
+    Finder pagesPencil() =>
+        find.byTooltip(l.recordEdit_editCardTooltip(l.documents_pages_title));
+
+    Future<void> addFilePage(WidgetTester tester) async {
+      await tester.tap(find.text(l.documents_pages_add));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l.documents_pages_addFile));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('locked, the page shows no Pages header', (tester) async {
+      await pumpDocumentPage(tester, pages: [storedPage(0)]);
+
+      expect(find.text(l.documents_pages_title), findsNothing);
+    });
+
+    testWidgets('a page added and saved is written with the sitting', (
+      tester,
+    ) async {
+      final harness = await pumpDocumentPage(tester, pages: [storedPage(0)]);
+      await unlock(tester);
+      await tester.tap(pagesPencil());
+      await tester.pumpAndSettle();
+      await addFilePage(tester);
+
+      await save(tester);
+
+      final call = harness.save.calls.single;
+      expect(call.cards, {'pages'});
+      expect(call.after.pages, hasLength(2));
+    });
+
+    testWidgets('a document with no pages offers Pages in the strip', (
+      tester,
+    ) async {
+      await pumpDocumentPage(tester);
+      await unlock(tester);
+
+      expect(
+        find.descendant(
+          of: find.byType(AddStrip),
+          matching: find.text(l.documents_pages_title),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a page added while the title changes underneath keeps both', (
+      tester,
+    ) async {
+      final harness = await pumpDocumentPage(tester, pages: [storedPage(0)]);
+      await unlock(tester);
+      await tester.tap(pagesPencil());
+      await tester.pumpAndSettle();
+      await addFilePage(tester);
+
+      final now = harness.stored.state!;
+      harness.stored.state = now.copyWith(
+        document: now.document.copyWith(title: 'Renamed'),
+      );
+      await tester.pumpAndSettle();
+      await save(tester);
+
+      final after = harness.save.calls.single.after;
+      expect(after.document.title, 'Renamed');
+      expect(after.pages, hasLength(2));
+    });
   });
 }

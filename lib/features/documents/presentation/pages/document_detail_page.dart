@@ -23,6 +23,7 @@ import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
 import 'package:submersion/shared/widgets/record_editing/record_open_unlocked.dart';
@@ -156,7 +157,13 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage>
           shown: shown,
           lockedBar: _bar(entry, doc, shown),
           unlockedActions: [_menu(doc)],
-          content: _body(entry, doc, entry.ownerText(units), pages),
+          // The sitting's pages, which may hold pages not yet saved.
+          content: _body(
+            entry,
+            doc,
+            entry.ownerText(units),
+            AsyncData(shown.pages),
+          ),
         );
       },
     );
@@ -236,6 +243,15 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage>
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
+              // Brought in from the strip: its editor, above the details.
+              if (_pagesShownWhileEmpty)
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 640),
+                    child: _framedPages(),
+                  ),
+                ),
               // A readable line length on a wide window.
               Align(
                 alignment: Alignment.topCenter,
@@ -247,11 +263,22 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage>
             ],
           );
         }
-        final viewer = pages.when(
+        final pageViewer = pages.when(
           data: (list) => DocumentPageViewer(pages: list),
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => Center(child: Text('$e')),
         );
+        // While unlocked the Pages card's header sits above the pages, its
+        // editor in its place once open; locked, the pages are as ever.
+        final viewer = isSittingOpen
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _framedPages(),
+                  Expanded(child: pageViewer),
+                ],
+              )
+            : pageViewer;
         if (constraints.maxWidth >= _sideBySideWidth) {
           return Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,

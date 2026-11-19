@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
 
-import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
-import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/documents/data/services/document_page_capture.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
@@ -16,12 +12,12 @@ import 'package:submersion/features/documents/presentation/providers/document_pr
 import 'package:submersion/features/documents/presentation/widgets/document_form_fields.dart';
 import 'package:submersion/features/documents/presentation/widgets/document_owner_field.dart';
 import 'package:submersion/features/documents/presentation/widgets/document_owner_picker_sheet.dart';
+import 'package:submersion/features/documents/presentation/widgets/document_page_add.dart';
 import 'package:submersion/features/documents/presentation/widgets/document_page_strip.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_link_providers.dart';
 import 'package:submersion/features/tags/presentation/widgets/scoped_tags_field.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/shared/utils/byte_format.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
@@ -210,85 +206,14 @@ class _DocumentEditPageState extends ConsumerState<DocumentEditPage> {
   /// Asks where the page comes from, captures it, and puts it in the slot
   /// [side] names (replacing what was there) or at the end.
   Future<void> _addPage(DocumentPageSide? side) async {
-    if (!demoSealGuard(context, DemoSealedFeature.mediaImport)) {
-      return;
-    }
-    final l10n = context.l10n;
-    final messenger = ScaffoldMessenger.of(context);
-    final canUseCamera = HostPlatform.isAndroid || HostPlatform.isIOS;
-    final source = await showModalBottomSheet<String>(
-      context: context,
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (canUseCamera)
-              ListTile(
-                leading: const Icon(Icons.camera_alt_outlined),
-                title: Text(l10n.documents_pages_addCamera),
-                onTap: () => Navigator.pop(ctx, 'camera'),
-              ),
-            ListTile(
-              leading: const Icon(Icons.photo_library_outlined),
-              title: Text(l10n.documents_pages_addGallery),
-              onTap: () => Navigator.pop(ctx, 'gallery'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.attach_file),
-              title: Text(l10n.documents_pages_addFile),
-              onTap: () => Navigator.pop(ctx, 'file'),
-            ),
-          ],
-        ),
-      ),
+    final next = await addDocumentPage(
+      context,
+      capture: _capture,
+      pages: _pages,
+      side: side,
     );
-    if (source == null) return;
-    final PageCaptureResult result;
-    try {
-      result = switch (source) {
-        'camera' => await _capture.fromImage(ImageSource.camera, side: side),
-        'gallery' => await _capture.fromImage(ImageSource.gallery, side: side),
-        _ => await _capture.fromFile(side: side),
-      };
-    } catch (e) {
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.media_import_failedToImportError('$e'))),
-      );
-      return;
-    }
-    if (!mounted) return;
-    final refusal = switch (result) {
-      PageCaptureTooLarge(:final sizeBytes) => l10n.documents_pages_tooLarge(
-        formatBytes(sizeBytes),
-      ),
-      PageCaptureUnsupported(:final extension) =>
-        l10n.documents_pages_unsupported(extension),
-      PageCaptureImageTooLarge() => l10n.profilePhoto_error_tooLarge,
-      PageCaptureUndecodable() => l10n.profilePhoto_error_undecodable,
-      PageCaptured() || PageCaptureCancelled() => null,
-    };
-    if (refusal != null) {
-      messenger.showSnackBar(SnackBar(content: Text(refusal)));
-      return;
-    }
-    if (result is! PageCaptured) return;
-    final captured = result.page;
-    _change(() {
-      final next = [
-        for (final p in _pages)
-          if (side == null || p.side != side) p,
-        captured,
-      ];
-      // A card face goes where the strip shows it, Front then Back ahead of
-      // the other pages: the stored order is what the viewer pages through.
-      _pages = side == null
-          ? next
-          : [
-              for (final s in DocumentPageSide.values)
-                ...next.where((p) => p.side == s),
-              ...next.where((p) => p.side == null),
-            ];
-    });
+    if (next == null || !mounted) return;
+    _change(() => _pages = next);
   }
 
   String? _text(TextEditingController c) {
