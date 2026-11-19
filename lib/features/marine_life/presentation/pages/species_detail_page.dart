@@ -43,6 +43,7 @@ import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart'
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
 import 'package:submersion/shared/widgets/record_editing/record_open_unlocked.dart';
+import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
 part 'species_detail_page_editing.dart';
@@ -99,37 +100,42 @@ class _SpeciesDetailPageState extends ConsumerState<SpeciesDetailPage>
         tooltip: context.l10n.marineLife_speciesDetail_editTooltip,
         onPressed: () => context.push('/species/$speciesId/edit'),
       ),
-      if (species != null)
-        PopupMenuButton<String>(
-          key: const ValueKey('species_detail_menu'),
-          onSelected: (value) {
-            if (value == kOpenInConnectionsAction) {
-              openInConnections(
-                context,
-                NodeRef(ConnectionKind.species, species.id),
-              );
-            } else if (value == 'suggest') {
-              _suggestForCatalog(context, ref, species);
-            }
-          },
-          itemBuilder: (context) => [
-            changeLogHistoryMenuItem(
-              context,
-              rootTable: 'species',
-              rootId: species.id,
-            ),
-            openInConnectionsMenuItem(context),
-            // Only a custom species can be suggested: built-ins
-            // already are the catalog.
-            if (!species.isBuiltIn)
-              PopupMenuItem(
-                value: 'suggest',
-                child: Text(
-                  context.l10n.marineLife_speciesDetail_suggestForCatalog,
-                ),
-              ),
-          ],
+      if (species != null) _menu(species),
+    ],
+  );
+
+  /// The page's menu: History, Open in Connections, Suggest for catalog,
+  /// and its whole-record operations. Shown in the locked bar and, while
+  /// unlocked, in the edit bar.
+  Widget _menu(Species species) => PopupMenuButton<String>(
+    key: const ValueKey('species_detail_menu'),
+    onSelected: (value) {
+      if (value == kOpenInConnectionsAction) {
+        openInConnections(context, NodeRef(ConnectionKind.species, species.id));
+      } else if (value == 'suggest') {
+        _suggestForCatalog(context, ref, species);
+      } else if (value == 'delete') {
+        _runSpeciesOperation(() => _deleteSpecies(species));
+      }
+    },
+    itemBuilder: (context) => [
+      changeLogHistoryMenuItem(
+        context,
+        rootTable: 'species',
+        rootId: species.id,
+      ),
+      openInConnectionsMenuItem(context),
+      // Only a custom species can be suggested: built-ins
+      // already are the catalog.
+      if (!species.isBuiltIn)
+        PopupMenuItem(
+          value: 'suggest',
+          child: Text(context.l10n.marineLife_speciesDetail_suggestForCatalog),
         ),
+      // Delete, where the manage page allows it (a custom species),
+      // and only on a page that edits in place: a whole-record
+      // operation, under the lock.
+      ..._speciesRecordMenuItems(species),
     ],
   );
 
@@ -163,6 +169,7 @@ class _SpeciesDetailPageState extends ConsumerState<SpeciesDetailPage>
       record: stored,
       shown: shown,
       lockedBar: _lockedBar(shown),
+      unlockedActions: [_menu(shown)],
       content: _body(shown),
     );
   }

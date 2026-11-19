@@ -209,4 +209,88 @@ mixin _SpeciesDetailPageEditing
     if (choice is! SpeciesTagChoice || choice.items.isEmpty) return;
     holdSpeciesTags(session, choice.items, tagging);
   }
+
+  /// Whether the record's operations may run now, or why not; null where
+  /// the page edits nothing in place.
+  RecordOperationBlock? get _speciesOperationBlock =>
+      recordOperationBlockOf(hostsEditing ? editController : null);
+
+  /// The menu's whole-record operations for [species]: Delete for a custom
+  /// species, under the caption that says why it is unavailable.
+  List<PopupMenuEntry<String>> _speciesRecordMenuItems(Species species) {
+    if (!hostsEditing || species.isBuiltIn) return const [];
+    final l10n = context.l10n;
+    final block = _speciesOperationBlock;
+    final reason = recordOperationReason(l10n, block, plural: true);
+    return [
+      if (reason != null) recordOperationCaption<String>(context, reason),
+      PopupMenuItem<String>(
+        value: 'delete',
+        enabled: block == null || block == RecordOperationBlock.none,
+        child: Text(l10n.marineLife_speciesManage_deleteButton),
+      ),
+    ];
+  }
+
+  /// Runs [operation] through the sitting, as every whole-record operation
+  /// does.
+  Future<void> _runSpeciesOperation(Future<bool> Function() operation) =>
+      recordOperationRunnerOf(
+        editController,
+        record: 'species ${widget.speciesId}',
+      )(operation);
+
+  /// Deletes [species] as the manage page does: refused while in use, else
+  /// after the same confirmation. Answers whether it wrote.
+  Future<bool> _deleteSpecies(Species species) async {
+    final l10n = context.l10n;
+    final messenger = ScaffoldMessenger.of(context);
+    final repository = ref.read(speciesRepositoryProvider);
+    final name = species.localizedCommonName(l10n);
+    if (await repository.isSpeciesInUse(species.id)) {
+      if (!mounted) return false;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(l10n.marineLife_species_delete_inUseError(name)),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+      return false;
+    }
+    if (!mounted) return false;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.marineLife_species_delete_confirmTitle),
+        content: Text(l10n.marineLife_species_delete_confirmBody(name)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.marineLife_speciesManage_cancelButton),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: Text(l10n.marineLife_speciesManage_deleteButton),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return false;
+    await repository.deleteSpecies(species.id);
+    messenger.showSnackBar(
+      SnackBar(content: Text(l10n.marineLife_species_delete_snackbar(name))),
+    );
+    // The species has gone: back where the diver came from, else to the
+    // species list.
+    if (mounted) {
+      final router = GoRouter.maybeOf(context);
+      if (router != null) {
+        router.canPop() ? router.pop() : router.go('/species');
+      }
+    }
+    return true;
+  }
 }

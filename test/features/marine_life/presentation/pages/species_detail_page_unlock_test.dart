@@ -316,6 +316,99 @@ void main() {
       expect(harness.tagging.tagged, isEmpty);
     });
   });
+  group('addresses and operations', () {
+    Future<void> openMenu(WidgetTester tester) async {
+      await tester.tap(find.byKey(const ValueKey('species_detail_menu')));
+      await tester.pumpAndSettle();
+    }
+
+    Finder deleteItem() => find.text(l.marineLife_speciesManage_deleteButton);
+
+    testWidgets('opened with mode=edit, the page is unlocked', (tester) async {
+      await pumpSpeciesPage(tester, openUnlocked: true);
+
+      expect(find.byType(RecordEditBar), findsOneWidget);
+    });
+
+    testWidgets('locked, Delete is disabled under "Unlock to use these"', (
+      tester,
+    ) async {
+      final harness = await pumpSpeciesPage(tester);
+      await openMenu(tester);
+
+      expect(find.text(l.recordEdit_unlockToUseThese), findsOneWidget);
+      await tester.tap(deleteItem());
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(harness.species.deleted, isEmpty);
+    });
+
+    testWidgets('unlocked with nothing to save, Delete asks and deletes', (
+      tester,
+    ) async {
+      final harness = await pumpSpeciesPage(tester);
+      await unlock(tester);
+      await openMenu(tester);
+
+      await tester.tap(deleteItem());
+      await tester.pumpAndSettle();
+      expect(
+        find.text(l.marineLife_species_delete_confirmTitle),
+        findsOneWidget,
+      );
+      await tester.tap(deleteItem().last);
+      await tester.pumpAndSettle();
+
+      expect(harness.species.deleted, ['manta']);
+    });
+
+    testWidgets('a species in use is not deleted and says why', (tester) async {
+      final harness = await pumpSpeciesPage(tester);
+      harness.species.inUse = true;
+      await unlock(tester);
+      await openMenu(tester);
+
+      await tester.tap(deleteItem());
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(
+        find.text(l.marineLife_species_delete_inUseError('Manta')),
+        findsOneWidget,
+      );
+      expect(harness.species.deleted, isEmpty);
+    });
+
+    testWidgets('a built-in species offers no Delete', (tester) async {
+      await pumpSpeciesPage(
+        tester,
+        species: const Species(
+          id: 'sp_whale_shark',
+          commonName: 'Whale Shark',
+          category: SpeciesCategory.shark,
+          isBuiltIn: true,
+        ),
+      );
+      await unlock(tester);
+      await openMenu(tester);
+
+      expect(deleteItem(), findsNothing);
+    });
+
+    testWidgets('Suggest for catalog is offered while locked', (tester) async {
+      await pumpSpeciesPage(tester);
+      await openMenu(tester);
+
+      final item = tester.widget<PopupMenuItem<String>>(
+        find.ancestor(
+          of: find.text(l.marineLife_speciesDetail_suggestForCatalog),
+          matching: find.byType(PopupMenuItem<String>),
+        ),
+      );
+      expect(item.enabled, isTrue);
+    });
+  });
 }
 
 extension on Species {

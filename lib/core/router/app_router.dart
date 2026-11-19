@@ -207,6 +207,7 @@ import 'package:submersion/features/marine_life/presentation/pages/species_page.
 import 'package:submersion/features/tags/presentation/pages/tag_manage_page.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_edit_page.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_detail_page.dart';
+import 'package:submersion/features/marine_life/presentation/pages/species_edit_routes.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_map_page.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_chart_fullscreen_page.dart';
 import 'package:submersion/features/planning/presentation/pages/planning_page.dart';
@@ -2314,13 +2315,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: ':speciesId',
                 name: 'speciesDetail',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => SpeciesDetailPage(
                   speciesId: state.pathParameters['speciesId']!,
+                  openUnlocked: state.uri.queryParameters['mode'] == 'edit',
                 ),
               ),
               GoRoute(
                 path: ':speciesId/edit',
                 name: 'editSpecies',
+                // Behind phase 3's switch, the page opened unlocked.
+                redirect: speciesEditRedirect,
                 builder: (context, state) => SpeciesEditPage(
                   speciesId: state.pathParameters['speciesId'],
                 ),

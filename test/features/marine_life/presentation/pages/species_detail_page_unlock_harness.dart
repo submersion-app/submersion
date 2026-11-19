@@ -96,10 +96,31 @@ class RecordingTagging extends SpeciesTaggingService {
   }
 }
 
+/// Answers whether a species is in use, and records deletes, instead of
+/// touching a database.
+class FakeSpeciesRepository extends SpeciesRepository {
+  bool inUse = false;
+  final deleted = <String>[];
+
+  @override
+  Future<bool> isSpeciesInUse(String id) async => inUse;
+
+  @override
+  Future<void> deleteSpecies(String id) async => deleted.add(id);
+}
+
 /// What a test pumped: the fake save, the stored species to change
-/// underneath, and the photos tagged.
+/// underneath, the photos tagged, and the species repository.
 class SpeciesPageHarness {
-  SpeciesPageHarness(this.save, this.stored, this.tagging, this.written);
+  SpeciesPageHarness(
+    this.save,
+    this.stored,
+    this.tagging,
+    this.written,
+    this.species,
+  );
+
+  final FakeSpeciesRepository species;
 
   final FakeSpeciesSave save;
   final StateController<Species?> stored;
@@ -128,6 +149,7 @@ Future<SpeciesPageHarness> pumpSpeciesPage(
   late SpeciesPageHarness harness;
   final tagging = RecordingTagging();
   final written = <String>[];
+  final repository = FakeSpeciesRepository();
   await tester.pumpWidget(
     testApp(
       locale: locale,
@@ -154,10 +176,12 @@ Future<SpeciesPageHarness> pumpSpeciesPage(
             ref.watch(_storedProvider.notifier),
             tagging,
             written,
+            repository,
           );
           return save;
         }),
         speciesTaggingServiceProvider.overrideWithValue(tagging),
+        speciesRepositoryProvider.overrideWithValue(repository),
         // Add photos: one photo prepared for dive d1, as the review would.
         speciesPhotoPrepareLauncherProvider.overrideWithValue(
           (context, ref, speciesId) async => [
