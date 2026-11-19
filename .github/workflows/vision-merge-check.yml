@@ -35,15 +35,23 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 15
     steps:
+      # Neither checkout keeps the token in .git/config: the check runs a
+      # script from another repository in this workspace.
       - uses: actions/checkout@v7
         with:
           sparse-checkout: |
             packages/submersion_vision/darwin
+          persist-credentials: false
 
+      # Pinned, so a change on the pack side reaches this check only through
+      # a reviewed change here: move the ref to a species-pack commit when its
+      # boxes.py cases or check_merge.sh change.
       - uses: actions/checkout@v7
         with:
           repository: submersion-app/species-pack
+          ref: 1cf61358902f40d9f74eae52dd8547d24d68ed01
           path: species-pack
+          persist-credentials: false
 
       - name: Check the pipeline's merge against boxes.py's cases
         env:
