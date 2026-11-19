@@ -64,14 +64,16 @@ LiveaboardDetails? tripVesselInSitting(
 }
 
 /// Whether the trip in [session] can be saved as far as its vessel goes:
-/// a liveaboard needs a vessel name, as the form required. A list not read
-/// yet is not refused: the Save waits for the read.
+/// a liveaboard needs a vessel name, as the form required. A read that
+/// failed refuses it, so a liveaboard is never saved past a vessel it could
+/// not see (its card offers to read it again); one still running does not,
+/// and the Save waits for it.
 bool tripVesselValid(
   SittingList<Trip, LiveaboardDetails> list,
   EditSession<Trip> session,
 ) {
   if (session.working.tripType != TripType.liveaboard) return true;
   final rows = list.current(session);
-  if (rows == null) return true;
+  if (rows == null) return !list.failed(session);
   return rows.isNotEmpty && rows.single.vesselName.trim().isNotEmpty;
 }

@@ -284,4 +284,29 @@ void main() {
 
     expect(harness.save.calls, hasLength(1));
   });
+
+  testWidgets('a vessel that could not be read refuses the Save, and the '
+      'card offers to read it again', (tester) async {
+    final harness = await pumpTripPage(
+      tester,
+      trip: liveaboard,
+      vessel: mvBlue,
+    );
+    harness.vessels.failRead = true;
+    await unlock(tester);
+    sessionOf(tester).set(tripNotesField, 'Windy');
+    await tester.pumpAndSettle();
+
+    await save(tester);
+
+    expect(harness.save.calls, isEmpty);
+    expect(find.byType(TripVesselCardEditor), findsOneWidget);
+
+    harness.vessels.failRead = false;
+    await tester.tap(find.text(l.common_action_retry));
+    await tester.pumpAndSettle();
+    await save(tester);
+
+    expect(harness.save.calls, hasLength(1));
+  });
 }

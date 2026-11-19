@@ -119,8 +119,14 @@ class FakeVessels implements LiveaboardDetailsRepository {
   LiveaboardDetails? details;
   final writes = <LiveaboardDetails>[];
 
+  /// The read throws, as a database that cannot be read does.
+  bool failRead = false;
+
   @override
-  Future<LiveaboardDetails?> getByTripId(String tripId) async => details;
+  Future<LiveaboardDetails?> getByTripId(String tripId) async {
+    if (failRead) throw StateError('the read failed');
+    return details;
+  }
 
   @override
   Future<LiveaboardDetails> createOrUpdate(LiveaboardDetails details) async {

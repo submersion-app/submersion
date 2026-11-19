@@ -325,11 +325,23 @@ class _TripVesselCardEditorState extends ConsumerState<TripVesselCardEditor> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     if (_list.current(widget.session) == null) {
-      // A read that failed says so; the Save waits for one still running.
+      // A read that failed says so and offers another; the Save waits for
+      // one still running.
       if (_list.failed(widget.session)) {
         return Padding(
           padding: const EdgeInsets.all(16),
-          child: Text(l10n.common_error_tryAgain),
+          child: Row(
+            children: [
+              Expanded(child: Text(l10n.common_error_tryAgain)),
+              TextButton(
+                onPressed: () {
+                  _list.load(widget.session);
+                  setState(() {});
+                },
+                child: Text(l10n.common_action_retry),
+              ),
+            ],
+          ),
         );
       }
       return const Padding(

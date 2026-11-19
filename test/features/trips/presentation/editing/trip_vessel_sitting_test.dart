@@ -63,4 +63,13 @@ void main() {
     await list.load(resort);
     expect(tripVesselValid(list, resort), isTrue);
   });
+
+  test('a liveaboard whose vessel could not be read cannot be saved', () async {
+    final list = tripVesselDetails(FakeVessels(mvBlue)..failRead = true);
+    final session = EditSession<Trip>(liveaboard);
+    await list.load(session);
+
+    expect(list.failed(session), isTrue);
+    expect(tripVesselValid(list, session), isFalse);
+  });
 }
