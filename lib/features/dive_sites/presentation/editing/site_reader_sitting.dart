@@ -74,3 +74,10 @@ SiteReaderCard siteReaderCardRule(String cardId) =>
     : siteReaderLibraryCards.contains(cardId)
     ? SiteReaderCard.library
     : SiteReaderCard.suggested;
+
+/// Whether [session] holds a change of the library's cards, which a
+/// reader's Send can neither write nor propose: one made while the profile
+/// could edit the site.
+bool readerSittingHoldsLibraryChange(EditSession<DiveSite> session) => session
+    .changedCardIds
+    .any((id) => siteReaderCardRule(id) == SiteReaderCard.library);

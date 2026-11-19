@@ -5962,7 +5962,7 @@
   },
   "recordEdit_onlyYou": "Only you",
   "@recordEdit_onlyYou": {
-    "description": "Short label on a card (notes, rating) while a shared site library reader's site is unlocked to suggest changes: what is entered there is the reader's own, saved for them and never sent to the library."
+    "description": "Short label on a card (notes, rating, photos and videos, documents) while a shared site library reader's site is unlocked to suggest changes: what is entered or attached there is the reader's own, saved for them and never sent to the library."
   },
   "recordEdit_saveFailed": "Couldn't save your changes. Nothing was changed.",
   "@recordEdit_saveFailed": {

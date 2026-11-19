@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_sites/presentation/editing/site_sitting
 import 'package:submersion/features/dive_sites/presentation/utils/suggestion_child_fields.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_sitting_refusal.dart';
 
 const _log = LoggerService('SiteReaderSend');
 
@@ -123,8 +124,9 @@ class _SuggestionNoteDialogState extends State<_SuggestionNoteDialog> {
 /// with [note]. The library's site itself is never written. A failed
 /// write throws and proposes nothing; a failed proposal throws too, unless
 /// the reader's own write has committed, which is then reported as
-/// [SiteReaderSent.savedPrivateNotSent]. Returns what was done, and the
-/// site as the write left it.
+/// [SiteReaderSent.savedPrivateNotSent]. A sitting holding a change of the
+/// library's cards is refused ([RecordSittingRefusal]) with nothing
+/// written. Returns what was done, and the site as the write left it.
 Future<({SiteReaderSent outcome, DiveSite? saved})> sendReaderSitting(
   EditSession<DiveSite> session, {
   required SiteEditSaveService service,
@@ -132,6 +134,12 @@ Future<({SiteReaderSent outcome, DiveSite? saved})> sendReaderSitting(
   required String diverId,
   required String note,
 }) async {
+  // Made while the profile could edit, such a change is neither the
+  // reader's own nor theirs to propose: nothing is sent, rather than the
+  // change dropped as the sitting ends.
+  if (readerSittingHoldsLibraryChange(session)) {
+    throw RecordSittingRefusal((l10n) => l10n.diveSites_edit_saveRefused);
+  }
   final private = _privateCards(session);
   final written = private.isEmpty
       ? null

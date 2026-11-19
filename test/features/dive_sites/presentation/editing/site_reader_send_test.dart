@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_sites/presentation/editing/site_plain_f
 import 'package:submersion/features/dive_sites/presentation/editing/site_reader_send.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_sitting_refusal.dart';
 
 import '../../../../core/database/change_log/change_log_support.dart';
 import '../../../../helpers/test_database.dart';
@@ -77,6 +78,28 @@ class _FailingSave extends Fake implements SiteEditSaveService {
     Set<String> Function()? heldLibraryFields,
     bool privateOnly = false,
   }) async => throw StateError('the write was refused');
+}
+
+/// Records whether each save was told its held writes are a change, and
+/// writes nothing.
+class _RecordingSave extends Fake implements SiteEditSaveService {
+  final alsoWriteIsAChange = <bool>[];
+
+  @override
+  Future<({DiveSite before, DiveSite after})?> save({
+    required String siteId,
+    required DiveSite Function(DiveSite stored) apply,
+    required Iterable<String> changedCardIds,
+    String? actingDiverId,
+    Future<void> Function()? writeFirst,
+    Future<void> Function()? alsoWrite,
+    bool alsoWriteIsAChange = false,
+    Set<String> Function()? heldLibraryFields,
+    bool privateOnly = false,
+  }) async {
+    this.alsoWriteIsAChange.add(alsoWriteIsAChange);
+    return null;
+  }
 }
 
 /// A library reader's Send (issue #4527, phase 2, plan 5): their own
@@ -257,4 +280,52 @@ void main() {
 
     expect(ran, ['media']);
   });
+
+  // A change of the library's cards, made while the profile could edit, is
+  // neither the reader's own nor theirs to propose: the Send refuses rather
+  // than drop it.
+  test(
+    'a held library card change refuses the Send and writes nothing',
+    () async {
+      final ran = <String>[];
+      final session = await sitting()
+        ..set(siteNotesField, 'Choppy')
+        ..set(siteNameField, 'Big Lake')
+        ..holdChange(
+          'features.held',
+          cardId: 'features',
+          write: () async {
+            ran.add('features');
+          },
+        );
+
+      await expectLater(send(session), throwsA(isA<RecordSittingRefusal>()));
+      expect(ran, isEmpty);
+      expect((await stored()).notes, 'Calm');
+      expect(suggestions.calls, isEmpty);
+    },
+  );
+
+  // The held writes are a change of their own only for a held change of the
+  // reader's cards: a notes change is the row's, and a held header change
+  // is proposed, not written.
+  test(
+    'only a held change of the reader\'s own cards is a held change',
+    () async {
+      final spy = _RecordingSave();
+      final notes = await sitting()
+        ..set(siteNotesField, 'Choppy')
+        ..holdChange(
+          'site.types',
+          cardId: siteHeaderCardId,
+          write: () async {},
+        );
+      await send(notes, save: spy);
+      final media = await sitting()
+        ..holdChange('media.held', cardId: 'media', write: () async {});
+      await send(media, save: spy);
+
+      expect(spy.alsoWriteIsAChange, [false, true]);
+    },
+  );
 }

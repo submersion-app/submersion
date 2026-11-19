@@ -15772,7 +15772,7 @@ abstract class AppLocalizations {
   /// **'Library'**
   String get recordEdit_library;
 
-  /// Short label on a card (notes, rating) while a shared site library reader's site is unlocked to suggest changes: what is entered there is the reader's own, saved for them and never sent to the library.
+  /// Short label on a card (notes, rating, photos and videos, documents) while a shared site library reader's site is unlocked to suggest changes: what is entered or attached there is the reader's own, saved for them and never sent to the library.
   ///
   /// In en, this message translates to:
   /// **'Only you'**

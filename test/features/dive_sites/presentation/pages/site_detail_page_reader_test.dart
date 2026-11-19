@@ -46,6 +46,16 @@ void main() {
         siteReaderPrivateCards.contains(w.card.id),
   );
 
+  /// The page's editing controller, from one of its card frames.
+  RecordEditController<DiveSite> controllerOf(WidgetTester tester) =>
+      RecordEditScope.maybeOf<DiveSite>(
+        tester.element(find.byType(RecordCardFrame<DiveSite>).first),
+      )!;
+
+  /// The open sitting.
+  EditSession<DiveSite> sitting(WidgetTester tester) =>
+      controllerOf(tester).session!;
+
   /// The library's overrides, with [role] as the profile's role there.
   List<Override> library({
     Future<SharedLibraryRole> Function()? role,
@@ -214,6 +224,70 @@ void main() {
     expect(find.text(l.diveSites_edit_editingWithdrawn), findsOneWidget);
   });
 
+  /// A reader's sitting whose role becomes an editor's and then a
+  /// reader's again, with [whileEditor] run in between.
+  Future<void> editorInBetween(
+    WidgetTester tester,
+    void Function() whileEditor,
+  ) async {
+    var role = SharedLibraryRole.reader;
+    final page = await pumpReader(tester, role: () => Future.value(role));
+    await tester.tap(find.byKey(suggestKey));
+    await tester.pumpAndSettle();
+    role = SharedLibraryRole.editor;
+    page.container.invalidate(libraryRoleProvider('L'));
+    await tester.pumpAndSettle();
+    whileEditor();
+    await tester.pumpAndSettle();
+    role = SharedLibraryRole.reader;
+    page.container.invalidate(libraryRoleProvider('L'));
+    await tester.pumpAndSettle();
+  }
+
+  // Question 2 for a reader's sitting that held an editor's role: a change
+  // of the library's cards is not a reader's to send, so it is not kept.
+  testWidgets('a reader\'s sitting holding a library card change ends '
+      'withdrawn when its editor role drops', (tester) async {
+    await editorInBetween(
+      tester,
+      () => sitting(tester).holdChange(
+        'feature',
+        cardId: SiteDetailSectionId.features.name,
+        write: () async {},
+      ),
+    );
+
+    expect(find.byType(RecordEditBar), findsNothing);
+    expect(find.text(l.diveSites_edit_editingWithdrawn), findsOneWidget);
+  });
+
+  testWidgets('a reader\'s sitting with only its own changes goes on when '
+      'its editor role drops', (tester) async {
+    await editorInBetween(
+      tester,
+      () => sitting(tester).set(siteNotesField, 'Choppy'),
+    );
+
+    expect(find.byType(RecordEditBar), findsOneWidget);
+    expect(find.text(l.diveSites_edit_editingWithdrawn), findsNothing);
+  });
+
+  // A library card opened while the profile could edit is drawn with no
+  // editor once it cannot; left open it would hold the page's layout.
+  testWidgets('a library card left open closes when the editor role drops', (
+    tester,
+  ) async {
+    await editorInBetween(
+      tester,
+      () => controllerOf(tester).openCard(SiteDetailSectionId.features.name),
+    );
+
+    final controller = controllerOf(tester);
+    expect(controller.isUnlocked, isTrue);
+    expect(controller.openCardIds, isNot(contains('features')));
+    expect(controller.layoutRecord, isNull);
+  });
+
   testWidgets('with the switch off the page is as today', (tester) async {
     await pumpReader(tester, unlockEditing: false);
 
@@ -327,11 +401,6 @@ void main() {
         ],
       );
     }
-
-    EditSession<DiveSite> sitting(WidgetTester tester) =>
-        RecordEditScope.maybeOf<DiveSite>(
-          tester.element(find.byType(RecordCardFrame<DiveSite>).first),
-        )!.session!;
 
     Future<void> unlockReader(WidgetTester tester) async {
       await tester.tap(find.byKey(suggestKey));

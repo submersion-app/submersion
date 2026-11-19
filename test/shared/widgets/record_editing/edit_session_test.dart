@@ -379,6 +379,17 @@ void main() {
       expect(session.hasHeldWrites, isTrue);
     });
 
+    // A save that writes part of the sitting asks which cards hold one
+    // (a library reader's own, issue #4527).
+    test('name their cards, a pending value and a held write not', () {
+      final session = EditSession(const _Rec())
+        ..set(_notes, 'late')
+        ..holdWrite('w', () async {})
+        ..holdChange('k', cardId: 'header', write: () async {});
+
+      expect(session.heldChangeCardIds, {'header'});
+    });
+
     test('move their card, so a closed card is redrawn', () {
       final session = EditSession(const _Rec());
       var told = 0;

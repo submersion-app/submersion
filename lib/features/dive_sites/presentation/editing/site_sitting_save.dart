@@ -81,7 +81,7 @@ Future<({DiveSite before, DiveSite after})?> _save(
       // own right; the library's fields are stamped only for an edit.
       alsoWriteIsAChange: private == null
           ? session.hasHeldChanges
-          : changed.isNotEmpty,
+          : session.heldChangeCardIds.any(private.contains),
       heldLibraryFields: private == null
           ? () => siteLibraryFields(session)
           : null,

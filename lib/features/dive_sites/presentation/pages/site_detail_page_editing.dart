@@ -74,14 +74,21 @@ mixin _SiteDetailPageEditing
         !_canEditSite(ref, widget.site, watch: watch);
   }
 
-  /// Whether the open sitting may go on: a reader's while the page offers
-  /// any, an editor's while the profile may still edit. An editor's sitting
+  /// Whether the open sitting may go on: an editor's while the profile may
+  /// still edit, a reader's while the page offers any. An editor's sitting
   /// may hold what a reader cannot send (features, expected species), so
-  /// a role that drops to reader withdraws it (plan 5, Question 2).
-  bool _sittingAllowedNow({bool watch = false}) =>
-      isReaderSitting(maybeEditController?.session)
-      ? _offersEditingNow(watch: watch)
-      : hostsEditing && _canEditSite(ref, widget.site, watch: watch);
+  /// a role that drops to reader withdraws it (plan 5, Question 2); so it
+  /// does a reader's sitting that changed one of those while it could edit.
+  bool _sittingAllowedNow({bool watch = false}) {
+    final session = maybeEditController?.session;
+    if (hostsEditing && _canEditSite(ref, widget.site, watch: watch)) {
+      return true;
+    }
+    return session != null &&
+        isReaderSitting(session) &&
+        !readerSittingHoldsLibraryChange(session) &&
+        _offersEditingNow(watch: watch);
+  }
 
   @override
   bool get offersEditing => _offersEditingNow();
@@ -118,6 +125,11 @@ mixin _SiteDetailPageEditing
         !_sittingAllowedNow(watch: true) &&
         _libraryAccessSettled(watch: true)) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _endWithdrawn());
+    }
+    if (_libraryCardsOpen().isNotEmpty &&
+        _readerPageNow(watch: true) &&
+        _libraryAccessSettled(watch: true)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _closeLibraryCards());
     }
     followStored(siteProvider(widget.siteId));
     return (
@@ -224,6 +236,32 @@ mixin _SiteDetailPageEditing
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(context.l10n.diveSites_edit_editingWithdrawn)),
     );
+  }
+
+  /// The library's cards open in the sitting (features, expected species)
+  /// that would close: one holding input that cannot be read stays open
+  /// ([RecordEditController.closeCard]), and is not asked again each frame.
+  Iterable<String> _libraryCardsOpen() {
+    final controller = maybeEditController;
+    if (controller == null) return const [];
+    final invalid = controller.invalidCardIds;
+    return controller.openCardIds.where(
+      (id) =>
+          siteReaderCardRule(id) == SiteReaderCard.library &&
+          !invalid.contains(id),
+    );
+  }
+
+  /// Closes the library's cards a reader's page has open: opened while the
+  /// profile could edit, they are drawn with no editor now, and one left
+  /// open would hold the page's layout for the rest of the sitting.
+  void _closeLibraryCards() {
+    final controller = maybeEditController;
+    if (!mounted || controller == null) return;
+    if (!_readerPageNow() || !_libraryAccessSettled()) return;
+    for (final id in _libraryCardsOpen().toList()) {
+      controller.closeCard(id);
+    }
   }
 
   // The header block is a card too, though not a section: its check (a

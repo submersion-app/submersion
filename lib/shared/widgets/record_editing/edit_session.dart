@@ -152,6 +152,12 @@ class EditSession<T> extends ChangeNotifier {
   /// Whether any held entry is a change in its own right ([holdChange]).
   bool get hasHeldChanges => _held.values.any((held) => held.cardId != null);
 
+  /// The cards a held change ([holdChange]) belongs to: for a save that
+  /// writes part of the sitting, whether its part holds one.
+  Set<String> get heldChangeCardIds => {
+    for (final held in _held.values) ?held.cardId,
+  };
+
   /// Whether a write or a change is held under [key].
   bool isHeld(String key) => _held.containsKey(key);
 

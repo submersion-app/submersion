@@ -397,21 +397,11 @@ void main() {
   // A site's sitting is asked about before a `go` leaves it (issue #4527).
   // The old site edit address opens the page unlocked (issue #4527).
   test('the site edit address opens the page unlocked with the switch on', () {
-    expect(
-      siteEditLocation('s1', const {}, unlockEditing: true),
-      '/sites/s1?mode=edit',
-    );
-    expect(siteEditLocation('s1', const {}, unlockEditing: false), isNull);
-    // A reader's suggestion opens the page too, unlocked as the role
-    // allows (issue #4527, phase 2, plan 5); with the switch off, the form.
-    expect(
-      siteEditLocation('s1', const {'suggest': '1'}, unlockEditing: true),
-      '/sites/s1?mode=edit',
-    );
-    expect(
-      siteEditLocation('s1', const {'suggest': '1'}, unlockEditing: false),
-      isNull,
-    );
+    // A reader's suggestion (`?suggest=1`) as well: the page unlocks as the
+    // role allows (issue #4527, phase 2, plan 5); with the switch off, the
+    // form.
+    expect(siteEditLocation('s1', unlockEditing: true), '/sites/s1?mode=edit');
+    expect(siteEditLocation('s1', unlockEditing: false), isNull);
     final route = _findRouteByName(router.configuration.routes, 'editSite');
     expect(route?.redirect, same(siteEditRedirect));
   });
