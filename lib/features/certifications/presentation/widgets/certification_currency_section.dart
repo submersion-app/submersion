@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
@@ -102,7 +103,23 @@ class CertificationCurrencySection extends ConsumerWidget {
         ? null
         : {for (final e in certificationEventsList.loaded(sitting) ?? []) e.id};
     final title = l10n.certifications_detail_sectionTitle_currency;
+    // The rules that apply follow the credential as stored: while the
+    // sitting changes the agency or level, the rows are those of the old
+    // one, so they take no action until the credential is saved.
+    final credentialHeld =
+        editing != null &&
+        !listEquals(editing.working.credentials, editing.stored.credentials);
+    final rowsReadOnly = readOnly || credentialHeld;
     final rows = <Widget>[
+      if (credentialHeld)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Text(
+            l10n.recordEdit_saveOrCancelFirst,
+            key: const ValueKey('currency-credential-held'),
+            style: theme.textTheme.bodySmall,
+          ),
+        ),
       for (final group in groups)
         _CurrencyRow(
           certification: certification,
@@ -110,7 +127,7 @@ class CertificationCurrencySection extends ConsumerWidget {
           units: units,
           editing: editing,
           sitting: sitting,
-          readOnly: readOnly,
+          readOnly: rowsReadOnly,
         ),
       if (events.isNotEmpty) ...[
         const Divider(),
@@ -123,7 +140,7 @@ class CertificationCurrencySection extends ConsumerWidget {
             event: event,
             units: units,
             editing: editing,
-            readOnly: readOnly,
+            readOnly: rowsReadOnly,
             held: loadedIds != null && !loadedIds.contains(event.id),
           ),
       ],

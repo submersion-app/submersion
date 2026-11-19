@@ -15,6 +15,7 @@ import 'package:submersion/features/certifications/presentation/widgets/certific
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/certifications/presentation/editing/certification_currency_sitting.dart';
+import 'package:submersion/features/certifications/presentation/editing/certification_edit_fields.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
@@ -497,6 +498,22 @@ void main() {
     expect(find.byType(AlertDialog), findsNothing);
     expect(certificationEventsList.current(session), isEmpty);
     expect(await currency.getEvents(aow.id), hasLength(1));
+  });
+
+  testWidgets('while the sitting changes the credential, no action is '
+      'offered', (tester) async {
+    final session = EditSession(aow)
+      ..set(certificationCredentialsField, [
+        const CertificationCredential(agency: 'ssi', level: 'openWater'),
+      ]);
+    addTearDown(session.dispose);
+    await pump(tester, aow, editing: session);
+
+    expect(
+      find.byKey(const ValueKey('currency-credential-held')),
+      findsOneWidget,
+    );
+    expect(find.byType(PopupMenuButton<CurrencyRowAction>), findsNothing);
   });
 
   testWidgets('in a sitting, muting holds every member until Save', (

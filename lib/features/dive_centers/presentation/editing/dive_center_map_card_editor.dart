@@ -130,7 +130,19 @@ class _DiveCenterMapCardEditorState
     ));
   }
 
-  Future<void> _useMyLocation() async {
+  /// Runs [work] as part of the sitting, so a Save asked for meanwhile
+  /// waits for the place it finds.
+  Future<void> _tracked(Future<void> Function() work) {
+    final future = work();
+    if (!_session.isDisposed) _session.track(future);
+    return future;
+  }
+
+  Future<void> _useMyLocation() => _tracked(_findMyLocation);
+
+  Future<void> _lookUp() => _tracked(_lookUpAddress);
+
+  Future<void> _findMyLocation() async {
     final location = ref.read(locationServiceProvider);
     final language = ref.read(placeNameLanguageProvider);
     final messenger = ScaffoldMessenger.of(context);
@@ -185,7 +197,7 @@ class _DiveCenterMapCardEditorState
     if (picked != null) _setPlace(picked.latitude, picked.longitude);
   }
 
-  Future<void> _lookUp() async {
+  Future<void> _lookUpAddress() async {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
     final address = diveCenterAddressLine(_session.working);

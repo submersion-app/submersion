@@ -150,6 +150,31 @@ void main() {
       expect(currencyPrefsInSitting(session), isEmpty);
     });
 
+    test('a new preference set and set back is no longer held', () async {
+      final session = EditSession(aow);
+      addTearDown(session.dispose);
+      final g = refresherGroup();
+      final stored = await storedCurrencyPrefs(g);
+
+      // Separate actions make the new rows at different times.
+      holdCurrencyPrefs(
+        session,
+        g,
+        stored,
+        (p) => rebuildCurrencyPref(p, lapse: 900),
+        now: DateTime(2024),
+      );
+      holdCurrencyPrefs(
+        session,
+        g,
+        stored,
+        (p) => rebuildCurrencyPref(p, lapse: null),
+        now: DateTime(2025),
+      );
+
+      expect(session.isDirty, isFalse);
+    });
+
     test('two changes in a sitting compose', () async {
       final session = EditSession(aow);
       addTearDown(session.dispose);

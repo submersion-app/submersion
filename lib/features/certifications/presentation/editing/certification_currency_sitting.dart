@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
@@ -165,6 +166,21 @@ List<CurrencyPref> currencyPrefsFor(
   return [for (final m in group.members) change(_currentPref(m, stored, at))];
 }
 
+/// Whether [a] and [b] say the same thing: their values, whatever the id or
+/// time a new row was made with. A preference changed and changed back is
+/// then no change.
+bool sameCurrencyPrefValues(CurrencyPref a, CurrencyPref b) =>
+    a.certificationId == b.certificationId &&
+    a.ruleId == b.ruleId &&
+    a.lapseDaysOverride == b.lapseDaysOverride &&
+    a.leadDaysOverride == b.leadDaysOverride &&
+    _sameList(a.countedDiveTypeIds, b.countedDiveTypeIds) &&
+    _sameList(a.countedDiveModes, b.countedDiveModes) &&
+    a.muted == b.muted;
+
+bool _sameList<E>(List<E>? a, List<E>? b) =>
+    a == null || b == null ? a == b : listEquals(a, b);
+
 /// The stored preferences of [group]'s members' cards, by card and rule.
 Future<Map<CurrencyPrefKey, CurrencyPref>> storedCurrencyPrefs(
   CurrencyGroup group, {
@@ -214,7 +230,7 @@ void holdCurrencyPrefs(
   final released = <CurrencyPrefKey>[];
   for (var i = 0; i < next.length; i++) {
     final key = _keyOf(next[i]);
-    if (next[i] == baseline[i]) {
+    if (sameCurrencyPrefValues(next[i], baseline[i])) {
       held.remove(key);
       released.add(key);
     } else {

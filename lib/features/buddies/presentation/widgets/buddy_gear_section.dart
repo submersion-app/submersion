@@ -78,7 +78,14 @@ class BuddyGearSection extends ConsumerWidget {
         for (final row in rows)
           if (row.heldIndex != null) row.gear.item.id,
       },
-      returned: {for (final move in held) ...?move.returned?.plan.items.keys},
+      // A return's parts too: they leave with their items at Save.
+      returned: {
+        for (final move in held)
+          if (move.returned case final returned?) ...[
+            ...returned.plan.items.keys,
+            ...returned.plan.partIds,
+          ],
+      },
     );
     if (lend != null && !editing.isDisposed) holdBuddyLend(editing, lend);
   }

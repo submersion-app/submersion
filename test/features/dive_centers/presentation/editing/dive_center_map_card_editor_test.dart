@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -140,6 +142,51 @@ void main() {
     expect(find.text(l.diveCenters_validation_invalidLongitude), findsNothing);
   });
 
+  testWidgets('Save waits for a lookup asked for on the card', (tester) async {
+    tester.view.physicalSize = const Size(700, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final session = EditSession(
+      DiveCenter(
+        id: 'dc1',
+        name: 'Reef Divers',
+        city: 'Dahab',
+        createdAt: DateTime(2020),
+        updatedAt: DateTime(2020),
+      ),
+    );
+    addTearDown(session.dispose);
+    final locations = _SlowLocations();
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...overrides,
+          locationServiceProvider.overrideWithValue(locations),
+        ],
+        child: Scaffold(
+          body: SingleChildScrollView(
+            child: DiveCenterMapCardEditor(session: session),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final l = AppLocalizationsEn();
+    await tester.tap(find.text(l.diveCenters_action_lookupFromAddress));
+    await tester.pump();
+    expect(session.isSettled, isFalse);
+
+    locations.answer.complete();
+    await tester.pumpAndSettle();
+    expect(session.isSettled, isTrue);
+    expect(session.valueOf(diveCenterCoordinatesField), (
+      latitude: 1.0,
+      longitude: 2.0,
+    ));
+  });
+
   testWidgets('a lookup that throws says it found nothing', (tester) async {
     tester.view.physicalSize = const Size(700, 1200);
     tester.view.devicePixelRatio = 1;
@@ -275,4 +322,14 @@ class _ThrowingLocations extends Fake implements LocationService {
   @override
   Future<LocationResult?> forwardGeocode(String address) async =>
       throw StateError('offline');
+}
+
+class _SlowLocations extends Fake implements LocationService {
+  final answer = Completer<void>();
+
+  @override
+  Future<LocationResult?> forwardGeocode(String address) async {
+    await answer.future;
+    return const LocationResult(latitude: 1, longitude: 2);
+  }
 }
