@@ -2,10 +2,13 @@
 /// Pure functions, so the rules are tested without widgets.
 library;
 
+import 'dart:math' as math;
+
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
+import 'package:submersion/features/species_id/domain/entities/track_sample.dart';
 import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
 
 enum TrackLabelKind {
@@ -104,21 +107,14 @@ IdentificationBox? boxAt(
   int ms, {
   int maxGapMs = 500,
 }) {
-  final path = track.path;
-  if (!track.isTrack || path.isEmpty) return null;
-  if (ms < path.first.ms || ms > path.last.ms) return null;
-  // The last sample at or before [ms], found by halving: this runs for
-  // every visible fish on every position tick.
-  var low = 0;
-  var high = path.length - 1;
-  while (low < high) {
-    final mid = (low + high + 1) ~/ 2;
-    if (path[mid].ms <= ms) {
-      low = mid;
-    } else {
-      high = mid - 1;
-    }
-  }
+  if (!track.isTrack) return null;
+  return _pathBoxAt(track.path, ms.toDouble(), maxGapMs);
+}
+
+/// [boxAt] on [path] at a moment between whole milliseconds.
+IdentificationBox? _pathBoxAt(List<TrackSample> path, double ms, int maxGapMs) {
+  if (path.isEmpty || ms < path.first.ms || ms > path.last.ms) return null;
+  final low = _lastAtOrBefore(path, ms);
   final here = path[low];
   if (here.ms == ms || low + 1 >= path.length) return here.box;
   final next = path[low + 1];
@@ -132,6 +128,101 @@ IdentificationBox? boxAt(
     height: mix(here.box.height, next.box.height),
   );
 }
+
+/// The index of the last sample at or before [ms], which is within [path],
+/// found by halving: this runs for every visible fish on every frame.
+int _lastAtOrBefore(List<TrackSample> path, double ms) {
+  var low = 0;
+  var high = path.length - 1;
+  while (low < high) {
+    final mid = (low + high + 1) ~/ 2;
+    if (path[mid].ms <= ms) {
+      low = mid;
+    } else {
+      high = mid - 1;
+    }
+  }
+  return low;
+}
+
+/// How far either side of a moment a label looks to smooth out the
+/// detector's noise (issue #4759). The stored boxes wander off a fish's
+/// line by up to a fiftieth of the frame from one 250 ms sample to the
+/// next; a second's window steadies that without trailing far behind a
+/// fish that turns.
+const int labelSmoothingMs = 500;
+
+/// The longest step between two samples a label rides over (issue #4759).
+/// The tracker keeps a fish through two missed samples, 750 ms at the
+/// scan's 250 ms beat, and a sample's time lands a millisecond or so off
+/// the beat; a label that went out there blinked.
+const int labelMaxGapMs = 800;
+
+/// Where a label for [track] goes at [ms]: [boxAt], averaged over
+/// [radiusMs] either side with the nearest moments counting most. Null
+/// where [boxAt] is.
+///
+/// The window stays the same width both sides, so a fish moving steadily is
+/// met exactly rather than led or trailed. Towards the track's ends, and
+/// towards a gap longer than [maxGapMs], it narrows smoothly to nothing, so
+/// a label never jumps as a sample leaves the window and comes to rest on
+/// the last sample seen.
+IdentificationBox? smoothedBoxAt(
+  MediaIdentification track,
+  int ms, {
+  int radiusMs = labelSmoothingMs,
+  int maxGapMs = labelMaxGapMs,
+}) {
+  if (!track.isTrack) return null;
+  final path = track.path;
+  final centre = _pathBoxAt(path, ms.toDouble(), maxGapMs);
+  if (centre == null) return null;
+  final at = _lastAtOrBefore(path, ms.toDouble());
+  // The unbroken run of samples around [ms], as far as the window reaches.
+  var first = at;
+  while (first > 0 &&
+      path[first].ms > ms - radiusMs &&
+      path[first].ms - path[first - 1].ms <= maxGapMs) {
+    first--;
+  }
+  var last = at;
+  while (last + 1 < path.length &&
+      path[last].ms < ms + radiusMs &&
+      path[last + 1].ms - path[last].ms <= maxGapMs) {
+    last++;
+  }
+  final reach = math.min(
+    radiusMs,
+    math.min(ms - path[first].ms, path[last].ms - ms),
+  );
+  if (reach <= 0) return centre;
+  // A triangle of weights over evenly spaced moments: [_taps] each side.
+  var x = 0.0, y = 0.0, width = 0.0, height = 0.0, total = 0.0;
+  void add(IdentificationBox box, double weight) {
+    x += box.x * weight;
+    y += box.y * weight;
+    width += box.width * weight;
+    height += box.height * weight;
+    total += weight;
+  }
+
+  add(centre, _taps + 1);
+  for (var k = 1; k <= _taps; k++) {
+    final offset = reach * k / _taps;
+    final weight = (_taps + 1 - k).toDouble();
+    add(_pathBoxAt(path, ms - offset, maxGapMs)!, weight);
+    add(_pathBoxAt(path, ms + offset, maxGapMs)!, weight);
+  }
+  return IdentificationBox(
+    x: x / total,
+    y: y / total,
+    width: width / total,
+    height: height / total,
+  );
+}
+
+/// How many moments either side of the centre [smoothedBoxAt] averages.
+const int _taps = 4;
 
 /// The labels to draw at [ms]: one per visible animal, at most
 /// [maxLabels], the largest first so a school does not bury the picture.
@@ -157,7 +248,7 @@ List<TrackLabel> labelsAt(
           unconfirmedSpeciesIds.contains(track.decidedSpeciesId),
     );
     if (kind == null) continue;
-    final box = boxAt(track, ms);
+    final box = smoothedBoxAt(track, ms);
     if (box == null) continue;
     labels.add(
       TrackLabel(
