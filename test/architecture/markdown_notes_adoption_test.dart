@@ -34,6 +34,9 @@ void main() {
         'MarkdownNotesField(',
     'lib/features/courses/presentation/pages/course_edit_page.dart':
         'MarkdownNotesField(',
+    // A dive centre's Notes card edited in place (issue #4527).
+    'lib/features/dive_centers/presentation/editing/dive_center_edit_cards.dart':
+        'MarkdownNotesField(',
     'lib/features/dive_centers/presentation/pages/dive_center_edit_page.dart':
         'MarkdownNotesField(',
     // The bulk notes field.

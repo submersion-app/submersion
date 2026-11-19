@@ -31,17 +31,51 @@ import 'package:submersion/features/documents/presentation/widgets/documents_sec
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_avatar.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_centers/data/services/dive_center_edit_save_service.dart';
+import 'package:submersion/features/dive_centers/presentation/editing/dive_center_card_ids.dart';
+import 'package:submersion/features/dive_centers/presentation/editing/dive_center_edit_cards.dart';
+import 'package:submersion/features/documents/presentation/editing/record_document_links_sitting.dart';
+import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_fade.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
+import 'package:submersion/shared/widgets/record_editing/record_open_unlocked.dart';
+import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
+import 'package:submersion/shared/widgets/record_editing/record_pane_row.dart';
+import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
+
+part 'dive_center_detail_page_dives.dart';
+part 'dive_center_detail_page_editing.dart';
+
+/// A dive centre's page. Behind phase 3's switch ([unlockEditing]) it
+/// opens locked and edits in place (issue #4527).
 
 class DiveCenterDetailPage extends ConsumerStatefulWidget {
   final String centerId;
   final bool embedded;
   final VoidCallback? onDeleted;
 
+  /// Whether the page edits in place: phase 3's switch.
+  final bool unlockEditing;
+
+  /// Opens unlocked, as the old edit address asks (`?mode=edit`).
+  final bool openUnlocked;
+
+  /// Told when a sitting the page opened unlocked ends.
+  final VoidCallback? onSittingEnded;
+
   const DiveCenterDetailPage({
     super.key,
     required this.centerId,
     this.embedded = false,
     this.onDeleted,
+    this.unlockEditing = kUnlockRecordEditing,
+    this.openUnlocked = false,
+    this.onSittingEnded,
   });
 
   @override
@@ -49,8 +83,18 @@ class DiveCenterDetailPage extends ConsumerStatefulWidget {
       _DiveCenterDetailPageState();
 }
 
-class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage> {
+class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage>
+    with
+        RecordEditHost<DiveCenterDetailPage, DiveCenter>,
+        RecordOpenUnlocked<DiveCenterDetailPage, DiveCenter>,
+        _DiveCenterDetailPageEditing {
   bool _hasRedirected = false;
+
+  @override
+  void dispose() {
+    disposeEditing();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,6 +117,7 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage> {
     }
 
     final centerAsync = ref.watch(diveCenterByIdProvider(widget.centerId));
+    if (hostsEditing) followStored(diveCenterByIdProvider(widget.centerId));
 
     return centerAsync.when(
       loading: () => widget.embedded
@@ -95,8 +140,8 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage> {
                 ),
               ),
             ),
-      data: (center) {
-        if (center == null) {
+      data: (stored) {
+        if (stored == null) {
           return widget.embedded
               ? Center(child: Text(context.l10n.diveCenters_error_notFound))
               : Scaffold(
@@ -107,210 +152,119 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage> {
                 );
         }
 
+        if (hostsEditing) openUnlockedOnce(stored);
+        final center = hostsEditing ? shownRecord(stored) : stored;
+        final units = ref.watch(unitFormatterProvider);
         final body = SingleChildScrollView(
           controller: DetailScrollController.maybeOf(context),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (center.hasCoordinates) _MapSection(center: center),
-              _HeaderSection(center: center),
-              const Divider(height: 32),
-              _ContactSection(center: center),
-              if (center.notes.isNotEmpty) ...[
-                const Divider(height: 32),
-                _NotesSection(notes: center.notes),
-              ],
-              const Divider(height: 32),
-              DocumentsSection(
-                owner: DocumentOwner(
-                  DocumentOwnerKind.diveCenter,
-                  widget.centerId,
+              if (center.hasCoordinates ||
+                  _showsWhileEmpty(DiveCenterCardId.map))
+                _framed(
+                  DiveCenterCardId.map,
+                  center.hasCoordinates
+                      ? Stack(
+                          children: [
+                            _MapSection(center: center),
+                            if (_pencil(DiveCenterCardId.map) case final p?)
+                              Positioned(
+                                top: 24,
+                                left: 24,
+                                child: Material(
+                                  shape: const StadiumBorder(),
+                                  child: p,
+                                ),
+                              ),
+                          ],
+                        )
+                      : const SizedBox(height: 16),
+                ),
+              _framed(
+                DiveCenterCardId.header,
+                _HeaderSection(
+                  center: center,
+                  pencil: _pencil(DiveCenterCardId.header),
                 ),
               ),
-              GearHereSection(centerId: widget.centerId),
+              const Divider(height: 32),
+              _framed(
+                DiveCenterCardId.contact,
+                _ContactSection(
+                  center: center,
+                  units: units,
+                  pencil: _pencil(DiveCenterCardId.contact),
+                ),
+              ),
+              if (center.notes.isNotEmpty ||
+                  _showsWhileEmpty(DiveCenterCardId.notes)) ...[
+                const Divider(height: 32),
+                _framed(
+                  DiveCenterCardId.notes,
+                  _NotesSection(
+                    notes: center.notes,
+                    pencil: _pencil(DiveCenterCardId.notes),
+                  ),
+                ),
+              ],
+              const Divider(height: 32),
+              _framed(
+                DiveCenterCardId.documents,
+                DocumentsSection<DiveCenter>(
+                  owner: DocumentOwner(
+                    DocumentOwnerKind.diveCenter,
+                    widget.centerId,
+                  ),
+                ),
+              ),
+              _calculated(GearHereSection(centerId: widget.centerId)),
               const Divider(height: 32),
               RentalGearSection(centerId: widget.centerId),
               const Divider(height: 32),
-              _DivesSection(centerId: widget.centerId),
+              _calculated(_DivesSection(centerId: widget.centerId)),
               const SizedBox(height: 32),
             ],
           ),
         );
 
         if (widget.embedded) {
+          final header = _buildEmbeddedHeader(context, center, stored: stored);
+          if (hostsEditing) {
+            return editPane(header: header, shown: center, content: body);
+          }
           return Column(
             children: [
-              _buildEmbeddedHeader(context, center),
+              header,
               Expanded(child: body),
             ],
           );
         }
 
-        return Scaffold(
-          appBar: AppBar(
-            title: Text(center.name),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.edit_outlined),
-                tooltip: context.l10n.diveCenters_tooltip_edit,
-                onPressed: () =>
-                    context.push('/dive-centers/${widget.centerId}/edit'),
-              ),
-              _buildMoreMenu(context, center),
-            ],
-          ),
-          body: body,
+        final bar = AppBar(
+          title: Text(center.name),
+          actions: [
+            if (hostsEditing) lockButton(center),
+            IconButton(
+              icon: const Icon(Icons.edit_outlined),
+              tooltip: context.l10n.diveCenters_tooltip_edit,
+              // Where the page edits in place, Edit unlocks it.
+              onPressed: hostsEditing
+                  ? () => editController.unlock(center)
+                  : () => context.push('/dive-centers/${widget.centerId}/edit'),
+            ),
+            _buildMoreMenu(context, center),
+          ],
+        );
+        if (!hostsEditing) return Scaffold(appBar: bar, body: body);
+        return editScaffold(
+          record: stored,
+          shown: center,
+          lockedBar: bar,
+          unlockedActions: [_buildMoreMenu(context, center)],
+          content: body,
         );
       },
-    );
-  }
-
-  Widget _buildEmbeddedHeader(BuildContext context, DiveCenter center) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        border: Border(
-          bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
-        ),
-      ),
-      child: Row(
-        children: [
-          DiveCenterAvatar(
-            logo: center.logo,
-            shape: DiveCenterAvatarShape.roundedSquare,
-            iconSize: 24,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  center.name,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (center.fullLocationString != null)
-                  Text(
-                    center.fullLocationString!,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-              ],
-            ),
-          ),
-          if (center.rating != null) ...[
-            Icon(Icons.star, size: 16, color: Colors.amber.shade700),
-            const SizedBox(width: 4),
-            Text(
-              formatRatingForDisplay(center.rating!),
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(width: 8),
-          ],
-          IconButton(
-            icon: const Icon(Icons.edit_outlined, size: 20),
-            onPressed: () {
-              final state = GoRouterState.of(context);
-              final currentPath = state.uri.path;
-              context.go('$currentPath?selected=${widget.centerId}&mode=edit');
-            },
-            tooltip: context.l10n.common_action_edit,
-          ),
-          _buildMoreMenu(context, center),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMoreMenu(BuildContext context, DiveCenter center) {
-    return PopupMenuButton<String>(
-      onSelected: (value) async {
-        if (value == kOpenInConnectionsAction) {
-          openInConnections(
-            context,
-            NodeRef(ConnectionKind.diveCenter, center.id),
-          );
-          return;
-        }
-        if (value == 'delete') {
-          final usage = await readDiveCenterDeleteUsage(ref, [center.id]);
-          if (!context.mounted) return;
-          final confirmed = await showDialog<bool>(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: Text(context.l10n.diveCenters_dialog_deleteTitle),
-              content: Text(
-                withDiveCenterDeleteUsage(
-                  context.l10n,
-                  context.l10n.diveCenters_dialog_deleteMessage(center.name),
-                  usage,
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: Text(context.l10n.common_action_cancel),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(context, true),
-                  style: TextButton.styleFrom(
-                    foregroundColor: Theme.of(context).colorScheme.error,
-                  ),
-                  child: Text(context.l10n.common_action_delete),
-                ),
-              ],
-            ),
-          );
-
-          if (confirmed == true && context.mounted) {
-            await ref
-                .read(diveCenterListNotifierProvider.notifier)
-                .deleteDiveCenter(widget.centerId);
-            if (context.mounted) {
-              if (widget.embedded) {
-                widget.onDeleted?.call();
-              } else {
-                context.pop();
-              }
-            }
-          }
-        }
-      },
-      itemBuilder: (context) => [
-        changeLogHistoryMenuItem(
-          context,
-          rootTable: 'dive_centers',
-          rootId: center.id,
-        ),
-        openInConnectionsMenuItem(context),
-        PopupMenuItem(
-          value: 'delete',
-          child: Row(
-            children: [
-              Icon(
-                Icons.delete_outline,
-                color: Theme.of(context).colorScheme.error,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                context.l10n.common_action_delete,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 }
@@ -318,7 +272,10 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage> {
 class _HeaderSection extends StatelessWidget {
   final DiveCenter center;
 
-  const _HeaderSection({required this.center});
+  /// The card's pencil, where the page edits in place.
+  final Widget? pencil;
+
+  const _HeaderSection({required this.center, this.pencil});
 
   @override
   Widget build(BuildContext context) {
@@ -340,9 +297,16 @@ class _HeaderSection extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      center.name,
-                      style: Theme.of(context).textTheme.headlineSmall,
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            center.name,
+                            style: Theme.of(context).textTheme.headlineSmall,
+                          ),
+                        ),
+                        ?pencil,
+                      ],
                     ),
                     if (center.isPermanentlyClosed) ...[
                       const SizedBox(height: 4),
@@ -441,13 +405,26 @@ class _HeaderSection extends StatelessWidget {
 
 class _ContactSection extends StatelessWidget {
   final DiveCenter center;
+  final UnitFormatter units;
 
-  const _ContactSection({required this.center});
+  /// The card's pencil, where the page edits in place.
+  final Widget? pencil;
+
+  const _ContactSection({
+    required this.center,
+    required this.units,
+    this.pencil,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final opens = center.fillOpensAt;
+    final closes = center.fillClosesAt;
     final hasContact =
-        center.phone != null || center.email != null || center.website != null;
+        center.phone != null ||
+        center.email != null ||
+        center.website != null ||
+        (opens != null && closes != null);
 
     if (!hasContact) return const SizedBox();
 
@@ -456,9 +433,16 @@ class _ContactSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            context.l10n.diveCenters_section_contact,
-            style: Theme.of(context).textTheme.titleMedium,
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  context.l10n.diveCenters_section_contact,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              ?pencil,
+            ],
           ),
           const SizedBox(height: 12),
           if (center.phone != null)
@@ -484,6 +468,18 @@ class _ContactSection extends StatelessWidget {
               value: center.website!,
               onTap: () => _launchWebsite(center.website!),
               onLongPress: () => _copyToClipboard(context, center.website!),
+            ),
+          // Shown nowhere before (issue #4527): the station's daily window.
+          if (opens != null && closes != null)
+            ListTile(
+              key: const ValueKey('dive_center_fill_hours'),
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.local_gas_station_outlined),
+              title: Text(
+                '${units.formatMinutesOfDay(opens)}'
+                '\u2013${units.formatMinutesOfDay(closes)}',
+              ),
+              subtitle: Text(context.l10n.diveCenters_section_fillHours),
             ),
         ],
       ),
@@ -592,7 +588,10 @@ class _ContactTile extends StatelessWidget {
 class _NotesSection extends StatelessWidget {
   final String notes;
 
-  const _NotesSection({required this.notes});
+  /// The card's pencil, where the page edits in place.
+  final Widget? pencil;
+
+  const _NotesSection({required this.notes, this.pencil});
 
   @override
   Widget build(BuildContext context) {
@@ -601,9 +600,16 @@ class _NotesSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            context.l10n.diveCenters_section_notes,
-            style: Theme.of(context).textTheme.titleMedium,
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  context.l10n.diveCenters_section_notes,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              ?pencil,
+            ],
           ),
           const SizedBox(height: 8),
           MarkdownNotesView(notes),
@@ -802,122 +808,6 @@ class _MapSectionState extends ConsumerState<_MapSection> {
   }
 }
 
-class _DivesSection extends ConsumerWidget {
-  final String centerId;
-
-  const _DivesSection({required this.centerId});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final diveCountAsync = ref.watch(diveCenterDiveCountProvider(centerId));
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: diveCountAsync.when(
-        data: (diveCount) {
-          return Card(
-            clipBehavior: Clip.antiAlias,
-            child: Semantics(
-              button: true,
-              label: context.l10n.diveCenters_accessibility_viewDives,
-              child: InkWell(
-                onTap: diveCount > 0
-                    ? () {
-                        // Set the filter to this dive center and navigate to dive list
-                        openDiveList(
-                          context,
-                          ref,
-                          DiveFilterState(diveCenterId: centerId),
-                        );
-                      }
-                    : null,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 24,
-                        backgroundColor: colorScheme.primaryContainer,
-                        child: Icon(
-                          Icons.scuba_diving,
-                          color: colorScheme.onPrimaryContainer,
-                          size: 24,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              context.l10n.diveCenters_detail_divesWithCenter,
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              diveCount == 0
-                                  ? context
-                                        .l10n
-                                        .diveCenters_detail_noDivesLogged
-                                  : context.l10n.diveCenters_detail_divesLogged(
-                                      diveCount,
-                                    ),
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      if (diveCount > 0)
-                        ExcludeSemantics(
-                          child: Icon(
-                            Icons.chevron_right,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
-        loading: () => Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 24,
-                  backgroundColor: colorScheme.primaryContainer,
-                  child: Icon(
-                    Icons.scuba_diving,
-                    color: colorScheme.onPrimaryContainer,
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                const Expanded(
-                  child: SizedBox(
-                    height: 20,
-                    width: 100,
-                    child: LinearProgressIndicator(),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        error: (e, st) => const SizedBox.shrink(),
-      ),
-    );
-  }
-}
-
-/// "Permanently closed" under a closed center's name (#3379).
 class _ClosedNote extends StatelessWidget {
   const _ClosedNote();
 

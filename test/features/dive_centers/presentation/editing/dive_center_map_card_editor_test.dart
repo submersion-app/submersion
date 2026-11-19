@@ -1,0 +1,70 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:submersion/core/services/geocoding/place_lookup.dart';
+import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
+import 'package:submersion/features/dive_centers/presentation/editing/dive_center_edit_cards.dart';
+import 'package:submersion/features/dive_centers/presentation/editing/dive_center_card_ids.dart';
+import 'package:submersion/features/dive_centers/presentation/editing/dive_center_edit_fields.dart';
+import 'package:submersion/features/dive_centers/presentation/editing/dive_center_map_card_editor.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/location_picker_map.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+
+import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/test_app.dart';
+
+/// The dive centre Map card's editor (issue #4527, phase 3).
+void main() {
+  DiveCenter centre() => DiveCenter(
+    id: 'dc1',
+    name: 'Reef Divers',
+    createdAt: DateTime(2020),
+    updatedAt: DateTime(2020),
+  );
+
+  testWidgets('pick from map sets the coordinates', (tester) async {
+    tester.view.physicalSize = const Size(700, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final session = EditSession(centre());
+    addTearDown(session.dispose);
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        overrides: overrides,
+        child: Scaffold(
+          body: SingleChildScrollView(
+            child: DiveCenterMapCardEditor(
+              session: session,
+              pickLocation: (context, initial) async => const PickedLocation(
+                latitude: 28.5,
+                longitude: 34.5,
+                place: PlaceLookup.empty(),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('dive-center-edit-pick-map')));
+    await tester.pumpAndSettle();
+
+    expect(session.valueOf(diveCenterCoordinatesField), (
+      latitude: 28.5,
+      longitude: 34.5,
+    ));
+    expect(session.changedCardIds, {'map'});
+  });
+
+  test('out of range coordinates are invalid', () {
+    final session = EditSession(centre())
+      ..set(diveCenterCoordinatesField, (latitude: 91.0, longitude: 0.0));
+    final card = diveCenterEditCards[DiveCenterCardId.map]!;
+    expect(card.isValid!(session), isFalse);
+    session.set(diveCenterCoordinatesField, (latitude: 45.0, longitude: 0.0));
+    expect(card.isValid!(session), isTrue);
+    session.dispose();
+  });
+}
