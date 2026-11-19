@@ -265,8 +265,10 @@ the junk sheets hand it a copy of Megalodon's converted package
 building a pack.
 
 The pure parts have tests that CI runs, beside the others above:
-`naming_test.py`, `bars_test.py`, `metrics_test.py`, `testset_test.py` and
-`boxes_test.py`. `naming.py` copies
+`naming_test.py`, `bars_test.py`, `metrics_test.py`, `testset_test.py`,
+`boxes_test.py`, `levels_test.py`, `report_test.py` (the report's "Naming
+levels" section) and `score_test.py` (the measured entries for
+`NAMING_MEASURED`). `naming.py` copies
 `lib/features/species_id/domain/services/species_namer.dart`; both are
 checked against `tool/species_pack/testdata/naming_vectors.json`, which
 `python3.14 tool/species_pack/naming.py --write-vectors tool/species_pack/testdata/naming_vectors.json`
@@ -298,12 +300,22 @@ only wrong names), never above the level above them, and held to the
 same 2% junk cap: while a level names too much junk, each bar that names
 some (with a location or without) is raised 0.01 until it passes. A level
 that ends at the bars above it, whose held-out interval lies wholly below
-its target (`bars.level_gate`), or that was more often right held out than
-the level above it is left out, so a pack can carry one level or none. The
-report's "Naming levels" table gives each level's
-held-out precision, coverage and junk named, and `results.json`'s
-`measured` entries carry `naming.precision` and `naming.levels` for
-`NAMING_MEASURED`. `manifest.level_problems` checks them.
+its target (`bars.level_gate`), that has no shown figure in (0, 1]
+(nothing named, or nothing right, on the side that decides it), or that
+shows a higher figure than the level above it is left out, so a pack can
+carry one level or none. The
+figure shown for a level, and for Surer, is the lower of its held-out
+precisions with and without a location (`levels.shown_precision`), so the
+settings line never overstates for photos named without a location, where
+a level's lower no-location bar can make it less often right
+([design](../design/specs/2026-11-19-marine-life-level-accuracy-without-location-design.md)).
+The report's "Naming levels" table gives Surer's and each level's
+held-out precision and coverage both ways, the shown figure and junk
+named, and warns when a shown figure is set by a side naming fewer than
+30 held-out crops (`report.SMALL_SIDE`). `results.json`'s `measured`
+entries carry the shown figures as `naming.precision` and
+`naming.levels` for `NAMING_MEASURED`. `manifest.level_problems` checks
+them.
 
 **Publishing.** The levels are optional manifest fields, so they need no
 format change and an older app names at Surer. To add them to a published

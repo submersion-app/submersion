@@ -80,9 +80,11 @@ CONTENT_FILES = ("candidates.json", "text_embeddings.f16", "regions.bin")
 # run on it. A bar of 1.01 is never: no confident names, since at each
 # set's chosen fitting no bar proved 95% right. Measured on the pack with
 # surveyed species (9,151 candidates); the earlier 7,646 pack's bars no
-# longer apply. Each set's `precision` (its own bars, held-out, with a
-# location) and naming levels (issue #4721) were measured on pack
-# 2026.11.18.0356 under these bars.
+# longer apply. Each set's `precision` (its own bars, held out) and naming
+# levels (issue #4721) were measured on pack 2026.11.18.0356 under these
+# bars. Every `precision` here, Surer's and each level's, is the lower of
+# the held-out precisions with a location and without one, so it can sit
+# below the report's with-location figure (Megalodon's 0.89 against 92.3%).
 _MEASURED_CONTENTS = {
     "candidates.json": "4f0dc61c95ab06de3a0b2ecb1401260e23907c3d2ff09d2da165bd9c8c34d50c",
     "text_embeddings.f16": "9aa97fc27a4b91039bd8eb9b6ad7be2da0cc97e4818a1ad81bb7f61b111cde33",
@@ -108,14 +110,14 @@ NAMING_MEASURED = [
                     "target": 0.75,
                     "suggestScore": 0.25,
                     "suggestScoreNoLocation": 0.56,
-                    "precision": 0.821,
+                    "precision": 0.81,
                 },
                 {
                     "id": "eager",
                     "target": 0.65,
                     "suggestScore": 0.25,
                     "suggestScoreNoLocation": 0.39,
-                    "precision": 0.821,
+                    "precision": 0.737,
                 },
             ],
         },
@@ -141,7 +143,7 @@ NAMING_MEASURED = [
             "confidentScoreNoLocation": 1.01,
             "minAllowedCandidates": 200,
             "topK": 5,
-            "precision": 0.923,
+            "precision": 0.89,
             "levels": [
                 {
                     "id": "balanced",
@@ -184,14 +186,14 @@ NAMING_MEASURED = [
                     "target": 0.75,
                     "suggestScore": 0.25,
                     "suggestScoreNoLocation": 0.63,
-                    "precision": 0.825,
+                    "precision": 0.808,
                 },
                 {
                     "id": "eager",
                     "target": 0.65,
                     "suggestScore": 0.25,
                     "suggestScoreNoLocation": 0.44,
-                    "precision": 0.825,
+                    "precision": 0.755,
                 },
             ],
         },

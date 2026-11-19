@@ -8,7 +8,12 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import bars as bar_search  # noqa: E402
+import levels as level_search  # noqa: E402
 import manifest as pack_manifest  # noqa: E402
+
+# A shown figure set by a side naming fewer held-out crops than this is
+# flagged: a handful of crops then decides the line a diver reads.
+SMALL_SIDE = 30
 
 
 def _pct(rate):
@@ -17,8 +22,81 @@ def _pct(rate):
     return f"{rate['value']:.1%} ({rate['low']:.1%} to {rate['high']:.1%}, n {rate['n']})"
 
 
+def _share(value):
+    return "n/a" if value is None else f"{value:.1%}"
+
+
 def _bar(value):
     return "never" if value >= bar_search.NEVER else f"{value:.2f}"
+
+
+def _small_side_warning(key, level_id, held):
+    side = level_search.deciding_side(held)
+    if side is None or side[1]["n"] >= SMALL_SIDE:
+        return None
+    where, rate = side
+    return (
+        f"- warning: {key} {level_id}: its shown figure is set {where}, where it names only "
+        f"{rate['n']} held-out crops (fewer than {SMALL_SIDE}), so a few crops decide it"
+    )
+
+
+def naming_levels_lines(results):
+    """The "Naming levels" section, below its heading: Surer and each level
+    per run, both sides and the figure shown, then where the levels were
+    measured and any warnings."""
+    lines = [
+        "Under the published pack's bars when it has measured ones, else this run's (each run is listed "
+        "below the table); each held to the same junk cap; precision and coverage with a location and "
+        "without one. Shown is the lower precision, as the manifest carries it and the app shows it. Each "
+        "run's Surer row is at the bars its levels sit under."
+    ]
+    lines += [
+        "",
+        "| Run | level | target | suggest | suggest, no location | precision | precision, no location | "
+        "coverage | coverage, no location | shown | junk named |",
+    ]
+    lines += ["| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
+    warnings = []
+    for key, e in results["evaluations"].items():
+        under = e.get("levels measured under")
+        if under:
+            # Surer at the bars the levels sit under, which its shown
+            # figure (the manifest's naming.precision) is taken from.
+            b, h = under["bars"], e.get("surer held-out") or {}
+            shown = level_search.manifest_precision(e.get("surer precision"))
+            lines.append(
+                f"| {key} | surer | | {_bar(b['suggest'])} | {_bar(b['suggest_no_location'])} | "
+                f"{_pct(h.get('precision'))} | {_pct(h.get('precision without location'))} | "
+                f"{_pct(h.get('coverage'))} | {_pct(h.get('coverage without location'))} | "
+                f"{_share(shown)} | {_pct(h.get('junk named'))} |"
+            )
+            warnings.append(_small_side_warning(key, "surer", h))
+        if not e.get("levels"):
+            lines.append(f"| {key} | none | | | | | | | | | |")
+        for level in e.get("levels", []):
+            b, h = level["bars"], level["held-out"]
+            lines.append(
+                f"| {key} | {level['id']} | {level['target']:.2f} | {_bar(b['suggest'])} | "
+                f"{_bar(b['suggest_no_location'])} | {_pct(h['precision'])} | "
+                f"{_pct(h.get('precision without location'))} | {_pct(h['coverage'])} | "
+                f"{_pct(h.get('coverage without location'))} | "
+                f"{_share(level.get('precision'))} | {_pct(h['junk named'])} |"
+            )
+            warnings.append(_small_side_warning(key, level["id"], h))
+    lines.append("")
+    for key, e in results["evaluations"].items():
+        under = e.get("levels measured under")
+        if under:
+            source = "the published pack's bars" if under["published"] else "this run's bars"
+            lines.append(f"- {key}: levels measured under {source}")
+    lines += [warning for warning in warnings if warning]
+    # What the app would show a diver must read sensibly before it is
+    # published (manifest.level_problems, which relevel_manifest.py enforces).
+    for entry in results.get("measured", []):
+        for problem in pack_manifest.level_problems(entry["naming"]):
+            lines.append(f"- warning: {'+'.join(entry['detectorIds'])}: {problem}")
+    return lines
 
 
 def write_report(results, path):
@@ -34,33 +112,7 @@ def write_report(results, path):
             f"{_bar(b['confident'])} | {_bar(b['confident_no_location'])} | {', '.join(e['switched off']) or 'none'} |"
         )
     lines += ["", "## Naming levels", ""]
-    lines += [
-        "Under the published pack's bars when it has measured ones, else this run's (each run is listed "
-        "below the table); each held to the same junk cap; precision and coverage with a location."
-    ]
-    lines += ["", "| Run | level | target | suggest | suggest, no location | precision | coverage | junk named |"]
-    lines += ["| --- | --- | --- | --- | --- | --- | --- | --- |"]
-    for key, e in results["evaluations"].items():
-        if not e.get("levels"):
-            lines.append(f"| {key} | none | | | | | | |")
-        for level in e.get("levels", []):
-            b, h = level["bars"], level["held-out"]
-            lines.append(
-                f"| {key} | {level['id']} | {level['target']:.2f} | {_bar(b['suggest'])} | "
-                f"{_bar(b['suggest_no_location'])} | {_pct(h['precision'])} | {_pct(h['coverage'])} | "
-                f"{_pct(h['junk named'])} |"
-            )
-    lines.append("")
-    for key, e in results["evaluations"].items():
-        under = e.get("levels measured under")
-        if under:
-            source = "the published pack's bars" if under["published"] else "this run's bars"
-            lines.append(f"- {key}: levels measured under {source}")
-    # What the app would show a diver must read sensibly before it is
-    # published (manifest.level_problems, which relevel_manifest.py enforces).
-    for entry in results.get("measured", []):
-        for problem in pack_manifest.level_problems(entry["naming"]):
-            lines.append(f"- warning: {'+'.join(entry['detectorIds'])}: {problem}")
+    lines += naming_levels_lines(results)
     lines += ["", "## Held-out natural sample", ""]
     lines += [
         "| Run | photos | any box | largest named right | top-1 / top-3 with location | "

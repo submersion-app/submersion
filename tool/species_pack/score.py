@@ -429,7 +429,9 @@ def evaluate(
     # accuracy the app does not name at; otherwise under this run's. Bars
     # given with `fixed_bars` come first: they are the ones asked for.
     surer = gated if fixed_bars is not None else published or gated
-    levels, surer_precision = level_search.measure(surer, tune_nat, tune_junk, held_nat, held_junk, min_side=min_side)
+    levels, surer_precision, surer_held = level_search.measure(
+        surer, tune_nat, tune_junk, held_nat, held_junk, min_side=min_side
+    )
 
     def naming_rates(records, confident=False):
         out = {}
@@ -519,9 +521,13 @@ def evaluate(
         "bars after held-out gate": gated.__dict__,
         "switched off": switched_off,
         "levels measured under": {"bars": surer.__dict__, "published": published is not None},
-        # Held out, at the bars the levels sit under; None when they name
-        # nothing held out: no precision to show.
+        # Held out, at the bars the levels sit under: the lower of the
+        # precisions with and without a location (levels.shown_precision),
+        # None when they name nothing held out: no precision to show.
         "surer precision": surer_precision,
+        # Both sides at those bars, which the shown figure is taken from;
+        # "held-out natural" is at this run's own bars, which can differ.
+        "surer held-out": surer_held,
         "levels": levels,
         "held-out natural": summary(held_nat),
         "held-out natural, detection": {
@@ -622,7 +628,9 @@ def _measured_entry(evaluation, manifest, detector_ids, crop_fit):
             "target": level["target"],
             "suggestScore": round(level["bars"]["suggest"], 2),
             "suggestScoreNoLocation": round(level["bars"]["suggest_no_location"], 2),
-            "precision": round(level["held-out"]["precision"]["value"], level_search.PRECISION_PLACES),
+            # The lower of its held-out precisions with and without a
+            # location, already rounded as a manifest carries it.
+            "precision": level["precision"],
         }
         for level in evaluation["levels"]
     ]

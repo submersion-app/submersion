@@ -364,8 +364,9 @@ class LevelProblemsTests(unittest.TestCase):
         self.assertTrue(self.problems([self.BALANCED, {**self.EAGER, "suggestScore": 0.6, "suggestScoreNoLocation": 0.7}]))
 
     def test_a_level_lower_in_one_bar_only_and_as_often_right(self):
-        # The published pair's Eager shares Balanced's bar with a location
-        # and its precision; either bar alone may be the lower one.
+        # A level may share one bar with the level above (the published
+        # pair's Eager shares Balanced's with a location) and be as often
+        # right; either bar alone may be the lower one.
         no_location = {**self.EAGER, "suggestScore": 0.6, "suggestScoreNoLocation": 0.6, "precision": 0.81}
         location = {**self.EAGER, "suggestScore": 0.5, "suggestScoreNoLocation": 0.7, "precision": 0.81}
         self.assertEqual(self.problems([self.BALANCED, no_location], precision=0.897), [])

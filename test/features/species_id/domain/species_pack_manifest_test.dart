@@ -706,8 +706,9 @@ void main() {
     });
 
     test('a level lower in one bar only, and as often right, is kept', () {
-      // The published pair's Eager: Balanced's bar with a location, a lower
-      // one without, and the same measured precision.
+      // A level sharing one bar with the level above, as the published
+      // pair's Eager shares Balanced's with a location, and as often right
+      // (a tie the app allows).
       expect(
         ids(
           naming([

@@ -241,8 +241,8 @@ class NamingConfig extends Equatable {
   final int topK;
 
   /// The share of suggestions that were right on held-out photos at the
-  /// suggest bars, with a location; null when the pack was not measured
-  /// for it (issue #4721).
+  /// suggest bars, the lower of the shares with a location and without
+  /// one; null when the pack was not measured for it (issue #4721).
   final double? precision;
 
   /// The measured naming levels below the suggest bars, surest first;

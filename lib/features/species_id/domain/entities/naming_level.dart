@@ -38,8 +38,9 @@ class MeasuredNamingLevel extends Equatable {
   final double suggestScore;
   final double suggestScoreNoLocation;
 
-  /// The share of names that were right on held-out photos, with a
-  /// location.
+  /// The share of names that were right on held-out photos: the lower of
+  /// the shares with a location and without one, so the figure shown never
+  /// overstates for either kind of photo.
   final double precision;
 
   MeasuredNamingLevel copyWith({
