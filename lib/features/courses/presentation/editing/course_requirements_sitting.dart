@@ -360,14 +360,18 @@ class HeldRequirementActions implements RequirementActions {
   Future<void> add(BuildContext context) async {
     final draft = await showAddRequirementSheet(context);
     if (draft == null) return;
-    _change((rows) => withRequirementAdded(rows, draft, courseId: _courseId));
+    await _change(
+      (rows) => withRequirementAdded(rows, draft, courseId: _courseId),
+    );
   }
 
   @override
   Future<void> applyTemplate(BuildContext context) async {
     final template = await showTemplatePickerSheet(context);
     if (template == null) return;
-    _change((rows) => withTemplateApplied(rows, template, courseId: _courseId));
+    await _change(
+      (rows) => withTemplateApplied(rows, template, courseId: _courseId),
+    );
   }
 
   @override

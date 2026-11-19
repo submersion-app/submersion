@@ -117,6 +117,28 @@ void main() {
     expect(await earnedBy('k1'), ['c2']);
   });
 
+  test('a certification linked meanwhile on another device is kept', () async {
+    final session = await sitting();
+    await hold(session, ['c1']);
+    // Another device links c2 to the course after the sitting read.
+    await CourseRepository().setCourseCertifications('k1', ['c2']);
+
+    await save(session);
+
+    expect((await earnedBy('k1')).toSet(), {'c1', 'c2'});
+  });
+
+  test('a removal keeps what was linked meanwhile', () async {
+    await CourseRepository().setCourseCertifications('k1', ['c1', 'c2']);
+    final session = await sitting();
+    await hold(session, ['c2']);
+    await CourseRepository().setCourseCertifications('k1', ['c1', 'c2', 'c4']);
+
+    await save(session);
+
+    expect((await earnedBy('k1')).toSet(), {'c2', 'c4'});
+  });
+
   test('a certification taken from another course, then Cancel: still on '
       'that course', () async {
     final session = await sitting();

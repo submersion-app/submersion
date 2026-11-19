@@ -16,17 +16,46 @@ import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dar
 /// The certifications a course earned, held in its page's sitting (issue
 /// #4527, phase 3). Written at Save through `setCourseCertifications`, which
 /// moves a certification off another course and recomputes both courses'
-/// representative, in the sitting's one entry.
+/// representative, in the sitting's one entry. Only the sitting's own
+/// difference is applied to the set as stored then, so a certification
+/// linked meanwhile on another device stays linked.
 final courseCertificationsList = SittingList<Course, Certification>(
   key: 'course.certifications',
   cardId: CourseCardId.earnedCertifications.name,
   read: (c) => CertificationRepository().getCertificationsForCourse(c.id),
-  write: (c, loaded, current) => CourseRepository().setCourseCertifications(
-    c.id,
-    [for (final cert in current) cert.id],
-  ),
+  write: (c, loaded, current) async {
+    final stored = await CertificationRepository().getCertificationsForCourse(
+      c.id,
+    );
+    await CourseRepository().setCourseCertifications(
+      c.id,
+      earnedCertificationIdsAtSave(
+        stored: [for (final cert in stored) cert.id],
+        loaded: [for (final cert in loaded) cert.id],
+        current: [for (final cert in current) cert.id],
+      ),
+    );
+    // Whether any link changed is not told.
+    return null;
+  },
   same: (a, b) => sameIdSets(a, b, (cert) => cert.id),
 );
+
+/// The ids a course earns at Save: those [stored] then, less the ones the
+/// sitting removed from what it [loaded], plus its [current] ones.
+List<String> earnedCertificationIdsAtSave({
+  required List<String> stored,
+  required List<String> loaded,
+  required List<String> current,
+}) {
+  final kept = current.toSet();
+  final removed = loaded.where((id) => !kept.contains(id)).toSet();
+  return {
+    for (final id in stored)
+      if (!removed.contains(id)) id,
+    ...current,
+  }.toList();
+}
 
 /// The Earned certifications card's editor: which certifications the
 /// course earned, ticked in the sheet the form used. Inert until the

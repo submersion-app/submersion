@@ -284,4 +284,39 @@ void main() {
     await tester.runAsync(() async => after = await storedState());
     expect(after, before);
   });
+  testWidgets('adding a requirement completes once the sitting holds it', (
+    tester,
+  ) async {
+    await seedTracker(tester);
+    late EditSession<Course> session;
+    await tester.runAsync(() async {
+      // Not read yet: the add has to read the rows first.
+      session = EditSession(
+        (await CourseRepository().getCourseById('course-1'))!,
+      );
+    });
+    addTearDown(session.dispose);
+    await tester.pumpWidget(_wrap(const SizedBox()));
+
+    int? rowsWhenDone = -1;
+    final adding = HeldRequirementActions(
+      session,
+    ).add(tester.element(find.byType(SizedBox)));
+    adding.then((_) {
+      rowsWhenDone = courseRequirementsList.current(session)?.length;
+    });
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'Deep dive');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    for (var i = 0; i < 5; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 50)),
+      );
+      await tester.pump();
+    }
+
+    // Done means held: the two stored rows and the new one.
+    expect(rowsWhenDone, 3);
+  });
 }
