@@ -166,25 +166,29 @@ change to the Python side, regenerate it with
 
 ## Publishing a pack
 
-The app reads the pack from the `species-pack` release: `manifest.json`
-first, then every file it lists, resolved next to the manifest. Pack
-`2026.11.18.0356` (both detectors) was published there on 2026-11-18.
+The app reads the latest release of
+[submersion-app/species-pack](https://github.com/submersion-app/species-pack):
+`releases/latest/download/manifest.json` first, then every file it lists,
+resolved next to the manifest. Each pack is a release of its own, tagged
+with its version. Pack `2026.11.18.0356` (both detectors) is published there.
+It moved from this repository's `species-pack` pre-release, which stays in
+place for beta builds that still read it (#4769).
 
-- **Always a pre-release.** The app's update check and the macOS appcast
-  read GitHub's `releases/latest`. A pack release marked latest would
-  replace the newest app version there for every user. Keep it a
-  pre-release and pass `--latest=false`.
 - **Draft first.** Create the release with `--draft`, upload every file
-  and the manifest, check the sizes, then publish with
-  `gh release edit species-pack --draft=false --prerelease --latest=false`.
-  A diver never sees a manifest whose files are still uploading.
+  and the manifest, check the sizes and digests, then publish it, which
+  makes it the latest release. A diver never sees a manifest whose files
+  are still uploading.
+- **Trying a pack before divers get it:** publish it as a pre-release,
+  which never becomes the latest, and point a development build at it
+  with
+  `--dart-define=SPECIES_PACK_MANIFEST_URL=https://github.com/submersion-app/species-pack/releases/download/<version>/manifest.json`.
 - **Measured bars only.** Check the manifest says `"provisional": false`
   before it goes up. To change only credits or other manifest fields,
   regenerate the manifest over the measured files with
   `manifest.build_manifest` rather than rebuilding, which fetches GBIF
   again and can change the naming files by a byte.
-- **Replacing a pack** means uploading the new files with
-  `gh release upload species-pack --clobber`, the manifest last.
+- **Rolling back** means marking an older pack release latest:
+  `gh release edit <version> --repo submersion-app/species-pack --latest`.
 
 ## Measuring accuracy
 
