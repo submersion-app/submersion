@@ -323,11 +323,11 @@ them.
 
 **Publishing.** The levels are optional manifest fields, so they need no
 format change and an older app names at Surer. To add them to a published
-pack without a new version, download its manifest into a folder of its
-own and write the new one beside you:
+pack without a new version, download its manifest from that pack's
+release into a folder of its own and write the new one beside you:
 
 ```bash
-gh release download species-pack -p manifest.json -D published
+gh release download <version> --repo submersion-app/species-pack -p manifest.json -D published
 ```
 
 ```bash
@@ -335,8 +335,9 @@ python3.14 tool/species_pack/relevel_manifest.py --in published/manifest.json --
 ```
 
 It refuses a pack with no measured entry, or any change but
-`naming.precision` and `naming.levels`. Upload only that manifest with
-`gh release upload species-pack manifest.json --clobber`.
+`naming.precision` and `naming.levels`. Upload only that manifest, to the
+same pack's release, with
+`gh release upload <version> --repo submersion-app/species-pack manifest.json --clobber`.
 
 **In the app.** A device that has the pack takes a republished manifest of
 the same version in place, with nothing downloaded, when its files are
