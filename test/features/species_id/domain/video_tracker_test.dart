@@ -233,4 +233,138 @@ void main() {
       );
     });
   });
+
+  group('a fish that moves far between samples', () {
+    /// A small fish, as a damselfish or chromis is in a reef video.
+    IdentificationBox small(double x, {double w = 0.04, double h = 0.03}) =>
+        IdentificationBox(x: x, y: 0.4, width: w, height: h);
+
+    test('moving three quarters of its length each sample, it is one '
+        'track', () {
+      // Each step overlaps the last box by an intersection over union of
+      // about 0.14, under the 0.3 an overlap link needs.
+      final tracks = run(VideoTracker(), [
+        for (var k = 0; k < 6; k++) frame(k * 250, [small(0.1 + k * 0.03)]),
+      ]);
+      expect(tracks, hasLength(1));
+      expect(tracks.single.points, hasLength(6));
+    });
+
+    test('a box more than its own length away starts a new track', () {
+      final tracks = run(VideoTracker(), [
+        frame(0, [small(0.1)]),
+        frame(250, [small(0.1)]),
+        frame(500, [small(0.15)]),
+        frame(750, [small(0.15)]),
+      ]);
+      expect(tracks, hasLength(2));
+      expect(tracks.first.endMs, 250);
+      expect(tracks.last.startMs, 500);
+    });
+
+    test('a nearby box of a very different size does not continue it', () {
+      // Three times the area, and an overlap of about 0.23.
+      final tracks = run(VideoTracker(), [
+        frame(0, [small(0.1)]),
+        frame(250, [small(0.1)]),
+        frame(500, [small(0.11, w: 0.08, h: 0.03 * 1.5)]),
+        frame(750, [small(0.11, w: 0.08, h: 0.03 * 1.5)]),
+      ]);
+      expect(tracks, hasLength(2));
+      expect(tracks.first.endMs, 250);
+    });
+
+    test('a nearby box two fish could continue continues neither', () {
+      // Two fish side by side; the next box sits between them, in reach
+      // of both and overlapping neither: which one it is cannot be told.
+      final tracks = run(VideoTracker(), [
+        frame(0, [small(0.10), small(0.17)]),
+        frame(250, [small(0.10), small(0.17)]),
+        frame(500, [small(0.135)]),
+      ]);
+      expect(tracks.map((t) => t.endMs), [250, 250]);
+    });
+
+    test('the same box with one fish in reach continues it', () {
+      final tracks = run(VideoTracker(), [
+        frame(0, [small(0.10)]),
+        frame(250, [small(0.10)]),
+        frame(500, [small(0.135)]),
+      ]);
+      expect(tracks.single.endMs, 500);
+    });
+
+    test('a fish with two nearby boxes continues to neither', () {
+      final tracks = run(VideoTracker(), [
+        frame(0, [small(0.135)]),
+        frame(250, [small(0.135)]),
+        frame(500, [small(0.10), small(0.17)]),
+      ]);
+      expect(tracks.single.endMs, 250);
+    });
+
+    test('an overlapping box is taken over a nearby one', () {
+      final tracks = run(VideoTracker(), [
+        frame(0, [_box(0.1)]),
+        frame(250, [_box(0.1)]),
+        frame(500, [_box(0.12), _box(0.25)]),
+        frame(750, [_box(0.12), _box(0.25)]),
+      ]);
+      final first = tracks.firstWhere((t) => t.startMs == 0);
+      expect(first.samples.last.box.x, closeTo(0.12, 1e-9));
+      expect(first.endMs, 750);
+    });
+  });
+
+  group('TrackLink', () {
+    const link = TrackLink();
+
+    test('an overlap of 0.3 or more scores above 1', () {
+      final a = _box(0.1);
+      expect(link.score(a, a), closeTo(2, 1e-9));
+      expect(link.score(a, _box(0.12))!, greaterThan(1));
+    });
+
+    test('a nearby box of alike size scores 1 less its shift', () {
+      // Moved 0.03 with a width of 0.04: a shift of 0.75 boxes.
+      const a = IdentificationBox(x: 0.1, y: 0.4, width: 0.04, height: 0.03);
+      const b = IdentificationBox(x: 0.13, y: 0.4, width: 0.04, height: 0.03);
+      expect(link.score(a, b), closeTo(0.25, 1e-9));
+    });
+
+    test('the shift is in box widths across and box heights down', () {
+      // A tall box moved 0.8 of its width across: 0.8 of a box, not the
+      // 0.08 it would be against its height.
+      const a = IdentificationBox(x: 0.1, y: 0.1, width: 0.05, height: 0.5);
+      const b = IdentificationBox(x: 0.14, y: 0.1, width: 0.05, height: 0.5);
+      expect(link.score(a, b), closeTo(0.2, 1e-9));
+    });
+
+    test('too far, or too different in size, does not link', () {
+      const a = IdentificationBox(x: 0.1, y: 0.4, width: 0.04, height: 0.03);
+      expect(
+        link.score(
+          a,
+          const IdentificationBox(x: 0.15, y: 0.4, width: 0.04, height: 0.03),
+        ),
+        isNull,
+      );
+      expect(
+        link.score(
+          a,
+          const IdentificationBox(x: 0.11, y: 0.4, width: 0.08, height: 0.045),
+        ),
+        isNull,
+      );
+    });
+
+    test('an empty box links nothing', () {
+      const a = IdentificationBox(x: 0.1, y: 0.4, width: 0, height: 0);
+      expect(link.score(a, a), isNull);
+    });
+  });
+
+  test('a video run names the tracker that made its tracks', () {
+    expect(videoRunDetectorId('det-a+det-m'), 'det-a+det-m#tracker2');
+  });
 }

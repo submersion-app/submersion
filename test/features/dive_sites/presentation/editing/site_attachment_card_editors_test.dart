@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/media/domain/entities/photo_record.dart';
+import 'package:submersion/features/media/presentation/providers/photo_editing_providers.dart';
+import 'package:submersion/features/media/presentation/pages/attachment_details_page.dart';
 
 import 'package:submersion/core/database/database.dart' hide DiveSite;
 import 'package:submersion/core/providers/provider.dart';
@@ -61,6 +64,7 @@ void main() {
       WidgetTester tester, {
       List<MediaItem> stored = const [],
       List<String>? unlinked,
+      List<Override> overrides = const [],
     }) async {
       final h = await pumpSiteEditor(
         tester,
@@ -73,6 +77,7 @@ void main() {
         ),
         overrides: [
           mediaForSiteProvider('s1').overrideWith((_) async => stored),
+          ...overrides,
         ],
       );
       return h.session;
@@ -113,6 +118,40 @@ void main() {
       expect(find.byType(MediaThumbnailTile), findsNothing);
       // Held: nothing unlinked until Save.
       expect(unlinked, isEmpty);
+    });
+
+    // The open card is built only on a page that edits in place, where an
+    // attachment opens under its own lock (issue #4527, phase 2).
+    testWidgets('the open Media card opens a document under its lock', (
+      tester,
+    ) async {
+      final briefing = MediaItem(
+        id: 'd2',
+        siteId: 's1',
+        mediaType: MediaType.document,
+        originalFilename: 'briefing.docx',
+        takenAt: at,
+        createdAt: at,
+        updatedAt: at,
+      );
+      await pumpMedia(
+        tester,
+        stored: [briefing],
+        overrides: [
+          photoRecordProvider('d2').overrideWith(
+            (_) async => PhotoRecord(
+              item: briefing,
+              species: const [],
+              people: const [],
+            ),
+          ),
+        ],
+      );
+
+      await tester.tap(find.byType(MediaThumbnailTile));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AttachmentDetailsPage), findsOneWidget);
     });
 
     testWidgets('a held attachment cannot be opened', (tester) async {

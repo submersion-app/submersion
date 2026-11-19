@@ -216,6 +216,7 @@ final exempt = <String, String>{
     'lib/features/dive_log/data/repositories/dive_repository_impl.dart:setTankRoles',
     'lib/features/dive_log/data/repositories/dive_repository_impl.dart:updateTankRecordPressures',
     'lib/features/dive_log/data/repositories/duplicate_cylinder_repository.dart:mergeInto',
+    'lib/features/dive_log/data/repositories/tank_gas_mix_repository.dart:setGasMixes',
     'lib/features/dive_sites/data/repositories/site_repository_impl.dart:bulkDeleteSites',
     'lib/features/marine_life/data/repositories/species_repository.dart:bulkAddSightings',
     'lib/features/marine_life/data/repositories/species_repository.dart:bulkReplaceSightings',

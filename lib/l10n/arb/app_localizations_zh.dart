@@ -10684,6 +10684,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_tank_label_he => 'He';
 
   @override
+  String get diveLog_tank_error_impossibleMix =>
+      'O2 和 He 须各在 0 到 100 之间，且总和不超过 100';
+
+  @override
   String get diveLog_tank_label_material => '材质';
 
   @override
@@ -19599,6 +19603,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_siteAttachment_detailsTitle => '附件详情';
 
   @override
+  String get media_attachmentDetails_editing => '正在编辑附件';
+
+  @override
+  String get media_attachmentDetails_open => '打开';
+
+  @override
   String get media_siteAttachment_editDetails => '编辑详情';
 
   @override
@@ -19696,6 +19706,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get media_documentViewer_title => '文档';
+
+  @override
+  String get media_documentViewer_editing => '正在编辑文档';
 
   @override
   String get media_documentViewer_unavailable => '此文档在本设备上不可用';
@@ -20955,6 +20968,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get media_viewer_videoGoneWhileEditing => '此视频已被移除。你的更改未保存。';
+
+  @override
+  String get media_viewer_documentGoneWhileEditing => '此文档已被移除。你的更改未保存。';
+
+  @override
+  String get media_viewer_documentRemoved => '此文档已被移除。';
 
   @override
   String get media_viewer_movedWhileEditing => '自解锁后已移至另一次潜水。请取消，然后重新解锁。';
@@ -27653,6 +27672,36 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_speciesId_toggle => '打开照片或视频时识别鱼类';
+
+  @override
+  String get settings_speciesId_levelTitle => '应用需要多确定才为鱼命名';
+
+  @override
+  String get settings_speciesId_levelSurer => '更稳妥';
+
+  @override
+  String get settings_speciesId_levelBalanced => '均衡';
+
+  @override
+  String get settings_speciesId_levelEager => '更积极';
+
+  @override
+  String settings_speciesId_levelSurerAccuracy(int percent) {
+    return '名称最少。约 $percent% 正确';
+  }
+
+  @override
+  String get settings_speciesId_levelSurerUnmeasured => '名称最少，最常正确';
+
+  @override
+  String settings_speciesId_levelBalancedAccuracy(int percent) {
+    return '名称更多。约 $percent% 正确';
+  }
+
+  @override
+  String settings_speciesId_levelEagerAccuracy(int percent) {
+    return '名称最多。约 $percent% 正确';
+  }
 
   @override
   String get settings_speciesId_kept => '此设备上保留的建议';
@@ -42316,6 +42365,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dataQuality_detector_gas_mod => '气体/MOD 不一致';
 
   @override
+  String get dataQuality_detector_impossible_gas_mix => '不可能的气体混合';
+
+  @override
   String get dataQuality_detector_tank_assignment => '气瓶错误';
 
   @override
@@ -42499,6 +42551,25 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String dataQuality_msg_hypoxic(String gas) {
     return '低氧混合气（$gas）显示在水面处于使用状态';
+  }
+
+  @override
+  String dataQuality_msg_impossibleGasMix(
+    int tankNumber,
+    String o2,
+    String he,
+  ) {
+    return '气瓶 $tankNumber 记录为 $o2% O2 和 $he% He，任何气体都不可能如此。请在潜水中更正混合气。';
+  }
+
+  @override
+  String dataQuality_msg_impossibleGasMixScaled(
+    int tankNumber,
+    String o2,
+    String he,
+    String gas,
+  ) {
+    return '气瓶 $tankNumber 记录为 $o2% O2 和 $he% He，任何气体都不可能如此。很可能是旧版导入将 $gas 存储得高了 100 倍。';
   }
 
   @override
@@ -42777,6 +42848,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_convertTemp => '转换温度';
+
+  @override
+  String dataQuality_repairLabel_rescaleGasMix(String gas) {
+    return '更正为 $gas';
+  }
 
   @override
   String get dataQuality_repairLabel_recompute => '根据剖面重新计算';

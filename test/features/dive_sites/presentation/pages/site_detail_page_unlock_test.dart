@@ -2,6 +2,16 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/media/data/services/photo_edit_save_service.dart';
+import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
+import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
+import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
+import 'package:submersion/features/media/presentation/providers/photo_editing_providers.dart';
+import 'package:submersion/features/media/presentation/providers/media_bytes_providers.dart';
+import 'package:submersion/features/media/presentation/pages/document_viewer_page.dart';
+import 'package:submersion/features/media/domain/entities/photo_record.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/data/services/asset_resolution_service.dart';
 
 import 'package:submersion/core/app/app_exit_guard.dart';
 import 'package:submersion/core/constants/dive_detail_layout.dart';
@@ -307,6 +317,122 @@ void main() {
     expect(find.text('Choppy'), findsOneWidget);
   });
 
+  // Review Focus 2 of plan 4b: an attachment's lock is its own, so a PDF
+  // opened from the site being edited, and closed, leaves the site's
+  // sitting as it was (issue #4527, phase 2).
+  testWidgets('opening a PDF from the site being edited keeps its sitting', (
+    tester,
+  ) async {
+    final at = DateTime.utc(2026);
+    final pdf = MediaItem(
+      id: 'p1',
+      siteId: 's1',
+      mediaType: MediaType.document,
+      originalFilename: 'reef-map.pdf',
+      takenAt: at,
+      createdAt: at,
+      updatedAt: at,
+    );
+    await pumpSitePage(
+      tester,
+      extra: [
+        mediaForSiteProvider('s1').overrideWith((_) async => [pdf]),
+        mediaBytesProvider(pdf).overrideWith(
+          (_) async =>
+              const ResolvedAssetResult(status: ResolutionStatus.unavailable),
+        ),
+        photoRecordProvider('p1').overrideWith(
+          (_) async =>
+              PhotoRecord(item: pdf, species: const [], people: const []),
+        ),
+      ],
+    );
+    await unlock(tester);
+    await openNotes(tester);
+    await typeNotes(tester, 'Choppy');
+
+    await tester.ensureVisible(find.byType(MediaThumbnailTile));
+    await tester.tap(find.byType(MediaThumbnailTile));
+    await tester.pumpAndSettle();
+    final viewer = tester.widget<DocumentViewerPage>(
+      find.byType(DocumentViewerPage),
+    );
+    expect(viewer.attachmentLock, isTrue);
+
+    await tester.tap(find.byType(CloseButton));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(DocumentViewerPage), findsNothing);
+    expect(find.byType(RecordEditBar), findsOneWidget);
+    expect(find.text('Choppy'), findsWidgets);
+  });
+
+  // The attachment's own Save, made while the site is being edited, writes
+  // the attachment alone: the site's sitting carries on.
+  testWidgets(
+    'saving the details of a PDF from the site being edited keeps its '
+    'sitting',
+    (tester) async {
+      final at = DateTime.utc(2026);
+      final pdf = MediaItem(
+        id: 'p1',
+        siteId: 's1',
+        mediaType: MediaType.document,
+        originalFilename: 'reef-map.pdf',
+        takenAt: at,
+        createdAt: at,
+        updatedAt: at,
+      );
+      final saves = <Iterable<String>>[];
+      final page = await pumpSitePage(
+        tester,
+        extra: [
+          mediaForSiteProvider('s1').overrideWith((_) async => [pdf]),
+          mediaBytesProvider(pdf).overrideWith(
+            (_) async =>
+                const ResolvedAssetResult(status: ResolutionStatus.unavailable),
+          ),
+          photoRecordProvider('p1').overrideWith(
+            (_) async =>
+                PhotoRecord(item: pdf, species: const [], people: const []),
+          ),
+          photoEditSaveServiceProvider.overrideWithValue(
+            _RecordingPhotoSave(saves),
+          ),
+        ],
+      );
+      await unlock(tester);
+      await openNotes(tester);
+      await typeNotes(tester, 'Choppy');
+      await tester.ensureVisible(find.byType(MediaThumbnailTile));
+      await tester.tap(find.byType(MediaThumbnailTile));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('document_unlock')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Edit details'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Uncategorized').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Site map').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Done'));
+      await tester.pumpAndSettle();
+      // The viewer's Save, in its own bar, over the site's.
+      await tester.tap(find.text(l.forms_save).last);
+      await tester.pumpAndSettle();
+      // The attachment's own save, refused if it has left the site since.
+      expect(saves.single, ['details', 'site:s1']);
+
+      await tester.tap(find.byType(CloseButton));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(RecordEditBar), findsOneWidget);
+      expect(find.text('Choppy'), findsWidgets);
+      expect(page.save.calls, isEmpty);
+    },
+  );
+
   testWidgets('a failed save stays unlocked and says so', (tester) async {
     final page = await pumpSitePage(tester);
     page.save.failWith = StateError('the save failed');
@@ -516,4 +642,26 @@ void main() {
     expect(find.text(l.forms_discard_title), findsNothing);
     expect(await leaving, isTrue);
   });
+}
+
+/// Records each attachment save's changed cards, and writes nothing.
+class _RecordingPhotoSave extends Fake implements PhotoEditSaveService {
+  _RecordingPhotoSave(this.saves);
+
+  final List<Iterable<String>> saves;
+
+  @override
+  Future<({PhotoRecord before, PhotoRecord after})?> save({
+    required String mediaId,
+    required String? diverId,
+    required PhotoRecord Function(PhotoRecord stored) apply,
+    required Iterable<String> changedCardIds,
+    Future<void> Function()? alsoWrite,
+    bool alsoWriteIsAChange = false,
+    ({String? id})? diveAtStart,
+    String? siteAtStart,
+  }) async {
+    saves.add([...changedCardIds, 'site:$siteAtStart']);
+    return null;
+  }
 }

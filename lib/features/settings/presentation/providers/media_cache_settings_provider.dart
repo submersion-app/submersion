@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/data/media_cache_settings.dart';
 import 'package:submersion/features/media/data/network_cache_config.dart';
+import 'package:submersion/features/settings/presentation/providers/serial_preference_writes.dart';
 
 /// The media cache sizes: how much decoded image is kept in memory and how
 /// much thumbnail is kept on disk (issue #3337).
@@ -15,7 +16,8 @@ import 'package:submersion/features/media/data/network_cache_config.dart';
 /// A memory change reaches the image cache at once. A disk change is stored
 /// and the thumbnail pool is brought inside the new size straight away, so
 /// lowering the slider frees the space now rather than at the next download.
-class MediaCacheSettingsNotifier extends StateNotifier<MediaCacheSettings> {
+class MediaCacheSettingsNotifier extends StateNotifier<MediaCacheSettings>
+    with SerialPreferenceWrites {
   MediaCacheSettingsNotifier(
     SharedPreferences prefs, {
     void Function(int bytes)? applyMemoryCap,
@@ -44,25 +46,14 @@ class MediaCacheSettingsNotifier extends StateNotifier<MediaCacheSettings> {
   final Future<void> Function()? _onEmptyDiskCache;
   final _log = LoggerService.forClass(MediaCacheSettingsNotifier);
 
-  /// The latest preference write, which the next one waits on.
-  ///
-  /// The slider does not await a change, so two releases can have writes
-  /// out together, and where a write replaces the whole preferences file
-  /// (Windows, Linux) two in flight can land in either order. One at a time
-  /// keeps the stored size the last one chosen.
-  Future<void> _lastWrite = Future<void>.value();
-
   static void _applyToImageCache(int bytes) =>
       applyMediaCacheCaps(memoryBytes: bytes);
 
   Future<void> _persist(String key, int mb) {
     final prefs = _prefs;
     if (prefs == null) return Future<void>.value();
-    final write = _lastWrite.then((_) => prefs.setInt(key, mb));
-    // A failed write must not hold up the ones after it; its caller still
-    // sees the error.
-    _lastWrite = write.then<void>((_) {}, onError: (Object _) {});
-    return write;
+    // The slider does not await a change, so writes go one at a time.
+    return writeInTurn(() => prefs.setInt(key, mb));
   }
 
   Future<void> setMemoryCacheMb(int mb) async {

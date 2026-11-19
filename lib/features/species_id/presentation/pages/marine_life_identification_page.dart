@@ -7,6 +7,7 @@ import 'package:submersion/features/species_id/data/pack/species_pack_downloader
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_pack_controller.dart';
+import 'package:submersion/features/species_id/presentation/widgets/naming_level_section.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -82,6 +83,7 @@ class _MarineLifeIdentificationPageState
             onChanged: (value) =>
                 ref.read(identifyFishOnOpenProvider.notifier).setEnabled(value),
           ),
+          const NamingLevelSection(),
           ListTile(
             title: Text(l10n.settings_speciesId_kept),
             subtitle: Text(

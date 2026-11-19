@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -17,14 +18,20 @@ import 'package:submersion/features/media/presentation/providers/video_color_tra
 import 'package:submersion/features/media/presentation/providers/video_playback_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/species_id/data/engines/channel_vision_engine.dart';
+import 'package:submersion/features/species_id/data/pack/species_pack_store.dart';
 import 'package:submersion/features/species_id/data/repositories/identification_embedding_repository.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
 import 'package:submersion/features/species_id/data/services/identification_cleanup.dart';
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
+import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/domain/entities/naming_level.dart';
+import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
+import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 
 import '../../../helpers/temp_dir.dart';
 import '../data/identification_fixtures.dart';
+import '../domain/manifest_fixture.dart';
 import 'species_id_fakes.dart';
 
 class _CountingCleanup extends IdentificationCleanup {
@@ -341,6 +348,217 @@ void main() {
     if (defaultTargetPlatform == TargetPlatform.android) {
       expect(engine.engineName, isNull);
     }
+  });
+
+  group('the naming level (issue #4721)', () {
+    // The fixture pack names at 0.50 with a location; Eager at 0.3.
+    InstalledPack levelledPack() => InstalledPack(
+      manifest: SpeciesPackManifest.parse(
+        manifestJson((m) {
+          (m['naming']! as Map<String, Object?>)['provisional'] = false;
+          (m['naming']! as Map<String, Object?>)['levels'] = [
+            {
+              'id': 'balanced',
+              'target': 0.75,
+              'suggestScore': 0.4,
+              'suggestScoreNoLocation': 0.6,
+              'precision': 0.8,
+            },
+            {
+              'id': 'eager',
+              'target': 0.65,
+              'suggestScore': 0.3,
+              'suggestScoreNoLocation': 0.5,
+              'precision': 0.7,
+            },
+          ];
+        }),
+      ),
+      directory: '/pack',
+      detectorPaths: const ['/pack/detector'],
+      classifierPath: '/pack/classifier',
+    );
+
+    group('awaitLevelInForce, the level the service reconciles at', () {
+      ProviderContainer withPack(Future<InstalledPack?> Function() pack) {
+        final c = ProviderContainer(
+          overrides: [
+            installedSpeciesPackProvider.overrideWith((ref) => pack()),
+            namingLevelNotifierProvider.overrideWith(
+              (ref) => NamingLevelNotifier.unstored(NamingLevel.eager),
+            ),
+          ],
+        );
+        addTearDown(c.dispose);
+        return c;
+      }
+
+      test('waits for a pack still being read', () async {
+        final reading = Completer<InstalledPack?>();
+        final level = awaitLevelInForce(withPack(() => reading.future));
+        reading.complete(levelledPack());
+        expect((await level)?.level, NamingLevel.eager);
+      });
+
+      test('waits for a pack being read again, not the one before', () async {
+        var reads = 0;
+        final reread = Completer<InstalledPack?>();
+        // The first read finds no pack; the read after an install finds
+        // the levelled one.
+        final c = withPack(() => ++reads == 1 ? Future.value() : reread.future);
+        await c.read(installedSpeciesPackProvider.future);
+        c.invalidate(installedSpeciesPackProvider);
+        final level = awaitLevelInForce(c);
+        reread.complete(levelledPack());
+        expect((await level)?.level, NamingLevel.eager);
+      });
+
+      test('is none at once when a pack read again cannot be read, not the '
+          'one before', () async {
+        var reads = 0;
+        // The first read finds the levelled pack; the read after an install
+        // fails, and Riverpod keeps the pack before beside the error.
+        final c = withPack(() async {
+          if (++reads == 1) return levelledPack();
+          throw StateError('no pack');
+        });
+        final held = c.listen(installedSpeciesPackProvider, (_, _) {});
+        addTearDown(held.close);
+        await c.read(installedSpeciesPackProvider.future);
+        c.invalidate(installedSpeciesPackProvider);
+        await pumpEventQueue();
+        expect(c.read(installedSpeciesPackProvider).hasError, isTrue);
+        expect(await awaitLevelInForce(c), isNull);
+      });
+
+      test('is none at once when the pack cannot be read', () async {
+        final c = withPack(() async => throw StateError('no pack'));
+        // Read it and let the read fail; Riverpod then retries in the
+        // background.
+        final held = c.listen(installedSpeciesPackProvider, (_, _) {});
+        addTearDown(held.close);
+        await pumpEventQueue();
+        expect(c.read(installedSpeciesPackProvider).hasError, isTrue);
+        expect(
+          await awaitLevelInForce(c).timeout(const Duration(seconds: 2)),
+          isNull,
+        );
+      });
+
+      test('gives up on a read that never ends', () async {
+        final c = withPack(() => Completer<InstalledPack?>().future);
+        expect(
+          await awaitLevelInForce(c, wait: const Duration(milliseconds: 50)),
+          isNull,
+        );
+      });
+    });
+
+    /// A container whose pack has been read: the level never waits for it.
+    Future<ProviderContainer> levelled(NamingLevel level) async {
+      final c = ProviderContainer(
+        overrides: [
+          mediaIdentificationRepositoryProvider.overrideWithValue(
+            MediaIdentificationRepository(database: db),
+          ),
+          installedSpeciesPackProvider.overrideWith(
+            (ref) async => levelledPack(),
+          ),
+          namingLevelNotifierProvider.overrideWith(
+            (ref) => NamingLevelNotifier.unstored(level),
+          ),
+        ],
+      );
+      addTearDown(c.dispose);
+      await c.awaitFuture(installedSpeciesPackProvider.future);
+      final held = c.listen(installedSpeciesPackProvider, (_, _) {});
+      addTearDown(held.close);
+      return c;
+    }
+
+    // Its best name, the parrotfish, scored under the pack's bar but over
+    // Eager's.
+    MediaIdentification weak(MediaIdentification i) => i.copyWith(
+      candidates: [NamedCandidate(candidate: i.top!.candidate, score: 0.35)],
+      suggestable: false,
+    );
+
+    Future<void> store(MediaIdentificationRun run, MediaIdentification i) =>
+        container
+            .read(mediaIdentificationRepositoryProvider)
+            .storeRun(run, insert: [i], deleteIds: const []);
+
+    test('Eager offers a name the pack bars do not', () async {
+      marineLifeIdEnabled = true;
+      await store(run(), weak(identification('a')));
+      final eager = await levelled(NamingLevel.eager);
+      expect(
+        await eager.read(mediaSuggestionsProvider('m1').future),
+        hasLength(1),
+      );
+      final surer = await levelled(NamingLevel.surer);
+      expect(await surer.read(mediaSuggestionsProvider('m1').future), isEmpty);
+    });
+
+    test('not on media another pack named', () async {
+      marineLifeIdEnabled = true;
+      await store(
+        run().copyWith(packVersion: '2026.10.1'),
+        weak(identification('a')),
+      );
+      final eager = await levelled(NamingLevel.eager);
+      expect(await eager.read(mediaSuggestionsProvider('m1').future), isEmpty);
+    });
+
+    test('a video track at Eager is one the app could suggest', () async {
+      marineLifeIdEnabled = true;
+      await store(videoRun(), weak(track('t1', confident: false)));
+      final eager = await levelled(NamingLevel.eager);
+      final tracks = await eager.read(videoTracksProvider('v1').future);
+      expect(tracks.single.suggestable, isTrue);
+    });
+
+    test(
+      'is Surer by default, remembered, and Surer for an unknown id',
+      () async {
+        expect(container.read(namingLevelNotifierProvider), NamingLevel.surer);
+
+        SharedPreferences.setMockInitialValues({
+          SettingsKeys.marineLifeNamingLevel: 'reckless',
+        });
+        final prefs = await SharedPreferences.getInstance();
+        final notifier = NamingLevelNotifier(prefs);
+        expect(notifier.state, NamingLevel.surer);
+
+        await notifier.setLevel(NamingLevel.eager);
+        expect(prefs.getString(SettingsKeys.marineLifeNamingLevel), 'eager');
+        expect(NamingLevelNotifier(prefs).state, NamingLevel.eager);
+      },
+    );
+
+    test('Surer is no level and never reads the pack', () async {
+      var reads = 0;
+      final c = ProviderContainer(
+        overrides: [
+          installedSpeciesPackProvider.overrideWith((ref) async {
+            reads++;
+            return levelledPack();
+          }),
+          namingLevelNotifierProvider.overrideWith(
+            (ref) => NamingLevelNotifier.unstored(NamingLevel.surer),
+          ),
+        ],
+      );
+      addTearDown(c.dispose);
+      expect(c.read(levelInForceProvider), isNull);
+      await pumpEventQueue();
+      expect(reads, 0);
+
+      c.read(namingLevelNotifierProvider.notifier).setLevel(NamingLevel.eager);
+      c.listen(levelInForceProvider, (_, _) {});
+      await c.read(installedSpeciesPackProvider.future);
+      expect(c.read(levelInForceProvider)?.level, NamingLevel.eager);
+    });
   });
 
   test('identifying on open is on by default and remembered', () async {

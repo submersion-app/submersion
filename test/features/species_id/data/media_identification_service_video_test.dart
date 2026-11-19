@@ -568,6 +568,39 @@ void main() {
       expect(engine.detectCalls, isEmpty);
       expect((await identifications.runFor('v1'))!.packVersion, '2026.12.1');
     });
+
+    test('a video tracked by the earlier tracker is scanned again', () async {
+      oneFish();
+      await service.request(video());
+      final scanned = (await identifications.runFor('v1'))!;
+      // As a scan made before the run named its tracker stored it.
+      await identifications.storeRun(
+        MediaIdentificationRun(
+          mediaId: scanned.mediaId,
+          packVersion: scanned.packVersion,
+          detectorId: 'det-a',
+          classifierId: scanned.classifierId,
+          locationCell: scanned.locationCell,
+          analysedAt: scanned.analysedAt,
+          imageWidth: scanned.imageWidth,
+          imageHeight: scanned.imageHeight,
+          detectionCount: scanned.detectionCount,
+          scannedMs: scanned.scannedMs,
+          videoDurationMs: scanned.videoDurationMs,
+          scannedRanges: scanned.scannedRanges,
+        ),
+        insert: const [],
+        deleteIds: const [],
+      );
+      engine.detectCalls.clear();
+      await service.request(video());
+      expect(engine.detectCalls, isNotEmpty);
+      expect(
+        (await identifications.runFor('v1'))!.detectorId,
+        'det-a#tracker2',
+      );
+      expect(await identifications.forMedia('v1'), hasLength(1));
+    });
   });
 
   group('following the playhead (issue #4709)', () {

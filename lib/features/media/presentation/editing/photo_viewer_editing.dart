@@ -146,17 +146,29 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
     );
   }
 
+  /// Whether this page edits a document's details: the PDF viewer and the
+  /// attachment details page, opened from a site (issue #4527, phase 2).
+  /// A photo viewer unlocks no document.
+  bool get unlocksDocuments => false;
+
   /// Whether [item] can be unlocked here: the viewer offers editing, the
   /// item has a stored row ([stored] from [followStoredPhoto]) and is not a
-  /// document.
+  /// document, unless this page edits a document's details.
   bool canUnlock(MediaItem item, PhotoRecord? stored) =>
-      editingOffered && stored != null && !item.isDocument;
+      editingOffered &&
+      stored != null &&
+      (unlocksDocuments || !item.isDocument);
 
   /// The dive the sitting's photo was on when it was unlocked.
   ({String? id})? _diveAtUnlock;
 
+  /// The site a document's sitting began on, where this page edits a
+  /// document's details: one unlinked from it since is not saved to.
+  String? _siteAtUnlock;
+
   void unlockPhoto(PhotoRecord stored) {
     _diveAtUnlock = (id: stored.item.diveId);
+    _siteAtUnlock = unlocksDocuments ? stored.item.siteId : null;
     photoEditController.unlock(stored);
   }
 
@@ -173,11 +185,20 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
     });
   }
 
+  /// Told when the sitting's photo is found gone (deleted, or a site
+  /// document unlinked from its site), before the sitting ends: by the
+  /// stored row, or by a save refused for it.
+  void onPhotoGone() {}
+
   /// Ends the sitting over a photo that no longer exists, and says so.
   void _lockAsGone(RecordEditController<PhotoRecord> controller) {
+    onPhotoGone();
     final messenger = ScaffoldMessenger.maybeOf(context);
     final l10n = context.l10n;
-    final message = controller.session?.stored.item.isVideo ?? false
+    final item = controller.session?.stored.item;
+    final message = item?.isDocument ?? false
+        ? l10n.media_viewer_documentGoneWhileEditing
+        : item?.isVideo ?? false
         ? l10n.media_viewer_videoGoneWhileEditing
         : l10n.media_viewer_photoGoneWhileEditing;
     controller.lock();
@@ -327,6 +348,7 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
         // Moved to another dive meanwhile: its time and its writes to the
         // dive were made for the dive it was on.
         diveAtStart: _diveAtUnlock,
+        siteAtStart: _siteAtUnlock,
       ),
     );
     // The write is committed. What a relink left for now (the upload of

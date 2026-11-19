@@ -74,10 +74,11 @@ class CylinderFill extends Equatable {
   GasMix get gasMix => GasMix(o2: o2Percent, he: hePercent);
 
   /// Whether [o2] and [he] (percent) are a gas a cylinder can hold: some
-  /// oxygen, no negative helium, and no more than 100 % between them. The
-  /// Log fill sheet and the fills CSV import both refuse anything else.
+  /// oxygen, and a mix [GasMix.isPossible] allows, so no more than 100 %
+  /// between them. The Log fill sheet and the fills CSV import both refuse
+  /// anything else.
   static bool isPossibleMix(double o2, double he) =>
-      o2 > 0 && o2 <= 100 && he >= 0 && he <= 100 && o2 + he <= 100;
+      o2 > 0 && GasMix(o2: o2, he: he).isPossible;
 
   bool get isSigned => signedRecord != null && signedRecord!.isNotEmpty;
 
