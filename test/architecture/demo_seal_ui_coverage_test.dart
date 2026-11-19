@@ -109,8 +109,9 @@ const _guardedHandlers = <(String, String)>[
     'Future<void> scanGalleryForTripPhotos(',
   ),
   (
-    'lib/features/documents/presentation/pages/document_edit_page.dart',
-    'Future<void> _addPage(',
+    // The form and a document page's Pages card both add pages through it.
+    'lib/features/documents/presentation/widgets/document_page_add.dart',
+    'Future<List<DocumentPage>?> addDocumentPage(',
   ),
   (
     'lib/features/media/presentation/helpers/media_link_replacer.dart',
