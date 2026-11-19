@@ -111,7 +111,7 @@ class _EditorRow extends StatelessWidget {
 
 /// The Dive card's editor: choose or change the dive, or unlink it.
 /// Linking, and what it brings with it, is written at Save.
-class NavTrackDiveCardEditor extends ConsumerWidget {
+class NavTrackDiveCardEditor extends StatelessWidget {
   const NavTrackDiveCardEditor({super.key, required this.session});
 
   final EditSession<NavTrack> session;
@@ -127,7 +127,7 @@ class NavTrackDiveCardEditor extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final l10n = context.l10n;
     // The providers are watched in a Consumer under the builder, so a dive,
     // site or item the editor no longer shows is no longer watched.
@@ -170,7 +170,7 @@ class NavTrackDiveCardEditor extends ConsumerWidget {
 
 /// The Site card's editor: change the site through the site picker, which
 /// can create one. The anchor follows the new site's pin as it always has.
-class NavTrackSiteCardEditor extends ConsumerWidget {
+class NavTrackSiteCardEditor extends StatelessWidget {
   const NavTrackSiteCardEditor({super.key, required this.session});
 
   final EditSession<NavTrack> session;
@@ -192,7 +192,7 @@ class NavTrackSiteCardEditor extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final l10n = context.l10n;
     // The providers are watched in a Consumer under the builder, so a dive,
     // site or item the editor no longer shows is no longer watched.
@@ -227,7 +227,7 @@ class NavTrackSiteCardEditor extends ConsumerWidget {
 
 /// The Device card's editor: choose an equipment item, or clear both the
 /// item and the device name.
-class NavTrackDeviceCardEditor extends ConsumerWidget {
+class NavTrackDeviceCardEditor extends StatelessWidget {
   const NavTrackDeviceCardEditor({super.key, required this.session});
 
   final EditSession<NavTrack> session;
@@ -251,7 +251,7 @@ class NavTrackDeviceCardEditor extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final l10n = context.l10n;
     // The providers are watched in a Consumer under the builder, so a dive,
     // site or item the editor no longer shows is no longer watched.

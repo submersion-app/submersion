@@ -114,8 +114,7 @@ final divesOnTrackProvider = FutureProvider.autoDispose
     .family<List<Dive>, String>((ref, trackId) async {
       retainDiveData(ref);
       final track = await ref.watch(gpsTrackDetailProvider(trackId).future);
-      // An in-progress track has no closed window to test dives against.
-      if (track == null || track.endTime == null) return const [];
+      if (track == null) return const [];
 
       final dives = await ref.watch(divesProvider.future);
       return divesCoveredBy(track, dives);
