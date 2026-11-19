@@ -13,23 +13,56 @@ import 'package:submersion/shared/widgets/debounced_search_results.dart';
 ///
 /// The dives nearest the course lead, then every other dive, so a course taken
 /// years ago still reaches its dives; typing hands over to the shared dive
-/// search. Resolves to the chosen dive id, or null on dismiss.
-Future<String?> showCreditDivePickerSheet(
+/// search. Resolves to the chosen dive, or null on dismiss.
+///
+/// In a course page's sitting (issue #4527, phase 3) the dives it credits are
+/// left out ([excludeDiveIds]) and those it has uncredited come back
+/// ([restoredDives]), since the store does not know of either yet.
+Future<RequirementDiveSummary?> showCreditDivePickerSheet(
   BuildContext context, {
   required String courseId,
+  Set<String> excludeDiveIds = const {},
+  List<RequirementDiveSummary> restoredDives = const [],
 }) {
-  return showModalBottomSheet<String>(
+  return showModalBottomSheet<RequirementDiveSummary>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    builder: (_) => _CreditDivePickerSheet(courseId: courseId),
+    builder: (_) => _CreditDivePickerSheet(
+      courseId: courseId,
+      excludeDiveIds: excludeDiveIds,
+      restoredDives: restoredDives,
+    ),
   );
 }
 
+/// [creditable] as a sitting sees it: less [exclude], with [restored]
+/// added, newest first.
+List<RequirementDiveSummary> _creditableInSitting(
+  List<RequirementDiveSummary> creditable,
+  Set<String> exclude,
+  List<RequirementDiveSummary> restored,
+) {
+  if (exclude.isEmpty && restored.isEmpty) return creditable;
+  final ids = {for (final dive in creditable) dive.diveId};
+  return [
+    for (final dive in creditable)
+      if (!exclude.contains(dive.diveId)) dive,
+    for (final dive in restored)
+      if (!ids.contains(dive.diveId) && !exclude.contains(dive.diveId)) dive,
+  ]..sort((a, b) => b.dateTime.compareTo(a.dateTime));
+}
+
 class _CreditDivePickerSheet extends ConsumerStatefulWidget {
-  const _CreditDivePickerSheet({required this.courseId});
+  const _CreditDivePickerSheet({
+    required this.courseId,
+    required this.excludeDiveIds,
+    required this.restoredDives,
+  });
 
   final String courseId;
+  final Set<String> excludeDiveIds;
+  final List<RequirementDiveSummary> restoredDives;
 
   @override
   ConsumerState<_CreditDivePickerSheet> createState() =>
@@ -83,28 +116,35 @@ class _CreditDivePickerSheetState
                   loading: () =>
                       const Center(child: CircularProgressIndicator()),
                   error: (error, _) => Center(child: Text(error.toString())),
-                  data: (creditable) => DebouncedSearchResults<DiveSummary>(
-                    query: query,
-                    watchProvider: (ref, query) =>
-                        ref.watch(diveSearchProvider(query)),
-                    emptyQueryBuilder: (context) => _Candidates(
-                      courseId: widget.courseId,
-                      creditable: creditable,
-                    ),
-                    // A search whose every hit is uncreditable is, to the
-                    // diver, a search with no results.
-                    dataBuilder: (context, dives) {
-                      final offerable = _offerable(dives, creditable);
-                      return offerable.isEmpty
-                          ? _noMatches(context, query)
-                          : CustomScrollView(
-                              slivers: [_DiveSliver(dives: offerable)],
-                            );
-                    },
-                    emptyBuilder: _noMatches,
-                    errorBuilder: (context, error) =>
-                        Center(child: Text(error.toString())),
-                  ),
+                  data: (stored) {
+                    final creditable = _creditableInSitting(
+                      stored,
+                      widget.excludeDiveIds,
+                      widget.restoredDives,
+                    );
+                    return DebouncedSearchResults<DiveSummary>(
+                      query: query,
+                      watchProvider: (ref, query) =>
+                          ref.watch(diveSearchProvider(query)),
+                      emptyQueryBuilder: (context) => _Candidates(
+                        courseId: widget.courseId,
+                        creditable: creditable,
+                      ),
+                      // A search whose every hit is uncreditable is, to the
+                      // diver, a search with no results.
+                      dataBuilder: (context, dives) {
+                        final offerable = _offerable(dives, creditable);
+                        return offerable.isEmpty
+                            ? _noMatches(context, query)
+                            : CustomScrollView(
+                                slivers: [_DiveSliver(dives: offerable)],
+                              );
+                      },
+                      emptyBuilder: _noMatches,
+                      errorBuilder: (context, error) =>
+                          Center(child: Text(error.toString())),
+                    );
+                  },
                 ),
               ),
             ],
@@ -222,7 +262,7 @@ class _DiveSliver extends ConsumerWidget {
           leading: const Icon(Icons.scuba_diving),
           title: Text(parts.isEmpty ? date : parts.join(' · ')),
           subtitle: parts.isEmpty ? null : Text(date),
-          onTap: () => Navigator.of(context).pop(dive.diveId),
+          onTap: () => Navigator.of(context).pop(dive),
         );
       },
     );

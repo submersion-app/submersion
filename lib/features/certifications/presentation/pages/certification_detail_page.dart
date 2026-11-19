@@ -378,10 +378,10 @@ class _CertificationDetailContent extends ConsumerWidget {
             rootId: certification.id,
           ),
           // Delete is a whole-record operation, under the lock.
-          ...?host?._operationCaption(),
+          ...recordOperationMenuCaption<String>(context, host?.editController),
           PopupMenuItem(
             value: 'delete',
-            enabled: host?._operationsAvailable ?? true,
+            enabled: recordOperationsAvailable(host?.editController),
             child: Row(
               children: [
                 Icon(

@@ -95,6 +95,28 @@ PopupMenuItem<T> recordOperationCaption<T>(
   child: Text(reason, style: Theme.of(context).textTheme.bodySmall),
 );
 
+/// Whether [controller]'s whole-record operations may run now: always on a
+/// page that offers no editing ([controller] null).
+bool recordOperationsAvailable(RecordEditController<Object?>? controller) {
+  final block = recordOperationBlockOf(controller);
+  return block == null || block == RecordOperationBlock.none;
+}
+
+/// The caption over a record page menu's operations, to spread into the
+/// menu: one line saying why they are unavailable, or nothing while they can
+/// run or the page offers no editing.
+List<PopupMenuEntry<T>> recordOperationMenuCaption<T>(
+  BuildContext context,
+  RecordEditController<Object?>? controller,
+) {
+  final reason = recordOperationReason(
+    AppLocalizations.of(context),
+    recordOperationBlockOf(controller),
+    plural: true,
+  );
+  return [if (reason != null) recordOperationCaption<T>(context, reason)];
+}
+
 /// A button for a whole-record operation, drawn disabled with [reason] as
 /// its tooltip while the operation is unavailable. It keeps its place and
 /// size either way, so a page does not move when it is unlocked.

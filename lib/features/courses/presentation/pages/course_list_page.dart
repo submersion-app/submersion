@@ -21,6 +21,7 @@ import 'package:submersion/features/courses/presentation/widgets/course_list_con
 import 'package:submersion/features/courses/presentation/widgets/course_summary_widget.dart';
 import 'package:submersion/features/courses/presentation/pages/course_detail_page.dart';
 import 'package:submersion/features/courses/presentation/pages/course_edit_page.dart';
+import 'package:submersion/features/courses/presentation/pages/course_edit_routes.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/courses/presentation/providers/course_query_providers.dart';
 import 'package:submersion/features/courses/query/course_query_entity.dart';
@@ -101,11 +102,13 @@ class _CourseListPageState extends ConsumerState<CourseListPage>
             },
           ),
           summaryBuilder: (context) => const CourseSummaryWidget(),
-          editBuilder: (context, courseId, onSaved, onCancel) => CourseEditPage(
-            courseId: courseId,
-            embedded: true,
-            onSaved: () => onSaved(courseId),
-            onCancel: onCancel,
+          // Behind phase 3's switch, the page opened unlocked (issue #4527).
+          editBuilder: (context, courseId, onSaved, onCancel) => courseEditPane(
+            context,
+            courseId,
+            onSaved,
+            onCancel,
+            onDeleted: () => context.go(GoRouterState.of(context).uri.path),
           ),
           createBuilder: (context, onSaved, onCancel) => CourseEditPage(
             embedded: true,
@@ -216,11 +219,13 @@ class _CourseListPageState extends ConsumerState<CourseListPage>
           },
         ),
         summaryBuilder: (context) => const CourseSummaryWidget(),
-        editBuilder: (context, courseId, onSaved, onCancel) => CourseEditPage(
-          courseId: courseId,
-          embedded: true,
-          onSaved: () => onSaved(courseId),
-          onCancel: onCancel,
+        // Behind phase 3's switch, the page opened unlocked (issue #4527).
+        editBuilder: (context, courseId, onSaved, onCancel) => courseEditPane(
+          context,
+          courseId,
+          onSaved,
+          onCancel,
+          onDeleted: () => context.go(GoRouterState.of(context).uri.path),
         ),
         createBuilder: (context, onSaved, onCancel) => CourseEditPage(
           embedded: true,

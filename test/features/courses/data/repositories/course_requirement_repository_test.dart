@@ -1,9 +1,11 @@
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/dive_course_links_schema.dart';
 import 'package:submersion/core/constants/course_templates.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/courses/data/repositories/course_repository.dart';
 import 'package:submersion/features/courses/data/repositories/course_requirement_repository.dart';
+import 'package:submersion/features/courses/domain/entities/course_progress.dart';
 import 'package:submersion/features/courses/domain/entities/course_requirement.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -607,5 +609,332 @@ void main() {
         );
       },
     );
+  });
+  group('writeRequirementChanges (issue #4527)', () {
+    RequirementDiveSummary dive(String id) =>
+        RequirementDiveSummary(diveId: id, dateTime: DateTime.utc(2020));
+
+    CourseRequirement requirement(
+      String id, {
+      RequirementKind kind = RequirementKind.dive,
+      int sortOrder = 1,
+      DateTime? completedAt,
+    }) => CourseRequirement(
+      id: id,
+      courseId: 'course-1',
+      name: 'Requirement $id',
+      kind: kind,
+      sortOrder: sortOrder,
+      completedAt: completedAt,
+      createdAt: DateTime(2020),
+      updatedAt: DateTime(2020),
+    );
+
+    Future<List<CourseRequirementProgress>> stored() async =>
+        (await repository.getCourseProgress('course-1')).requirements;
+
+    List<String> creditsOf(List<CourseRequirementProgress> rows, String id) => [
+      for (final d
+          in rows.firstWhere((r) => r.requirement.id == id).linkedDives)
+        d.diveId,
+    ];
+
+    test('new requirements keep their ids and order', () async {
+      await _seedDiverAndCourse();
+
+      final wrote = await repository.writeRequirementChanges(
+        'course-1',
+        loaded: const [],
+        current: [
+          CourseRequirementProgress(
+            requirement: requirement('r-a', sortOrder: 1),
+            linkedDives: const [],
+          ),
+          CourseRequirementProgress(
+            requirement: requirement('r-b', sortOrder: 2),
+            linkedDives: const [],
+          ),
+        ],
+      );
+
+      expect(wrote, isTrue);
+      expect(
+        [for (final r in await stored()) r.requirement.id],
+        ['r-a', 'r-b'],
+      );
+    });
+
+    test('a tick keeps the time it was ticked', () async {
+      await _seedDiverAndCourse();
+      final created = await repository.createRequirement(
+        courseId: 'course-1',
+        name: 'Knowledge development',
+        kind: RequirementKind.checklist,
+      );
+      final loaded = await stored();
+      final ticked = DateTime(2024, 5, 6, 7, 8);
+
+      await repository.writeRequirementChanges(
+        'course-1',
+        loaded: loaded,
+        current: [
+          CourseRequirementProgress(
+            requirement: created.copyWith(completedAt: ticked),
+            linkedDives: const [],
+          ),
+        ],
+      );
+
+      expect((await stored()).single.requirement.completedAt, ticked);
+    });
+
+    test('a dive moved between requirements in one write lands', () async {
+      await _seedDiverAndCourse();
+      await _seedDive('dive-1');
+      final a = await repository.createRequirement(
+        courseId: 'course-1',
+        name: 'A',
+        kind: RequirementKind.dive,
+      );
+      final b = await repository.createRequirement(
+        courseId: 'course-1',
+        name: 'B',
+        kind: RequirementKind.dive,
+      );
+      await repository.linkDive(requirementId: a.id, diveId: 'dive-1');
+      final loaded = await stored();
+
+      await repository.writeRequirementChanges(
+        'course-1',
+        loaded: loaded,
+        current: [
+          CourseRequirementProgress(requirement: a, linkedDives: const []),
+          CourseRequirementProgress(
+            requirement: b,
+            linkedDives: [dive('dive-1')],
+          ),
+        ],
+      );
+
+      final after = await stored();
+      expect(creditsOf(after, a.id), isEmpty);
+      expect(creditsOf(after, b.id), ['dive-1']);
+    });
+
+    test('a credit to a requirement gone underneath is skipped', () async {
+      await _seedDiverAndCourse();
+      await _seedDive('dive-1');
+      final a = await repository.createRequirement(
+        courseId: 'course-1',
+        name: 'A',
+        kind: RequirementKind.dive,
+      );
+      final loaded = await stored();
+      await repository.deleteRequirement(a.id);
+
+      await repository.writeRequirementChanges(
+        'course-1',
+        loaded: loaded,
+        current: [
+          CourseRequirementProgress(
+            requirement: a,
+            linkedDives: [dive('dive-1')],
+          ),
+        ],
+      );
+
+      expect(await stored(), isEmpty);
+    });
+
+    test('a credit to a dive another requirement of the course has is '
+        'skipped', () async {
+      await _seedDiverAndCourse();
+      await _seedDive('dive-1');
+      final a = await repository.createRequirement(
+        courseId: 'course-1',
+        name: 'A',
+        kind: RequirementKind.dive,
+      );
+      final b = await repository.createRequirement(
+        courseId: 'course-1',
+        name: 'B',
+        kind: RequirementKind.dive,
+      );
+      final loaded = await stored();
+      // Another device credits it to B meanwhile.
+      await repository.linkDive(requirementId: b.id, diveId: 'dive-1');
+
+      await repository.writeRequirementChanges(
+        'course-1',
+        loaded: loaded,
+        current: [
+          CourseRequirementProgress(
+            requirement: a,
+            linkedDives: [dive('dive-1')],
+          ),
+          CourseRequirementProgress(requirement: b, linkedDives: const []),
+        ],
+      );
+
+      final after = await stored();
+      expect(creditsOf(after, a.id), isEmpty);
+      expect(creditsOf(after, b.id), ['dive-1']);
+    });
+
+    test('a removed requirement tombstones its credits', () async {
+      await _seedDiverAndCourse();
+      await _seedDive('dive-1');
+      final a = await repository.createRequirement(
+        courseId: 'course-1',
+        name: 'A',
+        kind: RequirementKind.dive,
+      );
+      await repository.linkDive(requirementId: a.id, diveId: 'dive-1');
+      final loaded = await stored();
+
+      await repository.writeRequirementChanges(
+        'course-1',
+        loaded: loaded,
+        current: const [],
+      );
+
+      expect(await stored(), isEmpty);
+      final types =
+          (await DatabaseService.instance.database
+                  .customSelect('SELECT entity_type FROM deletion_log')
+                  .get())
+              .map((r) => r.data['entity_type'] as String)
+              .toSet();
+      expect(
+        types,
+        containsAll({'courseRequirements', 'courseRequirementDives'}),
+      );
+    });
+
+    test('a rename leaves a tick made underneath', () async {
+      await _seedDiverAndCourse();
+      final created = await repository.createRequirement(
+        courseId: 'course-1',
+        name: 'Knowledge development',
+        kind: RequirementKind.checklist,
+      );
+      final loaded = await stored();
+      // Another device ticks it meanwhile.
+      await repository.setChecklistComplete(created.id, true);
+
+      await repository.writeRequirementChanges(
+        'course-1',
+        loaded: loaded,
+        current: [
+          CourseRequirementProgress(
+            requirement: created.copyWith(name: 'Theory'),
+            linkedDives: const [],
+          ),
+        ],
+      );
+
+      final after = (await stored()).single.requirement;
+      expect(after.name, 'Theory');
+      expect(after.completedAt, isNotNull);
+    });
+
+    test('an edit of a requirement gone underneath writes nothing', () async {
+      await _seedDiverAndCourse();
+      final created = await repository.createRequirement(
+        courseId: 'course-1',
+        name: 'A',
+        kind: RequirementKind.dive,
+      );
+      final loaded = await stored();
+      await repository.deleteRequirement(created.id);
+
+      final wrote = await repository.writeRequirementChanges(
+        'course-1',
+        loaded: loaded,
+        current: [
+          CourseRequirementProgress(
+            requirement: created.copyWith(name: 'Renamed'),
+            linkedDives: const [],
+          ),
+        ],
+      );
+
+      expect(wrote, isFalse);
+      expect(await stored(), isEmpty);
+    });
+
+    test('a credit to a dive gone underneath is skipped', () async {
+      await _seedDiverAndCourse();
+      await _seedDive('dive-1');
+      await _seedDive('dive-2');
+      final a = await repository.createRequirement(
+        courseId: 'course-1',
+        name: 'A',
+        kind: RequirementKind.dive,
+        targetCount: 2,
+      );
+      final loaded = await stored();
+      await DatabaseService.instance.database.customStatement(
+        "DELETE FROM dives WHERE id = 'dive-1'",
+      );
+
+      await repository.writeRequirementChanges(
+        'course-1',
+        loaded: loaded,
+        current: [
+          CourseRequirementProgress(
+            requirement: a,
+            linkedDives: [dive('dive-1'), dive('dive-2')],
+          ),
+        ],
+      );
+
+      expect(creditsOf(await stored(), a.id), ['dive-2']);
+    });
+
+    test('a removal of a requirement gone underneath logs no second '
+        'tombstone', () async {
+      await _seedDiverAndCourse();
+      final a = await repository.createRequirement(
+        courseId: 'course-1',
+        name: 'A',
+        kind: RequirementKind.dive,
+      );
+      final loaded = await stored();
+      await repository.deleteRequirement(a.id);
+
+      final wrote = await repository.writeRequirementChanges(
+        'course-1',
+        loaded: loaded,
+        current: const [],
+      );
+
+      expect(wrote, isFalse);
+      final tombstones = await DatabaseService.instance.database
+          .customSelect(
+            'SELECT 1 FROM deletion_log WHERE record_id = ?',
+            variables: [Variable.withString(a.id)],
+          )
+          .get();
+      expect(tombstones, hasLength(1));
+    });
+
+    test('nothing changed writes nothing', () async {
+      await _seedDiverAndCourse();
+      await repository.createRequirement(
+        courseId: 'course-1',
+        name: 'A',
+        kind: RequirementKind.dive,
+      );
+      final loaded = await stored();
+
+      final wrote = await repository.writeRequirementChanges(
+        'course-1',
+        loaded: loaded,
+        current: loaded,
+      );
+
+      expect(wrote, isFalse);
+    });
   });
 }

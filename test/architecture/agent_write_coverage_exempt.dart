@@ -314,6 +314,11 @@ final exempt = <String, String>{
       'a record page (a dive, a site) files documents under the record at '
       'Save (issue #4527, phase 2), as setDiveOwner, which calls it; '
       'owner_kind and owner_id are create-only for an agent',
+  '$courses/course_requirement_repository.dart:writeRequirementChanges':
+      'a course page writes the requirement tracker its sitting held at Save '
+      '(issue #4527, phase 3): the same rows an agent writes one by one '
+      'through course_requirements (create, update, delete, tick, credit and '
+      'uncredit a dive)',
   // Planned dives.
   for (final method in const [
     'lib/features/dive_log/data/repositories/dive_repository_impl.dart:createPlannedDive',

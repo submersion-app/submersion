@@ -302,4 +302,21 @@ void main() {
 
     expect(binding.dispose, returnsNormally);
   });
+  test('a plain binding takes any text as the value', () {
+    session = EditSession(const _Rec(note: 'Calm'));
+    addTearDown(session.dispose);
+    final plain = FieldTextBinding<_Rec, String>.plain(
+      session: session,
+      field: _note,
+      format: (v) => v,
+    );
+    addTearDown(plain.dispose);
+
+    expect(plain.controller.text, 'Calm');
+    plain.controller.text = '';
+    expect(session.working.note, '');
+    plain.controller.text = 'Surge at 12 m';
+    expect(session.working.note, 'Surge at 12 m');
+    expect(plain.isUnreadable, isFalse);
+  });
 }

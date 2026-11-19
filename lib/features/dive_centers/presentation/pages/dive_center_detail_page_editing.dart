@@ -130,27 +130,10 @@ mixin _DiveCenterDetailPageEditing
         )
       : child;
 
-  /// Whether the record's operations may run now, or why not; null where
-  /// the page edits nothing in place.
-  RecordOperationBlock? get _operationBlock =>
-      recordOperationBlockOf(hostsEditing ? editController : null);
-
-  bool get _operationsAvailable {
-    final block = _operationBlock;
-    return block == null || block == RecordOperationBlock.none;
-  }
-
-  /// The caption over the menu's operations while they are unavailable.
-  List<PopupMenuEntry<String>> _operationCaption() {
-    final reason = recordOperationReason(
-      context.l10n,
-      _operationBlock,
-      plural: true,
-    );
-    return [
-      if (reason != null) recordOperationCaption<String>(context, reason),
-    ];
-  }
+  /// The controller its operations wait on; none where the page edits
+  /// nothing in place, so they act as they always have.
+  RecordEditController<DiveCenter>? get _operationsController =>
+      hostsEditing ? editController : null;
 
   /// The list pane's header row; while unlocked the shared pane header
   /// (Cancel, the title, the menu and Save) is laid over it. [stored] is
@@ -261,10 +244,10 @@ mixin _DiveCenterDetailPageEditing
         ),
         openInConnectionsMenuItem(context),
         // Delete is a whole-record operation, under the lock.
-        ..._operationCaption(),
+        ...recordOperationMenuCaption<String>(context, _operationsController),
         PopupMenuItem(
           value: 'delete',
-          enabled: _operationsAvailable,
+          enabled: recordOperationsAvailable(_operationsController),
           child: Row(
             children: [
               Icon(

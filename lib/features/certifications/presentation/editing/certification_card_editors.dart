@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/buddies/presentation/widgets/instructor_picker_field.dart';
+import 'package:submersion/features/buddies/presentation/editing/instructor_card_editor.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/features/certification_agencies/presentation/widgets/certification_agency_dropdown.dart';
@@ -30,12 +30,7 @@ FieldTextBinding<Certification, V> _bindText<V>(
   EditSession<Certification> session,
   EditField<Certification, V> field,
   String Function(V value) format,
-) => FieldTextBinding<Certification, V>(
-  session: session,
-  field: field,
-  format: format,
-  parse: (text) => FieldValue<V>(text as V),
-);
+) => FieldTextBinding.plain(session: session, field: field, format: format);
 
 /// Details: the card's recognitions, its title and its number.
 class CertificationDetailsCardEditor extends ConsumerStatefulWidget {
@@ -263,91 +258,22 @@ class CertificationDatesCardEditor extends StatelessWidget {
 }
 
 /// Instructor: a buddy picked, and the name and number on the card.
-class CertificationInstructorCardEditor extends StatefulWidget {
+class CertificationInstructorCardEditor extends StatelessWidget {
   const CertificationInstructorCardEditor({super.key, required this.session});
 
   final EditSession<Certification> session;
 
   @override
-  State<CertificationInstructorCardEditor> createState() =>
-      _CertificationInstructorCardEditorState();
-}
-
-class _CertificationInstructorCardEditorState
-    extends State<CertificationInstructorCardEditor> {
-  EditSession<Certification> get _session => widget.session;
-
-  late final _name = FieldTextBinding<Certification, CertificationInstructor>(
-    session: _session,
-    field: certificationInstructorField,
-    format: (v) => v.name ?? '',
-    parse: (text) {
-      final v = _session.valueOf(certificationInstructorField);
-      return FieldValue((id: v.id, name: text, number: v.number));
-    },
-  );
-  late final _number = FieldTextBinding<Certification, CertificationInstructor>(
-    session: _session,
-    field: certificationInstructorField,
-    format: (v) => v.number ?? '',
-    parse: (text) {
-      final v = _session.valueOf(certificationInstructorField);
-      return FieldValue((id: v.id, name: v.name, number: text));
-    },
-  );
-
-  @override
-  void dispose() {
-    _name.dispose();
-    _number.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return ListenableBuilder(
-      listenable: _session,
-      builder: (context, _) => Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          InstructorPickerField(
-            instructorId: _session.valueOf(certificationInstructorField).id,
-            onSelected: (buddy, instructorCert) {
-              if (_session.isDisposed) return;
-              _session.set(
-                certificationInstructorField,
-                instructorPicked(
-                  buddy,
-                  instructorCert,
-                  _session.valueOf(certificationInstructorField),
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            key: const ValueKey('cert-edit-instructor-name'),
-            controller: _name.controller,
-            textCapitalization: TextCapitalization.words,
-            decoration: InputDecoration(
-              labelText: l10n.certifications_edit_label_instructorName,
-              prefixIcon: const Icon(Icons.person),
-              hintText: l10n.certifications_edit_hint_instructorName,
-            ),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            key: const ValueKey('cert-edit-instructor-number'),
-            controller: _number.controller,
-            decoration: InputDecoration(
-              labelText: l10n.certifications_edit_label_instructorNumber,
-              prefixIcon: const Icon(Icons.badge),
-              hintText: l10n.certifications_edit_hint_instructorNumber,
-            ),
-          ),
-        ],
-      ),
+    return InstructorCardEditor<Certification>(
+      session: session,
+      field: certificationInstructorField,
+      nameLabel: l10n.certifications_edit_label_instructorName,
+      nameHint: l10n.certifications_edit_hint_instructorName,
+      numberLabel: l10n.certifications_edit_label_instructorNumber,
+      numberHint: l10n.certifications_edit_hint_instructorNumber,
+      keyPrefix: 'cert-edit',
     );
   }
 }

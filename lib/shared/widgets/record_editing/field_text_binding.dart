@@ -55,6 +55,19 @@ class FieldTextBinding<T, V> {
     session.addListener(resync);
   }
 
+  /// A binding of a text value: any text is the value, a blank one too (a
+  /// field stores a blank optional value as none).
+  FieldTextBinding.plain({
+    required EditSession<T> session,
+    required EditField<T, V> field,
+    required String Function(V value) format,
+  }) : this(
+         session: session,
+         field: field,
+         format: format,
+         parse: (text) => FieldValue<V>(text as V),
+       );
+
   final EditSession<T> session;
   final EditField<T, V> field;
 

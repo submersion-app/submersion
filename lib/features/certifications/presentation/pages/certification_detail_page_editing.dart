@@ -120,27 +120,6 @@ mixin _CertificationDetailPageEditing
         controller.addedCardIds.contains(id.name);
   }
 
-  /// Whether the record's operations may run now, or why not.
-  RecordOperationBlock? get _operationBlock =>
-      recordOperationBlockOf(editController);
-
-  bool get _operationsAvailable {
-    final block = _operationBlock;
-    return block == null || block == RecordOperationBlock.none;
-  }
-
-  /// The caption over the menu's operations while they are unavailable.
-  List<PopupMenuEntry<String>> _operationCaption() {
-    final reason = recordOperationReason(
-      context.l10n,
-      _operationBlock,
-      plural: true,
-    );
-    return [
-      if (reason != null) recordOperationCaption<String>(context, reason),
-    ];
-  }
-
   /// [child] as the card [id], framed for editing in place.
   Widget _framed(CertificationCardId id, Widget child) =>
       RecordCardFrame<Certification>(

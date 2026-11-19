@@ -349,53 +349,10 @@ class CourseRequirementRepository {
     required String diveId,
   }) async {
     try {
-      final id = linkIdFor(requirementId, diveId);
-      // Once-per-course invariant: a dive credits at most one requirement
-      // of a course (the suggestion query already assumes this, but the
-      // same suggestion list renders under every unsatisfied requirement,
-      // so two taps before providers refresh could double-count). This
-      // also covers the duplicate-link case for the same requirement --
-      // Drift's insert return value cannot distinguish an ignored
-      // conflict, so the check is explicit (importDiveRole pattern), and
-      // a no-op must not bump the parent hlc or emit sync churn. The
-      // check+insert runs in a transaction: two concurrent taps each yield
-      // at their SELECT, so without the transaction both could observe no
-      // existing link and insert different deterministic ids. Drift
-      // serializes transactions, so the second one's SELECT sees the first
-      // commit and returns early. Enforced locally at write time;
-      // concurrent links from two devices to different requirements still
-      // merge via sync and are resolved by the user unlinking one.
-      final inserted = await _db.transaction(() async {
-        final existingInCourse = await _db
-            .customSelect(
-              'SELECT l.id FROM course_requirement_dives l '
-              'JOIN course_requirements r ON r.id = l.requirement_id '
-              'WHERE l.dive_id = ?1 AND r.course_id = '
-              '(SELECT course_id FROM course_requirements WHERE id = ?2) '
-              'LIMIT 1',
-              variables: [
-                Variable.withString(diveId),
-                Variable.withString(requirementId),
-              ],
-            )
-            .get();
-        if (existingInCourse.isNotEmpty) return false;
-
-        final now = DateTime.now().millisecondsSinceEpoch;
-        await _db
-            .into(_db.courseRequirementDives)
-            .insert(
-              CourseRequirementDivesCompanion(
-                id: Value(id),
-                requirementId: Value(requirementId),
-                diveId: Value(diveId),
-                createdAt: Value(now),
-              ),
-              mode: InsertMode.insertOrIgnore,
-            );
-        await _touchRequirement(requirementId, now);
-        return true;
-      });
+      final inserted = await _linkDive(
+        requirementId: requirementId,
+        diveId: diveId,
+      );
       if (!inserted) return;
 
       SyncEventBus.notifyLocalChange();
@@ -415,18 +372,11 @@ class CourseRequirementRepository {
     required String diveId,
   }) async {
     try {
-      final id = linkIdFor(requirementId, diveId);
-      final deleted = await (_db.delete(
-        _db.courseRequirementDives,
-      )..where((t) => t.id.equals(id))).go();
-      if (deleted == 0) return;
-
-      final now = DateTime.now().millisecondsSinceEpoch;
-      await _syncRepository.logDeletion(
-        entityType: 'courseRequirementDives',
-        recordId: id,
+      final unlinked = await _unlinkDive(
+        requirementId: requirementId,
+        diveId: diveId,
       );
-      await _touchRequirement(requirementId, now);
+      if (!unlinked) return;
       SyncEventBus.notifyLocalChange();
       _log.info('Unlinked dive $diveId from requirement $requirementId');
     } catch (e, stackTrace) {
@@ -595,6 +545,230 @@ class CourseRequirementRepository {
   int _wallClockDayStart(int courseDateMillis) => wallClockUtcDayStart(
     DateTime.fromMillisecondsSinceEpoch(courseDateMillis),
   ).millisecondsSinceEpoch;
+
+  /// Credits [diveId] toward [requirementId] without telling sync: whether
+  /// it was credited. A dive already crediting a requirement of the course
+  /// is not credited again.
+  Future<bool> _linkDive({
+    required String requirementId,
+    required String diveId,
+  }) {
+    final id = linkIdFor(requirementId, diveId);
+    // Once-per-course invariant: a dive credits at most one requirement
+    // of a course (the suggestion query already assumes this, but the
+    // same suggestion list renders under every unsatisfied requirement,
+    // so two taps before providers refresh could double-count). This
+    // also covers the duplicate-link case for the same requirement:
+    // Drift's insert return value cannot distinguish an ignored
+    // conflict, so the check is explicit (importDiveRole pattern), and
+    // a no-op must not bump the parent hlc or emit sync churn. The
+    // check+insert runs in a transaction: two concurrent taps each yield
+    // at their SELECT, so without the transaction both could observe no
+    // existing link and insert different deterministic ids. Drift
+    // serializes transactions, so the second one's SELECT sees the first
+    // commit and returns early. Enforced locally at write time;
+    // concurrent links from two devices to different requirements still
+    // merge via sync and are resolved by the user unlinking one.
+    return _db.transaction(() async {
+      final existingInCourse = await _db
+          .customSelect(
+            'SELECT l.id FROM course_requirement_dives l '
+            'JOIN course_requirements r ON r.id = l.requirement_id '
+            'WHERE l.dive_id = ?1 AND r.course_id = '
+            '(SELECT course_id FROM course_requirements WHERE id = ?2) '
+            'LIMIT 1',
+            variables: [
+              Variable.withString(diveId),
+              Variable.withString(requirementId),
+            ],
+          )
+          .get();
+      if (existingInCourse.isNotEmpty) return false;
+
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await _db
+          .into(_db.courseRequirementDives)
+          .insert(
+            CourseRequirementDivesCompanion(
+              id: Value(id),
+              requirementId: Value(requirementId),
+              diveId: Value(diveId),
+              createdAt: Value(now),
+            ),
+            mode: InsertMode.insertOrIgnore,
+          );
+      await _touchRequirement(requirementId, now);
+      return true;
+    });
+  }
+
+  /// Uncredits [diveId] from [requirementId] without telling sync: whether
+  /// it was credited.
+  Future<bool> _unlinkDive({
+    required String requirementId,
+    required String diveId,
+  }) async {
+    final id = linkIdFor(requirementId, diveId);
+    final deleted = await (_db.delete(
+      _db.courseRequirementDives,
+    )..where((t) => t.id.equals(id))).go();
+    if (deleted == 0) return false;
+    await _syncRepository.logDeletion(
+      entityType: 'courseRequirementDives',
+      recordId: id,
+    );
+    await _touchRequirement(
+      requirementId,
+      DateTime.now().millisecondsSinceEpoch,
+    );
+    return true;
+  }
+
+  /// Writes a course page's requirements as its editing sitting holds them
+  /// ([current]) over those it loaded ([loaded]), inside the sitting's
+  /// transaction (issue #4527, phase 3). Only the difference is written, in
+  /// an order the one-requirement-per-course rule allows: credits removed,
+  /// requirements removed (a tombstone per credit), requirements added
+  /// (keeping the id, order and tick the sitting gave them), requirements
+  /// changed, then credits added. A credit for a requirement gone meanwhile,
+  /// or for a dive that meanwhile credits another requirement of the course,
+  /// is skipped. Whether it wrote anything.
+  Future<bool> writeRequirementChanges(
+    String courseId, {
+    required List<CourseRequirementProgress> loaded,
+    required List<CourseRequirementProgress> current,
+  }) async {
+    final before = {for (final r in loaded) r.requirement.id: r};
+    final after = {for (final r in current) r.requirement.id: r};
+    var wrote = false;
+
+    for (final MapEntry(key: id, value: was) in before.entries) {
+      final kept = after[id];
+      if (kept == null) continue;
+      final keptDives = {for (final d in kept.linkedDives) d.diveId};
+      for (final dive in was.linkedDives) {
+        if (keptDives.contains(dive.diveId)) continue;
+        if (await _unlinkDive(requirementId: id, diveId: dive.diveId)) {
+          wrote = true;
+        }
+      }
+    }
+    for (final id in before.keys) {
+      // One deleted meanwhile has its tombstone already.
+      if (after.containsKey(id) || !await _requirementExists(id)) continue;
+      await deleteRequirement(id);
+      wrote = true;
+    }
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (final row in current) {
+      final requirement = row.requirement;
+      final was = before[requirement.id]?.requirement;
+      if (was == null) {
+        await _insertRequirement(courseId, requirement, now);
+        wrote = true;
+      } else if (was != requirement) {
+        if (await _writeRequirement(was, requirement, now)) wrote = true;
+      }
+    }
+    for (final row in current) {
+      final id = row.requirement.id;
+      final had = {
+        for (final d in before[id]?.linkedDives ?? const []) d.diveId,
+      };
+      final added = [
+        for (final d in row.linkedDives)
+          if (!had.contains(d.diveId)) d.diveId,
+      ];
+      if (added.isEmpty || !await _requirementExists(id)) continue;
+      for (final diveId in added) {
+        // A dive deleted meanwhile cannot be credited.
+        if (!await _diveExists(diveId)) continue;
+        if (await _linkDive(requirementId: id, diveId: diveId)) wrote = true;
+      }
+    }
+    return wrote;
+  }
+
+  Future<bool> _diveExists(String id) async =>
+      await (_db.select(
+        _db.dives,
+      )..where((t) => t.id.equals(id))).getSingleOrNull() !=
+      null;
+
+  Future<bool> _requirementExists(String id) async =>
+      await (_db.select(
+        _db.courseRequirements,
+      )..where((t) => t.id.equals(id))).getSingleOrNull() !=
+      null;
+
+  /// Inserts [requirement] as a sitting made it: its own id, order and tick.
+  Future<void> _insertRequirement(
+    String courseId,
+    CourseRequirement requirement,
+    int now,
+  ) async {
+    await _db
+        .into(_db.courseRequirements)
+        .insert(
+          CourseRequirementsCompanion(
+            id: Value(requirement.id),
+            courseId: Value(courseId),
+            name: Value(requirement.name.trim()),
+            kind: Value(requirement.kind.name),
+            targetCount: Value(requirement.targetCount),
+            completedAt: Value(requirement.completedAt?.millisecondsSinceEpoch),
+            sortOrder: Value(requirement.sortOrder),
+            notes: Value(requirement.notes),
+            createdAt: Value(now),
+            updatedAt: Value(now),
+          ),
+        );
+    await _syncRepository.markRecordPending(
+      entityType: 'courseRequirements',
+      recordId: requirement.id,
+      localUpdatedAt: now,
+    );
+  }
+
+  /// Writes the values of [requirement] the sitting changed from [was], the
+  /// one it loaded, so a value changed meanwhile on another device (a tick,
+  /// say) is kept where the diver did not touch it. A dive requirement has no
+  /// tick. Whether a row was written: none for one deleted meanwhile.
+  Future<bool> _writeRequirement(
+    CourseRequirement was,
+    CourseRequirement requirement,
+    int now,
+  ) async {
+    Value<T> changed<T>(T before, T after) =>
+        before == after ? const Value.absent() : Value(after);
+    final completedAt = requirement.kind == RequirementKind.dive
+        ? null
+        : requirement.completedAt?.millisecondsSinceEpoch;
+    final written =
+        await (_db.update(
+          _db.courseRequirements,
+        )..where((t) => t.id.equals(requirement.id))).write(
+          CourseRequirementsCompanion(
+            name: changed(was.name.trim(), requirement.name.trim()),
+            kind: changed(was.kind.name, requirement.kind.name),
+            targetCount: changed(was.targetCount, requirement.targetCount),
+            completedAt: changed(
+              was.completedAt?.millisecondsSinceEpoch,
+              completedAt,
+            ),
+            sortOrder: changed(was.sortOrder, requirement.sortOrder),
+            notes: changed(was.notes, requirement.notes),
+            updatedAt: Value(now),
+          ),
+        );
+    if (written == 0) return false;
+    await _syncRepository.markRecordPending(
+      entityType: 'courseRequirements',
+      recordId: requirement.id,
+      localUpdatedAt: now,
+    );
+    return true;
+  }
 
   /// Bump the parent requirement's updatedAt and mark it sync-pending so
   /// its hlc advances -- junction delta export is gated on the parent hlc.
