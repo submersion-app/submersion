@@ -93,8 +93,10 @@ void main() {
 
     test('a path out of time order narrows the window, it does not throw', () {
       // No scan stores one, and nothing checks a stored path's order. Here
-      // the sample at index 8 reads 3250 ms: halving for 3000 ms is sent
-      // below it, onto what looks like a 1500 ms gap.
+      // the sample at index 8 reads 3250 ms, ahead of the 2250 ms after it:
+      // halving for 3000 ms is sent below it, onto what looks like a
+      // 1500 ms gap. Boxes on such a path may be wrong, as boxAt's always
+      // were; the label layer must not throw.
       final misordered = steady.copyWith(
         path: [
           for (final (k, s) in steady.path.indexed)
