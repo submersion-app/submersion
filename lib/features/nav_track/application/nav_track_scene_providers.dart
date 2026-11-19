@@ -6,7 +6,7 @@ import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
 import 'package:submersion/features/dive_3d/application/spatial_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_path_adapter.dart';
-import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
+import 'package:submersion/features/nav_track/presentation/providers/nav_track_preview_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// The standalone route seascape (spec
@@ -21,9 +21,8 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 final navTrackSceneProvider = FutureProvider.autoDispose
     .family<SpatialSceneResult?, String>((ref, trackId) async {
       retainDiveData(ref);
-      final route = await ref.watch(
-        navTrackWithMarkersProvider(trackId).future,
-      );
+      // A correction held in a sitting, while one is shown (issue #4527).
+      final route = await ref.watch(navTrackShownIn3dProvider(trackId).future);
       if (route == null || route.points.length < 2) return null;
 
       final path = NavTrackPathAdapter.toReckonedPath(route);

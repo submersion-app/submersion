@@ -158,6 +158,42 @@ class GpsTrackRepository {
     }
   }
 
+  /// Writes the values the track's page edits in place (issue #4527): its
+  /// name and both trim bounds, each as given (null clears it). Nothing
+  /// else, so a recording's checkpoint underneath is never written over.
+  Future<void> writeEditedColumns(
+    String id, {
+    required String? name,
+    required int? trimStartTime,
+    required int? trimEndTime,
+  }) async {
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await (_db.update(_db.gpsTracks)..where((t) => t.id.equals(id))).write(
+        GpsTracksCompanion(
+          name: Value(name),
+          trimStartTime: Value(trimStartTime),
+          trimEndTime: Value(trimEndTime),
+          updatedAt: Value(now),
+        ),
+      );
+      // updatedAt alone does not replicate: the export filters on hlc.
+      await _syncRepository.markRecordPending(
+        entityType: entityType,
+        recordId: id,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to write the edited values of GPS track $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Removes both trim bounds, restoring the full recording.
   Future<void> clearTrim(String id) => setTrimBounds(id);
 

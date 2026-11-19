@@ -5532,6 +5532,7 @@
   "gpsLogger_trackSubtitle": "{count, plural, one{נקודה אחת} two{שתי נקודות} other{{count} נקודות}}, {duration}",
   "gpsLogger_trackSubtitleTrimmed": "נחתך, {duration}",
   "gpsTrack_editCard_trim": "חיתוך",
+  "gpsTrack_editCard_nameHint": "שם המסלול",
   "gpsTrack_action_trim": "חיתוך...",
   "gpsTrack_action_split": "פיצול...",
   "gpsTrack_action_resetTrim": "איפוס החיתוך",

@@ -39358,6 +39358,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get gpsTrack_editCard_trim => 'Rogner';
 
   @override
+  String get gpsTrack_editCard_nameHint => 'Nom de la trace';
+
+  @override
   String get gpsTrack_action_trim => 'Rogner...';
 
   @override

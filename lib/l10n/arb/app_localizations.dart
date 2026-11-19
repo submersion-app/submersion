@@ -61404,6 +61404,12 @@ abstract class AppLocalizations {
   /// **'Trim'**
   String get gpsTrack_editCard_trim;
 
+  /// Placeholder of the name field on a GPS track page unlocked for editing; also shown, faded, on the header of an unnamed track while unlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Track name'**
+  String get gpsTrack_editCard_nameHint;
+
   /// No description provided for @gpsTrack_action_trim.
   ///
   /// In en, this message translates to:

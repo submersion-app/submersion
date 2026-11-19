@@ -5784,6 +5784,7 @@
   "gpsLogger_trackSubtitle": "{count, plural, one{{count} Punkt} other{{count} Punkte}}, {duration}",
   "gpsLogger_trackSubtitleTrimmed": "Gekürzt, {duration}",
   "gpsTrack_editCard_trim": "Zuschneiden",
+  "gpsTrack_editCard_nameHint": "Name des Tracks",
   "gpsTrack_action_trim": "Zuschneiden...",
   "gpsTrack_action_split": "Teilen...",
   "gpsTrack_action_resetTrim": "Zuschnitt zurücksetzen",

@@ -39764,6 +39764,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gpsTrack_editCard_trim => 'اقتصاص';
 
   @override
+  String get gpsTrack_editCard_nameHint => 'اسم المسار';
+
+  @override
   String get gpsTrack_action_trim => 'اقتصاص...';
 
   @override

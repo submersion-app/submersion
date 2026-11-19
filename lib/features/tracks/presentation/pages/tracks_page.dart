@@ -14,6 +14,7 @@ import 'package:submersion/features/tracks/domain/track_list_item.dart';
 import 'package:submersion/features/tracks/presentation/providers/tracks_providers.dart';
 import 'package:submersion/features/tracks/presentation/track_item_location.dart';
 import 'package:submersion/features/tracks/presentation/tracks_import.dart';
+import 'package:submersion/features/tracks/presentation/widgets/delete_track_dialog.dart';
 import 'package:submersion/features/tracks/presentation/widgets/tracks_list_pane.dart';
 import 'package:submersion/features/tracks/presentation/widgets/tracks_map_pane.dart';
 import 'package:submersion/features/tracks/presentation/widgets/tracks_match_snackbar.dart';
@@ -117,11 +118,8 @@ class _TracksPageState extends ConsumerState<TracksPage> {
   }
 
   Future<void> _delete(TrackListItem item) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => _DeleteTrackDialog(item: item),
-    );
-    if (confirmed != true || !mounted) return;
+    final confirmed = await confirmDeleteTrack(context, item);
+    if (!confirmed || !mounted) return;
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
     try {
@@ -140,11 +138,7 @@ class _TracksPageState extends ConsumerState<TracksPage> {
     }
     if (!mounted) return;
     // A deleted track must not stay picked on the map.
-    final section = mapListSelectionProvider(kTracksSectionKey);
-    if (ref.read(section).selectedId == item.selectionKey) {
-      ref.read(section.notifier).deselect();
-    }
-    forgetOpenedTrack(ref, item);
+    forgetDeletedTrack(ref, item);
   }
 
   void _open(TrackListItem item) => openTrack(context, ref, item);
@@ -208,44 +202,6 @@ class _TracksPageState extends ConsumerState<TracksPage> {
         onMatch: _matching ? null : _matchNow,
         onDelete: _delete,
       ),
-    );
-  }
-}
-
-/// Confirms a delete in the wording of the track's own feature.
-class _DeleteTrackDialog extends StatelessWidget {
-  const _DeleteTrackDialog({required this.item});
-
-  final TrackListItem item;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final (title, message) = switch (item) {
-      GpsTrackItem() => (
-        l10n.gpsLogger_deleteTrackTitle,
-        l10n.gpsLogger_deleteTrackMessage,
-      ),
-      UnderwaterTrackItem(:final track) => (
-        l10n.navTrack_detail_deleteTrackTitle,
-        l10n.navTrack_list_deleteMessage(
-          track.name ?? track.sourceRef ?? track.id,
-        ),
-      ),
-    };
-    return AlertDialog(
-      title: Text(title),
-      content: Text(message),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
-          child: Text(l10n.common_action_cancel),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.of(context).pop(true),
-          child: Text(l10n.common_action_delete),
-        ),
-      ],
     );
   }
 }
