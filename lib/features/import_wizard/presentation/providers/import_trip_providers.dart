@@ -1,4 +1,5 @@
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_match_review_notifier.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -30,6 +31,10 @@ final importOwnerTripsProvider = FutureProvider.autoDispose
 /// a multi-profile import (none for a profile the import creates), else the
 /// download's chosen profile, else the wizard's diver. While a profile's
 /// trips are loading its rows get no name rather than a guess.
+///
+/// The wizard overrides [importWizardNotifierProvider] in its own scope, so
+/// this lists it as a dependency to be scoped with it; otherwise it would
+/// read the root's, which throws.
 final importReviewTripNamesProvider = Provider.autoDispose<Map<int, String>>((
   ref,
 ) {
@@ -79,7 +84,7 @@ final importReviewTripNamesProvider = Provider.autoDispose<Map<int, String>>((
     for (final entry in names.entries)
       if (!loading(dives.items[entry.key])) entry.key: entry.value,
   };
-});
+}, dependencies: [importWizardNotifierProvider]);
 
 /// How many of the dives an import saved went into each trip (issue
 /// #3022), most dives first, then by name; dives in no trip are not
@@ -109,7 +114,7 @@ final importedDiveTripCountsProvider = FutureProvider.autoDispose
       ];
       rows.sort((a, b) {
         final byCount = b.count.compareTo(a.count);
-        return byCount != 0 ? byCount : a.name.compareTo(b.name);
+        return byCount != 0 ? byCount : compareTextForSort(a.name, b.name);
       });
       return rows;
     });
