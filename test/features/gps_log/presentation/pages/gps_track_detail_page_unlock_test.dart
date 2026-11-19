@@ -484,4 +484,29 @@ void main() {
       expect(find.byType(RecordEditBar), findsOneWidget);
     });
   });
+
+  testWidgets('with a trim held, typing a name keeps the drawn fixes the same '
+      'list, so the map keeps its framing and the statistics are not redone', (
+    tester,
+  ) async {
+    await pumpGpsTrackPage(tester);
+    await unlock(tester);
+    await addFromStrip(tester, trimTitle);
+    await dragTrimStart(tester);
+    final before = tester
+        .widget<TrackStatsHeader>(find.byType(TrackStatsHeader))
+        .points;
+
+    await openCard(tester, headerTitle);
+    await tester.enterText(
+      find.byKey(const ValueKey('gps-track-name-field')),
+      'Shore dive',
+    );
+    await tester.pumpAndSettle();
+
+    final after = tester
+        .widget<TrackStatsHeader>(find.byType(TrackStatsHeader))
+        .points;
+    expect(after, same(before));
+  });
 }

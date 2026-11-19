@@ -100,6 +100,44 @@ class _GpsTrackDetailPageState extends ConsumerState<GpsTrackDetailPage>
   int? _pendingStartMs;
   int? _pendingEndMs;
 
+  /// The fixes inside a trim, kept while the track's fixes and the trim
+  /// stay the same: a sitting rebuilds the page on every change, and a new
+  /// list each time would refit the map and walk every fix again.
+  ({List<GpsTrackPoint> of, int? start, int? end, List<GpsTrackPoint> points})?
+  _effective;
+
+  /// The statistics header as last built, kept while its fixes and dive
+  /// count stay the same, so a rebuild does not walk every fix again.
+  TrackStatsHeader? _stats;
+
+  List<GpsTrackPoint> _effectivePointsOf(GpsTrack track) {
+    final kept = _effective;
+    if (kept != null &&
+        identical(kept.of, track.points) &&
+        kept.start == track.trimStartTime &&
+        kept.end == track.trimEndTime) {
+      return kept.points;
+    }
+    final points = track.effectivePoints;
+    _effective = (
+      of: track.points,
+      start: track.trimStartTime,
+      end: track.trimEndTime,
+      points: points,
+    );
+    return points;
+  }
+
+  TrackStatsHeader _statsHeader(List<GpsTrackPoint> points, int diveCount) {
+    final kept = _stats;
+    if (kept != null &&
+        identical(kept.points, points) &&
+        kept.diveCount == diveCount) {
+      return kept;
+    }
+    return _stats = TrackStatsHeader(points: points, diveCount: diveCount);
+  }
+
   @override
   void dispose() {
     disposeEditing();
@@ -165,15 +203,12 @@ class _GpsTrackDetailPageState extends ConsumerState<GpsTrackDetailPage>
   }
 
   /// Trim or split controls, shown only while the corresponding mode is on.
-  Widget _buildEditPanel(
-    BuildContext context,
-    GpsTrack track,
-    List<GpsTrackPoint> points,
-  ) {
+  Widget _buildEditPanel(BuildContext context, GpsTrack track) {
     final mode = ref.watch(trackEditModeProvider);
-    if (mode == TrackEditMode.none || points.length < 2) {
-      return const SizedBox.shrink();
-    }
+    if (mode == TrackEditMode.none) return const SizedBox.shrink();
+    // Only while the panel shows: the walk over every fix is not free.
+    final points = track.effectivePoints;
+    if (points.length < 2) return const SizedBox.shrink();
 
     final l10n = context.l10n;
     final theme = Theme.of(context);
@@ -385,7 +420,7 @@ class _GpsTrackDetailPageState extends ConsumerState<GpsTrackDetailPage>
   Widget _content(GpsTrack stored, GpsTrack shown) {
     final l10n = context.l10n;
     final sitting = isSittingOpen;
-    final points = shown.effectivePoints;
+    final points = _effectivePointsOf(shown);
     if (points.length < 2) {
       final noPoints = Center(child: Text(l10n.gpsTrack_detail_noPoints));
       // A trim held in a sitting may leave too few fixes; the track itself
@@ -413,11 +448,9 @@ class _GpsTrackDetailPageState extends ConsumerState<GpsTrackDetailPage>
     return Column(
       children: [
         if (hostsEditing) _headerBlock(shown),
-        _calculated(
-          TrackStatsHeader(points: drawable, diveCount: dives.length),
-        ),
+        _calculated(_statsHeader(drawable, dives.length)),
         if (hostsEditing) _trimCard(shown),
-        _buildEditPanel(context, stored, stored.effectivePoints),
+        _buildEditPanel(context, stored),
         Expanded(
           child: _TrackMap(
             trackId: widget.trackId,

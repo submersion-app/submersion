@@ -21,6 +21,7 @@ import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.
 import 'package:submersion/features/maps/presentation/widgets/world_copies.dart';
 import 'package:submersion/features/nav_track/data/services/nav_track_edit_save_service.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
+import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_site_anchor_rule.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_stats.dart';
 import 'package:submersion/features/nav_track/presentation/editing/nav_track_card_ids.dart';
@@ -87,6 +88,19 @@ class _NavTrackDetailPageState extends ConsumerState<NavTrackDetailPage>
         RecordEditHost<NavTrackDetailPage, NavTrack>,
         _NavTrackDetailPageEditing {
   String get trackId => widget.trackId;
+
+  /// The route's statistics, kept while its samples stay the same list: a
+  /// sitting rebuilds the page on every change, and the samples never
+  /// change in one.
+  ({List<NavTrackPoint> of, NavTrackStats stats})? _stats;
+
+  NavTrackStats _statsOf(List<NavTrackPoint> points) {
+    final kept = _stats;
+    if (kept != null && identical(kept.of, points)) return kept.stats;
+    final stats = NavTrackStats.of(points);
+    _stats = (of: points, stats: stats);
+    return stats;
+  }
 
   @override
   void dispose() {
@@ -468,7 +482,7 @@ class _NavTrackDetailPageState extends ConsumerState<NavTrackDetailPage>
   Widget _body(NavTrack stored, NavTrack shown) {
     final l10n = context.l10n;
     final units = ref.watch(unitFormatterProvider);
-    final stats = NavTrackStats.of(shown.points);
+    final stats = _statsOf(shown.points);
     // Where the page edits in place, the cards act only in a sitting,
     // through their editors.
     final acts = !hostsEditing;

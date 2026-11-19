@@ -7,6 +7,7 @@ import 'package:submersion/features/nav_track/presentation/pages/nav_track_3d_pa
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_align_page.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_detail_page.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_preview_provider.dart';
+import 'package:submersion/features/nav_track/presentation/widgets/nav_track_detail_cards.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_marker_layer.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
@@ -505,5 +506,27 @@ void main() {
       ),
       findsOneWidget,
     );
+  });
+
+  testWidgets('typing a name does not recompute the statistics', (
+    tester,
+  ) async {
+    await pumpNavTrackPage(tester);
+    await unlock(tester);
+    final before = tester
+        .widget<NavTrackStatsCard>(find.byType(NavTrackStatsCard))
+        .stats;
+
+    await openCard(tester, l.changeLog_table_navTrack);
+    await tester.enterText(
+      find.byKey(const ValueKey('nav-track-name-field')),
+      'Evening',
+    );
+    await tester.pumpAndSettle();
+
+    final after = tester
+        .widget<NavTrackStatsCard>(find.byType(NavTrackStatsCard))
+        .stats;
+    expect(after, same(before));
   });
 }

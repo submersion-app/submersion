@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/gps_log/data/repositories/gps_track_repository.dart';
@@ -13,6 +12,7 @@ import 'package:submersion/features/gps_log/presentation/pages/gps_track_detail_
 import 'package:submersion/features/gps_log/presentation/providers/gps_track_map_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/pushed_page_launcher.dart';
 import '../../../../helpers/test_app.dart';
 
 /// Five fixes an hour apart, from 08:00 to 12:00 (wall-clock-as-UTC).
@@ -86,46 +86,6 @@ class GpsTrackPageHarness {
   final ProviderContainer container;
 }
 
-/// Pushes [page] over a plain first route, so the page can pop.
-class _Launcher extends StatefulWidget {
-  const _Launcher({required this.page, this.theme});
-
-  final Widget page;
-
-  /// The app's own theme in this brightness, for screenshots; the test
-  /// app's default when null.
-  final Brightness? theme;
-
-  @override
-  State<_Launcher> createState() => _LauncherState();
-}
-
-class _LauncherState extends State<_Launcher> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final theme = widget.theme;
-      Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => theme == null
-              ? widget.page
-              : Theme(
-                  data: AppThemeRegistry.resolveTheme(
-                    AppThemeRegistry.presets.first,
-                    theme,
-                  ),
-                  child: widget.page,
-                ),
-        ),
-      );
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) => const Text('first route');
-}
-
 final _storedProvider = StateProvider<GpsTrack?>((ref) => null);
 
 /// Pumps the GPS track page with the phase 3 switch on (unless
@@ -190,7 +150,7 @@ Future<GpsTrackPageHarness> pumpGpsTrackPage(
           },
         ),
       ],
-      child: _Launcher(
+      child: PushedPageLauncher(
         theme: brightness,
         page: GpsTrackDetailPage(
           trackId: initial.id,

@@ -10,12 +10,15 @@ import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 import 'package:submersion/features/nav_track/presentation/editing/nav_track_edit_fields.dart';
+import 'package:submersion/features/nav_track/application/nav_track_scene_providers.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_align_page.dart';
+import 'package:submersion/features/nav_track/presentation/pages/nav_track_seascape_page.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_preview_provider.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_polyline_layer.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/record_editing/record_satellite.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
@@ -125,6 +128,7 @@ Future<_RecordingNavTrackRepository> _pump(
         navTrackByIdProvider('r1').overrideWith((ref) async => route ?? _route),
         navTrackRepositoryProvider.overrideWithValue(repository),
         bathymetryGridProvider.overrideWith((ref, cell) async => null),
+        navTrackSceneProvider('r1').overrideWith((ref) async => null),
       ],
       child: MaterialApp.router(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -174,7 +178,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('nav-track-align-3d')));
     await tester.pumpAndSettle();
 
-    expect(find.text('ROUTE_3D_PAGE'), findsOneWidget);
+    expect(find.byType(NavTrackSeascapePage), findsOneWidget);
     expect(repository.corrections, isEmpty);
   });
 
@@ -262,7 +266,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('nav-track-align-3d')));
     await tester.pumpAndSettle();
 
-    expect(find.text('ROUTE_3D_PAGE'), findsOneWidget);
+    expect(find.byType(NavTrackSeascapePage), findsOneWidget);
     expect(
       container.read(navTrackPreviewProvider('r1'))?.trustFraction,
       greaterThan(0),
@@ -320,5 +324,82 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.widget<Slider>(_slider).value, 0);
+  });
+
+  testWidgets('pushed over the shell, its 3D button opens the seascape on '
+      'top of it', (tester) async {
+    final overrides = await getBaseOverrides();
+    final sitting = _sitting();
+    final router = GoRouter(
+      initialLocation: '/tracks/underwater/r1',
+      routes: [
+        ShellRoute(
+          builder: (context, state, child) => Scaffold(body: child),
+          routes: [
+            GoRoute(
+              path: '/tracks/underwater/:id',
+              builder: (context, state) => Builder(
+                builder: (context) => TextButton(
+                  onPressed: () => pushRecordSatellite<NavTrack, void>(
+                    context,
+                    sitting: sitting,
+                    builder: (joined) => NavTrackAlignPage(
+                      routeId: 'r1',
+                      joinedSitting: joined,
+                      unlockEditing: true,
+                    ),
+                  ),
+                  child: const Text('open align'),
+                ),
+              ),
+            ),
+            GoRoute(
+              path: '/tracks/underwater/:id/3d',
+              builder: (context, state) =>
+                  const Scaffold(body: Text('ROUTE_3D_PAGE')),
+            ),
+          ],
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...overrides,
+          navTrackByIdProvider('r1').overrideWith((ref) async => _route),
+          bathymetryGridProvider.overrideWith((ref, cell) async => null),
+          navTrackSceneProvider('r1').overrideWith((ref) async => null),
+        ],
+        child: MaterialApp.router(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: router,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('open align'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('nav-track-align-3d')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(NavTrackSeascapePage).hitTestable(), findsOneWidget);
+  });
+
+  testWidgets("joined, the 3D preview carries the sitting's held site", (
+    tester,
+  ) async {
+    final sitting = _sitting();
+    sitting.session!.set(navTrackSiteField, 's2');
+    await _pump(tester, joined: sitting);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(NavTrackAlignPage)),
+    );
+
+    await tester.tap(find.byKey(const ValueKey('nav-track-align-3d')));
+    await tester.pumpAndSettle();
+
+    expect(container.read(navTrackPreviewProvider('r1'))?.siteId, 's2');
   });
 }

@@ -31,6 +31,7 @@ import 'package:submersion/features/nav_track/domain/nav_track_scale_handle.dart
 import 'package:submersion/features/nav_track/domain/nav_track_segmenter.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_terrain_check.dart';
 import 'package:submersion/features/nav_track/presentation/editing/nav_track_edit_fields.dart';
+import 'package:submersion/features/nav_track/presentation/pages/nav_track_seascape_page.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_preview_provider.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_align_geometry.dart';
@@ -333,13 +334,23 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
       context.push(underwaterTrackSeascapeLocation(route.id));
       return;
     }
-    // In a sitting the view previews the correction made here; reading
-    // only, it shows the stored one.
+    // In a sitting the view previews the route as the sitting holds it
+    // (its site included) with the correction made here; reading only, it
+    // shows the stored one. Pushed on this page's own navigator: the page
+    // sits above the app's shell, where the seascape's address would open
+    // it underneath.
+    final session = _joined?.session;
     await showNavTrackIn3d(
       ref,
-      shown: _joined == null ? route : route.withCorrection(_correction),
+      shown: session == null
+          ? route
+          : session.working.withCorrection(_correction),
       stored: route,
-      push: () => context.push(underwaterTrackSeascapeLocation(route.id)),
+      push: () => Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => NavTrackSeascapePage(trackId: route.id),
+        ),
+      ),
     );
   }
 

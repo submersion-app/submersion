@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/features/bathymetry/application/bathymetry_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -23,6 +22,7 @@ import 'package:submersion/features/nav_track/presentation/providers/nav_track_i
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/pushed_page_launcher.dart';
 import '../../../../helpers/test_app.dart';
 
 const oldSite = DiveSite(
@@ -208,46 +208,6 @@ class NavTrackPageHarness {
   final FakeNavTrackImport import;
 }
 
-/// Pushes [page] over a plain first route, so the page can pop.
-class _Launcher extends StatefulWidget {
-  const _Launcher({required this.page, this.theme});
-
-  final Widget page;
-
-  /// The app's own theme in this brightness, for screenshots; the test
-  /// app's default when null.
-  final Brightness? theme;
-
-  @override
-  State<_Launcher> createState() => _LauncherState();
-}
-
-class _LauncherState extends State<_Launcher> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final theme = widget.theme;
-      Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => theme == null
-              ? widget.page
-              : Theme(
-                  data: AppThemeRegistry.resolveTheme(
-                    AppThemeRegistry.presets.first,
-                    theme,
-                  ),
-                  child: widget.page,
-                ),
-        ),
-      );
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) => const Text('first route');
-}
-
 final _storedProvider = StateProvider<NavTrack?>((ref) => null);
 
 /// Pumps the underwater track page with the phase 3 switch on (unless
@@ -289,7 +249,7 @@ Future<NavTrackPageHarness> pumpNavTrackPage(
           (ref) => FakeNavTrackImport(ref.watch(_storedProvider.notifier)),
         ),
       ],
-      child: _Launcher(
+      child: PushedPageLauncher(
         theme: brightness,
         page: NavTrackDetailPage(
           trackId: initial.id,
