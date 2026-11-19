@@ -242,6 +242,56 @@ void main() {
     expect(controller.isSaving, isFalse);
   });
 
+  // What a page asks before it asks the diver anything at Save (issue
+  // #4527): only a save that would write the sitting is worth a question.
+  group('saveWouldWrite', () {
+    test('a changed sitting with nothing to fix would write', () {
+      final controller = _controller()..unlock(const _Rec());
+      controller.session!.set(_notes, 'b');
+
+      expect(controller.saveWouldWrite, isTrue);
+    });
+
+    test('locked, or with nothing changed, it would not', () {
+      final controller = _controller();
+      expect(controller.saveWouldWrite, isFalse);
+
+      controller.unlock(const _Rec());
+      expect(controller.saveWouldWrite, isFalse);
+    });
+
+    test('a field holding text that is not a value stops it', () {
+      final controller = _controller()..unlock(const _Rec());
+      controller.session!.set(_notes, 'b');
+      controller.setFieldInvalid('details', 'depth', invalid: true);
+
+      expect(controller.saveWouldWrite, isFalse);
+    });
+
+    test('a card that refuses its value stops it', () {
+      final controller = RecordEditController<_Rec>(
+        onSave: (_) async {},
+        invalidCards: (session) => ['notes'],
+      )..unlock(const _Rec());
+      addTearDown(controller.dispose);
+      controller.session!.set(_notes, 'b');
+
+      expect(controller.saveWouldWrite, isFalse);
+    });
+
+    test('a save already running stops it', () async {
+      final gate = Completer<void>();
+      final controller = _controller(onSave: (_) => gate.future)
+        ..unlock(const _Rec());
+      controller.session!.set(_notes, 'b');
+
+      final saving = controller.save();
+      expect(controller.saveWouldWrite, isFalse);
+      gate.complete();
+      await saving;
+    });
+  });
+
   test('save while a save is running does nothing', () async {
     final gate = Completer<void>();
     var calls = 0;

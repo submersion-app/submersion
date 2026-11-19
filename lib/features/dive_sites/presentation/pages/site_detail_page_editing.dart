@@ -273,6 +273,8 @@ mixin _SiteDetailPageEditing
   Future<bool> beforeSave() async {
     final session = maybeEditController?.session;
     if (session == null) return true;
+    // A Send that did not go through offers its note again.
+    final previousNote = readerSendNote(session) ?? '';
     clearReaderSend(session);
     final libraryId = session.stored.sharedLibraryId;
     if (libraryId == null || !isReaderSitting(session)) return true;
@@ -299,7 +301,7 @@ mixin _SiteDetailPageEditing
     if (role != null && canEditLibrarySite(role)) return true;
     var note = '';
     if (readerSendProposes(session)) {
-      final asked = await askSuggestionNote(context);
+      final asked = await askSuggestionNote(context, initial: previousNote);
       if (asked == null || !mounted) return false;
       note = asked;
     }
@@ -324,9 +326,14 @@ mixin _SiteDetailPageEditing
     );
     if (result == null) return;
     if (result.after.id == shownId) justSavedRecord = result.after;
-    // The write is committed. A refresh that fails from here on must not
-    // read as a save that failed: the diver would be told nothing was
-    // changed and handed the sitting to save a second time.
+    await _refreshSiteList(sites, siteId);
+  }
+
+  /// The site list read again once a write on [siteId] has committed. A
+  /// refresh that fails must not read as a save that failed: the diver would
+  /// be told nothing was changed and handed the sitting to save a second
+  /// time.
+  Future<void> _refreshSiteList(SiteListNotifier sites, String siteId) async {
     try {
       await sites.refresh();
     } catch (error, stackTrace) {
@@ -350,6 +357,7 @@ mixin _SiteDetailPageEditing
     final sites = ref.read(siteListNotifierProvider.notifier);
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
+    final shownId = widget.siteId;
     final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
     if (diverId == null) throw StateError('no profile to send as');
     final result = await sendReaderSitting(
@@ -360,7 +368,7 @@ mixin _SiteDetailPageEditing
       note: note,
     );
     final saved = result.saved;
-    if (saved != null && saved.id == widget.siteId) justSavedRecord = saved;
+    if (saved != null && saved.id == shownId) justSavedRecord = saved;
     messenger.showSnackBar(
       SnackBar(
         content: Text(switch (result.outcome) {
@@ -375,17 +383,7 @@ mixin _SiteDetailPageEditing
       ),
     );
     if (saved == null) return;
-    // Committed: a refresh that fails must not read as a failed Send.
-    try {
-      await sites.refresh();
-    } catch (error, stackTrace) {
-      _editLog.error(
-        'Site list refresh after a reader\'s Send on ${session.stored.id} '
-        'failed',
-        error: error,
-        stackTrace: stackTrace,
-      );
-    }
+    await _refreshSiteList(sites, saved.id);
   }
 
   /// The cards the page is not showing that can be edited, in section

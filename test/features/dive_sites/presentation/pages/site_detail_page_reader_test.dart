@@ -487,6 +487,38 @@ void main() {
       expect(find.byType(RecordEditBar), findsOneWidget);
     });
 
+    // A Send that did not go through keeps the sitting; the note the reader
+    // wrote is offered again rather than lost.
+    testWidgets('a failed Send keeps the note for the next one', (
+      tester,
+    ) async {
+      await pumpSend(tester, proposalFails: true);
+      await unlockReader(tester);
+      sitting(tester).set(siteNameField, 'Big Hole');
+      await tester.pumpAndSettle();
+      final noteField = find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(TextField),
+      );
+      final dialogSend = find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text(l.sharedLibrary_suggest_send),
+      );
+
+      await tapSend(tester);
+      await tester.enterText(noteField, 'The shops call it Big Hole');
+      await tester.tap(dialogSend);
+      await tester.pumpAndSettle();
+      expect(find.text(l.recordEdit_saveFailed), findsOneWidget);
+
+      await tapSend(tester);
+
+      expect(
+        tester.widget<TextField>(noteField).controller!.text,
+        'The shops call it Big Hole',
+      );
+    });
+
     testWidgets('a proposal that fails after the notes are saved says so', (
       tester,
     ) async {

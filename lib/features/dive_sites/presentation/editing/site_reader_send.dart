@@ -58,24 +58,30 @@ Set<String> _privateCards(EditSession<DiveSite> session) => {
 bool readerSendProposes(EditSession<DiveSite> session) => session.changedCardIds
     .any((id) => siteReaderCardRule(id) == SiteReaderCard.suggested);
 
-/// Asks for the reader's note to the owner: the note, or null when the
+/// Asks for the reader's note to the owner, starting from [initial] (the
+/// note of a Send that did not go through): the note, or null when the
 /// diver cancels, which sends nothing.
-Future<String?> askSuggestionNote(BuildContext context) => showDialog<String>(
+Future<String?> askSuggestionNote(
+  BuildContext context, {
+  String initial = '',
+}) => showDialog<String>(
   context: context,
-  builder: (_) => const _SuggestionNoteDialog(),
+  builder: (_) => _SuggestionNoteDialog(initial: initial),
 );
 
 /// The note dialog, owning its field's controller so the closing dialog
 /// never draws a disposed one.
 class _SuggestionNoteDialog extends StatefulWidget {
-  const _SuggestionNoteDialog();
+  const _SuggestionNoteDialog({required this.initial});
+
+  final String initial;
 
   @override
   State<_SuggestionNoteDialog> createState() => _SuggestionNoteDialogState();
 }
 
 class _SuggestionNoteDialogState extends State<_SuggestionNoteDialog> {
-  final _note = TextEditingController();
+  late final _note = TextEditingController(text: widget.initial);
 
   @override
   void dispose() {

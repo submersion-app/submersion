@@ -74,6 +74,9 @@ class _Probe {
   /// it is still waiting for.
   int beforeSaveAsked = 0;
   Completer<bool>? holdBeforeSave;
+
+  /// While set and not completed, the page's save is still being written.
+  Completer<void>? holdSave;
 }
 
 final _probeProvider = Provider<_Probe>((ref) => throw UnimplementedError());
@@ -147,6 +150,7 @@ class _NotePageState extends ConsumerState<_NotePage>
   Future<void> saveSitting(EditSession<_Note> session) async {
     final probe = ref.read(_probeProvider);
     probe.saves.add(session.changedCardIds);
+    await probe.holdSave?.future;
     if (probe.failSave) throw StateError('the save failed');
     if (probe.refuseWith case final refusal?) throw refusal;
     justSavedRecord = session.working;
@@ -481,6 +485,27 @@ void main() {
       expect(probe.beforeSaveAsked, 0);
       expect(probe.saves, isEmpty);
       expect(find.text(l.recordEdit_fixInvalid), findsOneWidget);
+    });
+
+    testWidgets('a Save while the sitting is being written asks nothing', (
+      tester,
+    ) async {
+      await pump(tester, const _NotePage(noteId: 'n1'));
+      await unlock(tester);
+      await editText(tester, 'Choppy');
+      final writing = probe.holdSave = Completer<void>();
+      await tester.tap(find.text(l.forms_save));
+      await tester.pump();
+
+      unawaited(
+        tester.state<_NotePageState>(find.byType(_NotePage)).saveAndReport(),
+      );
+      await tester.pump();
+      writing.complete();
+      await tester.pumpAndSettle();
+
+      expect(probe.beforeSaveAsked, 1);
+      expect(probe.saves, hasLength(1));
     });
 
     testWidgets('a sitting with nothing changed ends without beforeSave', (

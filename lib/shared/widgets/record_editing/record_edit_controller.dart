@@ -117,6 +117,18 @@ class RecordEditController<T> extends ChangeNotifier {
   /// Saving, or running an operation: the page takes no input meanwhile.
   bool get isBusy => _isSaving || isOperating;
 
+  /// Whether [save] would write the sitting now: unlocked, not busy, with a
+  /// change, and nothing to fix first. Otherwise it ends the sitting with
+  /// nothing to write, refuses it, or does nothing. Asked before anything is
+  /// asked of the diver at Save (issue #4527), so no question is put for a
+  /// save that will not happen.
+  bool get saveWouldWrite {
+    final session = _session;
+    if (session == null || isBusy || !session.isDirty) return false;
+    if (_invalidFields.isNotEmpty) return false;
+    return (invalidCards?.call(session) ?? const []).isEmpty;
+  }
+
   /// The last failed save. Cleared by the next save and by [lock].
   Object? get saveError => _saveError;
 

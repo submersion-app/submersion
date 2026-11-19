@@ -264,17 +264,6 @@ mixin RecordEditHost<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
   /// tap, the Save key pressed twice) does nothing.
   bool _askingBeforeSave = false;
 
-  /// Whether a save now would write [controller]'s sitting: the refusals
-  /// [RecordEditController.save] makes before writing, asked first.
-  bool _saveWouldWrite(RecordEditController<T> controller) {
-    final session = controller.session;
-    return session != null &&
-        !controller.isBusy &&
-        session.isDirty &&
-        controller.invalidCardIds.isEmpty &&
-        !hostEditCards.any((card) => card.isValid?.call(session) == false);
-  }
-
   /// Saves the sitting, or creates the record, and says why when nothing
   /// was saved.
   Future<void> saveAndReport() async {
@@ -283,7 +272,7 @@ mixin RecordEditHost<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
     final controller = editController;
-    if (_saveWouldWrite(controller)) {
+    if (controller.saveWouldWrite) {
       _askingBeforeSave = true;
       try {
         if (!await beforeSave() || !mounted) return;
