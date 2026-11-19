@@ -94,6 +94,12 @@ abstract final class QualityThresholds {
   static const int hypoxicSustainSeconds = 120;
   static const double modToleranceMeters = 1.0;
 
+  // impossible_gas_mix (issue #4714); what is impossible is GasMix.isPossible.
+  /// The least oxygen a mix divided by 100 may hold to be offered as what
+  /// was meant: the gas calculators' hypoxic trimix floor. Less is no
+  /// breathing gas, so dividing does not explain the stored value.
+  static const double rescaledMinO2Percent = 5.0;
+
   // tank_assignment
   static const double wrongTankInactiveDropFraction = 0.7;
   static const double wrongTankMinTotalDropBar = 20.0;

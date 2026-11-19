@@ -130,7 +130,7 @@ class SpeciesPackController extends Notifier<SpeciesPackState> {
     }
     final engineName = engine.engineName!;
     final store = ref.read(speciesPackStoreProvider);
-    final installed = await store.installed();
+    var installed = await store.installed();
     SpeciesPackManifest? published;
     try {
       published = await ref.read(speciesPackManifestClientProvider).fetch();
@@ -143,6 +143,20 @@ class SpeciesPackController extends Notifier<SpeciesPackState> {
       }
     }
     _published = published;
+
+    // A manifest republished for the installed pack, with only its naming
+    // levels, their precision or its credits changed, is taken in place:
+    // the files are the same, so nothing is downloaded (issue #4721).
+    if (installed != null &&
+        published != null &&
+        installed.manifest.adoptableFrom(published)) {
+      try {
+        installed = await store.adoptManifest(installed, published);
+        ref.invalidate(installedSpeciesPackProvider);
+      } on FileSystemException catch (e) {
+        _log.warning('Could not take the republished model manifest', error: e);
+      }
+    }
 
     if (installed != null) {
       final update =

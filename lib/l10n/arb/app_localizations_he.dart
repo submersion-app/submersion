@@ -11004,6 +11004,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_tank_label_he => 'He';
 
   @override
+  String get diveLog_tank_error_impossibleMix =>
+      'O2 ו-He חייבים להיות בין 0 ל-100 וסכומם עד 100';
+
+  @override
   String get diveLog_tank_label_material => 'חומר';
 
   @override
@@ -20175,6 +20179,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_siteAttachment_detailsTitle => 'פרטי הקובץ המצורף';
 
   @override
+  String get media_attachmentDetails_editing => 'עריכת קובץ מצורף';
+
+  @override
+  String get media_attachmentDetails_open => 'פתח';
+
+  @override
   String get media_siteAttachment_editDetails => 'עריכת פרטים';
 
   @override
@@ -20275,6 +20285,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get media_documentViewer_title => 'מסמך';
+
+  @override
+  String get media_documentViewer_editing => 'עריכת מסמך';
 
   @override
   String get media_documentViewer_unavailable => 'מסמך זה אינו זמין במכשיר זה';
@@ -21566,6 +21579,13 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get media_viewer_videoGoneWhileEditing =>
       'הסרטון הוסר. השינויים שלך לא נשמרו.';
+
+  @override
+  String get media_viewer_documentGoneWhileEditing =>
+      'המסמך הוסר. השינויים שלך לא נשמרו.';
+
+  @override
+  String get media_viewer_documentRemoved => 'המסמך הוסר.';
 
   @override
   String get media_viewer_movedWhileEditing =>
@@ -28607,6 +28627,38 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_speciesId_sightingStraightAway => 'מיד';
+
+  @override
+  String get settings_speciesId_levelTitle =>
+      'עד כמה האפליקציה צריכה להיות בטוחה כדי לתת שם לדג';
+
+  @override
+  String get settings_speciesId_levelSurer => 'בטוח יותר';
+
+  @override
+  String get settings_speciesId_levelBalanced => 'מאוזן';
+
+  @override
+  String get settings_speciesId_levelEager => 'נדיב';
+
+  @override
+  String settings_speciesId_levelSurerAccuracy(int percent) {
+    return 'פחות שמות. כ-$percent% נכונים';
+  }
+
+  @override
+  String get settings_speciesId_levelSurerUnmeasured =>
+      'פחות שמות, לרוב נכונים';
+
+  @override
+  String settings_speciesId_levelBalancedAccuracy(int percent) {
+    return 'יותר שמות. כ-$percent% נכונים';
+  }
+
+  @override
+  String settings_speciesId_levelEagerAccuracy(int percent) {
+    return 'הכי הרבה שמות. כ-$percent% נכונים';
+  }
 
   @override
   String get settings_speciesId_kept => 'הצעות שנשמרו במכשיר הזה';
@@ -43896,6 +43948,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dataQuality_detector_gas_mod => 'אי-התאמה בין גז ל-MOD';
 
   @override
+  String get dataQuality_detector_impossible_gas_mix => 'תערובת גז בלתי אפשרית';
+
+  @override
   String get dataQuality_detector_tank_assignment => 'בלון שגוי';
 
   @override
@@ -44087,6 +44142,25 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String dataQuality_msg_hypoxic(String gas) {
     return 'תערובת היפוקסית ($gas) מוצגת כבשימוש בפני השטח';
+  }
+
+  @override
+  String dataQuality_msg_impossibleGasMix(
+    int tankNumber,
+    String o2,
+    String he,
+  ) {
+    return 'בלון $tankNumber רשום עם $o2% O2 ו-$he% He, ערכים שאף גז לא יכול להכיל. כדאי לתקן את התערובת בצלילה.';
+  }
+
+  @override
+  String dataQuality_msg_impossibleGasMixScaled(
+    int tankNumber,
+    String o2,
+    String he,
+    String gas,
+  ) {
+    return 'בלון $tankNumber רשום עם $o2% O2 ו-$he% He, ערכים שאף גז לא יכול להכיל. סביר להניח שייבוא ישן שמר את $gas גבוה פי 100.';
   }
 
   @override
@@ -44371,6 +44445,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_convertTemp => 'המרת הטמפרטורה';
+
+  @override
+  String dataQuality_repairLabel_rescaleGasMix(String gas) {
+    return 'תיקון ל-$gas';
+  }
 
   @override
   String get dataQuality_repairLabel_recompute => 'חישוב מחדש מהפרופיל';

@@ -11260,6 +11260,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_tank_label_he => 'He';
 
   @override
+  String get diveLog_tank_error_impossibleMix =>
+      'O2 y He deben estar entre 0 y 100 y sumar 100 o menos';
+
+  @override
   String get diveLog_tank_label_material => 'Material';
 
   @override
@@ -20621,6 +20625,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get media_siteAttachment_detailsTitle => 'Detalles del adjunto';
 
   @override
+  String get media_attachmentDetails_editing => 'Editando adjunto';
+
+  @override
+  String get media_attachmentDetails_open => 'Abrir';
+
+  @override
   String get media_siteAttachment_editDetails => 'Editar detalles';
 
   @override
@@ -20721,6 +20731,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get media_documentViewer_title => 'Documento';
+
+  @override
+  String get media_documentViewer_editing => 'Editando documento';
 
   @override
   String get media_documentViewer_unavailable =>
@@ -22041,6 +22054,13 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get media_viewer_videoGoneWhileEditing =>
       'Este vídeo se eliminó. Tus cambios no se guardaron.';
+
+  @override
+  String get media_viewer_documentGoneWhileEditing =>
+      'Este documento se eliminó. Tus cambios no se guardaron.';
+
+  @override
+  String get media_viewer_documentRemoved => 'Este documento se eliminó.';
 
   @override
   String get media_viewer_movedWhileEditing =>
@@ -29351,6 +29371,38 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_speciesId_sightingStraightAway => 'De inmediato';
+
+  @override
+  String get settings_speciesId_levelTitle =>
+      'Qué tan segura debe estar la app para nombrar un pez';
+
+  @override
+  String get settings_speciesId_levelSurer => 'Más seguro';
+
+  @override
+  String get settings_speciesId_levelBalanced => 'Equilibrado';
+
+  @override
+  String get settings_speciesId_levelEager => 'Generoso';
+
+  @override
+  String settings_speciesId_levelSurerAccuracy(int percent) {
+    return 'Menos nombres. Aprox. $percent % correctos';
+  }
+
+  @override
+  String get settings_speciesId_levelSurerUnmeasured =>
+      'Menos nombres, aciertan más a menudo';
+
+  @override
+  String settings_speciesId_levelBalancedAccuracy(int percent) {
+    return 'Más nombres. Aprox. $percent % correctos';
+  }
+
+  @override
+  String settings_speciesId_levelEagerAccuracy(int percent) {
+    return 'La mayoría de los nombres. Aprox. $percent % correctos';
+  }
 
   @override
   String get settings_speciesId_kept =>
@@ -45019,6 +45071,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get dataQuality_detector_gas_mod => 'Incoherencia de gas/MOD';
 
   @override
+  String get dataQuality_detector_impossible_gas_mix =>
+      'Mezcla de gas imposible';
+
+  @override
   String get dataQuality_detector_tank_assignment => 'Tanque incorrecto';
 
   @override
@@ -45211,6 +45267,25 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String dataQuality_msg_hypoxic(String gas) {
     return 'Mezcla hipóxica ($gas) mostrada en uso en la superficie';
+  }
+
+  @override
+  String dataQuality_msg_impossibleGasMix(
+    int tankNumber,
+    String o2,
+    String he,
+  ) {
+    return 'El tanque $tankNumber figura con $o2% de O2 y $he% de He, algo que ningún gas puede tener. Conviene corregir la mezcla en la inmersión.';
+  }
+
+  @override
+  String dataQuality_msg_impossibleGasMixScaled(
+    int tankNumber,
+    String o2,
+    String he,
+    String gas,
+  ) {
+    return 'El tanque $tankNumber figura con $o2% de O2 y $he% de He, algo que ningún gas puede tener. Lo más probable es que una importación anterior haya guardado $gas 100 veces más alto.';
   }
 
   @override
@@ -45498,6 +45573,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_convertTemp => 'Convertir temperatura';
+
+  @override
+  String dataQuality_repairLabel_rescaleGasMix(String gas) {
+    return 'Corregir a $gas';
+  }
 
   @override
   String get dataQuality_repairLabel_recompute =>

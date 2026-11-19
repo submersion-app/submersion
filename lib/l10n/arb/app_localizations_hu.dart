@@ -11231,6 +11231,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_tank_label_he => 'He';
 
   @override
+  String get diveLog_tank_error_impossibleMix =>
+      'Az O2 és a He értéke 0 és 100 közé essen, összegük legfeljebb 100 lehet';
+
+  @override
   String get diveLog_tank_label_material => 'Anyag';
 
   @override
@@ -20563,6 +20567,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_siteAttachment_detailsTitle => 'Melléklet adatai';
 
   @override
+  String get media_attachmentDetails_editing => 'Melléklet szerkesztése';
+
+  @override
+  String get media_attachmentDetails_open => 'Megnyitás';
+
+  @override
   String get media_siteAttachment_editDetails => 'Adatok szerkesztése';
 
   @override
@@ -20663,6 +20673,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get media_documentViewer_title => 'Dokumentum';
+
+  @override
+  String get media_documentViewer_editing => 'Dokumentum szerkesztése';
 
   @override
   String get media_documentViewer_unavailable =>
@@ -21979,6 +21992,14 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get media_viewer_videoGoneWhileEditing =>
       'Ezt a videót eltávolították. A módosításaid nem lettek mentve.';
+
+  @override
+  String get media_viewer_documentGoneWhileEditing =>
+      'Ezt a dokumentumot eltávolították. A módosításaid nem lettek mentve.';
+
+  @override
+  String get media_viewer_documentRemoved =>
+      'Ezt a dokumentumot eltávolították.';
 
   @override
   String get media_viewer_movedWhileEditing =>
@@ -29204,6 +29225,38 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_speciesId_sightingStraightAway => 'Azonnal';
+
+  @override
+  String get settings_speciesId_levelTitle =>
+      'Mennyire legyen biztos az alkalmazás, mielőtt megnevez egy halat';
+
+  @override
+  String get settings_speciesId_levelSurer => 'Biztosabb';
+
+  @override
+  String get settings_speciesId_levelBalanced => 'Kiegyensúlyozott';
+
+  @override
+  String get settings_speciesId_levelEager => 'Bátrabb';
+
+  @override
+  String settings_speciesId_levelSurerAccuracy(int percent) {
+    return 'Kevesebb név. Kb. $percent%-ban helyes';
+  }
+
+  @override
+  String get settings_speciesId_levelSurerUnmeasured =>
+      'Kevesebb név, legtöbbször helyes';
+
+  @override
+  String settings_speciesId_levelBalancedAccuracy(int percent) {
+    return 'Több név. Kb. $percent%-ban helyes';
+  }
+
+  @override
+  String settings_speciesId_levelEagerAccuracy(int percent) {
+    return 'A legtöbb név. Kb. $percent%-ban helyes';
+  }
 
   @override
   String get settings_speciesId_kept => 'Ezen az eszközön tárolt javaslatok';
@@ -44744,6 +44797,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get dataQuality_detector_gas_mod => 'Gáz/MOD-ellentmondás';
 
   @override
+  String get dataQuality_detector_impossible_gas_mix => 'Lehetetlen gázkeverék';
+
+  @override
   String get dataQuality_detector_tank_assignment => 'Rossz palack';
 
   @override
@@ -44934,6 +44990,25 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String dataQuality_msg_hypoxic(String gas) {
     return 'Hipoxikus keverék ($gas) használatban a felszínen';
+  }
+
+  @override
+  String dataQuality_msg_impossibleGasMix(
+    int tankNumber,
+    String o2,
+    String he,
+  ) {
+    return 'A(z) $tankNumber. palack keveréke $o2% O2 és $he% He, ami egyetlen gáz sem lehet. Érdemes javítani a keveréket a merülésnél.';
+  }
+
+  @override
+  String dataQuality_msg_impossibleGasMixScaled(
+    int tankNumber,
+    String o2,
+    String he,
+    String gas,
+  ) {
+    return 'A(z) $tankNumber. palack keveréke $o2% O2 és $he% He, ami egyetlen gáz sem lehet. Egy korábbi importálás valószínűleg 100-szor nagyobb értékkel mentette a(z) $gas keveréket.';
   }
 
   @override
@@ -45222,6 +45297,11 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_convertTemp => 'Hőmérséklet átváltása';
+
+  @override
+  String dataQuality_repairLabel_rescaleGasMix(String gas) {
+    return 'Javítás erre: $gas';
+  }
 
   @override
   String get dataQuality_repairLabel_recompute => 'Újraszámítás a profilból';

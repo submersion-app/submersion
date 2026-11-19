@@ -77,3 +77,34 @@ RunItemOutcome runOutcomeOf(Object e) => switch (e) {
     RunItemOutcome.notForeground,
   _ => RunItemOutcome.failed,
 };
+
+/// One request in the queue: the viewer's, or a Find species run's.
+class _Job {
+  _Job(
+    this.item,
+    this.location, [
+    Completer<void>? done,
+    this.fromRun = false,
+    this.resolveImage,
+    this.resolveVideo,
+  ]) : done = done ?? Completer<void>();
+
+  final MediaItem item;
+  final GeoPoint? location;
+  final Completer<void> done;
+
+  /// Asked for by a Find species run (issue #4727), with the run's own
+  /// resolvers in place of the viewer's.
+  final bool fromRun;
+  final Future<IdentificationImage?> Function(MediaItem)? resolveImage;
+  final Future<VideoFileReader?> Function(MediaItem)? resolveVideo;
+
+  /// What became of it, for a run's summary.
+  var outcome = RunItemOutcome.done;
+
+  /// A video the diver left: its scan stops after the chunk in progress.
+  var cancelled = false;
+
+  _Job withLocation(GeoPoint? location) =>
+      _Job(item, location, done, fromRun, resolveImage, resolveVideo);
+}

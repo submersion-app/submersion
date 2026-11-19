@@ -6462,6 +6462,10 @@
   "diveLog_tank_surfaceBreathing_helper": "Minutes on this cylinder after the computer stopped logging, such as oxygen on the boat",
   "diveLog_tank_surfaceBreathing_unit": "min",
   "diveLog_tank_label_he": "He",
+  "diveLog_tank_error_impossibleMix": "O2 and He must each be 0 to 100 and total 100 or less",
+  "@diveLog_tank_error_impossibleMix": {
+    "description": "Error under the tank editor's O2 and He fields when the two describe no gas, such as a typed 1000."
+  },
   "diveLog_tank_label_material": "Material",
   "diveLog_tank_label_mnd": "MND",
   "diveLog_tank_label_n2": "N2",
@@ -12513,6 +12517,14 @@
   "media_siteAttachment_categorySiteMap": "Site map",
   "media_siteAttachment_categoryUnderwater": "Underwater",
   "media_siteAttachment_detailsTitle": "Attachment details",
+  "media_attachmentDetails_editing": "Editing attachment",
+  "@media_attachmentDetails_editing": {
+    "description": "Title of a site attachment's details page bar while its details are being edited (the attachment is unlocked); like media_viewer_editingPhoto."
+  },
+  "media_attachmentDetails_open": "Open",
+  "@media_attachmentDetails_open": {
+    "description": "Button on a site attachment's details page (a document with no in-app viewer, such as a Word file) that opens the file in another app on a desktop computer."
+  },
   "media_siteAttachment_editDetails": "Edit details",
   "media_siteAttachment_groupHeading": "{category} ({count})",
   "@media_siteAttachment_groupHeading": {"description": "Site media group heading", "placeholders": {"category": {"type": "String"}, "count": {"type": "int"}}},
@@ -12550,6 +12562,10 @@
   },
   "media_siteMediaSection_unlinkSelectedSuccess": "Unlinked {count} items",
   "media_documentViewer_title": "Document",
+  "media_documentViewer_editing": "Editing document",
+  "@media_documentViewer_editing": {
+    "description": "Title of the PDF viewer's bar while a site attachment's details are being edited (the document is unlocked); like media_viewer_editingPhoto."
+  },
   "media_documentViewer_unavailable": "This document is not available on this device",
   "media_documentViewer_availableOnOriginDevice": "It is available on the device it was added from, or via a configured media store.",
   "media_documentViewer_attached": "Attached {count} documents",
@@ -13803,6 +13819,14 @@
   "media_viewer_videoGoneWhileEditing": "This video was removed. Your changes were not saved.",
   "@media_viewer_videoGoneWhileEditing": {
     "description": "Shown when the video being edited in the viewer is deleted elsewhere (another device, a sync) during the editing sitting; the sitting ends without saving."
+  },
+  "media_viewer_documentGoneWhileEditing": "This document was removed. Your changes were not saved.",
+  "@media_viewer_documentGoneWhileEditing": {
+    "description": "Shown when the site attachment document whose details are being edited (PDF viewer or attachment details page) is deleted elsewhere during the editing sitting; the sitting ends without saving."
+  },
+  "media_viewer_documentRemoved": "This document was removed.",
+  "@media_viewer_documentRemoved": {
+    "description": "Shown on the page below when a site attachment document's own page (PDF viewer or attachment details page) closes because the document was deleted elsewhere while it was open and locked."
   },
   "media_viewer_movedWhileEditing": "Moved to another dive since you unlocked it. Cancel, then unlock it again.",
   "@media_viewer_movedWhileEditing": {
@@ -17205,6 +17229,22 @@
   "settings_speciesId_sightingTiming": "Log sightings for these tags",
   "settings_speciesId_sightingOnConfirm": "When I confirm the tag",
   "settings_speciesId_sightingStraightAway": "Straight away",
+  "settings_speciesId_levelTitle": "Name a fish when the app is",
+  "@settings_speciesId_levelTitle": {"description": "Heading over the naming levels: how sure marine life identification must be before it names a fish. Each level's name completes the sentence."},
+  "settings_speciesId_levelSurer": "Surer",
+  "@settings_speciesId_levelSurer": {"description": "Naming level: the model's own measured bars, the fewest names and the most often right"},
+  "settings_speciesId_levelBalanced": "Balanced",
+  "@settings_speciesId_levelBalanced": {"description": "Naming level between Surer and Eager"},
+  "settings_speciesId_levelEager": "Eager",
+  "@settings_speciesId_levelEager": {"description": "Naming level: the most names, the least often right"},
+  "settings_speciesId_levelSurerAccuracy": "Fewest names. About {percent}% right",
+  "@settings_speciesId_levelSurerAccuracy": {"description": "Under Surer: how often its names were right when measured", "placeholders": {"percent": {"type": "int"}}},
+  "settings_speciesId_levelSurerUnmeasured": "Fewest names, most often right",
+  "@settings_speciesId_levelSurerUnmeasured": {"description": "Under Surer when the model carries no measured accuracy for it"},
+  "settings_speciesId_levelBalancedAccuracy": "More names. About {percent}% right",
+  "@settings_speciesId_levelBalancedAccuracy": {"description": "Under Balanced: how often its names were right when measured", "placeholders": {"percent": {"type": "int"}}},
+  "settings_speciesId_levelEagerAccuracy": "Most names. About {percent}% right",
+  "@settings_speciesId_levelEagerAccuracy": {"description": "Under Eager: how often its names were right when measured", "placeholders": {"percent": {"type": "int"}}},
   "settings_speciesId_kept": "Suggestions kept on this device",
   "settings_speciesId_keptValue": "{count} ({size})",
   "@settings_speciesId_keptValue": {"placeholders": {"count": {"type": "int"}, "size": {"type": "String"}}},
@@ -27396,6 +27436,7 @@
   "dataQuality_detector_temp_anomaly": "Temperature anomaly",
   "dataQuality_detector_pressure_anomaly": "Pressure anomaly",
   "dataQuality_detector_gas_mod": "Gas/MOD inconsistency",
+  "dataQuality_detector_impossible_gas_mix": "Impossible gas mix",
   "dataQuality_detector_tank_assignment": "Wrong cylinder",
   "dataQuality_detector_missing_gas_switch": "Missing gas switch",
   "dataQuality_detector_source_conflict": "Conflicting sources",
@@ -27668,6 +27709,39 @@
   "dataQuality_msg_hypoxic": "Hypoxic mix ({gas}) shown in use at the surface",
   "@dataQuality_msg_hypoxic": {
     "placeholders": {
+      "gas": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_impossibleGasMix": "Cylinder {tankNumber} is recorded as {o2}% O2 and {he}% He, which no gas can be. Correct the mix on the dive.",
+  "@dataQuality_msg_impossibleGasMix": {
+    "description": "A cylinder whose stored mix no gas can have, such as a share over 100%; {o2} and {he} are the stored percentages.",
+    "placeholders": {
+      "tankNumber": {
+        "type": "int"
+      },
+      "o2": {
+        "type": "String"
+      },
+      "he": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_impossibleGasMixScaled": "Cylinder {tankNumber} is recorded as {o2}% O2 and {he}% He, which no gas can be. An older import most likely stored {gas} 100 times too high.",
+  "@dataQuality_msg_impossibleGasMixScaled": {
+    "description": "A cylinder mix an older import stored 100 times too high; {o2} and {he} are the stored percentages and {gas} the mix divided by 100, such as EAN32.",
+    "placeholders": {
+      "tankNumber": {
+        "type": "int"
+      },
+      "o2": {
+        "type": "String"
+      },
+      "he": {
+        "type": "String"
+      },
       "gas": {
         "type": "String"
       }
@@ -28009,6 +28083,15 @@
   "dataQuality_repairLabel_fillGaps": "Fill gaps",
   "dataQuality_repairLabel_smoothTemp": "Smooth temperature",
   "dataQuality_repairLabel_convertTemp": "Convert temperature",
+  "dataQuality_repairLabel_rescaleGasMix": "Correct to {gas}",
+  "@dataQuality_repairLabel_rescaleGasMix": {
+    "description": "Repair button that divides a cylinder mix stored 100 times too high; {gas} is the corrected mix, such as EAN32.",
+    "placeholders": {
+      "gas": {
+        "type": "String"
+      }
+    }
+  },
   "dataQuality_repairLabel_recompute": "Recalculate from profile",
   "dataQuality_repairLabel_swapPressures": "Swap start/end pressure",
   "dataQuality_repairLabel_setFromSeries": "Use sensor values",

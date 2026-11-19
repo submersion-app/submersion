@@ -11401,6 +11401,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_tank_label_he => 'He';
 
   @override
+  String get diveLog_tank_error_impossibleMix =>
+      'يجب أن يكون كل من O2 وHe بين 0 و100 وألا يتجاوز مجموعهما 100';
+
+  @override
   String get diveLog_tank_label_material => 'المادة';
 
   @override
@@ -20921,6 +20925,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_siteAttachment_detailsTitle => 'تفاصيل المرفق';
 
   @override
+  String get media_attachmentDetails_editing => 'تعديل المرفق';
+
+  @override
+  String get media_attachmentDetails_open => 'فتح';
+
+  @override
   String get media_siteAttachment_editDetails => 'تعديل التفاصيل';
 
   @override
@@ -21029,6 +21039,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get media_documentViewer_title => 'مستند';
+
+  @override
+  String get media_documentViewer_editing => 'تعديل المستند';
 
   @override
   String get media_documentViewer_unavailable =>
@@ -22397,6 +22410,13 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get media_viewer_videoGoneWhileEditing =>
       'تمت إزالة هذا الفيديو. لم يتم حفظ تغييراتك.';
+
+  @override
+  String get media_viewer_documentGoneWhileEditing =>
+      'تمت إزالة هذا المستند. لم يتم حفظ تغييراتك.';
+
+  @override
+  String get media_viewer_documentRemoved => 'تمت إزالة هذا المستند.';
 
   @override
   String get media_viewer_movedWhileEditing =>
@@ -29623,6 +29643,38 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_speciesId_sightingStraightAway => 'فورًا';
+
+  @override
+  String get settings_speciesId_levelTitle =>
+      'مدى تأكّد التطبيق قبل تسمية سمكة';
+
+  @override
+  String get settings_speciesId_levelSurer => 'أكثر تأكّدًا';
+
+  @override
+  String get settings_speciesId_levelBalanced => 'متوازن';
+
+  @override
+  String get settings_speciesId_levelEager => 'أكثر جرأة';
+
+  @override
+  String settings_speciesId_levelSurerAccuracy(int percent) {
+    return 'أسماء أقل. نحو $percent% صحيحة';
+  }
+
+  @override
+  String get settings_speciesId_levelSurerUnmeasured =>
+      'أسماء أقل، صحيحة في أغلب الأحيان';
+
+  @override
+  String settings_speciesId_levelBalancedAccuracy(int percent) {
+    return 'أسماء أكثر. نحو $percent% صحيحة';
+  }
+
+  @override
+  String settings_speciesId_levelEagerAccuracy(int percent) {
+    return 'أكبر عدد من الأسماء. نحو $percent% صحيحة';
+  }
 
   @override
   String get settings_speciesId_kept => 'الاقتراحات المحفوظة على هذا الجهاز';
@@ -45577,6 +45629,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dataQuality_detector_gas_mod => 'تعارض بين الغاز وMOD';
 
   @override
+  String get dataQuality_detector_impossible_gas_mix => 'خليط غاز مستحيل';
+
+  @override
   String get dataQuality_detector_tank_assignment => 'أسطوانة خاطئة';
 
   @override
@@ -45780,6 +45835,25 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String dataQuality_msg_hypoxic(String gas) {
     return 'يظهر خليط ناقص الأكسجين ($gas) قيد الاستخدام عند السطح';
+  }
+
+  @override
+  String dataQuality_msg_impossibleGasMix(
+    int tankNumber,
+    String o2,
+    String he,
+  ) {
+    return 'الأسطوانة $tankNumber مسجلة بنسبة $o2% O2 و$he% He، وهذا ما لا يمكن لأي غاز أن يكونه. يُرجى تصحيح الخليط في الغطسة.';
+  }
+
+  @override
+  String dataQuality_msg_impossibleGasMixScaled(
+    int tankNumber,
+    String o2,
+    String he,
+    String gas,
+  ) {
+    return 'الأسطوانة $tankNumber مسجلة بنسبة $o2% O2 و$he% He، وهذا ما لا يمكن لأي غاز أن يكونه. على الأرجح خزّن استيراد سابق $gas بقيمة أعلى بمئة مرة.';
   }
 
   @override
@@ -46092,6 +46166,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_convertTemp => 'تحويل درجة الحرارة';
+
+  @override
+  String dataQuality_repairLabel_rescaleGasMix(String gas) {
+    return 'التصحيح إلى $gas';
+  }
 
   @override
   String get dataQuality_repairLabel_recompute => 'إعادة الحساب من المخطط';

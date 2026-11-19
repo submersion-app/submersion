@@ -15,6 +15,7 @@ import 'package:submersion/features/media/presentation/providers/video_color_tra
 import 'package:submersion/features/media/presentation/providers/video_playback_providers.dart';
 import 'package:submersion/features/media/domain/value_objects/sighting_timing.dart';
 import 'package:submersion/features/settings/presentation/providers/media_badge_settings_provider.dart';
+import 'package:submersion/features/settings/presentation/providers/serial_preference_writes.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/species_id/data/engines/channel_vision_engine.dart';
 import 'package:submersion/features/species_id/data/pack/species_pack_store.dart';
@@ -28,8 +29,10 @@ import 'package:submersion/features/species_id/data/services/memory_readout.dart
 import 'package:submersion/features/species_id/data/services/suggestion_acceptor.dart';
 import 'package:submersion/features/species_id/data/services/video_identification_scan.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/domain/entities/naming_level.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
 import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
+import 'package:submersion/features/species_id/domain/services/naming_levels.dart';
 import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 
 /// Marine life identification (issue #4668).
@@ -96,7 +99,8 @@ final autoApplyProvider = StateNotifierProvider<AutoApplyNotifier, bool>(
 
 /// When a tag the app applied logs its sighting (issue #4727). Per device,
 /// [SightingTiming.onConfirm] by default.
-class SightingTimingNotifier extends StateNotifier<SightingTiming> {
+class SightingTimingNotifier extends StateNotifier<SightingTiming>
+    with SerialPreferenceWrites {
   SightingTimingNotifier(SharedPreferences prefs)
     : _prefs = prefs,
       super(
@@ -110,20 +114,14 @@ class SightingTimingNotifier extends StateNotifier<SightingTiming> {
 
   final SharedPreferences? _prefs;
 
-  /// The latest write, which the next one waits on, so the stored choice is
-  /// the last one shown.
-  Future<void> _lastWrite = Future<void>.value();
-
   Future<void> setTiming(SightingTiming timing) {
     if (state == timing) return Future<void>.value();
     state = timing;
     final prefs = _prefs;
     if (prefs == null) return Future<void>.value();
-    final write = _lastWrite.then(
-      (_) => prefs.setString(SettingsKeys.speciesIdSightingTiming, timing.name),
+    return writeInTurn(
+      () => prefs.setString(SettingsKeys.speciesIdSightingTiming, timing.name),
     );
-    _lastWrite = write.then<void>((_) {}, onError: (Object _) {});
-    return write;
   }
 }
 
@@ -133,6 +131,92 @@ final sightingTimingProvider =
     StateNotifierProvider<SightingTimingNotifier, SightingTiming>(
       (ref) => SightingTimingNotifier.unstored(SightingTiming.onConfirm),
     );
+
+/// How sure the app must be before it names a fish (issue #4721). Per
+/// device, Surer by default; an id this version does not know reads as
+/// Surer and is kept until another level is chosen.
+class NamingLevelNotifier extends StateNotifier<NamingLevel>
+    with SerialPreferenceWrites {
+  NamingLevelNotifier(SharedPreferences prefs)
+    : _prefs = prefs,
+      super(
+        NamingLevel.fromId(
+              prefs.getString(SettingsKeys.marineLifeNamingLevel),
+            ) ??
+            NamingLevel.surer,
+      );
+
+  /// Fixed state with nothing behind it, as
+  /// [DeviceBadgeToggleNotifier.unstored].
+  NamingLevelNotifier.unstored(super.level) : _prefs = null;
+
+  final SharedPreferences? _prefs;
+
+  Future<void> setLevel(NamingLevel level) {
+    if (state == level) return Future<void>.value();
+    state = level;
+    final prefs = _prefs;
+    if (prefs == null) return Future<void>.value();
+    return writeInTurn(
+      () => prefs.setString(SettingsKeys.marineLifeNamingLevel, level.id),
+    );
+  }
+}
+
+/// Surer, with no storage behind it; `rootProviderOverrides` gives it the
+/// stored preference.
+final namingLevelNotifierProvider =
+    StateNotifierProvider<NamingLevelNotifier, NamingLevel>(
+      (ref) => NamingLevelNotifier.unstored(NamingLevel.surer),
+    );
+
+/// The level the installed pack names at for the diver's choice, or null
+/// with no pack (issue #4721). Never waits: while the pack is being read,
+/// or when it cannot be, there is no level and suggestions show as they
+/// were named; readers rebuild once it is known. Null for Surer, which
+/// reads as the stored flags on any pack: the pack is not watched then, so
+/// its reads and reloads rebuild no suggestions or tracks.
+final levelInForceProvider = Provider<LevelInForce?>((ref) {
+  final chosen = ref.watch(namingLevelNotifierProvider);
+  if (chosen == NamingLevel.surer) return null;
+  final pack = ref.watch(installedSpeciesPackProvider).value;
+  return levelInForce(pack?.manifest, chosen);
+});
+
+/// The level in force for a write that must not miss it (tag
+/// reconciliation, issue #4721): none at once for Surer, which reads as the
+/// stored flags; otherwise the pack's level once it is read, waiting
+/// up to [wait] for a read still under way, a first one or one again after
+/// an install, an update or an adopted manifest. None at once when the pack
+/// cannot be read (never the one a failed read replaced), and none after
+/// [wait]: a failed read retries in the background, and the video scan
+/// awaits this, so it never waits on that. The read is held while it
+/// waits, as an unheld one invalidated mid-load never completes (issue
+/// #3807).
+Future<LevelInForce?> awaitLevelInForce(
+  ProviderContainer container, {
+  Duration wait = const Duration(seconds: 5),
+}) async {
+  final chosen = container.read(namingLevelNotifierProvider);
+  // Surer is in force on any pack and reads as the stored flags, so there
+  // is nothing to wait for.
+  if (chosen == NamingLevel.surer) return null;
+  final current = container.read(installedSpeciesPackProvider);
+  // A failed read may still hold the pack it was to replace, which may be
+  // another version or carry other levels: it is not taken.
+  if (current.hasError) return null;
+  // A pack being read again still holds the one it replaces, for the same
+  // reason: that read is waited for too.
+  if (!current.isLoading) return levelInForce(current.value?.manifest, chosen);
+  try {
+    final pack = await container
+        .awaitFuture(installedSpeciesPackProvider.future)
+        .timeout(wait);
+    return levelInForce(pack?.manifest, chosen);
+  } on Object {
+    return null;
+  }
+}
 
 final mediaIdentificationRepositoryProvider =
     Provider<MediaIdentificationRepository>(
@@ -196,6 +280,10 @@ final mediaIdentificationServiceProvider = Provider<MediaIdentificationService>(
           .read(autoApplierProvider)
           .applyInScope(item.id, isVideo: item.mediaType == MediaType.video)
           .then((_) {}),
+      // Waits for the installed pack, unlike [levelInForceProvider]: a
+      // reconcile before it has been read would otherwise decide by the
+      // stored flags, not the level the diver chose.
+      namingLevel: () => awaitLevelInForce(ref.container),
     );
     ref.onDispose(service.dispose);
     return service;
@@ -264,8 +352,9 @@ final mediaSuggestionsProvider = FutureProvider.autoDispose
       final repository = ref.watch(mediaIdentificationRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchChanges());
       ref.invalidateSelfWhen(repository.watchTagChanges());
+      final level = ref.watch(levelInForceProvider);
       return groupSuggestions(
-        await repository.forMedia(mediaId),
+        await identificationsAtLevel(repository, mediaId, level),
         await repository.taggedSpecies(mediaId),
       );
     });
@@ -288,8 +377,13 @@ final videoTracksProvider = FutureProvider.autoDispose
       if (!marineLifeIdEnabled) return const [];
       final repository = ref.watch(mediaIdentificationRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchChanges());
+      final level = ref.watch(levelInForceProvider);
       return [
-        for (final i in await repository.forMedia(mediaId))
+        for (final i in await identificationsAtLevel(
+          repository,
+          mediaId,
+          level,
+        ))
           if (i.isTrack) i,
       ];
     });

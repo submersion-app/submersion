@@ -63,6 +63,7 @@ class _Store extends SpeciesPackStore {
   InstalledPack? current;
   var installs = 0;
   var removals = 0;
+  var adopted = 0;
 
   /// Whether the pack is being changed with analysis held, read at each
   /// install and removal.
@@ -82,6 +83,20 @@ class _Store extends SpeciesPackStore {
       directory: '/pack',
       detectorPaths: const ['/pack/d'],
       classifierPath: '/pack/c',
+    );
+  }
+
+  @override
+  Future<InstalledPack> adoptManifest(
+    InstalledPack pack,
+    SpeciesPackManifest manifest,
+  ) async {
+    adopted++;
+    return current = InstalledPack(
+      manifest: manifest,
+      directory: pack.directory,
+      detectorPaths: pack.detectorPaths,
+      classifierPath: pack.classifierPath,
     );
   }
 
@@ -361,5 +376,66 @@ void main() {
     client.failure = const PackDownloadException(PackDownloadFailure.network);
     await controller().refresh();
     expect(state(), isA<PackInstalled>());
+  });
+
+  group('a republished manifest of the installed version (issue #4721)', () {
+    // Levels are read only from measured bars.
+    SpeciesPackManifest measured() => SpeciesPackManifest.parse(
+      manifestJson(
+        (m) => (m['naming']! as Map<String, Object?>)['provisional'] = false,
+      ),
+    );
+    SpeciesPackManifest withLevels({double suggestScore = 0.50}) =>
+        SpeciesPackManifest.parse(
+          manifestJson((m) {
+            final naming = m['naming']! as Map<String, Object?>;
+            naming['provisional'] = false;
+            naming['suggestScore'] = suggestScore;
+            naming['levels'] = [
+              {
+                'id': 'balanced',
+                'target': 0.75,
+                'suggestScore': 0.4,
+                'suggestScoreNoLocation': 0.6,
+                'precision': 0.8,
+              },
+            ];
+            m['credits'] = [
+              {'name': 'New', 'licence': 'MIT', 'text': ''},
+            ];
+          }),
+        );
+
+    test('is taken in place, with nothing downloaded', () async {
+      client.manifest = measured();
+      await controller().refresh();
+      await controller().download();
+      await container.read(installedSpeciesPackProvider.future);
+      final downloads = downloader.calls;
+      client.manifest = withLevels();
+
+      await controller().refresh();
+
+      expect(store.adopted, 1);
+      expect(downloader.calls, downloads);
+      final installed = state() as PackInstalled;
+      expect(installed.updateBytes, isNull);
+      expect(installed.credits.single.name, 'New');
+      final pack = await container.read(installedSpeciesPackProvider.future);
+      expect(pack!.manifest.naming.levels, hasLength(1));
+    });
+
+    test('that changes a bar is not taken', () async {
+      client.manifest = measured();
+      await controller().refresh();
+      await controller().download();
+      client.manifest = withLevels(suggestScore: 0.55);
+
+      await controller().refresh();
+
+      expect(store.adopted, 0);
+      expect(store.current!.manifest.naming.levels, isEmpty);
+      expect((state() as PackInstalled).updateBytes, isNull);
+    });
   });
 }

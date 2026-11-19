@@ -112,6 +112,10 @@ class SettingsKeys {
   /// `SightingTiming` name (issue #4727).
   static const String speciesIdSightingTiming = 'species_id_sighting_timing';
 
+  /// Device-local: how sure the app must be before it names a fish, a
+  /// naming level's id (issue #4721).
+  static const String marineLifeNamingLevel = 'species_id_naming_level';
+
   /// Device-local: whether the fullscreen viewers fill the window or take
   /// the desktop window into OS fullscreen.
   static const String viewerFullscreenMode = 'viewer_fullscreen_mode';

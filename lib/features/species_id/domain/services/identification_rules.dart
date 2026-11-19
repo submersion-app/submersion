@@ -177,21 +177,23 @@ SpeciesSuggestion _suggestionFor(List<MediaIdentification> group) {
 /// the model is removed.
 ///
 /// - confident: suggestable, and its top score is at or above the
-///   confident bar.
+///   confident bar for its case: `confidentScore` when its candidates were
+///   limited to a place, `confidentScoreNoLocation` otherwise (issue
+///   #4725). The scorer measures the two bars on those two cases apart, so
+///   a crop with no usable place is never held to a bar measured only on
+///   crops with one.
 /// - specific: its open score is at or above the floor, so it looks like
 ///   something in particular rather than a hand or open water.
-///
-/// The measured accuracy piece adds a separate confident bar for a crop
-/// with no usable place (`confidentScoreNoLocation`); until it does,
-/// `confidentScore` serves both.
 ({bool confident, bool specific}) namingFlags(
   NamingResult result,
   NamingConfig config,
 ) {
   final top = result.candidates.isEmpty ? null : result.candidates.first;
+  final bar = result.locationLimited
+      ? config.confidentScore
+      : config.confidentScoreNoLocation;
   return (
-    confident:
-        result.suggestable && top != null && top.score >= config.confidentScore,
+    confident: result.suggestable && top != null && top.score >= bar,
     specific: result.openScore >= config.minOpenScore,
   );
 }

@@ -1,6 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/settings/presentation/providers/serial_preference_writes.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Whether media grids show a provenance badge on every thumbnail.
@@ -32,7 +33,8 @@ class MediaProvenanceBadgesNotifier extends DeviceBadgeToggleNotifier {
 /// SharedPreferences under [_key] and on by default ([defaultValue]).
 /// Shared by the source badges and the tag markers so the two cannot drift
 /// apart.
-class DeviceBadgeToggleNotifier extends StateNotifier<bool> {
+class DeviceBadgeToggleNotifier extends StateNotifier<bool>
+    with SerialPreferenceWrites {
   DeviceBadgeToggleNotifier(
     SharedPreferences prefs,
     String key, {
@@ -54,25 +56,12 @@ class DeviceBadgeToggleNotifier extends StateNotifier<bool> {
   final SharedPreferences? _prefs;
   final String _key;
 
-  /// The latest preference write, which the next one waits on.
-  ///
-  /// The switch does not await a change, so two quick toggles can have
-  /// writes out together, and where a write replaces the whole preferences
-  /// file (Windows, Linux) two in flight can land in either order. One at a
-  /// time keeps the stored choice the last one shown, as
-  /// `MediaCacheSettingsNotifier` does for its sizes.
-  Future<void> _lastWrite = Future<void>.value();
-
   Future<void> setEnabled(bool value) {
     if (state == value) return Future<void>.value();
     state = value;
     final prefs = _prefs;
     if (prefs == null) return Future<void>.value();
-    final write = _lastWrite.then((_) => prefs.setBool(_key, value));
-    // A failed write must not hold up the ones after it; its caller still
-    // sees the error.
-    _lastWrite = write.then<void>((_) {}, onError: (Object _) {});
-    return write;
+    return writeInTurn(() => prefs.setBool(_key, value));
   }
 }
 

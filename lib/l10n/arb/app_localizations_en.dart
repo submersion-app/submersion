@@ -11077,6 +11077,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_tank_label_he => 'He';
 
   @override
+  String get diveLog_tank_error_impossibleMix =>
+      'O2 and He must each be 0 to 100 and total 100 or less';
+
+  @override
   String get diveLog_tank_label_material => 'Material';
 
   @override
@@ -20318,6 +20322,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_siteAttachment_detailsTitle => 'Attachment details';
 
   @override
+  String get media_attachmentDetails_editing => 'Editing attachment';
+
+  @override
+  String get media_attachmentDetails_open => 'Open';
+
+  @override
   String get media_siteAttachment_editDetails => 'Edit details';
 
   @override
@@ -20418,6 +20428,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get media_documentViewer_title => 'Document';
+
+  @override
+  String get media_documentViewer_editing => 'Editing document';
 
   @override
   String get media_documentViewer_unavailable =>
@@ -21720,6 +21733,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get media_viewer_videoGoneWhileEditing =>
       'This video was removed. Your changes were not saved.';
+
+  @override
+  String get media_viewer_documentGoneWhileEditing =>
+      'This document was removed. Your changes were not saved.';
+
+  @override
+  String get media_viewer_documentRemoved => 'This document was removed.';
 
   @override
   String get media_viewer_movedWhileEditing =>
@@ -28845,6 +28865,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_speciesId_sightingStraightAway => 'Straight away';
+
+  @override
+  String get settings_speciesId_levelTitle => 'Name a fish when the app is';
+
+  @override
+  String get settings_speciesId_levelSurer => 'Surer';
+
+  @override
+  String get settings_speciesId_levelBalanced => 'Balanced';
+
+  @override
+  String get settings_speciesId_levelEager => 'Eager';
+
+  @override
+  String settings_speciesId_levelSurerAccuracy(int percent) {
+    return 'Fewest names. About $percent% right';
+  }
+
+  @override
+  String get settings_speciesId_levelSurerUnmeasured =>
+      'Fewest names, most often right';
+
+  @override
+  String settings_speciesId_levelBalancedAccuracy(int percent) {
+    return 'More names. About $percent% right';
+  }
+
+  @override
+  String settings_speciesId_levelEagerAccuracy(int percent) {
+    return 'Most names. About $percent% right';
+  }
 
   @override
   String get settings_speciesId_kept => 'Suggestions kept on this device';
@@ -44242,6 +44293,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dataQuality_detector_gas_mod => 'Gas/MOD inconsistency';
 
   @override
+  String get dataQuality_detector_impossible_gas_mix => 'Impossible gas mix';
+
+  @override
   String get dataQuality_detector_tank_assignment => 'Wrong cylinder';
 
   @override
@@ -44432,6 +44486,25 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String dataQuality_msg_hypoxic(String gas) {
     return 'Hypoxic mix ($gas) shown in use at the surface';
+  }
+
+  @override
+  String dataQuality_msg_impossibleGasMix(
+    int tankNumber,
+    String o2,
+    String he,
+  ) {
+    return 'Cylinder $tankNumber is recorded as $o2% O2 and $he% He, which no gas can be. Correct the mix on the dive.';
+  }
+
+  @override
+  String dataQuality_msg_impossibleGasMixScaled(
+    int tankNumber,
+    String o2,
+    String he,
+    String gas,
+  ) {
+    return 'Cylinder $tankNumber is recorded as $o2% O2 and $he% He, which no gas can be. An older import most likely stored $gas 100 times too high.';
   }
 
   @override
@@ -44718,6 +44791,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_convertTemp => 'Convert temperature';
+
+  @override
+  String dataQuality_repairLabel_rescaleGasMix(String gas) {
+    return 'Correct to $gas';
+  }
 
   @override
   String get dataQuality_repairLabel_recompute => 'Recalculate from profile';

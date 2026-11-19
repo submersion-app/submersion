@@ -4,6 +4,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/data_quality/data/services/quality_neighbor_sql.dart';
 import 'package:submersion/features/data_quality/domain/quality_thresholds.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_gas_mix_repository.dart';
 
 /// Cheap SQL passes that narrow the full library to per-detector candidate
 /// sets before any context is built. A dive absent from a detector's set is
@@ -51,6 +52,11 @@ class QualityPrefilters {
       '(SELECT 1 FROM dive_tanks t WHERE t.dive_id = d.id '
       "AND LTRIM(TRIM(t.transmitter_serial), '0') <> '')",
     );
+    // A cylinder whose mix no gas can have, as GasMix.isPossible reads it
+    // (#4714), by the launch repair's own query so the two cannot drift.
+    final impossibleMixes = await TankGasMixRepository(
+      database: _db,
+    ).divesWithImpossibleMixes();
     final multiSource = await ids(
       'SELECT d.id AS id FROM dives d WHERE '
       '(SELECT COUNT(*) FROM dive_data_sources s WHERE s.dive_id = d.id) >= 2',
@@ -105,6 +111,7 @@ class QualityPrefilters {
       'temp_anomaly': {...withProfiles, ...scalarTempOutliers},
       'pressure_anomaly': {...withPressures, ...withTanks},
       'gas_mod': withTanks.intersection(withProfiles),
+      'impossible_gas_mix': impossibleMixes,
       'tank_assignment': withPressures,
       'missing_gas_switch': withPressures.intersection(withProfiles),
       'unknown_transmitter': withTransmitterSerials,

@@ -444,6 +444,15 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
         await withUndo(
           () => executor.recomputeMetrics(diveId: diveId, findingId: f.id),
         );
+      case RescaleGasMixRepair(:final diveId, :final tankId, :final mix):
+        await withUndo(
+          () => executor.rescaleGasMix(
+            diveId: diveId,
+            tankId: tankId,
+            mix: mix,
+            findingId: f.id,
+          ),
+        );
       case SwapTankRecordPressuresRepair(
         :final diveId,
         :final tankId,

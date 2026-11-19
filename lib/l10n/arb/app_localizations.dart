@@ -17848,6 +17848,12 @@ abstract class AppLocalizations {
   /// **'He'**
   String get diveLog_tank_label_he;
 
+  /// Error under the tank editor's O2 and He fields when the two describe no gas, such as a typed 1000.
+  ///
+  /// In en, this message translates to:
+  /// **'O2 and He must each be 0 to 100 and total 100 or less'**
+  String get diveLog_tank_error_impossibleMix;
+
   /// No description provided for @diveLog_tank_label_material.
   ///
   /// In en, this message translates to:
@@ -32760,6 +32766,18 @@ abstract class AppLocalizations {
   /// **'Attachment details'**
   String get media_siteAttachment_detailsTitle;
 
+  /// Title of a site attachment's details page bar while its details are being edited (the attachment is unlocked); like media_viewer_editingPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Editing attachment'**
+  String get media_attachmentDetails_editing;
+
+  /// Button on a site attachment's details page (a document with no in-app viewer, such as a Word file) that opens the file in another app on a desktop computer.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get media_attachmentDetails_open;
+
   /// No description provided for @media_siteAttachment_editDetails.
   ///
   /// In en, this message translates to:
@@ -32897,6 +32915,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Document'**
   String get media_documentViewer_title;
+
+  /// Title of the PDF viewer's bar while a site attachment's details are being edited (the document is unlocked); like media_viewer_editingPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Editing document'**
+  String get media_documentViewer_editing;
 
   /// No description provided for @media_documentViewer_unavailable.
   ///
@@ -34824,6 +34848,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This video was removed. Your changes were not saved.'**
   String get media_viewer_videoGoneWhileEditing;
+
+  /// Shown when the site attachment document whose details are being edited (PDF viewer or attachment details page) is deleted elsewhere during the editing sitting; the sitting ends without saving.
+  ///
+  /// In en, this message translates to:
+  /// **'This document was removed. Your changes were not saved.'**
+  String get media_viewer_documentGoneWhileEditing;
+
+  /// Shown on the page below when a site attachment document's own page (PDF viewer or attachment details page) closes because the document was deleted elsewhere while it was open and locked.
+  ///
+  /// In en, this message translates to:
+  /// **'This document was removed.'**
+  String get media_viewer_documentRemoved;
 
   /// Shown when Save is refused because the photo or video being edited was moved to another dive (on another device, or by a sync) after the diver unlocked it. Cancel ends the sitting; unlocking again starts one on the new dive.
   ///
@@ -46671,6 +46707,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Straight away'**
   String get settings_speciesId_sightingStraightAway;
+
+  /// Heading over the naming levels: how sure marine life identification must be before it names a fish. Each level's name completes the sentence.
+  ///
+  /// In en, this message translates to:
+  /// **'Name a fish when the app is'**
+  String get settings_speciesId_levelTitle;
+
+  /// Naming level: the model's own measured bars, the fewest names and the most often right
+  ///
+  /// In en, this message translates to:
+  /// **'Surer'**
+  String get settings_speciesId_levelSurer;
+
+  /// Naming level between Surer and Eager
+  ///
+  /// In en, this message translates to:
+  /// **'Balanced'**
+  String get settings_speciesId_levelBalanced;
+
+  /// Naming level: the most names, the least often right
+  ///
+  /// In en, this message translates to:
+  /// **'Eager'**
+  String get settings_speciesId_levelEager;
+
+  /// Under Surer: how often its names were right when measured
+  ///
+  /// In en, this message translates to:
+  /// **'Fewest names. About {percent}% right'**
+  String settings_speciesId_levelSurerAccuracy(int percent);
+
+  /// Under Surer when the model carries no measured accuracy for it
+  ///
+  /// In en, this message translates to:
+  /// **'Fewest names, most often right'**
+  String get settings_speciesId_levelSurerUnmeasured;
+
+  /// Under Balanced: how often its names were right when measured
+  ///
+  /// In en, this message translates to:
+  /// **'More names. About {percent}% right'**
+  String settings_speciesId_levelBalancedAccuracy(int percent);
+
+  /// Under Eager: how often its names were right when measured
+  ///
+  /// In en, this message translates to:
+  /// **'Most names. About {percent}% right'**
+  String settings_speciesId_levelEagerAccuracy(int percent);
 
   /// No description provided for @settings_speciesId_kept.
   ///
@@ -70586,6 +70670,12 @@ abstract class AppLocalizations {
   /// **'Gas/MOD inconsistency'**
   String get dataQuality_detector_gas_mod;
 
+  /// No description provided for @dataQuality_detector_impossible_gas_mix.
+  ///
+  /// In en, this message translates to:
+  /// **'Impossible gas mix'**
+  String get dataQuality_detector_impossible_gas_mix;
+
   /// No description provided for @dataQuality_detector_tank_assignment.
   ///
   /// In en, this message translates to:
@@ -70789,6 +70879,23 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Hypoxic mix ({gas}) shown in use at the surface'**
   String dataQuality_msg_hypoxic(String gas);
+
+  /// A cylinder whose stored mix no gas can have, such as a share over 100%; {o2} and {he} are the stored percentages.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinder {tankNumber} is recorded as {o2}% O2 and {he}% He, which no gas can be. Correct the mix on the dive.'**
+  String dataQuality_msg_impossibleGasMix(int tankNumber, String o2, String he);
+
+  /// A cylinder mix an older import stored 100 times too high; {o2} and {he} are the stored percentages and {gas} the mix divided by 100, such as EAN32.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinder {tankNumber} is recorded as {o2}% O2 and {he}% He, which no gas can be. An older import most likely stored {gas} 100 times too high.'**
+  String dataQuality_msg_impossibleGasMixScaled(
+    int tankNumber,
+    String o2,
+    String he,
+    String gas,
+  );
 
   /// No description provided for @dataQuality_msg_switchMod.
   ///
@@ -71115,6 +71222,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Convert temperature'**
   String get dataQuality_repairLabel_convertTemp;
+
+  /// Repair button that divides a cylinder mix stored 100 times too high; {gas} is the corrected mix, such as EAN32.
+  ///
+  /// In en, this message translates to:
+  /// **'Correct to {gas}'**
+  String dataQuality_repairLabel_rescaleGasMix(String gas);
 
   /// No description provided for @dataQuality_repairLabel_recompute.
   ///

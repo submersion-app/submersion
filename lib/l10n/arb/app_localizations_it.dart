@@ -11260,6 +11260,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_tank_label_he => 'He';
 
   @override
+  String get diveLog_tank_error_impossibleMix =>
+      'O2 ed He devono essere tra 0 e 100 e sommare al massimo 100';
+
+  @override
   String get diveLog_tank_label_material => 'Materiale';
 
   @override
@@ -20633,6 +20637,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get media_siteAttachment_detailsTitle => 'Dettagli allegato';
 
   @override
+  String get media_attachmentDetails_editing => 'Modifica dell\'allegato';
+
+  @override
+  String get media_attachmentDetails_open => 'Apri';
+
+  @override
   String get media_siteAttachment_editDetails => 'Modifica dettagli';
 
   @override
@@ -20733,6 +20743,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get media_documentViewer_title => 'Documento';
+
+  @override
+  String get media_documentViewer_editing => 'Modifica del documento';
 
   @override
   String get media_documentViewer_unavailable =>
@@ -22054,6 +22067,14 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get media_viewer_videoGoneWhileEditing =>
       'Questo video è stato rimosso. Le modifiche non sono state salvate.';
+
+  @override
+  String get media_viewer_documentGoneWhileEditing =>
+      'Questo documento è stato rimosso. Le modifiche non sono state salvate.';
+
+  @override
+  String get media_viewer_documentRemoved =>
+      'Questo documento è stato rimosso.';
 
   @override
   String get media_viewer_movedWhileEditing =>
@@ -29351,6 +29372,38 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_speciesId_sightingStraightAway => 'Subito';
+
+  @override
+  String get settings_speciesId_levelTitle =>
+      'Quanto deve essere sicura l\'app per dare un nome a un pesce';
+
+  @override
+  String get settings_speciesId_levelSurer => 'Più sicuro';
+
+  @override
+  String get settings_speciesId_levelBalanced => 'Bilanciato';
+
+  @override
+  String get settings_speciesId_levelEager => 'Generoso';
+
+  @override
+  String settings_speciesId_levelSurerAccuracy(int percent) {
+    return 'Meno nomi. Circa $percent% corretti';
+  }
+
+  @override
+  String get settings_speciesId_levelSurerUnmeasured =>
+      'Meno nomi, più spesso corretti';
+
+  @override
+  String settings_speciesId_levelBalancedAccuracy(int percent) {
+    return 'Più nomi. Circa $percent% corretti';
+  }
+
+  @override
+  String settings_speciesId_levelEagerAccuracy(int percent) {
+    return 'Il maggior numero di nomi. Circa $percent% corretti';
+  }
 
   @override
   String get settings_speciesId_kept =>
@@ -44995,6 +45048,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get dataQuality_detector_gas_mod => 'Incongruenza gas/MOD';
 
   @override
+  String get dataQuality_detector_impossible_gas_mix =>
+      'Miscela di gas impossibile';
+
+  @override
   String get dataQuality_detector_tank_assignment => 'Bombola errata';
 
   @override
@@ -45186,6 +45243,25 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String dataQuality_msg_hypoxic(String gas) {
     return 'Miscela ipossica ($gas) indicata in uso in superficie';
+  }
+
+  @override
+  String dataQuality_msg_impossibleGasMix(
+    int tankNumber,
+    String o2,
+    String he,
+  ) {
+    return 'La bombola $tankNumber risulta con $o2% di O2 e $he% di He, valori che nessun gas può avere. Miscela da correggere nell\'immersione.';
+  }
+
+  @override
+  String dataQuality_msg_impossibleGasMixScaled(
+    int tankNumber,
+    String o2,
+    String he,
+    String gas,
+  ) {
+    return 'La bombola $tankNumber risulta con $o2% di O2 e $he% di He, valori che nessun gas può avere. Probabilmente un\'importazione precedente ha salvato $gas 100 volte più alto.';
   }
 
   @override
@@ -45474,6 +45550,11 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_convertTemp => 'Converti la temperatura';
+
+  @override
+  String dataQuality_repairLabel_rescaleGasMix(String gas) {
+    return 'Correggi in $gas';
+  }
 
   @override
   String get dataQuality_repairLabel_recompute => 'Ricalcola dal profilo';

@@ -24,8 +24,11 @@ class GasModDetector extends QualityDetector {
   /// 4: the ppO2 and hypoxic findings record `hePercent`, so their message
   /// names a trimix as such (issue #4209). Findings stored by version 3 lack
   /// it; the bump raises the rescan banner that rewrites them.
+  /// 5: the time an impossible mix is breathed is not judged (issue #4714);
+  /// the bump retires the ppO2 findings a mix stored 100 times too high
+  /// raised.
   @override
-  int get version => 4;
+  int get version => 5;
   @override
   QualityCategory get category => QualityCategory.gas;
 
@@ -97,8 +100,18 @@ class GasModDetector extends QualityDetector {
       peak = 0;
     }
 
+    // A mix no gas can have, such as 3200% O2 stored by an older import,
+    // reads as ppO2 far past any limit at every depth (issue #4714). The
+    // time it is breathed, here and in the hypoxic pass, and a switch onto
+    // it are not judged: the impossible gas mix finding names it, and the
+    // rescan its repair queues judges the corrected mix. Every other gas on
+    // the dive still is.
     for (final p in ctx.primarySamples) {
       final mix = mixAt(p.t);
+      if (!mix.isPossible) {
+        closePpo2Run();
+        continue;
+      }
       final ppo2 = mix.o2 / 100.0 * environment.pressureAtDepth(p.depth);
       if (ppo2 > ppO2WarnBar) {
         runStart ??= p.t;
@@ -140,6 +153,10 @@ class GasModDetector extends QualityDetector {
 
     for (final p in ctx.primarySamples) {
       final mix = mixAt(p.t);
+      if (!mix.isPossible) {
+        closeHypoRun();
+        continue;
+      }
       if (mix.o2 / 100.0 < QualityThresholds.hypoxicFo2 &&
           p.depth < QualityThresholds.hypoxicMaxDepthMeters) {
         hypoStart ??= p.t;
@@ -155,7 +172,7 @@ class GasModDetector extends QualityDetector {
     for (final sw in switches) {
       final tank = tankById(sw.tankId);
       final d = sw.depth;
-      if (tank == null || d == null) continue;
+      if (tank == null || d == null || !tank.gasMix.isPossible) continue;
       final fo2 = tank.gasMix.o2 / 100.0;
       if (fo2 <= 0) continue;
       final mod = maxOperatingDepthMeters(

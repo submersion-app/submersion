@@ -11184,6 +11184,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_tank_label_he => 'He';
 
   @override
+  String get diveLog_tank_error_impossibleMix =>
+      'O2 en He moeten elk tussen 0 en 100 liggen en samen hoogstens 100 zijn';
+
+  @override
   String get diveLog_tank_label_material => 'Materiaal';
 
   @override
@@ -20501,6 +20505,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_siteAttachment_detailsTitle => 'Bijlagedetails';
 
   @override
+  String get media_attachmentDetails_editing => 'Bijlage bewerken';
+
+  @override
+  String get media_attachmentDetails_open => 'Openen';
+
+  @override
   String get media_siteAttachment_editDetails => 'Details bewerken';
 
   @override
@@ -20601,6 +20611,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get media_documentViewer_title => 'Document';
+
+  @override
+  String get media_documentViewer_editing => 'Document bewerken';
 
   @override
   String get media_documentViewer_unavailable =>
@@ -21918,6 +21931,13 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get media_viewer_videoGoneWhileEditing =>
       'Deze video is verwijderd. Je wijzigingen zijn niet opgeslagen.';
+
+  @override
+  String get media_viewer_documentGoneWhileEditing =>
+      'Dit document is verwijderd. Je wijzigingen zijn niet opgeslagen.';
+
+  @override
+  String get media_viewer_documentRemoved => 'Dit document is verwijderd.';
 
   @override
   String get media_viewer_movedWhileEditing =>
@@ -29151,6 +29171,38 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_speciesId_sightingStraightAway => 'Meteen';
+
+  @override
+  String get settings_speciesId_levelTitle =>
+      'Hoe zeker de app moet zijn om een vis te benoemen';
+
+  @override
+  String get settings_speciesId_levelSurer => 'Zekerder';
+
+  @override
+  String get settings_speciesId_levelBalanced => 'Gebalanceerd';
+
+  @override
+  String get settings_speciesId_levelEager => 'Ruim';
+
+  @override
+  String settings_speciesId_levelSurerAccuracy(int percent) {
+    return 'Minste namen. Ongeveer $percent% juist';
+  }
+
+  @override
+  String get settings_speciesId_levelSurerUnmeasured =>
+      'Minste namen, het vaakst juist';
+
+  @override
+  String settings_speciesId_levelBalancedAccuracy(int percent) {
+    return 'Meer namen. Ongeveer $percent% juist';
+  }
+
+  @override
+  String settings_speciesId_levelEagerAccuracy(int percent) {
+    return 'Meeste namen. Ongeveer $percent% juist';
+  }
 
   @override
   String get settings_speciesId_kept => 'Suggesties op dit apparaat';
@@ -44694,6 +44746,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get dataQuality_detector_gas_mod => 'Gas/MOD-inconsistentie';
 
   @override
+  String get dataQuality_detector_impossible_gas_mix => 'Onmogelijk gasmengsel';
+
+  @override
   String get dataQuality_detector_tank_assignment => 'Verkeerde fles';
 
   @override
@@ -44883,6 +44938,25 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String dataQuality_msg_hypoxic(String gas) {
     return 'Hypoxisch mengsel ($gas) weergegeven als in gebruik aan de oppervlakte';
+  }
+
+  @override
+  String dataQuality_msg_impossibleGasMix(
+    int tankNumber,
+    String o2,
+    String he,
+  ) {
+    return 'Fles $tankNumber staat geregistreerd met $o2% O2 en $he% He, wat geen gas kan zijn. Corrigeer het mengsel bij de duik.';
+  }
+
+  @override
+  String dataQuality_msg_impossibleGasMixScaled(
+    int tankNumber,
+    String o2,
+    String he,
+    String gas,
+  ) {
+    return 'Fles $tankNumber staat geregistreerd met $o2% O2 en $he% He, wat geen gas kan zijn. Een eerdere import heeft $gas waarschijnlijk 100 keer te hoog opgeslagen.';
   }
 
   @override
@@ -45171,6 +45245,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_convertTemp => 'Temperatuur omrekenen';
+
+  @override
+  String dataQuality_repairLabel_rescaleGasMix(String gas) {
+    return 'Corrigeren naar $gas';
+  }
 
   @override
   String get dataQuality_repairLabel_recompute =>

@@ -33,6 +33,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import bars as bar_search  # noqa: E402
 import boxes as box_math  # noqa: E402
+import levels as level_search  # noqa: E402
 import manifest as pack_manifest  # noqa: E402
 import megalodon  # noqa: E402
 import metrics  # noqa: E402
@@ -368,7 +369,7 @@ def _junk_records(name, results_by_photo, junk_rows, namer, work, fish_cells):
     return records
 
 
-def evaluate(name, results_by_photo, animals, junk_rows, namer, work, min_side, tune):
+def evaluate(name, results_by_photo, animals, junk_rows, namer, work, min_side, tune, published=None):
     """Every number for one detector (or merged pair) and fitting.
     `results_by_photo` maps a photo path to its detections, each tagged
     with the detector (`source`) that found it."""
@@ -408,6 +409,14 @@ def evaluate(name, results_by_photo, animals, junk_rows, namer, work, min_side, 
     gated, switched_off = bar_search.held_out_gate(
         chosen, [c["with"] for c in held_nat], [c["without"] for c in held_nat], min_side=min_side
     )
+
+    # The naming levels (issue #4721), surest first, each chosen on the tune
+    # half and kept only if it stands held out. They are measured under the
+    # bars the pack ships with when it has measured ones (`published`), so
+    # a run whose own bars come out slightly different never states an
+    # accuracy the app does not name at; otherwise under this run's.
+    surer = published or gated
+    levels, surer_precision = level_search.measure(surer, tune_nat, tune_junk, held_nat, held_junk, min_side=min_side)
 
     def naming_rates(records, confident=False):
         out = {}
@@ -474,6 +483,11 @@ def evaluate(name, results_by_photo, animals, junk_rows, namer, work, min_side, 
         "bars chosen on tune": chosen.__dict__,
         "bars after held-out gate": gated.__dict__,
         "switched off": switched_off,
+        "levels measured under": {"bars": surer.__dict__, "published": published is not None},
+        # Held out, at the bars the levels sit under; None when they name
+        # nothing held out: no precision to show.
+        "surer precision": surer_precision,
+        "levels": levels,
         "held-out natural": summary(held_nat),
         "held-out natural, detection": {
             "photos": len(held_natural_rows),
@@ -558,9 +572,27 @@ def _same_boxes(a, b, tolerance=1e-4):
     )
 
 
-def _measured_entry(bars, manifest, detector_ids, crop_fit):
-    """A NAMING_MEASURED entry for manifest.py from a run's gated bars."""
+def _measured_entry(evaluation, manifest, detector_ids, crop_fit):
+    """A NAMING_MEASURED entry for manifest.py from a run's gated bars,
+    with the precision measured at them and the naming levels under them
+    (issue #4721)."""
     naming = manifest["naming"]
+    # The bars the levels and precision were measured under: the published
+    # pack's when it has measured ones, so the entry is always consistent.
+    bars = evaluation["levels measured under"]["bars"]
+    levels = [
+        {
+            "id": level["id"],
+            "target": level["target"],
+            "suggestScore": round(level["bars"]["suggest"], 2),
+            "suggestScoreNoLocation": round(level["bars"]["suggest_no_location"], 2),
+            "precision": round(level["held-out"]["precision"]["value"], level_search.PRECISION_PLACES),
+        }
+        for level in evaluation["levels"]
+    ]
+    # A share in (0, 1] or none, as the app and level_problems take it: a
+    # Surer that named only wrong crops has none to show.
+    surer_precision = level_search.manifest_precision(evaluation["surer precision"])
     return {
         "naming": {
             "provisional": False,
@@ -572,6 +604,8 @@ def _measured_entry(bars, manifest, detector_ids, crop_fit):
             "confidentScoreNoLocation": round(bars["confident_no_location"], 2),
             "minAllowedCandidates": naming["minAllowedCandidates"],
             "topK": naming["topK"],
+            **({"precision": surer_precision} if surer_precision is not None else {}),
+            "levels": levels,
         },
         "detectorIds": list(detector_ids),
         "classifierId": manifest["classifier"]["id"],
@@ -664,7 +698,24 @@ def main(argv=None):
         for name, by_photo in runs.items():
             key = f"{name} {fit}"
             print(f"scoring {key}", flush=True)
-            kept[key] = evaluate(name, by_photo, animals, junk_rows, namer, args.work, min_side, tune)
+            # The bars this exact pack ships with, when it has measured ones.
+            published = bar_search.published_bars(
+                pack_manifest.naming_for(
+                    ids[name],
+                    runner.manifest["classifier"]["id"],
+                    fit,
+                    pack_manifest.contents_of(runner.manifest["files"]),
+                )
+            )
+            kept[key] = evaluate(
+                name, by_photo, animals, junk_rows, namer, args.work, min_side, tune, published=published
+            )
+            if published is not None and kept[key]["bars after held-out gate"] != published.__dict__:
+                print(
+                    f"warning: {key} bars came out {kept[key]['bars after held-out gate']}, not the published "
+                    f"{published.__dict__}; its levels are measured under the published bars",
+                    flush=True,
+                )
 
     for name in (cfd, mega, BOTH):
         results.setdefault("fitting comparison", {})[name] = _paired(
@@ -697,7 +748,7 @@ def main(argv=None):
     # fitting, to name this exact pack.
     results["measured"] = [
         _measured_entry(
-            kept[f"{name} {results['fitting chosen'][name]}"]["bars after held-out gate"],
+            kept[f"{name} {results['fitting chosen'][name]}"],
             runner.manifest,
             ids[name],
             results["fitting chosen"][name],

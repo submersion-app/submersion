@@ -47,6 +47,26 @@ class NamingResult extends Equatable {
   ];
 }
 
+/// Whether a crop may be suggested: big enough, looking like something in
+/// particular, and its best name ([topScore], null with none) at or above
+/// the suggest bar for whether its candidates were limited by place.
+/// Shared by [SpeciesNamer.name] and the naming levels (issue #4721), so a
+/// level names a stored crop exactly as the pack would have.
+bool clearsSuggestBars({
+  required int boxShorterSide,
+  required double openScore,
+  required double? topScore,
+  required bool locationLimited,
+  required int minCropSide,
+  required double minOpenScore,
+  required double suggestScore,
+  required double suggestScoreNoLocation,
+}) =>
+    boxShorterSide >= minCropSide &&
+    openScore >= minOpenScore &&
+    topScore != null &&
+    topScore >= (locationLimited ? suggestScore : suggestScoreNoLocation);
+
 /// Names a crop from its embedding, against the model pack's candidates.
 ///
 /// Pure arithmetic, so every engine shares it. Limiting the candidates to a
@@ -162,12 +182,16 @@ class SpeciesNamer {
         ),
     ];
 
-    final bar = limited ? _config.suggestScore : _config.suggestScoreNoLocation;
-    final suggestable =
-        boxShorterSide >= _config.minCropSide &&
-        openScore >= _config.minOpenScore &&
-        top.isNotEmpty &&
-        top.first.score >= bar;
+    final suggestable = clearsSuggestBars(
+      boxShorterSide: boxShorterSide,
+      openScore: openScore,
+      topScore: top.isEmpty ? null : top.first.score,
+      locationLimited: limited,
+      minCropSide: _config.minCropSide,
+      minOpenScore: _config.minOpenScore,
+      suggestScore: _config.suggestScore,
+      suggestScoreNoLocation: _config.suggestScoreNoLocation,
+    );
 
     return NamingResult(
       openScore: openScore,
