@@ -59,10 +59,14 @@ FIELDS = (
 )
 
 
-def _get(url, *, retries=8, as_json=True):
+def _get(url, *, retries=8, as_json=True, on_attempt=None):
+    # `on_attempt` is called before every request sent, retries included,
+    # so a caller can hold a daily request limit (fetch_training.py).
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
     for attempt in range(retries):
         wait = min(2**attempt, 60)
+        if on_attempt is not None:
+            on_attempt()
         try:
             with urllib.request.urlopen(request, timeout=120) as response:
                 data = response.read()
