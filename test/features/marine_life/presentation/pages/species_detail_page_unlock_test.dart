@@ -1,0 +1,234 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:submersion/core/constants/app_enums.dart';
+import 'package:submersion/features/marine_life/domain/entities/species.dart';
+import 'package:submersion/features/marine_life/domain/entities/species_lookup.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/l10n/arb/app_localizations_en.dart';
+import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_fade.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
+
+import 'species_detail_page_unlock_harness.dart';
+
+/// The species page edits in place behind the phase 3 switch (issue
+/// #4527): it opens locked, a sitting edits its names and description, and
+/// one Save writes it.
+void main() {
+  final l = AppLocalizationsEn();
+
+  Future<void> unlock(WidgetTester tester) async {
+    await tester.tap(find.byIcon(Icons.lock_outline));
+    await tester.pumpAndSettle();
+  }
+
+  Future<void> openCard(WidgetTester tester, String title) async {
+    await tester.tap(find.byTooltip(l.recordEdit_editCardTooltip(title)));
+    await tester.pumpAndSettle();
+  }
+
+  Future<void> save(WidgetTester tester) async {
+    await tester.tap(find.text(l.forms_save));
+    await tester.pumpAndSettle();
+  }
+
+  String headerTitle() => l.settings_conflict_ref_species;
+  String descriptionTitle() => l.marineLife_speciesDetail_descriptionTitle;
+
+  testWidgets('with the switch off there is no lock', (tester) async {
+    await pumpSpeciesPage(tester, unlockEditing: false);
+
+    expect(find.byIcon(Icons.lock_outline), findsNothing);
+    expect(find.byIcon(Icons.edit_outlined), findsOneWidget);
+  });
+
+  testWidgets('locked, no tap writes', (tester) async {
+    final harness = await pumpSpeciesPage(tester);
+
+    expect(find.byIcon(Icons.lock_outline), findsOneWidget);
+    expect(find.byType(RecordPencilIcon), findsNothing);
+    await tester.tap(find.text('Manta'));
+    await tester.tap(find.text('Big'));
+    await tester.pumpAndSettle();
+
+    expect(harness.save.calls, isEmpty);
+    expect(find.byType(RecordEditBar), findsNothing);
+  });
+
+  testWidgets('unlocking marks the header and the description, and fades the '
+      'calculated cards', (tester) async {
+    await pumpSpeciesPage(tester);
+    await unlock(tester);
+
+    expect(find.byType(RecordEditBar), findsOneWidget);
+    expect(find.text(l.recordEdit_editingTitle('Manta')), findsOneWidget);
+    expect(
+      find.byTooltip(l.recordEdit_editCardTooltip(headerTitle())),
+      findsOneWidget,
+    );
+    expect(
+      find.byTooltip(l.recordEdit_editCardTooltip(descriptionTitle())),
+      findsOneWidget,
+    );
+    expect(find.text(l.recordEdit_calculated), findsWidgets);
+    expect(find.byType(RecordCardFade<Species>), findsWidgets);
+  });
+
+  testWidgets('editing the description and saving writes one sitting', (
+    tester,
+  ) async {
+    final harness = await pumpSpeciesPage(tester);
+    await unlock(tester);
+    await openCard(tester, descriptionTitle());
+    await tester.enterText(find.byType(TextField).last, 'Huge');
+    await tester.pumpAndSettle();
+
+    await save(tester);
+
+    expect(harness.save.calls, hasLength(1));
+    expect(harness.save.calls.single.cards, {'description'});
+    expect(harness.save.calls.single.after.description, 'Huge');
+    expect(find.byType(RecordEditBar), findsNothing);
+    expect(find.text('Huge'), findsOneWidget);
+  });
+
+  testWidgets('a blank common name stops Save and says why', (tester) async {
+    final harness = await pumpSpeciesPage(tester);
+    await unlock(tester);
+    await openCard(tester, headerTitle());
+    await tester.enterText(
+      find.byKey(const ValueKey('species_header_common_name')),
+      '',
+    );
+    await tester.pumpAndSettle();
+
+    await save(tester);
+
+    expect(harness.save.calls, isEmpty);
+    expect(find.text(l.recordEdit_fixInvalid), findsOneWidget);
+    expect(find.text(l.marineLife_speciesEdit_commonNameError), findsOneWidget);
+  });
+
+  testWidgets(
+    'the lookup fills the names, taxonomy and category as changes of the '
+    'header',
+    (tester) async {
+      final harness = await pumpSpeciesPage(
+        tester,
+        lookupAnswer: const SpeciesLookupChosen(
+          SpeciesLookupResult(
+            taxonId: 1,
+            commonName: 'Reef manta',
+            scientificName: 'Mobula alfredi',
+            category: SpeciesCategory.ray,
+            taxonomyClass: 'Elasmobranchii',
+          ),
+        ),
+      );
+      await unlock(tester);
+      await openCard(tester, headerTitle());
+
+      await tester.tap(find.byKey(const ValueKey('species_lookup_online')));
+      await tester.pumpAndSettle();
+      await save(tester);
+
+      final call = harness.save.calls.single;
+      expect(call.cards, {'header'});
+      expect(call.after.commonName, 'Reef manta');
+      expect(call.after.scientificName, 'Mobula alfredi');
+      expect(call.after.taxonomyClass, 'Elasmobranchii');
+      expect(call.after.category, SpeciesCategory.ray);
+    },
+  );
+
+  testWidgets('a built-in species edits its stored English name', (
+    tester,
+  ) async {
+    final harness = await pumpSpeciesPage(
+      tester,
+      species: const Species(
+        id: 'sp_whale_shark',
+        commonName: 'Whale Shark',
+        category: SpeciesCategory.shark,
+        isBuiltIn: true,
+      ),
+      locale: const Locale('de'),
+    );
+    await unlock(tester);
+    await tester.tap(find.byType(RecordPencilIcon).first);
+    await tester.pumpAndSettle();
+    final field = find.byKey(const ValueKey('species_header_common_name'));
+    expect(tester.widget<TextField>(field).controller!.text, 'Whale Shark');
+
+    await tester.enterText(field, 'Giant shark');
+    await tester.pumpAndSettle();
+    final de = lookupAppLocalizations(const Locale('de'));
+    await tester.tap(find.text(de.forms_save));
+    await tester.pumpAndSettle();
+
+    expect(harness.save.calls.single.after.commonName, 'Giant shark');
+    expect(find.text('Giant shark'), findsOneWidget);
+  });
+
+  testWidgets('an empty description is offered in the strip', (tester) async {
+    await pumpSpeciesPage(
+      tester,
+      species: manta.copyWith(id: 'manta').withoutDescription,
+    );
+    await unlock(tester);
+
+    expect(
+      find.descendant(
+        of: find.byType(AddStrip),
+        matching: find.text(descriptionTitle()),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a rename underneath keeps the description being edited', (
+    tester,
+  ) async {
+    final harness = await pumpSpeciesPage(tester);
+    await unlock(tester);
+    await openCard(tester, descriptionTitle());
+    await tester.enterText(find.byType(TextField).last, 'Huge');
+    await tester.pumpAndSettle();
+
+    harness.stored.state = harness.stored.state!.copyWith(
+      commonName: 'Oceanic manta',
+    );
+    await tester.pumpAndSettle();
+    await save(tester);
+
+    final after = harness.save.calls.single.after;
+    expect(after.commonName, 'Oceanic manta');
+    expect(after.description, 'Huge');
+  });
+
+  testWidgets('Cancel with changes asks first', (tester) async {
+    await pumpSpeciesPage(tester);
+    await unlock(tester);
+    await openCard(tester, descriptionTitle());
+    await tester.enterText(find.byType(TextField).last, 'Huge');
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text(l.forms_cancel));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AlertDialog), findsOneWidget);
+  });
+}
+
+extension on Species {
+  /// This species with no description, which `copyWith` cannot clear.
+  Species get withoutDescription => Species(
+    id: id,
+    commonName: commonName,
+    scientificName: scientificName,
+    category: category,
+    taxonomyClass: taxonomyClass,
+  );
+}

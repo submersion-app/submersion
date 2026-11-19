@@ -57,6 +57,8 @@ void main() {
         'MarkdownNotesField(',
     'lib/features/equipment/presentation/widgets/equipment_location_edit_dialog.dart':
         'MarkdownNotesField(',
+    'lib/features/marine_life/presentation/editing/species_edit_cards.dart':
+        'MarkdownNotesField(',
     'lib/features/marine_life/presentation/pages/species_edit_page.dart':
         'MarkdownNotesField(',
     'lib/features/rules/presentation/widgets/rule_action_editor.dart':
