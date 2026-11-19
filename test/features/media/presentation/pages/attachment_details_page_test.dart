@@ -208,6 +208,35 @@ void main() {
     expect(find.text('This document was removed.'), findsNothing);
   });
 
+  // The document goes after the save wrote but before it finished: the
+  // sitting ends as a save, so the page says the document was removed as
+  // it closes, rather than closing without a word.
+  testWidgets('a document removed while a save finishes closes the page and '
+      'says so', (tester) async {
+    final release = Completer<void>();
+    await pumpPage(
+      tester,
+      pushed: true,
+      overrides: [
+        photoEditSaveServiceProvider.overrideWithValue(
+          _SlowSave(release.future),
+        ),
+      ],
+    );
+    await unlock(tester);
+    await pickCategory(tester, 'Site map');
+    await tester.tap(find.text('Save'));
+    await tester.pump();
+
+    await removeDocument(tester);
+    release.complete();
+    await settleViewer(tester, rounds: 10);
+    await settleViewer(tester, rounds: 10);
+
+    expect(find.byType(AttachmentDetailsPage), findsNothing);
+    expect(find.text('This document was removed.'), findsOneWidget);
+  });
+
   // Review Focus 1 on this page: the document goes while unlocked.
   // The page closes once its document is gone, saying so once.
   testWidgets('a document removed while unlocked ends the sitting in '

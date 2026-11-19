@@ -16,6 +16,10 @@ mixin AttachmentPageClosesWhenRemoved<W extends ConsumerStatefulWidget>
     on ConsumerState<W>, PhotoViewerEditing<W> {
   /// Whether the document has been read as no longer the site's.
   bool _removed = false;
+
+  /// Whether the sitting's end has said the document went, unsaved, so
+  /// the page closes without a second message.
+  bool _toldGone = false;
   bool _closing = false;
 
   /// Follows [mediaId]'s stored row as [siteId]'s attachment. Call from
@@ -50,13 +54,17 @@ mixin AttachmentPageClosesWhenRemoved<W extends ConsumerStatefulWidget>
   /// for it: its lock, next, closes the page, and a later read of the row
   /// says nothing more.
   @override
-  void onPhotoGone() => _removed = true;
+  void onPhotoGone() {
+    _removed = true;
+    _toldGone = true;
+  }
 
   @override
   void onPhotoLocked() {
     // Remembered rather than read again: by the lock the row is often
-    // being read once more.
-    if (_removed) _close(say: false);
+    // being read once more. A sitting that ended as a save (the document
+    // went after it wrote) said nothing of it, so the page says so.
+    if (_removed) _close(say: !_toldGone);
   }
 
   /// Ends the sitting over a document that left the site, unsaved, and
@@ -65,10 +73,13 @@ mixin AttachmentPageClosesWhenRemoved<W extends ConsumerStatefulWidget>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final controller = photoEditController;
-      // A save running now writes and then locks, which closes the page.
+      // A save running now is refused for a document that left the site
+      // (or, done before it left, ends as a save); either way its lock
+      // closes the page.
       if (!controller.isUnlocked || controller.isSaving) return;
       final messenger = ScaffoldMessenger.maybeOf(context);
       final message = context.l10n.media_viewer_documentGoneWhileEditing;
+      _toldGone = true;
       controller.lock();
       messenger?.showSnackBar(SnackBar(content: Text(message)));
     });
