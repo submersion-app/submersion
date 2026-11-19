@@ -202,36 +202,48 @@ double storedWorth(MediaIdentification row) {
 }
 
 /// Which of a track's [views] (each of its best moments that could be
-/// cropped, named on its own) names the track, and whether it may be
-/// suggested; null when no view has names.
+/// cropped, named on its own, with the time it was seen) names the track,
+/// and whether it may be suggested; null when no view has names.
 ///
 /// The view whose name is most decided, by its open score, names it; on a
 /// tie, the first, the detector's best view among those cropped. Each view
-/// is named
-/// as a photo's crop is, so its scores are on the scale the bars were
-/// measured on; an average of the views' embeddings never was, and one
-/// poor view in it pulled every score down. Taking the best of several
-/// views would also let more wrong names through, so with two or more
-/// usable views the chosen one is suggested only when another view's best
-/// name is the same species. A single usable view is judged as a photo is.
-/// A view with no names (an unusable embedding) neither names nor agrees.
-({int index, bool suggestable})? chooseNamingView(List<NamingResult> views) {
-  int? chosen;
-  for (var k = 0; k < views.length; k++) {
-    if (views[k].candidates.isEmpty) continue;
-    if (chosen == null || views[k].openScore > views[chosen].openScore) {
+/// is named as a photo's crop is, so its scores are on the scale the bars
+/// were measured on; an average of the views' embeddings never was, and
+/// one poor view in it pulled every score down. Taking the best of several
+/// views would also let more wrong names through, so the chosen one is
+/// suggested only when another view at least [momentSpacingMs] from it
+/// names the same species (issue #4747). A view nearer to it is nearly the
+/// same frame and nearly always agrees: on a short track the best moments
+/// are filled in from frames 250 ms apart ([bestMoments]). When every view
+/// is that near the detector's best one, they are one view: the detector's
+/// best names the track. A single view is judged as a photo is. A view
+/// with no names (an unusable embedding) neither names nor agrees.
+({int index, bool suggestable})? chooseNamingView(
+  List<({NamingResult naming, int ms})> views,
+) {
+  final usable = [
+    for (var k = 0; k < views.length; k++)
+      if (views[k].naming.candidates.isNotEmpty) k,
+  ];
+  if (usable.isEmpty) return null;
+  bool apart(int a, int b) =>
+      (views[a].ms - views[b].ms).abs() >= momentSpacingMs;
+  final first = usable.first;
+  if (!usable.any((k) => apart(k, first))) {
+    return (index: first, suggestable: views[first].naming.suggestable);
+  }
+  var chosen = first;
+  for (final k in usable) {
+    if (views[k].naming.openScore > views[chosen].naming.openScore) {
       chosen = k;
     }
   }
-  if (chosen == null) return null;
-  final pick = views[chosen];
-  final others = [
-    for (var k = 0; k < views.length; k++)
-      if (k != chosen && views[k].candidates.isNotEmpty) views[k],
-  ];
-  final agreed =
-      others.isEmpty ||
-      others.any((v) => _sameName(v.candidates.first, pick.candidates.first));
+  final pick = views[chosen].naming;
+  final agreed = usable.any(
+    (k) =>
+        apart(k, chosen) &&
+        _sameName(views[k].naming.candidates.first, pick.candidates.first),
+  );
   return (index: chosen, suggestable: pick.suggestable && agreed);
 }
 
