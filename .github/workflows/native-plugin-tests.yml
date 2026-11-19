@@ -180,6 +180,7 @@ jobs:
         # Ubuntu 24.04; its CMake falls back to the 4.0 name only on older
         # distros). Matches the ci.yaml build-linux dependency list.
         run: |
+          sudo python3 scripts/apt_mirror.py
           sudo apt-get update
           sudo apt-get install -y \
             clang \

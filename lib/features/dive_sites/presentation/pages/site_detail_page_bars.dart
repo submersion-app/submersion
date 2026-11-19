@@ -4,16 +4,15 @@ part of 'site_detail_page.dart';
 /// pane's header row (issue #4527, phase 2).
 extension _SiteDetailBars on _SiteDetailContentState {
   /// The full page's locked top bar. [offered] is whether the lock shows;
-  /// on a page that [hosts] editing, History sits beside the lock where the
-  /// bar has room, else first in the menu, as on a dive.
+  /// History sits beside the lock where the bar has room, else first in
+  /// the menu, as on a dive.
   PreferredSizeWidget _lockedBar(
     BuildContext context,
     DiveSite site, {
     required bool offered,
-    required bool hosts,
   }) {
     final historyInBar =
-        hosts && MediaQuery.sizeOf(context).width >= kRecordCompactBarWidth;
+        MediaQuery.sizeOf(context).width >= kRecordCompactBarWidth;
     return AppBar(
       title: Text(site.name),
       actions: [
@@ -35,37 +34,22 @@ extension _SiteDetailBars on _SiteDetailContentState {
             ),
           ),
         if (offered) _unlockControl(site),
-        // Only on the locked bar: an open sitting's bar replaces this one,
-        // so the old form, which would save over the sitting through a
-        // child route no leave check sees, is never offered over it.
-        if (_canEditSite(ref, site))
-          IconButton(
-            icon: const Icon(Icons.edit),
-            tooltip: context.l10n.diveSites_detail_editTooltip,
-            // On a page that offers the lock the old address opens this page
-            // unlocked, so Edit unlocks it in place, not over a copy.
-            onPressed: offered
-                ? () => editController.unlock(site)
-                : () => context.push('/sites/${widget.siteId}/edit'),
-          ),
         ..._libraryButtons(context, ref, site),
-        _siteMenu(context, site, historyItem: !historyInBar, hosts: hosts),
+        _siteMenu(context, site, historyItem: !historyInBar),
       ],
     );
   }
 
-  /// The full page's menu, on the locked bar and, on a page that [hosts]
-  /// editing, on the unlocked one too, as a dive's: the whole-record
-  /// actions run from it while unlocked with nothing to save. Today's page
-  /// offers Delete, Unhide and Remove only once it hosts editing.
+  /// The full page's menu, on the locked bar and on the unlocked one, as a
+  /// dive's: the whole-record actions run from it while unlocked with
+  /// nothing to save.
   Widget _siteMenu(
     BuildContext context,
     DiveSite site, {
     required bool historyItem,
-    required bool hosts,
     MenuController? controller,
   }) {
-    final ownership = hosts ? _watchOwnership(ref, site) : null;
+    final ownership = _watchOwnership(ref, site);
     return SiteDetailPropertiesMenu(
       controller: controller ?? _displayOptionsMenu,
       child: PopupMenuButton<String>(
@@ -169,32 +153,6 @@ extension _SiteDetailBars on _SiteDetailContentState {
     ];
   }
 
-  /// The old edit route for a pane that offers no lock: the list's pane in
-  /// edit mode, the dive list's for a site it shows (`&site=`).
-  void _openPaneEditMode(BuildContext context) {
-    final state = GoRouterState.of(context);
-    final currentPath = state.uri.path;
-    if (currentPath.startsWith('/dives')) {
-      // If we're on the /dives path, keep it and just add mode=edit and site parameter.
-      // The MasterDetailScaffold in DiveListPage will handle showing the site edit panel
-      // because we'll have both ?site=... and &mode=edit in the query params.
-      final params = Map<String, String>.from(state.uri.queryParameters);
-      params['mode'] = 'edit';
-      // We do NOT change 'selected' here, because 'selected' is used by DiveListPage's
-      // MasterDetailScaffold to identify the DIVE. If we change it to the siteId,
-      // the scaffold will try to find a dive with that siteId and fail.
-      params['site'] = widget.siteId;
-      // In place, not push: a pushed copy of the Dives list would
-      // stay behind after save, with a back arrow of its own (#3292).
-      context.goInPlace(
-        Uri(path: currentPath, queryParameters: params).toString(),
-      );
-    } else {
-      // Default to /sites path for site-related navigation if not on /dives.
-      context.go('/sites?selected=${widget.siteId}&mode=edit');
-    }
-  }
-
   /// The lock for an editor; for a shared site library's reader, "Suggest
   /// changes", which opens a reader's sitting (issue #4527, plan 5).
   Widget _unlockControl(DiveSite site, {bool compact = false}) {
@@ -282,17 +240,6 @@ extension _SiteDetailBars on _SiteDetailContentState {
                   _showFullscreenMap(context, ref, site, initialScape3d: true),
             ),
           if (offered) _unlockControl(site, compact: true),
-          if (_canEditSite(ref, site))
-            IconButton(
-              icon: const Icon(Icons.edit, size: 20),
-              tooltip: context.l10n.diveSites_detail_editTooltipShort,
-              // Where the pane offers the lock, Edit unlocks the site in
-              // place as the lock does; the edit address would remount the
-              // pane at its top.
-              onPressed: offered
-                  ? () => editController.unlock(site)
-                  : () => _openPaneEditMode(context),
-            ),
           ..._libraryButtons(context, ref, site),
           menuWith(_displayOptionsMenu),
         ],

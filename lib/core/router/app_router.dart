@@ -77,7 +77,6 @@ import 'package:submersion/features/maps/presentation/pages/dive_activity_map_pa
 import 'package:submersion/features/maps/presentation/pages/offline_maps_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_list_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
-import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_routes.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_merge_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/catalogue_gap_review_page.dart';
@@ -725,12 +724,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'merge',
                 name: 'mergeSite',
-                builder: (context, state) {
-                  final siteIds =
-                      (state.extra as List<dynamic>?)?.cast<String>() ??
-                      const <String>[];
-                  return SiteMergePage(siteIds: siteIds);
-                },
+                // A reload or a bookmark hands it no sites: the list.
+                redirect: siteMergeRedirect,
+                builder: (context, state) =>
+                    SiteMergePage(siteIds: siteMergeIds(state.extra)),
               ),
               // A built-in catalogue record's own page. Before ':siteId',
               // which would otherwise read "catalogue" as a site id.
@@ -755,11 +752,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'edit',
                     name: 'editSite',
+                    // The old edit address, `?suggest=1` too, opens the
+                    // site page unlocked (issue #4527, phase 2).
                     redirect: siteEditRedirect,
-                    builder: (context, state) => SiteEditPage(
-                      siteId: state.pathParameters['siteId'],
-                      suggest: state.uri.queryParameters['suggest'] == '1',
-                    ),
                   ),
                 ],
               ),

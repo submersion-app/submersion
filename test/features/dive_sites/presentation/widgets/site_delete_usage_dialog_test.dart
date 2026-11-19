@@ -12,7 +12,6 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
-import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_list_content.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart';
@@ -119,7 +118,10 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.byIcon(Icons.more_vert));
+      // Delete acts on the whole site, so it waits for the lock.
+      await tester.tap(find.byIcon(Icons.lock_outline));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.more_vert).last);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Delete'));
       await tester.pumpAndSettle();
@@ -145,37 +147,6 @@ void main() {
 
       expect(find.textContaining('without a site'), findsNothing);
     });
-  });
-
-  testWidgets('SiteEditPage delete dialog says how many dives and plans keep '
-      'going without the site', (tester) async {
-    setPhoneSize(tester);
-    await seedSites();
-    final site = await siteRepository.getSiteById('used');
-    final prefs = await SharedPreferences.getInstance();
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          sharedPreferencesProvider.overrideWithValue(prefs),
-          allDiversProvider.overrideWith((_) async => const <Diver>[]),
-          shareByDefaultProvider.overrideWith((_) async => false),
-          siteProvider('used').overrideWith((_) async => site),
-        ],
-        child: const MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          locale: Locale('en'),
-          home: SiteEditPage(siteId: 'used'),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.byIcon(Icons.delete));
-    await tester.pumpAndSettle();
-
-    expect(find.textContaining(divesLine), findsOneWidget);
-    expect(find.textContaining(planLine), findsOneWidget);
   });
 
   testWidgets('SiteListContent bulk delete says how many dives and plans keep '

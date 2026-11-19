@@ -9916,13 +9916,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveSites_edit_group_location => 'Position';
 
   @override
-  String get diveSites_edit_group_typeTags => 'Typ & Tags';
-
-  @override
-  String get diveSites_edit_snackbar_featuresNotCopied =>
-      'Tauchplatz hinzugefügt, aber seine Kartenmerkmale konnten nicht kopiert werden.';
-
-  @override
   String get diveSites_edit_typeTags_manageTypes => 'Typen verwalten';
 
   @override
@@ -9930,25 +9923,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveSites_edit_typeTags_typesLabel => 'Tauchplatztypen';
-
-  @override
-  String get diveSites_edit_invite_accessSafety =>
-      'Zugang, Parken, Mooring oder Gefahren hinzufügen';
-
-  @override
-  String get diveSites_edit_invite_diveInfo =>
-      'Tiefenbereich, Schwierigkeit oder Bewertung hinzufügen';
-
-  @override
-  String get diveSites_edit_invite_lifeNotes =>
-      'Arten, Notizen oder Freigabe hinzufügen';
-
-  @override
-  String get diveSites_edit_invite_location =>
-      'GPS-Position oder Höhe hinzufügen';
-
-  @override
-  String get diveSites_edit_summary_shared => 'geteilt';
 
   @override
   String get forms_cancel => 'Abbrechen';
@@ -12227,12 +12201,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Noch keine Tauchgänge eingetragen';
 
   @override
-  String get diveSites_detail_editTooltip => 'Tauchplatz bearbeiten';
-
-  @override
-  String get diveSites_detail_editTooltipShort => 'Bearbeiten';
-
-  @override
   String get diveSites_edit_editingWithdrawn =>
       'Du kannst diesen Tauchplatz nicht mehr bearbeiten. Ungespeicherte Änderungen wurden verworfen.';
 
@@ -12464,12 +12432,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveSites_edit_altitude_validation => 'Ungültige Höhe';
 
   @override
-  String get diveSites_edit_appBar_deleteSiteTooltip => 'Tauchplatz löschen';
-
-  @override
-  String get diveSites_edit_appBar_editSite => 'Tauchplatz bearbeiten';
-
-  @override
   String get diveSites_edit_appBar_merge => 'Zusammenführen';
 
   @override
@@ -12679,18 +12641,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveSites_edit_section_expectedMarineLife => 'Erwartete Arten';
 
   @override
-  String get diveSites_edit_section_hazards => 'Gefahren & Sicherheit';
-
-  @override
   String get diveSites_edit_section_rating => 'Bewertung';
 
   @override
   String get diveSites_edit_section_waterType => 'Gewässertyp';
-
-  @override
-  String diveSites_edit_snackbar_errorDeleting(Object error) {
-    return 'Fehler beim Löschen des Tauchplatzes: $error';
-  }
 
   @override
   String diveSites_edit_snackbar_errorSaving(Object error) {
@@ -12719,12 +12673,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveSites_edit_snackbar_locationUnavailableMobile =>
       'Standort konnte nicht ermittelt werden. Bitte überprüfe die Berechtigungen.';
-
-  @override
-  String get diveSites_edit_snackbar_siteAdded => 'Tauchplatz hinzugefügt';
-
-  @override
-  String get diveSites_edit_snackbar_siteUpdated => 'Tauchplatz aktualisiert';
 
   @override
   String get diveSites_fab_label => 'Tauchplatz hinzufügen';

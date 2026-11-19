@@ -86,12 +86,10 @@ void main() {
     WidgetTester tester, {
     Future<SharedLibraryRole> Function()? role,
     bool connected = true,
-    bool unlockEditing = true,
     DiveSite? site,
   }) => pumpSitePage(
     tester,
     site: site ?? librarySite,
-    unlockEditing: unlockEditing,
     extra: library(role: role, connected: connected),
   );
 
@@ -290,16 +288,6 @@ void main() {
     expect(controller.layoutRecord, isNull);
   });
 
-  testWidgets('with the switch off the page is as today', (tester) async {
-    await pumpReader(tester, unlockEditing: false);
-
-    expect(find.byKey(suggestKey), findsNothing);
-    expect(
-      find.widgetWithText(TextButton, l.sharedLibrary_suggest_title),
-      findsOneWidget,
-    );
-  });
-
   group('the cards in a reader\'s sitting', () {
     Future<void> unlockReader(WidgetTester tester) async {
       await tester.tap(find.byKey(suggestKey));
@@ -483,6 +471,10 @@ void main() {
       expect(suggestions.calls.single.proposed.name, 'Big Hole');
       expect(page.save.calls, isEmpty);
       expect(find.text(l.sharedLibrary_suggest_sent), findsOneWidget);
+      // Sent, the sitting ends with nothing left to discard (the form's
+      // case, plan 7).
+      expect(find.byType(RecordEditBar), findsNothing);
+      expect(find.text(l.forms_discard_title), findsNothing);
     });
 
     testWidgets('Send with only notes asks nothing and says saved privately', (

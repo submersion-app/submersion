@@ -90,7 +90,7 @@ void main() {
           locale: Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: SiteDetailPage(siteId: 's1', unlockEditing: true),
+          home: SiteDetailPage(siteId: 's1'),
         ),
       ),
     );
@@ -122,10 +122,9 @@ void main() {
     // page that edits in place, only the Features editor does.
     expect(find.byKey(const ValueKey('siteFeatureRow-f1')), findsOneWidget);
     expect(find.byKey(const ValueKey('siteFeatureAddButton')), findsNothing);
-    final editor = find.byWidgetPredicate(
-      (w) => w is SiteFeaturesSection && w.onAddFeature == null,
-    );
-    expect(editor, findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('siteFeatureRow-f1')));
+    await settle(tester);
+    expect(find.byKey(const ValueKey('siteFeatureSaveButton')), findsNothing);
   });
 
   testWidgets('opened from a locked page it offers no Edit', (tester) async {

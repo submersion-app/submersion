@@ -9921,13 +9921,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveSites_edit_group_location => 'Localização';
 
   @override
-  String get diveSites_edit_group_typeTags => 'Tipo e etiquetas';
-
-  @override
-  String get diveSites_edit_snackbar_featuresNotCopied =>
-      'Ponto adicionado, mas não foi possível copiar seus elementos do mapa.';
-
-  @override
   String get diveSites_edit_typeTags_manageTypes => 'Gerir tipos';
 
   @override
@@ -9935,25 +9928,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveSites_edit_typeTags_typesLabel => 'Tipos de ponto';
-
-  @override
-  String get diveSites_edit_invite_accessSafety =>
-      'Adicionar acesso, estacionamento, poita ou perigos';
-
-  @override
-  String get diveSites_edit_invite_diveInfo =>
-      'Adicionar faixa de profundidade, dificuldade ou avaliação';
-
-  @override
-  String get diveSites_edit_invite_lifeNotes =>
-      'Adicionar espécies, notas ou compartilhamento';
-
-  @override
-  String get diveSites_edit_invite_location =>
-      'Adicionar posição GPS ou altitude';
-
-  @override
-  String get diveSites_edit_summary_shared => 'compartilhado';
 
   @override
   String get forms_cancel => 'Cancelar';
@@ -12233,12 +12207,6 @@ class AppLocalizationsPt extends AppLocalizations {
       'Nenhum mergulho registrado ainda';
 
   @override
-  String get diveSites_detail_editTooltip => 'Editar Ponto';
-
-  @override
-  String get diveSites_detail_editTooltipShort => 'Editar';
-
-  @override
   String get diveSites_edit_editingWithdrawn =>
       'Você não pode mais editar este ponto. As alterações não salvas foram descartadas.';
 
@@ -12471,12 +12439,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveSites_edit_altitude_validation => 'Altitude inválida';
 
   @override
-  String get diveSites_edit_appBar_deleteSiteTooltip => 'Excluir Ponto';
-
-  @override
-  String get diveSites_edit_appBar_editSite => 'Editar Ponto';
-
-  @override
   String get diveSites_edit_appBar_merge => 'Mesclar';
 
   @override
@@ -12687,18 +12649,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveSites_edit_section_expectedMarineLife => 'Espécies Esperadas';
 
   @override
-  String get diveSites_edit_section_hazards => 'Perigos e Segurança';
-
-  @override
   String get diveSites_edit_section_rating => 'Avaliação';
 
   @override
   String get diveSites_edit_section_waterType => 'Tipo de água';
-
-  @override
-  String diveSites_edit_snackbar_errorDeleting(Object error) {
-    return 'Erro ao excluir ponto: $error';
-  }
 
   @override
   String diveSites_edit_snackbar_errorSaving(Object error) {
@@ -12728,12 +12682,6 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diveSites_edit_snackbar_locationUnavailableMobile =>
       'Não foi possível obter a localização. Verifique as permissões.';
-
-  @override
-  String get diveSites_edit_snackbar_siteAdded => 'Ponto adicionado';
-
-  @override
-  String get diveSites_edit_snackbar_siteUpdated => 'Ponto atualizado';
 
   @override
   String get diveSites_fab_label => 'Adicionar Ponto';

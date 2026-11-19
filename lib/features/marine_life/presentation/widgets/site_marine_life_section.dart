@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -9,13 +10,13 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
-import 'package:submersion/features/marine_life/presentation/widgets/species_picker_dialog.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 
-/// Section widget displaying marine life at a dive site
+/// The marine life at a dive site, shown only: the site page's Marine life
+/// card, whose pencil edits the expected species in a sitting (issue #4527,
+/// phase 2), the one way to change them.
 class SiteMarineLifeSection extends ConsumerWidget {
   final String siteId;
-  final bool readOnly;
 
   /// When present, a "Recorded nearby" tier is shown from online sources.
   final GeoPoint? location;
@@ -27,7 +28,6 @@ class SiteMarineLifeSection extends ConsumerWidget {
   const SiteMarineLifeSection({
     super.key,
     required this.siteId,
-    this.readOnly = false,
     this.location,
     this.species,
   });
@@ -53,7 +53,13 @@ class SiteMarineLifeSection extends ConsumerWidget {
             _buildExpectedSection(context, ref, expectedAsync),
             if (location != null) ...[
               const SizedBox(height: 16),
-              NearbySpeciesTier(siteId: siteId, location: location!),
+              // Shown only, as on the species map: a species opens its
+              // page, and adding one is the unlocked card's (plan 7).
+              NearbySpeciesTier(
+                siteId: siteId,
+                location: location!,
+                onSpeciesTap: (id) => context.push('/species/$id'),
+              ),
             ],
           ],
         ),
@@ -168,14 +174,6 @@ class SiteMarineLifeSection extends ConsumerWidget {
                 ),
               ),
             ),
-            if (!readOnly)
-              IconButton(
-                icon: Icon(Icons.edit, size: 18, color: colorScheme.primary),
-                visualDensity: VisualDensity.compact,
-                tooltip:
-                    context.l10n.marineLife_siteSection_editExpectedTooltip,
-                onPressed: () => _showSpeciesPicker(context, ref),
-              ),
           ],
         ),
         const SizedBox(height: 8),
@@ -290,24 +288,6 @@ class SiteMarineLifeSection extends ConsumerWidget {
         );
       }).toList(),
     );
-  }
-
-  Future<void> _showSpeciesPicker(BuildContext context, WidgetRef ref) async {
-    final expected = ref.read(siteExpectedSpeciesProvider(siteId)).valueOrNull;
-    final selectedIds = expected?.map((e) => e.speciesId).toSet() ?? {};
-
-    final result = await showDialog<Set<String>>(
-      context: context,
-      builder: (context) => SpeciesPickerDialog(initialSelection: selectedIds),
-    );
-
-    if (result != null) {
-      final notifier = ref.read(
-        siteExpectedSpeciesNotifierProvider(siteId).notifier,
-      );
-      await notifier.setSpecies(result.toList());
-      ref.invalidate(siteExpectedSpeciesProvider(siteId));
-    }
   }
 
   Color _getCategoryColor(SpeciesCategory category) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart'
     hide DiveSite, SiteFeature, Species, Tag;
@@ -18,6 +19,7 @@ import 'package:submersion/features/dive_sites/presentation/editing/site_species
 import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_header.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_tags_card.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/site_marine_life_section.dart';
 import 'package:submersion/features/site_scape/presentation/site_feature_sheet.dart';
@@ -99,6 +101,47 @@ void main() {
       expect(stored.map((t) => t.id), ['t-wreck']);
     });
 
+    // Issue #401, the form's case on the header block (plan 7): a hidden
+    // built-in type the site has is offered, and stays once unticked.
+    testWidgets('a hidden type the site has stays offered, even once '
+        'unticked', (tester) async {
+      await SiteClassificationRepository().replaceTypes('s1', ['wall']);
+      SiteTypeEntity builtIn(String id, String name) => SiteTypeEntity(
+        id: id,
+        name: name,
+        isBuiltIn: true,
+        createdAt: at,
+        updatedAt: at,
+      );
+      final h = await pumpSiteEditor(
+        tester,
+        site,
+        (session) => SiteHeaderCardEditor(session: session),
+        onStart: siteTypesList.load,
+        settings: AppSettings(
+          hiddenBuiltInIds: {
+            BuiltInCatalog.siteTypes.key: {'wall', 'lake'},
+          },
+        ),
+        overrides: [
+          siteTypesProvider.overrideWith(
+            (_) async => [builtIn('wall', 'Wall'), builtIn('lake', 'Lake')],
+          ),
+        ],
+      );
+      await tester.pumpAndSettle();
+      final wall = find.byWidgetPredicate((w) => w is FilterChip && w.selected);
+      expect(wall, findsOneWidget);
+      expect(find.byType(FilterChip), findsOneWidget);
+
+      await tester.tap(find.byType(FilterChip));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(FilterChip), findsOneWidget);
+      expect(wall, findsNothing);
+      expect(siteTypesList.current(h.session), isEmpty);
+    });
+
     testWidgets('the header shows the types it is given', (tester) async {
       await tester.pumpWidget(
         ProviderScope(
@@ -139,6 +182,21 @@ void main() {
       expect(h.session.changedCardIds, {'tags'});
       final stored = await SiteClassificationRepository().getTagsForSite('s1');
       expect(stored.map((t) => t.id), ['t1']);
+    });
+
+    // Browse picks from the site tags, as the form's did (plan 7).
+    testWidgets('the card picks from the site tags', (tester) async {
+      await pumpSiteEditor(
+        tester,
+        site,
+        (session) => SiteTagsCardEditor(session: session),
+        onStart: siteTagsList.load,
+      );
+
+      expect(
+        tester.widget<TagFormBlock>(find.byType(TagFormBlock)).scope,
+        TagScope.sites,
+      );
     });
 
     testWidgets('the tags card shows the tags it is given', (tester) async {
@@ -253,7 +311,6 @@ void main() {
               body: SingleChildScrollView(
                 child: SiteMarineLifeSection(
                   siteId: 's1',
-                  readOnly: true,
                   species: [newSiteSpeciesEntry('s1', manta)],
                 ),
               ),
@@ -366,7 +423,6 @@ void main() {
             home: Scaffold(
               body: SiteFeaturesSection(
                 siteId: 's1',
-                onAddFeature: null,
                 features: [buoy.copyWith(name: 'Held buoy')],
               ),
             ),

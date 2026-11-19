@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_sites/presentation/pages/site_detail_pa
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_pane_header.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
@@ -103,13 +104,13 @@ void main() {
       );
       expect(find.byType(SiteDetailPage), findsOneWidget);
 
-      // Editing the embedded site changes this list's own URL. It must not
-      // stack a second copy of the Dives list, which would then carry a
+      // Editing the embedded site unlocks it in place (issue #4527): no
+      // second copy of the Dives list is stacked, which would then carry a
       // back arrow on what looks like the Dives tab (#3292).
-      await tester.tap(find.byTooltip('Edit'));
+      await tester.tap(find.byIcon(Icons.lock_outline));
       await tester.pumpAndSettle();
+      expect(find.byType(RecordEditPaneHeader), findsOneWidget);
       expect(router.canPop(), isFalse);
-      expect(router.state.uri.queryParameters['mode'], 'edit');
       expect(router.state.uri.queryParameters['site'], siteId);
     });
   });

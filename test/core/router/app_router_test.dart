@@ -54,7 +54,7 @@ import 'package:submersion/features/trips/presentation/pages/trip_list_page.dart
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/dive_log/presentation/pages/bulk_dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
-import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
+import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
 import 'package:submersion/core/router/shortcut_locations.dart';
 import 'package:submersion/features/import_wizard/presentation/pages/universal_import_wizard_route.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/leave_running_import_dialog.dart';
@@ -377,7 +377,7 @@ void main() {
           ),
         ),
       );
-      SiteEditPage build(String location) =>
+      SiteDetailPage build(String location) =>
           _findRouteByName(router.configuration.routes, 'newSite')!.builder!(
                 capturedContext,
                 GoRouterState(
@@ -389,28 +389,26 @@ void main() {
                   pageKey: ValueKey(location),
                 ),
               )
-              as SiteEditPage;
+              as SiteDetailPage;
 
-      expect(build('/sites/new?duplicateOf=s1').duplicateOfId, 's1');
-      expect(build('/sites/new').duplicateOfId, isNull);
+      expect(build('/sites/new?duplicateOf=s1').newSite?.duplicateOfId, 's1');
+      expect(build('/sites/new').newSite?.duplicateOfId, isNull);
     });
   });
 
   // The sidebar leaves with go(), which no PopScope sees (#3422).
   // A site's sitting is asked about before a `go` leaves it (issue #4527).
   // The old site edit address opens the page unlocked (issue #4527).
-  test('the site edit address opens the page unlocked with the switch on', () {
+  test('the site edit address opens the page unlocked', () {
     // A reader's suggestion (`?suggest=1`) as well: the page unlocks as the
-    // role allows (issue #4527, phase 2, plan 5); with the switch off, the
-    // form.
-    expect(siteEditLocation('s1', unlockEditing: true), '/sites/s1?mode=edit');
-    expect(siteEditLocation('s1', unlockEditing: false), isNull);
+    // role allows (issue #4527, phase 2, plan 5).
+    expect(siteEditLocation('s1'), '/sites/s1?mode=edit');
     final route = _findRouteByName(router.configuration.routes, 'editSite');
     expect(route?.redirect, same(siteEditRedirect));
   });
 
-  // The old certification edit address opens the page unlocked (issue
-  // #4527, phase 3).
+  // The old dive centre, buddy and certification edit addresses open the
+  // page unlocked (issue #4527, phase 3).
   test('the dive centre edit address redirects with the switch', () {
     final route = _findRouteByName(
       router.configuration.routes,
@@ -444,6 +442,13 @@ void main() {
       'certificationDetail',
     );
     expect(detail?.onExit, same(confirmLeaveRecordSitting));
+  });
+
+  // The merge address handed fewer than two sites goes back to the list
+  // (issue #4527, phase 2, plan 7).
+  test('the site merge address checks it was handed sites to merge', () {
+    final route = _findRouteByName(router.configuration.routes, 'mergeSite');
+    expect(route?.redirect, same(siteMergeRedirect));
   });
 
   test('leaving a site page goes through its sitting check', () {

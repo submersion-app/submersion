@@ -18,7 +18,6 @@ void main() {
     l10n.diveLog_edit_noMarineLife,
     l10n.diveLog_speciesPicker_title,
     l10n.diveSites_edit_section_expectedMarineLife,
-    l10n.diveSites_edit_invite_lifeNotes,
     l10n.marineLife_siteSection_title,
     l10n.marineLife_siteSection_noSpotted,
     l10n.marineLife_speciesPage_emptyHint,
@@ -53,7 +52,6 @@ void main() {
     expect(en.diveLog_edit_noMarineLife, 'No species logged');
     expect(en.diveLog_speciesPicker_title, 'Add Species');
     expect(en.diveSites_edit_section_expectedMarineLife, 'Expected Species');
-    expect(en.diveSites_edit_invite_lifeNotes, 'Add species, notes or sharing');
     expect(en.marineLife_siteSection_title, 'Species');
     expect(en.marineLife_siteSection_noSpotted, 'No species spotted yet');
     expect(en.diveDetailSection_sightings_name, 'Species Sightings');

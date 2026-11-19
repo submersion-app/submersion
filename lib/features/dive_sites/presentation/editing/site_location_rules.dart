@@ -8,9 +8,9 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
-/// The site form's location and altitude rules, as functions of a site's
-/// sitting (issue #4527, phase 2): each keeps the form's behaviour, and a
-/// value one of them sets is a change of the card that owns it.
+/// The site's location and altitude rules, as functions of a site's sitting
+/// (issue #4527, phase 2): each keeps the behaviour the site edit form had,
+/// and a value one of them sets is a change of the card that owns it.
 
 /// Writes [lookup]'s place names into the sitting: only empty ones, or with
 /// [overwrite] also those that differ ([mergeLocationDetails] decides). A
@@ -21,13 +21,7 @@ bool applyPlaceLookup(
   required bool overwrite,
 }) {
   final merged = mergeLocationDetails(
-    current: SiteLocationDetails(
-      country: session.valueOf(siteCountryField),
-      countryCode: session.valueOf(siteCountryCodeField),
-      region: session.valueOf(siteRegionField),
-      city: session.valueOf(siteCityField),
-      bodyOfWater: session.valueOf(siteBodyOfWaterField),
-    ),
+    current: sittingPlaceNames(session),
     found: lookup,
     overwrite: overwrite,
   );
@@ -54,42 +48,50 @@ bool applyPlaceLookup(
   return changed;
 }
 
-/// The place names [lookup] found that differ from the sitting's, by the
-/// label of their field: what Look up asks about before replacing them.
+/// The place names [lookup] found that differ from [current], by the label
+/// of their field: what Look up asks about before replacing them, on the
+/// Location card and on the merge page alike.
 Map<String, String> differingPlaceValues(
-  EditSession<DiveSite> session,
+  SiteLocationDetails current,
   PlaceLookup lookup,
   AppLocalizations l10n,
 ) {
   final out = <String, String>{};
-  void compare(String label, String? current, String? found) {
+  void compare(String label, String? shown, String? found) {
     if (found == null || found.trim().isEmpty) return;
-    if ((current ?? '').trim() == found.trim()) return;
+    if ((shown ?? '').trim() == found.trim()) return;
     out[label] = found.trim();
   }
 
   compare(
     l10n.diveSites_edit_field_country_label,
-    session.valueOf(siteCountryField),
+    current.country,
     lookup.country,
   );
   compare(
     l10n.diveSites_edit_field_region_label,
-    session.valueOf(siteRegionField),
+    current.region,
     lookup.region,
   );
-  compare(
-    l10n.diveSites_edit_field_city_label,
-    session.valueOf(siteCityField),
-    lookup.locality,
-  );
+  compare(l10n.diveSites_edit_field_city_label, current.city, lookup.locality);
   compare(
     l10n.diveSites_edit_field_bodyOfWater_label,
-    session.valueOf(siteBodyOfWaterField),
+    current.bodyOfWater,
     lookup.bodyOfWater,
   );
   return out;
 }
+
+/// The sitting's place names, as [differingPlaceValues] and
+/// [mergeLocationDetails] compare them.
+SiteLocationDetails sittingPlaceNames(EditSession<DiveSite> session) =>
+    SiteLocationDetails(
+      country: session.valueOf(siteCountryField),
+      countryCode: session.valueOf(siteCountryCodeField),
+      region: session.valueOf(siteRegionField),
+      city: session.valueOf(siteCityField),
+      bodyOfWater: session.valueOf(siteBodyOfWaterField),
+    );
 
 /// Moves the site to [point], as Use my location and Pick from map do, and
 /// fills the empty place names from [place].

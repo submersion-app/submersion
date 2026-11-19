@@ -9767,13 +9767,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveSites_edit_group_location => 'Location';
 
   @override
-  String get diveSites_edit_group_typeTags => 'Type & Tags';
-
-  @override
-  String get diveSites_edit_snackbar_featuresNotCopied =>
-      'Site added, but its map features could not be copied.';
-
-  @override
   String get diveSites_edit_typeTags_manageTypes => 'Manage types';
 
   @override
@@ -9781,23 +9774,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveSites_edit_typeTags_typesLabel => 'Site types';
-
-  @override
-  String get diveSites_edit_invite_accessSafety =>
-      'Add access, parking, mooring or hazards';
-
-  @override
-  String get diveSites_edit_invite_diveInfo =>
-      'Add depth range, difficulty or rating';
-
-  @override
-  String get diveSites_edit_invite_lifeNotes => 'Add species, notes or sharing';
-
-  @override
-  String get diveSites_edit_invite_location => 'Add GPS position or altitude';
-
-  @override
-  String get diveSites_edit_summary_shared => 'shared';
 
   @override
   String get forms_cancel => 'Cancel';
@@ -12045,12 +12021,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveSites_detail_diveCount_zero => 'No dives logged yet';
 
   @override
-  String get diveSites_detail_editTooltip => 'Edit Site';
-
-  @override
-  String get diveSites_detail_editTooltipShort => 'Edit';
-
-  @override
   String get diveSites_edit_editingWithdrawn =>
       'You can no longer edit this site. Any unsaved changes were discarded.';
 
@@ -12280,12 +12250,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveSites_edit_altitude_validation => 'Invalid altitude';
 
   @override
-  String get diveSites_edit_appBar_deleteSiteTooltip => 'Delete Site';
-
-  @override
-  String get diveSites_edit_appBar_editSite => 'Edit Site';
-
-  @override
   String get diveSites_edit_appBar_merge => 'Merge';
 
   @override
@@ -12491,18 +12455,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveSites_edit_section_expectedMarineLife => 'Expected Species';
 
   @override
-  String get diveSites_edit_section_hazards => 'Hazards & Safety';
-
-  @override
   String get diveSites_edit_section_rating => 'Rating';
 
   @override
   String get diveSites_edit_section_waterType => 'Water Type';
-
-  @override
-  String diveSites_edit_snackbar_errorDeleting(Object error) {
-    return 'Error deleting site: $error';
-  }
 
   @override
   String diveSites_edit_snackbar_errorSaving(Object error) {
@@ -12531,12 +12487,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveSites_edit_snackbar_locationUnavailableMobile =>
       'Unable to get location. Please check permissions.';
-
-  @override
-  String get diveSites_edit_snackbar_siteAdded => 'Site added';
-
-  @override
-  String get diveSites_edit_snackbar_siteUpdated => 'Site updated';
 
   @override
   String get diveSites_fab_label => 'Add Site';

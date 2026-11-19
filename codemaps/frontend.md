@@ -100,9 +100,10 @@ Defined in `lib/shared/widgets/main_scaffold.dart`:
 ├── SiteListPage → SiteListContent
 ├── /map → SiteMapPage
 ├── /import → SiteImportPage
-├── /new → SiteEditPage
+├── /new → SiteDetailPage.newSite
+├── /merge → SiteMergePage
 └── /:siteId → SiteDetailPage
-    └── /edit → SiteEditPage
+    └── /edit → redirect to /:siteId?mode=edit
 ```
 
 ### Equipment

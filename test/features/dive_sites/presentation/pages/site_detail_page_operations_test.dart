@@ -43,7 +43,6 @@ void main() {
   Future<(SiteUnlockHarness, _RecordingSites)> pump(
     WidgetTester tester, {
     DiveSite site = harnessSite,
-    bool unlockEditing = true,
     bool hidden = false,
     List<String> divers = const ['me'],
     bool openUnlocked = false,
@@ -55,7 +54,6 @@ void main() {
     final page = await pumpSitePage(
       tester,
       site: site,
-      unlockEditing: unlockEditing,
       openUnlocked: openUnlocked,
       onSittingEnded: onSittingEnded,
       initialLocation: '/root-site',
@@ -369,15 +367,6 @@ void main() {
     await openMenu(tester);
     expect(menuItem(tester, 'remove').enabled, isFalse);
     expect(find.text(l.recordEdit_saveOrCancelFirst), findsOneWidget);
-  });
-
-  testWidgets('with the switch off the menu is as today', (tester) async {
-    await pump(tester, unlockEditing: false);
-    await openMenu(tester);
-
-    // Today's full page offers no Delete: that came with the lock.
-    expect(find.text(l.recordEdit_unlockToUseThese), findsNothing);
-    expect(find.text(l.diveSites_detail_deleteMenu_label), findsNothing);
   });
 }
 

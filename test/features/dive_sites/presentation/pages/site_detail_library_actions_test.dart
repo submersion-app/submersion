@@ -168,13 +168,16 @@ void main() {
     );
   });
 
-  testWidgets('an editor gets Edit and a library delete dialog', (
+  testWidgets('an editor gets the lock and a library delete dialog', (
     tester,
   ) async {
     await _pump(tester, site: _librarySite, role: SharedLibraryRole.editor);
-    expect(find.byTooltip('Edit Site'), findsOneWidget);
+    expect(find.byIcon(Icons.lock_outline), findsOneWidget);
     expect(find.text('Suggest changes'), findsNothing);
-    await tester.tap(find.byIcon(Icons.more_vert));
+    // Delete acts on the whole site, so it waits for the lock.
+    await tester.tap(find.byIcon(Icons.lock_outline));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.more_vert).last);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Delete'));
     await tester.pumpAndSettle();
@@ -206,7 +209,10 @@ void main() {
   );
 
   Future<void> addToLibrary(WidgetTester tester) async {
-    await tester.tap(find.byIcon(Icons.more_vert));
+    // Adding acts on the whole site, so it waits for the lock.
+    await tester.tap(find.byIcon(Icons.lock_outline));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.more_vert).last);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Add to shared site library'));
     await tester.pumpAndSettle();

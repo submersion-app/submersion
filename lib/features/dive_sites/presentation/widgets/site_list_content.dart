@@ -426,7 +426,6 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
   }
 
   Future<BulkActionOutcome> _startMerge() async {
-    final selectedCount = _selectedIds.length;
     // A merge destroys every site but the first (issue #2594): another
     // profile's shared site may only be the survivor, so at most one fits.
     final sharing = await readSharingContext(ref, context);
@@ -479,7 +478,11 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
       scaffoldMessenger.showSnackBar(
         SnackBar(
           content: Text(
-            context.l10n.diveSites_list_merge_snackbar(selectedCount),
+            // The sites the merge took in: one deleted since the selection
+            // was left out of it.
+            context.l10n.diveSites_list_merge_snackbar(
+              _mergeSnapshot!.deletedSites.length + 1,
+            ),
           ),
           duration: const Duration(seconds: 5),
           showCloseIcon: true,

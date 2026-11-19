@@ -152,9 +152,10 @@ GoRoute(
 | `/sites` | sites | SiteListPage |
 | `/sites/map` | sitesMap | SiteMapPage |
 | `/sites/import` | importSite | SiteImportPage |
-| `/sites/new` | newSite | SiteEditPage |
+| `/sites/new` | newSite | SiteDetailPage (a new site, unlocked) |
+| `/sites/merge` | mergeSite | SiteMergePage |
 | `/sites/:siteId` | siteDetail | SiteDetailPage |
-| `/sites/:siteId/edit` | editSite | SiteEditPage |
+| `/sites/:siteId/edit` | editSite | Redirects to `/sites/:siteId?mode=edit` (the page unlocked) |
 
 ### Equipment
 

@@ -5,11 +5,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
-import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
+import 'package:submersion/features/dive_sites/presentation/pages/site_merge_page.dart';
 import 'package:submersion/shared/widgets/forms/form_section.dart';
+import 'package:submersion/shared/widgets/shared_items/item_sharing_field.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -26,11 +28,13 @@ Widget _buildMergePageHarness({
     child: MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: SiteEditPage(mergeSiteIds: siteIds),
+      home: SiteMergePage(siteIds: siteIds),
     ),
   );
 }
 
+/// The merge page (issue #4527, phase 2, plan 7): each field shows the
+/// first site's meaningful value and cycles through the others'.
 void main() {
   late SharedPreferences prefs;
   late SiteRepository siteRepository;
@@ -86,6 +90,37 @@ void main() {
     );
     expect(updatedNameField.controller!.text, equals('Site'));
     expect(find.textContaining('From Site'), findsWidgets);
+  });
+
+  // The sites being merged are the duplicates the merge resolves, not a
+  // similar site to warn about (seen in the manual test).
+  testWidgets('the name hint never names a site the merge takes in', (
+    tester,
+  ) async {
+    await siteRepository.createSite(
+      const DiveSite(id: 'hole-1', name: 'Blue Hole Lighthouse Reef'),
+    );
+    await siteRepository.createSite(
+      const DiveSite(id: 'hole-2', name: 'Blue Hole Lighthouse Reef (copy)'),
+    );
+
+    await tester.pumpWidget(
+      _buildMergePageHarness(
+        prefs: prefs,
+        siteRepository: siteRepository,
+        siteIds: const ['hole-1', 'hole-2'],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(
+        AppLocalizationsEn().diveSites_similarSite_warning(
+          'Blue Hole Lighthouse Reef (copy)',
+        ),
+      ),
+      findsNothing,
+    );
   });
 
   testWidgets(
@@ -447,5 +482,304 @@ void main() {
     final textFields = find.byType(TextFormField);
     final countryField = tester.widget<TextFormField>(textFields.at(2));
     expect(countryField.controller!.text, equals('Thailand'));
+  });
+
+  /// The cycle button inside the FormSection that owns [rowLabel].
+  Finder cycleButtonFor(String rowLabel) => find.descendant(
+    of: find.ancestor(
+      of: find.text(rowLabel),
+      matching: find.byType(FormSection),
+    ),
+    matching: find.byIcon(Icons.sync_alt),
+  );
+
+  testWidgets('merge mode cycles entry method when sites differ', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 3600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final site1 = await siteRepository.createSite(
+      const DiveSite(
+        id: 'em-1',
+        name: 'Boat Site',
+        entryMethods: [EntryMethod.boat],
+      ),
+    );
+    final site2 = await siteRepository.createSite(
+      const DiveSite(
+        id: 'em-2',
+        name: 'Boat Site',
+        entryMethods: [EntryMethod.shore],
+      ),
+    );
+
+    await tester.pumpWidget(
+      _buildMergePageHarness(
+        prefs: prefs,
+        siteRepository: siteRepository,
+        siteIds: [site1.id, site2.id],
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Entry Method'),
+      100,
+      scrollable: find.byType(Scrollable).first,
+    );
+
+    // site1, the first non-empty candidate, wins initially.
+    expect(find.text('Boat'), findsOneWidget);
+
+    // Only entry method differs, so exactly one cycle button sits in the
+    // Access & safety section.
+    final cycleButton = cycleButtonFor('Entry Method');
+    expect(cycleButton, findsOneWidget);
+
+    await tester.tap(cycleButton);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Shore'), findsOneWidget);
+    expect(find.text('Boat'), findsNothing);
+  });
+
+  testWidgets('merge mode cycles exit method independently', (tester) async {
+    tester.view.physicalSize = const Size(900, 3600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final site1 = await siteRepository.createSite(
+      const DiveSite(
+        id: 'xm-1',
+        name: 'Wall',
+        exitMethods: [EntryMethod.ladder],
+      ),
+    );
+    final site2 = await siteRepository.createSite(
+      const DiveSite(
+        id: 'xm-2',
+        name: 'Wall',
+        exitMethods: [EntryMethod.platform],
+      ),
+    );
+
+    await tester.pumpWidget(
+      _buildMergePageHarness(
+        prefs: prefs,
+        siteRepository: siteRepository,
+        siteIds: [site1.id, site2.id],
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Exit Method'),
+      100,
+      scrollable: find.byType(Scrollable).first,
+    );
+
+    expect(find.text('Ladder'), findsOneWidget);
+
+    await tester.tap(cycleButtonFor('Exit Method'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Platform'), findsOneWidget);
+    expect(find.text('Ladder'), findsNothing);
+  });
+
+  testWidgets('no cycle button when both sites agree on entry method', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 3600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final site1 = await siteRepository.createSite(
+      const DiveSite(
+        id: 'ag-1',
+        name: 'Pier',
+        entryMethods: [EntryMethod.jetty],
+      ),
+    );
+    final site2 = await siteRepository.createSite(
+      const DiveSite(
+        id: 'ag-2',
+        name: 'Pier',
+        entryMethods: [EntryMethod.jetty],
+      ),
+    );
+
+    await tester.pumpWidget(
+      _buildMergePageHarness(
+        prefs: prefs,
+        siteRepository: siteRepository,
+        siteIds: [site1.id, site2.id],
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Entry Method'),
+      100,
+      scrollable: find.byType(Scrollable).first,
+    );
+
+    expect(find.text('Jetty/Dock'), findsOneWidget);
+    expect(cycleButtonFor('Entry Method'), findsNothing);
+  });
+
+  testWidgets('merge mode cycles whole entry lists (#2054)', (tester) async {
+    tester.view.physicalSize = const Size(900, 3600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final site1 = await siteRepository.createSite(
+      const DiveSite(
+        id: 'ml-1',
+        name: 'Wall',
+        entryMethods: [EntryMethod.giantStride],
+      ),
+    );
+    final site2 = await siteRepository.createSite(
+      const DiveSite(
+        id: 'ml-2',
+        name: 'Wall',
+        entryMethods: [EntryMethod.backRoll, EntryMethod.giantStride],
+      ),
+    );
+
+    await tester.pumpWidget(
+      _buildMergePageHarness(
+        prefs: prefs,
+        siteRepository: siteRepository,
+        siteIds: [site1.id, site2.id],
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Entry Method'),
+      100,
+      scrollable: find.byType(Scrollable).first,
+    );
+
+    expect(find.text('Giant Stride'), findsOneWidget);
+    await tester.tap(cycleButtonFor('Entry Method'));
+    await tester.pumpAndSettle();
+    expect(find.text('Back Roll, Giant Stride'), findsOneWidget);
+  });
+
+  testWidgets('equal lists give one candidate and no cycle button', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 3600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    for (final id in ['eq-1', 'eq-2']) {
+      await siteRepository.createSite(
+        DiveSite(
+          id: id,
+          name: 'Wall',
+          entryMethods: const [EntryMethod.backRoll, EntryMethod.giantStride],
+        ),
+      );
+    }
+
+    await tester.pumpWidget(
+      _buildMergePageHarness(
+        prefs: prefs,
+        siteRepository: siteRepository,
+        siteIds: const ['eq-1', 'eq-2'],
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Entry Method'),
+      100,
+      scrollable: find.byType(Scrollable).first,
+    );
+
+    expect(find.text('Back Roll, Giant Stride'), findsOneWidget);
+    expect(cycleButtonFor('Entry Method'), findsNothing);
+  });
+
+  group('merge mode share toggle', () {
+    // A merge keeps each site's sharing (issue #2151): the page offers no
+    // picker. That a shared survivor stays shared is pinned by what a merge
+    // stores (site_merge_page_save_test.dart).
+    testWidgets('offers no sharing picker for a shared survivor', (
+      tester,
+    ) async {
+      // Seed two sites into the test database. The first is shared.
+      final repo = SiteRepository();
+      final primarySite = await repo.createSite(
+        const DiveSite(
+          id: 'site-primary',
+          name: 'Primary Site',
+          isShared: true,
+        ),
+      );
+      await repo.createSite(
+        const DiveSite(
+          id: 'site-secondary',
+          name: 'Secondary Site',
+          isShared: false,
+        ),
+      );
+
+      await tester.pumpWidget(
+        _buildMergePageHarness(
+          prefs: prefs,
+          siteRepository: siteRepository,
+          siteIds: [primarySite.id, 'site-secondary'],
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SharingTile), findsNothing);
+    });
+
+    testWidgets('initializes city/island/bodyOfWater from a merge candidate', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(900, 3200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      // Primary has no locality; secondary carries the values that must not be
+      // silently dropped during a merge.
+      final repo = SiteRepository();
+      final primarySite = await repo.createSite(
+        const DiveSite(id: 'merge-primary', name: 'Primary'),
+      );
+      await repo.createSite(
+        const DiveSite(
+          id: 'merge-secondary',
+          name: 'Secondary',
+          city: 'Cebu City',
+          island: 'Malapascua',
+          bodyOfWater: 'Visayan Sea',
+        ),
+      );
+
+      await tester.pumpWidget(
+        _buildMergePageHarness(
+          prefs: prefs,
+          siteRepository: siteRepository,
+          siteIds: [primarySite.id, 'merge-secondary'],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // The merge picks the first meaningful value, so the locality fields are
+      // populated from the secondary site rather than left empty.
+      expect(
+        find.widgetWithText(TextFormField, 'Cebu City'),
+        findsOneWidget,
+        reason: 'city must be initialized from the merge candidate',
+      );
+      expect(find.widgetWithText(TextFormField, 'Malapascua'), findsOneWidget);
+      expect(find.widgetWithText(TextFormField, 'Visayan Sea'), findsOneWidget);
+    });
   });
 }

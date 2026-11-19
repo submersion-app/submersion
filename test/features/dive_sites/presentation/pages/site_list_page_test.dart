@@ -8,7 +8,6 @@ import 'package:submersion/features/dive_sites/data/repositories/site_repository
 import 'package:submersion/features/dive_sites/domain/constants/site_field.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
-import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_list_page.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_list_content.dart';
@@ -663,7 +662,8 @@ void main() {
       await tester.pump();
       tester.takeException();
 
-      expect(find.byType(SiteEditPage), findsOneWidget);
+      final page = tester.widget<SiteDetailPage>(find.byType(SiteDetailPage));
+      expect(page.newSite, isNotNull);
     });
 
     testWidgets('table mode edit builder invoked via edit query param', (
@@ -693,7 +693,9 @@ void main() {
       await tester.pump();
       tester.takeException();
 
-      expect(find.byType(SiteEditPage), findsOneWidget);
+      final page = tester.widget<SiteDetailPage>(find.byType(SiteDetailPage));
+      expect(page.siteId, 'test-site-id');
+      expect(page.openUnlocked, isTrue);
     });
 
     /// Pumps the page on [initialLocation] with 'test-site-id' highlighted,
@@ -742,7 +744,7 @@ void main() {
     for (final viewMode in [ListViewMode.table, ListViewMode.detailed]) {
       testWidgets('${viewMode.name} mode: deleting from the edit pane clears '
           'the highlighted site', (tester) async {
-        final highlighted = await highlightAfterDelete<SiteEditPage>(
+        final highlighted = await highlightAfterDelete<SiteDetailPage>(
           tester,
           viewMode: viewMode,
           initialLocation: '/sites?selected=test-site-id&mode=edit',

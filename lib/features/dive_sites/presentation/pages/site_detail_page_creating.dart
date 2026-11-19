@@ -106,7 +106,6 @@ class _NewSiteLoaderState extends ConsumerState<_NewSiteLoader> {
       site: seed,
       siteId: seed.id,
       embedded: page.embedded,
-      unlockEditing: true,
       newSite: _NewSite(
         seed: request.seed,
         duplicate: source?.value,

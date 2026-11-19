@@ -30,17 +30,14 @@ const _features = [
   ),
 ];
 
-/// Pumps the section and returns a getter for how many times the host's
-/// add callback has fired (a snapshot int would always read zero).
-Future<int Function()> _pumpSection(
+/// Pumps the section.
+Future<void> _pumpSection(
   WidgetTester tester, {
   AppSettings settings = const AppSettings(),
   List<SiteFeature> features = _features,
-  bool editable = true,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
-  var addTaps = 0;
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
@@ -48,22 +45,16 @@ Future<int Function()> _pumpSection(
         settingsProvider.overrideWith((ref) => MockSettingsNotifier(settings)),
         siteFeaturesProvider('site-1').overrideWith((ref) async => features),
       ],
-      child: MaterialApp(
-        locale: const Locale('en'),
+      child: const MaterialApp(
+        locale: Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(
-          body: SiteFeaturesSection(
-            siteId: 'site-1',
-            onAddFeature: editable ? () => addTaps++ : null,
-          ),
-        ),
+        home: Scaffold(body: SiteFeaturesSection(siteId: 'site-1')),
       ),
     ),
   );
   await tester.pump();
   await tester.pump();
-  return () => addTaps;
 }
 
 void main() {
@@ -109,30 +100,10 @@ void main() {
     expect(find.textContaining('19.7 ft'), findsOneWidget);
   });
 
-  testWidgets('the add action hands control back to the host', (tester) async {
-    final addTaps = await _pumpSection(tester);
-    expect(addTaps(), 0);
-    await tester.tap(find.byKey(const ValueKey('siteFeatureAddButton')));
-    await tester.pump();
-    // The host callback fired, and the section itself never places: the
-    // host is what opens the map armed for placement.
-    expect(addTaps(), 1);
-    expect(find.byKey(const ValueKey('siteFeatureSaveButton')), findsNothing);
-  });
-
-  testWidgets('tapping a row opens the edit sheet', (tester) async {
+  // The Features card's editor adds and changes them, in a sitting (issue
+  // #4527, phase 2): the list itself offers neither.
+  testWidgets('the list offers no add and no edit', (tester) async {
     await _pumpSection(tester);
-    await tester.tap(find.byKey(const ValueKey('siteFeatureRow-f-2')));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
-    expect(find.byKey(const ValueKey('siteFeatureSaveButton')), findsOneWidget);
-    expect(find.text('Edit feature'), findsOneWidget);
-  });
-
-  testWidgets('a site this profile may not change offers no edits', (
-    tester,
-  ) async {
-    await _pumpSection(tester, editable: false);
     expect(find.text('Hilma Hooker'), findsOneWidget);
     expect(find.byKey(const ValueKey('siteFeatureAddButton')), findsNothing);
     await tester.tap(find.text('Hilma Hooker'));

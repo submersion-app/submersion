@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_sites/domain/services/site_suggestions.
 import 'package:submersion/features/dive_sites/presentation/editing/site_coordinate_rows.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_location_rules.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_plain_fields.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/place_name_replace_dialog.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_text_binding.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/place_lookup_row.dart';
@@ -236,12 +237,17 @@ class _SiteLocationCardEditorState
         return _snack(l10n.diveSites_edit_snackbar_lookupNothingFound);
       }
       final filled = applyPlaceLookup(_session, lookup, overwrite: false);
-      final differing = differingPlaceValues(_session, lookup, l10n);
+      final differing = differingPlaceValues(
+        sittingPlaceNames(_session),
+        lookup,
+        l10n,
+      );
       if (differing.isEmpty) {
         if (!filled) _snack(l10n.diveSites_edit_snackbar_lookupNoChanges);
         return;
       }
-      if (!await _confirmReplace(differing) || !mounted) return;
+      final replace = await confirmPlaceNameReplace(context, differing);
+      if (!replace || !mounted) return;
       if (_session.isDisposed || _session.valueOf(siteLocationField) != point) {
         return;
       }
@@ -249,37 +255,6 @@ class _SiteLocationCardEditorState
     } finally {
       if (mounted) setState(() => _busy = false);
     }
-  }
-
-  Future<bool> _confirmReplace(Map<String, String> differing) async {
-    final l10n = context.l10n;
-    final replace = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.diveSites_edit_lookupReplace_title),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(l10n.diveSites_edit_lookupReplace_body),
-            const SizedBox(height: 8),
-            for (final entry in differing.entries)
-              Text('${entry.key}: ${entry.value}'),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(l10n.diveSites_edit_lookupReplace_keep),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(l10n.diveSites_edit_lookupReplace_replace),
-          ),
-        ],
-      ),
-    );
-    return replace ?? false;
   }
 
   @override

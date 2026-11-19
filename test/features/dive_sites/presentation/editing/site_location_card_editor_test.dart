@@ -22,13 +22,17 @@ class _FakeLocation implements LocationService {
   _FakeLocation(this.place);
 
   final PlaceLookup place;
+  var lookups = 0;
 
   @override
   Future<PlaceLookup> reverseGeocode(
     double latitude,
     double longitude, {
     required String languageCode,
-  }) async => place;
+  }) async {
+    lookups++;
+    return place;
+  }
 
   @override
   Future<LocationResult?> getCurrentLocation({
@@ -334,5 +338,60 @@ void main() {
     await tester.pumpAndSettle();
     expect(pick().onPressed, isNotNull);
     await tester.pump(const Duration(seconds: 2));
+  });
+
+  // The form's locality rows, on the card (plan 7).
+  testWidgets('city, island and body of water are rows the diver types in', (
+    tester,
+  ) async {
+    final h = await pump(tester);
+
+    for (final (label, text) in [
+      (l.diveSites_edit_field_city_label, 'Cebu City'),
+      (l.diveSites_edit_field_island_label, 'Malapascua'),
+      (l.diveSites_edit_field_bodyOfWater_label, 'Visayan Sea'),
+    ]) {
+      await tester.enterText(field(label), text);
+      await tester.pump();
+    }
+
+    expect(h.session.valueOf(siteCityField), 'Cebu City');
+    expect(h.session.valueOf(siteIslandField), 'Malapascua');
+    expect(h.session.valueOf(siteBodyOfWaterField), 'Visayan Sea');
+    expect(h.session.changedCardIds, contains('location'));
+  });
+
+  // A cleared name stays cleared: nothing refills it from the position.
+  testWidgets('clearing a name on a placed site holds it empty and asks the '
+      'geocoder nothing', (tester) async {
+    final geocoder = _FakeLocation(place);
+    final h = await pumpSiteEditor(
+      tester,
+      const DiveSite(
+        id: 's1',
+        name: 'Hole',
+        location: GeoPoint(17.3, -87.5),
+        country: 'Belize',
+        countryCode: 'BZ',
+        region: 'Turneffe',
+      ),
+      (session) => SiteLocationCardEditor(session: session),
+      overrides: [
+        locationServiceProvider.overrideWithValue(geocoder),
+        elevationServiceProvider.overrideWithValue(_FakeElevation(null)),
+      ],
+    );
+
+    await tester.enterText(field(l.diveSites_edit_field_region_label), '');
+    await tester.pump();
+    expect(h.session.valueOf(siteRegionField), isNull);
+    expect(h.session.valueOf(siteCountryField), 'Belize');
+
+    await tester.enterText(field(l.diveSites_edit_field_country_label), '');
+    await tester.pump(const Duration(seconds: 2));
+    expect(h.session.valueOf(siteCountryField), isNull);
+    expect(h.session.valueOf(siteCountryCodeField), isNull);
+    expect(h.session.valueOf(siteRegionField), isNull);
+    expect(geocoder.lookups, 0);
   });
 }

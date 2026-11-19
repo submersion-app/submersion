@@ -12,16 +12,12 @@ import 'package:submersion/shared/widgets/forms/form_section.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/altitude_group_label.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
-/// Site group 2: latitude/longitude rows, locate/pick actions, altitude
-/// row with the altitude-group indicator.
+/// The merge page's Location group, always open: the latitude and
+/// longitude rows, the locate and pick actions, and the altitude row with
+/// its altitude-group indicator.
 class LocationSection extends StatelessWidget {
   const LocationSection({
     super.key,
-    required this.expanded,
-    required this.onToggle,
-    required this.summary,
-    required this.isEmpty,
-    this.errorCount = 0,
     required this.latitudeController,
     required this.longitudeController,
     required this.coordinateFormat,
@@ -37,11 +33,6 @@ class LocationSection extends StatelessWidget {
     this.altitudeExtras,
   });
 
-  final bool expanded;
-  final VoidCallback? onToggle;
-  final String summary;
-  final bool isEmpty;
-  final int errorCount;
   final TextEditingController latitudeController;
   final TextEditingController longitudeController;
 
@@ -64,12 +55,8 @@ class LocationSection extends StatelessWidget {
     return FormSection(
       label: l10n.diveSites_edit_group_location,
       icon: Icons.place_outlined,
-      expanded: expanded,
-      onToggle: onToggle,
-      summary: summary,
-      isEmpty: isEmpty,
-      emptyInvitation: l10n.diveSites_edit_invite_location,
-      errorCount: errorCount,
+      expanded: true,
+      onToggle: null,
       children: [
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
