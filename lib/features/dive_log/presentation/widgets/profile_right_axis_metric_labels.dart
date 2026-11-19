@@ -6,6 +6,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_position.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_avelo_lines.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_buoyancy_line.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -73,11 +74,9 @@ bool hasDataForMetric(
       final curve = config.buoyancyCurve;
       return curve != null && buoyancyAxisRange(curve) != null;
     case ProfileRightAxisMetric.aveloBuoyancy:
-      return buoyancyAxisRange(_aveloBuoyancyCurve(config)) != null;
     case ProfileRightAxisMetric.aveloGasRemaining:
-      return config.profile.any((p) => p.aveloGasRemaining != null);
     case ProfileRightAxisMetric.computerRmv:
-      return config.profile.any((p) => p.computerRmv != null);
+      return aveloLineRange(metric, config.profile) != null;
   }
 }
 
@@ -196,17 +195,10 @@ bool hasDataForMetric(
       return curve == null ? null : buoyancyAxisRange(curve);
 
     case ProfileRightAxisMetric.aveloBuoyancy:
-      // Kilograms, spanning 0 like the modelled buoyancy line.
-      return buoyancyAxisRange(_aveloBuoyancyCurve(config));
-
     case ProfileRightAxisMetric.aveloGasRemaining:
-      return (min: 0.0, max: 100.0);
-
     case ProfileRightAxisMetric.computerRmv:
-      // Litres per minute, zero-anchored.
-      final rmvs = [for (final p in config.profile) ?p.computerRmv];
-      if (rmvs.isEmpty) return null;
-      return (min: 0.0, max: rmvs.reduce(math.max) * 1.2);
+      // Kilograms, percent and litres per minute (#4664).
+      return aveloLineRange(metric, config.profile);
   }
 }
 
@@ -346,8 +338,3 @@ String profileMetricCategoryName(
     l10n.enum_profileMetricCategory_gradientFactor,
   ProfileMetricCategory.other => l10n.enum_profileMetricCategory_other,
 };
-
-/// The computer's Avelo buoyancy per sample, kilograms (issue #4664).
-List<double?> _aveloBuoyancyCurve(DiveProfileChart config) => [
-  for (final p in config.profile) p.aveloBuoyancy,
-];

@@ -60794,6 +60794,13 @@ class AppLocalizationsZh extends AppLocalizations {
       '这条线显示你在整个潜水过程中的净浮力，使用与浮力卡片相同的模型，针对图表当前显示的电脑。正浮力时为绿色，负浮力时为品红色，虚线标出中性浮力。';
 
   @override
+  String get info_term_aveloProfile_label => 'Avelo 数值';
+
+  @override
+  String get info_term_aveloProfile_body =>
+      'Shearwater 的 Avelo 模式按潜水电脑的记录保存这些数值：Avelo 浮力（负值表示偏重）、Hydrotank 中剩余气体的百分比，以及电脑自身的 RMV。它们不是由应用计算的，这里的浮力也不是浮力卡片中的模型浮力。';
+
+  @override
   String get info_term_hypercapnia_label => '高碳酸血症';
 
   @override

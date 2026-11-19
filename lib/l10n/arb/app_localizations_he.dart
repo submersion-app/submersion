@@ -63409,6 +63409,13 @@ class AppLocalizationsHe extends AppLocalizations {
       'הקו מציג את הציפה הנטו שלך לאורך הצלילה, לפי אותו מודל של כרטיס הציפה, עבור המחשב שהתרשים מציג. הוא ירוק כשאתה צף ומג\'נטה כשאתה כבד, והקו המקווקו מסמן ציפה ניטרלית.';
 
   @override
+  String get info_term_aveloProfile_label => 'ערכי Avelo';
+
+  @override
+  String get info_term_aveloProfile_body =>
+      'מצב Avelo של Shearwater רושם ערכים אלה כפי שמחשב הצלילה תיעד אותם: ציפה של Avelo (שלילי פירושו כבד), הגז שנותר ב-Hydrotank באחוזים, וה-RMV של המחשב עצמו. האפליקציה אינה מחשבת אותם, והציפה כאן אינה הציפה המחושבת בכרטיס הציפה.';
+
+  @override
   String get info_term_hypercapnia_label => 'היפרקפניה';
 
   @override

@@ -64393,6 +64393,13 @@ class AppLocalizationsHu extends AppLocalizations {
       'A vonal a merülés alatti nettó felhajtóerődet mutatja, ugyanabból a modellből, mint a Felhajtóerő kártya, a diagramon látható számítógéphez. Zöld, amíg felhajt, és bíbor, amíg túl nehéz vagy, a szaggatott vonal pedig a semleges szintet jelöli.';
 
   @override
+  String get info_term_aveloProfile_label => 'Avelo értékek';
+
+  @override
+  String get info_term_aveloProfile_body =>
+      'A Shearwater Avelo módja úgy rögzíti ezeket, ahogy a búvárkomputer mérte: az Avelo felhajtóerőt (a negatív nehezet jelent), a Hydrotankban maradt gázt százalékban és a komputer saját RMV-jét. Az alkalmazás nem számítja őket, és ez a felhajtóerő nem a Felhajtóerő kártya modellezett értéke.';
+
+  @override
   String get info_term_hypercapnia_label => 'Hiperkapnia';
 
   @override

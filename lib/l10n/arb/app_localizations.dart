@@ -101466,6 +101466,18 @@ abstract class AppLocalizations {
   /// **'The line shows your net buoyancy through the dive, from the same model as the Buoyancy card, for the computer the chart is showing. It is green while you are buoyant and magenta while you are heavy, and the dashed line marks neutral.'**
   String get info_term_buoyancyProfile_body;
 
+  /// No description provided for @info_term_aveloProfile_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Avelo values'**
+  String get info_term_aveloProfile_label;
+
+  /// No description provided for @info_term_aveloProfile_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Shearwater\'s Avelo mode logs these as the dive computer recorded them: Avelo buoyancy (negative is heavy), the gas left in the Hydrotank as a percentage, and the computer\'s own RMV. They are not calculated by the app, and the buoyancy is not the modelled buoyancy of the Buoyancy card.'**
+  String get info_term_aveloProfile_body;
+
   /// No description provided for @info_term_hypercapnia_label.
   ///
   /// In en, this message translates to:

@@ -64729,6 +64729,13 @@ class AppLocalizationsPt extends AppLocalizations {
       'A linha mostra a tua flutuabilidade líquida durante o mergulho, com o mesmo modelo do cartão Flutuabilidade, para o computador que o gráfico mostra. É verde enquanto flutuas e magenta quando tens peso a mais, e a linha tracejada marca o neutro.';
 
   @override
+  String get info_term_aveloProfile_label => 'Valores Avelo';
+
+  @override
+  String get info_term_aveloProfile_body =>
+      'O modo Avelo da Shearwater registra estes valores tal como o computador de mergulho os registrou: a flutuabilidade Avelo (negativa significa pesado), o gás restante no Hydrotank em porcentagem e o RMV do próprio computador. O app não os calcula, e esta flutuabilidade não é a flutuabilidade modelada do cartão de flutuabilidade.';
+
+  @override
   String get info_term_hypercapnia_label => 'Hipercapnia';
 
   @override

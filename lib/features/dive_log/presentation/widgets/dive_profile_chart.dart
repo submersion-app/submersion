@@ -43,6 +43,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_l
 import 'package:submersion/features/dive_log/presentation/widgets/legend_candidates.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_decimator.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_plot_frame.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_avelo_lines.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_buoyancy_line.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_band.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_bands.dart';
@@ -1028,6 +1029,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   bool _showMeanDepth = false;
   bool _showTts = false;
   bool _showGtr = false;
+  // The three Avelo lines (#4664).
+  bool _showAveloBuoyancy = false;
+  bool _showAveloGasRemaining = false;
+  bool _showComputerRmv = false;
   bool _showLateGasSwitches = true;
   bool _showCounterdiffusion = false;
   bool _counterdiffusionShowAll = false;
@@ -2605,6 +2610,55 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       );
     }
 
+    // The computer's Avelo values (issue #4664), shown once enabled on a
+    // dive that carries them; '-' at a sample the computer left blank.
+    final avelo = spot.spotIndex < widget.profile.length
+        ? widget.profile[spot.spotIndex]
+        : null;
+    if (_showAveloBuoyancy &&
+        _hasDataForMetric(ProfileRightAxisMetric.aveloBuoyancy)) {
+      final kg = avelo?.aveloBuoyancy;
+      rows.add(
+        TooltipRow(
+          label: l10n.diveLog_legend_label_aveloBuoyancy,
+          value: kg == null
+              ? '-'
+              : formatBuoyancyReadout(
+                  kg,
+                  units,
+                  l10n,
+                  direction: Directionality.of(context),
+                ),
+          bulletColor: _metricColor(ProfileMetric.aveloBuoyancy),
+          metric: ProfileRightAxisMetric.aveloBuoyancy,
+        ),
+      );
+    }
+    if (_showAveloGasRemaining &&
+        _hasDataForMetric(ProfileRightAxisMetric.aveloGasRemaining)) {
+      final percent = avelo?.aveloGasRemaining;
+      rows.add(
+        TooltipRow(
+          label: l10n.diveLog_legend_label_aveloGasRemaining,
+          value: percent == null ? '-' : '$percent%',
+          bulletColor: _metricColor(ProfileMetric.aveloGasRemaining),
+          metric: ProfileRightAxisMetric.aveloGasRemaining,
+        ),
+      );
+    }
+    if (_showComputerRmv &&
+        _hasDataForMetric(ProfileRightAxisMetric.computerRmv)) {
+      final rmv = avelo?.computerRmv;
+      rows.add(
+        TooltipRow(
+          label: l10n.diveLog_legend_label_computerRmv,
+          value: rmv == null ? '-' : units.formatRmv(rmv),
+          bulletColor: _metricColor(ProfileMetric.computerRmv),
+          metric: ProfileRightAxisMetric.computerRmv,
+        ),
+      );
+    }
+
     // GF% (always shown once enabled; see the Ceiling row comment).
     if (_showGf) {
       final gf = _curveValueAt(widget.gfCurve, spot.spotIndex);
@@ -3115,6 +3169,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showMeanDepth = false;
     _showTts = false;
     _showGtr = false;
+    _showAveloBuoyancy = false;
+    _showAveloGasRemaining = false;
+    _showComputerRmv = false;
     _showCns = false;
     _showOtu = false;
     _showPressure = true;
@@ -3233,6 +3290,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showMeanDepth = legendState.showMeanDepth;
     _showTts = legendState.showTts;
     _showGtr = legendState.showGtr;
+    _showAveloBuoyancy = legendState.showAveloBuoyancy;
+    _showAveloGasRemaining = legendState.showAveloGasRemaining;
+    _showComputerRmv = legendState.showComputerRmv;
     _showCns = legendState.showCns;
     _showOtu = legendState.showOtu;
     // Sync per-tank pressure visibility. Replace rather than merge: the
@@ -3323,6 +3383,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       hasDensityData: hasDensityData,
       hasBuoyancy: widget.buoyancyAvailable,
       hasBuoyancyLine: _hasDataForMetric(ProfileRightAxisMetric.buoyancy),
+      hasAveloBuoyancy: _hasDataForMetric(ProfileRightAxisMetric.aveloBuoyancy),
+      hasAveloGasRemaining: _hasDataForMetric(
+        ProfileRightAxisMetric.aveloGasRemaining,
+      ),
+      hasComputerRmv: _hasDataForMetric(ProfileRightAxisMetric.computerRmv),
       hasGfData: hasGfData,
       hasSurfaceGfData: hasSurfaceGfData,
       hasMeanDepthData: hasMeanDepthData,
@@ -4412,6 +4477,31 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               ? const <LineChartBarData>[]
               : [_buildNeutralRule(metricBand, buoyancyRange)];
 
+          // The three Avelo lines (if showing), straight from the samples
+          // (#4664).
+          final aveloLines = [
+            for (final (metric, shown) in [
+              (ProfileRightAxisMetric.aveloBuoyancy, _showAveloBuoyancy),
+              (
+                ProfileRightAxisMetric.aveloGasRemaining,
+                _showAveloGasRemaining,
+              ),
+              (ProfileRightAxisMetric.computerRmv, _showComputerRmv),
+            ])
+              if (shown)
+                if (aveloLineRange(metric, widget.profile) case final range?)
+                  (
+                    bar: buildAveloLine(
+                      color: _palette.rightAxisColor(metric),
+                      band: metricBand,
+                      curve: aveloCurve(metric, widget.profile),
+                      range: range,
+                      profile: widget.profile,
+                    ),
+                    tag: metric,
+                  ),
+          ];
+
           return [
             ..._tagAll(decoStopBand, ChartOnlyMetric.decoStop),
             ..._tagAll(ceilingLines, ChartOnlyMetric.ceiling),
@@ -4433,6 +4523,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             ..._tagAll(otuLines, ProfileRightAxisMetric.otu),
             ..._tagAll(neutralRule, null),
             ..._tagAll(buoyancyLines, ProfileRightAxisMetric.buoyancy),
+            ...aveloLines,
           ];
         }),
         ..._barsCache.series('markers', _markersSig, () {

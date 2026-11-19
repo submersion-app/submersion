@@ -18875,6 +18875,8 @@
   "info_term_counterdiffusionProfile_body": "Sul profilo una banda arancione segna dove un compartimento contiene già più gas inerte di quello respirato e continua comunque ad assorbirne in modo apprezzabile. Nel modello di Bühlmann l'elio esce più in fretta di quanto entri l'azoto, quindi un cambio da trimix a nitrox mostra raramente una banda; la linea tratteggiata al cambio mostra invece la regola dei quinti.",
   "info_term_buoyancyProfile_label": "Assetto sul profilo",
   "info_term_buoyancyProfile_body": "La linea mostra il tuo assetto netto durante l'immersione, con lo stesso modello della scheda Assetto, per il computer mostrato dal grafico. È verde quando sei positivo e magenta quando sei pesante, e la linea tratteggiata indica il neutro.",
+  "info_term_aveloProfile_label": "Valori Avelo",
+  "info_term_aveloProfile_body": "La modalità Avelo di Shearwater registra questi valori come li ha rilevati il computer subacqueo: l'assetto Avelo (negativo significa pesante), il gas residuo nell'Hydrotank in percentuale e l'RMV del computer stesso. L'app non li calcola, e questo assetto non è l'assetto modellato della scheda Assetto.",
   "info_term_hypercapnia_label": "Ipercapnia",
   "info_term_hypercapnia_body": "Un accumulo di anidride carbonica nel corpo. Gas denso e sforzo intenso lo rendono più probabile.",
   "info_term_turnPressure_label": "Pressione di inversione",

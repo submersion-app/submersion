@@ -64900,6 +64900,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'La ligne montre ta flottabilité nette pendant la plongée, avec le même modèle que la carte Flottabilité, pour l\'ordinateur affiché par le graphique. Elle est verte quand tu es positif et magenta quand tu es trop lourd, et la ligne pointillée marque le neutre.';
 
   @override
+  String get info_term_aveloProfile_label => 'Valeurs Avelo';
+
+  @override
+  String get info_term_aveloProfile_body =>
+      'Le mode Avelo de Shearwater enregistre ces valeurs telles que l\'ordinateur de plongée les a relevées : la flottabilité Avelo (négative signifie lourd), le gaz restant dans le Hydrotank en pourcentage et le RMV de l\'ordinateur lui-même. L\'application ne les calcule pas, et cette flottabilité n\'est pas la flottabilité modélisée de la carte Flottabilité.';
+
+  @override
   String get info_term_hypercapnia_label => 'Hypercapnie';
 
   @override

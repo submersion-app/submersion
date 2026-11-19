@@ -64797,6 +64797,13 @@ class AppLocalizationsEs extends AppLocalizations {
       'La línea muestra tu flotabilidad neta durante la inmersión, con el mismo modelo que la tarjeta de Flotabilidad, para el ordenador que muestra el gráfico. Es verde mientras flotas y magenta mientras pesas de más, y la línea discontinua marca el punto neutro.';
 
   @override
+  String get info_term_aveloProfile_label => 'Valores Avelo';
+
+  @override
+  String get info_term_aveloProfile_body =>
+      'El modo Avelo de Shearwater registra estos valores tal como los registró el ordenador de buceo: la flotabilidad Avelo (negativa es pesado), el gas restante en el Hydrotank en porcentaje y el RMV del propio ordenador. La aplicación no los calcula, y la flotabilidad no es la flotabilidad modelada de la tarjeta de flotabilidad.';
+
+  @override
   String get info_term_hypercapnia_label => 'Hipercapnia';
 
   @override

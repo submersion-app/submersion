@@ -19000,6 +19000,8 @@
   "info_term_counterdiffusionProfile_body": "Im Tauchprofil markiert ein oranges Band, wo ein Kompartiment bereits mehr Inertgas enthält, als eingeatmet wird, und trotzdem spürbar aufsättigt. Im Bühlmann-Modell fließt Helium schneller ab, als Stickstoff einströmt, daher zeigt ein Wechsel von Trimix auf Nitrox selten ein Band; die gestrichelte Linie am Wechsel zeigt stattdessen die Fünftelregel.",
   "info_term_buoyancyProfile_label": "Auftrieb im Profil",
   "info_term_buoyancyProfile_body": "Die Linie zeigt deinen Nettoauftrieb während des Tauchgangs, aus demselben Modell wie die Auftriebskarte, für den Computer, den das Diagramm zeigt. Grün heißt, du hast Auftrieb, Magenta, du bist zu schwer; die gestrichelte Linie markiert neutral.",
+  "info_term_aveloProfile_label": "Avelo-Werte",
+  "info_term_aveloProfile_body": "Der Avelo-Modus von Shearwater zeichnet diese Werte so auf, wie der Tauchcomputer sie erfasst hat: Avelo-Auftrieb (negativ heißt zu schwer), das Restgas im Hydrotank in Prozent und das computereigene RMV. Die App berechnet sie nicht, und der Auftrieb ist nicht der modellierte Auftrieb der Auftriebskarte.",
   "info_term_hypercapnia_label": "Hyperkapnie",
   "info_term_hypercapnia_body": "Eine Anreicherung von Kohlendioxid im Körper. Dichtes Gas und schwere Arbeit machen sie wahrscheinlicher.",
   "info_term_turnPressure_label": "Umkehrdruck",

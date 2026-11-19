@@ -64619,6 +64619,13 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die Linie zeigt deinen Nettoauftrieb während des Tauchgangs, aus demselben Modell wie die Auftriebskarte, für den Computer, den das Diagramm zeigt. Grün heißt, du hast Auftrieb, Magenta, du bist zu schwer; die gestrichelte Linie markiert neutral.';
 
   @override
+  String get info_term_aveloProfile_label => 'Avelo-Werte';
+
+  @override
+  String get info_term_aveloProfile_body =>
+      'Der Avelo-Modus von Shearwater zeichnet diese Werte so auf, wie der Tauchcomputer sie erfasst hat: Avelo-Auftrieb (negativ heißt zu schwer), das Restgas im Hydrotank in Prozent und das computereigene RMV. Die App berechnet sie nicht, und der Auftrieb ist nicht der modellierte Auftrieb der Auftriebskarte.';
+
+  @override
   String get info_term_hypercapnia_label => 'Hyperkapnie';
 
   @override

@@ -64756,6 +64756,13 @@ class AppLocalizationsIt extends AppLocalizations {
       'La linea mostra il tuo assetto netto durante l\'immersione, con lo stesso modello della scheda Assetto, per il computer mostrato dal grafico. È verde quando sei positivo e magenta quando sei pesante, e la linea tratteggiata indica il neutro.';
 
   @override
+  String get info_term_aveloProfile_label => 'Valori Avelo';
+
+  @override
+  String get info_term_aveloProfile_body =>
+      'La modalità Avelo di Shearwater registra questi valori come li ha rilevati il computer subacqueo: l\'assetto Avelo (negativo significa pesante), il gas residuo nell\'Hydrotank in percentuale e l\'RMV del computer stesso. L\'app non li calcola, e questo assetto non è l\'assetto modellato della scheda Assetto.';
+
+  @override
   String get info_term_hypercapnia_label => 'Ipercapnia';
 
   @override

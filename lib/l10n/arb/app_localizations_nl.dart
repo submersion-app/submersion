@@ -64357,6 +64357,13 @@ class AppLocalizationsNl extends AppLocalizations {
       'De lijn toont je netto drijfvermogen tijdens de duik, uit hetzelfde model als de kaart Drijfvermogen, voor de computer die de grafiek toont. Hij is groen zolang je drijft en magenta zolang je te zwaar bent, en de stippellijn markeert neutraal.';
 
   @override
+  String get info_term_aveloProfile_label => 'Avelo-waarden';
+
+  @override
+  String get info_term_aveloProfile_body =>
+      'De Avelo-modus van Shearwater legt deze waarden vast zoals de duikcomputer ze registreerde: Avelo-drijfvermogen (negatief is zwaar), het resterende gas in de Hydrotank als percentage en de eigen RMV van de computer. De app berekent ze niet, en dit drijfvermogen is niet het gemodelleerde drijfvermogen van de drijfvermogenkaart.';
+
+  @override
   String get info_term_hypercapnia_label => 'Hypercapnie';
 
   @override

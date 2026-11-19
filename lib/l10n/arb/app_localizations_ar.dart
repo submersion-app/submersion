@@ -65696,6 +65696,13 @@ class AppLocalizationsAr extends AppLocalizations {
       'يعرض الخط صافي طفوك طوال الغطسة، من النموذج نفسه المستخدم في بطاقة الطفو، للحاسوب الذي يعرضه المخطط. يكون أخضر عندما تكون طافيًا وأرجوانيًا عندما تكون ثقيلًا، ويحدد الخط المتقطع نقطة التعادل.';
 
   @override
+  String get info_term_aveloProfile_label => 'قيم Avelo';
+
+  @override
+  String get info_term_aveloProfile_body =>
+      'يسجّل وضع Avelo في Shearwater هذه القيم كما سجّلها كمبيوتر الغوص: طفو Avelo (السالب يعني ثقيلًا)، والغاز المتبقي في Hydrotank كنسبة مئوية، وRMV الخاص بالكمبيوتر. لا يحسبها التطبيق، والطفو هنا ليس الطفو المحسوب في بطاقة الطفو.';
+
+  @override
   String get info_term_hypercapnia_label => 'فرط ثاني أكسيد الكربون';
 
   @override
