@@ -402,9 +402,14 @@ void main() {
       '/sites/s1?mode=edit',
     );
     expect(siteEditLocation('s1', const {}, unlockEditing: false), isNull);
-    // A reader's suggestion still opens the form until it has a sitting.
+    // A reader's suggestion opens the page too, unlocked as the role
+    // allows (issue #4527, phase 2, plan 5); with the switch off, the form.
     expect(
       siteEditLocation('s1', const {'suggest': '1'}, unlockEditing: true),
+      '/sites/s1?mode=edit',
+    );
+    expect(
+      siteEditLocation('s1', const {'suggest': '1'}, unlockEditing: false),
       isNull,
     );
     final route = _findRouteByName(router.configuration.routes, 'editSite');

@@ -86,6 +86,7 @@ import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dar
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_classification_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_edit_cards.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_reader_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_sitting_save.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_sitting_start.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_catalogue_sitting.dart';
@@ -721,7 +722,8 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
         ),
       ];
     }
-    if (canSuggestOnLibrarySite(access.role)) {
+    // On a page that hosts editing a reader suggests through its unlock.
+    if (canSuggestOnLibrarySite(access.role) && !hostsEditing) {
       return [
         TextButton.icon(
           icon: const Icon(Icons.rate_review_outlined, size: 18),

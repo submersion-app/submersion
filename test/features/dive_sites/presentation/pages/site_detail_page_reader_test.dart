@@ -1,0 +1,158 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:flutter_riverpod/misc.dart' show Override;
+import 'package:submersion/core/services/shared_library/shared_library_models.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations_en.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
+
+import 'site_detail_page_unlock_harness.dart';
+
+/// A shared site library reader suggests changes from the site page itself
+/// (issue #4527, phase 2, plan 5): the unlock reads "Suggest changes", and
+/// the sitting is titled so and ends with Send.
+void main() {
+  final l = AppLocalizationsEn();
+  const suggestKey = ValueKey('site_suggest_unlock');
+  final librarySite = harnessSite.copyWith(
+    diverId: 'other',
+    sharedLibraryId: 'L',
+  );
+
+  /// The library's overrides, with [role] as the profile's role there.
+  List<Override> library({
+    Future<SharedLibraryRole> Function()? role,
+    bool connected = true,
+  }) => [
+    libraryRoleProvider('L').overrideWith(
+      (ref) => role?.call() ?? Future.value(SharedLibraryRole.reader),
+    ),
+    libraryConnectedHereProvider('L').overrideWith((ref) async => connected),
+    siteLibraryStateProvider('s1').overrideWith((ref) async => null),
+    libraryMemberNamesProvider('L').overrideWith((ref) async => const {}),
+    currentMembershipProvider('L').overrideWith(
+      (ref) async => const SharedLibraryMembership(
+        id: 'm1',
+        diverId: 'me',
+        libraryId: 'L',
+        memberId: 'mem1',
+        displayName: 'Me',
+        libraryName: 'Club',
+        backendKind: 'folder',
+      ),
+    ),
+  ];
+
+  Future<SiteUnlockHarness> pumpReader(
+    WidgetTester tester, {
+    Future<SharedLibraryRole> Function()? role,
+    bool connected = true,
+    bool unlockEditing = true,
+    DiveSite? site,
+  }) => pumpSitePage(
+    tester,
+    site: site ?? librarySite,
+    unlockEditing: unlockEditing,
+    extra: library(role: role, connected: connected),
+  );
+
+  testWidgets('a reader\'s unlock reads Suggest changes', (tester) async {
+    await pumpReader(tester);
+
+    expect(find.byKey(suggestKey), findsOneWidget);
+    expect(find.byIcon(Icons.lock_outline), findsNothing);
+    // The page's separate "Suggest changes" button is gone.
+    expect(find.text(l.sharedLibrary_suggest_title), findsOneWidget);
+  });
+
+  testWidgets('the reader\'s bar is titled Suggest changes and saves with '
+      'Send', (tester) async {
+    await pumpReader(tester);
+    await tester.tap(find.byKey(suggestKey));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(RecordEditBar), findsOneWidget);
+    expect(find.text(l.sharedLibrary_suggest_title), findsOneWidget);
+    expect(find.text(l.sharedLibrary_suggest_send), findsOneWidget);
+    expect(find.text(l.forms_save), findsNothing);
+  });
+
+  testWidgets('an editor sees the lock', (tester) async {
+    await pumpReader(
+      tester,
+      role: () => Future.value(SharedLibraryRole.editor),
+    );
+
+    expect(find.byIcon(Icons.lock_outline), findsOneWidget);
+    expect(find.byKey(suggestKey), findsNothing);
+  });
+
+  testWidgets('a library not connected here offers no unlock', (tester) async {
+    await pumpReader(tester, connected: false);
+
+    expect(find.byKey(suggestKey), findsNothing);
+    expect(find.byIcon(Icons.lock_outline), findsNothing);
+    expect(find.text(l.sharedLibrary_site_connectHere), findsOneWidget);
+  });
+
+  testWidgets('a role still loading offers no unlock yet', (tester) async {
+    final never = Completer<SharedLibraryRole>();
+    await pumpReader(tester, role: () => never.future);
+
+    expect(find.byKey(suggestKey), findsNothing);
+    expect(find.byIcon(Icons.lock_outline), findsNothing);
+  });
+
+  // Review Focus 2: a reload (a sync) is not a lost right.
+  testWidgets('a role that reloads keeps the reader\'s sitting', (
+    tester,
+  ) async {
+    Completer<SharedLibraryRole>? reload;
+    final page = await pumpReader(
+      tester,
+      role: () => reload?.future ?? Future.value(SharedLibraryRole.reader),
+    );
+    await tester.tap(find.byKey(suggestKey));
+    await tester.pumpAndSettle();
+
+    final waiting = reload = Completer<SharedLibraryRole>();
+    page.container.invalidate(libraryRoleProvider('L'));
+    await tester.pump();
+    waiting.complete(SharedLibraryRole.reader);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(RecordEditBar), findsOneWidget);
+    expect(find.text(l.diveSites_edit_editingWithdrawn), findsNothing);
+  });
+
+  // Question 2: an editor's sitting may hold changes a reader cannot send.
+  testWidgets('an editor\'s sitting whose role drops to reader ends '
+      'withdrawn', (tester) async {
+    var role = SharedLibraryRole.editor;
+    final page = await pumpReader(tester, role: () => Future.value(role));
+    await tester.tap(find.byIcon(Icons.lock_outline));
+    await tester.pumpAndSettle();
+    expect(find.byType(RecordEditBar), findsOneWidget);
+
+    role = SharedLibraryRole.reader;
+    page.container.invalidate(libraryRoleProvider('L'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(RecordEditBar), findsNothing);
+    expect(find.text(l.diveSites_edit_editingWithdrawn), findsOneWidget);
+  });
+
+  testWidgets('with the switch off the page is as today', (tester) async {
+    await pumpReader(tester, unlockEditing: false);
+
+    expect(find.byKey(suggestKey), findsNothing);
+    expect(
+      find.widgetWithText(TextButton, l.sharedLibrary_suggest_title),
+      findsOneWidget,
+    );
+  });
+}

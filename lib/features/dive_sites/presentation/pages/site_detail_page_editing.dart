@@ -7,8 +7,8 @@ const _editLog = LoggerService('SiteDetailPage');
 /// shares (the lock, the bar, the strip, the leave check, the keys).
 ///
 /// Offered behind [kUnlockSiteEditing], on the full page and in both list
-/// panes, for a site this profile may edit. A library reader's suggestions
-/// come in a later plan.
+/// panes, for a site this profile may edit, and to a shared site library's
+/// reader, whose sitting suggests changes (plan 5).
 mixin _SiteDetailPageEditing
     on
         ConsumerState<_SiteDetailContent>,
@@ -29,10 +29,48 @@ mixin _SiteDetailPageEditing
   @override
   bool get hostsEditing => widget.unlockEditing;
 
-  /// [hostsEditing], for a site this profile may edit now. [watch] in
-  /// `build`, a read anywhere else.
+  /// [hostsEditing], for a site this profile may edit now, or suggest
+  /// changes to as a library's reader. [watch] in `build`, a read anywhere
+  /// else.
   bool _offersEditingNow({bool watch = false}) =>
-      hostsEditing && _canEditSite(ref, widget.site, watch: watch);
+      hostsEditing &&
+      (_canEditSite(ref, widget.site, watch: watch) ||
+          _readerMaySuggest(watch: watch));
+
+  /// Whether this profile is a reader of the site's library, connected
+  /// here, with the role settled: a role still loading offers nothing yet,
+  /// rather than a reader's unlock to an editor.
+  bool _readerMaySuggest({bool watch = false}) {
+    final id = widget.site.sharedLibraryId;
+    if (id == null || !_libraryAccessSettled(watch: watch)) return false;
+    final connected =
+        (watch
+                ? ref.watch(libraryConnectedHereProvider(id))
+                : ref.read(libraryConnectedHereProvider(id)))
+            .value ??
+        false;
+    final role =
+        (watch
+                ? ref.watch(libraryRoleProvider(id))
+                : ref.read(libraryRoleProvider(id)))
+            .value;
+    return connected && role != null && canSuggestOnLibrarySite(role);
+  }
+
+  /// Whether the page offers a reader's sitting now, not an editor's.
+  bool _suggestsNow({bool watch = false}) =>
+      hostsEditing &&
+      !_canEditSite(ref, widget.site, watch: watch) &&
+      _readerMaySuggest(watch: watch);
+
+  /// Whether the open sitting may go on: a reader's while the page offers
+  /// any, an editor's while the profile may still edit. An editor's sitting
+  /// may hold what a reader cannot send (features, expected species), so
+  /// a role that drops to reader withdraws it (plan 5, Question 2).
+  bool _sittingAllowedNow({bool watch = false}) =>
+      isReaderSitting(maybeEditController?.session)
+      ? _offersEditingNow(watch: watch)
+      : hostsEditing && _canEditSite(ref, widget.site, watch: watch);
 
   @override
   bool get offersEditing => _offersEditingNow();
@@ -65,7 +103,9 @@ mixin _SiteDetailPageEditing
       );
     }
     final offered = _offersEditingNow(watch: true);
-    if (!offered && isSittingOpen && _libraryAccessSettled(watch: true)) {
+    if (isSittingOpen &&
+        !_sittingAllowedNow(watch: true) &&
+        _libraryAccessSettled(watch: true)) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _endWithdrawn());
     }
     followStored(siteProvider(widget.siteId));
@@ -166,7 +206,7 @@ mixin _SiteDetailPageEditing
   /// returns, and the page is built, and asks, again then.
   void _endWithdrawn() {
     final controller = maybeEditController;
-    if (!mounted || offersEditing || controller == null) return;
+    if (!mounted || controller == null || _sittingAllowedNow()) return;
     if (!controller.isUnlocked || !_libraryAccessSettled()) return;
     controller.lock();
     if (controller.isUnlocked) return;
@@ -187,14 +227,24 @@ mixin _SiteDetailPageEditing
   void onSittingStart(
     EditSession<DiveSite> session,
     ProviderContainer container,
-  ) => startSiteSitting(session, container.read);
+  ) {
+    if (_suggestsNow()) markReaderSitting(session);
+    startSiteSitting(session, container.read);
+  }
 
   @override
   DiveSite? get storedForUnlock => ref.read(siteProvider(widget.siteId)).value;
 
   @override
   String editingTitle(DiveSite site) =>
-      context.l10n.recordEdit_editingTitle(site.name);
+      isReaderSitting(maybeEditController?.session)
+      ? context.l10n.sharedLibrary_suggest_title
+      : context.l10n.recordEdit_editingTitle(site.name);
+
+  @override
+  String? get saveLabel => isReaderSitting(maybeEditController?.session)
+      ? context.l10n.sharedLibrary_suggest_send
+      : null;
 
   // After a whole-record operation: the site as stored now, read through
   // the provider the page shows, so both agree.

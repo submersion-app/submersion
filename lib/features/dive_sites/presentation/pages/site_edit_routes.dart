@@ -6,15 +6,15 @@ import 'package:submersion/features/dive_sites/presentation/pages/site_detail_pa
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
 
 /// Where the old site edit address (`/sites/<id>/edit`) goes (issue #4527,
-/// phase 2): with [unlockEditing], the site page opened unlocked; null,
-/// keeping the edit form, otherwise and for a library reader's suggestion
-/// (`?suggest=1`), which has no sitting yet.
+/// phase 2): with [unlockEditing], the site page opened unlocked, a library
+/// reader's suggestion (`?suggest=1`) too, since the page unlocks as the
+/// role allows (plan 5); null, keeping the edit form, otherwise.
 String? siteEditLocation(
   String siteId,
   Map<String, String> query, {
   bool unlockEditing = kUnlockSiteEditing,
 }) {
-  if (!unlockEditing || query['suggest'] == '1') return null;
+  if (!unlockEditing) return null;
   return '/sites/$siteId?mode=edit';
 }
 
