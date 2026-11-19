@@ -459,6 +459,15 @@ void main() {
     }
   });
 
+  // A track's sitting is asked about before a `go` leaves it (issue #4527,
+  // phase 3, plan 5).
+  test('leaving a track page goes through its sitting check', () {
+    for (final name in const ['gpsTrackDetail']) {
+      final route = _findRouteByName(router.configuration.routes, name);
+      expect(route?.onExit, same(confirmLeaveRecordSitting), reason: name);
+    }
+  });
+
   test('leaving the table editor goes through its unsaved work check', () {
     final route = _findRouteByName(router.configuration.routes, 'tableEditor');
 

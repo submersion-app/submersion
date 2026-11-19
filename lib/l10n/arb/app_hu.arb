@@ -5521,6 +5521,7 @@
   "gpsLogger_trackSubtitle": "{count, plural, one{{count} pont} other{{count} pont}}, {duration}",
   "gpsLogger_trackSubtitleTrimmed": "Levágva, {duration}",
   "gpsTrack_editCard_trim": "Vágás",
+  "gpsTrack_editCard_nameHint": "Nyomvonal neve",
   "gpsTrack_action_trim": "Vágás...",
   "gpsTrack_action_split": "Felosztás...",
   "gpsTrack_action_resetTrim": "Vágás visszaállítása",

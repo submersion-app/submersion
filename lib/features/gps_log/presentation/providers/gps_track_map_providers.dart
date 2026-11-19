@@ -118,13 +118,21 @@ final divesOnTrackProvider = FutureProvider.autoDispose
       if (track == null || track.endTime == null) return const [];
 
       final dives = await ref.watch(divesProvider.future);
-      return [
-        for (final dive in dives)
-          if (GpsTrackMatcher.trackCovering([track], _entryMillis(dive)) !=
-              null)
-            dive,
-      ];
+      return divesCoveredBy(track, dives);
     });
+
+/// The dives among [dives] whose entry falls inside [track]'s window,
+/// honouring its trim: the dives the track page pins, for a track as stored
+/// or as a sitting holds it (issue #4527).
+List<Dive> divesCoveredBy(GpsTrack track, List<Dive> dives) {
+  // An in-progress track has no closed window to test dives against.
+  if (track.endTime == null) return const [];
+  return [
+    for (final dive in dives)
+      if (GpsTrackMatcher.trackCovering([track], _entryMillis(dive)) != null)
+        dive,
+  ];
+}
 
 /// The track, if any, whose window covers [diveId].
 final trackForDiveProvider = FutureProvider.autoDispose

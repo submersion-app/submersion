@@ -38210,6 +38210,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gpsTrack_editCard_trim => 'חיתוך';
 
   @override
+  String get gpsTrack_editCard_nameHint => 'שם המסלול';
+
+  @override
   String get gpsTrack_action_trim => 'חיתוך...';
 
   @override

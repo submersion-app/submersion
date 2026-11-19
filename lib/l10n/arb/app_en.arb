@@ -23666,6 +23666,10 @@
   "@gpsTrack_editCard_trim": {
     "description": "A card's title on a record page unlocked for editing, and in History's list of the cards an edit changed."
   },
+  "gpsTrack_editCard_nameHint": "Track name",
+  "@gpsTrack_editCard_nameHint": {
+    "description": "Placeholder of the name field on a GPS track page unlocked for editing; also shown, faded, on the header of an unnamed track while unlocked."
+  },
   "gpsTrack_action_trim": "Trim...",
   "gpsTrack_action_split": "Split...",
   "gpsTrack_action_resetTrim": "Reset trim",

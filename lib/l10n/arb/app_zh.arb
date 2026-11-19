@@ -5765,6 +5765,7 @@
   "gpsLogger_trackSubtitle": "{count, plural, other{{count} 个点}}，{duration}",
   "gpsLogger_trackSubtitleTrimmed": "已裁剪，{duration}",
   "gpsTrack_editCard_trim": "裁剪",
+  "gpsTrack_editCard_nameHint": "轨迹名称",
   "gpsTrack_action_trim": "裁剪...",
   "gpsTrack_action_split": "拆分...",
   "gpsTrack_action_resetTrim": "重置裁剪",

@@ -5,10 +5,16 @@ import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/gps_log/data/repositories/track_geometry_cache_repository.dart';
+import 'package:submersion/features/gps_log/data/services/gps_track_edit_save_service.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/features/gps_log/domain/track_colorization.dart';
+import 'package:submersion/features/gps_log/presentation/editing/gps_track_card_ids.dart';
+import 'package:submersion/features/gps_log/presentation/editing/gps_track_edit_cards.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_track_map_providers.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/gps_track_polyline_layer.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/track_camera.dart';
@@ -23,12 +29,34 @@ import 'package:submersion/features/maps/presentation/widgets/submersion_tile_la
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/maps/presentation/widgets/world_copies.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_fade.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
+import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
-/// Full-screen map of one recorded GPS surface track.
+part 'gps_track_detail_page_editing.dart';
+
+/// Full-screen map of one recorded GPS surface track. Behind phase 3's
+/// switch ([unlockEditing]) it opens locked and edits in place (issue
+/// #4527): its name and trim are held in one sitting and written by one
+/// Save.
 class GpsTrackDetailPage extends ConsumerStatefulWidget {
-  const GpsTrackDetailPage({super.key, required this.trackId});
+  const GpsTrackDetailPage({
+    super.key,
+    required this.trackId,
+    this.unlockEditing = kUnlockRecordEditing,
+  });
 
   final String trackId;
+
+  /// Whether the page edits in place: phase 3's switch, a parameter so a
+  /// test can turn it on.
+  final bool unlockEditing;
 
   @override
   ConsumerState<GpsTrackDetailPage> createState() => _GpsTrackDetailPageState();
@@ -57,13 +85,22 @@ final trackEditModeProvider = StateProvider.autoDispose<TrackEditMode>(
   (ref) => TrackEditMode.none,
 );
 
-class _GpsTrackDetailPageState extends ConsumerState<GpsTrackDetailPage> {
+class _GpsTrackDetailPageState extends ConsumerState<GpsTrackDetailPage>
+    with
+        RecordEditHost<GpsTrackDetailPage, GpsTrack>,
+        _GpsTrackDetailPageEditing {
   final MapController _mapController = MapController();
   final _log = LoggerService.forClass(GpsTrackDetailPage);
 
   /// Live scrubber values, applied only when the user confirms.
   int? _pendingStartMs;
   int? _pendingEndMs;
+
+  @override
+  void dispose() {
+    disposeEditing();
+    super.dispose();
+  }
 
   Future<void> _onMenu(_TrackAction action, GpsTrack track) async {
     // Seed the pending values to what the scrubber will visibly show, so
@@ -124,7 +161,9 @@ class _GpsTrackDetailPageState extends ConsumerState<GpsTrackDetailPage> {
     List<GpsTrackPoint> points,
   ) {
     final mode = ref.watch(trackEditModeProvider);
-    if (mode == TrackEditMode.none) return const SizedBox.shrink();
+    if (mode == TrackEditMode.none || points.length < 2) {
+      return const SizedBox.shrink();
+    }
 
     final l10n = context.l10n;
     final theme = Theme.of(context);
@@ -221,70 +260,96 @@ class _GpsTrackDetailPageState extends ConsumerState<GpsTrackDetailPage> {
     }
   }
 
+  /// The page's top bar while locked: the title, the lock (where the page
+  /// edits in place and the track has been read), the menu, and the colour
+  /// mode below.
+  PreferredSizeWidget _lockedBar(GpsTrack? track) => AppBar(
+    title: Text(context.l10n.gpsTrack_detail_title),
+    actions: [
+      if (hostsEditing && track != null) lockButton(track),
+      if (track != null) _menu(track),
+    ],
+    bottom: const PreferredSize(
+      preferredSize: Size.fromHeight(52),
+      child: Padding(
+        padding: EdgeInsets.only(bottom: 8),
+        child: _ColorModeSelector(),
+      ),
+    ),
+  );
+
+  /// The overflow menu: History, the exports, and what changes the track.
+  /// On a page that edits in place, the name and trim are cards, so Trim
+  /// and Reset trim are not here.
+  Widget _menu(GpsTrack track) {
+    final l10n = context.l10n;
+    return PopupMenuButton<_TrackAction>(
+      key: const ValueKey('gps-track-overflow'),
+      tooltip: l10n.gpsTrack_action_export,
+      onSelected: (action) => _onMenu(action, track),
+      itemBuilder: (context) => [
+        changeLogHistoryMenuItem(
+          context,
+          rootTable: 'gps_tracks',
+          rootId: track.id,
+        ),
+        PopupMenuItem(
+          value: _TrackAction.shareGpx,
+          child: Text(l10n.gpsTrack_action_shareGpx),
+        ),
+        PopupMenuItem(
+          value: _TrackAction.saveGpx,
+          child: Text(l10n.gpsTrack_action_saveGpx),
+        ),
+        PopupMenuItem(
+          value: _TrackAction.shareKml,
+          child: Text(l10n.gpsTrack_action_shareKml),
+        ),
+        PopupMenuItem(
+          value: _TrackAction.saveKml,
+          child: Text(l10n.gpsTrack_action_saveKml),
+        ),
+        const PopupMenuDivider(),
+        if (!hostsEditing)
+          PopupMenuItem(
+            value: _TrackAction.trim,
+            child: Text(l10n.gpsTrack_action_trim),
+          ),
+        PopupMenuItem(
+          value: _TrackAction.split,
+          child: Text(l10n.gpsTrack_action_split),
+        ),
+        // Only offered when there is a trim to undo.
+        if (!hostsEditing &&
+            (track.trimStartTime != null || track.trimEndTime != null))
+          PopupMenuItem(
+            value: _TrackAction.resetTrim,
+            child: Text(l10n.gpsTrack_action_resetTrim),
+          ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final trackAsync = ref.watch(gpsTrackDetailProvider(widget.trackId));
+    if (hostsEditing) followStored(gpsTrackDetailProvider(widget.trackId));
+    final stored = trackAsync.value;
 
-    final track = trackAsync.value;
+    if (hostsEditing && stored != null) {
+      final shown = shownRecord(stored);
+      return editScaffold(
+        record: stored,
+        shown: shown,
+        lockedBar: _lockedBar(shown),
+        unlockedActions: [_menu(shown)],
+        content: _content(stored, shown),
+      );
+    }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.gpsTrack_detail_title),
-        actions: [
-          if (track != null)
-            PopupMenuButton<_TrackAction>(
-              key: const ValueKey('gps-track-overflow'),
-              tooltip: l10n.gpsTrack_action_export,
-              onSelected: (action) => _onMenu(action, track),
-              itemBuilder: (context) => [
-                changeLogHistoryMenuItem(
-                  context,
-                  rootTable: 'gps_tracks',
-                  rootId: track.id,
-                ),
-                PopupMenuItem(
-                  value: _TrackAction.shareGpx,
-                  child: Text(l10n.gpsTrack_action_shareGpx),
-                ),
-                PopupMenuItem(
-                  value: _TrackAction.saveGpx,
-                  child: Text(l10n.gpsTrack_action_saveGpx),
-                ),
-                PopupMenuItem(
-                  value: _TrackAction.shareKml,
-                  child: Text(l10n.gpsTrack_action_shareKml),
-                ),
-                PopupMenuItem(
-                  value: _TrackAction.saveKml,
-                  child: Text(l10n.gpsTrack_action_saveKml),
-                ),
-                const PopupMenuDivider(),
-                PopupMenuItem(
-                  value: _TrackAction.trim,
-                  child: Text(l10n.gpsTrack_action_trim),
-                ),
-                PopupMenuItem(
-                  value: _TrackAction.split,
-                  child: Text(l10n.gpsTrack_action_split),
-                ),
-                // Only offered when there is a trim to undo.
-                if (track.trimStartTime != null || track.trimEndTime != null)
-                  PopupMenuItem(
-                    value: _TrackAction.resetTrim,
-                    child: Text(l10n.gpsTrack_action_resetTrim),
-                  ),
-              ],
-            ),
-        ],
-        bottom: const PreferredSize(
-          preferredSize: Size.fromHeight(52),
-          child: Padding(
-            padding: EdgeInsets.only(bottom: 8),
-            child: _ColorModeSelector(),
-          ),
-        ),
-      ),
+      appBar: _lockedBar(stored),
       body: trackAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         // A corrupt or undecodable blob must not crash the page. Surface it
@@ -294,33 +359,53 @@ class _GpsTrackDetailPageState extends ConsumerState<GpsTrackDetailPage> {
           if (track == null) {
             return Center(child: Text(l10n.gpsTrack_detail_notFound));
           }
-          final points = track.effectivePoints;
-          if (points.length < 2) {
-            return Center(child: Text(l10n.gpsTrack_detail_noPoints));
-          }
-          return Column(
-            children: [
-              TrackStatsHeader(
-                points: points,
-                diveCount:
-                    ref
-                        .watch(divesOnTrackProvider(widget.trackId))
-                        .value
-                        ?.length ??
-                    0,
-              ),
-              _buildEditPanel(context, track, points),
-              Expanded(
-                child: _TrackMap(
-                  trackId: widget.trackId,
-                  fallbackPoints: points,
-                  controller: _mapController,
-                ),
-              ),
-            ],
-          );
+          return _content(track, track);
         },
       ),
+    );
+  }
+
+  /// The page under its bar: the name and trim cards where the page edits
+  /// in place, the statistics, the split panel and the map, for [shown]
+  /// (the track with the sitting's changes, or as [stored]).
+  Widget _content(GpsTrack stored, GpsTrack shown) {
+    final l10n = context.l10n;
+    final sitting = isSittingOpen;
+    final points = shown.effectivePoints;
+    // A trim held in a sitting may leave too few fixes to draw; the track
+    // itself still has them, and its Trim card must stay reachable.
+    final drawable = points.length >= 2 ? points : shown.points;
+    if (drawable.length < 2 || (!sitting && points.length < 2)) {
+      return Center(child: Text(l10n.gpsTrack_detail_noPoints));
+    }
+    final trimHeld =
+        sitting &&
+        (maybeEditController?.session?.changedCardIds.contains(
+              GpsTrackCardId.trim.name,
+            ) ??
+            false);
+    final dives = trimHeld
+        ? divesCoveredBy(shown, ref.watch(divesProvider).value ?? const [])
+        : ref.watch(divesOnTrackProvider(widget.trackId)).value ??
+              const <Dive>[];
+    return Column(
+      children: [
+        if (hostsEditing) _headerBlock(shown),
+        _calculated(
+          TrackStatsHeader(points: drawable, diveCount: dives.length),
+        ),
+        if (hostsEditing) _trimCard(shown),
+        _buildEditPanel(context, stored, stored.effectivePoints),
+        Expanded(
+          child: _TrackMap(
+            trackId: widget.trackId,
+            fallbackPoints: drawable,
+            heldPoints: trimHeld ? drawable : null,
+            dives: dives,
+            controller: _mapController,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -368,12 +453,21 @@ class _TrackMap extends ConsumerStatefulWidget {
   const _TrackMap({
     required this.trackId,
     required this.fallbackPoints,
+    required this.dives,
     required this.controller,
+    this.heldPoints,
   });
 
   final String trackId;
   final List<GpsTrackPoint> fallbackPoints;
+
+  /// The dives logged during the track, pinned on the map.
+  final List<Dive> dives;
   final MapController controller;
+
+  /// The track as a sitting holds it while its trim is changed (issue
+  /// #4527): drawn in place of the cached geometry, which follows storage.
+  final List<GpsTrackPoint>? heldPoints;
 
   @override
   ConsumerState<_TrackMap> createState() => _TrackMapState();
@@ -440,7 +534,9 @@ class _TrackMapState extends ConsumerState<_TrackMap> {
   Widget build(BuildContext context) {
     // Fall back to the unsimplified points while the isolate is working, so
     // the map draws immediately rather than flashing empty.
+    final held = widget.heldPoints;
     final points =
+        held ??
         ref.watch(gpsTrackGeometryProvider((trackId, TrackLod.detail))).value ??
         fallbackPoints;
     final drawable = points.length >= 2 ? points : fallbackPoints;
@@ -537,7 +633,7 @@ class _TrackMapState extends ConsumerState<_TrackMap> {
   /// siblings in the layer's Stack.
   List<Marker> _markers(BuildContext context, List<GpsTrackPoint> points) {
     final scheme = Theme.of(context).colorScheme;
-    final dives = ref.watch(divesOnTrackProvider(trackId)).value ?? const [];
+    final dives = widget.dives;
 
     return [
       Marker(

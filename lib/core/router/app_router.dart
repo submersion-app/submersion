@@ -1449,6 +1449,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '$kTracksLocation/gps/:id',
             name: 'gpsTrackDetail',
+            onExit: confirmLeaveRecordSitting,
             builder: (context, state) =>
                 GpsTrackDetailPage(trackId: state.pathParameters['id']!),
           ),
