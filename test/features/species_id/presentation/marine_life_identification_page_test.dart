@@ -400,7 +400,7 @@ void main() {
 
     const fallbackNote =
         'Eager is not in this version of the model, so the app uses '
-        'Balanced until an update adds it. Choose Balanced to keep it.';
+        'Balanced until an update adds Eager. Choose Balanced to keep using it.';
     const balancedKey = ValueKey('species_id_level_balanced');
 
     testWidgets('a level the pack lacks says which one is in use', (
@@ -443,6 +443,53 @@ void main() {
         find.byType(RadioGroup<NamingLevel>),
       );
       expect(group.groupValue, NamingLevel.balanced);
+    });
+
+    testWidgets('choosing another level in a fallback sets it', (tester) async {
+      await pumpLevels(
+        tester,
+        withLevels(const [balanced]),
+        chosen: NamingLevel.eager,
+      );
+      await tester.ensureVisible(find.byKey(surerKey));
+      await tester.tap(find.byKey(surerKey));
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(MarineLifeIdentificationPage)),
+      );
+      expect(container.read(namingLevelNotifierProvider), NamingLevel.surer);
+      expect(find.text(fallbackNote), findsNothing);
+    });
+
+    bool toggleable(WidgetTester tester, NamingLevel level) => tester
+        .widget<RadioListTile<NamingLevel>>(
+          find.byKey(ValueKey('species_id_level_${level.id}')),
+        )
+        .toggleable;
+
+    testWidgets('in a fallback only the level in use takes a tap on itself', (
+      tester,
+    ) async {
+      await pumpLevels(
+        tester,
+        withLevels(const [balanced]),
+        chosen: NamingLevel.eager,
+      );
+      expect(toggleable(tester, NamingLevel.balanced), isTrue);
+      expect(toggleable(tester, NamingLevel.surer), isFalse);
+    });
+
+    testWidgets('a level the pack carries takes no tap on itself', (
+      tester,
+    ) async {
+      await pumpLevels(
+        tester,
+        withLevels(const [balanced, eager]),
+        chosen: NamingLevel.balanced,
+      );
+      for (final level in NamingLevel.values) {
+        expect(toggleable(tester, level), isFalse, reason: level.id);
+      }
     });
   });
 

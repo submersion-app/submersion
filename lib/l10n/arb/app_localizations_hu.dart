@@ -29233,7 +29233,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String settings_speciesId_levelFallback(String chosen, String inForce) {
-    return 'A(z) „$chosen” szint nem érhető el a modell ezen verziójában, ezért az app a(z) „$inForce” szintet használja, amíg egy frissítés hozzá nem adja. Válaszd a(z) „$inForce” szintet, ha meg szeretnéd tartani.';
+    return 'A(z) „$chosen” szint nem érhető el a modell ezen verziójában, ezért az app a(z) „$inForce” szintet használja, amíg egy frissítés hozzá nem adja a(z) „$chosen” szintet. Válaszd a(z) „$inForce” szintet, ha ennél szeretnél maradni.';
   }
 
   @override

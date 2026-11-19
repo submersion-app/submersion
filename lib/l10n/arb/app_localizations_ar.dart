@@ -29654,7 +29654,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String settings_speciesId_levelFallback(String chosen, String inForce) {
-    return '«$chosen» غير متوفر في هذا الإصدار من النموذج، لذا يستخدم التطبيق «$inForce» إلى أن يضيفه تحديث. اختر «$inForce» للإبقاء عليه.';
+    return '«$chosen» غير متوفر في هذا الإصدار من النموذج، لذا يستخدم التطبيق «$inForce» إلى أن يضيف تحديثٌ «$chosen». اختر «$inForce» لمواصلة استخدامه.';
   }
 
   @override

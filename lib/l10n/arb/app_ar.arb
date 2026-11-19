@@ -8416,7 +8416,7 @@
   "settings_speciesId_levelSurerUnmeasured": "أسماء أقل، صحيحة في أغلب الأحيان",
   "settings_speciesId_levelBalancedAccuracy": "أسماء أكثر. نحو {percent}% صحيحة",
   "settings_speciesId_levelEagerAccuracy": "أكبر عدد من الأسماء. نحو {percent}% صحيحة",
-  "settings_speciesId_levelFallback": "«{chosen}» غير متوفر في هذا الإصدار من النموذج، لذا يستخدم التطبيق «{inForce}» إلى أن يضيفه تحديث. اختر «{inForce}» للإبقاء عليه.",
+  "settings_speciesId_levelFallback": "«{chosen}» غير متوفر في هذا الإصدار من النموذج، لذا يستخدم التطبيق «{inForce}» إلى أن يضيف تحديثٌ «{chosen}». اختر «{inForce}» لمواصلة استخدامه.",
   "settings_speciesId_kept": "الاقتراحات المحفوظة على هذا الجهاز",
   "settings_speciesId_keptValue": "{count} ({size})",
   "settings_speciesId_clear": "مسح الاقتراحات",

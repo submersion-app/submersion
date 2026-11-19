@@ -46717,7 +46717,7 @@ abstract class AppLocalizations {
   /// Under the naming levels when the level the diver chose is not in the installed model: the app names at the nearest surer level it has, and choosing that one keeps it
   ///
   /// In en, this message translates to:
-  /// **'{chosen} is not in this version of the model, so the app uses {inForce} until an update adds it. Choose {inForce} to keep it.'**
+  /// **'{chosen} is not in this version of the model, so the app uses {inForce} until an update adds {chosen}. Choose {inForce} to keep using it.'**
   String settings_speciesId_levelFallback(String chosen, String inForce);
 
   /// No description provided for @settings_speciesId_kept.

@@ -210,10 +210,11 @@ class MediaIdentificationRepository {
   /// rows still stored are written: a decision that lands after the rows
   /// were cleared or replaced must not bring them back.
   Future<void> updateDecisions(List<MediaIdentification> changed) =>
-      _transaction((_) async {
+      _transaction((db) async {
         for (final identification in changed) {
           final row = _toCompanion(identification);
           await _writeOver(
+            db,
             identification.id,
             MediaIdentificationsCompanion(
               decision: row.decision,
@@ -236,6 +237,7 @@ class MediaIdentificationRepository {
     for (final identification in changed) {
       final row = _toCompanion(identification);
       await _writeOver(
+        db,
         identification.id,
         MediaIdentificationsCompanion(
           openScore: row.openScore,
@@ -250,12 +252,13 @@ class MediaIdentificationRepository {
     await db.update(db.mediaIdentificationRuns).replace(_runToCompanion(run));
   });
 
-  Future<void> _writeOver(String id, MediaIdentificationsCompanion columns) {
-    final db = _db;
-    return (db.update(
-      db.mediaIdentifications,
-    )..where((r) => r.id.equals(id))).write(columns);
-  }
+  Future<void> _writeOver(
+    AppDatabase db,
+    String id,
+    MediaIdentificationsCompanion columns,
+  ) => (db.update(
+    db.mediaIdentifications,
+  )..where((r) => r.id.equals(id))).write(columns);
 
   /// Records that the diver gave [identificationId] the species
   /// [speciesId] from the frame (issue #4675). Writes nothing when the row

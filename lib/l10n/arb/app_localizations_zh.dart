@@ -27705,7 +27705,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String settings_speciesId_levelFallback(String chosen, String inForce) {
-    return '此版本的模型没有“$chosen”级别，因此应用会使用“$inForce”，直到更新加入该级别。选择“$inForce”即可保留它。';
+    return '此版本的模型没有“$chosen”级别，因此应用会使用“$inForce”，直到更新加入“$chosen”。选择“$inForce”即可继续使用“$inForce”。';
   }
 
   @override

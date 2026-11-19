@@ -29180,7 +29180,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String settings_speciesId_levelFallback(String chosen, String inForce) {
-    return '‘$chosen’ zit niet in deze versie van het model, dus de app gebruikt ‘$inForce’ tot een update het toevoegt. Kies ‘$inForce’ om het te houden.';
+    return '‘$chosen’ zit niet in deze versie van het model, dus de app gebruikt ‘$inForce’ tot een update ‘$chosen’ toevoegt. Kies ‘$inForce’ om ‘$inForce’ te blijven gebruiken.';
   }
 
   @override

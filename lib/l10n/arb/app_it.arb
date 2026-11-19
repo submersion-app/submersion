@@ -8290,7 +8290,7 @@
   "settings_speciesId_levelSurerUnmeasured": "Meno nomi, più spesso corretti",
   "settings_speciesId_levelBalancedAccuracy": "Più nomi. Circa {percent}% corretti",
   "settings_speciesId_levelEagerAccuracy": "Il maggior numero di nomi. Circa {percent}% corretti",
-  "settings_speciesId_levelFallback": "«{chosen}» non è presente in questa versione del modello, quindi l'app usa «{inForce}» finché un aggiornamento non lo aggiunge. Scegli «{inForce}» per mantenerlo.",
+  "settings_speciesId_levelFallback": "«{chosen}» non è presente in questa versione del modello, quindi l'app usa «{inForce}» finché un aggiornamento non aggiunge «{chosen}». Scegli «{inForce}» per continuare a usarlo.",
   "settings_speciesId_kept": "Suggerimenti conservati su questo dispositivo",
   "settings_speciesId_keptValue": "{count} ({size})",
   "settings_speciesId_clear": "Cancella suggerimenti",

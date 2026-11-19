@@ -29444,7 +29444,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String settings_speciesId_levelFallback(String chosen, String inForce) {
-    return '« $chosen » n\'est pas disponible dans cette version du modèle, l\'app utilise donc « $inForce » jusqu\'à ce qu\'une mise à jour l\'ajoute. Choisissez « $inForce » pour le conserver.';
+    return '« $chosen » n\'est pas disponible dans cette version du modèle, l\'app utilise donc « $inForce » jusqu\'à ce qu\'une mise à jour ajoute « $chosen ». Choisissez « $inForce » pour continuer à l\'utiliser.';
   }
 
   @override
