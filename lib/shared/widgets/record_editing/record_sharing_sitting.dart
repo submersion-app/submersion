@@ -1,0 +1,131 @@
+import 'package:collection/collection.dart';
+
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_sitting_refusal.dart';
+import 'package:submersion/shared/widgets/shared_items/item_sharing_field.dart';
+
+const _log = LoggerService('RecordSharingSitting');
+
+/// Reads and writes who one record is shared with, in the shape [S] its
+/// repository keeps (who sees a trip, the profiles a gear item is shared
+/// with).
+abstract interface class RecordSharingAdapter<S> {
+  /// Who [recordId] is shared with now.
+  Future<S> read(String recordId);
+
+  /// Makes [recordId] shared as [sharing], by [actingDiverId], the profile
+  /// acting (never the owner on its behalf). Returns false when the
+  /// repository refused: the profile may not share the record. Throws only
+  /// when the write failed.
+  Future<bool> write(
+    String recordId,
+    S sharing, {
+    required String? actingDiverId,
+  });
+}
+
+/// A record's sharing with other profiles, held in its editing sitting
+/// (issue #4527, phase 3): read when the card that shows it starts, changed
+/// in the sitting, and written with the rest at Save. A share the
+/// repository refuses fails the whole Save.
+///
+/// One of these serves every record type whose page edits sharing; what
+/// differs between them is only the [RecordSharingAdapter] passed to
+/// [load].
+class RecordSharingSitting<T, S> {
+  const RecordSharingSitting({
+    required this.key,
+    required this.cardId,
+    required this.recordIdOf,
+  });
+
+  /// The held change's key, and the prefix of the notes kept for it.
+  final String key;
+
+  /// The card whose change the sharing is.
+  final String cardId;
+
+  /// The id of the record a sitting is on.
+  final String Function(T record) recordIdOf;
+
+  String get _adapterKey => '$key.adapter';
+  String get _loadedKey => '$key.loaded';
+  String get _currentKey => '$key.current';
+  String get _unreadKey => '$key.unread';
+
+  /// Reads who the record is shared with into [session], tracked, so a
+  /// Save waits for it, and keeps [adapter] for the held write. A read that
+  /// fails is noted ([unread]): the card then shows the sharing read only.
+  Future<void> load(EditSession<T> session, RecordSharingAdapter<S> adapter) {
+    session.remember(_adapterKey, adapter);
+    final recordId = recordIdOf(session.stored);
+    final work = () async {
+      try {
+        final sharing = await adapter.read(recordId);
+        if (session.isDisposed) return;
+        session
+          ..remember(_loadedKey, sharing)
+          ..remember(_unreadKey, null);
+      } catch (error, stackTrace) {
+        _log.warning(
+          'Could not read who $recordId is shared with',
+          error: error,
+          stackTrace: stackTrace,
+        );
+        if (!session.isDisposed) session.remember(_unreadKey, true);
+      }
+    }();
+    session.track(work);
+    return work;
+  }
+
+  /// Who the record is shared with in the sitting: the diver's choice, else
+  /// as read; null before the read has answered.
+  S? inSitting(EditSession<T> session) {
+    if (session.isDisposed) return null;
+    return session.recall<S>(_currentKey) ?? session.recall<S>(_loadedKey);
+  }
+
+  /// Who the record was shared with as the sitting read it.
+  S? loaded(EditSession<T> session) =>
+      session.isDisposed ? null : session.recall<S>(_loadedKey);
+
+  /// Whether the read failed, so the sharing cannot be changed.
+  bool unread(EditSession<T> session) =>
+      !session.isDisposed && session.recall<bool>(_unreadKey) == true;
+
+  /// Holds [next] as the record's sharing, written at Save by
+  /// [actingDiverId]. Back to what was read releases it. Does nothing
+  /// before the read has answered, or on a sitting that is being written
+  /// or has ended.
+  void set(EditSession<T> session, S next, {required String? actingDiverId}) {
+    if (session.isDisposed || session.isFrozen) return;
+    final read = loaded(session);
+    final adapter = session.recall<RecordSharingAdapter<S>>(_adapterKey);
+    if (read == null || adapter == null) return;
+    // By value: a set of profiles read back is never the same object.
+    if (const DeepCollectionEquality().equals(next, read)) {
+      session
+        ..remember(_currentKey, null)
+        ..releaseWrite(key);
+      return;
+    }
+    final recordId = recordIdOf(session.stored);
+    session
+      ..remember(_currentKey, next)
+      // After the row, so a sharing flag the row carries stands.
+      ..holdChange(
+        key,
+        cardId: cardId,
+        write: () async {
+          final done = await adapter.write(
+            recordId,
+            next,
+            actingDiverId: actingDiverId,
+          );
+          if (!done) throw const RecordSittingRefusal(sharingRefusedMessage);
+        },
+      );
+  }
+}
