@@ -13,18 +13,24 @@ import 'package:submersion/shared/widgets/app_date_picker.dart';
 
 /// Edits one history entry's place, date and note, or deletes it. The
 /// current location recomputes from what is left.
+///
+/// With [onHold] (an item page's sitting, issue #4527, phase 3) it writes
+/// nothing: Save hands back the edited move and Delete, still asked first,
+/// hands back null.
 Future<void> showLocationMoveEditDialog(
   BuildContext context,
   WidgetRef ref,
-  EquipmentLocationMove move,
-) => showDialog<void>(
+  EquipmentLocationMove move, {
+  void Function(EquipmentLocationMove? edited)? onHold,
+}) => showDialog<void>(
   context: context,
-  builder: (_) => _LocationMoveEditDialog(move: move),
+  builder: (_) => _LocationMoveEditDialog(move: move, onHold: onHold),
 );
 
 class _LocationMoveEditDialog extends ConsumerStatefulWidget {
-  const _LocationMoveEditDialog({required this.move});
+  const _LocationMoveEditDialog({required this.move, this.onHold});
   final EquipmentLocationMove move;
+  final void Function(EquipmentLocationMove? edited)? onHold;
 
   @override
   ConsumerState<_LocationMoveEditDialog> createState() =>
@@ -111,20 +117,24 @@ class _LocationMoveEditDialogState
     final messenger = ScaffoldMessenger.of(context);
     final failed = context.l10n.common_error_tryAgain;
     final locationId = _locationId;
+    final edited = locationId == null
+        ? widget.move.copyWith(
+            clearLocation: true,
+            movedAt: _movedAt,
+            note: _note.text,
+          )
+        : widget.move.copyWith(
+            locationId: locationId,
+            movedAt: _movedAt,
+            note: _note.text,
+          );
+    if (widget.onHold case final hold?) {
+      hold(edited);
+      Navigator.of(context).pop();
+      return;
+    }
     try {
-      await repo.updateMove(
-        locationId == null
-            ? widget.move.copyWith(
-                clearLocation: true,
-                movedAt: _movedAt,
-                note: _note.text,
-              )
-            : widget.move.copyWith(
-                locationId: locationId,
-                movedAt: _movedAt,
-                note: _note.text,
-              ),
-      );
+      await repo.updateMove(edited);
     } catch (_) {
       // Keep the dialog and the diver's edits so they can try again.
       showLocationWriteFailed(messenger, failed);
@@ -140,6 +150,11 @@ class _LocationMoveEditDialogState
       context,
       l10n.equipment_location_deleteMoveConfirm,
     )) {
+      return;
+    }
+    if (widget.onHold case final hold?) {
+      hold(null);
+      if (mounted) Navigator.of(context).pop();
       return;
     }
     try {

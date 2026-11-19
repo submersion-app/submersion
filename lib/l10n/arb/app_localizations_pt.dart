@@ -16594,6 +16594,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get equipment_serviceClocks_remove => 'Remover';
 
   @override
+  String equipment_serviceClocks_remindersOwn(String days) {
+    return 'Lembretes antes do vencimento: $days';
+  }
+
+  @override
+  String get equipment_serviceClocks_remindersOff =>
+      'Sem lembretes para este equipamento';
+
+  @override
   String get equipment_serviceClocks_paused => 'Pausado';
 
   @override
@@ -29276,11 +29285,22 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_photosVideos_title => 'Fotos e vídeos';
 
   @override
-  String get settings_speciesId_title => 'Identificação de vida marinha';
+  String get settings_speciesId_title => 'Identificação de espécies';
 
   @override
   String get settings_speciesId_entrySubtitle =>
       'Encontre peixes nas suas fotos e vídeos e sugira a espécie';
+
+  @override
+  String get speciesId_downloadPrompt_title =>
+      'Identifique os peixes nas suas fotos e vídeos';
+
+  @override
+  String get speciesId_downloadPrompt_subtitle =>
+      'Baixe o modelo de identificação de espécies para receber sugestões';
+
+  @override
+  String get speciesId_downloadPrompt_dismiss => 'Não mostrar novamente';
 
   @override
   String get settings_speciesId_intro =>
@@ -29450,7 +29470,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_speciesId_unsupported =>
-      'A identificação de vida marinha ainda não está disponível neste dispositivo.';
+      'A identificação de espécies ainda não está disponível neste dispositivo.';
 
   @override
   String get settings_speciesId_notEligible =>
@@ -62278,6 +62298,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_photos_sourcesHeader => 'De onde vêm as fotos';
 
   @override
+  String get settings_photos_speciesHeader => 'Espécies';
+
+  @override
   String get settings_photos_library => 'Fototeca e arquivos';
 
   @override
@@ -63731,7 +63754,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get changeLog_label_mediaRepair => 'Ligações multimédia reparadas';
 
   @override
-  String get changeLog_label_marineLifeId => 'Identificação de vida marinha';
+  String get changeLog_label_marineLifeId => 'Identificação de espécies';
 
   @override
   String get changeLog_label_speciesReview => 'Revisão de espécies';

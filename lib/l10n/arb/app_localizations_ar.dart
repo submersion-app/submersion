@@ -16808,6 +16808,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_serviceClocks_remove => 'إزالة';
 
   @override
+  String equipment_serviceClocks_remindersOwn(String days) {
+    return 'التذكيرات قبل موعد الاستحقاق: $days';
+  }
+
+  @override
+  String get equipment_serviceClocks_remindersOff =>
+      'لا توجد تذكيرات لهذه المعدات';
+
+  @override
   String get equipment_serviceClocks_paused => 'متوقف مؤقتًا';
 
   @override
@@ -29580,11 +29589,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_photosVideos_title => 'الصور والفيديوهات';
 
   @override
-  String get settings_speciesId_title => 'التعرّف على الحياة البحرية';
+  String get settings_speciesId_title => 'التعرّف على الأنواع';
 
   @override
   String get settings_speciesId_entrySubtitle =>
       'اعثر على الأسماك في صورك ومقاطع الفيديو واقترح أنواعها';
+
+  @override
+  String get speciesId_downloadPrompt_title =>
+      'تعرّف على الأسماك في صورك ومقاطع الفيديو';
+
+  @override
+  String get speciesId_downloadPrompt_subtitle =>
+      'نزّل نموذج التعرّف على الأنواع للحصول على اقتراحات';
+
+  @override
+  String get speciesId_downloadPrompt_dismiss => 'عدم الإظهار مرة أخرى';
 
   @override
   String get settings_speciesId_intro =>
@@ -29749,7 +29769,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_speciesId_unsupported =>
-      'التعرّف على الحياة البحرية غير متاح على هذا الجهاز بعد.';
+      'التعرّف على الأنواع غير متاح على هذا الجهاز بعد.';
 
   @override
   String get settings_speciesId_notEligible =>
@@ -63145,6 +63165,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_photos_sourcesHeader => 'مصدر الصور';
 
   @override
+  String get settings_photos_speciesHeader => 'الأنواع';
+
+  @override
   String get settings_photos_library => 'مكتبة الصور والملفات';
 
   @override
@@ -64678,7 +64701,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get changeLog_label_mediaRepair => 'تم إصلاح روابط الوسائط';
 
   @override
-  String get changeLog_label_marineLifeId => 'التعرّف على الحياة البحرية';
+  String get changeLog_label_marineLifeId => 'التعرّف على الأنواع';
 
   @override
   String get changeLog_label_speciesReview => 'مراجعة الأنواع';

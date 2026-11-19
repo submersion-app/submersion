@@ -360,6 +360,27 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
     return rows;
   }
 
+  /// The staged files as rows for gear item [equipmentId], and its check-in
+  /// [observationId] when given, for a sitting on the item that holds them
+  /// until Save (issue #4527, phase 3, plan 6): each under a fresh id of its
+  /// own, none written. Clears the staging, as [commit] does.
+  Future<List<MediaItem>> heldEquipmentRows(
+    String equipmentId, {
+    String? observationId,
+  }) async {
+    final rows = <MediaItem>[
+      for (final file in state.files)
+        await _itemFor(
+          file,
+          id: const Uuid().v4(),
+          equipmentId: equipmentId,
+          observationId: observationId,
+        ),
+    ];
+    clear();
+    return rows;
+  }
+
   /// Reverses a prior [commit] by deleting each row by id. Bookmark blobs
   /// in the keychain are intentionally not cleaned up — see class doc.
   Future<void> undoCommit(List<String> ids) async {
