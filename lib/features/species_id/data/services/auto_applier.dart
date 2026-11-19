@@ -39,7 +39,7 @@ class AutoApplier {
 
   bool get isOn => marineLifeIdEnabled && _enabled();
 
-  /// [apply] filed as one automatic History entry of its own, as applying
+  /// Applies on [mediaId] as one automatic History entry of its own, as applying
   /// from the viewer is. Returns how many species it tagged. The entry
   /// opens only once there is something to tag, so a photo with nothing
   /// confident leaves none, and a save the diver makes meanwhile is never
@@ -79,7 +79,7 @@ class AutoApplier {
         (await _identifications.runFor(mediaId))?.scanComplete ?? false,
   );
 
-  /// [apply] over a Find species run's [items], filed as one automatic
+  /// Applies over a Find species run's [items], filed as one automatic
   /// History entry for the whole run (issue #4727). The scope opens only
   /// now, at the run's end, so a save the diver made during the run is not
   /// filed under it. Returns how many distinct species it tagged.
@@ -98,12 +98,8 @@ class AutoApplier {
     );
   }
 
-  /// Tags what [identificationsToApply] picks on [mediaId], with no scope
-  /// of its own: a run files all of its items under one.
-  Future<int> apply(String mediaId, {required bool isVideo}) async =>
-      (await _applyItem(mediaId, isVideo: isVideo)).length;
-
-  /// The species [apply] tagged on [mediaId]. A species that cannot be
+  /// The species tagged on [mediaId], with no History scope of its own (a
+  /// run files all of its items under one). A species that cannot be
   /// tagged (its photo deleted meanwhile, say) is logged and skipped, and
   /// an item whose rows cannot be read tags nothing: never throws.
   Future<Set<String>> _applyItem(

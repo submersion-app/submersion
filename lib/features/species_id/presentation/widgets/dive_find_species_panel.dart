@@ -150,11 +150,26 @@ class DiveFindSpeciesPanel extends ConsumerWidget {
   }
 
   Future<void> _start(BuildContext context, WidgetRef ref) async {
-    final media = await ref.read(mediaForDiveProvider(dive.id).future);
-    final missing = notOnDeviceCount([
-      for (final m in media)
+    final media = [
+      for (final m in await ref.read(mediaForDiveProvider(dive.id).future))
         if (m.mediaType == MediaType.photo || m.mediaType == MediaType.video) m,
+    ];
+    // Only what the run will open: media checked with the installed model
+    // (a video to its end) is not read again.
+    final installed = await ref.read(installedSpeciesPackProvider.future);
+    final runs = await ref.read(mediaIdentificationRepositoryProvider).runsFor([
+      for (final m in media) m.id,
     ]);
+    final missing = notOnDeviceCount(
+      media,
+      checked: {
+        for (final m in media)
+          if (runs[m.id] case final run?
+              when run.packVersion == installed?.manifest.packVersion &&
+                  (m.mediaType != MediaType.video || run.scanComplete))
+            m.id,
+      },
+    );
     if (missing > 0) {
       if (!context.mounted) return;
       final l10n = context.l10n;

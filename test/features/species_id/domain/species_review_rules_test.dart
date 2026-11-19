@@ -117,12 +117,12 @@ void main() {
     final m = onDive('a', 'd1', may);
     expect(m.copyWith(siteName: () => 'Punta Sur').siteName, 'Punta Sur');
     expect(m.copyWith(diveNumber: () => null).diveNumber, isNull);
-    final row = ReviewRow(key: 's:x', items: const []);
+    const row = ReviewRow(key: 's:x', items: []);
     expect(row.copyWith(key: 's:y').key, 's:y');
-    final group = ReviewGroup(
+    const group = ReviewGroup(
       kind: ReviewGroupKind.dive,
-      tagged: const [],
-      suggested: const [],
+      tagged: [],
+      suggested: [],
       diveId: 'd1',
     );
     expect(group.copyWith(diveId: () => null).diveId, isNull);

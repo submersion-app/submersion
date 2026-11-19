@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -62,6 +63,7 @@ class SpeciesReviewRowTile extends StatelessWidget {
           leading: _ReviewThumb(
             item: best,
             size: 56,
+            label: name,
             onTap: () => onOpen(best),
           ),
           title: Text(name),
@@ -70,7 +72,7 @@ class SpeciesReviewRowTile extends StatelessWidget {
               _counts(l10n, row),
               if (row.isTagged && row.suggestedCount > 0)
                 l10n.speciesReview_mixed(row.taggedCount, row.suggestedCount),
-              if (score != null) '${(score * 100).round()}%',
+              if (score != null) _percent(context, score),
             ].join(' '),
           ),
           trailing: settled
@@ -105,13 +107,18 @@ class SpeciesReviewRowTile extends StatelessWidget {
       padding: const EdgeInsetsDirectional.only(start: 32),
       child: ListTile(
         dense: true,
-        leading: _ReviewThumb(item: item, size: 40, onTap: () => onOpen(item)),
+        leading: _ReviewThumb(
+          item: item,
+          size: 40,
+          label: reviewRowName(l10n, row),
+          onTap: () => onOpen(item),
+        ),
         title: Text(
           item.isTagged
               ? l10n.speciesReview_itemTagged
               : l10n.speciesReview_itemSuggested,
         ),
-        subtitle: score == null ? null : Text('${(score * 100).round()}%'),
+        subtitle: score == null ? null : Text(_percent(context, score)),
         trailing: decision != null
             ? _Settled(
                 label: _decisionLabel(l10n, decision),
@@ -148,6 +155,12 @@ class SpeciesReviewRowTile extends StatelessWidget {
         : l10n.speciesReview_decided;
   }
 
+  /// A score as the locale writes a percentage, as the species sheet does.
+  static String _percent(BuildContext context, double score) =>
+      NumberFormat.percentPattern(
+        Localizations.localeOf(context).toString(),
+      ).format(score);
+
   static String _counts(AppLocalizations l10n, ReviewRow row) {
     final videos = row.items
         .where((i) => i.media.mediaType == MediaType.video)
@@ -172,32 +185,42 @@ class _ReviewThumb extends StatelessWidget {
   const _ReviewThumb({
     required this.item,
     required this.size,
+    required this.label,
     required this.onTap,
   });
 
   final ReviewItem item;
   final double size;
+
+  /// The species, read out for the button that opens the photo.
+  final String label;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final crop = item.cropIdentificationId;
-    return GestureDetector(
+    return Semantics(
+      button: true,
+      label: label,
       onTap: onTap,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(6),
-        child: SizedBox.square(
-          dimension: size,
-          child: crop != null
-              ? IdentificationCrop(
-                  mediaId: item.media.id,
-                  identificationId: crop,
-                )
-              : MediaItemView(
-                  item: item.media,
-                  thumbnail: true,
-                  fit: BoxFit.cover,
-                ),
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: onTap,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(6),
+          child: SizedBox.square(
+            dimension: size,
+            child: crop != null
+                ? IdentificationCrop(
+                    mediaId: item.media.id,
+                    identificationId: crop,
+                  )
+                : MediaItemView(
+                    item: item.media,
+                    thumbnail: true,
+                    fit: BoxFit.cover,
+                  ),
+          ),
         ),
       ),
     );

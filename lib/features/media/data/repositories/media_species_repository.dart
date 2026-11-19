@@ -105,7 +105,16 @@ class MediaSpeciesRepository {
     );
     SyncEventBus.notifyLocalChange();
 
-    return (await findTag(mediaId, speciesId))!;
+    return MediaSpeciesTag(
+      id: id,
+      mediaId: mediaId,
+      speciesId: speciesId,
+      sightingId: sightingId,
+      createdAt: DateTime.fromMillisecondsSinceEpoch(now),
+      unconfirmed: unconfirmed,
+      createdSighting: createdSighting,
+      createdSpecies: createdSpecies,
+    );
   }
 
   /// The tag linking [mediaId] and [speciesId], or null.

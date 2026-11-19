@@ -24,4 +24,14 @@ void main() {
     ], fileExists: (path) => path == '/here.jpg');
     expect(count, 2);
   });
+
+  test('media already checked with the installed model is not counted: the '
+      'run will not open it', () {
+    final count = notOnDeviceCount(
+      [item('b', path: '/gone.jpg'), item('c')],
+      fileExists: (_) => false,
+      checked: const {'b'},
+    );
+    expect(count, 1);
+  });
 }
