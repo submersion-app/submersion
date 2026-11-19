@@ -56066,6 +56066,74 @@ class AppLocalizationsHu extends AppLocalizations {
   String get speciesReview_nothing => 'Nothing to review';
 
   @override
+  String get speciesReview_find => 'Find species in photos';
+
+  @override
+  String speciesReview_finding(int done, int total) {
+    return 'Finding species: $done of $total';
+  }
+
+  @override
+  String get speciesReview_waiting => 'Waiting for another dive\'s search';
+
+  @override
+  String get speciesReview_pausedHot => 'Paused: device too warm';
+
+  @override
+  String get speciesReview_resume => 'Resume';
+
+  @override
+  String get speciesReview_allChecked => 'All photos checked';
+
+  @override
+  String speciesReview_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count species to review',
+      one: '1 species to review',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesReview_downloadBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count photos and videos aren\'t on this device. Finding species will download them.',
+      one:
+          '1 photo or video isn\'t on this device. Finding species will download it.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesReview_downloadAndFind => 'Download and find';
+
+  @override
+  String speciesReview_summary(
+    int photos,
+    int videos,
+    int tagged,
+    int toReview,
+  ) {
+    return 'Checked $photos photos and $videos videos. Tagged $tagged species; $toReview to review.';
+  }
+
+  @override
+  String speciesReview_summaryUnreadable(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count could not be opened.',
+      one: '1 could not be opened.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String media_species_confirmTag(String name) {
     return 'Confirm $name';
   }

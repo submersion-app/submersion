@@ -2,6 +2,7 @@ import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 import 'package:submersion/features/species_id/data/repositories/species_review_repository.dart';
@@ -51,3 +52,26 @@ final speciesReviewSaverProvider = Provider<SpeciesReviewSaver>(
         : Future<void>.value(),
   ),
 );
+
+/// Whether every photo and video of [diveId] has been looked at with the
+/// installed model (a video to its end), so a Find species run would do
+/// nothing new (issue #4727). False with no model installed.
+final diveSpeciesCheckedProvider = FutureProvider.autoDispose
+    .family<bool, String>((ref, diveId) async {
+      final identifications = ref.watch(mediaIdentificationRepositoryProvider);
+      ref.invalidateSelfWhen(identifications.watchChanges());
+      final installed = await ref.watch(installedSpeciesPackProvider.future);
+      if (installed == null) return false;
+      final media = await ref.watch(mediaForDiveProvider(diveId).future);
+      for (final item in media) {
+        final video = item.mediaType == MediaType.video;
+        if (!video && item.mediaType != MediaType.photo) continue;
+        final run = await identifications.runFor(item.id);
+        if (run == null ||
+            run.packVersion != installed.manifest.packVersion ||
+            (video && !run.scanComplete)) {
+          return false;
+        }
+      }
+      return true;
+    });

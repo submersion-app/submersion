@@ -88416,6 +88416,77 @@ abstract class AppLocalizations {
   /// **'Nothing to review'**
   String get speciesReview_nothing;
 
+  /// No description provided for @speciesReview_find.
+  ///
+  /// In en, this message translates to:
+  /// **'Find species in photos'**
+  String get speciesReview_find;
+
+  /// No description provided for @speciesReview_finding.
+  ///
+  /// In en, this message translates to:
+  /// **'Finding species: {done} of {total}'**
+  String speciesReview_finding(int done, int total);
+
+  /// No description provided for @speciesReview_waiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for another dive\'s search'**
+  String get speciesReview_waiting;
+
+  /// No description provided for @speciesReview_pausedHot.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused: device too warm'**
+  String get speciesReview_pausedHot;
+
+  /// No description provided for @speciesReview_resume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get speciesReview_resume;
+
+  /// No description provided for @speciesReview_allChecked.
+  ///
+  /// In en, this message translates to:
+  /// **'All photos checked'**
+  String get speciesReview_allChecked;
+
+  /// No description provided for @speciesReview_count.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 species to review} other{{count} species to review}}'**
+  String speciesReview_count(int count);
+
+  /// No description provided for @speciesReview_downloadBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 photo or video isn\'t on this device. Finding species will download it.} other{{count} photos and videos aren\'t on this device. Finding species will download them.}}'**
+  String speciesReview_downloadBody(int count);
+
+  /// No description provided for @speciesReview_downloadAndFind.
+  ///
+  /// In en, this message translates to:
+  /// **'Download and find'**
+  String get speciesReview_downloadAndFind;
+
+  /// No description provided for @speciesReview_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked {photos} photos and {videos} videos. Tagged {tagged} species; {toReview} to review.'**
+  String speciesReview_summary(
+    int photos,
+    int videos,
+    int tagged,
+    int toReview,
+  );
+
+  /// No description provided for @speciesReview_summaryUnreadable.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 could not be opened.} other{{count} could not be opened.}}'**
+  String speciesReview_summaryUnreadable(int count);
+
   /// No description provided for @media_species_confirmTag.
   ///
   /// In en, this message translates to:
