@@ -36,19 +36,27 @@ def write_report(results, path):
     lines += ["", "## Naming levels", ""]
     lines += [
         "Under the published pack's bars when it has measured ones, else this run's (each run is listed "
-        "below the table); each held to the same junk cap; precision and coverage with a location."
+        "below the table); each held to the same junk cap; precision and coverage with a location and "
+        "without one. Shown is the lower precision, which the manifest carries and the app shows."
     ]
-    lines += ["", "| Run | level | target | suggest | suggest, no location | precision | coverage | junk named |"]
-    lines += ["| --- | --- | --- | --- | --- | --- | --- | --- |"]
+    lines += [
+        "",
+        "| Run | level | target | suggest | suggest, no location | precision | precision, no location | "
+        "coverage | coverage, no location | shown | junk named |",
+    ]
+    lines += ["| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
     for key, e in results["evaluations"].items():
         if not e.get("levels"):
-            lines.append(f"| {key} | none | | | | | | |")
+            lines.append(f"| {key} | none | | | | | | | | | |")
         for level in e.get("levels", []):
             b, h = level["bars"], level["held-out"]
+            shown = level.get("precision")
             lines.append(
                 f"| {key} | {level['id']} | {level['target']:.2f} | {_bar(b['suggest'])} | "
-                f"{_bar(b['suggest_no_location'])} | {_pct(h['precision'])} | {_pct(h['coverage'])} | "
-                f"{_pct(h['junk named'])} |"
+                f"{_bar(b['suggest_no_location'])} | {_pct(h['precision'])} | "
+                f"{_pct(h.get('precision without location'))} | {_pct(h['coverage'])} | "
+                f"{_pct(h.get('coverage without location'))} | "
+                f"{'n/a' if shown is None else f'{shown:.1%}'} | {_pct(h['junk named'])} |"
             )
     lines.append("")
     for key, e in results["evaluations"].items():

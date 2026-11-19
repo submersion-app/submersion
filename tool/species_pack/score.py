@@ -586,7 +586,9 @@ def _measured_entry(evaluation, manifest, detector_ids, crop_fit):
             "target": level["target"],
             "suggestScore": round(level["bars"]["suggest"], 2),
             "suggestScoreNoLocation": round(level["bars"]["suggest_no_location"], 2),
-            "precision": round(level["held-out"]["precision"]["value"], level_search.PRECISION_PLACES),
+            # The lower of its held-out precisions with and without a
+            # location, already rounded as a manifest carries it.
+            "precision": level["precision"],
         }
         for level in evaluation["levels"]
     ]
