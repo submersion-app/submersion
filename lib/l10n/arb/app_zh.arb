@@ -3398,6 +3398,8 @@
   "recordEdit_loadFailed": "无法加载此卡片。",
   "recordEdit_tryAgain": "重试",
   "recordEdit_imported": "已导入",
+  "recordEdit_library": "库",
+  "recordEdit_onlyYou": "仅你自己",
   "recordEdit_saveFailed": "无法保存更改。未做任何更改。",
   "recordEdit_fixInvalid": "部分数值无法识别。请更正后再保存。",
   "recordEdit_unlockToUseThis": "解锁后才能使用",

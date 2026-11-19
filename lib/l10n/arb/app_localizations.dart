@@ -15766,6 +15766,18 @@ abstract class AppLocalizations {
   /// **'Imported'**
   String get recordEdit_imported;
 
+  /// Short label on a faded card while a shared site library reader's site is unlocked to suggest changes: the card (features, expected species) belongs to the library and the reader's sitting does not change it. Like recordEdit_calculated.
+  ///
+  /// In en, this message translates to:
+  /// **'Library'**
+  String get recordEdit_library;
+
+  /// Short label on a card (notes, rating) while a shared site library reader's site is unlocked to suggest changes: what is entered there is the reader's own, saved for them and never sent to the library.
+  ///
+  /// In en, this message translates to:
+  /// **'Only you'**
+  String get recordEdit_onlyYou;
+
   /// Message shown when saving an unlocked record fails.
   ///
   /// In en, this message translates to:

@@ -9496,6 +9496,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get recordEdit_imported => '已导入';
 
   @override
+  String get recordEdit_library => '库';
+
+  @override
+  String get recordEdit_onlyYou => '仅你自己';
+
+  @override
   String get recordEdit_saveFailed => '无法保存更改。未做任何更改。';
 
   @override

@@ -9990,6 +9990,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get recordEdit_imported => 'Importált';
 
   @override
+  String get recordEdit_library => 'Könyvtár';
+
+  @override
+  String get recordEdit_onlyYou => 'Csak te';
+
+  @override
   String get recordEdit_saveFailed =>
       'Nem sikerült menteni a módosításokat. Semmi sem változott.';
 

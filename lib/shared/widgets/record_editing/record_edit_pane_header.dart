@@ -19,6 +19,7 @@ class RecordEditPaneHeader extends StatelessWidget {
     required this.onCancel,
     required this.onSave,
     required this.menu,
+    this.saveLabel,
   });
 
   final String title;
@@ -34,6 +35,10 @@ class RecordEditPaneHeader extends StatelessWidget {
 
   /// The record's menu, between the title and Save.
   final Widget menu;
+
+  /// The Save button's word where a sitting ends otherwise (a library
+  /// reader's Send, issue #4527); Save when null.
+  final String? saveLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +76,7 @@ class RecordEditPaneHeader extends StatelessWidget {
             ),
             menu,
             AppBarTextAction(
-              label: l10n.forms_save,
+              label: saveLabel ?? l10n.forms_save,
               onPressed: canSave && !waiting ? onSave : null,
               busy: isSaving,
             ),

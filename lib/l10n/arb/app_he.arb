@@ -3166,6 +3166,8 @@
   "recordEdit_loadFailed": "לא ניתן היה לטעון כרטיס זה.",
   "recordEdit_tryAgain": "נסה שוב",
   "recordEdit_imported": "מיובא",
+  "recordEdit_library": "ספרייה",
+  "recordEdit_onlyYou": "רק לך",
   "recordEdit_saveFailed": "לא ניתן היה לשמור את השינויים. שום דבר לא השתנה.",
   "recordEdit_fixInvalid": "לא ניתן לקרוא חלק מהערכים. תקן אותם לפני השמירה.",
   "recordEdit_unlockToUseThis": "יש לבטל את הנעילה כדי להשתמש בזה",

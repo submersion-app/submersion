@@ -3166,6 +3166,8 @@
   "recordEdit_loadFailed": "Ezt a kártyát nem sikerült betölteni.",
   "recordEdit_tryAgain": "Újra",
   "recordEdit_imported": "Importált",
+  "recordEdit_library": "Könyvtár",
+  "recordEdit_onlyYou": "Csak te",
   "recordEdit_saveFailed": "Nem sikerült menteni a módosításokat. Semmi sem változott.",
   "recordEdit_fixInvalid": "Néhány érték nem olvasható. Javítsa ki őket mentés előtt.",
   "recordEdit_unlockToUseThis": "Oldd fel a használatához",

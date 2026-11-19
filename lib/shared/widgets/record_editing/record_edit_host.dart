@@ -252,11 +252,20 @@ mixin RecordEditHost<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
 
   /// Saves the sitting, or creates the record, and says why when nothing
   /// was saved.
+  /// The Save button's word in the open sitting: Save when null. A sitting
+  /// that ends otherwise names its own (a library reader's Send).
+  String? get saveLabel => null;
+
+  /// Asked before every Save of an open sitting: false leaves the sitting
+  /// as it is and saves nothing, as a dialog the diver cancelled does.
+  Future<bool> beforeSave() async => true;
+
   Future<void> saveAndReport() async {
     if (isCreating) return saveNewRecord();
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
     final controller = editController;
+    if (!await beforeSave() || !mounted) return;
     final saved = await controller.save();
     if (saved || !mounted) return;
     // Refused for a field that holds text which is not a value: the card is
@@ -314,6 +323,7 @@ mixin RecordEditHost<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
       onCancel: cancelOrLeave,
       onSave: saveAndReport,
       menu: menu,
+      saveLabel: saveLabel,
     );
   }
 
@@ -389,6 +399,7 @@ mixin RecordEditHost<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
                 actions: unlockedActions,
                 onCancel: cancelOrLeave,
                 onSave: saveAndReport,
+                saveLabel: saveLabel,
               )
             : lockedBar,
         // The strip comes and goes as the page unlocks and locks, and as

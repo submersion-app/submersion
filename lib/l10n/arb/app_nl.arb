@@ -3292,6 +3292,8 @@
   "recordEdit_loadFailed": "Deze kaart kon niet worden geladen.",
   "recordEdit_tryAgain": "Opnieuw proberen",
   "recordEdit_imported": "Geïmporteerd",
+  "recordEdit_library": "Bibliotheek",
+  "recordEdit_onlyYou": "Alleen jij",
   "recordEdit_saveFailed": "Kon de wijzigingen niet opslaan. Er is niets gewijzigd.",
   "recordEdit_fixInvalid": "Sommige waarden kunnen niet worden gelezen. Corrigeer ze voordat je opslaat.",
   "recordEdit_unlockToUseThis": "Ontgrendel om dit te gebruiken",

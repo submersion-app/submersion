@@ -3292,6 +3292,8 @@
   "recordEdit_loadFailed": "Não foi possível carregar este cartão.",
   "recordEdit_tryAgain": "Tentar novamente",
   "recordEdit_imported": "Importado",
+  "recordEdit_library": "Biblioteca",
+  "recordEdit_onlyYou": "Só você",
   "recordEdit_saveFailed": "Não foi possível guardar as alterações. Nada foi alterado.",
   "recordEdit_fixInvalid": "Alguns valores não podem ser lidos. Corrija-os antes de guardar.",
   "recordEdit_unlockToUseThis": "Desbloqueie para usar isto",

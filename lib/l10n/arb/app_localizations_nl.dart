@@ -9950,6 +9950,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get recordEdit_imported => 'Geïmporteerd';
 
   @override
+  String get recordEdit_library => 'Bibliotheek';
+
+  @override
+  String get recordEdit_onlyYou => 'Alleen jij';
+
+  @override
   String get recordEdit_saveFailed =>
       'Kon de wijzigingen niet opslaan. Er is niets gewijzigd.';
 

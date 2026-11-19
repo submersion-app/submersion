@@ -11,6 +11,7 @@ Widget _host({
   bool isBusy = false,
   VoidCallback? onCancel,
   VoidCallback? onSave,
+  String? saveLabel,
 }) {
   return MaterialApp(
     locale: const Locale('en'),
@@ -25,6 +26,7 @@ Widget _host({
         onCancel: onCancel ?? () {},
         onSave: onSave ?? () {},
         menu: const Icon(Icons.more_vert, key: ValueKey('menu')),
+        saveLabel: saveLabel,
       ),
     ),
   );
@@ -75,5 +77,15 @@ void main() {
     await tester.pumpWidget(_host(isSaving: true));
 
     expect(_action(tester, 'Cancel').onPressed, isNull);
+  });
+
+  testWidgets('a save label replaces Save', (tester) async {
+    var saved = 0;
+    await tester.pumpWidget(_host(saveLabel: 'Send', onSave: () => saved++));
+
+    expect(find.text('Send'), findsOneWidget);
+    expect(find.text('Save'), findsNothing);
+    await tester.tap(find.text('Send'));
+    expect(saved, 1);
   });
 }

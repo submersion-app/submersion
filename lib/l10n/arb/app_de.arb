@@ -3318,6 +3318,8 @@
   "recordEdit_loadFailed": "Diese Karte konnte nicht geladen werden.",
   "recordEdit_tryAgain": "Erneut versuchen",
   "recordEdit_imported": "Importiert",
+  "recordEdit_library": "Bibliothek",
+  "recordEdit_onlyYou": "Nur du",
   "recordEdit_saveFailed": "Die Änderungen konnten nicht gespeichert werden. Es wurde nichts geändert.",
   "recordEdit_fixInvalid": "Einige Werte können nicht gelesen werden. Korrigiere sie vor dem Speichern.",
   "recordEdit_unlockToUseThis": "Zum Verwenden entsperren",

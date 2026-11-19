@@ -82,9 +82,13 @@ class _NotePage extends ConsumerStatefulWidget {
     this.stripEntry = false,
     this.openUnlocked = false,
     this.onSittingEnded,
+    this.saveLabel,
+    this.allowSave = true,
   });
 
   final String noteId;
+  final String? saveLabel;
+  final bool allowSave;
   final bool embedded;
   final bool offersEditing;
   final bool hostsEditing;
@@ -145,6 +149,12 @@ class _NotePageState extends ConsumerState<_NotePage>
 
   @override
   String editingTitle(_Note record) => 'Editing ${record.title}';
+
+  @override
+  String? get saveLabel => widget.saveLabel;
+
+  @override
+  Future<bool> beforeSave() async => widget.allowSave;
 
   @override
   List<AddStripEntry> addStripEntries(_Note working) => [
@@ -385,6 +395,42 @@ void main() {
     await tester.pumpAndSettle();
     expect(await leaving, isTrue);
     expect(find.byType(RecordEditBar), findsNothing);
+  });
+
+  // A sitting that ends otherwise (a reader's Send, issue #4527, phase 2)
+  // names its Save, and may stop before it.
+  group('save label and the check before Save', () {
+    testWidgets('the host\'s save label reaches the bar', (tester) async {
+      await pump(tester, const _NotePage(noteId: 'n1', saveLabel: 'Send'));
+      await unlock(tester);
+
+      expect(find.text('Send'), findsOneWidget);
+      expect(find.text(l.forms_save), findsNothing);
+    });
+
+    testWidgets('a beforeSave that answers false saves nothing and keeps the '
+        'sitting', (tester) async {
+      await pump(tester, const _NotePage(noteId: 'n1', allowSave: false));
+      await unlock(tester);
+      await editText(tester, 'Choppy');
+
+      await tester.tap(find.text(l.forms_save));
+      await tester.pumpAndSettle();
+
+      expect(probe.saves, isEmpty);
+      expect(find.byType(RecordEditBar), findsOneWidget);
+    });
+
+    testWidgets('a beforeSave that answers true saves', (tester) async {
+      await pump(tester, const _NotePage(noteId: 'n1'));
+      await unlock(tester);
+      await editText(tester, 'Choppy');
+
+      await tester.tap(find.text(l.forms_save));
+      await tester.pumpAndSettle();
+
+      expect(probe.saves, hasLength(1));
+    });
   });
 
   // A page asked to open unlocked (an old edit address, a pane's

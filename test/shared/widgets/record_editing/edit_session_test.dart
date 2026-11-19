@@ -535,4 +535,28 @@ void main() {
       await expectLater(EditSession(const _Rec()).settled(), completes);
     });
   });
+
+  // A reader's Send writes only their own cards' held changes (issue #4527,
+  // phase 2).
+  test('held changes run only for the cards named', () async {
+    final ran = <String>[];
+    final session = EditSession<_Rec>(const _Rec())
+      ..holdChange('a', cardId: 'a', write: () async => ran.add('a'))
+      ..holdChange('b', cardId: 'b', write: () async => ran.add('b'));
+
+    await session.runHeldWrites(cardIds: {'a'});
+
+    expect(ran, ['a']);
+  });
+
+  test('a held write with no card does not run when cards are named', () async {
+    final ran = <String>[];
+    final session = EditSession<_Rec>(const _Rec())
+      ..holdWrite('w', () async => ran.add('w'))
+      ..holdChange('a', cardId: 'a', write: () async => ran.add('a'));
+
+    await session.runHeldWrites(cardIds: {'a'});
+
+    expect(ran, ['a']);
+  });
 }

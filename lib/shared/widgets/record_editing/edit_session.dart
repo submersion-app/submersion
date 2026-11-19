@@ -209,9 +209,18 @@ class EditSession<T> extends ChangeNotifier {
   /// the order first held: those that go before the record when
   /// [beforeRecord], the rest otherwise. They are kept, so a save that
   /// failed can run them again. The first one to throw stops the rest.
-  Future<void> runHeldWrites({bool beforeRecord = false}) async {
+  ///
+  /// With [cardIds], only the held changes of those cards run, and no held
+  /// write with no card: a save that writes part of the sitting (a library
+  /// reader's own changes, issue #4527).
+  Future<void> runHeldWrites({
+    bool beforeRecord = false,
+    Set<String>? cardIds,
+  }) async {
     for (final held in _held.values.toList()) {
-      if (held.beforeRecord == beforeRecord) await held.write();
+      if (held.beforeRecord != beforeRecord) continue;
+      if (cardIds != null && !cardIds.contains(held.cardId)) continue;
+      await held.write();
     }
   }
 

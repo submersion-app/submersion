@@ -145,4 +145,48 @@ void main() {
     expect(label.top, lessThan(card.top));
     expect(label.bottom, greaterThan(card.top));
   });
+
+  // A shared library's card in a reader's sitting (issue #4527, phase 2).
+  testWidgets('library fades with its word while unlocked', (tester) async {
+    await tester.pumpWidget(harness(reason: RecordCardFadeReason.library));
+    controller.unlock('stored');
+    await tester.pump();
+
+    expect(find.text('Library'), findsOneWidget);
+    expect(tester.widget<Opacity>(find.byType(Opacity)).opacity, lessThan(1));
+  });
+
+  Widget edgeHarness() => MaterialApp(
+    locale: const Locale('en'),
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    home: Scaffold(
+      body: Center(
+        child: RecordEditScope<String>(
+          controller: controller,
+          child: RecordCardEdgeLabel<String>(label: 'Only you', child: card()),
+        ),
+      ),
+    ),
+  );
+
+  testWidgets('an edge label shows its word while unlocked and does not '
+      'fade', (tester) async {
+    await tester.pumpWidget(edgeHarness());
+    controller.unlock('stored');
+    await tester.pump();
+
+    expect(find.text('Only you'), findsOneWidget);
+    final opacities = tester.widgetList<Opacity>(find.byType(Opacity));
+    expect(opacities.every((o) => o.opacity == 1), isTrue);
+    await tester.tap(find.text('Read'));
+    expect(taps, 1);
+  });
+
+  testWidgets('locked, the edge label draws only the child', (tester) async {
+    await tester.pumpWidget(edgeHarness());
+
+    expect(find.text('Only you'), findsNothing);
+    expect(find.text('Read'), findsOneWidget);
+  });
 }

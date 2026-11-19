@@ -10157,6 +10157,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recordEdit_imported => 'مستورد';
 
   @override
+  String get recordEdit_library => 'المكتبة';
+
+  @override
+  String get recordEdit_onlyYou => 'أنت فقط';
+
+  @override
   String get recordEdit_saveFailed => 'تعذّر حفظ التغييرات. لم يتغيّر شيء.';
 
   @override
