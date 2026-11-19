@@ -519,6 +519,42 @@ void main() {
       );
     });
 
+    // An attempt refused before the dialog (here demo mode) leaves the kept
+    // note for the Send after it.
+    testWidgets('a refused attempt after a failed Send keeps the note', (
+      tester,
+    ) async {
+      await pumpSend(tester, proposalFails: true);
+      await unlockReader(tester);
+      sitting(tester).set(siteNameField, 'Big Hole');
+      await tester.pumpAndSettle();
+      final noteField = find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(TextField),
+      );
+      await tapSend(tester);
+      await tester.enterText(noteField, 'The shops call it Big Hole');
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text(l.sharedLibrary_suggest_send),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      DemoModeGate.instance.debugActive = true;
+      addTearDown(applyGlobalTestDefaults);
+      await tapSend(tester);
+      expect(find.byType(AlertDialog), findsNothing);
+      DemoModeGate.instance.debugActive = false;
+      await tapSend(tester);
+
+      expect(
+        tester.widget<TextField>(noteField).controller!.text,
+        'The shops call it Big Hole',
+      );
+    });
+
     testWidgets('a proposal that fails after the notes are saved says so', (
       tester,
     ) async {

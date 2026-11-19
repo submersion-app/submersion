@@ -269,15 +269,19 @@ mixin _SiteDetailPageEditing
   /// something goes to the owner. An editor's sitting is never sent: one
   /// whose role has dropped is withdrawn, not sent (plan 5, Question 2). A
   /// demo profile, or a role that cannot be read, saves nothing.
+  ///
+  /// The Send held by an attempt that did not go through stays held until
+  /// this decides again, so its note is offered to the next one; a save
+  /// decided not to be a Send clears it.
   @override
   Future<bool> beforeSave() async {
     final session = maybeEditController?.session;
     if (session == null) return true;
-    // A Send that did not go through offers its note again.
-    final previousNote = readerSendNote(session) ?? '';
-    clearReaderSend(session);
     final libraryId = session.stored.sharedLibraryId;
-    if (libraryId == null || !isReaderSitting(session)) return true;
+    if (libraryId == null || !isReaderSitting(session)) {
+      clearReaderSend(session);
+      return true;
+    }
     // As the suggestion form did: a demo profile is told so.
     if (!demoSealGuard(context, DemoSealedFeature.sharedLibrary)) {
       return false;
@@ -298,10 +302,16 @@ mixin _SiteDetailPageEditing
       return false;
     }
     if (!mounted) return false;
-    if (role != null && canEditLibrarySite(role)) return true;
+    if (role != null && canEditLibrarySite(role)) {
+      clearReaderSend(session);
+      return true;
+    }
     var note = '';
     if (readerSendProposes(session)) {
-      final asked = await askSuggestionNote(context, initial: previousNote);
+      final asked = await askSuggestionNote(
+        context,
+        initial: readerSendNote(session) ?? '',
+      );
       if (asked == null || !mounted) return false;
       note = asked;
     }
@@ -552,10 +562,14 @@ mixin _SiteDetailPageEditing
   /// Open with nothing to show, it gets an empty body, which the frame
   /// replaces with its editor. A card worked out from other values fades
   /// while unlocked.
+  ///
+  /// [readerPage] is [_readerPageNow] for this build, asked once for all
+  /// the cards.
   WidgetBuilder? _framed(
     SiteDetailSectionId id,
     WidgetBuilder? builder, {
     required bool editing,
+    required bool readerPage,
   }) {
     if (!editing) return builder;
     final card = siteEditCards[id];
@@ -572,7 +586,7 @@ mixin _SiteDetailPageEditing
     // pencil, and the reader's own say so. While locked the page decides,
     // so unlocking never remounts a card; while unlocked the sitting does,
     // so a reload of the role keeps the reader's framing.
-    final rule = _readerPageNow(watch: true)
+    final rule = readerPage
         ? siteReaderCardRule(card.id)
         : SiteReaderCard.suggested;
     if (rule == SiteReaderCard.library) {

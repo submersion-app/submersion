@@ -59,29 +59,14 @@ Future<({DiveSite before, DiveSite after})?> _save(
   Set<String>? privateCards,
 }) {
   final private = privateCards;
-  if (private == null) {
-    return undoMediaOnFailure(
-      session,
-      () => service.save(
-        // The site the sitting was opened on, whatever the page shows by
-        // the time the write is asked for.
-        siteId: session.stored.id,
-        apply: session.applyTo,
-        changedCardIds: session.changedCardIds,
-        actingDiverId: actingDiverId,
-        writeFirst: session.hasHeldWritesBeforeRecord
-            ? () => session.runHeldWrites(beforeRecord: true)
-            : null,
-        alsoWrite: session.hasHeldWrites ? session.runHeldWrites : null,
-        alsoWriteIsAChange: session.hasHeldChanges,
-        heldLibraryFields: () => siteLibraryFields(session),
-      ),
-    );
-  }
-  final changed = session.changedCardIds.where(private.contains).toSet();
+  final changed = private == null
+      ? session.changedCardIds
+      : session.changedCardIds.where(private.contains).toSet();
   return undoMediaOnFailure(
     session,
     () => service.save(
+      // The site the sitting was opened on, whatever the page shows by the
+      // time the write is asked for.
       siteId: session.stored.id,
       apply: session.applyTo,
       changedCardIds: changed,
@@ -92,9 +77,15 @@ Future<({DiveSite before, DiveSite after})?> _save(
       alsoWrite: session.hasHeldWrites
           ? () => session.runHeldWrites(cardIds: private)
           : null,
-      // A held change of one of these cards is a change in its own right.
-      alsoWriteIsAChange: changed.isNotEmpty,
-      privateOnly: true,
+      // A reader's held change of one of their cards is a change in its
+      // own right; the library's fields are stamped only for an edit.
+      alsoWriteIsAChange: private == null
+          ? session.hasHeldChanges
+          : changed.isNotEmpty,
+      heldLibraryFields: private == null
+          ? () => siteLibraryFields(session)
+          : null,
+      privateOnly: private != null,
     ),
   );
 }

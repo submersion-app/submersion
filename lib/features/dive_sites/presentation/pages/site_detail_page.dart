@@ -657,6 +657,8 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
             owner: DocumentOwner(DocumentOwnerKind.site, site.id),
           ),
     };
+    // One answer for every card in this build.
+    final readerPage = editing && _readerPageNow(watch: true);
     return {
       for (final section in sections)
         if (section.visible || shownForSitting.contains(section.id))
@@ -664,6 +666,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
             section.id,
             cards[section.id]!(),
             editing: editing,
+            readerPage: readerPage,
           ),
     };
   }
