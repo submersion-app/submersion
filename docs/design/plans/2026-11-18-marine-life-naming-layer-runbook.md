@@ -361,9 +361,9 @@ Write the `training.json` values into `progress.md`. Mark Phase 3 done.
 ## Phase 4: Train the rare-species check layer
 
 The same training with every photo of 100 held-back test species removed,
-at the shipped layer's chosen settings (pull, epochs, blend, sharpness)
-rather than a search of its own, so it differs from the shipped layer only
-in its photos (Eric, 2026-11-19). This pack is never shipped.
+at the shipped layer's chosen settings (pull, epochs, blend, sharpness) and
+seed rather than a search of its own, so it differs from the shipped layer
+only in its photos (Eric, 2026-11-19). This pack is never shipped.
 
 ```bash
 source /Users/ericgriffin/repos/submersion-app/naming-training/env.sh
@@ -375,7 +375,7 @@ import json, os
 d = os.environ["DATA"]
 check = json.load(open(f"{d}/pack-check/training.json"))
 shipped = json.load(open(f"{d}/pack-trained/training.json"))
-keys = ("anchor", "epochs", "blend", "sharpness")
+keys = ("anchor", "epochs", "blend", "sharpness", "seed")
 print(len(check["held back species"]), check["training photos"], shipped["training photos"])
 print("same settings:", all(check[k] == shipped[k] for k in keys), {k: check[k] for k in keys})
 EOF

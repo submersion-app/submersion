@@ -125,38 +125,49 @@ class SearchTest(unittest.TestCase):
             with self.assertRaisesRegex(SystemExit, "finite validation loss"):
                 train_naming.search(name_rows, (x, y), (x, y), log=lambda _: None)
 
-    def test_search_records_the_epochs_of_the_best_setting(self):
+    def test_search_records_the_epochs_and_seed_of_the_best_setting(self):
         name_rows, x, y = toy()
         with mock.patch.object(train_naming, "train", return_value=(name_rows.copy(), 7)):
-            _, best = train_naming.search(name_rows, (x, y), (x, y), log=lambda _: None)
-        self.assertEqual(best["epochs"], 7)
+            _, best = train_naming.search(name_rows, (x, y), (x, y), seed=5, log=lambda _: None)
+        self.assertEqual((best["epochs"], best["seed"]), (7, 5))
         self.assertTrue(set(train_naming.ts.SETTING_KEYS) <= set(best))
 
 
 class SettingsFromTest(unittest.TestCase):
-    SETTINGS = {"anchor": 1e-3, "epochs": 4, "blend": 0.5, "sharpness": 2.0}
+    SETTINGS = {"anchor": 1e-3, "epochs": 4, "blend": 0.5, "sharpness": 2.0, "seed": 3}
 
-    def test_training_with_settings_uses_them_without_a_search_or_early_stop(self):
+    def write(self, pack, recorded):
+        with open(os.path.join(pack, "training.json"), "w", encoding="utf-8") as fh:
+            json.dump(recorded, fh)
+
+    def test_training_with_settings_uses_them_and_their_seed_without_a_search_or_early_stop(self):
         name_rows, x, y = toy()
         trained = name_rows * 3
         with mock.patch.object(train_naming, "train", return_value=(trained, 4)) as train:
-            rows, settings = train_naming.with_settings(name_rows, (x, y), (x, y), self.SETTINGS, seed=0)
+            rows, settings = train_naming.with_settings(name_rows, (x, y), (x, y), self.SETTINGS)
         self.assertEqual(train.call_count, 1)
         kwargs = train.call_args.kwargs
-        self.assertEqual((kwargs["anchor"], kwargs["epochs"], kwargs.get("validation")), (1e-3, 4, None))
+        self.assertEqual(
+            (kwargs["anchor"], kwargs["epochs"], kwargs["seed"], kwargs.get("validation")), (1e-3, 4, 3, None)
+        )
         np.testing.assert_allclose(rows, train_naming.finish(trained, name_rows, blend=0.5, sharpness=2.0))
         self.assertEqual({k: settings[k] for k in self.SETTINGS}, self.SETTINGS)
         self.assertIn("validation loss", settings)
 
     def test_settings_are_read_from_a_trained_pack(self):
         with tempfile.TemporaryDirectory() as pack:
-            with open(os.path.join(pack, "training.json"), "w", encoding="utf-8") as fh:
-                json.dump({**self.SETTINGS, "seed": 0, "validation loss": 1.2}, fh)
+            self.write(pack, {**self.SETTINGS, "validation loss": 1.2})
             self.assertEqual(train_naming.settings_from(pack), self.SETTINGS)
-            with open(os.path.join(pack, "training.json"), "w", encoding="utf-8") as fh:
-                json.dump({"anchor": 1e-3, "blend": 0.5, "sharpness": 2.0}, fh)
+            self.assertEqual(train_naming.settings_from(pack, seed=3), self.SETTINGS)
+            self.write(pack, {"anchor": 1e-3, "blend": 0.5, "sharpness": 2.0, "seed": 3})
             with self.assertRaisesRegex(SystemExit, "epochs"):
                 train_naming.settings_from(pack)
+
+    def test_a_seed_other_than_the_recorded_one_is_refused(self):
+        with tempfile.TemporaryDirectory() as pack:
+            self.write(pack, self.SETTINGS)
+            with self.assertRaisesRegex(SystemExit, "seed"):
+                train_naming.settings_from(pack, seed=0)
 
 
 class NameRowsTest(unittest.TestCase):

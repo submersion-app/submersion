@@ -15,8 +15,9 @@ training), never on the test set. The sharpness scales every row, trained
 or not: it is the same as changing logitScale, so it leaves each crop's
 ranking of trained and untrained candidates as it was. The rare-species
 check layer (`--exclude-held-back` with `--settings-from` the trained
-pack) reuses the trained pack's chosen pull, epochs, blend and sharpness
-instead of searching, so it differs from that pack only in its photos.
+pack) reuses the trained pack's chosen pull, epochs, blend and sharpness,
+and its seed, instead of searching, so it differs from that pack only in
+its photos.
 
 The derived pack copies every file of the base pack but the rows and the
 manifest, so candidates, regions and models stay byte for byte the same.
@@ -188,6 +189,7 @@ def search(name_rows, train_xy, validation_xy, *, seed=SEED, log=print):
                         "epochs": epochs,
                         "blend": blend,
                         "sharpness": sharpness,
+                        "seed": seed,
                         "validation loss": loss,
                     }
     if best_rows is None:
@@ -196,13 +198,18 @@ def search(name_rows, train_xy, validation_xy, *, seed=SEED, log=print):
     return best_rows, best
 
 
-def with_settings(name_rows, train_xy, validation_xy, settings, *, seed=SEED):
+def with_settings(name_rows, train_xy, validation_xy, settings):
     """(rows, settings) trained with another layer's chosen settings: its
-    pull for its epochs, then its blend and sharpness. No search and no
-    early stop, so the rare-species check layer differs from the shipped
-    one only in its photos."""
+    pull for its epochs in its seed's batch order, then its blend and
+    sharpness. No search and no early stop, so the rare-species check
+    layer differs from the shipped one only in its photos."""
     trained, _ = train(
-        name_rows, *train_xy, anchor=settings["anchor"], epochs=settings["epochs"], lr=LEARNING_RATE, seed=seed
+        name_rows,
+        *train_xy,
+        anchor=settings["anchor"],
+        epochs=settings["epochs"],
+        lr=LEARNING_RATE,
+        seed=settings["seed"],
     )
     rows = finish(trained, name_rows, blend=settings["blend"], sharpness=settings["sharpness"])
     return rows, {
@@ -212,14 +219,18 @@ def with_settings(name_rows, train_xy, validation_xy, settings, *, seed=SEED):
     }
 
 
-def settings_from(pack):
-    """The settings a trained pack chose (its training.json)."""
+def settings_from(pack, seed=None):
+    """The settings a trained pack chose, with its seed (its training.json).
+    A `seed` given as well must be that one: a different batch order would
+    make the check layer differ in more than its photos."""
     path = os.path.join(pack, "training.json")
     with open(path, encoding="utf-8") as fh:
         recorded = json.load(fh)
     missing = [k for k in ts.SETTING_KEYS if k not in recorded]
     if missing:
         raise SystemExit(f"{path} records no {', '.join(missing)}; train that pack again with this train_naming.py")
+    if seed is not None and seed != recorded["seed"]:
+        raise SystemExit(f"--seed {seed} is not the seed {recorded['seed']} that {path} trained with")
     return {k: recorded[k] for k in ts.SETTING_KEYS}
 
 
@@ -283,9 +294,14 @@ def main(argv=None):
         help="train with this trained pack's chosen settings instead of searching (the check layer)",
     )
     parser.add_argument("--list-url", default=LIST_URL)
-    parser.add_argument("--seed", type=int, default=SEED)
+    parser.add_argument(
+        "--seed", type=int, help=f"the batch order's seed (default {SEED}; with --settings-from, that pack's)"
+    )
     args = parser.parse_args(argv)
 
+    # Read first, so a pack without the settings, or another seed, stops
+    # before the photos load.
+    reused = settings_from(args.settings_from, seed=args.seed) if args.settings_from else None
     exclude = set()
     if args.exclude_held_back:
         exclude = set(ts.held_back_species(testset.read_rows(args.exclude_held_back)))
@@ -293,14 +309,13 @@ def main(argv=None):
     x, y, records = load(args.training, part="train", exclude=exclude)
     xv, yv, _ = load(args.training, part="validation", exclude=exclude)
     print(f"{len(x)} training and {len(xv)} validation photos, {len(np.unique(y))} species", flush=True)
-    if args.settings_from:
-        rows, settings = with_settings(name_rows, (x, y), (xv, yv), settings_from(args.settings_from), seed=args.seed)
+    if reused is not None:
+        rows, settings = with_settings(name_rows, (x, y), (xv, yv), reused)
         settings["settings from"] = _read_manifest(args.settings_from)["packVersion"]
     else:
-        rows, settings = search(name_rows, (x, y), (xv, yv), seed=args.seed)
+        rows, settings = search(name_rows, (x, y), (xv, yv), seed=SEED if args.seed is None else args.seed)
     settings.update(
         {
-            "seed": args.seed,
             "training photos": len(x),
             "validation photos": len(xv),
             "species trained": int(len(np.unique(y))),

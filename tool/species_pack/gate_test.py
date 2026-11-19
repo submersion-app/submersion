@@ -99,7 +99,7 @@ class RareTest(unittest.TestCase):
 class CheckPackTest(unittest.TestCase):
     BARS = {"min_open": 0.1, "suggest": 0.7, "suggest_no_location": 0.8, "confident": 0.93, "confident_no_location": 1.01}
 
-    SETTINGS = {"anchor": 1e-3, "epochs": 4, "blend": 0.5, "sharpness": 2.0}
+    SETTINGS = {"anchor": 1e-3, "epochs": 4, "blend": 0.5, "sharpness": 2.0, "seed": 0}
 
     def confirm(self, held=(5, 6), named_at=None, settings=None):
         gate.confirm_check_pack(
@@ -111,7 +111,7 @@ class CheckPackTest(unittest.TestCase):
         )
 
     def test_a_check_pack_trained_with_other_settings_is_refused(self):
-        for changed in ({"blend": 0.75}, {"epochs": 5}):
+        for changed in ({"blend": 0.75}, {"epochs": 5}, {"seed": 1}):
             with self.subTest(changed=changed), self.assertRaisesRegex(SystemExit, "settings"):
                 self.confirm(settings={**self.SETTINGS, **changed})
 

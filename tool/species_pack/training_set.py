@@ -33,10 +33,11 @@ VALIDATION_FRACTION = 0.10
 SEED = "naming-layer-2026-11"
 # Test species whose training photos the rare-species check leaves out.
 HELD_BACK = 100
-# The settings a trained layer chooses on its validation photos, which the
-# rare-species check layer reuses so it differs only in its photos
-# (train_naming.py records them, gate.py confirms them).
-SETTING_KEYS = ("anchor", "epochs", "blend", "sharpness")
+# The settings a trained layer chooses on its validation photos, and the
+# seed that orders its training batches, which the rare-species check layer
+# reuses so it differs only in its photos (train_naming.py records them,
+# gate.py confirms them).
+SETTING_KEYS = ("anchor", "epochs", "blend", "sharpness", "seed")
 CREDIT_FIELDS = ["id", "uri", "licence", "attribution"]
 
 
