@@ -295,6 +295,34 @@ void main() {
     expect(await setPageOperations(tester), isEmpty);
   });
 
+  testWidgets('a rename saves even when the sets cannot be read', (
+    tester,
+  ) async {
+    final sets = _FailingAllSets();
+    await pumpSetPage(
+      tester,
+      extraOverrides: [equipmentSetRepositoryProvider.overrideWithValue(sets)],
+    );
+    sets.fail = true;
+    await tester.tap(find.byIcon(Icons.lock_outline));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byTooltip(
+        l.recordEdit_editCardTooltip(l.settings_conflict_ref_equipmentSet),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const ValueKey('set-edit-name')), 'Kelp');
+    await tester.pumpAndSettle();
+
+    await tapSave(tester);
+    await settleSave(tester);
+
+    expect(find.text(l.recordEdit_saveFailed), findsNothing);
+    expect(find.byType(RecordEditBar), findsNothing);
+    expect((await storedSet(tester)).name, 'Kelp');
+  });
+
   testWidgets('a failed replay saves nothing and leaves the page unlocked', (
     tester,
   ) async {

@@ -96,6 +96,14 @@ mixin _EquipmentSetDetailPageEditing
     if (session == null) return true;
     session.remember(_alsoLoggedKey, false);
     session.remember(_coveredSetIdsKey, <String>{});
+    // A sitting that changes neither the members nor the included sets
+    // changes no dive: nothing to ask, and nothing to read.
+    final before = session.stored;
+    final after = session.working;
+    if (setEquals(before.equipmentIds.toSet(), after.equipmentIds.toSet()) &&
+        listEquals(before.includedSetIds, after.includedSetIds)) {
+      return true;
+    }
     // Every set of the owner, as the save reads them: a set that includes
     // this one has dives to ask about too. Without them the question could
     // leave out dives the save then rewrites, so the Save stops.
