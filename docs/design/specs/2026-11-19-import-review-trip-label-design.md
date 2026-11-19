@@ -73,7 +73,9 @@ line 3051) calls it. Downloads and Apple Health are the date-only case.
   trips (`ImportTargetChoice`, or each item's `ImportTarget` in a multi-diver
   import; a brand-new profile has no trips) and the current selections and
   duplicate actions. Only rows saved as new dives get a name: non-duplicates
-  and rows marked import as new.
+  and rows marked import as new. (Found in review: a row merged into a dive
+  with no trip gets one too, because a merge saves the dive on its own first
+  and then copies its trip onto the match when the match has none.)
 - The row shows it as one extra line under the subtitle, with the trip icon:
 
   ```

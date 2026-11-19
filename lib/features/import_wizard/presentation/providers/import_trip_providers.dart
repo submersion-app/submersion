@@ -59,8 +59,9 @@ final importReviewTripNamesProvider = Provider.autoDispose<Map<int, String>>((
   }
 
   final owners = [for (final dive in dives.items) ownerOf(dive)];
+  // Each profile once: a row-by-row watch would repeat it for every dive.
   final tripsByOwner = {
-    for (final (reads, owner) in owners)
+    for (final (reads, owner) in owners.toSet())
       if (reads) owner: ref.watch(importOwnerTripsProvider(owner)).value,
   };
 

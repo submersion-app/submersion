@@ -2,6 +2,7 @@ import 'package:submersion/features/import_wizard/domain/models/duplicate_action
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/services/imported_dive_trip.dart';
+import 'package:submersion/features/trips/domain/services/trip_for_dive_date.dart';
 
 /// Pure. The name of the trip each reviewed dive will be saved in (issue
 /// #3022), keyed by row index in [dives]; a row with no entry joins none.
@@ -99,13 +100,31 @@ Trip? _tripOf(
   final key = dive.target?.key;
   final profile = profiles[key];
   final ref = dive.tripRef;
-  return tripForImportedDive(
-    ownTrip: ref == null ? null : profile?.ownTripByRef[ref],
+  final ownTrip = ref == null ? null : profile?.ownTripByRef[ref];
+  final date = dive.hasSourceTime ? dive.diveData?.startTime : null;
+  final candidates = candidatesByProfile[key] ?? const <Trip>[];
+  final trip = tripForImportedDive(
+    ownTrip: ownTrip,
     hasTripRef: ref != null,
     sourceHasTrips: dive.sourceHasTrips ?? profile != null,
-    diveDateTime: dive.hasSourceTime ? dive.diveData?.startTime : null,
-    trips: candidatesByProfile[key] ?? const [],
+    diveDateTime: date,
+    trips: candidates,
   );
+  if (trip == null || ownTrip != null || date == null) return trip;
+  // Placed by date. Two covering trips starting at the same moment are
+  // told apart by id, and the importer gives a file trip a random one, so
+  // a tie between a file trip and an existing trip cannot be predicted:
+  // name neither rather than guess.
+  final tied = [
+    for (final t in candidates)
+      if (t.startDate.isAtSameMomentAs(trip.startDate) &&
+          tripForDiveDate(date, [t]) != null)
+        t,
+  ];
+  final imported = profile?.imported ?? const <Trip>[];
+  final mixed =
+      tied.any(imported.contains) && tied.any((t) => !imported.contains(t));
+  return mixed ? null : trip;
 }
 
 /// One profile's file trips: the ones it imports, and the trip each source

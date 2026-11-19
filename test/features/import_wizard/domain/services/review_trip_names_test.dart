@@ -231,6 +231,32 @@ void main() {
     expect(result, {0: 'File a'});
   });
 
+  test('a tie between a file trip and an existing one names neither', () {
+    // The importer gives the file trip a random id, so which of two trips
+    // starting at the same moment wins cannot be known before the save.
+    final result = names(
+      [dive(3, 10, tripRef: 'b')],
+      trips: [
+        fileTrip('a', DateTime(2026, 3, 7), DateTime(2026, 3, 12)),
+        fileTrip('b', DateTime(2026, 6, 1), DateTime(2026, 6, 3)),
+      ],
+      tripSelections: {0},
+    );
+    expect(result, isEmpty);
+  });
+
+  test('a file trip starting later than an existing one still wins', () {
+    final result = names(
+      [dive(3, 10, tripRef: 'b')],
+      trips: [
+        fileTrip('a', DateTime(2026, 3, 8), DateTime(2026, 3, 12)),
+        fileTrip('b', DateTime(2026, 6, 1), DateTime(2026, 6, 3)),
+      ],
+      tripSelections: {0},
+    );
+    expect(result, {0: 'File a'});
+  });
+
   group('per profile (multi-diver file import)', () {
     test('a dive reads only its own profile file trips', () {
       final result = names(
