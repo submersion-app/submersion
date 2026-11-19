@@ -11,6 +11,7 @@ import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart'
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_tabs.dart';
 import 'package:submersion/shared/widgets/record_editing/record_satellite.dart';
 
 /// A record small enough to show what the shared editing pieces do for any
@@ -79,6 +80,7 @@ final fakeExtraCard = EditCard<FakeNote>(
 class FakeNoteProbe {
   final notes = <String, FakeNote>{
     'n1': const FakeNote('n1', 'First', 'Calm', 'Full'),
+    'n2': const FakeNote('n2', 'Second', '', ''),
   };
   final saves = <Set<String>>[];
 }
@@ -274,4 +276,209 @@ Future<FakeNoteProbe> pumpFakeNotes(WidgetTester tester, Widget home) async {
   );
   await tester.pumpAndSettle();
   return probe;
+}
+
+/// A text editor that holds text it cannot read as a value, as a number
+/// row does: `12a` is marked unreadable and not written to the sitting.
+/// Like a number row, it clears its mark when it goes.
+class FakeCheckedEditor extends StatefulWidget {
+  const FakeCheckedEditor({super.key, required this.session});
+
+  final EditSession<FakeNote> session;
+
+  @override
+  State<FakeCheckedEditor> createState() => _FakeCheckedEditorState();
+}
+
+class _FakeCheckedEditorState extends State<FakeCheckedEditor> {
+  late final _text = TextEditingController(
+    text: widget.session.valueOf(fakeTextField),
+  );
+  RecordEditController<FakeNote>? _controller;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _controller = RecordEditScope.maybeOf<FakeNote>(context);
+  }
+
+  void _changed(String text) {
+    final unreadable = text == '12a';
+    _controller?.setFieldInvalid('text', 'text', invalid: unreadable);
+    if (!unreadable) widget.session.set(fakeTextField, text);
+  }
+
+  @override
+  void dispose() {
+    _controller?.setFieldInvalid('text', 'text', invalid: false);
+    _text.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => TextField(
+    key: const ValueKey('checkedEditor'),
+    controller: _text,
+    onChanged: _changed,
+  );
+}
+
+final fakeCheckedTextCard = EditCard<FakeNote>(
+  id: 'text',
+  title: (_) => 'Text',
+  isEmpty: (note) => note.text.isEmpty,
+  editorBuilder: (context, session) => FakeCheckedEditor(session: session),
+);
+
+/// Counts how often the first tab's view is disposed.
+class FakeTabDisposals {
+  int count = 0;
+}
+
+class _DisposalCounter extends StatefulWidget {
+  const _DisposalCounter({required this.disposals});
+
+  final FakeTabDisposals disposals;
+
+  @override
+  State<_DisposalCounter> createState() => _DisposalCounterState();
+}
+
+class _DisposalCounterState extends State<_DisposalCounter> {
+  @override
+  void dispose() {
+    widget.disposals.count++;
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => const SizedBox(height: 1);
+}
+
+/// A record page with two tabs: `text` on the first, `extra` on the
+/// second, each left out while empty, as a trip's tabs hold its cards.
+class FakeTabbedPage extends ConsumerStatefulWidget {
+  const FakeTabbedPage({
+    super.key,
+    this.noteId = 'n1',
+    required this.disposals,
+  });
+
+  final String noteId;
+  final FakeTabDisposals disposals;
+
+  @override
+  ConsumerState<FakeTabbedPage> createState() => FakeTabbedPageState();
+}
+
+class FakeTabbedPageState extends ConsumerState<FakeTabbedPage>
+    with
+        SingleTickerProviderStateMixin,
+        RecordEditHost<FakeTabbedPage, FakeNote>,
+        RecordEditTabs<FakeTabbedPage, FakeNote>,
+        _FakeNoteHost<FakeTabbedPage> {
+  late final TabController tabs = TabController(length: 2, vsync: this)
+    ..addListener(() {
+      if (mounted) setState(() {});
+    });
+
+  static const _tabOf = {'text': 0, 'extra': 1};
+
+  @override
+  String get noteId => widget.noteId;
+
+  @override
+  Iterable<EditCard<FakeNote>> get hostEditCards => [
+    fakeCheckedTextCard,
+    fakeExtraCard,
+  ];
+
+  @override
+  String editingTitle(FakeNote record) => 'Editing ${record.title}';
+
+  @override
+  int? tabOfCard(String cardId) => _tabOf[cardId];
+
+  @override
+  int get tabInView => tabs.index;
+
+  @override
+  void showTab(int tab) => tabs.animateTo(tab);
+
+  @override
+  List<AddStripEntry> addStripEntriesOnEveryTab(FakeNote working) => [
+    for (final card in hostEditCards)
+      if (!_shows(card, working))
+        AddStripEntry(
+          cardId: card.id,
+          label: card.id == 'text' ? 'Text' : 'Extra',
+        ),
+  ];
+
+  bool _shows(EditCard<FakeNote> card, FakeNote shown) =>
+      !card.isEmpty(shown) ||
+      (isSittingOpen &&
+          (editController.openCardIds.contains(card.id) ||
+              editController.addedCardIds.contains(card.id)));
+
+  Widget _tab(
+    EditCard<FakeNote> card,
+    FakeNote shown,
+    String value,
+  ) => RecordEditKeepAlive<FakeNote>(
+    child: ListView(
+      children: [
+        if (card.id == 'text') _DisposalCounter(disposals: widget.disposals),
+        if (_shows(card, shown))
+          RecordCardFrame<FakeNote>(
+            card: card,
+            child: Column(
+              children: [
+                RecordCardHeader(title: card.id == 'text' ? 'Text' : 'Extra'),
+                Text(value),
+              ],
+            ),
+          ),
+      ],
+    ),
+  );
+
+  @override
+  void dispose() {
+    tabs.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    followStored(fakeNoteProvider(widget.noteId));
+    final stored = ref.watch(fakeNoteProvider(widget.noteId)).value;
+    if (stored == null) return const SizedBox.shrink();
+    final shown = shownRecord(stored);
+    return editScaffold(
+      record: stored,
+      shown: shown,
+      lockedBar: AppBar(title: Text(shown.title), actions: [lockButton(shown)]),
+      content: Column(
+        children: [
+          TabBar(
+            controller: tabs,
+            tabs: const [
+              Tab(text: 'One'),
+              Tab(text: 'Two'),
+            ],
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: tabs,
+              children: [
+                _tab(fakeCheckedTextCard, shown, shown.text),
+                _tab(fakeExtraCard, shown, shown.extra),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
