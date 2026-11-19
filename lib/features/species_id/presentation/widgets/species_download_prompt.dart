@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
+import 'package:submersion/features/media/presentation/media_tag_navigation.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_download_prompt_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -47,9 +48,18 @@ class SpeciesDownloadPrompt extends ConsumerWidget {
             .read(speciesDownloadPromptDismissedProvider.notifier)
             .setEnabled(true),
       ),
-      onTap: () => context.push('/settings/marine-life-identification'),
+      onTap: () => _open(context),
     );
     if (!banner) return tile;
     return Material(color: scheme.secondaryContainer, child: tile);
+  }
+
+  /// Opens Species identification. From the photo viewer's species sheet,
+  /// both are pushed above the router's page, so they close first; a viewer
+  /// holding unsaved changes is asked instead and nothing opens.
+  void _open(BuildContext context) {
+    final router = GoRouter.of(context);
+    if (!closeRoutesAboveRouterPage(Navigator.of(context))) return;
+    router.push('/settings/marine-life-identification');
   }
 }

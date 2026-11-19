@@ -29,7 +29,19 @@ void openMediaWithFilter(
   MediaLibraryFilter filter,
 ) {
   final router = GoRouter.of(context);
-  final navigator = Navigator.of(context);
+  if (!closeRoutesAboveRouterPage(Navigator.of(context))) return;
+  ref.read(mediaLibraryFilterProvider.notifier).state = filter;
+  router.go('/media');
+}
+
+/// Pops every pageless route above the router's page on [navigator] (a
+/// sheet, the viewer pushed imperatively), so the router's next page opens
+/// over the page the diver came from rather than under or between them.
+///
+/// Returns false, having popped nothing past it, when a route refuses to be
+/// popped (the viewer unlocked with unsaved changes, issue #4527): it is
+/// asked instead, as Back asks it, and the caller must not navigate.
+bool closeRoutesAboveRouterPage(NavigatorState navigator) {
   var guarded = false;
   navigator.popUntil((route) {
     if (route.settings is Page) return true;
@@ -39,12 +51,8 @@ void openMediaWithFilter(
     }
     return false;
   });
-  if (guarded) {
-    unawaited(navigator.maybePop());
-    return;
-  }
-  ref.read(mediaLibraryFilterProvider.notifier).state = filter;
-  router.go('/media');
+  if (guarded) unawaited(navigator.maybePop());
+  return !guarded;
 }
 
 /// Opens the media library showing only the photos and videos tagged

@@ -155,12 +155,18 @@ void main() {
           GoRoute(
             path: '/',
             builder: (_, _) => Scaffold(
-              body: Column(children: [SpeciesDownloadPrompt(banner: banner)]),
+              body: Column(
+                children: [
+                  SpeciesDownloadPrompt(banner: banner),
+                  const _OverPageButtons(),
+                ],
+              ),
             ),
           ),
           GoRoute(
             path: '/settings/marine-life-identification',
-            builder: (_, _) => const Scaffold(body: Text('identification')),
+            builder: (_, _) =>
+                Scaffold(appBar: AppBar(), body: const Text('identification')),
           ),
         ],
       );
@@ -199,6 +205,39 @@ void main() {
       expect(find.text('identification'), findsOneWidget);
     });
 
+    // As the photo viewer and its species sheet are: pushed above the
+    // router's page, not by it (#4773).
+    testWidgets('from a sheet over a pushed page, closes both first', (
+      tester,
+    ) async {
+      await pumpPrompt(tester, overrides: promptOverrides());
+      await tester.tap(find.text('open viewer'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('open sheet'));
+      await tester.pumpAndSettle();
+      await tester.tap(prompt.last);
+      await tester.pumpAndSettle();
+      expect(find.text('identification'), findsOneWidget);
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      expect(find.text('viewer'), findsNothing);
+      expect(find.text('sheet'), findsNothing);
+      expect(find.text('open viewer'), findsOneWidget);
+    });
+
+    testWidgets('a page that will not close keeps the diver on it', (
+      tester,
+    ) async {
+      await pumpPrompt(tester, overrides: promptOverrides());
+      await tester.tap(find.text('open guarded viewer'));
+      await tester.pumpAndSettle();
+      await tester.tap(prompt.last);
+      await tester.pumpAndSettle();
+      expect(find.text('viewer'), findsOneWidget);
+      expect(find.text('identification'), findsNothing);
+    });
+
     testWidgets('goes away for good when dismissed', (tester) async {
       await pumpPrompt(tester, overrides: promptOverrides(), banner: true);
       await tester.tap(
@@ -209,4 +248,47 @@ void main() {
       expect(find.text('identification'), findsNothing);
     });
   });
+}
+
+/// Pushes a page above the router's, as the photo viewer is, and a sheet
+/// over it, both holding the prompt.
+class _OverPageButtons extends StatelessWidget {
+  const _OverPageButtons();
+
+  Widget _viewer(BuildContext context, {required bool guarded}) => PopScope(
+    canPop: !guarded,
+    child: Scaffold(
+      body: Column(
+        children: [
+          const Text('viewer'),
+          const SpeciesDownloadPrompt(),
+          TextButton(
+            onPressed: () => showModalBottomSheet<void>(
+              context: context,
+              builder: (_) => const Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [Text('sheet'), SpeciesDownloadPrompt()],
+              ),
+            ),
+            child: const Text('open sheet'),
+          ),
+        ],
+      ),
+    ),
+  );
+
+  @override
+  Widget build(BuildContext context) => Column(
+    children: [
+      for (final guarded in [false, true])
+        TextButton(
+          onPressed: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (context) => _viewer(context, guarded: guarded),
+            ),
+          ),
+          child: Text(guarded ? 'open guarded viewer' : 'open viewer'),
+        ),
+    ],
+  );
 }
