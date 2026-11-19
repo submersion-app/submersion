@@ -6,6 +6,12 @@ import 'package:submersion/features/buddies/presentation/editing/buddy_card_ids.
 import 'package:submersion/features/buddies/presentation/editing/buddy_certifications_sitting.dart';
 import 'package:submersion/features/buddies/presentation/editing/buddy_edit_fields.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/buddies/presentation/editing/buddy_gear_sitting.dart';
+import 'package:submersion/features/equipment/data/services/equipment_move_flow.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_location_picker_sheet.dart';
+import 'package:submersion/features/equipment/presentation/widgets/lend_gear_flow.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
@@ -238,6 +244,57 @@ void main() {
       await save(tester);
 
       expect(harness.save.calls.single.cards, {'header', 'certifications'});
+    });
+  });
+
+  group('gear', () {
+    testWidgets('Gear is offered in the strip while the buddy has none', (
+      tester,
+    ) async {
+      await pumpBuddyPage(tester);
+      await unlock(tester);
+
+      expect(
+        find.descendant(
+          of: find.byType(AddStrip),
+          matching: find.text(BuddyCardId.gear.localizedDisplayName(l)),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('lend and a phone change are one entry', (tester) async {
+      final harness = await pumpBuddyPage(tester);
+      harness.save.runHeld = false;
+      await unlock(tester);
+      final session = sessionOf(tester);
+      holdBuddyLend(
+        session,
+        HeldLend(
+          items: const [
+            EquipmentItem(
+              id: 'reg',
+              name: 'Apeks XTX',
+              type: EquipmentType.regulator,
+              status: EquipmentStatus.active,
+            ),
+          ],
+          pick: BuddyPick(alex),
+          plan: EquipmentMovePlan(
+            items: const {'reg': EquipmentStatus.active},
+            movedAt: DateTime(2026),
+          ),
+          diverId: 'd1',
+        ),
+      );
+      session.set(buddyPhoneField, '777');
+      await tester.pumpAndSettle();
+      // The lent gear shows on the page before Save.
+      expect(find.text('Apeks XTX'), findsOneWidget);
+
+      await save(tester);
+
+      expect(harness.save.calls.single.cards, {'contact', 'gear'});
     });
   });
 }

@@ -40,6 +40,11 @@ import 'package:submersion/features/buddies/data/services/buddy_edit_save_servic
 import 'package:submersion/features/buddies/presentation/editing/buddy_card_ids.dart';
 import 'package:submersion/features/buddies/presentation/editing/buddy_certifications_sitting.dart';
 import 'package:submersion/features/buddies/presentation/editing/buddy_edit_cards.dart';
+import 'package:submersion/features/buddies/presentation/editing/buddy_gear_sitting.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
+import 'package:submersion/features/equipment/domain/services/gear_with_buddy.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_location_list_page.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
 import 'package:submersion/features/documents/presentation/editing/record_document_links_sitting.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
@@ -269,7 +274,17 @@ class _BuddyDetailContent extends ConsumerWidget {
 
           // Gear they have (issue #3790), with its own spacing: most buddies
           // have none and show no gap.
-          BuddyGearSection(buddy: buddy),
+          if (!_editing)
+            BuddyGearSection(buddy: buddy)
+          else if (!this.host!._gearEmpty(buddy) || _shows(BuddyCardId.gear))
+            _framed(
+              BuddyCardId.gear,
+              BuddyGearSection(
+                buddy: buddy,
+                readOnly: true,
+                shown: this.host!.maybeEditController?.session,
+              ),
+            ),
 
           // Notes
           if (buddy.notes.isNotEmpty || _shows(BuddyCardId.notes)) ...[

@@ -79,21 +79,39 @@ mixin _BuddyDetailPageEditing
     return container.read(buddyByIdProvider(stored.id).future);
   }
 
-  /// The cards the page leaves out while they are empty: Contact and Notes.
+  /// The cards the page leaves out while they are empty: Contact, Gear
+  /// (while the buddy has none) and Notes.
   @override
   List<AddStripEntry> addStripEntries(Buddy working) {
     final session = maybeEditController?.session;
     if (session == null) return const [];
+    bool empty(BuddyCardId id) => id == BuddyCardId.gear
+        ? _gearEmpty(working)
+        : buddyEditCards[id]!.isEmptyDuring(working, session);
     return [
-      for (final id in buddyOptionalCards)
-        if (buddyEditCards[id]!.isEmptyDuring(working, session) &&
-            !_showsWhileEmpty(id))
+      for (final id in [
+        ...buddyOptionalCards,
+        BuddyCardId.gear,
+      ]..sort((a, b) => a.index.compareTo(b.index)))
+        if (empty(id) && !_showsWhileEmpty(id))
           AddStripEntry(
             cardId: id.name,
             label: buddyEditCards[id]!.title(context),
             changed: session.changedCardIds.contains(id.name),
           ),
     ];
+  }
+
+  /// Whether [buddy] has no gear, as the sitting holds it.
+  bool _gearEmpty(Buddy buddy) {
+    final current =
+        ref.watch(currentEquipmentLocationsProvider).value ??
+        const <String, EquipmentLocation>{};
+    final stored = gearWithBuddy(buddy.id, itemsAtPlaces(ref), current);
+    final session = maybeEditController?.session;
+    return session == null
+        ? stored.isEmpty
+        : buddyGearInSitting(session, stored).isEmpty;
   }
 
   /// Whether [id] is shown though empty: open or brought in from the strip

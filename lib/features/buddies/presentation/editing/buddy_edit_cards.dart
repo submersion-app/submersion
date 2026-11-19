@@ -6,6 +6,7 @@ import 'package:submersion/features/buddies/presentation/editing/buddy_certifica
 import 'package:submersion/features/buddies/presentation/editing/buddy_contact_card_editor.dart';
 import 'package:submersion/features/buddies/presentation/editing/buddy_edit_fields.dart';
 import 'package:submersion/features/buddies/presentation/editing/buddy_header_card_editor.dart';
+import 'package:submersion/features/buddies/presentation/widgets/buddy_gear_section.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -53,6 +54,14 @@ final Map<BuddyCardId, EditCard<Buddy>> buddyEditCards = {
     isEmpty: (_) => false,
     editorBuilder: (context, session) =>
         BuddyStatisticsCardEditor(session: session),
+  ),
+  BuddyCardId.gear: EditCard<Buddy>(
+    id: BuddyCardId.gear.name,
+    title: (context) => BuddyCardId.gear.localizedDisplayName(context.l10n),
+    // The page offers it in the strip while the buddy has none.
+    isEmpty: (_) => false,
+    editorBuilder: (context, session) =>
+        BuddyGearSection(buddy: session.working, editing: session),
   ),
   BuddyCardId.notes: EditCard<Buddy>(
     id: BuddyCardId.notes.name,

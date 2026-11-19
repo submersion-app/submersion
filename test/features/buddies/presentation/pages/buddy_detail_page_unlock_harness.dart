@@ -12,6 +12,9 @@ import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_people_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -117,6 +120,10 @@ Future<BuddyPageHarness> pumpBuddyPage(
           shown.id,
         ).overrideWith((ref) async => certifications),
         mediaForBuddyProvider(shown.id).overrideWith((ref) async => const []),
+        allEquipmentProvider.overrideWith((ref) async => const []),
+        currentEquipmentLocationsProvider.overrideWith(
+          (ref) async => const <String, EquipmentLocation>{},
+        ),
         buddyEditSaveServiceProvider.overrideWith((ref) {
           final save = FakeBuddySave(ref.watch(_storedProvider.notifier));
           harness = BuddyPageHarness(save, ref.watch(_storedProvider.notifier));

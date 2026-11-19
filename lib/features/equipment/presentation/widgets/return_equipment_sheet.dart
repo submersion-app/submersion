@@ -72,6 +72,68 @@ Future<int?> showEquipmentReturnFlow(
   }
 }
 
+/// A return asked about on a buddy's page in its sitting (issue #4527,
+/// phase 3), held until Save: the gear and the answers to the parts and
+/// status questions.
+class HeldReturn {
+  const HeldReturn({required this.items, required this.plan});
+
+  final List<EquipmentItem> items;
+  final EquipmentReturnPlan plan;
+}
+
+/// Takes [items] back from [buddyId] on the buddy's page in its sitting:
+/// the sheet, then the parts and status questions, all asked now, with
+/// nothing written. Null when the diver backs out, or when where the gear
+/// would go could not be read (a SnackBar says so).
+Future<HeldReturn?> planEquipmentReturn(
+  BuildContext context,
+  WidgetRef ref, {
+  required List<EquipmentItem> items,
+  required String buddyId,
+}) async {
+  if (items.isEmpty) return null;
+  final l10n = context.l10n;
+  final messenger = ScaffoldMessenger.of(context);
+  final flow = EquipmentReturnFlow(
+    moves: ref.read(equipmentLocationMoveRepositoryProvider),
+    askMoveParts: (n) => askMoveParts(context, n),
+    askStatus: (status, n) => askMoveStatus(context, status, n),
+    // Nothing is written now: the status is set at Save.
+    setStatus: (_, _) async {},
+  );
+  try {
+    final places = await ref.read(allEquipmentLocationsByIdProvider.future);
+    final destinations = await flow.destinations(
+      items: items,
+      buddyId: buddyId,
+      places: places,
+    );
+    if (!context.mounted) return null;
+    final draft = await showModalBottomSheet<_ReturnDraft>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => _ReturnEquipmentSheet(
+        itemCount: items.length,
+        destinations: destinations,
+      ),
+    );
+    if (draft == null || !context.mounted) return null;
+    final plan = await flow.plan(
+      items: items,
+      buddyId: buddyId,
+      places: places,
+      movedAt: draft.movedAt,
+      note: draft.note,
+    );
+    return HeldReturn(items: items, plan: plan);
+  } catch (_) {
+    messenger.showSnackBar(SnackBar(content: Text(l10n.common_error_tryAgain)));
+    return null;
+  }
+}
+
 class _ReturnDraft {
   const _ReturnDraft({required this.movedAt, required this.note});
   final DateTime movedAt;

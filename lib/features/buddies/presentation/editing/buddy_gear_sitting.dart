@@ -1,0 +1,160 @@
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/buddies/presentation/editing/buddy_card_ids.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_location_move_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_location_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/data/services/equipment_move_flow.dart';
+import 'package:submersion/features/equipment/data/services/equipment_return_flow.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
+import 'package:submersion/features/equipment/domain/services/gear_with_buddy.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_location_picker_sheet.dart';
+import 'package:submersion/features/equipment/presentation/widgets/lend_gear_flow.dart';
+import 'package:submersion/features/equipment/presentation/widgets/return_equipment_sheet.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+
+/// Gear lent to and returned from a buddy on its page, held in its sitting
+/// (issue #4527, phase 3): the questions are asked when the diver acts, and
+/// the moves are written at Save, in the order made, in the sitting's one
+/// History entry. A Cancel moves nothing and creates no place.
+
+/// One held move: a lend or a return.
+class HeldGearMove {
+  const HeldGearMove.lend(HeldLend this.lend) : returned = null;
+  const HeldGearMove.returned(HeldReturn this.returned) : lend = null;
+
+  final HeldLend? lend;
+  final HeldReturn? returned;
+}
+
+const String _movesNote = 'buddy.gearMoves';
+const String _key = 'buddy.gear';
+
+/// The moves [session] holds, in the order made.
+List<HeldGearMove> heldBuddyGearMoves(EditSession<Buddy> session) =>
+    session.isDisposed
+    ? const []
+    : session.recall<List<HeldGearMove>>(_movesNote) ?? const [];
+
+/// Holds [lend], to be written after the moves already held.
+void holdBuddyLend(EditSession<Buddy> session, HeldLend lend) =>
+    _set(session, [...heldBuddyGearMoves(session), HeldGearMove.lend(lend)]);
+
+/// Holds [returned], to be written after the moves already held.
+void holdBuddyReturn(EditSession<Buddy> session, HeldReturn returned) => _set(
+  session,
+  [...heldBuddyGearMoves(session), HeldGearMove.returned(returned)],
+);
+
+/// Drops the held move at [index]; with none left there is no change.
+void releaseBuddyGearMove(EditSession<Buddy> session, int index) {
+  final moves = [...heldBuddyGearMoves(session)];
+  if (index < 0 || index >= moves.length) return;
+  moves.removeAt(index);
+  _set(session, moves);
+}
+
+void _set(EditSession<Buddy> session, List<HeldGearMove> moves) {
+  if (session.isDisposed || session.isFrozen) return;
+  // Kept before the held change notifies, so what it redraws reads it.
+  session.remember(_movesNote, List<HeldGearMove>.unmodifiable(moves));
+  if (moves.isEmpty) {
+    session.releaseWrite(_key);
+    return;
+  }
+  session.holdChange(
+    _key,
+    cardId: BuddyCardId.gear.name,
+    write: () => writeBuddyGearMoves(heldBuddyGearMoves(session)),
+  );
+}
+
+/// Writes [moves] in order, inside the sitting's transaction: a lend finds
+/// or creates the buddy's place first, then moves the gear as the diver
+/// answered; a return sends each item back to where it was before the
+/// loan, worked out from what is stored now.
+Future<void> writeBuddyGearMoves(List<HeldGearMove> moves) async {
+  final locations = EquipmentLocationRepository();
+  final moveRepository = EquipmentLocationMoveRepository();
+  final setStatus = EquipmentRepository().setStatusForMany;
+  Future<bool> never(Object? _, [Object? _]) async => false;
+  for (final move in moves) {
+    if (move.lend case final lend?) {
+      final target = switch (lend.pick) {
+        PlacePick(:final location) => location,
+        NoLocationPick() => null,
+        BuddyPick(:final buddy) => await locations.findOrCreateForBuddy(
+          diverId: lend.diverId,
+          buddyId: buddy.id,
+          name: buddy.name,
+        ),
+      };
+      await EquipmentMoveFlow(
+        moves: moveRepository,
+        askMoveParts: never,
+        askStatus: never,
+        setStatus: setStatus,
+      ).write(lend.plan, target: target);
+    }
+    if (move.returned case final returned?) {
+      final places = {for (final l in await locations.getLocations()) l.id: l};
+      await EquipmentReturnFlow(
+        moves: moveRepository,
+        askMoveParts: never,
+        askStatus: never,
+        setStatus: setStatus,
+      ).write(returned.plan, places: places);
+    }
+  }
+}
+
+/// One row of the buddy's Gear card in a sitting: the gear, the place it is
+/// at or goes to, and the held move that brought it there (null for gear
+/// they had already).
+typedef BuddyGearRow = ({GearWithBuddy gear, int? heldIndex});
+
+/// The buddy's gear as [session] holds it: [stored], less what a held move
+/// returns, plus what a held move lends to this buddy (at a place standing
+/// for theirs, which is made at Save).
+List<BuddyGearRow> buddyGearInSitting(
+  EditSession<Buddy> session,
+  List<GearWithBuddy> stored,
+) {
+  final moves = heldBuddyGearMoves(session);
+  final buddy = session.working;
+  var rows = <BuddyGearRow>[
+    for (final gear in stored) (gear: gear, heldIndex: null),
+  ];
+  for (var i = 0; i < moves.length; i++) {
+    final move = moves[i];
+    if (move.returned case final returned?) {
+      final ids = returned.plan.items.keys.toSet();
+      rows = [
+        for (final row in rows)
+          if (!ids.contains(row.gear.item.id)) row,
+      ];
+    }
+    if (move.lend case final lend?) {
+      final pick = lend.pick;
+      final here = pick is BuddyPick && pick.buddy.id == buddy.id;
+      final ids = {for (final item in lend.items) item.id};
+      rows = [
+        for (final row in rows)
+          if (!ids.contains(row.gear.item.id)) row,
+        if (here)
+          for (final item in lend.items)
+            (gear: (item: item, place: _heldPlace(buddy, lend)), heldIndex: i),
+      ];
+    }
+  }
+  return rows;
+}
+
+/// The place standing for [buddy]'s until Save makes it.
+EquipmentLocation _heldPlace(Buddy buddy, HeldLend lend) => EquipmentLocation(
+  id: '',
+  name: buddy.name,
+  kind: EquipmentLocationKind.person,
+  buddyId: buddy.id,
+  createdAt: lend.plan.movedAt,
+  updatedAt: lend.plan.movedAt,
+);

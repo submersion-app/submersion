@@ -401,4 +401,56 @@ void main() {
       {shelf, null},
     );
   });
+
+  group('plan and write (issue #4527, phase 3)', () {
+    test('plan asks and writes nothing', () async {
+      final moves = _FakeMoves(
+        history: {
+          'a': history('a', ['shelf']),
+        },
+      );
+
+      final plan = await flow(moves).plan(
+        items: [item('a')],
+        buddyId: 'b1',
+        places: places,
+        movedAt: returnAt,
+      );
+
+      expect(statusAsks, [(EquipmentStatus.active, 1)]);
+      expect(plan.setActive, isTrue);
+      expect(moves.recorded, isEmpty);
+      expect(statusWrites, isEmpty);
+    });
+
+    test('write sends each item back and sets Active as planned', () async {
+      final moves = _FakeMoves(
+        history: {
+          'a': history('a', ['shelf']),
+          'b': history('b', ['shop']),
+        },
+      );
+
+      final returned = await flow(moves).write(
+        EquipmentReturnPlan(
+          items: const {
+            'a': EquipmentStatus.loaned,
+            'b': EquipmentStatus.loaned,
+          },
+          buddyId: 'b1',
+          movedAt: returnAt,
+          setActive: true,
+        ),
+        places: places,
+      );
+
+      expect(returned, 2);
+      expect(statusAsks, isEmpty);
+      expect(
+        {for (final r in moves.recorded) r.ids.single: r.locationId},
+        {'a': 'shelf', 'b': 'shop'},
+      );
+      expect(statusWrites.single.$2, EquipmentStatus.active);
+    });
+  });
 }

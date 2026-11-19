@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/buddies/presentation/editing/buddy_gear_sitting.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_gear_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -14,6 +15,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_location
 import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -99,6 +101,8 @@ void main() {
     required List<EquipmentItem> items,
     required Map<String, EquipmentLocation> current,
     List<EquipmentLocation>? places,
+    bool readOnly = false,
+    EditSession<Buddy>? editing,
   }) async {
     final moves = _FakeMoves();
     final byId = {
@@ -109,7 +113,13 @@ void main() {
         GoRoute(
           path: '/',
           builder: (context, state) => Scaffold(
-            body: SingleChildScrollView(child: BuddyGearSection(buddy: anna)),
+            body: SingleChildScrollView(
+              child: BuddyGearSection(
+                buddy: anna,
+                readOnly: readOnly,
+                editing: editing,
+              ),
+            ),
           ),
         ),
         GoRoute(
@@ -390,5 +400,47 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Update status?'), findsOneWidget);
+  });
+
+  group('on a page that edits in place (issue #4527, phase 3)', () {
+    testWidgets('locked with the switch on, no action is offered', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        items: [item('a', 'Drysuit'), item('b', 'Fins')],
+        current: {'a': hers, 'b': hers},
+        readOnly: true,
+      );
+
+      expect(title, findsOneWidget);
+      expect(find.byKey(const ValueKey('buddy_gear_lend')), findsNothing);
+      expect(allReturned, findsNothing);
+      expect(find.byKey(const ValueKey('buddy_gear_returned_a')), findsNothing);
+    });
+
+    testWidgets('in a sitting, Returned is held and moves nothing', (
+      tester,
+    ) async {
+      final session = EditSession(anna);
+      addTearDown(session.dispose);
+      final moves = await pump(
+        tester,
+        items: [item('a', 'Drysuit'), item('b', 'Fins')],
+        current: {'a': hers, 'b': hers},
+        editing: session,
+      );
+
+      await tester.tap(find.byKey(const ValueKey('buddy_gear_returned_a')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('return_equipment_confirm')));
+      await tester.pumpAndSettle();
+
+      expect(moves.returned, isEmpty);
+      expect(heldBuddyGearMoves(session), hasLength(1));
+      expect(session.changedCardIds, {'gear'});
+      expect(find.text('Drysuit'), findsNothing);
+      expect(find.text('Fins'), findsOneWidget);
+    });
   });
 }
