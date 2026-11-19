@@ -1,3 +1,4 @@
+import 'package:submersion/features/buddies/presentation/editing/instructor_card_editor.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/editing/course_card_ids.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
@@ -96,26 +97,22 @@ final courseLocationField = EditField<Course, String?>(
 
 /// The instructor: the buddy picked, and the name and number recorded. One
 /// value, so a pick that fills all three is one change.
-final courseInstructorField =
-    EditField<Course, ({String? id, String? name, String? number})>(
-      id: 'instructor',
-      cardId: _instructor,
-      read: (c) => (
-        id: c.instructorId,
-        name: c.instructorName,
-        number: c.instructorNumber,
-      ),
-      write: (c, v) => _with(
-        c,
-        instructorId: v.id,
-        instructorName: _orNone(v.name),
-        instructorNumber: _orNone(v.number),
-      ),
-      equals: (a, b) =>
-          a.id == b.id &&
-          _sameText(a.name, b.name) &&
-          _sameText(a.number, b.number),
-    );
+final courseInstructorField = EditField<Course, InstructorValue>(
+  id: 'instructor',
+  cardId: _instructor,
+  read: (c) =>
+      (id: c.instructorId, name: c.instructorName, number: c.instructorNumber),
+  write: (c, v) => _with(
+    c,
+    instructorId: v.id,
+    instructorName: _orNone(v.name),
+    instructorNumber: _orNone(v.number),
+  ),
+  equals: (a, b) =>
+      a.id == b.id &&
+      _sameText(a.name, b.name) &&
+      _sameText(a.number, b.number),
+);
 
 final courseNotesField = EditField<Course, String>(
   id: 'notes',
