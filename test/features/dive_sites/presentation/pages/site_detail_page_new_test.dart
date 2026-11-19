@@ -15,6 +15,7 @@ import 'package:submersion/features/rules/domain/entities/rule_run.dart';
 import 'package:submersion/features/rules/presentation/providers/rule_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
@@ -90,6 +91,43 @@ void main() {
         matching: find.byType(PopupMenuButton<String>),
       ),
       findsNothing,
+    );
+  });
+
+  // Every card but the starter set waits in the strip (spec, decision 4),
+  // the ones a stored site always shows included, until it is added.
+  testWidgets('cards outside the starter set wait in the strip', (
+    tester,
+  ) async {
+    await pumpNewSitePage(tester);
+    const waiting = [
+      'description',
+      'rating',
+      'marineLife',
+      'media',
+      'documents',
+    ];
+    Finder frame(String id) => find.byWidgetPredicate(
+      (w) => w is RecordCardFrame<DiveSite> && w.card.id == id,
+      skipOffstage: false,
+    );
+
+    final strip = tester.widget<AddStrip>(find.byType(AddStrip));
+    expect(strip.entries.map((e) => e.cardId), containsAll(waiting));
+    for (final id in waiting) {
+      expect(frame(id), findsNothing, reason: id);
+    }
+
+    controllerOf(tester).addCard('description');
+    await tester.pumpAndSettle();
+
+    expect(frame('description'), findsOneWidget);
+    expect(
+      tester
+          .widget<AddStrip>(find.byType(AddStrip))
+          .entries
+          .map((e) => e.cardId),
+      isNot(contains('description')),
     );
   });
 
