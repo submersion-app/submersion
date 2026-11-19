@@ -51,29 +51,38 @@ List<double?> aveloCurve(
 }
 
 /// One Avelo line: [curve] on [band] over [range], at each sample's time in
-/// [profile]. A sample without a value breaks the line rather than bridging
-/// or dropping to zero, as the computer's GTR line does.
+/// [profile]. [indices] are the samples to draw, in order (the chart's
+/// decimation of [curve]); without them every sample with a value is drawn.
+/// Where the computer logged nothing between two drawn samples the line
+/// breaks rather than bridging or dropping to zero, as the computer's GTR
+/// line does; a value left out by decimation is no break.
 LineChartBarData buildAveloLine({
   required Color color,
   required MetricBand band,
   required List<double?> curve,
   required ({double min, double max}) range,
   required List<DiveProfilePoint> profile,
+  Iterable<int>? indices,
 }) {
-  final spots = <FlSpot>[];
   final length = math.min(curve.length, profile.length);
-  for (var i = 0; i < length; i++) {
-    final v = curve[i];
-    if (v == null) {
-      if (spots.isNotEmpty && spots.last != FlSpot.nullSpot) {
-        spots.add(FlSpot.nullSpot);
-      }
-      continue;
+  final drawn =
+      indices ??
+      [
+        for (var i = 0; i < length; i++)
+          if (curve[i] != null) i,
+      ];
+  final spots = <FlSpot>[];
+  var previous = -1;
+  for (final i in drawn) {
+    final v = i < length ? curve[i] : null;
+    if (v == null) continue;
+    if (previous >= 0 && _onlyGapsBetween(curve, previous, i)) {
+      spots.add(FlSpot.nullSpot);
     }
     final y = band.map(v.clamp(range.min, range.max), range.min, range.max);
     spots.add(FlSpot(profile[i].timestamp.toDouble(), -y));
+    previous = i;
   }
-  if (spots.isNotEmpty && spots.last == FlSpot.nullSpot) spots.removeLast();
   return LineChartBarData(
     spots: spots,
     // Straight segments: the computer's values step (a pump-in, a purge),
@@ -84,4 +93,13 @@ LineChartBarData buildAveloLine({
     isStrokeCapRound: true,
     dotData: const FlDotData(show: false),
   );
+}
+
+/// Whether every sample strictly between [from] and [to] has no value.
+bool _onlyGapsBetween(List<double?> curve, int from, int to) {
+  if (to - from < 2) return false;
+  for (var j = from + 1; j < to; j++) {
+    if (curve[j] != null) return false;
+  }
+  return true;
 }

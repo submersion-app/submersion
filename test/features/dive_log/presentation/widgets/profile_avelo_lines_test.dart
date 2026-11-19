@@ -90,4 +90,29 @@ void main() {
     expect(line.spots[0].y, closeTo(-band.mapNormalized(1.0), 1e-9));
     expect(line.spots[2].y, closeTo(-band.mapNormalized(0.5), 1e-9));
   });
+
+  test('decimated indices break only across blanks, not dropped values', () {
+    const points = [
+      DiveProfilePoint(timestamp: 0, depth: 5.0, aveloGasRemaining: 90),
+      DiveProfilePoint(timestamp: 10, depth: 5.0, aveloGasRemaining: 89),
+      DiveProfilePoint(timestamp: 20, depth: 5.0, aveloGasRemaining: 88),
+      DiveProfilePoint(timestamp: 30, depth: 5.0),
+      DiveProfilePoint(timestamp: 40, depth: 5.0, aveloGasRemaining: 86),
+    ];
+    final line = buildAveloLine(
+      color: Colors.green,
+      band: const MetricBand(top: 0, span: 100),
+      curve: aveloCurve(ProfileRightAxisMetric.aveloGasRemaining, points),
+      range: (min: 0.0, max: 100.0),
+      profile: points,
+      // Sample 1 was decimated away; sample 3 is a blank.
+      indices: const [0, 2, 4],
+    );
+    expect(line.spots.map((s) => s == FlSpot.nullSpot ? null : s.x), [
+      0,
+      20,
+      null,
+      40,
+    ]);
+  });
 }

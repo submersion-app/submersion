@@ -44,6 +44,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/legend_candida
 import 'package:submersion/features/dive_log/presentation/widgets/profile_decimator.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_plot_frame.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_avelo_lines.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_avelo_readout.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_buoyancy_line.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_band.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_bands.dart';
@@ -2611,53 +2612,19 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     }
 
     // The computer's Avelo values (issue #4664), shown once enabled on a
-    // dive that carries them; '-' at a sample the computer left blank.
-    final avelo = spot.spotIndex < widget.profile.length
-        ? widget.profile[spot.spotIndex]
-        : null;
-    if (_showAveloBuoyancy &&
-        _hasDataForMetric(ProfileRightAxisMetric.aveloBuoyancy)) {
-      final kg = avelo?.aveloBuoyancy;
-      rows.add(
-        TooltipRow(
-          label: l10n.diveLog_legend_label_aveloBuoyancy,
-          value: kg == null
-              ? '-'
-              : formatBuoyancyReadout(
-                  kg,
-                  units,
-                  l10n,
-                  direction: Directionality.of(context),
-                ),
-          bulletColor: _metricColor(ProfileMetric.aveloBuoyancy),
-          metric: ProfileRightAxisMetric.aveloBuoyancy,
-        ),
-      );
-    }
-    if (_showAveloGasRemaining &&
-        _hasDataForMetric(ProfileRightAxisMetric.aveloGasRemaining)) {
-      final percent = avelo?.aveloGasRemaining;
-      rows.add(
-        TooltipRow(
-          label: l10n.diveLog_legend_label_aveloGasRemaining,
-          value: percent == null ? '-' : '$percent%',
-          bulletColor: _metricColor(ProfileMetric.aveloGasRemaining),
-          metric: ProfileRightAxisMetric.aveloGasRemaining,
-        ),
-      );
-    }
-    if (_showComputerRmv &&
-        _hasDataForMetric(ProfileRightAxisMetric.computerRmv)) {
-      final rmv = avelo?.computerRmv;
-      rows.add(
-        TooltipRow(
-          label: l10n.diveLog_legend_label_computerRmv,
-          value: rmv == null ? '-' : units.formatRmv(rmv),
-          bulletColor: _metricColor(ProfileMetric.computerRmv),
-          metric: ProfileRightAxisMetric.computerRmv,
-        ),
-      );
-    }
+    // dive that carries them.
+    rows.addAll(
+      aveloReadoutRows(
+        point: spot.spotIndex < widget.profile.length
+            ? widget.profile[spot.spotIndex]
+            : null,
+        shown: (metric) => _aveloShown(metric) && _hasDataForMetric(metric),
+        l10n: l10n,
+        units: units,
+        direction: Directionality.of(context),
+        colorOf: _metricColor,
+      ),
+    );
 
     // GF% (always shown once enabled; see the Ceiling row comment).
     if (_showGf) {
@@ -4480,24 +4447,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           // The three Avelo lines (if showing), straight from the samples
           // (#4664).
           final aveloLines = [
-            for (final (metric, shown) in [
-              (ProfileRightAxisMetric.aveloBuoyancy, _showAveloBuoyancy),
-              (
-                ProfileRightAxisMetric.aveloGasRemaining,
-                _showAveloGasRemaining,
-              ),
-              (ProfileRightAxisMetric.computerRmv, _showComputerRmv),
-            ])
-              if (shown)
+            for (final metric in aveloLineMetrics)
+              if (_aveloShown(metric))
                 if (aveloLineRange(metric, widget.profile) case final range?)
                   (
-                    bar: buildAveloLine(
-                      color: _palette.rightAxisColor(metric),
-                      band: metricBand,
-                      curve: aveloCurve(metric, widget.profile),
-                      range: range,
-                      profile: widget.profile,
-                    ),
+                    bar: _buildAveloLine(metric, metricBand, range),
                     tag: metric,
                   ),
           ];
@@ -7477,6 +7431,30 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// Null samples are where the computer (or the calculation) blanked the
   /// value, so the line breaks there instead of dropping to zero. No surface
   /// lead-in: GTR is blank on the surface by definition.
+  /// Whether the legend has [metric], one of the Avelo lines, switched on.
+  bool _aveloShown(ProfileRightAxisMetric metric) => switch (metric) {
+    ProfileRightAxisMetric.aveloBuoyancy => _showAveloBuoyancy,
+    ProfileRightAxisMetric.aveloGasRemaining => _showAveloGasRemaining,
+    _ => _showComputerRmv,
+  };
+
+  /// One Avelo line (issue #4664), decimated like the other nullable lines.
+  LineChartBarData _buildAveloLine(
+    ProfileRightAxisMetric metric,
+    MetricBand band,
+    ({double min, double max}) range,
+  ) {
+    final curve = aveloCurve(metric, widget.profile);
+    return buildAveloLine(
+      color: _palette.rightAxisColor(metric),
+      band: band,
+      curve: curve,
+      range: range,
+      profile: widget.profile,
+      indices: _decimatedNullableCurveIndices(curve),
+    );
+  }
+
   LineChartBarData _buildGtrLine(MetricBand band) => buildGtrLine(
     _metricColor(ProfileMetric.gtr),
     band,

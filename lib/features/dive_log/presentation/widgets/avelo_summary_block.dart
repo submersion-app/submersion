@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/utils/bidi_isolate.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/services/avelo_summary.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -20,14 +21,19 @@ class AveloSummaryBlock extends StatelessWidget {
   final UnitFormatter units;
 
   /// A buoyancy weight with its sign: negative is heavy, positive light.
-  String _signedWeight(double kg) =>
-      kg > 0 ? '+${units.formatWeight(kg)}' : units.formatWeight(kg);
+  /// Isolated in right-to-left text so the sign stays beside its number.
+  String _signedWeight(double kg, TextDirection direction) =>
+      isolateForDirection(
+        kg > 0 ? '+${units.formatWeight(kg)}' : units.formatWeight(kg),
+        direction,
+      );
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final s = summary;
+    final direction = Directionality.of(context);
     final lines = [
       if ((s.gasRemainingStart, s.gasRemainingEnd) case (
         final start?,
@@ -40,9 +46,9 @@ class AveloSummaryBlock extends StatelessWidget {
         final mean?,
       ))
         l10n.diveLog_cylinders_aveloBuoyancy(
-          _signedWeight(min),
-          _signedWeight(max),
-          _signedWeight(mean),
+          _signedWeight(min, direction),
+          _signedWeight(max, direction),
+          _signedWeight(mean, direction),
         ),
       if ((s.minRmv, s.maxRmv) case (final min?, final max?))
         l10n.diveLog_cylinders_aveloRmv(
