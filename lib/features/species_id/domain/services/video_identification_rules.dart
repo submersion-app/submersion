@@ -63,7 +63,8 @@ VideoRefreshAction decideVideoRefresh({
 /// After carrying, a decided track that is the same animal as a track with
 /// a say, fresh or [kept] (one this store keeps as it is), and on which the
 /// diver said the same, is in `deleteIds` too: that track stands for it.
-/// One the diver said something else on stays apart.
+/// A decided track on which the diver said something different from that
+/// track (another decision, species or claim) is kept as it is.
 ({List<MediaIdentification> insert, List<String> deleteIds})
 carryTrackDecisions({
   required List<MediaIdentification> decided,
