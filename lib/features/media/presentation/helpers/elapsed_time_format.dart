@@ -10,6 +10,17 @@ String formatElapsedMmSs(int seconds) {
   return '$sign$minutes:${secs.toString().padLeft(2, '0')}';
 }
 
+/// Formats a clip's length in [seconds] for a library tile: `m:ss`, or
+/// `h:mm:ss` from an hour, as players show it (issue #4738).
+String formatClipDuration(int seconds) {
+  if (seconds < 3600) return formatElapsedMmSs(seconds);
+  final hours = seconds ~/ 3600;
+  final minutes = (seconds % 3600) ~/ 60;
+  final secs = seconds % 60;
+  String two(int n) => n.toString().padLeft(2, '0');
+  return '$hours:${two(minutes)}:${two(secs)}';
+}
+
 final _mmSs = RegExp(r'^(\d+)(?::([0-5]\d))?$');
 
 /// Parses `m:ss`, `mm:ss` or bare minutes into seconds from the dive start.
