@@ -106,6 +106,8 @@ class _DiveCenterHeaderCardEditorState
       try {
         final result = await location.forwardGeocode(address);
         if (result == null || session.isDisposed || session.isFrozen) return;
+        // The address changed meanwhile: its own lookup answers for it.
+        if (diveCenterAddressLine(session.working) != address) return;
         // Coordinates set meanwhile, by the diver or another lookup, stand.
         if (session.valueOf(diveCenterCoordinatesField) != null) return;
         session.set(diveCenterCoordinatesField, (

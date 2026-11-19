@@ -14,6 +14,7 @@ import 'package:submersion/features/dive_centers/presentation/editing/dive_cente
 import 'package:submersion/features/dive_sites/presentation/widgets/location_picker_map.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -100,6 +101,89 @@ void main() {
     expect(find.text(l.diveCenters_validation_invalidLongitude), findsWidgets);
     expect(find.text(l.diveCenters_validation_invalidLatitude), findsNothing);
     expect(session.isDirty, isFalse);
+  });
+
+  testWidgets('unreadable text marks the Map card invalid for the page', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(700, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final controller = RecordEditController<DiveCenter>(onSave: (_) async {})
+      ..unlock(centre());
+    addTearDown(controller.dispose);
+    final session = controller.session!;
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        overrides: overrides,
+        child: RecordEditScope<DiveCenter>(
+          controller: controller,
+          child: Scaffold(
+            body: SingleChildScrollView(
+              child: DiveCenterMapCardEditor(session: session),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(controller.invalidCardIds, isEmpty);
+
+    final fields = find.byType(TextField);
+    await tester.enterText(fields.at(0), '28.5');
+    await tester.enterText(fields.at(1), 'abc');
+    await tester.pumpAndSettle();
+
+    expect(controller.invalidCardIds, {'map'});
+
+    await tester.enterText(fields.at(1), '34.5');
+    await tester.pumpAndSettle();
+    expect(controller.invalidCardIds, isEmpty);
+  });
+
+  testWidgets('a lookup for an address changed meanwhile sets nothing', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(700, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final session = EditSession(
+      DiveCenter(
+        id: 'dc1',
+        name: 'Reef Divers',
+        city: 'Dahab',
+        createdAt: DateTime(2020),
+        updatedAt: DateTime(2020),
+      ),
+    );
+    addTearDown(session.dispose);
+    final locations = _SlowLocations();
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...overrides,
+          locationServiceProvider.overrideWithValue(locations),
+        ],
+        child: Scaffold(
+          body: SingleChildScrollView(
+            child: DiveCenterMapCardEditor(session: session),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final l = AppLocalizationsEn();
+    await tester.tap(find.text(l.diveCenters_action_lookupFromAddress));
+    await tester.pump();
+    session.set(diveCenterCityField, 'Sharm');
+
+    locations.answer.complete();
+    await tester.pumpAndSettle();
+    expect(session.isSettled, isTrue);
+    expect(session.valueOf(diveCenterCoordinatesField), isNull);
   });
 
   testWidgets('a pick clears the error left by unreadable text', (

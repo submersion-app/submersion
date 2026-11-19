@@ -56,9 +56,12 @@ class FakeDiveCenterSave implements DiveCenterEditSaveService {
 /// Answers an address lookup with [found] once [answer] completes, or
 /// with nothing.
 class FakeLocations extends Fake implements LocationService {
-  FakeLocations({this.found});
+  FakeLocations({this.found, this.foundFor = const {}});
 
   final LocationResult? found;
+
+  /// What each address finds, where it differs from [found].
+  final Map<String, LocationResult> foundFor;
   final answer = Completer<void>();
   final asked = <String>[];
 
@@ -66,7 +69,7 @@ class FakeLocations extends Fake implements LocationService {
   Future<LocationResult?> forwardGeocode(String address) async {
     asked.add(address);
     await answer.future;
-    return found;
+    return foundFor[address] ?? found;
   }
 }
 

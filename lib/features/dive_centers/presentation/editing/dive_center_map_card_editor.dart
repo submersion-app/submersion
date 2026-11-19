@@ -7,6 +7,7 @@ import 'package:submersion/core/providers/location_service_provider.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
+import 'package:submersion/features/dive_centers/presentation/editing/dive_center_card_ids.dart';
 import 'package:submersion/features/dive_centers/presentation/editing/dive_center_edit_fields.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_location_card_editor.dart'
     show pickSiteLocationOnMap;
@@ -16,6 +17,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/coordinate_field_group.dart';
 import 'package:submersion/shared/widgets/forms/coordinate_validation_messages.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_form.dart';
 
 /// Picks a place on a map, starting at [initial]: a seam, so a test can
 /// answer for the map.
@@ -28,7 +30,8 @@ typedef DiveCenterLocationPicker =
 ///
 /// Both coordinates are one value: a pair typed half way, or one that is
 /// not a number, changes nothing until it reads as a place, and the
-/// coordinates' error says so.
+/// coordinates' error says so. The card's form reports that error to the
+/// page, so the card stays open and Save is refused until it reads.
 class DiveCenterMapCardEditor extends ConsumerStatefulWidget {
   const DiveCenterMapCardEditor({
     super.key,
@@ -217,6 +220,12 @@ class _DiveCenterMapCardEditorState
         // A lookup that fails says so as one that finds nothing.
         result = null;
       }
+      // The address changed while the lookup ran: what it found, or did
+      // not, is for an address the card no longer holds.
+      if (_session.isDisposed ||
+          diveCenterAddressLine(_session.working) != address) {
+        return;
+      }
       if (result == null) {
         messenger.showSnackBar(
           SnackBar(content: Text(l10n.diveCenters_error_geocodeFailed)),
@@ -270,14 +279,18 @@ class _DiveCenterMapCardEditorState
           ],
         ),
         const SizedBox(height: 16),
-        CoordinateFieldGroup(
-          latitudeController: _latitude,
-          longitudeController: _longitude,
-          format: ref.watch(coordinateFormatProvider),
-          latitudeLabel: l10n.diveCenters_field_latitude,
-          longitudeLabel: l10n.diveCenters_field_longitude,
-          errorText: error,
-          messages: CoordinateValidationMessages.of(context),
+        RecordCardForm<DiveCenter>(
+          cardId: DiveCenterCardId.map.name,
+          fieldId: 'coordinates',
+          child: CoordinateFieldGroup(
+            latitudeController: _latitude,
+            longitudeController: _longitude,
+            format: ref.watch(coordinateFormatProvider),
+            latitudeLabel: l10n.diveCenters_field_latitude,
+            longitudeLabel: l10n.diveCenters_field_longitude,
+            errorText: error,
+            messages: CoordinateValidationMessages.of(context),
+          ),
         ),
       ],
     );

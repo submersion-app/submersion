@@ -124,6 +124,42 @@ void main() {
     expect(harness.save.calls.single.cards, {'header', 'map'});
   });
 
+  testWidgets('a lookup for an address changed meanwhile sets nothing', (
+    tester,
+  ) async {
+    final locations = FakeLocations(
+      foundFor: const {
+        '1 Sea St, Dahab': LocationResult(latitude: 1, longitude: 1),
+        '2 Sea St, Dahab': LocationResult(latitude: 2, longitude: 2),
+      },
+    );
+    final harness = await pumpDiveCenterPage(tester, locations: locations);
+    await unlock(tester);
+    await openCard(tester, header);
+    final street = find.byKey(const ValueKey('dive-center-edit-street'));
+    await tester.ensureVisible(street);
+    await tester.tap(street);
+    await tester.enterText(street, '1 Sea St');
+    await tester.pump();
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pump();
+    // The diver comes back and corrects it while the first lookup is out.
+    await tester.enterText(street, '2 Sea St');
+    await tester.pump();
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pump();
+    expect(locations.asked, ['1 Sea St, Dahab', '2 Sea St, Dahab']);
+
+    locations.answer.complete();
+    await tester.pumpAndSettle();
+    await save(tester);
+
+    final after = harness.save.calls.single.after;
+    expect(after.street, '2 Sea St');
+    expect(after.latitude, 2);
+    expect(after.longitude, 2);
+  });
+
   testWidgets('a failed lookup saves without coordinates', (tester) async {
     final locations = FakeLocations();
     final harness = await pumpDiveCenterPage(tester, locations: locations);
