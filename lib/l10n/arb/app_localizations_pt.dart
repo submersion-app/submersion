@@ -1535,6 +1535,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get equipment_color_sheetTitle => 'Escolha uma cor';
 
   @override
+  String get equipment_setEdit_bundleTitle => 'Pacote';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'Geocercas';
 
   @override
@@ -3411,6 +3414,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get buddies_action_lendGear => 'Emprestar equipamento';
+
+  @override
+  String get buddies_editCard_gear => 'Equipamento emprestado';
 
   @override
   String buddies_gear_title(String name) {
@@ -7308,6 +7314,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveCenters_section_basicInfo => 'Informações Básicas';
+
+  @override
+  String get diveCenters_editCard_map => 'Mapa';
 
   @override
   String get diveCenters_section_contact => 'Contato';
@@ -20076,6 +20085,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get marineLife_suggest_copyLink => 'Copiar link';
 
   @override
+  String get marineLife_editCard_photos => 'Fotos';
+
+  @override
   String marineLife_speciesPhotos_title(Object count) {
     return 'Fotos ($count)';
   }
@@ -28191,6 +28203,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get documents_field_notes => 'Notas';
+
+  @override
+  String get documents_editCard_details => 'Detalhes';
 
   @override
   String get documents_pages_title => 'Páginas';
@@ -39118,6 +39133,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String gpsLogger_trackSubtitleTrimmed(String duration) {
     return 'Recortada, $duration';
   }
+
+  @override
+  String get gpsTrack_editCard_trim => 'Recortar';
 
   @override
   String get gpsTrack_action_trim => 'Recortar...';
@@ -59165,6 +59183,18 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get navTrack_detail_deleteMessage => 'Isso não pode ser desfeito.';
+
+  @override
+  String get navTrack_editCard_dive => 'Mergulho';
+
+  @override
+  String get navTrack_editCard_site => 'Ponto de mergulho';
+
+  @override
+  String get navTrack_editCard_device => 'Dispositivo';
+
+  @override
+  String get navTrack_editCard_correction => 'Correção';
 
   @override
   String get navTrack_detail_defaultTrackTitle => 'Trilha subaquática';

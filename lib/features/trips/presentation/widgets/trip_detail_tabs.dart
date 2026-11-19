@@ -13,11 +13,10 @@ import 'package:submersion/features/trips/presentation/widgets/trip_dives_tab.da
 import 'package:submersion/features/trips/presentation/widgets/trip_itinerary_tab.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_overview_tab.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_photos_tab.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_detail_tab.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// The trip page's tabs, in display order (#2845). Every trip type shows all
-/// six; the index doubles as the TabController index.
-enum TripDetailTab { overview, itinerary, gear, checklist, dives, photos }
+export 'package:submersion/features/trips/presentation/widgets/trip_detail_tab.dart';
 
 /// The trip page's body (#2845): one scrolling tab row and six views, the
 /// same for every trip type and width.

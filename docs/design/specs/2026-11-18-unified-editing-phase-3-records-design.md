@@ -195,9 +195,10 @@ phases 1 and 2 ship them:
 ## Design: what is generalised
 
 Each is a shared piece phase 3 needs and phases 1 and 2 did not. Each is
-built in shared code once, by the first phase 3 plan that needs it, after
-phase 2's switch-over (plan 7), when phase 2 has stopped changing
-`lib/shared/widgets/record_editing/`.
+built in shared code once, by the first phase 3 plan that needs it. Phase 2's
+plans 6 and 7 may still change `lib/shared/widgets/record_editing/` while
+phase 3 builds (see "Delivery"), so each phase 3 plan brings main in before
+each task and adapts to what they renamed.
 
 - **Pages with no section list.** `RecordEditHost` takes its strip entries
   from the page, so it already works without a section enum. What each type
@@ -748,7 +749,8 @@ Eric has not explicitly confirmed these. Correct any of them:
   computer's merge and re-parse all are whole-record operations.
 - The dive computer's favourite, clock sync override and auto-download, shown
   on the item page, go behind the item's unlock and are written with its
-  sitting (they are the dive computer record's own values).
+  sitting (they are the dive computer record's own values). Confirmed by
+  Eric on 2026-11-19, with phase 3 plan 1.
 - The transmitter page, a phase 4 editor, keeps copying a key's serial onto
   an item that has none. It is the one write to an item made outside the
   item's sitting; it fills an empty value and never overwrites one.
@@ -767,7 +769,8 @@ Eric has not explicitly confirmed these. Correct any of them:
 - A trip's sitting spans its tabs; the strip shows the tab in view.
 - The vessel card shows on the prepare page for a liveaboard.
 - Logging a finding's dismissal adds `equipment_findings` to the change log.
-- The phase 3 plans start after phase 2's switch-over.
+- The phase 3 plans run in parallel with phase 2's plans 6 and 7, by Eric's
+  decision of 2026-11-19 (this replaced "start after phase 2's switch-over").
 
 ## Left to the builder
 
@@ -807,12 +810,15 @@ Eric has not explicitly confirmed these. Correct any of them:
 ## Delivery
 
 Phase 3 lands as a series of pull requests, each referring to #4527, behind
-one switch until the last (decision 6). It starts after phase 2's switch-over
-(plan 7), so that `lib/shared/widgets/record_editing/`, the sitting writer and
-`DocumentsSection<T>` have stopped moving. Plans are written one at a time,
-each against the names the previous one shipped: plan 1 once phase 2's plan 7
-has merged, and each later plan once the one before it has. A likely order,
-for the plans to refine:
+one switch until the last (decision 6). By Eric's decision of 2026-11-19
+("Build in parallel"), it runs in parallel with phase 2's plans 6 and 7
+rather than after phase 2's switch-over. Those two plans may still change
+`lib/shared/widgets/record_editing/`, the sitting writer and
+`DocumentsSection<T>`, so every phase 3 plan merges origin/main before each
+task and adapts to any names they renamed, and a phase 3 plan that needs a
+piece phase 2 has not finished takes it after that phase 2 plan has merged. Plans are written one at a time,
+each against the names the previous one shipped and what main holds then. A
+likely order, for the plans to refine:
 
 1. Shared pieces: the satellite host, tab support, the shared sharing sitting,
    History card names for every phase 3 table; the switch.

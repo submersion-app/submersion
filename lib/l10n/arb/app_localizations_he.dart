@@ -1514,6 +1514,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_color_sheetTitle => 'בחירת צבע';
 
   @override
+  String get equipment_setEdit_bundleTitle => 'חבילה';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'גדרות גאוגרפיות';
 
   @override
@@ -3348,6 +3351,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get buddies_action_lendGear => 'השאלת ציוד';
+
+  @override
+  String get buddies_editCard_gear => 'ציוד שהושאל';
 
   @override
   String buddies_gear_title(String name) {
@@ -7147,6 +7153,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveCenters_section_basicInfo => 'מידע בסיסי';
+
+  @override
+  String get diveCenters_editCard_map => 'מפה';
 
   @override
   String get diveCenters_section_contact => 'יצירת קשר';
@@ -19632,6 +19641,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get marineLife_suggest_copyLink => 'העתקת קישור';
 
   @override
+  String get marineLife_editCard_photos => 'תמונות';
+
+  @override
   String marineLife_speciesPhotos_title(Object count) {
     return 'תמונות ($count)';
   }
@@ -27493,6 +27505,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get documents_field_notes => 'הערות';
+
+  @override
+  String get documents_editCard_details => 'פרטים';
 
   @override
   String get documents_pages_title => 'עמודים';
@@ -38185,6 +38200,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String gpsLogger_trackSubtitleTrimmed(String duration) {
     return 'נחתך, $duration';
   }
+
+  @override
+  String get gpsTrack_editCard_trim => 'חיתוך';
 
   @override
   String get gpsTrack_action_trim => 'חיתוך...';
@@ -57917,6 +57935,18 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get navTrack_detail_deleteMessage => 'לא ניתן לבטל פעולה זו.';
+
+  @override
+  String get navTrack_editCard_dive => 'צלילה';
+
+  @override
+  String get navTrack_editCard_site => 'אתר';
+
+  @override
+  String get navTrack_editCard_device => 'מכשיר';
+
+  @override
+  String get navTrack_editCard_correction => 'תיקון';
 
   @override
   String get navTrack_detail_defaultTrackTitle => 'מסלול תת-ימי';

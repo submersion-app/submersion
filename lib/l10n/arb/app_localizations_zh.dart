@@ -1473,6 +1473,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_color_sheetTitle => '选择颜色';
 
   @override
+  String get equipment_setEdit_bundleTitle => '套装内容';
+
+  @override
   String get equipment_setEdit_geofencesTitle => '地理围栏';
 
   @override
@@ -3224,6 +3227,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get buddies_action_lendGear => '借出装备';
+
+  @override
+  String get buddies_editCard_gear => '借出的装备';
 
   @override
   String buddies_gear_title(String name) {
@@ -6923,6 +6929,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveCenters_section_basicInfo => '基本信息';
+
+  @override
+  String get diveCenters_editCard_map => '地图';
 
   @override
   String get diveCenters_section_contact => '联系人';
@@ -19074,6 +19083,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get marineLife_suggest_copyLink => '复制链接';
 
   @override
+  String get marineLife_editCard_photos => '照片';
+
+  @override
   String marineLife_speciesPhotos_title(Object count) {
     return '照片 ($count)';
   }
@@ -26591,6 +26603,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get documents_field_notes => '备注';
+
+  @override
+  String get documents_editCard_details => '详情';
 
   @override
   String get documents_pages_title => '页面';
@@ -36802,6 +36817,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String gpsLogger_trackSubtitleTrimmed(String duration) {
     return '已裁剪，$duration';
   }
+
+  @override
+  String get gpsTrack_editCard_trim => '裁剪';
 
   @override
   String get gpsTrack_action_trim => '裁剪...';
@@ -55483,6 +55501,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get navTrack_detail_deleteMessage => '此操作无法撤销。';
+
+  @override
+  String get navTrack_editCard_dive => '潜水';
+
+  @override
+  String get navTrack_editCard_site => '潜点';
+
+  @override
+  String get navTrack_editCard_device => '设备';
+
+  @override
+  String get navTrack_editCard_correction => '校正';
 
   @override
   String get navTrack_detail_defaultTrackTitle => '水下轨迹';

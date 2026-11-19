@@ -1527,6 +1527,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_color_sheetTitle => 'Kies een kleur';
 
   @override
+  String get equipment_setEdit_bundleTitle => 'Bundel';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'Geofences';
 
   @override
@@ -3391,6 +3394,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get buddies_action_lendGear => 'Uitrusting uitlenen';
+
+  @override
+  String get buddies_editCard_gear => 'Uitgeleende uitrusting';
 
   @override
   String buddies_gear_title(String name) {
@@ -7259,6 +7265,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveCenters_section_basicInfo => 'Basisinformatie';
+
+  @override
+  String get diveCenters_editCard_map => 'Kaart';
 
   @override
   String get diveCenters_section_contact => 'Contact';
@@ -19949,6 +19958,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get marineLife_suggest_copyLink => 'Link kopiëren';
 
   @override
+  String get marineLife_editCard_photos => 'Foto\'s';
+
+  @override
   String marineLife_speciesPhotos_title(Object count) {
     return 'Foto\'s ($count)';
   }
@@ -28024,6 +28036,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get documents_field_notes => 'Notities';
+
+  @override
+  String get documents_editCard_details => 'Details';
 
   @override
   String get documents_pages_title => 'Pagina\'s';
@@ -38875,6 +38890,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String gpsLogger_trackSubtitleTrimmed(String duration) {
     return 'Bijgesneden, $duration';
   }
+
+  @override
+  String get gpsTrack_editCard_trim => 'Bijsnijden';
 
   @override
   String get gpsTrack_action_trim => 'Bijsnijden...';
@@ -58801,6 +58819,18 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get navTrack_detail_deleteMessage =>
       'Dit kan niet ongedaan worden gemaakt.';
+
+  @override
+  String get navTrack_editCard_dive => 'Duik';
+
+  @override
+  String get navTrack_editCard_site => 'Duikstek';
+
+  @override
+  String get navTrack_editCard_device => 'Apparaat';
+
+  @override
+  String get navTrack_editCard_correction => 'Correctie';
 
   @override
   String get navTrack_detail_defaultTrackTitle => 'Onderwatertrack';
