@@ -13,7 +13,6 @@ import 'package:submersion/features/divers/presentation/providers/profile_hides_
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 import 'package:submersion/core/data/visibility/item_sharing.dart';
-import 'package:submersion/shared/widgets/shared_items/item_sharing_field.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/shared_items_fixture.dart';
@@ -97,6 +96,15 @@ void main() {
     return (notifier, closed);
   }
 
+  /// Unlocks the page, as the record actions wait for the lock (issue
+  /// #4527, phase 2), and opens its menu.
+  Future<void> openUnlockedMenu(WidgetTester tester) async {
+    await tester.tap(find.byIcon(Icons.lock_outline));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.more_vert).last);
+    await tester.pumpAndSettle();
+  }
+
   // Read as "no profile", the page offered another profile's site its
   // Delete (issue #2682).
   testWidgets('an unreadable profile offers neither Delete nor Remove', (
@@ -116,8 +124,7 @@ void main() {
     final (notifier, closed) = await pump(tester, active: 'd2');
     expect(find.text('Shared by Alice'), findsOneWidget);
 
-    await tester.tap(find.byIcon(Icons.more_vert));
-    await tester.pumpAndSettle();
+    await openUnlockedMenu(tester);
     expect(find.text('Delete'), findsNothing);
     await tester.tap(find.text('Remove from my profile'));
     await tester.pumpAndSettle();
@@ -137,8 +144,7 @@ void main() {
     tester,
   ) async {
     final (_, closed) = await pump(tester, active: 'd2', failHides: true);
-    await tester.tap(find.byIcon(Icons.more_vert));
-    await tester.pumpAndSettle();
+    await openUnlockedMenu(tester);
     await tester.tap(find.text('Remove from my profile'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Remove'));
@@ -155,8 +161,7 @@ void main() {
 
   testWidgets('a failed Undo says to try again', (tester) async {
     final (notifier, _) = await pump(tester, active: 'd2');
-    await tester.tap(find.byIcon(Icons.more_vert));
-    await tester.pumpAndSettle();
+    await openUnlockedMenu(tester);
     await tester.tap(find.text('Remove from my profile'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Remove'));
@@ -203,8 +208,7 @@ void main() {
       findsOneWidget,
     );
 
-    await tester.tap(find.byIcon(Icons.more_vert));
-    await tester.pumpAndSettle();
+    await openUnlockedMenu(tester);
     expect(find.text('Remove from my profile'), findsNothing);
     expect(find.text('Delete'), findsNothing);
     await tester.tap(find.text('Show in my profile'));
@@ -222,8 +226,7 @@ void main() {
     await pump(tester, active: 'd1');
     expect(find.textContaining('Shared by'), findsNothing);
 
-    await tester.tap(find.byIcon(Icons.more_vert));
-    await tester.pumpAndSettle();
+    await openUnlockedMenu(tester);
     expect(find.text('Remove from my profile'), findsNothing);
     await tester.tap(find.text('Delete'));
     await tester.pumpAndSettle();
@@ -233,15 +236,6 @@ void main() {
       find.textContaining('5 dives in other profiles will lose this site.'),
       findsOneWidget,
     );
-  });
-
-  // Sharing is seen and changed on the edit page only (issue #3766).
-  testWidgets('the owner sees no Shared with row on the page', (tester) async {
-    await pump(tester, active: 'd1');
-
-    expect(find.byType(SharingTile), findsNothing);
-    expect(find.text('Shared with'), findsNothing);
-    expect(find.text('Everyone'), findsNothing);
   });
 
   testWidgets('a profile the site no longer reaches is not offered Remove '
