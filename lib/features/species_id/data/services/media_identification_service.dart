@@ -202,7 +202,11 @@ class MediaIdentificationService {
       return true;
     }
     final running = _running;
+    // A run's scan is the run's to stop (cancelRun), not the viewer's: a
+    // diver swiping past a video the run is scanning must not cut it short
+    // (issue #4727).
     if (running != null &&
+        !running.fromRun &&
         running.item.id == mediaId &&
         running.item.mediaType == MediaType.video &&
         !running.cancelled) {

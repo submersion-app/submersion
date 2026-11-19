@@ -17,8 +17,11 @@ extension RunLane on MediaIdentificationService {
   }) {
     if (_disposed) return Future.value(RunItemOutcome.skipped);
     final job = _Job(item, location, null, true, resolveImage, resolveVideo);
+    // Joins only a run's own job: a viewer's scan of the same video may be
+    // stopped when the diver leaves it, so the run queues its own, which
+    // carries on from wherever the viewer's stopped.
     final running = _running;
-    if (running != null && running.item.id == item.id) {
+    if (running != null && running.fromRun && running.item.id == item.id) {
       return running.done.future.then((_) => running.outcome);
     }
     _runWaiting.remove(item.id)?.done.complete();
