@@ -146,8 +146,13 @@ class MediaSpeciesRepository {
   }
 
   /// Every tag the app applied that the diver has not confirmed, on the
-  /// media of [diveId] when given, else across the log.
-  Future<List<MediaSpeciesTag>> unconfirmedTags({String? diveId}) async {
+  /// media of [diveId] when given, else across the log. [diverId] keeps the
+  /// log to that diver's dives and the photos on no dive, the library's
+  /// own rule.
+  Future<List<MediaSpeciesTag>> unconfirmedTags({
+    String? diveId,
+    String? diverId,
+  }) async {
     final query = _db.select(_db.mediaSpecies)
       ..where((t) => t.unconfirmed.equals(1))
       ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]);
@@ -156,6 +161,14 @@ class MediaSpeciesRepository {
         ..addColumns([_db.media.id])
         ..where(_db.media.diveId.equals(diveId));
       query.where((t) => t.mediaId.isInQuery(onDive));
+    } else if (diverId != null) {
+      final m = _db.media;
+      final d = _db.dives;
+      final mine =
+          _db.selectOnly(m).join([leftOuterJoin(d, d.id.equalsExp(m.diveId))])
+            ..addColumns([m.id])
+            ..where(m.diveId.isNull() | d.diverId.equals(diverId));
+      query.where((t) => t.mediaId.isInQuery(mine));
     }
     return (await query.get()).map(_tagFromRow).toList();
   }

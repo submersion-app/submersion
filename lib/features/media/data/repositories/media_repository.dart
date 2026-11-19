@@ -194,6 +194,29 @@ class MediaRepository {
     return row.read(count) ?? 0;
   }
 
+  /// [getMediaById] for many ids, in chunks; ids with no row are left out.
+  Future<List<domain.MediaItem>> getMediaByIds(List<String> ids) async {
+    final items = <domain.MediaItem>[];
+    for (var i = 0; i < ids.length; i += 500) {
+      final chunk = ids.sublist(i, i + 500 > ids.length ? ids.length : i + 500);
+      final rows = await (_db.select(_db.media).join([
+        leftOuterJoin(
+          _db.mediaEnrichment,
+          _db.mediaEnrichment.mediaId.equalsExp(_db.media.id),
+        ),
+      ])..where(_db.media.id.isIn(chunk))).get();
+      for (final row in rows) {
+        items.add(
+          mediaItemFromRow(
+            row.readTable(_db.media),
+            row.readTableOrNull(_db.mediaEnrichment),
+          ),
+        );
+      }
+    }
+    return items;
+  }
+
   /// Get single media item by ID
   /// Includes enrichment data (depth, temperature) if available
   Future<domain.MediaItem?> getMediaById(String id) async {

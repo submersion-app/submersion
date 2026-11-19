@@ -9,8 +9,10 @@ import 'package:submersion/features/media/data/repositories/media_species_reposi
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/domain/entities/naming_level.dart';
 import 'package:submersion/features/species_id/domain/entities/species_review.dart';
 import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
+import 'package:submersion/features/species_id/domain/services/naming_levels.dart';
 import 'package:submersion/features/species_id/domain/services/species_review_rules.dart';
 
 /// Gathers what Species to review shows (issue #4727): the app's
@@ -54,50 +56,72 @@ class SpeciesReviewRepository {
 
   /// What [scope] has to review. [withSuggestions] is false where marine
   /// life identification is off: the app's tags are still listed.
+  /// [diverId] keeps the log to that diver's dives and the media on no
+  /// dive. [level] is the naming level in force, null for the pack's own
+  /// bars (issue #4721), so the Suggested list matches the viewer's.
   Future<List<ReviewGroup>> load(
     ReviewScope scope, {
     required bool withSuggestions,
+    String? diverId,
+    LevelInForce? level,
   }) async {
     final diveId = switch (scope) {
       DiveReviewScope(:final diveId) => diveId,
       LogReviewScope() => null,
     };
-    final unconfirmed = await _tags.unconfirmedTags(diveId: diveId);
-    final suggestible = withSuggestions
-        ? (await _identifications.mediaIdsWithSuggestions()).toSet()
+    final unconfirmed = await _tags.unconfirmedTags(
+      diveId: diveId,
+      diverId: diverId,
+    );
+    final loose = level != null && level.level != NamingLevel.surer;
+    final diveMedia = diveId == null
+        ? null
+        : await _media.getMediaForDive(diveId);
+    final open = withSuggestions
+        ? (await _identifications.mediaIdsWithSuggestions(
+            anyUndecided: loose,
+            among: diveMedia == null ? null : [for (final m in diveMedia) m.id],
+            diverId: diveId == null ? diverId : null,
+          )).toSet()
         : const <String>{};
-
-    final items = <MediaItem>[];
-    if (diveId != null) {
-      items.addAll(await _media.getMediaForDive(diveId));
-    } else {
-      final ids = {for (final t in unconfirmed) t.mediaId, ...suggestible};
-      for (final id in ids) {
-        final item = await _media.getMediaById(id);
-        if (item != null) items.add(item);
-      }
-    }
 
     final unconfirmedByMedia = <String, List<MediaSpeciesTag>>{};
     for (final t in unconfirmed) {
       unconfirmedByMedia.putIfAbsent(t.mediaId, () => []).add(t);
     }
+    final wanted = {...unconfirmedByMedia.keys, ...open};
+    final items =
+        diveMedia?.where((m) => wanted.contains(m.id)).toList() ??
+        await _media.getMediaByIds(wanted.toList());
+    final ids = [for (final m in items) m.id];
+
+    final found = await _identifications.forMediaIds(ids);
+    final runs = loose
+        ? await _identifications.runsFor(ids)
+        : const <String, MediaIdentificationRun>{};
+    final tagged = open.isEmpty
+        ? const <String, List<TaggedSpecies>>{}
+        : await _identifications.taggedSpeciesFor([
+            for (final id in ids)
+              if (open.contains(id)) id,
+          ]);
     final suggestionsByMedia = <String, List<SpeciesSuggestion>>{};
     final tagEvidence = <String, ({double score, String identificationId})>{};
-    for (final item in items) {
-      final open = suggestible.contains(item.id);
-      final appTags = unconfirmedByMedia[item.id] ?? const [];
-      if (!open && appTags.isEmpty) continue;
-      final found = await _identifications.forMedia(item.id);
-      if (found.isEmpty) continue;
-      if (open) {
-        suggestionsByMedia[item.id] = groupSuggestions(
-          found,
-          await _identifications.taggedSpecies(item.id),
+    for (final id in ids) {
+      final rows = found[id];
+      if (rows == null || rows.isEmpty) continue;
+      if (open.contains(id)) {
+        suggestionsByMedia[id] = groupSuggestions(
+          applyNamingLevel(
+            rows,
+            level: level,
+            namedWithPack: runs[id]?.packVersion,
+          ),
+          tagged[id] ?? const [],
         );
       }
-      for (final tag in appTags) {
-        final evidence = _evidenceFor(tag, found);
+      for (final tag in unconfirmedByMedia[id] ?? const <MediaSpeciesTag>[]) {
+        final evidence = _evidenceFor(tag, rows);
         if (evidence != null) tagEvidence[tag.id] = evidence;
       }
     }
@@ -107,28 +131,24 @@ class SpeciesReviewRepository {
         ? const []
         : await _species.getAllSpecies(ids: speciesIds.toList());
 
-    final media = <ReviewMedia>[];
     final dives = <String, ({int? number, DateTime? time, String? site})>{};
-    for (final item in items) {
-      final id = item.diveId;
-      if (id != null && !dives.containsKey(id)) {
-        final dive = await _dives.getDiveById(id);
-        dives[id] = (
-          number: dive?.diveNumber,
-          time: dive?.effectiveEntryTime,
-          site: dive?.site?.name,
-        );
-      }
-      final dive = id == null ? null : dives[id];
-      media.add(
-        ReviewMedia(
-          item: item,
-          diveNumber: dive?.number,
-          diveTime: dive?.time,
-          siteName: dive?.site,
-        ),
+    for (final id in {for (final m in items) ?m.diveId}) {
+      final dive = await _dives.getDiveById(id);
+      dives[id] = (
+        number: dive?.diveNumber,
+        time: dive?.effectiveEntryTime,
+        site: dive?.site?.name,
       );
     }
+    final media = [
+      for (final item in items)
+        ReviewMedia(
+          item: item,
+          diveNumber: dives[item.diveId]?.number,
+          diveTime: dives[item.diveId]?.time,
+          siteName: dives[item.diveId]?.site,
+        ),
+    ];
 
     return buildReviewGroups(
       media: media,

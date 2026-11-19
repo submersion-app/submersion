@@ -1,6 +1,7 @@
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
@@ -27,7 +28,13 @@ final speciesReviewProvider = FutureProvider.autoDispose
     .family<List<ReviewGroup>, ReviewScope>((ref, scope) async {
       final repository = ref.watch(speciesReviewRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchChanges());
-      return repository.load(scope, withSuggestions: marineLifeIdEnabled);
+      return repository.load(
+        scope,
+        withSuggestions: marineLifeIdEnabled,
+        // The library's rule: the active diver's dives and media on none.
+        diverId: ref.watch(currentDiverIdProvider),
+        level: marineLifeIdEnabled ? ref.watch(levelInForceProvider) : null,
+      );
     });
 
 /// How many species [scope] has to review: the dive card's link and the

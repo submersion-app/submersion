@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
@@ -272,16 +273,127 @@ class MediaIdentificationRepository {
   }
 
   /// Every media id with a suggestion still open: an undecided
-  /// identification that passed the bars (issue #4727).
-  Future<List<String>> mediaIdsWithSuggestions() async {
-    final rows = await _db
-        .customSelect(
-          'SELECT DISTINCT media_id FROM media_identifications '
-          "WHERE decision = 'undecided' AND suggestable = 1",
-          readsFrom: {_db.mediaIdentifications},
-        )
-        .get();
-    return [for (final row in rows) row.read<String>('media_id')];
+  /// identification that passed the bars (issue #4727). With [anyUndecided]
+  /// every undecided one counts, for a naming level that may suggest what
+  /// the pack's bars did not. [among] limits it to those media; [diverId]
+  /// to that diver's dives and the media on no dive.
+  Future<List<String>> mediaIdsWithSuggestions({
+    bool anyUndecided = false,
+    List<String>? among,
+    String? diverId,
+  }) async {
+    if (among != null && among.isEmpty) return const [];
+    final where = <String>["i.decision = 'undecided'"];
+    final variables = <Variable<Object>>[];
+    if (!anyUndecided) where.add('i.suggestable = 1');
+    if (diverId != null) {
+      where.add('(m.dive_id IS NULL OR d.diver_id = ?)');
+      variables.add(Variable.withString(diverId));
+    }
+    final found = <String>{};
+    Future<void> read(List<String>? chunk) async {
+      final clauses = [
+        ...where,
+        if (chunk != null)
+          'i.media_id IN (${List.filled(chunk.length, '?').join(', ')})',
+      ];
+      final rows = await _db
+          .customSelect(
+            'SELECT DISTINCT i.media_id AS media_id '
+            'FROM media_identifications i '
+            'JOIN media m ON m.id = i.media_id '
+            'LEFT JOIN dives d ON d.id = m.dive_id '
+            'WHERE ${clauses.join(' AND ')}',
+            variables: [
+              ...variables,
+              if (chunk != null)
+                for (final id in chunk) Variable.withString(id),
+            ],
+            readsFrom: {_db.mediaIdentifications, _db.media, _db.dives},
+          )
+          .get();
+      found.addAll([for (final row in rows) row.read<String>('media_id')]);
+    }
+
+    if (among == null) {
+      await read(null);
+    } else {
+      for (var i = 0; i < among.length; i += 500) {
+        await read(among.sublist(i, math.min(i + 500, among.length)));
+      }
+    }
+    return found.toList();
+  }
+
+  /// [forMedia] for many media in one pass per chunk, by media id.
+  Future<Map<String, List<MediaIdentification>>> forMediaIds(
+    List<String> mediaIds,
+  ) async {
+    final result = <String, List<MediaIdentification>>{};
+    for (var i = 0; i < mediaIds.length; i += 500) {
+      final chunk = mediaIds.sublist(i, math.min(i + 500, mediaIds.length));
+      final rows =
+          await (_db.select(_db.mediaIdentifications)
+                ..where((r) => r.mediaId.isIn(chunk))
+                ..orderBy([
+                  (r) => OrderingTerm.asc(r.createdAt),
+                  (r) => OrderingTerm.asc(r.id),
+                ]))
+              .get();
+      for (final row in rows) {
+        result.putIfAbsent(row.mediaId, () => []).add(_fromRow(row));
+      }
+    }
+    return result;
+  }
+
+  /// [runFor] for many media, by media id; media with no run are absent.
+  Future<Map<String, MediaIdentificationRun>> runsFor(
+    List<String> mediaIds,
+  ) async {
+    final result = <String, MediaIdentificationRun>{};
+    for (var i = 0; i < mediaIds.length; i += 500) {
+      final chunk = mediaIds.sublist(i, math.min(i + 500, mediaIds.length));
+      final rows = await (_db.select(
+        _db.mediaIdentificationRuns,
+      )..where((r) => r.mediaId.isIn(chunk))).get();
+      for (final row in rows) {
+        result[row.mediaId] = _runFromRow(row);
+      }
+    }
+    return result;
+  }
+
+  /// [taggedSpecies] for many media, by media id; untagged media are
+  /// absent.
+  Future<Map<String, List<TaggedSpecies>>> taggedSpeciesFor(
+    List<String> mediaIds,
+  ) async {
+    final result = <String, List<TaggedSpecies>>{};
+    for (var i = 0; i < mediaIds.length; i += 500) {
+      final chunk = mediaIds.sublist(i, math.min(i + 500, mediaIds.length));
+      final rows = await _db
+          .customSelect(
+            'SELECT ms.media_id AS media_id, ms.species_id AS species_id, '
+            's.scientific_name AS sci '
+            'FROM media_species ms LEFT JOIN species s ON s.id = ms.species_id '
+            'WHERE ms.media_id IN (${List.filled(chunk.length, '?').join(', ')})',
+            variables: [for (final id in chunk) Variable.withString(id)],
+            readsFrom: {_db.mediaSpecies, _db.species},
+          )
+          .get();
+      for (final row in rows) {
+        result
+            .putIfAbsent(row.read<String>('media_id'), () => [])
+            .add(
+              TaggedSpecies(
+                speciesId: row.read<String>('species_id'),
+                scientificName: row.readNullable<String>('sci'),
+              ),
+            );
+      }
+    }
+    return result;
   }
 
   /// Every media id with a run or an identification in this logbook.
