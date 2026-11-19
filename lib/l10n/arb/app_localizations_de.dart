@@ -39163,6 +39163,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get gpsTrack_editCard_trim => 'Zuschneiden';
 
   @override
+  String get gpsTrack_editCard_nameHint => 'Name des Tracks';
+
+  @override
   String get gpsTrack_action_trim => 'Zuschneiden...';
 
   @override

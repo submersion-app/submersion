@@ -311,6 +311,50 @@ class NavTrackRepository with _NavTrackRouteLinks, _NavTrackRouteImports {
     }
   }
 
+  /// Writes the values the route's page edits in place (issue #4527): its
+  /// name, site, device and correction, each as given (null clears it).
+  /// Never the link columns: a dive is linked through [link], [relink] and
+  /// [unlink], which keep the owner, the primary route and inheritance.
+  Future<void> writeEditedColumns(
+    String routeId, {
+    required String? name,
+    required String? siteId,
+    required String? equipmentId,
+    required String? deviceName,
+    required NavTrackCorrection correction,
+  }) async {
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await (_db.update(
+        _db.navTracks,
+      )..where((t) => t.id.equals(routeId))).write(
+        NavTracksCompanion(
+          name: Value(name),
+          siteId: Value(siteId),
+          equipmentId: Value(equipmentId),
+          deviceName: Value(deviceName),
+          anchorLatitude: Value(correction.anchor?.latitude),
+          anchorLongitude: Value(correction.anchor?.longitude),
+          endMode: Value(correction.endMode.wireValue),
+          endLatitude: Value(correction.endPoint?.latitude),
+          endLongitude: Value(correction.endPoint?.longitude),
+          trustFraction: Value(correction.trustFraction),
+          headingOffsetDeg: Value(correction.headingOffsetDeg),
+          scaleFactor: Value(correction.scaleFactor),
+          updatedAt: Value(now),
+        ),
+      );
+      await _markPending(routeId, now);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to write the edited values of nav track $routeId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Renames [routeId], or clears its label back to the file name default
   /// when [name] is null.
   Future<void> rename(String routeId, String? name) async {
@@ -361,6 +405,23 @@ class NavTrackRepository with _NavTrackRouteLinks, _NavTrackRouteImports {
       rethrow;
     }
   }
+
+  /// Whether the dive [diveId] exists: a route links only to a dive that
+  /// does.
+  Future<bool> diveExists(String diveId) async =>
+      await (_db.selectOnly(_db.dives)
+            ..addColumns([_db.dives.id])
+            ..where(_db.dives.id.equals(diveId)))
+          .getSingleOrNull() !=
+      null;
+
+  /// Whether the dive site [siteId] exists: a route's site must.
+  Future<bool> siteExists(String siteId) async =>
+      await (_db.selectOnly(_db.diveSites)
+            ..addColumns([_db.diveSites.id])
+            ..where(_db.diveSites.id.equals(siteId)))
+          .getSingleOrNull() !=
+      null;
 
   /// Ids of every route currently linked to [diveId].
   ///

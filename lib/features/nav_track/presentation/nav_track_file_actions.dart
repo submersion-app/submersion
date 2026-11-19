@@ -68,13 +68,13 @@ class NavTrackFileActions {
   /// time (a console numbers its files from `001` again, so a name alone
   /// matches different dives) or a file of another name is confirmed first,
   /// so a different dive's recording is never written over the route by
-  /// mistake.
-  Future<void> updateFromFile(
+  /// mistake. Answers whether the route was written.
+  Future<bool> updateFromFile(
     BuildContext context,
     WidgetRef ref,
     NavTrack route,
   ) async {
-    if (!demoSealGuard(context, DemoSealedFeature.fileImport)) return;
+    if (!demoSealGuard(context, DemoSealedFeature.fileImport)) return false;
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
     final ({Uint8List bytes, String name})? pick;
@@ -85,9 +85,9 @@ class NavTrackFileActions {
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.navTrack_list_importFailed(e.toString()))),
       );
-      return;
+      return false;
     }
-    if (pick == null || !context.mounted) return;
+    if (pick == null || !context.mounted) return false;
     final picked = pick;
 
     final service = ref.read(navTrackImportServiceProvider);
@@ -99,7 +99,7 @@ class NavTrackFileActions {
       messenger.showSnackBar(
         SnackBar(content: Text(navTrackParseErrorText(l10n, e))),
       );
-      return;
+      return false;
     }
 
     final warning = _updateWarning(l10n, ref, route, picked.name, parsed);
@@ -123,7 +123,7 @@ class NavTrackFileActions {
           ],
         ),
       );
-      if (confirmed != true) return;
+      if (confirmed != true) return false;
     }
 
     try {
@@ -137,7 +137,7 @@ class NavTrackFileActions {
         messenger.showSnackBar(
           SnackBar(content: Text(l10n.navTrack_common_trackNotFound)),
         );
-        return;
+        return false;
       }
     } catch (e, stackTrace) {
       _log.error('Route update failed', error: e, stackTrace: stackTrace);
@@ -146,11 +146,12 @@ class NavTrackFileActions {
           content: Text(l10n.navTrack_review_trackSaveError(e.toString())),
         ),
       );
-      return;
+      return false;
     }
     messenger.showSnackBar(
       SnackBar(content: Text(l10n.navTrack_review_trackUpdatedConfirmation)),
     );
+    return true;
   }
 
   /// Why updating [route] from [parsed] (picked as [fileName]) needs the

@@ -39043,6 +39043,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get gpsTrack_editCard_trim => 'Vágás';
 
   @override
+  String get gpsTrack_editCard_nameHint => 'Nyomvonal neve';
+
+  @override
   String get gpsTrack_action_trim => 'Vágás...';
 
   @override

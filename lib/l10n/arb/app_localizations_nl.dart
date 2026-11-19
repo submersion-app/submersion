@@ -38979,6 +38979,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get gpsTrack_editCard_trim => 'Bijsnijden';
 
   @override
+  String get gpsTrack_editCard_nameHint => 'Naam van de track';
+
+  @override
   String get gpsTrack_action_trim => 'Bijsnijden...';
 
   @override
