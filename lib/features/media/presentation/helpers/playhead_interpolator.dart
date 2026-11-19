@@ -1,0 +1,72 @@
+/// Smooths a video's playhead between the player's position reports.
+///
+/// The player reports where it is only every 100 ms or so while playing, so
+/// a bar drawn straight from those reports moves in steps (issue #4732).
+/// This carries the playhead on from the latest report at the playback
+/// speed, one frame at a time, so the bar glides.
+///
+/// The clock is whatever drives the frames (a ticker's elapsed time): each
+/// [advance] passes the time of the frame being drawn. A report is timed
+/// from the first frame after it, which keeps one clock throughout.
+class PlayheadInterpolator {
+  /// How far the playhead may run past the latest report. Well beyond the
+  /// gap between reports, yet short enough that a player stalled without
+  /// saying so (buffering, say) leaves the bar barely ahead of the video.
+  static const maxLead = Duration(milliseconds: 500);
+
+  Duration _reported = Duration.zero;
+  Duration _shown = Duration.zero;
+  Duration _duration = Duration.zero;
+  double _speed = 0;
+
+  /// Whether the video moves on between reports.
+  bool _advancing = false;
+
+  /// The frame time of the latest report; null until the frame after it.
+  Duration? _reportedAt;
+
+  /// Where to draw the playhead.
+  Duration get shown => _shown;
+
+  /// Takes a report from the player: it is at [position] in a clip of
+  /// [duration], moving on at [speed] while [advancing].
+  void report({
+    required Duration position,
+    required bool advancing,
+    required double speed,
+    required Duration duration,
+  }) {
+    final wentBack = position < _reported;
+    _reported = position;
+    _duration = duration;
+    _speed = speed;
+    _advancing = advancing && speed > 0;
+    _reportedAt = null;
+    // Paused, the player says exactly where it is. Gone back, it was sought
+    // back or looped, and the playhead follows at once. Otherwise a report
+    // just behind the playhead is one taken a moment before this frame:
+    // holding until it catches up keeps the bar from twitching backwards.
+    if (!_advancing || wentBack || position > _shown) {
+      _shown = _clamp(position);
+    }
+  }
+
+  /// Moves the playhead on to the frame drawn at [now]. Returns whether it
+  /// can move further without another report, so the caller knows whether
+  /// to keep asking for frames.
+  bool advance(Duration now) {
+    if (!_advancing) return false;
+    final reportedAt = _reportedAt ??= now;
+    final elapsed = now - reportedAt;
+    final lead = elapsed * _speed;
+    final capped = lead < maxLead ? lead : maxLead;
+    final estimate = _clamp(_reported + capped);
+    if (estimate > _shown) _shown = estimate;
+    return lead < maxLead && _shown < _duration;
+  }
+
+  Duration _clamp(Duration position) {
+    if (position < Duration.zero) return Duration.zero;
+    return position > _duration ? _duration : position;
+  }
+}

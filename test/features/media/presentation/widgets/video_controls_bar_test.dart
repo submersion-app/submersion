@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/media/presentation/helpers/playhead_interpolator.dart';
 import 'package:submersion/features/media/presentation/providers/media_people_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/video_controls_bar.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -720,5 +721,103 @@ void main() {
     expect(controller.value.position, const Duration(seconds: 20));
     await _finish(tester, controller);
     semantics.dispose();
+  });
+
+  group('while playing (issue #4732)', () {
+    /// Where the thumb's centre sits along the track for [position].
+    double thumbXAt(WidgetTester tester, Duration position) {
+      final track = tester.getRect(find.byKey(VideoControlsBar.trackKey));
+      return track.left +
+          track.width *
+              position.inMilliseconds /
+              const Duration(seconds: 30).inMilliseconds;
+    }
+
+    double thumbX(WidgetTester tester) =>
+        tester.getCenter(find.byKey(VideoControlsBar.thumbKey)).dx;
+
+    /// A playing video whose player last reported 0:15, drawn on the frame
+    /// after that report.
+    Future<(_FakeVideoPlatform, VideoPlayerController)> playingAt15(
+      WidgetTester tester,
+    ) async {
+      final platform = _usePlatform();
+      final controller = await _readyController();
+      await tester.pumpWidget(
+        _app(VideoControlsBar(controller: controller, mediaId: 'm1')),
+      );
+      platform._position = const Duration(seconds: 15);
+      await controller.play();
+      // The controller polls the player every 100 ms while playing.
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(controller.value.position, const Duration(seconds: 15));
+      return (platform, controller);
+    }
+
+    testWidgets('the thumb glides between the player\'s position reports', (
+      tester,
+    ) async {
+      final (_, controller) = await playingAt15(tester);
+      expect(
+        thumbX(tester),
+        closeTo(thumbXAt(tester, const Duration(seconds: 15)), 0.01),
+      );
+
+      // Frames before the next poll: the player has not reported again.
+      await tester.pump(const Duration(milliseconds: 30));
+      await tester.pump(const Duration(milliseconds: 30));
+
+      expect(controller.value.position, const Duration(seconds: 15));
+      expect(
+        thumbX(tester),
+        closeTo(thumbXAt(tester, const Duration(milliseconds: 15060)), 0.01),
+      );
+
+      await controller.pause();
+      await _finish(tester, controller);
+    });
+
+    testWidgets('a stalled player leaves the thumb resting a moment ahead, '
+        'with no frames left pending', (tester) async {
+      final (_, controller) = await playingAt15(tester);
+
+      // Settles although the video still plays: the player never moves on.
+      await tester.pumpAndSettle();
+
+      expect(
+        thumbX(tester),
+        closeTo(
+          thumbXAt(
+            tester,
+            const Duration(seconds: 15) + PlayheadInterpolator.maxLead,
+          ),
+          0.01,
+        ),
+      );
+
+      await controller.pause();
+      await _finish(tester, controller);
+    });
+
+    testWidgets('pausing settles the thumb on the player\'s position', (
+      tester,
+    ) async {
+      final (_, controller) = await playingAt15(tester);
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(
+        thumbX(tester),
+        greaterThan(thumbXAt(tester, const Duration(seconds: 15))),
+      );
+
+      await controller.pause();
+      await tester.pump();
+
+      expect(
+        thumbX(tester),
+        closeTo(thumbXAt(tester, const Duration(seconds: 15)), 0.01),
+      );
+      expect(tester.binding.hasScheduledFrame, isFalse);
+      await _finish(tester, controller);
+    });
   });
 }
