@@ -10,6 +10,7 @@ import 'package:submersion/features/marine_life/presentation/providers/species_p
 import 'package:submersion/features/media/data/streaming/video_playback_plan.dart';
 import 'package:submersion/features/media/presentation/providers/media_bytes_providers.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
+import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/video_color_track_provider.dart';
 import 'package:submersion/features/media/presentation/providers/video_playback_providers.dart';
 import 'package:submersion/features/media/domain/value_objects/sighting_timing.dart';
@@ -19,6 +20,7 @@ import 'package:submersion/features/species_id/data/engines/channel_vision_engin
 import 'package:submersion/features/species_id/data/pack/species_pack_store.dart';
 import 'package:submersion/features/species_id/data/repositories/identification_embedding_repository.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
+import 'package:submersion/features/species_id/data/services/auto_applier.dart';
 import 'package:submersion/features/species_id/data/services/identification_cleanup.dart';
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
 import 'package:submersion/features/species_id/data/services/media_identification_service.dart';
@@ -188,6 +190,10 @@ final mediaIdentificationServiceProvider = Provider<MediaIdentificationService>(
       taggedSpecies: identifications.taggedSpecies,
       enabled: () =>
           marineLifeIdEnabled && ref.read(identifyFishOnOpenProvider),
+      onItemSettled: (item) => ref
+          .read(autoApplierProvider)
+          .applyInScope(item.id, isVideo: item.mediaType == MediaType.video)
+          .then((_) {}),
     );
     ref.onDispose(service.dispose);
     return service;
@@ -292,6 +298,18 @@ final mediaIdentificationBusyProvider = StreamProvider.autoDispose
         yield service.isBusy(mediaId);
       }
     });
+
+/// Tags confident matches with no tap, when the setting is on (issue
+/// #4727).
+final autoApplierProvider = Provider<AutoApplier>(
+  (ref) => AutoApplier(
+    identifications: ref.watch(mediaIdentificationRepositoryProvider),
+    acceptor: ref.watch(suggestionAcceptorProvider),
+    tagging: ref.watch(speciesTaggingServiceProvider),
+    enabled: () => ref.read(autoApplyProvider),
+    timing: () => ref.read(sightingTimingProvider),
+  ),
+);
 
 final suggestionAcceptorProvider = Provider<SuggestionAcceptor>(
   (ref) => SuggestionAcceptor(species: ref.watch(speciesRepositoryProvider)),

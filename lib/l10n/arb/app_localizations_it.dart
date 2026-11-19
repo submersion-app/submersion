@@ -63367,6 +63367,12 @@ class AppLocalizationsIt extends AppLocalizations {
       'Collegamenti multimediali riparati';
 
   @override
+  String get changeLog_label_marineLifeId => 'Marine life identification';
+
+  @override
+  String get changeLog_label_speciesReview => 'Species review';
+
+  @override
   String get changeLog_label_gearFileConversion =>
       'File attrezzatura spostati in Documenti';
 

@@ -61,6 +61,7 @@ class MediaIdentificationService {
     Duration idleUnload = const Duration(seconds: 60),
     MemoryReadout? memoryReadout,
     int firstVideoChunkMs = 2000,
+    Future<void> Function(MediaItem item)? onItemSettled,
   }) : _engine = engine,
        _loadPack = loadPack,
        _identifications = identifications,
@@ -76,7 +77,8 @@ class MediaIdentificationService {
        _newId = newId ?? const Uuid().v4,
        _idleUnload = idleUnload,
        _memoryReadout = memoryReadout,
-       _firstVideoChunkMs = firstVideoChunkMs;
+       _firstVideoChunkMs = firstVideoChunkMs,
+       _onItemSettled = onItemSettled ?? ((_) async {});
 
   final VisionEngine _engine;
   final Future<LoadedPack?> Function() _loadPack;
@@ -100,6 +102,11 @@ class MediaIdentificationService {
   /// Logs memory after each stage, while debug mode is on; null logs
   /// nothing (the iPhone memory test, docs/developer/species-identification.md).
   final MemoryReadout? _memoryReadout;
+
+  /// Called once an item is settled and its decisions reconciled: analysed,
+  /// renamed, found to need nothing, or looked at with no model installed.
+  /// Auto-apply hangs here (issue #4727). Its failure never fails the item.
+  final Future<void> Function(MediaItem item) _onItemSettled;
   final _log = LoggerService.forClass(MediaIdentificationService);
 
   /// Insertion-ordered (a map literal is a LinkedHashMap): the newest
@@ -390,7 +397,13 @@ class MediaIdentificationService {
         return false;
       }
       final pack = _pack ??= await _loadPack();
-      if (pack == null) return false;
+      if (pack == null) {
+        // Stored names still count with no model installed (issue #4727).
+        if (_databaseGeneration() != generation) return false;
+        await reconcile(item.id);
+        await _settled(item);
+        return false;
+      }
       final manifest = pack.pack.manifest;
       final location = job.location;
       // A position that is not a number (a bad EXIF read) is no position:
@@ -479,10 +492,20 @@ class MediaIdentificationService {
       }
       if (_databaseGeneration() != generation) return false;
       await reconcile(item.id);
+      await _settled(item);
       return putBack;
     } on Object catch (e) {
       _log.debug('Could not identify marine life in ${item.id}', error: e);
       return false;
+    }
+  }
+
+  /// [_onItemSettled] for [item], its failure logged and swallowed.
+  Future<void> _settled(MediaItem item) async {
+    try {
+      await _onItemSettled(item);
+    } on Object catch (e) {
+      _log.debug('Could not auto-apply species on ${item.id}', error: e);
     }
   }
 

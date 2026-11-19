@@ -62973,6 +62973,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get changeLog_label_mediaRepair => 'Medialinks hersteld';
 
   @override
+  String get changeLog_label_marineLifeId => 'Marine life identification';
+
+  @override
+  String get changeLog_label_speciesReview => 'Species review';
+
+  @override
   String get changeLog_label_gearFileConversion =>
       'Uitrustingsbestanden verplaatst naar Documenten';
 

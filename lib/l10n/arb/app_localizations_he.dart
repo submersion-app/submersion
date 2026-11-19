@@ -62043,6 +62043,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get changeLog_label_mediaRepair => 'קישורי מדיה תוקנו';
 
   @override
+  String get changeLog_label_marineLifeId => 'Marine life identification';
+
+  @override
+  String get changeLog_label_speciesReview => 'Species review';
+
+  @override
   String get changeLog_label_gearFileConversion => 'קובצי ציוד הועברו למסמכים';
 
   @override

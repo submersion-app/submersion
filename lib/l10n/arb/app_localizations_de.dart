@@ -63230,6 +63230,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get changeLog_label_mediaRepair => 'Medienverknüpfungen repariert';
 
   @override
+  String get changeLog_label_marineLifeId => 'Marine life identification';
+
+  @override
+  String get changeLog_label_speciesReview => 'Species review';
+
+  @override
   String get changeLog_label_gearFileConversion =>
       'Ausrüstungsdateien nach Dokumente verschoben';
 

@@ -99396,6 +99396,18 @@ abstract class AppLocalizations {
   /// **'Repaired media links'**
   String get changeLog_label_mediaRepair;
 
+  /// No description provided for @changeLog_label_marineLifeId.
+  ///
+  /// In en, this message translates to:
+  /// **'Marine life identification'**
+  String get changeLog_label_marineLifeId;
+
+  /// No description provided for @changeLog_label_speciesReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Species review'**
+  String get changeLog_label_speciesReview;
+
   /// No description provided for @changeLog_label_gearFileConversion.
   ///
   /// In en, this message translates to:
