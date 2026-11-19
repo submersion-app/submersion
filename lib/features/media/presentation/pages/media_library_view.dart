@@ -24,11 +24,25 @@ import 'package:submersion/shared/selection/selection_state.dart';
 /// then the active view mode. The by-dive and timeline presentations reuse
 /// the same paged state.
 class MediaLibraryView extends ConsumerStatefulWidget {
-  const MediaLibraryView({super.key, this.openViewer = openMediaViewer});
+  const MediaLibraryView({
+    super.key,
+    this.openViewer = openMediaViewer,
+    this.selection,
+    this.showToolbar = true,
+  });
 
   /// Opens the viewer on a tapped tile; a test passes one that records the
   /// list it is handed.
   final MediaViewerOpener openViewer;
+
+  /// The bulk-selection state, when a host shows the toolbar somewhere else
+  /// and so has to share it (#4777). The host owns and disposes it, and
+  /// ends it when the view goes away. Null gives the view one of its own.
+  final SelectionController? selection;
+
+  /// Whether the view shows [MediaLibraryHeaderToolbar] above its content.
+  /// False where a host shows it in the page header instead.
+  final bool showToolbar;
 
   @override
   ConsumerState<MediaLibraryView> createState() => _MediaLibraryViewState();
@@ -42,11 +56,14 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
   /// is what keeps "mode is active" and "something is checked" from being
   /// the same fact -- which is exactly what the old id-set provider could
   /// not express, and why long-press was its only way in.
-  final SelectionController _selection = SelectionController();
+  SelectionController? _ownSelection;
+
+  SelectionController get _selection =>
+      widget.selection ?? (_ownSelection ??= SelectionController());
 
   @override
   void dispose() {
-    _selection.dispose();
+    _ownSelection?.dispose();
     super.dispose();
   }
 
@@ -109,16 +126,11 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
                     .map((e) => e.item)
                     .toList(),
               ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              child: MediaLibraryToolbar(
-                selection: _selection,
-                // Filter and sort stay reachable inside the mode -- narrow
-                // the list, then Select All -- but the control that opens a
-                // mode already open would just be dead weight.
-                canSelect: state.entries.isNotEmpty && !selection.isActive,
+            if (widget.showToolbar)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: MediaLibraryHeaderToolbar(selection: _selection),
               ),
-            ),
             const MediaLibraryActiveFilterChips(),
             if (showingMissing)
               MediaMissingBanner(isEmpty: state.entries.isEmpty),
@@ -209,6 +221,32 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
           // Returned above, before the grid's paged-state guards.
           MediaLibraryViewMode.map => const MediaMapContent(),
         },
+      ),
+    );
+  }
+}
+
+/// The Library's [MediaLibraryToolbar] for [selection], wherever it is
+/// shown: above the Library on a phone, in the page header's tab row at
+/// desktop widths (#4777).
+class MediaLibraryHeaderToolbar extends ConsumerWidget {
+  const MediaLibraryHeaderToolbar({super.key, required this.selection});
+
+  final SelectionController selection;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final hasEntries = ref.watch(
+      mediaLibraryNotifierProvider.select((s) => s.entries.isNotEmpty),
+    );
+    return ValueListenableBuilder<SelectionState>(
+      valueListenable: selection,
+      builder: (context, state, _) => MediaLibraryToolbar(
+        selection: selection,
+        // Filter and sort stay reachable inside the mode -- narrow the
+        // list, then Select All -- but the control that opens a mode
+        // already open would just be dead weight.
+        canSelect: hasEntries && !state.isActive,
       ),
     );
   }

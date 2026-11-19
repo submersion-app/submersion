@@ -10,6 +10,7 @@ import 'package:submersion/shared/widgets/master_detail/pane_header_bar.dart';
 import '../../../helpers/plain_header_title.dart';
 
 const _contentKey = Key('content');
+const _trailingKey = Key('tab_row_trailing');
 
 /// Phone widths, where the tabs are the app bar's bottom, and master-detail
 /// widths, where they sit in a pane bar.
@@ -26,6 +27,7 @@ void main() {
     double appBarHeight = kToolbarHeight,
     PreferredSizeWidget Function(PreferredSizeWidget bar)? appBarPin,
     bool browser = false,
+    Widget? tabRowTrailing,
   }) {
     // The scaffold reads the header title's inset through a provider ref.
     return ProviderScope(
@@ -44,12 +46,16 @@ void main() {
             appBarHeight: appBarHeight,
             // A switch's own label padding.
             titleTextInset: 8,
+            // Room for the switch beside the buttons, as a real switch
+            // reports it.
+            paneTitleWidth: 200,
             appBarPin: appBarPin,
           ),
           selected: selected,
           onSelect: onSelect,
           onAction: onAction ?? (_) {},
           badgeCounts: badgeCounts,
+          tabRowTrailing: tabRowTrailing,
           child: const SizedBox.expand(key: _contentKey),
         ),
       ),
@@ -563,31 +569,65 @@ void main() {
         // A button is not a tab: the selection does not move.
         expect(selected, isNull);
       });
+    }
 
-      testWidgets('buttons share the tab row at width $width', (tester) async {
+    testWidgets('on a phone the buttons share the tab row', (tester) async {
+      // A phone has no room beside the switch, and a row of their own would
+      // cost a phone the height (#4587).
+      const width = _phoneWidth;
+      setWidth(tester, width);
+      await tester.pumpWidget(
+        host(selected: MediaConsoleSection.library, onSelect: (_) {}),
+      );
+      final tabsCentre = tester.getCenter(find.text('Library'));
+      // The buttons start where the (scrollable) tab strip ends, never
+      // over it.
+      var previousRight = tester.getTopRight(find.byType(TabBar)).dx;
+      for (final a in MediaConsoleAction.values) {
+        final centre = tester.getCenter(action(a));
+        expect(centre.dy, closeTo(tabsCentre.dy, 1), reason: a.name);
+        final left = tester.getTopLeft(action(a)).dx;
+        expect(left, greaterThanOrEqualTo(previousRight), reason: a.name);
+        previousRight = tester.getTopRight(action(a)).dx;
+      }
+      // The last button ends at the row's trailing edge, less its gap.
+      expect(previousRight, closeTo(width - 4, 1));
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('media_console_tab_row')),
+          matching: find.byType(IconButton),
+        ),
+        findsNWidgets(MediaConsoleAction.values.length),
+      );
+    });
+
+    for (final width in [_desktopWidth, 1600.0]) {
+      testWidgets('at master-detail width $width the buttons close the '
+          "switch's row, leaving its top right in use (#4777)", (tester) async {
         setWidth(tester, width);
         await tester.pumpWidget(
           host(selected: MediaConsoleSection.library, onSelect: (_) {}),
         );
-        final tabsCentre = tester.getCenter(find.text('Library'));
-        // The buttons start where the (scrollable) tab strip ends, never
-        // over it.
-        var previousRight = tester.getTopRight(find.byType(TabBar)).dx;
+        final titleCentre = tester.getCenter(find.text('Media'));
+        var previousRight = tester.getTopRight(find.text('Media')).dx;
         for (final a in MediaConsoleAction.values) {
-          final centre = tester.getCenter(action(a));
-          expect(centre.dy, closeTo(tabsCentre.dy, 1), reason: a.name);
+          expect(
+            tester.getCenter(action(a)).dy,
+            closeTo(titleCentre.dy, 1),
+            reason: a.name,
+          );
           final left = tester.getTopLeft(action(a)).dx;
           expect(left, greaterThanOrEqualTo(previousRight), reason: a.name);
           previousRight = tester.getTopRight(action(a)).dx;
         }
-        // The last button ends at the row's trailing edge, less its gap.
-        expect(previousRight, closeTo(width - 4, 1));
+        // The pane bar pads its row by 8px at each end.
+        expect(previousRight, closeTo(width - 8, 1));
         expect(
           find.descendant(
             of: find.byKey(const ValueKey('media_console_tab_row')),
             matching: find.byType(IconButton),
           ),
-          findsNWidgets(MediaConsoleAction.values.length),
+          findsNothing,
         );
       });
     }
@@ -621,6 +661,87 @@ void main() {
         (MediaConsoleAction.sources, 'Sources'),
       ]) {
         expect(tester.widget<IconButton>(action(a)).tooltip, tip);
+      }
+    });
+  });
+
+  group('tab row trailing (#4777)', () {
+    const trailing = SizedBox(key: _trailingKey, height: 40);
+
+    for (final width in [_desktopWidth, 1600.0]) {
+      testWidgets('at master-detail width $width it fills the tab row after '
+          'the tabs', (tester) async {
+        setWidth(tester, width);
+        await tester.pumpWidget(
+          host(
+            selected: MediaConsoleSection.library,
+            onSelect: (_) {},
+            tabRowTrailing: trailing,
+          ),
+        );
+        expect(tester.takeException(), isNull);
+        final slot = find.byKey(_trailingKey);
+        expect(
+          find.descendant(
+            of: find.byKey(const ValueKey('media_console_tab_row')),
+            matching: slot,
+          ),
+          findsOneWidget,
+        );
+        expect(
+          tester.getCenter(slot).dy,
+          closeTo(tester.getCenter(find.text('Library')).dy, 1),
+        );
+        // It starts after the last tab and runs to the row's end, so a
+        // toolbar in it can put its own controls at the far edge.
+        expect(
+          tester.getTopLeft(slot).dx,
+          greaterThan(tester.getTopRight(find.text('Equipment')).dx),
+        );
+        expect(tester.getTopRight(slot).dx, closeTo(width - 8, 1));
+        // The content still starts under the bar, not under the slot.
+        expect(
+          tester.getTopLeft(find.byKey(_contentKey)).dy,
+          closeTo(tester.getBottomLeft(find.byType(PaneHeaderBar)).dy, 1),
+        );
+      });
+    }
+
+    testWidgets('a phone does not show it', (tester) async {
+      // The page keeps a phone's toolbar in its body: the tab row there is
+      // already full with the tabs and the buttons.
+      setWidth(tester, _phoneWidth);
+      await tester.pumpWidget(
+        host(
+          selected: MediaConsoleSection.library,
+          onSelect: (_) {},
+          tabRowTrailing: trailing,
+        ),
+      );
+      expect(find.byKey(_trailingKey), findsNothing);
+    });
+
+    testWidgets('hostsTabRowTrailing follows the master-detail breakpoint', (
+      tester,
+    ) async {
+      for (final (width, expected) in const [
+        (_phoneWidth, false),
+        (1000.0, false),
+        (_desktopWidth, true),
+      ]) {
+        setWidth(tester, width);
+        late bool hosts;
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Builder(
+              builder: (context) {
+                hosts = MediaConsoleScaffold.hostsTabRowTrailing(context);
+                return const SizedBox();
+              },
+            ),
+          ),
+        );
+        expect(hosts, expected, reason: 'width $width');
       }
     });
   });

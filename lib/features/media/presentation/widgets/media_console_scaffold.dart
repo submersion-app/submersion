@@ -37,15 +37,21 @@ List<MediaConsoleAction> mediaConsoleActionsFor(DeviceCapabilities caps) =>
 ///
 /// The tabs always sit on their own row under the title, never beside it,
 /// so they never share a row with the Photos/Videos and Documents switch
-/// (#3631). Below the master-detail breakpoint that row is the app bar's
-/// bottom. At master-detail widths the title and tabs sit in a
-/// [PaneHeaderBar], the bar Documents' list pane shows, so the switch stays
-/// at the same place and size across a switch between the two tabs. Either
-/// way the first tab starts under the switch's first name, and the
-/// [MediaConsoleAction] buttons close the same row, so a phone gets no extra
-/// header row for them. There is no
-/// sidebar at any width, so the library grid and the other views always get
-/// the whole page.
+/// (#3631). Either way the first tab starts under the switch's first name.
+///
+/// Below the master-detail breakpoint the tab row is the app bar's bottom,
+/// and the [MediaConsoleAction] buttons close it, so a phone gets no extra
+/// header row for them (#4587).
+///
+/// At master-detail widths the title and tabs sit in a [PaneHeaderBar], the
+/// bar Documents' list pane shows, so the switch stays at the same place and
+/// size across a switch between the two tabs. There the buttons close the
+/// switch's row, as Documents' own do, and [tabRowTrailing] fills the tab
+/// row after the tabs, so the header is two rows with no empty band at its
+/// top right (#4777).
+///
+/// There is no sidebar at any width, so the library grid and the other views
+/// always get the whole page.
 class MediaConsoleScaffold extends ConsumerStatefulWidget {
   const MediaConsoleScaffold({
     super.key,
@@ -55,7 +61,14 @@ class MediaConsoleScaffold extends ConsumerStatefulWidget {
     required this.onAction,
     required this.child,
     this.badgeCounts = const {},
+    this.tabRowTrailing,
   });
+
+  /// Whether a [MediaConsoleScaffold] built in [context] shows its
+  /// [tabRowTrailing]. A page whose trailing widget stands in for a row of
+  /// its body asks this to leave that row out.
+  static bool hostsTabRowTrailing(BuildContext context) =>
+      ResponsiveBreakpoints.isMasterDetail(context);
 
   final SectionHeaderTitle headerTitle;
   final MediaConsoleSection selected;
@@ -68,6 +81,12 @@ class MediaConsoleScaffold extends ConsumerStatefulWidget {
 
   /// Section id to attention count; zero or absent hides the badge.
   final Map<MediaConsoleSection, int> badgeCounts;
+
+  /// Shown after the tabs, to the end of the tab row, where
+  /// [hostsTabRowTrailing] holds: the selected section's own toolbar, which
+  /// would otherwise take a row of the page under the header (#4777). Null
+  /// leaves the rest of the row empty.
+  final Widget? tabRowTrailing;
 
   @override
   ConsumerState<MediaConsoleScaffold> createState() =>
@@ -151,16 +170,25 @@ class _MediaConsoleScaffoldState extends ConsumerState<MediaConsoleScaffold>
     return Badge.count(count: count, child: inner);
   }
 
+  List<Widget> _actionButtons(AppLocalizations l10n, AppBarTabColors colors) =>
+      [for (final action in _actions) _actionButton(l10n, colors, action)];
+
   /// The section tabs, in [colors], their first label starting under the
   /// title's first word, which starts [titleStart] in from the bar's edge,
-  /// then the action buttons at the row's end. [divider] rules the whole row
-  /// off from the page below, buttons included, which a divider of the tab
+  /// then [trailing] at the row's end. [divider] rules the whole row off
+  /// from the page below, [trailing] included, which a divider of the tab
   /// bar's own would stop short of.
+  ///
+  /// With [shrinkTabs] the tabs take only their labels' width, up to half
+  /// the row, and [trailing] has the rest to lay out as it needs; without,
+  /// the tabs take whatever [trailing] leaves.
   PreferredSizeWidget _tabRow(
     BuildContext context, {
     required AppBarTabColors colors,
     required bool divider,
     required double titleStart,
+    required List<Widget> trailing,
+    bool shrinkTabs = false,
   }) {
     final textStart =
         titleStart +
@@ -182,6 +210,10 @@ class _MediaConsoleScaffoldState extends ConsumerState<MediaConsoleScaffold>
       indicatorColor: colors.selected,
       overlayColor: colors.overlay,
       dividerColor: Colors.transparent,
+      // The row draws any rule itself. A zero height also lets the
+      // scrollable strip shrink to its tabs instead of filling its width,
+      // which [shrinkTabs] relies on.
+      dividerHeight: 0,
       onTap: (i) => widget.onSelect(_sections[i]),
       tabs: [
         for (final section in _sections)
@@ -201,15 +233,54 @@ class _MediaConsoleScaffoldState extends ConsumerState<MediaConsoleScaffold>
                 )
               : null,
         ),
-        child: Row(
-          children: [
-            Expanded(child: tabBar),
-            for (final action in _actions) _actionButton(l10n, colors, action),
-            // An icon button pads its own glyph, so a small gap is enough.
-            const SizedBox(width: 4),
-          ],
-        ),
+        child: shrinkTabs
+            ? LayoutBuilder(
+                builder: (context, constraints) => Row(
+                  children: [
+                    // A scrollable strip needs a bounded width.
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: constraints.maxWidth / 2,
+                      ),
+                      child: tabBar,
+                    ),
+                    ...trailing,
+                  ],
+                ),
+              )
+            : Row(
+                children: [
+                  Expanded(child: tabBar),
+                  ...trailing,
+                ],
+              ),
       ),
+    );
+  }
+
+  /// The pane bar's tab row: the tabs, then
+  /// [MediaConsoleScaffold.tabRowTrailing] to the row's end.
+  PreferredSizeWidget _paneTabRow(
+    BuildContext context,
+    AppBarTabColors colors,
+  ) {
+    final trailing = widget.tabRowTrailing;
+    return _tabRow(
+      context,
+      colors: colors,
+      divider: false,
+      titleStart: PaneHeaderBar.titleStart,
+      shrinkTabs: trailing != null,
+      trailing: [
+        if (trailing != null) ...[
+          const SizedBox(width: 16),
+          Expanded(child: trailing),
+          // In line with the pane bar's own 8px end padding on the row
+          // above, so the trailing widget's last control sits under the
+          // last button.
+          const SizedBox(width: 8),
+        ],
+      ],
     );
   }
 
@@ -230,13 +301,9 @@ class _MediaConsoleScaffoldState extends ConsumerState<MediaConsoleScaffold>
             PaneHeaderBar(
               title: headerTitle.build(context, SectionHeaderSlot.pane, null),
               titleWidth: headerTitle.paneTitleWidth?.call(context),
+              actions: _actionButtons(context.l10n, colors),
               // The pane bar draws its own rule under the tabs.
-              bottom: _tabRow(
-                context,
-                colors: colors,
-                divider: false,
-                titleStart: PaneHeaderBar.titleStart,
-              ),
+              bottom: _paneTabRow(context, colors),
             ),
             Expanded(child: widget.child),
           ],
@@ -257,6 +324,11 @@ class _MediaConsoleScaffoldState extends ConsumerState<MediaConsoleScaffold>
             colors: colors,
             divider: colors.barMatchesPage,
             titleStart: SectionTitleToggle.appBarTitleSpacing,
+            trailing: [
+              ..._actionButtons(context.l10n, colors),
+              // An icon button pads its own glyph, so a small gap is enough.
+              const SizedBox(width: 4),
+            ],
           ),
         ),
       ),
