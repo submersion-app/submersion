@@ -4,7 +4,8 @@ import 'package:submersion/features/dive_log/domain/codecs/deco_type.dart';
 /// One profile sample exactly as the v181 `dive_profiles` table stored it
 /// (the codec's column order), minus the identity columns (`id`, `dive_id`,
 /// `computer_id`, `source_id`, `is_primary`) that live on the series row,
-/// plus the codec v2 fields ([gf99], [n2Load]) appended after them.
+/// plus the codec v2 fields ([gf99], [n2Load]) and the codec v3 fields
+/// ([aveloBuoyancy], [aveloGasRemaining], [computerRmv]) appended after them.
 ///
 /// This is the codec's input and output type. It differs from the domain
 /// `DiveProfilePoint` in one field: the legacy per-sample [pressure]
@@ -48,6 +49,9 @@ class ProfileSample extends Equatable {
     this.o2SensorMv6,
     this.gf99,
     this.n2Load,
+    this.aveloBuoyancy,
+    this.aveloGasRemaining,
+    this.computerRmv,
   });
 
   /// Seconds from dive start.
@@ -92,6 +96,18 @@ class ProfileSample extends Equatable {
   /// null in every v1 blob.
   final int? n2Load;
 
+  /// Shearwater Avelo mode's buoyancy figure, kilograms, negative is heavy.
+  /// Codec v3; null in every v1 and v2 blob.
+  final double? aveloBuoyancy;
+
+  /// Shearwater Avelo mode's gas remaining in the Hydrotank, whole percent.
+  /// Codec v3.
+  final int? aveloGasRemaining;
+
+  /// The dive computer's own respiratory minute volume, litres per minute
+  /// (Shearwater Avelo mode). Codec v3.
+  final double? computerRmv;
+
   /// This sample without the ceiling a safety stop carried, or this same
   /// sample when it is no safety stop or has no ceiling.
   ///
@@ -129,6 +145,9 @@ class ProfileSample extends Equatable {
       o2SensorMv6: o2SensorMv6,
       gf99: gf99,
       n2Load: n2Load,
+      aveloBuoyancy: aveloBuoyancy,
+      aveloGasRemaining: aveloGasRemaining,
+      computerRmv: computerRmv,
     );
   }
 
@@ -165,6 +184,9 @@ class ProfileSample extends Equatable {
     o2SensorMv6: o2SensorMv6,
     gf99: gf99,
     n2Load: n2Load,
+    aveloBuoyancy: aveloBuoyancy,
+    aveloGasRemaining: aveloGasRemaining,
+    computerRmv: computerRmv,
   );
 
   /// The same sample with exactly these tissue fields: an omitted argument
@@ -200,6 +222,51 @@ class ProfileSample extends Equatable {
     o2SensorMv6: o2SensorMv6,
     gf99: gf99,
     n2Load: n2Load,
+    aveloBuoyancy: aveloBuoyancy,
+    aveloGasRemaining: aveloGasRemaining,
+    computerRmv: computerRmv,
+  );
+
+  /// The same sample with exactly these Avelo fields: an omitted argument
+  /// clears the field, it does not keep it (as [withTissue]).
+  ProfileSample withAvelo({
+    double? aveloBuoyancy,
+    int? aveloGasRemaining,
+    double? computerRmv,
+  }) => ProfileSample(
+    timestamp: timestamp,
+    depth: depth,
+    pressure: pressure,
+    temperature: temperature,
+    heartRate: heartRate,
+    ascentRate: ascentRate,
+    ceiling: ceiling,
+    ndl: ndl,
+    setpoint: setpoint,
+    ppO2: ppO2,
+    o2Sensor1: o2Sensor1,
+    o2Sensor2: o2Sensor2,
+    o2Sensor3: o2Sensor3,
+    o2Sensor4: o2Sensor4,
+    o2Sensor5: o2Sensor5,
+    o2Sensor6: o2Sensor6,
+    cns: cns,
+    tts: tts,
+    rbt: rbt,
+    decoType: decoType,
+    heartRateSource: heartRateSource,
+    heading: heading,
+    o2SensorMv1: o2SensorMv1,
+    o2SensorMv2: o2SensorMv2,
+    o2SensorMv3: o2SensorMv3,
+    o2SensorMv4: o2SensorMv4,
+    o2SensorMv5: o2SensorMv5,
+    o2SensorMv6: o2SensorMv6,
+    gf99: gf99,
+    n2Load: n2Load,
+    aveloBuoyancy: aveloBuoyancy,
+    aveloGasRemaining: aveloGasRemaining,
+    computerRmv: computerRmv,
   );
 
   @override
@@ -234,5 +301,8 @@ class ProfileSample extends Equatable {
     o2SensorMv6,
     gf99,
     n2Load,
+    aveloBuoyancy,
+    aveloGasRemaining,
+    computerRmv,
   ];
 }

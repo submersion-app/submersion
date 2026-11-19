@@ -34,6 +34,9 @@ void main() {
     tts: 900,
     gf99: 47,
     n2Load: 81,
+    aveloBuoyancy: -0.393,
+    aveloGasRemaining: 64,
+    computerRmv: 10.68,
   );
 
   test('fromPoint then toPoint is the identity on every point field', () {
@@ -90,6 +93,6 @@ void main() {
     expect(a, b);
     expect(a.hashCode, b.hashCode);
     expect(a, isNot(c));
-    expect(a.props, hasLength(30));
+    expect(a.props, hasLength(33));
   });
 }

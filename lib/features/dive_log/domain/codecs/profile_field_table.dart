@@ -65,3 +65,16 @@ const List<ProfileField> kProfileFieldTableV2 = [
   ProfileField('gf99', ProfileFieldKind.deltaInt),
   ProfileField('n2_load', ProfileFieldKind.deltaInt),
 ];
+
+/// Codec v3: v2 plus the values Shearwater's Avelo mode logs (issue #4664):
+/// `avelo_buoyancy` the computer's buoyancy figure in kilograms (negative is
+/// heavy), `avelo_gas_remaining` the Hydrotank's gas remaining in whole
+/// percent, and `computer_rmv` the computer's own respiratory minute volume
+/// in litres per minute. Same freeze rule: append under a new version, never
+/// edit.
+const List<ProfileField> kProfileFieldTableV3 = [
+  ...kProfileFieldTableV2,
+  ProfileField('avelo_buoyancy', ProfileFieldKind.float64),
+  ProfileField('avelo_gas_remaining', ProfileFieldKind.deltaInt),
+  ProfileField('computer_rmv', ProfileFieldKind.float64),
+];

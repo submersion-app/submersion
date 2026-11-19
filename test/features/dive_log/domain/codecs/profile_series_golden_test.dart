@@ -169,6 +169,36 @@ void main() {
     1, 26, 200, 1,
   ];
 
+  /// The v2 samples with the three v3 fields set.
+  final samplesV3 = [
+    samplesV2[0].withAvelo(
+      aveloBuoyancy: -0.5,
+      aveloGasRemaining: 100,
+      computerRmv: 12.5,
+    ),
+    samplesV2[1].withAvelo(
+      aveloBuoyancy: 1.25,
+      aveloGasRemaining: 35,
+      computerRmv: 20.0,
+    ),
+  ];
+
+  // v3 is v2 with the version byte 3 and three columns appended:
+  //   avelo_buoyancy: presence kPresenceAll, float64 -0.5, 1.25
+  //   avelo_gas_remaining: presence kPresenceAll, zigzag(100), zigzag(-65)
+  //   computer_rmv: presence kPresenceAll, float64 12.5, 20.0
+  final goldenBodyV3 = <int>[
+    3,
+    ...goldenBodyV2.sublist(1),
+    1, //
+    0, 0, 0, 0, 0, 0, 224, 191, //
+    0, 0, 0, 0, 0, 0, 244, 63, //
+    1, 200, 1, 129, 1, //
+    1, //
+    0, 0, 0, 0, 0, 0, 41, 64, //
+    0, 0, 0, 0, 0, 0, 52, 64,
+  ];
+
   const tankSamples = [
     TankPressureSample(timestamp: 0, pressure: 200.0),
     TankPressureSample(timestamp: 10, pressure: 190.5),
@@ -215,6 +245,26 @@ void main() {
       expect(decoded, samples);
       expect(decoded.map((s) => s.gf99), everyElement(isNull));
       expect(decoded.map((s) => s.n2Load), everyElement(isNull));
+    });
+  });
+
+  group('profile series codec v3', () {
+    test('encoding freezes to the golden body', () {
+      final encoded = codec.encode(samplesV3);
+      expect(encoded.codecVersion, 3);
+      expect(inflate(encoded.bytes), goldenBodyV3);
+    });
+
+    test('the golden body decodes to the source samples', () {
+      expect(codec.decode(recompress(goldenBodyV3)), samplesV3);
+    });
+
+    test('the v2 golden body still decodes, with the v3 fields null', () {
+      final decoded = codec.decode(recompress(goldenBodyV2));
+      expect(decoded, samplesV2);
+      expect(decoded.map((s) => s.aveloBuoyancy), everyElement(isNull));
+      expect(decoded.map((s) => s.aveloGasRemaining), everyElement(isNull));
+      expect(decoded.map((s) => s.computerRmv), everyElement(isNull));
     });
   });
 
