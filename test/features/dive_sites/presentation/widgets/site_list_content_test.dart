@@ -228,90 +228,11 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  testWidgets(
-    'merge completion exits multi-select mode and selects the merged survivor',
-    (tester) async {
-      _setMobileTestSurfaceSize(tester);
-
-      await siteRepository.createSite(
-        const DiveSite(id: 'site-1', name: 'Alpha Site'),
-      );
-      await siteRepository.createSite(
-        const DiveSite(id: 'site-2', name: 'Bravo Site'),
-      );
-      await siteRepository.createSite(
-        const DiveSite(id: 'site-3', name: 'Charlie Site'),
-      );
-
-      final router = GoRouter(
-        initialLocation: '/',
-        routes: [
-          GoRoute(
-            path: '/',
-            builder: (context, state) => const _SiteListSelectionHarness(),
-          ),
-          GoRoute(
-            path: '/sites/merge',
-            builder: (context, state) => Scaffold(
-              body: Center(
-                child: FilledButton(
-                  onPressed: () =>
-                      context.pop(const SiteMergeResult(survivorId: 'site-1')),
-                  child: const Text('Complete Merge'),
-                ),
-              ),
-            ),
-          ),
-        ],
-      );
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            sharedPreferencesProvider.overrideWithValue(prefs),
-            siteRepositoryProvider.overrideWithValue(siteRepository),
-            validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
-          ],
-          child: MaterialApp.router(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            routerConfig: router,
-          ),
-        ),
-      );
-
-      await tester.pumpAndSettle();
-
-      await enterSelectionViaMenu(tester);
-      await tester.tap(find.text('Alpha Site'));
-      await tester.pumpAndSettle();
-      expect(find.text('1 selected'), findsOneWidget);
-
-      await tester.tap(find.text('Bravo Site'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Charlie Site'));
-      await tester.pumpAndSettle();
-      expect(find.text('3 selected'), findsOneWidget);
-
-      await tester.tap(find.byIcon(Icons.merge_type));
-      await tester.pumpAndSettle();
-      expect(find.text('Complete Merge'), findsOneWidget);
-
-      await tester.tap(find.text('Complete Merge'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('3 selected'), findsNothing);
-      expect(find.text('2 selected'), findsNothing);
-      expect(find.text('1 selected'), findsNothing);
-      expect(find.text('selected:site-1'), findsOneWidget);
-      expect(find.text('Dive Sites'), findsOneWidget);
-    },
-  );
-
-  // The merge page merges the sites still stored, so a site deleted since
-  // the selection is not counted as merged (code review).
-  testWidgets('the merged snackbar counts the sites the merge took in', (
-    tester,
+  /// Selects the three sites, opens the merge, and completes it with
+  /// [result] from a stand-in merge page, as the list sees a merge end.
+  Future<void> mergeThroughList(
+    WidgetTester tester,
+    SiteMergeResult result,
   ) async {
     _setMobileTestSurfaceSize(tester);
     for (final (id, name) in const [
@@ -321,15 +242,6 @@ void main() {
     ]) {
       await siteRepository.createSite(DiveSite(id: id, name: name));
     }
-    // Three selected, two merged: the third was gone by the merge.
-    const snapshot = MergeSnapshot(
-      originalSurvivor: DiveSite(id: 'site-1', name: 'Alpha Site'),
-      deletedSites: [DiveSite(id: 'site-2', name: 'Bravo Site')],
-      diveOriginalSiteIds: {},
-      mediaOriginalSiteIds: {},
-      deletedSpeciesEntries: [],
-      modifiedSpeciesEntries: [],
-    );
     final router = GoRouter(
       initialLocation: '/',
       routes: [
@@ -342,12 +254,7 @@ void main() {
           builder: (context, state) => Scaffold(
             body: Center(
               child: FilledButton(
-                onPressed: () => context.pop(
-                  const SiteMergeResult(
-                    survivorId: 'site-1',
-                    snapshot: snapshot,
-                  ),
-                ),
+                onPressed: () => context.pop(result),
                 child: const Text('Complete Merge'),
               ),
             ),
@@ -373,15 +280,58 @@ void main() {
     await tester.pumpAndSettle();
 
     await enterSelectionViaMenu(tester);
-    for (final name in const ['Alpha Site', 'Bravo Site', 'Charlie Site']) {
+    await tester.tap(find.text('Alpha Site'));
+    await tester.pumpAndSettle();
+    expect(find.text('1 selected'), findsOneWidget);
+    for (final name in const ['Bravo Site', 'Charlie Site']) {
       await tester.tap(find.text(name));
       await tester.pumpAndSettle();
     }
     expect(find.text('3 selected'), findsOneWidget);
+
     await tester.tap(find.byIcon(Icons.merge_type));
     await tester.pumpAndSettle();
+    expect(find.text('Complete Merge'), findsOneWidget);
     await tester.tap(find.text('Complete Merge'));
     await tester.pumpAndSettle();
+  }
+
+  testWidgets(
+    'merge completion exits multi-select mode and selects the merged survivor',
+    (tester) async {
+      await mergeThroughList(
+        tester,
+        const SiteMergeResult(survivorId: 'site-1'),
+      );
+
+      expect(find.text('3 selected'), findsNothing);
+      expect(find.text('2 selected'), findsNothing);
+      expect(find.text('1 selected'), findsNothing);
+      expect(find.text('selected:site-1'), findsOneWidget);
+      expect(find.text('Dive Sites'), findsOneWidget);
+    },
+  );
+
+  // The merge page merges the sites still stored, so a site deleted since
+  // the selection is not counted as merged (code review).
+  testWidgets('the merged snackbar counts the sites the merge took in', (
+    tester,
+  ) async {
+    // Three selected, two merged: the third was gone by the merge.
+    await mergeThroughList(
+      tester,
+      const SiteMergeResult(
+        survivorId: 'site-1',
+        snapshot: MergeSnapshot(
+          originalSurvivor: DiveSite(id: 'site-1', name: 'Alpha Site'),
+          deletedSites: [DiveSite(id: 'site-2', name: 'Bravo Site')],
+          diveOriginalSiteIds: {},
+          mediaOriginalSiteIds: {},
+          deletedSpeciesEntries: [],
+          modifiedSpeciesEntries: [],
+        ),
+      ),
+    );
 
     expect(find.text('Merged 2 sites'), findsOneWidget);
     expect(find.text('Merged 3 sites'), findsNothing);

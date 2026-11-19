@@ -311,7 +311,6 @@ void main() {
               body: SingleChildScrollView(
                 child: SiteMarineLifeSection(
                   siteId: 's1',
-                  readOnly: true,
                   species: [newSiteSpeciesEntry('s1', manta)],
                 ),
               ),
@@ -424,7 +423,6 @@ void main() {
             home: Scaffold(
               body: SiteFeaturesSection(
                 siteId: 's1',
-                onAddFeature: null,
                 features: [buoy.copyWith(name: 'Held buoy')],
               ),
             ),

@@ -6,30 +6,21 @@ import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/site_scape/presentation/site_feature_glyph.dart';
-import 'package:submersion/features/site_scape/presentation/site_feature_marker_layer.dart';
 import 'package:submersion/features/site_scape/presentation/site_feature_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 
-/// The site's diver-placed annotations, listed for review and editing.
-/// Placement itself happens on the map, so [onAddFeature] hands control
-/// back to the host (which opens the fullscreen map armed to place). Null
-/// for a site this profile may not change (a shared library site it only
-/// reads): the list is then shown without add or edit.
+/// The site's diver-placed annotations, listed for review. They are added
+/// and changed only in the Features card's editor, in a sitting (issue
+/// #4527, phase 2), so the list offers neither.
 class SiteFeaturesSection extends ConsumerWidget {
   final String siteId;
-  final VoidCallback? onAddFeature;
 
   /// The features to show in place of those stored: a sitting's, once the
   /// diver has changed them (issue #4527).
   final List<SiteFeature>? features;
 
-  const SiteFeaturesSection({
-    super.key,
-    required this.siteId,
-    required this.onAddFeature,
-    this.features,
-  });
+  const SiteFeaturesSection({super.key, required this.siteId, this.features});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -56,14 +47,7 @@ class SiteFeaturesSection extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 8),
-            SiteFeatureRows(
-              features: features,
-              onTap: onAddFeature == null
-                  ? null
-                  : (f) => editSiteFeature(context, ref, f),
-            ),
-            if (onAddFeature != null)
-              SiteFeatureAddButton(onPressed: onAddFeature!),
+            SiteFeatureRows(features: features),
           ],
         ),
       ),

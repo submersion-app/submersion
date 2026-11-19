@@ -575,9 +575,6 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
       SiteDetailSectionId.features: () => laidOut.hasCoordinates
           ? (_) => SiteFeaturesSection(
               siteId: site.id,
-              // Features are added only in the card's editor, in a sitting
-              // (issue #4527).
-              onAddFeature: null,
               features: _heldList(siteFeaturesList),
             )
           : null,
@@ -594,8 +591,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
       SiteDetailSectionId.marineLife: () =>
           (_) => SiteMarineLifeSection(
             siteId: site.id,
-            // The card's pencil edits them, held in a sitting.
-            readOnly: true,
+            // Shown only: the card's pencil edits them, in a sitting.
             location: site.location,
             species: _heldList(siteSpeciesList),
           ),
@@ -715,8 +711,8 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
         (access.connected && canEditLibrarySite(access.role));
   }
 
-  /// Suggest changes for a reader, Connect on this device for a library
-  /// the device has not connected.
+  /// Connect on this device, for a library site the device has not
+  /// connected.
   List<Widget> _libraryButtons(
     BuildContext context,
     WidgetRef ref,
