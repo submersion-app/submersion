@@ -1,5 +1,7 @@
 part of 'nav_track_detail_page.dart';
 
+final _operationLog = LoggerService.forClass(NavTrackDetailPage);
+
 /// The underwater track page's use of the shared editing host (issue
 /// #4527, phase 3, plan 5): what is its own about saving, reading back and
 /// its cards.
@@ -171,8 +173,22 @@ mixin _NavTrackDetailPageEditing
   /// Tracks list does, and leaves the page. Answers whether it wrote.
   Future<bool> _deleteInSitting(NavTrack route) async {
     final repository = ref.read(navTrackRepositoryProvider);
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     if (!await _confirmDelete()) return false;
-    await repository.delete(route.id);
+    try {
+      await repository.delete(route.id);
+    } catch (e, stackTrace) {
+      _operationLog.error(
+        'Underwater track delete failed',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.common_error_tryAgain)),
+      );
+      return false;
+    }
     if (!mounted) return true;
     forgetDeletedTrack(ref, UnderwaterTrackItem(route));
     Navigator.of(context).pop();

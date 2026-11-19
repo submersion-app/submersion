@@ -21,7 +21,8 @@ class NavTrackEditSaveService {
   /// and unlinking promotes a sibling. A site set in the same sitting is
   /// already in place, so linking inherits nothing over it. A dive chosen
   /// here wins over a link another device made meanwhile; one another
-  /// device deleted meanwhile is not linked.
+  /// device deleted meanwhile is not linked, nor is a site set that another
+  /// device deleted meanwhile.
   ///
   /// Returns the route before and after, or null when nothing changed.
   /// Throws [StateError] when the route no longer exists.
@@ -36,10 +37,19 @@ class NavTrackEditSaveService {
     read: () => _routes.getById(routeId, includePoints: false),
     apply: apply,
     write: (stored, merged) async {
+      // A site another device deleted meanwhile is not set (the route keeps
+      // the one stored), as a dive deleted meanwhile is not linked: the
+      // sitting's other changes are saved.
+      var siteId = merged.siteId;
+      if (siteId != null &&
+          siteId != stored.siteId &&
+          !await _routes.siteExists(siteId)) {
+        siteId = stored.siteId;
+      }
       await _routes.writeEditedColumns(
         routeId,
         name: merged.name,
-        siteId: merged.siteId,
+        siteId: siteId,
         equipmentId: merged.equipmentId,
         deviceName: merged.deviceName,
         correction: merged.correction,

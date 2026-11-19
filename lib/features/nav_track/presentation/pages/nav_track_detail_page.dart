@@ -7,6 +7,7 @@ import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/router/track_locations.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';

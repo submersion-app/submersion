@@ -529,4 +529,26 @@ void main() {
         .stats;
     expect(after, same(before));
   });
+
+  testWidgets('a failed delete says so and keeps the page', (tester) async {
+    final harness = await pumpNavTrackPage(tester);
+    harness.repository.deleteFails = true;
+    await unlock(tester);
+    await tester.tap(find.byType(PopupMenuButton<String>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('nav-track-delete')));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(FilledButton),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(harness.repository.writes, isEmpty);
+    expect(find.text(l.common_error_tryAgain), findsOneWidget);
+    expect(find.text('first route'), findsNothing);
+    expect(find.byType(RecordEditBar), findsOneWidget);
+  });
 }

@@ -78,6 +78,9 @@ NavTrack navRoute({String? diveId = 'dive-1'}) => NavTrack(
 class CountingNavTrackRepository extends NavTrackRepository {
   final writes = <String>[];
 
+  /// Set to make a delete fail, as a locked database would.
+  bool deleteFails = false;
+
   @override
   Future<void> rename(String routeId, String? name) async =>
       writes.add('rename');
@@ -129,7 +132,10 @@ class CountingNavTrackRepository extends NavTrackRepository {
   ) async => writes.add('updateCorrection');
 
   @override
-  Future<void> delete(String routeId) async => writes.add('delete');
+  Future<void> delete(String routeId) async {
+    if (deleteFails) throw StateError('the database is locked');
+    writes.add('delete');
+  }
 }
 
 /// Records each save the page asks for and stores its result where the

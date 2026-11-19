@@ -129,37 +129,41 @@ class NavTrackDiveCardEditor extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
+    // The providers are watched in a Consumer under the builder, so a dive,
+    // site or item the editor no longer shows is no longer watched.
     return ListenableBuilder(
       listenable: session,
-      builder: (context, _) {
-        final diveId = session.valueOf(navTrackDiveField);
-        final dive = diveId == null
-            ? null
-            : ref.watch(diveProvider(diveId)).value;
-        return _EditorRow(
-          icon: diveId == null ? Icons.link_off : Icons.link,
-          label: diveId == null
-              ? l10n.navTrack_detail_noDiveLinked
-              : navTrackDiveLabel(l10n, diveId, dive),
-          actions: [
-            OutlinedButton(
-              key: const ValueKey('nav-track-edit-choose-dive'),
-              onPressed: () => _choose(context, ref),
-              child: Text(
-                diveId == null
-                    ? l10n.navTrack_detail_chooseDive
-                    : l10n.navTrack_detail_menuChangeDive,
+      builder: (context, _) => Consumer(
+        builder: (context, ref, _) {
+          final diveId = session.valueOf(navTrackDiveField);
+          final dive = diveId == null
+              ? null
+              : ref.watch(diveProvider(diveId)).value;
+          return _EditorRow(
+            icon: diveId == null ? Icons.link_off : Icons.link,
+            label: diveId == null
+                ? l10n.navTrack_detail_noDiveLinked
+                : navTrackDiveLabel(l10n, diveId, dive),
+            actions: [
+              OutlinedButton(
+                key: const ValueKey('nav-track-edit-choose-dive'),
+                onPressed: () => _choose(context, ref),
+                child: Text(
+                  diveId == null
+                      ? l10n.navTrack_detail_chooseDive
+                      : l10n.navTrack_detail_menuChangeDive,
+                ),
               ),
-            ),
-            if (diveId != null)
-              TextButton(
-                key: const ValueKey('nav-track-edit-unlink'),
-                onPressed: () => session.set(navTrackDiveField, null),
-                child: Text(l10n.navTrack_common_unlink),
-              ),
-          ],
-        );
-      },
+              if (diveId != null)
+                TextButton(
+                  key: const ValueKey('nav-track-edit-unlink'),
+                  onPressed: () => session.set(navTrackDiveField, null),
+                  child: Text(l10n.navTrack_common_unlink),
+                ),
+            ],
+          );
+        },
+      ),
     );
   }
 }
@@ -190,29 +194,33 @@ class NavTrackSiteCardEditor extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
+    // The providers are watched in a Consumer under the builder, so a dive,
+    // site or item the editor no longer shows is no longer watched.
     return ListenableBuilder(
       listenable: session,
-      builder: (context, _) {
-        final siteId = session.valueOf(navTrackSiteField);
-        final name = siteId == null
-            ? null
-            : ref.watch(siteProvider(siteId)).value?.name;
-        return _EditorRow(
-          icon: Icons.place_outlined,
-          label: name ?? l10n.navTrack_detail_noSite,
-          actions: [
-            OutlinedButton(
-              key: const ValueKey('nav-track-edit-change-site'),
-              onPressed: () => _change(context, ref),
-              child: Text(
-                siteId == null
-                    ? l10n.navTrack_detail_chooseSite
-                    : l10n.navTrack_detail_menuChangeSite,
+      builder: (context, _) => Consumer(
+        builder: (context, ref, _) {
+          final siteId = session.valueOf(navTrackSiteField);
+          final name = siteId == null
+              ? null
+              : ref.watch(siteProvider(siteId)).value?.name;
+          return _EditorRow(
+            icon: Icons.place_outlined,
+            label: name ?? l10n.navTrack_detail_noSite,
+            actions: [
+              OutlinedButton(
+                key: const ValueKey('nav-track-edit-change-site'),
+                onPressed: () => _change(context, ref),
+                child: Text(
+                  siteId == null
+                      ? l10n.navTrack_detail_chooseSite
+                      : l10n.navTrack_detail_menuChangeSite,
+                ),
               ),
-            ),
-          ],
-        );
-      },
+            ],
+          );
+        },
+      ),
     );
   }
 }
@@ -245,32 +253,38 @@ class NavTrackDeviceCardEditor extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
+    // The providers are watched in a Consumer under the builder, so a dive,
+    // site or item the editor no longer shows is no longer watched.
     return ListenableBuilder(
       listenable: session,
-      builder: (context, _) {
-        final device = session.valueOf(navTrackDeviceField);
-        final equipmentId = device.equipmentId;
-        final itemName = equipmentId == null
-            ? null
-            : ref.watch(equipmentItemProvider(equipmentId)).value?.name;
-        final hasDevice = equipmentId != null || device.deviceName != null;
-        return _EditorRow(
-          icon: Icons.directions_boat_filled_outlined,
-          label:
-              itemName ?? device.deviceName ?? l10n.navTrack_detail_noEquipment,
-          actions: [
-            OutlinedButton(
-              key: const ValueKey('nav-track-edit-change-device'),
-              onPressed: () => _change(context),
-              child: Text(
-                hasDevice
-                    ? l10n.navTrack_detail_menuChangeDevice
-                    : l10n.navTrack_detail_chooseDevice,
+      builder: (context, _) => Consumer(
+        builder: (context, ref, _) {
+          final device = session.valueOf(navTrackDeviceField);
+          final equipmentId = device.equipmentId;
+          final itemName = equipmentId == null
+              ? null
+              : ref.watch(equipmentItemProvider(equipmentId)).value?.name;
+          final hasDevice = equipmentId != null || device.deviceName != null;
+          return _EditorRow(
+            icon: Icons.directions_boat_filled_outlined,
+            label:
+                itemName ??
+                device.deviceName ??
+                l10n.navTrack_detail_noEquipment,
+            actions: [
+              OutlinedButton(
+                key: const ValueKey('nav-track-edit-change-device'),
+                onPressed: () => _change(context),
+                child: Text(
+                  hasDevice
+                      ? l10n.navTrack_detail_menuChangeDevice
+                      : l10n.navTrack_detail_chooseDevice,
+                ),
               ),
-            ),
-          ],
-        );
-      },
+            ],
+          );
+        },
+      ),
     );
   }
 }

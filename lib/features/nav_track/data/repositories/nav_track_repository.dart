@@ -415,6 +415,14 @@ class NavTrackRepository with _NavTrackRouteLinks, _NavTrackRouteImports {
           .getSingleOrNull() !=
       null;
 
+  /// Whether the dive site [siteId] exists: a route's site must.
+  Future<bool> siteExists(String siteId) async =>
+      await (_db.selectOnly(_db.diveSites)
+            ..addColumns([_db.diveSites.id])
+            ..where(_db.diveSites.id.equals(siteId)))
+          .getSingleOrNull() !=
+      null;
+
   /// Ids of every route currently linked to [diveId].
   ///
   /// Call this BEFORE the dive row is deleted and pass the result to

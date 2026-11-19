@@ -339,4 +339,20 @@ void main() {
       expect((await route(r2)).isPrimary, isFalse);
     },
   );
+
+  test('a site deleted meanwhile is not set, and the rest is saved', () async {
+    final session = EditSession(await route(r1))
+      ..set(navTrackSiteField, 's2')
+      ..set(navTrackNameField, 'Evening');
+    await db.customStatement(
+      "UPDATE dives SET site_id = NULL WHERE site_id = 's2'",
+    );
+    await db.customStatement("DELETE FROM dive_sites WHERE id = 's2'");
+
+    await save(r1, session);
+
+    final saved = await route(r1);
+    expect(saved.name, 'Evening');
+    expect(saved.siteId, 's1');
+  });
 }
