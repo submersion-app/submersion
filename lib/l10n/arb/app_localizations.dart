@@ -2384,6 +2384,12 @@ abstract class AppLocalizations {
   /// **'Choose a color'**
   String get equipment_color_sheetTitle;
 
+  /// A card's title on a record page unlocked for editing, and in History's list of the cards an edit changed.
+  ///
+  /// In en, this message translates to:
+  /// **'Bundle'**
+  String get equipment_setEdit_bundleTitle;
+
   /// No description provided for @equipment_setEdit_geofencesTitle.
   ///
   /// In en, this message translates to:
@@ -5247,6 +5253,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Lend gear'**
   String get buddies_action_lendGear;
+
+  /// A card's title on a record page unlocked for editing, and in History's list of the cards an edit changed.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear lent'**
+  String get buddies_editCard_gear;
 
   /// Buddy page section listing the diver's gear this buddy has
   ///
@@ -11458,6 +11470,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Basic Information'**
   String get diveCenters_section_basicInfo;
+
+  /// A card's title on a record page unlocked for editing, and in History's list of the cards an edit changed.
+  ///
+  /// In en, this message translates to:
+  /// **'Map'**
+  String get diveCenters_editCard_map;
 
   /// No description provided for @diveCenters_section_contact.
   ///
@@ -32016,6 +32034,12 @@ abstract class AppLocalizations {
   /// **'Copy link'**
   String get marineLife_suggest_copyLink;
 
+  /// A card's title on a record page unlocked for editing, and in History's list of the cards an edit changed.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get marineLife_editCard_photos;
+
   /// No description provided for @marineLife_speciesPhotos_title.
   ///
   /// In en, this message translates to:
@@ -44763,6 +44787,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Notes'**
   String get documents_field_notes;
+
+  /// A card's title on a record page unlocked for editing, and in History's list of the cards an edit changed.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get documents_editCard_details;
 
   /// No description provided for @documents_pages_title.
   ///
@@ -61235,6 +61265,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Trimmed, {duration}'**
   String gpsLogger_trackSubtitleTrimmed(String duration);
+
+  /// A card's title on a record page unlocked for editing, and in History's list of the cards an edit changed.
+  ///
+  /// In en, this message translates to:
+  /// **'Trim'**
+  String get gpsTrack_editCard_trim;
 
   /// No description provided for @gpsTrack_action_trim.
   ///
@@ -92839,6 +92875,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This cannot be undone.'**
   String get navTrack_detail_deleteMessage;
+
+  /// A card's title on a record page unlocked for editing, and in History's list of the cards an edit changed.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive'**
+  String get navTrack_editCard_dive;
+
+  /// A card's title on a record page unlocked for editing, and in History's list of the cards an edit changed.
+  ///
+  /// In en, this message translates to:
+  /// **'Site'**
+  String get navTrack_editCard_site;
+
+  /// A card's title on a record page unlocked for editing, and in History's list of the cards an edit changed.
+  ///
+  /// In en, this message translates to:
+  /// **'Device'**
+  String get navTrack_editCard_device;
+
+  /// A card's title on a record page unlocked for editing, and in History's list of the cards an edit changed.
+  ///
+  /// In en, this message translates to:
+  /// **'Correction'**
+  String get navTrack_editCard_correction;
 
   /// No description provided for @navTrack_detail_defaultTrackTitle.
   ///

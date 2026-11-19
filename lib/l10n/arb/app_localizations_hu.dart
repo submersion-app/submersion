@@ -1535,6 +1535,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_color_sheetTitle => 'Szín választása';
 
   @override
+  String get equipment_setEdit_bundleTitle => 'Csomag';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'Geokerítések';
 
   @override
@@ -3399,6 +3402,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get buddies_action_lendGear => 'Felszerelés kölcsönadása';
+
+  @override
+  String get buddies_editCard_gear => 'Kölcsönadott felszerelés';
 
   @override
   String buddies_gear_title(String name) {
@@ -7289,6 +7295,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveCenters_section_basicInfo => 'Alapvető információk';
+
+  @override
+  String get diveCenters_editCard_map => 'Térkép';
 
   @override
   String get diveCenters_section_contact => 'Kapcsolat';
@@ -20006,6 +20015,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get marineLife_suggest_copyLink => 'Link másolása';
 
   @override
+  String get marineLife_editCard_photos => 'Fotók';
+
+  @override
   String marineLife_speciesPhotos_title(Object count) {
     return 'Fotók ($count)';
   }
@@ -28064,6 +28076,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get documents_field_notes => 'Jegyzetek';
+
+  @override
+  String get documents_editCard_details => 'Részletek';
 
   @override
   String get documents_pages_title => 'Oldalak';
@@ -38923,6 +38938,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String gpsLogger_trackSubtitleTrimmed(String duration) {
     return 'Levágva, $duration';
   }
+
+  @override
+  String get gpsTrack_editCard_trim => 'Vágás';
 
   @override
   String get gpsTrack_action_trim => 'Vágás...';
@@ -58847,6 +58865,18 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get navTrack_detail_deleteMessage => 'Ez nem vonható vissza.';
+
+  @override
+  String get navTrack_editCard_dive => 'Merülés';
+
+  @override
+  String get navTrack_editCard_site => 'Merülőhely';
+
+  @override
+  String get navTrack_editCard_device => 'Eszköz';
+
+  @override
+  String get navTrack_editCard_correction => 'Korrekció';
 
   @override
   String get navTrack_detail_defaultTrackTitle => 'Víz alatti nyomvonal';

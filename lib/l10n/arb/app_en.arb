@@ -828,6 +828,10 @@
   "@equipment_color_recent": {"description": "Heading for the custom item colours the diver used recently, in the colour sheet"},
   "equipment_color_none": "None",
   "equipment_color_sheetTitle": "Choose a color",
+  "equipment_setEdit_bundleTitle": "Bundle",
+  "@equipment_setEdit_bundleTitle": {
+    "description": "A card's title on a record page unlocked for editing, and in History's list of the cards an edit changed."
+  },
   "equipment_setEdit_geofencesTitle": "Geofences",
   "equipment_setEdit_geofencesSubtitle": "Auto-suggest this set for dives near these locations",
   "equipment_setEdit_addGeofence": "Add geofence",
@@ -1968,6 +1972,10 @@
   "buddies_action_shareDives": "Share Dives",
   "buddies_action_lendGear": "Lend gear",
   "@buddies_action_lendGear": {"description": "Buddy page action that lends the diver's gear to this buddy"},
+  "buddies_editCard_gear": "Gear lent",
+  "@buddies_editCard_gear": {
+    "description": "A card's title on a record page unlocked for editing, and in History's list of the cards an edit changed."
+  },
   "buddies_gear_title": "Gear with {name}",
   "@buddies_gear_title": {"description": "Buddy page section listing the diver's gear this buddy has", "placeholders": {"name": {"type": "String"}}},
   "buddies_gear_returned": "Returned",
@@ -4436,6 +4444,10 @@
   "diveCenters_section_address": "Address",
   "diveCenters_section_affiliations": "Affiliations",
   "diveCenters_section_basicInfo": "Basic Information",
+  "diveCenters_editCard_map": "Map",
+  "@diveCenters_editCard_map": {
+    "description": "A card's title on a record page unlocked for editing, and in History's list of the cards an edit changed."
+  },
   "diveCenters_section_contact": "Contact",
   "diveCenters_section_contactInfo": "Contact Information",
   "diveCenters_section_gpsCoordinates": "GPS Coordinates",
@@ -12034,6 +12046,10 @@
   "marineLife_speciesDetail_suggestForCatalog": "Suggest for the catalog",
   "marineLife_suggest_couldNotOpen": "Could not open the browser",
   "marineLife_suggest_copyLink": "Copy link",
+  "marineLife_editCard_photos": "Photos",
+  "@marineLife_editCard_photos": {
+    "description": "A card's title on a record page unlocked for editing, and in History's list of the cards an edit changed."
+  },
   "marineLife_speciesPhotos_title": "Photos ({count})",
   "@marineLife_speciesPhotos_title": {
     "placeholders": {
@@ -16749,6 +16765,10 @@
   "documents_field_isPrimary": "Primary insurance",
   "documents_field_isPrimary_subtitle": "Shown on the emergency card and the home screen",
   "documents_field_notes": "Notes",
+  "documents_editCard_details": "Details",
+  "@documents_editCard_details": {
+    "description": "A card's title on a record page unlocked for editing, and in History's list of the cards an edit changed."
+  },
   "documents_pages_title": "Pages",
   "documents_pages_front": "Front",
   "documents_pages_back": "Back",
@@ -23638,6 +23658,10 @@
         "type": "String"
       }
     }
+  },
+  "gpsTrack_editCard_trim": "Trim",
+  "@gpsTrack_editCard_trim": {
+    "description": "A card's title on a record page unlocked for editing, and in History's list of the cards an edit changed."
   },
   "gpsTrack_action_trim": "Trim...",
   "gpsTrack_action_split": "Split...",
@@ -35362,6 +35386,22 @@
   "navTrack_detail_renameTrackTitle": "Rename track",
   "navTrack_detail_deleteTrackTitle": "Delete track?",
   "navTrack_detail_deleteMessage": "This cannot be undone.",
+  "navTrack_editCard_dive": "Dive",
+  "@navTrack_editCard_dive": {
+    "description": "A card's title on a record page unlocked for editing, and in History's list of the cards an edit changed."
+  },
+  "navTrack_editCard_site": "Site",
+  "@navTrack_editCard_site": {
+    "description": "A card's title on a record page unlocked for editing, and in History's list of the cards an edit changed."
+  },
+  "navTrack_editCard_device": "Device",
+  "@navTrack_editCard_device": {
+    "description": "A card's title on a record page unlocked for editing, and in History's list of the cards an edit changed."
+  },
+  "navTrack_editCard_correction": "Correction",
+  "@navTrack_editCard_correction": {
+    "description": "A card's title on a record page unlocked for editing, and in History's list of the cards an edit changed."
+  },
   "navTrack_detail_defaultTrackTitle": "Underwater track",
   "navTrack_detail_menuRename": "Rename",
   "navTrack_detail_menuChangeDive": "Change dive",

@@ -1580,6 +1580,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_color_sheetTitle => 'اختر لونًا';
 
   @override
+  String get equipment_setEdit_bundleTitle => 'الحزمة';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'الأسوار الجغرافية';
 
   @override
@@ -3494,6 +3497,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get buddies_action_lendGear => 'إعارة معدات';
+
+  @override
+  String get buddies_editCard_gear => 'المعدات المُعارة';
 
   @override
   String buddies_gear_title(String name) {
@@ -7419,6 +7425,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveCenters_section_basicInfo => 'المعلومات الأساسية';
+
+  @override
+  String get diveCenters_editCard_map => 'الخريطة';
 
   @override
   String get diveCenters_section_contact => 'الاتصال';
@@ -20314,6 +20323,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get marineLife_suggest_copyLink => 'نسخ الرابط';
 
   @override
+  String get marineLife_editCard_photos => 'الصور';
+
+  @override
   String marineLife_speciesPhotos_title(Object count) {
     return 'الصور ($count)';
   }
@@ -28476,6 +28488,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get documents_field_notes => 'ملاحظات';
+
+  @override
+  String get documents_editCard_details => 'التفاصيل';
 
   @override
   String get documents_pages_title => 'الصفحات';
@@ -39643,6 +39658,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String gpsLogger_trackSubtitleTrimmed(String duration) {
     return 'مقتطع، $duration';
   }
+
+  @override
+  String get gpsTrack_editCard_trim => 'اقتصاص';
 
   @override
   String get gpsTrack_action_trim => 'اقتصاص...';
@@ -59953,6 +59971,18 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get navTrack_detail_deleteMessage => 'لا يمكن التراجع عن هذا.';
+
+  @override
+  String get navTrack_editCard_dive => 'الغوصة';
+
+  @override
+  String get navTrack_editCard_site => 'الموقع';
+
+  @override
+  String get navTrack_editCard_device => 'الجهاز';
+
+  @override
+  String get navTrack_editCard_correction => 'التصحيح';
 
   @override
   String get navTrack_detail_defaultTrackTitle => 'مسار تحت الماء';

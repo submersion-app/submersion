@@ -1522,6 +1522,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_color_sheetTitle => 'Choose a color';
 
   @override
+  String get equipment_setEdit_bundleTitle => 'Bundle';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'Geofences';
 
   @override
@@ -3367,6 +3370,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get buddies_action_lendGear => 'Lend gear';
+
+  @override
+  String get buddies_editCard_gear => 'Gear lent';
 
   @override
   String buddies_gear_title(String name) {
@@ -7194,6 +7200,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveCenters_section_basicInfo => 'Basic Information';
+
+  @override
+  String get diveCenters_editCard_map => 'Map';
 
   @override
   String get diveCenters_section_contact => 'Contact';
@@ -19767,6 +19776,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get marineLife_suggest_copyLink => 'Copy link';
 
   @override
+  String get marineLife_editCard_photos => 'Photos';
+
+  @override
   String marineLife_speciesPhotos_title(Object count) {
     return 'Photos ($count)';
   }
@@ -27715,6 +27727,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get documents_field_notes => 'Notes';
+
+  @override
+  String get documents_editCard_details => 'Details';
 
   @override
   String get documents_pages_title => 'Pages';
@@ -38466,6 +38481,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String gpsLogger_trackSubtitleTrimmed(String duration) {
     return 'Trimmed, $duration';
   }
+
+  @override
+  String get gpsTrack_editCard_trim => 'Trim';
 
   @override
   String get gpsTrack_action_trim => 'Trim...';
@@ -58224,6 +58242,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get navTrack_detail_deleteMessage => 'This cannot be undone.';
+
+  @override
+  String get navTrack_editCard_dive => 'Dive';
+
+  @override
+  String get navTrack_editCard_site => 'Site';
+
+  @override
+  String get navTrack_editCard_device => 'Device';
+
+  @override
+  String get navTrack_editCard_correction => 'Correction';
 
   @override
   String get navTrack_detail_defaultTrackTitle => 'Underwater track';
