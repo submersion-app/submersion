@@ -156,7 +156,7 @@ void main() {
     expect(tester.widget<Opacity>(find.byType(Opacity)).opacity, lessThan(1));
   });
 
-  Widget edgeHarness() => MaterialApp(
+  Widget edgeHarness({String? label = 'Only you'}) => MaterialApp(
     locale: const Locale('en'),
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
@@ -164,11 +164,27 @@ void main() {
       body: Center(
         child: RecordEditScope<String>(
           controller: controller,
-          child: RecordCardEdgeLabel<String>(label: 'Only you', child: card()),
+          child: RecordCardEdgeLabel<String>(label: label, child: card()),
         ),
       ),
     ),
   );
+
+  // A page keeps one shape for a card whether or not it has a word to say,
+  // so a word that comes or goes never rebuilds the card under it.
+  testWidgets('an edge label with no word shows nothing and keeps the card', (
+    tester,
+  ) async {
+    await tester.pumpWidget(edgeHarness());
+    controller.unlock('stored');
+    await tester.pump();
+    final before = tester.element(find.text('Read'));
+
+    await tester.pumpWidget(edgeHarness(label: null));
+
+    expect(find.text('Only you'), findsNothing);
+    expect(identical(tester.element(find.text('Read')), before), isTrue);
+  });
 
   testWidgets('an edge label shows its word while unlocked and does not '
       'fade', (tester) async {

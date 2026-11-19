@@ -254,18 +254,43 @@ mixin RecordEditHost<W extends ConsumerStatefulWidget, T> on ConsumerState<W> {
   /// that ends otherwise names its own (a library reader's Send).
   String? get saveLabel => null;
 
-  /// Asked before every Save of an open sitting: false leaves the sitting
-  /// as it is and saves nothing, as a dialog the diver cancelled does.
+  /// Asked before a Save that would write the open sitting: false leaves
+  /// the sitting as it is and saves nothing, as a dialog the diver
+  /// cancelled does. Not asked of a sitting with nothing to write, or with
+  /// input to fix first, which the save ends or refuses as it is.
   Future<bool> beforeSave() async => true;
+
+  /// Whether [beforeSave] is being asked: a second Save meanwhile (a double
+  /// tap, the Save key pressed twice) does nothing.
+  bool _askingBeforeSave = false;
+
+  /// Whether a save now would write [controller]'s sitting: the refusals
+  /// [RecordEditController.save] makes before writing, asked first.
+  bool _saveWouldWrite(RecordEditController<T> controller) {
+    final session = controller.session;
+    return session != null &&
+        !controller.isBusy &&
+        session.isDirty &&
+        controller.invalidCardIds.isEmpty &&
+        !hostEditCards.any((card) => card.isValid?.call(session) == false);
+  }
 
   /// Saves the sitting, or creates the record, and says why when nothing
   /// was saved.
   Future<void> saveAndReport() async {
     if (isCreating) return saveNewRecord();
+    if (_askingBeforeSave) return;
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
     final controller = editController;
-    if (!await beforeSave() || !mounted) return;
+    if (_saveWouldWrite(controller)) {
+      _askingBeforeSave = true;
+      try {
+        if (!await beforeSave() || !mounted) return;
+      } finally {
+        _askingBeforeSave = false;
+      }
+    }
     final saved = await controller.save();
     if (saved || !mounted) return;
     // Refused for a field that holds text which is not a value: the card is

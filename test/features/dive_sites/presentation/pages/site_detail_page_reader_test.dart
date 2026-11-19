@@ -22,7 +22,10 @@ import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/site_marine_life_section.dart';
 import 'package:submersion/core/constants/site_detail_sections.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_reader_sitting.dart';
 
+import '../../../../helpers/global_test_defaults.dart';
 import 'site_detail_page_unlock_harness.dart';
 
 /// A shared site library reader suggests changes from the site page itself
@@ -34,6 +37,13 @@ void main() {
   final librarySite = harnessSite.copyWith(
     diverId: 'other',
     sharedLibraryId: 'L',
+  );
+
+  /// The frames of the reader's own cards (notes, rating, attachments).
+  Finder ownCard() => find.byWidgetPredicate(
+    (w) =>
+        w is RecordCardFrame<DiveSite> &&
+        siteReaderPrivateCards.contains(w.card.id),
   );
 
   /// The library's overrides, with [role] as the profile's role there.
@@ -160,6 +170,33 @@ void main() {
     expect(find.text(l.sharedLibrary_suggest_send), findsNothing);
   });
 
+  // The reader's own card keeps its place in the tree when the page's
+  // framing changes, so an editor open in it is not torn down mid-word.
+  testWidgets('a reader\'s own card is not rebuilt when the role becomes '
+      'editor\'s', (tester) async {
+    var role = SharedLibraryRole.reader;
+    final page = await pumpReader(tester, role: () => Future.value(role));
+    await tester.tap(find.byKey(suggestKey));
+    await tester.pumpAndSettle();
+    final id = tester
+        .widget<RecordCardFrame<DiveSite>>(ownCard().first)
+        .card
+        .id;
+    Element frameOf(String cardId) => tester.element(
+      find.byWidgetPredicate(
+        (w) => w is RecordCardFrame<DiveSite> && w.card.id == cardId,
+      ),
+    );
+    final before = frameOf(id);
+
+    role = SharedLibraryRole.editor;
+    page.container.invalidate(libraryRoleProvider('L'));
+    await tester.pumpAndSettle();
+
+    expect(find.text(l.recordEdit_onlyYou), findsNothing);
+    expect(identical(frameOf(id), before), isTrue);
+  });
+
   // Question 2: an editor's sitting may hold changes a reader cannot send.
   testWidgets('an editor\'s sitting whose role drops to reader ends '
       'withdrawn', (tester) async {
@@ -222,7 +259,7 @@ void main() {
       expect(find.text(l.recordEdit_onlyYou), findsWidgets);
       expect(
         find.descendant(
-          of: find.byType(RecordCardEdgeLabel<DiveSite>).first,
+          of: ownCard().first,
           matching: find.byType(RecordPencilIcon),
         ),
         findsWidgets,
@@ -273,9 +310,11 @@ void main() {
       WidgetTester tester, {
       bool editorInStore = false,
       bool storeFails = false,
+      bool proposalFails = false,
+      Completer<void>? storeGate,
       SharedLibraryRole shownRole = SharedLibraryRole.reader,
     }) {
-      suggestions = _Suggestions();
+      suggestions = _Suggestions(fails: proposalFails);
       return pumpSitePage(
         tester,
         site: librarySite,
@@ -283,7 +322,7 @@ void main() {
           ...library(role: () => Future.value(shownRole)),
           suggestionServiceProvider.overrideWithValue(suggestions),
           sharedLibraryStoreProvider.overrideWithValue(
-            _Store(editor: editorInStore, fails: storeFails),
+            _Store(editor: editorInStore, fails: storeFails, gate: storeGate),
           ),
         ],
       );
@@ -408,17 +447,67 @@ void main() {
       expect(suggestions.calls, isEmpty);
     });
 
+    // The second tap lands while the role is still being read from the
+    // store, as it does against a real database.
     testWidgets('a second tap on Send asks once', (tester) async {
-      await pumpSend(tester);
+      final gate = Completer<void>();
+      await pumpSend(tester, storeGate: gate);
       await unlockReader(tester);
       sitting(tester).set(siteNameField, 'Big Hole');
       await tester.pumpAndSettle();
 
       await tester.tap(find.text(l.sharedLibrary_suggest_send));
+      await tester.pump();
       await tester.tap(find.text(l.sharedLibrary_suggest_send));
+      await tester.pump();
+      gate.complete();
       await tester.pumpAndSettle();
 
       expect(find.byType(AlertDialog), findsOneWidget);
+    });
+
+    // As the old form did: a demo profile is told so, and nothing is
+    // written or proposed.
+    testWidgets('in demo mode Send says so and sends nothing', (tester) async {
+      final page = await pumpSend(tester);
+      await unlockReader(tester);
+      DemoModeGate.instance.debugActive = true;
+      addTearDown(applyGlobalTestDefaults);
+      sitting(tester)
+        ..set(siteNotesField, 'Choppy')
+        ..set(siteNameField, 'Big Hole');
+      await tester.pumpAndSettle();
+
+      await tapSend(tester);
+
+      expect(find.text(l.demo_sealed_note), findsOneWidget);
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(page.save.calls, isEmpty);
+      expect(suggestions.calls, isEmpty);
+      expect(find.byType(RecordEditBar), findsOneWidget);
+    });
+
+    testWidgets('a proposal that fails after the notes are saved says so', (
+      tester,
+    ) async {
+      final page = await pumpSend(tester, proposalFails: true);
+      await unlockReader(tester);
+      sitting(tester)
+        ..set(siteNotesField, 'Choppy')
+        ..set(siteNameField, 'Big Hole');
+      await tester.pumpAndSettle();
+
+      await tapSend(tester);
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text(l.sharedLibrary_suggest_send),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(page.save.calls.single.privateOnly, isTrue);
+      expect(find.text(l.sharedLibrary_suggest_savedNotSent), findsOneWidget);
     });
 
     testWidgets('a role that cannot be read at Send says the save failed', (
@@ -454,13 +543,17 @@ void main() {
 
 /// The library as stored, with this profile listed as an editor or not.
 class _Store extends SharedLibraryStore {
-  _Store({required this.editor, this.fails = false});
+  _Store({required this.editor, this.fails = false, this.gate});
 
   final bool editor;
   final bool fails;
 
+  /// While set and not completed, the read waits, as a slow store does.
+  final Completer<void>? gate;
+
   @override
   Future<SharedLibrary?> getLibrary(String id) async {
+    await gate?.future;
     if (fails) throw StateError('the library store is out of reach');
     return _library();
   }
@@ -490,6 +583,11 @@ class _Store extends SharedLibraryStore {
 
 /// Records each proposal.
 class _Suggestions extends Fake implements SuggestionService {
+  _Suggestions({this.fails = false});
+
+  /// Whether each proposal fails, as one the store refused does.
+  final bool fails;
+
   final calls = <({DiveSite proposed, String note})>[];
 
   @override
@@ -499,6 +597,7 @@ class _Suggestions extends Fake implements SuggestionService {
     String note = '',
     Map<String, Object?> childFields = const {},
   }) async {
+    if (fails) throw StateError('the store refused the suggestion');
     calls.add((proposed: proposed, note: note));
     return SharedSiteSuggestion(
       id: 'g1',

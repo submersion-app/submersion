@@ -93,7 +93,13 @@ void main() {
     await insertDiver(db, 'me');
     sites = SiteRepository();
     await sites.createSite(
-      const DiveSite(id: 's1', diverId: 'me', name: 'Lake', notes: 'Calm'),
+      const DiveSite(
+        id: 's1',
+        diverId: 'me',
+        name: 'Lake',
+        notes: 'Calm',
+        sharedLibraryId: 'L',
+      ),
     );
     service = SiteEditSaveService(sites, stamper: _Reader());
     suggestions = _Suggestions();
@@ -217,6 +223,33 @@ void main() {
         cardId: siteHeaderCardId,
         write: () async {
           ran.add('types');
+        },
+      );
+
+    await send(session);
+
+    expect(ran, ['media']);
+  });
+
+  // Held changes that go before the record are filtered the same way.
+  test('held media before the record is written, a held header change '
+      'is not', () async {
+    final ran = <String>[];
+    final session = await sitting()
+      ..holdChange(
+        'media.first',
+        cardId: 'media',
+        beforeRecord: true,
+        write: () async {
+          ran.add('media');
+        },
+      )
+      ..holdChange(
+        'header.first',
+        cardId: siteHeaderCardId,
+        beforeRecord: true,
+        write: () async {
+          ran.add('header');
         },
       );
 

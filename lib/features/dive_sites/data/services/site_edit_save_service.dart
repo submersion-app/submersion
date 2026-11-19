@@ -52,7 +52,8 @@ class SiteEditSaveService {
   /// [privateOnly] saves a library reader's own changes (issue #4527, plan
   /// 5): the right to edit is not asked, and only the site's private notes
   /// and rating are taken from [apply], so no field of the library's site
-  /// changes whatever the sitting holds.
+  /// changes whatever the sitting holds. A site in no library is refused
+  /// ([SiteEditRefused]): there notes and rating are the site's own.
   Future<({DiveSite before, DiveSite after})?> save({
     required String siteId,
     required DiveSite Function(DiveSite stored) apply,
@@ -84,7 +85,13 @@ class SiteEditSaveService {
                 !await _stamper.mayEdit(siteId, actingDiverId: actingDiverId)) {
               throw SiteEditRefused(siteId);
             }
-            return _sites.getSiteById(siteId);
+            final site = await _sites.getSiteById(siteId);
+            // Notes and rating are a member's own only on a library site;
+            // anywhere else they are the site's, and asked for as any field.
+            if (privateOnly && site != null && !site.isLibrarySite) {
+              throw SiteEditRefused(siteId);
+            }
+            return site;
           },
           apply: privateOnly ? (stored) => _privateOf(stored, apply) : apply,
           // A library site's stamp goes to the shared library store, which a

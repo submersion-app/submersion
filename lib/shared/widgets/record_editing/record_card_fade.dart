@@ -61,8 +61,10 @@ String _reasonWord(BuildContext context, RecordCardFadeReason reason) {
 /// A card that can be edited with something to say while its record is
 /// unlocked, such as "Only you" on a library reader's private card (issue
 /// #4527, phase 2): [label] set on its top edge as [RecordCardFade] sets
-/// its word, with no fade. With no [RecordEditScope], or locked, [child]
-/// and nothing else.
+/// its word, with no fade. With no [RecordEditScope], or locked, or with
+/// no [label], [child] and nothing else, in the same shape: a page may
+/// give every card one, so a word that comes or goes (a role that changes
+/// mid-sitting) never rebuilds the card under it.
 class RecordCardEdgeLabel<T> extends StatelessWidget {
   const RecordCardEdgeLabel({
     super.key,
@@ -70,7 +72,7 @@ class RecordCardEdgeLabel<T> extends StatelessWidget {
     required this.child,
   });
 
-  final String label;
+  final String? label;
   final Widget child;
 
   @override

@@ -17,6 +17,15 @@ mixin _SiteDetailPageEditing
   /// anywhere else.
   bool _canEditSite(WidgetRef ref, DiveSite site, {bool watch = true});
 
+  /// [site]'s library, whether it is connected here and the profile's role
+  /// there, a role not read yet counting as a reader's: [watch] in
+  /// `build`, a read anywhere else.
+  ({bool isLibrary, bool connected, SharedLibraryRole role}) _libraryAccess(
+    WidgetRef ref,
+    DiveSite site, {
+    bool watch = true,
+  });
+
   @override
   String get hostRecordId => widget.siteId;
 
@@ -41,20 +50,11 @@ mixin _SiteDetailPageEditing
   /// here, with the role settled: a role still loading offers nothing yet,
   /// rather than a reader's unlock to an editor.
   bool _readerMaySuggest({bool watch = false}) {
-    final id = widget.site.sharedLibraryId;
-    if (id == null || !_libraryAccessSettled(watch: watch)) return false;
-    final connected =
-        (watch
-                ? ref.watch(libraryConnectedHereProvider(id))
-                : ref.read(libraryConnectedHereProvider(id)))
-            .value ??
-        false;
-    final role =
-        (watch
-                ? ref.watch(libraryRoleProvider(id))
-                : ref.read(libraryRoleProvider(id)))
-            .value;
-    return connected && role != null && canSuggestOnLibrarySite(role);
+    if (!_libraryAccessSettled(watch: watch)) return false;
+    final access = _libraryAccess(ref, widget.site, watch: watch);
+    return access.isLibrary &&
+        access.connected &&
+        canSuggestOnLibrarySite(access.role);
   }
 
   /// Whether the page offers a reader's sitting now, not an editor's.
@@ -263,47 +263,54 @@ mixin _SiteDetailPageEditing
     return container.read(siteProvider(stored.id).future);
   }
 
-  /// Whether the next save is a library reader's Send, and the note it
-  /// carries to the owner, decided by [beforeSave] (plan 5).
-  bool _sendAtSave = false;
-  String _sendNote = '';
-
   /// A reader's sitting on a library site: the role as stored now decides.
-  /// An editor's role saves as an edit; anyone else's is a Send, which asks
-  /// for a note only when something goes to the owner. An editor's sitting
-  /// is never sent: one whose role has dropped is withdrawn, not sent
-  /// (plan 5, Question 2). A role that cannot be read saves nothing.
+  /// An editor's role saves as an edit; anyone else's is a Send, held on
+  /// the sitting for [saveSitting], which asks for a note only when
+  /// something goes to the owner. An editor's sitting is never sent: one
+  /// whose role has dropped is withdrawn, not sent (plan 5, Question 2). A
+  /// demo profile, or a role that cannot be read, saves nothing.
   @override
   Future<bool> beforeSave() async {
-    _sendAtSave = false;
-    _sendNote = '';
     final session = maybeEditController?.session;
-    final libraryId = widget.site.sharedLibraryId;
-    if (session == null || libraryId == null) return true;
-    if (!isReaderSitting(session)) return true;
+    if (session == null) return true;
+    clearReaderSend(session);
+    final libraryId = session.stored.sharedLibraryId;
+    if (libraryId == null || !isReaderSitting(session)) return true;
+    // As the suggestion form did: a demo profile is told so.
+    if (!demoSealGuard(context, DemoSealedFeature.sharedLibrary)) {
+      return false;
+    }
     final messenger = ScaffoldMessenger.of(context);
     final failed = context.l10n.recordEdit_saveFailed;
     final SharedLibraryRole? role;
     try {
       role = await libraryRoleNow(ref.read, libraryId);
-    } catch (_) {
+    } catch (error, stackTrace) {
+      _editLog.error(
+        'Reading the library role at a reader\'s Send on '
+        '${session.stored.id} failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
       messenger.showSnackBar(SnackBar(content: Text(failed)));
       return false;
     }
     if (!mounted) return false;
     if (role != null && canEditLibrarySite(role)) return true;
+    var note = '';
     if (readerSendProposes(session)) {
-      final note = await askSuggestionNote(context);
-      if (note == null || !mounted) return false;
-      _sendNote = note;
+      final asked = await askSuggestionNote(context);
+      if (asked == null || !mounted) return false;
+      note = asked;
     }
-    _sendAtSave = true;
+    holdReaderSend(session, note);
     return true;
   }
 
   @override
   Future<void> saveSitting(EditSession<DiveSite> session) async {
-    if (_sendAtSave) return _sendReaderSitting(session);
+    final sendNote = readerSendNote(session);
+    if (sendNote != null) return _sendReaderSitting(session, sendNote);
     // Read now: the write may finish after the page has gone.
     final service = ref.read(siteEditSaveServiceProvider);
     final sites = ref.read(siteListNotifierProvider.notifier);
@@ -331,9 +338,12 @@ mixin _SiteDetailPageEditing
     }
   }
 
-  /// A library reader's Send: their own changes written, the rest proposed,
-  /// and the snack bar saying which.
-  Future<void> _sendReaderSitting(EditSession<DiveSite> session) async {
+  /// A library reader's Send: their own changes written, the rest proposed
+  /// with [note], and the snack bar saying which.
+  Future<void> _sendReaderSitting(
+    EditSession<DiveSite> session,
+    String note,
+  ) async {
     // Read now: the write may finish after the page has gone.
     final service = ref.read(siteEditSaveServiceProvider);
     final suggestions = ref.read(suggestionServiceProvider);
@@ -342,8 +352,6 @@ mixin _SiteDetailPageEditing
     final l10n = context.l10n;
     final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
     if (diverId == null) throw StateError('no profile to send as');
-    final note = _sendNote;
-    _sendAtSave = false;
     final result = await sendReaderSitting(
       session,
       service: service,
@@ -579,14 +587,13 @@ mixin _SiteDetailPageEditing
     final isOpen = maybeEditController?.openCardIds.contains(card.id) ?? false;
     if (!isOpen && builder == null) return null;
     final body = builder ?? (_) => const SizedBox.shrink();
-    if (rule == SiteReaderCard.private) {
-      return (context) => RecordCardEdgeLabel<DiveSite>(
-        label: context.l10n.recordEdit_onlyYou,
-        child: RecordCardFrame<DiveSite>(card: card, child: body(context)),
-      );
-    }
-    return (context) =>
-        RecordCardFrame<DiveSite>(card: card, child: body(context));
+    // The reader's own cards say so. Every card keeps the one shape, so a
+    // role that changes mid-sitting never rebuilds an open card's editor.
+    final private = rule == SiteReaderCard.private;
+    return (context) => RecordCardEdgeLabel<DiveSite>(
+      label: private ? context.l10n.recordEdit_onlyYou : null,
+      child: RecordCardFrame<DiveSite>(card: card, child: body(context)),
+    );
   }
 }
 

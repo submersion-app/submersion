@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -49,6 +51,8 @@ final _textCard = EditCard<_Note>(
   id: 'text',
   title: (_) => 'Text',
   isEmpty: (_) => false,
+  // 'bad' stands for input the card refuses at Save.
+  isValid: (session) => session.valueOf(_textField) != 'bad',
   editorBuilder: (context, session) => TextFormField(
     key: const ValueKey('textEditor'),
     initialValue: session.valueOf(_textField),
@@ -65,6 +69,11 @@ class _Probe {
   final saves = <Set<String>>[];
   bool failSave = false;
   Object? refuseWith;
+
+  /// How often the page's beforeSave was asked, and, while set, the answer
+  /// it is still waiting for.
+  int beforeSaveAsked = 0;
+  Completer<bool>? holdBeforeSave;
 }
 
 final _probeProvider = Provider<_Probe>((ref) => throw UnimplementedError());
@@ -154,7 +163,13 @@ class _NotePageState extends ConsumerState<_NotePage>
   String? get saveLabel => widget.saveLabel;
 
   @override
-  Future<bool> beforeSave() async => widget.allowSave;
+  Future<bool> beforeSave() async {
+    final probe = ref.read(_probeProvider);
+    probe.beforeSaveAsked++;
+    final hold = probe.holdBeforeSave;
+    if (hold != null) return hold.future;
+    return widget.allowSave;
+  }
 
   @override
   List<AddStripEntry> addStripEntries(_Note working) => [
@@ -430,6 +445,57 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(probe.saves, hasLength(1));
+    });
+
+    // A double tap, or the Save key pressed twice, while the check is still
+    // reading what it needs.
+    testWidgets('a second Save while beforeSave is asked asks once', (
+      tester,
+    ) async {
+      await pump(tester, const _NotePage(noteId: 'n1'));
+      await unlock(tester);
+      await editText(tester, 'Choppy');
+      final hold = probe.holdBeforeSave = Completer<bool>();
+
+      await tester.tap(find.text(l.forms_save));
+      await tester.pump();
+      await tester.tap(find.text(l.forms_save));
+      await tester.pump();
+      hold.complete(true);
+      await tester.pumpAndSettle();
+
+      expect(probe.beforeSaveAsked, 1);
+      expect(probe.saves, hasLength(1));
+    });
+
+    testWidgets('input to fix is refused before beforeSave is asked', (
+      tester,
+    ) async {
+      await pump(tester, const _NotePage(noteId: 'n1'));
+      await unlock(tester);
+      await editText(tester, 'bad');
+
+      await tester.tap(find.text(l.forms_save));
+      await tester.pumpAndSettle();
+
+      expect(probe.beforeSaveAsked, 0);
+      expect(probe.saves, isEmpty);
+      expect(find.text(l.recordEdit_fixInvalid), findsOneWidget);
+    });
+
+    testWidgets('a sitting with nothing changed ends without beforeSave', (
+      tester,
+    ) async {
+      await pump(tester, const _NotePage(noteId: 'n1'));
+      await unlock(tester);
+
+      await tester
+          .state<_NotePageState>(find.byType(_NotePage))
+          .saveAndReport();
+      await tester.pumpAndSettle();
+
+      expect(probe.beforeSaveAsked, 0);
+      expect(find.byType(RecordEditBar), findsNothing);
     });
   });
 

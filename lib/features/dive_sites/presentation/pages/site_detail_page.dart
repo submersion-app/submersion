@@ -670,6 +670,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
 
   /// Role and connection state of a shared site library site (issue #2567). A
   /// personal site is editable by the usual rules.
+  @override
   ({bool isLibrary, bool connected, SharedLibraryRole role}) _libraryAccess(
     WidgetRef ref,
     DiveSite site, {

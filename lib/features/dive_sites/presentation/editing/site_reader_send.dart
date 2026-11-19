@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/shared_library/shared_site_models.dart';
 import 'package:submersion/core/services/shared_library/suggestion_service.dart';
 import 'package:submersion/features/dive_sites/data/services/site_edit_save_service.dart';
@@ -10,6 +11,8 @@ import 'package:submersion/features/dive_sites/presentation/editing/site_sitting
 import 'package:submersion/features/dive_sites/presentation/utils/suggestion_child_fields.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+
+const _log = LoggerService('SiteReaderSend');
 
 /// What a reader's Send did (issue #4527, phase 2, plan 5).
 enum SiteReaderSent {
@@ -26,6 +29,23 @@ enum SiteReaderSent {
   /// Nothing differed from what is stored.
   nothingChanged,
 }
+
+const _sendKey = 'site.readerSend';
+
+/// Holds that [session]'s save is a reader's Send carrying [note] to the
+/// owner, as decided before it (plan 5). Kept on the sitting, so it ends
+/// with it.
+void holdReaderSend(EditSession<DiveSite> session, String note) =>
+    session.remember(_sendKey, note);
+
+/// Makes [session]'s save an ordinary save again.
+void clearReaderSend(EditSession<DiveSite> session) =>
+    session.remember(_sendKey, null);
+
+/// The note [session]'s save sends to the owner, or null when the save is
+/// not a reader's Send.
+String? readerSendNote(EditSession<DiveSite> session) =>
+    session.recall<String>(_sendKey);
 
 /// The cards whose changes are the reader's own.
 Set<String> _privateCards(EditSession<DiveSite> session) => {
@@ -131,8 +151,14 @@ Future<({SiteReaderSent outcome, DiveSite? saved})> sendReaderSitting(
       note: note,
       childFields: _childFields(session),
     );
-  } catch (_) {
+  } catch (error, stackTrace) {
     if (written == null) rethrow;
+    _log.error(
+      'A reader\'s suggestion on ${session.stored.id} failed after their '
+      'own changes were saved',
+      error: error,
+      stackTrace: stackTrace,
+    );
     return (outcome: SiteReaderSent.savedPrivateNotSent, saved: written.after);
   }
   return (
