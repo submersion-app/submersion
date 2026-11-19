@@ -28,10 +28,11 @@ class _SwitchingAcceptor extends SuggestionAcceptor {
 
   @override
   Future<({domain.Species species, bool created})> resolveWithOrigin(
-    PackCandidate candidate,
-  ) {
+    PackCandidate candidate, {
+    bool Function()? mayCreate,
+  }) {
     onResolve();
-    return super.resolveWithOrigin(candidate);
+    return super.resolveWithOrigin(candidate, mayCreate: mayCreate);
   }
 }
 
@@ -240,6 +241,23 @@ void main() {
       expect(await tags.findTag('p2', created!.id), isNotNull);
     },
   );
+
+  test('another logbook opened while it resolves a species it would '
+      'create: no species is created there', () async {
+    await store('p1');
+    final switching = _SwitchingAcceptor(
+      species: species,
+      onResolve: () => generation = 1,
+    );
+
+    expect(
+      await applier(
+        acceptor: switching,
+      ).applyInScope('p1', isVideo: false, generation: 0),
+      0,
+    );
+    expect(await species.findSpeciesByScientificName('Scarus vetula'), isNull);
+  });
 
   group('another logbook opened', () {
     setUp(() async {

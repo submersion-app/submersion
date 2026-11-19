@@ -32,6 +32,9 @@ class SpeciesTaggingService {
        _media = media,
        _species = species;
 
+  /// Tags [mediaId] by hand. A tag the app applied there for the species
+  /// becomes the diver's (issue #4727), with its sighting, whichever came
+  /// first: the diver named the species.
   Future<MediaSpeciesTag> tagPhoto({
     required String mediaId,
     required String speciesId,
@@ -39,6 +42,11 @@ class SpeciesTaggingService {
     final item = await _media.getMediaById(mediaId);
     if (item == null) {
       throw StateError('Media $mediaId does not exist');
+    }
+    final existing = await _tags.findTag(mediaId, speciesId);
+    if (existing != null && existing.unconfirmed) {
+      await confirmTag(mediaId: mediaId, speciesId: speciesId);
+      return (await _tags.findTag(mediaId, speciesId)) ?? existing;
     }
     final diveId = item.diveId;
     // A site-only photo has no dive to log the sighting on.

@@ -162,9 +162,13 @@ class AutoApplier {
   ) async {
     final tagged = <String>{};
     for (final s in picked) {
+      // Another logbook opened: nothing is written there, a species the
+      // resolver would create included.
+      if (_generation() != generation) break;
       try {
         final resolved = await _acceptor.resolveWithOrigin(
           s.candidate.candidate,
+          mayCreate: () => _generation() == generation,
         );
         // Another logbook opened meanwhile: nothing more is written there.
         if (_generation() != generation) break;

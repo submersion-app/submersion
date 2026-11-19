@@ -123,6 +123,24 @@ void main() {
     });
   });
 
+  group('tagPhoto', () {
+    test('a hand tag over the app\'s tag confirms it and logs the '
+        'sighting', () async {
+      await service.applyAppTag(
+        mediaId: 'p1',
+        speciesId: 'sp_a',
+        timing: SightingTiming.onConfirm,
+        createdSpecies: false,
+      );
+
+      final tag = await service.tagPhoto(mediaId: 'p1', speciesId: 'sp_a');
+
+      expect(tag.unconfirmed, isFalse);
+      expect((await tags.findTag('p1', 'sp_a'))!.unconfirmed, isFalse);
+      expect(await species.getSightingsForDive('d1'), hasLength(1));
+    });
+  });
+
   group('confirmTag', () {
     test('logs the sighting and clears the marks', () async {
       await service.applyAppTag(
