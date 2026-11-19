@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/theme/app_theme_registry.dart';
+
 import 'package:submersion/core/constants/app_enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/insights/domain/entities/species_insights.dart';
@@ -136,6 +138,7 @@ final _storedProvider = StateProvider<Species?>((ref) => manta);
 /// [unlockEditing] is false), its calculated sections empty, at phone width.
 Future<SpeciesPageHarness> pumpSpeciesPage(
   WidgetTester tester, {
+  Brightness brightness = Brightness.light,
   Species species = manta,
   bool unlockEditing = true,
   bool openUnlocked = false,
@@ -209,10 +212,17 @@ Future<SpeciesPageHarness> pumpSpeciesPage(
           (context, query) async => lookupAnswer,
         ),
       ],
-      child: SpeciesDetailPage(
-        speciesId: species.id,
-        unlockEditing: unlockEditing,
-        openUnlocked: openUnlocked,
+      child: Theme(
+        // The app's own theme, light or dark.
+        data: AppThemeRegistry.resolveTheme(
+          AppThemeRegistry.presets.first,
+          brightness,
+        ),
+        child: SpeciesDetailPage(
+          speciesId: species.id,
+          unlockEditing: unlockEditing,
+          openUnlocked: openUnlocked,
+        ),
       ),
     ),
   );

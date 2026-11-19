@@ -3,6 +3,8 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/theme/app_theme_registry.dart';
+
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/data/services/document_edit_save_service.dart';
@@ -102,6 +104,7 @@ final _storedProvider = StateProvider<DocumentRecord?>((ref) => null);
 /// [unlockEditing] is false), at [size].
 Future<DocumentPageHarness> pumpDocumentPage(
   WidgetTester tester, {
+  Brightness brightness = Brightness.light,
   Document? document,
   List<DocumentPage> pages = const [],
   List<String>? tagIds = const [],
@@ -162,12 +165,19 @@ Future<DocumentPageHarness> pumpDocumentPage(
           return save;
         }),
       ],
-      child: DocumentDetailPage(
-        documentId: doc.id,
-        unlockEditing: unlockEditing,
-        openUnlocked: openUnlocked,
-        embedded: embedded,
-        onSittingEnded: onSittingEnded,
+      child: Theme(
+        // The app's own theme, light or dark.
+        data: AppThemeRegistry.resolveTheme(
+          AppThemeRegistry.presets.first,
+          brightness,
+        ),
+        child: DocumentDetailPage(
+          documentId: doc.id,
+          unlockEditing: unlockEditing,
+          openUnlocked: openUnlocked,
+          embedded: embedded,
+          onSittingEnded: onSittingEnded,
+        ),
       ),
     ),
   );
