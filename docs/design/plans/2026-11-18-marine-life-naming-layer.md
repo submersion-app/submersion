@@ -315,6 +315,10 @@ of `named_right` equals 304.
 
 ### Task 7: Run it, record it
 
+Carried out step by step in the runbook,
+`docs/design/plans/2026-11-18-marine-life-naming-layer-runbook.md`, which also adds
+the fetcher's `--wait` mode and the checkpoints before anything is pushed.
+
 **Files:**
 - Create: `docs/design/findings/2026-11-<dd>-marine-life-naming-layer.md`
 - Modify: `tool/species_pack/manifest.py` (`NAMING_MEASURED`, only if the gate
