@@ -1,5 +1,7 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_detail_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_edit_routes.dart';
@@ -33,5 +35,33 @@ void main() {
 
   test('with the switch off the pane has no edit mode', () {
     expect(equipmentSetsPaneEditBuilder(unlockEditing: false), isNull);
+  });
+
+  testWidgets('the old edit address keeps the form without the switch', (
+    tester,
+  ) async {
+    final router = GoRouter(
+      initialLocation: '/equipment/sets/s1/edit',
+      routes: [
+        GoRoute(
+          path: '/equipment/sets/:setId',
+          builder: (_, _) => const Text('set page'),
+          routes: [
+            GoRoute(
+              path: 'edit',
+              redirect: equipmentSetEditRedirect,
+              builder: (_, _) => const Text('set form'),
+            ),
+          ],
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+    await tester.pumpAndSettle();
+
+    // The build switch is off in tests: the form stays.
+    expect(find.text('set form'), findsOneWidget);
+    expect(equipmentSetEditLocation('s1'), isNull);
   });
 }

@@ -79,6 +79,7 @@ void main() {
     List<EquipmentItem> gear = const [reg, first, second, zeagle, fins],
     bool grouped = false,
     List<EquipmentItem>? visible,
+    bool gearFails = false,
   }) async {
     tester.view.physicalSize = const Size(1200, 3000);
     tester.view.devicePixelRatio = 1.0;
@@ -89,7 +90,10 @@ void main() {
       ProviderScope(
         overrides: [
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
-          activeEquipmentProvider.overrideWith((ref) async => gear),
+          activeEquipmentProvider.overrideWith(
+            (ref) async =>
+                gearFails ? throw StateError('gear unreadable') : gear,
+          ),
           allEquipmentProvider.overrideWith((ref) async => visible ?? gear),
           equipmentSetsProvider.overrideWith((ref) async => const []),
           equipmentArrangementProvider.overrideWithValue(
@@ -253,5 +257,50 @@ void main() {
     expect(session.isDirty, isFalse);
     expect(ticked(tester, 'Jet fins'), isFalse);
     expect(session.valueOf(setMembersField).held, {'bcd'});
+  });
+
+  testWidgets('with no gear it says to add some first', (tester) async {
+    await pumpEditor(tester, members: const [], gear: const []);
+
+    expect(find.text('No equipment available'), findsOneWidget);
+    expect(find.byType(CheckboxListTile), findsNothing);
+  });
+
+  testWidgets('a gear list that cannot be read says so', (tester) async {
+    await pumpEditor(tester, members: const [zeagle], gearFails: true);
+
+    expect(find.textContaining('gear unreadable'), findsOneWidget);
+  });
+
+  testWidgets('handed a new session, it edits that one', (tester) async {
+    final first = await pumpEditor(tester, members: const [zeagle]);
+    final second = EditSession(setOf(const [zeagle]));
+    addTearDown(second.dispose);
+    final scope = tester.widget<ProviderScope>(find.byType(ProviderScope));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: scope.overrides,
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: EquipmentSetMembersEditor(session: second),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(row('Jet fins'));
+    await tester.pumpAndSettle();
+    second.set(setNameField, 'Renamed');
+    await tester.pumpAndSettle();
+
+    expect(second.working.equipmentIds, contains('fins'));
+    expect(first.isDirty, isFalse);
+    expect(ticked(tester, 'Jet fins'), isTrue);
   });
 }
