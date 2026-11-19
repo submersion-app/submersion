@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/domain/entities/naming_level.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
 import 'package:submersion/features/species_id/domain/entities/scanned_ranges.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
@@ -288,6 +289,30 @@ void main() {
         ),
         classifier,
       );
+      const balanced = MeasuredNamingLevel(
+        level: NamingLevel.balanced,
+        target: 0.75,
+        suggestScore: 0.5,
+        suggestScoreNoLocation: 0.6,
+        precision: 0.8,
+      );
+      expect(
+        balanced.copyWith(
+          level: NamingLevel.eager,
+          target: 0.65,
+          suggestScore: 0.4,
+          suggestScoreNoLocation: 0.45,
+          precision: 0.7,
+        ),
+        const MeasuredNamingLevel(
+          level: NamingLevel.eager,
+          target: 0.65,
+          suggestScore: 0.4,
+          suggestScoreNoLocation: 0.45,
+          precision: 0.7,
+        ),
+      );
+      expect(balanced.copyWith(), balanced);
       const naming = NamingConfig(
         provisional: false,
         minCropSide: 32,
@@ -298,6 +323,8 @@ void main() {
         confidentScoreNoLocation: 0.85,
         minAllowedCandidates: 100,
         topK: 3,
+        precision: 0.9,
+        levels: [balanced],
       );
       expect(
         manifest.naming.copyWith(
@@ -310,9 +337,12 @@ void main() {
           confidentScoreNoLocation: 0.85,
           minAllowedCandidates: 100,
           topK: 3,
+          precision: 0.9,
+          levels: [balanced],
         ),
         naming,
       );
+      expect(naming.copyWith(), naming);
       const region = RegionConfig(cellDegrees: 10, neighbourCells: 2);
       expect(
         manifest.region.copyWith(cellDegrees: 10, neighbourCells: 2),

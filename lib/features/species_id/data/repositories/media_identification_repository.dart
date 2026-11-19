@@ -86,6 +86,15 @@ class MediaIdentificationRepository {
     return [for (final row in rows) _fromRow(row)];
   }
 
+  /// [mediaId]'s run and its identifications, read in one transaction so
+  /// both come from the same moment: a rename that moves them on together
+  /// is seen whole or not at all (issue #4721).
+  Future<(MediaIdentificationRun?, List<MediaIdentification>)> forMediaWithRun(
+    String mediaId,
+  ) => _db.transaction(
+    () async => (await runFor(mediaId), await forMedia(mediaId)),
+  );
+
   /// In one transaction: upserts [run], deletes [deleteIds], inserts
   /// [insert].
   Future<void> storeRun(

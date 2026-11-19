@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:equatable/equatable.dart';
 
+import 'package:submersion/features/species_id/domain/entities/naming_level.dart';
+
 /// Why a model pack's manifest or one of its data files could not be used.
 enum PackManifestFailure {
   /// Not the shape this build expects.
@@ -217,6 +219,8 @@ class NamingConfig extends Equatable {
     double? confidentScoreNoLocation,
     required this.minAllowedCandidates,
     required this.topK,
+    this.precision,
+    this.levels = const [],
   }) : _confidentScoreNoLocation = confidentScoreNoLocation;
 
   /// True until the bars have been set from measured accuracy.
@@ -236,6 +240,29 @@ class NamingConfig extends Equatable {
   final int minAllowedCandidates;
   final int topK;
 
+  /// The share of suggestions that were right on held-out photos at the
+  /// suggest bars, with a location; null when the pack was not measured
+  /// for it (issue #4721).
+  final double? precision;
+
+  /// The measured naming levels below the suggest bars, surest first;
+  /// empty when the pack carries none (issue #4721).
+  final List<MeasuredNamingLevel> levels;
+
+  /// These bars with no levels and no measured precision: what a pack
+  /// that carries none would read as.
+  NamingConfig get withoutLevels => NamingConfig(
+    provisional: provisional,
+    minCropSide: minCropSide,
+    minOpenScore: minOpenScore,
+    suggestScore: suggestScore,
+    confidentScore: confidentScore,
+    suggestScoreNoLocation: suggestScoreNoLocation,
+    confidentScoreNoLocation: _confidentScoreNoLocation,
+    minAllowedCandidates: minAllowedCandidates,
+    topK: topK,
+  );
+
   NamingConfig copyWith({
     bool? provisional,
     int? minCropSide,
@@ -246,6 +273,8 @@ class NamingConfig extends Equatable {
     double? confidentScoreNoLocation,
     int? minAllowedCandidates,
     int? topK,
+    double? precision,
+    List<MeasuredNamingLevel>? levels,
   }) => NamingConfig(
     provisional: provisional ?? this.provisional,
     minCropSide: minCropSide ?? this.minCropSide,
@@ -258,6 +287,8 @@ class NamingConfig extends Equatable {
         confidentScoreNoLocation ?? _confidentScoreNoLocation,
     minAllowedCandidates: minAllowedCandidates ?? this.minAllowedCandidates,
     topK: topK ?? this.topK,
+    precision: precision ?? this.precision,
+    levels: levels ?? this.levels,
   );
 
   @override
@@ -271,6 +302,8 @@ class NamingConfig extends Equatable {
     confidentScoreNoLocation,
     minAllowedCandidates,
     topK,
+    precision,
+    levels,
   ];
 }
 
@@ -428,6 +461,11 @@ class SpeciesPackManifest extends Equatable {
     final classifier = _map(root['classifier'], 'classifier');
     final naming = _map(root['naming'], 'naming');
     final region = _map(root['region'], 'region');
+    final provisional = naming['provisional'] == true;
+    final suggestScore = _double(naming, 'suggestScore');
+    final suggestScoreNoLocation = _double(naming, 'suggestScoreNoLocation');
+    // Levels and their precision stand only on measured bars.
+    final precision = provisional ? null : measuredShare(naming['precision']);
     return SpeciesPackManifest(
       formatVersion: format,
       packVersion: _versionString(root, 'packVersion'),
@@ -443,17 +481,26 @@ class SpeciesPackManifest extends Equatable {
         cropFit: CropFit.fromManifest(classifier['cropFit']),
       ),
       naming: NamingConfig(
-        provisional: naming['provisional'] == true,
+        provisional: provisional,
         minCropSide: _int(naming, 'minCropSide'),
         minOpenScore: _double(naming, 'minOpenScore'),
-        suggestScore: _double(naming, 'suggestScore'),
+        suggestScore: suggestScore,
         confidentScore: _double(naming, 'confidentScore'),
-        suggestScoreNoLocation: _double(naming, 'suggestScoreNoLocation'),
+        suggestScoreNoLocation: suggestScoreNoLocation,
         confidentScoreNoLocation: naming.containsKey('confidentScoreNoLocation')
             ? _double(naming, 'confidentScoreNoLocation')
             : null,
         minAllowedCandidates: _int(naming, 'minAllowedCandidates'),
         topK: _positiveInt(naming, 'topK'),
+        precision: precision,
+        levels: provisional
+            ? const []
+            : measuredLevels(
+                naming['levels'],
+                suggestScore,
+                suggestScoreNoLocation,
+                surerPrecision: precision,
+              ),
       ),
       region: RegionConfig(
         cellDegrees: _cellDegrees(region),
@@ -501,6 +548,20 @@ class SpeciesPackManifest extends Equatable {
     }
     return null;
   }
+
+  /// Whether [published] may replace this installed manifest in place,
+  /// with nothing downloaded (issue #4721): the same pack version, and
+  /// nothing changed but the naming levels, the precision measured at the
+  /// suggest bars and the credits. Anything else needs a new version.
+  bool adoptableFrom(SpeciesPackManifest published) =>
+      published.packVersion == packVersion &&
+      published != this &&
+      _withoutAdoptable == published._withoutAdoptable;
+
+  /// This manifest without what a republish may change, so a manifest
+  /// that adds levels and one that withdraws them compare alike.
+  SpeciesPackManifest get _withoutAdoptable =>
+      copyWith(naming: naming.withoutLevels, credits: const []);
 
   SpeciesPackManifest copyWith({
     int? formatVersion,

@@ -28825,6 +28825,37 @@ class AppLocalizationsEn extends AppLocalizations {
       'Identify fish when I open a photo or video';
 
   @override
+  String get settings_speciesId_levelTitle => 'Name a fish when the app is';
+
+  @override
+  String get settings_speciesId_levelSurer => 'Surer';
+
+  @override
+  String get settings_speciesId_levelBalanced => 'Balanced';
+
+  @override
+  String get settings_speciesId_levelEager => 'Eager';
+
+  @override
+  String settings_speciesId_levelSurerAccuracy(int percent) {
+    return 'Fewest names. About $percent% right';
+  }
+
+  @override
+  String get settings_speciesId_levelSurerUnmeasured =>
+      'Fewest names, most often right';
+
+  @override
+  String settings_speciesId_levelBalancedAccuracy(int percent) {
+    return 'More names. About $percent% right';
+  }
+
+  @override
+  String settings_speciesId_levelEagerAccuracy(int percent) {
+    return 'Most names. About $percent% right';
+  }
+
+  @override
   String get settings_speciesId_kept => 'Suggestions kept on this device';
 
   @override

@@ -29330,6 +29330,38 @@ class AppLocalizationsEs extends AppLocalizations {
       'Identificar peces al abrir una foto o un vídeo';
 
   @override
+  String get settings_speciesId_levelTitle =>
+      'Qué tan segura debe estar la app para nombrar un pez';
+
+  @override
+  String get settings_speciesId_levelSurer => 'Más seguro';
+
+  @override
+  String get settings_speciesId_levelBalanced => 'Equilibrado';
+
+  @override
+  String get settings_speciesId_levelEager => 'Generoso';
+
+  @override
+  String settings_speciesId_levelSurerAccuracy(int percent) {
+    return 'Menos nombres. Aprox. $percent % correctos';
+  }
+
+  @override
+  String get settings_speciesId_levelSurerUnmeasured =>
+      'Menos nombres, aciertan más a menudo';
+
+  @override
+  String settings_speciesId_levelBalancedAccuracy(int percent) {
+    return 'Más nombres. Aprox. $percent % correctos';
+  }
+
+  @override
+  String settings_speciesId_levelEagerAccuracy(int percent) {
+    return 'La mayoría de los nombres. Aprox. $percent % correctos';
+  }
+
+  @override
   String get settings_speciesId_kept =>
       'Sugerencias guardadas en este dispositivo';
 

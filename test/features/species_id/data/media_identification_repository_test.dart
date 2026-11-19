@@ -35,6 +35,23 @@ void main() {
     expect(await repo.forMedia('other'), isEmpty);
   });
 
+  test(
+    'a media run and its rows are read in one snapshot (issue #4721)',
+    () async {
+      await repo.storeRun(
+        run(),
+        insert: [identification('a')],
+        deleteIds: const [],
+      );
+      final (stored, rows) = await repo.forMediaWithRun('m1');
+      expect(stored?.packVersion, '2026.11.1');
+      expect(rows.map((i) => i.id), ['a']);
+      final (none, nothing) = await repo.forMediaWithRun('other');
+      expect(none, isNull);
+      expect(nothing, isEmpty);
+    },
+  );
+
   test('a run with nothing found is stored', () async {
     await repo.storeRun(run(count: 0), insert: const [], deleteIds: const []);
     expect((await repo.runFor('m1'))!.detectionCount, 0);

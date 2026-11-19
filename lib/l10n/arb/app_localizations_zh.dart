@@ -27659,6 +27659,36 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_speciesId_toggle => '打开照片或视频时识别鱼类';
 
   @override
+  String get settings_speciesId_levelTitle => '应用需要多确定才为鱼命名';
+
+  @override
+  String get settings_speciesId_levelSurer => '更稳妥';
+
+  @override
+  String get settings_speciesId_levelBalanced => '均衡';
+
+  @override
+  String get settings_speciesId_levelEager => '更积极';
+
+  @override
+  String settings_speciesId_levelSurerAccuracy(int percent) {
+    return '名称最少。约 $percent% 正确';
+  }
+
+  @override
+  String get settings_speciesId_levelSurerUnmeasured => '名称最少，最常正确';
+
+  @override
+  String settings_speciesId_levelBalancedAccuracy(int percent) {
+    return '名称更多。约 $percent% 正确';
+  }
+
+  @override
+  String settings_speciesId_levelEagerAccuracy(int percent) {
+    return '名称最多。约 $percent% 正确';
+  }
+
+  @override
   String get settings_speciesId_kept => '此设备上保留的建议';
 
   @override

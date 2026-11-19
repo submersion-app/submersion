@@ -28589,6 +28589,38 @@ class AppLocalizationsHe extends AppLocalizations {
       'זיהוי דגים כשאני פותח תמונה או סרטון';
 
   @override
+  String get settings_speciesId_levelTitle =>
+      'עד כמה האפליקציה צריכה להיות בטוחה כדי לתת שם לדג';
+
+  @override
+  String get settings_speciesId_levelSurer => 'בטוח יותר';
+
+  @override
+  String get settings_speciesId_levelBalanced => 'מאוזן';
+
+  @override
+  String get settings_speciesId_levelEager => 'נדיב';
+
+  @override
+  String settings_speciesId_levelSurerAccuracy(int percent) {
+    return 'פחות שמות. כ-$percent% נכונים';
+  }
+
+  @override
+  String get settings_speciesId_levelSurerUnmeasured =>
+      'פחות שמות, לרוב נכונים';
+
+  @override
+  String settings_speciesId_levelBalancedAccuracy(int percent) {
+    return 'יותר שמות. כ-$percent% נכונים';
+  }
+
+  @override
+  String settings_speciesId_levelEagerAccuracy(int percent) {
+    return 'הכי הרבה שמות. כ-$percent% נכונים';
+  }
+
+  @override
   String get settings_speciesId_kept => 'הצעות שנשמרו במכשיר הזה';
 
   @override

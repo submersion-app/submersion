@@ -17,12 +17,43 @@ import 'package:submersion/features/species_id/data/services/identification_crop
 import 'package:submersion/features/species_id/data/services/media_identification_service.dart';
 import 'package:submersion/features/species_id/data/services/memory_readout.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/domain/entities/naming_level.dart';
+import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
+import 'package:submersion/features/species_id/domain/services/naming_levels.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
 import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 
 import '../../../helpers/temp_dir.dart';
 import 'fake_vision_engine.dart';
+import 'identification_fixtures.dart' show track, videoRun;
 import 'media_identification_service_fixtures.dart';
+
+/// Records which of a media's run and rows were read, in order.
+class _ReadOrderRepository extends MediaIdentificationRepository {
+  _ReadOrderRepository(AppDatabase database) : super(database: database);
+
+  final reads = <String>[];
+
+  @override
+  Future<MediaIdentificationRun?> runFor(String mediaId) {
+    reads.add('run');
+    return super.runFor(mediaId);
+  }
+
+  @override
+  Future<List<MediaIdentification>> forMedia(String mediaId) {
+    reads.add('rows');
+    return super.forMedia(mediaId);
+  }
+
+  @override
+  Future<(MediaIdentificationRun?, List<MediaIdentification>)> forMediaWithRun(
+    String mediaId,
+  ) {
+    reads.add('snapshot');
+    return super.forMediaWithRun(mediaId);
+  }
+}
 
 void main() {
   late AppDatabase library;
@@ -44,34 +75,37 @@ void main() {
   Completer<void>? tagsGate;
   var tagsAsked = 0;
 
-  MediaIdentificationService build({MemoryReadout? memoryReadout}) =>
-      MediaIdentificationService(
-        memoryReadout: memoryReadout,
-        engine: engine,
-        loadPack: () async {
-          packLoads++;
-          return installed;
-        },
-        identifications: identifications,
-        embeddings: embeddings,
-        crops: crops,
-        resolveImage: (item) async => imageFor(item),
-        resolveVideo: (item) async {
-          if (!videoReadable) return null;
-          return <T>(Future<T> Function(String path) read) =>
-              read('/videos/${item.id}.mp4');
-        },
-        taggedSpecies: (_) async {
-          tagsAsked++;
-          await tagsGate?.future;
-          return tagged;
-        },
-        enabled: () => enabled,
-        databaseGeneration: () => generation,
-        now: () => DateTime.utc(2026, 11, 17),
-        newId: () => 'id-${ids++}',
-        idleUnload: const Duration(milliseconds: 50),
-      );
+  MediaIdentificationService build({
+    MemoryReadout? memoryReadout,
+    Future<LevelInForce?> Function()? namingLevel,
+  }) => MediaIdentificationService(
+    memoryReadout: memoryReadout,
+    namingLevel: namingLevel,
+    engine: engine,
+    loadPack: () async {
+      packLoads++;
+      return installed;
+    },
+    identifications: identifications,
+    embeddings: embeddings,
+    crops: crops,
+    resolveImage: (item) async => imageFor(item),
+    resolveVideo: (item) async {
+      if (!videoReadable) return null;
+      return <T>(Future<T> Function(String path) read) =>
+          read('/videos/${item.id}.mp4');
+    },
+    taggedSpecies: (_) async {
+      tagsAsked++;
+      await tagsGate?.future;
+      return tagged;
+    },
+    enabled: () => enabled,
+    databaseGeneration: () => generation,
+    now: () => DateTime.utc(2026, 11, 17),
+    newId: () => 'id-${ids++}',
+    idleUnload: const Duration(milliseconds: 50),
+  );
 
   setUp(() async {
     library = AppDatabase(
@@ -319,6 +353,58 @@ void main() {
     final accepted = (await identifications.forMedia('m1')).single;
     expect(accepted.decision, IdentificationDecision.accepted);
     expect(accepted.decidedSpeciesId, 'sp_queen_parrotfish');
+  });
+
+  group('reconciling at a naming level (issue #4721)', () {
+    // A fish followed through a video whose best name, the tagged
+    // parrotfish, scored under the pack's bar but over Eager's.
+    final weak = track('tw', suggestable: false, confident: false).copyWith(
+      candidates: const [NamedCandidate(candidate: parrotfish, score: 0.35)],
+    );
+    const eager = LevelInForce(
+      level: NamingLevel.eager,
+      packVersion: '2026.11.1',
+      minCropSide: 64,
+      minOpenScore: 0.15,
+      suggestScore: 0.3,
+      suggestScoreNoLocation: 0.5,
+    );
+
+    Future<MediaIdentification> reconciled(
+      MediaIdentificationService service,
+    ) async {
+      await identifications.storeRun(
+        videoRun(),
+        insert: [weak],
+        deleteIds: const [],
+      );
+      tagged = [const TaggedSpecies(speciesId: 'sp_queen_parrotfish')];
+      await service.reconcile('v1');
+      return (await identifications.forMedia('v1')).single;
+    }
+
+    test('a tag accepts a fish only Eager would suggest', () async {
+      final levelled = build(namingLevel: () async => eager);
+      addTearDown(levelled.dispose);
+      final stored = await reconciled(levelled);
+      expect(stored.decision, IdentificationDecision.accepted);
+      expect(stored.suggestable, isFalse);
+    });
+
+    test('the run and rows are read in one snapshot, so a rename cannot '
+        'land between them', () async {
+      final recording = _ReadOrderRepository(library);
+      identifications = recording;
+      final levelled = build(namingLevel: () async => eager);
+      addTearDown(levelled.dispose);
+      await reconciled(levelled);
+      expect(recording.reads.first, 'snapshot');
+    });
+
+    test('with no level, the pack own bars decide as before', () async {
+      final stored = await reconciled(service);
+      expect(stored.decision, IdentificationDecision.undecided);
+    });
   });
 
   test('requests run one at a time, newest first', () async {

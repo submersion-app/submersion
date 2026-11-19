@@ -63,6 +63,9 @@ List<dynamic> rootProviderOverrides({
     identifyFishOnOpenProvider.overrideWith(
       (ref) => IdentifyFishOnOpenNotifier(prefs),
     ),
+    namingLevelNotifierProvider.overrideWith(
+      (ref) => NamingLevelNotifier(prefs),
+    ),
     // Unstored by default for the same reason; here the media cache sizes
     // gain persistence, and a smaller disk size trims the thumbnail pool at
     // once instead of at the next download (issue #3337).

@@ -17,9 +17,11 @@ import 'package:submersion/features/species_id/data/services/identification_crop
 import 'package:submersion/features/species_id/data/services/memory_readout.dart';
 import 'package:submersion/features/species_id/data/services/video_identification_scan.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/domain/entities/naming_level.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
 import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
+import 'package:submersion/features/species_id/domain/services/naming_levels.dart';
 import 'package:submersion/features/species_id/domain/services/region_grid.dart';
 import 'package:submersion/features/species_id/domain/services/species_namer.dart';
 import 'package:submersion/features/species_id/domain/services/video_identification_rules.dart';
@@ -61,6 +63,7 @@ class MediaIdentificationService {
     Duration idleUnload = const Duration(seconds: 60),
     MemoryReadout? memoryReadout,
     int firstVideoChunkMs = 2000,
+    Future<LevelInForce?> Function()? namingLevel,
   }) : _engine = engine,
        _loadPack = loadPack,
        _identifications = identifications,
@@ -76,7 +79,8 @@ class MediaIdentificationService {
        _newId = newId ?? const Uuid().v4,
        _idleUnload = idleUnload,
        _memoryReadout = memoryReadout,
-       _firstVideoChunkMs = firstVideoChunkMs;
+       _firstVideoChunkMs = firstVideoChunkMs,
+       _namingLevel = namingLevel ?? (() async => null);
 
   final VisionEngine _engine;
   final Future<LoadedPack?> Function() _loadPack;
@@ -100,6 +104,10 @@ class MediaIdentificationService {
   /// Logs memory after each stage, while debug mode is on; null logs
   /// nothing (the iPhone memory test, docs/developer/species-identification.md).
   final MemoryReadout? _memoryReadout;
+
+  /// The naming level the diver chose, as the installed pack names at it,
+  /// or null for the pack's own bars (issue #4721).
+  final Future<LevelInForce?> Function() _namingLevel;
   final _log = LoggerService.forClass(MediaIdentificationService);
 
   /// Insertion-ordered (a map literal is a LinkedHashMap): the newest
@@ -237,7 +245,13 @@ class MediaIdentificationService {
   Future<void> reconcile(String mediaId) async {
     final generation = _databaseGeneration();
     try {
-      final all = await _identifications.forMedia(mediaId);
+      // Which animals a tag may accept follows the naming level. Only
+      // decisions are written, so the level-applied flags stay in memory.
+      final all = await identificationsAtLevel(
+        _identifications,
+        mediaId,
+        await _namingLevel(),
+      );
       if (all.isEmpty) return;
       final changed = reconcileDecisions(
         all,
@@ -682,6 +696,24 @@ class MediaIdentificationService {
       _log.debug('Could not unload the marine life models', error: e);
     }
   }
+}
+
+/// [mediaId]'s identifications as [level] would suggest them, when the
+/// pack in force named them (issue #4721). The run and rows are read in
+/// one snapshot, so the pack the run names is the pack the rows were
+/// named with: a rename landing in between cannot pair them wrongly.
+Future<List<MediaIdentification>> identificationsAtLevel(
+  MediaIdentificationRepository repository,
+  String mediaId,
+  LevelInForce? level,
+) async {
+  // Surer is the pack's own bars, so its rows read as stored: no run to
+  // read and nothing to work out again.
+  if (level == null || level.level == NamingLevel.surer) {
+    return repository.forMedia(mediaId);
+  }
+  final (run, rows) = await repository.forMediaWithRun(mediaId);
+  return applyNamingLevel(rows, level: level, namedWithPack: run?.packVersion);
 }
 
 class _Job {
