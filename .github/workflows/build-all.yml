@@ -115,7 +115,10 @@ jobs:
   build-macos:
     name: Build macOS
     runs-on: macos-15
-    timeout-minutes: 45
+    # Beta builds of this job took 20 to 40 minutes in the week to
+    # 2026-11-19, and one ran out the old 45 minute limit with Xcode still
+    # compiling on a slow runner (issue #4722). Matches build-ios.
+    timeout-minutes: 60
     outputs:
       eddsa-signature: ${{ steps.sparkle-sign.outputs.eddsa-signature }}
       dmg-length: ${{ steps.sparkle-sign.outputs.dmg-length }}
@@ -336,7 +339,8 @@ jobs:
   build-macos-app-store:
     name: Build macOS App Store
     runs-on: macos-15
-    timeout-minutes: 45
+    # Same margin as build-macos, which compiles the same app (#4722).
+    timeout-minutes: 60
 
     steps:
       - name: Checkout repository
@@ -643,6 +647,7 @@ jobs:
       # is named here so a future image change cannot remove it silently.
       - name: Install Linux dependencies
         run: |
+          sudo python3 scripts/apt_mirror.py
           sudo apt-get update -y
           sudo apt-get install -y \
             clang cmake ninja-build pkg-config \
