@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/equipment/presentation/widgets/equipment_location_card.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/dive_computer_section.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
@@ -44,6 +45,15 @@ final Map<GearItemCardId, EditCard<EquipmentItem>> gearItemEditCards = {
     isValid: gearDetailsValid,
     editorBuilder: (context, session) =>
         GearItemDetailsEditor(session: session),
+  ),
+  GearItemCardId.location: EditCard<EquipmentItem>(
+    id: GearItemCardId.location.name,
+    title: (context) =>
+        GearItemCardId.location.localizedDisplayName(context.l10n),
+    // Always on the page: with no place, it says so.
+    isEmpty: (_) => false,
+    editorBuilder: (context, session) =>
+        EquipmentLocationCard(equipment: session.working, editing: session),
   ),
   GearItemCardId.notes: EditCard<EquipmentItem>(
     id: GearItemCardId.notes.name,

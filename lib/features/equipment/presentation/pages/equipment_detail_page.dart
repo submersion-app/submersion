@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/equipment/presentation/editing/gear_item_location_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/clock_sync_providers.dart';
@@ -266,6 +267,10 @@ class _EquipmentDetailContent extends ConsumerWidget {
   Widget _framed(GearItemCardId id, Widget child, {double topGap = 0}) =>
       host?._framed(id, child, topGap: topGap) ?? child;
 
+  /// The page's sitting, while it has one.
+  EditSession<EquipmentItem>? get _session =>
+      host?.maybeEditController?.session;
+
   /// Whether the empty card [id] is shown in the sitting.
   bool _shows(GearItemCardId id) => host?._showsWhileEmpty(id) ?? false;
 
@@ -341,7 +346,14 @@ class _EquipmentDetailContent extends ConsumerWidget {
             TransmitterSection(equipmentId: equipmentId),
             const SizedBox(height: 24),
           ],
-          EquipmentLocationCard(equipment: equipment),
+          _framed(
+            GearItemCardId.location,
+            EquipmentLocationCard(
+              equipment: equipment,
+              shown: _session,
+              readOnly: _editing,
+            ),
+          ),
           const SizedBox(height: 24),
           if (equipment.type == EquipmentType.tank) ...[
             _calculated(PassportEntryCard(equipment: equipment)),

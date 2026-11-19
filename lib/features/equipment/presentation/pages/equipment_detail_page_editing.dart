@@ -50,6 +50,7 @@ mixin _EquipmentDetailPageEditing
     ProviderContainer container,
   ) {
     gearItemTagsList.load(session);
+    gearItemMovesList.load(session);
     // Who it is shared with, where it can be: an item with an owner, among
     // two or more profiles.
     if (session.stored.diverId != null &&
