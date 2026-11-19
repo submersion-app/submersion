@@ -544,3 +544,12 @@ Megalodon, and run `score.py`; see "Measuring accuracy" in
 [the developer page](../../developer/species-identification.md). The tables
 here come from `report.md` and `results.json` in the work folder, written by
 `tool/species_pack/score.py`, except where noted.
+
+The naming levels were measured on the published pack's own files
+(`gh release download species-pack`, checked against its manifest's sizes
+and hashes), since they hold only for those bytes. With a pack that
+carries Megalodon there is nothing to convert, and the scorer needs only
+numpy and Pillow. Each set's `precision` and `levels` go from
+`results.json`'s `measured` entries into `NAMING_MEASURED`, and
+`relevel_manifest.py --in <published manifest.json> --out <new manifest.json>`
+adds them to the published manifest, changing nothing else.

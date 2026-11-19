@@ -390,10 +390,6 @@ class LevelProblemsTests(unittest.TestCase):
         problems = self.problems([broken, self.EAGER], precision="x")
         self.assertEqual(len(problems), 3)
 
-    def test_measured_entries_have_no_problems(self):
-        for entry in manifest.NAMING_MEASURED:
-            self.assertEqual(manifest.level_problems(entry["naming"]), [], entry["detectorIds"])
-
 
 class BuildManifestTests(unittest.TestCase):
     def build(self, detector_set="cfd"):

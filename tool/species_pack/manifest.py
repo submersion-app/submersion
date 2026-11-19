@@ -122,6 +122,8 @@ NAMING_MEASURED = [
         "detectorIds": [DETECTORS["cfd"]["id"]],
         "classifierId": "bioclip-2-vitl14-2957b32",
         "cropFit": "centreCrop",
+        # The bars' pack. Its precision and levels came from 2026.11.18.0356,
+        # which carries this detector and the same naming files.
         "packVersion": "2026.11.18.0030",
         "contents": _MEASURED_CONTENTS,
         "findings": _FINDINGS,
