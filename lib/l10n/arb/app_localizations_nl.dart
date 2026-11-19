@@ -20505,6 +20505,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_siteAttachment_detailsTitle => 'Bijlagedetails';
 
   @override
+  String get media_attachmentDetails_editing => 'Bijlage bewerken';
+
+  @override
+  String get media_attachmentDetails_open => 'Openen';
+
+  @override
   String get media_siteAttachment_editDetails => 'Details bewerken';
 
   @override
@@ -20605,6 +20611,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get media_documentViewer_title => 'Document';
+
+  @override
+  String get media_documentViewer_editing => 'Document bewerken';
 
   @override
   String get media_documentViewer_unavailable =>
@@ -21922,6 +21931,13 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get media_viewer_videoGoneWhileEditing =>
       'Deze video is verwijderd. Je wijzigingen zijn niet opgeslagen.';
+
+  @override
+  String get media_viewer_documentGoneWhileEditing =>
+      'Dit document is verwijderd. Je wijzigingen zijn niet opgeslagen.';
+
+  @override
+  String get media_viewer_documentRemoved => 'Dit document is verwijderd.';
 
   @override
   String get media_viewer_movedWhileEditing =>

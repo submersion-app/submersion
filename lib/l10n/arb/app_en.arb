@@ -12517,6 +12517,14 @@
   "media_siteAttachment_categorySiteMap": "Site map",
   "media_siteAttachment_categoryUnderwater": "Underwater",
   "media_siteAttachment_detailsTitle": "Attachment details",
+  "media_attachmentDetails_editing": "Editing attachment",
+  "@media_attachmentDetails_editing": {
+    "description": "Title of a site attachment's details page bar while its details are being edited (the attachment is unlocked); like media_viewer_editingPhoto."
+  },
+  "media_attachmentDetails_open": "Open",
+  "@media_attachmentDetails_open": {
+    "description": "Button on a site attachment's details page (a document with no in-app viewer, such as a Word file) that opens the file in another app on a desktop computer."
+  },
   "media_siteAttachment_editDetails": "Edit details",
   "media_siteAttachment_groupHeading": "{category} ({count})",
   "@media_siteAttachment_groupHeading": {"description": "Site media group heading", "placeholders": {"category": {"type": "String"}, "count": {"type": "int"}}},
@@ -12554,6 +12562,10 @@
   },
   "media_siteMediaSection_unlinkSelectedSuccess": "Unlinked {count} items",
   "media_documentViewer_title": "Document",
+  "media_documentViewer_editing": "Editing document",
+  "@media_documentViewer_editing": {
+    "description": "Title of the PDF viewer's bar while a site attachment's details are being edited (the document is unlocked); like media_viewer_editingPhoto."
+  },
   "media_documentViewer_unavailable": "This document is not available on this device",
   "media_documentViewer_availableOnOriginDevice": "It is available on the device it was added from, or via a configured media store.",
   "media_documentViewer_attached": "Attached {count} documents",
@@ -13807,6 +13819,14 @@
   "media_viewer_videoGoneWhileEditing": "This video was removed. Your changes were not saved.",
   "@media_viewer_videoGoneWhileEditing": {
     "description": "Shown when the video being edited in the viewer is deleted elsewhere (another device, a sync) during the editing sitting; the sitting ends without saving."
+  },
+  "media_viewer_documentGoneWhileEditing": "This document was removed. Your changes were not saved.",
+  "@media_viewer_documentGoneWhileEditing": {
+    "description": "Shown when the site attachment document whose details are being edited (PDF viewer or attachment details page) is deleted elsewhere during the editing sitting; the sitting ends without saving."
+  },
+  "media_viewer_documentRemoved": "This document was removed.",
+  "@media_viewer_documentRemoved": {
+    "description": "Shown on the page below when a site attachment document's own page (PDF viewer or attachment details page) closes because the document was deleted elsewhere while it was open and locked."
   },
   "media_viewer_movedWhileEditing": "Moved to another dive since you unlocked it. Cancel, then unlock it again.",
   "@media_viewer_movedWhileEditing": {

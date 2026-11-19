@@ -20179,6 +20179,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_siteAttachment_detailsTitle => 'פרטי הקובץ המצורף';
 
   @override
+  String get media_attachmentDetails_editing => 'עריכת קובץ מצורף';
+
+  @override
+  String get media_attachmentDetails_open => 'פתח';
+
+  @override
   String get media_siteAttachment_editDetails => 'עריכת פרטים';
 
   @override
@@ -20279,6 +20285,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get media_documentViewer_title => 'מסמך';
+
+  @override
+  String get media_documentViewer_editing => 'עריכת מסמך';
 
   @override
   String get media_documentViewer_unavailable => 'מסמך זה אינו זמין במכשיר זה';
@@ -21570,6 +21579,13 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get media_viewer_videoGoneWhileEditing =>
       'הסרטון הוסר. השינויים שלך לא נשמרו.';
+
+  @override
+  String get media_viewer_documentGoneWhileEditing =>
+      'המסמך הוסר. השינויים שלך לא נשמרו.';
+
+  @override
+  String get media_viewer_documentRemoved => 'המסמך הוסר.';
 
   @override
   String get media_viewer_movedWhileEditing =>

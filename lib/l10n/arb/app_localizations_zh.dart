@@ -19603,6 +19603,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_siteAttachment_detailsTitle => '附件详情';
 
   @override
+  String get media_attachmentDetails_editing => '正在编辑附件';
+
+  @override
+  String get media_attachmentDetails_open => '打开';
+
+  @override
   String get media_siteAttachment_editDetails => '编辑详情';
 
   @override
@@ -19700,6 +19706,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get media_documentViewer_title => '文档';
+
+  @override
+  String get media_documentViewer_editing => '正在编辑文档';
 
   @override
   String get media_documentViewer_unavailable => '此文档在本设备上不可用';
@@ -20959,6 +20968,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get media_viewer_videoGoneWhileEditing => '此视频已被移除。你的更改未保存。';
+
+  @override
+  String get media_viewer_documentGoneWhileEditing => '此文档已被移除。你的更改未保存。';
+
+  @override
+  String get media_viewer_documentRemoved => '此文档已被移除。';
 
   @override
   String get media_viewer_movedWhileEditing => '自解锁后已移至另一次潜水。请取消，然后重新解锁。';

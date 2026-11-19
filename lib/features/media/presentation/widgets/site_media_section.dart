@@ -77,6 +77,11 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
   /// added or unlinked here.
   bool _readOnly = false;
 
+  /// A page that edits in place (issue #4527, phase 2): an attachment's
+  /// details are edited under its own lock, where it opens, so the card
+  /// offers no single Edit details.
+  bool _editsInPlace = false;
+
   /// The ids the sitting has added and not yet written: no file to open,
   /// no row to check or give details to before Save.
   Set<String> _heldIds = const {};
@@ -242,6 +247,7 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
   @override
   Widget build(BuildContext context) {
     final scope = RecordEditScope.maybeOf<DiveSite>(context);
+    _editsInPlace = scope != null;
     _readOnly = scope != null && widget.editing == null;
     final session = widget.editing ?? scope?.session;
     final stored = ref.watch(mediaForSiteProvider(widget.siteId));
@@ -347,13 +353,14 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
                     label: context.l10n.media_siteAttachment_setCategory,
                     onInvoke: () => _setCategoryForSelected(context),
                   ),
-                  BulkAction(
-                    id: 'editDetails',
-                    icon: Icons.edit_outlined,
-                    label: context.l10n.media_siteAttachment_editDetails,
-                    maxCount: 1,
-                    onInvoke: () => _editSelected(context, selectionMedia),
-                  ),
+                  if (!_editsInPlace)
+                    BulkAction(
+                      id: 'editDetails',
+                      icon: Icons.edit_outlined,
+                      label: context.l10n.media_siteAttachment_editDetails,
+                      maxCount: 1,
+                      onInvoke: () => _editSelected(context, selectionMedia),
+                    ),
                 ],
               )
             else
@@ -442,15 +449,18 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
                   onOpen: (item) =>
                       _openItem(context, item, SiteViewerScope.attachments),
                   // An attachment's details are its own record's; one
-                  // held until Save has none to give yet.
-                  onEditDetails: (item) {
-                    if (_heldIds.contains(item.id)) return;
-                    showAttachmentDetailsSheet(
-                      context,
-                      item: item,
-                      siteId: widget.siteId,
-                    );
-                  },
+                  // held until Save has none to give yet. A page that
+                  // edits in place edits them where the attachment opens.
+                  onEditDetails: _editsInPlace
+                      ? null
+                      : (item) {
+                          if (_heldIds.contains(item.id)) return;
+                          showAttachmentDetailsSheet(
+                            context,
+                            item: item,
+                            siteId: widget.siteId,
+                          );
+                        },
                 );
               },
               loading: () => const SizedBox(

@@ -20925,6 +20925,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_siteAttachment_detailsTitle => 'تفاصيل المرفق';
 
   @override
+  String get media_attachmentDetails_editing => 'تعديل المرفق';
+
+  @override
+  String get media_attachmentDetails_open => 'فتح';
+
+  @override
   String get media_siteAttachment_editDetails => 'تعديل التفاصيل';
 
   @override
@@ -21033,6 +21039,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get media_documentViewer_title => 'مستند';
+
+  @override
+  String get media_documentViewer_editing => 'تعديل المستند';
 
   @override
   String get media_documentViewer_unavailable =>
@@ -22401,6 +22410,13 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get media_viewer_videoGoneWhileEditing =>
       'تمت إزالة هذا الفيديو. لم يتم حفظ تغييراتك.';
+
+  @override
+  String get media_viewer_documentGoneWhileEditing =>
+      'تمت إزالة هذا المستند. لم يتم حفظ تغييراتك.';
+
+  @override
+  String get media_viewer_documentRemoved => 'تمت إزالة هذا المستند.';
 
   @override
   String get media_viewer_movedWhileEditing =>

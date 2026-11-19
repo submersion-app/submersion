@@ -608,6 +608,9 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
               ref,
               item,
               editableSiteId: site.id,
+              // Where the page edits in place, the attachment opens under
+              // its own lock (issue #4527, phase 2).
+              attachmentLock: widget.unlockEditing,
             ),
           ),
       // Tags (issue #1765), after media as on a dive. Shown only when the

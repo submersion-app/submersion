@@ -20567,6 +20567,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_siteAttachment_detailsTitle => 'Melléklet adatai';
 
   @override
+  String get media_attachmentDetails_editing => 'Melléklet szerkesztése';
+
+  @override
+  String get media_attachmentDetails_open => 'Megnyitás';
+
+  @override
   String get media_siteAttachment_editDetails => 'Adatok szerkesztése';
 
   @override
@@ -20667,6 +20673,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get media_documentViewer_title => 'Dokumentum';
+
+  @override
+  String get media_documentViewer_editing => 'Dokumentum szerkesztése';
 
   @override
   String get media_documentViewer_unavailable =>
@@ -21983,6 +21992,14 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get media_viewer_videoGoneWhileEditing =>
       'Ezt a videót eltávolították. A módosításaid nem lettek mentve.';
+
+  @override
+  String get media_viewer_documentGoneWhileEditing =>
+      'Ezt a dokumentumot eltávolították. A módosításaid nem lettek mentve.';
+
+  @override
+  String get media_viewer_documentRemoved =>
+      'Ezt a dokumentumot eltávolították.';
 
   @override
   String get media_viewer_movedWhileEditing =>

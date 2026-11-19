@@ -20691,6 +20691,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_siteAttachment_detailsTitle => 'Détails de la pièce jointe';
 
   @override
+  String get media_attachmentDetails_editing =>
+      'Modification de la pièce jointe';
+
+  @override
+  String get media_attachmentDetails_open => 'Ouvrir';
+
+  @override
   String get media_siteAttachment_editDetails => 'Modifier les détails';
 
   @override
@@ -20791,6 +20798,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get media_documentViewer_title => 'Document';
+
+  @override
+  String get media_documentViewer_editing => 'Modification du document';
 
   @override
   String get media_documentViewer_unavailable =>
@@ -22116,6 +22126,13 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get media_viewer_videoGoneWhileEditing =>
       'Cette vidéo a été supprimée. Vos modifications n\'ont pas été enregistrées.';
+
+  @override
+  String get media_viewer_documentGoneWhileEditing =>
+      'Ce document a été supprimé. Vos modifications n\'ont pas été enregistrées.';
+
+  @override
+  String get media_viewer_documentRemoved => 'Ce document a été supprimé.';
 
   @override
   String get media_viewer_movedWhileEditing =>

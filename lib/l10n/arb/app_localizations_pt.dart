@@ -20634,6 +20634,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get media_siteAttachment_detailsTitle => 'Detalhes do anexo';
 
   @override
+  String get media_attachmentDetails_editing => 'A editar anexo';
+
+  @override
+  String get media_attachmentDetails_open => 'Abrir';
+
+  @override
   String get media_siteAttachment_editDetails => 'Editar detalhes';
 
   @override
@@ -20734,6 +20740,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get media_documentViewer_title => 'Documento';
+
+  @override
+  String get media_documentViewer_editing => 'A editar documento';
 
   @override
   String get media_documentViewer_unavailable =>
@@ -22058,6 +22067,13 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get media_viewer_videoGoneWhileEditing =>
       'Este vídeo foi removido. As suas alterações não foram guardadas.';
+
+  @override
+  String get media_viewer_documentGoneWhileEditing =>
+      'Este documento foi removido. As suas alterações não foram guardadas.';
+
+  @override
+  String get media_viewer_documentRemoved => 'Este documento foi removido.';
 
   @override
   String get media_viewer_movedWhileEditing =>

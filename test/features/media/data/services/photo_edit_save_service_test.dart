@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/media/domain/entities/site_attachment_category.dart';
 import 'package:path/path.dart' as p;
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
@@ -380,6 +381,53 @@ void main() {
     expect(after.item.manualElapsedSeconds, isNull);
     expect(after.diveShiftSeconds, 0);
     expect(await buddies.getBuddiesForDive('d1'), isEmpty);
+  });
+
+  // A site attachment's sitting (issue #4527, phase 2): one unlinked from
+  // its site before Save, and kept for a dive, is no longer the site's, so
+  // its held details are not written to it.
+  test(
+    'a site attachment unlinked before Save: gone, nothing written',
+    () async {
+      await insertTestMedia(id: 'a1', siteId: 's1', fileType: 'document');
+      final session = await sitting('a1');
+      session.set(photoSiteCategoryField, SiteAttachmentCategory.siteMap);
+      await db.customStatement(
+        "UPDATE media SET site_id = NULL WHERE id = 'a1'",
+      );
+
+      await expectLater(
+        serviceWith().save(
+          mediaId: 'a1',
+          diverId: 'me',
+          apply: session.applyTo,
+          changedCardIds: session.changedCardIds,
+          siteAtStart: 's1',
+        ),
+        throwsA(isA<PhotoGoneError>()),
+      );
+
+      expect((await stored('a1')).item.siteCategory, isNull);
+    },
+  );
+
+  test('a site attachment still the site\'s saves its details', () async {
+    await insertTestMedia(id: 'a1', siteId: 's1', fileType: 'document');
+    final session = await sitting('a1');
+    session.set(photoSiteCategoryField, SiteAttachmentCategory.siteMap);
+
+    await serviceWith().save(
+      mediaId: 'a1',
+      diverId: 'me',
+      apply: session.applyTo,
+      changedCardIds: session.changedCardIds,
+      siteAtStart: 's1',
+    );
+
+    expect(
+      (await stored('a1')).item.siteCategory,
+      SiteAttachmentCategory.siteMap,
+    );
   });
 
   test('nothing changed: null, and no operation left behind', () async {

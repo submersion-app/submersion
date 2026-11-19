@@ -32766,6 +32766,18 @@ abstract class AppLocalizations {
   /// **'Attachment details'**
   String get media_siteAttachment_detailsTitle;
 
+  /// Title of a site attachment's details page bar while its details are being edited (the attachment is unlocked); like media_viewer_editingPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Editing attachment'**
+  String get media_attachmentDetails_editing;
+
+  /// Button on a site attachment's details page (a document with no in-app viewer, such as a Word file) that opens the file in another app on a desktop computer.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get media_attachmentDetails_open;
+
   /// No description provided for @media_siteAttachment_editDetails.
   ///
   /// In en, this message translates to:
@@ -32903,6 +32915,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Document'**
   String get media_documentViewer_title;
+
+  /// Title of the PDF viewer's bar while a site attachment's details are being edited (the document is unlocked); like media_viewer_editingPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Editing document'**
+  String get media_documentViewer_editing;
 
   /// No description provided for @media_documentViewer_unavailable.
   ///
@@ -34830,6 +34848,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This video was removed. Your changes were not saved.'**
   String get media_viewer_videoGoneWhileEditing;
+
+  /// Shown when the site attachment document whose details are being edited (PDF viewer or attachment details page) is deleted elsewhere during the editing sitting; the sitting ends without saving.
+  ///
+  /// In en, this message translates to:
+  /// **'This document was removed. Your changes were not saved.'**
+  String get media_viewer_documentGoneWhileEditing;
+
+  /// Shown on the page below when a site attachment document's own page (PDF viewer or attachment details page) closes because the document was deleted elsewhere while it was open and locked.
+  ///
+  /// In en, this message translates to:
+  /// **'This document was removed.'**
+  String get media_viewer_documentRemoved;
 
   /// Shown when Save is refused because the photo or video being edited was moved to another dive (on another device, or by a sync) after the diver unlocked it. Cancel ends the sitting; unlocking again starts one on the new dive.
   ///
