@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_service_sitting.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/export/excel/maintenance_excel_export_service.dart';
@@ -20,10 +24,30 @@ import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
 
 /// Service History Section Widget
+///
+/// Where the item's page edits in place (issue #4527, phase 3), it offers
+/// nothing while locked ([readOnly]); in the page's sitting ([editing])
+/// records added, edited and deleted are held until Save, a delete asking
+/// nothing, and a closed card shows what a sitting holds ([shown]).
 class ServiceHistorySection extends ConsumerStatefulWidget {
   final String equipmentId;
 
-  const ServiceHistorySection({super.key, required this.equipmentId});
+  /// The sitting records are held in: the Service history card's editor.
+  final EditSession<EquipmentItem>? editing;
+
+  /// The sitting whose records a closed card shows.
+  final EditSession<EquipmentItem>? shown;
+
+  /// Offers no action: the page edits in place and is locked.
+  final bool readOnly;
+
+  const ServiceHistorySection({
+    super.key,
+    required this.equipmentId,
+    this.editing,
+    this.shown,
+    this.readOnly = false,
+  });
 
   @override
   ConsumerState<ServiceHistorySection> createState() =>
@@ -43,9 +67,31 @@ class _ServiceHistorySectionState extends ConsumerState<ServiceHistorySection> {
 
   String get equipmentId => widget.equipmentId;
 
+  /// Whether a tap may act: not on a locked page, and in a sitting only in
+  /// the open card.
+  bool get _canAct =>
+      !widget.readOnly && (widget.shown == null || widget.editing != null);
+
   @override
   Widget build(BuildContext context) {
-    final recordsAsync = ref.watch(serviceRecordNotifierProvider(equipmentId));
+    final sitting = widget.editing ?? widget.shown;
+    if (sitting == null) return _build(context, null);
+    return ListenableBuilder(
+      listenable: gearItemServiceRecordsList.changes(sitting),
+      builder: (context, _) => _build(context, sitting),
+    );
+  }
+
+  Widget _build(BuildContext context, EditSession<EquipmentItem>? sitting) {
+    final stored = ref.watch(serviceRecordNotifierProvider(equipmentId));
+    final held = sitting == null
+        ? null
+        : gearItemServiceRecordsList.current(sitting);
+    final recordsAsync = held == null
+        ? stored
+        : AsyncValue<List<ServiceRecord>>.data(
+            [...held]..sort((a, b) => b.serviceDate.compareTo(a.serviceDate)),
+          );
     // Indexed once here rather than per row. While the kinds are still
     // loading the map is empty and rows fall back to the service type, which
     // is the right transient state: the history is already useful without the
@@ -92,11 +138,15 @@ class _ServiceHistorySectionState extends ConsumerState<ServiceHistorySection> {
                     ],
                   ),
                 ),
-                FilledButton.tonalIcon(
-                  onPressed: () => _showAddServiceDialog(context, ref),
-                  icon: const Icon(Icons.add, size: 18),
-                  label: Text(context.l10n.equipment_service_addButton),
+                RecordCardPencil(
+                  cardTitle: context.l10n.equipment_service_historyTitle,
                 ),
+                if (_canAct)
+                  FilledButton.tonalIcon(
+                    onPressed: () => _showAddServiceDialog(context, ref),
+                    icon: const Icon(Icons.add, size: 18),
+                    label: Text(context.l10n.equipment_service_addButton),
+                  ),
                 PopupMenuButton<String>(
                   key: const Key('service-history-overflow'),
                   onSelected: (value) {
@@ -231,10 +281,20 @@ class _ServiceHistorySectionState extends ConsumerState<ServiceHistorySection> {
                             (record) => _ServiceRecordTile(
                               record: record,
                               kindsById: kindsById,
-                              onTap: () =>
-                                  _showEditServiceDialog(context, ref, record),
-                              onDelete: () =>
-                                  _confirmDeleteRecord(context, ref, record),
+                              onTap: !_canAct
+                                  ? null
+                                  : () => _showEditServiceDialog(
+                                      context,
+                                      ref,
+                                      record,
+                                    ),
+                              onDelete: !_canAct
+                                  ? null
+                                  : () => _confirmDeleteRecord(
+                                      context,
+                                      ref,
+                                      record,
+                                    ),
                             ),
                           ),
                       if (visible.length > _collapsedRowCount)
@@ -461,11 +521,14 @@ class _ServiceHistorySectionState extends ConsumerState<ServiceHistorySection> {
   }
 
   void _showAddServiceDialog(BuildContext context, WidgetRef ref) {
+    final editing = widget.editing;
     showDialog(
       context: context,
       builder: (context) => ServiceRecordDialog(
         equipmentId: equipmentId,
+        announce: editing == null,
         onSave: (record) async {
+          if (editing != null) return holdServiceRecord(editing, record);
           await ref
               .read(serviceRecordNotifierProvider(equipmentId).notifier)
               .addRecord(record);
@@ -479,12 +542,17 @@ class _ServiceHistorySectionState extends ConsumerState<ServiceHistorySection> {
     WidgetRef ref,
     ServiceRecord record,
   ) {
+    final editing = widget.editing;
     showDialog(
       context: context,
       builder: (context) => ServiceRecordDialog(
         equipmentId: equipmentId,
         existingRecord: record,
+        announce: editing == null,
         onSave: (updatedRecord) async {
+          if (editing != null) {
+            return holdServiceRecord(editing, updatedRecord);
+          }
           await ref
               .read(serviceRecordNotifierProvider(equipmentId).notifier)
               .updateRecord(updatedRecord);
@@ -498,6 +566,11 @@ class _ServiceHistorySectionState extends ConsumerState<ServiceHistorySection> {
     WidgetRef ref,
     ServiceRecord record,
   ) async {
+    // In a sitting a delete asks nothing: Cancel brings it back.
+    if (widget.editing case final editing?) {
+      removeHeldServiceRecord(editing, record.id);
+      return;
+    }
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -546,8 +619,9 @@ class _ServiceRecordTile extends ConsumerWidget {
   /// Built once by the section rather than per row.
   final Map<String, ServiceKind> kindsById;
 
-  final VoidCallback onTap;
-  final VoidCallback onDelete;
+  /// Null on a page that edits in place while it may not act.
+  final VoidCallback? onTap;
+  final VoidCallback? onDelete;
 
   const _ServiceRecordTile({
     required this.record,
@@ -624,28 +698,30 @@ class _ServiceRecordTile extends ConsumerWidget {
       // trailing out against the full tile width and gives the title whatever
       // is left, clamped at zero, so a Text here starves the title (#935).
       // The cost lives in the subtitle column for that reason.
-      trailing: PopupMenuButton<String>(
-        onSelected: (value) {
-          if (value == 'edit') {
-            onTap();
-          } else if (value == 'delete') {
-            onDelete();
-          }
-        },
-        itemBuilder: (context) => [
-          PopupMenuItem(
-            value: 'edit',
-            child: Text(l10n.equipment_service_editMenuItem),
-          ),
-          PopupMenuItem(
-            value: 'delete',
-            child: Text(
-              l10n.equipment_service_deleteMenuItem,
-              style: const TextStyle(color: Colors.red),
+      trailing: onTap == null
+          ? null
+          : PopupMenuButton<String>(
+              onSelected: (value) {
+                if (value == 'edit') {
+                  onTap?.call();
+                } else if (value == 'delete') {
+                  onDelete?.call();
+                }
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'edit',
+                  child: Text(l10n.equipment_service_editMenuItem),
+                ),
+                PopupMenuItem(
+                  value: 'delete',
+                  child: Text(
+                    l10n.equipment_service_deleteMenuItem,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
       onTap: onTap,
     );
   }

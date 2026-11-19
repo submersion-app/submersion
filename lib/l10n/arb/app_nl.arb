@@ -4891,6 +4891,8 @@
   "equipment_serviceClocks_pause": "Pauzeren",
   "equipment_serviceClocks_resume": "Hervatten",
   "equipment_serviceClocks_remove": "Verwijderen",
+  "equipment_serviceClocks_remindersOwn": "Herinneringen vóór de vervaldatum: {days}",
+  "equipment_serviceClocks_remindersOff": "Geen herinneringen voor dit item",
   "equipment_serviceClocks_paused": "Gepauzeerd",
   "equipment_serviceClocks_empty": "Geen serviceintervallen",
   "equipment_serviceClocks_unconfigured": "Geen interval ingesteld - tik om te configureren",

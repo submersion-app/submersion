@@ -16545,6 +16545,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_serviceClocks_remove => 'Entfernen';
 
   @override
+  String equipment_serviceClocks_remindersOwn(String days) {
+    return 'Erinnerungen vor Fälligkeit: $days';
+  }
+
+  @override
+  String get equipment_serviceClocks_remindersOff =>
+      'Keine Erinnerungen für diesen Artikel';
+
+  @override
   String get equipment_serviceClocks_paused => 'Pausiert';
 
   @override

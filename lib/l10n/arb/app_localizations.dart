@@ -26546,6 +26546,18 @@ abstract class AppLocalizations {
   /// **'Remove'**
   String get equipment_serviceClocks_remove;
 
+  /// A row on a gear item's Service clocks card when the item has reminder days of its own. days is the list of reminder lead times, such as "7 days, 30 days".
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders before due: {days}'**
+  String equipment_serviceClocks_remindersOwn(String days);
+
+  /// A row on a gear item's Service clocks card when service reminders are turned off for that item.
+  ///
+  /// In en, this message translates to:
+  /// **'No reminders for this item'**
+  String get equipment_serviceClocks_remindersOff;
+
   /// No description provided for @equipment_serviceClocks_paused.
   ///
   /// In en, this message translates to:

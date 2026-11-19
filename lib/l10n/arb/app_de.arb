@@ -4925,6 +4925,8 @@
   "equipment_serviceClocks_pause": "Pausieren",
   "equipment_serviceClocks_resume": "Fortsetzen",
   "equipment_serviceClocks_remove": "Entfernen",
+  "equipment_serviceClocks_remindersOwn": "Erinnerungen vor Fälligkeit: {days}",
+  "equipment_serviceClocks_remindersOff": "Keine Erinnerungen für diesen Artikel",
   "equipment_serviceClocks_paused": "Pausiert",
   "equipment_serviceClocks_empty": "Keine Wartungsintervalle",
   "equipment_serviceClocks_unconfigured": "Kein Intervall festgelegt - zum Konfigurieren tippen",

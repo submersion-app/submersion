@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/equipment/presentation/widgets/service_history_section.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_clocks_editor.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_location_card.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/dive_computer_section.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
@@ -54,6 +56,22 @@ final Map<GearItemCardId, EditCard<EquipmentItem>> gearItemEditCards = {
     isEmpty: (_) => false,
     editorBuilder: (context, session) =>
         EquipmentLocationCard(equipment: session.working, editing: session),
+  ),
+  GearItemCardId.serviceClocks: EditCard<EquipmentItem>(
+    id: GearItemCardId.serviceClocks.name,
+    title: (context) =>
+        GearItemCardId.serviceClocks.localizedDisplayName(context.l10n),
+    // On the page for owned gear, with none it says so.
+    isEmpty: (_) => false,
+    editorBuilder: (context, session) => GearItemClocksEditor(session: session),
+  ),
+  GearItemCardId.serviceHistory: EditCard<EquipmentItem>(
+    id: GearItemCardId.serviceHistory.name,
+    title: (context) =>
+        GearItemCardId.serviceHistory.localizedDisplayName(context.l10n),
+    isEmpty: (_) => false,
+    editorBuilder: (context, session) =>
+        ServiceHistorySection(equipmentId: session.stored.id, editing: session),
   ),
   GearItemCardId.notes: EditCard<EquipmentItem>(
     id: GearItemCardId.notes.name,

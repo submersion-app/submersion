@@ -4891,6 +4891,8 @@
   "equipment_serviceClocks_pause": "Pausar",
   "equipment_serviceClocks_resume": "Reanudar",
   "equipment_serviceClocks_remove": "Eliminar",
+  "equipment_serviceClocks_remindersOwn": "Recordatorios antes del vencimiento: {days}",
+  "equipment_serviceClocks_remindersOff": "Sin recordatorios para este equipo",
   "equipment_serviceClocks_paused": "En pausa",
   "equipment_serviceClocks_empty": "Sin intervalos de mantenimiento",
   "equipment_serviceClocks_unconfigured": "Sin intervalo definido: toca para configurar",

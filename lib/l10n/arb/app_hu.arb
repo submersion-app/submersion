@@ -4765,6 +4765,8 @@
   "equipment_serviceClocks_pause": "Szüneteltetés",
   "equipment_serviceClocks_resume": "Folytatás",
   "equipment_serviceClocks_remove": "Eltávolítás",
+  "equipment_serviceClocks_remindersOwn": "Emlékeztetők esedékesség előtt: {days}",
+  "equipment_serviceClocks_remindersOff": "Nincs emlékeztető ehhez a felszereléshez",
   "equipment_serviceClocks_paused": "Szüneteltetve",
   "equipment_serviceClocks_empty": "Nincsenek szervizintervallumok",
   "equipment_serviceClocks_unconfigured": "Nincs beállított időköz - koppintson a beállításhoz",

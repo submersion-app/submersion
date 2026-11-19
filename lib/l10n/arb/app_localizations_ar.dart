@@ -16771,6 +16771,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_serviceClocks_remove => 'إزالة';
 
   @override
+  String equipment_serviceClocks_remindersOwn(String days) {
+    return 'التذكيرات قبل موعد الاستحقاق: $days';
+  }
+
+  @override
+  String get equipment_serviceClocks_remindersOff =>
+      'لا توجد تذكيرات لهذه المعدات';
+
+  @override
   String get equipment_serviceClocks_paused => 'متوقف مؤقتًا';
 
   @override

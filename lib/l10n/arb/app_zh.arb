@@ -5009,6 +5009,8 @@
   "equipment_serviceClocks_pause": "暂停",
   "equipment_serviceClocks_resume": "恢复",
   "equipment_serviceClocks_remove": "移除",
+  "equipment_serviceClocks_remindersOwn": "到期前提醒：{days}",
+  "equipment_serviceClocks_remindersOff": "此装备不提醒",
   "equipment_serviceClocks_paused": "已暂停",
   "equipment_serviceClocks_empty": "暂无维护倒计时",
   "equipment_serviceClocks_unconfigured": "未设置间隔 - 点按进行配置",

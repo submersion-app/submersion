@@ -16512,6 +16512,15 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_serviceClocks_remove => 'Eltávolítás';
 
   @override
+  String equipment_serviceClocks_remindersOwn(String days) {
+    return 'Emlékeztetők esedékesség előtt: $days';
+  }
+
+  @override
+  String get equipment_serviceClocks_remindersOff =>
+      'Nincs emlékeztető ehhez a felszereléshez';
+
+  @override
   String get equipment_serviceClocks_paused => 'Szüneteltetve';
 
   @override

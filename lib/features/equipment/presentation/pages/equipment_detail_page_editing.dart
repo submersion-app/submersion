@@ -51,6 +51,8 @@ mixin _EquipmentDetailPageEditing
   ) {
     gearItemTagsList.load(session);
     gearItemMovesList.load(session);
+    gearItemClocksList.load(session);
+    gearItemServiceRecordsList.load(session);
     // Who it is shared with, where it can be: an item with an owner, among
     // two or more profiles.
     if (session.stored.diverId != null &&
@@ -91,7 +93,7 @@ mixin _EquipmentDetailPageEditing
       alsoWriteIsAChange: session.hasHeldChanges,
     );
     justSavedRecord = result?.after ?? session.working;
-    await afterGearItemSave(
+    afterGearItemSave(
       container,
       equipmentId: session.stored.id,
       before: result?.before,
@@ -146,24 +148,34 @@ mixin _EquipmentDetailPageEditing
 
 /// What the list notifier does after it writes an item today, done once a
 /// sitting on item [equipmentId] has been saved (issue #4527, phase 3, plan
-/// 6): the lists refreshed, and the dives a transmitter item's registry
-/// entries match rescanned when its serial changed (best effort, as the
-/// edit form). [before] and [after] are null when the row did not change.
+/// 6): the lists and the clocks refreshed, the service reminders
+/// rescheduled, and the dives a transmitter item's registry entries match
+/// rescanned when its serial changed. [before] and [after] are null when the
+/// row did not change.
 ///
 /// [clockSync], a dive computer's clock sync choice the sitting held, is
 /// written here, once the sitting has committed: it lives in this
 /// installation's preferences, outside the database and its History.
-Future<void> afterGearItemSave(
+///
+/// The sitting is saved by now, so each step is best effort: one that fails
+/// is logged, never reported as the Save failing.
+void afterGearItemSave(
   ProviderContainer container, {
   required String equipmentId,
   EquipmentItem? before,
   EquipmentItem? after,
   HeldClockSync? clockSync,
-}) async {
+}) {
+  void bestEffort(Future<void> Function() work, String task) =>
+      logFailure(Future.sync(work), EquipmentDetailPage, task);
+
   if (clockSync != null) {
-    await container
-        .read(clockSyncSettingsNotifierProvider.notifier)
-        .setOverride(clockSync.computerId, clockSync.value);
+    bestEffort(
+      () => container
+          .read(clockSyncSettingsNotifierProvider.notifier)
+          .setOverride(clockSync.computerId, clockSync.value),
+      'write the held clock sync choice',
+    );
   }
   // The computer's own settings may have been written with the item.
   for (final computer
@@ -174,24 +186,32 @@ Future<void> afterGearItemSave(
   container
     ..invalidate(computersForEquipmentProvider(equipmentId))
     ..invalidate(allDiveComputersProvider)
-    ..invalidate(favoriteDiveComputerProvider);
+    ..invalidate(favoriteDiveComputerProvider)
+    ..invalidate(equipmentItemProvider(equipmentId))
+    // Clocks and service records may have changed: re-evaluate them.
+    ..invalidate(serviceClockStatusesProvider(equipmentId))
+    ..invalidate(serviceSchedulesForEquipmentProvider(equipmentId))
+    ..invalidate(activeEquipmentClocksProvider);
   if (before != null &&
       after != null &&
       before.serialNumber != after.serialNumber) {
-    logFailure(
-      container
+    bestEffort(
+      () => container
           .read(transmitterRepositoryProvider)
           .rescanDivesForTransmitterItem(equipmentId),
-      EquipmentDetailPage,
       'rescan dives for the transmitter item',
     );
   }
-  container.invalidate(equipmentItemProvider(equipmentId));
-  // The sitting is saved: a list that fails to reload says nothing more
-  // about it, so it is logged, not reported as the Save failing.
-  logFailure(
-    container.read(equipmentListNotifierProvider.notifier).refresh(),
-    EquipmentDetailPage,
+  // The service reminders follow the clocks, the records and the item's
+  // own reminder days.
+  bestEffort(
+    () => container
+        .read(serviceRecordNotifierProvider(equipmentId).notifier)
+        .refresh(),
+    'reschedule service reminders after a save',
+  );
+  bestEffort(
+    () => container.read(equipmentListNotifierProvider.notifier).refresh(),
     'refresh the equipment lists after a save',
   );
 }

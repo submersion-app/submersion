@@ -4765,6 +4765,8 @@
   "equipment_serviceClocks_pause": "Sospendi",
   "equipment_serviceClocks_resume": "Riprendi",
   "equipment_serviceClocks_remove": "Rimuovi",
+  "equipment_serviceClocks_remindersOwn": "Promemoria prima della scadenza: {days}",
+  "equipment_serviceClocks_remindersOff": "Nessun promemoria per questa attrezzatura",
   "equipment_serviceClocks_paused": "In pausa",
   "equipment_serviceClocks_empty": "Nessuna scadenza di manutenzione",
   "equipment_serviceClocks_unconfigured": "Nessun intervallo impostato - tocca per configurare",

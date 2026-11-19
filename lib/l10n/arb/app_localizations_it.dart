@@ -16557,6 +16557,15 @@ class AppLocalizationsIt extends AppLocalizations {
   String get equipment_serviceClocks_remove => 'Rimuovi';
 
   @override
+  String equipment_serviceClocks_remindersOwn(String days) {
+    return 'Promemoria prima della scadenza: $days';
+  }
+
+  @override
+  String get equipment_serviceClocks_remindersOff =>
+      'Nessun promemoria per questa attrezzatura';
+
+  @override
   String get equipment_serviceClocks_paused => 'In pausa';
 
   @override

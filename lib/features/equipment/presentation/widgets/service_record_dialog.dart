@@ -29,12 +29,17 @@ class ServiceRecordDialog extends ConsumerStatefulWidget {
   final String? serviceKindId;
   final Future<void> Function(ServiceRecord) onSave;
 
+  /// Whether Save says the record was added or updated. Off in an item
+  /// page's sitting (issue #4527, phase 3), where [onSave] only holds it.
+  final bool announce;
+
   const ServiceRecordDialog({
     super.key,
     required this.equipmentId,
     this.existingRecord,
     this.serviceKindId,
     required this.onSave,
+    this.announce = true,
   });
 
   @override
@@ -628,6 +633,7 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
 
       if (mounted) {
         Navigator.of(context).pop();
+        if (!widget.announce) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -655,18 +661,25 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
 
 /// Logs a service for [equipmentId], fulfilling [serviceKindId]'s clock when
 /// given: the detail page's Log service and the gear passport's share it.
+/// In an item page's sitting (issue #4527, phase 3) the record is handed to
+/// [onHold] and written with the Save.
 Future<void> showLogServiceDialog(
   BuildContext context,
   WidgetRef ref, {
   required String equipmentId,
   String? serviceKindId,
+  void Function(ServiceRecord record)? onHold,
 }) => showDialog<void>(
   context: context,
   builder: (context) => ServiceRecordDialog(
     equipmentId: equipmentId,
     serviceKindId: serviceKindId,
-    onSave: (record) => ref
-        .read(serviceRecordNotifierProvider(equipmentId).notifier)
-        .addRecord(record),
+    announce: onHold == null,
+    onSave: (record) async {
+      if (onHold != null) return onHold(record);
+      await ref
+          .read(serviceRecordNotifierProvider(equipmentId).notifier)
+          .addRecord(record);
+    },
   ),
 );

@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/equipment/presentation/editing/gear_item_service_sitting.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_location_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
@@ -368,13 +369,21 @@ class _EquipmentDetailContent extends ConsumerWidget {
             const SizedBox(height: 24),
           ],
           if (!equipment.isWanted) ...[
-            ServiceClocksCard(
-              equipmentId: equipmentId,
-              equipmentType: equipment.type,
-              onLogService: (status) => _showAddServiceDialogForKind(
-                context,
-                ref,
-                serviceKindId: status.kind.id,
+            _framed(
+              GearItemCardId.serviceClocks,
+              ServiceClocksCard(
+                equipmentId: equipmentId,
+                equipmentType: equipment.type,
+                readOnly: _editing,
+                customReminder: (
+                  enabled: equipment.customReminderEnabled,
+                  days: equipment.customReminderDays,
+                ),
+                onLogService: (status) => _showAddServiceDialogForKind(
+                  context,
+                  ref,
+                  serviceKindId: status.kind.id,
+                ),
               ),
             ),
             const SizedBox(height: 24),
@@ -424,7 +433,14 @@ class _EquipmentDetailContent extends ConsumerWidget {
             _calculated(EquipmentHistoryCard(equipmentId: equipmentId)),
             const SizedBox(height: 24),
           ],
-          ServiceHistorySection(equipmentId: equipmentId),
+          _framed(
+            GearItemCardId.serviceHistory,
+            ServiceHistorySection(
+              equipmentId: equipmentId,
+              shown: _session,
+              readOnly: _editing,
+            ),
+          ),
           if (equipment.notes.isNotEmpty || _shows(GearItemCardId.notes)) ...[
             const SizedBox(height: 24),
             _framed(
