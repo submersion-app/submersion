@@ -115,7 +115,6 @@ void main() {
       createdAt: t0,
       updatedAt: t0,
     );
-    await tester.pumpWidget(const SizedBox());
     await pumpEditor(
       tester,
       (s) => EquipmentSetHeaderEditor(session: s),
