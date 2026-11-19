@@ -303,7 +303,10 @@ extension _SiteDetailBars on _SiteDetailContentState {
       unlocked: isSittingOpen
           ? editingPaneRow(
               widget.site,
-              menu: menuWith(_unlockedDisplayOptionsMenu),
+              // A new site has nothing for a menu to act on yet.
+              menu: isCreating
+                  ? const SizedBox.shrink()
+                  : menuWith(_unlockedDisplayOptionsMenu),
             )
           : null,
     );

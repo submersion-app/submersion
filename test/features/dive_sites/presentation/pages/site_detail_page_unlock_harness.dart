@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/data/services/site_edit_save_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/models/new_site_seed.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_new_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_edit_save_provider.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -203,5 +205,86 @@ Future<SiteUnlockHarness> pumpSitePage(
       find.byType(router == null ? SiteDetailPage : Scaffold).first,
     ),
   );
+  return harness;
+}
+
+/// The new-site page under test (issue #4527, phase 2, plan 6), with its
+/// save, and what it handed back as it left.
+class NewSiteHarness {
+  NewSiteHarness(this.save);
+
+  final FakeSiteSave save;
+
+  /// Whether the full page has left, and the value it left with.
+  bool left = false;
+  Object? leftWith;
+
+  /// The pane's callbacks: the id created, and whether it was cancelled.
+  String? created;
+  bool cancelled = false;
+}
+
+/// Pumps the new-site page, as a pushed route or ([embedded]) in a pane,
+/// from [seed], or as a duplicate of [duplicate] (null when that site is
+/// gone).
+Future<NewSiteHarness> pumpNewSitePage(
+  WidgetTester tester, {
+  NewSiteSeed? seed,
+  SiteDuplicateSource? duplicate,
+  bool duplicateGone = false,
+  bool embedded = false,
+  AppSettings settings = const AppSettings(),
+  Size size = const Size(600, 1400),
+  List<Override> extra = const [],
+}) async {
+  tester.view.devicePixelRatio = 1.0;
+  tester.view.physicalSize = size;
+  addTearDown(tester.view.reset);
+  final harness = NewSiteHarness(FakeSiteSave(harnessSite));
+  final duplicateOfId = duplicate?.site.id ?? (duplicateGone ? 'gone' : null);
+  final page = embedded
+      ? SiteDetailPage.newSite(
+          seed: seed,
+          duplicateOfId: duplicateOfId,
+          embedded: true,
+          onCreated: (id) => harness.created = id,
+          onCreateCancelled: () => harness.cancelled = true,
+        )
+      : SiteDetailPage.newSite(seed: seed, duplicateOfId: duplicateOfId);
+  final navigator = GlobalKey<NavigatorState>();
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        ...await getBaseOverrides(
+          settingsNotifier: MockSettingsNotifier(settings),
+        ),
+        validatedCurrentDiverIdProvider.overrideWith((_) async => 'me'),
+        shareByDefaultProvider.overrideWith((_) async => false),
+        siteEditSaveServiceProvider.overrideWithValue(harness.save),
+        if (duplicateOfId != null)
+          siteDuplicateSourceProvider(
+            duplicateOfId,
+          ).overrideWith((_) async => duplicate),
+        ...extra,
+      ].cast<Override>(),
+      child: MaterialApp(
+        navigatorKey: navigator,
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: embedded ? Scaffold(body: page) : const Scaffold(),
+      ),
+    ),
+  );
+  if (!embedded) {
+    navigator.currentState!
+        .push<Object?>(MaterialPageRoute(builder: (_) => page))
+        .then((value) {
+          harness
+            ..left = true
+            ..leftWith = value;
+        });
+  }
+  await tester.pumpAndSettle();
   return harness;
 }

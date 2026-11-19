@@ -6,6 +6,7 @@ library;
 import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/geocoding/place_lookup.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
@@ -112,6 +113,14 @@ Future<SiteDuplicateSource?> readSiteDuplicate(
     sharing: sharing,
   );
 }
+
+/// [readSiteDuplicate] for the page that opens a duplicate of a site. The
+/// page reads it once and lets it go, so the next duplicate reads the site
+/// as it is then.
+final siteDuplicateSourceProvider =
+    FutureProvider.family<SiteDuplicateSource?, String>(
+      (ref, siteId) => readSiteDuplicate(ref.read, siteId),
+    );
 
 /// The starter cards: the header block, then Location, Depth and Notes
 /// (spec, decision 4).

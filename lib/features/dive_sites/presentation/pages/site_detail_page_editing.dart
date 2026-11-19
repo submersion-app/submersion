@@ -650,6 +650,9 @@ mixin _SiteDetailPageEditing
     if (!editing) return builder;
     final card = siteEditCards[id];
     if (card == null) {
+      // Worked out from the site's dives and position: nothing until the
+      // site exists (plan 6).
+      if (isCreating) return null;
       if (builder == null || !kSiteCalculatedSections.contains(id)) {
         return builder;
       }
