@@ -48,5 +48,19 @@ class AssignTest(unittest.TestCase):
         self.assertIsNone(fetch_training.candidate_for(33, index))
 
 
+class NextDayTest(unittest.TestCase):
+    def test_seconds_until_next_utc_day(self):
+        import datetime
+
+        utc = datetime.timezone.utc
+        late = datetime.datetime(2026, 11, 19, 23, 0, tzinfo=utc)
+        self.assertEqual(fetch_training.seconds_until_next_utc_day(late), 3600 + 60)
+        sydney = datetime.timezone(datetime.timedelta(hours=11))
+        same_instant = datetime.datetime(2026, 11, 20, 10, 0, tzinfo=sydney)
+        self.assertEqual(fetch_training.seconds_until_next_utc_day(same_instant), 3600 + 60)
+        midnight = datetime.datetime(2026, 11, 20, 0, 0, tzinfo=utc)
+        self.assertEqual(fetch_training.seconds_until_next_utc_day(midnight), 86400 + 60)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -16,6 +16,8 @@ Stages, each resumable:
   embedding, delete the photos.
 - all: the three in order.
 
+--wait: at a daily limit, sleep to the next UTC day and carry on.
+
 Stays at one iNaturalist request a second and under 9,000 a day, and under
 20 GB of photos a day: a stage that reaches a limit stops and says to run
 it again tomorrow. Downloads live under the work folder's photos/, apart
@@ -68,6 +70,28 @@ def batch_of(records, size=BATCH):
 def candidate_for(gbif_key, index):
     """The candidate index a resolved GBIF key belongs to, or None."""
     return index.get(gbif_key) if gbif_key is not None else None
+
+
+def seconds_until_next_utc_day(now):
+    """Seconds from the aware datetime `now` to the next UTC midnight, plus a
+    minute so the new day's allowance has surely started."""
+    utc = datetime.timezone.utc
+    tomorrow = now.astimezone(utc).date() + datetime.timedelta(days=1)
+    midnight = datetime.datetime.combine(tomorrow, datetime.time(), tzinfo=utc)
+    return int((midnight - now).total_seconds()) + 60
+
+
+def _until_done(stage, wait):
+    """Runs `stage` (which returns False when it stopped at a daily limit)
+    until it finishes, sleeping to the next UTC day between runs when
+    `wait`. False when it stopped and `wait` is off."""
+    while not stage():
+        if not wait:
+            return False
+        delay = seconds_until_next_utc_day(datetime.datetime.now(datetime.timezone.utc))
+        print(f"waiting {delay / 3600:.1f} hours for the next day's allowance", flush=True)
+        time.sleep(delay)
+    return True
 
 
 def _today():
@@ -250,14 +274,17 @@ def main(argv=None):
     parser.add_argument("--set", default=ft.DEFAULT_CSV, help="the accuracy test set, for the leak guard")
     parser.add_argument("--work", default=DEFAULT_WORK)
     parser.add_argument("--limit", type=int, help="only the first N candidates (a dry run)")
+    parser.add_argument("--wait", action="store_true", help="at a daily limit, sleep to the next UTC day and go on")
     args = parser.parse_args(argv)
     os.makedirs(args.work, exist_ok=True)
-    if args.stage in ("lists", "all") and not stage_lists(args.work, args.pack, args.limit):
+    if args.stage in ("lists", "all") and not _until_done(
+        lambda: stage_lists(args.work, args.pack, args.limit), args.wait
+    ):
         return 0
     if args.stage in ("select", "all"):
         stage_select(args.work, args.set)
-    if args.stage in ("embed", "all"):
-        stage_embed(args.work, args.pack)
+    if args.stage in ("embed", "all") and not _until_done(lambda: stage_embed(args.work, args.pack), args.wait):
+        return 0
     return 0
 
 
