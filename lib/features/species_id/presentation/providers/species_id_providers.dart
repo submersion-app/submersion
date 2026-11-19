@@ -185,7 +185,7 @@ final mediaIdentificationServiceProvider = Provider<MediaIdentificationService>(
       identifications: identifications,
       embeddings: ref.watch(identificationEmbeddingRepositoryProvider),
       crops: ref.watch(identificationCropStoreProvider),
-      resolveImage: (item) => _imageOf(ref, item),
+      resolveImage: (item) => identificationImageOf(ref, item),
       resolveVideo: (item) => ref.read(videoFileReaderProvider(item).future),
       taggedSpecies: identifications.taggedSpecies,
       enabled: () =>
@@ -236,7 +236,10 @@ final videoFileReaderProvider =
 
 /// A readable file when the photo has one here; otherwise the bytes the
 /// viewer itself would show. Starts no download of its own beyond that.
-Future<IdentificationImage?> _imageOf(Ref ref, MediaItem item) async {
+Future<IdentificationImage?> identificationImageOf(
+  Ref ref,
+  MediaItem item,
+) async {
   final local = item.localPath;
   if (local != null && local.isNotEmpty) {
     try {

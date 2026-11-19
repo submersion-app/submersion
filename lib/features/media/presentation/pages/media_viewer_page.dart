@@ -50,6 +50,7 @@ import 'package:submersion/features/media/presentation/widgets/media_info_sheet.
 import 'package:submersion/features/media/presentation/widgets/media_species_chips_row.dart';
 import 'package:submersion/features/media/presentation/widgets/media_species_sheet.dart';
 import 'package:submersion/features/media/domain/entities/media_person_tag.dart';
+import 'package:submersion/features/media/domain/services/media_location.dart';
 import 'package:submersion/features/media/presentation/widgets/people_tags/face_box_layer.dart';
 import 'package:submersion/features/media/presentation/widgets/people_tags/media_people_chips_row.dart';
 import 'package:submersion/features/media/presentation/widgets/people_tags/people_tag_editor.dart';

@@ -5,6 +5,7 @@ import 'package:submersion/features/media/data/services/species_tagging_service.
 import 'package:submersion/features/media/domain/value_objects/sighting_timing.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
 import 'package:submersion/features/species_id/data/services/suggestion_acceptor.dart';
+import 'package:submersion/features/species_id/domain/entities/dive_species_run_state.dart';
 import 'package:submersion/features/species_id/domain/services/auto_apply_rules.dart';
 import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
 
@@ -44,6 +45,25 @@ class AutoApplier {
       DatabaseService.instance.databaseOrNull,
       label: ChangeLogLabels.marineLifeId,
       body: () => apply(mediaId, isVideo: isVideo),
+    );
+  }
+
+  /// [apply] over a Find species run's [items], filed as one automatic
+  /// History entry for the whole run (issue #4727). The scope opens only
+  /// now, at the run's end, so a save the diver made during the run is not
+  /// filed under it. Returns how many species it tagged.
+  Future<int> applyAllInScope(List<RunAppliedItem> items) {
+    if (!isOn || items.isEmpty) return Future.value(0);
+    return ChangeLogScope.automatic(
+      DatabaseService.instance.databaseOrNull,
+      label: ChangeLogLabels.marineLifeId,
+      body: () async {
+        var tagged = 0;
+        for (final item in items) {
+          tagged += await apply(item.mediaId, isVideo: item.isVideo);
+        }
+        return tagged;
+      },
     );
   }
 

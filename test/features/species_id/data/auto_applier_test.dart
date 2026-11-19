@@ -128,4 +128,26 @@ void main() {
       );
     },
   );
+
+  test('a run\'s items are one change log operation', () async {
+    await insertTestMedia(id: 'p2', diveId: 'd1');
+    await store('p1');
+    await store('p2');
+
+    final tagged = await applier().applyAllInScope(const [
+      (mediaId: 'p1', isVideo: false),
+      (mediaId: 'p2', isVideo: false),
+    ]);
+
+    expect(tagged, 2);
+    await changeLog.settleAll();
+    // The test's own photo insert is an operation of its own.
+    final ops = await db
+        .customSelect(
+          "SELECT label FROM change_log_operations "
+          "WHERE label = 'marine_life_id'",
+        )
+        .get();
+    expect(ops, hasLength(1));
+  });
 }
