@@ -108,6 +108,19 @@ mixin _EquipmentDetailPageEditing
       ),
     );
     justSavedRecord = result?.after ?? session.working;
+    // In the list's pane, an item the list's view no longer shows (its
+    // status, its tags) is offered the view that does, as the form did.
+    final after = result?.after;
+    if (after != null && widget.embedded && mounted) {
+      unawaited(
+        offerViewRevealingSavedItem(
+          context,
+          ref,
+          equipmentId: after.id,
+          status: after.status,
+        ),
+      );
+    }
     // Uploads and the remote deletes the unlinks held, once committed.
     final afterCommit = [
       ...mediaAfterCommit(session),

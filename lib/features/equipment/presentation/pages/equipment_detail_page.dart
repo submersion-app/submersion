@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_edit_routes.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_check_ins_sitting.dart';
 import 'package:submersion/features/media/presentation/providers/equipment_media_providers.dart';
@@ -109,6 +113,7 @@ import 'package:submersion/shared/widgets/record_editing/record_pane_row.dart';
 import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
 part 'equipment_detail_page_editing.dart';
+part 'equipment_detail_page_menu.dart';
 part 'equipment_detail_page_sections.dart';
 
 /// A gear item's page. Behind phase 3's switch ([unlockEditing]) it opens
@@ -173,7 +178,13 @@ class _EquipmentDetailPageState extends ConsumerState<EquipmentDetailPage>
       _hasRedirected = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          context.go('/equipment?selected=${widget.equipmentId}');
+          // Into the pane, unlocked when the edit address asked for it.
+          context.go(
+            gearItemPaneLocation(
+              widget.equipmentId,
+              openUnlocked: widget.openUnlocked,
+            ),
+          );
         }
       });
     }
@@ -622,137 +633,5 @@ class _EquipmentDetailContent extends ConsumerWidget {
         ],
       ),
     );
-  }
-
-  /// The overflow menu shared by the standalone and embedded headers.
-  Widget _buildMenu(BuildContext context, WidgetRef ref) {
-    final canDelete = _isOwner(ref);
-    final canTransfer = _canTransfer(ref);
-    return PopupMenuButton<String>(
-      key: const ValueKey('equipment-detail-overflow'),
-      icon: embedded ? const Icon(Icons.more_vert, size: 20) : null,
-      onSelected: (value) => _handleMenuAction(context, ref, value),
-      itemBuilder: (context) => _buildMenuItems(
-        context,
-        canDelete: canDelete,
-        canTransfer: canTransfer,
-      ),
-    );
-  }
-
-  /// Open in Connections is for everyone who can see the item, a sharee
-  /// included: shared gear sits on their own dives. So is Clone (#3184): the
-  /// clone is the viewer's own item. Delete needs the owner.
-  List<PopupMenuEntry<String>> _buildMenuItems(
-    BuildContext context, {
-    required bool canDelete,
-    required bool canTransfer,
-  }) {
-    return [
-      changeLogHistoryMenuItem(
-        context,
-        rootTable: 'equipment',
-        rootId: equipmentId,
-      ),
-      openInConnectionsMenuItem(context),
-      PopupMenuItem(
-        value: 'clone',
-        child: ListTile(
-          leading: const Icon(Icons.copy),
-          title: Text(context.l10n.equipment_menu_clone),
-          contentPadding: EdgeInsets.zero,
-        ),
-      ),
-      if (canTransfer)
-        PopupMenuItem(
-          value: 'transfer',
-          child: ListTile(
-            leading: const Icon(Icons.swap_horiz),
-            title: Text(context.l10n.equipment_transfer_action),
-            contentPadding: EdgeInsets.zero,
-          ),
-        ),
-      if (canDelete)
-        PopupMenuItem(
-          value: 'delete',
-          child: ListTile(
-            leading: const Icon(Icons.delete, color: Colors.red),
-            title: Text(
-              context.l10n.equipment_menu_delete,
-              style: const TextStyle(color: Colors.red),
-            ),
-            contentPadding: EdgeInsets.zero,
-          ),
-        ),
-    ];
-  }
-
-  Future<void> _handleMenuAction(
-    BuildContext context,
-    WidgetRef ref,
-    String action,
-  ) async {
-    final notifier = ref.read(equipmentListNotifierProvider.notifier);
-
-    switch (action) {
-      case kOpenInConnectionsAction:
-        openInConnections(
-          context,
-          NodeRef(ConnectionKind.equipment, equipmentId),
-        );
-      case 'clone':
-        context.push('/equipment/new?cloneFrom=$equipmentId');
-      case 'transfer':
-        final activeDiverId = await ref.read(
-          validatedCurrentDiverIdProvider.future,
-        );
-        if (!context.mounted) break;
-        final done = await transferEquipmentToProfile(
-          context,
-          ref,
-          equipmentIds: [equipmentId],
-          activeDiverId: activeDiverId,
-        );
-        // Without kept access the item is no longer this profile's to see,
-        // so leave it as after a delete.
-        if (done.outcome == BulkActionOutcome.completed &&
-            !done.keptAccess &&
-            context.mounted) {
-          if (embedded) {
-            onDeleted?.call();
-          } else {
-            context.go('/equipment');
-          }
-        }
-      case 'delete':
-        // The item this page shows, not a re-read: a reload in flight would
-        // drop the device warning a computer or transmitter needs.
-        final confirmed = await confirmEquipmentDelete(context, stored.type);
-
-        if (confirmed) {
-          final deleted = await notifier.deleteEquipment(equipmentId);
-          if (!deleted) {
-            // Delete is owner-only (issue #2046): the item was kept, so stay
-            // on it and say why.
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(context.l10n.equipment_delete_notOwner)),
-              );
-            }
-            break;
-          }
-          if (context.mounted) {
-            if (embedded) {
-              onDeleted?.call();
-            } else {
-              context.go('/equipment');
-            }
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(context.l10n.equipment_snackbar_deleted)),
-            );
-          }
-        }
-        break;
-    }
   }
 }

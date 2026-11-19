@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_edit_routes.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/query/presentation/widgets/entity_search_action.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
@@ -132,11 +133,13 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
             },
           ),
           summaryBuilder: (context) => const EquipmentSummaryWidget(),
-          editBuilder: (context, id, onSaved, onCancel) => EquipmentEditPage(
-            equipmentId: id,
-            embedded: true,
-            onSaved: onSaved,
-            onCancel: onCancel,
+          // The item's page opened unlocked, behind phase 3's switch.
+          editBuilder: (context, id, onSaved, onCancel) => gearItemEditPane(
+            context,
+            id,
+            onSaved,
+            onCancel,
+            onDeleted: () => context.go('/equipment'),
           ),
           createBuilder: (context, onSaved, onCancel) => EquipmentEditPage(
             embedded: true,
@@ -437,11 +440,13 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
         },
       ),
       summaryBuilder: (context) => const EquipmentSummaryWidget(),
-      editBuilder: (context, id, onSaved, onCancel) => EquipmentEditPage(
-        equipmentId: id,
-        embedded: true,
-        onSaved: onSaved,
-        onCancel: onCancel,
+      // The item's page opened unlocked, behind phase 3's switch.
+      editBuilder: (context, id, onSaved, onCancel) => gearItemEditPane(
+        context,
+        id,
+        onSaved,
+        onCancel,
+        onDeleted: () => context.go('/equipment'),
       ),
       createBuilder: (context, onSaved, onCancel) => EquipmentEditPage(
         embedded: true,

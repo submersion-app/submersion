@@ -512,6 +512,143 @@ void main() {
     });
   });
 
+  group('hosts and the menu', () {
+    Future<void> openMenu(WidgetTester tester) async {
+      await tester.tap(
+        find.byKey(const ValueKey('equipment-detail-overflow')).first,
+      );
+      await tester.pumpAndSettle();
+    }
+
+    PopupMenuItem<String> menuItem(WidgetTester tester, String value) =>
+        tester.widget<PopupMenuItem<String>>(
+          find.byWidgetPredicate(
+            (w) => w is PopupMenuItem<String> && w.value == value,
+          ),
+        );
+
+    testWidgets('opened with mode=edit, the page is unlocked', (tester) async {
+      await pumpGearPage(tester, openUnlocked: true);
+
+      expect(find.byIcon(Icons.lock_outline), findsNothing);
+      expect(find.byType(RecordEditBar), findsOneWidget);
+    });
+
+    testWidgets('the pane\'s edit opens unlocked, and Cancel returns to view', (
+      tester,
+    ) async {
+      var ended = 0;
+      await pumpGearPage(
+        tester,
+        embedded: true,
+        openUnlocked: true,
+        onSittingEnded: () => ended++,
+      );
+      expect(find.text(l.common_action_cancel), findsOneWidget);
+
+      await tester.tap(find.text(l.common_action_cancel));
+      await tester.pumpAndSettle();
+
+      expect(ended, 1);
+    });
+
+    testWidgets('the pane\'s Save updates the item and returns to view', (
+      tester,
+    ) async {
+      var ended = 0;
+      final harness = await pumpGearPage(
+        tester,
+        embedded: true,
+        openUnlocked: true,
+        onSittingEnded: () => ended++,
+      );
+      sessionOf(tester).set(gearNotesField, 'Rinse');
+      await tester.pumpAndSettle();
+
+      await save(tester);
+
+      expect(harness.save.calls.single.after.notes, 'Rinse');
+      expect(harness.stored.state!.id, 'g1');
+      expect(ended, 1);
+    });
+
+    // The list's view, as the form's Save checked it (#3068): the pane's
+    // item is stored, as the save made it.
+    Future<void> paneSave(WidgetTester tester, EquipmentItem item) async {
+      await EquipmentRepository().createEquipment(item);
+      await pumpGearPage(
+        tester,
+        item: item,
+        embedded: true,
+        openUnlocked: true,
+      );
+      sessionOf(tester).set(gearNotesField, 'Rinse');
+      await tester.pumpAndSettle();
+      await save(tester);
+    }
+
+    testWidgets('a pane Save that hides the item offers its view', (
+      tester,
+    ) async {
+      await paneSave(
+        tester,
+        apex.copyWith(status: EquipmentStatus.wanted, isActive: false),
+      );
+
+      expect(find.text(l.equipment_edit_snackbar_hiddenByView), findsOneWidget);
+    });
+
+    testWidgets('a pane Save the view still shows says nothing', (
+      tester,
+    ) async {
+      await paneSave(tester, apex);
+
+      expect(find.text(l.equipment_edit_snackbar_hiddenByView), findsNothing);
+    });
+
+    testWidgets('a full page Save stays on the item', (tester) async {
+      final harness = await pumpGearPage(tester);
+      await unlock(tester);
+      sessionOf(tester).set(gearNotesField, 'Rinse');
+      await tester.pumpAndSettle();
+
+      await save(tester);
+
+      expect(harness.save.calls, hasLength(1));
+      expect(find.byType(EquipmentDetailPage), findsOneWidget);
+      expect(find.byIcon(Icons.lock_outline), findsOneWidget);
+    });
+
+    testWidgets('locked, Delete is disabled under "Unlock to use these"', (
+      tester,
+    ) async {
+      await pumpGearPage(tester);
+      await openMenu(tester);
+
+      expect(menuItem(tester, 'delete').enabled, isFalse);
+      expect(find.text(l.recordEdit_unlockToUseThese), findsOneWidget);
+    });
+
+    testWidgets('unlocked and clean, Delete asks first', (tester) async {
+      await pumpGearPage(tester);
+      await unlock(tester);
+      await openMenu(tester);
+
+      expect(menuItem(tester, 'delete').enabled, isTrue);
+      await tester.tap(find.text(l.equipment_menu_delete));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsOneWidget);
+    });
+
+    testWidgets('Clone works locked', (tester) async {
+      await pumpGearPage(tester);
+      await openMenu(tester);
+
+      expect(menuItem(tester, 'clone').enabled, isTrue);
+    });
+  });
+
   group('the header block', () {
     final header = l.settings_conflict_ref_equipment;
     final wanted = apex.copyWith(
