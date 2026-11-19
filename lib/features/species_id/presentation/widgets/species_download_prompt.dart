@@ -31,15 +31,13 @@ class SpeciesDownloadPrompt extends ConsumerWidget {
     final tile = ListTile(
       key: const ValueKey('species_download_prompt'),
       contentPadding: banner ? null : EdgeInsets.zero,
-      leading: Icon(iconForSpeciesCategory(SpeciesCategory.fish), color: color),
-      title: Text(
-        l10n.speciesId_downloadPrompt_title,
-        style: TextStyle(color: color),
-      ),
-      subtitle: Text(
-        l10n.speciesId_downloadPrompt_subtitle,
-        style: TextStyle(color: color),
-      ),
+      // Colours the leading icon and both lines; the close button's icon
+      // takes its colour from the button, so it is given its own.
+      iconColor: color,
+      textColor: color,
+      leading: Icon(iconForSpeciesCategory(SpeciesCategory.fish)),
+      title: Text(l10n.speciesId_downloadPrompt_title),
+      subtitle: Text(l10n.speciesId_downloadPrompt_subtitle),
       trailing: IconButton(
         key: const ValueKey('species_download_prompt_dismiss'),
         icon: Icon(Icons.close, color: color),

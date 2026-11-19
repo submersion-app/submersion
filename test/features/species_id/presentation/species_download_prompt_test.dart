@@ -1,11 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/species_id/data/pack/species_pack_downloader.dart';
 import 'package:submersion/features/species_id/data/pack/species_pack_store.dart';
@@ -48,9 +53,19 @@ void main() {
     InstalledPack? installed,
     bool dismissed = false,
     SpeciesPackState packState = const PackChecking(),
+    bool availabilityLoading = false,
+    bool installedLoading = false,
   }) => [
-    visionAvailabilityProvider.overrideWith((ref) async => availability),
-    installedSpeciesPackProvider.overrideWith((ref) async => installed),
+    visionAvailabilityProvider.overrideWith(
+      (ref) => availabilityLoading
+          ? Completer<VisionAvailability>().future
+          : Future.value(availability),
+    ),
+    installedSpeciesPackProvider.overrideWith(
+      (ref) => installedLoading
+          ? Completer<InstalledPack?>().future
+          : Future.value(installed),
+    ),
     speciesDownloadPromptDismissedNotifierProvider.overrideWith(
       (ref) => SpeciesDownloadPromptDismissedNotifier.unstored(dismissed),
     ),
@@ -72,6 +87,24 @@ void main() {
     test('is wanted where the model can run and none is installed', () async {
       expect(await wanted(promptOverrides()), isTrue);
     });
+
+    // On a device with the model, the store is still being read: no flash
+    // of the offer on every dive and photo meanwhile.
+    test(
+      'is not wanted while the pack or the device is being checked',
+      () async {
+        for (final overrides in [
+          promptOverrides(installedLoading: true),
+          promptOverrides(availabilityLoading: true),
+        ]) {
+          final container = ProviderContainer(overrides: overrides);
+          addTearDown(container.dispose);
+          container.listen(speciesDownloadPromptProvider, (_, _) {});
+          await Future<void>.delayed(Duration.zero);
+          expect(container.read(speciesDownloadPromptProvider), isFalse);
+        }
+      },
+    );
 
     test('is not wanted once a model is installed', () async {
       expect(await wanted(promptOverrides(installed: pack)), isFalse);
@@ -193,6 +226,42 @@ void main() {
       expect(find.text('Identify fish in your photos and videos'), findsOne);
     });
 
+    testWidgets('as a banner, draws in the banner colours', (tester) async {
+      await pumpPrompt(tester, overrides: promptOverrides(), banner: true);
+      final scheme = Theme.of(tester.element(prompt)).colorScheme;
+      Color? textColor(String text) => tester
+          .renderObject<RenderParagraph>(find.text(text))
+          .text
+          .style
+          ?.color;
+      expect(
+        textColor('Identify fish in your photos and videos'),
+        scheme.onSecondaryContainer,
+      );
+      expect(
+        textColor(
+          'Download the species identification model to get suggestions',
+        ),
+        scheme.onSecondaryContainer,
+      );
+      // The colour each glyph is drawn in, however it reached the icon.
+      Color? glyphColor(IconData icon) => tester
+          .renderObject<RenderParagraph>(
+            find.descendant(
+              of: find.descendant(of: prompt, matching: find.byIcon(icon)),
+              matching: find.byType(RichText),
+            ),
+          )
+          .text
+          .style
+          ?.color;
+      expect(
+        glyphColor(iconForSpeciesCategory(SpeciesCategory.fish)),
+        scheme.onSecondaryContainer,
+      );
+      expect(glyphColor(Icons.close), scheme.onSecondaryContainer);
+    });
+
     testWidgets('draws nothing where it is not wanted', (tester) async {
       await pumpPrompt(tester, overrides: promptOverrides(installed: pack));
       expect(prompt, findsNothing);
@@ -234,6 +303,23 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(prompt.last);
       await tester.pumpAndSettle();
+      expect(find.text('viewer'), findsOneWidget);
+      expect(find.text('identification'), findsNothing);
+    });
+
+    // How the diver meets it: the species sheet over a viewer holding
+    // tags it has not saved. The sheet closes; the viewer is asked, not
+    // popped past, and nothing opens.
+    testWidgets('from a sheet over a page that will not close, closes only '
+        'the sheet', (tester) async {
+      await pumpPrompt(tester, overrides: promptOverrides());
+      await tester.tap(find.text('open guarded viewer'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('open sheet'));
+      await tester.pumpAndSettle();
+      await tester.tap(prompt.last);
+      await tester.pumpAndSettle();
+      expect(find.text('sheet'), findsNothing);
       expect(find.text('viewer'), findsOneWidget);
       expect(find.text('identification'), findsNothing);
     });
