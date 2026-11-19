@@ -11,6 +11,7 @@ import os
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 import numpy as np
 
@@ -95,6 +96,45 @@ class LoadTest(unittest.TestCase):
             np.testing.assert_allclose(x, [[0.6, 0.8]])
             xv, yv, _ = train_naming.load(work, part="validation")
             self.assertEqual(yv.tolist(), [0])
+
+    def test_load_with_no_photos_says_so(self):
+        with tempfile.TemporaryDirectory() as work:
+            os.makedirs(os.path.join(work, "embeddings"))
+            with open(os.path.join(work, "selected.json"), "w", encoding="utf-8") as fh:
+                json.dump({"train": [{"id": "1"}], "validation": []}, fh)
+            np.save(os.path.join(work, "embeddings", "0000.npy"), np.zeros((0, 0), dtype=np.float32))
+            open(os.path.join(work, "embeddings", "0000.jsonl"), "w", encoding="utf-8").close()
+            with self.assertRaisesRegex(SystemExit, "no validation photos"):
+                train_naming.load(work, part="validation")
+
+
+class SearchTest(unittest.TestCase):
+    def test_search_stops_when_no_setting_has_a_finite_loss(self):
+        name_rows, x, y = toy()
+        diverged = np.full_like(name_rows, np.nan)
+        with mock.patch.object(train_naming, "train", return_value=diverged):
+            with self.assertRaisesRegex(SystemExit, "finite validation loss"):
+                train_naming.search(name_rows, (x, y), (x, y), log=lambda _: None)
+
+
+class NameRowsTest(unittest.TestCase):
+    def pack(self, folder, scale):
+        with open(os.path.join(folder, "manifest.json"), "w", encoding="utf-8") as fh:
+            json.dump({"classifier": {"embeddingSize": 2, "logitScale": scale}}, fh)
+        with open(os.path.join(folder, "candidates.json"), "w", encoding="utf-8") as fh:
+            json.dump([{}, {}, {}], fh)
+        np.arange(6, dtype="<f2").tofile(os.path.join(folder, "text_embeddings.f16"))
+
+    def test_name_rows_read_the_pack(self):
+        with tempfile.TemporaryDirectory() as folder:
+            self.pack(folder, train_naming.SCALE)
+            self.assertEqual(train_naming.name_rows_of(folder).shape, (3, 2))
+
+    def test_a_pack_scored_at_another_scale_is_refused(self):
+        with tempfile.TemporaryDirectory() as folder:
+            self.pack(folder, 10.0)
+            with self.assertRaisesRegex(SystemExit, "logitScale"):
+                train_naming.name_rows_of(folder)
 
 
 if __name__ == "__main__":

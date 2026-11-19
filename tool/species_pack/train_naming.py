@@ -74,7 +74,9 @@ def load(work, *, part, exclude=frozenset()):
             if r["id"] in wanted and r["gbif_key"] not in exclude:
                 records.append(r)
                 vectors.append(v)
-    x = _unit(np.asarray(vectors, dtype=np.float32).reshape(len(vectors), -1))
+    if not vectors:
+        raise SystemExit(f"no {part} photos in {folder}" + (" after the held-back species" if exclude else ""))
+    x = _unit(np.asarray(vectors, dtype=np.float32))
     y = np.asarray([r["candidate"] for r in records], dtype=np.int64)
     return x, y, records
 
@@ -174,6 +176,8 @@ def search(name_rows, train_xy, validation_xy, *, seed=SEED, log=print):
                 if loss < best["validation loss"]:
                     best_rows = rows
                     best = {"anchor": anchor, "blend": blend, "sharpness": sharpness, "validation loss": loss}
+    if best_rows is None:
+        raise SystemExit("no setting gave a finite validation loss: training diverged")
     best["validation top-1"] = top1(best_rows, *validation_xy)
     return best_rows, best
 
@@ -195,6 +199,10 @@ def _read_manifest(pack):
 
 def name_rows_of(pack):
     base = _read_manifest(pack)
+    # Training scores crops as the app does, at the pack's logit scale.
+    scale = base["classifier"].get("logitScale")
+    if scale != SCALE:
+        raise SystemExit(f"{pack} names at logitScale {scale}, but training assumes {SCALE:g}")
     with open(os.path.join(pack, "candidates.json"), encoding="utf-8") as fh:
         count = len(json.load(fh))
     size = base["classifier"]["embeddingSize"]

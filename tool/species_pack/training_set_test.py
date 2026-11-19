@@ -66,6 +66,12 @@ class ObservationRecordTest(unittest.TestCase):
         self.assertIsNone(hidden["lat"])
         self.assertIsNone(hidden["lon"])
 
+    def test_a_photo_without_a_url_is_skipped(self):
+        self.assertIsNone(training_set.observation_record(observation(url=None), 3, 11))
+        missing = observation()
+        del missing["photos"][0]["url"]
+        self.assertIsNone(training_set.observation_record(missing, 3, 11))
+
 
 class GuardTest(unittest.TestCase):
     def test_guard_drops_test_ids_and_post_cutoff_test_observers(self):

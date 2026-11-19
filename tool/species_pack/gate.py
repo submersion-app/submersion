@@ -33,7 +33,6 @@ import training_set as ts  # noqa: E402
 ALPHA = 0.05
 JUNK_LIMIT = 0.02
 RARE_LIMIT = 0.02
-NEVER = 1.0
 SET_KEY = "both centreCrop"
 
 
@@ -59,7 +58,7 @@ def more_named_right(baseline, trained):
 
 def confident_bar(trained_eval):
     bar = trained_eval["bars after held-out gate"]["confident"]
-    return {"pass": bar <= NEVER, "confidentScore": bar}
+    return {"pass": bar < bar_search.NEVER, "confidentScore": bar}
 
 
 def no_group_worse(baseline, trained):

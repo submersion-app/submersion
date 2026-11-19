@@ -473,13 +473,15 @@ def evaluate(
         return out
 
     def per_photo(rows):
-        """Per test photo, both halves: named right at the bars, named
-        confidently right or wrong, and what the gate groups it by."""
+        """Per test photo, both halves: named right, named confidently right
+        or wrong, and what the gate groups it by. Named at the bars the app
+        names at: the pack's published bars when it has measured ones, so a
+        rerun whose own bars differ slightly compares what ships."""
         out = {}
         for r in rows:
             c = crops.get(r["id"])
-            named = bool(c and bar_search.named([c["with"]], gated, min_side=min_side)[0])
-            sure = bool(c and bar_search.named([c["with"]], gated, min_side=min_side, confident=True)[0])
+            named = bool(c and bar_search.named([c["with"]], surer, min_side=min_side)[0])
+            sure = bool(c and bar_search.named([c["with"]], surer, min_side=min_side, confident=True)[0])
             right = bool(c and c["with"].correct)
             out[r["id"]] = {
                 "named_right": named and right,
@@ -668,14 +670,9 @@ def main(argv=None):
     fixed_bars = None
     if args.naming_from:
         with open(os.path.join(args.naming_from, "manifest.json"), encoding="utf-8") as fh:
-            given = json.load(fh)["naming"]
-        fixed_bars = bar_search.Bars(
-            given["minOpenScore"],
-            given["suggestScore"],
-            given["suggestScoreNoLocation"],
-            given["confidentScore"],
-            given.get("confidentScoreNoLocation", given["confidentScore"]),
-        )
+            fixed_bars = bar_search.published_bars(json.load(fh)["naming"])
+        if fixed_bars is None:
+            raise SystemExit(f"{args.naming_from} has provisional bars; --naming-from needs measured ones")
 
     rows = testset.read_rows(args.set)
     animals = [r for r in rows if r["source"] == "inaturalist" and r["underwater"] == "yes"]

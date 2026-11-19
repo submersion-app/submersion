@@ -416,12 +416,17 @@ import json, os
 d = os.environ["DATA"]
 r = json.load(open(f"{d}/score-trained/results.json"))
 both = [m for m in r["measured"] if len(m["detectorIds"]) == 2][0]
+assert both["cropFit"] == "centreCrop", f"the pair measured best with {both['cropFit']}"
 m = json.load(open(f"{d}/pack-trained/manifest.json"))
 m["naming"] = both["naming"]
 json.dump(m, open(f"{d}/score-trained/bars-pack/manifest.json", "w"), indent=1)
 print(both["naming"])
 PYEOF
 ```
+
+An assertion error means the scorer chose another crop fitting for the
+pair than the packs use (`centreCrop`), so its measured bars are not the
+ones the gate or the app would read: STOP.
 
 Then score the check pack at those bars:
 
@@ -489,6 +494,9 @@ import json, sys; sys.path.insert(0, '$TOOLS'); import manifest as mf
 m = json.load(open('$DATA/pack-trained/manifest.json')); print(json.dumps(mf.contents_of(m['files']), indent=4))
 r = json.load(open('$DATA/score-trained/results.json')); print(json.dumps([e for e in r['measured'] if len(e['detectorIds']) == 2][0], indent=4))"
 ```
+
+If the printed entry's `cropFit` is not `centreCrop`: STOP (the entry below
+is recorded for `centreCrop`, the fitting the packs use).
 
 Add, using those printed values:
 

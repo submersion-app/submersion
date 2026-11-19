@@ -47,10 +47,11 @@ def _after_cutoff(r):
 
 def observation_record(o, candidate, gbif_key):
     """An iNaturalist v2 observation as a training record for the candidate
-    at index `candidate`, or None when its first photo is missing or not
-    under a training licence. A hidden place is kept as None."""
+    at index `candidate`, or None when its first photo is missing, has no
+    URL, or is not under a training licence. A hidden place is kept as
+    None."""
     photos = o.get("photos") or []
-    if not photos or photos[0].get("license_code") not in LICENCES:
+    if not photos or photos[0].get("license_code") not in LICENCES or not photos[0].get("url"):
         return None
     photo = photos[0]
     lat = lon = None

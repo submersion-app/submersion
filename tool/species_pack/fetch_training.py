@@ -31,6 +31,7 @@ import json
 import os
 import shutil
 import sys
+import threading
 import time
 import urllib.parse
 
@@ -92,6 +93,42 @@ def _until_done(stage, wait):
         print(f"waiting {delay / 3600:.1f} hours for the next day's allowance", flush=True)
         time.sleep(delay)
     return True
+
+
+def download_batch(batch, paths, budget, download=None, workers=8):
+    """Downloads each record's photo to its path, charging `budget` photo by
+    photo. False when the day's budget ran out first: the photos left wait
+    for the next day, and those already on disk are not charged again. A
+    photo that fails to download is skipped, not fatal."""
+    download = download or ft._download
+    lock = threading.Lock()
+
+    def fetch(r):
+        path = paths[r["id"]]
+        if os.path.exists(path):
+            return True
+        with lock:
+            if budget.exhausted():
+                return False
+        try:
+            download(r["photo_url"], path)
+        except Exception as e:  # a photo gone from the bucket is skipped, not fatal
+            print(f"skipping {r['id']}: {e}", flush=True)
+            return True
+        with lock:
+            budget.spend(os.path.getsize(path))
+        return True
+
+    with concurrent.futures.ThreadPoolExecutor(workers) as pool:
+        return all(list(pool.map(fetch, batch)))
+
+
+def embedding_array(vectors):
+    """A batch's embeddings as one float32 array; (0, 0) when it kept none,
+    which numpy cannot reshape from an empty list."""
+    import numpy as np
+
+    return np.asarray(vectors, dtype=np.float32) if vectors else np.zeros((0, 0), dtype=np.float32)
 
 
 def _today():
@@ -226,27 +263,20 @@ def stage_embed(work, pack):
             return False
         photos_dir = os.path.join(work, "photos", f"{n:04d}")
         paths = {r["id"]: os.path.join(photos_dir, f"{r['id']}.jpg") for r in batch}
-
-        def fetch(r):
-            path = paths[r["id"]]
-            fresh = not os.path.exists(path)
-            try:
-                ft._download(r["photo_url"], path)
-            except Exception as e:  # a photo gone from the bucket is skipped, not fatal
-                print(f"skipping {r['id']}: {e}", flush=True)
-                return 0
-            return os.path.getsize(path) if fresh else 0
-
-        with concurrent.futures.ThreadPoolExecutor(8) as pool:
-            budget.spend(sum(pool.map(fetch, batch)))
+        if not download_batch(batch, paths, budget):
+            print(f"stopped at the day's {DAILY_BYTES // 10**9} GB of photos; run embed again tomorrow", flush=True)
+            return False
         present = [r for r in batch if os.path.exists(paths[r["id"]])]
         raw = os.path.join(out_dir, f"{n:04d}.raw.jsonl")
-        runner.analyze(score.BOTH, FIT, [paths[r["id"]] for r in present], raw)
         results = {}
-        with open(raw, encoding="utf-8") as fh:
-            for line in fh:
-                result = json.loads(line)
-                results[result["path"]] = result
+        # A batch whose every download failed has nothing to hand the tool.
+        if present:
+            runner.analyze(score.BOTH, FIT, [paths[r["id"]] for r in present], raw)
+            with open(raw, encoding="utf-8") as fh:
+                for line in fh:
+                    result = json.loads(line)
+                    results[result["path"]] = result
+            os.remove(raw)
         vectors, kept = [], []
         for r in present:
             crop = labelled_crop(results.get(paths[r["id"]], {"error": "no result"}), MIN_SIDE)
@@ -254,14 +284,12 @@ def stage_embed(work, pack):
                 continue
             vectors.append(crop["embedding"])
             kept.append({**r, "side": min(crop["pixelWidth"], crop["pixelHeight"])})
-        array = np.asarray(vectors, dtype=np.float32).reshape(len(vectors), -1)
-        np.save(os.path.join(out_dir, f"{n:04d}.npy"), array)
+        np.save(os.path.join(out_dir, f"{n:04d}.npy"), embedding_array(vectors))
         # The metadata file is written last: its presence marks the batch done.
         with open(meta_path + ".partial", "w", encoding="utf-8") as fh:
             for r in kept:
                 fh.write(json.dumps(r, ensure_ascii=False) + "\n")
         os.replace(meta_path + ".partial", meta_path)
-        os.remove(raw)
         shutil.rmtree(photos_dir, ignore_errors=True)
         print(f"embed: batch {n + 1} of {len(batches)}, {len(kept)} of {len(batch)} photos kept", flush=True)
     return True
