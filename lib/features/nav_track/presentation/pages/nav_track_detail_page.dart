@@ -38,6 +38,7 @@ import 'package:submersion/features/nav_track/presentation/widgets/nav_track_pol
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_recorder_card.dart';
 import 'package:submersion/features/tracks/domain/track_list_item.dart';
 import 'package:submersion/features/tracks/presentation/track_item_location.dart';
+import 'package:submersion/features/tracks/presentation/widgets/delete_track_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
@@ -45,6 +46,7 @@ import 'package:submersion/shared/widgets/record_editing/record_card_fade.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
+import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
@@ -62,9 +64,14 @@ class NavTrackDetailPage extends ConsumerStatefulWidget {
     super.key,
     required this.trackId,
     this.unlockEditing = kUnlockRecordEditing,
+    this.fileActions = const NavTrackFileActions(),
   });
 
   final String trackId;
+
+  /// Update from file and Export CSV, with their file picker and export,
+  /// which a test replaces.
+  final NavTrackFileActions fileActions;
 
   /// Whether the page edits in place: phase 3's switch, a parameter so a
   /// test can turn it on.
@@ -140,25 +147,7 @@ class _NavTrackDetailPageState extends ConsumerState<NavTrackDetailPage>
   }
 
   Future<void> _delete(NavTrack route) async {
-    final l10n = context.l10n;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.navTrack_detail_deleteTrackTitle),
-        content: Text(l10n.navTrack_detail_deleteMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(l10n.navTrack_common_cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(l10n.navTrack_common_delete),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true) return;
+    if (!await _confirmDelete()) return;
     await ref.read(navTrackRepositoryProvider).delete(route.id);
     if (!mounted) return;
     forgetOpenedTrack(ref, UnderwaterTrackItem(route));
@@ -295,19 +284,21 @@ class _NavTrackDetailPageState extends ConsumerState<NavTrackDetailPage>
             await _rename(route);
           case 'unlink':
             await _unlink(route);
-          case 'updateFromFile':
-            await const NavTrackFileActions().updateFromFile(
-              context,
-              ref,
-              route,
+          case 'updateFromFile' when hostsEditing:
+            await _runOperation(
+              () => widget.fileActions.updateFromFile(context, ref, route),
             );
+          case 'updateFromFile':
+            await widget.fileActions.updateFromFile(context, ref, route);
           case 'exportCsv':
-            await const NavTrackFileActions().exportCsv(
+            await widget.fileActions.exportCsv(
               context,
               ref,
               route,
               shareOrigin: shareAnchorFrom(menuContext),
             );
+          case 'delete' when hostsEditing:
+            await _runOperation(() => _deleteInSitting(route));
           case 'delete':
             await _delete(route);
         }
@@ -333,21 +324,27 @@ class _NavTrackDetailPageState extends ConsumerState<NavTrackDetailPage>
           // Only an ENC route is read from a file this app can read again
           // and keeps that file (issue #4231).
           if (route.source == NavTrackSource.seacraftEnc) ...[
-            PopupMenuItem(
-              key: const ValueKey('nav-track-update-from-file'),
-              value: 'updateFromFile',
-              child: Text(l10n.navTrack_detail_menuUpdateFromFile),
-            ),
+            if (!hostsEditing)
+              PopupMenuItem(
+                key: const ValueKey('nav-track-update-from-file'),
+                value: 'updateFromFile',
+                child: Text(l10n.navTrack_detail_menuUpdateFromFile),
+              ),
             PopupMenuItem(
               key: const ValueKey('nav-track-export-csv'),
               value: 'exportCsv',
               child: Text(l10n.navTrack_detail_menuExportCsv),
             ),
           ],
-          PopupMenuItem(
-            value: 'delete',
-            child: Text(l10n.navTrack_common_delete),
-          ),
+          if (hostsEditing)
+            // Update from file and Delete: whole-record operations, under
+            // the lock.
+            ..._operationItems(route)
+          else
+            PopupMenuItem(
+              value: 'delete',
+              child: Text(l10n.navTrack_common_delete),
+            ),
         ];
       },
     ),

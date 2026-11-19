@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -9,10 +11,14 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
 import 'package:submersion/features/nav_track/data/services/nav_track_edit_save_service.dart';
+import 'package:submersion/features/nav_track/data/services/nav_track_import_service.dart';
+import 'package:submersion/features/nav_track/data/services/parsers/parsed_nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
+import 'package:submersion/features/nav_track/presentation/nav_track_file_actions.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_detail_page.dart';
+import 'package:submersion/features/nav_track/presentation/providers/nav_track_import_flow_providers.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -36,6 +42,17 @@ final candidateDive = Dive(
   entryTime: DateTime(2026, 8, 22, 9),
 );
 
+List<NavTrackPoint> _samples(int count) => [
+  for (var i = 0; i < count; i++)
+    NavTrackPoint(
+      timestamp: 1755856800 + i * 10,
+      north: i * 10.0,
+      east: i * 5.0,
+      depth: 5.0 + i,
+      distance: i * 11.0,
+    ),
+];
+
 /// The route the page shows, as stored: linked to dive-1, at site-1, its
 /// anchor on that site's pin, recorded with ten samples.
 NavTrack navRoute({String? diveId = 'dive-1'}) => NavTrack(
@@ -51,16 +68,7 @@ NavTrack navRoute({String? diveId = 'dive-1'}) => NavTrack(
   pointCount: 10,
   anchorLatitude: 47.1,
   anchorLongitude: 8.3,
-  points: [
-    for (var i = 0; i < 10; i++)
-      NavTrackPoint(
-        timestamp: 1755856800 + i * 10,
-        north: i * 10.0,
-        east: i * 5.0,
-        depth: 5.0 + i,
-        distance: i * 11.0,
-      ),
-  ],
+  points: _samples(10),
   createdAt: DateTime(2026, 8, 22),
   updatedAt: DateTime(2026, 8, 22),
 );
@@ -145,12 +153,83 @@ class FakeNavTrackSave extends NavTrackEditSaveService {
   }
 }
 
+/// Reads the same recording again from a file, and on update stores it
+/// with twelve samples, as a console's longer export would.
+class FakeNavTrackImport implements NavTrackImportService {
+  FakeNavTrackImport(this.stored);
+
+  final StateController<NavTrack?> stored;
+  final updates = <String>[];
+
+  @override
+  ParsedNavTrack parseFile(Uint8List bytes) =>
+      ParsedNavTrack(points: _samples(12));
+
+  @override
+  Future<bool> updateFromFile({
+    required String routeId,
+    required ParsedNavTrack parsed,
+    required Uint8List sourceFile,
+    String? sourceRef,
+  }) async {
+    updates.add(routeId);
+    final route = stored.state!;
+    stored.state = NavTrack(
+      id: route.id,
+      diveId: route.diveId,
+      linkMode: route.linkMode,
+      siteId: route.siteId,
+      source: route.source,
+      sourceRef: sourceRef,
+      name: route.name,
+      startTime: route.startTime,
+      endTime: route.endTime,
+      pointCount: parsed.points.length,
+      anchorLatitude: route.anchorLatitude,
+      anchorLongitude: route.anchorLongitude,
+      points: parsed.points,
+      createdAt: route.createdAt,
+      updatedAt: route.updatedAt,
+    );
+    return true;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 class NavTrackPageHarness {
-  NavTrackPageHarness(this.save, this.repository, this.stored);
+  NavTrackPageHarness(this.save, this.repository, this.stored, this.import);
 
   final FakeNavTrackSave save;
   final CountingNavTrackRepository repository;
   final StateController<NavTrack?> stored;
+  final FakeNavTrackImport import;
+}
+
+/// Pushes [page] over a plain first route, so the page can pop.
+class _Launcher extends StatefulWidget {
+  const _Launcher({required this.page});
+
+  final Widget page;
+
+  @override
+  State<_Launcher> createState() => _LauncherState();
+}
+
+class _LauncherState extends State<_Launcher> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute<void>(builder: (_) => widget.page));
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => const Text('first route');
 }
 
 final _storedProvider = StateProvider<NavTrack?>((ref) => null);
@@ -188,10 +267,20 @@ Future<NavTrackPageHarness> pumpNavTrackPage(
           candidateDive.id,
         ).overrideWith((ref) async => candidateDive),
         bathymetryGridProvider.overrideWith((ref, cell) async => null),
+        navTrackImportServiceProvider.overrideWith(
+          (ref) => FakeNavTrackImport(ref.watch(_storedProvider.notifier)),
+        ),
       ],
-      child: NavTrackDetailPage(
-        trackId: initial.id,
-        unlockEditing: unlockEditing,
+      child: _Launcher(
+        page: NavTrackDetailPage(
+          trackId: initial.id,
+          unlockEditing: unlockEditing,
+          fileActions: NavTrackFileActions(
+            // The route's own file read again: same name, same recording.
+            pickFile: () async =>
+                (bytes: Uint8List.fromList([1, 2, 3]), name: 'r1.csv'),
+          ),
+        ),
       ),
     ),
   );
@@ -203,5 +292,6 @@ Future<NavTrackPageHarness> pumpNavTrackPage(
     container.read(navTrackEditSaveServiceProvider) as FakeNavTrackSave,
     repository,
     container.read(_storedProvider.notifier),
+    container.read(navTrackImportServiceProvider) as FakeNavTrackImport,
   );
 }

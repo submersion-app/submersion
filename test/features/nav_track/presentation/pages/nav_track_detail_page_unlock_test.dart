@@ -255,4 +255,94 @@ void main() {
 
     expect(find.byType(AlertDialog), findsOneWidget);
   });
+
+  group('the menu and its whole-record operations', () {
+    Future<void> openMenu(WidgetTester tester) async {
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+    }
+
+    PopupMenuItem<String> item(WidgetTester tester, String key) =>
+        tester.widget<PopupMenuItem<String>>(find.byKey(ValueKey(key)));
+
+    testWidgets('the menu offers no Rename or Unlink with the switch on', (
+      tester,
+    ) async {
+      await pumpNavTrackPage(tester);
+      await openMenu(tester);
+
+      expect(find.text(l.navTrack_detail_menuRename), findsNothing);
+      expect(find.text(l.navTrack_common_unlink), findsNothing);
+    });
+
+    testWidgets('locked, Update from file and Delete are off under "Unlock '
+        'to use these"', (tester) async {
+      await pumpNavTrackPage(tester);
+      await openMenu(tester);
+
+      expect(find.text(l.recordEdit_unlockToUseThese), findsOneWidget);
+      expect(item(tester, 'nav-track-update-from-file').enabled, isFalse);
+      expect(item(tester, 'nav-track-delete').enabled, isFalse);
+      expect(item(tester, 'nav-track-export-csv').enabled, isTrue);
+    });
+
+    testWidgets('with unsaved changes they are off', (tester) async {
+      await pumpNavTrackPage(tester);
+      await unlock(tester);
+      await openCard(tester, l.changeLog_table_navTrack);
+      await tester.enterText(
+        find.byKey(const ValueKey('nav-track-name-field')),
+        'Evening',
+      );
+      await tester.pumpAndSettle();
+      await openMenu(tester);
+
+      expect(find.text(l.recordEdit_saveOrCancelFirst), findsOneWidget);
+      expect(item(tester, 'nav-track-update-from-file').enabled, isFalse);
+      expect(item(tester, 'nav-track-delete').enabled, isFalse);
+    });
+
+    testWidgets('unlocked and clean, Delete asks, deletes and pops', (
+      tester,
+    ) async {
+      final harness = await pumpNavTrackPage(tester);
+      await unlock(tester);
+      await openMenu(tester);
+      await tester.tap(find.byKey(const ValueKey('nav-track-delete')));
+      await tester.pumpAndSettle();
+      expect(find.text(l.navTrack_detail_deleteTrackTitle), findsOneWidget);
+
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.byType(FilledButton),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(harness.repository.writes, ['delete']);
+      expect(find.text('first route'), findsOneWidget);
+    });
+
+    testWidgets('unlocked and clean, Update from file replaces the points and '
+        'keeps the rest', (tester) async {
+      final harness = await pumpNavTrackPage(tester);
+      await unlock(tester);
+      await openMenu(tester);
+      await tester.tap(
+        find.byKey(const ValueKey('nav-track-update-from-file')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(harness.import.updates, ['r1']);
+      final route = harness.stored.state!;
+      expect(route.points, hasLength(12));
+      expect(route.name, 'Morning');
+      expect(route.diveId, 'dive-1');
+      expect(route.siteId, 'site-1');
+      // The sitting carries on, on the route as now stored.
+      expect(find.byType(RecordEditBar), findsOneWidget);
+      expect(find.text('Morning'), findsOneWidget);
+    });
+  });
 }
