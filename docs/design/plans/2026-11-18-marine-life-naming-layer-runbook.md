@@ -6,8 +6,9 @@ other context, on a local model, over several days.
 
 - **Design (read first):** `docs/design/specs/2026-11-18-marine-life-naming-layer-design.md`
 - **Implementation plan (tasks 1 to 6 are done):** `docs/design/plans/2026-11-18-marine-life-naming-layer.md`
-- **Branch:** `ericgriffin/feat-4724-naming-layer`, pushed, with the tools
-  pull request open (see Phase 7.0)
+- **Branch:** the tools merged from `ericgriffin/feat-4724-naming-layer`;
+  the worktree is on `ericgriffin/feat-4724-check-settings`, the check
+  layer's settings (see Phase 7.0)
 - **Worktree:** `/Users/ericgriffin/repos/submersion-app/submersion/.claude/worktrees/feat-4724-naming-layer`
 
 ## How to use this runbook
@@ -359,18 +360,29 @@ Write the `training.json` values into `progress.md`. Mark Phase 3 done.
 
 ## Phase 4: Train the rare-species check layer
 
-The same training with every photo of 100 held-back test species removed.
-This pack is never shipped.
+The same training with every photo of 100 held-back test species removed,
+at the shipped layer's chosen settings (pull, epochs, blend, sharpness) and
+seed rather than a search of its own, so it differs from the shipped layer
+only in its photos (Eric, 2026-11-19). This pack is never shipped.
 
 ```bash
 source /Users/ericgriffin/repos/submersion-app/naming-training/env.sh
 cd $WT && $PY -I $TOOLS/train_naming.py --base $BASE --training $DATA/training \
-  --out $DATA/pack-check --exclude-held-back $CSV > $DATA/train-check.txt 2>&1; echo "exit $?"
-python3.14 -c "import json; t=json.load(open('$DATA/pack-check/training.json')); print(len(t['held back species']), t['training photos'])"
+  --out $DATA/pack-check --exclude-held-back $CSV --settings-from $DATA/pack-trained \
+  > $DATA/train-check.txt 2>&1; echo "exit $?"
+python3.14 - <<'EOF'
+import json, os
+d = os.environ["DATA"]
+check = json.load(open(f"{d}/pack-check/training.json"))
+shipped = json.load(open(f"{d}/pack-trained/training.json"))
+keys = ("anchor", "epochs", "blend", "sharpness", "seed")
+print(len(check["held back species"]), check["training photos"], shipped["training photos"])
+print("same settings:", all(check[k] == shipped[k] for k in keys), {k: check[k] for k in keys})
+EOF
 ```
 
-Good: `exit 0`, and `100` held-back species, with fewer training photos than
-the shipped layer. Mark Phase 4 done.
+Good: `exit 0`, `100` held-back species, fewer training photos than the
+shipped layer, and `same settings: True`. Mark Phase 4 done.
 
 ## Phase 5: Score the three packs
 
@@ -474,15 +486,17 @@ step is approach B, which is a new design, not something to start here).
 
 The tools (the fetcher, the trainer, the gate, the scorer's per-photo output
 and the CI wiring) went to main in their own pull request, which refers to
-#4724 without closing it (opened 2026-11-19). Phases 7 and 8 make a second
-pull request that closes #4724. Check where the first one stands:
+#4724 without closing it (merged 2026-11-19). Training the check layer at the
+shipped layer's settings (`--settings-from`) followed in a second one, from
+`ericgriffin/feat-4724-check-settings`. Phases 7 and 8 make a third pull
+request that closes #4724. Check that the second one has merged:
 
 ```bash
 source /Users/ericgriffin/repos/submersion-app/naming-training/env.sh
-cd $WT && gh pr list --head ericgriffin/feat-4724-naming-layer --state all --json number,state,url
+cd $WT && gh pr list --head ericgriffin/feat-4724-check-settings --state all --json number,state,url
 ```
 
-- `MERGED`: start the second branch from main in the same worktree:
+- `MERGED`: start the third branch from main in the same worktree:
   `git fetch origin && git switch -c ericgriffin/feat-4724-naming-measured origin/main`.
 - `OPEN` or `CLOSED`: STOP, and ask Eric whether to wait, or to add these
   commits to that pull request.

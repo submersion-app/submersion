@@ -33,6 +33,11 @@ VALIDATION_FRACTION = 0.10
 SEED = "naming-layer-2026-11"
 # Test species whose training photos the rare-species check leaves out.
 HELD_BACK = 100
+# The settings a trained layer chooses on its validation photos, and the
+# seed that orders its training batches, which the rare-species check layer
+# reuses so it differs only in its photos (train_naming.py records them,
+# gate.py confirms them).
+SETTING_KEYS = ("anchor", "epochs", "blend", "sharpness", "seed")
 CREDIT_FIELDS = ["id", "uri", "licence", "attribution"]
 
 
@@ -131,6 +136,13 @@ def held_back_species(test_rows):
 def without_species(records, keys):
     """`records` less those of any species in `keys`."""
     return [r for r in records if r["gbif_key"] not in keys]
+
+
+def rows_sha256(manifest):
+    """The hash of a pack's naming rows (text_embeddings.f16) as its
+    manifest lists it, or None. training.json records it, so the record
+    names the rows it describes."""
+    return next((f["sha256"] for f in manifest["files"] if f["name"] == "text_embeddings.f16"), None)
 
 
 def write_credits(path, records):

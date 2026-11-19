@@ -13,7 +13,11 @@ the epochs, a blend with the name rows and an overall sharpness are chosen
 on the validation photos (post-cutoff photos of observers kept out of
 training), never on the test set. The sharpness scales every row, trained
 or not: it is the same as changing logitScale, so it leaves each crop's
-ranking of trained and untrained candidates as it was.
+ranking of trained and untrained candidates as it was. The rare-species
+check layer (`--exclude-held-back` with `--settings-from` the trained
+pack) reuses the trained pack's chosen pull, epochs, blend and sharpness,
+and its seed, instead of searching, so it differs from that pack only in
+its photos.
 
 The derived pack copies every file of the base pack but the rows and the
 manifest, so candidates, regions and models stay byte for byte the same.
@@ -113,10 +117,11 @@ def _device():
 
 
 def train(name_rows, x, y, *, anchor, epochs, lr, seed, device=None, validation=None):
-    """Trained rows, starting at `name_rows`. With `validation` (x, y), the
-    rows of the epoch with the lowest validation loss, stopping after
-    PATIENCE epochs without improvement. Rows of candidates absent from `y`
-    stay exactly their name rows."""
+    """(trained rows, epochs), starting at `name_rows`. With `validation`
+    (x, y), the rows of the epoch with the lowest validation loss and that
+    epoch's number, stopping after PATIENCE epochs without improvement;
+    without, the rows after all `epochs`. Rows of candidates absent from
+    `y` stay exactly their name rows."""
     import torch
     import torch.nn.functional as F
 
@@ -131,8 +136,8 @@ def train(name_rows, x, y, *, anchor, epochs, lr, seed, device=None, validation=
     inputs = torch.tensor(_unit(x), device=device)
     labels = torch.tensor(y, dtype=torch.long, device=device)
     optimiser = torch.optim.Adam([rows], lr=lr)
-    best, best_loss, stale = None, math.inf, 0
-    for _ in range(epochs):
+    best, best_loss, stale, best_epoch, epoch = None, math.inf, 0, 0, 0
+    for epoch in range(1, epochs + 1):
         order = torch.randperm(len(inputs), generator=generator).to(device)
         for i in range(0, len(inputs), BATCH):
             batch = order[i : i + BATCH]
@@ -147,7 +152,7 @@ def train(name_rows, x, y, *, anchor, epochs, lr, seed, device=None, validation=
             current = rows.detach().cpu().numpy()
             score = validation_loss(current, *validation)
             if score < best_loss:
-                best, best_loss, stale = current.copy(), score, 0
+                best, best_loss, stale, best_epoch = current.copy(), score, 0, epoch
             else:
                 stale += 1
                 if stale >= PATIENCE:
@@ -155,7 +160,7 @@ def train(name_rows, x, y, *, anchor, epochs, lr, seed, device=None, validation=
     out = best if best is not None else rows.detach().cpu().numpy()
     out = out.astype(np.float32)
     out[~seen] = name_rows[~seen]
-    return out
+    return out, (best_epoch if best is not None else epoch)
 
 
 def finish(trained, name_rows, *, blend, sharpness):
@@ -169,7 +174,7 @@ def search(name_rows, train_xy, validation_xy, *, seed=SEED, log=print):
     """(rows, settings) with the lowest validation loss over the grid."""
     best_rows, best = None, {"validation loss": math.inf}
     for anchor in ANCHORS:
-        trained = train(
+        trained, epochs = train(
             name_rows, *train_xy, anchor=anchor, epochs=MAX_EPOCHS, lr=LEARNING_RATE, seed=seed, validation=validation_xy
         )
         for blend in BLENDS:
@@ -179,11 +184,54 @@ def search(name_rows, train_xy, validation_xy, *, seed=SEED, log=print):
                 log(f"anchor {anchor} blend {blend} sharpness {sharpness}: validation loss {loss:.4f}")
                 if loss < best["validation loss"]:
                     best_rows = rows
-                    best = {"anchor": anchor, "blend": blend, "sharpness": sharpness, "validation loss": loss}
+                    best = {
+                        "anchor": anchor,
+                        "epochs": epochs,
+                        "blend": blend,
+                        "sharpness": sharpness,
+                        "seed": seed,
+                        "validation loss": loss,
+                    }
     if best_rows is None:
         raise SystemExit("no setting gave a finite validation loss: training diverged")
     best["validation top-1"] = top1(best_rows, *validation_xy)
     return best_rows, best
+
+
+def with_settings(name_rows, train_xy, validation_xy, settings):
+    """(rows, settings) trained with another layer's chosen settings: its
+    pull for its epochs in its seed's batch order, then its blend and
+    sharpness. No search and no early stop, so the rare-species check
+    layer differs from the shipped one only in its photos."""
+    trained, _ = train(
+        name_rows,
+        *train_xy,
+        anchor=settings["anchor"],
+        epochs=settings["epochs"],
+        lr=LEARNING_RATE,
+        seed=settings["seed"],
+    )
+    rows = finish(trained, name_rows, blend=settings["blend"], sharpness=settings["sharpness"])
+    return rows, {
+        **{k: settings[k] for k in ts.SETTING_KEYS},
+        "validation loss": validation_loss(rows, *validation_xy),
+        "validation top-1": top1(rows, *validation_xy),
+    }
+
+
+def settings_from(pack, seed=None):
+    """The settings a trained pack chose, with its seed (its training.json).
+    A `seed` given as well must be that one: a different batch order would
+    make the check layer differ in more than its photos."""
+    path = os.path.join(pack, "training.json")
+    with open(path, encoding="utf-8") as fh:
+        recorded = json.load(fh)
+    missing = [k for k in ts.SETTING_KEYS if k not in recorded]
+    if missing:
+        raise SystemExit(f"{path} records no {', '.join(missing)}; train that pack again with this train_naming.py")
+    if seed is not None and seed != recorded["seed"]:
+        raise SystemExit(f"--seed {seed} is not the seed {recorded['seed']} that {path} trained with")
+    return {k: recorded[k] for k in ts.SETTING_KEYS}
 
 
 def f16_bytes(rows):
@@ -240,10 +288,20 @@ def main(argv=None):
     parser.add_argument("--out", required=True)
     parser.add_argument("--version", default=datetime.datetime.now(datetime.timezone.utc).strftime("%Y.%m.%d.%H%M"))
     parser.add_argument("--exclude-held-back", metavar="ACCURACY_CSV", help="train the rare-species check layer")
+    parser.add_argument(
+        "--settings-from",
+        metavar="PACK",
+        help="train with this trained pack's chosen settings instead of searching (the check layer)",
+    )
     parser.add_argument("--list-url", default=LIST_URL)
-    parser.add_argument("--seed", type=int, default=SEED)
+    parser.add_argument(
+        "--seed", type=int, help=f"the batch order's seed (default {SEED}; with --settings-from, that pack's)"
+    )
     args = parser.parse_args(argv)
 
+    # Read first, so a pack without the settings, or another seed, stops
+    # before the photos load.
+    reused = settings_from(args.settings_from, seed=args.seed) if args.settings_from else None
     exclude = set()
     if args.exclude_held_back:
         exclude = set(ts.held_back_species(testset.read_rows(args.exclude_held_back)))
@@ -251,10 +309,13 @@ def main(argv=None):
     x, y, records = load(args.training, part="train", exclude=exclude)
     xv, yv, _ = load(args.training, part="validation", exclude=exclude)
     print(f"{len(x)} training and {len(xv)} validation photos, {len(np.unique(y))} species", flush=True)
-    rows, settings = search(name_rows, (x, y), (xv, yv), seed=args.seed)
+    if reused is not None:
+        rows, settings = with_settings(name_rows, (x, y), (xv, yv), reused)
+        settings["settings from"] = _read_manifest(args.settings_from)["packVersion"]
+    else:
+        rows, settings = search(name_rows, (x, y), (xv, yv), seed=SEED if args.seed is None else args.seed)
     settings.update(
         {
-            "seed": args.seed,
             "training photos": len(x),
             "validation photos": len(xv),
             "species trained": int(len(np.unique(y))),
@@ -263,7 +324,14 @@ def main(argv=None):
             "name rows validation top-1": top1(name_rows, xv, yv),
         }
     )
-    derive(args.base, args.out, rows, version=args.version, credit=mf.training_credit(len(records), args.list_url))
+    credit = mf.training_credit(len(records), args.list_url)
+    derived = derive(args.base, args.out, rows, version=args.version, credit=credit)
+    # The record names the rows it describes, so a stale record beside other
+    # rows (a rerun into the same folder that stopped early) is caught.
+    settings["rows sha256"] = ts.rows_sha256(derived)
+    # And the name rows it started from, so the gate can confirm the shipped
+    # and check layers grew from the same base pack.
+    settings["base rows sha256"] = ts.rows_sha256(_read_manifest(args.base))
     with open(os.path.join(args.out, "training.json"), "w", encoding="utf-8") as fh:
         json.dump(settings, fh, indent=1)
     ts.write_credits(os.path.join(args.out, "training_photos.csv"), records)

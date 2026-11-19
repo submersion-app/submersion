@@ -63,13 +63,22 @@ class FinishTest(unittest.TestCase):
 class TrainTest(unittest.TestCase):
     def test_untrained_rows_are_unchanged(self):
         name_rows, x, y = toy()
-        rows = train_naming.train(name_rows, x, y, anchor=1e-3, epochs=5, lr=0.05, seed=0, device="cpu")
+        rows, _ = train_naming.train(name_rows, x, y, anchor=1e-3, epochs=5, lr=0.05, seed=0, device="cpu")
         np.testing.assert_array_equal(rows[2], name_rows[2])
+
+    def test_epochs_are_those_run_or_the_best_one(self):
+        name_rows, x, y = toy()
+        _, ran = train_naming.train(name_rows, x, y, anchor=1e-3, epochs=5, lr=0.05, seed=0, device="cpu")
+        self.assertEqual(ran, 5)
+        _, best = train_naming.train(
+            name_rows, x, y, anchor=1e-3, epochs=5, lr=0.05, seed=0, device="cpu", validation=(x, y)
+        )
+        self.assertTrue(1 <= best <= 5)
 
     def test_training_separates_two_toy_species(self):
         name_rows, x, y = toy()
         before = train_naming.top1(name_rows, x, y)
-        rows = train_naming.train(name_rows, x, y, anchor=1e-4, epochs=40, lr=0.05, seed=0, device="cpu")
+        rows, _ = train_naming.train(name_rows, x, y, anchor=1e-4, epochs=40, lr=0.05, seed=0, device="cpu")
         self.assertEqual(before, 0.0)
         self.assertEqual(train_naming.top1(rows, x, y), 1.0)
         self.assertLess(train_naming.validation_loss(rows, x, y), train_naming.validation_loss(name_rows, x, y))
@@ -112,9 +121,53 @@ class SearchTest(unittest.TestCase):
     def test_search_stops_when_no_setting_has_a_finite_loss(self):
         name_rows, x, y = toy()
         diverged = np.full_like(name_rows, np.nan)
-        with mock.patch.object(train_naming, "train", return_value=diverged):
+        with mock.patch.object(train_naming, "train", return_value=(diverged, 3)):
             with self.assertRaisesRegex(SystemExit, "finite validation loss"):
                 train_naming.search(name_rows, (x, y), (x, y), log=lambda _: None)
+
+    def test_search_records_the_epochs_and_seed_of_the_best_setting(self):
+        name_rows, x, y = toy()
+        with mock.patch.object(train_naming, "train", return_value=(name_rows.copy(), 7)):
+            _, best = train_naming.search(name_rows, (x, y), (x, y), seed=5, log=lambda _: None)
+        self.assertEqual((best["epochs"], best["seed"]), (7, 5))
+        self.assertTrue(set(train_naming.ts.SETTING_KEYS) <= set(best))
+
+
+class SettingsFromTest(unittest.TestCase):
+    SETTINGS = {"anchor": 1e-3, "epochs": 4, "blend": 0.5, "sharpness": 2.0, "seed": 3}
+
+    def write(self, pack, recorded):
+        with open(os.path.join(pack, "training.json"), "w", encoding="utf-8") as fh:
+            json.dump(recorded, fh)
+
+    def test_training_with_settings_uses_them_and_their_seed_without_a_search_or_early_stop(self):
+        name_rows, x, y = toy()
+        trained = name_rows * 3
+        with mock.patch.object(train_naming, "train", return_value=(trained, 4)) as train:
+            rows, settings = train_naming.with_settings(name_rows, (x, y), (x, y), self.SETTINGS)
+        self.assertEqual(train.call_count, 1)
+        kwargs = train.call_args.kwargs
+        self.assertEqual(
+            (kwargs["anchor"], kwargs["epochs"], kwargs["seed"], kwargs.get("validation")), (1e-3, 4, 3, None)
+        )
+        np.testing.assert_allclose(rows, train_naming.finish(trained, name_rows, blend=0.5, sharpness=2.0))
+        self.assertEqual({k: settings[k] for k in self.SETTINGS}, self.SETTINGS)
+        self.assertIn("validation loss", settings)
+
+    def test_settings_are_read_from_a_trained_pack(self):
+        with tempfile.TemporaryDirectory() as pack:
+            self.write(pack, {**self.SETTINGS, "validation loss": 1.2})
+            self.assertEqual(train_naming.settings_from(pack), self.SETTINGS)
+            self.assertEqual(train_naming.settings_from(pack, seed=3), self.SETTINGS)
+            self.write(pack, {"anchor": 1e-3, "blend": 0.5, "sharpness": 2.0, "seed": 3})
+            with self.assertRaisesRegex(SystemExit, "epochs"):
+                train_naming.settings_from(pack)
+
+    def test_a_seed_other_than_the_recorded_one_is_refused(self):
+        with tempfile.TemporaryDirectory() as pack:
+            self.write(pack, self.SETTINGS)
+            with self.assertRaisesRegex(SystemExit, "seed"):
+                train_naming.settings_from(pack, seed=0)
 
 
 class NameRowsTest(unittest.TestCase):
