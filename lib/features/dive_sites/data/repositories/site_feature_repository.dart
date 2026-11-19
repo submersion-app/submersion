@@ -39,6 +39,7 @@ class SiteFeatureRepository {
     String notes = '',
     String? actingDiverId,
     bool stampLibrary = true,
+    int? createdAt,
   }) async {
     // A library site [actingDiverId] may not edit (issue #2567). An editing
     // sitting ([stampLibrary] false) was offered only to a profile that may,
@@ -48,7 +49,8 @@ class SiteFeatureRepository {
         !await _libraryStamper.mayEdit(siteId, actingDiverId: actingDiverId)) {
       throw StateError('site $siteId is not this profile to edit');
     }
-    final now = DateTime.now().millisecondsSinceEpoch;
+    // Given by a caller adding several at once, so they list in its order.
+    final now = createdAt ?? DateTime.now().millisecondsSinceEpoch;
     final feature = domain.SiteFeature(
       id: _uuid.v4(),
       siteId: siteId,

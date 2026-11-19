@@ -7,8 +7,10 @@ import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/geocoding/place_lookup.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_feature_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+import 'package:submersion/features/dive_sites/data/services/site_edit_save_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_classification.dart';
 import 'package:submersion/features/dive_sites/domain/models/new_site_seed.dart';
@@ -18,6 +20,7 @@ import 'package:submersion/features/dive_sites/presentation/editing/site_feature
 import 'package:submersion/features/dive_sites/presentation/editing/site_new_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_plain_fields.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_sharing_sitting.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_sitting_save.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_sitting_start.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_species_sitting.dart';
 import 'package:submersion/features/divers/data/repositories/item_shares_repository.dart';
@@ -312,6 +315,69 @@ void main() {
       );
       await session.settled();
       expect(siteSharingInSitting(session), source.sharing);
+    });
+
+    // Review Focus 2 and 4 end to end: the copy's rows reach the database
+    // with the site, and its features keep the original's order.
+    test('is created with every copied row, features in order', () async {
+      final features = SiteFeatureRepository();
+      for (final name in ['A', 'B', 'C', 'D', 'E']) {
+        // A millisecond apart, so the original's own order is certain.
+        await Future<void>.delayed(const Duration(milliseconds: 2));
+        await features.addFeature(
+          siteId: 'site-1',
+          typeName: 'mooring',
+          name: name,
+          latitude: 1,
+          longitude: 2,
+        );
+      }
+      await ItemSharesRepository().setSharing(
+        SharedItemKind.site,
+        'site-1',
+        const ItemSharing(profileIds: {'other'}),
+        actingDiverId: 'me',
+      );
+      final source = (await readSiteDuplicate(container.read, 'site-1'))!;
+      final session = await newSitting();
+      await applyNewSitePrefill(
+        session,
+        duplicate: source,
+        duplicateName: 'Copy of Salt Pier',
+        lookUpPlace: place,
+        fetchElevation: (_) async => null,
+      );
+      await session.settled();
+
+      await createSiteSitting(session, SiteEditSaveService(SiteRepository()));
+
+      final copy = (await SiteRepository().getSiteById('n1'))!;
+      expect(copy.name, 'Copy of Salt Pier');
+      expect(copy.hazards, 'Boat traffic');
+      final classification = SiteClassificationRepository();
+      expect(
+        [for (final t in await classification.getTypesForSite('n1')) t.id],
+        ['wall'],
+      );
+      expect(
+        [for (final t in await classification.getTagsForSite('n1')) t.id],
+        ['tag-1'],
+      );
+      expect(
+        await SpeciesRepository().getExpectedSpeciesForSite('n1'),
+        hasLength(1),
+      );
+      expect(
+        [for (final f in await features.getFeaturesForSite('n1')) f.name],
+        ['North ball', 'A', 'B', 'C', 'D', 'E'],
+      );
+      expect(
+        await ItemSharesRepository().storedProfileIds(
+          SharedItemKind.site,
+          'n1',
+        ),
+        {'other'},
+      );
     });
 
     test('of a site that is gone reads null', () async {

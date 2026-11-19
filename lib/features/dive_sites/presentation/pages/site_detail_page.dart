@@ -103,7 +103,6 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_edit_
 import 'package:submersion/core/providers/location_service_provider.dart';
 import 'package:submersion/features/dive_sites/domain/models/new_site_seed.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_new_sitting.dart';
-import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
 import 'package:submersion/features/weather/presentation/providers/weather_providers.dart';

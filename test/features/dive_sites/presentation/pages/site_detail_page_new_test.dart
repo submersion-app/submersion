@@ -1,11 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/models/new_site_seed.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_new_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_plain_fields.dart';
+import 'package:submersion/features/rules/data/services/rule_engine.dart';
+import 'package:submersion/features/rules/domain/entities/rule_run.dart';
+import 'package:submersion/features/rules/presentation/providers/rule_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
@@ -32,6 +39,17 @@ const SiteDuplicateSource _duplicate = (
   features: [],
   sharing: ItemSharing.none,
 );
+
+/// The rules a site created by hand is owed, held until [gate] opens.
+class _GatedRules extends Fake implements RuleEngine {
+  final gate = Completer<void>();
+
+  @override
+  Future<RuleRunResult> run(RuleRunRequest request) async {
+    await gate.future;
+    throw StateError('no rules here');
+  }
+}
 
 /// A new site, and a duplicate, open on the site page itself, already
 /// unlocked (issue #4527, phase 2, plan 6).
@@ -132,6 +150,32 @@ void main() {
     expect(page.save.calls, isEmpty);
   });
 
+  // Ended while another page covered it (a sitting withdrawn under it):
+  // the new site leaves once it is back in view, rather than standing
+  // locked over a site that does not exist.
+  testWidgets('a sitting ended out of view leaves once back in view', (
+    tester,
+  ) async {
+    final page = await pumpNewSitePage(tester);
+    final controller = controllerOf(tester);
+    final navigator = Navigator.of(tester.element(find.byType(RecordEditBar)));
+    navigator.push(
+      MaterialPageRoute<void>(
+        builder: (_) => const Scaffold(body: Text('on top')),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    controller.lock();
+    await tester.pumpAndSettle();
+    expect(page.left, isFalse);
+    navigator.pop();
+    await tester.pumpAndSettle();
+
+    expect(page.left, isTrue);
+    expect(page.save.creates, isEmpty);
+  });
+
   testWidgets('Save creates the site and leaves with its id', (tester) async {
     final page = await pumpNewSitePage(tester);
     sitting(tester).set(siteNameField, 'Blue Hole');
@@ -145,6 +189,33 @@ void main() {
     expect(create.cards, contains(siteHeaderCardId));
     expect(page.left, isTrue);
     expect(page.leftWith, create.site.id);
+  });
+
+  // The site exists once Save has written it: Back while it is handed on
+  // would leave the picker without it, so it waits.
+  testWidgets('Back waits while the created site is handed on', (tester) async {
+    final rules = _GatedRules();
+    final page = await pumpNewSitePage(
+      tester,
+      extra: [ruleEngineProvider.overrideWithValue(rules)],
+    );
+    sitting(tester).set(siteNameField, 'Blue Hole');
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text(l.forms_save));
+    await tester.pump();
+    await tester.pump();
+    expect(page.save.creates, hasLength(1));
+    expect(find.byType(BackButton), findsNothing);
+    await tester.binding.handlePopRoute();
+    await tester.pump();
+    expect(page.left, isFalse);
+
+    rules.gate.complete();
+    for (var i = 0; i < 20 && !page.left; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    expect(page.leftWith, page.save.creates.single.site.id);
   });
 
   testWidgets('in the pane, Save hands the new id over', (tester) async {
@@ -213,6 +284,22 @@ void main() {
     expect(created.description, 'Pier pilings');
     expect(created.notes, 'Ask first');
     expect(created.id, isNot('site-1'));
+  });
+
+  // Read for the page and let go with it: a later Duplicate of the same
+  // site copies it as it is then.
+  testWidgets('a duplicate\'s source goes with its page', (tester) async {
+    final page = await pumpNewSitePage(tester, duplicate: _duplicate);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(RecordEditBar)),
+    );
+    expect(container.exists(siteDuplicateSourceProvider('site-1')), isTrue);
+
+    await tapText(tester, l.forms_cancel);
+    await tapText(tester, l.forms_discard_discard);
+
+    expect(page.left, isTrue);
+    expect(container.exists(siteDuplicateSourceProvider('site-1')), isFalse);
   });
 
   testWidgets('a duplicate of a site that is gone says so', (tester) async {

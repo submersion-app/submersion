@@ -43,51 +43,36 @@ class _NewSiteLoaderState extends ConsumerState<_NewSiteLoader> {
   final _id = const Uuid().v4();
 
   DiveSite? _seed;
-  SiteDuplicateSource? _duplicate;
-
-  /// The site to duplicate could not be read, or is gone.
-  bool _gone = false;
 
   @override
   void initState() {
     super.initState();
-    _load();
+    _makeSeed();
   }
 
-  Future<void> _load() async {
-    final request = widget.page.newSite!;
-    final read = ref.read;
-    final seed = await newSiteSeed(read, id: _id);
-    final duplicateOfId = request.duplicateOfId;
-    SiteDuplicateSource? duplicate;
-    if (duplicateOfId != null) {
-      final source = siteDuplicateSourceProvider(duplicateOfId);
-      try {
-        duplicate = await read(source.future);
-      } catch (error, stackTrace) {
-        _editLog.error(
-          'Reading site $duplicateOfId to duplicate failed',
-          error: error,
-          stackTrace: stackTrace,
-        );
-      }
-      // Read once: the next duplicate of it reads the site as it is then.
-      if (mounted) ref.invalidate(source);
-    }
-    if (!mounted) return;
-    setState(() {
-      _seed = seed;
-      _duplicate = duplicate;
-      _gone = duplicateOfId != null && duplicate == null;
-    });
+  Future<void> _makeSeed() async {
+    final seed = await newSiteSeed(ref.read, id: _id);
+    if (mounted) setState(() => _seed = seed);
   }
 
   @override
   Widget build(BuildContext context) {
     final page = widget.page;
     final request = page.newSite!;
-    final l10n = context.l10n;
-    if (_gone) {
+    final duplicateOfId = request.duplicateOfId;
+    // Watched, so the source lives as long as the page and no longer.
+    final source = duplicateOfId == null
+        ? null
+        : ref.watch(siteDuplicateSourceProvider(duplicateOfId));
+    if (source != null && !source.isLoading && source.value == null) {
+      if (source.hasError) {
+        _editLog.error(
+          'Reading site $duplicateOfId to duplicate failed',
+          error: source.error,
+          stackTrace: source.stackTrace,
+        );
+      }
+      final l10n = context.l10n;
       final body = Center(child: Text(l10n.diveSites_detail_siteNotFound_body));
       if (page.embedded) return body;
       return Scaffold(
@@ -96,11 +81,11 @@ class _NewSiteLoaderState extends ConsumerState<_NewSiteLoader> {
       );
     }
     final seed = _seed;
-    if (seed == null) {
+    if (seed == null || (source != null && source.isLoading)) {
       return _newSiteLoading(
         context,
         embedded: page.embedded,
-        duplicate: request.duplicateOfId != null,
+        duplicate: duplicateOfId != null,
       );
     }
     return _SiteDetailContent(
@@ -110,7 +95,7 @@ class _NewSiteLoaderState extends ConsumerState<_NewSiteLoader> {
       unlockEditing: true,
       newSite: _NewSite(
         seed: request.seed,
-        duplicate: _duplicate,
+        duplicate: source?.value,
         onCreated: page.onCreated,
         onCreateCancelled: page.onCreateCancelled,
       ),
@@ -126,24 +111,34 @@ String _newSiteTitle(BuildContext context, {required bool duplicate}) =>
     : context.l10n.diveSites_edit_appBar_newSite;
 
 /// Waiting on a new site: the seed being made, or the created site being
-/// handed on.
+/// handed on. While handing on ([holdBack]) Back waits: the site exists,
+/// and leaving then would leave its opener without it.
 Widget _newSiteLoading(
   BuildContext context, {
   required bool embedded,
   required bool duplicate,
+  bool holdBack = false,
 }) {
   const spinner = Center(child: CircularProgressIndicator());
-  if (embedded) return spinner;
-  return Scaffold(
-    appBar: AppBar(title: Text(_newSiteTitle(context, duplicate: duplicate))),
-    body: spinner,
-  );
+  final page = embedded
+      ? spinner
+      : Scaffold(
+          appBar: AppBar(
+            automaticallyImplyLeading: !holdBack,
+            title: Text(_newSiteTitle(context, duplicate: duplicate)),
+          ),
+          body: spinner,
+        );
+  return holdBack ? PopScope(canPop: false, child: page) : page;
 }
 
 /// What only a new site's page does: open its sitting on the seed, create
 /// the site at Save, and leave.
 mixin _SiteDetailPageCreating
-    on ConsumerState<_SiteDetailContent>, _SiteDetailPageEditing {
+    on
+        ConsumerState<_SiteDetailContent>,
+        _SiteDetailPageEditing,
+        RecordOpenUnlocked<_SiteDetailContent, DiveSite> {
   /// The site as Save created it, while the page hands it on.
   DiveSite? _created;
 
@@ -208,11 +203,13 @@ mixin _SiteDetailPageCreating
   /// once it is created, or while it leaves; null otherwise.
   Widget? _newSiteWaiting(BuildContext context) {
     if (!isCreating) return null;
+    _leaveIfEnded(context);
     if (_opened && _created == null && !_leaving) return null;
     return _newSiteLoading(
       context,
       embedded: widget.embedded,
       duplicate: widget.newSite?.duplicate != null,
+      holdBack: _created != null,
     );
   }
 
@@ -223,17 +220,26 @@ mixin _SiteDetailPageCreating
     return _newSiteTitle(context, duplicate: request.duplicate != null);
   }
 
-  /// A sitting that ends without a create while the page is in view
-  /// leaves, as Cancel does (plan 6, call 9).
+  /// The app's own leave check ended the sitting: its navigation leaves.
+  bool _endedByLeave = false;
+
   @override
-  void onEditChanged() {
-    super.onEditChanged();
+  void noteOpenedSittingEnded() {
+    // Read first: this is where the mark is cleared once the sitting ends.
+    if (!isSittingOpen && sittingEndedByLeave) _endedByLeave = true;
+    super.noteOpenedSittingEnded();
+  }
+
+  /// A sitting that ended without a create leaves, as Cancel does (plan 6,
+  /// call 9), once the page is in view: asked from `build`, which reads
+  /// whether the page is current, so it is asked again on coming back.
+  void _leaveIfEnded(BuildContext context) {
     if (!isCreating || !_opened || _created != null || _leaving) return;
-    if (maybeEditController?.isUnlocked ?? false) return;
+    if (_endedByLeave || isSittingOpen) return;
+    if (!(ModalRoute.of(context)?.isCurrent ?? true)) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || _leaving || _created != null) return;
-      if (maybeEditController?.isUnlocked ?? false) return;
-      if (!(ModalRoute.of(context)?.isCurrent ?? true)) return;
+      if (!mounted || _leaving || _created != null || isSittingOpen) return;
+      if (!(ModalRoute.of(this.context)?.isCurrent ?? true)) return;
       _leaveNewSite();
     });
   }
@@ -252,25 +258,11 @@ mixin _SiteDetailPageCreating
     final activeDiver = session.stored.diverId == null
         ? ref.read(validatedCurrentDiverIdProvider.future)
         : null;
-    final changedCardIds = session.changedCardIds;
     final diverId = activeDiver == null ? null : await activeDiver;
-    var site = session.applyTo(session.stored);
-    if (site.diverId == null && diverId != null) {
-      site = site.copyWith(diverId: diverId);
-    }
-    final created = await undoMediaOnFailure(
+    final created = await createSiteSitting(
       session,
-      () => service.create(
-        site: site,
-        changedCardIds: changedCardIds,
-        // Everything held points at the site: all of it runs after the row.
-        alsoWrite: session.hasHeldWrites
-            ? () async {
-                await session.runHeldWrites(beforeRecord: true);
-                await session.runHeldWrites();
-              }
-            : null,
-      ),
+      service,
+      activeDiverId: diverId,
     );
     if (mounted) setState(() => _created = created);
     // The site exists from here on: nothing that follows may read as a
@@ -315,7 +307,9 @@ mixin _SiteDetailPageCreating
     final created = _created;
     if (created == null) return;
     await rulesAfterCreate(subject: RuleSubject.sites, ids: [created.id]);
-    if (!mounted) return;
+    // Gone meanwhile (the app moved elsewhere): its pop would take the
+    // page under it.
+    if (!mounted || !(ModalRoute.of(context)?.isActive ?? true)) return;
     _leaving = true;
     if (widget.embedded) {
       widget.newSite?.onCreated?.call(created.id);

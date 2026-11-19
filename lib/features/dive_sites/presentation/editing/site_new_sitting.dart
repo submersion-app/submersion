@@ -114,11 +114,11 @@ Future<SiteDuplicateSource?> readSiteDuplicate(
   );
 }
 
-/// [readSiteDuplicate] for the page that opens a duplicate of a site. The
-/// page reads it once and lets it go, so the next duplicate reads the site
-/// as it is then.
-final siteDuplicateSourceProvider =
-    FutureProvider.family<SiteDuplicateSource?, String>(
+/// [readSiteDuplicate] for the page that opens a duplicate of a site,
+/// watched by that page, so it goes with it: a later Duplicate of the same
+/// site reads the site as it is then.
+final siteDuplicateSourceProvider = FutureProvider.autoDispose
+    .family<SiteDuplicateSource?, String>(
       (ref, siteId) => readSiteDuplicate(ref.read, siteId),
     );
 

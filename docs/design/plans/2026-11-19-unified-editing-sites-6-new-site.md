@@ -45,7 +45,7 @@ Each follows a call Eric confirmed for a new dive on 2026-11-17 (plan 8), or the
 - No file over 800 lines. `site_detail_page.dart` is at 2,385 (already over): it grows only by the lines Task 3 names. `site_detail_page_editing.dart` is at 697 and `app_router.dart` at 2,729: each changes only the lines its task names. New page code goes in the new part file `site_detail_page_creating.dart`.
 - **Shared files.** This plan changes nothing under `lib/shared/widgets/record_editing/`: it uses the host's existing creating hooks (`isCreating`, `saveNewRecord`, `cancelNewRecord`, `RecordEditController.unlock(laidOut:)`, `creating`). PR #4746 (phase 3, plan 1, open) changes `record_edit_host.dart` and `record_edit_bar.dart` there; neither is touched here, so whichever PR merges second takes main with a plain merge. The site's sharing stays in `site_sharing_sitting.dart` (PR #4746 leaves it for phase 2's switch-over). If a task finds it must change a shared file after all, the change is additive (a new member with a default, nothing renamed or moved) and is named in the PR.
 - Existing strings only (calls 2 and 7). Should a new string turn out to be needed, it goes into all 11 ARB files with an `@key` description in `app_en.arb`, then `flutter gen-l10n`.
-- Never an em-dash or en-dash as punctuation; nothing names Claude, Claude Code or Anthropic.
+- Never an em-dash or en-dash as punctuation; nothing names the coding assistant or its maker.
 - Test commands name test FILES by path, never a folder, `test/architecture/` or `test/shared/`.
 - `dart format` the changed files before each commit.
 
