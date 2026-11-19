@@ -63,11 +63,20 @@ List<ItineraryDay> missingItineraryDays(List<ItineraryDay> days, Trip trip) {
   ).where((d) => !covered.contains(tripDay(d.date))).toList();
 }
 
-/// [days] with [added] among them, in date order.
+/// [days] with [added] among them, in date order, one day a date: an added
+/// day for a date [days] (or an earlier added day) already has is left out,
+/// so Generate tapped twice before the page redraws adds each day once.
 List<ItineraryDay> withDaysAdded(
   List<ItineraryDay> days,
   List<ItineraryDay> added,
-) => [...days, ...added]..sort((a, b) => a.date.compareTo(b.date));
+) {
+  final covered = {for (final d in days) tripDay(d.date)};
+  return [
+    ...days,
+    for (final d in added)
+      if (covered.add(tripDay(d.date))) d,
+  ]..sort((a, b) => a.date.compareTo(b.date));
+}
 
 /// [days] with the day [edited] is a copy of taking what the day sheet
 /// edits from it: the type, the place, the notes and the planned dives.

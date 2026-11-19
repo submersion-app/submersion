@@ -119,4 +119,18 @@ void main() {
       );
     },
   );
+
+  test('days added twice for the same dates are kept once a date', () {
+    final working = redSea.copyWith(endDate: DateTime(2030, 6, 3));
+    final first = missingItineraryDays([june1], working);
+    final second = missingItineraryDays([june1], working);
+
+    final days = withDaysAdded(withDaysAdded([june1], first), second);
+
+    expect(
+      [for (final d in days) d.date],
+      [DateTime(2030, 6, 1), DateTime(2030, 6, 2), DateTime(2030, 6, 3)],
+    );
+    expect(withDaysAdded([june1], [...first, ...second]), hasLength(3));
+  });
 }
