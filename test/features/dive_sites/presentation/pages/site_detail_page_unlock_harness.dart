@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/models/new_site_seed.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_new_sitting.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
+import 'package:submersion/features/dive_sites/presentation/pages/site_edit_routes.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_edit_save_provider.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -174,6 +175,16 @@ Future<SiteUnlockHarness> pumpSitePage(
             GoRoute(
               path: '/sites',
               builder: (_, _) => const Scaffold(body: Text('sites pane')),
+            ),
+            // The app's site address and its old edit address, which
+            // redirects to the page opened unlocked (issue #4527, plan 7).
+            GoRoute(
+              path: '/sites/:siteId',
+              builder: (_, state) => SiteDetailPage(
+                siteId: state.pathParameters['siteId']!,
+                openUnlocked: state.uri.queryParameters['mode'] == 'edit',
+              ),
+              routes: [GoRoute(path: 'edit', redirect: siteEditRedirect)],
             ),
           ],
         );

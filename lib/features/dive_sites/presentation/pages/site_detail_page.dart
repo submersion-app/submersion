@@ -18,7 +18,6 @@ import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/router/pushed_route.dart';
-import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/features/bathymetry/application/bathymetry_providers.dart';
 import 'package:submersion/features/bathymetry/data/bathymetry_repository.dart';
 import 'package:submersion/features/bathymetry/domain/grid_sampling.dart';
@@ -745,16 +744,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
         ),
       ];
     }
-    // On a page that hosts editing a reader suggests through its unlock.
-    if (canSuggestOnLibrarySite(access.role) && !hostsEditing) {
-      return [
-        TextButton.icon(
-          icon: const Icon(Icons.rate_review_outlined, size: 18),
-          label: Text(l10n.sharedLibrary_suggest_title),
-          onPressed: () => context.push('/sites/${site.id}/edit?suggest=1'),
-        ),
-      ];
-    }
+    // A reader suggests changes through the page's unlock (plan 5).
     return const [];
   }
 

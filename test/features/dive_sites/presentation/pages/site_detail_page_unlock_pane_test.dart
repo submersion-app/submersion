@@ -82,24 +82,15 @@ void main() {
     expect(page.save.calls, isEmpty);
   });
 
-  // On a device that attaches media the locked pane's Media card still
-  // offers no Add: the pane holds the sitting's scope, which makes the
-  // card read only until it is unlocked and opened.
-  // Where the pane offers the lock its Edit unlocks the site in place, as
-  // the lock does: no edit address remounting the pane at its top.
-  testWidgets('Edit unlocks the pane in place', (tester) async {
-    final page = await pumpSitePage(
-      tester,
-      embedded: true,
-      initialLocation: '/root-site',
-    );
+  // The lock is the one way in (issue #4527, phase 2, plan 7): no Edit
+  // pencil beside it on the pane's row.
+  testWidgets('the locked pane row has the lock and no Edit pencil', (
+    tester,
+  ) async {
+    await pumpSitePage(tester, embedded: true);
 
-    await tester.tap(find.byTooltip(l.diveSites_detail_editTooltipShort));
-    await tester.pumpAndSettle();
-
-    expect(find.byType(RecordEditPaneHeader), findsOneWidget);
-    final uri = page.router!.routerDelegate.currentConfiguration.uri;
-    expect(uri.toString(), '/root-site');
+    expect(find.byIcon(Icons.lock_outline), findsOneWidget);
+    expect(find.widgetWithIcon(IconButton, Icons.edit), findsNothing);
   });
 
   // The locked row stays laid out, unseen, under the unlocked one: each has
@@ -129,6 +120,9 @@ void main() {
     await openDisplayOptions();
   });
 
+  // On a device that attaches media the locked pane's Media card still
+  // offers no Add: the pane holds the sitting's scope, which makes the
+  // card read only until it is unlocked and opened.
   group('on a device that attaches media', () {
     final attaches = [
       deviceCapabilitiesProvider.overrideWithValue(

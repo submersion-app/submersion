@@ -17,7 +17,6 @@ import 'package:submersion/core/app/app_exit_guard.dart';
 import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
-import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_header.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_editing_page_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -26,6 +25,7 @@ import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_shortcuts.dart';
 import 'package:submersion/shared/widgets/record_editing/record_fold_pencil.dart';
 
@@ -261,37 +261,49 @@ void main() {
     expect(pencil.top, greaterThanOrEqualTo(strip.bottom));
   });
 
-  testWidgets('the old edit form cannot be opened over an open sitting', (
-    tester,
-  ) async {
-    // The app bar's button to the form, not a card's pencil.
-    final oldEdit = find.descendant(
-      of: find.byType(AppBar),
-      matching: find.widgetWithIcon(IconButton, Icons.edit),
+  // The lock is the one way in (issue #4527, phase 2, plan 7): no Edit
+  // pencil beside it on the bar.
+  testWidgets('the locked bar has the lock and no Edit pencil', (tester) async {
+    await pumpSitePage(tester);
+
+    final bar = find.byType(AppBar);
+    expect(
+      find.descendant(of: bar, matching: find.byIcon(Icons.lock_outline)),
+      findsOneWidget,
     );
-    await pumpSitePage(tester);
-    expect(oldEdit, findsOneWidget);
-
-    await unlock(tester);
-
-    // The form would save over the sitting: not offered while it is open.
-    expect(oldEdit, findsNothing);
-  });
-
-  // With the switch on the old edit address opens this page unlocked, so
-  // Edit unlocks the page in place rather than pushing a second copy.
-  testWidgets('Edit unlocks the page in place', (tester) async {
-    await pumpSitePage(tester);
-    await tester.tap(
+    expect(
       find.descendant(
-        of: find.byType(AppBar),
+        of: bar,
         matching: find.widgetWithIcon(IconButton, Icons.edit),
       ),
+      findsNothing,
     );
-    await tester.pumpAndSettle();
+  });
+
+  // Review Focus 1: an old edit address, bookmarked before the site was
+  // deleted, finds the page's not-found state, with no sitting to open.
+  testWidgets('an old edit address for a deleted site shows not found, '
+      'locked', (tester) async {
+    await pumpSitePage(
+      tester,
+      initialLocation: '/sites/gone/edit',
+      extra: [siteProvider('gone').overrideWith((_) async => null)],
+    );
+
+    expect(find.text(l.diveSites_detail_siteNotFound_title), findsOneWidget);
+    expect(find.byType(RecordEditBar), findsNothing);
+    expect(find.byIcon(Icons.lock_outline), findsNothing);
+  });
+
+  // The old edit address opens the stored site unlocked.
+  testWidgets('an old edit address opens the site unlocked', (tester) async {
+    final page = await pumpSitePage(tester, initialLocation: '/sites/s1/edit');
 
     expect(find.byType(RecordEditBar), findsOneWidget);
-    expect(find.byType(SiteDetailPage), findsOneWidget);
+    expect(
+      page.router!.routerDelegate.currentConfiguration.uri.toString(),
+      '/sites/s1?mode=edit',
+    );
   });
 
   testWidgets('editing Notes and saving writes one sitting and locks', (

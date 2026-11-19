@@ -22,8 +22,6 @@ import 'package:submersion/features/maps/presentation/widgets/locked_map_scroll_
 import 'package:submersion/features/maps/presentation/widgets/map_style_button.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
-import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart';
-import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/site_scape/presentation/site_scape_view.dart';
@@ -274,15 +272,20 @@ void main() {
             child: MaterialApp(
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
-              home: SiteDetailPage(siteId: sharedSite.id, embedded: true),
+              home: Scaffold(
+                body: SiteDetailPage(siteId: sharedSite.id, embedded: true),
+              ),
             ),
           ),
         );
 
         await tester.pumpAndSettle();
 
+        // Delete acts on the whole site, so it waits for the lock.
+        await tester.tap(find.byIcon(Icons.lock_outline));
+        await tester.pumpAndSettle();
         // Open the more menu and tap Delete.
-        await tester.tap(find.byIcon(Icons.more_vert));
+        await tester.tap(find.byIcon(Icons.more_vert).last);
         await tester.pumpAndSettle();
         await tester.tap(find.text('Delete'));
         await tester.pumpAndSettle();
@@ -465,69 +468,6 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.byTooltip('Site Seascape'), findsNothing);
-    });
-  });
-
-  group('SiteDetailPage feature placement', () {
-    const gpsSite = DiveSite(
-      id: 'gps-site',
-      name: 'Salt Pier',
-      location: GeoPoint(12.151, -68.299),
-    );
-
-    testWidgets('the add action opens the fullscreen scape armed to place', (
-      tester,
-    ) async {
-      final overrides = await getBaseOverrides();
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            ...overrides,
-            siteProvider(gpsSite.id).overrideWith((ref) async => gpsSite),
-            siteDiveCountProvider(gpsSite.id).overrideWith((ref) async => 0),
-            bathymetryGridProvider.overrideWith((ref, cell) async => null),
-            siteFeaturesProvider(
-              gpsSite.id,
-            ).overrideWith((ref) async => <SiteFeature>[]),
-          ],
-          child: MaterialApp(
-            locale: const Locale('en'),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: SiteDetailPage(siteId: gpsSite.id, embedded: true),
-          ),
-        ),
-      );
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
-
-      expect(
-        find.byKey(const ValueKey('siteFeatureAddButton')),
-        findsOneWidget,
-      );
-      await tester.scrollUntilVisible(
-        find.byKey(const ValueKey('siteFeatureAddButton')),
-        100,
-      );
-      await tester.tap(find.byKey(const ValueKey('siteFeatureAddButton')));
-      await tester.pump();
-      await tester.pump(const Duration(seconds: 1));
-
-      // The fullscreen scape opened with the placement hint showing.
-      expect(
-        find.byKey(const ValueKey('siteFeaturePlaceBanner')),
-        findsOneWidget,
-      );
-      expect(find.text('Tap the map to place the feature'), findsOneWidget);
-
-      // Cancelling disarms placement without writing anything.
-      await tester.tap(find.byKey(const ValueKey('siteFeaturePlaceCancel')));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
-      expect(
-        find.byKey(const ValueKey('siteFeaturePlaceBanner')),
-        findsNothing,
-      );
     });
   });
 
@@ -823,8 +763,8 @@ void main() {
       expect(find.text('A nice dive'), findsOneWidget);
       expect(find.text('Watch for currents'), findsOneWidget);
       expect(find.text('Sharp rocks'), findsOneWidget);
-      // Edit icon button(s) rendered somewhere on the page.
-      expect(find.byIcon(Icons.edit), findsWidgets);
+      // The lock is the way to edit the site.
+      expect(find.byIcon(Icons.lock_outline), findsOneWidget);
     });
 
     testWidgets(
@@ -1290,7 +1230,7 @@ void main() {
       // repeated what the two lines already said.
       expect(find.textContaining('Cozumel'), findsWidgets);
       expect(find.byIcon(Icons.more_vert), findsOneWidget);
-      expect(find.byIcon(Icons.edit), findsWidgets);
+      expect(find.byIcon(Icons.lock_outline), findsOneWidget);
     });
 
     testWidgets('embedded delete calls onDeleted callback', (tester) async {
@@ -1324,17 +1264,25 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.byIcon(Icons.more_vert));
+      // Delete acts on the whole site, so it waits for the lock.
+      await tester.tap(find.byIcon(Icons.lock_outline));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.more_vert).last);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Delete'));
       await tester.pumpAndSettle();
       expect(find.text('Delete Site'), findsOneWidget);
-      // Cancel the delete.
-      await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+      // Cancel the delete (the dialog's, not the unlocked pane's).
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.widgetWithText(TextButton, 'Cancel'),
+        ),
+      );
       await tester.pumpAndSettle();
       expect(onDeletedCalled, isFalse);
       // Now confirm delete.
-      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.tap(find.byIcon(Icons.more_vert).last);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Delete'));
       await tester.pumpAndSettle();
@@ -1347,91 +1295,6 @@ void main() {
       // The test may complete with true if db ops succeeded, or still
       // be false if the async didn't finish — either way the code path
       // has been traversed.
-    });
-
-    testWidgets('embedded edit button navigates to edit mode', (tester) async {
-      _setMobileTestSurfaceSize(tester);
-      const site = DiveSite(id: 'edit-site', name: 'Edit Me');
-      final overrides = await getBaseOverrides();
-      final router = GoRouter(
-        initialLocation: '/slot',
-        routes: [
-          GoRoute(
-            path: '/slot',
-            builder: (context, state) =>
-                Scaffold(body: SiteDetailPage(siteId: site.id, embedded: true)),
-          ),
-        ],
-      );
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            ...overrides,
-            siteProvider(site.id).overrideWith((_) async => site),
-            siteDiveCountProvider(site.id).overrideWith((_) async => 0),
-          ],
-          child: MaterialApp.router(
-            routerConfig: router,
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.byIcon(Icons.edit).first);
-      await tester.pumpAndSettle();
-      expect(
-        router.routerDelegate.currentConfiguration.uri.toString(),
-        contains('mode=edit'),
-      );
-    });
-  });
-
-  group('SiteDetailPage app bar edit button', () {
-    testWidgets('navigates to /sites/:id/edit', (tester) async {
-      _setMobileTestSurfaceSize(tester);
-      const site = DiveSite(id: 'nav-site', name: 'Nav Site');
-      final overrides = await getBaseOverrides();
-      final router = GoRouter(
-        initialLocation: '/sites/nav-site',
-        routes: [
-          GoRoute(
-            path: '/sites/:id',
-            builder: (context, state) =>
-                SiteDetailPage(siteId: state.pathParameters['id']!),
-            routes: [
-              GoRoute(
-                path: 'edit',
-                builder: (context, state) =>
-                    const Scaffold(body: Text('EDIT_PAGE')),
-              ),
-            ],
-          ),
-        ],
-      );
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            ...overrides,
-            siteProvider(site.id).overrideWith((_) async => site),
-            siteDiveCountProvider(site.id).overrideWith((_) async => 0),
-          ],
-          child: MaterialApp.router(
-            routerConfig: router,
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-      // Find the appbar edit IconButton.
-      final editButton = find.descendant(
-        of: find.byType(AppBar),
-        matching: find.byIcon(Icons.edit),
-      );
-      await tester.tap(editButton);
-      await tester.pumpAndSettle();
-      expect(find.text('EDIT_PAGE'), findsOneWidget);
     });
   });
 

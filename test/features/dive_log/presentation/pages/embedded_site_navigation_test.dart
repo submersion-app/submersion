@@ -18,12 +18,13 @@ import 'package:submersion/features/marine_life/data/repositories/species_reposi
 import 'package:submersion/features/dive_log/presentation/widgets/dive_locations_map.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
-import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart'
     as marine;
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/l10n/arb/app_localizations_en.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_pane_header.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
@@ -81,6 +82,7 @@ class MockSpeciesRepository extends Mock implements SpeciesRepository {
 }
 
 void main() {
+  final l = AppLocalizationsEn();
   const site = DiveSite(
     id: 'site-1',
     name: 'Blue Hole',
@@ -94,8 +96,8 @@ void main() {
   );
   final summary = DiveSummary.fromDive(dive);
 
-  // The site edit page's type and tag pickers read the tag and site type
-  // vocabularies from the database (issue #1765).
+  // The site page's cards read the tag and site type vocabularies from the
+  // database (issue #1765).
   setUp(() async => setUpTestDatabase());
   tearDown(() async => tearDownTestDatabase());
 
@@ -111,7 +113,8 @@ void main() {
   }
 
   testWidgets(
-    'Full navigation cycle: Dive -> Site Detail -> Site Edit -> Save -> Site Detail (embedded)',
+    'Full navigation cycle: Dive -> Site (locked) -> mode=edit (unlocked) '
+    '-> Cancel -> Site -> back to the Dive',
     (tester) async {
       // Set desktop size for master-detail
       tester.view.devicePixelRatio = 1.0;
@@ -192,82 +195,59 @@ void main() {
       expect(router.state.uri.toString(), contains('site=${site.id}'));
       expect(router.state.uri.toString(), contains('selected=${dive.id}'));
 
-      // 3. Navigate to Site Edit by tapping Edit button
-      final editButton = find.byElementPredicate((element) {
-        if (element.widget is! IconButton) return false;
-        final iconButton = element.widget as IconButton;
-        final icon = iconButton.icon;
-        return icon is Icon &&
-            icon.icon == Icons.edit &&
-            element.findAncestorWidgetOfExactType<SiteDetailPage>() != null;
-      }).first;
-      expect(editButton, findsOneWidget);
-      await tester.tap(editButton);
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 200));
-      await tester.pump(const Duration(milliseconds: 200));
-
-      // Verify Site Edit is shown
-      expect(find.byType(SiteEditPage), findsOneWidget);
-      expect(router.state.uri.toString(), contains('mode=edit'));
-      expect(router.state.uri.toString(), contains('site=${site.id}'));
-      expect(router.state.uri.toString(), contains('selected=${dive.id}'));
-
-      // 4. Simulate Save
-      final siteEditPage = tester.widget<SiteEditPage>(
-        find.byType(SiteEditPage),
+      // 3. The site shows the lock and no Edit pencil: the lock is the one
+      // way in (issue #4527, phase 2, plan 7).
+      final inSite = find.byType(SiteDetailPage);
+      expect(
+        find.descendant(of: inSite, matching: find.byIcon(Icons.lock_outline)),
+        findsOneWidget,
       );
-      siteEditPage.onSaved!(site.id);
+      expect(
+        find.descendant(
+          of: inSite,
+          matching: find.widgetWithIcon(IconButton, Icons.edit),
+        ),
+        findsNothing,
+      );
 
-      // We need to pump enough to let the navigation and state changes propagate.
+      // 4. The pane's edit mode (`&mode=edit`) opens the site unlocked,
+      // still within the dive.
+      router.go('/dives?selected=${dive.id}&site=${site.id}&mode=edit');
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 200));
       await tester.pump(const Duration(milliseconds: 200));
 
-      // Verify we are back at Site Detail, still within Dive context
-      expect(find.byType(SiteEditPage), findsNothing);
+      expect(find.byType(SiteDetailPage), findsOneWidget);
+      expect(find.byType(RecordEditPaneHeader), findsOneWidget);
+
+      // 5. Cancel with nothing changed returns the site to view mode.
+      await tester.tap(find.text(l.forms_cancel));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pump(const Duration(milliseconds: 200));
+      // The unlocked pane cross-fades out to the site in view mode.
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(find.byType(RecordEditPaneHeader), findsNothing);
       expect(find.byType(SiteDetailPage), findsOneWidget);
       expect(router.state.uri.toString(), isNot(contains('mode=edit')));
       expect(router.state.uri.toString(), contains('site=${site.id}'));
       expect(router.state.uri.toString(), contains('selected=${dive.id}'));
 
-      // 5. Simulate Cancel
-      // Back to edit
-      await tester.tap(editButton);
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 200));
-      await tester.pump(const Duration(milliseconds: 200));
-      expect(find.byType(SiteEditPage), findsOneWidget);
-
-      final siteEditPageCancel = tester.widget<SiteEditPage>(
-        find.byType(SiteEditPage),
+      // 6. The locked site's back arrow returns to the dive it was opened
+      // from.
+      await tester.tap(
+        find.descendant(
+          of: inSite,
+          matching: find.byTooltip(l.common_action_back),
+        ),
       );
-      siteEditPageCancel.onCancel!();
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 200));
       await tester.pump(const Duration(milliseconds: 200));
 
-      expect(find.byType(SiteEditPage), findsNothing);
-      expect(find.byType(SiteDetailPage), findsOneWidget);
-      expect(router.state.uri.toString(), isNot(contains('mode=edit')));
-      expect(router.state.uri.toString(), contains('selected=${dive.id}'));
-
-      // 6. Simulate Delete: the site is gone, so return to the dive itself
-      await tester.tap(editButton);
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 200));
-      await tester.pump(const Duration(milliseconds: 200));
-      expect(find.byType(SiteEditPage), findsOneWidget);
-
-      tester.widget<SiteEditPage>(find.byType(SiteEditPage)).onDeleted!();
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 200));
-      await tester.pump(const Duration(milliseconds: 200));
-
-      expect(find.byType(SiteEditPage), findsNothing);
       expect(find.byType(SiteDetailPage), findsNothing);
       expect(find.byType(DiveDetailPage), findsOneWidget);
-      expect(router.state.uri.toString(), isNot(contains('mode=')));
       expect(router.state.uri.toString(), isNot(contains('site=')));
       expect(router.state.uri.toString(), contains('selected=${dive.id}'));
 
