@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -16,24 +18,30 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/weather/data/services/elevation_service.dart';
 import 'package:submersion/features/weather/presentation/providers/weather_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/forms/edit_form_scaffold.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
 import '../../../../helpers/fake_hosts.dart';
 import '../../../../helpers/test_database.dart';
 
-/// A geocoder that answers [place] for a lookup and [fix] for a position.
+/// A geocoder that answers [place] for a lookup, once [hold] completes when
+/// one is given, and [fix] for a position.
 class _Geocoder implements LocationService {
-  _Geocoder({this.place = const PlaceLookup.empty(), this.fix});
+  _Geocoder({this.place = const PlaceLookup.empty(), this.fix, this.hold});
 
   final PlaceLookup place;
   final LocationResult? fix;
+  final Completer<void>? hold;
 
   @override
   Future<PlaceLookup> reverseGeocode(
     double latitude,
     double longitude, {
     required String languageCode,
-  }) async => place;
+  }) async {
+    await hold?.future;
+    return place;
+  }
 
   @override
   Future<LocationResult?> getCurrentLocation({
@@ -135,6 +143,53 @@ void main() {
 
     await tapText(tester, l.diveSites_edit_gps_lookupFromCoordinates);
     expect(find.text(l.diveSites_edit_snackbar_lookupNoChanges), findsOne);
+  });
+
+  // The answer describes where the site was when Look up was pressed: a
+  // position cycled in meanwhile gets none of its names (code review).
+  testWidgets('Look up drops a place found for coordinates since cycled away', (
+    tester,
+  ) async {
+    final hold = Completer<void>();
+    await pump(tester, _Geocoder(place: belize, hold: hold));
+
+    await tester.ensureVisible(
+      find.text(l.diveSites_edit_gps_lookupFromCoordinates),
+    );
+    await tester.tap(find.text(l.diveSites_edit_gps_lookupFromCoordinates));
+    await tester.pump();
+    location(tester).coordinatesExtras!.onCycle();
+    await tester.pump();
+    hold.complete();
+    await tester.pumpAndSettle();
+
+    expect(identity(tester).countryController.text, isEmpty);
+    expect(find.text('Region: Lighthouse Reef'), findsNothing);
+  });
+
+  // A field the diver only taps into (a selection, no new text) is no
+  // change, so leaving asks nothing (code review).
+  testWidgets('tapping into a field leaves the merge unchanged', (
+    tester,
+  ) async {
+    await pump(tester, _Geocoder());
+    bool changed() => tester
+        .widget<EditFormScaffold>(find.byType(EditFormScaffold))
+        .hasUnsavedChanges;
+    final name = find
+        .descendant(
+          of: find.byType(IdentitySection),
+          matching: find.byType(EditableText),
+        )
+        .first;
+
+    await tester.tap(name);
+    await tester.pumpAndSettle();
+    expect(changed(), isFalse);
+
+    await tester.enterText(name, 'Hole South');
+    await tester.pumpAndSettle();
+    expect(changed(), isTrue);
   });
 
   testWidgets('Keep holds a differing name', (tester) async {

@@ -8,7 +8,7 @@ String _depthForInput(double value) => formatRoundedForInput(value, 1);
 String _altitudeForInput(double value) => formatRoundedForInput(value, 0);
 
 /// The merge page's fields: a controller per text field, the chosen value of
-/// each of the others, their validators and the sections' summaries.
+/// each of the others, and their validators.
 mixin _SiteMergeFields on ConsumerState<SiteMergePage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
@@ -59,11 +59,16 @@ mixin _SiteMergeFields on ConsumerState<SiteMergePage> {
   /// lookup's fill), so the write does not count as the diver's change.
   bool _isApplyingInitialValues = false;
 
+  /// Each text field's text when last heard from: a controller also tells
+  /// of a moved cursor or selection, which changes nothing.
+  final Map<TextEditingController, String> _seenTexts = {};
+
   /// Listens to every text field for the diver's first change, and to the
   /// coordinates with [onCoordinatesChanged].
   void _listenToFields({required VoidCallback onCoordinatesChanged}) {
     for (final controller in _textControllers) {
-      controller.addListener(_onFieldChanged);
+      _seenTexts[controller] = controller.text;
+      controller.addListener(() => _onFieldChanged(controller));
     }
     _latitudeController.addListener(onCoordinatesChanged);
     _longitudeController.addListener(onCoordinatesChanged);
@@ -95,7 +100,10 @@ mixin _SiteMergeFields on ConsumerState<SiteMergePage> {
     _altitudeController,
   ];
 
-  void _onFieldChanged() {
+  void _onFieldChanged(TextEditingController controller) {
+    // A tap into the field moves the cursor only: no change.
+    if (_seenTexts[controller] == controller.text) return;
+    _seenTexts[controller] = controller.text;
     if (_isApplyingInitialValues) return;
     if (!_hasChanges && _isInitialized) {
       setState(() => _hasChanges = true);

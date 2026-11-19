@@ -18,27 +18,22 @@ mixin _SiteMergeLocation on _SiteMergeFields {
   /// diving is flagged without manual entry. Never overwrites a value.
   Future<void> _maybeFetchAltitude() async {
     if (_altitudeController.text.isNotEmpty) return;
-    final lat = double.tryParse(_latitudeController.text.trim());
-    final lng = double.tryParse(_longitudeController.text.trim());
-    if (lat == null || lng == null) return;
-    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return;
+    final point = _parsedCoordinates();
+    if (point == null) return;
 
     final meters = await ref
         .read(elevationServiceProvider)
-        .fetchElevation(latitude: lat, longitude: lng);
+        .fetchElevation(latitude: point.latitude, longitude: point.longitude);
     if (!mounted || meters == null) return;
     if (_altitudeController.text.isNotEmpty) return;
     // An answer for a position the fields have since left (another site's
     // coordinates cycled in) fills nothing; that position asks for itself.
-    if (double.tryParse(_latitudeController.text.trim()) != lat ||
-        double.tryParse(_longitudeController.text.trim()) != lng) {
-      return;
-    }
+    if (_parsedCoordinates() != point) return;
 
     final units = ref.read(unitFormatterProvider);
     setState(() {
-      // A programmatic fill must not dirty the form on its own: opening a site
-      // that predates this feature would otherwise prompt to discard changes.
+      // A fill the page makes itself is not the diver's change: a merge left
+      // untouched closes without asking to discard it.
       final wasApplying = _isApplyingInitialValues;
       _isApplyingInitialValues = true;
       _altitudeController.text = _altitudeForInput(
@@ -52,7 +47,7 @@ mixin _SiteMergeLocation on _SiteMergeFields {
   /// fields. With [overwrite] false only empty fields change; with it true a
   /// found value replaces a differing one. The rule lives in
   /// [mergeLocationDetails]. Returns whether any field changed. Callers
-  /// decide whether that dirties the form.
+  /// decide whether that counts as the diver's change.
   bool _applyPlaceLookup(PlaceLookup lookup, {required bool overwrite}) {
     final currentCode =
         _knownCountryCode.country?.trim() == _countryController.text.trim()
@@ -151,7 +146,7 @@ mixin _SiteMergeLocation on _SiteMergeFields {
       });
 
       if (mounted) {
-        // The position landed in the form either way; say so, but when the
+        // The position landed in the fields either way; say so, but when the
         // geocoder was unreachable explain why the place fields stayed empty.
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -176,12 +171,10 @@ mixin _SiteMergeLocation on _SiteMergeFields {
   }
 
   Future<void> _pickFromMap() async {
-    LatLng? initialLocation;
-    final lat = double.tryParse(_latitudeController.text);
-    final lng = double.tryParse(_longitudeController.text);
-    if (lat != null && lng != null) {
-      initialLocation = LatLng(lat, lng);
-    }
+    final point = _parsedCoordinates();
+    final initialLocation = point == null
+        ? null
+        : LatLng(point.latitude, point.longitude);
 
     final result = await Navigator.of(context).push<PickedLocation>(
       MaterialPageRoute(

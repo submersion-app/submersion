@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/database/database.dart' hide Diver, DiveSite;
@@ -11,12 +12,14 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/location_service_provider.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/geocoding/place_lookup.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/dive_info_section.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/identity_section.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/life_notes_section.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/location_section.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
+import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
@@ -50,6 +53,30 @@ class _SlowFix implements LocationService {
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// A geocoder whose every lookup finds [place].
+class _Finds implements LocationService {
+  _Finds(this.place);
+
+  final PlaceLookup place;
+
+  @override
+  Future<PlaceLookup> reverseGeocode(
+    double latitude,
+    double longitude, {
+    required String languageCode,
+  }) async => place;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// A species store that cannot write a site's expected species.
+class _UnwritableSpecies extends SpeciesRepository {
+  @override
+  Future<void> removeAllExpectedSpeciesForSite(String siteId) async =>
+      throw StateError('disk full');
 }
 
 /// An elevation of ten metres per degree of latitude, each held until its
@@ -320,6 +347,124 @@ void main() {
       expect(section().altitudeController.text, '200');
     },
   );
+
+  // The merge is done once the repository returns: a species write that
+  // fails after it still hands the list the merge, so Undo is offered and
+  // no second Save is asked of sites already merged (code review).
+  testWidgets('a merge whose species write fails still returns the merge', (
+    tester,
+  ) async {
+    await seedSite(db, 'a', owner: 'd2', name: 'Salt Pier');
+    await seedSite(db, 'b', owner: 'd2', name: 'Salt Pier North');
+    final result = await pump(
+      tester,
+      const ['a', 'b'],
+      active: 'd2',
+      extra: [
+        speciesRepositoryProvider.overrideWithValue(_UnwritableSpecies()),
+      ],
+    );
+
+    await saveAndMerge(tester);
+
+    expect(find.text('SITES'), findsOneWidget);
+    final merged = await result;
+    expect((merged! as SiteMergeResult).survivorId, 'a');
+    expect((merged as SiteMergeResult).snapshot, isNotNull);
+    expect(await stored('b'), isFalse);
+  });
+
+  // Look up on the merge page carries the geocoder's country code to the
+  // merged site (issue #4426), and a country typed afterwards is read again.
+  group("Look up's country code", () {
+    // A name the country table cannot read: only the geocoder's code
+    // carries it.
+    const cayes = PlaceLookup(country: 'The Cayes', countryCode: 'BZ');
+
+    Future<void> lookUp(WidgetTester tester) async {
+      final sites = SiteRepository();
+      await sites.createSite(
+        const DiveSite(id: 'a', name: 'Hole', location: GeoPoint(17.3, -87.5)),
+      );
+      await sites.createSite(const DiveSite(id: 'b', name: 'Hole North'));
+      await pump(
+        tester,
+        const ['a', 'b'],
+        active: 'd2',
+        extra: [locationServiceProvider.overrideWithValue(_Finds(cayes))],
+      );
+      final button = find.text(l.diveSites_edit_gps_lookupFromCoordinates);
+      await tester.ensureVisible(button);
+      await tester.tap(button);
+      await tester.pumpAndSettle();
+    }
+
+    TextEditingController country(WidgetTester tester) => tester
+        .widget<IdentitySection>(find.byType(IdentitySection))
+        .countryController;
+
+    testWidgets('a looked-up country saves the geocoder code', (tester) async {
+      await lookUp(tester);
+      expect(country(tester).text, 'The Cayes');
+
+      await saveAndMerge(tester);
+
+      final merged = (await SiteRepository().getSiteById('a'))!;
+      expect(merged.country, 'The Cayes');
+      expect(merged.countryCode, 'BZ');
+    });
+
+    testWidgets('a country typed after the lookup is read again', (
+      tester,
+    ) async {
+      await lookUp(tester);
+      country(tester).text = 'Mexico';
+      await tester.pump();
+
+      await saveAndMerge(tester);
+
+      final merged = (await SiteRepository().getSiteById('a'))!;
+      expect(merged.country, 'Mexico');
+      expect(merged.countryCode, 'MX');
+    });
+  });
+
+  // The fields are seeded in the active locale's decimal separator and read
+  // back in it (#1091): an untouched merge under a grouping-dot locale
+  // stores the survivor's numbers unchanged (code review).
+  testWidgets('an untouched merge under de keeps depths and altitude', (
+    tester,
+  ) async {
+    final previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'de';
+    addTearDown(() => Intl.defaultLocale = previousLocale);
+    final sites = SiteRepository();
+    await sites.createSite(
+      const DiveSite(
+        id: 'a',
+        name: 'Walchensee',
+        minDepth: 12.5,
+        maxDepth: 30,
+        altitude: 1500,
+      ),
+    );
+    await sites.createSite(const DiveSite(id: 'b', name: 'Walchensee Nord'));
+    await pump(tester, const ['a', 'b'], active: 'd2');
+    expect(
+      tester
+          .widget<DiveInfoSection>(find.byType(DiveInfoSection))
+          .minDepthController
+          .text,
+      '12,5',
+    );
+
+    await saveAndMerge(tester);
+
+    final merged = (await sites.getSiteById('a'))!;
+    expect(merged.minDepth, closeTo(12.5, 0.001));
+    expect(merged.maxDepth, closeTo(30, 0.001));
+    expect(merged.altitude, closeTo(1500, 0.001));
+  });
 
   // A position that arrives once the diver has left the page changes
   // nothing and throws nothing (final review).

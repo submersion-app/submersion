@@ -10,6 +10,7 @@ import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/location_service_provider.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/geocoding/place_lookup.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -44,6 +45,8 @@ part 'site_merge_page_fields.dart';
 part 'site_merge_page_candidates.dart';
 part 'site_merge_page_location.dart';
 part 'site_merge_page_save.dart';
+
+const _mergeLog = LoggerService('SiteMergePage');
 
 /// Merges two or more sites into the first (issue #4527, phase 2, plan 7):
 /// each field shows the first site's meaningful value, and cycles through

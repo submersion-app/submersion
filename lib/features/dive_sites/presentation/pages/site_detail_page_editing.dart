@@ -621,9 +621,8 @@ mixin _SiteDetailPageEditing
     };
   }
 
-  /// [builder] framed as its card while the page offers editing, so
-  /// unlocking never remounts it; as it is otherwise, and for a section
-  /// with no card.
+  /// [builder] framed as its card, so unlocking never remounts it; as it
+  /// is for a section with no card.
   ///
   /// A card that can be edited is on the page while it is open, and
   /// otherwise when [builder] has something to show (decided from the
@@ -637,10 +636,8 @@ mixin _SiteDetailPageEditing
   WidgetBuilder? _framed(
     SiteDetailSectionId id,
     WidgetBuilder? builder, {
-    required bool editing,
     required bool readerPage,
   }) {
-    if (!editing) return builder;
     final card = siteEditCards[id];
     if (card == null) {
       // Worked out from the site's dives and position: nothing until the

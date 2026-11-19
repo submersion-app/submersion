@@ -8,9 +8,9 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
-/// The site form's location and altitude rules, as functions of a site's
-/// sitting (issue #4527, phase 2): each keeps the form's behaviour, and a
-/// value one of them sets is a change of the card that owns it.
+/// The site's location and altitude rules, as functions of a site's sitting
+/// (issue #4527, phase 2): each keeps the behaviour the site edit form had,
+/// and a value one of them sets is a change of the card that owns it.
 
 /// Writes [lookup]'s place names into the sitting: only empty ones, or with
 /// [overwrite] also those that differ ([mergeLocationDetails] decides). A

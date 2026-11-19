@@ -440,7 +440,6 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
               context,
               site,
               sections,
-              editing: true,
               shownForSitting: edit.shownForSitting,
               presence: edit.presence,
             ),
@@ -501,14 +500,13 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
   /// build inside their own [Consumer], so their lookups start only once the
   /// card is mounted, and a hidden or folded card starts none.
   ///
-  /// While the page offers [editing], the cards that can be edited are
-  /// framed, and a card the diver hid is built when the sitting has brought
-  /// it onto the page ([shownForSitting]).
+  /// The cards that can be edited are framed, and a card the diver hid is
+  /// built when the sitting has brought it onto the page
+  /// ([shownForSitting]).
   Map<SiteDetailSectionId, WidgetBuilder?> _sectionCards(
     BuildContext context,
     DiveSite site,
     List<SiteDetailSectionConfig> sections, {
-    bool editing = false,
     Set<SiteDetailSectionId> shownForSitting = const {},
     DiveSite? presence,
   }) {
@@ -577,17 +575,9 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
       SiteDetailSectionId.features: () => laidOut.hasCoordinates
           ? (_) => SiteFeaturesSection(
               siteId: site.id,
-              // A library site this profile only reads offers no edits, and
-              // a page that holds edits in a sitting edits them only in the
-              // card's editor (issue #4527).
-              onAddFeature: !editing && _canEditSite(ref, site)
-                  ? () => _showFullscreenMap(
-                      context,
-                      ref,
-                      site,
-                      startPlacing: true,
-                    )
-                  : null,
+              // Features are added only in the card's editor, in a sitting
+              // (issue #4527).
+              onAddFeature: null,
               features: _heldList(siteFeaturesList),
             )
           : null,
@@ -604,8 +594,8 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
       SiteDetailSectionId.marineLife: () =>
           (_) => SiteMarineLifeSection(
             siteId: site.id,
-            // Hosting editing, the card's pencil edits them, held.
-            readOnly: editing || !_canEditSite(ref, site),
+            // The card's pencil edits them, held in a sitting.
+            readOnly: true,
             location: site.location,
             species: _heldList(siteSpeciesList),
           ),
@@ -674,14 +664,13 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
           ),
     };
     // One answer for every card in this build.
-    final readerPage = editing && _readerPageNow(watch: true);
+    final readerPage = _readerPageNow(watch: true);
     return {
       for (final section in sections)
         if (section.visible || shownForSitting.contains(section.id))
           section.id: _framed(
             section.id,
             cards[section.id]!(),
-            editing: editing,
             readerPage: readerPage,
           ),
     };
@@ -734,19 +723,16 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
     DiveSite site,
   ) {
     final access = _libraryAccess(ref, site);
-    if (!access.isLibrary) return const [];
-    final l10n = context.l10n;
-    if (!access.connected) {
-      return [
-        TextButton.icon(
-          icon: const Icon(Icons.link, size: 18),
-          label: Text(l10n.sharedLibrary_site_connectHere),
-          onPressed: () => _connectHere(context, ref, site),
-        ),
-      ];
-    }
-    // A reader suggests changes through the page's unlock (plan 5).
-    return const [];
+    // A connected library site needs none: an editor unlocks it, and a
+    // reader suggests changes through the same control (plan 5).
+    if (!access.isLibrary || access.connected) return const [];
+    return [
+      TextButton.icon(
+        icon: const Icon(Icons.link, size: 18),
+        label: Text(context.l10n.sharedLibrary_site_connectHere),
+        onPressed: () => _connectHere(context, ref, site),
+      ),
+    ];
   }
 
   /// The library's entries; [operationsEnabled] false disables the ones

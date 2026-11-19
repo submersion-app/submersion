@@ -308,6 +308,85 @@ void main() {
     },
   );
 
+  // The merge page merges the sites still stored, so a site deleted since
+  // the selection is not counted as merged (code review).
+  testWidgets('the merged snackbar counts the sites the merge took in', (
+    tester,
+  ) async {
+    _setMobileTestSurfaceSize(tester);
+    for (final (id, name) in const [
+      ('site-1', 'Alpha Site'),
+      ('site-2', 'Bravo Site'),
+      ('site-3', 'Charlie Site'),
+    ]) {
+      await siteRepository.createSite(DiveSite(id: id, name: name));
+    }
+    // Three selected, two merged: the third was gone by the merge.
+    const snapshot = MergeSnapshot(
+      originalSurvivor: DiveSite(id: 'site-1', name: 'Alpha Site'),
+      deletedSites: [DiveSite(id: 'site-2', name: 'Bravo Site')],
+      diveOriginalSiteIds: {},
+      mediaOriginalSiteIds: {},
+      deletedSpeciesEntries: [],
+      modifiedSpeciesEntries: [],
+    );
+    final router = GoRouter(
+      initialLocation: '/',
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) => const _SiteListSelectionHarness(),
+        ),
+        GoRoute(
+          path: '/sites/merge',
+          builder: (context, state) => Scaffold(
+            body: Center(
+              child: FilledButton(
+                onPressed: () => context.pop(
+                  const SiteMergeResult(
+                    survivorId: 'site-1',
+                    snapshot: snapshot,
+                  ),
+                ),
+                child: const Text('Complete Merge'),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          siteRepositoryProvider.overrideWithValue(siteRepository),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+        ],
+        child: MaterialApp.router(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: router,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await enterSelectionViaMenu(tester);
+    for (final name in const ['Alpha Site', 'Bravo Site', 'Charlie Site']) {
+      await tester.tap(find.text(name));
+      await tester.pumpAndSettle();
+    }
+    expect(find.text('3 selected'), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.merge_type));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Complete Merge'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Merged 2 sites'), findsOneWidget);
+    expect(find.text('Merged 3 sites'), findsNothing);
+  });
+
   // ---------------------------------------------------------------------------
   // Overflow-menu entry into selection mode (discoverable merge)
   // ---------------------------------------------------------------------------

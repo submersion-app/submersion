@@ -2,7 +2,7 @@ part of 'site_merge_page.dart';
 
 /// The merge page's save: the confirmation, the merge, the expected
 /// species written on the survivor, and the pop with its result.
-mixin _SiteMergeSave on _SiteMergeCandidates {
+mixin _SiteMergeSave on _SiteMergeCandidates, _SiteMergeLocation {
   Future<bool> _confirmMerge() async {
     final count = _mergedIds.length;
     final confirmed = await showDialog<bool>(
@@ -34,10 +34,8 @@ mixin _SiteMergeSave on _SiteMergeCandidates {
       return text.isEmpty ? null : text;
     }
 
-    GeoPoint? location;
-    final lat = double.tryParse(_latitudeController.text.trim());
-    final lng = double.tryParse(_longitudeController.text.trim());
-    if (lat != null && lng != null) location = GeoPoint(lat, lng);
+    // validate() already stopped a position out of range.
+    final location = _parsedCoordinates();
 
     // Blank is "not recorded"; validate() already stopped unreadable text.
     final minDepth = _SiteMergeFields._validatedNumber(_minDepthController);
@@ -93,8 +91,8 @@ mixin _SiteMergeSave on _SiteMergeCandidates {
         validatedCurrentDiverIdProvider.future,
       );
       if (!mounted) return;
-      // The owner the form gave the merged site: the survivor's, or the
-      // active profile for an unowned one. The merge keeps what it allows.
+      // The merged site's owner: the survivor's, or the active profile for
+      // an unowned one. The merge keeps what it allows.
       final site = _mergedSite(survivor, survivor.diverId ?? actingDiverId);
       // A shared site library not connected on this device: nothing here
       // could reach it (issue #2567).
@@ -127,12 +125,22 @@ mixin _SiteMergeSave on _SiteMergeCandidates {
         return;
       }
 
-      // The merge writes the types and tags' union itself; the expected
-      // species are the ones the page shows.
+      // The merge writes the types, tags and species' union itself; the
+      // expected species are then the ones the page shows. The merge is done
+      // by now, so a failed write here still hands the list the merge (and
+      // its Undo) rather than keeping the page on sites already merged.
       final survivorId = survivor.id;
-      await ref
-          .read(siteExpectedSpeciesNotifierProvider(survivorId).notifier)
-          .setSpecies([for (final s in _expectedSpecies) s.id]);
+      try {
+        await ref
+            .read(siteExpectedSpeciesNotifierProvider(survivorId).notifier)
+            .setSpecies([for (final s in _expectedSpecies) s.id]);
+      } catch (e, stackTrace) {
+        _mergeLog.error(
+          'Could not write the expected species of merged site $survivorId',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
       if (!mounted) return;
       ref
         ..invalidate(siteExpectedSpeciesProvider(survivorId))
