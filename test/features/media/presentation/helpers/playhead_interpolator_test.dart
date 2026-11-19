@@ -205,6 +205,57 @@ void main() {
       expect(playhead.shown, _ms(10076));
     });
 
+    test('a seek back to just behind the playhead lands where it was sent', () {
+      final playhead = _playing(_ms(15000));
+      playhead.advance(_ms(120));
+      expect(playhead.shown, _ms(15120));
+
+      playhead.expectSeek(_ms(15050));
+      // A poll taken before the seek lands still glides on.
+      playhead.report(
+        position: _ms(15100),
+        advancing: true,
+        speed: 1.0,
+        duration: _clip,
+      );
+      expect(playhead.shown, _ms(15120));
+
+      playhead.report(
+        position: _ms(15050),
+        advancing: true,
+        speed: 1.0,
+        duration: _clip,
+      );
+      expect(playhead.shown, _ms(15050));
+      playhead.advance(_ms(136));
+      playhead.advance(_ms(152));
+      expect(playhead.shown, _ms(15066));
+    });
+
+    test('once at rest, a report that moves nothing asks for no frames', () {
+      final playhead = _playing(_ms(10000));
+      expect(playhead.advance(PlayheadInterpolator.maxLead), isFalse);
+
+      final needsFrames = playhead.report(
+        position: _ms(10000),
+        advancing: true,
+        speed: 1.0,
+        duration: _clip,
+      );
+
+      expect(needsFrames, isFalse);
+      expect(
+        playhead.report(
+          position: _ms(10100),
+          advancing: true,
+          speed: 1.0,
+          duration: _clip,
+        ),
+        isTrue,
+        reason: 'a new position moves it on again',
+      );
+    });
+
     test('keeps a held playhead inside a clip that turns out shorter', () {
       final playhead = _playing(_ms(10000));
       playhead.advance(_ms(400));

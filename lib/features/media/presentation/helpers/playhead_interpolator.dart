@@ -25,12 +25,25 @@ class PlayheadInterpolator {
   /// The frame time of the latest report; null until the frame after it.
   Duration? _reportedAt;
 
+  /// Whether the playhead can move on from the latest report, until the
+  /// lead cap or the clip's end stops it.
+  bool _canMove = false;
+
+  /// Where a seek sent to the player will land, until its report arrives.
+  Duration? _seekTarget;
+
   /// Where to draw the playhead.
   Duration get shown => _shown;
 
+  /// Tells the playhead a seek to [target] was sent to the player, so the
+  /// report of its landing is followed even when it lands just behind the
+  /// playhead, where a late poll would be held.
+  void expectSeek(Duration target) => _seekTarget = target;
+
   /// Takes a report from the player: it is at [position] in a clip of
   /// [duration], moving on at [speed] while [advancing]. Returns whether
-  /// the playhead moves on between reports, and so needs frames.
+  /// the playhead can move on from here, and so needs frames: not while
+  /// paused, nor at rest when this report moves nothing on.
   bool report({
     required Duration position,
     required bool advancing,
@@ -38,6 +51,8 @@ class PlayheadInterpolator {
     required Duration duration,
   }) {
     final wentBack = position < _reported;
+    final landed = _seekTarget != null && position == _clamp(_seekTarget!);
+    if (landed) _seekTarget = null;
     final wasAdvancing = _advancing;
     final sameMotion = position == _reported && speed == _speed;
     _reported = position;
@@ -47,17 +62,20 @@ class PlayheadInterpolator {
     // The player also notifies for what does not move the playhead (its
     // buffered ranges, a caption). Timing such a report afresh would restart
     // the glide from a position already passed and stall the bar.
-    if (!(_advancing && wasAdvancing && sameMotion)) _reportedAt = null;
+    if (!(_advancing && wasAdvancing && sameMotion)) {
+      _reportedAt = null;
+      _canMove = _advancing;
+    }
     // Paused, the player says exactly where it is. Gone back, it was sought
     // back or looped, and the playhead follows at once. Otherwise a report
     // just behind the playhead is one taken a moment before this frame:
     // holding until it catches up keeps the bar from twitching backwards.
-    if (!_advancing || wentBack || position > _shown) {
+    if (!_advancing || wentBack || landed || position > _shown) {
       _shown = position;
     }
     // Clamped again in case the report brought a shorter clip.
     _shown = _clamp(_shown);
-    return _advancing;
+    return _canMove;
   }
 
   /// Moves the playhead on to the frame drawn at [now]. Returns whether it
@@ -71,7 +89,7 @@ class PlayheadInterpolator {
     final capped = lead < maxLead ? lead : maxLead;
     final estimate = _clamp(_reported + capped);
     if (estimate > _shown) _shown = estimate;
-    return lead < maxLead && _shown < _duration;
+    return _canMove = lead < maxLead && _shown < _duration;
   }
 
   Duration _clamp(Duration position) {

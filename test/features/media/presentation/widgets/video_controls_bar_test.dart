@@ -824,6 +824,28 @@ void main() {
       await _finish(tester, controller);
     });
 
+    testWidgets('a tap just behind the gliding thumb puts it where tapped', (
+      tester,
+    ) async {
+      final (_, controller) = await playingAt15(tester);
+      await tester.pump(const Duration(milliseconds: 60));
+      await tester.pump(const Duration(milliseconds: 60));
+      expect(
+        thumbX(tester),
+        closeTo(thumbXAt(tester, const Duration(milliseconds: 15120)), 0.01),
+      );
+
+      final target = thumbXAt(tester, const Duration(milliseconds: 15050));
+      await tester.tapAt(Offset(target, _along(tester, 0).dy));
+      await tester.pump();
+
+      expect(controller.value.position, _closeToMs(15050));
+      expect(thumbX(tester), closeTo(target, 0.05));
+
+      await controller.pause();
+      await _finish(tester, controller);
+    });
+
     testWidgets('buffering settles the thumb on the player\'s position and '
         'stops asking for frames', (tester) async {
       final (platform, controller) = await playingAt15(tester);

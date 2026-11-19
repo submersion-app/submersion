@@ -235,6 +235,7 @@ class _VideoControlsBarState extends State<VideoControlsBar>
   Future<void> _seekTo(Duration target) {
     _pendingSeek = target;
     _seekTarget = target;
+    _playhead.expectSeek(target);
     return _seeking ??= _drainSeeks(widget.controller, _seekGeneration);
   }
 
