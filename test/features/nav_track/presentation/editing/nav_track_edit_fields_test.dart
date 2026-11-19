@@ -118,4 +118,25 @@ void main() {
     expect(applied.endMode, NavTrackEndMode.sameAsStart);
     expect(applied.createdAt, created);
   });
+
+  test(
+    'a site pick that moves the anchor says so; the align page clears it',
+    () {
+      final session = EditSession(track());
+
+      pickNavTrackSite(session, site('s2', newPin), oldSiteLocation: oldPin);
+      expect(navTrackAnchorFromSite(session), (anchor: newPin));
+
+      setNavTrackCorrection(session, const NavTrackCorrection(anchor: newPin));
+      expect(navTrackAnchorFromSite(session), isNull);
+    },
+  );
+
+  test('a site pick that leaves the anchor says nothing moved', () {
+    final session = EditSession(track(anchor: const GeoPoint(1, 2)));
+
+    pickNavTrackSite(session, site('s2', newPin), oldSiteLocation: oldPin);
+
+    expect(navTrackAnchorFromSite(session), isNull);
+  });
 }

@@ -423,13 +423,13 @@ class _GpsTrackDetailPageState extends ConsumerState<GpsTrackDetailPage>
     final points = _effectivePointsOf(shown);
     if (points.length < 2) {
       final noPoints = Center(child: Text(l10n.gpsTrack_detail_noPoints));
-      // A trim held in a sitting may leave too few fixes; the track itself
-      // still has them, and its cards stay so the trim can be changed back.
-      if (!sitting || shown.points.length < 2) return noPoints;
+      if (!hostsEditing) return noPoints;
+      // Too few fixes to draw, held trim or not: the name can still be
+      // given, and a held trim changed back while the track has the fixes.
       return Column(
         children: [
           _headerBlock(shown),
-          _trimCard(shown),
+          if (sitting && shown.points.length >= 2) _trimCard(shown),
           Expanded(child: noPoints),
         ],
       );

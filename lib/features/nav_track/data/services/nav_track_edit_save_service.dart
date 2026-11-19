@@ -1,7 +1,9 @@
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/change_log/record_sitting_writer.dart';
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
+import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 
 /// Writes an underwater track page's editing sitting (issue #4527, phase 3,
@@ -12,6 +14,9 @@ class NavTrackEditSaveService {
 
   final NavTrackRepository _routes;
 
+  /// [anchorFromSite] is the anchor a site pick in the sitting moved
+  /// ([navTrackAnchorFromSite]), taken back if that site cannot be set.
+  ///
   /// Saves [apply] onto route [routeId] as stored now, so a value changed
   /// underneath on a card the diver never touched is kept.
   ///
@@ -30,6 +35,7 @@ class NavTrackEditSaveService {
     required String routeId,
     required NavTrack Function(NavTrack stored) apply,
     required Iterable<String> changedCardIds,
+    ({GeoPoint? anchor})? anchorFromSite,
   }) => writeRecordSitting<NavTrack>(
     table: 'nav_tracks',
     recordId: routeId,
@@ -41,10 +47,27 @@ class NavTrackEditSaveService {
       // the one stored), as a dive deleted meanwhile is not linked: the
       // sitting's other changes are saved.
       var siteId = merged.siteId;
+      var correction = merged.correction;
       if (siteId != null &&
           siteId != stored.siteId &&
           !await _routes.siteExists(siteId)) {
         siteId = stored.siteId;
+        // An anchor the pick moved to that site's pin goes back with it; one
+        // placed by hand stays.
+        if (anchorFromSite != null && merged.anchor == anchorFromSite.anchor) {
+          correction = merged
+              .withCorrection(
+                NavTrackCorrection(
+                  anchor: stored.anchor,
+                  endMode: merged.endMode,
+                  endPoint: merged.endPoint,
+                  trustFraction: merged.trustFraction,
+                  headingOffsetDeg: merged.headingOffsetDeg,
+                  scaleFactor: merged.scaleFactor,
+                ),
+              )
+              .correction;
+        }
       }
       await _routes.writeEditedColumns(
         routeId,
@@ -52,7 +75,7 @@ class NavTrackEditSaveService {
         siteId: siteId,
         equipmentId: merged.equipmentId,
         deviceName: merged.deviceName,
-        correction: merged.correction,
+        correction: correction,
       );
       final from = stored.diveId;
       final to = merged.diveId;

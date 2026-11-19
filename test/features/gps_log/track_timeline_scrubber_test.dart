@@ -239,4 +239,33 @@ void main() {
     expect(values.start, (_startMs + 600000).toDouble());
     expect(values.end, _endMs.toDouble());
   });
+
+  testWidgets('the handles follow new starting bounds over the same span', (
+    tester,
+  ) async {
+    Widget host(int? start) => ProviderScope(
+      overrides: [
+        settingsProvider.overrideWith(
+          (ref) => _TestSettingsNotifier(TimeFormat.twentyFourHour),
+        ),
+      ],
+      child: MaterialApp(
+        home: Scaffold(
+          body: TrackTimelineScrubber(
+            startMs: _startMs,
+            endMs: _endMs,
+            initialStartMs: start,
+            mode: TrackScrubberMode.range,
+            onChanged: (_, _) {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpWidget(host(_startMs + 600000));
+    await tester.pumpWidget(host(_startMs + 1200000));
+    await tester.pumpAndSettle();
+
+    final values = tester.widget<RangeSlider>(find.byType(RangeSlider)).values;
+    expect(values.start, (_startMs + 1200000).toDouble());
+  });
 }

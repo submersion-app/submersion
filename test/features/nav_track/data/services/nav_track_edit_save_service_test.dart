@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/database.dart' hide DiveSite;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -354,5 +354,55 @@ void main() {
     final saved = await route(r1);
     expect(saved.name, 'Evening');
     expect(saved.siteId, 's1');
+  });
+
+  test(
+    'a site deleted meanwhile takes back the anchor its pick moved',
+    () async {
+      final session = EditSession(await route(r1));
+      pickNavTrackSite(
+        session,
+        const DiveSite(id: 's2', name: 's2', location: s2Pin),
+        oldSiteLocation: s1Pin,
+      );
+      session.set(navTrackNameField, 'Evening');
+      await db.customStatement(
+        "UPDATE dives SET site_id = NULL WHERE site_id = 's2'",
+      );
+      await db.customStatement("DELETE FROM dive_sites WHERE id = 's2'");
+
+      await service.save(
+        routeId: r1,
+        apply: session.applyTo,
+        changedCardIds: session.changedCardIds,
+        anchorFromSite: navTrackAnchorFromSite(session),
+      );
+
+      final saved = await route(r1);
+      expect(saved.name, 'Evening');
+      expect(saved.siteId, 's1');
+      expect(saved.anchor, s1Pin);
+    },
+  );
+
+  test('a site deleted meanwhile keeps an anchor placed by hand', () async {
+    final session = EditSession(await route(r1))
+      ..set(navTrackSiteField, 's2')
+      ..set(navTrackAnchorField, const GeoPoint(1, 2));
+    await db.customStatement(
+      "UPDATE dives SET site_id = NULL WHERE site_id = 's2'",
+    );
+    await db.customStatement("DELETE FROM dive_sites WHERE id = 's2'");
+
+    await service.save(
+      routeId: r1,
+      apply: session.applyTo,
+      changedCardIds: session.changedCardIds,
+      anchorFromSite: navTrackAnchorFromSite(session),
+    );
+
+    final saved = await route(r1);
+    expect(saved.siteId, 's1');
+    expect(saved.anchor, const GeoPoint(1, 2));
   });
 }

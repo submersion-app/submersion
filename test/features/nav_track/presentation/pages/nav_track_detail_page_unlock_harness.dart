@@ -151,6 +151,7 @@ class FakeNavTrackSave extends NavTrackEditSaveService {
     required String routeId,
     required NavTrack Function(NavTrack stored) apply,
     required Iterable<String> changedCardIds,
+    ({GeoPoint? anchor})? anchorFromSite,
   }) async {
     final before = stored.state!;
     final after = apply(before);

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/track_stats_header.dart';
 import 'package:submersion/features/tracks/domain/track_list_item.dart';
 import 'package:submersion/features/tracks/presentation/providers/tracks_providers.dart';
@@ -508,5 +509,31 @@ void main() {
         .widget<TrackStatsHeader>(find.byType(TrackStatsHeader))
         .points;
     expect(after, same(before));
+  });
+
+  testWidgets('a track with one fix can still be named', (tester) async {
+    final harness = await pumpGpsTrackPage(
+      tester,
+      track: GpsTrack(
+        id: 'track-1',
+        startTime: gpsStartMs,
+        endTime: gpsStartMs,
+        pointCount: 1,
+        points: [gpsFix(0)],
+      ),
+    );
+    expect(find.text(l.gpsTrack_detail_noPoints), findsOneWidget);
+    await unlock(tester);
+
+    await openCard(tester, headerTitle);
+    await tester.enterText(
+      find.byKey(const ValueKey('gps-track-name-field')),
+      'Short',
+    );
+    await tester.pumpAndSettle();
+    await save(tester);
+
+    expect(harness.save.calls.single.after.name, 'Short');
+    expect(find.text(l.gpsTrack_detail_noPoints), findsOneWidget);
   });
 }

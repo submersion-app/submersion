@@ -27,6 +27,7 @@ import 'package:submersion/features/nav_track/domain/nav_track_site_anchor_rule.
 import 'package:submersion/features/nav_track/domain/nav_track_stats.dart';
 import 'package:submersion/features/nav_track/presentation/editing/nav_track_card_ids.dart';
 import 'package:submersion/features/nav_track/presentation/editing/nav_track_edit_cards.dart';
+import 'package:submersion/features/nav_track/presentation/editing/nav_track_edit_fields.dart';
 import 'package:submersion/features/nav_track/presentation/nav_track_file_actions.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_3d_page.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_align_page.dart';

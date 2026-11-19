@@ -71,6 +71,7 @@ mixin _NavTrackDetailPageEditing
       routeId: session.stored.id,
       apply: session.applyTo,
       changedCardIds: session.changedCardIds,
+      anchorFromSite: navTrackAnchorFromSite(session),
     );
     // The save reads the route without its samples; the sitting's own copy
     // has them, so the page goes on drawing it until the reread.

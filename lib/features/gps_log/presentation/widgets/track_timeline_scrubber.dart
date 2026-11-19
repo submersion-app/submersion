@@ -70,8 +70,12 @@ class _TrackTimelineScrubberState extends ConsumerState<TrackTimelineScrubber> {
   @override
   void didUpdateWidget(TrackTimelineScrubber oldWidget) {
     super.didUpdateWidget(oldWidget);
+    // The starting bounds too: a trim changed underneath (a sync) over the
+    // same recording moves the handles to it.
     if (oldWidget.startMs == widget.startMs &&
-        oldWidget.endMs == widget.endMs) {
+        oldWidget.endMs == widget.endMs &&
+        oldWidget.initialStartMs == widget.initialStartMs &&
+        oldWidget.initialEndMs == widget.initialEndMs) {
       return;
     }
     setState(() {

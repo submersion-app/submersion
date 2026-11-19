@@ -158,11 +158,22 @@ NavTrackCorrection navTrackCorrectionIn(EditSession<NavTrack> session) {
   );
 }
 
-/// Puts [correction] in [session], as the align page's Done does.
+const String _anchorFromSiteKey = 'navTrack.anchorFromSite';
+
+/// The anchor a site pick moved in [session], while it is still the one
+/// the pick put there: a Save that cannot set that site (deleted
+/// meanwhile) takes this anchor back with it. Null when no pick moved it,
+/// or the align page has set the correction since.
+({GeoPoint? anchor})? navTrackAnchorFromSite(EditSession<NavTrack> session) =>
+    session.recall<({GeoPoint? anchor})>(_anchorFromSiteKey);
+
+/// Puts [correction] in [session], as the align page's Done does. The
+/// anchor is then the diver's, whatever site pick moved it before.
 void setNavTrackCorrection(
   EditSession<NavTrack> session,
   NavTrackCorrection correction,
 ) {
+  session.remember(_anchorFromSiteKey, null);
   session
     ..set(navTrackAnchorField, correction.anchor)
     ..set(navTrackAlignmentField, (
@@ -190,4 +201,8 @@ void pickNavTrackSite(
   );
   session.set(navTrackSiteField, site.id);
   if (change.write) session.set(navTrackAnchorField, change.anchor);
+  session.remember(
+    _anchorFromSiteKey,
+    change.write ? (anchor: change.anchor) : null,
+  );
 }
