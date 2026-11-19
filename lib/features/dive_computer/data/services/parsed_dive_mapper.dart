@@ -108,6 +108,9 @@ DownloadedDive parsedDiveToDownloaded(
             o2SensorMv4: s.o2SensorMv4,
             o2SensorMv5: s.o2SensorMv5,
             o2SensorMv6: s.o2SensorMv6,
+            aveloBuoyancy: s.aveloBuoyancy,
+            aveloGasRemaining: s.aveloGasRemaining,
+            computerRmv: s.computerRmv,
           ),
         )
         .toList(),

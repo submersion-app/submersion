@@ -42,6 +42,9 @@ extension ProfileSampleToPoint on ProfileSample {
       tts: tts,
       gf99: gf99,
       n2Load: n2Load,
+      aveloBuoyancy: aveloBuoyancy,
+      aveloGasRemaining: aveloGasRemaining,
+      computerRmv: computerRmv,
     );
   }
 }
@@ -83,5 +86,8 @@ ProfileSample profileSampleFromPoint(
     o2SensorMv6: point.o2SensorMv6,
     gf99: point.gf99,
     n2Load: point.n2Load,
+    aveloBuoyancy: point.aveloBuoyancy,
+    aveloGasRemaining: point.aveloGasRemaining,
+    computerRmv: point.computerRmv,
   );
 }

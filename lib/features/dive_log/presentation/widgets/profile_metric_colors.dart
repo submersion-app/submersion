@@ -50,6 +50,15 @@ abstract final class ProfileMetricColors {
   static const Color surfaceGf = Color(0xFFBA68C8); // Purple 300
   static const Color meanDepth = Color(0xFF607D8B); // Blue Grey 500
 
+  /// The three Avelo lines (#4664), taken from the picker's spare swatches,
+  /// which are already spaced apart from every other swatch and named: the
+  /// computer's buoyancy in a light water blue, a clear step lighter than
+  /// the depth trace, gas remaining in a light green and the computer's RMV
+  /// in a deep orange.
+  static const Color aveloBuoyancy = Color(0xFF29B6F6); // Light Blue 400
+  static const Color aveloGasRemaining = Color(0xFF689F38); // Light Green 700
+  static const Color computerRmv = Color(0xFFFF7043); // Deep Orange 400
+
   /// The net buoyancy line (#4593), one colour per side of neutral. Fixed,
   /// not diver-chosen, because the colour carries the meaning. The Okabe-Ito
   /// bluish green and reddish purple: apart from depth blue and from each

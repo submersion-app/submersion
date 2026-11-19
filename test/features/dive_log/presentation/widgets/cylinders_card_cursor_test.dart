@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
@@ -323,5 +324,166 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Now'), findsNothing);
+  });
+
+  // Issue #4664: an Avelo Hydrotank's water follows the cursor. Gas
+  // remaining 60% at 20:00 with the tank pumped to 300 bar from a 240 bar
+  // start leaves 240/300 x 0.6 = 0.48 of the tank as gas, so 5.2 L of the
+  // 10 L is water; at the end (150 bar, 40%) it is 3.6 L.
+  testWidgets('a Hydrotank\'s water follows the cursor', (tester) async {
+    const hydrotank = DiveTank(
+      id: 'hydro',
+      volume: 10,
+      startPressure: 240,
+      endPressure: 150,
+      gasMix: GasMix(o2: 21),
+      role: TankRole.hydrotank,
+    );
+    final dive = Dive(
+      id: 'dive-1',
+      diveNumber: 1,
+      dateTime: DateTime(2026, 6, 1, 10),
+      maxDepth: 15,
+      bottomTime: const Duration(minutes: 30),
+      tanks: const [hydrotank],
+      profile: const [
+        DiveProfilePoint(timestamp: 0, depth: 0, aveloGasRemaining: 100),
+        DiveProfilePoint(timestamp: 600, depth: 15, aveloGasRemaining: 80),
+        DiveProfilePoint(timestamp: 1200, depth: 15, aveloGasRemaining: 60),
+        DiveProfilePoint(timestamp: 1800, depth: 5, aveloGasRemaining: 40),
+      ],
+    );
+    const series = EstimatedTankPressures({
+      'hydro': [
+        TankPressurePoint(tankId: 'hydro', timestamp: 0, pressure: 240),
+        TankPressurePoint(tankId: 'hydro', timestamp: 600, pressure: 200),
+        TankPressurePoint(tankId: 'hydro', timestamp: 1200, pressure: 300),
+        TankPressurePoint(tankId: 'hydro', timestamp: 1800, pressure: 150),
+      ],
+    }, {});
+
+    for (final (cursor, label) in [
+      (2, 'Water ~5.2 L (est.)'),
+      (null, 'Water ~3.6 L (est.)'),
+    ]) {
+      await tester.pumpWidget(
+        _card(dive: dive, chartSeries: series, cursor: cursor),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text(label), findsOneWidget, reason: 'cursor $cursor');
+      // A fresh scope for the next case: the cursor override is read once.
+      await tester.pumpWidget(const SizedBox());
+    }
+  });
+
+  // Final review: with the cursor shown, the End mark stays the end of the
+  // dive's (no tick at the cursor's level), and a cursor where the
+  // Hydrotank has no reading keeps the pressure figure.
+  group('Hydrotank figure under the cursor', () {
+    const hydrotank = DiveTank(
+      id: 'hydro',
+      volume: 10,
+      startPressure: 240,
+      endPressure: 150,
+      gasMix: GasMix(o2: 21),
+      role: TankRole.hydrotank,
+    );
+    final dive = Dive(
+      id: 'dive-1',
+      diveNumber: 1,
+      dateTime: DateTime(2026, 6, 1, 10),
+      maxDepth: 15,
+      bottomTime: const Duration(minutes: 30),
+      tanks: const [hydrotank],
+      profile: const [
+        DiveProfilePoint(timestamp: 0, depth: 0, aveloGasRemaining: 100),
+        DiveProfilePoint(timestamp: 600, depth: 15, aveloGasRemaining: 80),
+        DiveProfilePoint(timestamp: 1200, depth: 15, aveloGasRemaining: 60),
+        DiveProfilePoint(timestamp: 1800, depth: 5, aveloGasRemaining: 40),
+      ],
+    );
+
+    testWidgets('the End mark does not follow the cursor', (tester) async {
+      const series = EstimatedTankPressures({
+        'hydro': [
+          TankPressurePoint(tankId: 'hydro', timestamp: 0, pressure: 240),
+          TankPressurePoint(tankId: 'hydro', timestamp: 1200, pressure: 300),
+          TankPressurePoint(tankId: 'hydro', timestamp: 1800, pressure: 150),
+        ],
+      }, {});
+      await tester.pumpWidget(
+        _card(dive: dive, chartSeries: series, cursor: 2),
+      );
+      await tester.pumpAndSettle();
+
+      final figure = tester.widget<TankFigure>(find.byType(TankFigure));
+      expect(find.text('Water ~5.2 L (est.)'), findsOneWidget);
+      expect(figure.levels.endMarked, isFalse);
+    });
+
+    testWidgets(
+      'a cursor with no Hydrotank reading keeps the pressure figure',
+      (tester) async {
+        // The chart draws no line for the Hydrotank, so the cursor has no
+        // Hydrotank pressure to read.
+        const series = EstimatedTankPressures({}, {});
+        await tester.pumpWidget(
+          _card(dive: dive, chartSeries: series, cursor: 0),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.textContaining('Water ~'), findsNothing);
+      },
+    );
+  });
+
+  // Before the computer's first gas remaining the figure is the pressure
+  // one and has no water label, but the card does not change height while
+  // the cursor moves: the Avelo summary beside the figure is taller.
+  testWidgets('the card keeps its height where the water is unknown', (
+    tester,
+  ) async {
+    const hydrotank = DiveTank(
+      id: 'hydro',
+      volume: 10,
+      startPressure: 240,
+      endPressure: 150,
+      gasMix: GasMix(o2: 21),
+      role: TankRole.hydrotank,
+    );
+    final dive = Dive(
+      id: 'dive-1',
+      diveNumber: 1,
+      dateTime: DateTime(2026, 6, 1, 10),
+      maxDepth: 15,
+      bottomTime: const Duration(minutes: 30),
+      tanks: const [hydrotank],
+      profile: const [
+        DiveProfilePoint(timestamp: 0, depth: 0),
+        DiveProfilePoint(timestamp: 600, depth: 15, aveloGasRemaining: 80),
+        DiveProfilePoint(timestamp: 1800, depth: 5, aveloGasRemaining: 40),
+      ],
+    );
+    const series = EstimatedTankPressures({
+      'hydro': [
+        TankPressurePoint(tankId: 'hydro', timestamp: 0, pressure: 240),
+        TankPressurePoint(tankId: 'hydro', timestamp: 1800, pressure: 150),
+      ],
+    }, {});
+
+    final heights = <double>[];
+    for (final cursor in [null, 0]) {
+      await tester.pumpWidget(
+        _card(dive: dive, chartSeries: series, cursor: cursor),
+      );
+      await tester.pumpAndSettle();
+      heights.add(tester.getSize(find.byType(CylindersCard)).height);
+      if (cursor == 0) {
+        // No gas remaining yet at 0:00: no water label is shown.
+        expect(find.byKey(const Key('tank-water-label-hydro')), findsNothing);
+      }
+      await tester.pumpWidget(const SizedBox());
+    }
+    expect(heights[1], heights[0]);
   });
 }

@@ -155,7 +155,13 @@ void main() {
               durationSeconds: 20,
               samples: [
                 pigeon.ProfileSample(timeSeconds: 0, depthMeters: 1.0),
-                pigeon.ProfileSample(timeSeconds: 10, depthMeters: 20.0),
+                pigeon.ProfileSample(
+                  timeSeconds: 10,
+                  depthMeters: 20.0,
+                  aveloBuoyancy: -0.393,
+                  aveloGasRemaining: 64,
+                  computerRmv: 10.68,
+                ),
                 pigeon.ProfileSample(timeSeconds: 20, depthMeters: 5.0),
               ],
               tanks: [],
@@ -191,6 +197,10 @@ void main() {
             final profile = result['profile'] as List<Map<String, dynamic>>;
             expect(profile.map((p) => p['gf99']), [4, 31, 62]);
             expect(profile.map((p) => p['depth']), [1.0, 20.0, 5.0]);
+            // The Avelo samples survive the alignment (#4664).
+            expect(profile[1]['aveloBuoyancy'], -0.393);
+            expect(profile[1]['aveloGasRemaining'], 64);
+            expect(profile[1]['computerRmv'], 10.68);
           },
         );
       });

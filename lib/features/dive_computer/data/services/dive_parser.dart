@@ -56,6 +56,9 @@ class DiveParser {
           o2SensorMv4: sample.o2SensorMv4,
           o2SensorMv5: sample.o2SensorMv5,
           o2SensorMv6: sample.o2SensorMv6,
+          aveloBuoyancy: sample.aveloBuoyancy,
+          aveloGasRemaining: sample.aveloGasRemaining,
+          computerRmv: sample.computerRmv,
         ),
       );
     }

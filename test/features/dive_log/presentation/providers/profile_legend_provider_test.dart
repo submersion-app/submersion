@@ -919,4 +919,73 @@ void main() {
       expect(off.read(profileLegendProvider).showBuoyancy, isFalse);
     });
   });
+
+  group('Avelo lines (issue #4664)', () {
+    ProviderContainer makeContainer(AppSettings settings) {
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith(
+            (ref) => _StubSettingsNotifier(settings),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      final sub = container.listen(profileLegendProvider, (_, _) {});
+      addTearDown(sub.close);
+      return container;
+    }
+
+    final lines =
+        <
+          (
+            String,
+            bool Function(ProfileLegendState),
+            ProfileLegendState Function(ProfileLegendState),
+            void Function(ProfileLegend),
+            AppSettings,
+          )
+        >[
+          (
+            'Avelo buoyancy',
+            (s) => s.showAveloBuoyancy,
+            (s) => s.copyWith(showAveloBuoyancy: true),
+            (n) => n.toggleAveloBuoyancy(),
+            const AppSettings(defaultShowAveloBuoyancy: true),
+          ),
+          (
+            'gas remaining',
+            (s) => s.showAveloGasRemaining,
+            (s) => s.copyWith(showAveloGasRemaining: true),
+            (n) => n.toggleAveloGasRemaining(),
+            const AppSettings(defaultShowAveloGasRemaining: true),
+          ),
+          (
+            'computer RMV',
+            (s) => s.showComputerRmv,
+            (s) => s.copyWith(showComputerRmv: true),
+            (n) => n.toggleComputerRmv(),
+            const AppSettings(defaultShowComputerRmv: true),
+          ),
+        ];
+
+    for (final (name, read, turnOn, toggle, seeded) in lines) {
+      test('$name defaults to off and counts as an overlay', () {
+        const off = ProfileLegendState();
+        expect(read(off), isFalse);
+        final on = turnOn(off);
+        expect(read(on), isTrue);
+        expect(on.activeSecondaryCount, off.activeSecondaryCount + 1);
+        expect(on, isNot(equals(off)));
+        expect(on.hashCode, isNot(equals(off.hashCode)));
+      });
+
+      test('$name toggles and seeds from its default', () {
+        final c = makeContainer(const AppSettings());
+        expect(read(c.read(profileLegendProvider)), isFalse);
+        toggle(c.read(profileLegendProvider.notifier));
+        expect(read(c.read(profileLegendProvider)), isTrue);
+        expect(read(makeContainer(seeded).read(profileLegendProvider)), isTrue);
+      });
+    }
+  });
 }

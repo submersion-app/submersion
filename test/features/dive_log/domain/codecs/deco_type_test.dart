@@ -83,6 +83,9 @@ void main() {
         o2SensorMv6: 52,
         gf99: 41,
         n2Load: 67,
+        aveloBuoyancy: 1.242,
+        aveloGasRemaining: 35,
+        computerRmv: 29.75,
       );
       // A field added to ProfileSample but left null here fails this line,
       // which forces the fixture (and the method) to be brought up to date.

@@ -306,4 +306,31 @@ void main() {
     expect(samples[2].ceiling, 6.0);
     expect(samples[2].decoType, 2);
   });
+
+  test('the Avelo samples reach the stored series (#4664)', () async {
+    await seedDive();
+    await apply(
+      makeParsedDive(
+        samples: [
+          pigeon.ProfileSample(
+            timeSeconds: 0,
+            depthMeters: 3.0,
+            aveloBuoyancy: -0.393,
+            aveloGasRemaining: 100,
+            computerRmv: 10.68,
+          ),
+          pigeon.ProfileSample(timeSeconds: 60, depthMeters: 9.0),
+        ],
+      ),
+    );
+    final samples = (await profileSeries.getSeriesForDive(
+      'dive-1',
+    )).single.samples;
+    expect(samples[0].aveloBuoyancy, -0.393);
+    expect(samples[0].aveloGasRemaining, 100);
+    expect(samples[0].computerRmv, 10.68);
+    expect(samples[1].aveloBuoyancy, isNull);
+    expect(samples[1].aveloGasRemaining, isNull);
+    expect(samples[1].computerRmv, isNull);
+  });
 }

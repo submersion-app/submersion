@@ -257,6 +257,9 @@ ProfileSample::ProfileSample(
   const int64_t* o2_sensor_mv4,
   const int64_t* o2_sensor_mv5,
   const int64_t* o2_sensor_mv6,
+  const double* avelo_buoyancy,
+  const int64_t* avelo_gas_remaining,
+  const double* computer_rmv,
   const int64_t* gas_mix_index)
  : time_seconds_(time_seconds),
     depth_meters_(depth_meters),
@@ -286,6 +289,9 @@ ProfileSample::ProfileSample(
     o2_sensor_mv4_(o2_sensor_mv4 ? std::optional<int64_t>(*o2_sensor_mv4) : std::nullopt),
     o2_sensor_mv5_(o2_sensor_mv5 ? std::optional<int64_t>(*o2_sensor_mv5) : std::nullopt),
     o2_sensor_mv6_(o2_sensor_mv6 ? std::optional<int64_t>(*o2_sensor_mv6) : std::nullopt),
+    avelo_buoyancy_(avelo_buoyancy ? std::optional<double>(*avelo_buoyancy) : std::nullopt),
+    avelo_gas_remaining_(avelo_gas_remaining ? std::optional<int64_t>(*avelo_gas_remaining) : std::nullopt),
+    computer_rmv_(computer_rmv ? std::optional<double>(*computer_rmv) : std::nullopt),
     gas_mix_index_(gas_mix_index ? std::optional<int64_t>(*gas_mix_index) : std::nullopt) {}
 
 int64_t ProfileSample::time_seconds() const {
@@ -644,6 +650,45 @@ void ProfileSample::set_o2_sensor_mv6(int64_t value_arg) {
 }
 
 
+const double* ProfileSample::avelo_buoyancy() const {
+  return avelo_buoyancy_ ? &(*avelo_buoyancy_) : nullptr;
+}
+
+void ProfileSample::set_avelo_buoyancy(const double* value_arg) {
+  avelo_buoyancy_ = value_arg ? std::optional<double>(*value_arg) : std::nullopt;
+}
+
+void ProfileSample::set_avelo_buoyancy(double value_arg) {
+  avelo_buoyancy_ = value_arg;
+}
+
+
+const int64_t* ProfileSample::avelo_gas_remaining() const {
+  return avelo_gas_remaining_ ? &(*avelo_gas_remaining_) : nullptr;
+}
+
+void ProfileSample::set_avelo_gas_remaining(const int64_t* value_arg) {
+  avelo_gas_remaining_ = value_arg ? std::optional<int64_t>(*value_arg) : std::nullopt;
+}
+
+void ProfileSample::set_avelo_gas_remaining(int64_t value_arg) {
+  avelo_gas_remaining_ = value_arg;
+}
+
+
+const double* ProfileSample::computer_rmv() const {
+  return computer_rmv_ ? &(*computer_rmv_) : nullptr;
+}
+
+void ProfileSample::set_computer_rmv(const double* value_arg) {
+  computer_rmv_ = value_arg ? std::optional<double>(*value_arg) : std::nullopt;
+}
+
+void ProfileSample::set_computer_rmv(double value_arg) {
+  computer_rmv_ = value_arg;
+}
+
+
 const int64_t* ProfileSample::gas_mix_index() const {
   return gas_mix_index_ ? &(*gas_mix_index_) : nullptr;
 }
@@ -659,7 +704,7 @@ void ProfileSample::set_gas_mix_index(int64_t value_arg) {
 
 EncodableList ProfileSample::ToEncodableList() const {
   EncodableList list;
-  list.reserve(29);
+  list.reserve(32);
   list.push_back(EncodableValue(time_seconds_));
   list.push_back(EncodableValue(depth_meters_));
   list.push_back(temperature_celsius_ ? EncodableValue(*temperature_celsius_) : EncodableValue());
@@ -688,6 +733,9 @@ EncodableList ProfileSample::ToEncodableList() const {
   list.push_back(o2_sensor_mv4_ ? EncodableValue(*o2_sensor_mv4_) : EncodableValue());
   list.push_back(o2_sensor_mv5_ ? EncodableValue(*o2_sensor_mv5_) : EncodableValue());
   list.push_back(o2_sensor_mv6_ ? EncodableValue(*o2_sensor_mv6_) : EncodableValue());
+  list.push_back(avelo_buoyancy_ ? EncodableValue(*avelo_buoyancy_) : EncodableValue());
+  list.push_back(avelo_gas_remaining_ ? EncodableValue(*avelo_gas_remaining_) : EncodableValue());
+  list.push_back(computer_rmv_ ? EncodableValue(*computer_rmv_) : EncodableValue());
   list.push_back(gas_mix_index_ ? EncodableValue(*gas_mix_index_) : EncodableValue());
   return list;
 }
@@ -800,7 +848,19 @@ ProfileSample ProfileSample::FromEncodableList(const EncodableList& list) {
   if (!encodable_o2_sensor_mv6.IsNull()) {
     decoded.set_o2_sensor_mv6(std::get<int64_t>(encodable_o2_sensor_mv6));
   }
-  auto& encodable_gas_mix_index = list[28];
+  auto& encodable_avelo_buoyancy = list[28];
+  if (!encodable_avelo_buoyancy.IsNull()) {
+    decoded.set_avelo_buoyancy(std::get<double>(encodable_avelo_buoyancy));
+  }
+  auto& encodable_avelo_gas_remaining = list[29];
+  if (!encodable_avelo_gas_remaining.IsNull()) {
+    decoded.set_avelo_gas_remaining(std::get<int64_t>(encodable_avelo_gas_remaining));
+  }
+  auto& encodable_computer_rmv = list[30];
+  if (!encodable_computer_rmv.IsNull()) {
+    decoded.set_computer_rmv(std::get<double>(encodable_computer_rmv));
+  }
+  auto& encodable_gas_mix_index = list[31];
   if (!encodable_gas_mix_index.IsNull()) {
     decoded.set_gas_mix_index(std::get<int64_t>(encodable_gas_mix_index));
   }

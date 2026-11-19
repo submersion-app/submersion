@@ -225,6 +225,31 @@ class ChartOptionsDialog extends StatelessWidget {
           isEnabled: legendState.showBuoyancy,
           onTap: legendNotifier.toggleBuoyancy,
         ),
+      // The computer's Avelo values (#4664), offered on a dive that has them.
+      if (config.hasAveloBuoyancy)
+        buildToggleItem(
+          context,
+          label: context.l10n.diveLog_legend_label_aveloBuoyancy,
+          color: palette.colorOf(ProfileMetric.aveloBuoyancy),
+          isEnabled: legendState.showAveloBuoyancy,
+          onTap: legendNotifier.toggleAveloBuoyancy,
+        ),
+      if (config.hasAveloGasRemaining)
+        buildToggleItem(
+          context,
+          label: context.l10n.diveLog_legend_label_aveloGasRemaining,
+          color: palette.colorOf(ProfileMetric.aveloGasRemaining),
+          isEnabled: legendState.showAveloGasRemaining,
+          onTap: legendNotifier.toggleAveloGasRemaining,
+        ),
+      if (config.hasComputerRmv)
+        buildToggleItem(
+          context,
+          label: context.l10n.diveLog_legend_label_computerRmv,
+          color: palette.colorOf(ProfileMetric.computerRmv),
+          isEnabled: legendState.showComputerRmv,
+          onTap: legendNotifier.toggleComputerRmv,
+        ),
       if (config.hasAscentRates)
         buildToggleItem(
           context,

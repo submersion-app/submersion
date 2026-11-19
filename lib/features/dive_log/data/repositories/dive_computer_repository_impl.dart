@@ -2912,6 +2912,9 @@ class DiveComputerRepository {
         o2SensorMv6: p.o2SensorMv6,
         gf99: p.gf99,
         n2Load: p.n2Load,
+        aveloBuoyancy: p.aveloBuoyancy,
+        aveloGasRemaining: p.aveloGasRemaining,
+        computerRmv: p.computerRmv,
       );
 
   /// Calculate bottom time (seconds) from profile points.
@@ -3130,6 +3133,12 @@ class ProfilePointData {
   /// Computer-reported aggregate N2 tissue loading, whole percent.
   final int? n2Load;
 
+  /// Shearwater Avelo mode (issue #4664): buoyancy in kilograms (negative is
+  /// heavy), Hydrotank gas remaining in percent, the computer's RMV in L/min.
+  final double? aveloBuoyancy;
+  final int? aveloGasRemaining;
+  final double? computerRmv;
+
   const ProfilePointData({
     required this.timestamp,
     required this.depth,
@@ -3164,6 +3173,9 @@ class ProfilePointData {
     this.o2SensorMv6,
     this.gf99,
     this.n2Load,
+    this.aveloBuoyancy,
+    this.aveloGasRemaining,
+    this.computerRmv,
   });
 }
 

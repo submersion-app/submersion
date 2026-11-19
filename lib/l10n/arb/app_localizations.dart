@@ -15106,6 +15106,24 @@ abstract class AppLocalizations {
   /// **'GTR'**
   String get diveLog_legend_label_gtr;
 
+  /// No description provided for @diveLog_legend_label_aveloBuoyancy.
+  ///
+  /// In en, this message translates to:
+  /// **'Avelo buoyancy'**
+  String get diveLog_legend_label_aveloBuoyancy;
+
+  /// No description provided for @diveLog_legend_label_aveloGasRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas remaining'**
+  String get diveLog_legend_label_aveloGasRemaining;
+
+  /// No description provided for @diveLog_legend_label_computerRmv.
+  ///
+  /// In en, this message translates to:
+  /// **'RMV (computer)'**
+  String get diveLog_legend_label_computerRmv;
+
   /// No description provided for @diveLog_legend_source_dc.
   ///
   /// In en, this message translates to:
@@ -17973,6 +17991,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Hydrotank pressure does not measure gas used'**
   String get diveLog_cylinders_hydrotankNote;
+
+  /// Cylinders card heading of the Avelo summary under the Hydrotank (issue #4664): what the dive computer recorded in Shearwater's Avelo mode. Avelo is the product name of the Avelo Dive System and stays untranslated.
+  ///
+  /// In en, this message translates to:
+  /// **'Avelo'**
+  String get diveLog_cylinders_aveloTitle;
+
+  /// Avelo summary line: the Hydrotank's gas remaining, as a percentage the dive computer logged, at the start and end of the dive, e.g. "Gas remaining 97% to 36%"
+  ///
+  /// In en, this message translates to:
+  /// **'Gas remaining {start}% to {end}%'**
+  String diveLog_cylinders_aveloGasRemaining(int start, int end);
+
+  /// Avelo summary line: the lowest, highest and average buoyancy the dive computer logged in Avelo mode, each a signed weight (negative is heavy), e.g. "Avelo buoyancy -0.9 lbs to +2.7 lbs, average +0.6 lbs". Keep the word Avelo so it is not read as the app's own modelled buoyancy.
+  ///
+  /// In en, this message translates to:
+  /// **'Avelo buoyancy {min} to {max}, average {mean}'**
+  String diveLog_cylinders_aveloBuoyancy(String min, String max, String mean);
+
+  /// Avelo summary line: the lowest and highest respiratory minute volume the dive computer itself logged (not the app's calculated RMV), e.g. "RMV (computer) 10.7 L/min to 29.8 L/min"
+  ///
+  /// In en, this message translates to:
+  /// **'RMV (computer) {min} to {max}'**
+  String diveLog_cylinders_aveloRmv(String min, String max);
+
+  /// Avelo summary line: the highest Hydrotank pressure during the dive, e.g. "Max pressure 3498 psi"
+  ///
+  /// In en, this message translates to:
+  /// **'Max pressure {pressure}'**
+  String diveLog_cylinders_aveloMaxPressure(String pressure);
+
+  /// Label under an Avelo Hydrotank's figure (issue #4664): the estimated volume of water in the tank at the end of the dive, or at the profile cursor, e.g. "Water ~0.4 L (est.)". The estimate assumes the tank started with no water.
+  ///
+  /// In en, this message translates to:
+  /// **'Water ~{volume} (est.)'**
+  String diveLog_cylinders_figureWater(String volume);
 
   /// Note under the Cylinders card table: the ppO2 every MOD on the card was computed at. {ppO2} is one value ("MOD at ppO₂ 1.4") or, when the cylinders use different limits, a list of diveLog_cylinders_modLimit items ("MOD at ppO₂ 1.4 (bottom limit), 1.6 (deco limit)")
   ///
@@ -36247,6 +36301,24 @@ abstract class AppLocalizations {
   /// **'Profile shows buoyancy'**
   String get settings_conflict_field_defaultShowBuoyancy;
 
+  /// No description provided for @settings_conflict_field_defaultShowAveloBuoyancy.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile shows Avelo buoyancy'**
+  String get settings_conflict_field_defaultShowAveloBuoyancy;
+
+  /// No description provided for @settings_conflict_field_defaultShowAveloGasRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile shows gas remaining'**
+  String get settings_conflict_field_defaultShowAveloGasRemaining;
+
+  /// No description provided for @settings_conflict_field_defaultShowComputerRmv.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile shows computer RMV'**
+  String get settings_conflict_field_defaultShowComputerRmv;
+
   /// No description provided for @settings_conflict_field_hasAcceptedPlanningDisclaimer.
   ///
   /// In en, this message translates to:
@@ -37794,6 +37866,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Buoyancy'**
   String get settings_appearance_metric_buoyancy;
+
+  /// No description provided for @settings_appearance_metric_aveloBuoyancy.
+  ///
+  /// In en, this message translates to:
+  /// **'Avelo buoyancy'**
+  String get settings_appearance_metric_aveloBuoyancy;
+
+  /// No description provided for @settings_appearance_metric_aveloGasRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas remaining (Avelo)'**
+  String get settings_appearance_metric_aveloGasRemaining;
+
+  /// No description provided for @settings_appearance_metric_computerRmv.
+  ///
+  /// In en, this message translates to:
+  /// **'RMV (computer)'**
+  String get settings_appearance_metric_computerRmv;
 
   /// No description provided for @settings_appearance_metric_events.
   ///
@@ -89296,6 +89386,24 @@ abstract class AppLocalizations {
   /// **'Buoyancy'**
   String get enum_profileMetric_buoyancy;
 
+  /// No description provided for @enum_profileMetric_aveloBuoyancy.
+  ///
+  /// In en, this message translates to:
+  /// **'Avelo buoyancy'**
+  String get enum_profileMetric_aveloBuoyancy;
+
+  /// No description provided for @enum_profileMetric_aveloGasRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas remaining'**
+  String get enum_profileMetric_aveloGasRemaining;
+
+  /// No description provided for @enum_profileMetric_computerRmv.
+  ///
+  /// In en, this message translates to:
+  /// **'RMV (computer)'**
+  String get enum_profileMetric_computerRmv;
+
   /// No description provided for @enum_profileMetric_o2CellMv_short.
   ///
   /// In en, this message translates to:
@@ -89307,6 +89415,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Buoyancy'**
   String get enum_profileMetric_buoyancy_short;
+
+  /// No description provided for @enum_profileMetric_aveloBuoyancy_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Avelo'**
+  String get enum_profileMetric_aveloBuoyancy_short;
+
+  /// No description provided for @enum_profileMetric_aveloGasRemaining_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas'**
+  String get enum_profileMetric_aveloGasRemaining_short;
+
+  /// No description provided for @enum_profileMetric_computerRmv_short.
+  ///
+  /// In en, this message translates to:
+  /// **'RMV'**
+  String get enum_profileMetric_computerRmv_short;
 
   /// No description provided for @diveLog_o2CellSpread_label.
   ///
@@ -101345,6 +101471,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The line shows your net buoyancy through the dive, from the same model as the Buoyancy card, for the computer the chart is showing. It is green while you are buoyant and magenta while you are heavy, and the dashed line marks neutral.'**
   String get info_term_buoyancyProfile_body;
+
+  /// No description provided for @info_term_aveloProfile_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Avelo values'**
+  String get info_term_aveloProfile_label;
+
+  /// No description provided for @info_term_aveloProfile_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Shearwater\'s Avelo mode logs these as the dive computer recorded them: Avelo buoyancy (negative is heavy), the gas left in the Hydrotank as a percentage, and the computer\'s own RMV. They are not calculated by the app, and the buoyancy is not the modelled buoyancy of the Buoyancy card.'**
+  String get info_term_aveloProfile_body;
 
   /// No description provided for @info_term_hypercapnia_label.
   ///

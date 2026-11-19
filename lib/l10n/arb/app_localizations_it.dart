@@ -9556,6 +9556,15 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_legend_label_gtr => 'GTR';
 
   @override
+  String get diveLog_legend_label_aveloBuoyancy => 'Assetto Avelo';
+
+  @override
+  String get diveLog_legend_label_aveloGasRemaining => 'Gas residuo';
+
+  @override
+  String get diveLog_legend_label_computerRmv => 'RMV (del computer)';
+
+  @override
   String get diveLog_legend_source_dc => 'DC';
 
   @override
@@ -11341,6 +11350,34 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get diveLog_cylinders_hydrotankNote =>
       'La pressione dell\'Hydrotank non misura il gas consumato';
+
+  @override
+  String get diveLog_cylinders_aveloTitle => 'Avelo';
+
+  @override
+  String diveLog_cylinders_aveloGasRemaining(int start, int end) {
+    return 'Gas residuo dal $start% al $end%';
+  }
+
+  @override
+  String diveLog_cylinders_aveloBuoyancy(String min, String max, String mean) {
+    return 'Assetto Avelo da $min a $max, media $mean';
+  }
+
+  @override
+  String diveLog_cylinders_aveloRmv(String min, String max) {
+    return 'RMV (computer) da $min a $max';
+  }
+
+  @override
+  String diveLog_cylinders_aveloMaxPressure(String pressure) {
+    return 'Pressione massima $pressure';
+  }
+
+  @override
+  String diveLog_cylinders_figureWater(String volume) {
+    return 'Acqua ~$volume (stima)';
+  }
 
   @override
   String diveLog_cylinders_modNote(String ppO2) {
@@ -22958,6 +22995,18 @@ class AppLocalizationsIt extends AppLocalizations {
       'Il profilo mostra l\'assetto';
 
   @override
+  String get settings_conflict_field_defaultShowAveloBuoyancy =>
+      'Il profilo mostra l\'assetto Avelo';
+
+  @override
+  String get settings_conflict_field_defaultShowAveloGasRemaining =>
+      'Il profilo mostra il gas residuo';
+
+  @override
+  String get settings_conflict_field_defaultShowComputerRmv =>
+      'Il profilo mostra l\'RMV del computer';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Avviso di pianificazione accettato';
 
@@ -23951,6 +24000,16 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_buoyancy => 'Assetto';
+
+  @override
+  String get settings_appearance_metric_aveloBuoyancy => 'Assetto Avelo';
+
+  @override
+  String get settings_appearance_metric_aveloGasRemaining =>
+      'Gas residuo (Avelo)';
+
+  @override
+  String get settings_appearance_metric_computerRmv => 'RMV (del computer)';
 
   @override
   String get settings_appearance_metric_events => 'Eventi';
@@ -56942,10 +57001,28 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_profileMetric_buoyancy => 'Assetto';
 
   @override
+  String get enum_profileMetric_aveloBuoyancy => 'Assetto Avelo';
+
+  @override
+  String get enum_profileMetric_aveloGasRemaining => 'Gas residuo';
+
+  @override
+  String get enum_profileMetric_computerRmv => 'RMV (del computer)';
+
+  @override
   String get enum_profileMetric_o2CellMv_short => 'Celle';
 
   @override
   String get enum_profileMetric_buoyancy_short => 'Assetto';
+
+  @override
+  String get enum_profileMetric_aveloBuoyancy_short => 'Avelo';
+
+  @override
+  String get enum_profileMetric_aveloGasRemaining_short => 'Gas';
+
+  @override
+  String get enum_profileMetric_computerRmv_short => 'RMV';
 
   @override
   String get diveLog_o2CellSpread_label => 'Dispersione delle celle O2';
@@ -64682,6 +64759,13 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get info_term_buoyancyProfile_body =>
       'La linea mostra il tuo assetto netto durante l\'immersione, con lo stesso modello della scheda Assetto, per il computer mostrato dal grafico. È verde quando sei positivo e magenta quando sei pesante, e la linea tratteggiata indica il neutro.';
+
+  @override
+  String get info_term_aveloProfile_label => 'Valori Avelo';
+
+  @override
+  String get info_term_aveloProfile_body =>
+      'La modalità Avelo di Shearwater registra questi valori come li ha rilevati il computer subacqueo: l\'assetto Avelo (negativo significa pesante), il gas residuo nell\'Hydrotank in percentuale e l\'RMV del computer stesso. L\'app non li calcola, e questo assetto non è l\'assetto modellato della scheda Assetto.';
 
   @override
   String get info_term_hypercapnia_label => 'Ipercapnia';

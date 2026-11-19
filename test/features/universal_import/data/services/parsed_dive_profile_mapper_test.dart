@@ -6,6 +6,30 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/universal_import/data/services/parsed_dive_profile_mapper.dart';
 
 void main() {
+  group('ParsedDiveProfileMapper.samples Avelo fields (#4664)', () {
+    test('carries them under their own keys', () {
+      final maps = ParsedDiveProfileMapper.samples(
+        _dive(const [], [
+          pigeon.ProfileSample(
+            timeSeconds: 0,
+            depthMeters: 3.0,
+            aveloBuoyancy: -0.393,
+            aveloGasRemaining: 100,
+            computerRmv: 10.68,
+          ),
+          pigeon.ProfileSample(timeSeconds: 10, depthMeters: 4.0),
+        ]),
+      );
+
+      expect(maps[0]['aveloBuoyancy'], -0.393);
+      expect(maps[0]['aveloGasRemaining'], 100);
+      expect(maps[0]['computerRmv'], 10.68);
+      expect(maps[1].containsKey('aveloBuoyancy'), isFalse);
+      expect(maps[1].containsKey('aveloGasRemaining'), isFalse);
+      expect(maps[1].containsKey('computerRmv'), isFalse);
+    });
+  });
+
   group('ParsedDiveProfileMapper.gasSwitches', () {
     // A trimix bottom gas, then EAN50 and oxygen for deco.
     final mixes = [

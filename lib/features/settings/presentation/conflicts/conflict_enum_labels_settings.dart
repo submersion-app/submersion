@@ -198,6 +198,10 @@ final ConflictEnumLabeler profileRightAxisMetricLabeler = enumLabeler(
     ProfileRightAxisMetric.otu => l.enum_profileMetric_otu,
     ProfileRightAxisMetric.o2CellMv => l.enum_profileMetric_o2CellMv,
     ProfileRightAxisMetric.buoyancy => l.enum_profileMetric_buoyancy,
+    ProfileRightAxisMetric.aveloBuoyancy => l.enum_profileMetric_aveloBuoyancy,
+    ProfileRightAxisMetric.aveloGasRemaining =>
+      l.enum_profileMetric_aveloGasRemaining,
+    ProfileRightAxisMetric.computerRmv => l.enum_profileMetric_computerRmv,
   },
 );
 
