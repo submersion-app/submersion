@@ -4,7 +4,7 @@ part of 'site_merge_page.dart';
 /// species written on the survivor, and the pop with its result.
 mixin _SiteMergeSave on _SiteMergeCandidates {
   Future<bool> _confirmMerge() async {
-    final count = widget.siteIds.length;
+    final count = _mergedIds.length;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -118,7 +118,7 @@ mixin _SiteMergeSave on _SiteMergeCandidates {
       }
       if (!await _confirmMerge() || !mounted) return;
 
-      final snapshot = await notifier.mergeSites(site, widget.siteIds);
+      final snapshot = await notifier.mergeSites(site, _mergedIds);
       if (!mounted) return;
       if (snapshot == null) {
         // Refused (a site belongs to another profile, issue #2594): nothing

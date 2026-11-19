@@ -46,6 +46,11 @@ mixin _SiteMergeFields on ConsumerState<SiteMergePage> {
   /// owner and its sharing (issue #2151).
   DiveSite? _survivor;
 
+  /// The sites the page shows and merges, survivor first: those of
+  /// [SiteMergePage.siteIds] still stored when it loaded. A site deleted
+  /// since the list's selection is left out, never passed to the merge.
+  List<String> _mergedIds = const [];
+
   bool _isLoading = false;
   bool _isInitialized = false;
   bool _hasChanges = false;

@@ -82,6 +82,7 @@ mixin _SiteMergeCandidates on _SiteMergeFields {
     if (_isInitialized) return;
     _isInitialized = true;
     _survivor = data.sites.first;
+    _mergedIds = [for (final site in data.sites) site.id];
     _expectedSpecies = data.expectedSpecies;
     _isApplyingInitialValues = true;
 

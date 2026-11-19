@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_sites/presentation/widgets/edit_section
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -90,6 +91,37 @@ void main() {
     );
     expect(updatedNameField.controller!.text, equals('Site'));
     expect(find.textContaining('From Site'), findsWidgets);
+  });
+
+  // The sites being merged are the duplicates the merge resolves, not a
+  // similar site to warn about (seen in the manual test).
+  testWidgets('the name hint never names a site the merge takes in', (
+    tester,
+  ) async {
+    await siteRepository.createSite(
+      const DiveSite(id: 'hole-1', name: 'Blue Hole Lighthouse Reef'),
+    );
+    await siteRepository.createSite(
+      const DiveSite(id: 'hole-2', name: 'Blue Hole Lighthouse Reef (copy)'),
+    );
+
+    await tester.pumpWidget(
+      _buildMergePageHarness(
+        prefs: prefs,
+        siteRepository: siteRepository,
+        siteIds: const ['hole-1', 'hole-2'],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(
+        AppLocalizationsEn().diveSites_similarSite_warning(
+          'Blue Hole Lighthouse Reef (copy)',
+        ),
+      ),
+      findsNothing,
+    );
   });
 
   testWidgets(

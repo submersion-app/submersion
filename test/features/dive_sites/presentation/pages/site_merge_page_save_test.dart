@@ -15,6 +15,7 @@ import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/dive_info_section.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/identity_section.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/life_notes_section.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/location_section.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
@@ -24,6 +25,8 @@ import 'package:submersion/features/dive_sites/presentation/pages/site_merge_pag
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/weather/data/services/elevation_service.dart';
+import 'package:submersion/features/weather/presentation/providers/weather_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
@@ -47,6 +50,21 @@ class _SlowFix implements LocationService {
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// An elevation of ten metres per degree of latitude, each held until its
+/// gate, when one is set, completes.
+class _GatedElevation extends ElevationService {
+  final gates = <double, Completer<void>>{};
+
+  @override
+  Future<double?> fetchElevation({
+    required double latitude,
+    required double longitude,
+  }) async {
+    await gates[latitude]?.future;
+    return latitude * 10;
+  }
 }
 
 /// The merge page's save (issue #4527, phase 2, plan 7): a finished merge
@@ -162,6 +180,29 @@ void main() {
     expect(await stored('b'), isFalse);
   });
 
+  // A site deleted since the list's selection (by another device's sync,
+  // say): the page shows the sites still stored, and merges those.
+  testWidgets('a merge leaves out a site gone since it was selected', (
+    tester,
+  ) async {
+    await seedSite(db, 'a', owner: 'd2', name: 'Salt Pier');
+    await seedSite(db, 'b', owner: 'd2', name: 'Salt Pier North');
+    final result = await pump(tester, const ['gone', 'a', 'b'], active: 'd2');
+
+    await tester.tap(find.text(l.forms_save).first);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text(l.diveSites_edit_merge_confirmBody(2)), findsOneWidget);
+    await tester.tap(find.text(l.diveSites_edit_appBar_merge).last);
+    await tester.pumpAndSettle();
+
+    final merged = await result;
+    expect(merged, isA<SiteMergeResult>());
+    expect((merged! as SiteMergeResult).survivorId, 'a');
+    expect(await stored('a'), isTrue);
+    expect(await stored('b'), isFalse);
+  });
+
   // What a merge stores (final review): the chosen candidates, the chosen
   // country's code, and the expected species as the page shows them.
   testWidgets('a merge stores the chosen values and the shown species', (
@@ -235,6 +276,47 @@ void main() {
       [ray.id],
     );
   });
+
+  // The altitude filled from the coordinates is the chosen position's: an
+  // answer for a position the diver has since cycled away from fills
+  // nothing (code review), as on the site page's Location card.
+  testWidgets(
+    'an altitude found for coordinates since cycled away is dropped',
+    (tester) async {
+      final sites = SiteRepository();
+      await sites.createSite(
+        const DiveSite(id: 'a', name: 'Salt Pier', location: GeoPoint(10, 10)),
+      );
+      await sites.createSite(
+        const DiveSite(
+          id: 'b',
+          name: 'Salt Pier N',
+          location: GeoPoint(20, 20),
+        ),
+      );
+      final elevation = _GatedElevation();
+      final first = elevation.gates[10] = Completer<void>();
+      await pump(
+        tester,
+        const ['a', 'b'],
+        active: 'd2',
+        extra: [elevationServiceProvider.overrideWithValue(elevation)],
+      );
+      LocationSection section() =>
+          tester.widget<LocationSection>(find.byType(LocationSection));
+
+      // The first site's position is asked about, and held.
+      await tester.pump(const Duration(seconds: 1));
+      section().coordinatesExtras!.onCycle();
+      await tester.pump();
+      first.complete();
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pumpAndSettle();
+
+      expect(section().altitudeController.text, '200');
+    },
+  );
 
   // A position that arrives once the diver has left the page changes
   // nothing and throws nothing (final review).

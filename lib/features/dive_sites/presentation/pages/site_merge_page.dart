@@ -126,6 +126,12 @@ class _SiteMergePageState extends ConsumerState<SiteMergePage>
   Widget _buildForm(BuildContext context, UnitFormatter units) {
     final l10n = context.l10n;
     final allSites = ref.watch(sitesProvider).value ?? const <DiveSite>[];
+    // The sites being merged are the duplicates this page resolves: the
+    // name's suggestions and its similar-name hint leave them all out.
+    final otherSites = [
+      for (final site in allSites)
+        if (!widget.siteIds.contains(site.id)) site,
+    ];
     final body = Form(
       key: _formKey,
       // Identity and Location lead the left column, Dive info, Access and
@@ -135,8 +141,7 @@ class _SiteMergePageState extends ConsumerState<SiteMergePage>
         splitIndex: 2,
         children: [
           IdentitySection(
-            allSites: allSites,
-            excludeId: _survivor?.id,
+            allSites: otherSites,
             nameController: _nameController,
             descriptionController: _descriptionController,
             countryController: _countryController,

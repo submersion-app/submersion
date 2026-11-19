@@ -28,6 +28,12 @@ mixin _SiteMergeLocation on _SiteMergeFields {
         .fetchElevation(latitude: lat, longitude: lng);
     if (!mounted || meters == null) return;
     if (_altitudeController.text.isNotEmpty) return;
+    // An answer for a position the fields have since left (another site's
+    // coordinates cycled in) fills nothing; that position asks for itself.
+    if (double.tryParse(_latitudeController.text.trim()) != lat ||
+        double.tryParse(_longitudeController.text.trim()) != lng) {
+      return;
+    }
 
     final units = UnitFormatter(ref.read(settingsProvider));
     setState(() {
