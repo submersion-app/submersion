@@ -20,9 +20,11 @@ class PlayheadGlide {
   late final Ticker _ticker;
   var _playhead = PlayheadInterpolator();
 
+  final _shown = ValueNotifier<Duration>(Duration.zero);
+
   /// Where to draw the playhead. It changes every frame while the video
   /// plays, so only what moves with it should listen.
-  final ValueNotifier<Duration> shown = ValueNotifier(Duration.zero);
+  ValueListenable<Duration> get shown => _shown;
 
   /// Takes the player's latest [value], and starts or stops the frames
   /// that carry the playhead on from it.
@@ -33,7 +35,7 @@ class PlayheadGlide {
       speed: value.playbackSpeed,
       duration: value.duration,
     );
-    shown.value = _playhead.shown;
+    _shown.value = _playhead.shown;
     if (!moving) {
       _ticker.stop();
     } else if (!_ticker.isActive) {
@@ -49,12 +51,12 @@ class PlayheadGlide {
 
   void dispose() {
     _ticker.dispose();
-    shown.dispose();
+    _shown.dispose();
   }
 
   void _onTick(Duration elapsed) {
     final moving = _playhead.advance(elapsed);
-    shown.value = _playhead.shown;
+    _shown.value = _playhead.shown;
     // A stalled player, or the end of the clip: rest until the next report.
     if (!moving) _ticker.stop();
   }
