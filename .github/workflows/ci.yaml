@@ -782,6 +782,10 @@ jobs:
           python3 -m coverage run --append --include="$guards" \
             tool/species_pack/levels_test.py
           python3 -m coverage run --append --include="$guards" \
+            tool/species_pack/report_test.py
+          python3 -m coverage run --append --include="$guards" \
+            tool/species_pack/score_test.py
+          python3 -m coverage run --append --include="$guards" \
             tool/species_pack/metrics_test.py
           python3 -m coverage run --append --include="$guards" \
             tool/species_pack/testset_test.py

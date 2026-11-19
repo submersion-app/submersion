@@ -155,6 +155,10 @@ Manifest `naming` block, new optional fields:
 
 (Values shown as 0.0 are placeholders until the scorer runs.) `precision`
 is the held-out share of suggestions that were right, with a location.
+Changed by the follow-up
+[accuracy without a location](2026-11-19-marine-life-level-accuracy-without-location-design.md):
+`precision` is now the lower of the held-out shares with a location and
+without one, so it can sit below the with-location figure.
 
 The format version does not change: an older app ignores fields it does
 not read, and keeps naming at the pack's suggest bars, which is Surer. A

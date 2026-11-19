@@ -107,7 +107,7 @@ git commit -m "feat(species-pack): measure each level's accuracy without a locat
 
 - [ ] **Step 3: Verify** the report still renders a `results.json` from before this change:
 
-Run: `python3.14 -c "import json, sys; sys.path.insert(0, 'tool/species_pack'); import report; report.write_report(json.load(open('.superpowers/sdd/2026-11-18-marine-life-naming-levels/results.json')), '/private/tmp/claude-501/-Users-ericgriffin-repos-submersion-app/5fd17bed-ba40-4294-b439-55093900b61b/scratchpad/old-report.md')"` and read the "Naming levels" rows.
+Run: `python3.14 -c "import json, sys; sys.path.insert(0, 'tool/species_pack'); import report; report.write_report(json.load(open('.superpowers/sdd/2026-11-18-marine-life-naming-levels/results.json')), '<scratchpad>/old-report.md')"` and read the "Naming levels" rows.
 Expected: no exception; the new columns read "n/a".
 
 - [ ] **Step 4:** In the developer doc, say a level's precision is the lower of its held-out precisions with and without a location.

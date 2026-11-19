@@ -416,7 +416,9 @@ def evaluate(name, results_by_photo, animals, junk_rows, namer, work, min_side, 
     # a run whose own bars come out slightly different never states an
     # accuracy the app does not name at; otherwise under this run's.
     surer = published or gated
-    levels, surer_precision = level_search.measure(surer, tune_nat, tune_junk, held_nat, held_junk, min_side=min_side)
+    levels, surer_precision, surer_held = level_search.measure(
+        surer, tune_nat, tune_junk, held_nat, held_junk, min_side=min_side
+    )
 
     def naming_rates(records, confident=False):
         out = {}
@@ -490,7 +492,7 @@ def evaluate(name, results_by_photo, animals, junk_rows, namer, work, min_side, 
         "surer precision": surer_precision,
         # Both sides at those bars, which the shown figure is taken from;
         # "held-out natural" is at this run's own bars, which can differ.
-        "surer held-out": level_search.rates(surer, held_nat, held_junk, min_side=min_side),
+        "surer held-out": surer_held,
         "levels": levels,
         "held-out natural": summary(held_nat),
         "held-out natural, detection": {

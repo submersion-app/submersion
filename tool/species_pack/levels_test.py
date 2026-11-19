@@ -37,8 +37,10 @@ def split(with_top, without_top, correct):
 
 
 def measure(fish, junk=()):
-    """Levels measured with the same crops as the tune and held-out halves."""
-    return levels.measure(SURER, fish, list(junk), fish, list(junk), min_side=64)
+    """(levels, Surer's figure) measured with the same crops as the tune
+    and held-out halves."""
+    found, surer_precision, _ = levels.measure(SURER, fish, list(junk), fish, list(junk), min_side=64)
+    return found, surer_precision
 
 
 class MeasureTests(unittest.TestCase):
@@ -70,7 +72,7 @@ class MeasureTests(unittest.TestCase):
         # precision of 0 is no share to show.
         tune = [record(0.55, True)] * 100
         held = [record(0.55, False)]
-        found, surer_precision = levels.measure(SURER, tune, [], held, [], min_side=64)
+        found, surer_precision, _ = levels.measure(SURER, tune, [], held, [], min_side=64)
         self.assertIsNone(surer_precision)
         self.assertEqual(found, [])
 
@@ -109,6 +111,14 @@ class MeasureTests(unittest.TestCase):
         fish = [record(0.9, True)] * 90 + [split(0.5, 0.85, False)] * 20
         _, surer_precision = measure(fish)
         self.assertAlmostEqual(surer_precision, 90 / 110)
+
+    def test_measure_hands_back_surers_rates(self):
+        # The rates Surer's figure was taken from, so score.py need not
+        # measure them again.
+        fish = [record(0.9, True)] * 90 + [split(0.5, 0.85, False)] * 20
+        _, surer_precision, surer_rates = levels.measure(SURER, fish, [], fish, [], min_side=64)
+        self.assertEqual(surer_rates, levels.rates(SURER, fish, [], min_side=64))
+        self.assertAlmostEqual(surer_rates["precision without location"]["value"], surer_precision)
 
     def test_a_level_less_often_right_without_a_location_shows_that(self):
         fish = (
@@ -151,7 +161,7 @@ class MeasureTests(unittest.TestCase):
             + [record(0.45, False)] * 50
         )
         held = [record(0.9, True)] * 100 + [split(0.1, 0.6, False)] * 25 + [split(0.5, 0.5, True)] * 100
-        found, _ = levels.measure(SURER, tune, [], held, [], min_side=64)
+        found, _, _ = levels.measure(SURER, tune, [], held, [], min_side=64)
         self.assertEqual([level["id"] for level in found], ["balanced"])
         self.assertEqual(found[0]["precision"], 0.8)
 

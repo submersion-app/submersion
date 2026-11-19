@@ -76,13 +76,14 @@ def rates(bars, held_nat, held_junk, *, min_side):
 
 
 def measure(surer, tune_nat, tune_junk, held_nat, held_junk, *, min_side):
-    """(levels, Surer's shown figure) under `surer`, the bars the pack
-    names at. A shown figure is the lower of the held-out precisions with
-    and without a location (shown_precision). The levels come surest
-    first, each with its shown figure as `"precision"`, rounded as a
-    manifest carries it. Surer's figure is unrounded and None when its bars
-    name nothing held out; it may be 0, which still bounds the levels,
-    though a manifest carries only a share in (0, 1].
+    """(levels, Surer's shown figure, Surer's held-out rates) under
+    `surer`, the bars the pack names at. A shown figure is the lower of the
+    held-out precisions with and without a location (shown_precision). The
+    levels come surest first, each with its shown figure as `"precision"`,
+    rounded as a manifest carries it. Surer's figure is unrounded and None
+    when its bars name nothing held out; it may be 0, which still bounds
+    the levels, though a manifest carries only a share in (0, 1]. Surer's
+    rates are `rates` at its bars, which its figure is taken from.
 
     A level is left out when it adds nothing over the level above, fails
     the held-out gate, has no shown figure in (0, 1] (nothing named, or
@@ -125,4 +126,4 @@ def measure(surer, tune_nat, tune_junk, held_nat, held_junk, *, min_side):
             {"id": level_id, "target": target, "bars": level.__dict__, "held-out": held, "precision": shown}
         )
         ceiling, above_precision = level, figure
-    return levels, surer_precision
+    return levels, surer_precision, surer_rates
