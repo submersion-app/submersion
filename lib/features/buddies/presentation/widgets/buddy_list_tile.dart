@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 import 'package:submersion/shared/widgets/country_flag.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -237,6 +238,8 @@ class BuddyListTile extends ConsumerWidget {
                       // selection, unlike the chevron after the content, so
                       // it stays visible and tappable in every mode.
                       BuddyFavoriteButton(
+                        // Set on the buddy's page where buddies edit in place.
+                        readOnly: kUnlockRecordEditing,
                         buddyId: buddy.id,
                         isFavorite: buddy.isFavorite,
                         iconSize: 20,

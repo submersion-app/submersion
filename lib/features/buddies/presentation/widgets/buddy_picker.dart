@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/features/settings/presentation/providers/hidden_built_ins_provider.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
@@ -733,6 +734,8 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
                   ),
                 ),
               BuddyFavoriteButton(
+                // Set on the buddy's page where buddies edit in place.
+                readOnly: kUnlockRecordEditing,
                 buddyId: buddy.id,
                 isFavorite: buddy.isFavorite,
                 iconSize: 20,

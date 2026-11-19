@@ -36,6 +36,27 @@ import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/equipment/presentation/widgets/lend_gear_flow.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
+import 'package:submersion/features/buddies/data/services/buddy_edit_save_service.dart';
+import 'package:submersion/features/buddies/presentation/editing/buddy_card_ids.dart';
+import 'package:submersion/features/buddies/presentation/editing/buddy_edit_cards.dart';
+import 'package:submersion/features/documents/presentation/editing/record_document_links_sitting.dart';
+import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_fade.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
+import 'package:submersion/shared/widgets/record_editing/record_open_unlocked.dart';
+import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
+import 'package:submersion/shared/widgets/record_editing/record_pane_row.dart';
+import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
+
+part 'buddy_detail_page_editing.dart';
+
+/// A buddy's page. Behind phase 3's switch ([unlockEditing]) it opens
+/// locked and edits in place (issue #4527): its cards are held in one
+/// sitting and written by one Save.
 
 class BuddyDetailPage extends ConsumerStatefulWidget {
   final String buddyId;
@@ -46,19 +67,43 @@ class BuddyDetailPage extends ConsumerStatefulWidget {
   /// Callback when delete completes (used in embedded mode).
   final VoidCallback? onDeleted;
 
+  /// Whether the page edits in place: phase 3's switch, a parameter so a
+  /// test can turn it on.
+  final bool unlockEditing;
+
+  /// Opens unlocked, as the old edit address asks (`?mode=edit`).
+  final bool openUnlocked;
+
+  /// Told when a sitting the page opened unlocked ends: the list pane's
+  /// edit returns to the buddy in view.
+  final VoidCallback? onSittingEnded;
+
   const BuddyDetailPage({
     super.key,
     required this.buddyId,
     this.embedded = false,
     this.onDeleted,
+    this.unlockEditing = kUnlockRecordEditing,
+    this.openUnlocked = false,
+    this.onSittingEnded,
   });
 
   @override
   ConsumerState<BuddyDetailPage> createState() => _BuddyDetailPageState();
 }
 
-class _BuddyDetailPageState extends ConsumerState<BuddyDetailPage> {
+class _BuddyDetailPageState extends ConsumerState<BuddyDetailPage>
+    with
+        RecordEditHost<BuddyDetailPage, Buddy>,
+        RecordOpenUnlocked<BuddyDetailPage, Buddy>,
+        _BuddyDetailPageEditing {
   bool _hasRedirected = false;
+
+  @override
+  void dispose() {
+    disposeEditing();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,6 +127,7 @@ class _BuddyDetailPageState extends ConsumerState<BuddyDetailPage> {
     }
 
     final buddyAsync = ref.watch(buddyByIdProvider(widget.buddyId));
+    if (hostsEditing) followStored(buddyByIdProvider(widget.buddyId));
 
     return buddyAsync.when(
       data: (buddy) {
@@ -94,10 +140,21 @@ class _BuddyDetailPageState extends ConsumerState<BuddyDetailPage> {
             body: Center(child: Text(context.l10n.buddies_detail_notFound)),
           );
         }
+        if (!hostsEditing) {
+          return _BuddyDetailContent(
+            buddy: buddy,
+            stored: buddy,
+            embedded: widget.embedded,
+            onDeleted: widget.onDeleted,
+          );
+        }
+        openUnlockedOnce(buddy);
         return _BuddyDetailContent(
-          buddy: buddy,
+          buddy: shownRecord(buddy),
+          stored: buddy,
           embedded: widget.embedded,
           onDeleted: widget.onDeleted,
+          host: this,
         );
       },
       loading: () {
@@ -127,15 +184,37 @@ class _BuddyDetailPageState extends ConsumerState<BuddyDetailPage> {
 }
 
 class _BuddyDetailContent extends ConsumerWidget {
+  /// The buddy the cards show: the sitting's while unlocked.
   final Buddy buddy;
+
+  /// The buddy as stored.
+  final Buddy stored;
   final bool embedded;
   final VoidCallback? onDeleted;
 
+  /// The page, where it edits in place.
+  final _BuddyDetailPageState? host;
+
   const _BuddyDetailContent({
     required this.buddy,
+    required this.stored,
     this.embedded = false,
     this.onDeleted,
+    this.host,
   });
+
+  bool get _editing => host != null;
+
+  /// [child] as the card [id] where the page edits in place.
+  Widget _framed(BuddyCardId id, Widget child) =>
+      host?._framed(id, child) ?? child;
+
+  /// Whether the empty card [id] is shown in the sitting.
+  bool _shows(BuddyCardId id) => host?._showsWhileEmpty(id) ?? false;
+
+  /// [child] faded for [reason] where the page edits in place.
+  Widget _fade(RecordCardFadeReason reason, Widget child) =>
+      _editing ? _faded(reason, child) : child;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -150,21 +229,25 @@ class _BuddyDetailContent extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Profile header
-          _buildProfileHeader(context, ref),
+          _framed(BuddyCardId.header, _buildProfileHeader(context, ref)),
           const SizedBox(height: 24),
 
           // Contact info
           if (buddy.hasContactInfo ||
               buddy.socialHandle != null ||
               buddy.country != null ||
-              buddy.linkedDiverId != null) ...[
-            _buildContactSection(context, ref),
+              buddy.linkedDiverId != null ||
+              _shows(BuddyCardId.contact)) ...[
+            _framed(BuddyCardId.contact, _buildContactSection(context, ref)),
             const SizedBox(height: 24),
           ],
 
           // What their buddy card said (issue #3728).
           if (buddy.hasCardDetails) ...[
-            BuddyCardDetailsSection(buddy: buddy),
+            _fade(
+              RecordCardFadeReason.imported,
+              BuddyCardDetailsSection(buddy: buddy),
+            ),
             const SizedBox(height: 24),
           ],
 
@@ -174,7 +257,10 @@ class _BuddyDetailContent extends ConsumerWidget {
           const SizedBox(height: 24),
 
           // Statistics
-          _buildStatsSection(context, statsAsync, units),
+          _framed(
+            BuddyCardId.statistics,
+            _buildStatsSection(context, statsAsync, units),
+          ),
           const SizedBox(height: 24),
 
           // Gear they have (issue #3790), with its own spacing: most buddies
@@ -182,104 +268,88 @@ class _BuddyDetailContent extends ConsumerWidget {
           BuddyGearSection(buddy: buddy),
 
           // Notes
-          if (buddy.notes.isNotEmpty) ...[
-            _buildNotesSection(context),
+          if (buddy.notes.isNotEmpty || _shows(BuddyCardId.notes)) ...[
+            _framed(BuddyCardId.notes, _buildNotesSection(context)),
             const SizedBox(height: 24),
           ],
-          DocumentsSection(
-            owner: DocumentOwner(DocumentOwnerKind.buddy, buddy.id),
+          _framed(
+            BuddyCardId.documents,
+            DocumentsSection<Buddy>(
+              owner: DocumentOwner(DocumentOwnerKind.buddy, buddy.id),
+            ),
           ),
           const SizedBox(height: 24),
 
           // Shared dives
-          BuddySharedDivesSection(buddyId: buddy.id),
+          _fade(
+            RecordCardFadeReason.calculated,
+            BuddySharedDivesSection(buddyId: buddy.id),
+          ),
 
           // Photos and videos they are tagged in (issue #1745)
-          BuddyPhotosSection(buddyId: buddy.id),
+          _fade(
+            RecordCardFadeReason.calculated,
+            BuddyPhotosSection(buddyId: buddy.id),
+          ),
         ],
       ),
     );
 
+    final host = this.host;
     if (embedded) {
+      final header = _buildEmbeddedHeader(context, ref);
+      if (host != null) {
+        return host.editPane(
+          header: RecordPaneRow(
+            locked: header,
+            unlocked: host.isSittingOpen
+                ? host.editingPaneRow(stored, menu: _menu(context, ref))
+                : null,
+          ),
+          shown: buddy,
+          content: body,
+        );
+      }
       return Column(
         children: [
-          _buildEmbeddedHeader(context, ref),
+          header,
           Expanded(child: body),
         ],
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(buddy.name),
-        actions: [
-          BuddyFavoriteButton(buddyId: buddy.id, isFavorite: buddy.isFavorite),
-          IconButton(
-            icon: const Icon(Icons.edit),
-            tooltip: context.l10n.buddies_action_edit,
-            onPressed: () => context.push('/buddies/${buddy.id}/edit'),
-          ),
-          PopupMenuButton<String>(
-            onSelected: (value) async {
-              if (value == kOpenInConnectionsAction) {
-                openInConnections(
-                  context,
-                  NodeRef(ConnectionKind.buddy, buddy.id),
-                );
-              } else if (value == 'lend') {
-                await showLendGearFlow(context, ref, buddy);
-              } else if (value == 'share') {
-                await _shareDivesWithBuddy(context, ref);
-              } else if (value == 'delete') {
-                await _handleDelete(context, ref);
-              }
-            },
-            itemBuilder: (context) => [
-              changeLogHistoryMenuItem(
-                context,
-                rootTable: 'buddies',
-                rootId: buddy.id,
-              ),
-              openInConnectionsMenuItem(context),
-              PopupMenuItem(
-                value: 'lend',
-                child: Row(
-                  children: [
-                    const Icon(Icons.volunteer_activism_outlined),
-                    const SizedBox(width: 8),
-                    Text(context.l10n.buddies_action_lendGear),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 'share',
-                child: Row(
-                  children: [
-                    const Icon(Icons.share),
-                    const SizedBox(width: 8),
-                    Text(context.l10n.buddies_action_shareDives),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 'delete',
-                child: Row(
-                  children: [
-                    const Icon(Icons.delete, color: Colors.red),
-                    const SizedBox(width: 8),
-                    Text(
-                      context.l10n.common_action_delete,
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-      body: body,
+    final bar = AppBar(
+      title: Text(buddy.name),
+      actions: [
+        if (host != null) host.lockButton(buddy),
+        // Where the page edits in place, the favourite is set on the
+        // header: the bar's star only shows it.
+        BuddyFavoriteButton(
+          buddyId: buddy.id,
+          isFavorite: buddy.isFavorite,
+          readOnly: host != null,
+        ),
+        IconButton(
+          icon: const Icon(Icons.edit),
+          tooltip: context.l10n.buddies_action_edit,
+          // Where the page edits in place, Edit unlocks it as the lock does.
+          onPressed: host != null
+              ? () => host.editController.unlock(buddy)
+              : () => context.push('/buddies/${buddy.id}/edit'),
+        ),
+        _menu(context, ref),
+      ],
     );
+    if (host != null) {
+      return host.editScaffold(
+        record: stored,
+        shown: buddy,
+        lockedBar: bar,
+        unlockedActions: [_menu(context, ref)],
+        content: body,
+      );
+    }
+    return Scaffold(appBar: bar, body: body);
   }
 
   Widget _buildEmbeddedHeader(BuildContext context, WidgetRef ref) {
@@ -338,101 +408,30 @@ class _BuddyDetailContent extends ConsumerWidget {
               ],
             ),
           ),
+          if (host != null) host!.lockButton(buddy, compact: true),
           BuddyFavoriteButton(
             buddyId: buddy.id,
             isFavorite: buddy.isFavorite,
             iconSize: 20,
+            readOnly: host != null,
           ),
           IconButton(
             icon: const Icon(Icons.edit, size: 20),
             tooltip: context.l10n.common_action_edit,
-            onPressed: () {
-              final state = GoRouterState.of(context);
-              context.go('${state.uri.path}?selected=${buddy.id}&mode=edit');
-            },
+            onPressed: host != null
+                ? () => host!.editController.unlock(buddy)
+                : () {
+                    final state = GoRouterState.of(context);
+                    context.go(
+                      '${state.uri.path}?selected=${buddy.id}&mode=edit',
+                    );
+                  },
           ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, size: 20),
-            onSelected: (value) async {
-              if (value == kOpenInConnectionsAction) {
-                openInConnections(
-                  context,
-                  NodeRef(ConnectionKind.buddy, buddy.id),
-                );
-              } else if (value == 'lend') {
-                await showLendGearFlow(context, ref, buddy);
-              } else if (value == 'share') {
-                await _shareDivesWithBuddy(context, ref);
-              } else if (value == 'delete') {
-                await _handleDelete(context, ref);
-              }
-            },
-            itemBuilder: (context) => [
-              changeLogHistoryMenuItem(
-                context,
-                rootTable: 'buddies',
-                rootId: buddy.id,
-              ),
-              openInConnectionsMenuItem(context),
-              PopupMenuItem(
-                value: 'lend',
-                child: Row(
-                  children: [
-                    const Icon(Icons.volunteer_activism_outlined, size: 20),
-                    const SizedBox(width: 8),
-                    Text(context.l10n.buddies_action_lendGear),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 'share',
-                child: Row(
-                  children: [
-                    const Icon(Icons.share, size: 20),
-                    const SizedBox(width: 8),
-                    Text(context.l10n.buddies_action_shareDives),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 'delete',
-                child: Row(
-                  children: [
-                    const Icon(Icons.delete, color: Colors.red, size: 20),
-                    const SizedBox(width: 8),
-                    Text(
-                      context.l10n.common_action_delete,
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+          _menu(context, ref, compact: true),
         ],
       ),
     );
   }
-
-  Future<void> _handleDelete(BuildContext context, WidgetRef ref) async {
-    final confirmed = await _showDeleteConfirmation(context);
-    if (confirmed && context.mounted) {
-      await ref.read(buddyListNotifierProvider.notifier).deleteBuddy(buddy.id);
-      if (context.mounted) {
-        if (embedded) {
-          onDeleted?.call();
-        } else {
-          context.pop();
-        }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.buddies_message_deleted)),
-        );
-      }
-    }
-  }
-
-  Future<void> _shareDivesWithBuddy(BuildContext context, WidgetRef ref) =>
-      shareDivesWithBuddy(context, ref, buddy.id);
 
   Widget _buildProfileHeader(BuildContext context, WidgetRef ref) {
     return Center(
@@ -449,7 +448,23 @@ class _BuddyDetailContent extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          Text(buddy.name, style: Theme.of(context).textTheme.headlineMedium),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: Text(
+                  buddy.name,
+                  style: Theme.of(context).textTheme.headlineMedium,
+                ),
+              ),
+              if (_editing)
+                RecordCardPencil(
+                  cardTitle: BuddyCardId.header.localizedDisplayName(
+                    context.l10n,
+                  ),
+                ),
+            ],
+          ),
         ],
       ),
     );
@@ -470,11 +485,10 @@ class _BuddyDetailContent extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            _sectionTitle(
+              context,
               context.l10n.buddies_section_contact,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              editing: _editing,
             ),
             const SizedBox(height: 12),
             if (buddy.linkedDiverId != null)
@@ -607,11 +621,10 @@ class _BuddyDetailContent extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              _sectionTitle(
+                context,
                 context.l10n.buddies_section_diveStatistics,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                editing: _editing,
               ),
               const SizedBox(height: 12),
               statsAsync.when(
@@ -684,11 +697,10 @@ class _BuddyDetailContent extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            _sectionTitle(
+              context,
               context.l10n.buddies_section_notes,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              editing: _editing,
             ),
             const SizedBox(height: 12),
             MarkdownNotesView(buddy.notes),
@@ -696,32 +708,6 @@ class _BuddyDetailContent extends ConsumerWidget {
         ),
       ),
     );
-  }
-
-  Future<bool> _showDeleteConfirmation(BuildContext context) async {
-    return await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text(context.l10n.buddies_dialog_deleteTitle),
-            content: Text(
-              context.l10n.buddies_dialog_deleteMessage(buddy.name),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: Text(context.l10n.common_action_cancel),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                style: FilledButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.error,
-                ),
-                child: Text(context.l10n.common_action_delete),
-              ),
-            ],
-          ),
-        ) ??
-        false;
   }
 
   Future<void> _launchEmail(String email) async {

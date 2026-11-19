@@ -19,6 +19,12 @@ void main() {
   /// Editors of a Markdown field, each with the token proving it uses the
   /// shared editor: the editor itself, or a form row in Markdown mode.
   const editors = <String, String>{
+    // A buddy's Notes card edited in place (issue #4527).
+    'lib/features/buddies/presentation/editing/buddy_edit_cards.dart':
+        'MarkdownNotesField(',
+    // The merge of two or more buddies (issue #4527).
+    'lib/features/buddies/presentation/pages/buddy_merge_page_fields.dart':
+        'MarkdownNotesField(',
     'lib/features/buddies/presentation/pages/buddy_edit_page.dart':
         'MarkdownNotesField(',
     // A certification's Notes card edited in place (issue #4527).
