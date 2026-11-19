@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart' show StateProvider;
@@ -95,7 +97,14 @@ void main() {
     Object? attachmentsError,
     FutureOr<List<MediaItem>> Function(Ref ref)? loadAttachments,
     List<Override> extraOverrides = const [],
+    RecordEditController<DiveSite>? editsInPlace,
   }) async {
+    final section = SiteMediaSection(
+      siteId: 'site-1',
+      onAddPhotosPressed: onPhotos,
+      onAddDocumentPressed: onDoc,
+      onOpenDocument: onOpenDocument,
+    );
     return mediaTestApp(
       overrides: [
         mediaForSiteProvider('site-1').overrideWith((ref) {
@@ -115,12 +124,14 @@ void main() {
       ],
       home: Scaffold(
         body: SingleChildScrollView(
-          child: SiteMediaSection(
-            siteId: 'site-1',
-            onAddPhotosPressed: onPhotos,
-            onAddDocumentPressed: onDoc,
-            onOpenDocument: onOpenDocument,
-          ),
+          // A page that edits the site in place holds its scope over the
+          // card (issue #4527).
+          child: editsInPlace == null
+              ? section
+              : RecordEditScope<DiveSite>(
+                  controller: editsInPlace,
+                  child: section,
+                ),
         ),
       ),
     );
@@ -645,6 +656,41 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Attachment details'), findsOneWidget);
     });
+  });
+
+  // An attachment's details are its own record's, edited under its own
+  // lock where the site page edits in place (issue #4527, phase 2): the
+  // card's single Edit details goes; the bulk Set category stays.
+  testWidgets('on a page that edits in place Edit details is gone, Set '
+      'category stays', (tester) async {
+    final controller = RecordEditController<DiveSite>(onSave: (_) async {});
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(
+      await host(
+        attachments: [
+          photoA.copyWith(displaySizeOverride: AttachmentDisplaySize.large),
+          photoB,
+        ],
+        editsInPlace: controller,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // The large card offers no Edit details menu.
+    expect(find.byTooltip('More options'), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('enter_selection')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(MediaThumbnailTile).first);
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('selection_action_editDetails')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey('selection_action_setCategory')),
+      findsOneWidget,
+    );
   });
 
   testWidgets('a browser offers neither adding nor selecting (#4121)', (

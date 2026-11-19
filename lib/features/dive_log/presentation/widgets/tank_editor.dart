@@ -192,6 +192,14 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   late double _lastValidO2;
   late double _lastValidHe;
 
+  /// The last mix the O2/He fields described that can be a gas (issue
+  /// #4714), which [_currentGasMix] reports while they describe one that
+  /// cannot, such as a typed 1000% O2. Kept apart from [_lastValidO2] and
+  /// [_lastValidHe], which are remembered field by field and so can pair up
+  /// into a mix no gas can have. Null until there is one: a cylinder stored
+  /// impossible has nothing to fall back to.
+  GasMix? _lastPossibleMix;
+
   /// The spec and pressure fields' last readable values, in display units,
   /// for the same reason as [_lastValidO2]: a mistype reports what the diver
   /// last typed, never null, while the field shows its error.
@@ -268,6 +276,11 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     );
     _lastValidO2 = widget.tank.gasMix.o2;
     _lastValidHe = widget.tank.gasMix.he;
+    // Reset on every read, not only set: a re-read for another tank stored
+    // impossible must not fall back to the previous tank's mix.
+    _lastPossibleMix = widget.tank.gasMix.isPossible
+        ? widget.tank.gasMix
+        : null;
     _volume = LiveNumber(null)..resolve(_volumeController.text);
     _workingPressure = LiveNumber(null)
       ..resolve(_workingPressureController.text);
@@ -443,7 +456,19 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   /// `_notifyChange` overwrites on every keystroke including a blank
   /// intermediate one, so clearing a field to retype it would otherwise
   /// round-trip a stale 0.0 back in as the "last known good" value.
+  ///
+  /// A mix no gas can have, such as a typed 1000% O2, reports the last one
+  /// that could instead, for the same reason: the field's error says why,
+  /// and a gas the diver had is not replaced by one the dive cannot have
+  /// (issue #4714). A cylinder stored impossible has no such mix, so there
+  /// the typed one is reported and each edit lands.
   GasMix _currentGasMix() {
+    final typed = _typedGasMix();
+    return typed.isPossible ? typed : (_lastPossibleMix ?? typed);
+  }
+
+  /// The mix the O2/He fields spell out, possible or not.
+  GasMix _typedGasMix() {
     final o2Text = _o2Controller.text;
     final heText = _heController.text;
     final o2 = switch (readNumber(o2Text)) {
@@ -518,7 +543,11 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     ).withRegulators(_regulatorIds);
   }
 
-  void _notifyChange() => widget.onChanged(_currentTank());
+  void _notifyChange() {
+    final typed = _typedGasMix();
+    if (typed.isPossible) _lastPossibleMix = typed;
+    widget.onChanged(_currentTank());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1000,7 +1029,13 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   /// Empty is "not set" (fine, `_currentGasMix` defaults it); anything else
   /// must parse (#1900) -- a mistyped percentage otherwise silently becomes
   /// whatever the tank's last saved mix was, with no sign anything was wrong.
-  String? _validateGasPercent(String? value) => numberValidator(context)(value);
+  /// A readable share, and with the other field a mix that can be a gas.
+  String? _validateGasPercent(String? value) => numberValidator(
+    context,
+    check: (_) => _typedGasMix().isPossible
+        ? null
+        : context.l10n.diveLog_tank_error_impossibleMix,
+  )(value);
 
   Widget _buildGasChip(GasTemplate template) {
     final currentMix = _currentGasMix();

@@ -262,8 +262,109 @@ def naming_for(detector_ids, classifier_id, crop_fit, contents, measured=NAMING_
             and crop_fit == entry["cropFit"]
             and contents == entry["contents"]
         ):
-            return dict(entry["naming"])
+            return copy.deepcopy(entry["naming"])
     return dict(NAMING_PROVISIONAL)
+
+
+# The naming levels a manifest may carry, surest first (issue #4721). Surer
+# is the naming block's own bars and is never listed.
+LEVEL_IDS = ("balanced", "eager")
+# The naming keys a republished manifest may change: the levels and the
+# accuracy measured at them. Anything else needs a new pack version.
+LEVEL_KEYS = ("precision", "levels")
+
+
+def _is_number(value):
+    """Whether `value` is a JSON number; a bool is not one."""
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+def _is_share(value):
+    """Whether `value` is a number in (0, 1]; a missing or non-numeric one
+    is reported as a problem rather than raising."""
+    return _is_number(value) and 0 < value <= 1
+
+
+def level_problems(naming):
+    """What is wrong with a naming block's levels, as messages; empty when
+    nothing is. Each level is a known id, in order, with each bar no higher
+    than the level above it (Surer first) and at least one lower, and a
+    precision in (0, 1] no higher than the level above's: a diver must
+    never read that more names are more often right."""
+    problems = []
+    precision = naming.get("precision")
+    if precision is not None and not _is_share(precision):
+        problems.append(f"precision {precision} is not in (0, 1]")
+    levels = naming.get("levels", [])
+    if not isinstance(levels, list) or not all(isinstance(level, dict) for level in levels):
+        return problems + [f"levels {levels} are not a list of objects"]
+    ids = [level.get("id") for level in levels]
+    if ids != [i for i in LEVEL_IDS if i in ids] or len(set(ids)) != len(ids):
+        problems.append(f"levels {ids} are not a subset of {list(LEVEL_IDS)} in order")
+    above = (naming["suggestScore"], naming["suggestScoreNoLocation"])
+    # Only well-formed values are compared against: a bad one is reported
+    # once, where it is, rather than raising further down.
+    above_precision = precision if _is_share(precision) else None
+    for level in levels:
+        bars = (level.get("suggestScore"), level.get("suggestScoreNoLocation"))
+        well_formed = all(_is_number(b) for b in bars)
+        if not (well_formed and all(0 <= b <= a for b, a in zip(bars, above))):
+            problems.append(f"{level.get('id')} bars {bars} are not at or below {above}")
+        elif bars == above:
+            problems.append(f"{level.get('id')} bars {bars} name nothing more than the level above")
+        # The app drops a level with no numeric target, so it must not be
+        # published without one.
+        target = level.get("target")
+        if not _is_share(target):
+            problems.append(f"{level.get('id')} target {target} is not in (0, 1]")
+        level_precision = level.get("precision")
+        if not _is_share(level_precision):
+            problems.append(f"{level.get('id')} precision {level_precision} is not in (0, 1]")
+        elif above_precision is not None and level_precision > above_precision:
+            problems.append(
+                f"{level.get('id')} precision {level_precision} is above the level above's {above_precision}"
+            )
+        if well_formed:
+            above = bars
+        if _is_share(level_precision):
+            above_precision = level_precision
+    return problems
+
+
+def _check_levels(naming):
+    """Raises ValueError, naming each problem, unless `naming`'s levels are
+    sound (level_problems)."""
+    problems = level_problems(naming)
+    if problems:
+        raise ValueError("; ".join(problems))
+
+
+def relevel(published, measured=NAMING_MEASURED):
+    """`published` (a manifest as JSON) with the naming levels measured for
+    its exact pack, keeping its pack version, so a device that has the pack
+    takes the new manifest without downloading (issue #4721). Raises
+    ValueError when the pack has no measured bars, or when anything but the
+    levels and their precision would change."""
+    classifier = published["classifier"]
+    # Either format: a format 1 pack names its one detector `detector`.
+    detectors, _ = pack_detectors(published)
+    naming = naming_for(
+        [d["id"] for d in detectors],
+        classifier["id"],
+        classifier["cropFit"],
+        contents_of(published["files"]),
+        measured,
+    )
+    if naming.get("provisional", True):
+        raise ValueError(f"pack {published['packVersion']} has no measured bars")
+    current = published["naming"]
+    changed = sorted(k for k in set(current) | set(naming) if k not in LEVEL_KEYS and current.get(k) != naming.get(k))
+    if changed:
+        raise ValueError(f"republishing would change {changed}; that needs a new pack version")
+    _check_levels(naming)
+    out = copy.deepcopy(published)
+    out["naming"] = naming
+    return out
 
 
 def build_manifest(
@@ -277,6 +378,18 @@ def build_manifest(
     naming=None,
 ):
     crop_fit = CROP_FIT[detector_set]
+    # A copy all the way down: the naming block carries a list of levels.
+    # naming_for already returns one of its own.
+    naming = (
+        copy.deepcopy(naming)
+        if naming
+        else naming_for(detector_ids(detector_set), classifier_id, crop_fit, contents_of(files))
+    )
+    # A new pack's levels reach devices as a republish's do, so they are
+    # held to the same checks as relevel (issue #4721). The app reads them
+    # unless the bars are marked provisional; a missing flag is not.
+    if naming.get("provisional") is not True:
+        _check_levels(naming)
     return {
         "formatVersion": FORMAT_VERSION,
         "packVersion": pack_version,
@@ -288,9 +401,7 @@ def build_manifest(
             **copy.deepcopy(CLASSIFIER_SETTINGS),
             "cropFit": crop_fit,
         },
-        "naming": dict(
-            naming or naming_for(detector_ids(detector_set), classifier_id, crop_fit, contents_of(files))
-        ),
+        "naming": naming,
         "region": dict(REGION),
         "cropThumbnailSize": CROP_THUMBNAIL_SIZE,
         "files": list(files),

@@ -1,5 +1,6 @@
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/minutes_seconds.dart';
+import 'package:submersion/core/utils/gas_percent.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_tank.dart'
     show GasMix;
@@ -73,6 +74,7 @@ String detectorTitle(AppLocalizations l10n, String detectorId) =>
       'temp_anomaly' => l10n.dataQuality_detector_temp_anomaly,
       'pressure_anomaly' => l10n.dataQuality_detector_pressure_anomaly,
       'gas_mod' => l10n.dataQuality_detector_gas_mod,
+      'impossible_gas_mix' => l10n.dataQuality_detector_impossible_gas_mix,
       'tank_assignment' => l10n.dataQuality_detector_tank_assignment,
       'missing_gas_switch' => l10n.dataQuality_detector_missing_gas_switch,
       'transmitter_role' => l10n.dataQuality_detector_transmitter_role,
@@ -219,6 +221,8 @@ QualityFindingMessage buildFindingMessage(
           qualityGasLabel(l10n, d('o2Percent'), he),
         );
       }
+    case 'impossible_gas_mix':
+      detail = _impossibleGasMixDetail(l10n, p);
     case 'unknown_transmitter':
       detail = l10n.dataQuality_msg_unknownTransmitter(
         (p['serial'] as String?) ?? '',
@@ -343,6 +347,40 @@ String _missingSwitchDetail(
       ),
   ];
   return sentences.join(' ');
+}
+
+/// "Cylinder {n} is recorded as {o2}% O2 and {he}% He ..." (issue #4714),
+/// naming the mix meant when the finding carries one. The stored shares are
+/// shown as the app shows any gas percentage, a tenth at most in the
+/// locale's convention: 3200 reads 3200, an analysed 3212.5 keeps its half
+/// (3212,5 under de), and an import's binary noise reads 2900.
+String _impossibleGasMixDetail(AppLocalizations l10n, Map<String, Object?> p) {
+  double? n(String key) => switch (p[key]) {
+    final num v => v.toDouble(),
+    _ => null,
+  };
+  // Rounded to a tenth first, the shared formatter's precision, so an
+  // import's binary noise (2899.9999999999995) reads as a whole 2900.
+  String share(String key) =>
+      formatGasPercentValue(double.parse((n(key) ?? 0).toStringAsFixed(1)));
+
+  // Stored 0-based, as the other cylinder findings store it.
+  final number = (n('tankPosition')?.toInt() ?? 0) + 1;
+  final o2 = n('correctedO2Percent');
+  final he = n('correctedHePercent');
+  if (o2 != null && he != null) {
+    return l10n.dataQuality_msg_impossibleGasMixScaled(
+      number,
+      share('o2Percent'),
+      share('hePercent'),
+      qualityGasLabel(l10n, o2, he),
+    );
+  }
+  return l10n.dataQuality_msg_impossibleGasMix(
+    number,
+    share('o2Percent'),
+    share('hePercent'),
+  );
 }
 
 /// The mix a gas finding names. Air and oxygen are words and translate;

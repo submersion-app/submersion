@@ -104,6 +104,7 @@ Future<void> insertTestMedia({
   String? siteId,
   DateTime? takenAt,
   String fileType = 'photo',
+  String? originalFilename,
 }) async {
   final db = DatabaseService.instance.database;
   final now = DateTime.now().millisecondsSinceEpoch;
@@ -116,6 +117,7 @@ Future<void> insertTestMedia({
           siteId: Value(siteId),
           filePath: Value('/tmp/$id.jpg'),
           fileType: Value(fileType),
+          originalFilename: Value(originalFilename),
           takenAt: Value(takenAt?.millisecondsSinceEpoch),
           createdAt: Value(now),
           updatedAt: Value(now),

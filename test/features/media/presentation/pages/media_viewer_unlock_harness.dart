@@ -182,3 +182,24 @@ Future<void> tapUnlock(WidgetTester tester) async {
   await tester.tap(find.byKey(const ValueKey('viewer_unlock')));
   await settleViewer(tester);
 }
+
+/// A home page whose "open" button pushes [page], so a test can see [page]
+/// close itself and what it says on the page below.
+Widget pushedFrom(Widget page) => Builder(
+  builder: (context) => Scaffold(
+    body: Center(
+      child: TextButton(
+        onPressed: () => Navigator.of(
+          context,
+        ).push(MaterialPageRoute<void>(builder: (_) => page)),
+        child: const Text('open'),
+      ),
+    ),
+  ),
+);
+
+/// Opens the page [pushedFrom] holds.
+Future<void> openPushed(WidgetTester tester) async {
+  await tester.tap(find.text('open'));
+  await settleViewer(tester);
+}

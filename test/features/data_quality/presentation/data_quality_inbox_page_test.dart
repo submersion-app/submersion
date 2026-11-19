@@ -26,6 +26,7 @@ import 'package:submersion/features/data_quality/presentation/providers/quality_
 import 'package:submersion/features/data_quality/presentation/widgets/quality_finding_card.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_gas_mix_repository.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
@@ -2419,6 +2420,74 @@ void main() {
       () => DiveRepository().getGasSwitchesForDive('d1'),
     );
     expect(after, isEmpty);
+  });
+
+  group('impossible gas mix repair (issue #4714)', () {
+    Future<void> seedTank(double o2) => DiveRepository().createDive(
+      domain.Dive(
+        id: 'd1',
+        dateTime: DateTime.utc(2026, 6, 14, 9),
+        tanks: [
+          domain.DiveTank(
+            id: 'back',
+            order: 0,
+            gasMix: domain.GasMix(o2: o2),
+          ),
+        ],
+      ),
+    );
+
+    Widget inbox(SharedPreferences prefs) => _scope(
+      prefs,
+      findings: [
+        _f(
+          id: 'r-impossible-mix',
+          detectorId: 'impossible_gas_mix',
+          category: QualityCategory.gas,
+          params: const {
+            'tankId': 'back',
+            'tankPosition': 0,
+            'o2Percent': 3200.0,
+            'hePercent': 0.0,
+            'correctedO2Percent': 32.0,
+            'correctedHePercent': 0.0,
+          },
+        ),
+      ],
+    );
+
+    Future<double?> storedO2(WidgetTester tester) async =>
+        (await tester.runAsync(
+          () => TankGasMixRepository().tankMix(diveId: 'd1', tankId: 'back'),
+        ))?.mix.o2;
+
+    testWidgets('Correct to EAN32 divides the cylinder, with no Undo', (
+      tester,
+    ) async {
+      await seedTank(3200);
+      await tester.pumpWidget(inbox(await _prefs()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Correct to EAN32'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Repair applied'), findsOneWidget);
+      // The next launch would write the same mix again, so none is offered.
+      expect(find.text('Undo'), findsNothing);
+      expect(await storedO2(tester), 32.0);
+    });
+
+    testWidgets('a mix put right since the scan is left alone', (tester) async {
+      await seedTank(30);
+      await tester.pumpWidget(inbox(await _prefs()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Correct to EAN32'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Nothing to repair here'), findsOneWidget);
+      expect(await storedO2(tester), 30.0);
+    });
   });
 
   group('delete-duplicate repair', () {

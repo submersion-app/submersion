@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
 import 'package:submersion/features/data_quality/domain/repairs/quality_repair_action.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    show GasMix;
 
 QualityFinding f({
   required String detectorId,
@@ -485,6 +487,55 @@ void main() {
       // whole series would corrupt every good reading.
       final actions = repairOptionsFor(
         f(detectorId: 'temp_anomaly', params: {'minTempC': 1.0}),
+      );
+      expect(actions.single, isA<GoToDiveRepair>());
+    });
+  });
+
+  group('impossible gas mix (#4714)', () {
+    test('offers the mix divided by 100 first', () {
+      final actions = repairOptionsFor(
+        f(
+          detectorId: 'impossible_gas_mix',
+          params: {
+            'tankId': 't1',
+            'tankPosition': 0,
+            'o2Percent': 2100.0,
+            'hePercent': 3500.0,
+            'correctedO2Percent': 21.0,
+            'correctedHePercent': 35.0,
+          },
+        ),
+      );
+      final r = actions.first as RescaleGasMixRepair;
+      expect(r.diveId, 'd1');
+      expect(r.tankId, 't1');
+      expect(r.mix, const GasMix(o2: 21, he: 35));
+      expect(actions.last, isA<GoToDiveRepair>());
+    });
+
+    test('a mix dividing does not explain only goes to the dive', () {
+      final actions = repairOptionsFor(
+        f(
+          detectorId: 'impossible_gas_mix',
+          params: {
+            'tankId': 't1',
+            'tankPosition': 0,
+            'o2Percent': 60.0,
+            'hePercent': 50.0,
+          },
+        ),
+      );
+      expect(actions, hasLength(1));
+      expect(actions.single, isA<GoToDiveRepair>());
+    });
+
+    test('a finding missing its cylinder only goes to the dive', () {
+      final actions = repairOptionsFor(
+        f(
+          detectorId: 'impossible_gas_mix',
+          params: {'correctedO2Percent': 32.0, 'correctedHePercent': 0.0},
+        ),
       );
       expect(actions.single, isA<GoToDiveRepair>());
     });

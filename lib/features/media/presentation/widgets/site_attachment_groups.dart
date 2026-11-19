@@ -24,7 +24,7 @@ class SiteAttachmentGroups extends StatelessWidget {
     required this.isSelectionMode,
     required this.settings,
     required this.onOpen,
-    required this.onEditDetails,
+    this.onEditDetails,
   });
 
   final SiteAttachmentLayout layout;
@@ -32,7 +32,10 @@ class SiteAttachmentGroups extends StatelessWidget {
   final bool isSelectionMode;
   final UnitFormatterSettings settings;
   final void Function(MediaItem) onOpen;
-  final void Function(MediaItem) onEditDetails;
+
+  /// Edit details for one attachment; null offers none, where the
+  /// attachment is edited under its own lock (issue #4527, phase 2).
+  final void Function(MediaItem)? onEditDetails;
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +71,10 @@ class SiteAttachmentGroups extends StatelessWidget {
               onTap: isSelectionMode
                   ? () => selection.toggle(item.id)
                   : () => onOpen(item),
-              onEditDetails: () => onEditDetails(item),
+              onEditDetails: switch (onEditDetails) {
+                final edit? => () => edit(item),
+                null => null,
+              },
             ),
           ),
         );

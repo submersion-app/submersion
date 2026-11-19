@@ -39,4 +39,22 @@ void main() {
     expect(FillSource.fromName('teleport'), FillSource.manual);
     expect(FillSource.fromName('issued'), FillSource.issued);
   });
+
+  group('isPossibleMix', () {
+    test('a fill holds some oxygen and at most 100% between its gases', () {
+      expect(CylinderFill.isPossibleMix(32, 0), isTrue);
+      expect(CylinderFill.isPossibleMix(21, 35), isTrue);
+      expect(CylinderFill.isPossibleMix(100, 0), isTrue);
+      expect(CylinderFill.isPossibleMix(0, 100), isFalse);
+      expect(CylinderFill.isPossibleMix(60, 50), isFalse);
+      expect(CylinderFill.isPossibleMix(3200, 0), isFalse);
+      expect(CylinderFill.isPossibleMix(21, -1), isFalse);
+    });
+
+    // The same rule as a dive cylinder's mix (GasMix.isPossible, #4714),
+    // so a fill analysed as fractions is not refused for binary noise.
+    test('binary noise on a full mix is still a fill', () {
+      expect(CylinderFill.isPossibleMix(21.0000000001, 79), isTrue);
+    });
+  });
 }

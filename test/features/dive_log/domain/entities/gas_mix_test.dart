@@ -5,6 +5,60 @@ import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 void main() {
+  // Issue #4714: imports that read percentages as fractions stored mixes 100
+  // times too high (UDDF #4705, MacDive #1493), such as 3200% O2.
+  group('GasMix.isPossible', () {
+    test('real mixes are possible', () {
+      for (final mix in const [
+        GasMix(),
+        GasMix(o2: 32),
+        GasMix(o2: 21, he: 35),
+        GasMix(o2: 10, he: 70),
+        GasMix(o2: 100),
+        GasMix(o2: 0, he: 100),
+      ]) {
+        expect(mix.isPossible, isTrue, reason: '$mix');
+      }
+    });
+
+    test('a share over 100% is impossible', () {
+      expect(const GasMix(o2: 3200).isPossible, isFalse);
+      expect(const GasMix(o2: 21, he: 3500).isPossible, isFalse);
+    });
+
+    test('shares adding up to more than 100% are impossible', () {
+      expect(const GasMix(o2: 60, he: 50).isPossible, isFalse);
+    });
+
+    test('a negative share is impossible', () {
+      expect(const GasMix(o2: -1).isPossible, isFalse);
+      expect(const GasMix(o2: 21, he: -0.5).isPossible, isFalse);
+    });
+
+    test('a share that is no finite number is impossible', () {
+      // NaN fails every comparison, so only bounds a gas must keep turn it
+      // away; the negation of a bound it breaks would let it through.
+      expect(const GasMix(o2: double.nan).isPossible, isFalse);
+      expect(const GasMix(o2: 21, he: double.nan).isPossible, isFalse);
+      expect(const GasMix(o2: double.infinity).isPossible, isFalse);
+      expect(
+        const GasMix(o2: 21, he: double.negativeInfinity).isPossible,
+        isFalse,
+      );
+    });
+
+    test('binary noise on a full mix is still possible', () {
+      expect(const GasMix(o2: 21.0000000001, he: 79).isPossible, isTrue);
+    });
+
+    test('binary noise on a single share is still possible', () {
+      // Pure oxygen read as 1.0000000000000002 * 100, and a helium share
+      // worked out as 100 - o2 - n2.
+      expect(const GasMix(o2: 100.00000000000003).isPossible, isTrue);
+      expect(const GasMix(o2: 32, he: -1e-14).isPossible, isTrue);
+    });
+  });
+
   group('GasMix.name', () {
     test('rounds near-integer nitrox percentages for display', () {
       const ean29 = GasMix(o2: 28.999999999, he: 0.0);

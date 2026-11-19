@@ -4,8 +4,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/site_attachment_category.dart';
 import 'package:submersion/features/media/domain/value_objects/attachment_details_edit.dart';
-import 'package:submersion/features/media/presentation/helpers/site_attachment_labels.dart';
 import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/attachment_details_fields.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/sheet_messenger_scope.dart';
 
@@ -29,9 +29,6 @@ Future<MediaItem?> showAttachmentDetailsSheet(
     child: AttachmentDetailsSheet(item: item, siteId: siteId, onHold: onHold),
   ),
 );
-
-/// The three-way size choice; [followCategory] stores a null override.
-enum _SizeChoice { followCategory, large, tile }
 
 /// Category and display size for one site attachment.
 ///
@@ -63,18 +60,10 @@ class AttachmentDetailsSheet extends ConsumerStatefulWidget {
 class _AttachmentDetailsSheetState
     extends ConsumerState<AttachmentDetailsSheet> {
   late SiteAttachmentCategory? _category = widget.item.siteCategory;
-  late _SizeChoice _size = switch (widget.item.displaySizeOverride) {
-    null => _SizeChoice.followCategory,
-    AttachmentDisplaySize.large => _SizeChoice.large,
-    AttachmentDisplaySize.tile => _SizeChoice.tile,
-  };
-  bool _saving = false;
 
-  AttachmentDisplaySize? get _override => switch (_size) {
-    _SizeChoice.followCategory => null,
-    _SizeChoice.large => AttachmentDisplaySize.large,
-    _SizeChoice.tile => AttachmentDisplaySize.tile,
-  };
+  /// The display size override; null follows the category.
+  late AttachmentDisplaySize? _override = widget.item.displaySizeOverride;
+  bool _saving = false;
 
   Future<void> _save() async {
     final hold = widget.onHold;
@@ -121,8 +110,6 @@ class _AttachmentDetailsSheetState
     final l10n = context.l10n;
     final textTheme = Theme.of(context).textTheme;
     final name = widget.item.originalFilename ?? '';
-    final defaultSize =
-        _category?.defaultDisplaySize ?? AttachmentDisplaySize.tile;
 
     return SingleChildScrollView(
       padding: EdgeInsets.only(
@@ -150,57 +137,11 @@ class _AttachmentDetailsSheetState
             ),
           ],
           const SizedBox(height: 16),
-          DropdownButtonFormField<SiteAttachmentCategory?>(
-            initialValue: _category,
-            isExpanded: true,
-            decoration: InputDecoration(
-              labelText: l10n.media_siteAttachment_categoryLabel,
-              border: const OutlineInputBorder(),
-            ),
-            items: [
-              for (final category in <SiteAttachmentCategory?>[
-                null,
-                ...SiteAttachmentCategory.values,
-              ])
-                DropdownMenuItem(
-                  value: category,
-                  child: Text(
-                    category.label(l10n),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-            ],
-            onChanged: (value) => setState(() => _category = value),
-          ),
-          const SizedBox(height: 16),
-          // A dropdown, not a segmented control: three segments at phone
-          // width cannot hold "Default (Large)" in every language.
-          DropdownButtonFormField<_SizeChoice>(
-            initialValue: _size,
-            isExpanded: true,
-            decoration: InputDecoration(
-              labelText: l10n.media_siteAttachment_sizeLabel,
-              border: const OutlineInputBorder(),
-            ),
-            items: [
-              for (final (choice, label) in [
-                (
-                  _SizeChoice.followCategory,
-                  l10n.media_siteAttachment_sizeDefault(
-                    defaultSize.label(l10n),
-                  ),
-                ),
-                (_SizeChoice.large, AttachmentDisplaySize.large.label(l10n)),
-                (_SizeChoice.tile, AttachmentDisplaySize.tile.label(l10n)),
-              ])
-                DropdownMenuItem(
-                  value: choice,
-                  child: Text(label, overflow: TextOverflow.ellipsis),
-                ),
-            ],
-            onChanged: (value) {
-              if (value != null) setState(() => _size = value);
-            },
+          AttachmentDetailsFields(
+            category: _category,
+            size: _override,
+            onCategory: (value) => setState(() => _category = value),
+            onSize: (value) => setState(() => _override = value),
           ),
           const SizedBox(height: 24),
           // OverflowBar stacks the buttons when a long translation will not

@@ -154,6 +154,34 @@ class SpeciesPackStore {
     return pack;
   }
 
+  /// Replaces [pack]'s manifest with [manifest], a republished one the
+  /// installed files already satisfy (issue #4721;
+  /// [SpeciesPackManifest.adoptableFrom]). Written beside it and renamed
+  /// over it, so a reader sees the old manifest or the new one, never half
+  /// of one.
+  Future<InstalledPack> adoptManifest(
+    InstalledPack pack,
+    SpeciesPackManifest manifest,
+  ) async {
+    final target = File(p.join(pack.directory, _manifestName));
+    final temp = File('${target.path}.tmp');
+    try {
+      await temp.writeAsString(manifest.source, flush: true);
+      await temp.rename(target.path);
+    } on FileSystemException {
+      // Nothing half-written is left in the pack, where it would count
+      // toward its size and never be cleared.
+      if (await temp.exists()) await temp.delete();
+      rethrow;
+    }
+    return InstalledPack(
+      manifest: manifest,
+      directory: pack.directory,
+      detectorPaths: pack.detectorPaths,
+      classifierPath: pack.classifierPath,
+    );
+  }
+
   Future<LoadedPack> load(InstalledPack pack) async {
     final dir = pack.directory;
     final manifest = pack.manifest;
