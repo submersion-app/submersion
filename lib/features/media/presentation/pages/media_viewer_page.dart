@@ -174,9 +174,14 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
   /// a video keep above (issue #4762).
   double _bottomPanelHeight = 0;
 
-  /// The bottom panel was laid out at [height].
-  void _onBottomPanelHeight(double height) {
+  /// The bottom panel was laid out at [height]. Only a video's fish labels
+  /// read it, so a photo's panel just records it, without a rebuild.
+  void _onBottomPanelHeight(double height, {required bool video}) {
     if (!mounted || height == _bottomPanelHeight) return;
+    if (!video) {
+      _bottomPanelHeight = height;
+      return;
+    }
     setState(() => _bottomPanelHeight = height);
   }
 

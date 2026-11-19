@@ -50,7 +50,8 @@ extension _ViewerBottomPanel on _MediaViewerPageState {
       controlsClearance: miniProfileShown
           ? PositionedMiniProfileOverlay.reach + 8
           : 0,
-      onHeightChanged: _onBottomPanelHeight,
+      onHeightChanged: (height) =>
+          _onBottomPanelHeight(height, video: item.isVideo),
     );
   }
 }
