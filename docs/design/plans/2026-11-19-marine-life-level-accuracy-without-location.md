@@ -38,7 +38,7 @@
 **Interfaces:**
 - Produces: `rates(bars, held_nat, held_junk, *, min_side) -> dict` with the existing keys plus `"precision without location"` and `"coverage without location"` (rate dicts like `"precision"`).
 - Produces: `shown_precision(with_rate: dict, without_rate: dict) -> float | None`, the lower `value` of the sides whose `n` is above 0, unrounded; None when neither names anything.
-- Produces: `measure(...)` returns `(levels, surer_precision)` as before, where `surer_precision` is now Surer's `shown_precision` (unrounded, may be 0), and each level dict gains `"precision"`: its `manifest_precision(shown_precision(...))`.
+- Produces: `measure(...)` returns `(levels, surer_precision, surer_rates)`, where `surer_precision` is now Surer's `shown_precision` (unrounded, may be 0), `surer_rates` is `rates` at Surer's bars (the third value was added in code review, so `score.py` need not measure Surer twice), and each level dict gains `"precision"`: its `manifest_precision(shown_precision(...))`.
 
 - [ ] **Step 1: Write the failing tests** in `levels_test.py`. Add a helper `split(with_top, without_top, correct)` beside `record`, building a crop whose two namings have different top scores (limited with a location, not without, as `record` does). Then:
 
