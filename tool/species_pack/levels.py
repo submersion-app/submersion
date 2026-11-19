@@ -39,13 +39,33 @@ def _split(records):
     return [c["with"] for c in records], [c["without"] for c in records]
 
 
+# Where each held-out precision in `rates` was measured, and its key there.
+SIDES = (("with a location", "precision"), ("without a location", "precision without location"))
+
+
+def _lower_side(sides):
+    """The (where, rate) of `sides` with the lower `value`, counting only a
+    side that names something; on a tie, the one naming more crops, since
+    it alone gives the same figure. None when no side names anything."""
+    named = [side for side in sides if side[1] and side[1].get("n")]
+    return min(named, key=lambda side: (side[1]["value"], -side[1]["n"])) if named else None
+
+
 def shown_precision(with_rate, without_rate):
     """The figure a diver is shown: the lower `value` of the two held-out
     precisions, counting only a side that names something (a side naming
     nothing has no figure, and the other stands). Unrounded; None when
     neither side names anything."""
-    values = [rate["value"] for rate in (with_rate, without_rate) if rate["n"]]
-    return min(values) if values else None
+    (with_where, _), (without_where, _) = SIDES
+    side = _lower_side([(with_where, with_rate), (without_where, without_rate)])
+    return None if side is None else side[1]["value"]
+
+
+def deciding_side(held):
+    """(where, rate) of the side of `held` (as `rates` returns it) that sets
+    its shown figure, as shown_precision takes it; None when neither side
+    names anything. A side missing from `held` names nothing."""
+    return _lower_side([(where, held.get(key)) for where, key in SIDES])
 
 
 def rates(bars, held_nat, held_junk, *, min_side):

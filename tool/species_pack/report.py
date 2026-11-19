@@ -30,20 +30,8 @@ def _bar(value):
     return "never" if value >= bar_search.NEVER else f"{value:.2f}"
 
 
-def _deciding_side(held):
-    """(where, rate) of the side that sets a shown figure: the less often
-    right of the two held-out precisions, of those naming something, as
-    levels.shown_precision takes it; None when neither names anything."""
-    sides = [
-        (where, held.get(key))
-        for where, key in (("with a location", "precision"), ("without a location", "precision without location"))
-        if held.get(key) and held[key].get("n")
-    ]
-    return min(sides, key=lambda side: side[1]["value"]) if sides else None
-
-
 def _small_side_warning(key, level_id, held):
-    side = _deciding_side(held)
+    side = level_search.deciding_side(held)
     if side is None or side[1]["n"] >= SMALL_SIDE:
         return None
     where, rate = side

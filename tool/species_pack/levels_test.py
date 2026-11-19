@@ -105,6 +105,19 @@ class MeasureTests(unittest.TestCase):
         self.assertEqual(levels.shown_precision(rate(0.0, 4), rate(0.9, 9)), 0.0)
         self.assertIsNone(levels.shown_precision(rate(None, 0), rate(None, 0)))
 
+    def test_deciding_side_is_the_lower_and_on_a_tie_the_larger(self):
+        def rate(value, n):
+            return {"value": value, "n": n}
+
+        held = {"precision": rate(0.8, 10), "precision without location": rate(0.7, 5)}
+        self.assertEqual(levels.deciding_side(held), ("without a location", rate(0.7, 5)))
+        # A tie is set as surely by the side naming more crops.
+        tie = {"precision": rate(0.8, 3), "precision without location": rate(0.8, 50)}
+        self.assertEqual(levels.deciding_side(tie), ("without a location", rate(0.8, 50)))
+        # Results from before both sides were measured carry one side only.
+        self.assertEqual(levels.deciding_side({"precision": rate(0.8, 10)}), ("with a location", rate(0.8, 10)))
+        self.assertIsNone(levels.deciding_side({}))
+
     def test_surers_figure_is_its_lower_side(self):
         # 90 right both ways; 20 wrong crops the location limit keeps below
         # Surer's bar are named without a location.

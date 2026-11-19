@@ -300,8 +300,10 @@ only wrong names), never above the level above them, and held to the
 same 2% junk cap: while a level names too much junk, each bar that names
 some (with a location or without) is raised 0.01 until it passes. A level
 that ends at the bars above it, whose held-out interval lies wholly below
-its target (`bars.level_gate`), or that shows a higher figure than the
-level above it is left out, so a pack can carry one level or none. The
+its target (`bars.level_gate`), that has no shown figure in (0, 1]
+(nothing named, or nothing right, on the side that decides it), or that
+shows a higher figure than the level above it is left out, so a pack can
+carry one level or none. The
 figure shown for a level, and for Surer, is the lower of its held-out
 precisions with and without a location (`levels.shown_precision`), so the
 settings line never overstates for photos named without a location, where
