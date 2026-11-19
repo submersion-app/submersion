@@ -37,7 +37,7 @@ List<MediaConsoleAction> mediaConsoleActionsFor(DeviceCapabilities caps) =>
 ///
 /// The tabs always sit on their own row under the title, never beside it,
 /// so they never share a row with the Photos/Videos and Documents switch
-/// (#3631). Either way the first tab starts under the switch's first name.
+/// (#3631), and the first tab starts under the switch's first name.
 ///
 /// Below the master-detail breakpoint the tab row is the app bar's bottom,
 /// and the [MediaConsoleAction] buttons close it, so a phone gets no extra
@@ -64,9 +64,11 @@ class MediaConsoleScaffold extends ConsumerStatefulWidget {
     this.tabRowTrailing,
   });
 
-  /// Whether a [MediaConsoleScaffold] built in [context] shows its
+  /// Whether a [MediaConsoleScaffold] built in [context] uses its
+  /// master-detail [PaneHeaderBar] layout, the one that shows
   /// [tabRowTrailing]. A page whose trailing widget stands in for a row of
-  /// its body asks this to leave that row out.
+  /// its body asks this to leave that row out; the scaffold asks it too, so
+  /// the two can never disagree.
   static bool hostsTabRowTrailing(BuildContext context) =>
       ResponsiveBreakpoints.isMasterDetail(context);
 
@@ -288,7 +290,7 @@ class _MediaConsoleScaffoldState extends ConsumerState<MediaConsoleScaffold>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final headerTitle = widget.headerTitle;
-    if (ResponsiveBreakpoints.isMasterDetail(context)) {
+    if (MediaConsoleScaffold.hostsTabRowTrailing(context)) {
       final colors = AppBarTabColors.on(
         theme,
         background: theme.colorScheme.surface,
