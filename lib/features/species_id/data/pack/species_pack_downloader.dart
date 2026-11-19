@@ -7,13 +7,15 @@ import 'package:http/http.dart' as http;
 
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
 
-/// Where the model pack's manifest is published (issue #4668). A
-/// development build points it at a locally served pack with
-/// `--dart-define=SPECIES_PACK_MANIFEST_URL=...`.
+/// Where the model pack's manifest is published (issues #4668 and #4769):
+/// the latest release of the species pack repository, where each pack is a
+/// release of its own. Every installed copy keeps asking this address. A
+/// development build points it at a locally served pack, or at a pack
+/// release under test, with `--dart-define=SPECIES_PACK_MANIFEST_URL=...`.
 const String kSpeciesPackManifestUrl = String.fromEnvironment(
   'SPECIES_PACK_MANIFEST_URL',
   defaultValue:
-      'https://github.com/submersion-app/submersion/releases/download/species-pack/manifest.json',
+      'https://github.com/submersion-app/species-pack/releases/latest/download/manifest.json',
 );
 
 enum PackDownloadFailure {

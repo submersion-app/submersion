@@ -302,5 +302,26 @@ void main() {
         );
       },
     );
+
+    // Every installed copy keeps asking this address, so it is a contract
+    // with the species pack repository's releases (issue #4769).
+    test('by default it reads the species pack repository\'s latest release, '
+        'and its files beside it', () async {
+      const latest =
+          'https://github.com/submersion-app/species-pack/releases/latest/download';
+      final asked = <Uri>[];
+      final client = SpeciesPackManifestClient(
+        client: MockClient((request) async {
+          asked.add(request.url);
+          return http.Response(manifestJson(), 200);
+        }),
+      );
+      final manifest = (await client.fetch())!;
+      expect(asked, [Uri.parse('$latest/manifest.json')]);
+      expect(
+        client.fileUrl(manifest.files.first).toString(),
+        '$latest/detector.coreml.zip',
+      );
+    });
   });
 }
