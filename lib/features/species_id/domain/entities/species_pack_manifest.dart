@@ -50,7 +50,8 @@ class DetectorConfig extends Equatable {
   /// Changes whenever the model or any setting of how it runs changes: a
   /// stored photo is detected again only when its pack's detector ids
   /// change ([SpeciesPackManifest.detectorSetId]). The pack tools pin each
-  /// detector's settings to its id (tool/species_pack/manifest_test.py).
+  /// detector's settings to its id (manifest_test.py in
+  /// submersion-app/species-pack).
   final String id;
   final DetectorFormat format;
 

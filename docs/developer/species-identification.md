@@ -37,7 +37,7 @@ is checked for `"provisional": false` first.
 
 Phones and tablets need 8 GB of memory at launch: the floor is `MemoryFloor`
 in `MemoryReading.swift`, 6.5 GiB as the device reports it, checked by
-`tool/species_pack/vision_cli/check_floor.sh` in the Build iOS job.
+`packages/submersion_vision/tool/check_floor.sh` in the Build iOS job.
 
 ## How it fits together
 
@@ -53,7 +53,7 @@ in `MemoryReading.swift`, 6.5 GiB as the device reports it, checked by
 | Where the diver is watching | `lib/features/species_id/presentation/widgets/video_playhead_reporter.dart` |
 | Viewer trigger and suggestions | `lib/features/species_id/presentation/widgets/` |
 | Settings page | `lib/features/species_id/presentation/pages/` |
-| Pack builder | `tool/species_pack/` |
+| Pack builder | [submersion-app/species-pack](https://github.com/submersion-app/species-pack) |
 
 What is stored:
 
@@ -66,18 +66,24 @@ What is stored:
 
 ## Building a pack
 
-The builder needs Python 3.14 and about 3 GB for its tools and models:
+The builder lives in its own repository,
+[submersion-app/species-pack](https://github.com/submersion-app/species-pack)
+(issue #4769). Clone it beside this one, as `species-pack`: every pack
+command in this guide runs in that clone, and finds the app through
+`SUBMERSION_APP` or, without it, the `submersion` clone beside it. Its work
+folders go in its own `build/`. It needs Python 3.14 and about 3 GB for its
+tools and models:
 
 ```bash
-python3.14 -m venv .venv-species-pack
+cd ../species-pack && python3.14 -m venv .venv-species-pack
 ```
 
 ```bash
-.venv-species-pack/bin/pip install -r tool/species_pack/requirements.txt
+.venv-species-pack/bin/pip install -r requirements.txt
 ```
 
 ```bash
-.venv-species-pack/bin/python tool/species_pack/build_pack.py --out build/species_pack
+.venv-species-pack/bin/python build_pack.py --out build/species_pack
 ```
 
 It downloads the models from pinned sources and checks their hashes,
@@ -120,7 +126,7 @@ with its `id`, `format` (`rfdetr` or `yolo`), `file` (the model is
 `<file>.<engine>.zip`, unpacked into `<file>/`) and input settings; a
 `boxes` block with the crop padding and, for two detectors, how their boxes
 merge (`mergeIoU` 0.5, at most `maxBoxes` 8, exactly as
-`tool/species_pack/boxes.py` merges); then the classifier, naming bars,
+the pack repository's `boxes.py` merges); then the classifier, naming bars,
 region grid and files. The app still reads a format 1 manifest (one
 `detector` block, the fish detector) and refuses any later format with "This
 model needs a newer version". A pack that needs app code an older app lacks
@@ -135,34 +141,27 @@ joined with `+`, so a photo is detected again when the set changes. Only
 the ids are compared, so a detector's id must change with any of its
 settings (or the shared `boxes`); `manifest_test.py` pins each detector's
 settings to its id and fails when one changes alone.
-`tool/species_pack/vision_cli/check_merge.sh` checks the Swift merge against
-`boxes.py`'s cases on a Mac, and CI runs it on macOS
-(`.github/workflows/vision-merge-check.yml`) whenever the vision plugin or
-its tools change.
+The pack repository's `vision_cli/check_merge.sh` checks the Swift merge
+against `boxes.py`'s cases on a Mac. This repository's CI runs it on macOS
+(`.github/workflows/vision-merge-check.yml`) whenever the vision plugin
+changes, and the pack repository's CI runs it against this repository's
+main branch.
 
-The pure parts have tests that CI runs:
-
-```bash
-python3.14 tool/species_pack/manifest_test.py
-```
+The pure parts have tests that the pack repository's CI runs. In the clone:
 
 ```bash
-python3.14 tool/species_pack/candidates_test.py
-```
-
-```bash
-python3.14 tool/species_pack/build_pack_test.py
-```
-
-```bash
-python3.14 tool/species_pack/region_grid_test.py
+for test in *_test.py; do python3.14 -I "$test"; done
 ```
 
 The region grid is written twice, in Python and in
 `lib/features/species_id/domain/services/region_grid.dart`. Both are
-checked against `tool/species_pack/testdata/region_vectors.json`; after a
-change to the Python side, regenerate it with
-`python3.14 tool/species_pack/region_grid.py --write-vectors tool/species_pack/testdata/region_vectors.json`.
+checked against `region_vectors.json`: the pack repository writes it, and
+this repository's tests read their copy in
+`test/features/species_id/domain/fixtures/`. The pack repository's
+`contract_test.py` fails while the two copies differ, so after a change to
+the Python side, regenerate it there with
+`python3.14 region_grid.py --write-vectors testdata/region_vectors.json`
+and copy it here.
 
 ## Publishing a pack
 
@@ -195,9 +194,8 @@ place for beta builds that still read it (#4769).
 The naming bars in a pack come from a measurement, described in
 [the measured accuracy design](../design/specs/2026-11-17-marine-life-identification-measured-accuracy-design.md)
 and reported in `docs/design/findings/`. The test set is a list of openly
-licensed iNaturalist and Wikimedia Commons photos,
-`tool/species_pack/testdata/accuracy_set.csv`; the photos themselves are
-never committed. Everything below runs on a Mac, in the pack builder's venv
+licensed iNaturalist and Wikimedia Commons photos, the pack repository's
+`testdata/accuracy_set.csv`; the photos themselves are never committed. Everything below runs on a Mac, in the pack builder's venv
 with `ultralytics` added for Megalodon:
 
 ```bash
@@ -211,29 +209,29 @@ Megalodon, checking it against PyTorch on any photo with an animal in it,
 and score the pack:
 
 ```bash
-.venv-species-pack/bin/python -I tool/species_pack/fetch_testset.py photos-from-csv
+.venv-species-pack/bin/python -I fetch_testset.py photos-from-csv
 ```
 
 ```bash
-.venv-species-pack/bin/python -I tool/species_pack/megalodon.py convert megalodon-2024 --check-image PHOTO
+.venv-species-pack/bin/python -I megalodon.py convert megalodon-2024 --check-image PHOTO
 ```
 
 ```bash
-.venv-species-pack/bin/python -I tool/species_pack/score.py --pack build/species_pack
+.venv-species-pack/bin/python -I score.py --pack build/species_pack
 ```
 
 Drawing a new test set is longer, and replaces the list the findings were
 measured on. Each stage caches in the work folder and resumes if stopped:
 
 ```bash
-for stage in pool labels photos underwater review-sheets commons; do .venv-species-pack/bin/python -I tool/species_pack/fetch_testset.py $stage; done
+for stage in pool labels photos underwater review-sheets commons; do .venv-species-pack/bin/python -I fetch_testset.py $stage; done
 ```
 
 The junk contact sheets run both detectors, each alone; Megalodon comes from
 the pack when it carries it, otherwise convert it first (as above):
 
 ```bash
-.venv-species-pack/bin/python -I tool/species_pack/fetch_testset.py junk-sheets --pack build/species_pack
+.venv-species-pack/bin/python -I fetch_testset.py junk-sheets --pack build/species_pack
 ```
 
 Look over the review sheets and mark each out-of-water photo in
@@ -243,11 +241,11 @@ false}`), and label each junk box in `junk_labels.json` as `person`,
 CSV, which needs `--force` because it replaces the committed one:
 
 ```bash
-.venv-species-pack/bin/python -I tool/species_pack/fetch_testset.py write --force
+.venv-species-pack/bin/python -I fetch_testset.py write --force
 ```
 
 The scorer runs the app's own Swift pipeline through a small command-line
-tool (`tool/species_pack/vision_cli/`), once per detector set (the fish
+tool (the pack repository's `vision_cli/`), once per detector set (the fish
 detector, Megalodon, both) and crop fitting. The pack must carry the fish
 detector; Megalodon comes from the pack, or from its converted model when
 the pack has none. The pair runs through the pipeline's own merge, and the
@@ -258,7 +256,7 @@ writes `report.md` and `results.json` to the work folder. It recommends a
 detector set only if the set returns a box in at least 70% of held-out
 photos in every animal group. `results.json` holds a `measured` entry for
 each set at its chosen fitting: copy the ones for packs you will build into
-`NAMING_MEASURED` in `tool/species_pack/manifest.py`. Each names its
+`NAMING_MEASURED` in the pack repository's `manifest.py`. Each names its
 detector ids in order, classifier, fitting and `contents` (the SHA-256 of
 the pack's `candidates.json`, `text_embeddings.f16` and `regions.bin`); a
 pack is written with those bars only when it is that exact pack.
@@ -268,15 +266,18 @@ the junk sheets hand it a copy of Megalodon's converted package
 (`<work>/models/megalodon-2024-tool/`), and the package itself stays for
 building a pack.
 
-The pure parts have tests that CI runs, beside the others above:
+The pure parts have tests that the pack repository's CI runs, beside the
+others above:
 `naming_test.py`, `bars_test.py`, `metrics_test.py`, `testset_test.py`,
 `boxes_test.py`, `levels_test.py`, `report_test.py` (the report's "Naming
 levels" section) and `score_test.py` (the measured entries for
 `NAMING_MEASURED`). `naming.py` copies
 `lib/features/species_id/domain/services/species_namer.dart`; both are
-checked against `tool/species_pack/testdata/naming_vectors.json`, which
-`python3.14 tool/species_pack/naming.py --write-vectors tool/species_pack/testdata/naming_vectors.json`
-regenerates.
+checked against `naming_vectors.json`, which
+`python3.14 naming.py --write-vectors testdata/naming_vectors.json`
+regenerates in the pack repository. Copy it to
+`test/features/species_id/domain/fixtures/` here too: the pack
+repository's `contract_test.py` fails while the two copies differ.
 
 ## Naming levels
 
@@ -331,7 +332,7 @@ gh release download <version> --repo submersion-app/species-pack -p manifest.jso
 ```
 
 ```bash
-python3.14 tool/species_pack/relevel_manifest.py --in published/manifest.json --out manifest.json
+python3.14 relevel_manifest.py --in published/manifest.json --out manifest.json
 ```
 
 It refuses a pack with no measured entry, or any change but
@@ -359,7 +360,7 @@ no tap on the selected value otherwise.
 Serve the pack folder and point the app at its manifest:
 
 ```bash
-cd build/species_pack && python3.14 -m http.server 8765
+cd ../species-pack/build/species_pack && python3.14 -m http.server 8765
 ```
 
 ```bash

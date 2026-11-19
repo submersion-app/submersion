@@ -7,11 +7,20 @@ import 'package:path/path.dart' as p;
 
 import 'package:submersion/features/species_id/domain/services/region_grid.dart';
 
-/// The vectors the pack builder's Python grid writes. Both sides must agree
-/// on every one, or the app would filter against the wrong region.
+/// The vectors the pack builder's Python grid writes (region_grid.py in
+/// submersion-app/species-pack, whose contract_test.py checks this copy is
+/// the same file). Both sides must agree on every one, or the app would
+/// filter against the wrong region.
 Map<String, Object?> _vectors() {
   final file = File(
-    p.join('tool', 'species_pack', 'testdata', 'region_vectors.json'),
+    p.join(
+      'test',
+      'features',
+      'species_id',
+      'domain',
+      'fixtures',
+      'region_vectors.json',
+    ),
   );
   return (jsonDecode(file.readAsStringSync()) as Map).cast<String, Object?>();
 }
