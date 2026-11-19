@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/equipment/presentation/editing/gear_item_check_ins_sitting.dart';
+import 'package:submersion/features/media/presentation/helpers/media_hold.dart';
 import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -17,15 +19,71 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// photo added before Save can already name it. Adding and removing take
 /// effect at once, as everywhere else media is linked; the sheet unlinks
 /// what a new check-in gathered if it is never saved.
+///
+/// In an item page's sitting (issue #4527, phase 3) it writes nothing: the
+/// photos added ([heldAdded]) and removed ([heldRemoved]) are handed to
+/// [onHeldChanged] and written with the check-in at Save; a remove asks
+/// nothing, as Cancel brings it back.
 class CheckInPhotosRow extends ConsumerWidget {
   const CheckInPhotosRow({
     super.key,
     required this.equipmentId,
     required this.observationId,
+    this.heldAdded = const [],
+    this.elsewhere = noPhotosHeldElsewhere,
+    this.heldRemoved = const {},
+    this.onHeldChanged,
   });
 
   final String equipmentId;
   final String observationId;
+  final List<HeldMediaAdd> heldAdded;
+
+  /// The photos the sitting holds outside this check-in: a pick of one it
+  /// adds there is left out, as the item has it already; one it unlinks
+  /// there may be picked again.
+  final PhotosHeldElsewhere elsewhere;
+  final Set<String> heldRemoved;
+  final void Function(List<HeldMediaAdd> added, Set<String> removed)?
+  onHeldChanged;
+
+  /// Takes [mediaId] out in the sitting: one added in it is dropped, a
+  /// stored one marked removed.
+  void _holdRemove(String mediaId) {
+    final added = [
+      for (final a in heldAdded)
+        if (a.preview.id != mediaId) a,
+    ];
+    onHeldChanged!(
+      added,
+      added.length == heldAdded.length
+          ? {...heldRemoved, mediaId}
+          : heldRemoved,
+    );
+  }
+
+  Future<void> _add(BuildContext context, WidgetRef ref) {
+    final hold = onHeldChanged;
+    if (hold == null) {
+      return GearPhotoImportHelper.importPhotos(
+        context: context,
+        ref: ref,
+        equipmentId: equipmentId,
+        observationId: observationId,
+      );
+    }
+    return GearPhotoImportHelper.holdPhotos(
+      context: context,
+      ref: ref,
+      equipmentId: equipmentId,
+      observationId: observationId,
+      ignoringMediaIds: {...heldRemoved, ...elsewhere.unlinked},
+      onHold: (adds) => hold(
+        withHeldPhotosAdded(heldAdded, adds, heldElsewhere: elsewhere.keys),
+        heldRemoved,
+      ),
+    );
+  }
 
   static const double _thumb = 56;
   static const double _removeTarget = 32;
@@ -61,8 +119,16 @@ class CheckInPhotosRow extends ConsumerWidget {
     final l10n = context.l10n;
     final canAttach = ref.watch(deviceCapabilitiesProvider).mediaAttach;
     final settings = ref.watch(unitFormatterProvider).settings;
-    final photos =
+    final stored =
         ref.watch(observationPhotosProvider(observationId)).value ?? const [];
+    // In a sitting: what it removed gone, what it added in.
+    final photos = onHeldChanged == null
+        ? stored
+        : [
+            for (final m in stored)
+              if (!heldRemoved.contains(m.id)) m,
+            for (final a in heldAdded) a.preview,
+          ];
     final colorScheme = Theme.of(context).colorScheme;
     // Nothing to show and no way to add: a browser editing a check-in with
     // no photos.
@@ -110,7 +176,9 @@ class CheckInPhotosRow extends ConsumerWidget {
                           child: InkWell(
                             key: ValueKey('remove_checkin_photo_${photo.id}'),
                             customBorder: const CircleBorder(),
-                            onTap: () => _confirmRemove(context, ref, photo.id),
+                            onTap: onHeldChanged == null
+                                ? () => _confirmRemove(context, ref, photo.id)
+                                : () => _holdRemove(photo.id),
                             child: SizedBox.square(
                               dimension: _removeTarget,
                               child: Align(
@@ -150,12 +218,7 @@ class CheckInPhotosRow extends ConsumerWidget {
                 child: OutlinedButton(
                   key: const ValueKey('add_checkin_photo'),
                   style: OutlinedButton.styleFrom(padding: EdgeInsets.zero),
-                  onPressed: () => GearPhotoImportHelper.importPhotos(
-                    context: context,
-                    ref: ref,
-                    equipmentId: equipmentId,
-                    observationId: observationId,
-                  ),
+                  onPressed: () => _add(context, ref),
                   child: Tooltip(
                     message: l10n.equipment_photos_add,
                     child: const Icon(Icons.add_a_photo_outlined),

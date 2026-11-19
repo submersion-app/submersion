@@ -16257,6 +16257,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_serviceClocks_remove => 'הסרה';
 
   @override
+  String equipment_serviceClocks_remindersOwn(String days) {
+    return 'תזכורות לפני מועד השירות: $days';
+  }
+
+  @override
+  String get equipment_serviceClocks_remindersOff => 'אין תזכורות לפריט זה';
+
+  @override
   String get equipment_serviceClocks_paused => 'מושהה';
 
   @override

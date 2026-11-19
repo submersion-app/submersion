@@ -4774,6 +4774,8 @@
   "equipment_serviceClocks_pause": "Suspendre",
   "equipment_serviceClocks_resume": "Reprendre",
   "equipment_serviceClocks_remove": "Supprimer",
+  "equipment_serviceClocks_remindersOwn": "Rappels avant l'échéance : {days}",
+  "equipment_serviceClocks_remindersOff": "Aucun rappel pour cet équipement",
   "equipment_serviceClocks_paused": "Suspendu",
   "equipment_serviceClocks_empty": "Aucun compteur d'entretien",
   "equipment_serviceClocks_unconfigured": "Aucun intervalle défini - appuyez pour configurer",

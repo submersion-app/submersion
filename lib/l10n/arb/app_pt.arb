@@ -4900,6 +4900,8 @@
   "equipment_serviceClocks_pause": "Pausar",
   "equipment_serviceClocks_resume": "Retomar",
   "equipment_serviceClocks_remove": "Remover",
+  "equipment_serviceClocks_remindersOwn": "Lembretes antes do vencimento: {days}",
+  "equipment_serviceClocks_remindersOff": "Sem lembretes para este equipamento",
   "equipment_serviceClocks_paused": "Pausado",
   "equipment_serviceClocks_empty": "Nenhum prazo de manutenção",
   "equipment_serviceClocks_unconfigured": "Nenhum intervalo definido - toque para configurar",

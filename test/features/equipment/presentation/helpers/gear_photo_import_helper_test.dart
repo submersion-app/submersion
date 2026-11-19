@@ -35,7 +35,10 @@ class _LinkedA1 extends GearPhotoRepository {
   ];
 
   @override
-  Future<Set<String>> linkedLocalPathsFor(String equipmentId) async => {};
+  Future<Set<String>> linkedLocalPathsFor(
+    String equipmentId, {
+    Set<String> ignoring = const {},
+  }) async => {};
 }
 
 class _NoLinks extends GearPhotoRepository {
@@ -43,7 +46,10 @@ class _NoLinks extends GearPhotoRepository {
   Future<List<MediaItem>> galleryLinksFor(String equipmentId) async => [];
 
   @override
-  Future<Set<String>> linkedLocalPathsFor(String equipmentId) async => {};
+  Future<Set<String>> linkedLocalPathsFor(
+    String equipmentId, {
+    Set<String> ignoring = const {},
+  }) async => {};
 }
 
 /// Gear photos (issue #3355): the picker's selection is linked to the item

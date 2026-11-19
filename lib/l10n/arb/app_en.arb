@@ -9971,6 +9971,19 @@
   "equipment_serviceClocks_pause": "Pause",
   "equipment_serviceClocks_resume": "Resume",
   "equipment_serviceClocks_remove": "Remove",
+  "equipment_serviceClocks_remindersOwn": "Reminders before due: {days}",
+  "@equipment_serviceClocks_remindersOwn": {
+    "description": "A row on a gear item's Service clocks card when the item has reminder days of its own. days is the list of reminder lead times, such as \"7 days, 30 days\".",
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_remindersOff": "No reminders for this item",
+  "@equipment_serviceClocks_remindersOff": {
+    "description": "A row on a gear item's Service clocks card when service reminders are turned off for that item."
+  },
   "equipment_serviceClocks_paused": "Paused",
   "equipment_serviceClocks_empty": "No service clocks",
   "equipment_serviceClocks_unconfigured": "No interval set - tap to configure",

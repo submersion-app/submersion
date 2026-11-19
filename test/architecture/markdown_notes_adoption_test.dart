@@ -68,6 +68,9 @@ void main() {
         'MarkdownNotesField(',
     'lib/features/documents/presentation/pages/document_edit_page.dart':
         'MarkdownNotesField(',
+    // A gear item's Notes card edited in place (issue #4527).
+    'lib/features/equipment/presentation/editing/gear_item_edit_cards.dart':
+        'MarkdownNotesField(',
     'lib/features/equipment/presentation/pages/equipment_edit_page.dart':
         'MarkdownNotesField(',
     'lib/features/equipment/presentation/pages/equipment_set_edit_page.dart':
@@ -111,7 +114,7 @@ void main() {
     'lib/features/dive_log/presentation/widgets/dive_detail/dive_detail_text_sections.dart',
     'lib/features/dive_sites/presentation/pages/site_detail_page.dart',
     'lib/features/documents/presentation/widgets/document_details_panel.dart',
-    'lib/features/equipment/presentation/pages/equipment_detail_page.dart',
+    'lib/features/equipment/presentation/pages/equipment_detail_page_sections.dart',
     'lib/features/equipment/presentation/pages/equipment_location_detail_page.dart',
     'lib/features/equipment/presentation/pages/equipment_set_detail_page.dart',
     'lib/features/marine_life/presentation/pages/species_detail_page.dart',

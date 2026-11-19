@@ -80,7 +80,7 @@ class _UrlTabState extends ConsumerState<UrlTab> {
     final hold = MediaHoldScope.maybeOf(context);
     if (hold != null && target != null) {
       final requests = requestsForTarget(resolved, target);
-      hold([for (final r in requests) HeldNetworkMedia(r, networkPreview(r))]);
+      hold([for (final r in requests) HeldNetworkMedia.of(r)]);
       notifier.clearDraft();
       _draftBecameRows();
       navigator.pop();

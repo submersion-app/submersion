@@ -15825,6 +15825,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_serviceClocks_remove => '移除';
 
   @override
+  String equipment_serviceClocks_remindersOwn(String days) {
+    return '到期前提醒：$days';
+  }
+
+  @override
+  String get equipment_serviceClocks_remindersOff => '此装备不提醒';
+
+  @override
   String get equipment_serviceClocks_paused => '已暂停';
 
   @override

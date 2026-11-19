@@ -24,9 +24,18 @@ EquipmentStatus? headerStatusOf(EquipmentItem item) {
 /// The detail header's status line: a chip naming why the item is out of
 /// the kit, and for wishlist gear a button that buys it (#2025).
 class EquipmentHeaderStatus extends ConsumerWidget {
-  const EquipmentHeaderStatus({super.key, required this.item});
+  const EquipmentHeaderStatus({
+    super.key,
+    required this.item,
+    this.offerPurchase = true,
+  });
 
   final EquipmentItem item;
+
+  /// Whether wishlist gear offers Mark purchased here. Off where the page
+  /// edits in place (issue #4527, phase 3): the purchase is then made in
+  /// the header block's editor and written with the sitting.
+  final bool offerPurchase;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -48,7 +57,7 @@ class EquipmentHeaderStatus extends ConsumerWidget {
           backgroundColor: scheme.surfaceContainerHighest,
           labelStyle: TextStyle(color: scheme.onSurfaceVariant),
         ),
-        if (status == EquipmentStatus.wanted)
+        if (status == EquipmentStatus.wanted && offerPurchase)
           FilledButton.icon(
             icon: const Icon(Icons.shopping_bag_outlined),
             label: Text(l10n.equipment_detail_markPurchased),

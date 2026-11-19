@@ -447,6 +447,50 @@ class MediaImportService {
     );
   }
 
+  /// What [importPhotosForEquipment] would write for [selectedAssets], for
+  /// a sitting on the gear item that holds it until Save (issue #4527, phase
+  /// 3, plan 6): the photos already on the item left out the same way, each
+  /// row under a fresh id of its own, with no enrichment. Writes nothing.
+  ///
+  /// [ignoringMediaIds] are rows the sitting has unlinked, gallery photos
+  /// and local files alike: not on the item once it is saved, so a pick of
+  /// the same photo is taken back.
+  Future<List<PreparedMedia>> prepareForEquipment({
+    required List<AssetInfo> selectedAssets,
+    required String equipmentId,
+    String? observationId,
+    Set<String> ignoringMediaIds = const {},
+  }) async {
+    final gearPhotos = _gearPhotos ?? GearPhotoRepository();
+    final newAssets = await _unlinkedOwnedAssets(
+      selectedAssets,
+      galleryLinks: () async => [
+        for (final row in await gearPhotos.galleryLinksFor(equipmentId))
+          if (!ignoringMediaIds.contains(row.id)) row,
+      ],
+      localPaths: () => gearPhotos.linkedLocalPathsFor(
+        equipmentId,
+        ignoring: ignoringMediaIds,
+      ),
+    );
+    final cloudIds = await _cloudIdsFor(newAssets);
+    return [
+      for (final asset in newAssets)
+        (
+          item:
+              _createMediaItemFromAsset(
+                asset,
+                cloudAssetId: cloudIds[asset.id],
+              ).copyWith(
+                id: const Uuid().v4(),
+                equipmentId: equipmentId,
+                observationId: observationId,
+              ),
+          enrichment: null,
+        ),
+    ];
+  }
+
   /// What [importPhotosForSite] would write for [selectedAssets], for a
   /// sitting on the site that holds it until Save (issue #4527, phase 2):
   /// the photos already on the site left out the same way, each row under a
