@@ -91,17 +91,7 @@ class EquipmentSetEditSaveService {
     required Set<String> rewritten,
     required Set<String>? coveredSetIds,
   }) async {
-    // The gear the set applies is its own and that of the sets it includes:
-    // with neither changed, no dive needs anything.
-    final gearMayChange =
-        !setEquals(stored.equipmentIds.toSet(), merged.equipmentIds.toSet()) ||
-        !listEquals(stored.includedSetIds, merged.includedSetIds);
-    // Every set of the owner before the save: the dives of a set that
-    // includes this one carry its gear too.
-    final allSets = gearMayChange
-        ? await _sets.getAllSets(diverId: stored.diverId)
-        : const <EquipmentSet>[];
-    await _sets.updateSet(merged);
+    final written = await _sets.updateSet(merged);
     if (merged.isDefault != stored.isDefault) {
       if (merged.isDefault) {
         await _sets.setAsDefault(merged.id);
@@ -110,14 +100,22 @@ class EquipmentSetEditSaveService {
       }
     }
     await _writeGeofences(stored, merged);
-    if (!gearMayChange) return;
-    // The save drops members whose gear has gone, so the replay goes by
-    // what was written.
-    final written = await _sets.getSetById(merged.id);
-    if (written == null) return;
+    // The gear the set applies is its own and that of the sets it includes,
+    // and the replay goes by what the save wrote: it drops members whose
+    // gear has gone. With neither changed, no dive needs anything.
+    if (written.added.isEmpty &&
+        written.removed.isEmpty &&
+        listEquals(stored.includedSetIds, merged.includedSetIds)) {
+      return;
+    }
+    final after = await _sets.getSetById(merged.id);
+    if (after == null) return;
+    // Every set of the owner: the dives of a set that includes this one
+    // carry its gear too. This set is compared as it was and as written.
+    final allSets = await _sets.getAllSets(diverId: stored.diverId);
     final changes = setHistoryRewrites(
       before: stored,
-      after: written,
+      after: after,
       allSets: allSets,
     );
     if (coveredSetIds != null) {
