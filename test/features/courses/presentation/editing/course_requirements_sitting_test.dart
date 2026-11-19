@@ -314,6 +314,21 @@ void main() {
       expect(ops.single['label'], 'record_edit:courses:k1:requirements');
     });
 
+    test('a tick made before the read answers is kept', () async {
+      final session = EditSession(await stored());
+      addTearDown(session.dispose);
+
+      await HeldRequirementActions(session).tick(
+        (await storedRows())
+            .firstWhere((r) => r.requirement.id == b)
+            .requirement,
+        true,
+      );
+
+      final held = courseRequirementsList.current(session)!;
+      expect(held.firstWhere((r) => r.requirement.id == b).isSatisfied, isTrue);
+    });
+
     test('the same, then Cancel: neither written', () async {
       final session = await sitting();
       change(

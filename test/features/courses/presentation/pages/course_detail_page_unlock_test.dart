@@ -175,6 +175,14 @@ void main() {
     }
   });
 
+  testWidgets('a failed certifications read says so with the switch on', (
+    tester,
+  ) async {
+    await pumpCoursePage(tester, certificationsFail: true);
+
+    expect(find.text(l.courses_error_loadingCertification), findsOneWidget);
+  });
+
   testWidgets('notes added from the strip are saved', (tester) async {
     final harness = await pumpCoursePage(tester);
     await unlock(tester);

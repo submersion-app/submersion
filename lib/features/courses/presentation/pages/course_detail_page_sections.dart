@@ -304,8 +304,10 @@ extension _CourseDetailSections on _CourseDetailContent {
     // The retained value, so a reload after a link change keeps the rows on
     // screen; nothing on the very first load, since an empty course shows no
     // section at all. In a sitting, the sitting's list once it is read.
-    final certs =
-        host?._certificationsInSitting(certsAsync.value) ?? certsAsync.value;
+    final host = this.host;
+    final certs = host != null
+        ? host._certificationsInSitting(certsAsync.value)
+        : certsAsync.value;
     final failed = certs == null && certsAsync.hasError;
     final showsEmpty = _shows(CourseCardId.earnedCertifications);
     if (!failed && (certs == null || certs.isEmpty) && !showsEmpty) {

@@ -338,12 +338,18 @@ class HeldRequirementActions implements RequirementActions {
 
   String get _courseId => _session.stored.id;
 
-  void _change(
+  /// Applies [edit] to the sitting's rows, reading them first when the
+  /// sitting has not yet, so nothing done before the read answers is lost.
+  Future<void> _change(
     List<CourseRequirementProgress> Function(
       List<CourseRequirementProgress> rows,
     )
     edit,
-  ) {
+  ) async {
+    if (_session.isDisposed) return;
+    if (courseRequirementsList.current(_session) == null) {
+      await courseRequirementsList.load(_session);
+    }
     if (_session.isDisposed) return;
     final rows = courseRequirementsList.current(_session);
     if (rows == null) return;
@@ -368,15 +374,15 @@ class HeldRequirementActions implements RequirementActions {
   Future<void> edit(BuildContext context, CourseRequirement requirement) async {
     final draft = await showAddRequirementSheet(context, existing: requirement);
     if (draft == null) return;
-    _change((rows) => withRequirementEdited(rows, requirement.id, draft));
+    await _change((rows) => withRequirementEdited(rows, requirement.id, draft));
   }
 
   @override
-  Future<void> remove(CourseRequirement requirement) async =>
+  Future<void> remove(CourseRequirement requirement) =>
       _change((rows) => withRequirementRemoved(rows, requirement.id));
 
   @override
-  Future<void> tick(CourseRequirement requirement, bool done) async =>
+  Future<void> tick(CourseRequirement requirement, bool done) =>
       _change((rows) => withRequirementTicked(rows, requirement.id, done));
 
   @override
@@ -400,10 +406,10 @@ class HeldRequirementActions implements RequirementActions {
     }
     final chosen = dive;
     if (chosen == null) return;
-    _change((rows) => withDiveCredited(rows, requirement.id, chosen));
+    await _change((rows) => withDiveCredited(rows, requirement.id, chosen));
   }
 
   @override
-  Future<void> uncredit(CourseRequirement requirement, String diveId) async =>
+  Future<void> uncredit(CourseRequirement requirement, String diveId) =>
       _change((rows) => withDiveUncredited(rows, requirement.id, diveId));
 }

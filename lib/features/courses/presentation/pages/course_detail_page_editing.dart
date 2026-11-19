@@ -103,21 +103,22 @@ mixin _CourseDetailPageEditing
   /// earned certifications are the sitting's list, not the course's values.
   bool _isEmptyInSitting(CourseCardId id, Course working) {
     if (id == CourseCardId.earnedCertifications) {
-      return _certificationsInSitting(
+      final certifications = _certificationsInSitting(
         ref.read(certificationsForCourseProvider(widget.courseId)).value,
-      ).isEmpty;
+      );
+      return certifications != null && certifications.isEmpty;
     }
     return courseEditCards[id]!.isEmpty(working);
   }
 
   /// The certifications the course earned as the sitting has them: its own
-  /// list once read, else [stored].
-  List<Certification> _certificationsInSitting(List<Certification>? stored) {
+  /// list once read, else [stored]; none known while neither has been read.
+  List<Certification>? _certificationsInSitting(List<Certification>? stored) {
     final session = maybeEditController?.session;
     final held = session == null
         ? null
         : courseCertificationsList.current(session);
-    return held ?? stored ?? const [];
+    return held ?? stored;
   }
 
   /// Whether [id] is shown though empty: open or brought in from the strip

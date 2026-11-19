@@ -558,7 +558,7 @@ class CourseRequirementRepository {
     // of a course (the suggestion query already assumes this, but the
     // same suggestion list renders under every unsatisfied requirement,
     // so two taps before providers refresh could double-count). This
-    // also covers the duplicate-link case for the same requirement --
+    // also covers the duplicate-link case for the same requirement:
     // Drift's insert return value cannot distinguish an ignored
     // conflict, so the check is explicit (importDiveRole pattern), and
     // a no-op must not bump the parent hlc or emit sync churn. The
@@ -666,8 +666,7 @@ class CourseRequirementRepository {
         await _insertRequirement(courseId, requirement, now);
         wrote = true;
       } else if (was != requirement) {
-        await _writeRequirement(requirement, now);
-        wrote = true;
+        if (await _writeRequirement(was, requirement, now)) wrote = true;
       }
     }
     for (final row in current) {
@@ -681,11 +680,19 @@ class CourseRequirementRepository {
       ];
       if (added.isEmpty || !await _requirementExists(id)) continue;
       for (final diveId in added) {
+        // A dive deleted meanwhile cannot be credited.
+        if (!await _diveExists(diveId)) continue;
         if (await _linkDive(requirementId: id, diveId: diveId)) wrote = true;
       }
     }
     return wrote;
   }
+
+  Future<bool> _diveExists(String id) async =>
+      await (_db.select(
+        _db.dives,
+      )..where((t) => t.id.equals(id))).getSingleOrNull() !=
+      null;
 
   Future<bool> _requirementExists(String id) async =>
       await (_db.select(
@@ -722,31 +729,44 @@ class CourseRequirementRepository {
     );
   }
 
-  /// Writes every value of [requirement] a sitting can change, its tick
-  /// included (none for a dive requirement).
-  Future<void> _writeRequirement(CourseRequirement requirement, int now) async {
-    await (_db.update(
-      _db.courseRequirements,
-    )..where((t) => t.id.equals(requirement.id))).write(
-      CourseRequirementsCompanion(
-        name: Value(requirement.name.trim()),
-        kind: Value(requirement.kind.name),
-        targetCount: Value(requirement.targetCount),
-        completedAt: Value(
-          requirement.kind == RequirementKind.dive
-              ? null
-              : requirement.completedAt?.millisecondsSinceEpoch,
-        ),
-        sortOrder: Value(requirement.sortOrder),
-        notes: Value(requirement.notes),
-        updatedAt: Value(now),
-      ),
-    );
+  /// Writes the values of [requirement] the sitting changed from [was], the
+  /// one it loaded, so a value changed meanwhile on another device (a tick,
+  /// say) is kept where the diver did not touch it. A dive requirement has no
+  /// tick. Whether a row was written: none for one deleted meanwhile.
+  Future<bool> _writeRequirement(
+    CourseRequirement was,
+    CourseRequirement requirement,
+    int now,
+  ) async {
+    Value<T> changed<T>(T before, T after) =>
+        before == after ? const Value.absent() : Value(after);
+    final completedAt = requirement.kind == RequirementKind.dive
+        ? null
+        : requirement.completedAt?.millisecondsSinceEpoch;
+    final written =
+        await (_db.update(
+          _db.courseRequirements,
+        )..where((t) => t.id.equals(requirement.id))).write(
+          CourseRequirementsCompanion(
+            name: changed(was.name.trim(), requirement.name.trim()),
+            kind: changed(was.kind.name, requirement.kind.name),
+            targetCount: changed(was.targetCount, requirement.targetCount),
+            completedAt: changed(
+              was.completedAt?.millisecondsSinceEpoch,
+              completedAt,
+            ),
+            sortOrder: changed(was.sortOrder, requirement.sortOrder),
+            notes: changed(was.notes, requirement.notes),
+            updatedAt: Value(now),
+          ),
+        );
+    if (written == 0) return false;
     await _syncRepository.markRecordPending(
       entityType: 'courseRequirements',
       recordId: requirement.id,
       localUpdatedAt: now,
     );
+    return true;
   }
 
   /// Bump the parent requirement's updatedAt and mark it sync-pending so

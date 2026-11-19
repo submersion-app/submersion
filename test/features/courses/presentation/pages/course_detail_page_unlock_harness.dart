@@ -92,6 +92,7 @@ Future<CoursePageHarness> pumpCoursePage(
   VoidCallback? onDeleted,
   CourseProgress? progress,
   List<Certification> certifications = const [],
+  bool certificationsFail = false,
   List<Buddy> buddies = const [],
   List<Object> extraOverrides = const [],
 }) async {
@@ -118,9 +119,11 @@ Future<CoursePageHarness> pumpCoursePage(
           shown.id,
         ).overrideWith((ref) async => ref.watch(_storedProvider)),
         courseDivesProvider(shown.id).overrideWith((ref) async => const []),
-        certificationsForCourseProvider(
-          shown.id,
-        ).overrideWith((ref) async => certifications),
+        certificationsForCourseProvider(shown.id).overrideWith(
+          (ref) async => certificationsFail
+              ? throw StateError('the read failed')
+              : certifications,
+        ),
         courseProgressProvider(shown.id).overrideWith(
           (ref) async =>
               progress ??

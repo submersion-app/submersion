@@ -810,6 +810,87 @@ void main() {
       );
     });
 
+    test('a rename leaves a tick made underneath', () async {
+      await _seedDiverAndCourse();
+      final created = await repository.createRequirement(
+        courseId: 'course-1',
+        name: 'Knowledge development',
+        kind: RequirementKind.checklist,
+      );
+      final loaded = await stored();
+      // Another device ticks it meanwhile.
+      await repository.setChecklistComplete(created.id, true);
+
+      await repository.writeRequirementChanges(
+        'course-1',
+        loaded: loaded,
+        current: [
+          CourseRequirementProgress(
+            requirement: created.copyWith(name: 'Theory'),
+            linkedDives: const [],
+          ),
+        ],
+      );
+
+      final after = (await stored()).single.requirement;
+      expect(after.name, 'Theory');
+      expect(after.completedAt, isNotNull);
+    });
+
+    test('an edit of a requirement gone underneath writes nothing', () async {
+      await _seedDiverAndCourse();
+      final created = await repository.createRequirement(
+        courseId: 'course-1',
+        name: 'A',
+        kind: RequirementKind.dive,
+      );
+      final loaded = await stored();
+      await repository.deleteRequirement(created.id);
+
+      final wrote = await repository.writeRequirementChanges(
+        'course-1',
+        loaded: loaded,
+        current: [
+          CourseRequirementProgress(
+            requirement: created.copyWith(name: 'Renamed'),
+            linkedDives: const [],
+          ),
+        ],
+      );
+
+      expect(wrote, isFalse);
+      expect(await stored(), isEmpty);
+    });
+
+    test('a credit to a dive gone underneath is skipped', () async {
+      await _seedDiverAndCourse();
+      await _seedDive('dive-1');
+      await _seedDive('dive-2');
+      final a = await repository.createRequirement(
+        courseId: 'course-1',
+        name: 'A',
+        kind: RequirementKind.dive,
+        targetCount: 2,
+      );
+      final loaded = await stored();
+      await DatabaseService.instance.database.customStatement(
+        "DELETE FROM dives WHERE id = 'dive-1'",
+      );
+
+      await repository.writeRequirementChanges(
+        'course-1',
+        loaded: loaded,
+        current: [
+          CourseRequirementProgress(
+            requirement: a,
+            linkedDives: [dive('dive-1'), dive('dive-2')],
+          ),
+        ],
+      );
+
+      expect(creditsOf(await stored(), a.id), ['dive-2']);
+    });
+
     test('nothing changed writes nothing', () async {
       await _seedDiverAndCourse();
       await repository.createRequirement(
