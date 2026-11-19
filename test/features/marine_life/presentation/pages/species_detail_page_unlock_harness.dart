@@ -19,7 +19,10 @@ import 'package:submersion/features/media/data/repositories/media_species_reposi
 import 'package:submersion/features/media/data/services/species_tagging_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/species_tag_candidate_group.dart';
+import 'package:submersion/features/marine_life/presentation/editing/species_photos_sitting.dart';
+import 'package:submersion/features/media/presentation/helpers/species_photo_import_helper.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
+import 'package:submersion/features/media_store/presentation/providers/media_store_enqueue_provider.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../media/presentation/support/media_widget_harness.dart';
@@ -96,11 +99,14 @@ class RecordingTagging extends SpeciesTaggingService {
 /// What a test pumped: the fake save, the stored species to change
 /// underneath, and the photos tagged.
 class SpeciesPageHarness {
-  SpeciesPageHarness(this.save, this.stored, this.tagging);
+  SpeciesPageHarness(this.save, this.stored, this.tagging, this.written);
 
   final FakeSpeciesSave save;
   final StateController<Species?> stored;
   final RecordingTagging tagging;
+
+  /// The media rows the held import wrote, by id.
+  final List<String> written;
 }
 
 final _storedProvider = StateProvider<Species?>((ref) => manta);
@@ -121,6 +127,7 @@ Future<SpeciesPageHarness> pumpSpeciesPage(
   final overrides = await getBaseOverrides();
   late SpeciesPageHarness harness;
   final tagging = RecordingTagging();
+  final written = <String>[];
   await tester.pumpWidget(
     testApp(
       locale: locale,
@@ -146,10 +153,22 @@ Future<SpeciesPageHarness> pumpSpeciesPage(
             save,
             ref.watch(_storedProvider.notifier),
             tagging,
+            written,
           );
           return save;
         }),
         speciesTaggingServiceProvider.overrideWithValue(tagging),
+        // Add photos: one photo prepared for dive d1, as the review would.
+        speciesPhotoPrepareLauncherProvider.overrideWithValue(
+          (context, ref, speciesId) async => [
+            (item: testMediaItem(id: 'new1', diveId: 'd1'), enrichment: null),
+          ],
+        ),
+        speciesImportWriterProvider.overrideWithValue((prepared) async {
+          written.addAll([for (final p in prepared) p.item.id]);
+          return [for (final p in prepared) p.item];
+        }),
+        mediaStoreEnqueueProvider.overrideWithValue((mediaId) {}),
         speciesTagCandidatesProvider(species.id).overrideWith(
           (ref) async => [
             SpeciesTagCandidateGroup(

@@ -1,7 +1,10 @@
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/editing/species_card_ids.dart';
+import 'package:submersion/features/media/data/services/media_import_service.dart';
 import 'package:submersion/features/media/data/services/species_tagging_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 /// The held change of the photos tagged with the species on its page
@@ -69,6 +72,86 @@ void _hold(
       for (final id in ids) {
         await tagging.tagPhoto(mediaId: id, speciesId: speciesId);
       }
+    },
+  );
+}
+
+/// Writes prepared photos' rows, as [MediaImportService.writePrepared] does.
+typedef SpeciesImportWriter =
+    Future<List<MediaItem>> Function(List<PreparedMedia> prepared);
+
+/// The writer a species page's held import uses; a seam for tests.
+final speciesImportWriterProvider = Provider<SpeciesImportWriter>(
+  (ref) => ref.watch(mediaImportServiceProvider).writePrepared,
+);
+
+/// The held change of the photos added on the species page.
+const String speciesImportsKey = 'species.imports';
+
+const String _importsKey = 'species.imports.held';
+const String _importsToolsKey = 'species.imports.tools';
+const String _writtenKey = 'species.imports.written';
+
+/// The photos the sitting will add at Save, prepared for their dive or
+/// site, in the order they were chosen.
+List<PreparedMedia> heldSpeciesImports(EditSession<Species> session) =>
+    session.isDisposed
+    ? const []
+    : session.recall<List<PreparedMedia>>(_importsKey) ?? const [];
+
+/// The rows the sitting's last write of its added photos created, for what
+/// follows the commit (their uploads).
+List<String> speciesImportsWritten(EditSession<Species> session) =>
+    session.isDisposed
+    ? const []
+    : session.recall<List<String>>(_writtenKey) ?? const [];
+
+/// Holds [prepared] photos to be added at Save, with those already held:
+/// one change of the Photos card. At Save their rows are written by
+/// [write] and each is tagged with the species ([SpeciesTaggingService
+/// .tagPhoto]), inside the sitting's transaction, so a failure leaves no
+/// row and no tag.
+void holdSpeciesImports(
+  EditSession<Species> session,
+  Iterable<PreparedMedia> prepared, {
+  required SpeciesImportWriter write,
+  required SpeciesTaggingService tagging,
+}) {
+  if (session.isDisposed || session.isFrozen) return;
+  session.remember(_importsToolsKey, (write: write, tagging: tagging));
+  _holdImports(session, [...heldSpeciesImports(session), ...prepared]);
+}
+
+/// Takes the prepared photo [mediaId] out of the photos to add; none left
+/// is no change.
+void releaseSpeciesImport(EditSession<Species> session, String mediaId) {
+  if (session.isDisposed || session.isFrozen) return;
+  _holdImports(session, [
+    for (final p in heldSpeciesImports(session))
+      if (p.item.id != mediaId) p,
+  ]);
+}
+
+void _holdImports(EditSession<Species> session, List<PreparedMedia> held) {
+  final tools = session
+      .recall<({SpeciesImportWriter write, SpeciesTaggingService tagging})>(
+        _importsToolsKey,
+      );
+  session.remember(_importsKey, List<PreparedMedia>.unmodifiable(held));
+  if (held.isEmpty || tools == null) {
+    session.releaseWrite(speciesImportsKey);
+    return;
+  }
+  final speciesId = session.stored.id;
+  session.holdChange(
+    speciesImportsKey,
+    cardId: SpeciesCardId.photos.name,
+    write: () async {
+      final rows = await tools.write(held);
+      for (final row in rows) {
+        await tools.tagging.tagPhoto(mediaId: row.id, speciesId: speciesId);
+      }
+      session.remember(_writtenKey, [for (final row in rows) row.id]);
     },
   );
 }

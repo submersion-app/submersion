@@ -6,6 +6,7 @@ import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/editing/species_photos_sitting.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_species_repository.dart';
+import 'package:submersion/features/media/data/services/media_import_service.dart';
 import 'package:submersion/features/media/data/services/species_tagging_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
@@ -100,5 +101,66 @@ void main() {
     tagging.failWith = StateError('Media p1 does not exist');
 
     await expectLater(session.runHeldWrites(), throwsStateError);
+  });
+
+  group('photos added', () {
+    PreparedMedia prepared(String id) =>
+        (item: testMediaItem(id: id, diveId: 'd1'), enrichment: null);
+
+    test('holding added photos is a change of Photos', () {
+      holdSpeciesImports(
+        session,
+        [prepared('m1')],
+        write: (list) async => const [],
+        tagging: tagging,
+      );
+
+      expect(session.changedCardIds, {'photos'});
+      expect(heldSpeciesImports(session).map((p) => p.item.id), ['m1']);
+    });
+
+    test('releasing the last added photo is no change', () {
+      holdSpeciesImports(
+        session,
+        [prepared('m1')],
+        write: (list) async => const [],
+        tagging: tagging,
+      );
+
+      releaseSpeciesImport(session, 'm1');
+
+      expect(session.isDirty, isFalse);
+    });
+
+    test('the held write writes the rows, then tags them', () async {
+      final written = <String>[];
+      holdSpeciesImports(
+        session,
+        [prepared('m1'), prepared('m2')],
+        write: (list) async {
+          written.addAll([for (final p in list) p.item.id]);
+          return [for (final p in list) p.item];
+        },
+        tagging: tagging,
+      );
+
+      await session.runHeldWrites();
+
+      expect(written, ['m1', 'm2']);
+      expect(tagging.tagged.map((t) => t.mediaId), ['m1', 'm2']);
+      expect(speciesImportsWritten(session), ['m1', 'm2']);
+    });
+
+    test('a write that fails tags nothing', () async {
+      holdSpeciesImports(
+        session,
+        [prepared('m1')],
+        write: (list) async => throw StateError('disk full'),
+        tagging: tagging,
+      );
+
+      await expectLater(session.runHeldWrites(), throwsStateError);
+      expect(tagging.tagged, isEmpty);
+    });
   });
 }

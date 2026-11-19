@@ -57,6 +57,16 @@ mixin _SpeciesDetailPageEditing
       alsoWriteIsAChange: session.hasHeldChanges,
     );
     justSavedRecord = result?.after ?? session.working;
+    // The photos the sitting added go to the media store once committed,
+    // each on its own: a failure there is not a failed save.
+    final enqueue = ref.read(mediaStoreEnqueueProvider);
+    for (final mediaId in speciesImportsWritten(session)) {
+      try {
+        enqueue(mediaId);
+      } catch (_) {
+        // The store retries from its own queue.
+      }
+    }
   }
 
   @override
@@ -118,12 +128,19 @@ mixin _SpeciesDetailPageEditing
     final session = maybeEditController?.session;
     final held = session == null
         ? const <MediaItem>[]
-        : heldSpeciesTags(session);
+        : [
+            for (final p in heldSpeciesImports(session)) p.item,
+            ...heldSpeciesTags(session),
+          ];
+    final added = session == null
+        ? const <String>{}
+        : {for (final p in heldSpeciesImports(session)) p.item.id};
     final settings = ref.watch(unitFormatterProvider).settings;
     final l10n = context.l10n;
     return SpeciesPhotosSection(
       speciesId: widget.speciesId,
       onTagPhotos: session == null ? null : () => _tagInSitting(session),
+      onAddPhotos: session == null ? null : () => _addInSitting(session),
       changedMark:
           session != null &&
               session.changedCardIds.contains(SpeciesCardId.photos.name)
@@ -153,13 +170,26 @@ mixin _SpeciesDetailPageEditing
                   tooltip: l10n.forms_cancel,
                   onPressed: session == null
                       ? null
-                      : () => releaseSpeciesTag(session, item.id),
+                      : () => added.contains(item.id)
+                            ? releaseSpeciesImport(session, item.id)
+                            : releaseSpeciesTag(session, item.id),
                 ),
               ),
             ],
           ),
       ],
     );
+  }
+
+  /// Opens the picker and the review to choose photos to add, and holds
+  /// them, prepared, in [session] to be written and tagged at Save.
+  Future<void> _addInSitting(EditSession<Species> session) async {
+    final launch = ref.read(speciesPhotoPrepareLauncherProvider);
+    final write = ref.read(speciesImportWriterProvider);
+    final tagging = ref.read(speciesTaggingServiceProvider);
+    final prepared = await launch(context, ref, widget.speciesId);
+    if (prepared == null || prepared.isEmpty) return;
+    holdSpeciesImports(session, prepared, write: write, tagging: tagging);
   }
 
   /// Opens the tag picker to choose photos, and holds the choice in

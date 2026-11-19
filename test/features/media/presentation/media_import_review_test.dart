@@ -60,6 +60,7 @@ void main() {
     List<ImportCandidate> candidates,
     Map<DateTime, ImportSuggestion> suggestions, {
     List<Override> extraOverrides = const [],
+    bool reportResult = true,
   }) {
     confirmed = null;
     return ProviderScope(
@@ -74,6 +75,7 @@ void main() {
         supportedLocales: AppLocalizations.supportedLocales,
         home: MediaImportReviewPage(
           candidates: candidates,
+          reportResult: reportResult,
           onConfirm: (targets) async {
             confirmed = targets;
             return ImportReviewResult(
@@ -135,6 +137,24 @@ void main() {
 
     expect(confirmed, {'a': const DiveAttachTarget('d7')});
     expect(find.text('1 linked, 1 skipped, 0 failed'), findsOneWidget);
+    await tester.pumpAndSettle();
+  });
+
+  // A species page in a sitting links nothing until Save (issue #4527).
+  testWidgets('without a result to report, confirm says nothing', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host([candidate('a', t1)], {t1: confident('d7', 7)}, reportResult: false),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Import 1 items'));
+    await tester.pump();
+    await tester.pump();
+
+    expect(confirmed, {'a': const DiveAttachTarget('d7')});
+    expect(find.text('1 linked, 0 skipped, 0 failed'), findsNothing);
     await tester.pumpAndSettle();
   });
 

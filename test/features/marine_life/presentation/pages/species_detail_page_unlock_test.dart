@@ -271,6 +271,51 @@ void main() {
       );
     });
   });
+  group('photos added in a sitting', () {
+    Future<void> addOne(WidgetTester tester) async {
+      await tester.tap(find.byKey(const ValueKey('species_add_photos')));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('Add photos while locked is not offered', (tester) async {
+      await pumpSpeciesPage(tester);
+
+      expect(find.byKey(const ValueKey('species_add_photos')), findsNothing);
+    });
+
+    testWidgets('added in a sitting, Save imports and tags them once', (
+      tester,
+    ) async {
+      final harness = await pumpSpeciesPage(tester);
+      await unlock(tester);
+      await addOne(tester);
+
+      expect(harness.written, isEmpty);
+      expect(
+        find.byKey(const ValueKey('species_pending_remove_new1')),
+        findsOneWidget,
+      );
+      await save(tester);
+
+      expect(harness.save.calls.single.cards, {'photos'});
+      expect(harness.written, ['new1']);
+      expect(harness.tagging.tagged, ['new1']);
+    });
+
+    testWidgets('Cancel imports nothing and tags nothing', (tester) async {
+      final harness = await pumpSpeciesPage(tester);
+      await unlock(tester);
+      await addOne(tester);
+
+      await tester.tap(find.text(l.forms_cancel));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l.forms_discard_discard).last);
+      await tester.pumpAndSettle();
+
+      expect(harness.written, isEmpty);
+      expect(harness.tagging.tagged, isEmpty);
+    });
+  });
 }
 
 extension on Species {
