@@ -167,7 +167,14 @@ class CylindersCard extends ConsumerWidget {
         dive.tanks.firstOrNull;
     final aveloSummary = aveloTank == null
         ? null
-        : aveloSummaryOf(dive.profile, seriesByTank[aveloTank.id]);
+        : aveloSummaryOf(
+            dive.profile,
+            // Only a Hydrotank's pressure is the Avelo max pressure; under
+            // another tank the summary leaves it out.
+            aveloTank.role == TankRole.hydrotank
+                ? seriesByTank[aveloTank.id]
+                : null,
+          );
     final rows = [
       for (final entry in dive.tanks.asMap().entries)
         _tankRow(
@@ -321,9 +328,6 @@ class CylindersCard extends ConsumerWidget {
     );
   }
 
-  /// Where the profile cursor is, in seconds into the dive. The cursor is an
-  /// index into the chart's own series, so it is resolved against that
-  /// series (#543), which is only watched while the cursor is on the chart.
   /// An Avelo Hydrotank's figure as estimated water and gas (issue #4664),
   /// with the water's label when the tank's [volume] is known, or null when
   /// the dive lacks what the estimate needs (a start pressure, a pressure
@@ -365,6 +369,9 @@ class CylindersCard extends ConsumerWidget {
     );
   }
 
+  /// Where the profile cursor is, in seconds into the dive. The cursor is an
+  /// index into the chart's own series, so it is resolved against that
+  /// series (#543), which is only watched while the cursor is on the chart.
   int? _cursorSeconds(WidgetRef ref) {
     final index = ref.watch(profileTrackingIndexProvider(dive.id));
     if (index == null || index < 0) return null;
@@ -430,14 +437,17 @@ class CylindersCard extends ConsumerWidget {
         }
 
         // An Avelo Hydrotank with gas remaining is drawn as its estimated
-        // water and gas (issue #4664), at the cursor or at the end.
+        // water and gas (issue #4664), at the cursor or at the end. With the
+        // cursor on the chart but no Hydrotank reading there, it keeps the
+        // pressure figure rather than showing the end in the cursor's place.
+        final cursorShown = cursorSeconds != null;
         final water = waterDriven
             ? _hydrotankWater(
                 l10n,
                 start: pressures.$1,
-                pressure: now ?? pressures.$2,
-                cursorSeconds: now == null ? null : cursorSeconds,
-                cursorShown: now != null,
+                pressure: cursorShown ? now : pressures.$2,
+                cursorSeconds: cursorSeconds,
+                cursorShown: cursorShown,
                 volume: positive(tank.volume) ?? preset?.volumeLiters,
               )
             : null;
@@ -466,7 +476,10 @@ class CylindersCard extends ConsumerWidget {
                 )
               : null,
           markStart: pressures.$1 != null,
-          markEnd: pressures.$2 != null,
+          // In the water figure the gas-left level is the cursor's moment
+          // while the cursor is shown; the End mark is the end of the dive's,
+          // so it has no level to point at then.
+          markEnd: pressures.$2 != null && !(water != null && cursorShown),
           nowLabel: nowLabel(now),
           nowLabelReserve: nowLabel(cursorLine?.peak),
         );

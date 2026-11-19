@@ -375,4 +375,65 @@ void main() {
       await tester.pumpWidget(const SizedBox());
     }
   });
+
+  // Final review: with the cursor shown, the End mark stays the end of the
+  // dive's (no tick at the cursor's level), and a cursor where the
+  // Hydrotank has no reading keeps the pressure figure.
+  group('Hydrotank figure under the cursor', () {
+    const hydrotank = DiveTank(
+      id: 'hydro',
+      volume: 10,
+      startPressure: 240,
+      endPressure: 150,
+      gasMix: GasMix(o2: 21),
+      role: TankRole.hydrotank,
+    );
+    final dive = Dive(
+      id: 'dive-1',
+      diveNumber: 1,
+      dateTime: DateTime(2026, 6, 1, 10),
+      maxDepth: 15,
+      bottomTime: const Duration(minutes: 30),
+      tanks: const [hydrotank],
+      profile: const [
+        DiveProfilePoint(timestamp: 0, depth: 0, aveloGasRemaining: 100),
+        DiveProfilePoint(timestamp: 600, depth: 15, aveloGasRemaining: 80),
+        DiveProfilePoint(timestamp: 1200, depth: 15, aveloGasRemaining: 60),
+        DiveProfilePoint(timestamp: 1800, depth: 5, aveloGasRemaining: 40),
+      ],
+    );
+
+    testWidgets('the End mark does not follow the cursor', (tester) async {
+      const series = EstimatedTankPressures({
+        'hydro': [
+          TankPressurePoint(tankId: 'hydro', timestamp: 0, pressure: 240),
+          TankPressurePoint(tankId: 'hydro', timestamp: 1200, pressure: 300),
+          TankPressurePoint(tankId: 'hydro', timestamp: 1800, pressure: 150),
+        ],
+      }, {});
+      await tester.pumpWidget(
+        _card(dive: dive, chartSeries: series, cursor: 2),
+      );
+      await tester.pumpAndSettle();
+
+      final figure = tester.widget<TankFigure>(find.byType(TankFigure));
+      expect(find.text('Water ~5.2 L (est.)'), findsOneWidget);
+      expect(figure.markEnd, isFalse);
+    });
+
+    testWidgets(
+      'a cursor with no Hydrotank reading keeps the pressure figure',
+      (tester) async {
+        // The chart draws no line for the Hydrotank, so the cursor has no
+        // Hydrotank pressure to read.
+        const series = EstimatedTankPressures({}, {});
+        await tester.pumpWidget(
+          _card(dive: dive, chartSeries: series, cursor: 0),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.textContaining('Water ~'), findsNothing);
+      },
+    );
+  });
 }

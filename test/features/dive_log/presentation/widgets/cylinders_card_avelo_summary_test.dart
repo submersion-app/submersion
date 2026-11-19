@@ -78,10 +78,11 @@ Widget _card({
   required AppSettings settings,
   List<DiveTank> tanks = const [_hydrotank],
   List<DiveProfilePoint> profile = _profile,
+  Map<String, List<TankPressurePoint>> pressures = _pressures,
 }) => testApp(
   overrides: [
     cylinderSacProvider.overrideWith((ref, id) async => const <CylinderSac>[]),
-    tankPressuresProvider.overrideWith((ref, id) async => _pressures),
+    tankPressuresProvider.overrideWith((ref, id) async => pressures),
     diveDataSourcesProvider.overrideWith(
       (ref, id) async => const <DiveDataSource>[],
     ),
@@ -243,5 +244,31 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('tank-water-label-hydro')), findsNothing);
+  });
+
+  testWidgets('under a tank that is no Hydrotank, no max pressure', (
+    tester,
+  ) async {
+    // Final review: that tank's pressure is not the Hydrotank's.
+    await tester.pumpWidget(
+      _card(
+        settings: const AppSettings(),
+        tanks: const [_backGas],
+        pressures: const {
+          'back': [
+            TankPressurePoint(tankId: 'back', timestamp: 10, pressure: 200),
+            TankPressurePoint(tankId: 'back', timestamp: 30, pressure: 60),
+          ],
+        },
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final block = find.byKey(const Key('tank-avelo-summary-back'));
+    expect(block, findsOneWidget);
+    expect(
+      find.descendant(of: block, matching: find.textContaining('Max pressure')),
+      findsNothing,
+    );
   });
 }
