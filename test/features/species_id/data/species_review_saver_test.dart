@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -120,5 +121,33 @@ void main() {
     expect(await tags.findTag('p1', 'sp_queen_parrotfish'), isNull);
     expect(dismissed.single.$1, 'p2');
     expect(dismissed.single.$2, ['i-p2']);
+  });
+
+  test('Remove on a row of two app tags takes the species and sighting the '
+      'app created', () async {
+    final own = await species.createSpecies(
+      commonName: 'Creole Wrasse',
+      scientificName: 'Clepticus parrae',
+      category: SpeciesCategory.fish,
+    );
+    for (final (mediaId, created) in [('p1', true), ('p2', false)]) {
+      await tagging.applyAppTag(
+        mediaId: mediaId,
+        speciesId: own.id,
+        timing: SightingTiming.straightAway,
+        createdSpecies: created,
+      );
+    }
+    final groups = await load();
+    final row = groups.single.tagged.firstWhere((r) => r.speciesId == own.id);
+
+    await saver().save(
+      SpeciesReviewEdits.none.decideRow(row, keep: false),
+      groups,
+    );
+
+    expect(await species.getSpeciesById(own.id), isNull);
+    final left = await species.getSightingsForDive('d1');
+    expect(left.where((s) => s.speciesId == own.id), isEmpty);
   });
 }

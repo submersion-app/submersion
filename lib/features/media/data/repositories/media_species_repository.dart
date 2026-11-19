@@ -160,19 +160,51 @@ class MediaSpeciesRepository {
     return (await query.get()).map(_tagFromRow).toList();
   }
 
-  /// How many tags other than [exceptTagId] link [sightingId].
-  Future<int> countTagsForSighting(
-    String sightingId, {
-    String? exceptTagId,
+  /// Every tag linking [sightingId], oldest first.
+  Future<List<MediaSpeciesTag>> tagsForSighting(String sightingId) async {
+    final rows =
+        await (_db.select(_db.mediaSpecies)
+              ..where((t) => t.sightingId.equals(sightingId))
+              ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]))
+            .get();
+    return rows.map(_tagFromRow).toList();
+  }
+
+  /// Every tag of [speciesId], on any media, oldest first.
+  Future<List<MediaSpeciesTag>> tagsOfSpecies(String speciesId) async {
+    final rows =
+        await (_db.select(_db.mediaSpecies)
+              ..where((t) => t.speciesId.equals(speciesId))
+              ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]))
+            .get();
+    return rows.map(_tagFromRow).toList();
+  }
+
+  /// Hands the app's "created its sighting" and "created its species"
+  /// marks to [tagId], another unconfirmed app tag of the same sighting or
+  /// species, when the tag that held them is rejected (issue #4727): the
+  /// last of them to go then takes what the app created. Restamped, so the
+  /// hand-over reaches peers.
+  Future<void> handOverCreatedMarks(
+    String tagId, {
+    bool sighting = false,
+    bool species = false,
   }) async {
-    final count = _db.mediaSpecies.id.count();
-    final query = _db.selectOnly(_db.mediaSpecies)
-      ..addColumns([count])
-      ..where(_db.mediaSpecies.sightingId.equals(sightingId));
-    if (exceptTagId != null) {
-      query.where(_db.mediaSpecies.id.equals(exceptTagId).not());
-    }
-    return (await query.getSingle()).read(count) ?? 0;
+    if (!sighting && !species) return;
+    await (_db.update(
+      _db.mediaSpecies,
+    )..where((t) => t.id.equals(tagId))).write(
+      MediaSpeciesCompanion(
+        createdSighting: sighting ? const Value(1) : const Value.absent(),
+        createdSpecies: species ? const Value(1) : const Value.absent(),
+      ),
+    );
+    await _syncRepository.markRecordPending(
+      entityType: 'mediaSpecies',
+      recordId: tagId,
+      localUpdatedAt: DateTime.now().millisecondsSinceEpoch,
+    );
+    SyncEventBus.notifyLocalChange();
   }
 
   static int? _flag(bool value) => value ? 1 : null;

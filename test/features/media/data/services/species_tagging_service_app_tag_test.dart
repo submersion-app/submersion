@@ -237,4 +237,58 @@ void main() {
       expect(await species.getSightingsForDive('d1'), hasLength(1));
     });
   });
+
+  group('several app tags share what one created', () {
+    late String own;
+
+    setUp(() async {
+      own = (await species.createSpecies(
+        commonName: 'Creole Wrasse',
+        scientificName: 'Clepticus parrae',
+        category: SpeciesCategory.fish,
+      )).id;
+      for (final (mediaId, created) in [('p1', true), ('p2', false)]) {
+        await service.applyAppTag(
+          mediaId: mediaId,
+          speciesId: own,
+          timing: SightingTiming.straightAway,
+          createdSpecies: created,
+        );
+      }
+    });
+
+    for (final order in [
+      ['p1', 'p2'],
+      ['p2', 'p1'],
+    ]) {
+      test('removing them all (${order.join(' then ')}) takes the sighting '
+          'and the species', () async {
+        for (final mediaId in order) {
+          await service.rejectTag(mediaId: mediaId, speciesId: own);
+        }
+        expect(await species.getSightingsForDive('d1'), isEmpty);
+        expect(await species.getSpeciesById(own), isNull);
+      });
+    }
+
+    test('a confirmed tag left behind keeps both, and takes no mark', () async {
+      await service.confirmTag(mediaId: 'p2', speciesId: own);
+
+      await service.rejectTag(mediaId: 'p1', speciesId: own);
+
+      expect(await species.getSightingsForDive('d1'), hasLength(1));
+      expect(await species.getSpeciesById(own), isNotNull);
+      final kept = await tags.findTag('p2', own);
+      expect(kept!.createdSighting, isFalse);
+      expect(kept.createdSpecies, isFalse);
+    });
+
+    test('removing the creating tag hands its marks on', () async {
+      await service.rejectTag(mediaId: 'p1', speciesId: own);
+
+      final left = await tags.findTag('p2', own);
+      expect(left!.createdSighting, isTrue);
+      expect(left.createdSpecies, isTrue);
+    });
+  });
 }

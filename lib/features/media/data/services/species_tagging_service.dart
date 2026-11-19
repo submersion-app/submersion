@@ -143,7 +143,11 @@ class SpeciesTaggingService {
   /// Removes a tag. When it was the app's and still unconfirmed, the
   /// sighting and the species it created go with it, each only when nothing
   /// else uses it and the diver has not changed it (see app_tag_guards).
-  /// A confirmed tag is removed as a hand tag is: never its sighting.
+  /// When other unconfirmed app tags still use them, the "created" mark
+  /// passes to one of those instead, so the last of them to be rejected
+  /// takes them; a confirmed or hand tag still using them keeps them, as
+  /// the diver's. A confirmed tag is removed as a hand tag is: never its
+  /// sighting.
   Future<void> rejectTag({
     required String mediaId,
     required String speciesId,
@@ -168,28 +172,54 @@ class SpeciesTaggingService {
     final sightings = await _species.getSightingsForDive(diveId);
     final sighting = sightings.where((s) => s.id == sightingId).firstOrNull;
     if (sighting == null) return;
-    final others = await _tags.countTagsForSighting(sightingId);
+    final others = await _tags.tagsForSighting(sightingId);
     if (mayRemoveCreatedSighting(
       sighting: sighting,
-      otherTagsPointingAtIt: others,
+      otherTagsPointingAtIt: others.length,
     )) {
       await _species.deleteSighting(sightingId);
+      return;
+    }
+    // Still the app's own: unchanged, and only its unconfirmed tags use it.
+    final unchanged = mayRemoveCreatedSighting(
+      sighting: sighting,
+      otherTagsPointingAtIt: 0,
+    );
+    if (unchanged && others.every((t) => t.unconfirmed)) {
+      await _tags.handOverCreatedMarks(others.first.id, sighting: true);
     }
   }
 
   Future<void> _removeCreatedSpecies(MediaSpeciesTag tag) async {
     final species = await _species.getSpeciesById(tag.speciesId);
     if (species == null) return;
-    final inUse =
-        await _species.isSpeciesInUse(species.id) ||
-        await _species.isSpeciesOnAnySite(species.id);
+    final onSite = await _species.isSpeciesOnAnySite(species.id);
+    final speciesHlc = await _species.hlcOf(species.id);
+    final inUse = onSite || await _species.isSpeciesInUse(species.id);
     if (mayRemoveCreatedSpecies(
       species: species,
-      speciesHlc: await _species.hlcOf(species.id),
+      speciesHlc: speciesHlc,
       tagHlc: tag.hlc,
       inUseElsewhere: inUse,
     )) {
       await _species.deleteSpecies(species.id);
+      return;
+    }
+    // Still the app's own: unedited, on no site, and tagged only by its
+    // unconfirmed tags (a sighting the app made goes with the last of them).
+    final others = await _tags.tagsOfSpecies(species.id);
+    final stillTheApps =
+        !onSite &&
+        others.isNotEmpty &&
+        others.every((t) => t.unconfirmed) &&
+        mayRemoveCreatedSpecies(
+          species: species,
+          speciesHlc: speciesHlc,
+          tagHlc: tag.hlc,
+          inUseElsewhere: false,
+        );
+    if (stillTheApps) {
+      await _tags.handOverCreatedMarks(others.first.id, species: true);
     }
   }
 
