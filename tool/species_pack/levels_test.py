@@ -55,6 +55,22 @@ class MeasureTests(unittest.TestCase):
         _, surer_precision = measure(fish)
         self.assertIsNone(surer_precision)
 
+    def test_a_level_naming_nothing_right_held_out_is_left_out(self):
+        # Balanced names at 0.55 on the tune half; held out it names one
+        # crop, wrongly, which the gate's interval cannot rule out, but a
+        # precision of 0 is no share to show.
+        tune = [record(0.55, True)] * 100
+        held = [record(0.55, False)]
+        found, surer_precision = levels.measure(SURER, tune, [], held, [], min_side=64)
+        self.assertIsNone(surer_precision)
+        self.assertEqual(found, [])
+
+    def test_manifest_precision_is_a_share_at_the_places_kept(self):
+        self.assertIsNone(levels.manifest_precision(None))
+        self.assertIsNone(levels.manifest_precision(0.0))
+        self.assertIsNone(levels.manifest_precision(0.0004))
+        self.assertEqual(levels.manifest_precision(0.8971), 0.897)
+
     def test_rates_count_junk_named_with_or_without_a_location(self):
         junk = [record(0.9, False)] * 2 + [record(0.3, False)] * 2
         held = levels.rates(SURER, [record(0.9, True)], junk, min_side=64)

@@ -400,10 +400,45 @@ void main() {
         expect((await level)?.level, NamingLevel.eager);
       });
 
+      test('waits for a pack being read again, not the one before', () async {
+        var reads = 0;
+        final reread = Completer<InstalledPack?>();
+        // The first read finds no pack; the read after an install finds
+        // the levelled one.
+        final c = withPack(() => ++reads == 1 ? Future.value() : reread.future);
+        await c.read(installedSpeciesPackProvider.future);
+        c.invalidate(installedSpeciesPackProvider);
+        final level = awaitLevelInForce(c);
+        reread.complete(levelledPack());
+        expect((await level)?.level, NamingLevel.eager);
+      });
+
+      test('is none at once when a pack read again cannot be read, not the '
+          'one before', () async {
+        var reads = 0;
+        // The first read finds the levelled pack; the read after an install
+        // fails, and Riverpod keeps the pack before beside the error.
+        final c = withPack(() async {
+          if (++reads == 1) return levelledPack();
+          throw StateError('no pack');
+        });
+        final held = c.listen(installedSpeciesPackProvider, (_, _) {});
+        addTearDown(held.close);
+        await c.read(installedSpeciesPackProvider.future);
+        c.invalidate(installedSpeciesPackProvider);
+        await pumpEventQueue();
+        expect(c.read(installedSpeciesPackProvider).hasError, isTrue);
+        expect(await awaitLevelInForce(c), isNull);
+      });
+
       test('is none at once when the pack cannot be read', () async {
         final c = withPack(() async => throw StateError('no pack'));
-        // Let the read fail; Riverpod then retries in the background.
+        // Read it and let the read fail; Riverpod then retries in the
+        // background.
+        final held = c.listen(installedSpeciesPackProvider, (_, _) {});
+        addTearDown(held.close);
         await pumpEventQueue();
+        expect(c.read(installedSpeciesPackProvider).hasError, isTrue);
         expect(
           await awaitLevelInForce(c).timeout(const Duration(seconds: 2)),
           isNull,

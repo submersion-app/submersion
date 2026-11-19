@@ -204,6 +204,11 @@ class MeasuredBarsTests(unittest.TestCase):
             path = os.path.join(_HERE, "..", "..", entry["findings"])
             self.assertTrue(os.path.exists(path), path)
 
+    def test_each_measured_entry_has_sound_levels(self):
+        # build_manifest refuses them only at the end of a whole pack build.
+        for entry in manifest.NAMING_MEASURED:
+            self.assertEqual(manifest.level_problems(entry["naming"]), [], entry["detectorIds"])
+
     def test_each_measured_entry_is_a_known_detector_set_at_its_fitting(self):
         sets = {tuple(manifest.DETECTORS[k]["id"] for k in keys): name for name, keys in manifest.DETECTOR_SETS.items()}
         for entry in manifest.NAMING_MEASURED:
@@ -275,6 +280,59 @@ class RelevelTests(unittest.TestCase):
         bad = [{**self.LEVELS[0], "suggestScore": 0.9}]
         with self.assertRaises(ValueError):
             manifest.relevel(self.published(), self.measured(levels=bad))
+
+    def test_relevel_reads_a_format_one_pack(self):
+        published = self.published()
+        published["formatVersion"] = 1
+        del published["detectors"], published["boxes"]
+        published["detector"] = copy.deepcopy(PackDetectorsTests.FORMAT_ONE["detector"])
+        measured = self.measured()
+        measured[0]["detectorIds"] = [CFD]
+        out = manifest.relevel(published, measured)
+        self.assertEqual([level["id"] for level in out["naming"]["levels"]], ["balanced"])
+        self.assertEqual(out["detector"], published["detector"])
+
+    def test_build_manifest_refuses_bad_levels(self):
+        bad = {**self.BASE, "levels": [{**self.LEVELS[0], "suggestScore": 0.9}]}
+        with self.assertRaises(ValueError):
+            manifest.build_manifest(
+                pack_version="v",
+                detector_set="both",
+                classifier_id=BIOCLIP,
+                embedding_size=768,
+                files=[],
+                credits=[],
+                naming=bad,
+            )
+
+    def test_build_manifest_refuses_bad_levels_with_no_provisional_flag(self):
+        # The app reads levels unless the bars are marked provisional.
+        bad = {k: v for k, v in self.BASE.items() if k != "provisional"}
+        bad["levels"] = [{**self.LEVELS[0], "suggestScore": 0.9}]
+        with self.assertRaises(ValueError):
+            manifest.build_manifest(
+                pack_version="v",
+                detector_set="both",
+                classifier_id=BIOCLIP,
+                embedding_size=768,
+                files=[],
+                credits=[],
+                naming=bad,
+            )
+
+    def test_build_manifest_copies_levels(self):
+        naming = {**self.BASE, "precision": 0.897, "levels": copy.deepcopy(self.LEVELS)}
+        built = manifest.build_manifest(
+            pack_version="v",
+            detector_set="both",
+            classifier_id=BIOCLIP,
+            embedding_size=768,
+            files=[],
+            credits=[],
+            naming=naming,
+        )
+        built["naming"]["levels"].append({})
+        self.assertEqual(len(naming["levels"]), 1)
 
     def test_naming_for_copies_levels(self):
         measured = self.measured()

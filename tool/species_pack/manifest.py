@@ -331,6 +331,14 @@ def level_problems(naming):
     return problems
 
 
+def _check_levels(naming):
+    """Raises ValueError, naming each problem, unless `naming`'s levels are
+    sound (level_problems)."""
+    problems = level_problems(naming)
+    if problems:
+        raise ValueError("; ".join(problems))
+
+
 def relevel(published, measured=NAMING_MEASURED):
     """`published` (a manifest as JSON) with the naming levels measured for
     its exact pack, keeping its pack version, so a device that has the pack
@@ -338,8 +346,10 @@ def relevel(published, measured=NAMING_MEASURED):
     ValueError when the pack has no measured bars, or when anything but the
     levels and their precision would change."""
     classifier = published["classifier"]
+    # Either format: a format 1 pack names its one detector `detector`.
+    detectors, _ = pack_detectors(published)
     naming = naming_for(
-        [d["id"] for d in published["detectors"]],
+        [d["id"] for d in detectors],
         classifier["id"],
         classifier["cropFit"],
         contents_of(published["files"]),
@@ -351,9 +361,7 @@ def relevel(published, measured=NAMING_MEASURED):
     changed = sorted(k for k in set(current) | set(naming) if k not in LEVEL_KEYS and current.get(k) != naming.get(k))
     if changed:
         raise ValueError(f"republishing would change {changed}; that needs a new pack version")
-    problems = level_problems(naming)
-    if problems:
-        raise ValueError("; ".join(problems))
+    _check_levels(naming)
     out = copy.deepcopy(published)
     out["naming"] = naming
     return out
@@ -370,6 +378,18 @@ def build_manifest(
     naming=None,
 ):
     crop_fit = CROP_FIT[detector_set]
+    # A copy all the way down: the naming block carries a list of levels.
+    # naming_for already returns one of its own.
+    naming = (
+        copy.deepcopy(naming)
+        if naming
+        else naming_for(detector_ids(detector_set), classifier_id, crop_fit, contents_of(files))
+    )
+    # A new pack's levels reach devices as a republish's do, so they are
+    # held to the same checks as relevel (issue #4721). The app reads them
+    # unless the bars are marked provisional; a missing flag is not.
+    if naming.get("provisional") is not True:
+        _check_levels(naming)
     return {
         "formatVersion": FORMAT_VERSION,
         "packVersion": pack_version,
@@ -381,9 +401,7 @@ def build_manifest(
             **copy.deepcopy(CLASSIFIER_SETTINGS),
             "cropFit": crop_fit,
         },
-        "naming": dict(
-            naming or naming_for(detector_ids(detector_set), classifier_id, crop_fit, contents_of(files))
-        ),
+        "naming": naming,
         "region": dict(REGION),
         "cropThumbnailSize": CROP_THUMBNAIL_SIZE,
         "files": list(files),

@@ -130,11 +130,13 @@ final levelInForceProvider = Provider<LevelInForce?>((ref) {
 /// The level in force for a write that must not miss it (tag
 /// reconciliation, issue #4721): none at once for Surer, which reads as the
 /// stored flags; otherwise the pack's level once it is read, waiting
-/// up to [wait] for a read still under way. None at once when the pack
-/// cannot be read, and none after [wait]: a failed read retries in the
-/// background, and the video scan awaits this, so it never waits on that.
-/// The read is held while it waits, as an unheld one invalidated mid-load
-/// never completes (issue #3807).
+/// up to [wait] for a read still under way, a first one or one again after
+/// an install, an update or an adopted manifest. None at once when the pack
+/// cannot be read (never the one a failed read replaced), and none after
+/// [wait]: a failed read retries in the background, and the video scan
+/// awaits this, so it never waits on that. The read is held while it
+/// waits, as an unheld one invalidated mid-load never completes (issue
+/// #3807).
 Future<LevelInForce?> awaitLevelInForce(
   ProviderContainer container, {
   Duration wait = const Duration(seconds: 5),
@@ -144,8 +146,12 @@ Future<LevelInForce?> awaitLevelInForce(
   // is nothing to wait for.
   if (chosen == NamingLevel.surer) return null;
   final current = container.read(installedSpeciesPackProvider);
-  if (current.hasValue) return levelInForce(current.value?.manifest, chosen);
+  // A failed read may still hold the pack it was to replace, which may be
+  // another version or carry other levels: it is not taken.
   if (current.hasError) return null;
+  // A pack being read again still holds the one it replaces, for the same
+  // reason: that read is waited for too.
+  if (!current.isLoading) return levelInForce(current.value?.manifest, chosen);
   try {
     final pack = await container
         .awaitFuture(installedSpeciesPackProvider.future)

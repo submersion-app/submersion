@@ -590,6 +590,9 @@ def _measured_entry(evaluation, manifest, detector_ids, crop_fit):
         }
         for level in evaluation["levels"]
     ]
+    # A share in (0, 1] or none, as the app and level_problems take it: a
+    # Surer that named only wrong crops has none to show.
+    surer_precision = level_search.manifest_precision(evaluation["surer precision"])
     return {
         "naming": {
             "provisional": False,
@@ -601,11 +604,7 @@ def _measured_entry(evaluation, manifest, detector_ids, crop_fit):
             "confidentScoreNoLocation": round(bars["confident_no_location"], 2),
             "minAllowedCandidates": naming["minAllowedCandidates"],
             "topK": naming["topK"],
-            **(
-                {"precision": round(evaluation["surer precision"], level_search.PRECISION_PLACES)}
-                if evaluation["surer precision"] is not None
-                else {}
-            ),
+            **({"precision": surer_precision} if surer_precision is not None else {}),
             "levels": levels,
         },
         "detectorIds": list(detector_ids),

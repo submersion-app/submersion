@@ -29,8 +29,11 @@ class NamingLevelSection extends ConsumerWidget {
 
     return RadioGroup<NamingLevel>(
       groupValue: inForce,
+      // A tap on the tile already selected reports nothing, and setLevel
+      // skips the level already chosen. An arrow key onto it reports the
+      // level shown, which the diver then chose over one the pack lacks.
       onChanged: (level) {
-        if (level != null && level != inForce) {
+        if (level != null) {
           ref.read(namingLevelNotifierProvider.notifier).setLevel(level);
         }
       },

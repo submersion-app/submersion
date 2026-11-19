@@ -22,6 +22,17 @@ import metrics  # noqa: E402
 PRECISION_PLACES = 3
 
 
+def manifest_precision(value):
+    """`value` as a manifest carries a precision: rounded to
+    PRECISION_PLACES, or None when that leaves no share in (0, 1] to show
+    (none measured, or nothing right at those places), as the app and
+    manifest.level_problems require."""
+    if value is None:
+        return None
+    rounded = round(value, PRECISION_PLACES)
+    return rounded if rounded > 0 else None
+
+
 def _split(records):
     return [c["with"] for c in records], [c["without"] for c in records]
 
@@ -50,11 +61,13 @@ def rates(bars, held_nat, held_junk, *, min_side):
 def measure(surer, tune_nat, tune_junk, held_nat, held_junk, *, min_side):
     """(levels, Surer's held-out precision) under `surer`, the bars the
     pack names at. The levels come surest first; Surer's precision is None
-    when its bars name nothing held out.
+    when its bars name nothing held out. It may be 0, which still bounds
+    the levels, though a manifest carries only a share in (0, 1].
 
     A level is left out when it adds nothing over the level above, fails
-    the held-out gate, names nothing held out with a location (no precision
-    to show), or was more often right held out than the level above: a
+    the held-out gate, names nothing right held out with a location (no
+    share in (0, 1] to show, which the app and manifest.level_problems
+    require), or was more often right held out than the level above: a
     diver must never read that more names are more often right, and the
     app and manifest.level_problems refuse such a level."""
     tune_with, tune_without = _split(tune_nat)
@@ -82,11 +95,11 @@ def measure(surer, tune_nat, tune_junk, held_nat, held_junk, *, min_side):
             continue
         held = rates(level, held_nat, held_junk, min_side=min_side)
         precision = held["precision"]
-        if not precision["n"]:
+        shown = manifest_precision(precision["value"])
+        # Nothing named, or nothing right at the places the manifest keeps.
+        if shown is None:
             continue
-        if above_precision is not None and round(precision["value"], PRECISION_PLACES) > round(
-            above_precision, PRECISION_PLACES
-        ):
+        if above_precision is not None and shown > round(above_precision, PRECISION_PLACES):
             continue
         levels.append({"id": level_id, "target": target, "bars": level.__dict__, "held-out": held})
         ceiling, above_precision = level, precision["value"]
