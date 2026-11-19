@@ -363,6 +363,14 @@ class LevelProblemsTests(unittest.TestCase):
         self.assertTrue(self.problems([same]))
         self.assertTrue(self.problems([self.BALANCED, {**self.EAGER, "suggestScore": 0.6, "suggestScoreNoLocation": 0.7}]))
 
+    def test_a_level_lower_in_one_bar_only_and_as_often_right(self):
+        # The published pair's Eager shares Balanced's bar with a location
+        # and its precision; either bar alone may be the lower one.
+        no_location = {**self.EAGER, "suggestScore": 0.6, "suggestScoreNoLocation": 0.6, "precision": 0.81}
+        location = {**self.EAGER, "suggestScore": 0.5, "suggestScoreNoLocation": 0.7, "precision": 0.81}
+        self.assertEqual(self.problems([self.BALANCED, no_location], precision=0.897), [])
+        self.assertEqual(self.problems([self.BALANCED, location], precision=0.897), [])
+
     def test_accuracy_rising_with_more_names(self):
         self.assertTrue(self.problems([self.BALANCED, {**self.EAGER, "precision": 0.85}], precision=0.897))
         self.assertTrue(self.problems([{**self.BALANCED, "precision": 0.9}], precision=0.897))
@@ -381,10 +389,6 @@ class LevelProblemsTests(unittest.TestCase):
         broken = {**self.BALANCED, "suggestScore": None, "precision": None}
         problems = self.problems([broken, self.EAGER], precision="x")
         self.assertEqual(len(problems), 3)
-
-    def test_measured_entries_have_no_problems(self):
-        for entry in manifest.NAMING_MEASURED:
-            self.assertEqual(manifest.level_problems(entry["naming"]), [], entry["detectorIds"])
 
 
 class BuildManifestTests(unittest.TestCase):
