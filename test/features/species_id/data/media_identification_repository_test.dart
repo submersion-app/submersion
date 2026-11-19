@@ -54,6 +54,17 @@ void main() {
     },
   );
 
+  test('a fixed logbook and a way to find one are refused together, '
+      'in every build', () {
+    expect(
+      () => MediaIdentificationRepository(
+        database: db,
+        currentDatabase: () => db,
+      ),
+      throwsArgumentError,
+    );
+  });
+
   group('a transaction stays on the logbook open when it began', () {
     late AppDatabase other;
     late MediaIdentificationRepository switching;
@@ -116,6 +127,24 @@ void main() {
       );
       await switching.updateDecisions([dismissed]);
       expect(await repo.forMedia('m1'), [dismissed]);
+    });
+
+    test('a stored run and its rows are written there', () async {
+      await switching.storeRun(
+        run(count: 2),
+        insert: [identification('b')],
+        deleteIds: const ['a'],
+      );
+      expect((await repo.runFor('m1'))!.detectionCount, 2);
+      expect((await repo.forMedia('m1')).map((i) => i.id), ['b']);
+      expect(await other.select(other.mediaIdentificationRuns).get(), isEmpty);
+      expect(await other.select(other.mediaIdentifications).get(), isEmpty);
+    });
+
+    test('a deletion removes the rows and the run there', () async {
+      expect(await switching.deleteForMedia(['m1']), ['a']);
+      expect(await repo.runFor('m1'), isNull);
+      expect(await repo.forMedia('m1'), isEmpty);
     });
 
     test('a callback it left behind follows the logbook open when it runs, '

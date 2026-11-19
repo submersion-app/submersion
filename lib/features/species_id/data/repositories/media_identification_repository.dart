@@ -30,17 +30,20 @@ typedef StoreRunWrite = ({
 /// and the app derives them; the diver's own record is the species tags.
 class MediaIdentificationRepository {
   /// [database] fixes the logbook; otherwise [currentDatabase] (by default
-  /// [DatabaseService]'s) is asked on every call.
+  /// [DatabaseService]'s) is asked on every call. Both together are
+  /// refused in every build, since one would silently win.
   MediaIdentificationRepository({
     AppDatabase? database,
     AppDatabase Function()? currentDatabase,
-  }) : assert(
-         database == null || currentDatabase == null,
-         'Give a fixed database or a way to find one, not both',
-       ),
-       _currentDatabase = database != null
+  }) : _currentDatabase = database != null
            ? (() => database)
-           : (currentDatabase ?? _openLogbook);
+           : (currentDatabase ?? _openLogbook) {
+    if (database != null && currentDatabase != null) {
+      throw ArgumentError(
+        'Give a fixed database or a way to find one, not both',
+      );
+    }
+  }
 
   final AppDatabase Function() _currentDatabase;
 
