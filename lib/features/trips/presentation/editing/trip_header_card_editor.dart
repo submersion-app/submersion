@@ -336,6 +336,14 @@ class _TripHeaderCardEditorState extends ConsumerState<TripHeaderCardEditor> {
           children: [
             SegmentedButton<TripType>(
               key: const Key('trip-edit-type'),
+              // Four types across a card on a phone: the check and the
+              // usual padding would wrap "Liveaboard" over two lines.
+              showSelectedIcon: false,
+              style: const ButtonStyle(
+                padding: WidgetStatePropertyAll(
+                  EdgeInsets.symmetric(horizontal: 4),
+                ),
+              ),
               segments: [
                 for (final t in [
                   TripType.shore,
