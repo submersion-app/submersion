@@ -53,6 +53,7 @@ import 'package:submersion/features/pre_dive/presentation/pages/pre_dive_templat
 import 'package:submersion/features/courses/presentation/pages/course_detail_page.dart';
 import 'package:submersion/features/courses/presentation/pages/course_edit_page.dart';
 import 'package:submersion/features/courses/presentation/pages/course_edit_routes.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_set_edit_routes.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_detail_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_routes.dart';
@@ -767,6 +768,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/equipment',
             name: 'equipment',
+            // A sitting in the gear or sets pane, or on a page pushed above
+            // it, is asked about before a tab or a link goes (issue #4527).
             onExit: confirmLeaveRecordSitting,
             pageBuilder: (context, state) => NoTransitionPage(
               key: state.pageKey,
@@ -789,6 +792,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'sets',
                 name: 'equipmentSets',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => const EquipmentSetListPage(),
                 routes: [
                   GoRoute(
@@ -802,13 +806,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: ':setId',
                     name: 'equipmentSetDetail',
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) => EquipmentSetDetailPage(
                       setId: state.pathParameters['setId']!,
+                      // The old edit address opens the page unlocked
+                      // (issue #4527, phase 3).
+                      openUnlocked: state.uri.queryParameters['mode'] == 'edit',
                     ),
                     routes: [
                       GoRoute(
                         path: 'edit',
                         name: 'editEquipmentSet',
+                        // Behind phase 3's switch, the page opened unlocked.
+                        redirect: equipmentSetEditRedirect,
                         builder: (context, state) => EquipmentSetEditPage(
                           setId: state.pathParameters['setId'],
                         ),

@@ -49,6 +49,15 @@ class EquipmentSetGeofence extends Equatable {
     );
   }
 
+  /// Whether [other] is this fence as the diver edits it: the same id,
+  /// label, centre and radius, whatever its timestamps.
+  bool sameEdit(EquipmentSetGeofence other) =>
+      id == other.id &&
+      label == other.label &&
+      latitude == other.latitude &&
+      longitude == other.longitude &&
+      radiusMeters == other.radiusMeters;
+
   @override
   List<Object?> get props => [
     id,
