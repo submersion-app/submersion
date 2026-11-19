@@ -165,9 +165,10 @@ class DiveFindSpeciesPanel extends ConsumerWidget {
         if (m.mediaType == MediaType.photo || m.mediaType == MediaType.video) m,
     ];
     // Only what the run will open: media up to date is not read again.
-    final missing = notOnDeviceCount(
+    final missing = await notOnDeviceCount(
       media,
       checked: await ref.read(diveMediaUpToDateProvider(dive.id).future),
+      libraryOriginalHere: ref.read(libraryOriginalHereProvider),
     );
     if (missing > 0) {
       if (!context.mounted) return;

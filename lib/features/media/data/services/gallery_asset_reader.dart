@@ -27,6 +27,11 @@ abstract class GalleryAssetReader {
   Future<File?> originFile(String assetId);
   Future<Uint8List?> thumbnailBytes(String assetId, int width, int height);
   Future<bool> exists(String assetId);
+
+  /// Whether the library holds [assetId]'s original on this device, rather
+  /// than only in iCloud, where reading it means a download (issue #4727).
+  /// False for an asset not found.
+  Future<bool> originIsLocal(String assetId);
 }
 
 /// Production reader over photo_manager. Exercised on iOS, macOS and Android
@@ -70,5 +75,11 @@ class PhotoManagerAssetReader implements GalleryAssetReader {
   @override
   Future<bool> exists(String assetId) async =>
       await AssetEntity.fromId(assetId) != null;
+
+  @override
+  Future<bool> originIsLocal(String assetId) async {
+    final asset = await AssetEntity.fromId(assetId);
+    return asset != null && await asset.isLocallyAvailable(isOrigin: true);
+  }
 }
 // coverage:ignore-end

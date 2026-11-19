@@ -71,6 +71,7 @@ void main() {
     List<MediaItem>? media,
     Set<String> upToDate = const {},
     bool autoApply = false,
+    Future<bool> Function(MediaItem item)? libraryOriginalHere,
   }) async {
     final controller = RecordEditController<Dive>(onSave: (_) async {});
     addTearDown(controller.dispose);
@@ -93,6 +94,9 @@ void main() {
             (ref) async => media ?? [testMediaItem(id: 'p1', diveId: 'd1')],
           ),
           diveMediaUpToDateProvider('d1').overrideWith((ref) async => upToDate),
+          libraryOriginalHereProvider.overrideWithValue(
+            libraryOriginalHere ?? (_) async => true,
+          ),
           diveSpeciesCheckedProvider('d1').overrideWith((ref) async => checked),
           diveSpeciesRunProvider.overrideWith((ref) => run ?? _FixedRun(runs)),
         ],
@@ -315,6 +319,40 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('dive_species_download')));
       await tester.pumpAndSettle();
       expect(run.started, ['d1']);
+    });
+
+    testWidgets('a library photo held only in iCloud is counted too', (
+      tester,
+    ) async {
+      final run = _RecordingRun();
+      final library = MediaItem(
+        id: 'p1',
+        diveId: 'd1',
+        mediaType: MediaType.photo,
+        platformAssetId: 'PH-1',
+        takenAt: DateTime.utc(2026, 3, 9),
+        createdAt: DateTime.utc(2026, 3, 9),
+        updatedAt: DateTime.utc(2026, 3, 9),
+      );
+      await pumpCard(
+        tester,
+        installed: pack,
+        run: run,
+        media: [library],
+        libraryOriginalHere: (_) async => false,
+      );
+
+      await tester.tap(find.byKey(const ValueKey('dive_species_find')));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          "1 photo or video isn't on this device. Finding species will "
+          'download it.',
+        ),
+        findsOneWidget,
+      );
+      expect(run.started, isEmpty);
     });
 
     testWidgets('media already checked is not counted: the run starts at '

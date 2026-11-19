@@ -2,6 +2,8 @@ import 'package:flutter/widgets.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/media/data/services/asset_resolution_service.dart';
+import 'package:submersion/features/media/data/services/gallery_asset_reader.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
@@ -24,6 +26,27 @@ Future<VideoFileReader?> runVideoFileOf(Ref ref, MediaItem item) async {
   return <T>(Future<T> Function(String path) read) =>
       access<T>(path: path, bookmarkRef: item.bookmarkRef, read: read);
 }
+
+/// Whether a photo library item's original is on this device (issue
+/// #4727): found in this device's library, with its original held here
+/// rather than only in iCloud. Anything else (not found here, no access, a
+/// failed check) a run would download, so it counts as not here.
+final libraryOriginalHereProvider = Provider<Future<bool> Function(MediaItem)>(
+  (ref) => (item) async {
+    try {
+      final resolved = await ref
+          .read(assetResolutionServiceProvider)
+          .resolveAssetId(item);
+      final id = resolved.localAssetId;
+      if (resolved.status != ResolutionStatus.resolved || id == null) {
+        return false;
+      }
+      return await const PhotoManagerAssetReader().originIsLocal(id);
+    } on Object {
+      return false;
+    }
+  },
+);
 
 /// Where a dive is, for a Find species run (issue #4727).
 final divePlaceRepositoryProvider = Provider<DivePlaceRepository>(

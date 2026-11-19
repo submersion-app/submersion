@@ -15,22 +15,37 @@ void main() {
     updatedAt: DateTime.utc(2026),
   );
 
-  test('counts items with no file here, not photo library items', () {
-    final count = notOnDeviceCount([
-      item('a', path: '/here.jpg'),
-      item('b', path: '/gone.jpg'),
-      item('c'),
-      item('d', asset: 'PH-1'),
-    ], fileExists: (path) => path == '/here.jpg');
+  test('counts items with no file here, and library items whose original '
+      'is not here', () async {
+    final count = await notOnDeviceCount(
+      [
+        item('a', path: '/here.jpg'),
+        item('b', path: '/gone.jpg'),
+        item('c'),
+        item('d', asset: 'PH-1'),
+      ],
+      fileExists: (path) => path == '/here.jpg',
+      libraryOriginalHere: (_) async => true,
+    );
     expect(count, 2);
   });
 
+  test('a photo library item whose original is only in iCloud is counted: '
+      'a run would download it', () async {
+    final count = await notOnDeviceCount([
+      item('a', asset: 'PH-1'),
+      item('b', asset: 'PH-2'),
+    ], libraryOriginalHere: (m) async => m.id == 'a');
+    expect(count, 1);
+  });
+
   test('media already checked with the installed model is not counted: the '
-      'run will not open it', () {
-    final count = notOnDeviceCount(
-      [item('b', path: '/gone.jpg'), item('c')],
+      'run will not open it', () async {
+    final count = await notOnDeviceCount(
+      [item('b', path: '/gone.jpg'), item('c'), item('e', asset: 'PH-3')],
       fileExists: (_) => false,
-      checked: const {'b'},
+      libraryOriginalHere: (_) async => false,
+      checked: const {'b', 'e'},
     );
     expect(count, 1);
   });

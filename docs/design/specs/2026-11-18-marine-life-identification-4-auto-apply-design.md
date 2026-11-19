@@ -246,9 +246,12 @@ Marine life                                         3 species
   start asks first: "17 photos and 3 videos aren't on this device. Finding
   species will download them." with **Download and find** and **Cancel**
   **(decided: fetch everything; proposed: ask first, wording)**. The count
-  is a cheap check of the media rows (no local path, or a path that does
-  not open), not a network call, so it can be approximate for photo
-  library items **(proposed; builder may refine)**.
+  checks each item on the device, not the network: a file it names that
+  does not open, or a photo library item whose original the library holds
+  only in iCloud (asked of the library, through photo_manager's
+  `isLocallyAvailable`) **(decided 2026-11-19: count library items
+  exactly, after review found the approximate count let a run download
+  iCloud-only originals unannounced)**.
 - With nothing to download, the run starts at once.
 
 ### During a run
@@ -766,6 +769,7 @@ start when no playhead is reported.
   that the viewer's own resolver stays as it is.
 - How a sitting's Save treats a tag written underneath it, and therefore
   whether skipping items with an open sitting is needed.
-- The approximate "not on this device" count before a run.
+- The "not on this device" count before a run (since decided: library
+  items are asked of the library).
 - Exact copy, in all 11 languages.
 - The full list of foreign keys to `species` for the species guard.
