@@ -63,11 +63,51 @@ class FakeGpsTrackSave extends GpsTrackEditSaveService {
 /// What a test pumped: the fake save, the stored track, and the tracks
 /// whose cached geometry was dropped.
 class GpsTrackPageHarness {
-  GpsTrackPageHarness(this.save, this.stored, this.evicted);
+  GpsTrackPageHarness(
+    this.save,
+    this.stored,
+    this.evicted,
+    this.splits,
+    this.deleted,
+    this.container,
+  );
 
   final FakeGpsTrackSave save;
   final StateController<GpsTrack?> stored;
   final List<String> evicted;
+
+  /// Each split asked for: the track and where.
+  final List<(String, int)> splits;
+
+  /// Each track deleted.
+  final List<String> deleted;
+
+  final ProviderContainer container;
+}
+
+/// Pushes [page] over a plain first route, so the page can pop.
+class _Launcher extends StatefulWidget {
+  const _Launcher({required this.page});
+
+  final Widget page;
+
+  @override
+  State<_Launcher> createState() => _LauncherState();
+}
+
+class _LauncherState extends State<_Launcher> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute<void>(builder: (_) => widget.page));
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => const Text('first route');
 }
 
 final _storedProvider = StateProvider<GpsTrack?>((ref) => null);
@@ -86,6 +126,8 @@ Future<GpsTrackPageHarness> pumpGpsTrackPage(
   addTearDown(tester.view.reset);
   final overrides = await getBaseOverrides();
   final evicted = <String>[];
+  final splits = <(String, int)>[];
+  final deleted = <String>[];
   final initial = track ?? gpsTrack();
   await tester.pumpWidget(
     testApp(
@@ -106,10 +148,25 @@ Future<GpsTrackPageHarness> pumpGpsTrackPage(
           (ref) => FakeGpsTrackSave(ref.watch(_storedProvider.notifier)),
         ),
         evictGpsTrackProvider.overrideWithValue((id) async => evicted.add(id)),
+        splitTrackProvider.overrideWith(
+          (ref) => (String id, int at) async {
+            splits.add((id, at));
+            ref.read(_storedProvider.notifier).state = null;
+            return ('${id}a', '${id}b');
+          },
+        ),
+        deleteTrackProvider.overrideWith(
+          (ref) => (String id) async {
+            deleted.add(id);
+            ref.read(_storedProvider.notifier).state = null;
+          },
+        ),
       ],
-      child: GpsTrackDetailPage(
-        trackId: initial.id,
-        unlockEditing: unlockEditing,
+      child: _Launcher(
+        page: GpsTrackDetailPage(
+          trackId: initial.id,
+          unlockEditing: unlockEditing,
+        ),
       ),
     ),
   );
@@ -121,5 +178,8 @@ Future<GpsTrackPageHarness> pumpGpsTrackPage(
     container.read(gpsTrackEditSaveServiceProvider) as FakeGpsTrackSave,
     container.read(_storedProvider.notifier),
     evicted,
+    splits,
+    deleted,
+    container,
   );
 }

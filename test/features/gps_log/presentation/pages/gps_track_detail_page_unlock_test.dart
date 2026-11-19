@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/features/gps_log/presentation/widgets/track_stats_header.dart';
+import 'package:submersion/features/tracks/domain/track_list_item.dart';
+import 'package:submersion/features/tracks/presentation/providers/tracks_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
@@ -244,5 +246,118 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(AlertDialog), findsOneWidget);
+  });
+
+  group('Split and Delete', () {
+    Future<void> openMenu(WidgetTester tester) async {
+      await tester.tap(find.byKey(const ValueKey('gps-track-overflow')));
+      await tester.pumpAndSettle();
+    }
+
+    PopupMenuItem<Object?> item(WidgetTester tester, String text) =>
+        tester.widget<PopupMenuItem<Object?>>(
+          find.ancestor(
+            of: find.text(text),
+            matching: find.byWidgetPredicate((w) => w is PopupMenuItem),
+          ),
+        );
+
+    testWidgets('locked, Split and Delete are off under "Unlock to use '
+        'these"', (tester) async {
+      await pumpGpsTrackPage(tester);
+      await openMenu(tester);
+
+      expect(find.text(l.recordEdit_unlockToUseThese), findsOneWidget);
+      expect(item(tester, l.gpsTrack_action_split).enabled, isFalse);
+      expect(item(tester, l.common_action_delete).enabled, isFalse);
+    });
+
+    testWidgets('export works locked', (tester) async {
+      await pumpGpsTrackPage(tester);
+      await openMenu(tester);
+
+      expect(item(tester, l.gpsTrack_action_shareGpx).enabled, isTrue);
+      expect(item(tester, l.gpsTrack_action_saveKml).enabled, isTrue);
+    });
+
+    testWidgets('with unsaved changes they are off', (tester) async {
+      await pumpGpsTrackPage(tester);
+      await unlock(tester);
+      await openCard(tester, headerTitle);
+      await tester.enterText(
+        find.byKey(const ValueKey('gps-track-name-field')),
+        'Shore dive',
+      );
+      await tester.pumpAndSettle();
+      await openMenu(tester);
+
+      expect(find.text(l.recordEdit_saveOrCancelFirst), findsOneWidget);
+      expect(item(tester, l.gpsTrack_action_split).enabled, isFalse);
+      expect(item(tester, l.common_action_delete).enabled, isFalse);
+    });
+
+    testWidgets('split from a clean sitting creates two tracks and pops '
+        'without asking', (tester) async {
+      final harness = await pumpGpsTrackPage(tester);
+      await unlock(tester);
+      await openMenu(tester);
+      await tester.tap(find.text(l.gpsTrack_action_split));
+      await tester.pumpAndSettle();
+      expect(find.text(l.gpsTrack_edit_splitWarning), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('gps-track-edit-apply')));
+      await tester.pumpAndSettle();
+
+      expect(harness.splits, hasLength(1));
+      expect(harness.splits.single.$1, 'track-1');
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.text('first route'), findsOneWidget);
+      expect(find.byType(RecordEditBar), findsNothing);
+    });
+
+    testWidgets('delete asks, deletes, forgets the track and pops', (
+      tester,
+    ) async {
+      final harness = await pumpGpsTrackPage(tester);
+      final key = GpsTrackItem(gpsTrack()).selectionKey;
+      harness.container.read(highlightedTrackKeyProvider.notifier).state = key;
+      await unlock(tester);
+      await openMenu(tester);
+      await tester.tap(find.text(l.common_action_delete));
+      await tester.pumpAndSettle();
+      expect(find.text(l.gpsLogger_deleteTrackTitle), findsOneWidget);
+
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text(l.common_action_delete),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(harness.deleted, ['track-1']);
+      expect(harness.container.read(highlightedTrackKeyProvider), isNull);
+      expect(find.text('first route'), findsOneWidget);
+    });
+
+    testWidgets('a cancelled delete leaves the track and the sitting', (
+      tester,
+    ) async {
+      final harness = await pumpGpsTrackPage(tester);
+      await unlock(tester);
+      await openMenu(tester);
+      await tester.tap(find.text(l.common_action_delete));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text(l.common_action_cancel),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(harness.deleted, isEmpty);
+      expect(find.byType(RecordEditBar), findsOneWidget);
+    });
   });
 }

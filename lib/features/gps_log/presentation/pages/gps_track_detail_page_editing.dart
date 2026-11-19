@@ -1,5 +1,7 @@
 part of 'gps_track_detail_page.dart';
 
+final _operationLog = LoggerService.forClass(GpsTrackDetailPage);
+
 /// The GPS track page's use of the shared editing host (issue #4527,
 /// phase 3): what is its own about saving, reading back and its cards.
 mixin _GpsTrackDetailPageEditing
@@ -179,5 +181,88 @@ mixin _GpsTrackDetailPageEditing
         ),
       ),
     );
+  }
+
+  /// Whether the record's operations may run now, or why not.
+  RecordOperationBlock? get _operationBlock =>
+      recordOperationBlockOf(hostsEditing ? editController : null);
+
+  /// The menu's whole-record operations, Split and Delete, under the
+  /// caption that says why they are unavailable; none where the page edits
+  /// nothing in place.
+  List<PopupMenuEntry<_TrackAction>> _operationItems() {
+    if (!hostsEditing) return const [];
+    final l10n = context.l10n;
+    final block = _operationBlock;
+    final reason = recordOperationReason(l10n, block, plural: true);
+    final available = block == null || block == RecordOperationBlock.none;
+    return [
+      if (reason != null) recordOperationCaption<_TrackAction>(context, reason),
+      PopupMenuItem(
+        value: _TrackAction.split,
+        enabled: available,
+        child: Text(l10n.gpsTrack_action_split),
+      ),
+      PopupMenuItem(
+        key: const ValueKey('gps-track-delete'),
+        value: _TrackAction.delete,
+        enabled: available,
+        child: Text(l10n.common_action_delete),
+      ),
+    ];
+  }
+
+  /// Runs [operation] through the sitting, as every whole-record operation
+  /// does.
+  Future<void> _runOperation(Future<bool> Function() operation) =>
+      recordOperationRunnerOf(
+        editController,
+        record: 'GPS track ${widget.trackId}',
+      )(operation);
+
+  /// Splits [track] at [atMs] into two tracks, as the split panel always
+  /// has, then leaves the page: the track it showed is gone. Answers
+  /// whether it wrote.
+  Future<bool> _splitTrack(GpsTrack track, int atMs) async {
+    final split = ref.read(splitTrackProvider);
+    final mode = ref.read(trackEditModeProvider.notifier);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await split(track.id, atMs);
+    } on ArgumentError catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('${e.message}')));
+      return false;
+    }
+    if (!mounted) return true;
+    mode.state = TrackEditMode.none;
+    Navigator.of(context).pop();
+    return true;
+  }
+
+  /// Deletes [track] after the Tracks list's confirmation, forgets it as
+  /// the list does, and leaves the page. Answers whether it wrote.
+  Future<bool> _deleteTrack(GpsTrack track) async {
+    final item = GpsTrackItem(track);
+    final l10n = context.l10n;
+    final messenger = ScaffoldMessenger.of(context);
+    final delete = ref.read(deleteTrackProvider);
+    if (!await confirmDeleteTrack(context, item)) return false;
+    try {
+      await delete(track.id);
+    } catch (e, stackTrace) {
+      _operationLog.error(
+        'GPS track delete failed',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.common_error_tryAgain)),
+      );
+      return false;
+    }
+    if (!mounted) return true;
+    forgetDeletedTrack(ref, item);
+    Navigator.of(context).pop();
+    return true;
   }
 }

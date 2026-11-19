@@ -28,6 +28,8 @@ import 'package:submersion/features/maps/presentation/widgets/map_interaction_op
 import 'package:submersion/features/maps/presentation/widgets/submersion_tile_layer.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/maps/presentation/widgets/world_copies.dart';
+import 'package:submersion/features/tracks/domain/track_list_item.dart';
+import 'package:submersion/features/tracks/presentation/widgets/delete_track_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
@@ -37,6 +39,7 @@ import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart'
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
+import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
 part 'gps_track_detail_page_editing.dart';
@@ -71,6 +74,7 @@ enum _TrackAction {
   trim,
   split,
   resetTrim,
+  delete,
 }
 
 /// Which editing affordance the detail page is showing.
@@ -124,6 +128,8 @@ class _GpsTrackDetailPageState extends ConsumerState<GpsTrackDetailPage>
         ref.read(trackEditModeProvider.notifier).state = TrackEditMode.split;
       case _TrackAction.resetTrim:
         await ref.read(trimTrackProvider)(track.id);
+      case _TrackAction.delete:
+        await _runOperation(() => _deleteTrack(track));
       default:
         await _export(action, track);
     }
@@ -142,6 +148,10 @@ class _GpsTrackDetailPageState extends ConsumerState<GpsTrackDetailPage>
   Future<void> _applySplit(GpsTrack track) async {
     final at = _pendingStartMs;
     if (at == null) return;
+    if (hostsEditing) {
+      await _runOperation(() => _splitTrack(track, at));
+      return;
+    }
     final messenger = ScaffoldMessenger.of(context);
     try {
       await ref.read(splitTrackProvider)(track.id, at);
@@ -315,10 +325,11 @@ class _GpsTrackDetailPageState extends ConsumerState<GpsTrackDetailPage>
             value: _TrackAction.trim,
             child: Text(l10n.gpsTrack_action_trim),
           ),
-        PopupMenuItem(
-          value: _TrackAction.split,
-          child: Text(l10n.gpsTrack_action_split),
-        ),
+        if (!hostsEditing)
+          PopupMenuItem(
+            value: _TrackAction.split,
+            child: Text(l10n.gpsTrack_action_split),
+          ),
         // Only offered when there is a trim to undo.
         if (!hostsEditing &&
             (track.trimStartTime != null || track.trimEndTime != null))
@@ -326,6 +337,9 @@ class _GpsTrackDetailPageState extends ConsumerState<GpsTrackDetailPage>
             value: _TrackAction.resetTrim,
             child: Text(l10n.gpsTrack_action_resetTrim),
           ),
+        // Split and Delete, on a page that edits in place: whole-record
+        // operations, under the lock.
+        ..._operationItems(),
       ],
     );
   }
