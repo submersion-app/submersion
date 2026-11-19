@@ -33,8 +33,11 @@ abstract class RecordSharingAdapter<S> {
 
 /// A record's sharing with other profiles, held in its editing sitting
 /// (issue #4527, phase 3): read when the card that shows it starts, changed
-/// in the sitting, and written with the rest at Save. A share the
-/// repository refuses fails the whole Save.
+/// in the sitting, and written with the rest at Save. A sharing the acting
+/// profile may not make (the adapter's write returns false) fails the
+/// whole Save. What counts as that is the adapter's to say: a profile chosen
+/// that has since been deleted on another device is left out by the gear
+/// adapter, not refused, as there is nobody left to share with.
 ///
 /// One of these serves every record type whose page edits sharing; what
 /// differs between them is only the [RecordSharingAdapter] passed to
