@@ -137,6 +137,8 @@ Future<GpsTrackPageHarness> pumpGpsTrackPage(
   bool unlockEditing = true,
   List<Dive> dives = const [],
   bool evictFails = false,
+  bool splitRefused = false,
+  bool deleteFails = false,
   Brightness? brightness,
   Size size = const Size(600, 1200),
 }) async {
@@ -172,6 +174,9 @@ Future<GpsTrackPageHarness> pumpGpsTrackPage(
         }),
         splitTrackProvider.overrideWith(
           (ref) => (String id, int at) async {
+            if (splitRefused) {
+              throw ArgumentError.value(at, 'at', 'Split point refused');
+            }
             splits.add((id, at));
             ref.read(_storedProvider.notifier).state = null;
             return ('${id}a', '${id}b');
@@ -179,6 +184,7 @@ Future<GpsTrackPageHarness> pumpGpsTrackPage(
         ),
         deleteTrackProvider.overrideWith(
           (ref) => (String id) async {
+            if (deleteFails) throw StateError('the database is locked');
             deleted.add(id);
             ref.read(_storedProvider.notifier).state = null;
           },

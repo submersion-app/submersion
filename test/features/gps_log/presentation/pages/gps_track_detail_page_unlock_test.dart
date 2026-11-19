@@ -396,6 +396,11 @@ void main() {
   });
 
   group('the split panel', () {
+    Future<void> openMenu(WidgetTester tester) async {
+      await tester.tap(find.byKey(const ValueKey('gps-track-overflow')));
+      await tester.pumpAndSettle();
+    }
+
     Future<void> openSplit(WidgetTester tester) async {
       await tester.tap(find.byKey(const ValueKey('gps-track-overflow')));
       await tester.pumpAndSettle();
@@ -437,6 +442,46 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byKey(const ValueKey('gps-track-edit-panel')), findsNothing);
+    });
+
+    testWidgets('a refused split point says why and keeps the panel and the '
+        'sitting', (tester) async {
+      final harness = await pumpGpsTrackPage(tester, splitRefused: true);
+      await unlock(tester);
+      await openMenu(tester);
+      await tester.tap(find.text(l.gpsTrack_action_split));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('gps-track-edit-apply')));
+      await tester.pumpAndSettle();
+
+      expect(harness.splits, isEmpty);
+      expect(find.text('Split point refused'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('gps-track-edit-panel')),
+        findsOneWidget,
+      );
+      expect(find.byType(RecordEditBar), findsOneWidget);
+    });
+
+    testWidgets('a failed delete says so and keeps the page', (tester) async {
+      final harness = await pumpGpsTrackPage(tester, deleteFails: true);
+      await unlock(tester);
+      await openMenu(tester);
+      await tester.tap(find.text(l.common_action_delete));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text(l.common_action_delete),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(harness.deleted, isEmpty);
+      expect(find.text(l.common_error_tryAgain), findsOneWidget);
+      expect(find.text('first route'), findsNothing);
+      expect(find.byType(RecordEditBar), findsOneWidget);
     });
   });
 }
