@@ -38,6 +38,7 @@ import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 import 'package:submersion/features/buddies/data/services/buddy_edit_save_service.dart';
 import 'package:submersion/features/buddies/presentation/editing/buddy_card_ids.dart';
+import 'package:submersion/features/buddies/presentation/editing/buddy_certifications_sitting.dart';
 import 'package:submersion/features/buddies/presentation/editing/buddy_edit_cards.dart';
 import 'package:submersion/features/documents/presentation/editing/record_document_links_sitting.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
@@ -253,7 +254,10 @@ class _BuddyDetailContent extends ConsumerWidget {
 
           // Certifications (issue #553): full list from the certifications
           // table, with an empty state.
-          _buildCertificationSection(context, ref),
+          _framed(
+            BuddyCardId.certifications,
+            _buildCertificationSection(context, ref),
+          ),
           const SizedBox(height: 24),
 
           // Statistics
@@ -552,18 +556,23 @@ class _BuddyDetailContent extends ConsumerWidget {
   }
 
   Widget _buildCertificationSection(BuildContext context, WidgetRef ref) {
-    final certsAsync = ref.watch(buddyCertificationsProvider(buddy.id));
+    final stored = ref.watch(buddyCertificationsProvider(buddy.id));
+    // The sitting's list once it holds a change.
+    final session = host?.maybeEditController?.session;
+    final held = session != null && buddyCertificationsList.isChanged(session)
+        ? buddyCertificationsList.current(session)
+        : null;
+    final certsAsync = held != null ? AsyncValue.data(held) : stored;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            _sectionTitle(
+              context,
               context.l10n.buddies_section_certifications,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              editing: _editing,
             ),
             const SizedBox(height: 12),
             certsAsync.when(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/editing/buddy_card_ids.dart';
+import 'package:submersion/features/buddies/presentation/editing/buddy_certifications_sitting.dart';
 import 'package:submersion/features/buddies/presentation/editing/buddy_contact_card_editor.dart';
 import 'package:submersion/features/buddies/presentation/editing/buddy_edit_fields.dart';
 import 'package:submersion/features/buddies/presentation/editing/buddy_header_card_editor.dart';
@@ -35,6 +36,15 @@ final Map<BuddyCardId, EditCard<Buddy>> buddyEditCards = {
     isValid: (session) => buddyEmailValid(session.valueOf(buddyEmailField)),
     editorBuilder: (context, session) =>
         BuddyContactCardEditor(session: session),
+  ),
+  BuddyCardId.certifications: EditCard<Buddy>(
+    id: BuddyCardId.certifications.name,
+    title: (context) =>
+        BuddyCardId.certifications.localizedDisplayName(context.l10n),
+    // Always on the page: with none, it says so.
+    isEmpty: (_) => false,
+    editorBuilder: (context, session) =>
+        BuddyCertificationsCardEditor(session: session),
   ),
   BuddyCardId.statistics: EditCard<Buddy>(
     id: BuddyCardId.statistics.name,

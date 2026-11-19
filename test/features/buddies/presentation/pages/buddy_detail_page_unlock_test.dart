@@ -3,7 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/editing/buddy_card_ids.dart';
+import 'package:submersion/features/buddies/presentation/editing/buddy_certifications_sitting.dart';
 import 'package:submersion/features/buddies/presentation/editing/buddy_edit_fields.dart';
+import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
@@ -180,5 +182,62 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(AlertDialog), findsOneWidget);
+  });
+
+  group('certifications', () {
+    final rescue = Certification(
+      id: 'c1',
+      buddyId: 'b1',
+      name: 'Rescue',
+      agency: 'padi',
+      createdAt: DateTime(2020),
+      updatedAt: DateTime(2020),
+    );
+
+    testWidgets('edited in the dialog, Done, then the buddy\'s Cancel writes '
+        'nothing', (tester) async {
+      final harness = await pumpBuddyPage(tester, certifications: [rescue]);
+      await unlock(tester);
+      final session = sessionOf(tester);
+      // The harness has no database: the list starts from the provider's.
+      buddyCertificationsList.loadNone(session);
+      buddyCertificationsList.set(session, [rescue]);
+      await openCard(tester, l.buddies_section_certifications);
+      await tester.tap(find.byKey(const ValueKey('buddy-cert-c1')));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const ValueKey('cert-edit-card-number')),
+        '42',
+      );
+      await tester.tap(find.byKey(const ValueKey('buddy-cert-dialog-done')));
+      await tester.pumpAndSettle();
+      expect(buddyCertificationsList.current(session)!.single.cardNumber, '42');
+
+      await tester.tap(find.text(l.forms_cancel));
+      await tester.pumpAndSettle();
+      // Discard the changes.
+      await tester.tap(find.text(l.forms_discard_discard));
+      await tester.pumpAndSettle();
+
+      expect(harness.save.calls, isEmpty);
+      expect(find.byType(RecordEditBar), findsNothing);
+    });
+
+    testWidgets('a certification change and a name change are one entry', (
+      tester,
+    ) async {
+      final harness = await pumpBuddyPage(tester);
+      harness.save.runHeld = false;
+      await unlock(tester);
+      final session = sessionOf(tester);
+      buddyCertificationsList.loadNone(session);
+      buddyCertificationsList.set(session, [rescue]);
+      session.set(buddyNameField, 'Alexander');
+      await tester.pumpAndSettle();
+
+      await save(tester);
+
+      expect(harness.save.calls.single.cards, {'header', 'certifications'});
+    });
   });
 }

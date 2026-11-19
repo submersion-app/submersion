@@ -42,6 +42,9 @@ mixin _BuddyDetailPageEditing
 
   @override
   void onSittingStart(EditSession<Buddy> session, ProviderContainer container) {
+    // Read now, so the Certifications card shows the sitting's list once
+    // it changes.
+    buddyCertificationsList.load(session);
     holdDocumentLinks(
       session,
       container.read,
