@@ -322,7 +322,12 @@ applied when reading (`naming_levels.dart`, `applyNamingLevel`) to
 identifications the installed pack named; the stored `suggestable` column
 keeps the pack's own answer, and decisions never change with the level. A
 level the installed pack does not carry falls back to the nearest surer
-one, and the settings section is hidden when the pack carries none.
+one, and the settings section is hidden when the pack carries none. The
+diver's choice is kept through a fallback, so it returns with a pack that
+carries it; meanwhile the section selects the level in force and says
+which level is missing. Choosing the level in force replaces the stored
+choice: its tile is `toggleable` only then, because a radio tile reports
+no tap on the selected value otherwise.
 
 ## Trying a pack locally
 

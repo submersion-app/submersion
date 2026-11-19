@@ -17258,6 +17258,8 @@
   "@settings_speciesId_levelBalancedAccuracy": {"description": "Under Balanced: how often its names were right when measured", "placeholders": {"percent": {"type": "int"}}},
   "settings_speciesId_levelEagerAccuracy": "Most names. About {percent}% right",
   "@settings_speciesId_levelEagerAccuracy": {"description": "Under Eager: how often its names were right when measured", "placeholders": {"percent": {"type": "int"}}},
+  "settings_speciesId_levelFallback": "{chosen} is not in this version of the model, so the app uses {inForce} until an update adds {chosen}. Choose {inForce} to keep using it.",
+  "@settings_speciesId_levelFallback": {"description": "Under the naming levels when the level the diver chose is not in the installed model: the app names at the nearest surer level it has, and choosing that one keeps it", "placeholders": {"chosen": {"type": "String"}, "inForce": {"type": "String"}}},
   "settings_speciesId_kept": "Suggestions kept on this device",
   "settings_speciesId_keptValue": "{count} ({size})",
   "@settings_speciesId_keptValue": {"placeholders": {"count": {"type": "int"}, "size": {"type": "String"}}},

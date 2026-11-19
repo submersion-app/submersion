@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -51,6 +53,114 @@ void main() {
       expect(nothing, isEmpty);
     },
   );
+
+  test('a fixed logbook and a way to find one are refused together, '
+      'in every build', () {
+    expect(
+      () => MediaIdentificationRepository(
+        database: db,
+        currentDatabase: () => db,
+      ),
+      throwsArgumentError,
+    );
+  });
+
+  group('a transaction stays on the logbook open when it began', () {
+    late AppDatabase other;
+    late MediaIdentificationRepository switching;
+
+    setUp(() async {
+      other = AppDatabase(
+        NativeDatabase.memory(setup: registerAppSqlFunctions),
+      );
+      addTearDown(other.close);
+      await repo.storeRun(run(), insert: [identification('a')], deleteIds: []);
+      // The first lookup finds this logbook; every later one, another.
+      var lookups = 0;
+      switching = MediaIdentificationRepository(
+        currentDatabase: () => lookups++ == 0 ? db : other,
+      );
+    });
+
+    test('a snapshot reads both from there', () async {
+      final (stored, rows) = await switching.forMediaWithRun('m1');
+      expect(stored?.packVersion, '2026.11.1');
+      expect(rows.map((i) => i.id), ['a']);
+    });
+
+    test('a store after reading reads and writes there', () async {
+      List<MediaIdentification>? read;
+      await switching.storeRunAfterReading(
+        'm1',
+        read: true,
+        build: (current) async {
+          read = current;
+          return (
+            run: run(count: 2),
+            insert: [identification('b')],
+            deleteIds: const <String>[],
+          );
+        },
+      );
+      expect(read?.map((i) => i.id), ['a']);
+      expect((await repo.forMedia('m1')).map((i) => i.id), ['a', 'b']);
+      expect(await other.select(other.mediaIdentifications).get(), isEmpty);
+    });
+
+    test('renaming moves the rows and the run on there', () async {
+      final renamed = run().copyWith(
+        packVersion: '2026.12.1',
+        locationCell: () => null,
+      );
+      final named = identification('a').copyWith(openScore: 0.7);
+      await switching.updateNames([named], run: renamed);
+      expect(await repo.runFor('m1'), renamed);
+      expect((await repo.forMedia('m1')).single.openScore, 0.7);
+      expect(await other.select(other.mediaIdentificationRuns).get(), isEmpty);
+    });
+
+    test('a decision is written there', () async {
+      final dismissed = identification(
+        'a',
+        decision: IdentificationDecision.rejected,
+        decidedAt: fixtureT1,
+      );
+      await switching.updateDecisions([dismissed]);
+      expect(await repo.forMedia('m1'), [dismissed]);
+    });
+
+    test('a stored run and its rows are written there', () async {
+      await switching.storeRun(
+        run(count: 2),
+        insert: [identification('b')],
+        deleteIds: const ['a'],
+      );
+      expect((await repo.runFor('m1'))!.detectionCount, 2);
+      expect((await repo.forMedia('m1')).map((i) => i.id), ['b']);
+      expect(await other.select(other.mediaIdentificationRuns).get(), isEmpty);
+      expect(await other.select(other.mediaIdentifications).get(), isEmpty);
+    });
+
+    test('a deletion removes the rows and the run there', () async {
+      expect(await switching.deleteForMedia(['m1']), ['a']);
+      expect(await repo.runFor('m1'), isNull);
+      expect(await repo.forMedia('m1'), isEmpty);
+    });
+
+    test('a callback it left behind follows the logbook open when it runs, '
+        'not the one the transaction began on', () async {
+      late Zone inside;
+      await switching.storeRunAfterReading(
+        'm1',
+        read: false,
+        build: (_) async {
+          inside = Zone.current;
+          return null;
+        },
+      );
+      expect(await inside.run(() => switching.forMedia('m1')), isEmpty);
+    });
+  });
 
   test('a run with nothing found is stored', () async {
     await repo.storeRun(run(count: 0), insert: const [], deleteIds: const []);

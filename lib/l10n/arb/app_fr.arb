@@ -8296,6 +8296,7 @@
   "settings_speciesId_levelSurerUnmeasured": "Moins de noms, le plus souvent justes",
   "settings_speciesId_levelBalancedAccuracy": "Plus de noms. Environ {percent} % justes",
   "settings_speciesId_levelEagerAccuracy": "Le plus de noms. Environ {percent} % justes",
+  "settings_speciesId_levelFallback": "« {chosen} » n'est pas disponible dans cette version du modèle, l'app utilise donc « {inForce} » jusqu'à ce qu'une mise à jour ajoute « {chosen} ». Choisissez « {inForce} » pour continuer à l'utiliser.",
   "settings_speciesId_kept": "Suggestions conservées sur cet appareil",
   "settings_speciesId_keptValue": "{count} ({size})",
   "settings_speciesId_clear": "Effacer les suggestions",

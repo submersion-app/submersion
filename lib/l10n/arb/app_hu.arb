@@ -8296,6 +8296,7 @@
   "settings_speciesId_levelSurerUnmeasured": "Kevesebb név, legtöbbször helyes",
   "settings_speciesId_levelBalancedAccuracy": "Több név. Kb. {percent}%-ban helyes",
   "settings_speciesId_levelEagerAccuracy": "A legtöbb név. Kb. {percent}%-ban helyes",
+  "settings_speciesId_levelFallback": "A(z) „{chosen}” szint nem érhető el a modell ezen verziójában, ezért az app a(z) „{inForce}” szintet használja, amíg egy frissítés hozzá nem adja a(z) „{chosen}” szintet. Válaszd a(z) „{inForce}” szintet, ha ennél szeretnél maradni.",
   "settings_speciesId_kept": "Ezen az eszközön tárolt javaslatok",
   "settings_speciesId_keptValue": "{count} ({size})",
   "settings_speciesId_clear": "Javaslatok törlése",

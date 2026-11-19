@@ -8422,6 +8422,7 @@
   "settings_speciesId_levelSurerUnmeasured": "Menos nombres, aciertan más a menudo",
   "settings_speciesId_levelBalancedAccuracy": "Más nombres. Aprox. {percent} % correctos",
   "settings_speciesId_levelEagerAccuracy": "La mayoría de los nombres. Aprox. {percent} % correctos",
+  "settings_speciesId_levelFallback": "«{chosen}» no está en esta versión del modelo, así que la app usa «{inForce}» hasta que una actualización añada «{chosen}». Elige «{inForce}» para seguir usándolo.",
   "settings_speciesId_kept": "Sugerencias guardadas en este dispositivo",
   "settings_speciesId_keptValue": "{count} ({size})",
   "settings_speciesId_clear": "Borrar sugerencias",

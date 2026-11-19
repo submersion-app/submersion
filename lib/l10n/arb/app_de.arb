@@ -8556,6 +8556,7 @@
   "settings_speciesId_levelSurerUnmeasured": "Wenigste Namen, am häufigsten richtig",
   "settings_speciesId_levelBalancedAccuracy": "Mehr Namen. Etwa {percent} % richtig",
   "settings_speciesId_levelEagerAccuracy": "Die meisten Namen. Etwa {percent} % richtig",
+  "settings_speciesId_levelFallback": "„{chosen}“ ist in dieser Version des Modells nicht enthalten, daher nutzt die App „{inForce}“, bis ein Update „{chosen}“ nachliefert. Wähle „{inForce}“, um bei „{inForce}“ zu bleiben.",
   "settings_speciesId_kept": "Auf diesem Gerät gespeicherte Vorschläge",
   "settings_speciesId_keptValue": "{count} ({size})",
   "settings_speciesId_clear": "Vorschläge löschen",
