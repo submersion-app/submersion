@@ -174,6 +174,35 @@ void main() {
       expect(playhead.shown, _ms(5020));
     });
 
+    test('says whether it moves on between reports', () {
+      final playhead = PlayheadInterpolator();
+      bool reportAt(double speed, {bool advancing = true}) => playhead.report(
+        position: _ms(1000),
+        advancing: advancing,
+        speed: speed,
+        duration: _clip,
+      );
+
+      expect(reportAt(1.0), isTrue);
+      expect(reportAt(0.0), isFalse);
+      expect(reportAt(1.0, advancing: false), isFalse);
+    });
+
+    test('keeps a held playhead inside a clip that turns out shorter', () {
+      final playhead = _playing(_ms(10000));
+      playhead.advance(_ms(400));
+      expect(playhead.shown, _ms(10400));
+
+      playhead.report(
+        position: _ms(10100),
+        advancing: true,
+        speed: 1.0,
+        duration: _ms(10200),
+      );
+
+      expect(playhead.shown, _ms(10200));
+    });
+
     test('shows the clip start before any report', () {
       final playhead = PlayheadInterpolator();
 

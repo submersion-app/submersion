@@ -799,6 +799,27 @@ void main() {
       await _finish(tester, controller);
     });
 
+    testWidgets('buffering settles the thumb on the player\'s position and '
+        'stops asking for frames', (tester) async {
+      final (platform, controller) = await playingAt15(tester);
+      await tester.pump(const Duration(milliseconds: 50));
+
+      platform._events[controller.playerId]!.add(
+        VideoEvent(eventType: VideoEventType.bufferingStart),
+      );
+      await tester.pump();
+
+      expect(controller.value.isBuffering, isTrue);
+      expect(
+        thumbX(tester),
+        closeTo(thumbXAt(tester, const Duration(seconds: 15)), 0.01),
+      );
+      expect(tester.binding.hasScheduledFrame, isFalse);
+
+      await controller.pause();
+      await _finish(tester, controller);
+    });
+
     testWidgets('pausing settles the thumb on the player\'s position', (
       tester,
     ) async {

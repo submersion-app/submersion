@@ -172,10 +172,9 @@ class _VideoControlsBarState extends State<VideoControlsBar>
   /// the frames that carry it on.
   void _reportPlayhead() {
     final value = widget.controller.value;
-    final advancing = value.isPlaying && !value.isBuffering;
-    _playhead.report(
+    final advancing = _playhead.report(
       position: value.position,
-      advancing: advancing,
+      advancing: value.isPlaying && !value.isBuffering,
       speed: value.playbackSpeed,
       duration: value.duration,
     );

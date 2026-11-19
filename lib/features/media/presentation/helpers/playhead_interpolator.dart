@@ -29,8 +29,9 @@ class PlayheadInterpolator {
   Duration get shown => _shown;
 
   /// Takes a report from the player: it is at [position] in a clip of
-  /// [duration], moving on at [speed] while [advancing].
-  void report({
+  /// [duration], moving on at [speed] while [advancing]. Returns whether
+  /// the playhead moves on between reports, and so needs frames.
+  bool report({
     required Duration position,
     required bool advancing,
     required double speed,
@@ -47,8 +48,11 @@ class PlayheadInterpolator {
     // just behind the playhead is one taken a moment before this frame:
     // holding until it catches up keeps the bar from twitching backwards.
     if (!_advancing || wentBack || position > _shown) {
-      _shown = _clamp(position);
+      _shown = position;
     }
+    // Clamped again in case the report brought a shorter clip.
+    _shown = _clamp(_shown);
+    return _advancing;
   }
 
   /// Moves the playhead on to the frame drawn at [now]. Returns whether it
