@@ -298,6 +298,8 @@ mixin _SiteDetailPageEditing
     final added = controller.addedCardIds;
     final changed = controller.session?.changedCardIds ?? const <String>{};
     final session = controller.session;
+    // A reader's sitting changes none of the library's cards.
+    final reader = isReaderSitting(session);
     // As the page lays itself out: while an editor is open no card comes in,
     // so none leaves the strip either.
     final presence = controller.layoutRecord ?? working;
@@ -306,6 +308,8 @@ mixin _SiteDetailPageEditing
         if (siteEditCards[section.id] case final card?
             when !open.contains(card.id) &&
                 !added.contains(card.id) &&
+                !(reader &&
+                    siteReaderCardRule(card.id) == SiteReaderCard.library) &&
                 (!section.visible ||
                     (card.isEmptyDuring(presence, session) &&
                         (session == null || card.isOfferedWhenEmpty(session)))))
@@ -461,9 +465,28 @@ mixin _SiteDetailPageEditing
         child: builder(context),
       );
     }
+    // A library reader's page (plan 5): the library's cards fade with no
+    // pencil, and the reader's own say so. Decided by the page, not the
+    // sitting, so unlocking never remounts a card.
+    final rule = _suggestsNow(watch: true)
+        ? siteReaderCardRule(card.id)
+        : SiteReaderCard.suggested;
+    if (rule == SiteReaderCard.library) {
+      if (builder == null) return null;
+      return (context) => RecordCardFade<DiveSite>(
+        reason: RecordCardFadeReason.library,
+        child: builder(context),
+      );
+    }
     final isOpen = maybeEditController?.openCardIds.contains(card.id) ?? false;
     if (!isOpen && builder == null) return null;
     final body = builder ?? (_) => const SizedBox.shrink();
+    if (rule == SiteReaderCard.private) {
+      return (context) => RecordCardEdgeLabel<DiveSite>(
+        label: context.l10n.recordEdit_onlyYou,
+        child: RecordCardFrame<DiveSite>(card: card, child: body(context)),
+      );
+    }
     return (context) =>
         RecordCardFrame<DiveSite>(card: card, child: body(context));
   }

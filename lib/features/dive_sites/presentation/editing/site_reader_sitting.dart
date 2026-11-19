@@ -44,3 +44,24 @@ bool isReaderSitting(EditSession<DiveSite>? session) =>
     session != null &&
     !session.isDisposed &&
     session.recall<bool>(_readerKey) == true;
+
+/// What a reader's sitting does with a card's changes.
+enum SiteReaderCard {
+  /// A field of the library's site: proposed to the owner at Send.
+  suggested,
+
+  /// The reader's own: written for them at Send, never proposed.
+  private,
+
+  /// The library's, which a reader's sitting does not change: faded.
+  library,
+}
+
+/// [cardId]'s place in a reader's sitting. Notes, rating and the reader's
+/// attachments are their own; features and expected species are the
+/// library's; every other card, the header block included, is suggested.
+SiteReaderCard siteReaderCardRule(String cardId) => switch (cardId) {
+  'notes' || 'rating' || 'media' || 'documents' => SiteReaderCard.private,
+  'features' || 'marineLife' => SiteReaderCard.library,
+  _ => SiteReaderCard.suggested,
+};

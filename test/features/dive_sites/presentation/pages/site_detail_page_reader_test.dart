@@ -9,6 +9,12 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_fade.dart';
+import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/marine_life/presentation/widgets/site_marine_life_section.dart';
+import 'package:submersion/core/constants/site_detail_sections.dart';
 
 import 'site_detail_page_unlock_harness.dart';
 
@@ -154,5 +160,82 @@ void main() {
       find.widgetWithText(TextButton, l.sharedLibrary_suggest_title),
       findsOneWidget,
     );
+  });
+
+  group('the cards in a reader\'s sitting', () {
+    Future<void> unlockReader(WidgetTester tester) async {
+      await tester.tap(find.byKey(suggestKey));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('expected species fade as Library with no pencil', (
+      tester,
+    ) async {
+      await pumpReader(tester);
+      await unlockReader(tester);
+      final species = find.byType(SiteMarineLifeSection);
+      await tester.ensureVisible(species);
+      await tester.pumpAndSettle();
+
+      expect(find.text(l.recordEdit_library), findsWidgets);
+      expect(
+        find.descendant(
+          of: find.ancestor(
+            of: species,
+            matching: find.byType(RecordCardFade<DiveSite>),
+          ),
+          matching: find.byType(RecordPencilIcon),
+        ),
+        findsNothing,
+      );
+    });
+
+    testWidgets('notes say Only you and keep their pencil', (tester) async {
+      await pumpReader(tester);
+      await unlockReader(tester);
+
+      expect(find.text(l.recordEdit_onlyYou), findsWidgets);
+      expect(
+        find.descendant(
+          of: find.byType(RecordCardEdgeLabel<DiveSite>).first,
+          matching: find.byType(RecordPencilIcon),
+        ),
+        findsWidgets,
+      );
+    });
+
+    testWidgets('the strip offers no Library card', (tester) async {
+      await pumpSitePage(
+        tester,
+        site: librarySite,
+        settings: AppSettings(
+          siteDetailSections: [
+            for (final s in SiteDetailSectionConfig.defaultSections)
+              s.id == SiteDetailSectionId.marineLife
+                  ? s.copyWith(visible: false)
+                  : s,
+          ],
+        ),
+        extra: library(),
+      );
+      await unlockReader(tester);
+
+      final strip = tester.widget<AddStrip>(find.byType(AddStrip));
+      expect(
+        strip.entries.map((e) => e.cardId),
+        isNot(contains(SiteDetailSectionId.marineLife.name)),
+      );
+    });
+
+    testWidgets('an editor\'s sitting shows no Library or Only you', (
+      tester,
+    ) async {
+      await pumpSitePage(tester);
+      await tester.tap(find.byIcon(Icons.lock_outline));
+      await tester.pumpAndSettle();
+
+      expect(find.text(l.recordEdit_library), findsNothing);
+      expect(find.text(l.recordEdit_onlyYou), findsNothing);
+    });
   });
 }
