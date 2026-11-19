@@ -262,7 +262,12 @@ class _VideoControlsBarState extends State<VideoControlsBar>
         stackTrace: stackTrace,
       );
     } finally {
-      if (current()) _seeking = null;
+      if (current()) {
+        _seeking = null;
+        // Every seek has landed or failed: none is left for the playhead to
+        // wait on.
+        _playhead.expectSeek(null);
+      }
     }
   }
 

@@ -130,7 +130,39 @@ void main() {
       expect(playhead.shown, _clip);
     });
 
-    test('shows the reported position as is when paused', () {
+    test('pausing on the last poll keeps the playhead where it was drawn', () {
+      final playhead = _playing(_ms(10000));
+      playhead.advance(_ms(80));
+
+      // pause() leaves the position at the last poll.
+      final needsFrames = playhead.report(
+        position: _ms(10000),
+        advancing: false,
+        speed: 1.0,
+        duration: _clip,
+      );
+
+      expect(needsFrames, isFalse);
+      expect(playhead.shown, _ms(10080));
+    });
+
+    test('a seek given up on no longer counts as landing', () {
+      final playhead = _playing(_ms(15000));
+      playhead.advance(_ms(120));
+
+      playhead.expectSeek(_ms(15050));
+      playhead.expectSeek(null);
+      playhead.report(
+        position: _ms(15050),
+        advancing: true,
+        speed: 1.0,
+        duration: _clip,
+      );
+
+      expect(playhead.shown, _ms(15120), reason: 'an ordinary late poll');
+    });
+
+    test('a paused report that moves the playhead is shown as is', () {
       final playhead = _playing(_ms(10000));
       playhead.advance(_ms(80));
 

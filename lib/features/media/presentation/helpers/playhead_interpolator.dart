@@ -37,13 +37,19 @@ class PlayheadInterpolator {
 
   /// Tells the playhead a seek to [target] was sent to the player, so the
   /// report of its landing is followed even when it lands just behind the
-  /// playhead, where a late poll would be held.
-  void expectSeek(Duration target) => _seekTarget = target;
+  /// playhead, where a late poll would be held. Null once the seeks are
+  /// over: one that failed, or moved nothing, sends no report to match.
+  void expectSeek(Duration? target) => _seekTarget = target;
 
   /// Takes a report from the player: it is at [position] in a clip of
   /// [duration], moving on at [speed] while [advancing]. Returns whether
   /// the playhead can move on from here, and so needs frames: not while
   /// paused, nor at rest when this report moves nothing on.
+  ///
+  /// Paused or buffering, the player's position is its last poll: neither
+  /// pause() nor a buffering flag refreshes it. The playhead then stays
+  /// where it was drawn, the closer guess at the frame on screen, until a
+  /// report moves it.
   bool report({
     required Duration position,
     required bool advancing,
@@ -54,7 +60,8 @@ class PlayheadInterpolator {
     final landed = _seekTarget != null && position == _clamp(_seekTarget!);
     if (landed) _seekTarget = null;
     final wasAdvancing = _advancing;
-    final sameMotion = position == _reported && speed == _speed;
+    final moved = position != _reported;
+    final sameMotion = !moved && speed == _speed;
     _reported = position;
     _duration = duration;
     _speed = speed;
@@ -66,11 +73,12 @@ class PlayheadInterpolator {
       _reportedAt = null;
       _canMove = _advancing;
     }
-    // Paused, the player says exactly where it is. Gone back, it was sought
-    // back or looped, and the playhead follows at once. Otherwise a report
-    // just behind the playhead is one taken a moment before this frame:
-    // holding until it catches up keeps the bar from twitching backwards.
-    if (!_advancing || wentBack || landed || position > _shown) {
+    // Gone back, the player was sought back or looped; landed, a seek sent
+    // from the bar arrived: the playhead follows either at once, as it does
+    // a paused report that moves it. Otherwise a report just behind the
+    // playhead is one taken a moment before this frame, or a pause on the
+    // last poll: holding keeps the bar from twitching backwards.
+    if (wentBack || landed || position > _shown || (!_advancing && moved)) {
       _shown = position;
     }
     // Clamped again in case the report brought a shorter clip.
