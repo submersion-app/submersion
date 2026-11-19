@@ -23,12 +23,14 @@ class AutoApplier {
     required bool Function() enabled,
     required SightingTiming Function() timing,
     required Future<void> Function(String mediaId) reconcile,
+    required int Function() databaseGeneration,
   }) : _identifications = identifications,
        _acceptor = acceptor,
        _tagging = tagging,
        _enabled = enabled,
        _timing = timing,
-       _reconcile = reconcile;
+       _reconcile = reconcile,
+       _generation = databaseGeneration;
 
   final MediaIdentificationRepository _identifications;
   final SuggestionAcceptor _acceptor;
@@ -42,6 +44,10 @@ class AutoApplier {
   /// accepts follows the naming level (issue #4721), so it is not redone
   /// here from the stored flags.
   final Future<void> Function(String mediaId) _reconcile;
+
+  /// Moves when another logbook is opened. Each apply names the logbook its
+  /// identifications were read in, and writes nothing once another is open.
+  final int Function() _generation;
   final _log = LoggerService.forClass(AutoApplier);
 
   bool get isOn => marineLifeIdEnabled && _enabled();
@@ -51,8 +57,14 @@ class AutoApplier {
   /// opens only once there is something to tag, so a photo with nothing
   /// confident leaves none, and a save the diver makes meanwhile is never
   /// filed under it.
-  Future<int> applyInScope(String mediaId, {required bool isVideo}) async {
-    if (!isOn) return 0;
+  ///
+  /// [generation] is the logbook the item was looked at in.
+  Future<int> applyInScope(
+    String mediaId, {
+    required bool isVideo,
+    required int generation,
+  }) async {
+    if (!isOn || _generation() != generation) return 0;
     final List<SpeciesToApply> picked;
     try {
       picked = await _picks(mediaId, isVideo: isVideo);
@@ -66,7 +78,7 @@ class AutoApplier {
       label: ChangeLogLabels.marineLifeId,
       body: () async {
         try {
-          return (await _tagPicked(mediaId, picked)).length;
+          return (await _tagPicked(mediaId, picked, generation)).length;
         } on Object catch (e) {
           _log.debug('Could not auto-apply on $mediaId', error: e);
           return 0;
@@ -90,15 +102,28 @@ class AutoApplier {
   /// History entry for the whole run (issue #4727). The scope opens only
   /// now, at the run's end, so a save the diver made during the run is not
   /// filed under it. Returns how many distinct species it tagged.
-  Future<int> applyAllInScope(List<RunAppliedItem> items) {
-    if (!isOn || items.isEmpty) return Future.value(0);
+  ///
+  /// [generation] is the logbook the run looked at its items in.
+  Future<int> applyAllInScope(
+    List<RunAppliedItem> items, {
+    required int generation,
+  }) {
+    if (!isOn || items.isEmpty || _generation() != generation) {
+      return Future.value(0);
+    }
     return ChangeLogScope.automatic(
       DatabaseService.instance.databaseOrNull,
       label: ChangeLogLabels.marineLifeId,
       body: () async {
         final species = <String>{};
         for (final item in items) {
-          species.addAll(await _applyItem(item.mediaId, isVideo: item.isVideo));
+          species.addAll(
+            await _applyItem(
+              item.mediaId,
+              isVideo: item.isVideo,
+              generation: generation,
+            ),
+          );
         }
         return species.length;
       },
@@ -112,22 +137,28 @@ class AutoApplier {
   Future<Set<String>> _applyItem(
     String mediaId, {
     required bool isVideo,
+    required int generation,
   }) async {
-    if (!isOn) return const {};
+    if (!isOn || _generation() != generation) return const {};
     try {
-      return await _tagAll(mediaId, isVideo: isVideo);
+      return await _tagAll(mediaId, isVideo: isVideo, generation: generation);
     } on Object catch (e) {
       _log.debug('Could not auto-apply on $mediaId', error: e);
       return const {};
     }
   }
 
-  Future<Set<String>> _tagAll(String mediaId, {required bool isVideo}) async =>
-      _tagPicked(mediaId, await _picks(mediaId, isVideo: isVideo));
+  Future<Set<String>> _tagAll(
+    String mediaId, {
+    required bool isVideo,
+    required int generation,
+  }) async =>
+      _tagPicked(mediaId, await _picks(mediaId, isVideo: isVideo), generation);
 
   Future<Set<String>> _tagPicked(
     String mediaId,
     List<SpeciesToApply> picked,
+    int generation,
   ) async {
     final tagged = <String>{};
     for (final s in picked) {
@@ -135,6 +166,8 @@ class AutoApplier {
         final resolved = await _acceptor.resolveWithOrigin(
           s.candidate.candidate,
         );
+        // Another logbook opened meanwhile: nothing more is written there.
+        if (_generation() != generation) break;
         await _tagging.applyAppTag(
           mediaId: mediaId,
           speciesId: resolved.species.id,
@@ -146,7 +179,9 @@ class AutoApplier {
         _log.debug('Could not tag a species on $mediaId', error: e);
       }
     }
-    if (tagged.isNotEmpty) await _reconcile(mediaId);
+    if (tagged.isNotEmpty && _generation() == generation) {
+      await _reconcile(mediaId);
+    }
     return tagged;
   }
 }

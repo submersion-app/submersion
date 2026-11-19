@@ -9,6 +9,9 @@ import 'package:submersion/features/media/data/services/species_tagging_service.
 import 'package:submersion/features/media/domain/value_objects/sighting_timing.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
 import 'package:submersion/features/species_id/data/services/auto_applier.dart';
+import 'package:submersion/features/marine_life/domain/entities/species.dart'
+    as domain;
+import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
 import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
 import 'package:submersion/features/species_id/data/services/suggestion_acceptor.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
@@ -17,6 +20,21 @@ import '../../../helpers/test_database.dart';
 import '../../media/data/repositories/species_photo_fixtures.dart';
 import 'identification_fixtures.dart';
 
+/// Opens another logbook while it resolves a species.
+class _SwitchingAcceptor extends SuggestionAcceptor {
+  _SwitchingAcceptor({required super.species, required this.onResolve});
+
+  final void Function() onResolve;
+
+  @override
+  Future<({domain.Species species, bool created})> resolveWithOrigin(
+    PackCandidate candidate,
+  ) {
+    onResolve();
+    return super.resolveWithOrigin(candidate);
+  }
+}
+
 /// Tagging confident matches with no tap (issue #4727).
 void main() {
   late AppDatabase db;
@@ -24,6 +42,7 @@ void main() {
   late MediaSpeciesRepository tags;
   late SpeciesRepository species;
   var autoApply = true;
+  var generation = 0;
   final changeLog = ChangeLogRepository();
 
   /// The service's reconcile, without a naming level: decisions in step
@@ -37,19 +56,22 @@ void main() {
     if (changed.isNotEmpty) await identifications.updateDecisions(changed);
   }
 
-  AutoApplier applier({Future<void> Function(String mediaId)? reconcile}) =>
-      AutoApplier(
-        identifications: identifications,
-        acceptor: SuggestionAcceptor(species: species),
-        tagging: SpeciesTaggingService(
-          tags: tags,
-          media: MediaRepository(),
-          species: species,
-        ),
-        enabled: () => autoApply,
-        timing: () => SightingTiming.onConfirm,
-        reconcile: reconcile ?? reconcileStored,
-      );
+  AutoApplier applier({
+    Future<void> Function(String mediaId)? reconcile,
+    SuggestionAcceptor? acceptor,
+  }) => AutoApplier(
+    identifications: identifications,
+    acceptor: acceptor ?? SuggestionAcceptor(species: species),
+    tagging: SpeciesTaggingService(
+      tags: tags,
+      media: MediaRepository(),
+      species: species,
+    ),
+    enabled: () => autoApply,
+    timing: () => SightingTiming.onConfirm,
+    reconcile: reconcile ?? reconcileStored,
+    databaseGeneration: () => generation,
+  );
 
   Future<void> store(String mediaId, {bool confident = true}) =>
       identifications.storeRun(
@@ -68,6 +90,7 @@ void main() {
     marineLifeIdEnabled = true;
     addTearDown(resetMarineLifeIdEnabled);
     autoApply = true;
+    generation = 0;
     identifications = MediaIdentificationRepository();
     tags = MediaSpeciesRepository();
     species = SpeciesRepository();
@@ -86,7 +109,10 @@ void main() {
     );
     await store('p1');
 
-    expect(await applier().applyInScope('p1', isVideo: false), 1);
+    expect(
+      await applier().applyInScope('p1', isVideo: false, generation: 0),
+      1,
+    );
 
     final tag = await tags.findTag('p1', 'sp_queen_parrotfish');
     expect(tag!.unconfirmed, isTrue);
@@ -107,8 +133,8 @@ void main() {
     final reconciled = <String>[];
     final spied = applier(reconcile: (id) async => reconciled.add(id));
 
-    await spied.applyInScope('p1', isVideo: false);
-    await spied.applyInScope('p2', isVideo: false);
+    await spied.applyInScope('p1', isVideo: false, generation: 0);
+    await spied.applyInScope('p2', isVideo: false, generation: 0);
 
     expect(reconciled, ['p1']);
   });
@@ -116,7 +142,7 @@ void main() {
   test('records the species it had to create', () async {
     await store('p1');
 
-    await applier().applyInScope('p1', isVideo: false);
+    await applier().applyInScope('p1', isVideo: false, generation: 0);
 
     final created = await species.findSpeciesByScientificName('Scarus vetula');
     final tag = await tags.findTag('p1', created!.id);
@@ -125,20 +151,29 @@ void main() {
 
   test('nothing when it is not confident', () async {
     await store('p1', confident: false);
-    expect(await applier().applyInScope('p1', isVideo: false), 0);
+    expect(
+      await applier().applyInScope('p1', isVideo: false, generation: 0),
+      0,
+    );
     expect(await tags.getTagsForMedia('p1'), isEmpty);
   });
 
   test('nothing with the setting off', () async {
     autoApply = false;
     await store('p1');
-    expect(await applier().applyInScope('p1', isVideo: false), 0);
+    expect(
+      await applier().applyInScope('p1', isVideo: false, generation: 0),
+      0,
+    );
   });
 
   test('nothing with the feature off', () async {
     marineLifeIdEnabled = false;
     await store('p1');
-    expect(await applier().applyInScope('p1', isVideo: false), 0);
+    expect(
+      await applier().applyInScope('p1', isVideo: false, generation: 0),
+      0,
+    );
   });
 
   test(
@@ -146,7 +181,7 @@ void main() {
     () async {
       await store('p1');
 
-      await applier().applyInScope('p1', isVideo: false);
+      await applier().applyInScope('p1', isVideo: false, generation: 0);
 
       await changeLog.settleAll();
       final ops = await db
@@ -169,7 +204,7 @@ void main() {
     final tagged = await applier().applyAllInScope(const [
       (mediaId: 'p1', isVideo: false),
       (mediaId: 'p2', isVideo: false),
-    ]);
+    ], generation: 0);
 
     // One species on two photos is one species tagged.
     expect(tagged, 1);
@@ -196,7 +231,7 @@ void main() {
       final tagged = await applier().applyAllInScope(const [
         (mediaId: 'p1', isVideo: false),
         (mediaId: 'p2', isVideo: false),
-      ]);
+      ], generation: 0);
 
       expect(tagged, 1);
       final created = await species.findSpeciesByScientificName(
@@ -205,4 +240,51 @@ void main() {
       expect(await tags.findTag('p2', created!.id), isNotNull);
     },
   );
+
+  group('another logbook opened', () {
+    setUp(() async {
+      await insertTestSpecies(
+        id: 'sp_queen_parrotfish',
+        name: 'Queen Parrotfish',
+      );
+      await store('p1');
+    });
+
+    test('before it applies on an item: nothing is tagged', () async {
+      generation = 1;
+
+      expect(
+        await applier().applyInScope('p1', isVideo: false, generation: 0),
+        0,
+      );
+      expect(await tags.findTag('p1', 'sp_queen_parrotfish'), isNull);
+    });
+
+    test('while it resolves a species: nothing is tagged', () async {
+      final switching = _SwitchingAcceptor(
+        species: species,
+        onResolve: () => generation = 1,
+      );
+
+      expect(
+        await applier(
+          acceptor: switching,
+        ).applyInScope('p1', isVideo: false, generation: 0),
+        0,
+      );
+      expect(await tags.findTag('p1', 'sp_queen_parrotfish'), isNull);
+    });
+
+    test('before a run applies: nothing is tagged', () async {
+      generation = 1;
+
+      expect(
+        await applier().applyAllInScope(const [
+          (mediaId: 'p1', isVideo: false),
+        ], generation: 0),
+        0,
+      );
+      expect(await tags.findTag('p1', 'sp_queen_parrotfish'), isNull);
+    });
+  });
 }

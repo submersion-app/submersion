@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/platform/app_directories.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/media/data/streaming/video_playback_plan.dart';
@@ -277,9 +278,13 @@ final Provider<MediaIdentificationService> mediaIdentificationServiceProvider =
             marineLifeIdEnabled && ref.read(identifyFishOnOpenProvider),
         // A Find species run is the diver's own request (issue #4727).
         runEnabled: () => marineLifeIdEnabled,
-        onItemSettled: (item) => ref
+        onItemSettled: (item, generation) => ref
             .read(autoApplierProvider)
-            .applyInScope(item.id, isVideo: item.mediaType == MediaType.video)
+            .applyInScope(
+              item.id,
+              isVideo: item.mediaType == MediaType.video,
+              generation: generation,
+            )
             .then((_) {}),
         // Waits for the installed pack, unlike [levelInForceProvider]: a
         // reconcile before it has been read would otherwise decide by the
@@ -410,6 +415,7 @@ final Provider<AutoApplier> autoApplierProvider = Provider<AutoApplier>(
     // Read when called: the service calls this applier from its own hook.
     reconcile: (mediaId) =>
         ref.read(mediaIdentificationServiceProvider).reconcile(mediaId),
+    databaseGeneration: () => DatabaseService.instance.generation,
   ),
 );
 

@@ -63,7 +63,7 @@ void main() {
       databaseGeneration: () => generation,
       now: () => DateTime.utc(2026, 11, 18),
       newId: () => 'id-${ids++}',
-      onItemSettled: (item) async => settled.add(item.id),
+      onItemSettled: (item, _) async => settled.add(item.id),
     );
   });
   tearDown(() async {

@@ -21,6 +21,8 @@ void main() {
   late bool foreground;
   Object? listFailure;
   late DiveSpeciesRun run;
+  void Function()? onPlace;
+  late List<int> appliedIn;
 
   MediaItem item(String id, {MediaType type = MediaType.photo}) => MediaItem(
     id: id,
@@ -46,14 +48,19 @@ void main() {
     applyFailure = null;
     foreground = true;
     listFailure = null;
+    onPlace = null;
+    appliedIn = [];
     run = DiveSpeciesRun(
       mediaForDive: (diveId) async {
         if (listFailure != null && diveId == 'd1') throw listFailure!;
         return media[diveId] ?? const [];
       },
-      diveLocation: (diveId) async => dives.contains(diveId)
-          ? (exists: true, site: const GeoPoint(20, -87), entry: null)
-          : (exists: false, site: null, entry: null),
+      diveLocation: (diveId) async {
+        onPlace?.call();
+        return dives.contains(diveId)
+            ? (exists: true, site: const GeoPoint(20, -87), entry: null)
+            : (exists: false, site: null, entry: null);
+      },
       request: (item, location) async {
         asked.add(item.id);
         await gate?.future;
@@ -63,8 +70,9 @@ void main() {
             : queue.removeAt(0);
       },
       cancel: (mediaId) => cancelled.add(mediaId),
-      applyAll: (items) async {
+      applyAll: (items, generation) async {
         if (applyFailure != null) throw applyFailure!;
+        appliedIn.add(generation);
         applied.add([for (final i in items) i.mediaId]);
         return items.length;
       },
@@ -95,11 +103,44 @@ void main() {
         diveLocation: (_) async => (exists: true, site: null, entry: null),
         request: (_, _) async => RunItemOutcome.done,
         cancel: (_) {},
-        applyAll: (_) async => 0,
+        applyAll: (_, _) async => 0,
         databaseGeneration: () => 0,
       );
     },
   );
+
+  test('a dive already gone is not looked at: the run stops as for a '
+      'deleted dive', () async {
+    dives.remove('d1');
+
+    await run.start('d1');
+
+    expect(asked, isEmpty);
+    expect(applied, isEmpty);
+    expect(state('d1').phase, DiveRunPhase.cancelled);
+  });
+
+  test('another logbook opened after the last item applies nothing', () async {
+    var reads = 0;
+    // The start, then after each of the three items.
+    onPlace = () {
+      if (++reads == 4) generation = 1;
+    };
+
+    await run.start('d1');
+
+    expect(asked, hasLength(3));
+    expect(applied, isEmpty);
+    expect(state('d1').phase, DiveRunPhase.cancelled);
+  });
+
+  test('applying names the logbook the run began in', () async {
+    generation = 7;
+
+    await run.start('d1');
+
+    expect(appliedIn, [7]);
+  });
 
   test('photos before videos, and a summary at the end', () async {
     await run.start('d1');

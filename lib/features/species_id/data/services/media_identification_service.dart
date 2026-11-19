@@ -66,7 +66,7 @@ class MediaIdentificationService {
     Duration idleUnload = const Duration(seconds: 60),
     MemoryReadout? memoryReadout,
     int firstVideoChunkMs = 2000,
-    Future<void> Function(MediaItem item)? onItemSettled,
+    Future<void> Function(MediaItem item, int generation)? onItemSettled,
     Future<LevelInForce?> Function()? namingLevel,
   }) : _engine = engine,
        _loadPack = loadPack,
@@ -85,7 +85,7 @@ class MediaIdentificationService {
        _idleUnload = idleUnload,
        _memoryReadout = memoryReadout,
        _firstVideoChunkMs = firstVideoChunkMs,
-       _onItemSettled = onItemSettled ?? ((_) async {}),
+       _onItemSettled = onItemSettled ?? ((_, _) async {}),
        _namingLevel = namingLevel ?? (() async => null);
 
   final VisionEngine _engine;
@@ -117,8 +117,10 @@ class MediaIdentificationService {
 
   /// Called once an item is settled and its decisions reconciled: analysed,
   /// renamed, found to need nothing, or looked at with no model installed.
-  /// Auto-apply hangs here (issue #4727). Its failure never fails the item.
-  final Future<void> Function(MediaItem item) _onItemSettled;
+  /// Auto-apply hangs here (issue #4727), told the logbook the item was
+  /// looked at in so it writes nothing once another is open. Its failure
+  /// never fails the item.
+  final Future<void> Function(MediaItem item, int generation) _onItemSettled;
 
   /// The naming level the diver chose, as the installed pack names at it,
   /// or null for the pack's own bars (issue #4721).
@@ -548,7 +550,7 @@ class MediaIdentificationService {
     if (job.fromRun) return;
     final item = job.item;
     try {
-      await _onItemSettled(item);
+      await _onItemSettled(item, job.generation);
     } on Object catch (e) {
       _log.debug('Could not auto-apply species on ${item.id}', error: e);
     }

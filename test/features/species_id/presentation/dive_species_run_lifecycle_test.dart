@@ -12,7 +12,7 @@ class _SpyRun extends DiveSpeciesRun {
         diveLocation: (_) async => (exists: true, site: null, entry: null),
         request: (_, _) async => RunItemOutcome.done,
         cancel: (_) {},
-        applyAll: (_) async => 0,
+        applyAll: (_, _) async => 0,
         databaseGeneration: () => 0,
       );
 

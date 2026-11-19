@@ -49,8 +49,9 @@ final diveSpeciesRunProvider =
           resolveVideo: (i) => runVideoFileOf(ref, i),
         ),
         cancel: service.cancelRun,
-        applyAll: (items) =>
-            ref.read(autoApplierProvider).applyAllInScope(items),
+        applyAll: (items, generation) => ref
+            .read(autoApplierProvider)
+            .applyAllInScope(items, generation: generation),
         databaseGeneration: () => DatabaseService.instance.generation,
         inForeground: () =>
             WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed,

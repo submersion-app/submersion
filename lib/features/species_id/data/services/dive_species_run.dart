@@ -27,7 +27,8 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
     required Future<DiveLocation> Function(String diveId) diveLocation,
     required Future<RunItemOutcome> Function(MediaItem, GeoPoint?) request,
     required void Function(String mediaId) cancel,
-    required Future<int> Function(List<RunAppliedItem> items) applyAll,
+    required Future<int> Function(List<RunAppliedItem> items, int generation)
+    applyAll,
     required int Function() databaseGeneration,
     bool Function()? inForeground,
   }) : _mediaForDive = mediaForDive,
@@ -43,7 +44,7 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
   final Future<DiveLocation> Function(String) _diveLocation;
   final Future<RunItemOutcome> Function(MediaItem, GeoPoint?) _request;
   final void Function(String) _cancelItem;
-  final Future<int> Function(List<RunAppliedItem>) _applyAll;
+  final Future<int> Function(List<RunAppliedItem>, int) _applyAll;
   final int Function() _generation;
 
   /// Whether the app is in the foreground now: a refusal for being in the
@@ -173,9 +174,15 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
     );
     _set(s);
     final looked = <RunAppliedItem>[];
-    var stoppedFor = _Stop.none;
+    // Deleted before the first item, or another logbook opened while its
+    // media were read: nothing is looked at.
+    var stoppedFor = _generation() != generation
+        ? _Stop.logbook
+        : !where.exists
+        ? _Stop.diveGone
+        : _Stop.none;
     var index = 0;
-    while (index < items.length) {
+    while (stoppedFor == _Stop.none && index < items.length) {
       stoppedFor = await _waitToGo(diveId, generation);
       if (stoppedFor != _Stop.none) break;
       final item = items[index];
@@ -248,13 +255,15 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
     if (stoppedFor == _Stop.none && _cancelRequested) {
       stoppedFor = _Stop.cancelled;
     }
+    // The place read after the last item may have seen another logbook open.
+    if (_generation() != generation) stoppedFor = _Stop.logbook;
     var tagged = 0;
     // Another logbook, or a dive that is gone, has nothing left to tag.
     if (looked.isNotEmpty &&
         stoppedFor != _Stop.logbook &&
         stoppedFor != _Stop.diveGone &&
         !_disposed) {
-      tagged = await _applyAll(looked);
+      tagged = await _applyAll(looked, generation);
     }
     if (_disposed) return;
     _set(
