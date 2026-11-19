@@ -409,6 +409,11 @@ class DiverSettingsRepository {
                   s.defaultShowCounterdiffusion,
                 ),
                 defaultShowBuoyancy: Value(s.defaultShowBuoyancy),
+                defaultShowAveloBuoyancy: Value(s.defaultShowAveloBuoyancy),
+                defaultShowAveloGasRemaining: Value(
+                  s.defaultShowAveloGasRemaining,
+                ),
+                defaultShowComputerRmv: Value(s.defaultShowComputerRmv),
                 favouriteDiveTypeIds: Value(
                   _encodeDisabledRules(s.favouriteDiveTypeIds),
                 ),
@@ -813,6 +818,11 @@ class DiverSettingsRepository {
       defaultShowO2CellMv: Value(settings.defaultShowO2CellMv),
       defaultShowCounterdiffusion: Value(settings.defaultShowCounterdiffusion),
       defaultShowBuoyancy: Value(settings.defaultShowBuoyancy),
+      defaultShowAveloBuoyancy: Value(settings.defaultShowAveloBuoyancy),
+      defaultShowAveloGasRemaining: Value(
+        settings.defaultShowAveloGasRemaining,
+      ),
+      defaultShowComputerRmv: Value(settings.defaultShowComputerRmv),
       favouriteDiveTypeIds: Value(
         _encodeDisabledRules(settings.favouriteDiveTypeIds),
       ),
@@ -1101,6 +1111,9 @@ class DiverSettingsRepository {
       defaultShowO2CellMv: row.defaultShowO2CellMv,
       defaultShowCounterdiffusion: row.defaultShowCounterdiffusion,
       defaultShowBuoyancy: row.defaultShowBuoyancy,
+      defaultShowAveloBuoyancy: row.defaultShowAveloBuoyancy,
+      defaultShowAveloGasRemaining: row.defaultShowAveloGasRemaining,
+      defaultShowComputerRmv: row.defaultShowComputerRmv,
       favouriteDiveTypeIds: _decodeDisabledRules(row.favouriteDiveTypeIds),
       defaultShowEstimatedTankPressure: row.defaultShowEstimatedTankPressure,
       defaultShowAscentRateLine: row.defaultShowAscentRateLine,

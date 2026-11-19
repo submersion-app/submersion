@@ -101,6 +101,12 @@ class ProfileLegendState {
   /// [AppSettings.defaultShowBuoyancy] default.
   final bool showBuoyancy;
 
+  /// The three Avelo lines (issue #4664): the computer's buoyancy, gas
+  /// remaining and RMV. Each seeds from its persisted default.
+  final bool showAveloBuoyancy;
+  final bool showAveloGasRemaining;
+  final bool showComputerRmv;
+
   // Per-metric data source preferences (session overrides).
   // The ceiling line has no source toggle: every import path stores only the
   // computer's stepped stop depth in `ceiling`, so a "computer" ceiling line
@@ -174,6 +180,9 @@ class ProfileLegendState {
     this.o2CellUnit = O2CellUnit.ppO2,
     this.showCounterdiffusion = false,
     this.showBuoyancy = false,
+    this.showAveloBuoyancy = false,
+    this.showAveloGasRemaining = false,
+    this.showComputerRmv = false,
     this.counterdiffusionShowAll = false,
     this.showGtr = false,
     // Same per-metric default as AppSettings (#1859); build() seeds from
@@ -228,6 +237,9 @@ class ProfileLegendState {
     if (showO2Cells) count++;
     if (showCounterdiffusion) count++;
     if (showBuoyancy) count++;
+    if (showAveloBuoyancy) count++;
+    if (showAveloGasRemaining) count++;
+    if (showComputerRmv) count++;
     if (showGtr) count++;
     count += showTankPressure.values.where((v) => v).length;
     return count;
@@ -279,6 +291,9 @@ class ProfileLegendState {
     O2CellUnit? o2CellUnit,
     bool? showCounterdiffusion,
     bool? showBuoyancy,
+    bool? showAveloBuoyancy,
+    bool? showAveloGasRemaining,
+    bool? showComputerRmv,
     bool? counterdiffusionShowAll,
     bool? showGtr,
     MetricDataSource? ndlSource,
@@ -330,6 +345,10 @@ class ProfileLegendState {
       o2CellUnit: o2CellUnit ?? this.o2CellUnit,
       showCounterdiffusion: showCounterdiffusion ?? this.showCounterdiffusion,
       showBuoyancy: showBuoyancy ?? this.showBuoyancy,
+      showAveloBuoyancy: showAveloBuoyancy ?? this.showAveloBuoyancy,
+      showAveloGasRemaining:
+          showAveloGasRemaining ?? this.showAveloGasRemaining,
+      showComputerRmv: showComputerRmv ?? this.showComputerRmv,
       counterdiffusionShowAll:
           counterdiffusionShowAll ?? this.counterdiffusionShowAll,
       showGtr: showGtr ?? this.showGtr,
@@ -387,6 +406,9 @@ class ProfileLegendState {
           o2CellUnit == other.o2CellUnit &&
           showCounterdiffusion == other.showCounterdiffusion &&
           showBuoyancy == other.showBuoyancy &&
+          showAveloBuoyancy == other.showAveloBuoyancy &&
+          showAveloGasRemaining == other.showAveloGasRemaining &&
+          showComputerRmv == other.showComputerRmv &&
           counterdiffusionShowAll == other.counterdiffusionShowAll &&
           showGtr == other.showGtr &&
           ndlSource == other.ndlSource &&
@@ -438,6 +460,9 @@ class ProfileLegendState {
     showCounterdiffusion,
     counterdiffusionShowAll,
     showBuoyancy,
+    showAveloBuoyancy,
+    showAveloGasRemaining,
+    showComputerRmv,
     showGtr,
     ndlSource,
     ttsSource,
@@ -490,6 +515,9 @@ class ProfileLegend extends _$ProfileLegend {
           defaultShowO2CellMv: s.defaultShowO2CellMv,
           defaultShowCounterdiffusion: s.defaultShowCounterdiffusion,
           defaultShowBuoyancy: s.defaultShowBuoyancy,
+          defaultShowAveloBuoyancy: s.defaultShowAveloBuoyancy,
+          defaultShowAveloGasRemaining: s.defaultShowAveloGasRemaining,
+          defaultShowComputerRmv: s.defaultShowComputerRmv,
           showNdlOnProfile: s.showNdlOnProfile,
           defaultShowPpO2: s.defaultShowPpO2,
           defaultShowPpN2: s.defaultShowPpN2,
@@ -546,6 +574,9 @@ class ProfileLegend extends _$ProfileLegend {
       o2CellUnit: ref.read(settingsProvider).o2CellUnit,
       showCounterdiffusion: settings.defaultShowCounterdiffusion,
       showBuoyancy: settings.defaultShowBuoyancy,
+      showAveloBuoyancy: settings.defaultShowAveloBuoyancy,
+      showAveloGasRemaining: settings.defaultShowAveloGasRemaining,
+      showComputerRmv: settings.defaultShowComputerRmv,
       counterdiffusionShowAll: ref
           .read(settingsProvider)
           .counterdiffusionShowAll,
@@ -764,6 +795,18 @@ class ProfileLegend extends _$ProfileLegend {
 
   void toggleBuoyancy() {
     state = state.copyWith(showBuoyancy: !state.showBuoyancy);
+  }
+
+  void toggleAveloBuoyancy() {
+    state = state.copyWith(showAveloBuoyancy: !state.showAveloBuoyancy);
+  }
+
+  void toggleAveloGasRemaining() {
+    state = state.copyWith(showAveloGasRemaining: !state.showAveloGasRemaining);
+  }
+
+  void toggleComputerRmv() {
+    state = state.copyWith(showComputerRmv: !state.showComputerRmv);
   }
 
   void setCounterdiffusionShowAll(bool showAll) {

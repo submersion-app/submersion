@@ -199,4 +199,46 @@ void main() {
       expect(tankFigureHeight(0), tankFigureHeight(11.1));
     });
   });
+
+  group('TankFillLevels.hydrotank (issue #4664)', () {
+    test('water at the bottom, gas left above it, gas used to the top', () {
+      final levels = TankFillLevels.hydrotank(
+        water: 0.3,
+        gasLeft: 0.6,
+        now: 0.6,
+      );
+      expect(levels.water, 0.3);
+      expect(levels.end, 0.6);
+      expect(levels.start, 1.0);
+      expect(levels.now, 0.6);
+      expect(levels.hasFill, isTrue);
+    });
+
+    test('with the cursor shown the End mark has no level', () {
+      // Its gas level is the cursor's moment, not the end of the dive.
+      expect(
+        TankFillLevels.hydrotank(water: 0.3, gasLeft: 0.6, now: 0.6).endMarked,
+        isFalse,
+      );
+      expect(
+        TankFillLevels.hydrotank(water: 0.3, gasLeft: 0.6).endMarked,
+        isTrue,
+      );
+      expect(
+        TankFillLevels.resolve(start: 200, end: 60, now: 120).endMarked,
+        isTrue,
+      );
+    });
+
+    test('the water level takes part in equality', () {
+      expect(
+        TankFillLevels.hydrotank(water: 0.3, gasLeft: 0.6),
+        isNot(TankFillLevels.hydrotank(water: 0.2, gasLeft: 0.6)),
+      );
+    });
+
+    test('a pressure fill has no water', () {
+      expect(TankFillLevels.resolve(start: 200, end: 60).water, isNull);
+    });
+  });
 }

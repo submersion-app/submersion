@@ -85,6 +85,21 @@ ParsedDive ConvertParsedDive(const libdc_parsed_dive_t& dive) {
                               static_cast<int64_t>(s.o2_sensor_mv[c]));
             }
 
+            // Shearwater Avelo mode (issue #4664): NaN / UINT32_MAX -> nullopt.
+            std::optional<double> avelo_buoyancy =
+                std::isnan(s.avelo_buoyancy)
+                    ? std::nullopt
+                    : std::optional<double>(s.avelo_buoyancy);
+            std::optional<int64_t> gas_remaining =
+                (s.gas_remaining == UINT32_MAX)
+                    ? std::nullopt
+                    : std::optional<int64_t>(
+                          static_cast<int64_t>(s.gas_remaining));
+            std::optional<double> computer_rmv =
+                std::isnan(s.computer_rmv)
+                    ? std::nullopt
+                    : std::optional<double>(s.computer_rmv);
+
             // Every tank's pressure at this sample (issue #1223): a sample can
             // carry one reading per air-integrated transmitter, and `pressure`
             // above holds only the last of them. NaN -> null, trailing nulls
@@ -168,6 +183,9 @@ ParsedDive ConvertParsedDive(const libdc_parsed_dive_t& dive) {
                     o2_sensor_mv[3] ? &*o2_sensor_mv[3] : nullptr,
                     o2_sensor_mv[4] ? &*o2_sensor_mv[4] : nullptr,
                     o2_sensor_mv[5] ? &*o2_sensor_mv[5] : nullptr,
+                    avelo_buoyancy ? &*avelo_buoyancy : nullptr,
+                    gas_remaining ? &*gas_remaining : nullptr,
+                    computer_rmv ? &*computer_rmv : nullptr,
                     gas_mix_index ? &*gas_mix_index : nullptr)));
         }
     }

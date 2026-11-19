@@ -35,18 +35,27 @@ class EncodedProfileSeries {
 /// this codec does not know is refused (see [UnknownSeriesVersionException]
 /// for how the sync door tells a forward version from corruption).
 ///
-/// v2 appended `gf99` and `n2_load` (issue #1977). [encode] writes v2 only
-/// for a series that has one of them, so a dive without computer tissue
-/// data stays readable by a build that knows only v1.
+/// v2 appended `gf99` and `n2_load` (issue #1977); v3 appended
+/// `avelo_buoyancy`, `avelo_gas_remaining` and `computer_rmv` (issue #4664).
+/// [encode] writes the lowest version that holds the series' fields, so a
+/// dive without computer tissue data stays readable by a build that knows
+/// only v1, and one without Avelo data by a build that knows only v2.
 class ProfileSeriesCodec {
   const ProfileSeriesCodec({
-    this.fieldTables = const {1: fieldTableV1, version: fieldTableV2},
+    this.fieldTables = const {
+      1: fieldTableV1,
+      2: fieldTableV2,
+      version: fieldTableV3,
+    },
   });
 
-  /// The newest version, which a series with any v2 field is written with.
-  static const int version = 2;
+  /// The newest version, which a series with any v3 field is written with.
+  static const int version = 3;
 
-  /// The version a series that uses no v2 field is written with.
+  /// The version a series with a v2 field and no v3 field is written with.
+  static const int tissueVersion = 2;
+
+  /// The version a series that uses no v2 or v3 field is written with.
   static const int baseVersion = 1;
 
   /// Codec v1 field table. See [kProfileFieldTableV1].
@@ -55,13 +64,17 @@ class ProfileSeriesCodec {
   /// Codec v2 field table. See [kProfileFieldTableV2].
   static const List<ProfileField> fieldTableV2 = kProfileFieldTableV2;
 
+  /// Codec v3 field table. See [kProfileFieldTableV3].
+  static const List<ProfileField> fieldTableV3 = kProfileFieldTableV3;
+
   /// Field table per version byte this codec can read.
   final Map<int, List<ProfileField>> fieldTables;
 
   /// Encodes a non-empty, timestamp-ordered series.
   ///
   /// Without a [version], the series is written as [baseVersion] unless a
-  /// sample carries `gf99` or `n2Load`, which only [version] can hold. An
+  /// sample carries `gf99` or `n2Load` ([tissueVersion]) or an Avelo field
+  /// ([version]), which only those versions can hold. An
   /// older build refuses a blob of a version it does not know, so writing
   /// every series as the newest would hide all of them from a peer that has
   /// not updated, not just the ones that need it.
@@ -79,9 +92,7 @@ class ProfileSeriesCodec {
   /// among them, has to handle the throw per series rather than treat it as
   /// a bug that cannot happen.
   EncodedProfileSeries encode(List<ProfileSample> samples, {int? version}) {
-    version ??= samples.any((s) => s.gf99 != null || s.n2Load != null)
-        ? ProfileSeriesCodec.version
-        : baseVersion;
+    version ??= _lowestVersionFor(samples);
     final table = fieldTables[version];
     if (table == null) {
       throw ArgumentError.value(version, 'version', 'no field table');
@@ -212,8 +223,24 @@ class ProfileSeriesCodec {
     }
   }
 
+  /// The lowest version whose field table holds every field [samples] use.
+  static int _lowestVersionFor(List<ProfileSample> samples) {
+    if (samples.any(
+      (s) =>
+          s.aveloBuoyancy != null ||
+          s.aveloGasRemaining != null ||
+          s.computerRmv != null,
+    )) {
+      return version;
+    }
+    if (samples.any((s) => s.gf99 != null || s.n2Load != null)) {
+      return tissueVersion;
+    }
+    return baseVersion;
+  }
+
   static final Map<String, ProfileFieldKind> _frozenKinds = {
-    for (final field in kProfileFieldTableV2) field.name: field.kind,
+    for (final field in kProfileFieldTableV3) field.name: field.kind,
   };
 
   static Object? _fieldOf(ProfileSample s, String name) => switch (name) {
@@ -247,6 +274,9 @@ class ProfileSeriesCodec {
     'o2_sensor_mv6' => s.o2SensorMv6,
     'gf99' => s.gf99,
     'n2_load' => s.n2Load,
+    'avelo_buoyancy' => s.aveloBuoyancy,
+    'avelo_gas_remaining' => s.aveloGasRemaining,
+    'computer_rmv' => s.computerRmv,
     _ => throw ArgumentError.value(name, 'name', 'not a profile sample field'),
   };
 
@@ -419,6 +449,9 @@ class ProfileSeriesCodec {
     final mv6s = column<int>('o2_sensor_mv6');
     final gf99s = column<int>('gf99');
     final n2Loads = column<int>('n2_load');
+    final aveloBuoyancies = column<double>('avelo_buoyancy');
+    final aveloGasRemainings = column<int>('avelo_gas_remaining');
+    final computerRmvs = column<double>('computer_rmv');
 
     return [
       for (var i = 0; i < count; i++)
@@ -457,6 +490,9 @@ class ProfileSeriesCodec {
           o2SensorMv6: mv6s[i],
           gf99: gf99s[i],
           n2Load: n2Loads[i],
+          aveloBuoyancy: aveloBuoyancies[i],
+          aveloGasRemaining: aveloGasRemainings[i],
+          computerRmv: computerRmvs[i],
         ),
     ];
   }

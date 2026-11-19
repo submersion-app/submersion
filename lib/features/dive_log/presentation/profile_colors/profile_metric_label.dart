@@ -24,4 +24,8 @@ String profileMetricLabel(AppLocalizations l10n, ProfileMetric metric) =>
       ProfileMetric.gf => l10n.diveLog_legend_label_gfPercent,
       ProfileMetric.surfaceGf => l10n.diveLog_legend_label_surfaceGf,
       ProfileMetric.meanDepth => l10n.diveLog_legend_label_meanDepth,
+      ProfileMetric.aveloBuoyancy => l10n.diveLog_legend_label_aveloBuoyancy,
+      ProfileMetric.aveloGasRemaining =>
+        l10n.diveLog_legend_label_aveloGasRemaining,
+      ProfileMetric.computerRmv => l10n.diveLog_legend_label_computerRmv,
     };

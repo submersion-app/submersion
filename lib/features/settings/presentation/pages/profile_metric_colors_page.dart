@@ -96,6 +96,9 @@ class ProfileMetricColorsPage extends ConsumerWidget {
             ProfileMetric.gf,
             ProfileMetric.surfaceGf,
             ProfileMetric.meanDepth,
+            ProfileMetric.aveloBuoyancy,
+            ProfileMetric.aveloGasRemaining,
+            ProfileMetric.computerRmv,
           ])
             row(m),
         ],

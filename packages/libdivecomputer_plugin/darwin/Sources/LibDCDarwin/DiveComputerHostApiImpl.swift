@@ -870,6 +870,10 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
                     o2SensorMv4: s.o2_sensor_mv.3 == UInt32.max ? nil : Int64(s.o2_sensor_mv.3),
                     o2SensorMv5: s.o2_sensor_mv.4 == UInt32.max ? nil : Int64(s.o2_sensor_mv.4),
                     o2SensorMv6: s.o2_sensor_mv.5 == UInt32.max ? nil : Int64(s.o2_sensor_mv.5),
+                    // Shearwater Avelo mode (issue #4664).
+                    aveloBuoyancy: s.avelo_buoyancy.isNaN ? nil : s.avelo_buoyancy,
+                    aveloGasRemaining: s.gas_remaining == UInt32.max ? nil : Int64(s.gas_remaining),
+                    computerRmv: s.computer_rmv.isNaN ? nil : s.computer_rmv,
                     gasMixIndex: s.gasmix == UInt32.max ? nil : Int64(s.gasmix)
                 ))
             }

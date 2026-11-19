@@ -111,6 +111,12 @@ class ProfileLegendConfig {
   /// info sheet can name it. Unlike [hasBuoyancy], false while the model
   /// is loading or if it failed (#4593).
   final bool hasBuoyancyLine;
+
+  /// The samples carry the computer's Avelo buoyancy, gas remaining or RMV,
+  /// so that line can be offered (#4664).
+  final bool hasAveloBuoyancy;
+  final bool hasAveloGasRemaining;
+  final bool hasComputerRmv;
   final bool hasPhotoMarkers;
   final bool hasMultiTankPressure;
   final bool hasGasData;
@@ -175,6 +181,9 @@ class ProfileLegendConfig {
     this.hasCounterdiffusion = false,
     this.hasBuoyancy = false,
     this.hasBuoyancyLine = false,
+    this.hasAveloBuoyancy = false,
+    this.hasAveloGasRemaining = false,
+    this.hasComputerRmv = false,
     this.hasPhotoMarkers = false,
     this.hasMultiTankPressure = false,
     this.hasGasData = false,
@@ -219,6 +228,9 @@ class ProfileLegendConfig {
       hasLateGasSwitches ||
       hasCounterdiffusion ||
       hasBuoyancy ||
+      hasAveloBuoyancy ||
+      hasAveloGasRemaining ||
+      hasComputerRmv ||
       hasPhotoMarkers ||
       hasTankListSection ||
       hasGasData ||

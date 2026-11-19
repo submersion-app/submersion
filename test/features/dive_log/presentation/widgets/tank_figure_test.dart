@@ -342,4 +342,44 @@ void main() {
       handle.dispose();
     });
   });
+
+  // Issue #4664: a Hydrotank's figure draws its estimated water.
+  testWidgets('a Hydrotank figure paints its water in the water colour', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _host(
+        TankFigure(
+          levels: TankFillLevels.hydrotank(water: 0.3, gasLeft: 0.6),
+          gasColor: Colors.green,
+          volumeLiters: 10,
+          startLabel: 'Start 3488 psi',
+          endLabel: 'End 1302 psi',
+        ),
+      ),
+    );
+
+    // Gas used, gas left, then the water over the bottom of the gas.
+    expect(
+      _painted(tester),
+      paints
+        ..rect()
+        ..rect()
+        ..rect(color: hydrotankWaterColor),
+    );
+  });
+
+  testWidgets('a pressure figure paints no water', (tester) async {
+    await tester.pumpWidget(_host(_figure()));
+
+    expect(
+      _painted(tester),
+      isNot(
+        paints
+          ..rect()
+          ..rect()
+          ..rect(color: hydrotankWaterColor),
+      ),
+    );
+  });
 }

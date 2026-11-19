@@ -187,22 +187,32 @@ String formatBuoyancyReadout(
   AppLocalizations l10n, {
   TextDirection direction = TextDirection.ltr,
 }) {
-  final display = units.convertWeight(kg);
-  final rounded = double.parse(display.toStringAsFixed(1));
-  if (rounded == 0) {
-    return l10n.diveLog_buoyancy_readout_neutral(
-      isolateForDirection(
-        '${formatFixedForDisplay(0, 1)} ${units.weightSymbol}',
-        direction,
-      ),
-    );
-  }
-  final number = formatFixedForDisplay(rounded, 1);
-  final value = isolateForDirection(
-    '${rounded > 0 ? '+' : ''}$number ${units.weightSymbol}',
-    direction,
-  );
+  final rounded = _roundedBuoyancy(kg, units);
+  final value = formatSignedBuoyancy(kg, units, direction: direction);
+  if (rounded == 0) return l10n.diveLog_buoyancy_readout_neutral(value);
   return rounded > 0
       ? l10n.diveLog_buoyancy_readout_buoyant(value)
       : l10n.diveLog_buoyancy_readout_heavy(value);
 }
+
+/// [kg] as a signed weight in the diver's unit ("+0.9 kg", "-2.4 kg", and
+/// "0.0 kg" for anything that rounds to zero): the sign is chosen after
+/// rounding to the one decimal shown, so a near-zero value never reads
+/// "+0.0" or "-0.0". Isolated in right-to-left text ([direction]) so bidi
+/// reordering cannot move the sign to the far end of the number.
+String formatSignedBuoyancy(
+  double kg,
+  UnitFormatter units, {
+  TextDirection direction = TextDirection.ltr,
+}) {
+  final rounded = _roundedBuoyancy(kg, units);
+  final number = formatFixedForDisplay(rounded == 0 ? 0 : rounded, 1);
+  return isolateForDirection(
+    '${rounded > 0 ? '+' : ''}$number ${units.weightSymbol}',
+    direction,
+  );
+}
+
+/// [kg] in the diver's weight unit, rounded to the one decimal shown.
+double _roundedBuoyancy(double kg, UnitFormatter units) =>
+    double.parse(units.convertWeight(kg).toStringAsFixed(1));

@@ -22,6 +22,33 @@ void main() {
       expect(point.n2Load, isNull);
     });
 
+    test('carries the Avelo fields (#4664)', () {
+      final point = profilePointFromImport({
+        'timestamp': 60,
+        'depth': 12.0,
+        'aveloBuoyancy': -0.393,
+        'aveloGasRemaining': 100,
+        'computerRmv': 10.68,
+      });
+
+      expect(point.aveloBuoyancy, -0.393);
+      expect(point.aveloGasRemaining, 100);
+      expect(point.computerRmv, 10.68);
+    });
+
+    test('reads a whole-number Avelo value written as an int', () {
+      final point = profilePointFromImport({
+        'timestamp': 60,
+        'depth': 12.0,
+        'aveloBuoyancy': 1,
+        'computerRmv': 12,
+      });
+
+      expect(point.aveloBuoyancy, 1.0);
+      expect(point.computerRmv, 12.0);
+      expect(point.aveloGasRemaining, isNull);
+    });
+
     test('moves the sample by the offset', () {
       final point = profilePointFromImport({
         'timestamp': 60,
