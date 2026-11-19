@@ -44,7 +44,7 @@ mixin _SiteDetailFullscreen
           sittingHost: session == null ? null : maybeEditController,
           // On a page that holds edits in a sitting, the map changes
           // features only for the Features card's editor (issue #4527).
-          readOnly: hostsEditing && session == null,
+          readOnly: session == null,
         ),
       ),
     );

@@ -86,12 +86,10 @@ void main() {
     WidgetTester tester, {
     Future<SharedLibraryRole> Function()? role,
     bool connected = true,
-    bool unlockEditing = true,
     DiveSite? site,
   }) => pumpSitePage(
     tester,
     site: site ?? librarySite,
-    unlockEditing: unlockEditing,
     extra: library(role: role, connected: connected),
   );
 
@@ -288,16 +286,6 @@ void main() {
     expect(controller.isUnlocked, isTrue);
     expect(controller.openCardIds, isNot(contains('features')));
     expect(controller.layoutRecord, isNull);
-  });
-
-  testWidgets('with the switch off the page is as today', (tester) async {
-    await pumpReader(tester, unlockEditing: false);
-
-    expect(find.byKey(suggestKey), findsNothing);
-    expect(
-      find.widgetWithText(TextButton, l.sharedLibrary_suggest_title),
-      findsOneWidget,
-    );
   });
 
   group('the cards in a reader\'s sitting', () {

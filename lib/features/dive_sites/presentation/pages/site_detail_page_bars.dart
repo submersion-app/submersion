@@ -4,16 +4,14 @@ part of 'site_detail_page.dart';
 /// pane's header row (issue #4527, phase 2).
 extension _SiteDetailBars on _SiteDetailContentState {
   /// The full page's locked top bar. [offered] is whether the lock shows;
-  /// on a page that [hosts] editing, History sits beside the lock where the
-  /// bar has room, else first in the menu, as on a dive.
+  /// History sits beside the lock where the bar has room, else first in the menu, as on a dive.
   PreferredSizeWidget _lockedBar(
     BuildContext context,
     DiveSite site, {
     required bool offered,
-    required bool hosts,
   }) {
     final historyInBar =
-        hosts && MediaQuery.sizeOf(context).width >= kRecordCompactBarWidth;
+        MediaQuery.sizeOf(context).width >= kRecordCompactBarWidth;
     return AppBar(
       title: Text(site.name),
       actions: [
@@ -49,23 +47,21 @@ extension _SiteDetailBars on _SiteDetailContentState {
                 : () => context.push('/sites/${widget.siteId}/edit'),
           ),
         ..._libraryButtons(context, ref, site),
-        _siteMenu(context, site, historyItem: !historyInBar, hosts: hosts),
+        _siteMenu(context, site, historyItem: !historyInBar),
       ],
     );
   }
 
-  /// The full page's menu, on the locked bar and, on a page that [hosts]
-  /// editing, on the unlocked one too, as a dive's: the whole-record
-  /// actions run from it while unlocked with nothing to save. Today's page
-  /// offers Delete, Unhide and Remove only once it hosts editing.
+  /// The full page's menu, on the locked bar and on the unlocked one, as a
+  /// dive's: the whole-record actions run from it while unlocked with
+  /// nothing to save.
   Widget _siteMenu(
     BuildContext context,
     DiveSite site, {
     required bool historyItem,
-    required bool hosts,
     MenuController? controller,
   }) {
-    final ownership = hosts ? _watchOwnership(ref, site) : null;
+    final ownership = _watchOwnership(ref, site);
     return SiteDetailPropertiesMenu(
       controller: controller ?? _displayOptionsMenu,
       child: PopupMenuButton<String>(

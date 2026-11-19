@@ -9,8 +9,7 @@ enum _ReaderSave { refused, edit, send }
 /// site's own on top of [RecordEditHost], which holds what every record page
 /// shares (the lock, the bar, the strip, the leave check, the keys).
 ///
-/// Offered behind [kUnlockSiteEditing], on the full page and in both list
-/// panes, for a site this profile may edit, and to a shared site library's
+/// Offered on the full page and in both list panes, for a site this profile may edit, and to a shared site library's
 /// reader, whose sitting suggests changes (plan 5).
 mixin _SiteDetailPageEditing
     on
@@ -35,19 +34,12 @@ mixin _SiteDetailPageEditing
   @override
   String recordIdOf(DiveSite record) => record.id;
 
-  /// The switch on, on the full page and in a pane alike: the page keeps
-  /// the editing shape for its whole life, so a role that loads or changes
-  /// never remounts it.
-  @override
-  bool get hostsEditing => widget.unlockEditing;
-
-  /// [hostsEditing], for a site this profile may edit now, or suggest
+  /// For a site this profile may edit now, or suggest
   /// changes to as a library's reader. [watch] in `build`, a read anywhere
   /// else.
   bool _offersEditingNow({bool watch = false}) =>
-      hostsEditing &&
       (_canEditSite(ref, widget.site, watch: watch) ||
-          _readerMaySuggest(watch: watch));
+      _readerMaySuggest(watch: watch));
 
   /// Whether this profile is a reader of the site's library, connected
   /// here, with the role settled: a role still loading offers nothing yet,
@@ -62,7 +54,6 @@ mixin _SiteDetailPageEditing
 
   /// Whether the page offers a reader's sitting now, not an editor's.
   bool _suggestsNow({bool watch = false}) =>
-      hostsEditing &&
       !_canEditSite(ref, widget.site, watch: watch) &&
       _readerMaySuggest(watch: watch);
 
@@ -84,7 +75,7 @@ mixin _SiteDetailPageEditing
   /// does a reader's sitting that changed one of those while it could edit.
   bool _sittingAllowedNow({bool watch = false}) {
     final session = maybeEditController?.session;
-    if (hostsEditing && _canEditSite(ref, widget.site, watch: watch)) {
+    if (_canEditSite(ref, widget.site, watch: watch)) {
       return true;
     }
     return session != null &&
@@ -96,8 +87,8 @@ mixin _SiteDetailPageEditing
   @override
   bool get offersEditing => _offersEditingNow();
 
-  /// What `build` needs of the sitting: whether the page [hosts] editing
-  /// and [offered] it now, the [site] to show (the diver's working copy
+  /// What `build` needs of the sitting: whether the page [offered] editing
+  /// now, the [site] to show (the diver's working copy
   /// during a sitting, or the site just saved), the hidden sections the
   /// sitting brought onto the page, and the sections it holds unfolded.
   ///
@@ -105,7 +96,6 @@ mixin _SiteDetailPageEditing
   /// the library disconnected) is ended: nothing on the page could save it
   /// any more, and the app would still ask about it on the way out.
   ({
-    bool hosts,
     bool offered,
     DiveSite site,
     Set<SiteDetailSectionId> shownForSitting,
@@ -113,16 +103,6 @@ mixin _SiteDetailPageEditing
     DiveSite? presence,
   })
   _editingInBuild() {
-    if (!hostsEditing) {
-      return (
-        hosts: false,
-        offered: false,
-        site: widget.site,
-        shownForSitting: const {},
-        heldOpen: const {},
-        presence: null,
-      );
-    }
     final offered = _offersEditingNow(watch: true);
     if (isSittingOpen &&
         !_sittingAllowedNow(watch: true) &&
@@ -136,7 +116,6 @@ mixin _SiteDetailPageEditing
     }
     followStored(siteProvider(widget.siteId));
     return (
-      hosts: true,
       offered: offered,
       site: shownRecord(widget.site),
       shownForSitting: _sectionsShownForSitting(),
@@ -178,7 +157,6 @@ mixin _SiteDetailPageEditing
   @override
   void initState() {
     super.initState();
-    if (!hostsEditing) return;
     _dropSlot = ref.read(siteEditingPageProvider.notifier);
     _tellDrop();
   }

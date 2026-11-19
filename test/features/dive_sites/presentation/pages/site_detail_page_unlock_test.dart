@@ -62,17 +62,6 @@ void main() {
       s.id == SiteDetailSectionId.notes ? s.copyWith(visible: false) : s,
   ];
 
-  testWidgets('with the switch off there is no lock', (tester) async {
-    final page = await pumpSitePage(tester, unlockEditing: false);
-
-    expect(find.byIcon(Icons.lock_outline), findsNothing);
-    expect(find.byTooltip(l.diveSites_detail_editTooltip), findsOneWidget);
-    expect(
-      page.container.read(recordEditShortcutTargetsProvider).current,
-      isNull,
-    );
-  });
-
   // A file dropped on the window finds the page: locked, it has no
   // sitting; unlocked, the sitting a drop is held in (issue #4527).
   testWidgets('the page tells a drop whether the site is unlocked', (
@@ -89,11 +78,6 @@ void main() {
     await tester.tap(find.text(l.forms_cancel));
     await tester.pumpAndSettle();
     expect(told()?.session, isNull);
-  });
-
-  testWidgets('with the switch off a drop finds no page', (tester) async {
-    final page = await pumpSitePage(tester, unlockEditing: false);
-    expect(page.container.read(siteEditingPageProvider), isNull);
   });
 
   // The old edit address opens the page unlocked (issue #4527, phase 2).
@@ -132,24 +116,6 @@ void main() {
       expect(landed.queryParameters['selected'], 's1');
       expect(landed.queryParameters['mode'], 'edit');
     });
-  });
-
-  // With the switch off an edit address is as before: a site in view mode,
-  // on desktop moved into the pane without asking for edit mode, which
-  // there would open the old form.
-  testWidgets('with the switch off, mode=edit on desktop moves into the pane '
-      'as it is', (tester) async {
-    final page = await pumpSitePage(
-      tester,
-      unlockEditing: false,
-      openUnlocked: true,
-      size: const Size(1400, 1000),
-      initialLocation: '/root-site',
-    );
-
-    final landed = page.router!.routerDelegate.currentConfiguration.uri;
-    expect(landed.path, '/sites');
-    expect(landed.queryParameters.containsKey('mode'), isFalse);
   });
 
   // A window widened during a sitting keeps the page, and the sitting,
@@ -227,15 +193,6 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text(l.changeLog_history), findsOneWidget);
-    });
-
-    testWidgets('with the switch off the bar is as today', (tester) async {
-      await pumpSitePage(
-        tester,
-        unlockEditing: false,
-        size: const Size(900, 1400),
-      );
-      expect(inBar, findsNothing);
     });
   });
 

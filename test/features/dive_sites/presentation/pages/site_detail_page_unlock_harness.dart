@@ -133,13 +133,12 @@ const harnessSite = DiveSite(
   notes: 'Calm',
 );
 
-/// Pumps the full site page for [site] at phone width, with editing
-/// [unlockEditing], and returns the harness.
+/// Pumps the full site page for [site] at phone width, and returns the
+/// harness.
 Future<SiteUnlockHarness> pumpSitePage(
   WidgetTester tester, {
   DiveSite site = harnessSite,
   AppSettings settings = const AppSettings(),
-  bool unlockEditing = true,
   bool embedded = false,
   bool openUnlocked = false,
   VoidCallback? onSittingEnded,
@@ -157,7 +156,6 @@ Future<SiteUnlockHarness> pumpSitePage(
   final page = SiteDetailPage(
     siteId: site.id,
     embedded: embedded,
-    unlockEditing: unlockEditing,
     openUnlocked: openUnlocked,
     onSittingEnded: onSittingEnded,
     onClose: onClose,

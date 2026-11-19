@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
-import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_routes.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
@@ -103,24 +102,6 @@ void main() {
     expect(uri.toString(), '/root-site');
   });
 
-  testWidgets('with the switch off, Edit opens the pane\'s edit mode', (
-    tester,
-  ) async {
-    final page = await pumpSitePage(
-      tester,
-      embedded: true,
-      unlockEditing: false,
-      initialLocation: '/root-site',
-    );
-
-    await tester.tap(find.byTooltip(l.diveSites_detail_editTooltipShort));
-    await tester.pumpAndSettle();
-
-    final uri = page.router!.routerDelegate.currentConfiguration.uri;
-    expect(uri.path, '/sites');
-    expect(uri.queryParameters['mode'], 'edit');
-  });
-
   // The locked row stays laid out, unseen, under the unlocked one: each has
   // its own display-options anchor, so the menu in view opens its panel,
   // unlocked and locked again alike.
@@ -166,40 +147,19 @@ void main() {
 
       expect(addMedia, findsNothing);
     });
-
-    testWidgets('with the switch off the pane offers it as today', (
-      tester,
-    ) async {
-      await pumpSitePage(
-        tester,
-        embedded: true,
-        unlockEditing: false,
-        extra: attaches,
-      );
-
-      expect(addMedia, findsOneWidget);
-    });
   });
 
   group('the list\'s edit pane', () {
     var cancelled = 0;
-    Widget pane(BuildContext context, {required bool unlockEditing}) =>
-        siteEditPane(
-          context,
-          's1',
-          (_) {},
-          () => cancelled++,
-          unlockEditing: unlockEditing,
-        );
+    Widget pane(BuildContext context) =>
+        siteEditPane(context, 's1', (_) {}, () => cancelled++);
 
-    testWidgets('with the switch on is the site page opened unlocked', (
-      tester,
-    ) async {
+    testWidgets('is the site page opened unlocked', (tester) async {
       late Widget built;
       await tester.pumpWidget(
         Builder(
           builder: (context) {
-            built = pane(context, unlockEditing: true);
+            built = pane(context);
             return const SizedBox();
           },
         ),
@@ -209,25 +169,9 @@ void main() {
       final page = built as SiteDetailPage;
       expect(page.embedded, isTrue);
       expect(page.openUnlocked, isTrue);
-      // The page it builds hosts editing, whatever the build's switch.
-      expect(page.unlockEditing, isTrue);
       // The end of its sitting returns the pane to view mode.
       page.onSittingEnded!();
       expect(cancelled, 1);
-    });
-
-    testWidgets('with the switch off is the form', (tester) async {
-      late Widget built;
-      await tester.pumpWidget(
-        Builder(
-          builder: (context) {
-            built = pane(context, unlockEditing: false);
-            return const SizedBox();
-          },
-        ),
-      );
-
-      expect(built, isA<SiteEditPage>());
     });
   });
 
@@ -294,23 +238,20 @@ void main() {
   group("the dive list's site pane", () {
     var cancelled = 0;
     var closed = 0;
-    Widget pane(BuildContext context, {required bool unlockEditing}) =>
-        siteInDivesPane(
-          context,
-          's1',
-          onSaved: (_) {},
-          onCancel: () => cancelled++,
-          onClose: () => closed++,
-          onDeleted: () {},
-          unlockEditing: unlockEditing,
-        );
+    Widget pane(BuildContext context) => siteInDivesPane(
+      context,
+      's1',
+      onCancel: () => cancelled++,
+      onClose: () => closed++,
+      onDeleted: () {},
+    );
 
-    Future<Widget> build(WidgetTester tester, {required bool on}) async {
+    Future<Widget> build(WidgetTester tester) async {
       late Widget built;
       await tester.pumpWidget(
         Builder(
           builder: (context) {
-            built = pane(context, unlockEditing: on);
+            built = pane(context);
             return const SizedBox();
           },
         ),
@@ -318,25 +259,20 @@ void main() {
       return built;
     }
 
-    testWidgets('with the switch on is the site opened unlocked, its back '
+    testWidgets('is the site opened unlocked, its back '
         'arrow to the dive', (tester) async {
-      final built = await build(tester, on: true);
+      final built = await build(tester);
 
       expect(built, isA<SiteDetailPage>());
       final page = built as SiteDetailPage;
       expect(page.embedded, isTrue);
       expect(page.openUnlocked, isTrue);
-      expect(page.unlockEditing, isTrue);
       // Its back arrow returns to the dive; its sitting's end, to the site
       // in view mode.
       page.onClose!();
       page.onSittingEnded!();
       expect(closed, 1);
       expect(cancelled, 1);
-    });
-
-    testWidgets('with the switch off is the form', (tester) async {
-      expect(await build(tester, on: false), isA<SiteEditPage>());
     });
   });
 }

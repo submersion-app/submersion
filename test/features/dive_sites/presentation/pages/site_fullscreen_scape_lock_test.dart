@@ -90,7 +90,7 @@ void main() {
           locale: Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: SiteDetailPage(siteId: 's1', unlockEditing: true),
+          home: SiteDetailPage(siteId: 's1'),
         ),
       ),
     );
