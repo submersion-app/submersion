@@ -32,7 +32,7 @@ extension Readiness on MediaIdentificationService {
           ? decideVideoRefresh(
                   run: run,
                   packVersion: manifest.packVersion,
-                  detectorId: manifest.detectorSetId,
+                  detectorId: _runDetectorId(manifest, video: true),
                   classifierId: manifest.classifier.embeddingId,
                   cell: cell,
                   cropsPresent: crops,
@@ -42,7 +42,7 @@ extension Readiness on MediaIdentificationService {
           : decideRefresh(
                   run: run,
                   packVersion: manifest.packVersion,
-                  detectorId: manifest.detectorSetId,
+                  detectorId: _runDetectorId(manifest, video: false),
                   classifierId: manifest.classifier.embeddingId,
                   cell: cell,
                   cropsPresent: crops,
@@ -54,6 +54,12 @@ extension Readiness on MediaIdentificationService {
     return current;
   }
 }
+
+/// The detector id a current run holds: the pack's detector set, and for
+/// a video the tracker version too ([videoRunDetectorId]). One rule for
+/// processing and for what counts as up to date.
+String _runDetectorId(SpeciesPackManifest manifest, {required bool video}) =>
+    video ? videoRunDetectorId(manifest.detectorSetId) : manifest.detectorSetId;
 
 /// [location]'s cell in [manifest]'s region grid. A position that is not a
 /// number (a bad EXIF read) is no position: the item is named without a

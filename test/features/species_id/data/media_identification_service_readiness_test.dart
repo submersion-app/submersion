@@ -13,6 +13,7 @@ import 'package:submersion/features/species_id/data/services/identification_crop
 import 'package:submersion/features/species_id/data/services/media_identification_service.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
+import 'package:submersion/features/species_id/domain/services/video_tracker.dart';
 
 import '../../../helpers/temp_dir.dart';
 import 'fake_vision_engine.dart';
@@ -133,6 +134,29 @@ void main() {
     await lookAt(photo('m1'));
     final newer = pack(version: '2026.12.1').pack.manifest;
     expect(await upToDate([photo('m1')], manifest: newer), isEmpty);
+  });
+
+  test('a video scanned to its end by the installed pack and tracker is up '
+      'to date', () async {
+    await identifications.storeRun(
+      MediaIdentificationRun(
+        mediaId: 'v1',
+        packVersion: installed.packVersion,
+        // What a scan stores for a video: the detectors and the tracker.
+        detectorId: videoRunDetectorId(installed.detectorSetId),
+        classifierId: installed.classifier.embeddingId,
+        analysedAt: DateTime.utc(2026, 11, 18),
+        imageWidth: 1920,
+        imageHeight: 1080,
+        detectionCount: 0,
+        scannedMs: 25000,
+        videoDurationMs: 25000,
+      ),
+      insert: const [],
+      deleteIds: const [],
+    );
+
+    expect(await upToDate([photo('v1', type: MediaType.video)]), {'v1'});
   });
 
   test('a video never scanned is not', () async {

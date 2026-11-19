@@ -513,7 +513,7 @@ class MediaIdentificationService {
         switch (decideRefresh(
           run: run,
           packVersion: manifest.packVersion,
-          detectorId: manifest.detectorSetId,
+          detectorId: _runDetectorId(manifest, video: false),
           classifierId: manifest.classifier.embeddingId,
           cell: cell,
           cropsPresent: cropsPresent,
