@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/buddies/presentation/editing/instructor_card_editor.dart';
 import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/editing/certification_card_ids.dart';
@@ -120,7 +120,7 @@ final certificationExpiryDateField = EditField<Certification, DateTime?>(
 
 /// The instructor: the buddy picked, and the name and number written on the
 /// card. One value, so a pick that fills all three is one change.
-typedef CertificationInstructor = ({String? id, String? name, String? number});
+typedef CertificationInstructor = InstructorValue;
 
 final certificationInstructorField =
     EditField<Certification, CertificationInstructor>(
@@ -221,15 +221,3 @@ List<CertificationCredential> removeCredential(
 /// cannot be saved.
 bool certificationHasTitleOrLevel(Certification c) =>
     c.name.trim().isNotEmpty || c.level != null;
-
-/// The instructor after a pick from the instructor picker: a buddy fills
-/// the name and the number from their certification, overwriting both, so
-/// a buddy with no card number clears a stale one; clearing the pick keeps
-/// the text as it is, as the form does.
-CertificationInstructor instructorPicked(
-  Buddy? buddy,
-  Certification? instructorCert,
-  CertificationInstructor previous,
-) => buddy == null
-    ? (id: null, name: previous.name, number: previous.number)
-    : (id: buddy.id, name: buddy.name, number: instructorCert?.cardNumber);

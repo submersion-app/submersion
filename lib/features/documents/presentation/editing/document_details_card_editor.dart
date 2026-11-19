@@ -62,12 +62,10 @@ class _DocumentDetailsCardEditorState
     EditField<DocumentRecord, V> field,
     String Function(V value) format,
   ) {
-    final binding = FieldTextBinding<DocumentRecord, V>(
+    final binding = FieldTextBinding<DocumentRecord, V>.plain(
       session: _session,
       field: field,
       format: format,
-      // Any text is a value; a blank optional one is stored as none.
-      parse: (text) => FieldValue<V>(text as V),
     );
     _bindings.add(binding as FieldTextBinding<DocumentRecord, Object?>);
     return binding;

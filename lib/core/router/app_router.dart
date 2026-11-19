@@ -52,6 +52,7 @@ import 'package:submersion/features/pre_dive/presentation/pages/pre_dive_templat
 import 'package:submersion/features/pre_dive/presentation/pages/pre_dive_templates_page.dart';
 import 'package:submersion/features/courses/presentation/pages/course_detail_page.dart';
 import 'package:submersion/features/courses/presentation/pages/course_edit_page.dart';
+import 'package:submersion/features/courses/presentation/pages/course_edit_routes.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_detail_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_routes.dart';
@@ -1123,6 +1124,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/courses',
             name: 'courses',
+            onExit: confirmLeaveRecordSitting,
             pageBuilder: (context, state) =>
                 trainingHostPage(const TrainingPage(tab: TrainingTab.courses)),
             routes: [
@@ -1134,13 +1136,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: ':courseId',
                 name: 'courseDetail',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => CourseDetailPage(
                   courseId: state.pathParameters['courseId']!,
+                  openUnlocked: state.uri.queryParameters['mode'] == 'edit',
                 ),
                 routes: [
                   GoRoute(
                     path: 'edit',
                     name: 'editCourse',
+                    // Behind phase 3's switch, the page opened unlocked.
+                    redirect: courseEditRedirect,
                     builder: (context, state) => CourseEditPage(
                       courseId: state.pathParameters['courseId'],
                     ),

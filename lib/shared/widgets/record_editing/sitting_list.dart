@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
@@ -53,6 +55,39 @@ class SittingList<T, E> {
   String get _readKey => '$key.read';
   String get _failedKey => '$key.failed';
   String get _wroteKey => '$key.wrote';
+  String get _readingKey => '$key.reading';
+  String get _changesKey => '$key.changes';
+
+  /// Tells its listeners whenever this list's rows change in [session]: a
+  /// read lands or fails, or the diver sets the list. An editor that draws
+  /// only the rows listens here rather than to the whole sitting, and can
+  /// draw a read that answers after it was built.
+  Listenable changes(EditSession<T> session) => _changes(session);
+
+  ValueNotifier<int> _changes(EditSession<T> session) {
+    var changes = session.recall<ValueNotifier<int>>(_changesKey);
+    if (changes == null) {
+      changes = ValueNotifier<int>(0);
+      session.remember(_changesKey, changes);
+    }
+    return changes;
+  }
+
+  void _tell(EditSession<T> session) {
+    final changes = session.recall<ValueNotifier<int>>(_changesKey);
+    if (changes != null) changes.value++;
+  }
+
+  /// The rows the sitting has, reading them first when it has none: the read
+  /// already asked is waited for (asking another would drop its answer), and
+  /// one is asked only when none is running. Null when the rows cannot be
+  /// read, or the sitting has ended.
+  Future<List<E>?> currentOrRead(EditSession<T> session) async {
+    final rows = current(session);
+    if (rows != null || session.isDisposed) return rows;
+    await (session.recall<Future<void>>(_readingKey) ?? load(session));
+    return session.isDisposed ? null : current(session);
+  }
 
   /// Reads the rows unless the diver has changed them in this sitting.
   /// Tracked. A read that answers after the list was changed, after a
@@ -82,6 +117,7 @@ class SittingList<T, E> {
         if (!session.isDisposed &&
             identical(session.recall<Object>(_readKey), asked)) {
           session.remember(_failedKey, true);
+          _tell(session);
         }
         return;
       }
@@ -89,8 +125,19 @@ class SittingList<T, E> {
       if (!identical(session.recall<Object>(_readKey), asked)) return;
       if (isChanged(session)) return;
       session.remember(_loadedKey, List<E>.unmodifiable(rows));
+      _tell(session);
     }();
-    session.track(work);
+    session
+      ..remember(_readingKey, work)
+      ..track(work);
+    unawaited(
+      work.whenComplete(() {
+        if (!session.isDisposed &&
+            identical(session.recall<Future<void>>(_readingKey), work)) {
+          session.remember(_readingKey, null);
+        }
+      }),
+    );
     return work;
   }
 
@@ -103,8 +150,14 @@ class SittingList<T, E> {
     if (session.isDisposed || session.isFrozen || isChanged(session)) return;
     session
       ..remember(_readKey, Object())
+      ..remember(_readingKey, null)
       ..remember(_failedKey, null)
       ..remember(_loadedKey, List<E>.unmodifiable(<E>[]));
+    // Told after the build it may be called from (a sitting opened as a
+    // page builds) has finished.
+    scheduleMicrotask(() {
+      if (!session.isDisposed) _tell(session);
+    });
   }
 
   /// Whether the last read failed, so an editor can say so and ask again
@@ -143,6 +196,7 @@ class SittingList<T, E> {
       session
         ..remember(_currentKey, null)
         ..releaseWrite(key);
+      _tell(session);
       return;
     }
     session
@@ -161,6 +215,7 @@ class SittingList<T, E> {
           }
         },
       );
+    _tell(session);
   }
 }
 

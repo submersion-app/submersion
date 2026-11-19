@@ -38,13 +38,15 @@ void main() {
 
   /// Opens the picker from a host button and records what it returned, so a
   /// test can assert on the value handed back rather than on picker internals.
-  Future<List<String?>> pumpPicker(
+  Future<List<RequirementDiveSummary?>> pumpPicker(
     WidgetTester tester, {
     List<RequirementDiveSummary> suggested = const [],
     List<RequirementDiveSummary> creditable = const [],
     Map<String, List<DiveSummary>> searchResults = const {},
+    Set<String> excludeDiveIds = const {},
+    List<RequirementDiveSummary> restoredDives = const [],
   }) async {
-    final returned = <String?>[];
+    final returned = <RequirementDiveSummary?>[];
 
     await tester.pumpWidget(
       testApp(
@@ -63,7 +65,12 @@ void main() {
         child: Builder(
           builder: (context) => ElevatedButton(
             onPressed: () async => returned.add(
-              await showCreditDivePickerSheet(context, courseId: 'course-1'),
+              await showCreditDivePickerSheet(
+                context,
+                courseId: 'course-1',
+                excludeDiveIds: excludeDiveIds,
+                restoredDives: restoredDives,
+              ),
             ),
             child: const Text('Open'),
           ),
@@ -155,7 +162,37 @@ void main() {
     await tester.tap(find.text('#42 · Blue Hole'));
     await tester.pumpAndSettle();
 
-    expect(returned, ['dive-42']);
+    expect([for (final dive in returned) dive?.diveId], ['dive-42']);
+  });
+
+  testWidgets("it returns the chosen dive's summary", (tester) async {
+    final dive = candidate('dive-42', number: 42, site: 'Blue Hole');
+    final returned = await pumpPicker(tester, creditable: [dive]);
+
+    await tester.tap(find.text('#42 · Blue Hole'));
+    await tester.pumpAndSettle();
+
+    expect(returned, [dive]);
+  });
+
+  testWidgets('held credits are left out and held uncredits come back', (
+    tester,
+  ) async {
+    await pumpPicker(
+      tester,
+      creditable: [
+        candidate('held', number: 7, site: 'Credited in the sitting'),
+        candidate('kept', number: 8, site: 'Still creditable'),
+      ],
+      excludeDiveIds: {'held'},
+      restoredDives: [
+        candidate('back', number: 9, site: 'Uncredited in the sitting'),
+      ],
+    );
+
+    expect(find.text('#7 · Credited in the sitting'), findsNothing);
+    expect(find.text('#8 · Still creditable'), findsOneWidget);
+    expect(find.text('#9 · Uncredited in the sitting'), findsOneWidget);
   });
 
   testWidgets('dismissing the picker returns nothing', (tester) async {

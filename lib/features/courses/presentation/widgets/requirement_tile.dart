@@ -6,79 +6,86 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/courses/domain/entities/course_progress.dart';
 import 'package:submersion/features/courses/domain/entities/course_requirement.dart';
-import 'package:submersion/features/courses/presentation/providers/course_requirement_providers.dart';
-import 'package:submersion/features/courses/presentation/widgets/add_requirement_sheet.dart';
-import 'package:submersion/features/courses/presentation/widgets/credit_dive_picker_sheet.dart';
+import 'package:submersion/features/courses/presentation/editing/course_requirements_sitting.dart';
 
 /// One requirement row: a checkbox for checklist items, a progress count
 /// plus expandable credited-dive list for dive requirements. Unsatisfied
 /// dive requirements offer suggestion chips (one tap credits the dive) and
 /// a picker that reaches every other dive.
+///
+/// What a tap does is [actions]'s: written at once, as before, when none is
+/// given, or held in a course page's sitting (issue #4527, phase 3). With
+/// [readOnly] (the page edits in place and is locked, or the card is closed)
+/// it offers no action and shows the tick as it is.
 class RequirementTile extends ConsumerWidget {
   const RequirementTile({
     super.key,
     required this.progress,
     required this.suggestions,
+    this.actions,
+    this.readOnly = false,
   });
 
   final CourseRequirementProgress progress;
   final List<RequirementDiveSummary> suggestions;
+  final RequirementActions? actions;
+  final bool readOnly;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final requirement = progress.requirement;
+    final actions = readOnly
+        ? null
+        : this.actions ?? StoredRequirementActions(ref, requirement.courseId);
     if (requirement.kind == RequirementKind.checklist) {
       return CheckboxListTile(
         value: requirement.completedAt != null,
-        onChanged: (checked) async {
-          await ref
-              .read(courseRequirementRepositoryProvider)
-              .setChecklistComplete(requirement.id, checked ?? false);
-        },
+        onChanged: actions == null
+            ? null
+            : (checked) => logFailure(
+                actions.tick(requirement, checked ?? false),
+                RequirementTile,
+                'tick the requirement',
+              ),
         title: Text(requirement.name),
-        secondary: RequirementMenuButton(requirement: requirement),
+        secondary: actions == null
+            ? null
+            : RequirementMenuButton(requirement: requirement, actions: actions),
         controlAffinity: ListTileControlAffinity.leading,
         dense: true,
       );
     }
-    return _DiveRequirementTile(progress: progress, suggestions: suggestions);
+    return _DiveRequirementTile(
+      progress: progress,
+      suggestions: suggestions,
+      actions: actions,
+    );
   }
 }
 
 /// Edit/delete menu shared by both tile variants. Delete is immediate:
 /// requirement rows are cheap to recreate, so no confirm dialog.
-class RequirementMenuButton extends ConsumerWidget {
-  const RequirementMenuButton({super.key, required this.requirement});
+class RequirementMenuButton extends StatelessWidget {
+  const RequirementMenuButton({
+    super.key,
+    required this.requirement,
+    required this.actions,
+  });
 
   final CourseRequirement requirement;
-
-  Future<void> _edit(BuildContext context, WidgetRef ref) async {
-    final draft = await showAddRequirementSheet(context, existing: requirement);
-    if (draft == null) return;
-    await ref
-        .read(courseRequirementRepositoryProvider)
-        .updateRequirement(
-          requirement.copyWith(
-            name: draft.name,
-            kind: draft.kind,
-            targetCount: draft.targetCount,
-          ),
-        );
-  }
+  final RequirementActions actions;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final l10n = context.l10n;
     return PopupMenuButton<String>(
       iconSize: 18,
       onSelected: (action) async {
         switch (action) {
           case 'edit':
-            await _edit(context, ref);
+            await actions.edit(context, requirement);
           case 'delete':
-            await ref
-                .read(courseRequirementRepositoryProvider)
-                .deleteRequirement(requirement.id);
+            await actions.remove(requirement);
         }
       },
       itemBuilder: (context) => [
@@ -99,10 +106,14 @@ class _DiveRequirementTile extends ConsumerWidget {
   const _DiveRequirementTile({
     required this.progress,
     required this.suggestions,
+    required this.actions,
   });
 
   final CourseRequirementProgress progress;
   final List<RequirementDiveSummary> suggestions;
+
+  /// Null where the tile offers no action.
+  final RequirementActions? actions;
 
   String _diveLabel(RequirementDiveSummary dive, UnitFormatter units) {
     final number = dive.diveNumber != null ? '#${dive.diveNumber}' : '';
@@ -112,23 +123,13 @@ class _DiveRequirementTile extends ConsumerWidget {
     return [number, date, ?site].where((part) => part.isNotEmpty).join(' · ');
   }
 
-  Future<void> _chooseDive(BuildContext context, WidgetRef ref) async {
-    final requirement = progress.requirement;
-    final repository = ref.read(courseRequirementRepositoryProvider);
-    final diveId = await showCreditDivePickerSheet(
-      context,
-      courseId: requirement.courseId,
-    );
-    if (diveId == null) return;
-    await repository.linkDive(requirementId: requirement.id, diveId: diveId);
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final requirement = progress.requirement;
     final theme = Theme.of(context);
     final satisfied = progress.isSatisfied;
     final units = ref.watch(unitFormatterProvider);
+    final actions = this.actions;
 
     return ExpansionTile(
       leading: satisfied
@@ -145,7 +146,9 @@ class _DiveRequirementTile extends ConsumerWidget {
         ),
         style: theme.textTheme.bodySmall,
       ),
-      trailing: RequirementMenuButton(requirement: requirement),
+      trailing: actions == null
+          ? null
+          : RequirementMenuButton(requirement: requirement, actions: actions),
       dense: true,
       expandedCrossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -154,22 +157,19 @@ class _DiveRequirementTile extends ConsumerWidget {
             dense: true,
             leading: const Icon(Icons.link, size: 18),
             title: Text(_diveLabel(dive, units)),
-            trailing: IconButton(
-              tooltip: context.l10n.courses_action_unlinkDive,
-              icon: const Icon(Icons.link_off, size: 18),
-              onPressed: () => logFailure(
-                ref
-                    .read(courseRequirementRepositoryProvider)
-                    .unlinkDive(
-                      requirementId: requirement.id,
-                      diveId: dive.diveId,
+            trailing: actions == null
+                ? null
+                : IconButton(
+                    tooltip: context.l10n.courses_action_unlinkDive,
+                    icon: const Icon(Icons.link_off, size: 18),
+                    onPressed: () => logFailure(
+                      actions.uncredit(requirement, dive.diveId),
+                      _DiveRequirementTile,
+                      'unlink the dive',
                     ),
-                _DiveRequirementTile,
-                'unlink the dive',
-              ),
-            ),
+                  ),
           ),
-        if (!satisfied)
+        if (!satisfied && actions != null)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
             child: Column(
@@ -189,12 +189,7 @@ class _DiveRequirementTile extends ConsumerWidget {
                         ActionChip(
                           label: Text(_diveLabel(dive, units)),
                           onPressed: () => logFailure(
-                            ref
-                                .read(courseRequirementRepositoryProvider)
-                                .linkDive(
-                                  requirementId: requirement.id,
-                                  diveId: dive.diveId,
-                                ),
+                            actions.credit(context, requirement, dive),
                             _DiveRequirementTile,
                             'credit the suggested dive',
                           ),
@@ -206,7 +201,7 @@ class _DiveRequirementTile extends ConsumerWidget {
                   icon: const Icon(Icons.search, size: 18),
                   label: Text(context.l10n.courses_action_chooseDive),
                   onPressed: () => logFailure(
-                    _chooseDive(context, ref),
+                    actions.credit(context, requirement, null),
                     _DiveRequirementTile,
                     'credit the chosen dive',
                   ),

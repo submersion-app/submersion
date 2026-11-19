@@ -62,6 +62,7 @@ import 'package:submersion/features/table_editor/presentation/pages/table_editor
 import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blocker.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_edit_routes.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_edit_routes.dart';
+import 'package:submersion/features/courses/presentation/pages/course_edit_routes.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_routes.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_routes.dart';
 
@@ -442,6 +443,15 @@ void main() {
       'certificationDetail',
     );
     expect(detail?.onExit, same(confirmLeaveRecordSitting));
+  });
+
+  test('the course edit address redirects with the switch', () {
+    final route = _findRouteByName(router.configuration.routes, 'editCourse');
+    expect(route?.redirect, same(courseEditRedirect));
+    for (final name in const ['courses', 'courseDetail']) {
+      final route = _findRouteByName(router.configuration.routes, name);
+      expect(route?.onExit, same(confirmLeaveRecordSitting), reason: name);
+    }
   });
 
   // The merge address handed fewer than two sites goes back to the list

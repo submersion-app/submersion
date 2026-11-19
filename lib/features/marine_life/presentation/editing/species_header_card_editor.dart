@@ -51,12 +51,10 @@ class _SpeciesHeaderCardEditorState
   FieldTextBinding<Species, V> _bind<V>(
     EditField<Species, V> field,
     String Function(V value) format,
-  ) => FieldTextBinding<Species, V>(
+  ) => FieldTextBinding.plain(
     session: widget.session,
     field: field,
     format: format,
-    // Any text is a value; a blank optional one is stored as none.
-    parse: (text) => FieldValue<V>(text as V),
   );
 
   @override
