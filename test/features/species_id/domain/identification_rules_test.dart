@@ -627,10 +627,11 @@ void main() {
       double top = 0.8,
       double open = 0.5,
       bool suggestable = true,
+      bool limited = true,
     }) => NamingResult(
       openScore: open,
       candidates: [NamedCandidate(candidate: fish, score: top)],
-      locationLimited: true,
+      locationLimited: limited,
       suggestable: suggestable,
     );
 
@@ -659,6 +660,45 @@ void main() {
     test('specific follows the open score floor', () {
       expect(namingFlags(result(open: 0.15), config).specific, isTrue);
       expect(namingFlags(result(open: 0.149), config).specific, isFalse);
+    });
+
+    group('a crop named without a place (issue #4725)', () {
+      final noPlaceBar = config.copyWith(confidentScoreNoLocation: 0.90);
+
+      test('is held to the no-location confident bar', () {
+        expect(
+          namingFlags(result(top: 0.89, limited: false), noPlaceBar).confident,
+          isFalse,
+        );
+        expect(
+          namingFlags(result(top: 0.90, limited: false), noPlaceBar).confident,
+          isTrue,
+        );
+      });
+
+      test('leaves a crop named with a place at the confident bar', () {
+        expect(namingFlags(result(top: 0.70), noPlaceBar).confident, isTrue);
+      });
+
+      test('is never confident when the no-location bar is never', () {
+        final never = config.copyWith(confidentScoreNoLocation: 1.01);
+        expect(
+          namingFlags(result(top: 1.0, limited: false), never).confident,
+          isFalse,
+        );
+        expect(namingFlags(result(top: 0.70), never).confident, isTrue);
+      });
+
+      test('uses the confident bar when the pack has no no-location bar', () {
+        expect(
+          namingFlags(result(top: 0.70, limited: false), config).confident,
+          isTrue,
+        );
+        expect(
+          namingFlags(result(top: 0.69, limited: false), config).confident,
+          isFalse,
+        );
+      });
     });
   });
 
