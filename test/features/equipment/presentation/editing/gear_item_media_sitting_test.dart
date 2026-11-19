@@ -1,5 +1,6 @@
-import 'package:drift/drift.dart' show Variable;
 import 'package:flutter_test/flutter_test.dart';
+
+import 'package:drift/drift.dart' show Variable;
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';

@@ -26,6 +26,7 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
@@ -204,6 +205,28 @@ void main() {
       expect(held, hasLength(1));
       // The page under the sheet is still there.
       expect(find.text('open'), findsOneWidget);
+    });
+
+    // As the stored Save does: the editor stays open and says so.
+    testWidgets('a held Save that fails says to try again and hands back '
+        'nothing', (tester) async {
+      final held = <HeldCheckIn>[];
+      await pumpAndOpen(
+        tester,
+        onHold: held.add,
+        diverId: () => Future<String?>.error(StateError('no diver')),
+      );
+
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(held, isEmpty);
+      expect(find.text('Save'), findsOneWidget);
+      expect(
+        find.text(AppLocalizationsEn().common_error_tryAgain),
+        findsOneWidget,
+      );
     });
 
     testWidgets('Cancel closes the sheet and hands back nothing', (

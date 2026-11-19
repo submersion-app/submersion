@@ -1,6 +1,7 @@
-import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';

@@ -1,5 +1,6 @@
-import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+
+import 'package:collection/collection.dart';
 
 import 'package:submersion/features/equipment/data/repositories/equipment_observation_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/gear_photo_repository.dart';
@@ -271,15 +272,44 @@ Set<String> checkInPhotoKeys(
       for (final a in c.added) ?mediaSameFileKey(a.preview),
 };
 
-/// The same-file keys of the photos the sitting holds outside check-in
-/// [checkIn]: on the Photos card and on every other check-in.
-Set<String> heldPhotoKeysOutside(
+/// The stored photos the sitting's check-ins unlink, check-in [except]'s
+/// left out: gone from the item at Save, so a pick of one elsewhere is
+/// taken back. A check-in deleted in the sitting unlinks its photos too,
+/// but they are known only at Save, and are not among these.
+Set<String> checkInPhotoUnlinks(
+  EditSession<EquipmentItem> session, {
+  String? except,
+}) => {
+  for (final c
+      in gearItemCheckInsList.current(session) ?? const <HeldCheckIn>[])
+    if (c.observation.id != except && !c.deleted) ...c.removedPhotoIds,
+};
+
+/// What the sitting holds outside one check-in: the photos it adds there,
+/// by same-file key, and the stored photos it unlinks there.
+typedef PhotosHeldElsewhere = ({Set<String> keys, Set<String> unlinked});
+
+/// Nothing held elsewhere: a sheet opened outside a sitting.
+const PhotosHeldElsewhere noPhotosHeldElsewhere = (keys: {}, unlinked: {});
+
+/// The photos the sitting holds outside check-in [checkIn] (none for a new
+/// one): on the Photos card and on every other check-in.
+PhotosHeldElsewhere photosHeldOutside(
   EditSession<EquipmentItem> session, {
   String? checkIn,
-}) => {
-  for (final a in sittingMedia(session).added) ?mediaSameFileKey(a.preview),
-  ...checkInPhotoKeys(session, except: checkIn),
-};
+}) {
+  final media = sittingMedia(session);
+  return (
+    keys: {
+      for (final a in media.added) ?mediaSameFileKey(a.preview),
+      ...checkInPhotoKeys(session, except: checkIn),
+    },
+    unlinked: {
+      ...media.unlinked,
+      ...checkInPhotoUnlinks(session, except: checkIn),
+    },
+  );
+}
 
 /// [adds] less those whose file is among [keys].
 List<HeldMediaAdd> photosNotHeld(List<HeldMediaAdd> adds, Set<String> keys) => [

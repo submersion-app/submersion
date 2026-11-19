@@ -115,20 +115,16 @@ typedef DiveComputerOperations = ({String? reason, RecordOperationRunner run});
 
 /// Runs [operation], named [task] in the log: through [operations] where
 /// the page edits in place, as a whole-record operation; else at once, as
-/// today.
+/// today. [operation] answers whether it wrote anything: one the diver gave
+/// up on leaves the sitting as it was.
 void runDiveComputerOperation(
   DiveComputerOperations? operations,
-  Future<void> Function() operation,
+  Future<bool> Function() operation,
   String task,
 ) {
   if (operations == null) {
     logFailure(operation(), DiveComputerSettingsControl, task);
     return;
   }
-  unawaited(
-    operations.run(() async {
-      await operation();
-      return true;
-    }),
-  );
+  unawaited(operations.run(operation));
 }

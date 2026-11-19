@@ -452,8 +452,9 @@ class MediaImportService {
   /// 3, plan 6): the photos already on the item left out the same way, each
   /// row under a fresh id of its own, with no enrichment. Writes nothing.
   ///
-  /// [ignoringMediaIds] are gallery rows the sitting has unlinked: not on the
-  /// item once it is saved, so a pick of the same photo is taken back.
+  /// [ignoringMediaIds] are rows the sitting has unlinked, gallery photos
+  /// and local files alike: not on the item once it is saved, so a pick of
+  /// the same photo is taken back.
   Future<List<PreparedMedia>> prepareForEquipment({
     required List<AssetInfo> selectedAssets,
     required String equipmentId,
@@ -467,7 +468,10 @@ class MediaImportService {
         for (final row in await gearPhotos.galleryLinksFor(equipmentId))
           if (!ignoringMediaIds.contains(row.id)) row,
       ],
-      localPaths: () => gearPhotos.linkedLocalPathsFor(equipmentId),
+      localPaths: () => gearPhotos.linkedLocalPathsFor(
+        equipmentId,
+        ignoring: ignoringMediaIds,
+      ),
     );
     final cloudIds = await _cloudIdsFor(newAssets);
     return [

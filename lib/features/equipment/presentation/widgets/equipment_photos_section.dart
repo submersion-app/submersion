@@ -98,7 +98,11 @@ class _EquipmentPhotosSectionState
       context: context,
       ref: ref,
       equipmentId: _equipmentId,
-      ignoringMediaIds: sittingMedia(editing).unlinked,
+      // What the sitting unlinks here or on a check-in is gone at Save.
+      ignoringMediaIds: {
+        ...sittingMedia(editing).unlinked,
+        ...checkInPhotoUnlinks(editing),
+      },
       // A photo a check-in in the sitting holds is on the item already.
       onHold: (adds) => addMediaToSitting(
         editing,

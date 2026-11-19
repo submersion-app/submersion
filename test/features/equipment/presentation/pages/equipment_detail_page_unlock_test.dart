@@ -343,6 +343,29 @@ void main() {
       expect(merge().onPressed, isNull);
     });
 
+    // An operation the diver gives up on wrote nothing: the sitting carries
+    // on, its open card still open, rather than starting afresh.
+    testWidgets('a merge given up on leaves the sitting as it was', (
+      tester,
+    ) async {
+      await pumpGearPage(tester, item: perdix);
+      await unlock(tester);
+      await openCard(tester, computerCard);
+      final before = sessionOf(tester);
+
+      await tester.tap(find.byKey(const ValueKey('dive_computer_merge')));
+      await tester.pumpAndSettle();
+      // The picker's sheet, closed with nothing chosen.
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle();
+
+      expect(identical(sessionOf(tester), before), isTrue);
+      final controller = RecordEditScope.maybeOf<EquipmentItem>(
+        tester.element(find.byType(RecordCardFrame<EquipmentItem>).first),
+      )!;
+      expect(controller.openCardIds, contains('diveComputer'));
+    });
+
     testWidgets('the favourite set in the open card is written with the Save', (
       tester,
     ) async {

@@ -153,7 +153,8 @@ class _RawDataActions extends ConsumerWidget {
     );
   }
 
-  Future<void> _confirmReparseAll(
+  /// Asks, then re-parses every dive of the computer; whether it did.
+  Future<bool> _confirmReparseAll(
     BuildContext context,
     WidgetRef ref,
     ({int withRawData, int withoutRawData}) counts,
@@ -179,15 +180,14 @@ class _RawDataActions extends ConsumerWidget {
       ),
     );
 
-    if (confirmed == true && context.mounted) {
-      await _executeReparseAll(context, ref);
-    }
+    if (confirmed != true || !context.mounted) return false;
+    return _executeReparseAll(context, ref);
   }
 
   /// Runs through the shared progress and results dialog (issue #224),
   /// re-parsing only this computer's sources on a dive combined with another
-  /// computer's.
-  Future<void> _executeReparseAll(BuildContext context, WidgetRef ref) async {
+  /// computer's. Whether a batch ran.
+  Future<bool> _executeReparseAll(BuildContext context, WidgetRef ref) async {
     final messenger = ScaffoldMessenger.of(context);
     final failed = context.l10n.common_error_tryAgain;
     final List<String> diveIds;
@@ -202,9 +202,10 @@ class _RawDataActions extends ConsumerWidget {
         stackTrace: stackTrace,
       );
       messenger.showSnackBar(SnackBar(content: Text(failed)));
-      return;
+      return false;
     }
-    if (diveIds.isEmpty || !context.mounted) return;
+    if (diveIds.isEmpty || !context.mounted) return false;
     await runReparseBatch(context, ref, diveIds, computerId: computer.id);
+    return true;
   }
 }

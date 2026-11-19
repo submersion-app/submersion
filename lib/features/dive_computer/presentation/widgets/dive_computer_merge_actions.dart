@@ -99,14 +99,15 @@ class DiveComputerDuplicateBanner extends ConsumerWidget {
 }
 
 /// Lists the diver's other computers so one can be merged with [computer].
-/// Records that share its serial number are listed first.
-Future<void> showDiveComputerMergePicker(
+/// Records that share its serial number are listed first. Whether a merge
+/// was made.
+Future<bool> showDiveComputerMergePicker(
   BuildContext context,
   WidgetRef ref,
   DiveComputer computer,
 ) async {
   final all = await ref.read(allDiveComputersProvider.future);
-  if (!context.mounted) return;
+  if (!context.mounted) return false;
 
   final duplicates = duplicateCandidatesFor(computer, all);
   final duplicateIds = duplicates.map((d) => d.id).toSet();
@@ -172,14 +173,14 @@ Future<void> showDiveComputerMergePicker(
       );
     },
   );
-  if (chosen == null || !context.mounted) return;
-  await mergeDiveComputerWith(context, ref, computer, [chosen]);
+  if (chosen == null || !context.mounted) return false;
+  return mergeDiveComputerWith(context, ref, computer, [chosen]);
 }
 
 /// Opens the merge sheet for [computer] and [others]. When a record behind
 /// another Equipment item survives, the page moves to that item: this one's
-/// device no longer exists (issue #3676).
-Future<void> mergeDiveComputerWith(
+/// device no longer exists (issue #3676). Whether a merge was made.
+Future<bool> mergeDiveComputerWith(
   BuildContext context,
   WidgetRef ref,
   DiveComputer computer,
@@ -188,7 +189,8 @@ Future<void> mergeDiveComputerWith(
   final computers = [computer, ...others];
   final messenger = ScaffoldMessenger.of(context);
   final result = await DiveComputerMergeSheet.show(context, computers);
-  if (result == null || !context.mounted) return;
+  if (result == null) return false;
+  if (!context.mounted) return true;
 
   final survivor = computers.firstWhere((c) => c.id == result.survivorId);
   messenger.showSnackBar(
@@ -205,4 +207,5 @@ Future<void> mergeDiveComputerWith(
   if (survivorItem != null && survivorItem != computer.equipmentId) {
     context.pushReplacement('/equipment/$survivorItem');
   }
+  return true;
 }

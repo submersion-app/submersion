@@ -1,5 +1,6 @@
-import 'package:drift/drift.dart' show Variable;
 import 'package:flutter_test/flutter_test.dart';
+
+import 'package:drift/drift.dart' show Variable;
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -253,18 +254,18 @@ void main() {
 
     expect(checkInPhotoKeys(session), {'file:/p2.jpg'});
     expect(checkInPhotoKeys(session, except: 'o2'), isEmpty);
-    expect(heldPhotoKeysOutside(session, checkIn: 'o3'), {
+    expect(photosHeldOutside(session, checkIn: 'o3').keys, {
       'file:/p1.jpg',
       'file:/p2.jpg',
     });
-    expect(heldPhotoKeysOutside(session, checkIn: 'o2'), {'file:/p1.jpg'});
+    expect(photosHeldOutside(session, checkIn: 'o2').keys, {'file:/p1.jpg'});
     // On a third check-in, the Photos card's and the other check-in's
     // photos are left out; a new one goes in.
     final held = withHeldPhotosAdded(const [], [
       sameFile('p1', 'p1b', 'o3'),
       sameFile('p2', 'p2b', 'o3'),
       photo('p3', 'o3'),
-    ], heldElsewhere: heldPhotoKeysOutside(session, checkIn: 'o3'));
+    ], heldElsewhere: photosHeldOutside(session, checkIn: 'o3').keys);
     expect(held.map((a) => a.preview.id), ['p3']);
     // On the Photos card, a check-in's photo is left out.
     expect(
@@ -272,6 +273,33 @@ void main() {
       isEmpty,
     );
   });
+
+  // A stored photo unlinked in one place of the sitting is gone from the
+  // item at Save, so a picker elsewhere may offer it again.
+  test(
+    'the photos the sitting unlinks elsewhere are known to each picker',
+    () async {
+      final session = await sitting();
+      holdSittingMedia(
+        session,
+        SittingMediaWriters.forEquipment(container.read),
+        cardId: 'photos',
+      );
+      unlinkMediaInSitting(session, {'stored-1'});
+      holdCheckIn(
+        session,
+        HeldCheckIn(observation: fresh('o2'), removedPhotoIds: {'stored-2'}),
+      );
+
+      expect(checkInPhotoUnlinks(session), {'stored-2'});
+      expect(checkInPhotoUnlinks(session, except: 'o2'), isEmpty);
+      expect(photosHeldOutside(session, checkIn: 'o3').unlinked, {
+        'stored-1',
+        'stored-2',
+      });
+      expect(photosHeldOutside(session, checkIn: 'o2').unlinked, {'stored-1'});
+    },
+  );
 
   test('an edited check-in and a brand change are one entry, and reverting '
       'restores the check-in', () async {

@@ -108,7 +108,7 @@ class _SectionCard extends ConsumerWidget {
                       builder: (context) {
                         final controller =
                             RecordEditScope.maybeOf<EquipmentItem>(context);
-                        Future<void> apply() =>
+                        Future<bool> apply() =>
                             applyTransmitterSetupToExistingDives(
                               context,
                               ref,
@@ -121,14 +121,10 @@ class _SectionCard extends ConsumerWidget {
                           ),
                           onPressed: controller == null
                               ? apply
-                              : () =>
-                                    recordOperationRunnerOf(
-                                      controller,
-                                      record: 'equipment $equipmentId',
-                                    )(() async {
-                                      await apply();
-                                      return true;
-                                    }),
+                              : () => recordOperationRunnerOf(
+                                  controller,
+                                  record: 'equipment $equipmentId',
+                                )(apply),
                           builder: (onPressed) => TextButton(
                             key: const ValueKey('transmitter_apply'),
                             onPressed: onPressed,
