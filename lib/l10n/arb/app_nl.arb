@@ -3602,6 +3602,7 @@
   "diveLog_cylinders_aveloBuoyancy": "Avelo-drijfvermogen {min} tot {max}, gemiddeld {mean}",
   "diveLog_cylinders_aveloRmv": "RMV (computer) {min} tot {max}",
   "diveLog_cylinders_aveloMaxPressure": "Maximale druk {pressure}",
+  "diveLog_cylinders_figureWater": "Water ~{volume} (geschat)",
   "diveLog_cylinders_modNote": "MOD bij ppO₂ {ppO2}",
   "diveLog_cylinders_modLimit": "{ppO2} ({limit})",
   "diveLog_cylinders_modLimitSeparator": ", ",

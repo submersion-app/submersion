@@ -11,8 +11,11 @@ import 'dart:math' as math;
 ///
 /// [now] is where the profile cursor's pressure sits (issue #4291), measured
 /// against the same full height; null when the cursor is off the chart.
+///
+/// [water] is an Avelo Hydrotank's estimated water (issue #4664), drawn from
+/// the bottom of the figure up to it; null for every other cylinder.
 class TankFillLevels {
-  const TankFillLevels._({this.end, this.start, this.now});
+  const TankFillLevels._({this.end, this.start, this.now, this.water});
 
   /// The empty outline.
   static const none = TankFillLevels._();
@@ -20,6 +23,7 @@ class TankFillLevels {
   final double? end;
   final double? start;
   final double? now;
+  final double? water;
 
   bool get hasFill => end != null && start != null;
 
@@ -67,18 +71,35 @@ class TankFillLevels {
     );
   }
 
+  /// An Avelo Hydrotank drawn as its contents (issue #4664): estimated
+  /// [water] from the bottom, the gas left solid up to [gasLeft], and the
+  /// gas used tinted from there to the top. [now] places the cursor's
+  /// label, as in [resolve]. Each is a fraction of the figure's height.
+  factory TankFillLevels.hydrotank({
+    required double water,
+    required double gasLeft,
+    double? now,
+  }) => TankFillLevels._(
+    water: water.clamp(0.0, 1.0),
+    end: gasLeft.clamp(0.0, 1.0),
+    start: 1.0,
+    now: now?.clamp(0.0, 1.0),
+  );
+
   @override
   bool operator ==(Object other) =>
       other is TankFillLevels &&
       other.end == end &&
       other.start == start &&
-      other.now == now;
+      other.now == now &&
+      other.water == water;
 
   @override
-  int get hashCode => Object.hash(end, start, now);
+  int get hashCode => Object.hash(end, start, now, water);
 
   @override
-  String toString() => 'TankFillLevels(end: $end, start: $start, now: $now)';
+  String toString() =>
+      'TankFillLevels(end: $end, start: $start, now: $now, water: $water)';
 }
 
 /// The top of each label beside a tank figure, given the [centres] they

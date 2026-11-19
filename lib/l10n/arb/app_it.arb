@@ -3476,6 +3476,7 @@
   "diveLog_cylinders_aveloBuoyancy": "Assetto Avelo da {min} a {max}, media {mean}",
   "diveLog_cylinders_aveloRmv": "RMV (computer) da {min} a {max}",
   "diveLog_cylinders_aveloMaxPressure": "Pressione massima {pressure}",
+  "diveLog_cylinders_figureWater": "Acqua ~{volume} (stima)",
   "diveLog_cylinders_modNote": "MOD a ppO₂ {ppO2}",
   "diveLog_cylinders_modLimit": "{ppO2} ({limit})",
   "diveLog_cylinders_modLimitSeparator": ", ",

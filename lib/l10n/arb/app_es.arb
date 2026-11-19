@@ -3602,6 +3602,7 @@
   "diveLog_cylinders_aveloBuoyancy": "Flotabilidad Avelo de {min} a {max}, media {mean}",
   "diveLog_cylinders_aveloRmv": "RMV (ordenador) de {min} a {max}",
   "diveLog_cylinders_aveloMaxPressure": "Presión máxima {pressure}",
+  "diveLog_cylinders_figureWater": "Agua ~{volume} (est.)",
   "diveLog_cylinders_modNote": "MOD a ppO₂ {ppO2}",
   "diveLog_cylinders_modLimit": "{ppO2} ({limit})",
   "diveLog_cylinders_modLimitSeparator": ", ",

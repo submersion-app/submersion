@@ -16,6 +16,11 @@ const _labelGap = 10.0;
 const _labelSpacing = 2.0;
 const _minLabelWidth = 24.0;
 
+/// The estimated water in an Avelo Hydrotank's figure (issue #4664): a
+/// water blue that reads on both themes and stays apart from every gas
+/// colour.
+const Color hydrotankWaterColor = Color(0xFF4FC3F7); // Light Blue 300
+
 /// Body width at the smallest and the largest figure height.
 const _minBodyWidth = 18.0;
 const _maxBodyWidth = 28.0;
@@ -403,6 +408,13 @@ class _TankPainter extends CustomPainter {
         Rect.fromLTRB(0, endY, bodyWidth, bodyBottom),
         Paint()..color = solid,
       );
+      // A Hydrotank's estimated water, under its gas (issue #4664).
+      if (levels.water case final water? when water > 0) {
+        canvas.drawRect(
+          Rect.fromLTRB(0, y(water), bodyWidth, bodyBottom),
+          Paint()..color = hydrotankWaterColor,
+        );
+      }
       canvas.restore();
     }
 

@@ -11120,6 +11120,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String diveLog_cylinders_figureWater(String volume) {
+    return 'מים ~$volume (משוער)';
+  }
+
+  @override
   String diveLog_cylinders_modNote(String ppO2) {
     return 'MOD ב-ppO₂ $ppO2';
   }

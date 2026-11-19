@@ -18022,6 +18022,12 @@ abstract class AppLocalizations {
   /// **'Max pressure {pressure}'**
   String diveLog_cylinders_aveloMaxPressure(String pressure);
 
+  /// Label under an Avelo Hydrotank's figure (issue #4664): the estimated volume of water in the tank at the end of the dive, or at the profile cursor, e.g. "Water ~0.4 L (est.)". The estimate assumes the tank started with no water.
+  ///
+  /// In en, this message translates to:
+  /// **'Water ~{volume} (est.)'**
+  String diveLog_cylinders_figureWater(String volume);
+
   /// Note under the Cylinders card table: the ppO2 every MOD on the card was computed at. {ppO2} is one value ("MOD at ppO₂ 1.4") or, when the cylinders use different limits, a list of diveLog_cylinders_modLimit items ("MOD at ppO₂ 1.4 (bottom limit), 1.6 (deco limit)")
   ///
   /// In en, this message translates to:

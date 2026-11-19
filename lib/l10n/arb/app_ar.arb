@@ -3602,6 +3602,7 @@
   "diveLog_cylinders_aveloBuoyancy": "طفو Avelo من {min} إلى {max}، المتوسط {mean}",
   "diveLog_cylinders_aveloRmv": "RMV (الكمبيوتر) من {min} إلى {max}",
   "diveLog_cylinders_aveloMaxPressure": "أقصى ضغط {pressure}",
+  "diveLog_cylinders_figureWater": "الماء ~{volume} (تقديري)",
   "diveLog_cylinders_modNote": "MOD عند ppO₂ {ppO2}",
   "diveLog_cylinders_modLimit": "{ppO2} ({limit})",
   "diveLog_cylinders_modLimitSeparator": "، ",

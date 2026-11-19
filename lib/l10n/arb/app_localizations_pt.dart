@@ -11367,6 +11367,11 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String diveLog_cylinders_figureWater(String volume) {
+    return 'Água ~$volume (est.)';
+  }
+
+  @override
   String diveLog_cylinders_modNote(String ppO2) {
     return 'MOD a ppO₂ $ppO2';
   }

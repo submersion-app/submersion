@@ -3708,6 +3708,7 @@
   "diveLog_cylinders_aveloBuoyancy": "Avelo 浮力 {min} 至 {max}，平均 {mean}",
   "diveLog_cylinders_aveloRmv": "RMV（电脑）{min} 至 {max}",
   "diveLog_cylinders_aveloMaxPressure": "最大压力 {pressure}",
+  "diveLog_cylinders_figureWater": "水 ~{volume}（估计）",
   "diveLog_cylinders_modNote": "氧分压 {ppO2} 时的最大作业深度",
   "diveLog_cylinders_modLimit": "{ppO2}（{limit}）",
   "diveLog_cylinders_modLimitSeparator": "、",

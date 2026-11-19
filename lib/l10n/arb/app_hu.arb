@@ -3476,6 +3476,7 @@
   "diveLog_cylinders_aveloBuoyancy": "Avelo felhajtóerő {min} és {max} között, átlag {mean}",
   "diveLog_cylinders_aveloRmv": "RMV (komputer) {min} és {max} között",
   "diveLog_cylinders_aveloMaxPressure": "Legnagyobb nyomás {pressure}",
+  "diveLog_cylinders_figureWater": "Víz ~{volume} (becsült)",
   "diveLog_cylinders_modNote": "MOD {ppO2} ppO₂-nél",
   "diveLog_cylinders_modLimit": "{ppO2} ({limit})",
   "diveLog_cylinders_modLimitSeparator": ", ",

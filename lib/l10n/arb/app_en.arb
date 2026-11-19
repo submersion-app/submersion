@@ -6490,6 +6490,7 @@
   "diveLog_cylinders_aveloBuoyancy": "Avelo buoyancy {min} to {max}, average {mean}",
   "diveLog_cylinders_aveloRmv": "RMV (computer) {min} to {max}",
   "diveLog_cylinders_aveloMaxPressure": "Max pressure {pressure}",
+  "diveLog_cylinders_figureWater": "Water ~{volume} (est.)",
   "diveLog_cylinders_modNote": "MOD at ppO₂ {ppO2}",
   "diveLog_cylinders_modLimit": "{ppO2} ({limit})",
   "diveLog_cylinders_modLimitSeparator": ", ",
@@ -7325,6 +7326,14 @@
     "description": "Avelo summary line: the highest Hydrotank pressure during the dive, e.g. \"Max pressure 3498 psi\"",
     "placeholders": {
       "pressure": {
+        "type": "String"
+      }
+    }
+  },
+  "@diveLog_cylinders_figureWater": {
+    "description": "Label under an Avelo Hydrotank's figure (issue #4664): the estimated volume of water in the tank at the end of the dive, or at the profile cursor, e.g. \"Water ~0.4 L (est.)\". The estimate assumes the tank started with no water.",
+    "placeholders": {
+      "volume": {
         "type": "String"
       }
     }

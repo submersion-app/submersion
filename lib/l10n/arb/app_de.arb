@@ -3628,6 +3628,7 @@
   "diveLog_cylinders_aveloBuoyancy": "Avelo-Auftrieb {min} bis {max}, Durchschnitt {mean}",
   "diveLog_cylinders_aveloRmv": "RMV (Computer) {min} bis {max}",
   "diveLog_cylinders_aveloMaxPressure": "Maximaler Druck {pressure}",
+  "diveLog_cylinders_figureWater": "Wasser ~{volume} (gesch.)",
   "diveLog_cylinders_modNote": "MOD bei ppO₂ {ppO2}",
   "diveLog_cylinders_modLimit": "{ppO2} ({limit})",
   "diveLog_cylinders_modLimitSeparator": ", ",

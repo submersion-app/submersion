@@ -10802,6 +10802,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String diveLog_cylinders_figureWater(String volume) {
+    return '水 ~$volume（估计）';
+  }
+
+  @override
   String diveLog_cylinders_modNote(String ppO2) {
     return '氧分压 $ppO2 时的最大作业深度';
   }

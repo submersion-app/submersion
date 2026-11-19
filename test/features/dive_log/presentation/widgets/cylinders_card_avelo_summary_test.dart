@@ -215,4 +215,33 @@ void main() {
 
     expect(find.byKey(const Key('tank-avelo-summary-back')), findsOneWidget);
   });
+
+  // The Hydrotank's figure shows its estimated water (spec section 6).
+  testWidgets('the Hydrotank figure names its estimated water', (tester) async {
+    await tester.pumpWidget(_card(settings: const AppSettings()));
+    await tester.pumpAndSettle();
+
+    final label = find.byKey(const Key('tank-water-label-hydro'));
+    expect(label, findsOneWidget);
+    final text = tester.widget<Text>(label).data!;
+    expect(text, startsWith('Water ~'));
+    expect(text, endsWith('(est.)'));
+  });
+
+  testWidgets('a Hydrotank without gas remaining keeps the pressure figure', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _card(
+        settings: const AppSettings(),
+        profile: const [
+          DiveProfilePoint(timestamp: 10, depth: 5.0),
+          DiveProfilePoint(timestamp: 20, depth: 6.0),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('tank-water-label-hydro')), findsNothing);
+  });
 }

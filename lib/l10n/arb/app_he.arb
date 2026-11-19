@@ -3476,6 +3476,7 @@
   "diveLog_cylinders_aveloBuoyancy": "ציפה של Avelo {min} עד {max}, ממוצע {mean}",
   "diveLog_cylinders_aveloRmv": "RMV (מחשב) {min} עד {max}",
   "diveLog_cylinders_aveloMaxPressure": "לחץ מרבי {pressure}",
+  "diveLog_cylinders_figureWater": "מים ~{volume} (משוער)",
   "diveLog_cylinders_modNote": "MOD ב-ppO₂ {ppO2}",
   "diveLog_cylinders_modLimit": "{ppO2} ({limit})",
   "diveLog_cylinders_modLimitSeparator": ", ",

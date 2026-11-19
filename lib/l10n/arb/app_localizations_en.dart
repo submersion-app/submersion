@@ -11193,6 +11193,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String diveLog_cylinders_figureWater(String volume) {
+    return 'Water ~$volume (est.)';
+  }
+
+  @override
   String diveLog_cylinders_modNote(String ppO2) {
     return 'MOD at ppO₂ $ppO2';
   }
