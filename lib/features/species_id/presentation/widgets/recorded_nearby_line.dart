@@ -37,9 +37,13 @@ class RecordedNearbyLine extends ConsumerWidget {
         !isRecordedNearby(nearby, gbifKey: gbifKey, catalogId: catalogId)) {
       return const SizedBox.shrink();
     }
+    // Small, in the colour of the text around it: under a list tile's
+    // secondary line it matches that line rather than outranking it.
     return Text(
       context.l10n.reef_species_recordedNearby,
-      style: Theme.of(context).textTheme.bodySmall,
+      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+        color: DefaultTextStyle.of(context).style.color,
+      ),
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -159,6 +160,23 @@ void main() {
       );
       expect(find.bySemanticsLabel(RegExp('Recorded nearby')), findsOneWidget);
       semantics.dispose();
+    });
+
+    testWidgets('the marker adds no colour to the row\'s secondary line', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        taggedRows: const [],
+        suggestedRows: [suggestedRow],
+        nearby: keyOnly,
+      );
+      Color? colourOf(Finder text) =>
+          tester.renderObject<RenderParagraph>(text).text.style?.color;
+      expect(
+        colourOf(find.text('Recorded nearby')),
+        colourOf(find.textContaining('on 1 photo')),
+      );
     });
 
     testWidgets('with no list, no row shows the marker', (tester) async {
