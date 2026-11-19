@@ -11,6 +11,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
+import 'package:submersion/features/dive_centers/presentation/editing/dive_center_header_card_editor.dart'
+    show diveCenterAffiliationChoices;
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_fill_hours_section.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_logo_field.dart';
@@ -81,20 +83,6 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
   final _stateProvinceFocusNode = FocusNode();
   final _postalCodeFocusNode = FocusNode();
   final _countryFocusNode = FocusNode();
-
-  static const List<String> _availableAffiliations = [
-    'PADI',
-    'SSI',
-    'NAUI',
-    'SDI/TDI',
-    'GUE',
-    'RAID',
-    'BSAC',
-    'CMAS',
-    'FFESSM',
-    'IANTD',
-    'PSAI',
-  ];
 
   @override
   void initState() {
@@ -548,7 +536,7 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: _availableAffiliations.map((affiliation) {
+            children: diveCenterAffiliationChoices.map((affiliation) {
               final isSelected = _selectedAffiliations.contains(affiliation);
               return FilterChip(
                 label: Text(affiliation),

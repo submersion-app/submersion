@@ -240,7 +240,10 @@ class _LastDiveRows extends StatelessWidget {
 class RentalNoteTile extends StatelessWidget {
   final DiveCenterGearNote note;
   final UnitFormatter units;
-  final VoidCallback onTap;
+
+  /// Opens the note; null offers nothing (a page that edits in place, while
+  /// locked).
+  final VoidCallback? onTap;
 
   const RentalNoteTile({
     super.key,

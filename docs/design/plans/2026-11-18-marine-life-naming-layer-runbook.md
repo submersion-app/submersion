@@ -10,6 +10,14 @@ other context, on a local model, over several days.
   worktree is on `ericgriffin/feat-4724-faster-fetch`, the faster fetch
   (see Phase 7.0)
 - **Worktree:** `/Users/ericgriffin/repos/submersion-app/submersion/.claude/worktrees/feat-4724-naming-layer`
+- **Pipeline (since 2026-11-19):** the tools moved to their own repository,
+  `submersion-app/species-pack` (issue #4769), cloned at
+  `/Users/ericgriffin/repos/submersion-app/species-pack`. `env.sh` points
+  `TOOLS` at that clone and `SUBMERSION_APP` at the worktree above, whose
+  `VisionPipeline.swift` embedded the training photos. A path below that
+  names `tool/species_pack/` means that clone; Phases 7 to 9 change the
+  pack repository, not this one, and are planned again with Eric at the
+  Phase 6 checkpoint.
 
 ## How to use this runbook
 
@@ -68,7 +76,8 @@ export REPO=/Users/ericgriffin/repos/submersion-app/submersion
 export WT=$REPO/.claude/worktrees/feat-4724-naming-layer
 export DATA=/Users/ericgriffin/repos/submersion-app/naming-training
 export PY=$DATA/venv/bin/python
-export TOOLS=$WT/tool/species_pack
+export TOOLS=/Users/ericgriffin/repos/submersion-app/species-pack
+export SUBMERSION_APP=$WT
 export CSV=$TOOLS/testdata/accuracy_set.csv
 export BASE=$DATA/pack-0356
 EOF

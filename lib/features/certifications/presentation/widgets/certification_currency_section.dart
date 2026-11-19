@@ -1,6 +1,6 @@
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -13,6 +13,7 @@ import 'package:submersion/features/certifications/domain/entities/currency_rule
 import 'package:submersion/features/certifications/domain/services/certification_currency_engine.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
 import 'package:submersion/features/certifications/presentation/currency_rule_display.dart';
+import 'package:submersion/features/certifications/presentation/editing/certification_currency_sitting.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_currency_providers.dart';
 import 'package:submersion/features/certifications/presentation/utils/currency_severity_colors.dart';
 import 'package:submersion/features/certifications/presentation/widgets/currency_event_dialog.dart';
@@ -20,6 +21,10 @@ import 'package:submersion/features/certifications/presentation/widgets/currency
 import 'package:submersion/features/certifications/presentation/widgets/currency_mapping_dialog.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
+import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
 /// What a currency row's menu can do.
@@ -34,28 +39,132 @@ enum CurrencyRowAction { log, interval, mapping, mute }
 /// A row stands for a collapsed group (OW, AOW and Rescue share one PADI
 /// refresher row), so mute, interval and mapping changes write prefs for
 /// every member, and the row means what it appears to mean.
+///
+/// On a page that edits in place (issue #4527, phase 3) it offers nothing
+/// while locked ([readOnly]); in the page's sitting ([editing]) what it
+/// logs, deletes and sets is held until Save.
 class CertificationCurrencySection extends ConsumerWidget {
   final Certification certification;
 
-  const CertificationCurrencySection({super.key, required this.certification});
+  /// The sitting its changes are held in: it is the Currency card's
+  /// editor, drawn inside the open card.
+  final EditSession<Certification>? editing;
+
+  /// Offers no action: the page edits in place and is locked, or its card
+  /// is closed.
+  final bool readOnly;
+
+  /// The sitting whose events and preferences a closed card shows.
+  final EditSession<Certification>? shown;
+
+  const CertificationCurrencySection({
+    super.key,
+    required this.certification,
+    this.editing,
+    this.readOnly = false,
+    this.shown,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final sitting = editing ?? shown;
+    if (sitting == null) return _build(context, ref);
+    // What the sitting holds is drawn as it changes.
+    return ListenableBuilder(
+      listenable: sitting,
+      builder: (context, _) => _build(context, ref),
+    );
+  }
+
+  Widget _build(BuildContext context, WidgetRef ref) {
     final groups =
         ref
             .watch(certificationCurrencyGroupsProvider(certification.id))
             .value ??
         const <CurrencyGroup>[];
-    final events =
+    final storedEvents =
         ref
             .watch(certificationCurrencyEventsProvider(certification.id))
             .value ??
         const <CurrencyEvent>[];
+    final editing = this.editing;
+    final sitting = editing ?? shown;
+    final events = sitting == null
+        ? storedEvents
+        : newestEventsFirst(
+            certificationEventsList.current(sitting) ?? storedEvents,
+          );
     if (groups.isEmpty && events.isEmpty) return const SizedBox.shrink();
 
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final units = ref.watch(unitFormatterProvider);
+    // Before the sitting's read answers, or when it failed, the events are
+    // those stored, and none of them is a change.
+    final loadedIds = sitting == null
+        ? null
+        : {
+            for (final e
+                in certificationEventsList.loaded(sitting) ?? storedEvents)
+              e.id,
+          };
+    final title = l10n.certifications_detail_sectionTitle_currency;
+    // The rules that apply follow the credential as stored: while the
+    // sitting changes the agency or level, the rows are those of the old
+    // one, so they take no action until the credential is saved.
+    final credentialHeld =
+        editing != null &&
+        !listEquals(editing.working.credentials, editing.stored.credentials);
+    final rowsReadOnly = readOnly || credentialHeld;
+    final rows = <Widget>[
+      if (credentialHeld)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Text(
+            l10n.recordEdit_saveOrCancelFirst,
+            key: const ValueKey('currency-credential-held'),
+            style: theme.textTheme.bodySmall,
+          ),
+        ),
+      for (final group in groups)
+        _CurrencyRow(
+          certification: certification,
+          group: group,
+          units: units,
+          editing: editing,
+          sitting: sitting,
+          readOnly: rowsReadOnly,
+        ),
+      if (events.isNotEmpty) ...[
+        const Divider(),
+        Text(
+          l10n.certifications_currency_history,
+          style: theme.textTheme.titleSmall,
+        ),
+        for (final event in events)
+          _EventTile(
+            event: event,
+            units: units,
+            editing: editing,
+            readOnly: rowsReadOnly,
+            held: loadedIds != null && !loadedIds.contains(event.id),
+          ),
+      ],
+    ];
+    // The open card draws its own frame and title. A read of the events
+    // that failed says so; an action reads them again.
+    if (editing != null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (certificationEventsList.failed(editing))
+            SittingLoadFailed(
+              onRetry: () => certificationEventsList.load(editing),
+            ),
+          ...rows,
+        ],
+      );
+    }
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Card(
@@ -64,28 +173,21 @@ class CertificationCurrencySection extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                l10n.certifications_detail_sectionTitle_currency,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  if (readOnly) RecordCardPencil(cardTitle: title),
+                ],
               ),
               const SizedBox(height: 4),
-              for (final group in groups)
-                _CurrencyRow(
-                  certification: certification,
-                  group: group,
-                  units: units,
-                ),
-              if (events.isNotEmpty) ...[
-                const Divider(),
-                Text(
-                  l10n.certifications_currency_history,
-                  style: theme.textTheme.titleSmall,
-                ),
-                for (final event in events)
-                  _EventTile(event: event, units: units),
-              ],
+              ...rows,
             ],
           ),
         ),
@@ -98,12 +200,37 @@ class _CurrencyRow extends ConsumerWidget {
   final Certification certification;
   final CurrencyGroup group;
   final UnitFormatter units;
+  final EditSession<Certification>? editing;
+
+  /// The sitting the row shows, open or closed.
+  final EditSession<Certification>? sitting;
+  final bool readOnly;
 
   const _CurrencyRow({
     required this.certification,
     required this.group,
     required this.units,
+    this.editing,
+    this.sitting,
+    this.readOnly = false,
   });
+
+  /// The preferences the sitting holds for this row's cards.
+  List<CurrencyPref> _held() {
+    final sitting = this.sitting;
+    if (sitting == null) return const [];
+    final held = currencyPrefsInSitting(sitting);
+    return [
+      for (final m in group.members)
+        ?held[(certificationId: m.certification.id, ruleId: m.rule.id)],
+    ];
+  }
+
+  /// Whether the row is muted, as the sitting holds it.
+  bool get _muted {
+    final held = _held();
+    return held.isEmpty ? group.muted : held.first.muted;
+  }
 
   CredentialCurrency get _status => group.members.firstWhere(
     (m) => m.certification.id == certification.id,
@@ -126,13 +253,15 @@ class _CurrencyRow extends ConsumerWidget {
     ];
     final advisory = currencyRuleAdvisory(l10n, s.rule);
     final activity = s.rule.clockKind == CurrencyClockKind.activity;
+    final muted = _muted;
+    final changed = _held().isNotEmpty;
 
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: Icon(
-        group.muted ? Icons.notifications_off_outlined : Icons.circle,
-        size: group.muted ? 20 : 14,
-        color: group.muted
+        muted ? Icons.notifications_off_outlined : Icons.circle,
+        size: muted ? 20 : 14,
+        color: muted
             ? theme.colorScheme.outline
             : currencySeveritySwatch(
                     StatusColors.of(context),
@@ -140,16 +269,17 @@ class _CurrencyRow extends ConsumerWidget {
                   )?.accent ??
                   theme.colorScheme.surfaceContainerHighest,
       ),
-      title: Text(currencyRuleName(l10n, s.rule)),
+      title: Row(
+        children: [
+          Flexible(child: Text(currencyRuleName(l10n, s.rule))),
+          if (changed) ...[const SizedBox(width: 6), const RecordChangedDot()],
+        ],
+      ),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            group.muted
-                ? l10n.certifications_currency_muted
-                : _dueText(l10n, s),
-          ),
+          Text(muted ? l10n.certifications_currency_muted : _dueText(l10n, s)),
           if (s.origin != CurrencyAnchorOrigin.noCountedDive)
             Text(_anchorText(l10n, s), style: small),
           if (advisory != null && advisory.isNotEmpty)
@@ -159,42 +289,44 @@ class _CurrencyRow extends ConsumerWidget {
               l10n.certifications_currency_alsoCovers(others.join(', ')),
               style: small,
             ),
-          if (group.muted)
+          if (muted && !readOnly)
             TileSubtitleAction(
               label: l10n.certifications_currency_action_unmute,
               onPressed: () => _setMuted(ref, false),
             ),
         ],
       ),
-      trailing: PopupMenuButton<CurrencyRowAction>(
-        onSelected: (action) => _onAction(context, ref, action),
-        itemBuilder: (context) => [
-          // A renewed card is a new expiry date on the card: the ledger
-          // cannot move a printed date, so the card-expiry row logs nothing.
-          if (s.rule.id != kCardExpiryRuleId)
-            PopupMenuItem(
-              value: CurrencyRowAction.log,
-              child: Text(l10n.certifications_currency_action_log),
+      trailing: readOnly
+          ? null
+          : PopupMenuButton<CurrencyRowAction>(
+              onSelected: (action) => _onAction(context, ref, action),
+              itemBuilder: (context) => [
+                // A renewed card is a new expiry date on the card: the ledger
+                // cannot move a printed date, so the card-expiry row logs nothing.
+                if (s.rule.id != kCardExpiryRuleId)
+                  PopupMenuItem(
+                    value: CurrencyRowAction.log,
+                    child: Text(l10n.certifications_currency_action_log),
+                  ),
+                PopupMenuItem(
+                  value: CurrencyRowAction.interval,
+                  child: Text(l10n.certifications_currency_action_interval),
+                ),
+                if (activity)
+                  PopupMenuItem(
+                    value: CurrencyRowAction.mapping,
+                    child: Text(l10n.certifications_currency_action_mapping),
+                  ),
+                PopupMenuItem(
+                  value: CurrencyRowAction.mute,
+                  child: Text(
+                    muted
+                        ? l10n.certifications_currency_action_unmute
+                        : l10n.certifications_currency_action_mute,
+                  ),
+                ),
+              ],
             ),
-          PopupMenuItem(
-            value: CurrencyRowAction.interval,
-            child: Text(l10n.certifications_currency_action_interval),
-          ),
-          if (activity)
-            PopupMenuItem(
-              value: CurrencyRowAction.mapping,
-              child: Text(l10n.certifications_currency_action_mapping),
-            ),
-          PopupMenuItem(
-            value: CurrencyRowAction.mute,
-            child: Text(
-              group.muted
-                  ? l10n.certifications_currency_action_unmute
-                  : l10n.certifications_currency_action_mute,
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -245,6 +377,23 @@ class _CurrencyRow extends ConsumerWidget {
               : CurrencyEventType.renewal,
         );
         if (logged == null) return;
+        final editing = this.editing;
+        if (editing != null) {
+          final current = await _heldEvents(editing);
+          if (current == null || editing.isDisposed) return;
+          certificationEventsList.set(editing, [
+            ...current,
+            newCurrencyEvent(
+              certificationId: certification.id,
+              ruleId: s.rule.id,
+              type: logged.type,
+              date: logged.date,
+              provider: logged.provider,
+              notes: logged.notes,
+            ),
+          ]);
+          return;
+        }
         final now = DateTime.now();
         await ref
             .read(certificationCurrencyRepositoryProvider)
@@ -262,7 +411,7 @@ class _CurrencyRow extends ConsumerWidget {
               ),
             );
       case CurrencyRowAction.interval:
-        final pref = await _pref(ref, certification.id, s.rule.id);
+        final pref = await _currentPref(ref, s.rule.id);
         if (!context.mounted) return;
         final result = await showCurrencyIntervalDialog(
           context,
@@ -273,10 +422,10 @@ class _CurrencyRow extends ConsumerWidget {
         if (result == null) return;
         await _writePrefs(
           ref,
-          (p) => _rebuild(p, lapse: result.lapse, lead: result.lead),
+          (p) => rebuildCurrencyPref(p, lapse: result.lapse, lead: result.lead),
         );
       case CurrencyRowAction.mapping:
-        final pref = await _pref(ref, certification.id, s.rule.id);
+        final pref = await _currentPref(ref, s.rule.id);
         if (!context.mounted) return;
         final result = await showCurrencyMappingDialog(
           context,
@@ -287,15 +436,28 @@ class _CurrencyRow extends ConsumerWidget {
         if (result == null) return;
         await _writePrefs(
           ref,
-          (p) => _rebuild(p, types: result.types, modes: result.modes),
+          (p) =>
+              rebuildCurrencyPref(p, types: result.types, modes: result.modes),
         );
       case CurrencyRowAction.mute:
-        await _setMuted(ref, !group.muted);
+        await _setMuted(ref, !_muted);
     }
   }
 
   Future<void> _setMuted(WidgetRef ref, bool muted) =>
-      _writePrefs(ref, (p) => _rebuild(p, muted: muted));
+      _writePrefs(ref, (p) => rebuildCurrencyPref(p, muted: muted));
+
+  /// This card's preference for [ruleId], as the sitting holds it.
+  Future<CurrencyPref?> _currentPref(WidgetRef ref, String ruleId) async {
+    final editing = this.editing;
+    if (editing != null) {
+      final held = currencyPrefsInSitting(
+        editing,
+      )[(certificationId: certification.id, ruleId: ruleId)];
+      if (held != null) return held;
+    }
+    return _pref(ref, certification.id, ruleId);
+  }
 
   static Future<CurrencyPref?> _pref(
     WidgetRef ref,
@@ -309,91 +471,41 @@ class _CurrencyRow extends ConsumerWidget {
   }
 
   /// Writes [change] of each member's pref (or a fresh one) by full value,
-  /// so every card the row stands for changes together.
+  /// so every card the row stands for changes together; in a sitting,
+  /// holds it until Save.
   Future<void> _writePrefs(
     WidgetRef ref,
     CurrencyPref Function(CurrencyPref existing) change,
   ) async {
     final repo = ref.read(certificationCurrencyRepositoryProvider);
-    final now = DateTime.now();
-    for (final m in group.members) {
-      final existing =
-          await _pref(ref, m.certification.id, m.rule.id) ??
-          await _inheritedPref(ref, m) ??
-          CurrencyPref(
-            id: '',
-            certificationId: m.certification.id,
-            ruleId: m.rule.id,
-            createdAt: now,
-            updatedAt: now,
-          );
-      await repo.upsertPref(change(existing));
+    final stored = await storedCurrencyPrefs(group, repository: repo);
+    final editing = this.editing;
+    if (editing != null) {
+      holdCurrencyPrefs(editing, group, stored, change);
+      return;
+    }
+    for (final pref in currencyPrefsFor(group, stored, change)) {
+      await repo.upsertPref(pref);
     }
   }
-
-  /// The superseded built-in's pref for [m], carried onto the custom rule
-  /// as a new row, so the first edit of a copied rule keeps the mute and
-  /// overrides the engine was already applying through it.
-  static Future<CurrencyPref?> _inheritedPref(
-    WidgetRef ref,
-    CredentialCurrency m,
-  ) async {
-    final supersedes = m.rule.supersedesRuleId;
-    if (supersedes == null) return null;
-    final inherited = await _pref(ref, m.certification.id, supersedes);
-    if (inherited == null) return null;
-    return _rebuild(
-      CurrencyPref(
-        id: '',
-        certificationId: inherited.certificationId,
-        ruleId: m.rule.id,
-        muted: inherited.muted,
-        createdAt: inherited.createdAt,
-        updatedAt: inherited.updatedAt,
-      ),
-      lapse: inherited.lapseDaysOverride,
-      lead: inherited.leadDaysOverride,
-      types: inherited.countedDiveTypeIds,
-      modes: inherited.countedDiveModes,
-    );
-  }
 }
-
-const _keep = Object();
-
-/// [p] with the named fields replaced, each able to go back to null, which
-/// copyWith cannot do. An omitted field keeps its value.
-CurrencyPref _rebuild(
-  CurrencyPref p, {
-  Object? lapse = _keep,
-  Object? lead = _keep,
-  Object? types = _keep,
-  Object? modes = _keep,
-  bool? muted,
-}) => CurrencyPref(
-  id: p.id,
-  certificationId: p.certificationId,
-  ruleId: p.ruleId,
-  lapseDaysOverride: identical(lapse, _keep)
-      ? p.lapseDaysOverride
-      : lapse as int?,
-  leadDaysOverride: identical(lead, _keep) ? p.leadDaysOverride : lead as int?,
-  countedDiveTypeIds: identical(types, _keep)
-      ? p.countedDiveTypeIds
-      : types as List<String>?,
-  countedDiveModes: identical(modes, _keep)
-      ? p.countedDiveModes
-      : modes as List<DiveMode>?,
-  muted: muted ?? p.muted,
-  createdAt: p.createdAt,
-  updatedAt: p.updatedAt,
-);
 
 class _EventTile extends ConsumerWidget {
   final CurrencyEvent event;
   final UnitFormatter units;
+  final EditSession<Certification>? editing;
+  final bool readOnly;
 
-  const _EventTile({required this.event, required this.units});
+  /// Logged in the sitting, not yet saved.
+  final bool held;
+
+  const _EventTile({
+    required this.event,
+    required this.units,
+    this.editing,
+    this.readOnly = false,
+    this.held = false,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -408,8 +520,16 @@ class _EventTile extends ConsumerWidget {
       key: const ValueKey('currencyEventTile'),
       contentPadding: EdgeInsets.zero,
       leading: Icon(Icons.history_edu, color: theme.colorScheme.primary),
-      title: Text(
-        '${event.eventType.label(l10n)} · ${units.formatDate(event.eventDate)}',
+      title: Row(
+        children: [
+          Flexible(
+            child: Text(
+              '${event.eventType.label(l10n)} · '
+              '${units.formatDate(event.eventDate)}',
+            ),
+          ),
+          if (held) ...[const SizedBox(width: 6), const RecordChangedDot()],
+        ],
       ),
       subtitle: details.isEmpty
           ? null
@@ -418,15 +538,29 @@ class _EventTile extends ConsumerWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
-      trailing: IconButton(
-        icon: const Icon(Icons.delete_outline),
-        tooltip: l10n.common_action_delete,
-        onPressed: () => _confirmDelete(context, ref),
-      ),
+      trailing: readOnly
+          ? null
+          : IconButton(
+              icon: const Icon(Icons.delete_outline),
+              tooltip: l10n.common_action_delete,
+              onPressed: () => _delete(context, ref),
+            ),
     );
   }
 
-  Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
+  /// In a sitting, takes the event out of the held list, asking nothing:
+  /// Cancel brings it back. Otherwise asks, then deletes it.
+  Future<void> _delete(BuildContext context, WidgetRef ref) async {
+    final editing = this.editing;
+    if (editing != null) {
+      final current = await _heldEvents(editing);
+      if (current == null) return;
+      certificationEventsList.set(editing, [
+        for (final e in current)
+          if (e.id != event.id) e,
+      ]);
+      return;
+    }
     final l10n = context.l10n;
     final confirmed = await showDialog<bool>(
       context: context,
@@ -459,4 +593,16 @@ class _EventTile extends ConsumerWidget {
           .deleteEvent(event.id);
     }
   }
+}
+
+/// The events [session] holds, read first when they have not been: an
+/// action taken before the read answered, or after it failed, waits for it.
+/// Null when they cannot be read.
+Future<List<CurrencyEvent>?> _heldEvents(
+  EditSession<Certification> session,
+) async {
+  final current = certificationEventsList.current(session);
+  if (current != null) return current;
+  await certificationEventsList.load(session);
+  return certificationEventsList.current(session);
 }

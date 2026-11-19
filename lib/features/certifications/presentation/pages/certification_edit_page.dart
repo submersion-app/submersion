@@ -2,11 +2,9 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:submersion/core/services/images/profile_photo_codec.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/buddies/presentation/widgets/instructor_picker_field.dart';
@@ -15,20 +13,16 @@ import 'package:submersion/features/certifications/domain/certification_title.da
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_option.dart';
+import 'package:submersion/features/certifications/presentation/widgets/certification_form_widgets.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
-import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
 import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
-import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/features/certification_agencies/presentation/widgets/certification_agency_dropdown.dart';
 import 'package:submersion/features/certification_agencies/presentation/widgets/certification_level_dialog.dart';
-import 'package:submersion/features/certifications/presentation/widgets/certification_level_dropdown_items.dart';
 import 'package:submersion/shared/widgets/label_with_control.dart';
 import 'package:submersion/shared/widgets/tab_visibility.dart';
-import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
-import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 
 class CertificationEditPage extends ConsumerStatefulWidget {
@@ -98,8 +92,6 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
   DateTime? _expiryDate;
   Uint8List? _photoFront;
   Uint8List? _photoBack;
-
-  final _imagePicker = ImagePicker();
 
   bool _isLoading = false;
   bool _isSaving = false;
@@ -212,203 +204,10 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
   }
 
   /// Pick a photo from gallery or camera and return as bytes
-  Future<Uint8List?> _pickPhoto() async {
-    if (!demoSealGuard(context, DemoSealedFeature.mediaImport)) {
-      return null;
-    }
-    final source = await showModalBottomSheet<ImageSource>(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: Text(context.l10n.certifications_edit_photo_takePhoto),
-              onTap: () => Navigator.pop(context, ImageSource.camera),
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: Text(
-                context.l10n.certifications_edit_photo_chooseFromGallery,
-              ),
-              onTap: () => Navigator.pop(context, ImageSource.gallery),
-            ),
-          ],
-        ),
-      ),
-    );
-
-    if (source == null) return null;
-
-    try {
-      // No maxWidth / maxHeight / imageQuality here: image_picker_macos,
-      // image_picker_windows and image_picker_linux all document those
-      // arguments as silently ignored, so a desktop pick entered the database
-      // at full size and rode into every sync changeset as base64. The cap is
-      // enforced below instead, in Dart, where it holds on every platform.
-      final ({Uint8List bytes, String name})? source_;
-      if (widget.pickPhotoOverride != null) {
-        source_ = await widget.pickPhotoOverride!(source);
-      } else {
-        final picked = await _imagePicker.pickImage(source: source);
-        // Read through the XFile handle, not File(picked.path). A picked file
-        // is a HANDLE: on Android SAF the path can be unusable, and
-        // image_picker makes no promise it addresses a real filesystem entry.
-        source_ = picked == null
-            ? null
-            : (bytes: await picked.readAsBytes(), name: picked.name);
-      }
-
-      if (source_ == null) return null;
-
-      final encoded = await encodeStoredImage(
-        ImageEncodeRequest.fromBytes(
-          bytes: source_.bytes,
-          spec: ImageEncodeSpec.certificationCard,
-          declaredName: source_.name,
-        ),
-      );
-      if (encoded.outcome != ImageEncodeOutcome.encoded) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                encoded.outcome == ImageEncodeOutcome.tooLarge
-                    ? context.l10n.profilePhoto_error_tooLarge
-                    : context.l10n.profilePhoto_error_undecodable,
-              ),
-            ),
-          );
-        }
-        return null;
-      }
-      return encoded.bytes;
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              context.l10n.certifications_edit_snackBar_errorPhoto(
-                e.toString(),
-              ),
-            ),
-          ),
-        );
-      }
-      return null;
-    }
-  }
-
-  /// Build a photo card for front or back of certification card
-  Widget _buildPhotoCard(
-    BuildContext context, {
-    required String label,
-    required Uint8List? imageData,
-    required VoidCallback onPick,
-    required VoidCallback onDelete,
-  }) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final hasPhoto = imageData != null;
-
-    return Semantics(
-      button: true,
-      label: hasPhoto
-          ? context.l10n.certifications_edit_photo_attachedSemanticLabel(label)
-          : context.l10n.certifications_edit_photo_addSemanticLabel(label),
-      child: AspectRatio(
-        aspectRatio: 1.6, // Standard card aspect ratio
-        child: Card(
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: onPick,
-            child: hasPhoto
-                ? Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Image.memory(
-                        imageData,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return _buildEmptyPhotoCard(
-                            context,
-                            label,
-                            colorScheme,
-                          );
-                        },
-                      ),
-                      Positioned(
-                        top: 4,
-                        left: 4,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.black54,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            label,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        top: 4,
-                        right: 4,
-                        child: IconButton(
-                          icon: const Icon(Icons.close),
-                          tooltip: context.l10n
-                              .certifications_edit_photo_removeTooltip(label),
-                          color: Colors.white,
-                          style: IconButton.styleFrom(
-                            backgroundColor: Colors.black54,
-                          ),
-                          iconSize: 18,
-                          onPressed: onDelete,
-                        ),
-                      ),
-                    ],
-                  )
-                : _buildEmptyPhotoCard(context, label, colorScheme),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyPhotoCard(
-    BuildContext context,
-    String label,
-    ColorScheme colorScheme,
-  ) {
-    return Container(
-      decoration: BoxDecoration(color: colorScheme.surfaceContainerHighest),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.add_a_photo_outlined,
-            size: 32,
-            color: colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Future<Uint8List?> _pickPhoto() => pickCertificationCardPhoto(
+    context,
+    pickOverride: widget.pickPhotoOverride,
+  );
 
   @override
   void dispose() {
@@ -534,7 +333,12 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                   prefixIcon: const Icon(Icons.workspace_premium),
                   isDense: true,
                 ),
-                items: _certificationItems(context, agency, level),
+                items: certificationLevelItems(
+                  context,
+                  _catalog,
+                  agency,
+                  level,
+                ),
                 onChanged: (option) => _onLevelChanged(i, agency, option),
               ),
             ],
@@ -548,84 +352,6 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
           ),
       ],
     );
-  }
-
-  /// Items for the certification dropdown, grouped into the agency's
-  /// progression ladder and the cross-agency specialties.
-  ///
-  /// Headers are disabled items carrying their own [CertificationOption.header]
-  /// value, so no two rows share a value -- see [CertificationOption] for why
-  /// DropdownButton requires that. "Not specified" leads the list because it is
-  /// the clear-selection choice, not for any correctness reason.
-  List<DropdownMenuItem<CertificationOption>> _certificationItems(
-    BuildContext context,
-    String agency,
-    String? level,
-  ) {
-    final theme = Theme.of(context);
-    final ladder = _catalog.ladderFor(agency);
-    final specialties = _catalog.specialtiesFor(agency);
-
-    // A stored value from another agency's catalog still has to render.
-    final extra =
-        (level != null &&
-            level != CertificationLevel.other.name &&
-            !ladder.any((e) => e.id == level) &&
-            !specialties.any((e) => e.id == level))
-        ? _catalog.level(level)
-        : null;
-
-    DropdownMenuItem<CertificationOption> header(String key, String text) =>
-        DropdownMenuItem<CertificationOption>(
-          enabled: false,
-          value: CertificationOption.header(key),
-          child: Text(
-            text,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        );
-
-    DropdownMenuItem<CertificationOption> item(LevelEntry value) =>
-        DropdownMenuItem<CertificationOption>(
-          value: CertificationOption.value(value.id),
-          child: Text(value.localizedName(context.l10n)),
-        );
-
-    final grouped = buildGroupedCertificationItems(
-      agency: agency,
-      ladder: ladder,
-      specialties: specialties,
-      extra: extra,
-      l10n: context.l10n,
-      header: header,
-      item: item,
-    );
-
-    return [
-      DropdownMenuItem<CertificationOption>(
-        value: const CertificationOption.value(null),
-        child: Text(
-          context.l10n.certifications_edit_certification_notSpecified,
-        ),
-      ),
-      ...grouped.items,
-      if (extra != null && !grouped.extraRenderedInGroup) item(extra),
-      // Another diver's custom agency takes certifications from its owner
-      // only (issue #690).
-      if (_catalog.customAgency(agency) == null ||
-          _catalog.canEditAgency(agency))
-        DropdownMenuItem<CertificationOption>(
-          value: const CertificationOption.addCustom(),
-          child: Text(
-            context.l10n.certificationAgencies_addCustomCertification,
-            style: TextStyle(color: theme.colorScheme.primary),
-          ),
-        ),
-      item(_catalog.level(CertificationLevel.other.name)),
-    ];
   }
 
   @override
@@ -715,7 +441,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                   const SizedBox(height: 12),
 
                   // Issue date picker
-                  _DatePickerField(
+                  CertificationDatePickerField(
                     label: context.l10n.certifications_edit_label_issueDate,
                     value: _issueDate,
                     icon: Icons.event_available,
@@ -729,7 +455,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                   const SizedBox(height: 16),
 
                   // Expiry date picker
-                  _DatePickerField(
+                  CertificationDatePickerField(
                     label: context.l10n.certifications_edit_label_expiryDate,
                     value: _expiryDate,
                     icon: Icons.event_busy,
@@ -815,8 +541,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                   Row(
                     children: [
                       Expanded(
-                        child: _buildPhotoCard(
-                          context,
+                        child: CertificationPhotoCard(
                           label: context
                               .l10n
                               .certifications_detail_photoLabel_front,
@@ -840,8 +565,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: _buildPhotoCard(
-                          context,
+                        child: CertificationPhotoCard(
                           label: context
                               .l10n
                               .certifications_detail_photoLabel_back,
@@ -1214,86 +938,4 @@ class _Cred {
   String agency;
   String? level;
   _Cred(this.agency, this.level);
-}
-
-class _DatePickerField extends ConsumerWidget {
-  final String label;
-  final DateTime? value;
-  final IconData icon;
-  final String? helpText;
-  final ValueChanged<DateTime?> onChanged;
-
-  const _DatePickerField({
-    required this.label,
-    required this.value,
-    required this.icon,
-    this.helpText,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    ref.watch(certificationCatalogSyncProvider);
-    final units = ref.watch(unitFormatterProvider);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Semantics(
-          button: true,
-          label: value != null
-              ? '$label: ${units.formatDate(value)}. Tap to change'
-              : '$label: not set. Tap to select',
-          child: InkWell(
-            onTap: () => _pickDate(context),
-            child: InputDecorator(
-              decoration: InputDecoration(
-                labelText: label,
-                prefixIcon: Icon(icon),
-                suffixIcon: value != null
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        tooltip: context.l10n
-                            .certifications_edit_datePicker_clearTooltip(label),
-                        onPressed: () => onChanged(null),
-                      )
-                    : const Icon(Icons.calendar_today),
-              ),
-              child: Text(
-                value != null
-                    ? units.formatDate(value)
-                    : context.l10n.certifications_edit_datePicker_tapToSelect,
-                style: TextStyle(
-                  color: value != null
-                      ? null
-                      : Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ),
-          ),
-        ),
-        if (helpText != null)
-          Padding(
-            padding: const EdgeInsetsDirectional.only(start: 16, top: 4),
-            child: Text(
-              helpText!,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Future<void> _pickDate(BuildContext context) async {
-    final picked = await showAppDatePicker(
-      context: context,
-      initialDate: value ?? DateTime.now(),
-      firstDate: DateTime(1950),
-      lastDate: DateTime(2100),
-    );
-    if (picked != null) {
-      onChanged(picked);
-    }
-  }
 }

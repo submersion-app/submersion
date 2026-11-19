@@ -54,4 +54,26 @@ void main() {
       );
     });
   });
+
+  testWidgets('read only, a tap writes nothing', (tester) async {
+    await tester.pumpWidget(
+      testApp(
+        child: const Center(
+          child: BuddyFavoriteButton(
+            buddyId: 'buddy-1',
+            isFavorite: true,
+            readOnly: true,
+          ),
+        ),
+      ),
+    );
+
+    // No button: the star only shows the favourite, so a tap reaches no
+    // notifier (none is overridden here, and reading it would fail).
+    expect(find.byType(IconButton), findsNothing);
+    expect(find.byIcon(Icons.star), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.star));
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+  });
 }

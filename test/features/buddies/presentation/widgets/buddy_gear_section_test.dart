@@ -4,16 +4,21 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/buddies/presentation/editing/buddy_gear_sitting.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_gear_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_location_move_repository.dart';
+import 'package:submersion/features/equipment/data/services/equipment_move_flow.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location_move.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_location_picker_sheet.dart';
+import 'package:submersion/features/equipment/presentation/widgets/lend_gear_flow.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -99,6 +104,8 @@ void main() {
     required List<EquipmentItem> items,
     required Map<String, EquipmentLocation> current,
     List<EquipmentLocation>? places,
+    bool readOnly = false,
+    EditSession<Buddy>? editing,
   }) async {
     final moves = _FakeMoves();
     final byId = {
@@ -109,7 +116,13 @@ void main() {
         GoRoute(
           path: '/',
           builder: (context, state) => Scaffold(
-            body: SingleChildScrollView(child: BuddyGearSection(buddy: anna)),
+            body: SingleChildScrollView(
+              child: BuddyGearSection(
+                buddy: anna,
+                readOnly: readOnly,
+                editing: editing,
+              ),
+            ),
           ),
         ),
         GoRoute(
@@ -390,5 +403,121 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Update status?'), findsOneWidget);
+  });
+
+  group('on a page that edits in place (issue #4527, phase 3)', () {
+    testWidgets('locked with the switch on, no action is offered', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        items: [item('a', 'Drysuit'), item('b', 'Fins')],
+        current: {'a': hers, 'b': hers},
+        readOnly: true,
+      );
+
+      expect(title, findsOneWidget);
+      expect(find.byKey(const ValueKey('buddy_gear_lend')), findsNothing);
+      expect(allReturned, findsNothing);
+      expect(find.byKey(const ValueKey('buddy_gear_returned_a')), findsNothing);
+    });
+
+    testWidgets('Cancel on one lent item keeps the others', (tester) async {
+      final session = EditSession(anna);
+      addTearDown(session.dispose);
+      final drysuit = item('a', 'Drysuit');
+      final fins = item('b', 'Fins');
+      holdBuddyLend(
+        session,
+        HeldLend(
+          items: [drysuit, fins],
+          pick: BuddyPick(anna),
+          plan: EquipmentMovePlan(
+            items: const {
+              'a': EquipmentStatus.active,
+              'b': EquipmentStatus.active,
+            },
+            movedAt: DateTime(2026, 10, 1),
+          ),
+          diverId: 'me',
+        ),
+      );
+      await pump(
+        tester,
+        items: [drysuit, fins],
+        current: const {},
+        editing: session,
+      );
+      expect(find.text('Drysuit'), findsOneWidget);
+      expect(find.text('Fins'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('buddy_gear_returned_b')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Drysuit'), findsOneWidget);
+      expect(find.text('Fins'), findsNothing);
+      expect(heldBuddyGearMoves(session).single.lend!.items, [drysuit]);
+    });
+
+    testWidgets('a lent part offers no Cancel of its own', (tester) async {
+      final session = EditSession(anna);
+      addTearDown(session.dispose);
+      final reg = item('a', 'Regulator');
+      final hose = item('h', 'Hose');
+      holdBuddyLend(
+        session,
+        HeldLend(
+          items: [reg],
+          pick: BuddyPick(anna),
+          plan: EquipmentMovePlan(
+            items: const {'a': EquipmentStatus.active},
+            movedAt: DateTime(2026, 10, 1),
+            withParts: true,
+            partIds: const {'h'},
+          ),
+          diverId: 'me',
+        ),
+      );
+      final shelf = place('shelf', 'Shelf', buddyId: null);
+      await pump(
+        tester,
+        items: [reg, hose],
+        // Gear is listed only once it is somewhere.
+        current: {'a': shelf, 'h': shelf},
+        places: [hers, shelf],
+        editing: session,
+      );
+
+      expect(find.text('Hose'), findsOneWidget);
+      expect(find.byKey(const ValueKey('buddy_gear_returned_h')), findsNothing);
+      expect(
+        find.byKey(const ValueKey('buddy_gear_returned_a')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('in a sitting, Returned is held and moves nothing', (
+      tester,
+    ) async {
+      final session = EditSession(anna);
+      addTearDown(session.dispose);
+      final moves = await pump(
+        tester,
+        items: [item('a', 'Drysuit'), item('b', 'Fins')],
+        current: {'a': hers, 'b': hers},
+        editing: session,
+      );
+
+      await tester.tap(find.byKey(const ValueKey('buddy_gear_returned_a')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('return_equipment_confirm')));
+      await tester.pumpAndSettle();
+
+      expect(moves.returned, isEmpty);
+      expect(heldBuddyGearMoves(session), hasLength(1));
+      expect(session.changedCardIds, {'gear'});
+      expect(find.text('Drysuit'), findsNothing);
+      expect(find.text('Fins'), findsOneWidget);
+    });
   });
 }

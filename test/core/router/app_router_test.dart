@@ -60,6 +60,9 @@ import 'package:submersion/features/import_wizard/presentation/pages/universal_i
 import 'package:submersion/features/import_wizard/presentation/widgets/leave_running_import_dialog.dart';
 import 'package:submersion/features/table_editor/presentation/pages/table_editor_page.dart';
 import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blocker.dart';
+import 'package:submersion/features/buddies/presentation/pages/buddy_edit_routes.dart';
+import 'package:submersion/features/certifications/presentation/pages/certification_edit_routes.dart';
+import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_routes.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_routes.dart';
 
 /// Finds a [GoRoute] by name in a route tree recursively.
@@ -402,6 +405,43 @@ void main() {
     expect(siteEditLocation('s1'), '/sites/s1?mode=edit');
     final route = _findRouteByName(router.configuration.routes, 'editSite');
     expect(route?.redirect, same(siteEditRedirect));
+  });
+
+  // The old dive centre, buddy and certification edit addresses open the
+  // page unlocked (issue #4527, phase 3).
+  test('the dive centre edit address redirects with the switch', () {
+    final route = _findRouteByName(
+      router.configuration.routes,
+      'editDiveCenter',
+    );
+    expect(route?.redirect, same(diveCenterEditRedirect));
+    final detail = _findRouteByName(
+      router.configuration.routes,
+      'diveCenterDetail',
+    );
+    expect(detail?.onExit, same(confirmLeaveRecordSitting));
+  });
+
+  test('the buddy edit address redirects with the switch', () {
+    final route = _findRouteByName(router.configuration.routes, 'editBuddy');
+    expect(route?.redirect, same(buddyEditRedirect));
+    final detail = _findRouteByName(router.configuration.routes, 'buddyDetail');
+    expect(detail?.onExit, same(confirmLeaveRecordSitting));
+    final merge = _findRouteByName(router.configuration.routes, 'mergeBuddy');
+    expect(merge?.redirect, same(buddyMergeRedirect));
+  });
+
+  test('the certification edit address redirects with the switch', () {
+    final route = _findRouteByName(
+      router.configuration.routes,
+      'editCertification',
+    );
+    expect(route?.redirect, same(certificationEditRedirect));
+    final detail = _findRouteByName(
+      router.configuration.routes,
+      'certificationDetail',
+    );
+    expect(detail?.onExit, same(confirmLeaveRecordSitting));
   });
 
   // The merge address handed fewer than two sites goes back to the list

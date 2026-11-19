@@ -31,6 +31,7 @@ import 'package:submersion/features/setup_wizard/domain/setup_wizard_models.dart
 import 'package:submersion/features/setup_wizard/presentation/pages/setup_wizard_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_edit_page.dart';
+import 'package:submersion/features/buddies/presentation/pages/buddy_edit_routes.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_merge_page.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
@@ -41,6 +42,7 @@ import 'package:submersion/features/documents/presentation/pages/document_edit_r
 import 'package:submersion/features/documents/presentation/pages/document_edit_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_detail_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_edit_page.dart';
+import 'package:submersion/features/certifications/presentation/pages/certification_edit_routes.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_wallet_page.dart';
 import 'package:submersion/features/checklists/presentation/pages/checklist_template_edit_page.dart';
 import 'package:submersion/features/checklists/presentation/pages/checklist_templates_page.dart';
@@ -52,6 +54,7 @@ import 'package:submersion/features/courses/presentation/pages/course_detail_pag
 import 'package:submersion/features/courses/presentation/pages/course_edit_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_detail_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_page.dart';
+import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_routes.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_import_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_list_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_map_page.dart';
@@ -937,6 +940,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/buddies',
             name: 'buddies',
+            onExit: confirmLeaveRecordSitting,
             pageBuilder: (context, state) => NoTransitionPage(
               key: state.pageKey,
               child: const BuddyListPage(),
@@ -965,12 +969,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'merge',
                 name: 'mergeBuddy',
-                builder: (context, state) {
-                  final buddyIds =
-                      (state.extra as List<dynamic>?)?.cast<String>() ??
-                      const <String>[];
-                  return BuddyMergePage(buddyIds: buddyIds);
-                },
+                // Fewer than two buddies is nothing to merge: the list.
+                redirect: buddyMergeRedirect,
+                builder: (context, state) =>
+                    BuddyMergePage(buddyIds: buddyMergeIds(state.extra)),
               ),
               GoRoute(
                 path: 'swap',
@@ -994,12 +996,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: ':buddyId',
                 name: 'buddyDetail',
-                builder: (context, state) =>
-                    BuddyDetailPage(buddyId: state.pathParameters['buddyId']!),
+                onExit: confirmLeaveRecordSitting,
+                builder: (context, state) => BuddyDetailPage(
+                  buddyId: state.pathParameters['buddyId']!,
+                  openUnlocked: state.uri.queryParameters['mode'] == 'edit',
+                ),
                 routes: [
                   GoRoute(
                     path: 'edit',
                     name: 'editBuddy',
+                    // Behind phase 3's switch, the page opened unlocked.
+                    redirect: buddyEditRedirect,
                     builder: (context, state) =>
                         BuddyEditPage(buddyId: state.pathParameters['buddyId']),
                   ),
@@ -1019,6 +1026,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/certifications',
             name: 'certifications',
+            onExit: confirmLeaveRecordSitting,
             // Both Training tabs build one host under one page key, so it
             // stays mounted across a switch (#3437).
             pageBuilder: (context, state) => trainingHostPage(
@@ -1038,13 +1046,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: ':certificationId',
                 name: 'certificationDetail',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => CertificationDetailPage(
                   certificationId: state.pathParameters['certificationId']!,
+                  openUnlocked: state.uri.queryParameters['mode'] == 'edit',
                 ),
                 routes: [
                   GoRoute(
                     path: 'edit',
                     name: 'editCertification',
+                    // Behind phase 3's switch, the page opened unlocked.
+                    redirect: certificationEditRedirect,
                     builder: (context, state) => CertificationEditPage(
                       certificationId: state.pathParameters['certificationId'],
                     ),
@@ -1142,6 +1154,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/dive-centers',
             name: 'diveCenters',
+            onExit: confirmLeaveRecordSitting,
             pageBuilder: (context, state) => NoTransitionPage(
               key: state.pageKey,
               child: const DiveCenterListPage(),
@@ -1165,13 +1178,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: ':centerId',
                 name: 'diveCenterDetail',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => DiveCenterDetailPage(
                   centerId: state.pathParameters['centerId']!,
+                  openUnlocked: state.uri.queryParameters['mode'] == 'edit',
                 ),
                 routes: [
                   GoRoute(
                     path: 'edit',
                     name: 'editDiveCenter',
+                    // Behind phase 3's switch, the page opened unlocked.
+                    redirect: diveCenterEditRedirect,
                     builder: (context, state) => DiveCenterEditPage(
                       centerId: state.pathParameters['centerId'],
                     ),

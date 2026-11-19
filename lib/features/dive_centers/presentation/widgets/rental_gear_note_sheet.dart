@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/number_input.dart';
@@ -14,13 +15,20 @@ import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 /// Opens the rental gear note editor (issue #2075) for a center. With
 /// [editing], the sheet edits that note; otherwise it creates one for
 /// [diveCenterId], remembering [diveId] as where it was noticed.
-Future<void> showRentalGearNoteSheet(
+///
+/// With [holdOnly] (a dive centre page in its sitting, issue #4527, phase
+/// 3) its Save and Delete write nothing: they return the note as saved,
+/// a new one with an id of its own, or its removal, for the sitting to hold
+/// until its own Save; Delete then asks nothing, since Cancel brings it
+/// back. Without it, the sheet writes at once and returns null.
+Future<RentalNoteEdit?> showRentalGearNoteSheet(
   BuildContext context, {
   required String diveCenterId,
   String? diveId,
   DiveCenterGearNote? editing,
+  bool holdOnly = false,
 }) {
-  return showModalBottomSheet<void>(
+  return showModalBottomSheet<RentalNoteEdit>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
@@ -28,9 +36,14 @@ Future<void> showRentalGearNoteSheet(
       diveCenterId: diveCenterId,
       diveId: diveId,
       editing: editing,
+      holdOnly: holdOnly,
     ),
   );
 }
+
+/// What a hold-only rental note sheet returns: the note as saved, or the
+/// note removed.
+typedef RentalNoteEdit = ({DiveCenterGearNote note, bool removed});
 
 /// Asks before deleting [note], then deletes it. Returns true when the
 /// note is gone. Shared by the sheet and the detail page section.
@@ -65,11 +78,13 @@ class _RentalGearNoteSheet extends ConsumerStatefulWidget {
   final String diveCenterId;
   final String? diveId;
   final DiveCenterGearNote? editing;
+  final bool holdOnly;
 
   const _RentalGearNoteSheet({
     required this.diveCenterId,
     this.diveId,
     this.editing,
+    this.holdOnly = false,
   });
 
   @override
@@ -164,41 +179,44 @@ class _RentalGearNoteSheetState extends ConsumerState<_RentalGearNoteSheet> {
       final volumeL = _gearType == EquipmentType.tank && volume != null
           ? units.volumeToLiters(volume)
           : null;
+      final now = DateTime.now().toUtc();
+      final note = existing == null
+          ? DiveCenterGearNote(
+              id: widget.holdOnly ? const Uuid().v4() : '',
+              diveCenterId: widget.diveCenterId,
+              gearType: _gearType,
+              label: _label.text,
+              size: _size.text,
+              verdict: _verdict,
+              leadAdjustmentKg: leadKg,
+              volumeLiters: volumeL,
+              note: _note.text,
+              diveId: widget.diveId,
+              notedAt: now,
+              createdAt: now,
+              updatedAt: now,
+            )
+          : existing.copyWith(
+              gearType: _gearType,
+              label: _label.text,
+              clearLabel: _label.text.trim().isEmpty,
+              size: _size.text,
+              clearSize: _size.text.trim().isEmpty,
+              verdict: _verdict,
+              leadAdjustmentKg: leadKg,
+              clearLeadAdjustment: leadKg == null,
+              volumeLiters: volumeL,
+              clearVolume: volumeL == null,
+              note: _note.text,
+            );
+      if (widget.holdOnly) {
+        if (mounted) Navigator.of(context).pop((note: note, removed: false));
+        return;
+      }
       if (existing == null) {
-        final now = DateTime.now().toUtc();
-        await repo.create(
-          DiveCenterGearNote(
-            id: '',
-            diveCenterId: widget.diveCenterId,
-            gearType: _gearType,
-            label: _label.text,
-            size: _size.text,
-            verdict: _verdict,
-            leadAdjustmentKg: leadKg,
-            volumeLiters: volumeL,
-            note: _note.text,
-            diveId: widget.diveId,
-            notedAt: now,
-            createdAt: now,
-            updatedAt: now,
-          ),
-        );
+        await repo.create(note);
       } else {
-        await repo.update(
-          existing.copyWith(
-            gearType: _gearType,
-            label: _label.text,
-            clearLabel: _label.text.trim().isEmpty,
-            size: _size.text,
-            clearSize: _size.text.trim().isEmpty,
-            verdict: _verdict,
-            leadAdjustmentKg: leadKg,
-            clearLeadAdjustment: leadKg == null,
-            volumeLiters: volumeL,
-            clearVolume: volumeL == null,
-            note: _note.text,
-          ),
-        );
+        await repo.update(note);
       }
       if (mounted) Navigator.of(context).pop();
     } catch (_) {
@@ -213,6 +231,10 @@ class _RentalGearNoteSheetState extends ConsumerState<_RentalGearNoteSheet> {
   Future<void> _delete() async {
     final note = widget.editing;
     if (note == null) return;
+    if (widget.holdOnly) {
+      Navigator.of(context).pop((note: note, removed: true));
+      return;
+    }
     final deleted = await confirmDeleteRentalGearNote(context, ref, note);
     if (deleted && mounted) Navigator.of(context).pop();
   }
