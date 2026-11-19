@@ -17,6 +17,10 @@ def _pct(rate):
     return f"{rate['value']:.1%} ({rate['low']:.1%} to {rate['high']:.1%}, n {rate['n']})"
 
 
+def _share(value):
+    return "n/a" if value is None else f"{value:.1%}"
+
+
 def _bar(value):
     return "never" if value >= bar_search.NEVER else f"{value:.2f}"
 
@@ -37,7 +41,8 @@ def write_report(results, path):
     lines += [
         "Under the published pack's bars when it has measured ones, else this run's (each run is listed "
         "below the table); each held to the same junk cap; precision and coverage with a location and "
-        "without one. Shown is the lower precision, which the manifest carries and the app shows."
+        "without one. Shown is the lower precision, which the manifest carries and the app shows. Each run's "
+        "Surer row is at the bars its levels sit under."
     ]
     lines += [
         "",
@@ -46,17 +51,27 @@ def write_report(results, path):
     ]
     lines += ["| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
     for key, e in results["evaluations"].items():
+        under = e.get("levels measured under")
+        if under:
+            # Surer at the bars the levels sit under, which its shown
+            # figure (the manifest's naming.precision) is taken from.
+            b, h = under["bars"], e.get("surer held-out") or {}
+            lines.append(
+                f"| {key} | surer | | {_bar(b['suggest'])} | {_bar(b['suggest_no_location'])} | "
+                f"{_pct(h.get('precision'))} | {_pct(h.get('precision without location'))} | "
+                f"{_pct(h.get('coverage'))} | {_pct(h.get('coverage without location'))} | "
+                f"{_share(e.get('surer precision'))} | {_pct(h.get('junk named'))} |"
+            )
         if not e.get("levels"):
             lines.append(f"| {key} | none | | | | | | | | | |")
         for level in e.get("levels", []):
             b, h = level["bars"], level["held-out"]
-            shown = level.get("precision")
             lines.append(
                 f"| {key} | {level['id']} | {level['target']:.2f} | {_bar(b['suggest'])} | "
                 f"{_bar(b['suggest_no_location'])} | {_pct(h['precision'])} | "
                 f"{_pct(h.get('precision without location'))} | {_pct(h['coverage'])} | "
                 f"{_pct(h.get('coverage without location'))} | "
-                f"{'n/a' if shown is None else f'{shown:.1%}'} | {_pct(h['junk named'])} |"
+                f"{_share(level.get('precision'))} | {_pct(h['junk named'])} |"
             )
     lines.append("")
     for key, e in results["evaluations"].items():

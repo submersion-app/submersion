@@ -124,6 +124,37 @@ class MeasureTests(unittest.TestCase):
         self.assertAlmostEqual(held["precision without location"]["value"], 170 / 205)
         self.assertEqual(found[0]["precision"], 0.829)
 
+    def test_levels_are_held_below_surers_lower_figure(self):
+        # Surer is right every time with a location but 100 of 130 without
+        # one; a level right 87% of the time on its weaker side would read
+        # as more often right than Surer.
+        fish = (
+            [record(0.9, True)] * 100
+            + [split(0.5, 0.85, False)] * 30
+            + [split(0.55, 0.65, True)] * 100
+            + [split(0.55, 0.3, False)] * 20
+        )
+        found, surer_precision = measure(fish)
+        self.assertAlmostEqual(surer_precision, 100 / 130)
+        self.assertEqual(found, [])
+
+    def test_eager_is_held_below_balanceds_lower_figure(self):
+        # Chosen on the tune half: Balanced at 0.55, Eager at 0.45. Held
+        # out, Balanced is right every time with a location but 100 of 125
+        # without one; Eager, right 200 of 225 on its weaker side, would
+        # read as more often right than Balanced.
+        tune = (
+            [record(0.9, True)] * 100
+            + [record(0.55, True)] * 70
+            + [record(0.55, False)] * 30
+            + [record(0.45, True)] * 50
+            + [record(0.45, False)] * 50
+        )
+        held = [record(0.9, True)] * 100 + [split(0.1, 0.6, False)] * 25 + [split(0.5, 0.5, True)] * 100
+        found, _ = levels.measure(SURER, tune, [], held, [], min_side=64)
+        self.assertEqual([level["id"] for level in found], ["balanced"])
+        self.assertEqual(found[0]["precision"], 0.8)
+
 
 if __name__ == "__main__":
     unittest.main()

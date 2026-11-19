@@ -484,9 +484,13 @@ def evaluate(name, results_by_photo, animals, junk_rows, namer, work, min_side, 
         "bars after held-out gate": gated.__dict__,
         "switched off": switched_off,
         "levels measured under": {"bars": surer.__dict__, "published": published is not None},
-        # Held out, at the bars the levels sit under; None when they name
-        # nothing held out: no precision to show.
+        # Held out, at the bars the levels sit under: the lower of the
+        # precisions with and without a location (levels.shown_precision),
+        # None when they name nothing held out: no precision to show.
         "surer precision": surer_precision,
+        # Both sides at those bars, which the shown figure is taken from;
+        # "held-out natural" is at this run's own bars, which can differ.
+        "surer held-out": level_search.rates(surer, held_nat, held_junk, min_side=min_side),
         "levels": levels,
         "held-out natural": summary(held_nat),
         "held-out natural, detection": {
