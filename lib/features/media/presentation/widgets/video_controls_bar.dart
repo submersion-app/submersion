@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:video_player/video_player.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/presentation/helpers/elapsed_time_format.dart';
+import 'package:submersion/features/media/presentation/helpers/playhead_interpolator.dart';
 import 'package:submersion/features/media/presentation/widgets/people_tags/video_tag_marks.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -19,6 +21,9 @@ import 'package:submersion/l10n/l10n_extension.dart';
 ///
 /// The bar always runs left to right: a media timeline is not mirrored in
 /// right-to-left languages.
+///
+/// While the video plays, the thumb glides from frame to frame rather than
+/// stepping each time the player reports its position (issue #4732).
 class VideoControlsBar extends StatefulWidget {
   final VideoPlayerController controller;
 
@@ -36,6 +41,10 @@ class VideoControlsBar extends StatefulWidget {
   @visibleForTesting
   static const trackKey = ValueKey('videoControlsBar.track');
 
+  /// The thumb, for tests that check where the bar shows the playhead.
+  @visibleForTesting
+  static const thumbKey = ValueKey('videoControlsBar.thumb');
+
   /// How far a screen reader's increase and decrease actions move.
   static const accessibilityStep = Duration(seconds: 5);
 
@@ -50,8 +59,19 @@ class VideoControlsBar extends StatefulWidget {
   State<VideoControlsBar> createState() => _VideoControlsBarState();
 }
 
-class _VideoControlsBarState extends State<VideoControlsBar> {
+class _VideoControlsBarState extends State<VideoControlsBar>
+    with SingleTickerProviderStateMixin {
   static final _log = LoggerService.forClass(VideoControlsBar);
+
+  /// Carries the playhead on between the player's position reports.
+  var _playhead = PlayheadInterpolator();
+
+  /// Where the bar draws the playhead. It changes every frame while the
+  /// video plays, so only the track and thumb listen to it.
+  final _shown = ValueNotifier<Duration>(Duration.zero);
+
+  /// Asks for frames while the playhead can glide on, and no longer.
+  late final Ticker _ticker = createTicker(_onTick);
 
   /// Where the finger is along the track while scrubbing, as a fraction of
   /// its width; null when not scrubbing. The thumb and elapsed time follow
@@ -87,6 +107,7 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
   void initState() {
     super.initState();
     widget.controller.addListener(_onVideoUpdate);
+    _reportPlayhead();
   }
 
   @override
@@ -110,12 +131,16 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
       _pendingSeek = null;
       _seekGeneration++;
       _seeking = null;
+      _playhead = PlayheadInterpolator();
+      _reportPlayhead();
     }
   }
 
   @override
   void dispose() {
     widget.controller.removeListener(_onVideoUpdate);
+    _ticker.dispose();
+    _shown.dispose();
     // Gone mid-scrub or under the mouse (Space can hide the overlay during
     // a drag): release the host's hold, or its controls never hide again.
     // After this frame, since the host may rebuild in answer.
@@ -138,8 +163,34 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
 
   void _onVideoUpdate() {
     if (mounted) {
+      _reportPlayhead();
       setState(() {});
     }
+  }
+
+  /// Hands the player's latest position to the playhead, and starts or stops
+  /// the frames that carry it on.
+  void _reportPlayhead() {
+    final value = widget.controller.value;
+    final advancing = _playhead.report(
+      position: value.position,
+      advancing: value.isPlaying && !value.isBuffering,
+      speed: value.playbackSpeed,
+      duration: value.duration,
+    );
+    _shown.value = _playhead.shown;
+    if (!advancing) {
+      _ticker.stop();
+    } else if (!_ticker.isActive) {
+      unawaited(_ticker.start());
+    }
+  }
+
+  void _onTick(Duration elapsed) {
+    final moving = _playhead.advance(elapsed);
+    _shown.value = _playhead.shown;
+    // A stalled player, or the end of the clip: rest until the next report.
+    if (!moving) _ticker.stop();
   }
 
   String _formatDuration(Duration duration) =>
@@ -168,6 +219,12 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
   double _fractionAt(double x, double width) =>
       width <= 0 ? 0.0 : (x / width).clamp(0.0, 1.0);
 
+  /// How far through a clip of [duration] the bar shows [position].
+  double _fractionOf(Duration position, Duration duration) =>
+      duration.inMilliseconds > 0
+      ? (position.inMilliseconds / duration.inMilliseconds).clamp(0.0, 1.0)
+      : 0.0;
+
   Duration _positionAt(double fraction) => Duration(
     milliseconds: (fraction * widget.controller.value.duration.inMilliseconds)
         .round(),
@@ -178,6 +235,7 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
   Future<void> _seekTo(Duration target) {
     _pendingSeek = target;
     _seekTarget = target;
+    _playhead.expectSeek(target);
     return _seeking ??= _drainSeeks(widget.controller, _seekGeneration);
   }
 
@@ -204,7 +262,12 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
         stackTrace: stackTrace,
       );
     } finally {
-      if (current()) _seeking = null;
+      if (current()) {
+        _seeking = null;
+        // Every seek has landed or failed: none is left for the playhead to
+        // wait on.
+        _playhead.expectSeek(null);
+      }
     }
   }
 
@@ -268,14 +331,6 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
     // What a screen reader hears: where the video is headed, so quick steps
     // announce their sum rather than the frame still on screen.
     final announced = scrubFraction != null ? position : _heading;
-    final progress =
-        scrubFraction ??
-        (duration.inMilliseconds > 0
-            ? (position.inMilliseconds / duration.inMilliseconds).clamp(
-                0.0,
-                1.0,
-              )
-            : 0.0);
 
     return Directionality(
       textDirection: TextDirection.ltr,
@@ -349,50 +404,66 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
                           key: VideoControlsBar.trackKey,
                           height: 40, // Larger touch target
                           child: Center(
-                            child: Stack(
-                              // The thumb and tag marks overhang the 4 px
-                              // track; clipping drew the thumb as a sliver.
-                              clipBehavior: Clip.none,
-                              children: [
-                                // Background track
-                                Container(
-                                  height: 4,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.3),
-                                    borderRadius: BorderRadius.circular(2),
-                                  ),
-                                ),
-                                // Progress track
-                                FractionallySizedBox(
-                                  widthFactor: progress,
-                                  child: Container(
-                                    height: 4,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(2),
+                            child: ValueListenableBuilder<Duration>(
+                              valueListenable: _shown,
+                              // Still between frames: built once per update.
+                              child: VideoTagMarks(
+                                mediaId: widget.mediaId,
+                                duration: duration,
+                                width: width,
+                              ),
+                              builder: (context, shown, tagMarks) {
+                                final progress =
+                                    scrubFraction ??
+                                    _fractionOf(shown, duration);
+                                return Stack(
+                                  // The thumb and tag marks overhang the 4 px
+                                  // track; clipping drew the thumb as a
+                                  // sliver.
+                                  clipBehavior: Clip.none,
+                                  children: [
+                                    // Background track
+                                    Container(
+                                      height: 4,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withValues(
+                                          alpha: 0.3,
+                                        ),
+                                        borderRadius: BorderRadius.circular(2),
+                                      ),
                                     ),
-                                  ),
-                                ),
-                                // Tagged moments (issue #1745)
-                                VideoTagMarks(
-                                  mediaId: widget.mediaId,
-                                  duration: duration,
-                                  width: width,
-                                ),
-                                // Thumb indicator
-                                Positioned(
-                                  left: (width * progress) - 8,
-                                  top: -6,
-                                  child: Container(
-                                    width: 16,
-                                    height: 16,
-                                    decoration: const BoxDecoration(
-                                      color: Colors.white,
-                                      shape: BoxShape.circle,
+                                    // Progress track
+                                    FractionallySizedBox(
+                                      widthFactor: progress,
+                                      child: Container(
+                                        height: 4,
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(
+                                            2,
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                ),
-                              ],
+                                    // Tagged moments (issue #1745)
+                                    tagMarks!,
+                                    // Thumb indicator
+                                    Positioned(
+                                      left: (width * progress) - 8,
+                                      top: -6,
+                                      child: Container(
+                                        key: VideoControlsBar.thumbKey,
+                                        width: 16,
+                                        height: 16,
+                                        decoration: const BoxDecoration(
+                                          color: Colors.white,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
                             ),
                           ),
                         ),
