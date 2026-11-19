@@ -69,6 +69,8 @@ void main() {
     // the planner stop minimum and trip counts dropped typos (#1900 review).
     const coordinateFiles = <String, String>{
       // The merge page's coordinates (issue #4527, phase 2, plan 7).
+      'lib/features/dive_sites/presentation/pages/site_merge_page_fields.dart':
+          'latitude/longitude, validated by the coordinate fields',
       'lib/features/dive_sites/presentation/pages/site_merge_page_location.dart':
           'latitude/longitude, validated by the coordinate fields',
       'lib/features/dive_sites/presentation/pages/site_merge_page_save.dart':
