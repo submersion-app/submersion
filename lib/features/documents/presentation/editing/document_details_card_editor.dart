@@ -20,6 +20,19 @@ import 'package:submersion/shared/widgets/record_editing/field_text_binding.dart
 
 const String _tagObjectsKey = 'document.tags.objects';
 
+/// Holds [tags] as the document's tags in [session]: the ids for the save,
+/// the tags themselves for the page to show while the sitting is open.
+void holdDocumentTags(EditSession<DocumentRecord> session, List<Tag> tags) {
+  session
+    ..remember(_tagObjectsKey, tags)
+    ..set(documentTagsField, [for (final t in tags) t.id]);
+}
+
+/// The tags [session] holds for the document, or null when the diver has
+/// not changed them in the sitting.
+List<Tag>? heldDocumentTags(EditSession<DocumentRecord> session) =>
+    session.isDisposed ? null : session.recall<List<Tag>>(_tagObjectsKey);
+
 /// The document's Details card editor (issue #4527, phase 3): the form's
 /// fields, bound to the sitting, with the form's rules: a certification
 /// card keeps its owner and type and has no title, expiry or reminder; only
@@ -96,8 +109,7 @@ class _DocumentDetailsCardEditorState
   }
 
   /// The tags shown: those the diver chose in this sitting, else [stored].
-  List<Tag> _tags(List<Tag> stored) =>
-      _session.recall<List<Tag>>(_tagObjectsKey) ?? stored;
+  List<Tag> _tags(List<Tag> stored) => heldDocumentTags(_session) ?? stored;
 
   @override
   Widget build(BuildContext context) {
@@ -169,10 +181,7 @@ class _DocumentDetailsCardEditorState
               browseKey: const ValueKey('document_details_tags_browse'),
               selectedTags: _tags(storedTags),
               enabled: tagsReadable,
-              onTagsChanged: (tags) {
-                _session.remember(_tagObjectsKey, tags);
-                _session.set(documentTagsField, [for (final t in tags) t.id]);
-              },
+              onTagsChanged: (tags) => holdDocumentTags(_session, tags),
             ),
           ],
         );

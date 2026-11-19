@@ -59,11 +59,15 @@ Future<List<DocumentPage>?> addDocumentPage(
       _ => await capture.fromFile(side: side),
     };
   } catch (e) {
+    // The page may have gone while the picker was open: drop the capture.
+    if (!context.mounted) return null;
     messenger.showSnackBar(
       SnackBar(content: Text(l10n.media_import_failedToImportError('$e'))),
     );
     return null;
   }
+  // As the form did: a page that has gone takes no page.
+  if (!context.mounted) return null;
   final refusal = switch (result) {
     PageCaptureTooLarge(:final sizeBytes) => l10n.documents_pages_tooLarge(
       formatBytes(sizeBytes),

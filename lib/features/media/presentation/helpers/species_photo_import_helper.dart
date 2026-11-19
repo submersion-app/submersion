@@ -273,6 +273,9 @@ class SpeciesPhotoImportHelper {
         ),
       ),
     );
+    // The species page has gone while the review was open: nothing to hold
+    // and nobody to tell.
+    if (!context.mounted) return null;
     // The review says nothing while the photos wait for Save; photos that
     // could not be prepared are said here, as the import says them.
     if (speciesPrepareFailureMessage(l10n, failed) case final message?) {

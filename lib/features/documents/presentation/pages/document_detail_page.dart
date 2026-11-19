@@ -16,6 +16,8 @@ import 'package:submersion/features/documents/data/repositories/document_reposit
 import 'package:submersion/features/documents/data/services/document_edit_save_service.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
 import 'package:submersion/features/documents/presentation/editing/document_card_ids.dart';
+import 'package:submersion/features/documents/presentation/editing/document_details_card_editor.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/documents/presentation/editing/document_edit_cards.dart';
 import 'package:submersion/features/documents/presentation/editing/document_record.dart';
 import 'package:submersion/features/documents/presentation/providers/document_record_provider.dart';
@@ -321,6 +323,7 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage>
                 frame: hostsEditing ? _framedDetails : null,
                 showReminder: hostsEditing,
                 pencil: _detailsPencil(),
+                tags: _heldTags(),
               ),
             ),
           ],
@@ -337,6 +340,7 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage>
       ownerLabel: owner,
       showReminder: hostsEditing,
       pencil: _detailsPencil(),
+      tags: _heldTags(),
     );
     return hostsEditing ? _framedDetails(card) : card;
   }

@@ -122,6 +122,13 @@ mixin _DocumentDetailPageEditing
         )
       : null;
 
+  /// The tags the sitting holds, shown on the closed card until Save; null
+  /// when none are held.
+  List<Tag>? _heldTags() {
+    final session = maybeEditController?.session;
+    return session == null ? null : heldDocumentTags(session);
+  }
+
   /// Whether the record's operations may run now, or why not; null where
   /// the page edits nothing in place.
   RecordOperationBlock? get _documentOperationBlock =>

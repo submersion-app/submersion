@@ -36,6 +36,9 @@ class DocumentDetailsPanel extends ConsumerStatefulWidget {
   /// arrow while [forceOpen].
   final Widget? pencil;
 
+  /// Passed to [DocumentDetailsCard.tags].
+  final List<Tag>? tags;
+
   const DocumentDetailsPanel({
     super.key,
     required this.entry,
@@ -43,6 +46,7 @@ class DocumentDetailsPanel extends ConsumerStatefulWidget {
     this.frame,
     this.showReminder = false,
     this.pencil,
+    this.tags,
   });
 
   @override
@@ -75,6 +79,7 @@ class _DocumentDetailsPanelState extends ConsumerState<DocumentDetailsPanel> {
                 ownerLabel: owner,
                 flat: true,
                 showReminder: widget.showReminder,
+                tags: widget.tags,
               ),
             ),
           ),
@@ -98,6 +103,7 @@ class _DocumentDetailsPanelState extends ConsumerState<DocumentDetailsPanel> {
                   ownerLabel: owner,
                   flat: true,
                   showReminder: widget.showReminder,
+                  tags: widget.tags,
                 ),
               ],
             ),
@@ -175,6 +181,10 @@ class DocumentDetailsCard extends ConsumerWidget {
   /// is unlocked.
   final Widget? pencil;
 
+  /// The tags to show in place of the stored ones: those a sitting holds
+  /// (issue #4527, phase 3).
+  final List<Tag>? tags;
+
   const DocumentDetailsCard({
     super.key,
     required this.document,
@@ -182,6 +192,7 @@ class DocumentDetailsCard extends ConsumerWidget {
     this.flat = false,
     this.showReminder = false,
     this.pencil,
+    this.tags,
   });
 
   @override
@@ -192,13 +203,14 @@ class DocumentDetailsCard extends ConsumerWidget {
     final insurance = doc.type == DocumentType.insurance;
     final ownerRoute = documentOwnerRoute(doc.owner);
     final status = documentExpiryStatus(doc, DateTime.now());
-    final tags =
+    final stored =
         ref
             .watch(
               tagsForItemProvider((scope: TagScope.documents, itemId: doc.id)),
             )
             .value ??
         const <Tag>[];
+    final tags = this.tags ?? stored;
     String? text(String? v) => (v == null || v.trim().isEmpty) ? null : v;
     final rows = Column(
       children: [

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/documents/presentation/editing/document_details_card_editor.dart';
 import 'package:submersion/features/documents/presentation/editing/document_edit_fields.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/documents/presentation/editing/document_record.dart';
 import 'package:submersion/features/documents/presentation/pages/document_detail_page.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
@@ -329,5 +331,28 @@ void main() {
 
       expect(find.text('Bonaire'), findsNothing);
     });
+  });
+
+  testWidgets('tags changed in the sitting show on the closed card', (
+    tester,
+  ) async {
+    await pumpDocumentPage(tester);
+    await unlock(tester);
+
+    final page = tester.state(find.byType(DocumentDetailPage)) as dynamic;
+    holdDocumentTags(
+      page.editController.session as EditSession<DocumentRecord>,
+      [
+        Tag(
+          id: 't2',
+          name: 'Club',
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      ],
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Club'), findsOneWidget);
   });
 }
