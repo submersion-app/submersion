@@ -30,12 +30,7 @@ FieldTextBinding<Certification, V> _bindText<V>(
   EditSession<Certification> session,
   EditField<Certification, V> field,
   String Function(V value) format,
-) => FieldTextBinding<Certification, V>(
-  session: session,
-  field: field,
-  format: format,
-  parse: (text) => FieldValue<V>(text as V),
-);
+) => FieldTextBinding.plain(session: session, field: field, format: format);
 
 /// Details: the card's recognitions, its title and its number.
 class CertificationDetailsCardEditor extends ConsumerStatefulWidget {

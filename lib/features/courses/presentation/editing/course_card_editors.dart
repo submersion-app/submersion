@@ -22,12 +22,7 @@ FieldTextBinding<Course, V> _bindText<V>(
   EditSession<Course> session,
   EditField<Course, V> field,
   String Function(V value) format,
-) => FieldTextBinding<Course, V>(
-  session: session,
-  field: field,
-  format: format,
-  parse: (text) => FieldValue<V>(text as V),
-);
+) => FieldTextBinding.plain(session: session, field: field, format: format);
 
 /// Status, the page's header block: the course's name, its state and
 /// duration (calculated, read only), and Mark completed while it is in
