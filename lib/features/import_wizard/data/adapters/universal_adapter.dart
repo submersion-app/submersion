@@ -74,6 +74,7 @@ import 'package:submersion/features/import_wizard/domain/models/diver_import_out
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/universal_import/data/services/diver_slice_duplicates.dart';
 import 'package:submersion/features/universal_import/data/services/payload_slicer.dart';
+import 'package:submersion/features/universal_import/data/services/payload_merger.dart';
 import 'package:submersion/features/import_wizard/data/adapters/import_notice_grouper.dart';
 import 'package:submersion/features/import_wizard/data/adapters/remote_photo_attacher.dart';
 import 'package:submersion/features/import_wizard/data/adapters/import_photo_linker.dart';
@@ -486,11 +487,14 @@ class UniversalAdapter implements ImportSourceAdapter {
     }
 
     final groups = <wizard.ImportEntityType, EntityGroup>{};
+    final payloadHasTrips = payload
+        .entitiesOf(ui.ImportEntityType.trips)
+        .isNotEmpty;
     _addGroupIfNotEmpty(
       groups,
       wizard.ImportEntityType.dives,
       payload.entitiesOf(ui.ImportEntityType.dives),
-      _diveToEntityItem,
+      (data) => _diveToEntityItem(data, payloadHasTrips: payloadHasTrips),
     );
     _addGroupIfNotEmpty(
       groups,
@@ -1488,7 +1492,12 @@ class UniversalAdapter implements ImportSourceAdapter {
     groups[type] = EntityGroup(items: items.map(converter).toList());
   }
 
-  EntityItem _diveToEntityItem(Map<String, dynamic> data) {
+  /// [payloadHasTrips] says whether the payload carries trips; a merged
+  /// batch dive says instead whether its own file did (#2743).
+  EntityItem _diveToEntityItem(
+    Map<String, dynamic> data, {
+    required bool payloadHasTrips,
+  }) {
     final dateTime = data['dateTime'] as DateTime?;
     final maxDepth = asDoubleOrNull(data['maxDepth']);
     final runtime = data['runtime'] as Duration?;
@@ -1525,7 +1534,14 @@ class UniversalAdapter implements ImportSourceAdapter {
 
     final diveData = IncomingDiveData.fromImportMap(data);
 
-    return EntityItem(title: title, subtitle: subtitle, diveData: diveData);
+    return EntityItem(
+      title: title,
+      subtitle: subtitle,
+      diveData: diveData,
+      tripRef: data['tripRef'] as String?,
+      sourceHasTrips:
+          data[PayloadMerger.sourceHasTripsKey] as bool? ?? payloadHasTrips,
+    );
   }
 
   EntityItem _siteToEntityItem(Map<String, dynamic> data) {
@@ -1605,7 +1621,14 @@ class UniversalAdapter implements ImportSourceAdapter {
       subtitle = '';
     }
 
-    return EntityItem(title: name, subtitle: subtitle);
+    return EntityItem(
+      title: name,
+      subtitle: subtitle,
+      tripRef: data['uddfId'] as String?,
+      tripDates: startDate != null && endDate != null
+          ? (start: startDate, end: endDate)
+          : null,
+    );
   }
 
   EntityItem _certificationToEntityItem(Map<String, dynamic> data) {

@@ -161,12 +161,28 @@ class EntityItem {
   /// The profile this item goes to, when the import writes to several.
   final ImportTarget? target;
 
+  /// The source's reference for a trip, so the review can show the trip a
+  /// dive will join (issue #3022). On a dive, the ref of the trip its source
+  /// put it in; on a trip, its own ref. Null when there is none.
+  final String? tripRef;
+
+  /// On a dive, whether its source file had trips at all. Such a file leaves
+  /// a dive outside its trips on purpose, so only a dive whose own trip is
+  /// not imported is placed by date (see `placesImportedDiveByDate`).
+  final bool sourceHasTrips;
+
+  /// On a trip, its first and last days; null when either is missing.
+  final ({DateTime start, DateTime end})? tripDates;
+
   const EntityItem({
     required this.title,
     required this.subtitle,
     this.icon,
     this.diveData,
     this.target,
+    this.tripRef,
+    this.sourceHasTrips = false,
+    this.tripDates,
   });
 
   EntityItem copyWith({ImportTarget? target}) => EntityItem(
@@ -175,6 +191,9 @@ class EntityItem {
     icon: icon,
     diveData: diveData,
     target: target ?? this.target,
+    tripRef: tripRef,
+    sourceHasTrips: sourceHasTrips,
+    tripDates: tripDates,
   );
 }
 
