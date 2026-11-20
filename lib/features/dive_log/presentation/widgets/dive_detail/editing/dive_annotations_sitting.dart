@@ -354,42 +354,96 @@ void removeSittingAnnotation(EditSession<Dive> session, String id) {
   );
 }
 
-/// Whether the sitting's notes break no annotation link the stored notes
-/// had whole (#4815): a link with a bracket, a parenthesis or part of its
-/// id deleted reads at Save as its annotation removed, which the diver
-/// editing around it did not ask for. The Notes card holds Save until the
+/// Whether Save can settle the annotations with the sitting's notes without
+/// losing one the diver did not remove (#4815). Save reads every annotation
+/// whose link no longer reads as one as removed, so a link edited by hand
+/// (a bracket, a parenthesis or part of its id deleted, or its id changed)
+/// would take its annotation with it. The Notes card holds Save until the
 /// link is mended, or deleted whole, address and all, which removes the
-/// annotation as it always has. Notes stored already broken hold nothing
-/// while left as they are. The addresses themselves are compared, not how
-/// many there are, so mending a stored break does not excuse a new one.
+/// annotation as it always has.
+///
+/// Checked only when Save would settle the annotations: the notes changed,
+/// or an annotation was placed, moved or removed. Then the notes must hold
+/// no stray address the stored notes did not (compared as written, not
+/// counted), link no id the sitting does not know, and leave no held
+/// annotation unlinked while its address is still there. Notes stored
+/// already broken hold nothing while left as they are.
 bool annotationLinksIntact(EditSession<Dive> session) {
-  final working = strayAnnotationAddresses(session.valueOf(diveNotesField));
-  if (working.isEmpty) return true;
-  final allowed = <String, int>{};
-  for (final address in _storedStrayAddresses(session)) {
-    allowed[address] = (allowed[address] ?? 0) + 1;
+  final notes = session.valueOf(diveNotesField);
+  final held = sittingAnnotations(session);
+  if (notes == session.stored.notes && !(held?.isTouched ?? false)) {
+    return true;
   }
-  for (final address in working) {
-    final left = (allowed[address] ?? 0) - 1;
-    if (left < 0) return false;
-    allowed[address] = left;
+  if (!mayLinkAnnotations(notes)) return true;
+  final stored = _storedLinks(session);
+  if (!_withinStored(strayAnnotationAddresses(notes), stored.stray)) {
+    return false;
+  }
+  final linked = annotationIdsInNotes(notes);
+  final placed = {
+    for (final pin in held?.placed ?? const <PendingAnnotation>[]) pin.id,
+  };
+  final rows = held == null
+      ? stored.linked
+      : {
+          for (final event in held.loaded)
+            if (!held.removed.contains(event.id)) event.id,
+        };
+  // An id the diver edited inside a link that still reads as one.
+  final known = {...stored.linked, ...stored.strayIds, ...rows, ...placed};
+  if (!known.containsAll(linked)) return false;
+  // A held annotation whose address is still there, out of any link.
+  final lower = notes.toLowerCase();
+  return !{...rows, ...placed}.any(
+    (id) =>
+        !linked.contains(id) &&
+        lower.contains('$annotationLinkScheme:${id.toLowerCase()}'),
+  );
+}
+
+/// Whether every one of [addresses] is one of [allowed], each used once.
+bool _withinStored(List<String> addresses, List<String> allowed) {
+  if (addresses.isEmpty) return true;
+  final left = <String, int>{};
+  for (final address in allowed) {
+    left[address] = (left[address] ?? 0) + 1;
+  }
+  for (final address in addresses) {
+    final n = (left[address] ?? 0) - 1;
+    if (n < 0) return false;
+    left[address] = n;
   }
   return true;
 }
 
-const String _storedStrayKey = 'annotations.storedStray';
+const String _storedLinksKey = 'annotations.storedLinks';
 
-/// The stored notes' stray addresses, read again only when the stored
-/// notes change: the check runs on every keystroke.
-List<String> _storedStrayAddresses(EditSession<Dive> session) {
+typedef _StoredLinks = ({
+  String notes,
+  Set<String> linked,
+  List<String> stray,
+  Set<String> strayIds,
+});
+
+/// The stored notes' links and stray addresses, read again only when the
+/// stored notes change: the check runs on every keystroke.
+_StoredLinks _storedLinks(EditSession<Dive> session) {
   final notes = session.stored.notes;
-  final kept = session.recall<({String notes, List<String> addresses})>(
-    _storedStrayKey,
+  final kept = session.recall<_StoredLinks>(_storedLinksKey);
+  if (kept != null && kept.notes == notes) return kept;
+  final stray = strayAnnotationAddresses(notes);
+  final links = (
+    notes: notes,
+    linked: annotationIdsInNotes(notes),
+    stray: stray,
+    // A stored break mended links its id again, which is no edit of it.
+    strayIds: {
+      for (final address in stray)
+        address.substring(annotationLinkScheme.length + 1),
+    },
   );
-  if (kept != null && kept.notes == notes) return kept.addresses;
-  final addresses = strayAnnotationAddresses(notes);
-  session.remember(_storedStrayKey, (notes: notes, addresses: addresses));
-  return addresses;
+  session.remember(_storedLinksKey, links);
+  return links;
 }
 
 /// The earliest and latest second an annotation may fall on: from the

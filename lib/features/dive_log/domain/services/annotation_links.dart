@@ -99,18 +99,21 @@ final annotationLinkPattern = RegExp(
   caseSensitive: false,
 );
 
-/// An annotation address in Notes: the scheme and the id after it, so prose
-/// such as "annotation: none" is not one.
+/// An annotation address in Notes: the scheme and the id after it, or the
+/// scheme alone where a link's id was deleted whole (`](annotation:)`), so
+/// prose such as "annotation: none" is not one.
 final RegExp _annotationAddress = RegExp(
-  '$annotationLinkScheme:[^\\s()\\[\\]]+',
+  '$annotationLinkScheme:[^\\s()\\[\\]]+'
+  '|(?<=\\]\\()$annotationLinkScheme:(?=\\))',
   caseSensitive: false,
 );
 
 /// The annotation addresses in [notes] that are not part of a link the
-/// Notes render as one (#4815), lower-cased as written, once per time each
-/// appears: what is left when a bracket, a parenthesis or part of the id is
-/// deleted by hand. Save reads such an annotation as removed, though the
-/// diver only meant to edit around its link.
+/// Notes render as one (#4815), once per time each appears, with the scheme
+/// lower-cased and the id as written (ids are compared case and all): what
+/// is left when a bracket, a parenthesis or part of the id is deleted by
+/// hand. Save reads such an annotation as removed, though the diver only
+/// meant to edit around its link.
 List<String> strayAnnotationAddresses(String notes) {
   if (!mayLinkAnnotations(notes)) return const [];
   final linked = annotationIdsInNotes(notes);
@@ -123,7 +126,8 @@ List<String> strayAnnotationAddresses(String notes) {
       if (!links.any(
         (link) => link.start < address.start && address.start < link.end,
       ))
-        address[0]!.toLowerCase(),
+        '$annotationLinkScheme:'
+            '${address[0]!.substring(annotationLinkScheme.length + 1)}',
   ];
 }
 

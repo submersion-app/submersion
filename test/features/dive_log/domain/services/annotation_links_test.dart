@@ -229,9 +229,20 @@ void main() {
       });
     });
 
-    test('ignores case, as links do', () {
+    test('ignores the case of the scheme, as links do', () {
       expect(strayAnnotationAddresses('[a](Annotation:$id)'), isEmpty);
       expect(strayAnnotationAddresses('[a](Annotation:$id'), hasLength(1));
+    });
+
+    test('keeps the id as written: ids are compared case and all', () {
+      expect(strayAnnotationAddresses('[a](Annotation:ABC'), [
+        'annotation:ABC',
+      ]);
+    });
+
+    test('counts a link whose id was deleted whole, but not prose', () {
+      expect(strayAnnotationAddresses('[Vomit](annotation:)'), ['annotation:']);
+      expect(strayAnnotationAddresses('Calm (annotation: see below)'), isEmpty);
     });
   });
 }
