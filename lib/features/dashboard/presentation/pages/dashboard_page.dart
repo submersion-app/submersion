@@ -93,6 +93,10 @@ class DashboardPage extends ConsumerWidget {
     final preDive =
         !layout.hidden.contains(HomePanelType.preDive) &&
         preDivePanelHasContent(ref);
+    // Watched only when shown (issue #4251): the numbers read ten sources.
+    final keyNumbers = layout.hidden.contains(HomePanelType.keyNumbers)
+        ? null
+        : ref.watch(homeKeyNumbersProvider).value;
 
     bool hasContent(HomePanelType panel) => switch (panel) {
       HomePanelType.photoRibbon => show(media, (m) => m.isNotEmpty),
@@ -111,6 +115,12 @@ class DashboardPage extends ConsumerWidget {
       HomePanelType.speciesSeen => show(species, (s) => s.isNotEmpty),
       HomePanelType.nextTrip => show(gauges, (g) => g.nextTrip != null),
       HomePanelType.preDive => preDive,
+      // With every tile off, or none with anything to say yet, the row would
+      // be an empty box.
+      HomePanelType.keyNumbers =>
+        KeyNumbersPanel.enabledTiles(hiddenTiles).isNotEmpty &&
+            (keyNumbers == null ||
+                KeyNumbersPanel.visibleTileCount(keyNumbers, hiddenTiles) > 0),
       _ => true,
     };
 
@@ -121,7 +131,6 @@ class DashboardPage extends ConsumerWidget {
     final tier = homeWidthTierOf(context);
     final rows = packHomeRows(visible, tier);
     final noDives = ref.watch(diveStatisticsProvider).value?.totalDives == 0;
-    final keyNumbers = ref.watch(homeKeyNumbersProvider).value;
 
     double rowHeight(HomeRow row) =>
         row.panels.first == HomePanelType.keyNumbers

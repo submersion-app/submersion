@@ -16,12 +16,17 @@ class FirstDivePanel extends StatelessWidget {
     return HomePanel(
       title: l10n.dashboard_key_dives,
       semanticsValue: l10n.dashboard_panel_firstDive,
+      // Clip: at large text in a long language the buttons wrap onto a
+      // second line and the panel cuts off what does not fit.
+      fit: HomePanelFit.clip,
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             l10n.dashboard_panel_firstDive,
             textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 12),

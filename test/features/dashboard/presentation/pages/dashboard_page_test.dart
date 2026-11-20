@@ -7,6 +7,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/courses/presentation/providers/course_requirement_providers.dart';
 import 'package:submersion/features/dashboard/presentation/home_panels.dart';
+import 'package:submersion/features/dashboard/presentation/home_presets.dart';
 import 'package:submersion/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:submersion/features/dashboard/presentation/panels/conditional_panels.dart';
 import 'package:submersion/features/dashboard/presentation/panels/first_dive_panel.dart';
@@ -249,6 +250,41 @@ void main() {
       ],
     );
     expect(find.byType(OnThisDayPanel, skipOffstage: false), findsOneWidget);
+  });
+
+  testWidgets('a hidden key numbers panel loads nothing', (tester) async {
+    final layout = homeLayoutForPreset(
+      HomeLayoutPreset.balanced,
+    ).withPanelEnabled(HomePanelType.keyNumbers, false);
+    await pumpHome(
+      tester,
+      settings: AppSettings(
+        homePanelOrder: layout.orderNames,
+        hiddenHomePanels: layout.hiddenNames,
+      ),
+    );
+    expect(find.byType(KeyNumbersPanel, skipOffstage: false), findsNothing);
+    expect(builds['keyNumbers'], isNull);
+  });
+
+  testWidgets('with every tile off the key numbers row is absent', (
+    tester,
+  ) async {
+    await pumpHome(
+      tester,
+      settings: AppSettings(
+        hiddenHomeKeyNumbers: {for (final t in HomeKeyNumber.values) t.name},
+      ),
+    );
+    expect(find.byType(KeyNumbersPanel, skipOffstage: false), findsNothing);
+  });
+
+  testWidgets('the first-dive panel fits a 320 phone at text scale 2', (
+    tester,
+  ) async {
+    await pumpHome(tester, dives: 0, width: 320, height: 4000, textScale: 2);
+    expect(find.byType(FirstDivePanel, skipOffstage: false), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('a diver with no dives sees the first-dive panel', (
