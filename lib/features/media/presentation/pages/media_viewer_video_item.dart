@@ -114,11 +114,12 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
   @override
   void didUpdateWidget(covariant _VideoItem oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.audio != widget.audio) {
-      oldWidget.audio.removeListener(_applyAudio);
-      widget.audio.addListener(_applyAudio);
-      _applyAudio();
-    }
+    // One sound for the viewer's whole life: the page owns it, so the
+    // listener added in initState stays on the right one.
+    assert(
+      identical(oldWidget.audio, widget.audio),
+      'a video page keeps the ViewerAudio it was built with',
+    );
     if (!oldWidget.isCurrent && widget.isCurrent) {
       _initializeVideo();
     } else if (oldWidget.isCurrent && !widget.isCurrent) {

@@ -170,15 +170,17 @@ MediaItem video(String id) => MediaItem(
 
 /// Opens the viewer on one clip ('v1'), or on [mediaList] at 'v1', played by
 /// a fresh [FakeVideoPlatform], initialized and ready, and returns the
-/// platform. [overrides] go on top of the harness's own.
+/// platform ([platform] when given). [overrides] go on top of the harness's
+/// own.
 Future<FakeVideoPlatform> pumpVideoViewer(
   WidgetTester tester,
   SharedPreferences prefs, {
   List<Override> overrides = const [],
   List<MediaItem>? mediaList,
+  FakeVideoPlatform? platform,
 }) async {
-  final platform = FakeVideoPlatform();
-  useVideoPlatform(platform);
+  final player = platform ?? FakeVideoPlatform();
+  useVideoPlatform(player);
   await tester.runAsync(() async {
     await tester.pumpWidget(
       ProviderScope(
@@ -206,11 +208,11 @@ Future<FakeVideoPlatform> pumpVideoViewer(
       ),
     );
     await Future<void>.delayed(const Duration(milliseconds: 50));
-    platform.completeInitialization();
+    player.completeInitialization();
     await Future<void>.delayed(const Duration(milliseconds: 150));
     await tester.pump();
     await Future<void>.delayed(const Duration(milliseconds: 50));
     await tester.pump();
   });
-  return platform;
+  return player;
 }

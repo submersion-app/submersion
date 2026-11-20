@@ -1,11 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/models/log_entry.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/features/media/presentation/widgets/video_volume_control.dart';
 
 import '../../../../helpers/test_database.dart';
 import 'video_viewer_test_harness.dart';
+
+/// A player that takes its opening volume, then refuses every later change
+/// once [refuse] is set, as a platform call that fails would.
+class _VolumeRefusingPlatform extends FakeVideoPlatform {
+  bool refuse = false;
+
+  @override
+  Future<void> setVolume(int playerId, double volume) async {
+    if (refuse) throw StateError('volume refused');
+    return super.setVolume(playerId, volume);
+  }
+}
 
 /// The viewer's sound (issue #4817): videos open muted, M toggles it, and an
 /// unmute lasts until the viewer closes.
@@ -55,6 +69,28 @@ void main() {
       await tester.pump();
       expect(platform.volume, 0.0, reason: '$modifier+M');
     }
+  });
+
+  testWidgets('a volume change the player refuses is logged, not thrown', (
+    tester,
+  ) async {
+    final logged = <LogEntry>[];
+    final subscription = LoggerService.logStream.listen(logged.add);
+    addTearDown(subscription.cancel);
+    final platform = _VolumeRefusingPlatform();
+    await pumpVideoViewer(tester, prefs, platform: platform);
+    expect(platform.volume, 0.0);
+
+    platform.refuse = true;
+    await pressM(tester);
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+    expect(
+      logged.map((e) => e.message),
+      contains(startsWith('Video v1 volume change failed')),
+    );
   });
 
   testWidgets('toggling mute reaches a playing video without a replay', (
