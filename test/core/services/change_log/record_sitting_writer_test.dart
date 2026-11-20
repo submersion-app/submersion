@@ -214,7 +214,27 @@ void main() {
       await later.future;
       await delivered();
 
-      expect(told, 1);
+      // One for the committed save, one from the timer it outlived.
+      expect(told, 2);
+    });
+
+    // A repository write told to stay quiet inside a sitting sends no
+    // notice of its own; the sitting still tells sync it saved.
+    test(
+      'once after the commit, by a save whose writes told it nothing',
+      () async {
+        await save(apply: (_) => 'Pond');
+        await delivered();
+
+        expect(told, 1);
+      },
+    );
+
+    test('not by a save that changed nothing', () async {
+      await save();
+      await delivered();
+
+      expect(told, 0);
     });
 
     test('outside a sitting, at once', () async {
@@ -275,6 +295,24 @@ void main() {
       readBack: readBack ?? () => nameOf(id),
       created: 'as created',
     );
+
+    test('sync is told once after the commit, though its writes told it '
+        'nothing, and not when it rolls back', () async {
+      var told = 0;
+      final listening = SyncEventBus.changes.listen((_) => told++);
+      addTearDown(listening.cancel);
+
+      await create();
+      await Future<void>.delayed(Duration.zero);
+      expect(told, 1);
+
+      await expectLater(
+        create(id: 'n2', alsoWrite: () async => throw StateError('refused')),
+        throwsStateError,
+      );
+      await Future<void>.delayed(Duration.zero);
+      expect(told, 1);
+    });
 
     test('creates the record with its id, as one History entry', () async {
       expect(await create(), 'Blue Hole');
