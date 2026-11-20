@@ -713,10 +713,9 @@ class SpeciesRepository {
   // Species CRUD Methods
   // ===========================================================================
 
-  /// Create a custom (non-built-in) species
-  /// Creates a custom species, under [id] when one is given (a new
-  /// species' page makes its id before Save; issue #4527, phase 3, plan
-  /// 11), else under a new one.
+  /// Creates a custom (non-built-in) species, under [id] when one is given
+  /// (a new species' page makes its id before Save; issue #4527, phase 3,
+  /// plan 11), else under a new one.
   Future<domain.Species> createSpecies({
     String? id,
     required String commonName,

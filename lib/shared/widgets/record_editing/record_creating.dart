@@ -60,9 +60,11 @@ mixin RecordCreating<W extends ConsumerStatefulWidget, T>
   Future<T> createRecord(EditSession<T> session);
 
   /// What follows a create once it has committed (a list read again, a
-  /// reminder armed). A throw is logged: the record exists, and nothing
-  /// that follows may read as a failed save.
-  Future<void> afterRecordCreated(T created) async {}
+  /// reminder armed), made from what the page reads now, as Save is asked:
+  /// it runs once the record exists even if the page has gone by then, so
+  /// it must not read the page's `ref` later. A throw is logged: the
+  /// record exists, and nothing that follows may read as a failed save.
+  Future<void> Function(T created) captureAfterRecordCreated() => (_) async {};
 
   /// The unlocked bar's title for a new record.
   String newRecordTitle(BuildContext context);
@@ -81,10 +83,10 @@ mixin RecordCreating<W extends ConsumerStatefulWidget, T>
   VoidCallback? get onNewRecordCancelled => null;
 
   /// The texts for a new record that cannot open: its source has gone, or
-  /// ([failed]) could not be read.
+  /// could not be read, with [error] (null when it has gone).
   ({String title, String body}) newRecordUnavailable(
     BuildContext context, {
-    required bool failed,
+    Object? error,
   });
 
   /// What a full page pops with once created: the new id, unless the
@@ -111,9 +113,9 @@ mixin RecordCreating<W extends ConsumerStatefulWidget, T>
   /// The seed, once made.
   T? get newRecordSeed => _seed;
 
-  /// The seed could not be made: gone (false) or failed (true); null while
-  /// it is being made or once it is.
-  bool? _unavailableFailed;
+  /// The seed could not be made: its source has gone, or [_seedError].
+  bool _unavailable = false;
+  Object? _seedError;
 
   /// The record as Save created it, while the page hands it on.
   T? _created;
@@ -152,7 +154,7 @@ mixin RecordCreating<W extends ConsumerStatefulWidget, T>
       if (!mounted) return;
       setState(() {
         _seed = seed;
-        if (seed == null) _unavailableFailed = false;
+        if (seed == null) _unavailable = true;
       });
       if (seed != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) => _openOnSeed());
@@ -163,7 +165,12 @@ mixin RecordCreating<W extends ConsumerStatefulWidget, T>
         error: error,
         stackTrace: stackTrace,
       );
-      if (mounted) setState(() => _unavailableFailed = true);
+      if (mounted) {
+        setState(() {
+          _unavailable = true;
+          _seedError = error;
+        });
+      }
     }
   }
 
@@ -185,15 +192,14 @@ mixin RecordCreating<W extends ConsumerStatefulWidget, T>
   /// Call first in `build`.
   Widget? newRecordWaiting(BuildContext context) {
     if (!isCreating) return null;
-    final failed = _unavailableFailed;
-    if (failed != null) return _unavailable(context, failed: failed);
+    if (_unavailable) return _unavailableMessage(context);
     _leaveIfEnded(context);
     if (_opened && _created == null && !_leaving) return null;
     return _waiting(context, holdBack: _created != null);
   }
 
-  Widget _unavailable(BuildContext context, {required bool failed}) {
-    final text = newRecordUnavailable(context, failed: failed);
+  Widget _unavailableMessage(BuildContext context) {
+    final text = newRecordUnavailable(context, error: _seedError);
     final message = Center(child: Text(text.body));
     if (newRecordEmbedded) return message;
     return Scaffold(
@@ -264,6 +270,7 @@ mixin RecordCreating<W extends ConsumerStatefulWidget, T>
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
     final controller = editController;
+    final afterCreated = captureAfterRecordCreated();
     final saved = await controller.save();
     if (!saved) {
       if (!mounted) return;
@@ -288,7 +295,7 @@ mixin RecordCreating<W extends ConsumerStatefulWidget, T>
     final created = _created;
     if (created == null) return;
     try {
-      await afterRecordCreated(created);
+      await afterCreated(created);
     } catch (error, stackTrace) {
       _log.error(
         'What follows creating ${recordIdOf(created)} failed',
@@ -324,7 +331,9 @@ mixin RecordCreating<W extends ConsumerStatefulWidget, T>
   }
 
   /// Leaves the full page with [result]: a plain pop, as a save leaves, or
-  /// [newRecordLeaveLocation] when there is nothing under it.
+  /// [newRecordLeaveLocation] when there is nothing under it. A page pushed
+  /// without the router (another record's Documents card pushes one) is
+  /// popped by it too, in a shell's navigator as well.
   void popNewRecord(Object? result) {
     final router = GoRouter.maybeOf(context);
     if (router == null) {
@@ -335,4 +344,17 @@ mixin RecordCreating<W extends ConsumerStatefulWidget, T>
       context.go(newRecordLeaveLocation);
     }
   }
+}
+
+/// The held writes of [session], a new record's sitting, for its create to
+/// run once the record's row is in, or null when it holds none: those held
+/// to go before the record, then the rest, as a new site's create runs
+/// them. Every held write points at the record, so all of them come after
+/// its row on a create.
+Future<void> Function()? heldWritesForCreate<T>(EditSession<T> session) {
+  if (!session.hasHeldWrites) return null;
+  return () async {
+    await session.runHeldWrites(beforeRecord: true);
+    await session.runHeldWrites();
+  };
 }

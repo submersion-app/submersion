@@ -48,14 +48,16 @@ mixin _DocumentDetailPageCreating
     return service.create(
       record: record,
       changedCardIds: session.changedCardIds,
-      alsoWrite: session.hasHeldWrites ? session.runHeldWrites : null,
+      alsoWrite: heldWritesForCreate(session),
     );
   }
 
   /// Re-arms the new document's reminders, as the form's save does.
   @override
-  Future<void> afterRecordCreated(DocumentRecord created) =>
-      ref.read(documentMutationsProvider).rearmReminders([created.document]);
+  Future<void> Function(DocumentRecord created) captureAfterRecordCreated() {
+    final mutations = ref.read(documentMutationsProvider);
+    return (created) => mutations.rearmReminders([created.document]);
+  }
 
   @override
   String newRecordTitle(BuildContext context) =>
@@ -76,9 +78,9 @@ mixin _DocumentDetailPageCreating
   @override
   ({String title, String body}) newRecordUnavailable(
     BuildContext context, {
-    required bool failed,
+    Object? error,
   }) => (
     title: context.l10n.documents_edit_newTitle,
-    body: context.l10n.documents_empty,
+    body: context.l10n.documents_error_load('$error'),
   );
 }

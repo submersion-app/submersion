@@ -27,7 +27,7 @@ mixin _SpeciesDetailPageCreating
     return service.create(
       species: session.applyTo(session.stored),
       changedCardIds: session.changedCardIds,
-      alsoWrite: session.hasHeldWrites ? session.runHeldWrites : null,
+      alsoWrite: heldWritesForCreate(session),
     );
   }
 
@@ -41,9 +41,11 @@ mixin _SpeciesDetailPageCreating
   @override
   ({String title, String body}) newRecordUnavailable(
     BuildContext context, {
-    required bool failed,
+    Object? error,
   }) => (
     title: context.l10n.marineLife_speciesEdit_addTitle,
-    body: context.l10n.marineLife_speciesDetail_notFound,
+    body: error == null
+        ? context.l10n.marineLife_speciesDetail_notFound
+        : context.l10n.marineLife_speciesDetail_errorPrefix('$error'),
   );
 }

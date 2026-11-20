@@ -65,6 +65,10 @@ class _Probe {
 
   bool afterThrows = false;
   Completer<void>? afterGate;
+  final afterRan = <String>[];
+
+  /// While set and not completed, the create is still being written.
+  Completer<void>? createGate;
   final createdIds = <String>[];
   int cancelled = 0;
 }
@@ -143,16 +147,23 @@ class _NewNotePageState extends ConsumerState<_NewNotePage>
 
   @override
   Future<_Note> createRecord(EditSession<_Note> session) async {
+    final probe = _probe;
     final note = session.applyTo(session.stored);
-    _probe.creates.add(note);
-    if (_probe.failCreate) throw StateError('the create failed');
+    probe.creates.add(note);
+    await probe.createGate?.future;
+    if (probe.failCreate) throw StateError('the create failed');
     return note;
   }
 
   @override
-  Future<void> afterRecordCreated(_Note created) async {
-    await _probe.afterGate?.future;
-    if (_probe.afterThrows) throw StateError('after failed');
+  Future<void> Function(_Note created) captureAfterRecordCreated() {
+    // Read now: by the time the create commits the page may have gone.
+    final probe = _probe;
+    return (created) async {
+      await probe.afterGate?.future;
+      if (probe.afterThrows) throw StateError('after failed');
+      probe.afterRan.add(created.id);
+    };
   }
 
   @override
@@ -174,9 +185,9 @@ class _NewNotePageState extends ConsumerState<_NewNotePage>
   @override
   ({String title, String body}) newRecordUnavailable(
     BuildContext context, {
-    required bool failed,
-  }) => failed
-      ? (title: 'Note', body: 'Could not read')
+    Object? error,
+  }) => error != null
+      ? (title: 'Note', body: 'Could not read: $error')
       : (title: 'Note', body: 'Not found');
 
   @override
@@ -417,7 +428,10 @@ void main() {
   testWidgets('a seed whose read fails says so', (tester) async {
     await pump(tester, setUp: (probe) => probe.seedFails = true);
 
-    expect(find.text('Could not read'), findsOneWidget);
+    expect(
+      find.text('Could not read: Bad state: could not read'),
+      findsOneWidget,
+    );
     expect(find.byType(RecordEditBar), findsNothing);
   });
 
@@ -518,5 +532,126 @@ void main() {
     await tapSave(tester);
 
     expect(result, probe.creates.single.id);
+  });
+  testWidgets('what follows a create runs even once the page has gone', (
+    tester,
+  ) async {
+    await pump(tester, setUp: (probe) => probe.createGate = Completer());
+    await type(tester, 'Calm');
+    await tester.tap(find.text(l.forms_save));
+    await tester.pump();
+
+    // The app moves elsewhere while the create is being written.
+    await tester.pumpWidget(const SizedBox.shrink());
+    probe.createGate!.complete();
+    await tester.pumpAndSettle();
+
+    expect(probe.afterRan, [probe.creates.single.id]);
+  });
+
+  testWidgets('system Back on an untouched new record leaves once', (
+    tester,
+  ) async {
+    await pump(tester);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(find.byType(_NewNotePage), findsNothing);
+    expect(find.text('open'), findsOneWidget);
+    expect(probe.creates, isEmpty);
+  });
+
+  testWidgets('system Back with an entry asks, then leaves once', (
+    tester,
+  ) async {
+    await pump(tester);
+    await type(tester, 'Calm');
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.text(l.forms_discard_title), findsOneWidget);
+    await tester.tap(find.text(l.forms_discard_discard));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(_NewNotePage), findsNothing);
+    expect(find.text('open'), findsOneWidget);
+    expect(probe.creates, isEmpty);
+  });
+
+  testWidgets('pushed without the router inside a shell, it pops its id', (
+    tester,
+  ) async {
+    probe = _Probe();
+    Object? result;
+    final router = GoRouter(
+      routes: [
+        ShellRoute(
+          builder: (context, state, child) => Scaffold(body: child),
+          routes: [
+            GoRoute(
+              path: '/',
+              builder: (context, _) => TextButton(
+                onPressed: () async {
+                  result = await Navigator.of(context).push<Object?>(
+                    MaterialPageRoute<Object?>(
+                      builder: (_) => const _NewNotePage(),
+                    ),
+                  );
+                },
+                child: const Text('open'),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [_probeProvider.overrideWithValue(probe)],
+        child: MaterialApp.router(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: router,
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await type(tester, 'Calm');
+
+    await tapSave(tester);
+
+    expect(result, probe.creates.single.id);
+    expect(find.text('open'), findsOneWidget);
+  });
+
+  group('heldWritesForCreate', () {
+    test('runs the writes held before the record, then the rest', () async {
+      final session = EditSession(const _Note('n1', ''), isNew: true);
+      addTearDown(session.dispose);
+      final order = <String>[];
+      session
+        ..holdChange('after', cardId: 'text', write: () async => order.add('b'))
+        ..holdChange(
+          'before',
+          cardId: 'text',
+          beforeRecord: true,
+          write: () async => order.add('a'),
+        );
+
+      await heldWritesForCreate(session)!();
+
+      expect(order, ['a', 'b']);
+    });
+
+    test('is null with nothing held', () {
+      final session = EditSession(const _Note('n1', ''), isNew: true);
+      addTearDown(session.dispose);
+
+      expect(heldWritesForCreate(session), isNull);
+    });
   });
 }
