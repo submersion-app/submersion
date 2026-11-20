@@ -66937,13 +66937,19 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       dives,
       locale: localeName,
-      other: '$dives غطسات',
+      other: '$dives غطسة',
+      many: '$dives غطسة',
+      few: '$dives غطسات',
+      two: 'غطستان',
       one: 'غطسة واحدة',
     );
     String _temp1 = intl.Intl.pluralLogic(
       days,
       locale: localeName,
-      other: '$days أيام',
+      other: '$days يوم',
+      many: '$days يومًا',
+      few: '$days أيام',
+      two: 'يومان',
       one: 'يوم واحد',
     );
     return '$_temp0 · $_temp1';
@@ -66963,7 +66969,10 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'آخر $count غطسات',
+      other: 'آخر $count غطسة',
+      many: 'آخر $count غطسة',
+      few: 'آخر $count غطسات',
+      two: 'آخر غطستين',
       one: 'آخر غطسة',
     );
     return '$_temp0';
@@ -67012,7 +67021,10 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count غطسات',
+      other: '$count غطسة',
+      many: '$count غطسة',
+      few: '$count غطسات',
+      two: 'غطستان',
       one: 'غطسة واحدة',
     );
     return '$_temp0';
@@ -67034,7 +67046,10 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       days,
       locale: localeName,
-      other: 'بعد $days أيام',
+      other: 'بعد $days يوم',
+      many: 'بعد $days يومًا',
+      few: 'بعد $days أيام',
+      two: 'بعد يومين',
       one: 'غدًا',
       zero: 'اليوم',
     );
@@ -67095,7 +67110,10 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count غطسات',
+      other: '$count غطسة',
+      many: '$count غطسة',
+      few: '$count غطسات',
+      two: 'غطستان',
       one: 'غطسة واحدة',
     );
     return '$_temp0';

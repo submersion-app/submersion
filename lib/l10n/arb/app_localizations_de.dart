@@ -65797,10 +65797,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get dashboard_key_lastDive => 'Letzter Tauchgang';
 
   @override
-  String get dashboard_key_avgSac => 'Ø SAC';
+  String get dashboard_key_avgSac => 'Ø Druckverbrauch';
 
   @override
-  String get dashboard_key_avgRmv => 'Ø RMV';
+  String get dashboard_key_avgRmv => 'Ø AMV';
 
   @override
   String get dashboard_key_deepestThisYear => 'Tiefster dieses Jahr';
@@ -65871,10 +65871,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get dashboard_panel_divesPerMonth => 'Tauchgänge pro Monat';
 
   @override
-  String get dashboard_panel_sacTrend => 'SAC-Verlauf';
+  String get dashboard_panel_sacTrend => 'Verlauf Druckverbrauch';
 
   @override
-  String get dashboard_panel_rmvTrend => 'RMV-Verlauf';
+  String get dashboard_panel_rmvTrend => 'AMV-Verlauf';
 
   @override
   String dashboard_panel_lastDives(int count) {
@@ -65982,10 +65982,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get dashboard_panel_runtime => 'Laufzeit';
 
   @override
-  String get dashboard_panel_sac => 'SAC';
+  String get dashboard_panel_sac => 'Druckverbrauch';
 
   @override
-  String get dashboard_panel_rmv => 'RMV';
+  String get dashboard_panel_rmv => 'AMV';
 
   @override
   String get dashboard_panel_recentDives => 'Letzte Tauchgänge';
