@@ -179,6 +179,12 @@ std::optional<Frame> VideoFrames::ReadTo(int64_t ms, int max_side,
       *error = {"decode_failed", Hr("reading a frame failed", hr)};
       return std::nullopt;
     }
+    // A decoder error comes back as S_OK with this flag and no sample; left
+    // unchecked, the loop below would ask for the next sample for ever.
+    if (flags & MF_SOURCE_READERF_ERROR) {
+      *error = {"decode_failed", "the decoder reported an error"};
+      return std::nullopt;
+    }
     if (flags & MF_SOURCE_READERF_ENDOFSTREAM) return std::nullopt;
     if ((flags & MF_SOURCE_READERF_CURRENTMEDIATYPECHANGED) && !ReadLayout()) {
       *error = {"decode_failed", "the decoder's new frame layout is unreadable"};

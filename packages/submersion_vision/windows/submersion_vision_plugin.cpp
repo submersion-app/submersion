@@ -8,6 +8,7 @@
 #include <flutter/standard_method_codec.h>
 
 #include <cstdint>
+#include <exception>
 #include <memory>
 #include <optional>
 #include <string>
@@ -127,71 +128,79 @@ void SubmersionVisionPlugin::HandleMethodCall(
   }
 
   Post([this, method, args, result] {
-    FrameError error;
-    if (method == "open") {
-      const auto it = args.find(EncodableValue("path"));
-      const auto* path =
-          it == args.end() ? nullptr : std::get_if<std::string>(&it->second);
-      if (path == nullptr) {
-        result->Error("bad_arguments", "path");
+    // Media Foundation and allocations can throw; an exception that left
+    // this worker thread would end the app, so each call answers instead.
+    try {
+      FrameError error;
+      if (method == "open") {
+        const auto it = args.find(EncodableValue("path"));
+        const auto* path =
+            it == args.end() ? nullptr : std::get_if<std::string>(&it->second);
+        if (path == nullptr) {
+          result->Error("bad_arguments", "path");
+          return;
+        }
+        auto video = VideoFrames::Open(*path, &error);
+        if (!video) {
+          result->Error(error.code, error.message);
+          return;
+        }
+        const int64_t handle = next_handle_++;
+        const EncodableMap reply{
+            {EncodableValue("handle"), EncodableValue(handle)},
+            {EncodableValue("width"), EncodableValue(video->shown_width())},
+            {EncodableValue("height"), EncodableValue(video->shown_height())},
+            {EncodableValue("durationMs"),
+             EncodableValue(static_cast<int64_t>(video->duration_ms()))},
+        };
+        videos_.emplace(handle, std::move(*video));
+        result->Success(EncodableValue(reply));
         return;
       }
-      auto video = VideoFrames::Open(*path, &error);
-      if (!video) {
+
+      const auto handle = IntArg(args, "handle");
+      const auto found = handle ? videos_.find(*handle) : videos_.end();
+      if (method == "close") {
+        if (found != videos_.end()) videos_.erase(found);
+        result->Success();
+        return;
+      }
+      if (found == videos_.end()) {
+        result->Error("decode_failed", "the video is not open");
+        return;
+      }
+      const auto max_side = IntArg(args, "maxSide");
+      if (!max_side) {
+        result->Error("bad_arguments", "maxSide");
+        return;
+      }
+      std::optional<Frame> frame;
+      if (method == "next") {
+        const auto at = IntArg(args, "atOrAfterMs");
+        if (!at) {
+          result->Error("bad_arguments", "atOrAfterMs");
+          return;
+        }
+        frame = found->second.Next(*at, static_cast<int>(*max_side), &error);
+      } else {
+        const auto ms = IntArg(args, "ms");
+        if (!ms) {
+          result->Error("bad_arguments", "ms");
+          return;
+        }
+        frame = found->second.FrameAt(*ms, static_cast<int>(*max_side), &error);
+      }
+      if (!frame && !error.code.empty()) {
         result->Error(error.code, error.message);
         return;
       }
-      const int64_t handle = next_handle_++;
-      const EncodableMap reply{
-          {EncodableValue("handle"), EncodableValue(handle)},
-          {EncodableValue("width"), EncodableValue(video->shown_width())},
-          {EncodableValue("height"), EncodableValue(video->shown_height())},
-          {EncodableValue("durationMs"),
-           EncodableValue(static_cast<int64_t>(video->duration_ms()))},
-      };
-      videos_.emplace(handle, std::move(*video));
-      result->Success(EncodableValue(reply));
-      return;
+      result->Success(frame ? FrameReply(*frame, method == "next")
+                            : EncodableValue());
+    } catch (const std::exception& e) {
+      result->Error("decode_failed", e.what());
+    } catch (...) {
+      result->Error("decode_failed", "the frame call failed");
     }
-
-    const auto handle = IntArg(args, "handle");
-    const auto found = handle ? videos_.find(*handle) : videos_.end();
-    if (method == "close") {
-      if (found != videos_.end()) videos_.erase(found);
-      result->Success();
-      return;
-    }
-    if (found == videos_.end()) {
-      result->Error("decode_failed", "the video is not open");
-      return;
-    }
-    const auto max_side = IntArg(args, "maxSide");
-    if (!max_side) {
-      result->Error("bad_arguments", "maxSide");
-      return;
-    }
-    std::optional<Frame> frame;
-    if (method == "next") {
-      const auto at = IntArg(args, "atOrAfterMs");
-      if (!at) {
-        result->Error("bad_arguments", "atOrAfterMs");
-        return;
-      }
-      frame = found->second.Next(*at, static_cast<int>(*max_side), &error);
-    } else {
-      const auto ms = IntArg(args, "ms");
-      if (!ms) {
-        result->Error("bad_arguments", "ms");
-        return;
-      }
-      frame = found->second.FrameAt(*ms, static_cast<int>(*max_side), &error);
-    }
-    if (!frame && !error.code.empty()) {
-      result->Error(error.code, error.message);
-      return;
-    }
-    result->Success(frame ? FrameReply(*frame, method == "next")
-                          : EncodableValue());
   });
 }
 
