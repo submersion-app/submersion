@@ -7,6 +7,7 @@ import 'package:submersion/features/media/data/repositories/media_aspect_cache_r
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/value_objects/learned_aspect.dart';
 import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
+import 'package:submersion/features/media/presentation/helpers/media_hold.dart';
 import 'package:submersion/features/media/presentation/providers/media_learned_aspect_provider.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/dive_media_section.dart';
@@ -66,6 +67,7 @@ void main() {
     MediaAspectCacheRepository? cache,
     double width = 800,
     EditSession<Dive>? editing,
+    void Function(MediaItem)? onOpenDocument,
   }) async {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = Size(width, 900);
@@ -81,7 +83,11 @@ void main() {
           ),
         ],
         child: SingleChildScrollView(
-          child: DiveMediaSection(diveId: 'dive-1', editing: editing),
+          child: DiveMediaSection(
+            diveId: 'dive-1',
+            editing: editing,
+            onOpenDocument: onOpenDocument,
+          ),
         ),
       ),
     );
@@ -243,6 +249,37 @@ void main() {
           if (tile.isSelected) tile.item.id,
       ];
       expect(checked, [for (var i = 1; i <= perRow + 1; i++) 'p$i']);
+    });
+
+    testWidgets('a document held until Save does not open; a stored one does', (
+      tester,
+    ) async {
+      final editing = openSitting();
+      addMediaToSitting(editing, [
+        HeldMediaRow((item: _document('held'), enrichment: null)),
+      ]);
+      final opened = <String>[];
+      await pumpSection(
+        tester,
+        [_document('stored')],
+        editing: editing,
+        onOpenDocument: (item) => opened.add(item.id),
+      );
+      final ids = [
+        for (final tile in tester.widgetList<MediaThumbnailTile>(
+          find.byType(MediaThumbnailTile),
+        ))
+          tile.item.id,
+      ];
+
+      // The held document has no file to open yet.
+      await tester.tap(tiles().at(ids.indexOf('held')));
+      await tester.pumpAndSettle();
+      expect(opened, isEmpty);
+
+      await tester.tap(tiles().at(ids.indexOf('stored')));
+      await tester.pumpAndSettle();
+      expect(opened, ['stored']);
     });
 
     testWidgets('repacks when the card width changes', (tester) async {

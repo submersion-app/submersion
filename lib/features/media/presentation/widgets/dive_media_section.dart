@@ -650,7 +650,7 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
       // Entry and exit both travel through onSelectionChanged
       // above; the grid follows the controller back out via
       // startInSelectionMode.
-      onSelectionModeChanged: (_) {},
+      onSelectionModeChanged: (_) {}, // coverage:ignore-line
       onItemTap: (index) {
         final item = media[index];
         final scope = RecordEditScope.maybeOf<Dive>(context);
