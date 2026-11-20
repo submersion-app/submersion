@@ -9,8 +9,10 @@ import 'package:submersion_vision/onnx_runtime.dart';
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/device_memory.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/flutter_image_decoder.dart';
+import 'package:submersion/features/species_id/data/engines/onnx/frame_reader.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/onnx_worker.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/pipeline/pixels.dart';
+import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/video_detections.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_memory.dart';
@@ -32,14 +34,19 @@ class OnnxVisionEngine with WidgetsBindingObserver implements VisionEngine {
     bool ignoreFloor = marineLifeIgnoreFloor,
     bool? is64Bit,
     Future<bool> Function()? libraryLoads,
+    FrameReader? frames,
+    AppLifecycleState? Function()? lifecycle,
   }) : _platform = platform ?? defaultTargetPlatform,
        _spawn = worker ?? (() => OnnxWorker.spawn()),
        _decode = decode ?? decodeForAnalysis,
+       _frames = frames ?? const ChannelFrameReader(),
+       _lifecycle = lifecycle ?? (() => WidgetsBinding.instance.lifecycleState),
        _deviceMemory =
            deviceMemory ??
-           ((platform ?? defaultTargetPlatform) == TargetPlatform.windows
-               ? WindowsDeviceMemory()
-               : ProcDeviceMemory()),
+           _defaultMemory(
+             platform ?? defaultTargetPlatform,
+             frames ?? const ChannelFrameReader(),
+           ),
        _ignoreFloor = ignoreFloor,
        _is64Bit = is64Bit ?? sizeOf<IntPtr>() == 8,
        _libraryLoads = libraryLoads ?? (() async => ortLibraryLoads());
@@ -47,6 +54,8 @@ class OnnxVisionEngine with WidgetsBindingObserver implements VisionEngine {
   final TargetPlatform _platform;
   final Future<OnnxWorkerHandle> Function() _spawn;
   final Future<RgbaImage> Function(Uint8List encoded) _decode;
+  final FrameReader _frames;
+  final AppLifecycleState? Function() _lifecycle;
   final DeviceMemory _deviceMemory;
   final bool _ignoreFloor;
   final bool _is64Bit;
@@ -110,19 +119,114 @@ class OnnxVisionEngine with WidgetsBindingObserver implements VisionEngine {
     });
   }
 
+  /// Pass 1, as the Swift pass runs it: frames read in order at most
+  /// [_detectSide] on the longer side, the first one shown at or after each
+  /// sample time, run through the detectors. A chunk cut short (the app left
+  /// the foreground on Android, the phone got hot) is never returned as if
+  /// it were whole.
   @override
   Future<VideoDetections> detectVideo({
     required String path,
     required int startMs,
     required int endMs,
     required int sampleIntervalMs,
-  }) async => throw const VisionEngineException('unsupported', 'no video yet');
+  }) async {
+    _checkVideoRuns();
+    if (sampleIntervalMs <= 0) {
+      throw ArgumentError.value(sampleIntervalMs, 'sampleIntervalMs');
+    }
+    return _serial(() async {
+      final worker = await _loadedWorker();
+      await _checkVideoAllowed();
+      final video = await _frames.open(path);
+      try {
+        final end = endMs < video.durationMs ? endMs : video.durationMs;
+        final frames = <FrameDetections>[];
+        var next = startMs;
+        while (next < end) {
+          await _checkVideoAllowed();
+          final frame = await _frames.next(
+            video.handle,
+            atOrAfterMs: next,
+            maxSide: _detectSide,
+          );
+          if (frame == null) break;
+          while (next <= frame.ms) {
+            next += sampleIntervalMs;
+          }
+          final boxes = await worker.detect(frame.image);
+          frames.add(
+            FrameDetections(
+              ms: frame.ms,
+              boxes: [
+                for (final b in boxes)
+                  DetectedBox(
+                    box: IdentificationBox(
+                      x: b.x,
+                      y: b.y,
+                      width: b.w,
+                      height: b.h,
+                    ),
+                    score: b.score,
+                  ),
+              ],
+            ),
+          );
+        }
+        return VideoDetections(
+          width: video.width,
+          height: video.height,
+          durationMs: video.durationMs,
+          frames: frames,
+        );
+      } finally {
+        await _frames.close(video.handle);
+      }
+    });
+  }
 
+  /// Pass 2: each moment's exact frame, capped at [_embedSide], cropped and
+  /// embedded; null for a frame that cannot be read, and a failure when
+  /// none can.
   @override
   Future<List<VisionMomentCrop?>> embedMoments({
     required String path,
     required List<VisionMoment> moments,
-  }) async => throw const VisionEngineException('unsupported', 'no video yet');
+  }) async {
+    _checkVideoRuns();
+    return _serial(() async {
+      final worker = await _loadedWorker();
+      await _checkVideoAllowed();
+      final video = await _frames.open(path);
+      try {
+        final crops = <VisionMomentCrop?>[];
+        var unread = 0;
+        for (final moment in moments) {
+          await _checkVideoAllowed();
+          final image = await _frames.frameAt(
+            video.handle,
+            moment.ms,
+            maxSide: _embedSide,
+          );
+          if (image == null) {
+            unread++;
+            crops.add(null);
+            continue;
+          }
+          crops.add(await worker.cropAndEmbed(image, moment.box));
+        }
+        if (moments.isNotEmpty && unread == moments.length) {
+          throw const VisionEngineException(
+            'decode_failed',
+            'no frame could be read',
+          );
+        }
+        return crops;
+      } finally {
+        await _frames.close(video.handle);
+      }
+    });
+  }
 
   @override
   Future<void> unload() => _serial(() async {
@@ -148,6 +252,59 @@ class OnnxVisionEngine with WidgetsBindingObserver implements VisionEngine {
   }
 
   Future<OnnxWorkerHandle> _workerHandle() => _worker ??= _spawn();
+
+  /// Pass 1 decodes at most this on the longer side: the detectors' input
+  /// is 640 pixels, as the Swift pass decodes.
+  static const _detectSide = 960;
+
+  /// Pass 2's frames are capped like a photo's.
+  static const _embedSide = 4096;
+
+  Future<OnnxWorkerHandle> _loadedWorker() async {
+    if (_loaded == null) {
+      throw const VisionEngineException(VisionEngineException.notLoaded);
+    }
+    return _workerHandle();
+  }
+
+  /// Linux has no video player in the app, so nothing scans a video there.
+  void _checkVideoRuns() {
+    if (!visionVideoRuns(_platform)) {
+      throw const VisionEngineException('unsupported', 'no video here');
+    }
+  }
+
+  /// On Android, video work stops when the app leaves the foreground and
+  /// when the phone is severely hot; checked when a call starts and between
+  /// frames, since one chunk on a phone's processor can take minutes. PCs
+  /// check neither, as the Mac does not.
+  Future<void> _checkVideoAllowed() async {
+    if (_platform != TargetPlatform.android) return;
+    final state = _lifecycle();
+    if (state != null && state != AppLifecycleState.resumed) {
+      throw const VisionEngineException(VisionEngineException.notForeground);
+    }
+    if ((await _frames.deviceState()).thermalSevere) {
+      throw const VisionEngineException(VisionEngineException.tooHot);
+    }
+  }
+
+  static DeviceMemory _defaultMemory(
+    TargetPlatform platform,
+    FrameReader frames,
+  ) => switch (platform) {
+    TargetPlatform.windows => WindowsDeviceMemory(),
+    TargetPlatform.android => ProcDeviceMemory(
+      systemState: () async {
+        final state = await frames.deviceState();
+        return (
+          lowMemory: state.lowMemory,
+          availableBytes: state.availableBytes,
+        );
+      },
+    ),
+    _ => ProcDeviceMemory(),
+  };
 
   void _observe() {
     if (_observing) return;
