@@ -1,16 +1,25 @@
+import 'dart:async';
+
+import 'package:flutter/gestures.dart' show kLongPressTimeout;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/features/media/data/repositories/media_aspect_cache_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/site_attachment_category.dart';
 import 'package:submersion/features/media/domain/services/site_attachment_layout.dart';
+import 'package:submersion/features/media/domain/value_objects/learned_aspect.dart';
+import 'package:submersion/features/media/presentation/providers/media_learned_aspect_provider.dart';
+import 'package:submersion/features/media/presentation/providers/media_thumbnail_scale_provider.dart';
 import 'package:submersion/features/media/presentation/providers/pdf_preview_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/justified_media_grid.dart';
 import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import 'package:submersion/features/media/presentation/widgets/site_attachment_groups.dart';
 import 'package:submersion/features/media/presentation/widgets/site_attachment_large_card.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
+import 'package:submersion/shared/widgets/drag_select_grid_view.dart';
 
 import '../support/media_widget_harness.dart';
 
@@ -36,7 +45,12 @@ void main() {
         takenAt: DateTime(2026, 3, 1, 9, minute),
       ).copyWith(siteCategory: category);
 
-  Future<void> pump(WidgetTester tester, List<MediaItem> items) async {
+  Future<void> pump(
+    WidgetTester tester,
+    List<MediaItem> items, {
+    MediaAspectCacheRepository? shapes,
+    bool settle = true,
+  }) async {
     // Tall enough that a large card and the tiles under it are all on
     // screen, so taps land.
     tester.view.physicalSize = const Size(400, 2000);
@@ -46,6 +60,9 @@ void main() {
       await mediaTestApp(
         overrides: [
           pdfLargePreviewProvider.overrideWith((ref, req) async => null),
+          mediaAspectCacheRepositoryProvider.overrideWithValue(
+            shapes ?? FakeAspectCacheRepository(),
+          ),
         ],
         home: Scaffold(
           body: SingleChildScrollView(
@@ -66,7 +83,7 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    if (settle) await tester.pumpAndSettle();
   }
 
   testWidgets('uncategorized-only shows tiles and no headings', (tester) async {
@@ -145,4 +162,116 @@ void main() {
     await tester.pumpAndSettle();
     expect(selection.value.checkedIds, {'w1', 'u1'});
   });
+
+  // Issue #4741: tiles in justified rows that keep each one's shape.
+  MediaItem sized(String id, int minute, int width, int height) => m(
+    id,
+    minute,
+    category: SiteAttachmentCategory.underwater,
+  ).copyWith(width: width, height: height);
+
+  double ratioOf(WidgetTester tester, String id) {
+    final size = tester.getSize(
+      find.byWidgetPredicate((w) => w is MediaThumbnailTile && w.item.id == id),
+    );
+    return size.width / size.height;
+  }
+
+  JustifiedMediaTable tableOf(WidgetTester tester) =>
+      (tester
+                  .widget<DragSelectGridView<MediaItem>>(
+                    find.byType(DragSelectGridView<MediaItem>),
+                  )
+                  .gridDelegate
+              as JustifiedMediaGridDelegate)
+          .table;
+
+  testWidgets("tiles keep each attachment's shape", (tester) async {
+    await pump(tester, [sized('w', 1, 400, 300), sized('t', 2, 300, 400)]);
+    expect(ratioOf(tester, 'w'), closeTo(4 / 3, 0.02));
+    expect(ratioOf(tester, 't'), closeTo(3 / 4, 0.02));
+  });
+
+  testWidgets("a document tile lays out at a page's shape", (tester) async {
+    final doc = testMediaItem(
+      id: 'doc',
+      siteId: 's1',
+      mediaType: MediaType.document,
+      originalFilename: 'rules.pdf',
+    ).copyWith(displaySizeOverride: AttachmentDisplaySize.tile);
+    await pump(tester, [doc]);
+    expect(ratioOf(tester, 'doc'), closeTo(0.75, 0.02));
+  });
+
+  testWidgets('tiles wait for the learned shapes', (tester) async {
+    final load = Completer<Map<String, LearnedAspect>>();
+    await pump(
+      tester,
+      [sized('w', 1, 400, 300)],
+      shapes: _PendingShapes(load.future),
+      settle: false,
+    );
+    await tester.pump();
+    expect(find.byType(MediaThumbnailTile), findsNothing);
+    load.complete({'w': (ratio: 0.75, width: 400, height: 300)});
+    await tester.pumpAndSettle();
+    expect(ratioOf(tester, 'w'), closeTo(0.75, 0.02));
+  });
+
+  testWidgets('a selection change keeps the tile layout', (tester) async {
+    // Every check rebuilds the groups; a new table would lay them all out
+    // again.
+    await pump(tester, [sized('a', 1, 400, 300), sized('b', 2, 300, 400)]);
+    final before = tableOf(tester);
+    selection.toggle('a');
+    await tester.pump();
+    expect(identical(tableOf(tester), before), isTrue);
+  });
+
+  testWidgets('a tile decodes at its own laid-out size', (tester) async {
+    // A 3:1 panorama at the 120 px target is 360 wide: past the 200 px
+    // default, so the tile must ask for more.
+    await pump(tester, [sized('a', 1, 300, 100)]);
+    final tile = find.byType(MediaThumbnailTile);
+    expect(tester.getSize(tile).width, closeTo(360, 0.5));
+    expect(
+      tester.widget<MediaThumbnailTile>(tile).targetSize,
+      mediaThumbnailDecodeTarget(tester.getSize(tile)),
+    );
+  });
+
+  testWidgets('drag-select covers the tiles between the anchor and the '
+      'pointer across uneven tiles', (tester) async {
+    await pump(tester, [
+      sized('a', 1, 300, 400),
+      sized('b', 2, 480, 270),
+      sized('c', 3, 300, 300),
+      sized('d', 4, 270, 480),
+    ]);
+    selection.enterExplicit();
+    await tester.pumpAndSettle();
+    Finder tileOf(String id) => find.byWidgetPredicate(
+      (w) => w is MediaThumbnailTile && w.item.id == id,
+    );
+    final gesture = await tester.startGesture(tester.getCenter(tileOf('a')));
+    await tester.pump(kLongPressTimeout + const Duration(milliseconds: 50));
+    await gesture.moveTo(tester.getCenter(tileOf('c')));
+    await tester.pump();
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(selection.value.checkedIds.toSet(), {'a', 'b', 'c'});
+  });
+}
+
+/// A learned-shape store whose load waits for [load].
+class _PendingShapes implements MediaAspectCacheRepository {
+  _PendingShapes(this.load);
+
+  final Future<Map<String, LearnedAspect>> load;
+
+  @override
+  Future<Map<String, LearnedAspect>> loadAll() => load;
+
+  @override
+  Future<void> putAll(Map<String, LearnedAspect> entries) async {}
 }
