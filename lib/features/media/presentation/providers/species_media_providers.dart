@@ -5,6 +5,7 @@ import 'package:submersion/features/marine_life/presentation/providers/species_p
 import 'package:submersion/features/media/data/repositories/media_species_repository.dart';
 import 'package:submersion/features/media/data/services/species_tagging_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
 import 'package:submersion/features/media/domain/entities/species_tag_candidate_group.dart';
 import 'package:submersion/features/media/domain/entities/species_tag_chip.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
@@ -46,6 +47,23 @@ final mediaForSpeciesProvider = FutureProvider.family<List<MediaItem>, String>((
   );
   return repository.getMediaForSpecies(speciesId, diverId: diverId);
 });
+
+/// [mediaForSpeciesProvider] with each photo's dive date and site name, for
+/// the captions on the species page's photos (issue #4740). Refreshes on the
+/// same changes.
+final mediaEntriesForSpeciesProvider =
+    FutureProvider.family<List<MediaLibraryEntry>, String>((
+      ref,
+      speciesId,
+    ) async {
+      final repository = ref.watch(mediaSpeciesRepositoryProvider);
+      final diverId = ref.watch(currentDiverIdProvider);
+      ref.invalidateSelfWhen(repository.watchTagChanges());
+      ref.invalidateSelfWhen(
+        ref.watch(mediaRepositoryProvider).watchMediaChanges(),
+      );
+      return repository.getMediaEntriesForSpecies(speciesId, diverId: diverId);
+    });
 
 /// Untagged photos on the dives where the species was sighted, grouped by
 /// dive. Also ticks on sightings: logging the species on another dive

@@ -73,6 +73,30 @@ void main() {
   });
 
   test(
+    'mediaEntriesForSpeciesProvider refreshes when a tag is added',
+    () async {
+      final container = makeContainer();
+      final sub = container.listen(
+        mediaEntriesForSpeciesProvider('c1'),
+        (_, _) {},
+      );
+      addTearDown(sub.close);
+      expect(
+        await container.read(mediaEntriesForSpeciesProvider('c1').future),
+        isEmpty,
+      );
+
+      await tags.addTag(mediaId: 'p2', speciesId: 'c1');
+
+      final entries = await _eventually(
+        () => container.read(mediaEntriesForSpeciesProvider('c1').future),
+        (v) => v.isNotEmpty,
+      );
+      expect(entries.single.item.id, 'p2');
+    },
+  );
+
+  test(
     'speciesTagCandidatesProvider drops a photo once it is tagged',
     () async {
       final container = makeContainer();

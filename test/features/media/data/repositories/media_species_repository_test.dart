@@ -105,4 +105,29 @@ void main() {
     expect(all.map((m) => m.id).toSet(), {'m1', 'm3'});
     expect(onDive.map((m) => m.id).toList(), ['m3']);
   });
+
+  test('getMediaEntriesForSpecies carries the dive date and site', () async {
+    await insertTestSite('s1', 'Blue Hole');
+    await insertTestDive(
+      id: 'd2',
+      at: DateTime.utc(2024, 3, 12, 9, 30),
+      siteId: 's1',
+    );
+    await insertTestMedia(id: 'm3', diveId: 'd2');
+    await repository.addTag(mediaId: 'm1', speciesId: 'c1');
+    await repository.addTag(mediaId: 'm3', speciesId: 'c1');
+
+    final entries = await repository.getMediaEntriesForSpecies('c1');
+    final byId = {for (final e in entries) e.item.id: e};
+
+    // dive_date_time is wall-clock-as-UTC: it reads back unshifted.
+    expect(byId['m3']!.diveDateTime, DateTime.utc(2024, 3, 12, 9, 30));
+    expect(byId['m3']!.siteName, 'Blue Hole');
+    expect(byId['m1']!.diveDateTime, isNotNull);
+    expect(byId['m1']!.siteName, isNull);
+    expect(
+      (await repository.getMediaForSpecies('c1')).map((m) => m.id),
+      entries.map((e) => e.item.id),
+    );
+  });
 }

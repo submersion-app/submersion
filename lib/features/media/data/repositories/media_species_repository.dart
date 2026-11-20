@@ -11,6 +11,7 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/media/data/repositories/media_row_mapper.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
 import 'package:submersion/features/media/domain/entities/species_tag_candidate_group.dart';
 import 'package:submersion/features/media/domain/entities/species_tag_chip.dart';
 
@@ -260,8 +261,27 @@ class MediaSpeciesRepository {
     String speciesId, {
     String? diverId,
     String? diveId,
+  }) async => [
+    for (final entry in await getMediaEntriesForSpecies(
+      speciesId,
+      diverId: diverId,
+      diveId: diveId,
+    ))
+      entry.item,
+  ];
+
+  /// [getMediaForSpecies] with each photo's dive number, date and site name,
+  /// which the species page captions its photos with (issue #4740). The
+  /// dive fields are null for a photo with no dive, and the site name for a
+  /// dive with no site.
+  Future<List<MediaLibraryEntry>> getMediaEntriesForSpecies(
+    String speciesId, {
+    String? diverId,
+    String? diveId,
   }) async {
     final m = _db.media;
+    final d = _db.dives;
+    final s = _db.diveSites;
     final query =
         _db.select(m, distinct: true).join([
             innerJoin(
@@ -273,11 +293,8 @@ class MediaSpeciesRepository {
               _db.mediaEnrichment,
               _db.mediaEnrichment.mediaId.equalsExp(m.id),
             ),
-            leftOuterJoin(
-              _db.dives,
-              _db.dives.id.equalsExp(m.diveId),
-              useColumns: false,
-            ),
+            leftOuterJoin(d, d.id.equalsExp(m.diveId)),
+            leftOuterJoin(s, s.id.equalsExp(d.siteId)),
           ])
           ..where(
             _db.mediaSpecies.speciesId.equals(speciesId) &
@@ -288,14 +305,20 @@ class MediaSpeciesRepository {
           )
           ..orderBy([OrderingTerm.desc(m.takenAt), OrderingTerm.asc(m.id)]);
     final rows = await query.get();
-    return rows
-        .map(
-          (row) => mediaItemFromRow(
-            row.readTable(m),
-            row.readTableOrNull(_db.mediaEnrichment),
-          ),
-        )
-        .toList();
+    return rows.map((row) {
+      final dive = row.readTableOrNull(d);
+      return MediaLibraryEntry(
+        item: mediaItemFromRow(
+          row.readTable(m),
+          row.readTableOrNull(_db.mediaEnrichment),
+        ),
+        diveNumber: dive?.diveNumber,
+        diveDateTime: dive == null
+            ? null
+            : wallClockUtcFromMillis(dive.diveDateTime),
+        siteName: row.readTableOrNull(s)?.name,
+      );
+    }).toList();
   }
 
   /// Photos the diver could tag with [speciesId]: the photos and videos on
