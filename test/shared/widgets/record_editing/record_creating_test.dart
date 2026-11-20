@@ -59,6 +59,9 @@ class _Probe {
   bool seedGone = false;
   bool seedFails = false;
 
+  /// Whether the seed reads the page's context, as a clone's name does.
+  bool seedReadsContext = false;
+
   /// A prefill that sets 'A', then waits on [prefillGate], then sets 'AB'.
   bool prefill = false;
   final prefillGate = Completer<void>();
@@ -128,6 +131,7 @@ class _NewNotePageState extends ConsumerState<_NewNotePage>
   @override
   Future<_Note?> makeNewRecordSeed(RecordSeedRead read, String id) async {
     final probe = read(_probeProvider);
+    if (probe.seedReadsContext) Localizations.localeOf(context);
     if (probe.seedFails) throw StateError('could not read');
     if (probe.seedGone) return null;
     return _Note(id, '');
@@ -653,5 +657,11 @@ void main() {
 
       expect(heldWritesForCreate(session), isNull);
     });
+  });
+  testWidgets('a seed may read the page context', (tester) async {
+    await pump(tester, setUp: (probe) => probe.seedReadsContext = true);
+
+    expect(find.byType(RecordEditBar), findsOneWidget);
+    expect(find.text('Could not read'), findsNothing);
   });
 }

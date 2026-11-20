@@ -149,6 +149,10 @@ mixin RecordCreating<W extends ConsumerStatefulWidget, T>
   }
 
   Future<void> _makeSeed() async {
+    // Once initState has returned: a seed may read the page's context (a
+    // clone's name is in the diver's language).
+    await null;
+    if (!mounted) return;
     try {
       final seed = await makeNewRecordSeed(ref.read, newRecordId);
       if (!mounted) return;

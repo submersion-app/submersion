@@ -6,6 +6,8 @@ part of 'equipment_detail_page.dart';
 extension _EquipmentDetailMenu on _EquipmentDetailContent {
   /// The overflow menu shared by the standalone and embedded headers.
   Widget _buildMenu(BuildContext context, WidgetRef ref) {
+    // Nothing acts on an item not yet created (plan 11, call 3).
+    if (_creating) return const SizedBox.shrink();
     final canDelete = _isOwner(ref);
     final canTransfer = _canTransfer(ref);
     return PopupMenuButton<String>(
