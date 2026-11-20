@@ -187,14 +187,14 @@ phone, and **S list** (every other S panel), which is full width on a phone. Hei
 | Latest dive vs average | S | medium | Latest dive's maximum depth, runtime and SAC as bars against the diver's averages over the last 12 months | The dive |
 | Recent dives | M | medium | Table of the last 4 dives: site, date, depth, runtime, SAC | Row opens the dive |
 | SAC trend | M | medium | Line of SAC over the last 30 dives that have one | Insights, gas |
-| Depth mix | S | medium | Bars of dives per depth band, this year | Insights, depth |
+| Depth mix | S | medium | Bars of dives per depth band, all dives | Insights, depth |
 | Dives per month | S | medium | Bars for the last 12 months, empty months included | Insights, activity |
 | Gas mix | S | medium | Share of dives on air, nitrox, trimix | Insights, gas |
 | Dive types | S | medium | Share of dives by type, top 3 | Insights |
 | Top sites | S | medium | Top 3 sites by dive count | Sites |
 | Top buddies | S | medium | Top 3 buddies by dive count | Buddies |
 | Species seen lately * | S | medium | Most-sighted species over recent dives; total species | Marine life |
-| Recent photos * | M | medium | Grid of recent media | The media item |
+| Recent photos * | S | medium | Grid of recent media | The media item |
 | Recent sites * | S | medium | Map of recent dive sites | Sites map |
 | On this day * | S | medium | A dive from this date in an earlier year | The dive |
 | First dive | XL | medium | "Log or import your first dive" with both actions; shown only with no dives | Add-dive sheet, import |
@@ -310,7 +310,8 @@ All per device, in SharedPreferences, alongside the existing keys:
 - A new panel enum with new stored keys for order and hidden set, so the old
   keys (`home_card_order`, `hidden_home_cards`) are left untouched and never
   rewritten.
-- The selected preset name, or absent for Custom.
+- No preset name is stored. The highlighted preset is worked out by comparing
+  the visible panels with each preset, so it cannot go stale.
 - The hidden key-number tiles.
 
 On first run of the new Home (the new keys are absent): the layout is
