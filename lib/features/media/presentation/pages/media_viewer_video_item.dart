@@ -147,11 +147,15 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
     _releaseController(controller, widget.item.id);
   }
 
-  /// Gives the live player the viewer's sound after it changed. A player
-  /// opening meanwhile takes it from the opener instead.
+  /// Gives the live player the viewer's sound: after the sound changes, and
+  /// when a player is handed over. The opener sets it before any play; this
+  /// catches a change made while the player was still being readied.
   void _applyAudio() {
     final controller = _controller;
-    if (controller == null) return;
+    if (controller == null ||
+        controller.value.volume == widget.audio.effectiveVolume) {
+      return;
+    }
     unawaited(
       widget.audio.applyTo(controller).catchError((Object e) {
         _log.warning('Video ${widget.item.id} volume change failed', error: e);
@@ -161,8 +165,14 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
 
   /// Handle keyboard events for video playback
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
-    // M mutes or unmutes, in tag mode too: it does not move the frame.
-    if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.keyM) {
+    // M mutes or unmutes, in tag mode too: it does not move the frame. A
+    // chord with Ctrl, Cmd or Alt is some other shortcut's to take.
+    final keyboard = HardwareKeyboard.instance;
+    if (event is KeyDownEvent &&
+        event.logicalKey == LogicalKeyboardKey.keyM &&
+        !keyboard.isControlPressed &&
+        !keyboard.isMetaPressed &&
+        !keyboard.isAltPressed) {
       widget.audio.toggleMute();
       return KeyEventResult.handled;
     }
@@ -222,6 +232,8 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
         _isInitialized = true;
         _isLoading = false;
       });
+      // As for a reopen: any toggle since the opener set its volume.
+      _applyAudio();
       // Ownership has moved to _controller; dispose() owns it from here.
       widget.onControllerChanged(mediaId, controller);
       opener.watch(controller, onReplaced: _onReplaced);
@@ -258,6 +270,9 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
       return;
     }
     setState(() => _controller = next);
+    // It took the viewer's sound when it opened; a toggle since, while it
+    // seeked and resumed, reached only the failed player.
+    _applyAudio();
     widget.onControllerChanged(mediaId, next);
   }
 

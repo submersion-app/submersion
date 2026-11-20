@@ -41,6 +41,21 @@ void main() {
     expect(platform.volume, 0.0);
   });
 
+  testWidgets('M with a modifier is left for other shortcuts', (tester) async {
+    final platform = await pumpVideoViewer(tester, prefs);
+    for (final modifier in [
+      LogicalKeyboardKey.controlLeft,
+      LogicalKeyboardKey.metaLeft,
+      LogicalKeyboardKey.altLeft,
+    ]) {
+      await tester.sendKeyDownEvent(modifier);
+      await tester.sendKeyEvent(LogicalKeyboardKey.keyM);
+      await tester.sendKeyUpEvent(modifier);
+      await tester.pump();
+      expect(platform.volume, 0.0, reason: '$modifier+M');
+    }
+  });
+
   testWidgets('toggling mute reaches a playing video without a replay', (
     tester,
   ) async {

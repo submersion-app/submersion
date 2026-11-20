@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
@@ -597,6 +598,37 @@ void main() {
       ),
     );
     expect(find.byType(VideoVolumeControl), findsOneWidget);
+    await finishBar(tester, controller);
+  });
+
+  testWidgets('keyboard focus in the volume control holds the controls', (
+    tester,
+  ) async {
+    useBarPlatform();
+    final controller = (await tester.runAsync(readyController))!;
+    final audio = ViewerAudio();
+    addTearDown(audio.dispose);
+    final holds = <bool>[];
+    await tester.pumpWidget(
+      barApp(
+        VideoControlsBar(
+          controller: controller,
+          mediaId: 'm1',
+          audio: audio,
+          onHoldChanged: holds.add,
+        ),
+      ),
+    );
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pumpAndSettle();
+    expect(holds.last, isTrue);
+    // On to the slider: still inside, still held.
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pumpAndSettle();
+    expect(holds.last, isTrue);
+    FocusManager.instance.primaryFocus!.unfocus();
+    await tester.pumpAndSettle();
+    expect(holds.last, isFalse);
     await finishBar(tester, controller);
   });
 

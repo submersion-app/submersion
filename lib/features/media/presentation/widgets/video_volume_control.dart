@@ -12,6 +12,10 @@ import 'package:submersion/l10n/l10n_extension.dart';
 class VideoVolumeControl extends StatefulWidget {
   final ViewerAudio audio;
 
+  /// Whether keyboard focus is inside the control, so a host that hides its
+  /// controls on a timer can hold them while the slider is in use.
+  final ValueChanged<bool>? onFocusChanged;
+
   /// The mute button, for tests that tap or hover it.
   @visibleForTesting
   static const buttonKey = ValueKey('videoVolume.button');
@@ -23,7 +27,11 @@ class VideoVolumeControl extends StatefulWidget {
   /// How wide the slider is when shown.
   static const double sliderWidth = 96;
 
-  const VideoVolumeControl({super.key, required this.audio});
+  const VideoVolumeControl({
+    super.key,
+    required this.audio,
+    this.onFocusChanged,
+  });
 
   @override
   State<VideoVolumeControl> createState() => _VideoVolumeControlState();
@@ -49,7 +57,10 @@ class _VideoVolumeControlState extends State<VideoVolumeControl> {
       child: Focus(
         canRequestFocus: false,
         skipTraversal: true,
-        onFocusChange: (focused) => setState(() => _focused = focused),
+        onFocusChange: (focused) {
+          setState(() => _focused = focused);
+          widget.onFocusChanged?.call(focused);
+        },
         child: ListenableBuilder(
           listenable: widget.audio,
           builder: (context, _) {
