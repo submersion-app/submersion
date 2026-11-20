@@ -301,11 +301,17 @@ What a fresh run keeps and resets:
   from the picture) are carried to the new detections. Species tags
   themselves live in `media_species` and are not touched, including tags the
   app applied and the diver has not confirmed.
-- Reset: dismissed detections are deleted, not carried. An animal the app
-  can still suggest comes back as a suggestion.
+- Reset: a dismissed detection is reopened. It is undecided again, so an
+  animal the app can still suggest comes back as a suggestion, and it keeps
+  a mark that the diver once dismissed it (its decision time stays set on
+  an undecided row; no schema change). A reopened detection the fresh run
+  does not find again is dropped.
 - Nothing is tagged automatically after a fresh run, in the viewer or on a
-  dive: auto-apply does not run for it. (Auto-apply's only memory that the
-  diver removed a tag is the dismissed mark the fresh run clears.)
+  dive: auto-apply does not run for it. A reopened detection is never
+  auto-applied later either, and the mark is carried through later
+  re-analyses. Without it the choice would not hold: auto-apply's only
+  memory that the diver removed a tag is the dismissed mark, and it runs
+  again every time the item is opened.
 
 Where:
 
@@ -372,7 +378,8 @@ desktop widths.
 - A request made by hand ignores the "identify on open" switch.
 - No confirmation for the viewer's action; a confirmation for Check again on
   a dive.
-- A fresh run deletes dismissed detections instead of keeping them aside.
+- A fresh run reopens dismissed detections and marks them, rather than
+  deleting them, so auto-apply can tell them apart for good.
 - A claim on a photo is carried by box overlap alone.
 - Locked, "+N" opens a read-only list.
 - The scrub bar tint shows only while a scan is incomplete.
