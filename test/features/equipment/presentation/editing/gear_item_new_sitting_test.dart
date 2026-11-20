@@ -16,10 +16,12 @@ import 'package:submersion/features/equipment/data/services/gear_item_edit_save_
 import 'package:submersion/features/equipment/data/repositories/gear_photo_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_location_sitting.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_edit_fields.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_header_editor.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_new_sitting.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_service_sitting.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_location_picker_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
@@ -380,5 +382,44 @@ void main() {
     );
 
     expect(recording.diverIds, ['d1']);
+  });
+  test('a clock added to a new item, of a kind Save attaches itself, is one '
+      "clock with the diver's settings", () async {
+    await equipment.createEquipment(
+      const EquipmentItem(
+        id: 'probe',
+        diverId: 'd1',
+        name: 'Probe',
+        type: EquipmentType.regulator,
+      ),
+    );
+    final schedules = ServiceScheduleRepository();
+    final attached = await schedules.getSchedulesForEquipment('probe');
+    expect(attached, isNotEmpty);
+    final kind = attached.first.serviceKindId;
+    final session = EditSession(await seed(), isNew: true);
+    addTearDown(session.dispose);
+    final at = DateTime(2026);
+    gearItemClocksList
+      ..loadNone(session)
+      ..set(session, [
+        ServiceSchedule(
+          id: 'held',
+          equipmentId: 'n1',
+          serviceKindId: kind,
+          intervalDays: 99,
+          createdAt: at,
+          updatedAt: at,
+        ),
+      ]);
+
+    final created = await create(session);
+
+    final ofKind = [
+      for (final c in await schedules.getSchedulesForEquipment(created.id))
+        if (c.serviceKindId == kind) c,
+    ];
+    expect(ofKind, hasLength(1));
+    expect(ofKind.single.intervalDays, 99);
   });
 }

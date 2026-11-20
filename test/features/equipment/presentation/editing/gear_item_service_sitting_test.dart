@@ -211,4 +211,35 @@ void main() {
     expect(rows, hasLength(2));
     expect(rows.first.id, isNot(anyOf('', 'old')));
   });
+  test('a clock merged into one of its kind keeps that one baseline only '
+      'when it sets none', () {
+    final there = ServiceSchedule(
+      id: 'auto',
+      equipmentId: 'g1',
+      serviceKindId: 'k-annual',
+      anchorDate: DateTime(2025, 6, 1),
+      anchorSetAt: at,
+      createdAt: at,
+      updatedAt: at,
+    );
+    final added = ServiceSchedule(
+      id: 'held',
+      equipmentId: 'g1',
+      serviceKindId: 'k-annual',
+      intervalDays: 99,
+      createdAt: at,
+      updatedAt: at,
+    );
+
+    final merged = clockMergedInto(there, added);
+    final dated = clockMergedInto(
+      there,
+      added.copyWith(anchorDate: DateTime(2026, 2, 1)),
+    );
+
+    expect(merged.id, 'auto');
+    expect(merged.intervalDays, 99);
+    expect(merged.anchorDate, DateTime(2025, 6, 1));
+    expect(dated.anchorDate, DateTime(2026, 2, 1));
+  });
 }
