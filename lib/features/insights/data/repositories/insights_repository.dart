@@ -75,6 +75,7 @@ part 'insights_repository_chart_dives.dart';
 part 'insights_repository_conditions.dart';
 part 'insights_repository_focus.dart';
 part 'insights_repository_focus_series.dart';
+part 'insights_repository_home.dart';
 part 'insights_repository_role_consumption.dart';
 part 'insights_repository_roles.dart';
 part 'insights_repository_tank_configuration.dart';
@@ -1007,7 +1008,8 @@ class InsightsRepository with InsightsChartDives {
         SELECT
           COUNT(*) AS dive_count,
           COALESCE(SUM(${measuredRuntimeSecondsSql('dives')}), 0) AS total_seconds,
-          MAX(max_depth) AS max_depth
+          MAX(max_depth) AS max_depth,
+          AVG(max_depth) AS avg_max_depth
         FROM dives
         WHERE dive_date_time >= ? AND dive_date_time < ?
         $diverFilter${DiveStatsScope.and(alias: 'dives')}
@@ -1024,6 +1026,7 @@ class InsightsRepository with InsightsChartDives {
         diveCount: results.read<int>('dive_count'),
         totalSeconds: results.read<int>('total_seconds'),
         maxDepth: results.readNullable<double>('max_depth'),
+        avgMaxDepth: results.readNullable<double>('avg_max_depth'),
       );
     } catch (e, stackTrace) {
       _log.error(
@@ -3013,9 +3016,13 @@ class YearStats {
   final int totalSeconds;
   final double? maxDepth;
 
+  /// Mean of the year's maximum depths, for the Home average depth tile.
+  final double? avgMaxDepth;
+
   const YearStats({
     required this.diveCount,
     required this.totalSeconds,
     this.maxDepth,
+    this.avgMaxDepth,
   });
 }
