@@ -17,7 +17,7 @@ import 'package:submersion/features/query/presentation/providers/query_cache_awa
 /// cleared by the page once it has put it there. Taken on arrival as well as
 /// while the page is up, so the shortcut focuses the field even where the
 /// page does not autofocus it (a phone, #4813).
-final globalSearchFocusRequestProvider = StateProvider<bool>((ref) => false);
+final globalSearchFocusPendingProvider = StateProvider<bool>((ref) => false);
 
 /// Text handed to global search from a list's search row (#3882): what the
 /// diver typed there, to search everything for. Compared by identity, so

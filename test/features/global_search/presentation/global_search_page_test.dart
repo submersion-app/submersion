@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/accessibility/app_shortcuts.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_error_code.dart';
 import 'package:submersion/core/query/domain/query_errors.dart';
@@ -109,8 +110,24 @@ List<RouteBase> _routes() => [
 Widget _app(
   Future<List<GlobalSearchSection>> Function(String text) answer, {
   List<dynamic> overrides = const [],
+  String initialLocation = '/search',
+  bool appShortcuts = false,
 }) {
-  final router = GoRouter(initialLocation: '/search', routes: _routes());
+  final router = GoRouter(
+    initialLocation: initialLocation,
+    routes: appShortcuts
+        // The app's own shortcuts over every page, as the shell binds them.
+        ? [
+            ShellRoute(
+              builder: (context, state, child) => CallbackShortcuts(
+                bindings: AppShortcuts.globalBindings(context),
+                child: Focus(autofocus: true, child: child),
+              ),
+              routes: _routes(),
+            ),
+          ]
+        : _routes(),
+  );
   return ProviderScope(
     overrides: [
       sharedPreferencesProvider.overrideWithValue(_prefs),
@@ -480,12 +497,12 @@ void main() {
     final container = ProviderScope.containerOf(
       tester.element(find.byType(GlobalSearchPage)),
     );
-    container.read(globalSearchFocusRequestProvider.notifier).state = true;
+    container.read(globalSearchFocusPendingProvider.notifier).state = true;
     await tester.pumpAndSettle();
 
     expect(field.focusNode!.hasFocus, isTrue);
     expect(field.controller!.selection.textInside('reef'), 'reef');
-    expect(container.read(globalSearchFocusRequestProvider), isFalse);
+    expect(container.read(globalSearchFocusPendingProvider), isFalse);
   });
 
   // The keyboard covers the bottom bar there, and Search, a nav destination,
@@ -565,7 +582,7 @@ void main() {
       final container = ProviderScope.containerOf(
         tester.element(find.byType(GlobalSearchPage)),
       );
-      container.read(globalSearchFocusRequestProvider.notifier).state = true;
+      container.read(globalSearchFocusPendingProvider.notifier).state = true;
       await tester.pumpAndSettle();
 
       expect(field(tester).focusNode!.hasFocus, isTrue);
@@ -579,7 +596,7 @@ void main() {
         _app(
           (_) async => const [],
           overrides: [
-            globalSearchFocusRequestProvider.overrideWith((ref) => true),
+            globalSearchFocusPendingProvider.overrideWith((ref) => true),
           ],
         ),
       );
@@ -589,7 +606,34 @@ void main() {
       final container = ProviderScope.containerOf(
         tester.element(find.byType(GlobalSearchPage)),
       );
-      expect(container.read(globalSearchFocusRequestProvider), isFalse);
+      expect(container.read(globalSearchFocusPendingProvider), isFalse);
+    });
+
+    testWidgets('Ctrl+K from another page opens Search with the caret in', (
+      tester,
+    ) async {
+      usePhone(tester);
+      await tester.pumpWidget(
+        _app(
+          (_) async => const [],
+          initialLocation: '/sites',
+          appShortcuts: true,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('page /sites'), findsOneWidget);
+
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+      await tester.sendKeyEvent(LogicalKeyboardKey.keyK);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(GlobalSearchPage), findsOneWidget);
+      expect(field(tester).focusNode!.hasFocus, isTrue);
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(GlobalSearchPage)),
+      );
+      expect(container.read(globalSearchFocusPendingProvider), isFalse);
     });
 
     testWidgets('a focus request made under an open result is kept for Back', (
@@ -608,14 +652,14 @@ void main() {
       final container = ProviderScope.containerOf(
         tester.element(find.text('page /buddies/id0')),
       );
-      container.read(globalSearchFocusRequestProvider.notifier).state = true;
+      container.read(globalSearchFocusPendingProvider.notifier).state = true;
       await tester.pump();
       tester.state<NavigatorState>(find.byType(Navigator).first).pop();
       await tester.pumpAndSettle();
 
       expect(find.text('Hit 0'), findsOneWidget);
       expect(field(tester).focusNode!.hasFocus, isTrue);
-      expect(container.read(globalSearchFocusRequestProvider), isFalse);
+      expect(container.read(globalSearchFocusPendingProvider), isFalse);
     });
 
     testWidgets(

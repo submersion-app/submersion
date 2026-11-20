@@ -89,7 +89,7 @@ void main() {
       expect(router.routerDelegate.canPop(), isTrue);
       // Left for the page to take on arrival, so it focuses its field even
       // where it does not autofocus (#4813).
-      expect(container.read(globalSearchFocusRequestProvider), isTrue);
+      expect(container.read(globalSearchFocusPendingProvider), isTrue);
     });
 
     testWidgets('on the search page the global shortcut asks for the field', (
@@ -100,7 +100,7 @@ void main() {
       await pressControl(tester, LogicalKeyboardKey.keyK);
 
       expect(router.routerDelegate.canPop(), isFalse);
-      expect(container.read(globalSearchFocusRequestProvider), isTrue);
+      expect(container.read(globalSearchFocusPendingProvider), isTrue);
     });
 
     testWidgets('search shortcut opens and focuses the dive search row', (
