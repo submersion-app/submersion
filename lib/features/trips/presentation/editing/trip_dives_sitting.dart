@@ -3,6 +3,7 @@ import 'package:submersion/features/trips/data/repositories/trip_repository.dart
 import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_photos_sitting.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 /// The held change of the Dives card: the dives Scan for dives chose.
@@ -44,12 +45,14 @@ void holdScannedDives(
   ));
 }
 
-/// Takes [diveId], a dive the scan added in this sitting, back off.
+/// Takes [diveId], a dive the scan added in this sitting, back off, with
+/// the photos the sitting holds for it.
 void takeOutScannedDive(
   EditSession<Trip> session,
   TripRepository trips,
   String diveId,
 ) {
+  takeOutHeldPhotosOfDive(session, diveId);
   final held = scannedDivesOf(session);
   _set(session, trips, (
     dives: [

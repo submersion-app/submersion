@@ -6,6 +6,7 @@ import 'package:submersion/features/checklists/presentation/providers/checklist_
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/editing/record_document_links_sitting.dart';
+import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
 import 'package:submersion/features/trips/data/services/trip_edit_save_service.dart';
 import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -15,6 +16,7 @@ import 'package:submersion/features/trips/presentation/editing/trip_dives_sittin
 import 'package:submersion/features/trips/presentation/editing/trip_gear_sitting.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_header_card_editor.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_itinerary_sitting.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_photos_sitting.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_vessel_sitting.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
@@ -52,6 +54,7 @@ void loadTripSitting(EditSession<Trip> session, ProviderContainer container) {
     cylinders: container.read(tripCylinderRepositoryProvider),
     copier: container.read(tripFillPassportCopierProvider),
   ).load(session);
+  holdTripPhotos(session, container.read);
   holdDocumentLinks(
     session,
     container.read,
@@ -184,17 +187,35 @@ mixin TripSittingHost<W extends ConsumerStatefulWidget>
     // Everyone flag; the sitting never changes that flag on the row itself,
     // so a profile not yet read only keeps the stored one.
     final actingDiverId = ref.read(validatedCurrentDiverIdProvider).value;
-    final result = await service.save(
-      // The trip the sitting was opened on, whatever the page shows by the
-      // time the write is asked for.
-      tripId: session.stored.id,
-      apply: session.applyTo,
-      changedCardIds: session.changedCardIds,
-      actingDiverId: actingDiverId,
-      alsoWrite: session.hasHeldWrites ? session.runHeldWrites : null,
-      alsoWriteIsAChange: session.hasHeldChanges,
+    // A failed write takes back what the photos' write did outside the
+    // database.
+    final result = await undoMediaOnFailure(
+      session,
+      () => service.save(
+        // The trip the sitting was opened on, whatever the page shows by
+        // the time the write is asked for.
+        tripId: session.stored.id,
+        apply: session.applyTo,
+        changedCardIds: session.changedCardIds,
+        actingDiverId: actingDiverId,
+        alsoWrite: session.hasHeldWrites ? session.runHeldWrites : null,
+        alsoWriteIsAChange: session.hasHeldChanges,
+      ),
     );
     justSavedRecord = result?.after ?? session.working;
+    // The photos' uploads, once committed: each on its own, so one that
+    // fails never reads as a failed save.
+    for (final step in mediaAfterCommit(session)) {
+      try {
+        await step();
+      } catch (e, stackTrace) {
+        _log.error(
+          'Photo follow-up after saving trip ${session.stored.id} failed',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
+    }
     if (assigned != null) {
       _assigned = null;
       // The dives' old trips count them no more.
