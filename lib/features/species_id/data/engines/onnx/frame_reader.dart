@@ -30,7 +30,12 @@ abstract interface class FrameReader {
 
   /// Pass 1: decodes on in order to the first frame shown at or after
   /// [atOrAfterMs], rotated as shown, the longer side at most [maxSide];
-  /// null at the end of the video.
+  /// null at the end of the video. Windows reads frames in order and gives
+  /// each one's own time. Android's retriever has no "at or after" seek: it
+  /// gives the frame closest to [atOrAfterMs], at most half a frame
+  /// earlier, reported at the time asked; the engine samples a quarter of
+  /// a second or more apart, so half a frame (about 17 ms at 30 frames a
+  /// second) moves no track.
   Future<VideoFrame?> next(
     int handle, {
     required int atOrAfterMs,

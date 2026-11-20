@@ -108,6 +108,9 @@ bool visionVideoRuns(TargetPlatform platform, {bool web = kIsWeb}) =>
 
 /// Turns the ONNX engine's platforms (Android, Windows, Linux) on. Off until
 /// the pack carries ONNX models and the Android floor has been measured.
+/// It gates the engine and every screen that offers it, not packaging: the
+/// build hook ships ONNX Runtime in every Android, Windows and Linux build,
+/// so CI runs the real runtime and the turn-on build is the one tested.
 const bool marineLifeOnnxPlatforms = bool.fromEnvironment(
   'MARINE_LIFE_ID_ONNX',
 );

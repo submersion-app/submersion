@@ -80,6 +80,9 @@ class SubmersionVisionPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
             if (atOrAfter >= video.durationMs) {
                 null
             } else {
+                // The retriever gives the frame closest to the time, at most
+                // half a frame earlier, and not its own time: it is reported
+                // at the time asked (frame_reader.dart's contract).
                 video.frame(atOrAfter, int(call, "maxSide"))?.let { frame ->
                     mapOf(
                         "ms" to atOrAfter,

@@ -327,6 +327,7 @@ void main() {
       bool ignoreFloor = false,
       bool is64Bit = true,
       bool libraryLoads = true,
+      bool onnxPlatforms = true,
     }) => OnnxVisionEngine(
       platform: platform,
       worker: () async => worker,
@@ -334,7 +335,23 @@ void main() {
       ignoreFloor: ignoreFloor,
       is64Bit: is64Bit,
       libraryLoads: () async => libraryLoads,
+      onnxPlatforms: onnxPlatforms,
     );
+
+    test('a build without MARINE_LIFE_ID_ONNX reports the engine as not '
+        'running here, so nothing offers it', () async {
+      for (final platform in [
+        TargetPlatform.android,
+        TargetPlatform.windows,
+        TargetPlatform.linux,
+      ]) {
+        expect(
+          await on(platform, onnxPlatforms: false).availability(),
+          VisionAvailability.unsupportedPlatform,
+          reason: '$platform',
+        );
+      }
+    });
 
     test('is available at exactly the floor', () async {
       expect(

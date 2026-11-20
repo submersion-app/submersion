@@ -42,7 +42,9 @@ class OnnxVisionEngine with WidgetsBindingObserver implements VisionEngine {
     Future<bool> Function()? libraryLoads,
     FrameReader? frames,
     AppLifecycleState? Function()? lifecycle,
+    bool onnxPlatforms = marineLifeOnnxPlatforms,
   }) : _platform = platform ?? defaultTargetPlatform,
+       _onnxPlatforms = onnxPlatforms,
        _spawn =
            worker ??
            (() => OnnxWorker.spawn(
@@ -62,6 +64,10 @@ class OnnxVisionEngine with WidgetsBindingObserver implements VisionEngine {
        _libraryLoads = libraryLoads ?? (() async => ortLibraryLoads());
 
   final TargetPlatform _platform;
+
+  /// The `MARINE_LIFE_ID_ONNX` define: off, the engine runs nowhere, so a
+  /// build without it never offers or downloads anything for it.
+  final bool _onnxPlatforms;
   final Future<OnnxWorkerHandle> Function() _spawn;
   final Future<RgbaImage> Function(Uint8List encoded) _decode;
   final FrameReader _frames;
@@ -83,7 +89,8 @@ class OnnxVisionEngine with WidgetsBindingObserver implements VisionEngine {
   /// Whether this engine is the one for [_platform]: Android, Windows and
   /// Linux, never Core ML's platforms or the web.
   bool get _runsHere =>
-      visionEngineRuns(_platform, onnx: true) && !coreMlRuns(_platform);
+      visionEngineRuns(_platform, onnx: _onnxPlatforms) &&
+      !coreMlRuns(_platform);
 
   @override
   String? get engineName => VisionEngine.onnxEngine;
