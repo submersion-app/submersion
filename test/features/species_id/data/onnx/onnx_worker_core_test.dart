@@ -118,6 +118,19 @@ void main() {
     );
   });
 
+  test('says where the models run, before and after a fallback, for the '
+      'debug log', () {
+    final c = core();
+    expect(c.deviceDescription, isNull);
+
+    c.load(_models);
+    expect(c.deviceDescription, 'hardware');
+
+    failToRun = {OrtDevice.hardware};
+    c.analyze(image);
+    expect(c.deviceDescription, 'directMl');
+  });
+
   test('failing on DirectML too lands on the processor', () {
     failToRun = {OrtDevice.hardware, OrtDevice.directMl};
     final c = core()..load(_models);

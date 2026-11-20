@@ -3,6 +3,7 @@ import 'dart:isolate';
 
 import 'package:submersion_vision/onnx_runtime.dart';
 
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/onnx_worker_core.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/ort_model_runner.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/pipeline/detector_reading.dart';
@@ -110,6 +111,10 @@ class OnnxWorker implements OnnxWorkerHandle {
     return worker;
   }
 
+  /// Where the models run, as the worker last reported it.
+  String? _device;
+  final _log = LoggerService.forClass(OnnxWorker);
+
   @override
   Future<String?> load(VisionModels models) async =>
       await _call('load', models) as String?;
@@ -143,6 +148,17 @@ class OnnxWorker implements OnnxWorkerHandle {
     }
   }
 
+  /// [value], after logging a move to another device: a run that failed on
+  /// the hardware engine and reopened the models on DirectML or the
+  /// processor (the load itself is logged by the engine).
+  Object? _noting(String? device, Object? value) {
+    if (device != null && _device != null && device != _device) {
+      _log.info('Marine life models moved to $device');
+    }
+    if (device != null) _device = device;
+    return value;
+  }
+
   /// The isolate stopped: every call waiting on it fails, as will later
   /// ones.
   void _stop(String reason) {
@@ -173,7 +189,10 @@ class OnnxWorker implements OnnxWorkerHandle {
     try {
       _requests.send((kind, payload, reply.sendPort));
       return switch (await answer.future) {
-        (true, final Object? value) => value,
+        (true, final Object? value, final String? device) => _noting(
+          device,
+          value,
+        ),
         (false, (final String code, final String? message)) =>
           throw VisionEngineException(code, message),
         final other => throw VisionEngineException(
@@ -213,11 +232,13 @@ void _workerMain(
     ready.send('$e');
     return;
   }
+  final registered = <String>{};
   for (final library in libraries) {
     // A hardware engine that will not register leaves the others, and
     // DirectML and the processor, to run the models.
     try {
       runtime.registerProviderLibrary(library.name, library.path);
+      registered.add(library.name);
     } on OrtException {
       continue;
     }
@@ -226,7 +247,11 @@ void _workerMain(
     open: (path, device) => OrtModelRunner(
       runtime.openSession(
         path,
-        settings: OrtSessionSettings(device: device, intraOpThreads: threads),
+        settings: OrtSessionSettings(
+          device: device,
+          intraOpThreads: threads,
+          hardwareEngines: registered,
+        ),
       ),
     ),
     devices: devices,
@@ -239,7 +264,7 @@ void _workerMain(
       final Object? value = switch (kind) {
         'load' => () {
           core.load(payload! as VisionModels);
-          return core.device?.name;
+          return core.deviceDescription;
         }(),
         'analyze' => core.analyze(_receive(payload! as _Image)),
         'detect' => core.detect(_receive(payload! as _Image)),
@@ -249,7 +274,7 @@ void _workerMain(
         'unload' || 'close' => _done(core.unload),
         _ => throw ArgumentError.value(kind, 'kind'),
       };
-      reply.send((true, value));
+      reply.send((true, value, core.deviceDescription));
     } on VisionEngineException catch (e) {
       reply.send((false, (e.code, e.message)));
     } on Object catch (e) {

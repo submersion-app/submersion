@@ -32,15 +32,20 @@ bool isSoftwareRenderer(OrtEpDeviceInfo device) =>
     device.vendorId == 0x1414 && device.deviceId == 0x8c;
 
 /// The devices a hardware session attaches, as indexes into [devices]:
-/// those of one hardware engine Windows ML supplied, a GPU engine before an
-/// NPU one, never the software renderer. The processor and DirectML are not
-/// chosen here: DirectML is attached by name, which screens out software
-/// adapters itself, and the processor needs no attaching. Empty when no
-/// hardware engine has a device here.
-List<int> chooseHardwareDevices(List<OrtEpDeviceInfo> devices) {
+/// those of one of [engines] (the engines registered from Windows ML's
+/// catalogue), a GPU engine before an NPU one, never the software renderer.
+/// The processor and DirectML are not chosen here: DirectML is attached by
+/// name, which screens out software adapters itself, and the processor
+/// needs no attaching. Empty when no such device is listed.
+List<int> chooseHardwareDevices(
+  List<OrtEpDeviceInfo> devices, {
+  required Set<String> engines,
+}) {
   final usable = [
     for (var i = 0; i < devices.length; i++)
-      if (devices[i].engine != 'CPUExecutionProvider' &&
+      if (devices[i].engine.isNotEmpty &&
+          engines.contains(devices[i].engine) &&
+          devices[i].engine != 'CPUExecutionProvider' &&
           devices[i].engine != 'DmlExecutionProvider' &&
           devices[i].kind != OrtHardwareKind.cpu &&
           !isSoftwareRenderer(devices[i]))

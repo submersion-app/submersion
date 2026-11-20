@@ -6,6 +6,17 @@ import 'package:submersion_vision/src/ort/hardware_devices.dart';
 /// Windows' software renderer to an engine ends the process, so it is
 /// never chosen; the processor and DirectML are attached by other means.
 void main() {
+  // The engines the worker registered from Windows ML's catalogue.
+  const registered = {
+    'VendorExecutionProvider',
+    'QNNExecutionProvider',
+    'NvTensorRTRTXExecutionProvider',
+    'AExecutionProvider',
+    'BExecutionProvider',
+    'CPUExecutionProvider',
+    'DmlExecutionProvider',
+  };
+
   OrtEpDeviceInfo device(
     String engine,
     OrtHardwareKind kind, {
@@ -20,7 +31,7 @@ void main() {
 
   test('the software renderer is never chosen, whichever engine offers it', () {
     expect(
-      chooseHardwareDevices([
+      chooseHardwareDevices(engines: registered, [
         device(
           'VendorExecutionProvider',
           OrtHardwareKind.gpu,
@@ -34,7 +45,7 @@ void main() {
 
   test('the processor and DirectML are never chosen here', () {
     expect(
-      chooseHardwareDevices([
+      chooseHardwareDevices(engines: registered, [
         device('CPUExecutionProvider', OrtHardwareKind.cpu),
         device('DmlExecutionProvider', OrtHardwareKind.gpu),
       ]),
@@ -44,7 +55,7 @@ void main() {
 
   test('a GPU engine is chosen before an NPU engine', () {
     expect(
-      chooseHardwareDevices([
+      chooseHardwareDevices(engines: registered, [
         device('CPUExecutionProvider', OrtHardwareKind.cpu),
         device('QNNExecutionProvider', OrtHardwareKind.npu),
         device('NvTensorRTRTXExecutionProvider', OrtHardwareKind.gpu),
@@ -55,7 +66,7 @@ void main() {
 
   test('an NPU engine is chosen when no GPU engine is offered', () {
     expect(
-      chooseHardwareDevices([
+      chooseHardwareDevices(engines: registered, [
         device('DmlExecutionProvider', OrtHardwareKind.gpu),
         device('QNNExecutionProvider', OrtHardwareKind.npu),
       ]),
@@ -66,7 +77,7 @@ void main() {
   test('only the first engine is chosen, with each of its devices of that '
       'kind', () {
     expect(
-      chooseHardwareDevices([
+      chooseHardwareDevices(engines: registered, [
         device('AExecutionProvider', OrtHardwareKind.gpu),
         device('BExecutionProvider', OrtHardwareKind.gpu),
         device('AExecutionProvider', OrtHardwareKind.gpu, deviceId: 0x1),
@@ -78,7 +89,7 @@ void main() {
 
   test('the software renderer is skipped beside a real GPU', () {
     expect(
-      chooseHardwareDevices([
+      chooseHardwareDevices(engines: registered, [
         device(
           'VendorExecutionProvider',
           OrtHardwareKind.gpu,
@@ -88,6 +99,29 @@ void main() {
         device('VendorExecutionProvider', OrtHardwareKind.gpu),
       ]),
       [1],
+    );
+  });
+
+  test('an engine Windows ML did not supply is never chosen', () {
+    expect(
+      chooseHardwareDevices(
+        engines: const {'QNNExecutionProvider'},
+        [
+          device('WebGpuExecutionProvider', OrtHardwareKind.gpu),
+          device('QNNExecutionProvider', OrtHardwareKind.npu),
+        ],
+      ),
+      [1],
+    );
+  });
+
+  test('a device whose engine has no name is never chosen', () {
+    expect(
+      chooseHardwareDevices(
+        engines: const {''},
+        [device('', OrtHardwareKind.gpu)],
+      ),
+      isEmpty,
     );
   });
 }

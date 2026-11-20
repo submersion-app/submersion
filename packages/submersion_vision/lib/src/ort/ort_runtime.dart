@@ -33,11 +33,16 @@ class OrtSessionSettings {
   const OrtSessionSettings({
     this.intraOpThreads = 0,
     this.device = OrtDevice.cpu,
+    this.hardwareEngines = const {},
   });
 
   /// Threads for one operator; 0 lets ONNX Runtime choose.
   final int intraOpThreads;
   final OrtDevice device;
+
+  /// For [OrtDevice.hardware]: the engines registered from Windows ML's
+  /// catalogue, the only ones whose devices are attached.
+  final Set<String> hardwareEngines;
 }
 
 /// A float32 tensor: its shape and its values.
@@ -151,8 +156,9 @@ class OrtRuntime {
             >()(optionsOut),
       );
       final options = optionsOut.value;
+      final String attached;
       try {
-        _configure(options, settings);
+        attached = _configure(options, settings);
         final path = _ortPath(modelPath);
         try {
           _check(
@@ -186,7 +192,7 @@ class OrtRuntime {
       }
       final session = sessionOut.value;
       try {
-        return OrtModelSession._(api, session, settings.device);
+        return OrtModelSession._(api, session, attached);
       } on Object {
         // The session opened but could not be described (a model with no
         // input): it is released here, not left loaded.
@@ -238,8 +244,15 @@ class OrtRuntime {
   }
 
   /// Attaches the devices [chooseHardwareDevices] picks from those ONNX
-  /// Runtime lists; throws [OrtException] when it picks none.
-  void _attachHardware(Pointer<OrtSessionOptions> options) {
+  /// Runtime lists, and describes them for the debug log; throws
+  /// [OrtException] when it picks none.
+  String _attachHardware(
+    Pointer<OrtSessionOptions> options,
+    Set<String> engines,
+  ) {
+    if (engines.isEmpty) {
+      throw const OrtException('no hardware engine is registered');
+    }
     final api = _api;
     final listed = calloc<Pointer<Pointer<OrtEpDevice>>>();
     final count = calloc<Size>();
@@ -256,9 +269,8 @@ class OrtRuntime {
             >()(_env, listed, count),
       );
       final devices = [for (var i = 0; i < count.value; i++) listed.value[i]];
-      final chosen = chooseHardwareDevices([
-        for (final device in devices) _describe(device),
-      ]);
+      final described = [for (final device in devices) _describe(device)];
+      final chosen = chooseHardwareDevices(described, engines: engines);
       if (chosen.isEmpty) {
         throw const OrtException('no hardware engine device is listed');
       }
@@ -282,6 +294,7 @@ class OrtRuntime {
                 )
               >()(options, _env, attach, chosen.length, nullptr, nullptr, 0),
         );
+        return 'hardware: ${[for (final i in chosen) described[i]].join(', ')}';
       } finally {
         calloc.free(attach);
       }
@@ -299,11 +312,11 @@ class OrtRuntime {
         >()(device);
     final type = api.ref.HardwareDevice_Type
         .asFunction<int Function(Pointer<OrtHardwareDevice>)>()(hardware);
+    final name = api.ref.EpDevice_EpName
+        .asFunction<Pointer<Char> Function(Pointer<OrtEpDevice>)>()(device);
     return OrtEpDeviceInfo(
-      engine: api.ref.EpDevice_EpName
-          .asFunction<Pointer<Char> Function(Pointer<OrtEpDevice>)>()(device)
-          .cast<Utf8>()
-          .toDartString(),
+      // A device whose engine has no name is never chosen.
+      engine: name == nullptr ? '' : name.cast<Utf8>().toDartString(),
       kind: switch (type) {
         1 => OrtHardwareKind.gpu,
         2 => OrtHardwareKind.npu,
@@ -316,7 +329,9 @@ class OrtRuntime {
     );
   }
 
-  void _configure(Pointer<OrtSessionOptions> options, OrtSessionSettings s) {
+  /// Applies [s] to [options]; answers where the session attaches, for the
+  /// debug log.
+  String _configure(Pointer<OrtSessionOptions> options, OrtSessionSettings s) {
     final api = _api;
     if (s.intraOpThreads > 0) {
       _check(
@@ -350,9 +365,9 @@ class OrtRuntime {
     }
     switch (s.device) {
       case OrtDevice.cpu:
-        break;
+        return OrtDevice.cpu.name;
       case OrtDevice.hardware:
-        _attachHardware(options);
+        return _attachHardware(options, s.hardwareEngines);
       case OrtDevice.directMl:
         final name = 'DML'.toNativeUtf8();
         try {
@@ -372,6 +387,7 @@ class OrtRuntime {
         } finally {
           calloc.free(name);
         }
+        return OrtDevice.directMl.name;
     }
   }
 }
@@ -422,15 +438,16 @@ class OrtModelSession {
 
   final Pointer<OrtApi> _api;
   final Pointer<OrtSession> _session;
-  final OrtDevice _device;
+  final String _device;
   late final Pointer<Pointer<Char>> _inputNames;
   late final Pointer<Pointer<Char>> _outputNames;
   late final Pointer<OrtMemoryInfo> _memoryInfo;
   int _outputCount = 0;
   bool _closed = false;
 
-  /// The device the session was opened for.
-  String get device => _device.name;
+  /// Where the session runs, for the debug log: `cpu`, `directMl`, or the
+  /// hardware engine and devices it attached.
+  String get device => _device;
 
   /// Runs the model's first input and returns every output, in order.
   List<OrtTensor> run(OrtTensor input) {

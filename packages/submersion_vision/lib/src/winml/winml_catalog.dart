@@ -43,27 +43,62 @@ abstract interface class WinMlCatalogue {
   Future<bool> ensureReady(String name);
 }
 
-/// The real catalogue, through Windows ML's library. Each call opens the
-/// catalogue in an isolate of its own and releases it there: preparing an
-/// engine can download hundreds of megabytes, which must never block the
-/// caller's isolate. Windows only.
+/// The real catalogue, through Windows ML's library. It is opened once and
+/// kept open for the life of the process: Microsoft registers an engine's
+/// library while the catalogue that prepared it is still open, and an
+/// engine's place in the app's process may end with it. Each call runs in
+/// an isolate of its own, since preparing an engine can download hundreds
+/// of megabytes and must never block the caller's isolate. Windows only.
 class WinMlCatalog implements WinMlCatalogue {
   const WinMlCatalog();
 
-  @override
-  Future<List<WinMlEngine>> engines() => Isolate.run(_listEngines);
+  /// The open catalogue's address, shared by every caller in the process.
+  static Future<int>? _opened;
+
+  static Future<Pointer<Void>> _catalog() async {
+    final opening = _opened ??= Isolate.run(_open);
+    try {
+      return Pointer<Void>.fromAddress(await opening);
+    } on Object {
+      // A failed open is tried again by the next call.
+      if (identical(_opened, opening)) _opened = null;
+      rethrow;
+    }
+  }
 
   @override
-  Future<bool> ensureReady(String name) => Isolate.run(() => _ensure(name));
+  Future<List<WinMlEngine>> engines() async {
+    final address = (await _catalog()).address;
+    return Isolate.run(() => _listEngines(Pointer<Void>.fromAddress(address)));
+  }
+
+  @override
+  Future<bool> ensureReady(String name) async {
+    final address = (await _catalog()).address;
+    return Isolate.run(() => _ensure(Pointer<Void>.fromAddress(address), name));
+  }
 }
 
-List<WinMlEngine> _listEngines() => _withCatalog((catalog) {
+int _open() {
+  final out = calloc<Pointer<Void>>();
+  try {
+    _check(winMLEpCatalogCreate(out), 'opening the catalogue');
+    return out.value.address;
+  } finally {
+    calloc.free(out);
+  }
+}
+
+List<WinMlEngine> _listEngines(Pointer<Void> catalog) {
   final found = <WinMlEngine>[];
   final callback = NativeCallable<WinMLEpEnumCallback>.isolateLocal((
     Pointer<Void> ep,
     Pointer<WinMLEpInfo> info,
     Pointer<Void> _,
   ) {
+    // Microsoft's own samples skip an entry with no information; reading
+    // through a null pointer would end the process.
+    if (info == nullptr) return 1;
     final i = info.ref;
     if (i.name != nullptr) {
       found.add(
@@ -91,9 +126,9 @@ List<WinMlEngine> _listEngines() => _withCatalog((catalog) {
     callback.close();
   }
   return found;
-});
+}
 
-bool _ensure(String name) => _withCatalog((catalog) {
+bool _ensure(Pointer<Void> catalog, String name) {
   final nativeName = name.toNativeUtf8();
   final ep = calloc<Pointer<Void>>();
   try {
@@ -101,13 +136,14 @@ bool _ensure(String name) => _withCatalog((catalog) {
       winMLEpCatalogFindProvider(catalog, nativeName, nullptr, ep),
       'finding $name',
     );
+    if (ep.value == nullptr) return false;
     if (winMLEpEnsureReady(ep.value) < 0) return false;
     return _libraryPath(ep.value).isNotEmpty;
   } finally {
     calloc.free(nativeName);
     calloc.free(ep);
   }
-});
+}
 
 String _libraryPath(Pointer<Void> ep) {
   final size = calloc<Size>();
@@ -124,20 +160,6 @@ String _libraryPath(Pointer<Void> ep) {
     }
   } finally {
     calloc.free(size);
-  }
-}
-
-T _withCatalog<T>(T Function(Pointer<Void> catalog) work) {
-  final out = calloc<Pointer<Void>>();
-  try {
-    _check(winMLEpCatalogCreate(out), 'opening the catalogue');
-    try {
-      return work(out.value);
-    } finally {
-      winMLEpCatalogRelease(out.value);
-    }
-  } finally {
-    calloc.free(out);
   }
 }
 

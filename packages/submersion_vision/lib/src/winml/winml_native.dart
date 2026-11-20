@@ -32,9 +32,6 @@ typedef WinMLEpEnumCallback =
 @Native<Int32 Function(Pointer<Pointer<Void>>)>(symbol: 'WinMLEpCatalogCreate')
 external int winMLEpCatalogCreate(Pointer<Pointer<Void>> catalog);
 
-@Native<Void Function(Pointer<Void>)>(symbol: 'WinMLEpCatalogRelease')
-external void winMLEpCatalogRelease(Pointer<Void> catalog);
-
 @Native<
   Int32 Function(
     Pointer<Void>,

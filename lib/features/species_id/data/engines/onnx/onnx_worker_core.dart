@@ -44,6 +44,12 @@ class OnnxWorkerCore {
   /// The device the models are open on, or null when none are.
   OrtDevice? get device => _pipeline == null ? null : _devices[_deviceIndex];
 
+  /// Where the open models run, as their sessions describe it (the hardware
+  /// engine and devices, DirectML or the processor), for the debug log;
+  /// null when none are open.
+  String? get deviceDescription =>
+      _pipeline == null || _opened.isEmpty ? null : _opened.last.device;
+
   /// Opens [models]; a no-op when the same models are open.
   void load(VisionModels models) {
     if (_pipeline != null && models == _models) return;
