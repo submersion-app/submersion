@@ -196,11 +196,13 @@ Future<void> applyNewGearItemPrefill(
         }
       },
     );
-    // The tags once their list has loaded, which finds none for a new id.
-    await session.settled();
-    if (gone()) return;
+    // Nothing is stored for the clone: its tags start empty, without a
+    // read (which the prefill, tracked itself, must not wait for), and take
+    // the source's own.
     if (clone.ownTags.isNotEmpty) {
-      gearItemTagsList.set(session, clone.ownTags);
+      gearItemTagsList
+        ..loadNone(session)
+        ..set(session, clone.ownTags);
     }
     return;
   }

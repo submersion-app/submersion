@@ -7,12 +7,14 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_tag_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/data/services/equipment_clone_service.dart';
 import 'package:submersion/features/equipment/data/services/gear_item_edit_save_service.dart';
 import 'package:submersion/features/equipment/data/repositories/gear_photo_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_edit_fields.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_header_editor.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_new_sitting.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
@@ -247,5 +249,41 @@ void main() {
       await ServiceScheduleRepository().getSchedulesForEquipment('n1'),
       isEmpty,
     );
+  });
+  // The page tracks the prefill, so Save waits for it (issue #4527, plan
+  // 11): the prefill must not wait on itself.
+  test("a tracked clone prefill ends, with the source's own tags", () async {
+    await equipment.createEquipment(
+      const EquipmentItem(
+        id: 'src',
+        diverId: 'd1',
+        name: 'Steel 12',
+        type: EquipmentType.tank,
+      ),
+    );
+    await db.customStatement(
+      'INSERT INTO tags (id, diver_id, name, created_at, updated_at, '
+      "applies_to_equipment) VALUES ('t1', 'd1', 'Travel', 0, 0, 1)",
+    );
+    await EquipmentTagRepository().replaceTags('src', const ['t1']);
+    final clone = await readGearClone(
+      container.read,
+      'src',
+      copyName: (n) => '$n (copy)',
+    );
+    final session = EditSession(await seed(), isNew: true);
+    addTearDown(session.dispose);
+    gearItemTagsList.load(session);
+
+    session.track(
+      applyNewGearItemPrefill(
+        session,
+        clone: clone,
+        cloneService: EquipmentCloneService(),
+      ),
+    );
+    await session.settled().timeout(const Duration(seconds: 2));
+
+    expect([for (final t in gearItemTagsList.current(session)!) t.id], ['t1']);
   });
 }
