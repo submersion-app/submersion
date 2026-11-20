@@ -19,10 +19,17 @@ import 'package:submersion/features/species_id/domain/services/vision_engine.dar
 /// A 1080 by 1920 video of [durationMs], a frame every 33 ms, whose frames
 /// are 2 by 1 images; records what it was asked.
 class FakeFrames implements FrameReader {
-  FakeFrames({this.durationMs = 1000, this.unreadable = const {}});
+  FakeFrames({
+    this.durationMs = 1000,
+    this.unreadable = const {},
+    this.undecodable = false,
+  });
 
   final int durationMs;
   final Set<int> unreadable;
+
+  /// Opens, but no frame of it can be read (a codec the device lacks).
+  final bool undecodable;
   final asked = <String>[];
   int opened = 0;
   int closed = 0;
@@ -47,7 +54,7 @@ class FakeFrames implements FrameReader {
   }) async {
     asked.add('next $atOrAfterMs $maxSide');
     final ms = (atOrAfterMs / 33).ceil() * 33;
-    if (ms >= durationMs) return null;
+    if (ms >= durationMs || undecodable) return null;
     beforeFrame?.call(ms);
     return VideoFrame(ms, _image);
   }
@@ -225,6 +232,39 @@ void main() {
       );
       expect(frames.closed, frames.opened);
     });
+
+    test('keeps scanning when the window only loses focus', () async {
+      // The notification shade or a system dialog: Android reports
+      // inactive, and the app is still in front.
+      lifecycle = AppLifecycleState.inactive;
+
+      final result = await (await engine()).detectVideo(
+        path: '/videos/a.mp4',
+        startMs: 0,
+        endMs: 500,
+        sampleIntervalMs: 250,
+      );
+
+      expect(result.frames.map((f) => f.ms), [0, 264]);
+    });
+
+    test(
+      'a video whose first frame cannot be read fails as decode_failed',
+      () async {
+        frames = FakeFrames(undecodable: true);
+
+        await expectLater(
+          (await engine()).detectVideo(
+            path: '/videos/a.mp4',
+            startMs: 0,
+            endMs: 1000,
+            sampleIntervalMs: 250,
+          ),
+          _fails('decode_failed'),
+        );
+        expect(frames.closed, frames.opened);
+      },
+    );
 
     test('refuses to start in the background', () async {
       lifecycle = AppLifecycleState.paused;

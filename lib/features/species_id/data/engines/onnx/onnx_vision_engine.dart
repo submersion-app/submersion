@@ -18,6 +18,11 @@ import 'package:submersion/features/species_id/domain/entities/vision_analysis.d
 import 'package:submersion/features/species_id/domain/entities/vision_memory.dart';
 import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 
+/// ONNX Runtime's threads for a device with [cores] processors: all but two,
+/// and at least one, so playback and scrolling stay smooth while a scan
+/// runs (spinning is off too). The Pixel 6a measurement times this count.
+int onnxThreadsFor(int cores) => cores > 3 ? cores - 2 : 1;
+
 /// [VisionEngine] over ONNX Runtime, on Android, Windows and Linux (piece 3,
 /// docs/design/specs/2026-11-19-marine-life-identification-3-other-platforms-design.md).
 /// The pipeline runs in a worker isolate; photos are decoded by Flutter's
@@ -37,7 +42,11 @@ class OnnxVisionEngine with WidgetsBindingObserver implements VisionEngine {
     FrameReader? frames,
     AppLifecycleState? Function()? lifecycle,
   }) : _platform = platform ?? defaultTargetPlatform,
-       _spawn = worker ?? (() => OnnxWorker.spawn()),
+       _spawn =
+           worker ??
+           (() => OnnxWorker.spawn(
+             intraOpThreads: onnxThreadsFor(Platform.numberOfProcessors),
+           )),
        _decode = decode ?? decodeForAnalysis,
        _frames = frames ?? const ChannelFrameReader(),
        _lifecycle = lifecycle ?? (() => WidgetsBinding.instance.lifecycleState),
@@ -114,7 +123,7 @@ class OnnxVisionEngine with WidgetsBindingObserver implements VisionEngine {
       }
       final encoded = bytes ?? await File(path!).readAsBytes();
       final image = await _decode(encoded);
-      final result = await (await _workerHandle()).analyze(image);
+      final result = await _fromWorker((await _workerHandle()).analyze(image));
       return result.analysis;
     });
   }
@@ -150,11 +159,23 @@ class OnnxVisionEngine with WidgetsBindingObserver implements VisionEngine {
             atOrAfterMs: next,
             maxSide: _detectSide,
           );
-          if (frame == null) break;
+          if (frame == null) {
+            // The reader gives nothing past the end, and nothing for a
+            // frame it cannot decode. A video that opens but yields no
+            // frame from its start cannot be read at all; anywhere else
+            // the two look alike, and the chunk ends there.
+            if (startMs == 0 && frames.isEmpty) {
+              throw const VisionEngineException(
+                'decode_failed',
+                'no frame could be read',
+              );
+            }
+            break;
+          }
           while (next <= frame.ms) {
             next += sampleIntervalMs;
           }
-          final boxes = await worker.detect(frame.image);
+          final boxes = await _fromWorker(worker.detect(frame.image));
           frames.add(
             FrameDetections(
               ms: frame.ms,
@@ -213,7 +234,7 @@ class OnnxVisionEngine with WidgetsBindingObserver implements VisionEngine {
             crops.add(null);
             continue;
           }
-          crops.add(await worker.cropAndEmbed(image, moment.box));
+          crops.add(await _fromWorker(worker.cropAndEmbed(image, moment.box)));
         }
         if (moments.isNotEmpty && unread == moments.length) {
           throw const VisionEngineException(
@@ -253,6 +274,18 @@ class OnnxVisionEngine with WidgetsBindingObserver implements VisionEngine {
 
   Future<OnnxWorkerHandle> _workerHandle() => _worker ??= _spawn();
 
+  /// [call]'s answer. A worker that answers `not_loaded` has closed its
+  /// models (a run failed on its last device), so the engine forgets them
+  /// too and the service's reload reaches the worker.
+  Future<T> _fromWorker<T>(Future<T> call) async {
+    try {
+      return await call;
+    } on VisionEngineException catch (e) {
+      if (e.code == VisionEngineException.notLoaded) _loaded = null;
+      rethrow;
+    }
+  }
+
   /// Pass 1 decodes at most this on the longer side: the detectors' input
   /// is 640 pixels, as the Swift pass decodes.
   static const _detectSide = 960;
@@ -276,12 +309,16 @@ class OnnxVisionEngine with WidgetsBindingObserver implements VisionEngine {
 
   /// On Android, video work stops when the app leaves the foreground and
   /// when the phone is severely hot; checked when a call starts and between
-  /// frames, since one chunk on a phone's processor can take minutes. PCs
-  /// check neither, as the Mac does not.
+  /// frames, since one chunk on a phone's processor can take minutes. A
+  /// window that only loses focus (`inactive`: the notification shade, a
+  /// system dialog) is still in front, as Swift stops only in the
+  /// background. PCs check neither, as the Mac does not.
   Future<void> _checkVideoAllowed() async {
     if (_platform != TargetPlatform.android) return;
     final state = _lifecycle();
-    if (state != null && state != AppLifecycleState.resumed) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden ||
+        state == AppLifecycleState.detached) {
       throw const VisionEngineException(VisionEngineException.notForeground);
     }
     if ((await _frames.deviceState()).thermalSevere) {

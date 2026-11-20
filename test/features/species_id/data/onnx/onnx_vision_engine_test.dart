@@ -131,6 +131,35 @@ void main() {
     decoded = [];
   });
 
+  test('a worker that lost its models is loaded again', () async {
+    // A run that failed on the worker's last device closes its models.
+    final e = engine();
+    await e.load(_models);
+    worker.loaded = null;
+
+    await expectLater(
+      e.analyze(bytes: Uint8List(1)),
+      throwsA(
+        isA<VisionEngineException>().having(
+          (x) => x.code,
+          'code',
+          VisionEngineException.notLoaded,
+        ),
+      ),
+    );
+    await e.load(_models);
+
+    expect(worker.calls.where((c) => c == 'load'), hasLength(2));
+    expect((await e.analyze(bytes: Uint8List(1))).imageWidth, 3);
+  });
+
+  test('ONNX Runtime leaves two cores for playback and scrolling', () {
+    expect(onnxThreadsFor(8), 6);
+    expect(onnxThreadsFor(4), 2);
+    expect(onnxThreadsFor(2), 1);
+    expect(onnxThreadsFor(1), 1);
+  });
+
   test('is the onnx engine', () {
     expect(engine().engineName, VisionEngine.onnxEngine);
     expect(VisionEngine.onnxEngine, 'onnx');
