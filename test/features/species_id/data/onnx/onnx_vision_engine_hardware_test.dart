@@ -222,6 +222,18 @@ void main() {
       expect(seenDevices, all);
     });
 
+    test('a guard that cannot write its notes never fails a load', () async {
+      // A file where the guard's folder should be: every note fails to write.
+      final blocked = File('${guardDir.path}${Platform.pathSeparator}blocked')
+        ..writeAsStringSync('in the way');
+      final guard = DeviceCrashGuard(Directory(blocked.path));
+
+      await guard.loading(all);
+      expect(await guard.devicesFor(all), all);
+      await guard.loaded();
+      await guard.reset();
+    });
+
     test('a newly fetched engine gets another chance', () async {
       await DeviceCrashGuard(guardDir).loading(all);
       final e = engine(

@@ -155,11 +155,13 @@ void main() {
     bool offers = true,
     bool arrives = true,
     bool throws = false,
+    bool askingThrows = false,
   }) {
     final hardware = _HardwareEngine(
       offers: offers,
       arrives: arrives,
       throws: throws,
+      askingThrows: askingThrows,
     );
     container.dispose();
     engine = hardware;
@@ -367,6 +369,11 @@ void main() {
       expect(await controller().downloadFetchesHardwareEngine(), isTrue);
     });
 
+    test('when asking fails, the page shows the plain confirmation', () async {
+      useHardwareEngine(askingThrows: true);
+      expect(await controller().downloadFetchesHardwareEngine(), isFalse);
+    });
+
     test('with nothing to fetch the page is told so', () async {
       useHardwareEngine(offers: false);
       expect(await controller().downloadFetchesHardwareEngine(), isFalse);
@@ -551,17 +558,24 @@ class _HardwareEngine extends FakeEngine implements HardwareEngineSource {
     required this.offers,
     required this.arrives,
     required this.throws,
+    this.askingThrows = false,
   });
 
   final bool offers;
   final bool arrives;
   final bool throws;
 
+  /// Whether asking if there is an engine to fetch fails.
+  final bool askingThrows;
+
   /// Asked while fetching, to see what else is going on.
   void Function()? whileFetching;
 
   @override
-  Future<bool> offersEngineToFetch() async => offers;
+  Future<bool> offersEngineToFetch() async {
+    if (askingThrows) throw StateError('Windows ML failed');
+    return offers;
+  }
 
   @override
   Future<bool> fetchEngine() async {
