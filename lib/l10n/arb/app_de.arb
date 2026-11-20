@@ -10247,6 +10247,8 @@
   "trips_bulkDelete_divesReturnToParents": "Tauchgänge gelöschter Nebenreisen gehen zurück an ihre größeren Reisen.",
   "trips_detail_dialog_deleteTitle": "Reise löschen?",
   "trips_detail_dives_empty": "Noch keine Tauchgänge in dieser Reise",
+  "trips_sitting_notSaved": "Noch nicht gespeichert",
+  "trips_sitting_takeOut": "Herausnehmen",
   "trips_detail_dives_errorLoading": "Tauchgänge konnten nicht geladen werden",
   "trips_detail_error_loading": "Die Reise konnte nicht geladen werden.",
   "trips_detail_dives_unknownSite": "Unbekannter Tauchplatz",

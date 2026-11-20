@@ -5,7 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/services/trip_day_notes.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_card_slots.dart';
+import 'package:submersion/features/trips/presentation/helpers/trip_scan_in_sitting.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_scan_actions.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/overview/trip_prepare_overview.dart';
@@ -80,11 +82,16 @@ class TripOverviewTab extends ConsumerWidget {
       story: story,
       stats: tripWithStats,
       selection: selection,
-      // Scanning joins the page's sitting in phase 3's next trip plan; until
-      // then a page that edits in place offers none here.
-      onScanForDives: slots != null
-          ? null
-          : () => scanForTripDives(context, ref, trip),
+      // On a page that edits in place the scan is the Dives card's: it
+      // unlocks a locked page, and the dives it finds wait for Save.
+      onScanForDives: slots == null
+          ? () => scanForTripDives(context, ref, trip)
+          : () {
+              final session = slots.session ?? slots.unlockAt(TripCardId.dives);
+              if (session != null) {
+                scanForTripDivesInSitting(context, ref, session);
+              }
+            },
       onEditDayNote: onEditDayNote,
     );
   }

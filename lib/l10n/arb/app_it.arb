@@ -9983,6 +9983,8 @@
   "trips_bulkDelete_divesReturnToParents": "Le immersioni delle escursioni eliminate tornano ai rispettivi viaggi principali.",
   "trips_detail_dialog_deleteTitle": "Eliminare il viaggio?",
   "trips_detail_dives_empty": "Nessuna immersione in questo viaggio ancora",
+  "trips_sitting_notSaved": "Non ancora salvato",
+  "trips_sitting_takeOut": "Togli",
   "trips_detail_dives_errorLoading": "Impossibile caricare le immersioni",
   "trips_detail_error_loading": "Impossibile caricare il viaggio.",
   "trips_detail_dives_unknownSite": "Sito sconosciuto",

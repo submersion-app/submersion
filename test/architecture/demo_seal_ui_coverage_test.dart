@@ -109,6 +109,11 @@ const _guardedHandlers = <(String, String)>[
     'Future<void> scanGalleryForTripPhotos(',
   ),
   (
+    // A trip page's Photos card holds the scanned photos until its Save.
+    'lib/features/trips/presentation/helpers/trip_scan_in_sitting.dart',
+    'Future<void> scanTripPhotosInSitting(',
+  ),
+  (
     // Photos added on a species page in a sitting are written at Save.
     'lib/features/media/presentation/helpers/species_photo_import_helper.dart',
     'static Future<List<PreparedMedia>?> preparePhotosForSpecies(',

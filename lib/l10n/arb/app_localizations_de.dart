@@ -35721,6 +35721,12 @@ class AppLocalizationsDe extends AppLocalizations {
       'Noch keine Tauchgänge in dieser Reise';
 
   @override
+  String get trips_sitting_notSaved => 'Noch nicht gespeichert';
+
+  @override
+  String get trips_sitting_takeOut => 'Herausnehmen';
+
+  @override
   String get trips_detail_dives_errorLoading =>
       'Tauchgänge konnten nicht geladen werden';
 

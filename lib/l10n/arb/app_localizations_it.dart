@@ -35814,6 +35814,12 @@ class AppLocalizationsIt extends AppLocalizations {
       'Nessuna immersione in questo viaggio ancora';
 
   @override
+  String get trips_sitting_notSaved => 'Non ancora salvato';
+
+  @override
+  String get trips_sitting_takeOut => 'Togli';
+
+  @override
   String get trips_detail_dives_errorLoading =>
       'Impossibile caricare le immersioni';
 

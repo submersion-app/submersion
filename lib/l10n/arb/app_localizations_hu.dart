@@ -35626,6 +35626,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_detail_dives_empty => 'Még nincsenek merülések ezen az úton';
 
   @override
+  String get trips_sitting_notSaved => 'Még nincs mentve';
+
+  @override
+  String get trips_sitting_takeOut => 'Kivesz';
+
+  @override
   String get trips_detail_dives_errorLoading =>
       'Nem sikerült a merülések betöltése';
 

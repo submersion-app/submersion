@@ -35562,6 +35562,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_detail_dives_empty => 'Nog geen duiken in deze reis';
 
   @override
+  String get trips_sitting_notSaved => 'Nog niet opgeslagen';
+
+  @override
+  String get trips_sitting_takeOut => 'Eruit halen';
+
+  @override
   String get trips_detail_dives_errorLoading => 'Kan duiken niet laden';
 
   @override

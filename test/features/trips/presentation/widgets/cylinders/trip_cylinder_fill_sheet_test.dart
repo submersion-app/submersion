@@ -25,6 +25,7 @@ import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.da
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_state_fold.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_gear_sitting.dart';
 import 'package:submersion/features/trips/presentation/widgets/cylinders/trip_cylinder_fill_sheet.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -82,6 +83,7 @@ void main() {
     List<DiveCenter> centers = const [],
     Future<List<DiveCenter>>? centersLoad,
     TripFillSaver Function()? saverFactory,
+    Future<void> Function(List<TripCylinderEvent>, TripFillCopyNote)? hold,
   }) async {
     tester.view.physicalSize = const Size(800, 2000);
     tester.view.devicePixelRatio = 1.0;
@@ -118,6 +120,7 @@ void main() {
                   preselected: preselected ?? {cylinders.first.id},
                   several: several,
                   editing: editing,
+                  hold: hold,
                 ),
                 child: const Text('open'),
               ),
@@ -155,6 +158,30 @@ void main() {
     expect(e.cost, 12.5);
     expect(e.currency, 'EUR');
     expect(e.occurredAt.isUtc, isTrue);
+  });
+
+  testWidgets('with hold, Save hands the fill and its copy note back and '
+      'writes nothing (a trip page sitting, issue #4527)', (tester) async {
+    final id = cylinders.first.id;
+    List<TripCylinderEvent>? held;
+    TripFillCopyNote? heldNote;
+    await pumpAndOpen(
+      tester,
+      hold: (fills, note) async {
+        held = fills;
+        heldNote = note;
+      },
+    );
+    await type(tester, 'fill-pressure', '200');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(held!.single.tripCylinderId, id);
+    expect(held!.single.pressure, 200);
+    expect(held!.single.id, isEmpty);
+    expect(heldNote!.stationResolved, isTrue);
+    expect(await repo.getEventsForCylinder(id), isEmpty);
+    expect(find.text('Save'), findsNothing);
   });
 
   testWidgets('a blank pressure and no cost store nulls', (tester) async {

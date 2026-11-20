@@ -17,42 +17,116 @@ import 'package:submersion/features/media/presentation/widgets/media_item_view.d
 import 'package:submersion/features/media/presentation/widgets/scan_results_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_media_providers.dart';
+import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/helpers/trip_scan_in_sitting.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_held_photos.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
 const _log = LoggerService('tripGalleryPage');
 
 /// Full gallery page showing all photos for a trip, organized by dive.
+///
+/// Behind phase 3's switch ([unlockEditing]) its Scan follows the trip's
+/// lock, as a dive's fullscreen profile does (issue #4527): handed the trip
+/// page's open sitting ([sitting]) it scans into that sitting and shows
+/// what it holds; otherwise (a locked trip, or opened by its address) it
+/// offers no Scan.
 class TripGalleryPage extends ConsumerWidget {
   final String tripId;
   final String? initialMediaId;
 
-  const TripGalleryPage({super.key, required this.tripId, this.initialMediaId});
+  /// The trip page's sitting, when the gallery was pushed during one.
+  final RecordEditController<Trip>? sitting;
+
+  /// Whether the trip's pages edit in place: phase 3's switch, a parameter
+  /// so a test can turn it on.
+  final bool unlockEditing;
+
+  const TripGalleryPage({
+    super.key,
+    required this.tripId,
+    this.initialMediaId,
+    this.sitting,
+    this.unlockEditing = kUnlockRecordEditing,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final sitting = this.sitting;
+    if (!unlockEditing || sitting == null) {
+      return _scaffold(context, ref, null);
+    }
+    // Followed, so the Scan goes when the sitting ends underneath.
+    // A Consumer of its own, so the media watched are watched by the
+    // element that rebuilds with the sitting.
+    return ListenableBuilder(
+      listenable: sitting,
+      builder: (context, _) => Consumer(
+        builder: (context, ref, _) => _scaffold(
+          context,
+          ref,
+          sitting.isUnlocked ? sitting.session : null,
+        ),
+      ),
+    );
+  }
+
+  Widget _scaffold(
+    BuildContext context,
+    WidgetRef ref,
+    EditSession<Trip>? session,
+  ) {
     final mediaByDiveAsync = ref.watch(mediaForTripProvider(tripId));
+    final offersScan = !unlockEditing || session != null;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(context.l10n.trips_gallery_appBar_title),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.photo_camera),
-            tooltip: context.l10n.trips_gallery_tooltip_scan,
-            onPressed: () => _showScanDialog(context, ref),
-          ),
+          if (offersScan)
+            IconButton(
+              icon: const Icon(Icons.photo_camera),
+              tooltip: context.l10n.trips_gallery_tooltip_scan,
+              onPressed: () => session != null
+                  ? scanTripPhotosInSitting(context, ref, session)
+                  : _showScanDialog(context, ref),
+            ),
         ],
       ),
       body: mediaByDiveAsync.when(
         data: (mediaByDive) {
+          final held = session == null
+              ? null
+              : Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                  child: TripHeldPhotos(session: session),
+                );
           if (mediaByDive.isEmpty) {
-            return const _EmptyGallery();
+            return held == null
+                ? const _EmptyGallery()
+                : Column(
+                    children: [
+                      held,
+                      const Expanded(child: _EmptyGallery()),
+                    ],
+                  );
           }
-          return _GalleryContent(
+          final content = _GalleryContent(
             tripId: tripId,
             mediaByDive: mediaByDive,
             initialMediaId: initialMediaId,
           );
+          return held == null
+              ? content
+              : Column(
+                  children: [
+                    held,
+                    Expanded(child: content),
+                  ],
+                );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         // The repository logs the failure; the diver gets a plain line.

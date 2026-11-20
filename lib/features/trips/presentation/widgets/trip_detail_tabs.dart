@@ -16,6 +16,7 @@ import 'package:submersion/features/trips/presentation/widgets/trip_overview_tab
 import 'package:submersion/features/trips/presentation/widgets/trip_photos_tab.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_detail_tab.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_tabs.dart';
 
 export 'package:submersion/features/trips/presentation/widgets/trip_detail_tab.dart';
@@ -99,9 +100,12 @@ class _TripDetailTabsState extends ConsumerState<TripDetailTabs> {
     if (!trip.startsAfter(clock.now())) {
       ref.listen(tripUndivedPlanIdsProvider(trip.id), (_, _) {});
     }
-    // A page that edits in place keeps the gear and checklists read only
-    // until they join its sitting (issue #4527).
-    final editsInPlace = TripCardSlotsScope.maybeOf(context) != null;
+    // A page that edits in place holds the gear and checklists in its
+    // sitting while it is unlocked, and shows them read only while it is
+    // locked (issue #4527).
+    final slots = TripCardSlotsScope.maybeOf(context);
+    final editsInPlace = slots != null;
+    final editing = slots?.session;
     final controller = widget.controller;
     // Kept alive while unlocked, so an open card survives a visit to
     // another tab.
@@ -143,8 +147,20 @@ class _TripDetailTabsState extends ConsumerState<TripDetailTabs> {
                 ),
               ),
               kept(TripItineraryTab(tripId: trip.id)),
-              kept(TripGearTab(trip: trip, readOnly: editsInPlace)),
-              kept(_ChecklistTab(trip: trip, readOnly: editsInPlace)),
+              kept(
+                TripGearTab(
+                  trip: trip,
+                  readOnly: editsInPlace && editing == null,
+                  editing: editing,
+                ),
+              ),
+              kept(
+                _ChecklistTab(
+                  trip: trip,
+                  readOnly: editsInPlace && editing == null,
+                  editing: editing,
+                ),
+              ),
               kept(TripDivesTab(tripId: trip.id)),
               kept(TripPhotosTab(tripId: trip.id)),
             ],
@@ -172,7 +188,14 @@ class _ChecklistTab extends StatelessWidget {
   /// makes a record of its own, still works.
   final bool readOnly;
 
-  const _ChecklistTab({required this.trip, this.readOnly = false});
+  /// The trip page's open sitting, which holds the checklists' changes.
+  final EditSession<Trip>? editing;
+
+  const _ChecklistTab({
+    required this.trip,
+    this.readOnly = false,
+    this.editing,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -190,7 +213,7 @@ class _ChecklistTab extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          TripChecklistsPanel(trip: trip, readOnly: readOnly),
+          TripChecklistsPanel(trip: trip, readOnly: readOnly, editing: editing),
         ],
       ),
     );

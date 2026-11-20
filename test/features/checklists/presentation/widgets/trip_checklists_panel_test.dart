@@ -48,8 +48,13 @@ class _GatedCreateRepository extends TripChecklistsRepository {
   Future<TripChecklist> createChecklist({
     required String tripId,
     required String name,
+    String? id,
   }) async {
-    final created = await super.createChecklist(tripId: tripId, name: name);
+    final created = await super.createChecklist(
+      tripId: tripId,
+      name: name,
+      id: id,
+    );
     await gate;
     return created;
   }

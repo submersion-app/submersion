@@ -10113,6 +10113,8 @@
   "trips_bulkDelete_divesReturnToParents": "הצלילות של טיולי הצד שנמחקו חוזרות לטיולים הגדולים שלהם.",
   "trips_detail_dialog_deleteTitle": "למחוק טיול?",
   "trips_detail_dives_empty": "אין עדיין צלילות בטיול זה",
+  "trips_sitting_notSaved": "טרם נשמר",
+  "trips_sitting_takeOut": "הוצא",
   "trips_detail_dives_errorLoading": "לא ניתן לטעון צלילות",
   "trips_detail_error_loading": "לא ניתן לטעון את הטיול.",
   "trips_detail_dives_unknownSite": "אתר לא ידוע",

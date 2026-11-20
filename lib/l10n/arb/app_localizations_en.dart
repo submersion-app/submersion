@@ -35201,6 +35201,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_detail_dives_empty => 'No dives in this trip yet';
 
   @override
+  String get trips_sitting_notSaved => 'Not saved yet';
+
+  @override
+  String get trips_sitting_takeOut => 'Take out';
+
+  @override
   String get trips_detail_dives_errorLoading => 'Unable to load dives';
 
   @override

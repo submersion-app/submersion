@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
+import 'package:submersion/features/checklists/presentation/editing/trip_checklist_writes.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
@@ -24,6 +25,7 @@ Future<void> showChecklistItemEditSheet({
   TripChecklistItem? item,
   List<String> categorySuggestions = const [],
   String? currentSectionTitle,
+  TripChecklistWrites? writes,
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -34,6 +36,7 @@ Future<void> showChecklistItemEditSheet({
       item: item,
       categorySuggestions: categorySuggestions,
       currentSectionTitle: currentSectionTitle,
+      writes: writes,
     ),
   );
 }
@@ -44,11 +47,16 @@ class _ChecklistItemEditSheet extends ConsumerStatefulWidget {
   final List<String> categorySuggestions;
   final String? currentSectionTitle;
 
+  /// Where the item goes: a trip page's sitting, say (issue #4527). Null
+  /// writes it at once through the repository.
+  final TripChecklistWrites? writes;
+
   const _ChecklistItemEditSheet({
     required this.checklistId,
     this.item,
     this.categorySuggestions = const [],
     this.currentSectionTitle,
+    this.writes,
   });
 
   @override
@@ -110,6 +118,7 @@ class _ChecklistItemEditSheetState
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     final repository = ref.read(tripChecklistRepositoryProvider);
+    final writes = widget.writes;
     final category = _canonicalCategory(_categoryController.text.trim());
     final existing = widget.item;
     // An unchanged section title keeps the item's own section rather than
@@ -122,9 +131,10 @@ class _ChecklistItemEditSheetState
         currentTitle.toLowerCase() == category.toLowerCase();
     final sectionId = keepsSection
         ? existing.sectionId
-        : await repository.findOrCreateSectionId(widget.checklistId, category);
+        : await (writes?.findOrCreateSectionId ??
+              repository.findOrCreateSectionId)(widget.checklistId, category);
     if (existing == null) {
-      await repository.createItem(
+      await (writes?.createItem ?? repository.createItem)(
         TripChecklistItem(
           id: '',
           checklistId: widget.checklistId,
@@ -137,7 +147,7 @@ class _ChecklistItemEditSheetState
         ),
       );
     } else {
-      await repository.updateItem(
+      await (writes?.updateItem ?? repository.updateItem)(
         existing.copyWith(
           title: _titleController.text.trim(),
           sectionId: sectionId,

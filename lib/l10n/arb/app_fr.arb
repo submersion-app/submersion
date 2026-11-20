@@ -9987,6 +9987,8 @@
   "trips_bulkDelete_divesReturnToParents": "Les plongées des excursions supprimées retournent à leurs voyages principaux.",
   "trips_detail_dialog_deleteTitle": "Supprimer le voyage ?",
   "trips_detail_dives_empty": "Aucune plongée dans ce voyage pour le moment",
+  "trips_sitting_notSaved": "Pas encore enregistré",
+  "trips_sitting_takeOut": "Retirer",
   "trips_detail_dives_errorLoading": "Impossible de charger les plongées",
   "trips_detail_error_loading": "Impossible de charger le voyage.",
   "trips_detail_dives_unknownSite": "Site inconnu",

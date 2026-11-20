@@ -47,12 +47,14 @@ class TripChecklistsRepository {
   }
 
   /// Creates a checklist at the end of the trip's checklist order.
+  /// With [id] when given (an editing sitting's row, issue #4527).
   Future<domain.TripChecklist> createChecklist({
     required String tripId,
     required String name,
+    String? id,
   }) async {
     try {
-      final id = _uuid.v4();
+      id ??= _uuid.v4();
       final now = DateTime.now().millisecondsSinceEpoch;
       final sortOrder = await _nextSortOrder(tripId);
       await _db

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/helpers/open_trip_cylinder_board.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_fill_forecast_providers.dart';
@@ -42,7 +42,7 @@ class TripCylindersSummaryCard extends ConsumerWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         key: const Key('trip-cylinders-summary'),
-        onTap: () => context.push('/trips/${trip.id}/cylinders'),
+        onTap: () => openTripCylinderBoard(context, trip.id),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(

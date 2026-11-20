@@ -10113,6 +10113,8 @@
   "trips_bulkDelete_divesReturnToParents": "Duiken van verwijderde zijreizen gaan terug naar hun grotere reizen.",
   "trips_detail_dialog_deleteTitle": "Reis verwijderen?",
   "trips_detail_dives_empty": "Nog geen duiken in deze reis",
+  "trips_sitting_notSaved": "Nog niet opgeslagen",
+  "trips_sitting_takeOut": "Eruit halen",
   "trips_detail_dives_errorLoading": "Kan duiken niet laden",
   "trips_detail_error_loading": "Kan de reis niet laden.",
   "trips_detail_dives_unknownSite": "Onbekende duikstek",

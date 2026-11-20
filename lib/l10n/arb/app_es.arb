@@ -10113,6 +10113,8 @@
   "trips_bulkDelete_divesReturnToParents": "Las inmersiones de los viajes secundarios eliminados vuelven a sus viajes principales.",
   "trips_detail_dialog_deleteTitle": "Eliminar viaje?",
   "trips_detail_dives_empty": "No hay inmersiones en este viaje aún",
+  "trips_sitting_notSaved": "Aún no guardado",
+  "trips_sitting_takeOut": "Quitar",
   "trips_detail_dives_errorLoading": "No se pudieron cargar las inmersiones",
   "trips_detail_error_loading": "No se pudo cargar el viaje.",
   "trips_detail_dives_unknownSite": "Punto desconocido",

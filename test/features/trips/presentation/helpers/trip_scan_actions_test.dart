@@ -19,6 +19,13 @@ import 'package:submersion/features/trips/presentation/helpers/trip_scan_actions
 import 'package:submersion/features/trips/presentation/providers/trip_media_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/media/data/services/media_import_service.dart';
+import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
+import 'package:submersion/features/media/presentation/helpers/media_hold.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_dives_sitting.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_photos_sitting.dart';
+import 'package:submersion/features/trips/presentation/helpers/trip_scan_in_sitting.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
@@ -135,6 +142,65 @@ class _FixedDiverIdNotifier extends StateNotifier<String?>
 
   @override
   Future<void> clearCurrentDiver() async => state = null;
+}
+
+/// An import service that prepares one row per asset and writes nothing.
+class _PreparingImport implements MediaImportService {
+  @override
+  Future<List<PreparedMedia>> prepareForDive({
+    required List<AssetInfo> selectedAssets,
+    required Dive dive,
+  }) async => [
+    for (final a in selectedAssets)
+      (
+        item: MediaItem(
+          id: 'row-${a.id}',
+          diveId: dive.id,
+          platformAssetId: a.id,
+          mediaType: MediaType.photo,
+          takenAt: a.createDateTime,
+          createdAt: a.createDateTime,
+          updatedAt: a.createDateTime,
+        ),
+        enrichment: null,
+      ),
+  ];
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// A trip's sitting that can hold photos, with writers that write nothing.
+EditSession<Trip> _tripSitting() {
+  final session = EditSession<Trip>(_trip());
+  holdSittingMedia(
+    session,
+    SittingMediaWriters(
+      writeRows: (_) async => const [],
+      insertNetwork: (_) async => const [],
+      unlink: (_) async {},
+      replace: (_, _, _) async {},
+      drainDeletes: () async {},
+      enqueueUpload: (_) {},
+    ),
+    cardId: 'photos',
+  );
+  return session;
+}
+
+/// Trip repository offering [candidates] for any dates.
+class _CandidatesRepo extends TripRepository {
+  _CandidatesRepo(this.candidates);
+
+  final List<DiveCandidate> candidates;
+
+  @override
+  Future<List<DiveCandidate>> findCandidateDivesForTrip({
+    required String tripId,
+    required DateTime startDate,
+    required DateTime endDate,
+    required String diverId,
+  }) async => candidates;
 }
 
 Trip _trip({String? diverId}) => Trip(
@@ -355,5 +421,164 @@ void main() {
     await tester.tap(find.text('go'));
     await tester.pumpAndSettle();
     expect(find.text('Add dives first to link photos'), findsOneWidget);
+  });
+
+  group('in a trip page sitting (issue #4527)', () {
+    final dive = Dive(id: 'd1', dateTime: DateTime(2026, 3, 26, 10));
+
+    testWidgets('Scan photos asks to add dives first when the trip has none', (
+      tester,
+    ) async {
+      final session = _tripSitting();
+      addTearDown(session.dispose);
+      await pumpActionButton(tester, [
+        divesForTripProvider('trip-1').overrideWith((ref) async => <Dive>[]),
+      ], (context, ref) => scanTripPhotosInSitting(context, ref, session));
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Add dives first to link photos'), findsOneWidget);
+    });
+
+    testWidgets('Scan photos scans the dives the sitting holds, and holds '
+        'the photos chosen', (tester) async {
+      final session = _tripSitting();
+      addTearDown(session.dispose);
+      holdScannedDives(
+        session,
+        _CandidatesRepo(const []),
+        [DiveCandidate(dive: dive)],
+        ['d1'],
+      );
+      final photo = AssetInfo(
+        id: 'p1',
+        type: AssetType.image,
+        createDateTime: DateTime(2026, 3, 26, 10, 10),
+        width: 4032,
+        height: 3024,
+      );
+      await pumpActionButton(tester, [
+        divesForTripProvider('trip-1').overrideWith((ref) async => <Dive>[]),
+        tripMediaRepositoryProvider.overrideWithValue(
+          _FixedTripMediaRepository(const []),
+        ),
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+        photoPickerServiceProvider.overrideWithValue(_GrantedPicker([photo])),
+        mediaImportServiceProvider.overrideWithValue(_PreparingImport()),
+      ], (context, ref) => scanTripPhotosInSitting(context, ref, session));
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(FilledButton).last);
+      await tester.pumpAndSettle();
+
+      expect([for (final m in heldTripPhotos(session)) m.id], ['row-p1']);
+      expect(session.changedCardIds, contains('photos'));
+    });
+
+    testWidgets('a second Scan photos counts the photos the sitting holds '
+        'as linked, not new', (tester) async {
+      final session = _tripSitting();
+      addTearDown(session.dispose);
+      final photo = AssetInfo(
+        id: 'p1',
+        type: AssetType.image,
+        createDateTime: DateTime(2026, 3, 26, 10, 10),
+        width: 4032,
+        height: 3024,
+      );
+      addMediaToSitting(session, [
+        HeldMediaRow((
+          item: MediaItem(
+            id: 'row-p1',
+            diveId: 'd1',
+            platformAssetId: 'p1',
+            mediaType: MediaType.photo,
+            takenAt: DateTime.utc(2026, 3, 26, 10, 10),
+            createdAt: DateTime.utc(2026, 3, 26),
+            updatedAt: DateTime.utc(2026, 3, 26),
+          ),
+          enrichment: null,
+        )),
+      ]);
+      await pumpActionButton(tester, [
+        divesForTripProvider('trip-1').overrideWith((ref) async => [dive]),
+        tripMediaRepositoryProvider.overrideWithValue(
+          _FixedTripMediaRepository(const []),
+        ),
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+        photoPickerServiceProvider.overrideWithValue(_GrantedPicker([photo])),
+        linkedGalleryAssetsProvider.overrideWithValue(
+          LinkedGalleryAssets(
+            resolve: (item) async => ResolutionResult(
+              localAssetId: item.platformAssetId,
+              status: ResolutionStatus.resolved,
+            ),
+          ),
+        ),
+      ], (context, ref) => scanTripPhotosInSitting(context, ref, session));
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('All photos already linked'), findsOneWidget);
+    });
+
+    testWidgets('Scan photos reports denied photo access and holds nothing', (
+      tester,
+    ) async {
+      final session = _tripSitting();
+      addTearDown(session.dispose);
+      await pumpActionButton(tester, [
+        divesForTripProvider('trip-1').overrideWith((ref) async => [dive]),
+        tripMediaRepositoryProvider.overrideWithValue(
+          _FixedTripMediaRepository(const []),
+        ),
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+        photoPickerServiceProvider.overrideWithValue(_DeniedPicker()),
+      ], (context, ref) => scanTripPhotosInSitting(context, ref, session));
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+
+      expect(heldTripPhotos(session), isEmpty);
+    });
+
+    testWidgets('Lightroom asks to add dives first when the trip has none', (
+      tester,
+    ) async {
+      final session = _tripSitting();
+      addTearDown(session.dispose);
+      await pumpActionButton(
+        tester,
+        [divesForTripProvider('trip-1').overrideWith((ref) async => <Dive>[])],
+        (context, ref) => scanLightroomForTripInSitting(context, ref, session),
+      );
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Add dives first to link photos'), findsOneWidget);
+    });
+
+    testWidgets('Scan for dives holds the dives chosen, and offers none the '
+        'sitting holds', (tester) async {
+      final session = _tripSitting();
+      addTearDown(session.dispose);
+      await pumpActionButton(tester, [
+        tripRepositoryProvider.overrideWithValue(
+          _CandidatesRepo([DiveCandidate(dive: dive)]),
+        ),
+        currentDiverIdProvider.overrideWith(
+          (ref) => _FixedDiverIdNotifier('d1'),
+        ),
+      ], (context, ref) => scanForTripDivesInSitting(context, ref, session));
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(FilledButton).last);
+      await tester.pumpAndSettle();
+
+      expect([for (final d in scannedDivesOf(session).dives) d.id], ['d1']);
+
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+      expect(find.text('No matching dives found'), findsOneWidget);
+    });
   });
 }

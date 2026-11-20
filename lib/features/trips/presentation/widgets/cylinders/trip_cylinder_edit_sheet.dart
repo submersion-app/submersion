@@ -17,19 +17,24 @@ import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 Future<void> showTripCylinderEditSheet(
   BuildContext context, {
   required TripCylinder cylinder,
+  Future<void> Function(TripCylinder cylinder)? hold,
 }) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    builder: (_) => _TripCylinderEditSheet(cylinder: cylinder),
+    builder: (_) => _TripCylinderEditSheet(cylinder: cylinder, hold: hold),
   );
 }
 
 class _TripCylinderEditSheet extends ConsumerStatefulWidget {
   final TripCylinder cylinder;
 
-  const _TripCylinderEditSheet({required this.cylinder});
+  /// Where the edit goes instead of the repository: a trip's sitting
+  /// (issue #4527).
+  final Future<void> Function(TripCylinder cylinder)? hold;
+
+  const _TripCylinderEditSheet({required this.cylinder, this.hold});
 
   @override
   ConsumerState<_TripCylinderEditSheet> createState() =>
@@ -157,18 +162,17 @@ class _TripCylinderEditSheetState
     });
     try {
       final c = widget.cylinder;
-      await ref
-          .read(tripCylinderRepositoryProvider)
-          .updateCylinder(
-            c.copyWith(
-              label: label,
-              volume: specs.volumeLiters,
-              workingPressure: specs.workingPressureBar,
-              material: preset?.material ?? c.material,
-              presetName: preset?.name,
-              notes: _notes.text,
-            ),
-          );
+      await (widget.hold ??
+          ref.read(tripCylinderRepositoryProvider).updateCylinder)(
+        c.copyWith(
+          label: label,
+          volume: specs.volumeLiters,
+          workingPressure: specs.workingPressureBar,
+          material: preset?.material ?? c.material,
+          presetName: preset?.name,
+          notes: _notes.text,
+        ),
+      );
       if (mounted) Navigator.of(context).pop();
     } catch (_) {
       // A sync can delete the slot while the sheet is open.

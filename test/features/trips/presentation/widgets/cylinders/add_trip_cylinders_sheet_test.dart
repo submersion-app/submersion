@@ -50,6 +50,7 @@ void main() {
     Future<List<TankPresetEntity>>? presets,
     Future<List<EquipmentItem>>? equipmentLoad,
     bool settle = true,
+    Future<void> Function(List<TripCylinder> drafts)? hold,
   }) async {
     tester.view.physicalSize = const Size(800, 1600);
     tester.view.devicePixelRatio = 1.0;
@@ -76,6 +77,7 @@ void main() {
                   context,
                   tripId: tripId,
                   existing: existing,
+                  hold: hold,
                 ),
                 child: const Text('open'),
               ),
@@ -111,6 +113,19 @@ void main() {
     expect(slots.first.material, al80.material);
     expect(slots.first.presetName, 'al80');
     expect(slots.map((s) => s.sortOrder), [0, 1, 2]);
+  });
+
+  testWidgets('with hold, Save hands the slots back and writes nothing '
+      '(a trip page sitting, issue #4527)', (tester) async {
+    List<TripCylinder>? held;
+    await pumpAndOpen(tester, hold: (drafts) async => held = drafts);
+    await tester.enterText(field('How many'), '2');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(held!.map((s) => s.label), ['Truck 1', 'Truck 2']);
+    expect(await repo.getCylindersForTrip(tripId), isEmpty);
+    expect(find.text('How many'), findsNothing);
   });
 
   testWidgets('numbering continues after the slots already on the trip', (

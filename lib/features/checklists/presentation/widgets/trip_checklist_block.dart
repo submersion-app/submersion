@@ -6,6 +6,7 @@ import 'package:submersion/features/checklists/domain/entities/trip_checklist.da
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_section.dart'
     as domain;
+import 'package:submersion/features/checklists/presentation/editing/trip_checklist_writes.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/checklists/presentation/widgets/apply_template_sheet.dart';
 import 'package:submersion/features/checklists/presentation/widgets/checklist_item_edit_sheet.dart';
@@ -14,6 +15,7 @@ import 'package:submersion/features/checklists/presentation/widgets/checklist_na
 import 'package:submersion/features/checklists/presentation/widgets/checklist_snack_bar.dart';
 import 'package:submersion/features/checklists/presentation/widgets/save_as_template_dialog.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_checklists_sitting.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/section_list_editor.dart';
 
@@ -39,10 +41,19 @@ class TripChecklistBlock extends ConsumerWidget {
   final VoidCallback? onMoveUp;
   final VoidCallback? onMoveDown;
 
-  /// Shows the checklist without changing it: no reorder, menu, ticks,
-  /// item edits, Add item or section editing (a trip page that edits in
-  /// place, issue #4527, before checklists join its sitting).
+  /// Shows the checklist without changing it: no reorder, ticks, item
+  /// edits, Add item or section editing, and a menu that only saves it as a
+  /// template, which makes a record of its own (a trip page that edits in
+  /// place, locked, issue #4527).
   final bool readOnly;
+
+  /// The checklists a trip page's sitting holds: this one's items and
+  /// sections are drawn from it rather than from what is stored.
+  final TripChecklistsHeld? held;
+
+  /// Where this block's changes go; null writes each at once through the
+  /// repositories.
+  final TripChecklistWrites? writes;
 
   const TripChecklistBlock({
     super.key,
@@ -52,14 +63,27 @@ class TripChecklistBlock extends ConsumerWidget {
     this.onMoveUp,
     this.onMoveDown,
     this.readOnly = false,
+    this.held,
+    this.writes,
   });
+
+  TripChecklistWrites _writesOf(WidgetRef ref) =>
+      writes ??
+      RepositoryTripChecklistWrites(
+        trip: trip,
+        checklists: ref.read(tripChecklistsRepositoryProvider),
+        items: ref.read(tripChecklistRepositoryProvider),
+      );
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final itemsAsync = ref.watch(tripChecklistProvider(checklist.id));
-    final sectionsAsync = ref.watch(
-      tripChecklistSectionsProvider(checklist.id),
-    );
+    final held = this.held;
+    final itemsAsync = held != null
+        ? AsyncValue.data(held.itemsOf(checklist.id))
+        : ref.watch(tripChecklistProvider(checklist.id));
+    final sectionsAsync = held != null
+        ? AsyncValue.data(held.sectionsOf(checklist.id))
+        : ref.watch(tripChecklistSectionsProvider(checklist.id));
 
     // Render from AsyncValue.value so reloads do not flash a spinner
     // (established pattern - see project memory on AsyncValue flicker).
@@ -88,7 +112,9 @@ class TripChecklistBlock extends ConsumerWidget {
                 ),
               ),
         trailing: readOnly
-            ? null
+            ? ((items ?? const []).isEmpty
+                  ? null
+                  : _buildSaveAsTemplateMenu(context, ref, items!, sections))
             : Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -102,7 +128,12 @@ class TripChecklistBlock extends ConsumerWidget {
                     onPressed: onMoveDown,
                     tooltip: WidgetsLocalizations.of(context).reorderItemDown,
                   ),
-                  _buildOverflowMenu(context, ref, items ?? const []),
+                  _buildOverflowMenu(
+                    context,
+                    ref,
+                    items ?? const [],
+                    sections ?? const [],
+                  ),
                 ],
               ),
         children: [
@@ -178,6 +209,7 @@ class TripChecklistBlock extends ConsumerWidget {
                 context: context,
                 checklistId: checklist.id,
                 categorySuggestions: sectionTitles,
+                writes: writes,
               ),
             ),
           ),
@@ -185,10 +217,43 @@ class TripChecklistBlock extends ConsumerWidget {
     );
   }
 
+  /// Saving as a template makes a template of what the page shows, held
+  /// rows included, at once: it is another record. Due dates become offsets
+  /// from the trip's start as the changes see it (a sitting's working one).
+  void _saveAsTemplate(
+    BuildContext context,
+    WidgetRef ref,
+    List<TripChecklistItem> items,
+    List<domain.TripChecklistSection>? sections,
+  ) => showSaveAsTemplateDialog(
+    context: context,
+    trip: _writesOf(ref).trip,
+    checklistId: checklist.id,
+    initialName: checklist.name,
+    rows: held == null ? null : (sections: sections ?? const [], items: items),
+  );
+
+  /// A locked page's menu: only what makes another record.
+  Widget _buildSaveAsTemplateMenu(
+    BuildContext context,
+    WidgetRef ref,
+    List<TripChecklistItem> items,
+    List<domain.TripChecklistSection>? sections,
+  ) => PopupMenuButton<String>(
+    onSelected: (_) => _saveAsTemplate(context, ref, items, sections),
+    itemBuilder: (context) => [
+      PopupMenuItem(
+        value: 'save',
+        child: Text(context.l10n.checklists_menu_saveAsTemplate),
+      ),
+    ],
+  );
+
   Widget _buildOverflowMenu(
     BuildContext context,
     WidgetRef ref,
     List<TripChecklistItem> items,
+    List<domain.TripChecklistSection> sections,
   ) {
     return PopupMenuButton<String>(
       onSelected: (value) {
@@ -196,12 +261,7 @@ class TripChecklistBlock extends ConsumerWidget {
           case 'apply':
             _applyTemplate(context, ref);
           case 'save':
-            showSaveAsTemplateDialog(
-              context: context,
-              trip: trip,
-              checklistId: checklist.id,
-              initialName: checklist.name,
-            );
+            _saveAsTemplate(context, ref, items, sections);
           case 'clear':
             _clearChecklist(context, ref, items.length);
           case 'rename':
@@ -262,10 +322,8 @@ class TripChecklistBlock extends ConsumerWidget {
 
     // Read now, not when the menu opened: a sync can fill the checklist while
     // the picker is up, and this decides whether the diver gets warned.
-    final repository = ref.read(tripChecklistRepositoryProvider);
-    final isEmpty =
-        (await repository.getByChecklistId(checklist.id)).isEmpty &&
-        (await repository.getSectionsForChecklist(checklist.id)).isEmpty;
+    final repository = _writesOf(ref);
+    final isEmpty = await repository.isChecklistEmpty(checklist.id);
     if (!context.mounted) return;
 
     if (!isEmpty) {
@@ -298,7 +356,6 @@ class TripChecklistBlock extends ConsumerWidget {
       final result = await repository.replaceWithTemplate(
         templateId: templateId,
         checklistId: checklist.id,
-        trip: trip,
       );
       if (!context.mounted) return;
       showChecklistSnackBar(
@@ -323,7 +380,7 @@ class TripChecklistBlock extends ConsumerWidget {
   ) async {
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
-    final repository = ref.read(tripChecklistRepositoryProvider);
+    final repository = _writesOf(ref);
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -361,9 +418,7 @@ class TripChecklistBlock extends ConsumerWidget {
       ),
     );
     if (name == null || !context.mounted) return;
-    await ref
-        .read(tripChecklistsRepositoryProvider)
-        .renameChecklist(checklist.id, name);
+    await _writesOf(ref).renameChecklist(checklist.id, name);
   }
 
   Future<void> _deleteChecklist(BuildContext context, WidgetRef ref) async {
@@ -386,9 +441,7 @@ class TripChecklistBlock extends ConsumerWidget {
       ),
     );
     if (confirmed != true || !context.mounted) return;
-    await ref
-        .read(tripChecklistsRepositoryProvider)
-        .deleteChecklist(checklist.id);
+    await _writesOf(ref).deleteChecklist(checklist.id);
   }
 
   Widget _buildEmptyState(BuildContext context) {
@@ -412,7 +465,7 @@ class TripChecklistBlock extends ConsumerWidget {
     List<domain.TripChecklistSection> sections,
     List<String> sectionTitles,
   ) {
-    final repository = ref.read(tripChecklistRepositoryProvider);
+    final repository = _writesOf(ref);
     final itemsBySection = <String, List<TripChecklistItem>>{
       for (final s in sections) s.id: [],
     };
@@ -452,6 +505,7 @@ class TripChecklistBlock extends ConsumerWidget {
                 item: item,
                 categorySuggestions: sectionTitles,
                 currentSectionTitle: sectionTitle,
+                writes: writes,
               ),
       );
     }

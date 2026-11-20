@@ -1275,6 +1275,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'cylinders',
                     name: 'tripCylinders',
+                    // The board has a lock of its own (issue #4527): leaving
+                    // its own sitting asks first.
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) => TripCylinderBoardPage(
                       tripId: state.pathParameters['tripId']!,
                     ),

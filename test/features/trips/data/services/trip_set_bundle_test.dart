@@ -55,13 +55,15 @@ void main() {
   Future<TripSetBundleResult> apply(
     SetBundle b, {
     Future<String?> Function(List<TripChecklist>)? pick,
-  }) => applySetBundleToTrip(
+  }) => applySetBundle(
     bundle: b,
     tripId: 'trip1',
     leadTitle: 'Lead: 12.0 lbs',
-    cylinders: cylinders,
-    checklists: checklists,
-    items: items,
+    slots: () => cylinders.getCylindersForTrip('trip1'),
+    appendSlots: (drafts) => cylinders.appendCylinders('trip1', drafts),
+    checklists: () => checklists.getChecklistsForTrip('trip1'),
+    itemsOf: items.getByChecklistId,
+    createItem: items.createItem,
     pickChecklist: pick ?? (_) async => fail('nothing to choose between'),
     now: now,
   );

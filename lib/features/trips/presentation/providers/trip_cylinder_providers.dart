@@ -72,21 +72,29 @@ final tripCylinderLedgerProvider =
         repository.getEventsForTrip(tripId),
         repository.getCylindersForTrip(tripId),
       ).wait;
-      final board = {for (final (i, c) in slots.indexed) c.id: i};
-      final events = [for (final list in bySlot.values) ...list]
-        ..sort((a, b) {
-          final byTime = b.occurredAt.compareTo(a.occurredAt);
-          if (byTime != 0) return byTime;
-          final byCreated = b.createdAt.compareTo(a.createdAt);
-          if (byCreated != 0) return byCreated;
-          // Fills saved together share both times: list them as the board.
-          final byBoard = (board[a.tripCylinderId] ?? 0).compareTo(
-            board[b.tripCylinderId] ?? 0,
-          );
-          return byBoard != 0 ? byBoard : b.id.compareTo(a.id);
-        });
-      return events;
+      return orderTripLedger([
+        for (final list in bySlot.values) ...list,
+      ], slots);
     });
+
+/// [events] newest first: by time, then by when they were made, then (fills
+/// saved together share both times) in board order of [slots], then by id.
+List<TripCylinderEvent> orderTripLedger(
+  List<TripCylinderEvent> events,
+  List<TripCylinder> slots,
+) {
+  final board = {for (final (i, c) in slots.indexed) c.id: i};
+  return [...events]..sort((a, b) {
+    final byTime = b.occurredAt.compareTo(a.occurredAt);
+    if (byTime != 0) return byTime;
+    final byCreated = b.createdAt.compareTo(a.createdAt);
+    if (byCreated != 0) return byCreated;
+    final byBoard = (board[a.tripCylinderId] ?? 0).compareTo(
+      board[b.tripCylinderId] ?? 0,
+    );
+    return byBoard != 0 ? byBoard : b.id.compareTo(a.id);
+  });
+}
 
 /// Each slot's label and the bottle it held at a dive's start, for the dive
 /// detail page. Keyed by trip and instant; refetches when the trip's slots

@@ -34918,6 +34918,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_detail_dives_empty => 'אין עדיין צלילות בטיול זה';
 
   @override
+  String get trips_sitting_notSaved => 'טרם נשמר';
+
+  @override
+  String get trips_sitting_takeOut => 'הוצא';
+
+  @override
   String get trips_detail_dives_errorLoading => 'לא ניתן לטעון צלילות';
 
   @override
