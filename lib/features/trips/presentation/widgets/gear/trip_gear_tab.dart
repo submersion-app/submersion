@@ -123,11 +123,18 @@ class TripGearTab extends ConsumerWidget {
       listenable: Listenable.merge([
         packed.changes(editing),
         board.changes(editing),
+        checklists.changes(editing),
       ]),
       builder: (context, _) {
         final gear = packed.current(editing);
         final held = heldCylindersOf(editing, board);
-        if (gear == null || held == null) {
+        // Add can put a set's lead on a checklist: it waits for the held
+        // checklists too, so it never takes a trip still being read for
+        // one with none. A failed read leaves the lead off, as with none.
+        final checklistsPending =
+            heldChecklistsOf(editing, checklists) == null &&
+            !checklists.failed(editing);
+        if (gear == null || held == null || checklistsPending) {
           if (packed.failed(editing) || board.failed(editing)) {
             return Center(
               child: Padding(

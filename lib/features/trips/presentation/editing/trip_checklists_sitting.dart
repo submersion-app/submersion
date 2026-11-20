@@ -465,6 +465,9 @@ class HeldTripChecklistWrites implements TripChecklistWrites {
   final SittingList<Trip, TripChecklistsHeld> list;
   final ChecklistTemplateRepository templates;
 
+  @override
+  Trip get trip => session.working;
+
   TripChecklistsHeld get _held =>
       heldChecklistsOf(session, list) ?? const TripChecklistsHeld();
 

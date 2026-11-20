@@ -234,9 +234,14 @@ class FakeTripChecklists implements TripChecklistsRepository {
   final TripChecklistsHeld held;
   final List<String> writes;
 
+  /// Holds the read until completed.
+  Completer<void>? gate;
+
   @override
-  Future<List<TripChecklist>> getChecklistsForTrip(String tripId) async =>
-      held.checklists;
+  Future<List<TripChecklist>> getChecklistsForTrip(String tripId) async {
+    await gate?.future;
+    return held.checklists;
+  }
 
   @override
   Future<TripChecklist> createChecklist({
@@ -277,6 +282,9 @@ class FakeTripChecklistItems implements TripChecklistRepository {
 
   final TripChecklistsHeld held;
   final List<String> writes;
+
+  /// The trip start each Save as template was given.
+  final templateStarts = <DateTime>[];
 
   @override
   Future<List<TripChecklistItem>> getAllItemsForTrip(String tripId) async =>
@@ -326,6 +334,7 @@ class FakeTripChecklistItems implements TripChecklistRepository {
     writes.add(
       'saveAsTemplate $name ${[for (final i in rows?.items ?? const <TripChecklistItem>[]) '${i.title}:${i.isDone}'].join(',')}',
     );
+    templateStarts.add(tripStartDate);
     return ChecklistTemplate(
       id: 'tp',
       name: name,

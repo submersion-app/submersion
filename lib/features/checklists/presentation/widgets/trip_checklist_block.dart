@@ -114,7 +114,7 @@ class TripChecklistBlock extends ConsumerWidget {
         trailing: readOnly
             ? ((items ?? const []).isEmpty
                   ? null
-                  : _buildSaveAsTemplateMenu(context, items!, sections))
+                  : _buildSaveAsTemplateMenu(context, ref, items!, sections))
             : Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -218,14 +218,16 @@ class TripChecklistBlock extends ConsumerWidget {
   }
 
   /// Saving as a template makes a template of what the page shows, held
-  /// rows included, at once: it is another record.
+  /// rows included, at once: it is another record. Due dates become offsets
+  /// from the trip's start as the changes see it (a sitting's working one).
   void _saveAsTemplate(
     BuildContext context,
+    WidgetRef ref,
     List<TripChecklistItem> items,
     List<domain.TripChecklistSection>? sections,
   ) => showSaveAsTemplateDialog(
     context: context,
-    trip: trip,
+    trip: _writesOf(ref).trip,
     checklistId: checklist.id,
     initialName: checklist.name,
     rows: held == null ? null : (sections: sections ?? const [], items: items),
@@ -234,10 +236,11 @@ class TripChecklistBlock extends ConsumerWidget {
   /// A locked page's menu: only what makes another record.
   Widget _buildSaveAsTemplateMenu(
     BuildContext context,
+    WidgetRef ref,
     List<TripChecklistItem> items,
     List<domain.TripChecklistSection>? sections,
   ) => PopupMenuButton<String>(
-    onSelected: (_) => _saveAsTemplate(context, items, sections),
+    onSelected: (_) => _saveAsTemplate(context, ref, items, sections),
     itemBuilder: (context) => [
       PopupMenuItem(
         value: 'save',
@@ -258,7 +261,7 @@ class TripChecklistBlock extends ConsumerWidget {
           case 'apply':
             _applyTemplate(context, ref);
           case 'save':
-            _saveAsTemplate(context, items, sections);
+            _saveAsTemplate(context, ref, items, sections);
           case 'clear':
             _clearChecklist(context, ref, items.length);
           case 'rename':

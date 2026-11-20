@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
@@ -97,5 +101,30 @@ void main() {
     expect(harness.gearWrites, isEmpty);
     expect(harness.save.calls, isEmpty);
     expect(find.text('Fins'), findsWidgets);
+  });
+
+  testWidgets("in a sitting, Add waits for the trip's checklists, so a set's "
+      'lead item has a checklist to go on', (tester) async {
+    await pumpTripPage(tester, packed: [fins, tank]);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(MaterialApp)),
+    );
+    final gate = Completer<void>();
+    (container.read(tripChecklistsRepositoryProvider) as FakeTripChecklists)
+            .gate =
+        gate;
+    await tester.tap(find.byIcon(Icons.lock_outline));
+    await tester.pump();
+    await tester.tap(find.widgetWithText(Tab, l.trips_detail_tab_gear));
+    // The spinner shown meanwhile never settles: step a few frames.
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+
+    expect(find.byKey(const Key('trip-gear-add')), findsNothing);
+
+    gate.complete();
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('trip-gear-add')), findsOneWidget);
   });
 }

@@ -4,6 +4,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_checklists_sitting.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
+import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_edit_fields.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
 import 'trip_detail_page_unlock_harness.dart';
@@ -128,5 +134,33 @@ void main() {
 
     expect(harness.checklistWrites, ['saveAsTemplate Packing Mask:true']);
     expect(harness.save.calls, isEmpty);
+  });
+
+  testWidgets('Save as template from a sitting that moved the start date '
+      'turns due dates into offsets from the new start', (tester) async {
+    await pumpTripPage(tester, checklists: packing);
+    await unlock(tester);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(MaterialApp)),
+    );
+    RecordEditScope.maybeOf<Trip>(
+      tester.element(find.byType(RecordCardFrame<Trip>).first),
+    )!.session!.set(tripDatesField, (
+      start: DateTime(2030, 7, 1),
+      end: DateTime(2030, 7, 8),
+    ));
+    await tester.pumpAndSettle();
+    await showChecklists(tester);
+
+    await tester.tap(find.byType(PopupMenuButton<String>).first);
+    await tester.pumpAndSettle();
+    await tapText(tester, l.checklists_menu_saveAsTemplate);
+    await tester.tap(find.byType(FilledButton).last);
+    await tester.pumpAndSettle();
+
+    final fake =
+        container.read(tripChecklistRepositoryProvider)
+            as FakeTripChecklistItems;
+    expect(fake.templateStarts, [DateTime(2030, 7, 1)]);
   });
 }

@@ -8,6 +8,10 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 /// the repositories ([RepositoryTripChecklistWrites]), or into a trip page's
 /// editing sitting, to be written at Save (issue #4527, phase 3).
 abstract interface class TripChecklistWrites {
+  /// The trip the checklists are written for, as the changes see it: the
+  /// stored trip, or a sitting's working one (dates moved in it count).
+  Trip get trip;
+
   /// Adds an empty checklist named [name] at the end of the trip's.
   Future<TripChecklist> createChecklist(String name);
 
@@ -84,6 +88,7 @@ class RepositoryTripChecklistWrites implements TripChecklistWrites {
     required this.items,
   });
 
+  @override
   final Trip trip;
   final TripChecklistsRepository checklists;
   final TripChecklistRepository items;
