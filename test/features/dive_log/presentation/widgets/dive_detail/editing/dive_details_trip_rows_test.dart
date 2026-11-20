@@ -29,8 +29,8 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 import '../../../../../../helpers/mock_providers.dart';
-import '../../../../../../helpers/pump_until.dart';
 import '../../../../../../helpers/test_database.dart';
+import '../../../../../trips/presentation/pages/new_trip_test_helpers.dart';
 
 Trip _trip(String id, String name) => Trip(
   id: id,
@@ -100,29 +100,6 @@ class _CreatingCenters implements DiveCenterEditSaveService {
     centers().byId[center.id] = center;
     created.add(center.id);
     return center;
-  }
-
-  @override
-  Object? noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-/// Creates a new trip where the rows read trips back from.
-class _CreatingTrips implements TripEditSaveService {
-  _CreatingTrips(this.trips);
-
-  final _Trips Function() trips;
-  final created = <String>[];
-
-  @override
-  Future<Trip> create({
-    required Trip trip,
-    required Iterable<String> changedCardIds,
-    List<String> draftDiveIds = const [],
-    Future<void> Function()? alsoWrite,
-  }) async {
-    trips().byId[trip.id] = trip;
-    created.add(trip.id);
-    return trip;
   }
 
   @override
@@ -401,7 +378,7 @@ void main() {
     // pops the id of the trip it created (issue #4527, plan 11).
     testWidgets('a new trip made on the new trip page is set when it '
         'returns', (tester) async {
-      final save = _CreatingTrips(() => trips);
+      final save = CreatingTripSave(onCreate: (t) => trips.byId[t.id] = t);
       final controller = await pumpRows(
         tester,
         bare,
@@ -414,16 +391,7 @@ void main() {
       await openTripSheet(tester);
       await tester.tap(find.text(l.trips_picker_newTrip));
       await tester.pumpAndSettle();
-      // The new page reads its sharing default and Documents from the
-      // database, which answers only outside the test's fake clock.
-      await pumpUntilRealAsync(
-        tester,
-        () =>
-            find.byKey(const Key('trip-edit-name')).evaluate().isNotEmpty &&
-            find.byType(CircularProgressIndicator).evaluate().isEmpty,
-        reason: 'the new trip page to open',
-      );
-      await tester.pumpAndSettle();
+      await pumpUntilNewTripPageOpens(tester);
 
       // Prefilled from the dive, the draft is already a change to save.
       await tester.tap(find.text(l.forms_save));

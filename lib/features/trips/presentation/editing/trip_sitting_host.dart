@@ -137,11 +137,13 @@ mixin TripSittingHost<W extends ConsumerStatefulWidget>
   /// Drops an earlier answer, then, when [ask], offers the dives in the
   /// trip's working dates that are not on it, and holds the ones chosen
   /// for the sitting's write. A new trip asks whatever its dates (plan 11,
-  /// as the form asked after every create); false when the page went
-  /// meanwhile.
+  /// as the form asked after every create), for the diver it is created
+  /// for ([diverId]); otherwise the dives are the active diver's. False
+  /// when the page went meanwhile.
   Future<bool> askDivesInDates(
     EditSession<Trip> session, {
     bool ask = true,
+    String? diverId,
   }) async {
     session.releaseWrite(assignDivesKey);
     _assigned = null;
@@ -153,17 +155,18 @@ mixin TripSittingHost<W extends ConsumerStatefulWidget>
     try {
       // The profile may still be being read just after the page opened;
       // the form waited for it, and so does this.
-      final diverId =
+      final forDiver =
+          diverId ??
           ref.read(validatedCurrentDiverIdProvider).value ??
           await ref.read(validatedCurrentDiverIdProvider.future);
-      if (diverId == null || !mounted || session.isDisposed) {
+      if (forDiver == null || !mounted || session.isDisposed) {
         return mounted && !session.isDisposed;
       }
       found = await trips.findCandidateDivesForTrip(
         tripId: stored.id,
         startDate: working.startDate,
         endDate: working.endDate,
-        diverId: diverId,
+        diverId: forDiver,
       );
     } catch (e, stackTrace) {
       // The question is an offer: a read that fails asks nothing, and the

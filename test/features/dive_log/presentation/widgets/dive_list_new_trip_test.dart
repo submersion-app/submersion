@@ -19,6 +19,7 @@ import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/pump_until.dart';
 import '../../../../helpers/select_items_menu.dart';
 import '../../../../helpers/test_database.dart';
+import '../../../trips/presentation/pages/new_trip_test_helpers.dart';
 
 class _MockPaginatedNotifier
     extends StateNotifier<AsyncValue<PaginatedDiveListState>>
@@ -223,14 +224,7 @@ void main() {
     }
     // The dives' facts, the new page and its create are read and written
     // in the database, which answers only outside the test's fake clock.
-    await pumpUntilRealAsync(
-      tester,
-      () =>
-          find.byKey(const Key('trip-edit-name')).evaluate().isNotEmpty &&
-          find.byType(CircularProgressIndicator).evaluate().isEmpty,
-      reason: 'the new trip page to open',
-    );
-    await tester.pumpAndSettle();
+    await pumpUntilNewTripPageOpens(tester);
     expect(find.text('Raja Ampat, Indonesia, Mar 2026'), findsWidgets);
 
     await tester.tap(find.text('Save'));

@@ -145,6 +145,19 @@ void main() {
     expect(harness.createdIds, [harness.save.creates.single.trip.id]);
   });
 
+  testWidgets('in the pane, Cancel tells the pane and creates nothing', (
+    tester,
+  ) async {
+    final harness = await pumpNewTripPage(tester, embedded: true);
+
+    await tester.tap(find.text(l.forms_cancel));
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(harness.cancelled, 1);
+    expect(harness.createdIds, isEmpty);
+    expect(harness.save.createAttempts, isEmpty);
+  });
+
   testWidgets('a Save that fails keeps everything, and a retry creates once '
       'with the same id', (tester) async {
     final harness = await pumpNewTripPage(tester);
@@ -174,6 +187,18 @@ void main() {
     await tapSave(tester);
 
     expect(harness.save.creates.single.trip.diverId, 'd1');
+  });
+
+  testWidgets("after a profile switch the question offers the trip's own "
+      "profile's dives", (tester) async {
+    final harness = await pumpNewTripPage(tester, candidates: candidates);
+    await typeName(tester);
+
+    harness.container.read(newTripPageDiverProvider.notifier).state = 'd2';
+    await tester.pumpAndSettle();
+    await tapSave(tester);
+
+    expect(harness.tripDives.asked.single.diverId, 'd1');
   });
 
   testWidgets('a larger trip from a draft shows on the page', (tester) async {

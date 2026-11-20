@@ -19,6 +19,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/divers/presentation/providers/new_record_diver.dart';
 import 'package:submersion/features/trips/data/services/trip_edit_save_service.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/entities/trip_story.dart';
 import 'package:submersion/features/trips/domain/services/trip_draft.dart';
 import 'package:submersion/features/trips/domain/services/trip_story_builder.dart';
 import 'package:submersion/features/trips/domain/services/trip_day_notes.dart';

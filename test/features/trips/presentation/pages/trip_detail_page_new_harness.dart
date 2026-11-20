@@ -17,8 +17,8 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
-import '../../../../helpers/pump_until.dart';
 import '../../../../helpers/shared_items_fixture.dart';
+import 'new_trip_test_helpers.dart';
 import 'trip_detail_page_unlock_harness.dart';
 
 /// How a new trip's page (issue #4527, phase 3, plan 11) ended, and the
@@ -45,10 +45,11 @@ final newTripPageDiverProvider = StateProvider<String?>((ref) => 'd1');
 /// launcher at `/trips/new`; or the pane's ([embedded]). The dives the
 /// question at Save finds are [candidates]; the active diver is
 /// [activeDiverId] ([newTripPageDiverProvider]); [trips] are the trips
-/// stored, for a larger trip to name. Nothing is stood in for the new trip's id: a read of a
-/// stored trip under it reaches the fake repository, which has none, and
-/// throws, as the real providers throw for a trip not found. Needs the
-/// test database for the Documents card.
+/// stored, for a larger trip to name. Nothing is stood in for the new
+/// trip's id: its stats and story reach the fake repository, which cannot
+/// answer them and throws, as the real providers throw for a trip not
+/// found, and a read of the trip itself finds none. Needs the test
+/// database for the Documents card.
 Future<NewTripHarness> pumpNewTripPage(
   WidgetTester tester, {
   TripDraft? draft,
@@ -131,16 +132,7 @@ Future<NewTripHarness> pumpNewTripPage(
     await tester.tap(find.text('open'));
     await tester.pump();
   }
-  // The seed and the Documents card read the database, which answers only
-  // outside the test's fake clock.
-  await pumpUntilRealAsync(
-    tester,
-    () =>
-        find.byKey(const Key('trip-edit-name')).evaluate().isNotEmpty &&
-        find.byType(CircularProgressIndicator).evaluate().isEmpty,
-    reason: "the new trip's page to open",
-  );
-  await tester.pumpAndSettle();
+  await pumpUntilNewTripPageOpens(tester);
   harness.container = ProviderScope.containerOf(
     tester.element(find.byType(MaterialApp)),
   );

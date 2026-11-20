@@ -28,6 +28,8 @@ mixin _TripDetailPageCreating
   Future<Trip?> makeNewRecordSeed(RecordSeedRead read, String id) =>
       newTripSeed(read, id: id);
 
+  /// The header block and Notes, and a liveaboard's Vessel, laid out as
+  /// the trip becomes one.
   @override
   List<String> newRecordLaidOut(Trip seed) => newTripLaidOut(seed);
 
@@ -35,12 +37,16 @@ mixin _TripDetailPageCreating
   Future<void> applyNewRecordPrefill(EditSession<Trip> session) async =>
       applyNewTripPrefill(session, _draft);
 
-  /// Asks which dives in the trip's dates join it, as the form asked after
-  /// every create; a trip made from selected dives takes exactly those
-  /// (issue #3658), so it asks nothing.
+  /// Asks which of its diver's dives in the trip's dates join it, as the
+  /// form asked after every create: the diver the page was opened for,
+  /// whom the trip keeps after a profile switch. A trip made from selected
+  /// dives takes exactly those (issue #3658), so it asks nothing.
   @override
-  Future<bool> beforeCreate(EditSession<Trip> session) =>
-      askDivesInDates(session, ask: _draft == null);
+  Future<bool> beforeCreate(EditSession<Trip> session) => askDivesInDates(
+    session,
+    ask: _draft == null,
+    diverId: session.stored.diverId,
+  );
 
   /// The trip and its held writes in one transaction, for the diver the
   /// page was opened for, whose trips it offered as a larger one and who
@@ -88,42 +94,6 @@ mixin _TripDetailPageCreating
     };
   }
 
-  /// Lays out what a new trip's type brings as it changes to it: a
-  /// liveaboard's Vessel, whose name Save requires. Heard from the sitting
-  /// itself: the controller tells only when the changed cards move, and a
-  /// header already changed (its name typed) does not move them.
-  @override
-  void onSittingStart(EditSession<Trip> session, ProviderContainer container) {
-    super.onSittingStart(session, container);
-    if (!isCreating) return;
-    var seen = session.working.tripType;
-    session.addListener(() {
-      if (session.isDisposed) return;
-      final type = session.working.tripType;
-      if (type == seen) return;
-      seen = type;
-      _layOutForType(session);
-    });
-  }
-
-  /// Opens the cards [session]'s working trip lays out that its seed did
-  /// not, once this change has been told.
-  void _layOutForType(EditSession<Trip> session) {
-    final controller = maybeEditController;
-    if (controller == null) return;
-    final atOpen = newTripLaidOut(session.stored);
-    final now = newTripLaidOut(session.working);
-    // Opening a card tells again: not from inside this notice.
-    Future.microtask(() {
-      if (!mounted || controller.session != session) return;
-      for (final id in now) {
-        if (!atOpen.contains(id) && !controller.openCardIds.contains(id)) {
-          controller.openCard(id);
-        }
-      }
-    });
-  }
-
   @override
   String newRecordTitle(BuildContext context) =>
       context.l10n.trips_edit_appBar_add;
@@ -149,22 +119,48 @@ mixin _TripDetailPageCreating
     body: context.l10n.trips_detail_error_loading,
   );
 
-  /// The new trip's page: its header block over the Overview in the
-  /// prepare shape, built on [shown], the working trip, reading nothing by
-  /// its id; [seed] is the trip as the page opened on it.
-  Widget _buildNewTrip(BuildContext context, Trip shown, Trip seed) {
-    final slots = _slots(shown, seed);
-    // Its days, from the dates as the sitting holds them: nothing else is
-    // stored to tell.
+  /// The story [_newTripStory] made, and the dates and day it was made
+  /// for.
+  ({DateTime start, DateTime end, DateTime today, TripStory story})? _storyKept;
+
+  /// A new trip's story: its days, from [trip]'s dates as the sitting holds
+  /// them, since nothing else is stored to tell. Kept until the dates or
+  /// the day change: a page rebuilds on every keystroke, and the days are
+  /// one per date of the trip.
+  TripStory _newTripStory(Trip trip) {
+    final now = clock.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final kept = _storyKept;
+    if (kept != null &&
+        kept.start == trip.startDate &&
+        kept.end == trip.endDate &&
+        kept.today == today) {
+      return kept.story;
+    }
     final story = buildTripStory(
-      trip: shown,
+      trip: trip,
       dives: const [],
       itineraryDays: const [],
       mediaByDiveId: const {},
       sightingsByDiveId: const {},
       checklistItems: const [],
-      today: clock.now(),
+      today: now,
     );
+    _storyKept = (
+      start: trip.startDate,
+      end: trip.endDate,
+      today: today,
+      story: story,
+    );
+    return story;
+  }
+
+  /// The new trip's page: its header block over the Overview in the
+  /// prepare shape, built on [shown], the working trip, reading nothing by
+  /// its id; [seed] is the trip as the page opened on it.
+  Widget _buildNewTrip(BuildContext context, Trip shown, Trip seed) {
+    final slots = _slots(shown, seed);
+    final story = _newTripStory(shown);
     final body = TripCardSlotsScope(
       slots: slots,
       child: Column(

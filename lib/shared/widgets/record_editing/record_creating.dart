@@ -48,7 +48,9 @@ mixin RecordCreating<W extends ConsumerStatefulWidget, T>
   /// whose source has gone). A throw is a read that failed.
   Future<T?> makeNewRecordSeed(RecordSeedRead read, String id);
 
-  /// The cards laid out open when the sitting opens on [seed].
+  /// The cards [seed] lays out open when the sitting opens on it. Asked
+  /// again with the record as each change leaves it: a card it lays out
+  /// anew opens then (a trip made a liveaboard lays out its Vessel).
   List<String> newRecordLaidOut(T seed);
 
   /// Puts what the opener brought on [session], each through its card's
@@ -198,7 +200,29 @@ mixin RecordCreating<W extends ConsumerStatefulWidget, T>
     final session = controller.session;
     if (session == null) return;
     setState(() => _opened = true);
+    var laidOut = newRecordLaidOut(seed).toSet();
+    // Heard from the sitting itself: the controller tells only when the
+    // changed cards move, and a card already changed does not move them.
+    session.addListener(() {
+      if (session.isDisposed) return;
+      final now = newRecordLaidOut(session.working).toSet();
+      final anew = now.difference(laidOut);
+      laidOut = now;
+      if (anew.isNotEmpty) _openLaidOutAnew(session, anew);
+    });
     session.track(applyNewRecordPrefill(session));
+  }
+
+  /// Opens the cards in [ids], laid out anew by a change to [session]'s
+  /// record, once the change has been told: opening one tells again.
+  void _openLaidOutAnew(EditSession<T> session, Set<String> ids) {
+    final controller = editController;
+    Future.microtask(() {
+      if (!mounted || controller.session != session) return;
+      for (final id in ids) {
+        if (!controller.openCardIds.contains(id)) controller.openCard(id);
+      }
+    });
   }
 
   /// The page in place of the record while a new record has no sitting

@@ -229,7 +229,7 @@ class FakeTripDives implements TripRepository {
 
   /// The candidates read throws, as a database that cannot be read does.
   bool failRead = false;
-  final asked = <({DateTime start, DateTime end})>[];
+  final asked = <({DateTime start, DateTime end, String diverId})>[];
   final assigned = <List<String>>[];
 
   /// The trips stored, by id, for what reads one.
@@ -248,7 +248,7 @@ class FakeTripDives implements TripRepository {
     required DateTime endDate,
     required String diverId,
   }) async {
-    asked.add((start: startDate, end: endDate));
+    asked.add((start: startDate, end: endDate, diverId: diverId));
     if (failRead) throw StateError('the read failed');
     return candidates;
   }

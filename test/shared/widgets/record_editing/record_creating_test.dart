@@ -52,6 +52,15 @@ final _textCard = EditCard<_Note>(
   ),
 );
 
+/// A card a note lays out only once its text is 'more'.
+final _extraCard = EditCard<_Note>(
+  id: 'extra',
+  title: (_) => 'Extra',
+  isEmpty: (note) => true,
+  editorBuilder: (context, session) =>
+      const Text('extra editor', key: ValueKey('extraEditor')),
+);
+
 /// What the page under test was asked to do, and how it answers.
 class _Probe {
   final creates = <_Note>[];
@@ -124,7 +133,7 @@ class _NewNotePageState extends ConsumerState<_NewNotePage>
   String recordIdOf(_Note record) => record.id;
 
   @override
-  Iterable<EditCard<_Note>> get hostEditCards => [_textCard];
+  Iterable<EditCard<_Note>> get hostEditCards => [_textCard, _extraCard];
 
   @override
   Future<_Note?> rereadStored(
@@ -145,7 +154,8 @@ class _NewNotePageState extends ConsumerState<_NewNotePage>
   }
 
   @override
-  List<String> newRecordLaidOut(_Note seed) => const ['text'];
+  List<String> newRecordLaidOut(_Note record) =>
+      record.text == 'more' ? const ['text', 'extra'] : const ['text'];
 
   @override
   Future<void> applyNewRecordPrefill(EditSession<_Note> session) async {
@@ -231,6 +241,10 @@ class _NewNotePageState extends ConsumerState<_NewNotePage>
               Text(shown.text, key: const ValueKey('text')),
             ],
           ),
+        ),
+        RecordCardFrame<_Note>(
+          card: _extraCard,
+          child: const RecordCardHeader(title: 'Extra'),
         ),
       ],
     );
@@ -420,6 +434,15 @@ void main() {
     expect(probe.creates, isEmpty);
     expect(find.byType(RecordEditBar), findsOneWidget);
     expect(popped, isNull);
+  });
+
+  testWidgets('a change that lays out another card opens it', (tester) async {
+    await pump(tester);
+    expect(find.byKey(const ValueKey('extraEditor')), findsNothing);
+
+    await type(tester, 'more');
+
+    expect(find.byKey(const ValueKey('extraEditor')), findsOneWidget);
   });
 
   testWidgets('a pane create calls onCreated and never pops', (tester) async {

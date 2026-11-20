@@ -23,6 +23,7 @@ import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/pump_until.dart';
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/test_database.dart';
+import '../../../trips/presentation/pages/new_trip_test_helpers.dart';
 
 /// The passport's Trip card (issue #2338).
 void main() {
@@ -295,7 +296,7 @@ void main() {
     await setUpTestDatabase();
     addTearDown(tearDownTestDatabase);
     final fake = _FakePacks();
-    final save = _CreatingTrips();
+    final save = CreatingTripSave();
     final overrides = await getBaseOverrides();
     final router = GoRouter(
       routes: [
@@ -335,14 +336,7 @@ void main() {
     await tester.tap(find.text(l10n.passport_trip_assign));
     await tester.pumpAndSettle();
     await tester.tap(find.text(l10n.trips_picker_empty_createButton));
-    await pumpUntilRealAsync(
-      tester,
-      () =>
-          nameField.evaluate().isNotEmpty &&
-          find.byType(CircularProgressIndicator).evaluate().isEmpty,
-      reason: 'the new trip page to open',
-    );
-    await tester.pumpAndSettle();
+    await pumpUntilNewTripPageOpens(tester);
     await tester.enterText(nameField, 'Malta');
     await tester.pumpAndSettle();
     await tester.tap(find.text(l10n.forms_save));
@@ -480,23 +474,4 @@ class _FakePacks extends TripEquipmentRepository {
     if (failing) throw StateError('database is locked');
     unpacked.add((tripId, equipmentId));
   }
-}
-
-/// Creates a new trip and keeps its id.
-class _CreatingTrips implements TripEditSaveService {
-  final created = <String>[];
-
-  @override
-  Future<Trip> create({
-    required Trip trip,
-    required Iterable<String> changedCardIds,
-    List<String> draftDiveIds = const [],
-    Future<void> Function()? alsoWrite,
-  }) async {
-    created.add(trip.id);
-    return trip;
-  }
-
-  @override
-  Object? noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
