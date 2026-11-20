@@ -66,6 +66,24 @@ void main() {
     expect(reviewCount(groups), 1);
   });
 
+  test('an app tag carries the GBIF key of the identification behind it', () {
+    final groups = buildReviewGroups(
+      media: [onDive('a', 'd1', may)],
+      unconfirmedByMedia: {
+        'a': [appTag('a', 'own-9')],
+      },
+      suggestionsByMedia: const {},
+      speciesById: const {},
+      tagEvidence: {
+        't-a-own-9': (score: 0.97, identificationId: 'i9', gbifKey: 777),
+      },
+    );
+
+    final item = groups.single.tagged.single.items.single;
+    expect(item.tagGbifKey, 777);
+    expect(item.copyWith(score: 0.5).tagGbifKey, 777);
+  });
+
   test('a species only suggested is a suggested row', () {
     final groups = buildReviewGroups(
       media: [onDive('c', 'd1', may)],
@@ -111,6 +129,45 @@ void main() {
       speciesById: const {},
     );
     expect(groups, isEmpty);
+  });
+
+  group('ReviewRow.gbifKeys', () {
+    ReviewItem tagOn(String mediaId, {int? key}) => ReviewItem(
+      media: media(mediaId, diveId: 'd1'),
+      tag: appTag(mediaId, 'own-9'),
+      tagGbifKey: key,
+    );
+
+    test('a suggested row: its candidate\'s', () {
+      final row = ReviewRow(
+        key: 'g:1',
+        candidate: suggestion.top.candidate,
+        items: const [],
+      );
+      expect(row.gbifKeys, {suggestion.top.candidate.gbifKey});
+    });
+
+    test('a row of the app\'s tags: every key it holds, its tags\' and its '
+        'grouped suggestions\'', () {
+      // A suggestion grouped by name may carry a synonym's key, so the
+      // tag's own key is kept beside it.
+      final row = ReviewRow(
+        key: 's:own-9',
+        items: [
+          tagOn('a', key: 777),
+          tagOn('c'),
+          ReviewItem(
+            media: media('b', diveId: 'd1'),
+            suggestion: suggestion,
+          ),
+        ],
+      );
+      expect(row.gbifKeys, {777, suggestion.top.candidate.gbifKey});
+    });
+
+    test('none when nothing on this device names it', () {
+      expect(ReviewRow(key: 's:own-9', items: [tagOn('a')]).gbifKeys, isEmpty);
+    });
   });
 
   test('review entities copy with each field', () {

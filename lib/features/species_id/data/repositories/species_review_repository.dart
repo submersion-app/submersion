@@ -4,12 +4,15 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
+import 'package:submersion/features/marine_life/domain/entities/species.dart'
+    as domain;
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_species_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/naming_level.dart';
+import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
 import 'package:submersion/features/species_id/domain/entities/species_review.dart';
 import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
 import 'package:submersion/features/species_id/domain/services/naming_levels.dart';
@@ -110,8 +113,16 @@ class SpeciesReviewRepository {
             for (final id in ids)
               if (open.contains(id)) id,
           ]);
+    // Read before the evidence: a species outside the catalogue is matched
+    // to a crop's names by its scientific name.
+    final speciesIds = {for (final t in unconfirmed) t.speciesId};
+    final species = speciesIds.isEmpty
+        ? const <domain.Species>[]
+        : await _species.getAllSpecies(ids: speciesIds.toList());
+    final speciesById = {for (final s in species) s.id: s};
+
     final suggestionsByMedia = <String, List<SpeciesSuggestion>>{};
-    final tagEvidence = <String, ({double score, String identificationId})>{};
+    final tagEvidence = <String, TagEvidence>{};
     for (final id in ids) {
       final rows = found[id];
       if (rows == null || rows.isEmpty) continue;
@@ -126,15 +137,14 @@ class SpeciesReviewRepository {
         );
       }
       for (final tag in unconfirmedByMedia[id] ?? const <MediaSpeciesTag>[]) {
-        final evidence = _evidenceFor(tag, rows);
+        final evidence = _evidenceFor(
+          tag,
+          rows,
+          scientificName: speciesById[tag.speciesId]?.scientificName,
+        );
         if (evidence != null) tagEvidence[tag.id] = evidence;
       }
     }
-
-    final speciesIds = {for (final t in unconfirmed) t.speciesId};
-    final species = speciesIds.isEmpty
-        ? const []
-        : await _species.getAllSpecies(ids: speciesIds.toList());
 
     // Headings only: number, time and name, so no profile samples.
     final dives = {
@@ -162,27 +172,56 @@ class SpeciesReviewRepository {
       media: media,
       unconfirmedByMedia: unconfirmedByMedia,
       suggestionsByMedia: suggestionsByMedia,
-      speciesById: {for (final s in species) s.id: s},
+      speciesById: speciesById,
       tagEvidence: tagEvidence,
     );
   }
 
-  /// The accepted identification of [tag]'s species that scored best.
-  ({double score, String identificationId})? _evidenceFor(
+  /// The accepted identification of [tag]'s species that scored it best,
+  /// with the species' own score and key in it. That is usually the crop's
+  /// top name, the one the app tagged, but not always: reconcile accepts
+  /// the crop that ranks a species highest when no crop names it first,
+  /// and a later pack can re-name a crop whose decision stands. A crop
+  /// that no longer lists the species still shows the tag, with no score.
+  TagEvidence? _evidenceFor(
     MediaSpeciesTag tag,
-    List<MediaIdentification> found,
-  ) {
+    List<MediaIdentification> found, {
+    String? scientificName,
+  }) {
+    final tagged = TaggedSpecies(
+      speciesId: tag.speciesId,
+      scientificName: scientificName,
+    );
     MediaIdentification? best;
+    NamedCandidate? bestNamed;
     for (final i in found) {
       if (i.decision != IdentificationDecision.accepted ||
           i.decidedSpeciesId != tag.speciesId ||
           i.top == null) {
         continue;
       }
-      if (best == null || i.top!.score > best.top!.score) best = i;
+      final named = i.candidates
+          .where((c) => candidateMatches(c.candidate, tagged))
+          .firstOrNull;
+      // A crop that lists the species beats one that does not; between two
+      // that do not, the surer crop shows the tag more clearly.
+      final better =
+          best == null ||
+          (named != null &&
+              (bestNamed == null || named.score > bestNamed.score)) ||
+          (named == null &&
+              bestNamed == null &&
+              i.top!.score > best.top!.score);
+      if (better) {
+        best = i;
+        bestNamed = named;
+      }
     }
-    return best == null
-        ? null
-        : (score: best.top!.score, identificationId: best.id);
+    if (best == null) return null;
+    return (
+      score: bestNamed?.score,
+      identificationId: best.id,
+      gbifKey: bestNamed?.candidate.gbifKey,
+    );
   }
 }

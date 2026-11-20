@@ -7,6 +7,7 @@ import 'package:submersion/features/reef/data/services/arcgis_feature_query.dart
 import 'package:submersion/features/reef/data/services/reef_request_timeout.dart';
 import 'package:submersion/features/reef/domain/entities/reef_data_status.dart';
 import 'package:submersion/features/reef/domain/entities/reef_protection.dart';
+import 'package:submersion/features/reef/data/services/reef_failure.dart';
 
 /// Fetches marine protected areas containing a point from ProtectedSeas
 /// Navigator (CC BY 4.0). Keyless and CORS-enabled.
@@ -69,7 +70,7 @@ class ReefProtectionService {
         'Reef protection fetch failed: $e',
         name: 'ReefProtectionService',
       );
-      return const ReefPart.unavailable();
+      return reefFailure(e);
     }
   }
 

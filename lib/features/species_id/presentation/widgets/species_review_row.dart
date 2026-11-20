@@ -6,6 +6,8 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/species_id/domain/entities/species_review.dart';
 import 'package:submersion/features/species_id/domain/value_objects/species_review_edits.dart';
+import 'package:submersion/features/species_id/presentation/providers/recorded_nearby_providers.dart';
+import 'package:submersion/features/species_id/presentation/widgets/recorded_nearby_line.dart';
 import 'package:submersion/features/species_id/presentation/widgets/suggested_species_section.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -67,13 +69,28 @@ class SpeciesReviewRowTile extends StatelessWidget {
             onTap: () => onOpen(best),
           ),
           title: Text(name),
-          subtitle: Text(
-            [
-              _counts(l10n, row),
-              if (row.isTagged && row.suggestedCount > 0)
-                l10n.speciesReview_mixed(row.taggedCount, row.suggestedCount),
-              if (score != null) _percent(context, score),
-            ].join(' '),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                [
+                  _counts(l10n, row),
+                  if (row.isTagged && row.suggestedCount > 0)
+                    l10n.speciesReview_mixed(
+                      row.taggedCount,
+                      row.suggestedCount,
+                    ),
+                  if (score != null) _percent(context, score),
+                ].join(' '),
+              ),
+              // Once per row: its photos' lines below would only repeat it.
+              RecordedNearbyLine(
+                request: _nearbyRequest(best),
+                gbifKeys: row.gbifKeys,
+                catalogId: row.species?.id ?? row.candidate?.catalogId,
+              ),
+            ],
           ),
           trailing: settled
               ? _Settled(
@@ -154,6 +171,13 @@ class SpeciesReviewRowTile extends StatelessWidget {
         ? _decisionLabel(l10n, decisions.single!)
         : l10n.speciesReview_decided;
   }
+
+  /// Whose nearby list a row reads: its dive's, so one list serves every
+  /// row of a dive; photos in no dive read the shown photo's own position.
+  static NearbyListRequest _nearbyRequest(ReviewItem best) =>
+      best.media.diveId != null
+      ? (diveId: best.media.diveId, photo: null)
+      : nearbyRequestForMedia(best.media);
 
   /// A score as the locale writes a percentage, as the species sheet does.
   static String _percent(BuildContext context, double score) =>

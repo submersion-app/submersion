@@ -10,6 +10,7 @@ import 'package:submersion/features/species_id/data/repositories/media_identific
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/data/repositories/species_review_repository.dart';
 import 'package:submersion/features/species_id/domain/entities/naming_level.dart';
+import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
 import 'package:submersion/features/species_id/domain/entities/species_review.dart';
 import 'package:submersion/features/species_id/domain/services/naming_levels.dart';
 
@@ -104,6 +105,115 @@ void main() {
     expect(g.tagged.single.speciesId, 'sp_blue_tang');
     expect(g.suggested.single.candidate!.scientificName, 'Scarus vetula');
   });
+
+  /// An accepted identification on p1 for [speciesId]: the fixture's
+  /// candidates, Queen Parrotfish (2393681, 0.9) then Stoplight Parrotfish
+  /// (5, 0.05).
+  Future<void> acceptedOnP1(String speciesId) => identifications.storeRun(
+    run(mediaId: 'p1'),
+    insert: [
+      identification(
+        'i-p1',
+        mediaId: 'p1',
+        decision: IdentificationDecision.accepted,
+        decidedSpeciesId: speciesId,
+      ),
+    ],
+    deleteIds: const [],
+  );
+
+  ReviewItem tagItem(List<ReviewGroup> groups, String speciesId) => groups
+      .single
+      .tagged
+      .singleWhere((r) => r.speciesId == speciesId)
+      .items
+      .single;
+
+  test('an app tag carries the key and score of its own species, not the '
+      'top name\'s', () async {
+    // A species outside the catalogue, named by its scientific name. The
+    // diver's correction (or a re-name) left it second on the crop.
+    final db = DatabaseService.instance.database;
+    await db
+        .into(db.species)
+        .insert(
+          const SpeciesCompanion(
+            id: Value('own-stoplight'),
+            commonName: Value('Stoplight Parrotfish'),
+            scientificName: Value('Sparisoma viride'),
+            category: Value('fish'),
+            isBuiltIn: Value(false),
+          ),
+        );
+    await tags.addTag(
+      mediaId: 'p1',
+      speciesId: 'own-stoplight',
+      unconfirmed: true,
+    );
+    await acceptedOnP1('own-stoplight');
+
+    final item = tagItem(
+      await review.load(const DiveReviewScope('d1'), withSuggestions: true),
+      'own-stoplight',
+    );
+
+    expect(item.cropIdentificationId, 'i-p1');
+    expect(item.tagGbifKey, 5);
+    expect(item.score, 0.05);
+  });
+
+  test('a tag whose identification no longer lists its species has no key '
+      'or score, only its crop', () async {
+    await acceptedOnP1('sp_blue_tang');
+
+    final item = tagItem(
+      await review.load(const DiveReviewScope('d1'), withSuggestions: true),
+      'sp_blue_tang',
+    );
+
+    expect(item.cropIdentificationId, 'i-p1');
+    expect(item.tagGbifKey, isNull);
+    expect(item.score, isNull);
+  });
+
+  test(
+    'with no crop that lists the species, the clearest crop shows it',
+    () async {
+      // Two crops behind the Blue Tang tag, neither naming it any more; the
+      // second named its own species far more surely.
+      final weak = identification(
+        'i-a',
+        mediaId: 'p1',
+        decision: IdentificationDecision.accepted,
+        decidedSpeciesId: 'sp_blue_tang',
+      );
+      await identifications.storeRun(
+        run(mediaId: 'p1', count: 2),
+        insert: [
+          weak.copyWith(
+            candidates: [
+              for (final c in weak.candidates)
+                NamedCandidate(candidate: c.candidate, score: c.score / 4),
+            ],
+          ),
+          identification(
+            'i-b',
+            mediaId: 'p1',
+            decision: IdentificationDecision.accepted,
+            decidedSpeciesId: 'sp_blue_tang',
+          ),
+        ],
+        deleteIds: const [],
+      );
+
+      final item = tagItem(
+        await review.load(const DiveReviewScope('d1'), withSuggestions: true),
+        'sp_blue_tang',
+      );
+
+      expect(item.cropIdentificationId, 'i-b');
+    },
+  );
 
   test('the log: every dive with something to review', () async {
     final groups = await review.load(
