@@ -384,9 +384,20 @@ class OnnxVisionEngine
   Future<bool> offersEngineToFetch() async =>
       _runsHere && _onWindows && await _hardware.offersEngineToFetch();
 
+  /// A worker registers the engines ready when it starts, so one that
+  /// arrives here stops the worker: the next load starts one that has it.
   @override
-  Future<bool> fetchEngine() async =>
-      _runsHere && _onWindows && await _hardware.fetchEngine();
+  Future<bool> fetchEngine() async {
+    if (!_runsHere || !_onWindows) return false;
+    final arrived = await _hardware.fetchEngine();
+    if (arrived) {
+      await _serial(() async {
+        _loaded = null;
+        _dropWorker();
+      });
+    }
+    return arrived;
+  }
 
   Future<OnnxWorkerHandle> _workerHandle() async {
     final spawning = _worker ??= (_customWorker ?? _spawnDefault)();

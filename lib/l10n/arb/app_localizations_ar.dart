@@ -29630,6 +29630,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String settings_speciesId_downloadConfirmBodyHardware(String size) {
+    return 'سيؤدي هذا إلى تنزيل $size والاحتفاظ به على هذا الجهاز. قد يقوم Windows أيضًا بتنزيل محرك لبطاقة الرسومات من Microsoft. يمكنك إزالة النموذج في أي وقت.';
+  }
+
+  @override
   String get settings_speciesId_downloadFailed =>
       'لم يكتمل التنزيل. حاول مرة أخرى للمتابعة من حيث توقف.';
 

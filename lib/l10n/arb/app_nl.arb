@@ -8407,6 +8407,7 @@
   "settings_speciesId_downloading": "Downloaden: {percent}%",
   "settings_speciesId_downloadConfirmTitle": "Het model downloaden?",
   "settings_speciesId_downloadConfirmBody": "Hiermee wordt {size} gedownload en op dit apparaat bewaard. Je kunt het op elk moment verwijderen.",
+  "settings_speciesId_downloadConfirmBodyHardware": "Hiermee wordt {size} gedownload en op dit apparaat bewaard. Windows kan ook een engine voor je videokaart van Microsoft downloaden. Je kunt het model op elk moment verwijderen.",
   "settings_speciesId_downloadFailed": "De download is niet voltooid. Probeer het opnieuw om verder te gaan waar hij stopte.",
   "settings_speciesId_downloadNoSpace": "Er is niet genoeg vrije ruimte op dit apparaat.",
   "settings_speciesId_needsAppUpdate": "Dit model vereist een nieuwere versie van Submersion.",

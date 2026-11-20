@@ -8281,6 +8281,7 @@
   "settings_speciesId_downloading": "Letöltés: {percent}%",
   "settings_speciesId_downloadConfirmTitle": "Letöltöd a modellt?",
   "settings_speciesId_downloadConfirmBody": "Ez {size} adatot tölt le, és ezen az eszközön tárolja. Bármikor eltávolíthatod.",
+  "settings_speciesId_downloadConfirmBodyHardware": "Ez {size} adatot tölt le, és ezen az eszközön tárolja. A Windows a Microsofttól a videokártyádhoz való motort is letölthet. A modellt bármikor eltávolíthatod.",
   "settings_speciesId_downloadFailed": "A letöltés nem fejeződött be. Próbáld újra, hogy ott folytasd, ahol abbamaradt.",
   "settings_speciesId_downloadNoSpace": "Nincs elég szabad hely ezen az eszközön.",
   "settings_speciesId_needsAppUpdate": "Ehhez a modellhez a Submersion újabb verziója szükséges.",

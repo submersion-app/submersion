@@ -15,10 +15,17 @@ import 'package:submersion/features/species_id/domain/services/vision_engine.dar
 
 /// Engines a test sets up, recording what the engine asks of them.
 class FakeHardware implements HardwareEngines {
-  FakeHardware({this.offers = false, this.libraries = const []});
+  FakeHardware({
+    this.offers = false,
+    this.libraries = const [],
+    this.fetched = const [],
+  });
 
   final bool offers;
-  final List<ProviderLibrary> libraries;
+  List<ProviderLibrary> libraries;
+
+  /// What a fetch adds to [libraries].
+  final List<ProviderLibrary> fetched;
   final asked = <String>[];
 
   @override
@@ -30,6 +37,7 @@ class FakeHardware implements HardwareEngines {
   @override
   Future<bool> fetchEngine() async {
     asked.add('fetch');
+    libraries = [...libraries, ...fetched];
     return true;
   }
 
@@ -85,6 +93,7 @@ void main() {
 
   late List<OrtDevice> seenDevices;
   late List<ProviderLibrary> seenLibraries;
+  late int spawns;
 
   OnnxVisionEngine engine(TargetPlatform platform, HardwareEngines hardware) {
     final e = OnnxVisionEngine(
@@ -99,6 +108,7 @@ void main() {
           }) async {
             seenDevices = devices;
             seenLibraries = providerLibraries;
+            spawns++;
             return QuietWorker();
           },
     );
@@ -109,6 +119,7 @@ void main() {
   setUp(() {
     seenDevices = const [];
     seenLibraries = const [];
+    spawns = 0;
   });
 
   test('on Windows the models try a hardware engine, then DirectML, then '
@@ -147,6 +158,20 @@ void main() {
     expect(await source.offersEngineToFetch(), isTrue);
     expect(await source.fetchEngine(), isTrue);
     expect(hardware.asked, ['offers', 'fetch']);
+  });
+
+  test('a fetched engine restarts the worker, so the next load registers '
+      'it', () async {
+    final hardware = FakeHardware(fetched: const [_nv]);
+    final e = engine(TargetPlatform.windows, hardware);
+    await e.load(_models);
+    expect(seenLibraries, isEmpty);
+
+    expect(await e.fetchEngine(), isTrue);
+    await e.load(_models);
+
+    expect(spawns, 2);
+    expect(seenLibraries, const [_nv]);
   });
 
   test('off Windows it offers nothing to fetch and fetches nothing', () async {

@@ -29418,6 +29418,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String settings_speciesId_downloadConfirmBodyHardware(String size) {
+    return 'Cela télécharge $size et les conserve sur cet appareil. Windows peut aussi télécharger depuis Microsoft un moteur pour votre carte graphique. Vous pouvez supprimer le modèle à tout moment.';
+  }
+
+  @override
   String get settings_speciesId_downloadFailed =>
       'Le téléchargement n\'a pas abouti. Réessayez pour reprendre là où il s\'est arrêté.';
 

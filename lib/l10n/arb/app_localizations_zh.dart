@@ -27678,6 +27678,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String settings_speciesId_downloadConfirmBodyHardware(String size) {
+    return '这将下载 $size 并保存在此设备上。Windows 还可能从 Microsoft 下载适用于你的显卡的引擎。你可以随时移除该模型。';
+  }
+
+  @override
   String get settings_speciesId_downloadFailed => '下载未完成。重试即可从中断处继续。';
 
   @override

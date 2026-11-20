@@ -8281,6 +8281,7 @@
   "settings_speciesId_downloading": "Download in corso: {percent}%",
   "settings_speciesId_downloadConfirmTitle": "Scaricare il modello?",
   "settings_speciesId_downloadConfirmBody": "Verranno scaricati {size} e conservati su questo dispositivo. Puoi rimuoverlo in qualsiasi momento.",
+  "settings_speciesId_downloadConfirmBodyHardware": "Verranno scaricati {size} e conservati su questo dispositivo. Windows potrebbe anche scaricare da Microsoft un motore per la tua scheda grafica. Puoi rimuovere il modello in qualsiasi momento.",
   "settings_speciesId_downloadFailed": "Il download non è stato completato. Riprova per continuare da dove si è interrotto.",
   "settings_speciesId_downloadNoSpace": "Non c'è abbastanza spazio libero su questo dispositivo.",
   "settings_speciesId_needsAppUpdate": "Questo modello richiede una versione più recente di Submersion.",
