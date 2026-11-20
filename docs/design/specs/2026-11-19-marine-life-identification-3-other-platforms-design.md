@@ -62,7 +62,9 @@ it, to within what the accuracy gate below can measure.
 - Video on Linux. It would need a video player in the app first, which is a
   piece of its own.
 - Phone AI chips (Qualcomm's NPU, GPU paths) and smaller 8-bit models
-  **(decided)**. Every engine runs the same models on the main processor.
+  **(decided)**. The ONNX engine runs the same models on the main processor.
+  Core ML on Apple devices is unchanged: it still picks the GPU or Neural
+  Engine itself (`computeUnits = .all` in `VisionPipeline.swift`).
 - Changing the naming rules, the bars, the stored records, the screens or
   how labels look. Everything above the engine is shared and stays as it is.
 - The web build. It compiles and the feature stays absent.
@@ -140,7 +142,8 @@ The maintainer chose approach 2 **(decided)**.
 
 ### Speed on phones
 
-1. **Same models everywhere, on the main processor (chosen).** One set of
+1. **Same models everywhere, with ONNX Runtime on the main processor
+   (chosen).** Apple devices keep Core ML's GPU and Neural Engine. One set of
    bars covers every engine. A photo takes seconds on a mid-range phone, and a
    video scan runs behind playback, so on phones most names appear when the
    diver pauses or watches again, as live naming already arranges for slower
