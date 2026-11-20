@@ -163,8 +163,12 @@ class SpeciesPhotosSection extends ConsumerWidget {
           onTapMore: firstHidden == null
               ? null
               : () => _openViewer(context, firstHidden),
-          onImageSize: (size) =>
-              ref.read(mediaLearnedAspectsProvider.notifier).report(item, size),
+          // A pending photo may never be saved, so it teaches no shape.
+          onImageSize: stored < 0
+              ? null
+              : (size) => ref
+                    .read(mediaLearnedAspectsProvider.notifier)
+                    .report(item, size),
           overlay: stored < 0 ? pendingOverlay?.call(item) : null,
         );
       },
@@ -216,7 +220,7 @@ class _SpeciesPhotoTile extends StatelessWidget {
   final int hiddenCount;
   final VoidCallback? onTap;
   final VoidCallback? onTapMore;
-  final ValueChanged<Size> onImageSize;
+  final ValueChanged<Size>? onImageSize;
   final Widget? overlay;
 
   @override

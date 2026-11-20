@@ -35,22 +35,20 @@ final speciesTagCountsProvider = FutureProvider<Map<String, int>>((ref) async {
 /// Not scoped by the Insights filter: the species detail page is a
 /// logbook surface. Ticks on tags and on media (a photo edit, unlink or
 /// delete changes the gallery without touching `media_species`).
-final mediaForSpeciesProvider = FutureProvider.family<List<MediaItem>, String>((
-  ref,
-  speciesId,
-) async {
-  final repository = ref.watch(mediaSpeciesRepositoryProvider);
-  final diverId = ref.watch(currentDiverIdProvider);
-  ref.invalidateSelfWhen(repository.watchTagChanges());
-  ref.invalidateSelfWhen(
-    ref.watch(mediaRepositoryProvider).watchMediaChanges(),
-  );
-  return repository.getMediaForSpecies(speciesId, diverId: diverId);
-});
+final mediaForSpeciesProvider = FutureProvider.family<List<MediaItem>, String>(
+  (ref, speciesId) async => [
+    // One query serves both: the items are the entries without their dive
+    // details, so the page and its viewer never run it twice.
+    for (final entry in await ref.watch(
+      mediaEntriesForSpeciesProvider(speciesId).future,
+    ))
+      entry.item,
+  ],
+);
 
-/// [mediaForSpeciesProvider] with each photo's dive date and site name, for
-/// the captions on the species page's photos (issue #4740). Refreshes on the
-/// same changes.
+/// Every photo tagged with the species, each with its dive's date and site
+/// name for the captions on the species page (issue #4740). Refreshes on tag
+/// and media changes.
 final mediaEntriesForSpeciesProvider =
     FutureProvider.family<List<MediaLibraryEntry>, String>((
       ref,

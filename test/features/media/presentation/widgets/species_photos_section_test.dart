@@ -16,11 +16,20 @@ import 'package:submersion/features/media/presentation/widgets/species_photos_se
 import '../support/media_widget_harness.dart';
 
 class _NoShapesRepository implements MediaAspectCacheRepository {
-  @override
-  Future<Map<String, LearnedAspect>> loadAll() async => const {};
+  _NoShapesRepository([this.shapes = const {}]);
+
+  final Map<String, LearnedAspect> shapes;
+
+  /// Every id written, in order.
+  final List<String> written = [];
 
   @override
-  Future<void> putAll(Map<String, LearnedAspect> entries) async {}
+  Future<Map<String, LearnedAspect>> loadAll() async => shapes;
+
+  @override
+  Future<void> putAll(Map<String, LearnedAspect> entries) async {
+    written.addAll(entries.keys);
+  }
 }
 
 MediaItem _photo(String id, {int width = 600, int height = 600}) =>
@@ -51,6 +60,7 @@ Future<void> _pump(
   Widget Function(MediaItem item)? pendingOverlay,
   bool browser = false,
   double width = 800,
+  _NoShapesRepository? shapes,
 }) async {
   tester.view.physicalSize = Size(width, 3000);
   tester.view.devicePixelRatio = 1;
@@ -76,7 +86,7 @@ Future<void> _pump(
           'sp_x',
         ).overrideWith((ref) async => [for (final e in entries) e.item]),
         mediaAspectCacheRepositoryProvider.overrideWithValue(
-          _NoShapesRepository(),
+          shapes ?? _NoShapesRepository(),
         ),
         if (browser)
           deviceCapabilitiesProvider.overrideWithValue(DeviceCapabilities.web),
@@ -283,5 +293,61 @@ void main() {
       lessThan(_tileRect(tester, 'held11').top),
     );
     expect(find.text('+20'), findsOneWidget);
+  });
+
+  testWidgets('lays a photo out at its learned shape', (tester) async {
+    // Stored 600x600, but its thumbnail decoded at 1:2 (an EXIF rotation).
+    await _pump(
+      tester,
+      [_entry('p1')],
+      shapes: _NoShapesRepository({
+        'p1': (ratio: 0.5, width: 600, height: 600),
+      }),
+    );
+
+    expect(_tileRect(tester, 'p1').size, const Size(75, 150));
+  });
+
+  testWidgets('hides the caption on a tile narrower than 64 px', (
+    tester,
+  ) async {
+    final date = DateTime.utc(2025, 3, 12);
+    await _pump(tester, [
+      _entry('narrow', width: 600, height: 1800, diveDateTime: date),
+      _entry('wide', width: 900, height: 600, diveDateTime: date),
+    ]);
+
+    expect(_tileRect(tester, 'narrow').width, lessThan(64));
+    expect(
+      find.byKey(const ValueKey('species_photo_caption_narrow')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey('species_photo_caption_wide')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a stored photo teaches its shape, a pending one does not', (
+    tester,
+  ) async {
+    // Both are stored 3:2 and decode as the harness's 1x1 PNG, a shape that
+    // differs enough to be learned.
+    final shapes = _NoShapesRepository();
+    await _pump(
+      tester,
+      [_entry('stored', width: 900, height: 600)],
+      pendingItems: [_photo('held', width: 900, height: 600)],
+      shapes: shapes,
+    );
+    for (var i = 0; i < 5; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 50)),
+      );
+      await tester.pump();
+    }
+
+    expect(shapes.written, contains('stored'));
+    expect(shapes.written, isNot(contains('held')));
   });
 }

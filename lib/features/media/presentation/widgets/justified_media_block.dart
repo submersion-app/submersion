@@ -68,7 +68,7 @@ class JustifiedMediaBlock extends StatelessWidget {
     required this.cellBuilder,
     this.maxRows,
     this.keepAtLeast = 0,
-  });
+  }) : assert(maxRows == null || maxRows > 0, 'maxRows must be at least 1');
 
   /// Each item's shape, width / height, already clamped.
   final List<double> ratios;

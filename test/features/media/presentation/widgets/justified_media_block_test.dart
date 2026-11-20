@@ -138,4 +138,17 @@ void main() {
     expect(cells, isEmpty);
     expect(tester.getSize(find.byType(JustifiedMediaBlock)).height, 0);
   });
+
+  test('rejects a cap of no rows', () {
+    expect(
+      () => JustifiedMediaBlock(
+        ratios: const [1.0],
+        rowHeight: 150,
+        gap: 4,
+        maxRows: 0,
+        cellBuilder: (_, _) => const SizedBox(),
+      ),
+      throwsAssertionError,
+    );
+  });
 }
