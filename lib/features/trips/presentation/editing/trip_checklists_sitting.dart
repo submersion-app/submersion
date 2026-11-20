@@ -1,5 +1,6 @@
-import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
+
+import 'package:clock/clock.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/features/checklists/data/repositories/checklist_template_repository.dart';
@@ -381,13 +382,11 @@ Future<bool> writeTripChecklists({
       wrote = true;
     }
   }
-  // Rows of a checklist or section that goes are removed with it.
+  // Items of a checklist that goes are removed with it. Each other item
+  // the sitting removed is deleted itself, before its section's delete:
+  // that delete may move what is left in the section elsewhere.
   for (final i in loaded.items) {
-    if (isItem.containsKey(i.id) ||
-        !isChecklist.containsKey(i.checklistId) ||
-        (i.sectionId != null &&
-            wasSection.containsKey(i.sectionId) &&
-            !isSection.containsKey(i.sectionId))) {
+    if (isItem.containsKey(i.id) || !isChecklist.containsKey(i.checklistId)) {
       continue;
     }
     await items.deleteItem(i.id);

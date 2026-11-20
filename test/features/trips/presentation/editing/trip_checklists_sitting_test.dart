@@ -516,4 +516,35 @@ void main() {
       {'i1': docs, 'other': docs},
     );
   });
+
+  test('an item deleted before its section is deleted with its items moved '
+      'stays deleted', () async {
+    final session = await open();
+    final writes = writesOf(session);
+    final docs = (await writes.findOrCreateSectionId('c1', 'Docs'))!;
+    await writes.deleteItem('i1');
+    await writes.deleteSection('s1', moveItemsToSectionId: docs);
+
+    await save(session);
+
+    expect(await items.getByChecklistId('c1'), isEmpty);
+    expect(
+      [for (final s in await items.getSectionsForChecklist('c1')) s.title],
+      ['Docs'],
+    );
+  });
+
+  test('a section whose items were moved to a section deleted later takes '
+      'them with it', () async {
+    final session = await open();
+    final writes = writesOf(session);
+    final docs = (await writes.findOrCreateSectionId('c1', 'Docs'))!;
+    await writes.deleteSection('s1', moveItemsToSectionId: docs);
+    await writes.deleteSection(docs);
+
+    await save(session);
+
+    expect(await items.getByChecklistId('c1'), isEmpty);
+    expect(await items.getSectionsForChecklist('c1'), isEmpty);
+  });
 }
