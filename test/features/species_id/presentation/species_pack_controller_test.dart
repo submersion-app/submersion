@@ -425,6 +425,31 @@ void main() {
       expect(pack!.manifest.naming.levels, hasLength(1));
     });
 
+    test('that only adds another engine\'s files is taken in place', () async {
+      client.manifest = measured();
+      await controller().refresh();
+      await controller().download();
+      await container.read(installedSpeciesPackProvider.future);
+      final downloads = downloader.calls;
+      client.manifest = SpeciesPackManifest.parse(
+        manifestJson((m) {
+          (m['naming']! as Map<String, Object?>)['provisional'] = false;
+          (m['files']! as List).add({
+            'name': 'classifier.onnx.zip',
+            'engine': 'onnx',
+            'size': 1,
+            'sha256': 'c' * 64,
+          });
+        }),
+      );
+
+      await controller().refresh();
+
+      expect(store.adopted, 1);
+      expect(downloader.calls, downloads);
+      expect((state() as PackInstalled).updateBytes, isNull);
+    });
+
     test('that changes a bar is not taken', () async {
       client.manifest = measured();
       await controller().refresh();
