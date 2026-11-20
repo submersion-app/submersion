@@ -147,6 +147,20 @@ void main() {
     }
   });
 
+  testWidgets('each preset thumbnail draws its rows', (tester) async {
+    await _pump(tester);
+    final bars = find.descendant(
+      of: find.byKey(const Key('homePreset_balanced')),
+      matching: find.byType(DecoratedBox),
+    );
+    expect(bars, findsWidgets);
+    for (final e in bars.evaluate()) {
+      final size = (e.renderObject! as RenderBox).size;
+      expect(size.height, greaterThan(2));
+      expect(size.width, greaterThan(2));
+    }
+  });
+
   testWidgets('a narrow page puts the presets two by two', (tester) async {
     await _pump(tester, width: 340);
     final a = tester.getRect(find.byKey(const Key('homePreset_balanced')));

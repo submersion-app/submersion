@@ -316,6 +316,9 @@ class HomePresetTile extends StatelessWidget {
                           child: Padding(
                             padding: const EdgeInsets.only(bottom: 2),
                             child: Row(
+                              // Stretch: the bars have no child, so they
+                              // take the row's height only when told to.
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
                                 for (var i = 0; i < row.units.length; i++)
                                   Expanded(
