@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
@@ -29,6 +31,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/test_database.dart';
 
 class _FakeComponentRepository extends EquipmentComponentRepository {
   final removed = <String>[];
@@ -142,6 +145,29 @@ void main() {
   const card = Scaffold(
     body: SingleChildScrollView(child: ComponentsCard(equipmentId: 'reg')),
   );
+
+  /// The card open in [session], as the item's page shows it while editing.
+  Widget openCard(EditSession<EquipmentItem> session) => Scaffold(
+    body: SingleChildScrollView(
+      child: ComponentsCard(equipmentId: 'reg', editing: session),
+    ),
+  );
+
+  /// A sitting on "reg" holding [rows] as its parts, none of them stored.
+  EditSession<EquipmentItem> sittingWith(List<EquipmentComponent> rows) {
+    final session = EditSession(
+      const EquipmentItem(
+        id: 'reg',
+        name: 'Reg',
+        type: EquipmentType.regulator,
+      ),
+    );
+    addTearDown(session.dispose);
+    gearItemComponentsList
+      ..loadNone(session)
+      ..set(session, rows);
+    return session;
+  }
 
   Widget build(
     List<EquipmentComponent> parts,
@@ -381,11 +407,13 @@ void main() {
     testWidgets('a part with nothing of its own says so, not "no components"', (
       tester,
     ) async {
+      // In the open card, which offers to add one.
       await tester.pumpWidget(
         build(
           const [],
           _FakeComponentRepository(),
           partOf: [parentEntry(cold)],
+          home: openCard(sittingWith(const [])),
         ),
       );
       await tester.pumpAndSettle();
@@ -491,6 +519,20 @@ void main() {
     testWidgets(
       'the label wraps rather than hiding the identifier on a phone',
       (tester) async {
+        final rows = [
+          part(
+            'c1',
+            gear(
+              'z1',
+              'HOG Zenith',
+              EquipmentType.secondStage,
+              brand: 'Halcyon',
+              model: 'Zenith Pro',
+              identifier: 'Necklace left',
+            ),
+            role: 'Second Stage',
+          ),
+        ];
         tester.view.devicePixelRatio = 1.0;
         // About 320 px of label beside the action icons. The label below
         // needs more than one line there whether the test font (every glyph
@@ -498,21 +540,13 @@ void main() {
         // draws it, so a one-line label always fails this.
         tester.view.physicalSize = const Size(600, 800);
         addTearDown(tester.view.reset);
+        // In the open card, where the action icons take their room.
         await tester.pumpWidget(
-          build([
-            part(
-              'c1',
-              gear(
-                'z1',
-                'HOG Zenith',
-                EquipmentType.secondStage,
-                brand: 'Halcyon',
-                model: 'Zenith Pro',
-                identifier: 'Necklace left',
-              ),
-              role: 'Second Stage',
-            ),
-          ], _FakeComponentRepository()),
+          build(
+            rows,
+            _FakeComponentRepository(),
+            home: openCard(sittingWith(rows)),
+          ),
         );
         await tester.pumpAndSettle();
         // find.text matches an ellipsized line too, so ask the paragraph
@@ -712,10 +746,15 @@ void main() {
     });
   });
 
-  testWidgets('empty state shows the prompt and the add button', (
-    tester,
-  ) async {
-    await tester.pumpWidget(build(const [], _FakeComponentRepository()));
+  testWidgets('the open card\'s empty state shows the prompt and the add '
+      'button', (tester) async {
+    await tester.pumpWidget(
+      build(
+        const [],
+        _FakeComponentRepository(),
+        home: openCard(sittingWith(const [])),
+      ),
+    );
     await tester.pumpAndSettle();
     expect(find.text('Components'), findsOneWidget);
     expect(find.textContaining('No components'), findsOneWidget);
@@ -738,6 +777,23 @@ void main() {
     // A part with no role falls back to its type label.
     expect(find.text('Hose'), findsOneWidget);
     expect(find.text('Retired'), findsOneWidget);
+  });
+
+  testWidgets('with no sitting the card offers no add, replace, remove, role '
+      'edit or drag', (tester) async {
+    await tester.pumpWidget(
+      build([
+        part('c1', first, role: 'Primary', order: 0),
+        part('c2', hose, order: 1),
+      ], _FakeComponentRepository()),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('DGX first stage'), findsOneWidget);
+    expect(find.text('Add component'), findsNothing);
+    expect(find.byTooltip('Replace component'), findsNothing);
+    expect(find.byTooltip('Remove component'), findsNothing);
+    expect(find.byIcon(Icons.edit_outlined), findsNothing);
+    expect(find.byIcon(Icons.drag_handle), findsNothing);
   });
 
   testWidgets('a part with a clock coming due gets the warn dot', (
@@ -812,16 +868,16 @@ void main() {
     expect(find.text('Lost'), findsOneWidget);
   });
 
-  testWidgets('a drag reorders the rows at once and persists the order', (
+  testWidgets('a drag reorders the rows at once and holds the order', (
     tester,
   ) async {
     final repo = _FakeComponentRepository();
-    await tester.pumpWidget(
-      build([
-        part('c1', first, role: 'Primary', order: 0),
-        part('c2', hose, order: 1),
-      ], repo),
-    );
+    final rows = [
+      part('c1', first, role: 'Primary', order: 0),
+      part('c2', hose, order: 1),
+    ];
+    final session = sittingWith(rows);
+    await tester.pumpWidget(build(rows, repo, home: openCard(session)));
     await tester.pumpAndSettle();
     final handles = find.byIcon(Icons.drag_handle);
     expect(handles, findsNWidgets(2));
@@ -842,157 +898,179 @@ void main() {
     await drag.up();
     await tester.pumpAndSettle();
 
-    // The rows swapped without waiting for the provider to refresh (the
-    // override never changes), and the new order was persisted once.
+    // The rows swapped, and the new order is held in the sitting until
+    // Save rather than written.
     expect(
       tester.getTopLeft(find.text('Long hose')).dy,
       lessThan(tester.getTopLeft(find.text('DGX first stage')).dy),
     );
-    expect(repo.reorders, [
-      ['c2', 'c1'],
+    expect(gearItemComponentsList.current(session)!.map((p) => p.id), [
+      'c2',
+      'c1',
     ]);
+    expect(repo.reorders, isEmpty);
   });
 
-  testWidgets('with no past dives the remove icon removes at once', (
-    tester,
-  ) async {
-    final repo = _FakeComponentRepository();
-    final dives = _FakeDiveRepository();
-    await tester.pumpWidget(build([part('c1', first)], repo, dives: dives));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.delete_outline));
-    await tester.pumpAndSettle();
-    expect(find.text('Update past dives?'), findsNothing);
-    expect(repo.removed, ['c1']);
-    // Planned dives still follow the change (issue #4283).
-    expect(dives.rewrites, hasLength(1));
-    expect(dives.rewrites.single.$3, isFalse);
-  });
+  // The parts as stored, read into the open card's sitting: removing one
+  // asks "Update past dives?", and both the removal and the answer wait for
+  // Save, which writes through the fakes here.
+  group('removing a stored part in a sitting', () {
+    late _FakeComponentRepository repo;
+    late _FakeDiveRepository dives;
+    late EditSession<EquipmentItem> session;
+    late EquipmentComponent stored;
 
-  testWidgets(
-    'removing on an assembly with past dives asks, also past replays',
-    (tester) async {
-      final repo = _FakeComponentRepository();
-      final dives = _FakeDiveRepository();
+    setUp(() async {
+      await setUpTestDatabase();
+      addTearDown(SyncCoordinator.reset);
+      repo = _FakeComponentRepository();
+      dives = _FakeDiveRepository();
+      const reg = EquipmentItem(
+        id: 'reg',
+        name: 'Reg',
+        type: EquipmentType.regulator,
+      );
+      final items = EquipmentRepository();
+      for (final item in const [reg, first]) {
+        await items.createEquipment(item);
+      }
+      await EquipmentComponentRepository().addComponent(
+        parentId: 'reg',
+        componentId: 'first',
+      );
+      session = EditSession(reg);
+      addTearDown(session.dispose);
+      T read<T>(ProviderListenable<T> provider) =>
+          (identical(provider, equipmentComponentRepositoryProvider)
+                  ? repo
+                  : identical(provider, diveRepositoryProvider)
+                  ? dives
+                  : throw ArgumentError('$provider'))
+              as T;
+      holdGearItemComponents(session, read);
+      await gearItemComponentsList.currentOrRead(session);
+      stored = gearItemComponentsList.loaded(session)!.single;
+    });
+    tearDown(tearDownTestDatabase);
+
+    Future<void> pumpOpenCard(WidgetTester tester, {_DiveCount? count}) async {
       await tester.pumpWidget(
         build(
-          [part('c1', first)],
+          const [],
           repo,
-          count: _DiveCount()..diveCount = 2,
+          count: count,
           dives: dives,
+          home: openCard(session),
         ),
       );
       await tester.pumpAndSettle();
+      expect(find.text('DGX first stage'), findsOneWidget);
+    }
+
+    testWidgets('with no past dives it asks nothing, and Save rewrites the '
+        'planned dives', (tester) async {
+      await pumpOpenCard(tester);
+      await tester.tap(find.byIcon(Icons.delete_outline));
+      await tester.pumpAndSettle();
+      expect(find.text('Update past dives?'), findsNothing);
+      expect(find.text('DGX first stage'), findsNothing);
+      expect(gearItemComponentsList.current(session), isEmpty);
+      expect(repo.removed, isEmpty);
+      expect(dives.rewrites, isEmpty);
+
+      await session.runHeldWrites();
+
+      expect(repo.removed, [stored.id]);
+      // Planned dives still follow the change (issue #4283). Compared field
+      // by field: a record holding a List compares that field by identity.
+      expect(dives.rewrites.map((r) => r.$3), [true, false]);
+      expect(dives.rewrites.first.$2, isEmpty);
+      expect(dives.rewrites.last.$2, const [GearPartRemoved('first')]);
+    });
+
+    testWidgets('with past dives it asks, and Also update reaches the logged '
+        'dives at Save', (tester) async {
+      await pumpOpenCard(tester, count: _DiveCount()..diveCount = 2);
       await tester.tap(find.byIcon(Icons.delete_outline));
       await tester.pumpAndSettle();
       expect(find.text('Update past dives?'), findsOneWidget);
       expect(find.textContaining('Remove the part'), findsOneWidget);
       await tester.tap(find.text('Also update 2 dives'));
       await tester.pumpAndSettle();
-      expect(repo.removed, ['c1']);
-      // Compared field by field: a record holding a List compares that
-      // field by identity, so two equal lists never match as one record.
-      expect(dives.rewrites, hasLength(1));
-      expect(dives.rewrites.single.$1, 'reg');
-      expect(dives.rewrites.single.$2, const [GearPartRemoved('first')]);
-      expect(dives.rewrites.single.$3, isTrue);
-    },
-  );
+      expect(gearItemComponentsList.current(session), isEmpty);
+      expect(repo.removed, isEmpty);
+      expect(dives.rewrites, isEmpty);
 
-  testWidgets('a failed dive count is reported, and removes nothing', (
-    tester,
-  ) async {
-    final repo = _FakeComponentRepository();
-    final dives = _FakeDiveRepository();
-    await tester.pumpWidget(
-      build(
-        [part('c1', first)],
-        repo,
+      await session.runHeldWrites();
+
+      expect(repo.removed, [stored.id]);
+      expect(dives.rewrites.map((r) => (r.$1, r.$3)), [
+        ('reg', true),
+        ('reg', false),
+      ]);
+      expect(dives.rewrites.first.$2, const [GearPartRemoved('first')]);
+      expect(dives.rewrites.last.$2, isEmpty);
+    });
+
+    testWidgets('From now on holds the removal for the planned dives only', (
+      tester,
+    ) async {
+      await pumpOpenCard(tester, count: _DiveCount()..diveCount = 2);
+      await tester.tap(find.byIcon(Icons.delete_outline));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('From now on'));
+      await tester.pumpAndSettle();
+      expect(gearItemComponentsList.current(session), isEmpty);
+      expect(repo.removed, isEmpty);
+
+      await session.runHeldWrites();
+
+      expect(repo.removed, [stored.id]);
+      expect(dives.rewrites.map((r) => r.$3), [true, false]);
+      expect(dives.rewrites.first.$2, isEmpty);
+      expect(dives.rewrites.last.$2, const [GearPartRemoved('first')]);
+    });
+
+    testWidgets('a failed dive count is reported, and removes nothing', (
+      tester,
+    ) async {
+      await pumpOpenCard(
+        tester,
         count: _DiveCount()..throwOnCount = StateError('no database'),
-        dives: dives,
-      ),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.delete_outline));
-    await tester.pumpAndSettle();
-    expect(find.text('Update past dives?'), findsNothing);
-    expect(find.textContaining('no database'), findsOneWidget);
-    expect(repo.removed, isEmpty);
-    expect(tester.takeException(), isNull);
-  });
+      );
+      await tester.tap(find.byIcon(Icons.delete_outline));
+      await tester.pumpAndSettle();
+      expect(find.text('Update past dives?'), findsNothing);
+      expect(find.textContaining('no database'), findsOneWidget);
+      expect(gearItemComponentsList.current(session), [stored]);
+      expect(session.hasHeldWrites, isFalse);
+      expect(tester.takeException(), isNull);
+    });
 
-  testWidgets('a failed replay is reported instead of going unhandled', (
-    tester,
-  ) async {
-    final repo = _FakeComponentRepository();
-    final dives = _FakeDiveRepository()..throwOnRewrite = StateError('boom');
-    await tester.pumpWidget(
-      build(
-        [part('c1', first)],
-        repo,
-        count: _DiveCount()..diveCount = 2,
-        dives: dives,
-      ),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.delete_outline));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Also update 2 dives'));
-    await tester.pumpAndSettle();
-    expect(repo.removed, ['c1']);
-    expect(find.textContaining('boom'), findsOneWidget);
-    expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('from now on removes the part and rewrites planned dives only', (
-    tester,
-  ) async {
-    final repo = _FakeComponentRepository();
-    final dives = _FakeDiveRepository();
-    await tester.pumpWidget(
-      build(
-        [part('c1', first)],
-        repo,
-        count: _DiveCount()..diveCount = 2,
-        dives: dives,
-      ),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.delete_outline));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('From now on'));
-    await tester.pumpAndSettle();
-    expect(repo.removed, ['c1']);
-    expect(dives.rewrites, hasLength(1));
-    expect(dives.rewrites.single.$2, const [GearPartRemoved('first')]);
-    expect(dives.rewrites.single.$3, isFalse);
-  });
-
-  testWidgets('cancelling the question changes nothing', (tester) async {
-    final repo = _FakeComponentRepository();
-    final dives = _FakeDiveRepository();
-    await tester.pumpWidget(
-      build(
-        [part('c1', first)],
-        repo,
-        count: _DiveCount()..diveCount = 2,
-        dives: dives,
-      ),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.delete_outline));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Cancel'));
-    await tester.pumpAndSettle();
-    expect(repo.removed, isEmpty);
-    expect(dives.rewrites, isEmpty);
+    testWidgets('cancelling the question changes nothing', (tester) async {
+      await pumpOpenCard(tester, count: _DiveCount()..diveCount = 2);
+      await tester.tap(find.byIcon(Icons.delete_outline));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(find.text('DGX first stage'), findsOneWidget);
+      expect(gearItemComponentsList.current(session), [stored]);
+      expect(session.hasHeldWrites, isFalse);
+      expect(repo.removed, isEmpty);
+      expect(dives.rewrites, isEmpty);
+    });
   });
 
   testWidgets('the replace icon opens the picker in single-select mode', (
     tester,
   ) async {
+    final rows = [part('c1', first)];
     await tester.pumpWidget(
-      build([part('c1', first)], _FakeComponentRepository()),
+      build(
+        rows,
+        _FakeComponentRepository(),
+        home: openCard(sittingWith(rows)),
+      ),
     );
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Replace component'));
@@ -1005,11 +1083,13 @@ void main() {
     expect(find.text('DGX first stage'), findsOneWidget);
   });
 
-  testWidgets('the edit icon opens the role dialog and saves the new role', (
+  testWidgets('the edit icon opens the role dialog and holds the new role', (
     tester,
   ) async {
     final repo = _FakeComponentRepository();
-    await tester.pumpWidget(build([part('c1', first, role: 'Primary')], repo));
+    final rows = [part('c1', first, role: 'Primary')];
+    final session = sittingWith(rows);
+    await tester.pumpWidget(build(rows, repo, home: openCard(session)));
     await tester.pumpAndSettle();
     await tester.tap(find.byIcon(Icons.edit_outlined));
     await tester.pumpAndSettle();
@@ -1017,6 +1097,8 @@ void main() {
     await tester.enterText(find.byType(TextField), 'Backup');
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
-    expect(repo.roles, {'c1': 'Backup'});
+    expect(gearItemComponentsList.current(session)!.single.role, 'Backup');
+    expect(find.text('Backup'), findsOneWidget);
+    expect(repo.roles, isEmpty);
   });
 }
