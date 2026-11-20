@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/editing/record_document_links_sitting.dart';
@@ -9,6 +10,7 @@ import 'package:submersion/features/trips/data/services/trip_edit_save_service.d
 import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_checklists_sitting.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_header_card_editor.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_itinerary_sitting.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_vessel_sitting.dart';
@@ -22,7 +24,8 @@ import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
 const _log = LoggerService('TripSittingHost');
 
 /// Loads what a sitting on a trip holds besides its own values: who it is
-/// shared with, the vessel, the itinerary days and the document links.
+/// shared with, the vessel, the itinerary days, the checklists and the
+/// document links.
 void loadTripSitting(EditSession<Trip> session, ProviderContainer container) {
   // Read now: an owner's Save clears share rows a sync race left beside
   // the Everyone flag, as the form's did, whichever card it changed.
@@ -32,6 +35,10 @@ void loadTripSitting(EditSession<Trip> session, ProviderContainer container) {
   ).load(session);
   tripItineraryDays(
     container.read(itineraryDayRepositoryProvider),
+  ).load(session);
+  tripChecklistsList(
+    checklists: container.read(tripChecklistsRepositoryProvider),
+    items: container.read(tripChecklistRepositoryProvider),
   ).load(session);
   holdDocumentLinks(
     session,

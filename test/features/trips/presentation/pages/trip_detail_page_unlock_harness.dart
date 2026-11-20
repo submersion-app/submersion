@@ -7,6 +7,12 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
+import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
+import 'package:submersion/features/checklists/data/repositories/trip_checklists_repository.dart';
+import 'package:submersion/features/checklists/domain/entities/checklist_template.dart';
+import 'package:submersion/features/checklists/domain/entities/trip_checklist.dart';
+import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
+import 'package:submersion/features/checklists/domain/entities/trip_checklist_section.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -25,6 +31,7 @@ import 'package:submersion/features/trips/domain/entities/scrubber_margin.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/services/trip_day_notes.dart';
 import 'package:submersion/features/trips/domain/services/trip_story_builder.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_checklists_sitting.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
@@ -201,6 +208,114 @@ class FakeTripDives implements TripRepository {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// A trip's checklists without a database: [held] as stored, and each
+/// write recorded by name.
+class FakeTripChecklists implements TripChecklistsRepository {
+  FakeTripChecklists(this.held, this.writes);
+
+  final TripChecklistsHeld held;
+  final List<String> writes;
+
+  @override
+  Future<List<TripChecklist>> getChecklistsForTrip(String tripId) async =>
+      held.checklists;
+
+  @override
+  Future<TripChecklist> createChecklist({
+    required String tripId,
+    required String name,
+    String? id,
+  }) async {
+    writes.add('createChecklist $name');
+    return TripChecklist(
+      id: id ?? 'new',
+      tripId: tripId,
+      name: name,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+  }
+
+  @override
+  Future<void> renameChecklist(String id, String name) async =>
+      writes.add('renameChecklist $id $name');
+
+  @override
+  Future<void> reorderChecklists(String tripId, List<String> ids) async =>
+      writes.add('reorderChecklists ${ids.join(',')}');
+
+  @override
+  Future<void> deleteChecklist(String id) async =>
+      writes.add('deleteChecklist $id');
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// A trip's checklist items and sections without a database: [held] as
+/// stored, and each write recorded by name.
+class FakeTripChecklistItems implements TripChecklistRepository {
+  FakeTripChecklistItems(this.held, this.writes);
+
+  final TripChecklistsHeld held;
+  final List<String> writes;
+
+  @override
+  Future<List<TripChecklistItem>> getAllItemsForTrip(String tripId) async =>
+      held.items;
+
+  @override
+  Future<List<TripChecklistSection>> getSectionsForChecklist(
+    String checklistId,
+  ) async => held.sectionsOf(checklistId);
+
+  @override
+  Future<List<TripChecklistItem>> getByChecklistId(String checklistId) async =>
+      held.itemsOf(checklistId);
+
+  @override
+  Future<TripChecklistItem> createItem(
+    TripChecklistItem item, {
+    bool keepSortOrder = false,
+  }) async {
+    writes.add('createItem ${item.title}');
+    return item;
+  }
+
+  @override
+  Future<void> updateItem(TripChecklistItem item) async =>
+      writes.add('updateItem ${item.title} done=${item.isDone}');
+
+  @override
+  Future<void> toggleDone(String id, {required bool isDone}) async =>
+      writes.add('toggleDone $id');
+
+  @override
+  Future<void> deleteItem(String id) async => writes.add('deleteItem $id');
+
+  @override
+  Future<ChecklistTemplate> saveAsTemplate({
+    required String checklistId,
+    required DateTime tripStartDate,
+    required String name,
+    String? diverId,
+    ChecklistRows? rows,
+  }) async {
+    writes.add(
+      'saveAsTemplate $name ${[for (final i in rows?.items ?? const <TripChecklistItem>[]) '${i.title}:${i.isDone}'].join(',')}',
+    );
+    return ChecklistTemplate(
+      id: 'tp',
+      name: name,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 class TripPageHarness {
   TripPageHarness(
     this.save,
@@ -210,6 +325,7 @@ class TripPageHarness {
     this.vessels,
     this.itinerary,
     this.tripDives,
+    this.checklistWrites,
   );
 
   final FakeTripSave save;
@@ -219,6 +335,9 @@ class TripPageHarness {
   final FakeVessels vessels;
   final FakeItineraryDays itinerary;
   final FakeTripDives tripDives;
+
+  /// Every checklist write, by name, in order.
+  final List<String> checklistWrites;
 }
 
 final _storedProvider = StateProvider<Trip?>((ref) => redSea);
@@ -249,7 +368,9 @@ Future<TripPageHarness> pumpTripPage(
   String? activeDiverId,
   bool hasSideTrips = false,
   List<DiveCandidate> candidates = const [],
+  TripChecklistsHeld checklists = const TripChecklistsHeld(),
 }) async {
+  final checklistWrites = <String>[];
   final itemShares = shares ?? FakeItemShares();
   final vessels = FakeVessels(vessel);
   final itinerary = FakeItineraryDays(days);
@@ -319,10 +440,24 @@ Future<TripPageHarness> pumpTripPage(
           shown.id,
         ).overrideWith((ref) async => const <ScrubberMargin>[]),
         tripFillForecastProvider(shown.id).overrideWith((ref) async => null),
-        tripChecklistsProvider(shown.id).overrideWith((ref) async => const []),
+        tripChecklistsProvider(
+          shown.id,
+        ).overrideWith((ref) async => checklists.checklists),
+        tripChecklistProvider.overrideWith(
+          (ref, id) async => checklists.itemsOf(id),
+        ),
+        tripChecklistSectionsProvider.overrideWith(
+          (ref, id) async => checklists.sectionsOf(id),
+        ),
+        tripChecklistsRepositoryProvider.overrideWithValue(
+          FakeTripChecklists(checklists, checklistWrites),
+        ),
+        tripChecklistRepositoryProvider.overrideWithValue(
+          FakeTripChecklistItems(checklists, checklistWrites),
+        ),
         tripChecklistAllItemsProvider(
           shown.id,
-        ).overrideWith((ref) async => const []),
+        ).overrideWith((ref) async => checklists.items),
         tripChecklistCombinedProgressProvider(
           shown.id,
         ).overrideWith((ref) async => (done: 0, total: 0)),
@@ -347,6 +482,7 @@ Future<TripPageHarness> pumpTripPage(
             vessels,
             itinerary,
             tripDives,
+            checklistWrites,
           );
           return save;
         }),

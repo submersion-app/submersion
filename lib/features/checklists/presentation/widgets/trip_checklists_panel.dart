@@ -3,13 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist.dart'
     as domain;
+import 'package:submersion/features/checklists/presentation/editing/trip_checklist_writes.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/checklists/presentation/widgets/apply_template_sheet.dart';
 import 'package:submersion/features/checklists/presentation/widgets/checklist_name_dialog.dart';
 import 'package:submersion/features/checklists/presentation/widgets/checklist_snack_bar.dart';
 import 'package:submersion/features/checklists/presentation/widgets/trip_checklist_block.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_checklists_sitting.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 /// A trip's checklists (issue #3356): a list of collapsible
 /// [TripChecklistBlock]s, one per checklist, with a persistent "add
@@ -33,14 +36,19 @@ import 'package:submersion/l10n/l10n_extension.dart';
 class TripChecklistsPanel extends ConsumerStatefulWidget {
   final Trip trip;
 
-  /// Shows the checklists without changing them (a trip page that edits in
-  /// place, issue #4527, before checklists join its sitting).
+  /// Shows the checklists without changing them: a trip page that edits in
+  /// place, locked (issue #4527).
   final bool readOnly;
+
+  /// The trip page's open sitting: the checklists it holds are shown, and
+  /// every change waits for its Save. Null writes each change at once.
+  final EditSession<Trip>? editing;
 
   const TripChecklistsPanel({
     super.key,
     required this.trip,
     this.readOnly = false,
+    this.editing,
   });
 
   @override
@@ -59,9 +67,49 @@ class _TripChecklistsPanelState extends ConsumerState<TripChecklistsPanel>
   @override
   bool get wantKeepAlive => true;
 
+  /// Where this panel's changes go.
+  late TripChecklistWrites _writes;
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final editing = widget.editing;
+    if (editing != null) {
+      final list = tripChecklistsList(
+        checklists: ref.read(tripChecklistsRepositoryProvider),
+        items: ref.read(tripChecklistRepositoryProvider),
+      );
+      _writes = HeldTripChecklistWrites(
+        session: editing,
+        list: list,
+        templates: ref.read(checklistTemplateRepositoryProvider),
+      );
+      return ListenableBuilder(
+        listenable: list.changes(editing),
+        builder: (context, _) {
+          final held = heldChecklistsOf(editing, list);
+          if (held == null) {
+            return list.failed(editing)
+                ? Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(context.l10n.common_error_tryAgain),
+                  )
+                : const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(24),
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+          }
+          return _buildList(context, held.checklists, held: held);
+        },
+      );
+    }
+    _writes = RepositoryTripChecklistWrites(
+      trip: widget.trip,
+      checklists: ref.read(tripChecklistsRepositoryProvider),
+      items: ref.read(tripChecklistRepositoryProvider),
+    );
     final checklistsAsync = ref.watch(tripChecklistsProvider(widget.trip.id));
     final checklists = checklistsAsync.value;
 
@@ -80,6 +128,14 @@ class _TripChecklistsPanelState extends ConsumerState<TripChecklistsPanel>
       );
     }
 
+    return _buildList(context, checklists);
+  }
+
+  Widget _buildList(
+    BuildContext context,
+    List<domain.TripChecklist> checklists, {
+    TripChecklistsHeld? held,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -100,6 +156,8 @@ class _TripChecklistsPanelState extends ConsumerState<TripChecklistsPanel>
               checklists[i].id,
             ),
             readOnly: widget.readOnly,
+            held: held,
+            writes: _writes,
             onMoveUp: i == 0 ? null : () => _moveChecklist(checklists, i, -1),
             onMoveDown: i == checklists.length - 1
                 ? null
@@ -175,9 +233,7 @@ class _TripChecklistsPanelState extends ConsumerState<TripChecklistsPanel>
       ),
     );
     if (name == null || !mounted) return;
-    final checklist = await ref
-        .read(tripChecklistsRepositoryProvider)
-        .createChecklist(tripId: widget.trip.id, name: name);
+    final checklist = await _writes.createChecklist(name);
     if (!mounted) return;
     _markJustCreated(checklist.id);
   }
@@ -198,26 +254,21 @@ class _TripChecklistsPanelState extends ConsumerState<TripChecklistsPanel>
       return;
     }
 
-    // Both read up front: ref is unusable once the panel unmounts, and the
+    // Read up front: ref is unusable once the panel unmounts, and the
     // create and apply below must finish together even if the diver leaves.
-    final checklistsRepository = ref.read(tripChecklistsRepositoryProvider);
-    final itemsRepository = ref.read(tripChecklistRepositoryProvider);
-    final checklist = await checklistsRepository.createChecklist(
-      tripId: widget.trip.id,
-      name: template.name,
-    );
+    final writes = _writes;
+    final checklist = await writes.createChecklist(template.name);
     final ({int added, int skipped}) result;
     try {
-      result = await itemsRepository.applyTemplate(
+      result = await writes.applyTemplate(
         templateId: templateId,
         checklistId: checklist.id,
-        trip: widget.trip,
       );
     } catch (e) {
       // Nothing was applied, so drop the checklist this just created rather
       // than leaving an empty, template-named orphan the diver would have to
       // notice and remove by hand.
-      await checklistsRepository.deleteChecklist(checklist.id);
+      await writes.deleteChecklist(checklist.id);
       if (!mounted) return;
       // A StateError means the template vanished between the read above and
       // here (a concurrent sync, say). The repository has logged anything
@@ -246,8 +297,6 @@ class _TripChecklistsPanelState extends ConsumerState<TripChecklistsPanel>
     final orderedIds = checklists.map((c) => c.id).toList();
     final moved = orderedIds.removeAt(index);
     orderedIds.insert(index + delta, moved);
-    await ref
-        .read(tripChecklistsRepositoryProvider)
-        .reorderChecklists(widget.trip.id, orderedIds);
+    await _writes.reorderChecklists(orderedIds);
   }
 }

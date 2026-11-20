@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/checklists/presentation/widgets/checklist_snack_bar.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Prompts for a name and snapshots one of the trip's checklists as a
-/// template (issue #3356).
+/// template (issue #3356): as stored, or as [rows] has it (a trip page's
+/// sitting, issue #4527).
 Future<void> showSaveAsTemplateDialog({
   required BuildContext context,
   required Trip trip,
   required String checklistId,
   required String initialName,
+  ChecklistRows? rows,
 }) {
   return showDialog<void>(
     context: context,
@@ -24,6 +27,7 @@ Future<void> showSaveAsTemplateDialog({
       trip: trip,
       checklistId: checklistId,
       initialName: initialName,
+      rows: rows,
     ),
   );
 }
@@ -32,11 +36,13 @@ class _SaveAsTemplateDialog extends ConsumerStatefulWidget {
   final Trip trip;
   final String checklistId;
   final String initialName;
+  final ChecklistRows? rows;
 
   const _SaveAsTemplateDialog({
     required this.trip,
     required this.checklistId,
     required this.initialName,
+    this.rows,
   });
 
   @override
@@ -65,6 +71,7 @@ class _SaveAsTemplateDialogState extends ConsumerState<_SaveAsTemplateDialog> {
         tripStartDate: widget.trip.startDate,
         name: _controller.text.trim(),
         diverId: widget.trip.diverId,
+        rows: widget.rows,
       );
       // Resolve navigator/messenger after the await and guard with mounted, so
       // a teardown during the save can never pop a disposed route.

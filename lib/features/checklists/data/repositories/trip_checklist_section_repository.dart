@@ -5,6 +5,8 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart' hide Trip;
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/checklists/domain/services/checklist_rows.dart'
+    as rows;
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_section.dart'
     as domain;
 
@@ -33,11 +35,14 @@ class TripChecklistSectionRepository {
   }
 
   /// Creates an empty section at the end of the checklist's section order.
+  /// Adds a section at the end of the checklist, with [id] when given (an
+  /// editing sitting's row, issue #4527).
   Future<domain.TripChecklistSection> createSection({
     required String checklistId,
     required String title,
+    String? id,
   }) async {
-    final id = _uuid.v4();
+    id ??= _uuid.v4();
     final now = DateTime.now().millisecondsSinceEpoch;
     final sortOrder = await _nextSectionSortOrder(checklistId);
     await _db
@@ -218,15 +223,7 @@ class TripChecklistSectionRepository {
   String? matchSectionByTitle(
     String? trimmedTitle,
     List<domain.TripChecklistSection> knownSections,
-  ) {
-    if (trimmedTitle == null) return null;
-    for (final section in knownSections) {
-      if (section.title.toLowerCase() == trimmedTitle.toLowerCase()) {
-        return section.id;
-      }
-    }
-    return null;
-  }
+  ) => rows.matchSectionByTitle(trimmedTitle, knownSections);
 
   /// Transaction-safe variant of [createSection] for
   /// `TripChecklistRepository.applyTemplate`: inserts without the sync
@@ -235,9 +232,10 @@ class TripChecklistSectionRepository {
   Future<domain.TripChecklistSection> createSectionRow(
     String checklistId,
     String title,
-    int sortOrder,
-  ) async {
-    final id = _uuid.v4();
+    int sortOrder, {
+    String? id,
+  }) async {
+    id ??= _uuid.v4();
     final now = DateTime.now().millisecondsSinceEpoch;
     await _db
         .into(_db.tripChecklistSections)
