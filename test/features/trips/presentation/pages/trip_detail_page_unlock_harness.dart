@@ -107,6 +107,28 @@ class FakeTripSave implements TripEditSaveService {
     stored.state = after;
     return (before: before, after: after);
   }
+
+  /// Each create the page asks for (issue #4527, plan 11).
+  final creates = <({Trip trip, Set<String> cards, List<String> dives})>[];
+
+  @override
+  Future<Trip> create({
+    required Trip trip,
+    required Iterable<String> changedCardIds,
+    List<String> draftDiveIds = const [],
+    Future<void> Function()? alsoWrite,
+  }) async {
+    if (fail) throw StateError('the create failed');
+    await gate?.future;
+    if (runHeld) await alsoWrite?.call();
+    creates.add((
+      trip: trip,
+      cards: changedCardIds.toSet(),
+      dives: draftDiveIds,
+    ));
+    stored.state = trip;
+    return trip;
+  }
 }
 
 /// A trip list that records deletes and hides, and writes nothing.
