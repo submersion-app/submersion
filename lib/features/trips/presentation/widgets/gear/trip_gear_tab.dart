@@ -1,6 +1,5 @@
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -15,6 +14,7 @@ import 'package:submersion/features/trips/domain/services/trip_cylinder_drafts.d
 import 'package:submersion/features/trips/domain/services/trip_gear_split.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_checklists_sitting.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_gear_sitting.dart';
+import 'package:submersion/features/trips/presentation/helpers/open_trip_cylinder_board.dart';
 import 'package:submersion/features/trips/presentation/providers/scrubber_margin_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_equipment_providers.dart';
@@ -221,7 +221,7 @@ class TripGearTab extends ConsumerWidget {
       writes: writes,
       lead: lead,
     );
-    void openBoard() => context.push('/trips/${trip.id}/cylinders');
+    void openBoard() => openTripCylinderBoard(context, trip.id);
     final addButton = FilledButton.tonalIcon(
       key: const Key('trip-gear-add'),
       icon: const Icon(Icons.add),

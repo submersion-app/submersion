@@ -152,7 +152,9 @@ class TripCylinderSlotCard extends ConsumerWidget {
       centerNames: centerNames,
     );
     final small = theme.textTheme.bodySmall;
-    final handle = _dragsByHandle(theme.platform);
+    // A locked board is not reordered.
+    final drags = !readOnly;
+    final handle = drags && _dragsByHandle(theme.platform);
     final card = Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: ListTile(
@@ -202,7 +204,7 @@ class TripCylinderSlotCard extends ConsumerWidget {
         ),
       ),
     );
-    if (handle) return card;
+    if (handle || !drags) return card;
     return ReorderableDelayedDragStartListener(
       index: reorderIndex,
       child: card,

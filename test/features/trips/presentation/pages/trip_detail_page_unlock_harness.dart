@@ -373,6 +373,18 @@ class FakeTripBoard implements TripCylinderRepository {
   ) async => held.uses;
 
   @override
+  Future<int> countLinkedDives(String cylinderId) async => 0;
+
+  @override
+  Future<int> countTripDiveRoundsOn(String tripId, DateTime day) async => 0;
+
+  @override
+  Stream<void> watchTripCylinderChanges() => const Stream.empty();
+
+  @override
+  Stream<void> watchLedgerChanges() => const Stream.empty();
+
+  @override
   Future<List<TripCylinder>> createCylinders(
     List<TripCylinder> cylinders,
   ) async {
