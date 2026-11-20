@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ffi' show IntPtr, sizeOf;
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -7,7 +6,9 @@ import 'package:flutter/widgets.dart';
 import 'package:submersion_vision/onnx_runtime.dart';
 
 import 'package:submersion/core/constants/feature_flags.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/device_memory.dart';
+import 'package:submersion/features/species_id/data/engines/onnx/device_memory_io.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/flutter_image_decoder.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/frame_reader.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/onnx_worker.dart';
@@ -45,7 +46,7 @@ class OnnxVisionEngine with WidgetsBindingObserver implements VisionEngine {
        _spawn =
            worker ??
            (() => OnnxWorker.spawn(
-             intraOpThreads: onnxThreadsFor(Platform.numberOfProcessors),
+             intraOpThreads: onnxThreadsFor(HostPlatform.numberOfProcessors),
            )),
        _decode = decode ?? decodeForAnalysis,
        _frames = frames ?? const ChannelFrameReader(),
@@ -57,7 +58,7 @@ class OnnxVisionEngine with WidgetsBindingObserver implements VisionEngine {
              frames ?? const ChannelFrameReader(),
            ),
        _ignoreFloor = ignoreFloor,
-       _is64Bit = is64Bit ?? sizeOf<IntPtr>() == 8,
+       _is64Bit = is64Bit ?? processIs64Bit(),
        _libraryLoads = libraryLoads ?? (() async => ortLibraryLoads());
 
   final TargetPlatform _platform;
