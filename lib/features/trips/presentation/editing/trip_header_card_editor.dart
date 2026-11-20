@@ -12,6 +12,7 @@ import 'package:submersion/features/equipment/presentation/helpers/gear_expansio
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_edit_fields.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_new_sitting.dart';
 import 'package:submersion/features/trips/presentation/providers/side_trip_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/part_of_trip_field.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -40,7 +41,8 @@ final tripSharing = RecordSharingSitting<Trip, ItemSharing>(
 
 /// Reads who the trip is shared with into [session], so the header's
 /// editor can change it and an owner's Save clears share rows a sync race
-/// left beside the Everyone flag.
+/// left beside the Everyone flag. A new trip is shared as its seed was,
+/// read from nowhere (plan 11).
 Future<void> loadTripSharing(EditSession<Trip> session, ProviderRead read) =>
     tripSharing.load(
       session,
@@ -49,6 +51,7 @@ Future<void> loadTripSharing(EditSession<Trip> session, ProviderRead read) =>
         SharedItemKind.trip,
       ),
       actingDiverId: read(validatedCurrentDiverIdProvider).value,
+      newRecordSharing: session.isNew ? newTripSharing(session.stored) : null,
     );
 
 /// The trip's values no other part of its page shows, one row each when
