@@ -6,7 +6,9 @@ import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
+import 'package:submersion/features/media/presentation/helpers/viewer_audio.dart';
 import 'package:submersion/features/media/presentation/widgets/video_controls_bar.dart';
+import 'package:submersion/features/media/presentation/widgets/video_volume_control.dart';
 import 'package:video_player/video_player.dart';
 
 import 'video_controls_bar_test_harness.dart';
@@ -579,5 +581,32 @@ void main() {
     expect(controller.value.position, const Duration(seconds: 20));
     await finishBar(tester, controller);
     semantics.dispose();
+  });
+
+  // Issue #4817: the mute button and volume slider ride on the bar.
+  testWidgets('the bar shows the volume control when given audio', (
+    tester,
+  ) async {
+    useBarPlatform();
+    final controller = (await tester.runAsync(readyController))!;
+    final audio = ViewerAudio();
+    addTearDown(audio.dispose);
+    await tester.pumpWidget(
+      barApp(
+        VideoControlsBar(controller: controller, mediaId: 'm1', audio: audio),
+      ),
+    );
+    expect(find.byType(VideoVolumeControl), findsOneWidget);
+    await finishBar(tester, controller);
+  });
+
+  testWidgets('the bar shows no volume control without audio', (tester) async {
+    useBarPlatform();
+    final controller = (await tester.runAsync(readyController))!;
+    await tester.pumpWidget(
+      barApp(VideoControlsBar(controller: controller, mediaId: 'm1')),
+    );
+    expect(find.byType(VideoVolumeControl), findsNothing);
+    await finishBar(tester, controller);
   });
 }

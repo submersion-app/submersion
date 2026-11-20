@@ -6,7 +6,9 @@ import 'package:video_player/video_player.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/presentation/helpers/elapsed_time_format.dart';
 import 'package:submersion/features/media/presentation/helpers/playhead_glide.dart';
+import 'package:submersion/features/media/presentation/helpers/viewer_audio.dart';
 import 'package:submersion/features/media/presentation/widgets/people_tags/video_tag_marks.dart';
+import 'package:submersion/features/media/presentation/widgets/video_volume_control.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Video playback controls: elapsed time, a scrub bar, and total time.
@@ -36,6 +38,11 @@ class VideoControlsBar extends StatefulWidget {
   /// bar), letting the host restart its clock.
   final ValueChanged<bool>? onHoldChanged;
 
+  /// The viewer's sound: when set, a mute button and hover volume slider
+  /// follow the total time (issue #4817). The bar's own hover hold keeps the
+  /// controls up while the mouse is on them.
+  final ViewerAudio? audio;
+
   /// The bar's touch area, for tests that tap or drag along it.
   @visibleForTesting
   static const trackKey = ValueKey('videoControlsBar.track');
@@ -55,6 +62,7 @@ class VideoControlsBar extends StatefulWidget {
     required this.controller,
     required this.mediaId,
     this.onHoldChanged,
+    this.audio,
   });
 
   @override
@@ -459,6 +467,8 @@ class _VideoControlsBarState extends State<VideoControlsBar>
                   textAlign: TextAlign.center,
                 ),
               ),
+              if (widget.audio case final audio?)
+                VideoVolumeControl(audio: audio),
             ],
           ),
         ),

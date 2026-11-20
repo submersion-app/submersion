@@ -33721,6 +33721,24 @@ abstract class AppLocalizations {
   /// **'Seek video position'**
   String get media_photoViewer_seekVideoLabel;
 
+  /// No description provided for @media_photoViewer_muteVideoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute video'**
+  String get media_photoViewer_muteVideoLabel;
+
+  /// No description provided for @media_photoViewer_unmuteVideoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute video'**
+  String get media_photoViewer_unmuteVideoLabel;
+
+  /// No description provided for @media_photoViewer_videoVolumeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Video volume'**
+  String get media_photoViewer_videoVolumeLabel;
+
   /// No description provided for @media_photoViewer_shareTooltip.
   ///
   /// In en, this message translates to:

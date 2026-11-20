@@ -483,6 +483,7 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
               child: VideoControlsBar(
                 controller: controller,
                 mediaId: widget.item.id,
+                audio: widget.audio,
                 // The controls hide 3 s after a reveal: hold them up while
                 // scrubbing or under the mouse, so the bar is not pulled from
                 // under the pointer, then restart the clock only if the video
