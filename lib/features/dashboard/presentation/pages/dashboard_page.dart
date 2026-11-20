@@ -13,7 +13,7 @@ import 'package:submersion/features/dashboard/presentation/providers/dashboard_p
 import 'package:submersion/features/dashboard/presentation/providers/gauge_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/milestone_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/media_ribbon_providers.dart';
-import 'package:submersion/features/dashboard/presentation/widgets/dashboard_grid.dart';
+import 'package:submersion/features/dashboard/presentation/legacy/legacy_dashboard_grid.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/gauge_strip.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/demo_mode/presentation/widgets/demo_exit_entries.dart';

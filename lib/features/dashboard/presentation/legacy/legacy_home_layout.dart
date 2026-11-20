@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/waiting_for_download_card.dart';
 import 'package:submersion/features/dashboard/presentation/home_cards.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/active_course_progress_card.dart';
-import 'package:submersion/features/dashboard/presentation/widgets/dashboard_grid.dart';
+import 'package:submersion/features/dashboard/presentation/legacy/legacy_dashboard_grid.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/gauge_strip.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/hero_header.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/milestones_card.dart';
