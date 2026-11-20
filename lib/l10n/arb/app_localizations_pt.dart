@@ -29289,11 +29289,11 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_speciesId_entrySubtitle =>
-      'Encontre peixes nas suas fotos e vídeos e sugira a espécie';
+      'Sugira as espécies nas suas fotos e vídeos';
 
   @override
   String get speciesId_downloadPrompt_title =>
-      'Identifique os peixes nas suas fotos e vídeos';
+      'Identifique as espécies nas suas fotos e vídeos';
 
   @override
   String get speciesId_downloadPrompt_subtitle =>
@@ -29304,7 +29304,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_speciesId_intro =>
-      'Encontra peixes nas suas fotos e vídeos e sugere qual é a espécie. Funciona neste dispositivo. Suas fotos e vídeos nunca saem dele.';
+      'Sugere as espécies nas suas fotos e vídeos. Funciona neste dispositivo. Suas fotos e vídeos nunca saem dele.';
 
   @override
   String get settings_speciesId_model => 'Modelo';
@@ -29380,7 +29380,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_speciesId_toggle =>
-      'Identificar peixes ao abrir uma foto ou um vídeo';
+      'Identificar espécies ao abrir uma foto ou um vídeo';
 
   @override
   String get settings_speciesId_autoApply =>
@@ -29411,7 +29411,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_speciesId_levelTitle =>
-      'Quão segura a app deve estar para nomear um peixe';
+      'Com que facilidade sugerir uma espécie';
 
   @override
   String get settings_speciesId_levelSurer => 'Mais seguro';

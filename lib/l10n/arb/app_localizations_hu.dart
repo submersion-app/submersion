@@ -29170,11 +29170,11 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_speciesId_entrySubtitle =>
-      'Halak keresése a fotóidon és videóidon, és fajjavaslatok';
+      'Fajjavaslatok a fotóidhoz és videóidhoz';
 
   @override
   String get speciesId_downloadPrompt_title =>
-      'Halak felismerése a fotóidon és videóidon';
+      'Fajok felismerése a fotóidon és videóidon';
 
   @override
   String get speciesId_downloadPrompt_subtitle =>
@@ -29185,7 +29185,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_speciesId_intro =>
-      'Megkeresi a halakat a fotóidon és videóidon, és javaslatot tesz a fajukra. Ezen az eszközön fut. A fotóid és videóid soha nem hagyják el.';
+      'Fajokat javasol a fotóidon és videóidon. Ezen az eszközön fut. A fotóid és videóid soha nem hagyják el.';
 
   @override
   String get settings_speciesId_model => 'Modell';
@@ -29261,7 +29261,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_speciesId_toggle =>
-      'Halak felismerése fotó vagy videó megnyitásakor';
+      'Fajok felismerése fotó vagy videó megnyitásakor';
 
   @override
   String get settings_speciesId_autoApply =>
@@ -29292,7 +29292,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_speciesId_levelTitle =>
-      'Mennyire legyen biztos az alkalmazás, mielőtt megnevez egy halat';
+      'Milyen könnyen javasoljon fajt az alkalmazás';
 
   @override
   String get settings_speciesId_levelSurer => 'Biztosabb';

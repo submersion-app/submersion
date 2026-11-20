@@ -29242,11 +29242,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_speciesId_entrySubtitle =>
-      'Fische in deinen Fotos und Videos finden und Arten vorschlagen';
+      'Arten in deinen Fotos und Videos vorschlagen';
 
   @override
   String get speciesId_downloadPrompt_title =>
-      'Fische in deinen Fotos und Videos erkennen';
+      'Arten in deinen Fotos und Videos erkennen';
 
   @override
   String get speciesId_downloadPrompt_subtitle =>
@@ -29257,7 +29257,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_speciesId_intro =>
-      'Findet Fische in deinen Fotos und Videos und schlägt vor, welche Art es ist. Läuft auf diesem Gerät. Deine Fotos und Videos verlassen es nie.';
+      'Schlägt die Arten in deinen Fotos und Videos vor. Läuft auf diesem Gerät. Deine Fotos und Videos verlassen es nie.';
 
   @override
   String get settings_speciesId_model => 'Modell';
@@ -29333,7 +29333,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_speciesId_toggle =>
-      'Fische beim Öffnen eines Fotos oder Videos erkennen';
+      'Arten beim Öffnen eines Fotos oder Videos erkennen';
 
   @override
   String get settings_speciesId_autoApply =>
@@ -29364,7 +29364,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_speciesId_levelTitle =>
-      'Wie sicher die App sein muss, um einen Fisch zu benennen';
+      'Wie bereitwillig eine Art vorgeschlagen wird';
 
   @override
   String get settings_speciesId_levelSurer => 'Sicherer';

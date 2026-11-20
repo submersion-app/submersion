@@ -46621,13 +46621,13 @@ abstract class AppLocalizations {
   /// No description provided for @settings_speciesId_entrySubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Find fish in your photos and videos and suggest what they are'**
+  /// **'Suggest the species in your photos and videos'**
   String get settings_speciesId_entrySubtitle;
 
   /// No description provided for @speciesId_downloadPrompt_title.
   ///
   /// In en, this message translates to:
-  /// **'Identify fish in your photos and videos'**
+  /// **'Identify species in your photos and videos'**
   String get speciesId_downloadPrompt_title;
 
   /// No description provided for @speciesId_downloadPrompt_subtitle.
@@ -46645,7 +46645,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_speciesId_intro.
   ///
   /// In en, this message translates to:
-  /// **'Finds fish in your photos and videos and suggests what they are. Runs on this device. Your photos and videos never leave it.'**
+  /// **'Suggests the species in your photos and videos. Runs on this device. Your photos and videos never leave it.'**
   String get settings_speciesId_intro;
 
   /// No description provided for @settings_speciesId_model.
@@ -46759,7 +46759,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_speciesId_toggle.
   ///
   /// In en, this message translates to:
-  /// **'Identify fish when I open a photo or video'**
+  /// **'Identify species when I open a photo or video'**
   String get settings_speciesId_toggle;
 
   /// No description provided for @settings_speciesId_autoApply.
@@ -46804,10 +46804,10 @@ abstract class AppLocalizations {
   /// **'Straight away'**
   String get settings_speciesId_sightingStraightAway;
 
-  /// Heading over the naming levels: how sure marine life identification must be before it names a fish. Each level's name completes the sentence.
+  /// Heading over the naming levels Surer, Balanced and Eager: how readily species identification suggests a species. It reads as a label on its own; the levels are its answers.
   ///
   /// In en, this message translates to:
-  /// **'Name a fish when the app is'**
+  /// **'How readily to suggest a species'**
   String get settings_speciesId_levelTitle;
 
   /// Naming level: the model's own measured bars, the fewest names and the most often right

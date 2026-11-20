@@ -27646,10 +27646,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_speciesId_title => '物种识别';
 
   @override
-  String get settings_speciesId_entrySubtitle => '在照片和视频中查找鱼类并建议物种';
+  String get settings_speciesId_entrySubtitle => '为照片和视频中的生物建议物种';
 
   @override
-  String get speciesId_downloadPrompt_title => '识别照片和视频中的鱼类';
+  String get speciesId_downloadPrompt_title => '识别照片和视频中的物种';
 
   @override
   String get speciesId_downloadPrompt_subtitle => '下载物种识别模型以获取建议';
@@ -27658,8 +27658,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get speciesId_downloadPrompt_dismiss => '不再显示';
 
   @override
-  String get settings_speciesId_intro =>
-      '在照片和视频中查找鱼类并建议物种。在此设备上运行，照片和视频绝不会离开设备。';
+  String get settings_speciesId_intro => '为照片和视频中的生物建议物种。在此设备上运行，照片和视频绝不会离开设备。';
 
   @override
   String get settings_speciesId_model => '模型';
@@ -27730,7 +27729,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_speciesId_needsAppUpdate => '此模型需要更新版本的 Submersion。';
 
   @override
-  String get settings_speciesId_toggle => '打开照片或视频时识别鱼类';
+  String get settings_speciesId_toggle => '打开照片或视频时识别物种';
 
   @override
   String get settings_speciesId_autoApply => '自动标记有把握的匹配';
@@ -27756,7 +27755,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_speciesId_sightingStraightAway => '立即';
 
   @override
-  String get settings_speciesId_levelTitle => '应用需要多确定才为鱼命名';
+  String get settings_speciesId_levelTitle => '建议物种的积极程度';
 
   @override
   String get settings_speciesId_levelSurer => '更稳妥';

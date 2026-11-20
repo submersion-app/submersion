@@ -28576,11 +28576,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_speciesId_entrySubtitle =>
-      'מציאת דגים בתמונות ובסרטונים שלך והצעת המין';
+      'הצעת המינים בתמונות ובסרטונים שלך';
 
   @override
   String get speciesId_downloadPrompt_title =>
-      'זיהוי הדגים בתמונות ובסרטונים שלך';
+      'זיהוי המינים בתמונות ובסרטונים שלך';
 
   @override
   String get speciesId_downloadPrompt_subtitle =>
@@ -28591,7 +28591,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_speciesId_intro =>
-      'מוצא דגים בתמונות ובסרטונים שלך ומציע לאיזה מין הם שייכים. פועל במכשיר הזה. התמונות והסרטונים שלך לא יוצאים ממנו לעולם.';
+      'מציע את המינים בתמונות ובסרטונים שלך. פועל במכשיר הזה. התמונות והסרטונים שלך לא יוצאים ממנו לעולם.';
 
   @override
   String get settings_speciesId_model => 'מודל';
@@ -28666,7 +28666,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_speciesId_toggle =>
-      'זיהוי דגים כשאני פותח תמונה או סרטון';
+      'זיהוי מינים כשאני פותח תמונה או סרטון';
 
   @override
   String get settings_speciesId_autoApply => 'תיוג אוטומטי של התאמות ודאיות';
@@ -28693,8 +28693,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_speciesId_sightingStraightAway => 'מיד';
 
   @override
-  String get settings_speciesId_levelTitle =>
-      'עד כמה האפליקציה צריכה להיות בטוחה כדי לתת שם לדג';
+  String get settings_speciesId_levelTitle => 'באיזו קלות להציע מין';
 
   @override
   String get settings_speciesId_levelSurer => 'בטוח יותר';
