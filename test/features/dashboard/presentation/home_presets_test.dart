@@ -107,4 +107,19 @@ void main() {
     expect(moved.order.first, on.order.last);
     expect(moved.hidden, on.hidden);
   });
+
+  test('an order with no known panel falls back to Balanced', () {
+    for (final stored in [
+      null,
+      const <String>[],
+      const ['bogus', 'nope'],
+    ]) {
+      final layout = resolveHomeLayout(
+        storedOrder: stored,
+        storedHidden: const {'sacTrend'},
+        legacyHiddenCards: const {},
+      );
+      expect(layout.visible, homePresetPanels(HomeLayoutPreset.balanced));
+    }
+  });
 }

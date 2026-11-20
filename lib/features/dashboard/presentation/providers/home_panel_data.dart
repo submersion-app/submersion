@@ -127,8 +127,10 @@ class ComingDueItem {
 
 typedef NamedExpiry = ({String id, String name, DateTime expiry});
 
-/// Everything with a date within a year of [now] (or already past), soonest
-/// first, at most [max].
+/// Everything with a date within a year of [now], soonest first, at most
+/// [max]. Lapsed gear service always shows; a certification or document
+/// that lapsed more than 90 days ago is left out, so an old card nobody
+/// renews cannot hold the top of the list for ever.
 List<ComingDueItem> comingDueItems({
   required List<EquipmentClocks> clocks,
   required DiverInsurance? insurance,
@@ -138,38 +140,43 @@ List<ComingDueItem> comingDueItems({
   int max = 5,
 }) {
   final horizon = DateTime(now.year + 1, now.month, now.day);
-  final items = <ComingDueItem>[
-    for (final e in clocks)
-      for (final s in e.statuses)
-        if (s.dueDate != null)
+  final stale = DateTime(now.year, now.month, now.day - 90);
+  final items =
+      <ComingDueItem>[
+        for (final e in clocks)
+          for (final s in e.statuses)
+            if (s.dueDate != null)
+              ComingDueItem(
+                kind: ComingDueKind.gear,
+                id: e.item.id,
+                name: e.item.name,
+                due: s.dueDate!,
+              ),
+        if (insurance?.providerLabel != null && insurance?.expiryDate != null)
           ComingDueItem(
-            kind: ComingDueKind.gear,
-            id: e.item.id,
-            name: e.item.name,
-            due: s.dueDate!,
+            kind: ComingDueKind.insurance,
+            id: null,
+            name: insurance!.providerLabel!,
+            due: insurance.expiryDate!,
           ),
-    if (insurance?.providerLabel != null && insurance?.expiryDate != null)
-      ComingDueItem(
-        kind: ComingDueKind.insurance,
-        id: null,
-        name: insurance!.providerLabel!,
-        due: insurance.expiryDate!,
-      ),
-    for (final c in certifications)
-      ComingDueItem(
-        kind: ComingDueKind.certification,
-        id: c.id,
-        name: c.name,
-        due: c.expiry,
-      ),
-    for (final d in documents)
-      ComingDueItem(
-        kind: ComingDueKind.document,
-        id: d.id,
-        name: d.name,
-        due: d.expiry,
-      ),
-  ].where((i) => i.due.isBefore(horizon)).toList();
+        for (final c in certifications)
+          ComingDueItem(
+            kind: ComingDueKind.certification,
+            id: c.id,
+            name: c.name,
+            due: c.expiry,
+          ),
+        for (final d in documents)
+          ComingDueItem(
+            kind: ComingDueKind.document,
+            id: d.id,
+            name: d.name,
+            due: d.expiry,
+          ),
+      ].where((i) {
+        if (!i.due.isBefore(horizon)) return false;
+        return i.kind == ComingDueKind.gear || !i.due.isBefore(stale);
+      }).toList();
   // One row per gear item: its soonest clock.
   final seenGear = <String>{};
   items.sort((a, b) => a.due.compareTo(b.due));

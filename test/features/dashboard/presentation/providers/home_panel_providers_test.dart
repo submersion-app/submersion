@@ -13,6 +13,7 @@ import 'package:submersion/features/insights/presentation/providers/career_total
 ProviderContainer _container({
   List<double> sac = const [],
   List<Dive> recent = const [],
+  bool gaugesFail = false,
 }) {
   final container = ProviderContainer(
     overrides: [
@@ -41,12 +42,14 @@ ProviderContainer _container({
         ],
       ),
       dashboardGaugesProvider.overrideWith(
-        (ref) async => const DashboardGauges(
-          hasGear: false,
-          insurance: null,
-          noFlyStatus: null,
-          daysSinceLastDive: null,
-        ),
+        (ref) async => gaugesFail
+            ? throw StateError('gauges')
+            : const DashboardGauges(
+                hasGear: false,
+                insurance: null,
+                noFlyStatus: null,
+                daysSinceLastDive: null,
+              ),
       ),
       homeTripChecklistProvider.overrideWith((ref) async => null),
       dashboardQuickStatsProvider.overrideWith(
@@ -84,6 +87,22 @@ void main() {
   test('one SAC value gives an average and no comparison', () async {
     final n = await _container(
       sac: const [15],
+    ).read(homeKeyNumbersProvider.future);
+    expect(n.avgSac, 15);
+    expect(n.avgSacChange, isNull);
+  });
+
+  test('a failing optional source leaves the other numbers', () async {
+    final n = await _container(
+      gaugesFail: true,
+    ).read(homeKeyNumbersProvider.future);
+    expect(n.careerDives, 12);
+    expect(n.nextTrip, isNull);
+  });
+
+  test('no change is claimed with fewer than ten earlier dives', () async {
+    final n = await _container(
+      sac: [for (var i = 0; i < 14; i++) 15.0],
     ).read(homeKeyNumbersProvider.future);
     expect(n.avgSac, 15);
     expect(n.avgSacChange, isNull);

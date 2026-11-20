@@ -88,11 +88,13 @@ final homeAveragesProvider =
         diverId: diverId,
         since: since,
       );
+      // Series dates are the wall clock flagged UTC, as in the SQL window.
+      final sinceUtc = DateTime.utc(since.year, since.month, since.day);
       return (
         averages: averages,
         sac: averageOf([
           for (final p in series)
-            if (!p.date.isBefore(since)) p.value,
+            if (!p.date.isBefore(sinceUtc)) p.value,
         ]),
       );
     });
@@ -222,30 +224,38 @@ final homeKeyNumbersProvider = FutureProvider<HomeKeyNumbers>((ref) async {
   final quickF = ref.watch(dashboardQuickStatsProvider.future);
   final newSpeciesF = ref.watch(homeNewSpeciesThisYearProvider.future);
 
+  // Only the career totals are essential: any other source failing leaves
+  // its tile out instead of turning every tile into an error.
+  Future<T?> optional<T>(Future<T> f) async {
+    try {
+      return await f;
+    } catch (_) {
+      return null;
+    }
+  }
+
   final career = await careerF;
-  final year = await yearF;
-  final months = await monthsF;
-  final recent = await recentF;
-  final days = await daysF;
-  final sac = await sacF;
-  final gauges = await gaugesF;
-  final checklist = await checklistF;
-  final quick = await quickF;
-  final newSpecies = await newSpeciesF;
+  final year = await optional(yearF);
+  final months = await optional(monthsF) ?? const [];
+  final recent = await optional(recentF) ?? const [];
+  final days = await optional(daysF);
+  final sac = await optional(sacF) ?? const [];
+  final gauges = await optional(gaugesF);
+  final checklist = await optional(checklistF);
+  final quick = await optional(quickF);
+  final newSpecies = await optional(newSpeciesF);
 
   final sacValues = [for (final p in sac) p.value];
   final last10 = sacValues.length <= 10
       ? sacValues
       : sacValues.sublist(sacValues.length - 10);
-  final prev10 = sacValues.length <= 10
+  // A change is claimed only against a full ten earlier dives.
+  final prev10 = sacValues.length < 20
       ? const <double>[]
-      : sacValues.sublist(
-          (sacValues.length - 20).clamp(0, sacValues.length),
-          sacValues.length - 10,
-        );
+      : sacValues.sublist(sacValues.length - 20, sacValues.length - 10);
   final avgSac = averageOf(last10);
   final prevSac = averageOf(prev10);
-  final trip = gauges.nextTrip;
+  final trip = gauges?.nextTrip;
   final latest = recent.firstOrNull;
 
   return HomeKeyNumbers(
@@ -272,7 +282,7 @@ final homeKeyNumbersProvider = FutureProvider<HomeKeyNumbers>((ref) async {
         : null,
     avgDepthThisYear: year?.current.avgMaxDepth,
     avgDepthLastYear: year?.previous.avgMaxDepth,
-    species: quick.speciesDiscovered,
+    species: quick?.speciesDiscovered,
     newSpeciesThisYear: newSpecies,
   );
 });

@@ -150,6 +150,20 @@ void main() {
       expect(items.first.kind, ComingDueKind.certification);
     });
 
+    test('documents and certifications long expired are left out', () {
+      final items = comingDueItems(
+        clocks: const [],
+        insurance: null,
+        certifications: [
+          (id: 'old', name: 'First aid 2017', expiry: DateTime(2017, 5, 1)),
+          (id: 'new', name: 'Nitrox', expiry: DateTime(2026, 10, 1)),
+        ],
+        documents: [(id: 'd', name: 'Medical', expiry: DateTime(2027, 2, 1))],
+        now: _now,
+      );
+      expect(items.map((i) => i.name), ['Nitrox', 'Medical']);
+    });
+
     test('an insurance record with no provider is left out', () {
       final items = comingDueItems(
         clocks: const [],

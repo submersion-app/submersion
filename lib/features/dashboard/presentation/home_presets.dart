@@ -114,6 +114,7 @@ HomeLayout homeLayoutForPreset(HomeLayoutPreset preset) {
 /// the upgrade kept hidden. Otherwise the stored order is cleaned (unknown
 /// names dropped, duplicates collapsed) and any panel it lacks, added in a
 /// later version, is slotted in hidden after its nearest earlier neighbour.
+/// An order with no known panel left is treated as nothing stored.
 HomeLayout resolveHomeLayout({
   required List<String>? storedOrder,
   required Set<String>? storedHidden,
@@ -143,6 +144,9 @@ HomeLayout resolveHomeLayout({
     for (final name in storedHidden ?? const <String>{})
       if (byName[name] != null) byName[name]!,
   };
+  // Nothing usable survived (a corrupt or foreign value): start from
+  // Balanced rather than hide every panel.
+  if (order.isEmpty) return homeLayoutForPreset(HomeLayoutPreset.balanced);
   for (var i = 0; i < HomePanelType.values.length; i++) {
     final panel = HomePanelType.values[i];
     if (seen.contains(panel)) continue;
