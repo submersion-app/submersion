@@ -15,7 +15,6 @@ import 'package:submersion/features/trips/data/repositories/trip_media_repositor
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
-import 'package:submersion/features/trips/presentation/helpers/trip_scan_actions.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_media_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -171,8 +170,8 @@ class _PreparingImport implements MediaImportService {
 }
 
 /// A trip's sitting that can hold photos, with writers that write nothing.
-EditSession<Trip> _tripSitting() {
-  final session = EditSession<Trip>(_trip());
+EditSession<Trip> _tripSitting({String? diverId}) {
+  final session = EditSession<Trip>(_trip(diverId: diverId));
   holdSittingMedia(
     session,
     SittingMediaWriters(
@@ -246,16 +245,18 @@ Future<void> pumpActionButton(
 }
 
 void main() {
-  testWidgets('scanForTripDives explains when there is no active diver', (
+  testWidgets('Scan for dives explains when there is no active diver', (
     tester,
   ) async {
+    final session = _tripSitting(diverId: 'BAB');
+    addTearDown(session.dispose);
     // The trip has an owner; what is missing is the *active* diver, so the
     // guard and its message must both be about the active diver. The base
     // overrides pin currentDiverIdProvider to null.
     await pumpActionButton(
       tester,
       const [],
-      (context, ref) => scanForTripDives(context, ref, _trip(diverId: 'BAB')),
+      (context, ref) => scanForTripDivesInSitting(context, ref, session),
     );
     await tester.tap(find.text('go'));
     await tester.pumpAndSettle();
@@ -267,23 +268,27 @@ void main() {
     );
   });
 
-  testWidgets('scanForTripDives shows a no-matches snackbar', (tester) async {
+  testWidgets('Scan for dives shows a no-matches snackbar', (tester) async {
+    final session = _tripSitting(diverId: 'd1');
+    addTearDown(session.dispose);
     await pumpActionButton(tester, [
       tripRepositoryProvider.overrideWithValue(_NoCandidatesRepo()),
       currentDiverIdProvider.overrideWith((ref) => _FixedDiverIdNotifier('d1')),
-    ], (context, ref) => scanForTripDives(context, ref, _trip(diverId: 'd1')));
+    ], (context, ref) => scanForTripDivesInSitting(context, ref, session));
     await tester.tap(find.text('go'));
     await tester.pumpAndSettle();
     expect(find.text('No matching dives found'), findsOneWidget);
   });
 
-  testWidgets('a failed scanForTripDives says so without the exception', (
+  testWidgets('a failed Scan for dives says so without the exception', (
     tester,
   ) async {
+    final session = _tripSitting(diverId: 'd1');
+    addTearDown(session.dispose);
     await pumpActionButton(tester, [
       tripRepositoryProvider.overrideWithValue(_FailingCandidatesRepo()),
       currentDiverIdProvider.overrideWith((ref) => _FixedDiverIdNotifier('d1')),
-    ], (context, ref) => scanForTripDives(context, ref, _trip(diverId: 'd1')));
+    ], (context, ref) => scanForTripDivesInSitting(context, ref, session));
     await tester.tap(find.text('go'));
     await tester.pumpAndSettle();
     expect(find.byType(CircularProgressIndicator), findsNothing);
@@ -291,47 +296,33 @@ void main() {
     expect(find.textContaining('database is locked'), findsNothing);
   });
 
-  testWidgets('scanForTripDives searches the active diver, not the trip owner '
+  testWidgets('Scan for dives searches the active diver, not the trip owner '
       '(shared trip)', (tester) async {
     // Trip is owned by BAB but shared with, and being viewed by, MAB.
+    final session = _tripSitting(diverId: 'BAB');
+    addTearDown(session.dispose);
     final repo = _RecordingCandidatesRepo();
     await pumpActionButton(tester, [
       tripRepositoryProvider.overrideWithValue(repo),
       currentDiverIdProvider.overrideWith(
         (ref) => _FixedDiverIdNotifier('MAB'),
       ),
-    ], (context, ref) => scanForTripDives(context, ref, _trip(diverId: 'BAB')));
+    ], (context, ref) => scanForTripDivesInSitting(context, ref, session));
     await tester.tap(find.text('go'));
     await tester.pumpAndSettle();
     expect(repo.lastDiverId, 'MAB');
   });
 
-  testWidgets('scanGalleryForTripPhotos asks to add dives first when empty', (
+  testWidgets('a failed Scan photos says so without the exception', (
     tester,
   ) async {
-    await pumpActionButton(
-      tester,
-      [divesForTripProvider('trip-1').overrideWith((ref) async => <Dive>[])],
-      (context, ref) =>
-          scanGalleryForTripPhotos(context, ref, 'trip-1', _trip()),
-    );
-    await tester.tap(find.text('go'));
-    await tester.pumpAndSettle();
-    expect(find.text('Add dives first to link photos'), findsOneWidget);
-  });
-
-  testWidgets('a failed scanGalleryForTripPhotos says so without the '
-      'exception', (tester) async {
-    await pumpActionButton(
-      tester,
-      [
-        divesForTripProvider(
-          'trip-1',
-        ).overrideWith((ref) async => throw StateError('database is locked')),
-      ],
-      (context, ref) =>
-          scanGalleryForTripPhotos(context, ref, 'trip-1', _trip()),
-    );
+    final session = _tripSitting();
+    addTearDown(session.dispose);
+    await pumpActionButton(tester, [
+      divesForTripProvider(
+        'trip-1',
+      ).overrideWith((ref) async => throw StateError('database is locked')),
+    ], (context, ref) => scanTripPhotosInSitting(context, ref, session));
     await tester.tap(find.text('go'));
     await tester.pumpAndSettle();
     expect(find.byType(CircularProgressIndicator), findsNothing);
@@ -339,30 +330,10 @@ void main() {
     expect(find.textContaining('database is locked'), findsNothing);
   });
 
-  testWidgets('scanGalleryForTripPhotos reports denied photo access', (
-    tester,
-  ) async {
-    final dive = Dive(id: 'd1', dateTime: DateTime(2026, 3, 26, 10));
-    await pumpActionButton(
-      tester,
-      [
-        divesForTripProvider('trip-1').overrideWith((ref) async => [dive]),
-        tripMediaRepositoryProvider.overrideWithValue(
-          _FixedTripMediaRepository(const []),
-        ),
-        validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
-        photoPickerServiceProvider.overrideWithValue(_DeniedPicker()),
-      ],
-      (context, ref) =>
-          scanGalleryForTripPhotos(context, ref, 'trip-1', _trip()),
-    );
-    await tester.tap(find.text('go'));
-    await tester.pumpAndSettle();
-    expect(find.text('Photo library access denied'), findsOneWidget);
-  });
-
-  testWidgets('scanGalleryForTripPhotos counts a photo linked on another '
-      'device as already linked, not new (#885)', (tester) async {
+  testWidgets('Scan photos counts a photo linked on another device as '
+      'already linked, not new (#885)', (tester) async {
+    final session = _tripSitting();
+    addTearDown(session.dispose);
     final dive = Dive(id: 'd1', dateTime: DateTime(2026, 3, 26, 10));
     // Linked on the iPhone, so the synced row carries the iPhone's id; this
     // device's library knows the same photo as 'mac-1'.
@@ -382,45 +353,29 @@ void main() {
       width: 4032,
       height: 3024,
     );
-    await pumpActionButton(
-      tester,
-      [
-        divesForTripProvider('trip-1').overrideWith((ref) async => [dive]),
-        tripMediaRepositoryProvider.overrideWithValue(
-          _FixedTripMediaRepository([row]),
+    await pumpActionButton(tester, [
+      divesForTripProvider('trip-1').overrideWith((ref) async => [dive]),
+      tripMediaRepositoryProvider.overrideWithValue(
+        _FixedTripMediaRepository([row]),
+      ),
+      validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+      photoPickerServiceProvider.overrideWithValue(_GrantedPicker([photo])),
+      linkedGalleryAssetsProvider.overrideWithValue(
+        LinkedGalleryAssets(
+          resolve: (item) async => item.id == 'm1'
+              ? const ResolutionResult(
+                  localAssetId: 'mac-1',
+                  status: ResolutionStatus.resolved,
+                )
+              : const ResolutionResult(status: ResolutionStatus.unavailable),
         ),
-        validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
-        photoPickerServiceProvider.overrideWithValue(_GrantedPicker([photo])),
-        linkedGalleryAssetsProvider.overrideWithValue(
-          LinkedGalleryAssets(
-            resolve: (item) async => item.id == 'm1'
-                ? const ResolutionResult(
-                    localAssetId: 'mac-1',
-                    status: ResolutionStatus.resolved,
-                  )
-                : const ResolutionResult(status: ResolutionStatus.unavailable),
-          ),
-        ),
-      ],
-      (context, ref) =>
-          scanGalleryForTripPhotos(context, ref, 'trip-1', _trip()),
-    );
+      ),
+    ], (context, ref) => scanTripPhotosInSitting(context, ref, session));
     await tester.tap(find.text('go'));
     await tester.pumpAndSettle();
 
     expect(find.text('All photos already linked'), findsOneWidget);
     expect(find.textContaining('new photos'), findsNothing);
-  });
-
-  testWidgets('scanLightroomForTrip asks to add dives first when empty', (
-    tester,
-  ) async {
-    await pumpActionButton(tester, [
-      divesForTripProvider('trip-1').overrideWith((ref) async => <Dive>[]),
-    ], (context, ref) => scanLightroomForTrip(context, ref, 'trip-1'));
-    await tester.tap(find.text('go'));
-    await tester.pumpAndSettle();
-    expect(find.text('Add dives first to link photos'), findsOneWidget);
   });
 
   group('in a trip page sitting (issue #4527)', () {
