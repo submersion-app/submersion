@@ -18,7 +18,9 @@ List<ReviewGroup> buildReviewGroups({
   required Map<String, List<MediaSpeciesTag>> unconfirmedByMedia,
   required Map<String, List<SpeciesSuggestion>> suggestionsByMedia,
   required Map<String, Species> speciesById,
-  Map<String, ({double score, String identificationId})> tagEvidence = const {},
+  Map<String, ({double score, String identificationId, int gbifKey})>
+      tagEvidence =
+      const {},
 }) {
   final byGroup = <String, List<ReviewMedia>>{};
   for (final m in media) {
@@ -50,6 +52,7 @@ List<ReviewGroup> buildReviewGroups({
                 tag: tag,
                 score: evidence?.score,
                 cropIdentificationId: evidence?.identificationId,
+                tagGbifKey: evidence?.gbifKey,
               ),
             );
       }

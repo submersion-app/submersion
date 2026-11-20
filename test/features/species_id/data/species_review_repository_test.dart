@@ -105,6 +105,33 @@ void main() {
     expect(g.suggested.single.candidate!.scientificName, 'Scarus vetula');
   });
 
+  test('an app tag carries the GBIF key of the identification that tagged '
+      'it', () async {
+    // The accepted identification behind p1's Blue Tang tag; its top
+    // candidate is the fixture's (GBIF 2393681).
+    await identifications.storeRun(
+      run(mediaId: 'p1'),
+      insert: [
+        identification(
+          'i-p1',
+          mediaId: 'p1',
+          decision: IdentificationDecision.accepted,
+          decidedSpeciesId: 'sp_blue_tang',
+        ),
+      ],
+      deleteIds: const [],
+    );
+
+    final groups = await review.load(
+      const DiveReviewScope('d1'),
+      withSuggestions: true,
+    );
+
+    final item = groups.single.tagged.single.items.single;
+    expect(item.cropIdentificationId, 'i-p1');
+    expect(item.tagGbifKey, 2393681);
+  });
+
   test('the log: every dive with something to review', () async {
     final groups = await review.load(
       const LogReviewScope(),

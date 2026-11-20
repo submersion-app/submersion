@@ -111,7 +111,8 @@ class SpeciesReviewRepository {
               if (open.contains(id)) id,
           ]);
     final suggestionsByMedia = <String, List<SpeciesSuggestion>>{};
-    final tagEvidence = <String, ({double score, String identificationId})>{};
+    final tagEvidence =
+        <String, ({double score, String identificationId, int gbifKey})>{};
     for (final id in ids) {
       final rows = found[id];
       if (rows == null || rows.isEmpty) continue;
@@ -167,8 +168,9 @@ class SpeciesReviewRepository {
     );
   }
 
-  /// The accepted identification of [tag]'s species that scored best.
-  ({double score, String identificationId})? _evidenceFor(
+  /// The accepted identification of [tag]'s species that scored best, with
+  /// the key of the candidate it named: the one the app tagged.
+  ({double score, String identificationId, int gbifKey})? _evidenceFor(
     MediaSpeciesTag tag,
     List<MediaIdentification> found,
   ) {
@@ -183,6 +185,10 @@ class SpeciesReviewRepository {
     }
     return best == null
         ? null
-        : (score: best.top!.score, identificationId: best.id);
+        : (
+            score: best.top!.score,
+            identificationId: best.id,
+            gbifKey: best.top!.candidate.gbifKey,
+          );
   }
 }

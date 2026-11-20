@@ -150,6 +150,37 @@ void main() {
       expect(markerIn(taggedRowKey), findsOneWidget);
     });
 
+    testWidgets('an app tag of a species outside the catalogue says so, by '
+        'the key it was tagged from', (tester) async {
+      final ownRow = ReviewRow(
+        key: 's:own-9',
+        species: const Species(
+          id: 'own-9',
+          commonName: 'Spotted Drum',
+          category: SpeciesCategory.fish,
+        ),
+        items: [
+          ReviewItem(
+            media: testMediaItem(id: 'a', diveId: 'd1'),
+            tag: MediaSpeciesTag(
+              id: 't9',
+              mediaId: 'a',
+              speciesId: 'own-9',
+              createdAt: DateTime.utc(2026),
+              unconfirmed: true,
+            ),
+            tagGbifKey: 2401398,
+          ),
+        ],
+      );
+      await pump(
+        tester,
+        taggedRows: [ownRow],
+        nearby: const NearbySpecies(speciesKeys: {2401398}),
+      );
+      expect(markerIn('species_review_row_s:own-9_a'), findsOneWidget);
+    });
+
     testWidgets('the marker is read with the row', (tester) async {
       final semantics = tester.ensureSemantics();
       await pump(
@@ -158,7 +189,15 @@ void main() {
         suggestedRows: [suggestedRow],
         nearby: keyOnly,
       );
-      expect(find.bySemanticsLabel(RegExp('Recorded nearby')), findsOneWidget);
+      // One label holds the species, its counts and the marker: a screen
+      // reader says them together, not as a stray line of its own.
+      expect(
+        find.bySemanticsLabel(
+          RegExp(r'Queen Parrotfish[\s\S]*on 1 photo[\s\S]*Recorded nearby'),
+        ),
+        findsOneWidget,
+      );
+      expect(find.bySemanticsLabel('Recorded nearby'), findsNothing);
       semantics.dispose();
     });
 

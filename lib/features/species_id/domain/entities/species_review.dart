@@ -68,6 +68,7 @@ class ReviewItem extends Equatable {
     this.suggestion,
     this.score,
     this.cropIdentificationId,
+    this.tagGbifKey,
   });
 
   final MediaItem media;
@@ -81,16 +82,25 @@ class ReviewItem extends Equatable {
   /// one; else the item's thumbnail is shown.
   final String? cropIdentificationId;
 
+  /// On an app tag, the GBIF key of the candidate the app tagged it from,
+  /// when this device holds that identification. A species from outside
+  /// the catalogue has no other key to match a nearby list by.
+  final int? tagGbifKey;
+
   bool get isTagged => tag != null;
 
-  ReviewItem copyWith({double? score, String? cropIdentificationId}) =>
-      ReviewItem(
-        media: media,
-        tag: tag,
-        suggestion: suggestion,
-        score: score ?? this.score,
-        cropIdentificationId: cropIdentificationId ?? this.cropIdentificationId,
-      );
+  ReviewItem copyWith({
+    double? score,
+    String? cropIdentificationId,
+    int? tagGbifKey,
+  }) => ReviewItem(
+    media: media,
+    tag: tag,
+    suggestion: suggestion,
+    score: score ?? this.score,
+    cropIdentificationId: cropIdentificationId ?? this.cropIdentificationId,
+    tagGbifKey: tagGbifKey ?? this.tagGbifKey,
+  );
 
   @override
   List<Object?> get props => [
@@ -99,6 +109,7 @@ class ReviewItem extends Equatable {
     suggestion,
     score,
     cropIdentificationId,
+    tagGbifKey,
   ];
 }
 

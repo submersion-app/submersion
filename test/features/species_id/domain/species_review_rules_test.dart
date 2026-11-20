@@ -66,6 +66,24 @@ void main() {
     expect(reviewCount(groups), 1);
   });
 
+  test('an app tag carries the GBIF key of the identification behind it', () {
+    final groups = buildReviewGroups(
+      media: [onDive('a', 'd1', may)],
+      unconfirmedByMedia: {
+        'a': [appTag('a', 'own-9')],
+      },
+      suggestionsByMedia: const {},
+      speciesById: const {},
+      tagEvidence: {
+        't-a-own-9': (score: 0.97, identificationId: 'i9', gbifKey: 777),
+      },
+    );
+
+    final item = groups.single.tagged.single.items.single;
+    expect(item.tagGbifKey, 777);
+    expect(item.copyWith(score: 0.5).tagGbifKey, 777);
+  });
+
   test('a species only suggested is a suggested row', () {
     final groups = buildReviewGroups(
       media: [onDive('c', 'd1', may)],

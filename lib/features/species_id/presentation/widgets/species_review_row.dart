@@ -172,8 +172,8 @@ class SpeciesReviewRowTile extends StatelessWidget {
   }
 
   /// The row's GBIF species key: its candidate's, or, on a row of the
-  /// app's tags, that of a suggestion grouped under it. Its tags come
-  /// first and carry none.
+  /// app's tags, that of a suggestion grouped under it, else that of the
+  /// candidate a tag was made from.
   static int? _gbifKey(ReviewRow row) =>
       row.candidate?.gbifKey ??
       row.items
@@ -182,7 +182,8 @@ class SpeciesReviewRowTile extends StatelessWidget {
           .firstOrNull
           ?.top
           .candidate
-          .gbifKey;
+          .gbifKey ??
+      row.items.map((i) => i.tagGbifKey).nonNulls.firstOrNull;
 
   /// A score as the locale writes a percentage, as the species sheet does.
   static String _percent(BuildContext context, double score) =>
