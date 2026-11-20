@@ -512,6 +512,30 @@ void main() {
       expect(tile.toggleable, isFalse);
     });
 
+    testWidgets('picking a level the pack lacks after the default shows the '
+        'note (issue #4789)', (tester) async {
+      await pumpLevels(
+        tester,
+        withLevels(const [balanced]),
+        chosen: NamingLevel.eager,
+        picked: false,
+      );
+      expect(find.text(fallbackNote), findsNothing);
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(MarineLifeIdentificationPage)),
+      );
+      final notifier = container.read(namingLevelNotifierProvider.notifier);
+      await notifier.setLevel(NamingLevel.surer);
+      await notifier.setLevel(NamingLevel.eager);
+      await tester.pumpAndSettle();
+      expect(notifier.picked, isTrue);
+      expect(find.text(fallbackNote), findsOneWidget);
+      final tile = tester.widget<RadioListTile<NamingLevel>>(
+        find.byKey(balancedKey),
+      );
+      expect(tile.toggleable, isTrue);
+    });
+
     testWidgets('a level the pack carries has no note', (tester) async {
       await pumpLevels(
         tester,
