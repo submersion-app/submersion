@@ -10104,6 +10104,7 @@
     }
   },
   "trips_overview_plan_notSet": "Nincs megadva",
+  "trips_overview_plan_runtime": "{minutes} perc merülésenként",
   "trips_detail_tab_itinerary": "Útiterv",
   "trips_detail_tab_overview": "Áttekintés",
   "trips_detail_tab_photos": "Fotók",

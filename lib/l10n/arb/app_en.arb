@@ -21680,6 +21680,15 @@
     }
   },
   "trips_overview_plan_notSet": "Not set",
+  "trips_overview_plan_runtime": "{minutes} min per dive",
+  "@trips_overview_plan_runtime": {
+    "description": "On the trip Overview's Plan row: the expected runtime of each dive, in minutes.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
   "trips_detail_sectionTitle_vessel": "Vessel",
   "trips_detail_label_operator": "Operator",
   "trips_detail_label_vesselType": "Type",

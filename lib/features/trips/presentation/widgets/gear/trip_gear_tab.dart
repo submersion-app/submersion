@@ -29,7 +29,12 @@ const _log = LoggerService('tripGearTab');
 class TripGearTab extends ConsumerWidget {
   final Trip trip;
 
-  const TripGearTab({super.key, required this.trip});
+  /// Offers no action (no Add, unpack or put on board): the trip page edits
+  /// in place (issue #4527), and the gear is not in its sitting yet. Open
+  /// board still opens the board.
+  final bool readOnly;
+
+  const TripGearTab({super.key, required this.trip, this.readOnly = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -125,7 +130,10 @@ class TripGearTab extends ConsumerWidget {
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
-              if (upcoming) ...[const SizedBox(height: 16), addButton],
+              if (upcoming && !readOnly) ...[
+                const SizedBox(height: 16),
+                addButton,
+              ],
             ],
           ),
         ),
@@ -135,7 +143,7 @@ class TripGearTab extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.only(bottom: 24),
       children: [
-        if (upcoming)
+        if (upcoming && !readOnly)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
             child: Align(
@@ -150,7 +158,7 @@ class TripGearTab extends ConsumerWidget {
               item: item,
               alerts: alertsByItem[item.id] ?? const [],
               margin: marginByItem[item.id],
-              onUnpack: () => _unpack(context, ref, item.id),
+              onUnpack: readOnly ? null : () => _unpack(context, ref, item.id),
             ),
         ],
         if (states.isNotEmpty || unslottedTanks.isNotEmpty) ...[
@@ -185,10 +193,10 @@ class TripGearTab extends ConsumerWidget {
               units: units,
               alerts: alertsByItem[item.id] ?? const [],
               // An ended trip's board is history: no prompt to put it on.
-              onPutOnBoard: ended
+              onPutOnBoard: ended || readOnly
                   ? null
                   : () => _putOnBoard(context, ref, item),
-              onUnpack: () => _unpack(context, ref, item.id),
+              onUnpack: readOnly ? null : () => _unpack(context, ref, item.id),
             ),
         ],
       ],

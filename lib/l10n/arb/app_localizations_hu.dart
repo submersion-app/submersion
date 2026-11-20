@@ -36961,6 +36961,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_overview_plan_notSet => 'Nincs megadva';
 
   @override
+  String trips_overview_plan_runtime(int minutes) {
+    return '$minutes perc merülésenként';
+  }
+
+  @override
   String get trips_detail_sectionTitle_vessel => 'Hajó';
 
   @override

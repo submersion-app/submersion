@@ -48,6 +48,13 @@ class ItineraryDayCard extends ConsumerWidget {
   /// above today, so the card just before it takes none.
   final double bottomGap;
 
+  /// What a tap does where the trip page edits in place (issue #4527):
+  /// unlocked, the day sheet hands its day here to hold until Save; locked
+  /// ([readOnly]), a tap does nothing. Neither set, the sheet writes as it
+  /// always has.
+  final ValueChanged<ItineraryDay>? hold;
+  final bool readOnly;
+
   const ItineraryDayCard({
     super.key,
     required this.day,
@@ -59,6 +66,8 @@ class ItineraryDayCard extends ConsumerWidget {
     this.sightings = const [],
     this.storedWeather,
     this.bottomGap = 8,
+    this.hold,
+    this.readOnly = false,
   });
 
   @override
@@ -95,12 +104,15 @@ class ItineraryDayCard extends ConsumerWidget {
             : null,
         shape: isToday ? todayCardShape(theme) : null,
         child: InkWell(
-          onTap: () => showItineraryDayEditSheet(
-            context: context,
-            day: day,
-            tripId: tripId,
-            isLiveaboard: isLiveaboard,
-          ),
+          onTap: readOnly
+              ? null
+              : () => showItineraryDayEditSheet(
+                  context: context,
+                  day: day,
+                  tripId: tripId,
+                  isLiveaboard: isLiveaboard,
+                  hold: hold,
+                ),
           borderRadius: BorderRadius.circular(12),
           child: Padding(
             padding: const EdgeInsets.all(12),

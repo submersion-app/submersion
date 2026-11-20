@@ -148,3 +148,65 @@ String dropUntouchedDayHeading(String notes, String insertedHeading) {
   if (tail.isEmpty) return head.join('\n');
   return '${head.join('\n')}\n\n${tail.join('\n')}';
 }
+
+/// A day's passage as [DayNotePlacement] opens it, cut out of the Notes so
+/// an editor can hold that passage alone (issue #4527): the text before it
+/// (down to its heading, and any blank lines under that), the passage, and
+/// the text after it.
+typedef DayPassage = ({String before, String passage, String after});
+
+/// [placement]'s text cut around [day]'s last passage: the one its caret
+/// is in, under the last heading before the caret that is at the level of
+/// the note's day headings.
+DayPassage dayPassageOf(
+  DayNotePlacement placement,
+  TripNoteDay day,
+  TripDayNotesVocabulary vocabulary,
+) {
+  final text = placement.text;
+  final cursor = placement.cursor;
+  final scanned = tripDayNotes(text, [day], vocabulary);
+  var start = scanned.headingLineEnds[day.date] ?? cursor;
+  if (start > cursor) {
+    // The caret is in an earlier passage of the same day: its heading is the
+    // last day-level heading above the caret.
+    start = _lastHeadingEndBefore(
+      text,
+      cursor,
+      maxLevel: scanned.dayHeadingLevel ?? 6,
+    );
+  }
+  final region = text.substring(start, cursor);
+  // Blank lines under the heading stay where they are.
+  final lead = RegExp(r'^(?:[ \t]*\n)*').firstMatch(region)!.end;
+  return (
+    before: text.substring(0, start + lead),
+    passage: region.substring(lead),
+    after: text.substring(cursor),
+  );
+}
+
+/// Where the line after the last ATX heading of level [maxLevel] or
+/// higher before [offset] in [text] starts; 0 when there is none.
+int _lastHeadingEndBefore(String text, int offset, {required int maxLevel}) {
+  var lineEnd = offset;
+  while (lineEnd > 0) {
+    final lineStart = text.lastIndexOf('\n', lineEnd - 1) + 1;
+    final line = text.substring(lineStart, lineEnd);
+    final level = atxHeadingLevel(line);
+    if (level != null && level <= maxLevel) {
+      return lineEnd < text.length ? lineEnd + 1 : lineEnd;
+    }
+    lineEnd = lineStart == 0 ? 0 : lineStart - 1;
+  }
+  return 0;
+}
+
+/// The Notes as saved with [passage] in place of [parts]' passage: as they
+/// were when [passage] is the one [placement] opened with, and without a
+/// heading [placement] added while nothing is written under it.
+String withDayPassage(
+  DayNotePlacement placement,
+  DayPassage parts,
+  String passage,
+) => placement.toSave('${parts.before}$passage${parts.after}');

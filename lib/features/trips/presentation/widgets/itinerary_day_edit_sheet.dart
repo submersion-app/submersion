@@ -21,6 +21,7 @@ Future<void> showItineraryDayEditSheet({
   required ItineraryDay day,
   required String tripId,
   required bool isLiveaboard,
+  ValueChanged<ItineraryDay>? hold,
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -30,6 +31,7 @@ Future<void> showItineraryDayEditSheet({
       day: day,
       tripId: tripId,
       isLiveaboard: isLiveaboard,
+      hold: hold,
     ),
   );
 }
@@ -39,10 +41,15 @@ class _ItineraryDayEditSheet extends ConsumerStatefulWidget {
   final String tripId;
   final bool isLiveaboard;
 
+  /// Takes the edited day in place of writing it: a trip page that edits in
+  /// place holds it in its sitting until Save (issue #4527).
+  final ValueChanged<ItineraryDay>? hold;
+
   const _ItineraryDayEditSheet({
     required this.day,
     required this.tripId,
     required this.isLiveaboard,
+    this.hold,
   });
 
   @override
@@ -139,10 +146,15 @@ class _ItineraryDayEditSheetState
         plannedDives: dayType == DayType.rest ? 0 : plannedDives,
       );
 
-      final repository = ref.read(itineraryDayRepositoryProvider);
-      await repository.updateDay(updatedDay);
+      final hold = widget.hold;
+      if (hold != null) {
+        hold(updatedDay);
+      } else {
+        final repository = ref.read(itineraryDayRepositoryProvider);
+        await repository.updateDay(updatedDay);
 
-      ref.invalidate(itineraryDaysProvider(widget.tripId));
+        ref.invalidate(itineraryDaysProvider(widget.tripId));
+      }
 
       if (mounted) {
         Navigator.of(context).pop();

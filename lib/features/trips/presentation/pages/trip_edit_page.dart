@@ -16,6 +16,7 @@ import 'package:submersion/features/trips/domain/services/trip_day_notes.dart';
 import 'package:submersion/features/trips/domain/services/trip_draft.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_edit_fields.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_day_note_editing.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
@@ -414,7 +415,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                   // Says what each type is for, so a diver with a single
                   // local dive learns that Day Trip is its home (#2625).
                   Text(
-                    _tripTypeDescription(context, _tripType),
+                    tripTypeDescription(context.l10n, _tripType),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
@@ -972,15 +973,6 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
         ),
       ),
     );
-  }
-
-  String _tripTypeDescription(BuildContext context, TripType type) {
-    return switch (type) {
-      TripType.shore => context.l10n.trips_type_description_shore,
-      TripType.liveaboard => context.l10n.trips_type_description_liveaboard,
-      TripType.resort => context.l10n.trips_type_description_resort,
-      TripType.dayTrip => context.l10n.trips_type_description_dayTrip,
-    };
   }
 
   Future<void> _selectDate(BuildContext context, bool isStartDate) async {

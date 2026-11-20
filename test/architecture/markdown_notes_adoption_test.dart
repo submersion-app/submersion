@@ -52,6 +52,9 @@ void main() {
     // Equipment card (issue #4527).
     'lib/features/dive_log/presentation/widgets/save_gear_as_set_dialog.dart':
         'MarkdownNotesField(',
+    // A trip's Notes card and a day's note edited in place (issue #4527).
+    'lib/features/trips/presentation/editing/trip_overview_card_editors.dart':
+        'MarkdownNotesField(',
     // A site's Description and Notes cards edited in place (issue #4527).
     'lib/features/dive_sites/presentation/editing/site_markdown_card_editor.dart':
         'MarkdownNotesField(',
