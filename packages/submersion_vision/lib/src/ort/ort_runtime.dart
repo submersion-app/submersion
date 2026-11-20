@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 
+import 'package:submersion_vision/src/ort/hardware_devices.dart';
 import 'package:submersion_vision/src/ort/ort_c_api.g.dart';
 import 'package:submersion_vision/src/ort/ort_native.dart';
 
@@ -15,9 +16,13 @@ enum OrtDevice {
   /// The processor.
   cpu,
 
-  /// The GPU when ONNX Runtime finds one it can use, else an NPU, else the
-  /// processor (its device selection policy).
-  preferGpu,
+  /// A hardware engine Windows ML supplied (registered with
+  /// [OrtRuntime.registerProviderLibrary]), on its GPU, else its NPU, never
+  /// Windows' software renderer ([chooseHardwareDevices]). A session fails
+  /// to open with [OrtException] when no such device is listed. ONNX
+  /// Runtime's own selection policy is not used: it can hand the software
+  /// renderer to DirectML, which ends the process.
+  hardware,
 
   /// DirectML, on Windows.
   directMl,
@@ -232,6 +237,85 @@ class OrtRuntime {
     if (_closed) throw const OrtException('the runtime is closed');
   }
 
+  /// Attaches the devices [chooseHardwareDevices] picks from those ONNX
+  /// Runtime lists; throws [OrtException] when it picks none.
+  void _attachHardware(Pointer<OrtSessionOptions> options) {
+    final api = _api;
+    final listed = calloc<Pointer<Pointer<OrtEpDevice>>>();
+    final count = calloc<Size>();
+    try {
+      _check(
+        api,
+        api.ref.GetEpDevices
+            .asFunction<
+              _Status Function(
+                Pointer<OrtEnv>,
+                Pointer<Pointer<Pointer<OrtEpDevice>>>,
+                Pointer<Size>,
+              )
+            >()(_env, listed, count),
+      );
+      final devices = [for (var i = 0; i < count.value; i++) listed.value[i]];
+      final chosen = chooseHardwareDevices([
+        for (final device in devices) _describe(device),
+      ]);
+      if (chosen.isEmpty) {
+        throw const OrtException('no hardware engine device is listed');
+      }
+      final attach = calloc<Pointer<OrtEpDevice>>(chosen.length);
+      try {
+        for (var i = 0; i < chosen.length; i++) {
+          attach[i] = devices[chosen[i]];
+        }
+        _check(
+          api,
+          api.ref.SessionOptionsAppendExecutionProvider_V2
+              .asFunction<
+                _Status Function(
+                  Pointer<OrtSessionOptions>,
+                  Pointer<OrtEnv>,
+                  Pointer<Pointer<OrtEpDevice>>,
+                  int,
+                  Pointer<Pointer<Char>>,
+                  Pointer<Pointer<Char>>,
+                  int,
+                )
+              >()(options, _env, attach, chosen.length, nullptr, nullptr, 0),
+        );
+      } finally {
+        calloc.free(attach);
+      }
+    } finally {
+      calloc.free(listed);
+      calloc.free(count);
+    }
+  }
+
+  OrtEpDeviceInfo _describe(Pointer<OrtEpDevice> device) {
+    final api = _api;
+    final hardware = api.ref.EpDevice_Device
+        .asFunction<
+          Pointer<OrtHardwareDevice> Function(Pointer<OrtEpDevice>)
+        >()(device);
+    final type = api.ref.HardwareDevice_Type
+        .asFunction<int Function(Pointer<OrtHardwareDevice>)>()(hardware);
+    return OrtEpDeviceInfo(
+      engine: api.ref.EpDevice_EpName
+          .asFunction<Pointer<Char> Function(Pointer<OrtEpDevice>)>()(device)
+          .cast<Utf8>()
+          .toDartString(),
+      kind: switch (type) {
+        1 => OrtHardwareKind.gpu,
+        2 => OrtHardwareKind.npu,
+        _ => OrtHardwareKind.cpu,
+      },
+      vendorId: api.ref.HardwareDevice_VendorId
+          .asFunction<int Function(Pointer<OrtHardwareDevice>)>()(hardware),
+      deviceId: api.ref.HardwareDevice_DeviceId
+          .asFunction<int Function(Pointer<OrtHardwareDevice>)>()(hardware),
+    );
+  }
+
   void _configure(Pointer<OrtSessionOptions> options, OrtSessionSettings s) {
     final api = _api;
     if (s.intraOpThreads > 0) {
@@ -267,17 +351,8 @@ class OrtRuntime {
     switch (s.device) {
       case OrtDevice.cpu:
         break;
-      case OrtDevice.preferGpu:
-        _check(
-          api,
-          api.ref.SessionOptionsSetEpSelectionPolicy
-              .asFunction<_Status Function(Pointer<OrtSessionOptions>, int)>()(
-            options,
-            OrtExecutionProviderDevicePolicy
-                .OrtExecutionProviderDevicePolicy_PREFER_GPU
-                .value,
-          ),
-        );
+      case OrtDevice.hardware:
+        _attachHardware(options);
       case OrtDevice.directMl:
         final name = 'DML'.toNativeUtf8();
         try {

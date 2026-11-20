@@ -68,7 +68,7 @@ const _models = VisionModels(
 
 void main() {
   final image = RgbaImage(40, 20, Uint8List(40 * 20 * 4));
-  const devices = [OrtDevice.preferGpu, OrtDevice.directMl, OrtDevice.cpu];
+  const devices = [OrtDevice.hardware, OrtDevice.directMl, OrtDevice.cpu];
 
   late List<FakeModel> opened;
   late Set<OrtDevice> refuseToOpen;
@@ -94,18 +94,18 @@ void main() {
 
   test('opens on the first device that takes the models', () {
     final c = core()..load(_models);
-    expect(c.device, OrtDevice.preferGpu);
+    expect(c.device, OrtDevice.hardware);
     expect(c.analyze(image).analysis.detections, hasLength(1));
   });
 
   test('a session failing on the GPU opens on DirectML', () {
-    refuseToOpen = {OrtDevice.preferGpu};
+    refuseToOpen = {OrtDevice.hardware};
     final c = core()..load(_models);
     expect(c.device, OrtDevice.directMl);
   });
 
   test('a run failing on the GPU moves to DirectML', () {
-    failToRun = {OrtDevice.preferGpu};
+    failToRun = {OrtDevice.hardware};
     final c = core()..load(_models);
 
     final result = c.analyze(image);
@@ -113,13 +113,13 @@ void main() {
     expect(result.analysis.detections, hasLength(1));
     expect(c.device, OrtDevice.directMl);
     expect(
-      opened.where((m) => m.device == 'preferGpu').every((m) => m.closed),
+      opened.where((m) => m.device == 'hardware').every((m) => m.closed),
       isTrue,
     );
   });
 
   test('failing on DirectML too lands on the processor', () {
-    failToRun = {OrtDevice.preferGpu, OrtDevice.directMl};
+    failToRun = {OrtDevice.hardware, OrtDevice.directMl};
     final c = core()..load(_models);
 
     c.analyze(image);
