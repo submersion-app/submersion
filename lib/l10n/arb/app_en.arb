@@ -38526,5 +38526,6 @@
   "dashboard_header_allClear": "All clear",
   "dashboard_header_clearCount": "{count} all clear",
   "@dashboard_header_clearCount": {"placeholders": {"count": {"type": "int"}}},
-  "dashboard_header_statusTitle": "Status"
+  "dashboard_header_statusTitle": "Status",
+  "dashboard_panel_loadError": "Couldn't load this"
 }

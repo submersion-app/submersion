@@ -103595,6 +103595,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Status'**
   String get dashboard_header_statusTitle;
+
+  /// No description provided for @dashboard_panel_loadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load this'**
+  String get dashboard_panel_loadError;
 }
 
 class _AppLocalizationsDelegate

@@ -65740,4 +65740,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get dashboard_header_statusTitle => 'Status';
+
+  @override
+  String get dashboard_panel_loadError => 'Couldn\'t load this';
 }
