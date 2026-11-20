@@ -381,6 +381,17 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   );
 
   @override
+  Future<void> setHomePanelLayout({
+    required List<String> order,
+    required Set<String> hidden,
+  }) async =>
+      state = state.copyWith(homePanelOrder: order, hiddenHomePanels: hidden);
+
+  @override
+  Future<void> setHiddenHomeKeyNumbers(Set<String> hidden) async =>
+      state = state.copyWith(hiddenHomeKeyNumbers: hidden);
+
+  @override
   Future<void> setSafetyRuleEnabled(SafetyRuleId rule, bool enabled) async {
     final rules = {...state.safetyReviewDisabledRules};
     if (enabled) {
