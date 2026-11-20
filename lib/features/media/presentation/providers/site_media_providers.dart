@@ -56,7 +56,7 @@ final mediaCountFromDivesAtSiteProvider = FutureProvider.family<int, String>((
 });
 
 /// Every media item from the dives logged at the site, chronological, for
-/// the dive photos card's Show all grid and the site viewer. Read in one
+/// the dive photos card's Show all rows and the site viewer. Read in one
 /// statement and only while one of them is open; the card's strip reads
 /// [recentMediaFromDivesAtSiteProvider] and the page
 /// [mediaCountFromDivesAtSiteProvider] instead.
@@ -76,8 +76,11 @@ final flatMediaFromDivesAtSiteProvider = FutureProvider.autoDispose
           .getMediaFromDivesAtSite(siteId);
     });
 
-/// Most photos the strip on the site's dive photos card reads: enough to fill
-/// one row on a wide desktop card. The card shows as many as fit.
+/// Most photos the strip on the site's dive photos card reads (issue #4502).
+/// The strip shows the first justified row of them (issue #4741): at its
+/// 100 px target, 12 photos of the common 4:3 shape span about 1,650 px, so
+/// the row ends short of a wider card only when the cap, not the width,
+/// limits it, and Show all then reaches the rest.
 const int kSiteDivePhotoStripLimit = 12;
 
 /// The newest [kSiteDivePhotoStripLimit] media items from the dives logged at
