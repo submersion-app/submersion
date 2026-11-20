@@ -225,6 +225,8 @@ mixin _DiveCenterDetailPageEditing
   }
 
   Widget _buildMoreMenu(BuildContext context, DiveCenter center) {
+    // Nothing acts on a centre not yet created (plan 11, call 3).
+    if (isCreating) return const SizedBox.shrink();
     return PopupMenuButton<String>(
       onSelected: (value) async {
         if (value == kOpenInConnectionsAction) {

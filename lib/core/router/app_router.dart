@@ -1184,7 +1184,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newDiveCenter',
-                builder: (context, state) => const DiveCenterEditPage(),
+                onExit: confirmLeaveRecordSitting,
+                // Behind phase 3's switch, the centre page opened on a new
+                // centre (issue #4527, plan 11).
+                builder: (context, state) => newDiveCenterPage(),
               ),
               GoRoute(
                 path: ':centerId',

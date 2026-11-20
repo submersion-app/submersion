@@ -22,7 +22,6 @@ import 'package:submersion/features/dive_centers/presentation/widgets/dive_cente
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_map_content.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_summary_widget.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_detail_page.dart';
-import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_routes.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
@@ -80,7 +79,7 @@ class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage>
           final currentPath = state.uri.path;
           context.go('$currentPath?mode=new');
         } else {
-          context.push('/dive-centers/new');
+          openNewDiveCenter(context);
         }
       },
       tooltip: context.l10n.diveCenters_tooltip_addNew,
@@ -122,11 +121,9 @@ class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage>
               onCancel,
               onDeleted: () => context.go(GoRouterState.of(context).uri.path),
             ),
-        createBuilder: (context, onSaved, onCancel) => DiveCenterEditPage(
-          embedded: true,
-          onSaved: onSaved,
-          onCancel: onCancel,
-        ),
+        // Behind phase 3's switch, the page on a new centre (plan 11).
+        createBuilder: (context, onSaved, onCancel) =>
+            newDiveCenterPane(context, onSaved, onCancel),
         mapContent: DiveCenterMapContent(
           selectedId: ref.watch(highlightedDiveCenterIdProvider),
           onItemSelected: (centerId) {
@@ -258,11 +255,9 @@ class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage>
                 onCancel,
                 onDeleted: () => context.go(GoRouterState.of(context).uri.path),
               ),
-          createBuilder: (context, onSaved, onCancel) => DiveCenterEditPage(
-            embedded: true,
-            onSaved: onSaved,
-            onCancel: onCancel,
-          ),
+          // Behind phase 3's switch, the page on a new centre (plan 11).
+          createBuilder: (context, onSaved, onCancel) =>
+              newDiveCenterPane(context, onSaved, onCancel),
           floatingActionButton: fab,
         ),
       );

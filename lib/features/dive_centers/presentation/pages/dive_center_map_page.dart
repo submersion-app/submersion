@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/utils/number_display.dart';
+import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_routes.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
@@ -116,7 +117,7 @@ class _DiveCenterMapPageState extends ConsumerState<DiveCenterMapPage>
           ? _buildMapInfoCard(context, selectedCenter)
           : null,
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/dive-centers/new'),
+        onPressed: () => openNewDiveCenter(context),
         icon: const Icon(Icons.add),
         label: Text(context.l10n.diveCenters_action_addCenter),
       ),

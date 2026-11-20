@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_edit_page.dart';
+import 'package:submersion/features/dive_centers/presentation/pages/dive_center_detail_page.dart';
+import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_page.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/pages/document_detail_page.dart';
 import 'package:submersion/features/documents/presentation/pages/document_edit_page.dart';
@@ -552,6 +554,18 @@ void main() {
     expect(route?.onExit, same(confirmLeaveRecordSitting));
     // Still on the root navigator, over a dialog it is opened from.
     expect(route?.parentNavigatorKey, isNotNull);
+  });
+
+  test('a new dive centre opens the page with the switch on', () {
+    final page = newDiveCenterPage(unlockEditing: true);
+    expect(page, isA<DiveCenterDetailPage>());
+    expect((page as DiveCenterDetailPage).newDiveCenter, isTrue);
+    expect(newDiveCenterPage(unlockEditing: false), isA<DiveCenterEditPage>());
+    final route = _findRouteByName(
+      router.configuration.routes,
+      'newDiveCenter',
+    );
+    expect(route?.onExit, same(confirmLeaveRecordSitting));
   });
 
   // A track's sitting is asked about before a `go` leaves it (issue #4527,

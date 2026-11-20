@@ -34,6 +34,27 @@ class DiveCenterEditSaveService {
     alsoWrite: alsoWrite,
     alsoWriteIsAChange: alsoWriteIsAChange,
   );
+
+  /// Creates [center], a new dive centre's sitting (issue #4527, phase 3,
+  /// plan 11), keeping its id: the row, then [alsoWrite], the sitting's
+  /// held writes (rental notes, documents), in one transaction and one
+  /// History entry naming [changedCardIds]. If any of them throws nothing
+  /// is left. Throws [StateError] when [center] has no id, or one a stored
+  /// centre has.
+  Future<DiveCenter> create({
+    required DiveCenter center,
+    required Iterable<String> changedCardIds,
+    Future<void> Function()? alsoWrite,
+  }) => createRecordSitting<DiveCenter>(
+    table: 'dive_centers',
+    recordId: center.id,
+    changedCardIds: changedCardIds,
+    isStored: () async => await _centers.getDiveCenterById(center.id) != null,
+    insert: () => _centers.createDiveCenter(center),
+    alsoWrite: alsoWrite,
+    readBack: () => _centers.getDiveCenterById(center.id),
+    created: center,
+  );
 }
 
 final diveCenterEditSaveServiceProvider = Provider<DiveCenterEditSaveService>(
