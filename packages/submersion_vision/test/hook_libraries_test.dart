@@ -116,6 +116,30 @@ void main() {
     );
   });
 
+  test(
+    'a download that cannot be moved into place is not left behind',
+    () async {
+      // A directory where the archive belongs makes the move fail.
+      Directory(
+        p.join(shared.path, 'ort.zip', 'held'),
+      ).createSync(recursive: true);
+
+      await expectLater(
+        hook.ensureLibraries(
+          archive(),
+          shared,
+          'linux-x64',
+          fetch: (url, to) async => to.writeAsBytes(zip),
+        ),
+        throwsA(isA<FileSystemException>()),
+      );
+      expect(
+        shared.listSync().where((f) => f.path.endsWith('.fetched')),
+        isEmpty,
+      );
+    },
+  );
+
   test('a download that stalls fails instead of hanging the build', () async {
     final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
     addTearDown(() => server.close(force: true));

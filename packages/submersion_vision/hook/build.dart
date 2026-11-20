@@ -75,16 +75,24 @@ Future<List<(OrtLibrary, File)>> ensureLibraries(
     // shared place only when it matches: another build at once (Android's
     // ABIs) may be reading an archive it has already checked there.
     final fetched = File('${download.path}.$pid.fetched');
-    await fetch(archive.url, fetched);
-    if (await _matches(fetched, archive.sha256)) {
-      fetched.renameSync(download.path);
-    } else {
+    try {
+      await fetch(archive.url, fetched);
+      if (!await _matches(fetched, archive.sha256)) {
+        throw BuildError(
+          message:
+              '${archive.url} does not match its pinned SHA-256 '
+              '(${archive.sha256})',
+        );
+      }
+      try {
+        fetched.renameSync(download.path);
+      } on FileSystemException {
+        // Windows refuses to replace a file another build has open; that
+        // build checked its copy first, so it is used as it is.
+        if (!await _matches(download, archive.sha256)) rethrow;
+      }
+    } finally {
       if (fetched.existsSync()) fetched.deleteSync();
-      throw BuildError(
-        message:
-            '${archive.url} does not match its pinned SHA-256 '
-            '(${archive.sha256})',
-      );
     }
   }
   for (final (library, file) in stale) {
