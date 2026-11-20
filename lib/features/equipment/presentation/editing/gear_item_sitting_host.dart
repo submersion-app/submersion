@@ -10,6 +10,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/presentation/editing/equipment_shares_sharing_adapter.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_card_ids.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_check_ins_sitting.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_components_sitting.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_edit_fields.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_findings_sitting.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_header_editor.dart';
@@ -142,6 +143,7 @@ void loadGearItemSitting(
   holdCheckIns(session, writers);
   gearItemCheckInsList.load(session);
   holdFindingDismissals(session, container.read);
+  holdGearItemComponents(session, container.read);
 }
 
 /// What a saved sitting still has to do outside the database: uploads and
@@ -152,6 +154,7 @@ List<Future<void> Function()> gearItemAfterCommit(
   ...mediaAfterCommit(session),
   ...legacyFilesAfterCommit(session),
   ...checkInsAfterCommit(session),
+  ...componentsAfterCommit(session),
 ];
 
 /// What the list notifier does after it writes an item today, done once a

@@ -79,6 +79,17 @@ void main() {
       },
     );
 
+    // A gear item's sitting names the row it adds (issue #4527).
+    test('keeps a given id and marks that row pending', () async {
+      final a = await repo.addComponent(
+        parentId: 'reg',
+        componentId: 'first',
+        id: 'held-row',
+      );
+      expect(a.id, 'held-row');
+      expect(await pendingIds(), contains('held-row'));
+    });
+
     test('a second add of the same pair returns the existing row', () async {
       final a = await repo.addComponent(parentId: 'reg', componentId: 'first');
       final again = await repo.addComponent(

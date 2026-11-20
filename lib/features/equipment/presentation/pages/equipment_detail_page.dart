@@ -434,7 +434,10 @@ class _EquipmentDetailContent extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 24),
-          ComponentsCard(equipmentId: equipmentId, readOnly: _editing),
+          _framed(
+            GearItemCardId.components,
+            ComponentsCard(equipmentId: equipmentId),
+          ),
           // Only rebreathers own configurations; every other type would show
           // a card that can never be anything but empty.
           if (equipment.type == EquipmentType.rebreather) ...[

@@ -24,6 +24,7 @@ import 'package:submersion/features/equipment/presentation/widgets/components_ca
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_pairing_repository.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_pairing.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_pairing_providers.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_component_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_findings_repository.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
@@ -184,17 +185,16 @@ void main() {
       );
     });
 
-    testWidgets('with the switch on, Components offers no action', (
+    testWidgets('unlocked, Components acts only in its open card', (
       tester,
     ) async {
       await pumpGearPage(tester);
-
-      expect(
-        tester.widget<ComponentsCard>(find.byType(ComponentsCard)).readOnly,
-        isTrue,
-      );
       await unlock(tester);
       expect(find.text(l.equipment_components_add), findsNothing);
+
+      await openCard(tester, l.equipment_components_title);
+
+      expect(find.text(l.equipment_components_add), findsOneWidget);
     });
 
     testWidgets('Cancel with changes asks first', (tester) async {
@@ -300,6 +300,46 @@ void main() {
       expect(
         find.byTooltip(l.equipmentCondition_findings_dismiss),
         findsNothing,
+      );
+    });
+  });
+
+  // Plan 7: the parts are held in the item's sitting.
+  group('components', () {
+    testWidgets('a part removed in the sitting is removed at Save, not '
+        'before', (tester) async {
+      final components = EquipmentComponentRepository();
+      await tester.runAsync(() async {
+        final items = EquipmentRepository();
+        await items.createEquipment(apex);
+        await items.createEquipment(
+          const EquipmentItem(
+            id: 'p1',
+            name: 'Second stage',
+            type: EquipmentType.regulator,
+          ),
+        );
+        await components.addComponent(parentId: 'g1', componentId: 'p1');
+      });
+      final harness = await pumpGearPage(tester);
+      await unlock(tester);
+      await openCard(tester, l.equipment_components_title);
+      expect(find.text('Second stage'), findsOneWidget);
+
+      await tester.tap(find.byTooltip(l.equipment_components_remove));
+      await tester.pumpAndSettle();
+      expect(find.text('Second stage'), findsNothing);
+      expect(
+        await tester.runAsync(() => components.getComponents('g1')),
+        hasLength(1),
+      );
+      await save(tester);
+      await tester.runAsync(() async {});
+
+      expect(harness.save.calls.single.cards, {GearItemCardId.components.name});
+      expect(
+        await tester.runAsync(() => components.getComponents('g1')),
+        isEmpty,
       );
     });
   });

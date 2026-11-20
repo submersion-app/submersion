@@ -37,6 +37,7 @@ class _FakeComponentRepository extends EquipmentComponentRepository {
     required String parentId,
     required String componentId,
     String role = '',
+    String? id,
   }) async {
     if (throwCycle ||
         (throwCycleAfter != null && added.length >= throwCycleAfter!)) {

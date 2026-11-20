@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/equipment/presentation/widgets/components_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/condition_findings_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/observations_card.dart';
 import 'package:submersion/features/media/presentation/helpers/document_open_helper.dart';
@@ -120,6 +121,15 @@ final Map<GearItemCardId, EditCard<EquipmentItem>> gearItemEditCards = {
     isEmpty: (_) => false,
     editorBuilder: (context, session) =>
         ObservationsCard(equipment: session.working, editing: session),
+  ),
+  GearItemCardId.components: EditCard<EquipmentItem>(
+    id: GearItemCardId.components.name,
+    title: (context) =>
+        GearItemCardId.components.localizedDisplayName(context.l10n),
+    // Always on the page: with none, it says so.
+    isEmpty: (_) => false,
+    editorBuilder: (context, session) =>
+        ComponentsCard(equipmentId: session.stored.id, editing: session),
   ),
   GearItemCardId.legacyFiles: EditCard<EquipmentItem>(
     id: GearItemCardId.legacyFiles.name,
