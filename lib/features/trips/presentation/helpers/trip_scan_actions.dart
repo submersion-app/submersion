@@ -26,11 +26,11 @@ const _log = LoggerService('tripScanActions');
 /// captured before the first await. This survives the initiating widget being
 /// disposed mid-scan (when `context.mounted` is false), which would otherwise
 /// leave the modal progress overlay stuck on the root navigator.
-class _LoadingDialog {
+class TripScanLoadingDialog {
   final NavigatorState _navigator;
   bool _open = true;
 
-  _LoadingDialog(this._navigator);
+  TripScanLoadingDialog(this._navigator);
 
   void dismiss() {
     if (_open && _navigator.canPop()) {
@@ -51,7 +51,9 @@ Future<void> scanGalleryForTripPhotos(
   if (!demoSealGuard(context, DemoSealedFeature.mediaImport)) {
     return;
   }
-  final loading = _LoadingDialog(Navigator.of(context, rootNavigator: true));
+  final loading = TripScanLoadingDialog(
+    Navigator.of(context, rootNavigator: true),
+  );
   showDialog(
     context: context,
     barrierDismissible: false,
@@ -137,7 +139,9 @@ Future<void> _importPhotos(
   String tripId,
   Map<Dive, List<AssetInfo>> photosByDive,
 ) async {
-  final loading = _LoadingDialog(Navigator.of(context, rootNavigator: true));
+  final loading = TripScanLoadingDialog(
+    Navigator.of(context, rootNavigator: true),
+  );
   showDialog(
     context: context,
     barrierDismissible: false,
@@ -241,7 +245,9 @@ Future<void> scanForTripDives(
     return;
   }
 
-  final loading = _LoadingDialog(Navigator.of(context, rootNavigator: true));
+  final loading = TripScanLoadingDialog(
+    Navigator.of(context, rootNavigator: true),
+  );
   showDialog(
     context: context,
     barrierDismissible: false,

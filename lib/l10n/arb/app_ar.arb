@@ -10112,6 +10112,8 @@
   "trips_bulkDelete_divesReturnToParents": "تعود غطسات الرحلات الجانبية المحذوفة إلى رحلاتها الأكبر.",
   "trips_detail_dialog_deleteTitle": "حذف الرحلة؟",
   "trips_detail_dives_empty": "لا توجد غوصات في هذه الرحلة بعد",
+  "trips_sitting_notSaved": "لم يُحفظ بعد",
+  "trips_sitting_takeOut": "إخراج",
   "trips_detail_dives_errorLoading": "تعذر تحميل الغوصات",
   "trips_detail_error_loading": "تعذّر تحميل الرحلة.",
   "trips_detail_dives_unknownSite": "موقع غوص غير معروف",

@@ -35902,6 +35902,12 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aucune plongée dans ce voyage pour le moment';
 
   @override
+  String get trips_sitting_notSaved => 'Pas encore enregistré';
+
+  @override
+  String get trips_sitting_takeOut => 'Retirer';
+
+  @override
   String get trips_detail_dives_errorLoading =>
       'Impossible de charger les plongées';
 

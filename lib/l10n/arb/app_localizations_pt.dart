@@ -35775,6 +35775,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get trips_detail_dives_empty => 'Nenhum mergulho nesta viagem ainda';
 
   @override
+  String get trips_sitting_notSaved => 'Ainda não salvo';
+
+  @override
+  String get trips_sitting_takeOut => 'Retirar';
+
+  @override
   String get trips_detail_dives_errorLoading =>
       'Não foi possível carregar os mergulhos';
 

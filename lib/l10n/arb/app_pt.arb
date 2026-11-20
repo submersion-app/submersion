@@ -10112,6 +10112,8 @@
   "trips_bulkDelete_divesReturnToParents": "Os mergulhos das viagens secundárias eliminadas voltam para as respetivas viagens principais.",
   "trips_detail_dialog_deleteTitle": "Excluir Viagem?",
   "trips_detail_dives_empty": "Nenhum mergulho nesta viagem ainda",
+  "trips_sitting_notSaved": "Ainda não salvo",
+  "trips_sitting_takeOut": "Retirar",
   "trips_detail_dives_errorLoading": "Não foi possível carregar os mergulhos",
   "trips_detail_error_loading": "Não foi possível carregar a viagem.",
   "trips_detail_dives_unknownSite": "Ponto Desconhecido",

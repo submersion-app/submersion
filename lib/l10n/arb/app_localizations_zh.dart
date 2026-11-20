@@ -33693,6 +33693,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_detail_dives_empty => '此旅行暂无潜水记录';
 
   @override
+  String get trips_sitting_notSaved => '尚未保存';
+
+  @override
+  String get trips_sitting_takeOut => '移出';
+
+  @override
   String get trips_detail_dives_errorLoading => '无法加载潜水记录';
 
   @override

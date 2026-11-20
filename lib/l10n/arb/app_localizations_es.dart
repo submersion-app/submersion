@@ -35816,6 +35816,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get trips_detail_dives_empty => 'No hay inmersiones en este viaje aún';
 
   @override
+  String get trips_sitting_notSaved => 'Aún no guardado';
+
+  @override
+  String get trips_sitting_takeOut => 'Quitar';
+
+  @override
   String get trips_detail_dives_errorLoading =>
       'No se pudieron cargar las inmersiones';
 

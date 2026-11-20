@@ -36177,6 +36177,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_detail_dives_empty => 'لا توجد غوصات في هذه الرحلة بعد';
 
   @override
+  String get trips_sitting_notSaved => 'لم يُحفظ بعد';
+
+  @override
+  String get trips_sitting_takeOut => 'إخراج';
+
+  @override
   String get trips_detail_dives_errorLoading => 'تعذر تحميل الغوصات';
 
   @override

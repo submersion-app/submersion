@@ -11,6 +11,7 @@ import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_checklists_sitting.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_dives_sitting.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_gear_sitting.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_header_card_editor.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_itinerary_sitting.dart';
@@ -106,7 +107,7 @@ mixin TripSittingHost<W extends ConsumerStatefulWidget>
       return true;
     }
     final trips = ref.read(tripRepositoryProvider);
-    final List<DiveCandidate> candidates;
+    final List<DiveCandidate> found;
     try {
       // The profile may still be being read just after the page opened;
       // the form waited for it, and so does this.
@@ -116,7 +117,7 @@ mixin TripSittingHost<W extends ConsumerStatefulWidget>
       if (diverId == null || !mounted || session.isDisposed) {
         return mounted && !session.isDisposed;
       }
-      candidates = await trips.findCandidateDivesForTrip(
+      found = await trips.findCandidateDivesForTrip(
         tripId: stored.id,
         startDate: working.startDate,
         endDate: working.endDate,
@@ -133,6 +134,13 @@ mixin TripSittingHost<W extends ConsumerStatefulWidget>
       return mounted && !session.isDisposed;
     }
     if (!mounted || session.isDisposed) return false;
+    // Dives the Dives card's scan holds are assigned already (plan 10, Call
+    // 9): never offered twice.
+    final scanned = {for (final d in scannedDivesOf(session).dives) d.id};
+    final candidates = [
+      for (final c in found)
+        if (!scanned.contains(c.dive.id)) c,
+    ];
     if (candidates.isEmpty) return true;
     final chosen = await showDiveAssignmentDialog(
       context: context,
@@ -163,7 +171,14 @@ mixin TripSittingHost<W extends ConsumerStatefulWidget>
     final messenger = ScaffoldMessenger.maybeOf(context);
     final l10n = context.l10n;
     final container = ProviderScope.containerOf(context, listen: false);
-    final assigned = session.isHeld(assignDivesKey) ? _assigned : null;
+    final asked = session.isHeld(assignDivesKey) ? _assigned : null;
+    final scanned = scannedDivesOf(session);
+    final assigned = asked == null && scanned.dives.isEmpty
+        ? null
+        : (
+            count: (asked?.count ?? 0) + scanned.dives.length,
+            oldTripIds: {...?asked?.oldTripIds, ...scanned.oldTripIds},
+          );
     final service = ref.read(tripEditSaveServiceProvider);
     // The profile acting now, which the update checks before it writes the
     // Everyone flag; the sitting never changes that flag on the row itself,

@@ -56490,6 +56490,18 @@ abstract class AppLocalizations {
   /// **'No dives in this trip yet'**
   String get trips_detail_dives_empty;
 
+  /// Marks a dive or photo a trip page holds until Save (issue #4527)
+  ///
+  /// In en, this message translates to:
+  /// **'Not saved yet'**
+  String get trips_sitting_notSaved;
+
+  /// Takes a dive or photo added in a trip page sitting back off before Save
+  ///
+  /// In en, this message translates to:
+  /// **'Take out'**
+  String get trips_sitting_takeOut;
+
   /// No description provided for @trips_detail_dives_errorLoading.
   ///
   /// In en, this message translates to:

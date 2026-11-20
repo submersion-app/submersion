@@ -9986,6 +9986,8 @@
   "trips_bulkDelete_divesReturnToParents": "A törölt mellékutak merülései visszakerülnek a nagyobb útjaikhoz.",
   "trips_detail_dialog_deleteTitle": "Út törlése?",
   "trips_detail_dives_empty": "Még nincsenek merülések ezen az úton",
+  "trips_sitting_notSaved": "Még nincs mentve",
+  "trips_sitting_takeOut": "Kivesz",
   "trips_detail_dives_errorLoading": "Nem sikerült a merülések betöltése",
   "trips_detail_error_loading": "Nem sikerült betölteni az utat.",
   "trips_detail_dives_unknownSite": "Ismeretlen merülőhely",

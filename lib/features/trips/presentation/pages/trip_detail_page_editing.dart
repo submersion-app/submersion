@@ -142,6 +142,13 @@ mixin _TripDetailPageEditing
       },
       showsWhileEmpty: _showsWhileEmpty,
       openCard: (id) => _openCard(id, shown),
+      unlockAt: (id) {
+        final controller = editController;
+        if (!controller.isUnlocked) controller.unlock(shown);
+        if (!controller.isUnlocked) return null;
+        showTab((id.tab ?? TripDetailTab.overview).index);
+        return controller.session;
+      },
     );
   }
 }
