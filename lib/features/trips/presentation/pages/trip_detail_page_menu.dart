@@ -38,21 +38,19 @@ extension _TripDetailMenu on _TripDetailContent {
         } else if (value == 'delete') {
           _runOperation(() => _delete(context, ref, trip));
         } else if (value == 'remove') {
-          _runOperation(() async {
-            await _removeFromProfile(context, ref, trip);
-            return true;
-          });
+          _runOperation(() => _removeFromProfile(context, ref, trip));
         } else if (value == 'unhide') {
           _runOperation(() async {
-            // A failed unhide says so (issue #2677).
-            await runHideChange(
+            // A failed unhide says so (issue #2677) and changed nothing.
+            final unhidden = await runHideChange(
               ScaffoldMessenger.of(context),
               context.l10n,
               () => ref
                   .read(tripListNotifierProvider.notifier)
-                  .unhideTrip(trip.id),
+                  .unhideTrip(trip.id)
+                  .then((_) => true),
             );
-            return true;
+            return unhidden == true;
           });
         } else if (value == 'export') {
           _showExportOptions(context, ref);
@@ -284,14 +282,16 @@ extension _TripDetailMenu on _TripDetailContent {
   }
 
   /// Hides another profile's shared trip from the active profile only
-  /// (issue #2594), with Undo.
-  Future<void> _removeFromProfile(
+  /// (issue #2594), with Undo. Whether it was removed: a remove the diver
+  /// cancelled, or one that failed, changed nothing.
+  Future<bool> _removeFromProfile(
     BuildContext context,
     WidgetRef ref,
     Trip trip,
-  ) {
+  ) async {
     final notifier = ref.read(tripListNotifierProvider.notifier);
-    return removeSharedItemFromProfile(
+    var removed = false;
+    await removeSharedItemFromProfile(
       context,
       ref,
       kind: SharedItemKind.trip,
@@ -300,8 +300,12 @@ extension _TripDetailMenu on _TripDetailContent {
       ownerId: trip.diverId,
       hide: () => notifier.hideTrip(trip.id),
       unhide: () => notifier.unhideTrip(trip.id),
-      onRemoved: () => embedded ? onDeleted?.call() : context.pop(),
+      onRemoved: () {
+        removed = true;
+        embedded ? onDeleted?.call() : context.pop();
+      },
     );
+    return removed;
   }
 
   void _showExportOptions(BuildContext context, WidgetRef ref) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/features/divers/presentation/providers/profile_hides_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_edit_fields.dart';
 import 'package:submersion/features/trips/presentation/widgets/overview/trip_prepare_overview.dart';
@@ -284,5 +285,24 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.text(l.trips_detail_preDive_action), findsOneWidget);
+  });
+
+  testWidgets('a failed Unhide leaves the sitting as it was', (tester) async {
+    final harness = await pumpTripPage(
+      tester,
+      divers: twoDivers,
+      activeDiverId: 'd2',
+      extraOverrides: [isHiddenProvider.overrideWith((ref, key) async => true)],
+    );
+    harness.trips.failUnhide = true;
+    await unlock(tester);
+    final before = sessionOf(tester);
+
+    await openMenu(tester);
+    await tester.tap(find.text(l.sharedItems_unhideAction));
+    await tester.pumpAndSettle();
+
+    expect(find.text(l.common_error_tryAgain), findsOneWidget);
+    expect(identical(sessionOf(tester), before), isTrue);
   });
 }

@@ -101,6 +101,14 @@ class FakeTripList extends StateNotifier<AsyncValue<List<TripWithStats>>>
 
   final deleted = <String>[];
 
+  /// Unhide throws, as a write that fails does.
+  bool failUnhide = false;
+
+  @override
+  Future<void> unhideTrip(String id) async {
+    if (failUnhide) throw StateError('the unhide failed');
+  }
+
   @override
   Future<bool> deleteTrip(String id) async {
     deleted.add(id);
