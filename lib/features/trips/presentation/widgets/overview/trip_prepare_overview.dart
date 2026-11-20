@@ -47,6 +47,8 @@ class TripPrepareOverview extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: TripStoryHero(
             story: story,
+            // The header block's name and dates as the sitting holds them.
+            trip: trip,
             showEmptyState: false,
             showChecklist: false,
           ),

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -8,6 +10,7 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_edit_fields.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_header_card_editor.dart';
 import 'package:submersion/features/trips/presentation/widgets/part_of_trip_field.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_hero.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
@@ -395,6 +398,54 @@ void main() {
 
     expect(find.byKey(const Key('trip-header-rows')), findsNothing);
   });
+
+  testWidgets('the sharing field appears when its read lands after the '
+      'header opened', (tester) async {
+    final shares = _SlowShares();
+    await pumpTripPage(
+      tester,
+      divers: twoDivers,
+      activeDiverId: 'd1',
+      shares: shares,
+    );
+    await openHeader(tester);
+    expect(find.byType(ItemSharingField), findsNothing);
+
+    shares.answer();
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ItemSharingField), findsOneWidget);
+  });
+
+  testWidgets("the prepare page's hero shows the name the sitting holds", (
+    tester,
+  ) async {
+    await pumpTripPage(tester);
+    await openHeader(tester);
+    await tester.enterText(find.byKey(const Key('trip-edit-name')), 'Egypt');
+    await tester.pumpAndSettle();
+
+    expect(
+      find.descendant(
+        of: find.byType(TripStoryHero),
+        matching: find.text('Egypt'),
+      ),
+      findsOneWidget,
+    );
+  });
+}
+
+/// Who items are shared with, answered only when the test says.
+class _SlowShares extends FakeItemShares {
+  final _gate = Completer<void>();
+
+  void answer() => _gate.complete();
+
+  @override
+  Future<ItemSharing> sharingOf(SharedItemKind kind, String id) async {
+    await _gate.future;
+    return ItemSharing.none;
+  }
 }
 
 /// Who items are shared with cannot be read.
