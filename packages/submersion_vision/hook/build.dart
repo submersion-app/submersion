@@ -71,9 +71,15 @@ Future<List<(OrtLibrary, File)>> ensureLibraries(
 
   final download = File.fromUri(shared.uri.resolve(archive.fileName));
   if (!await _matches(download, archive.sha256)) {
-    await fetch(archive.url, download);
-    if (!await _matches(download, archive.sha256)) {
-      if (download.existsSync()) download.deleteSync();
+    // Fetched and checked in this process's own file, and moved into the
+    // shared place only when it matches: another build at once (Android's
+    // ABIs) may be reading an archive it has already checked there.
+    final fetched = File('${download.path}.$pid.fetched');
+    await fetch(archive.url, fetched);
+    if (await _matches(fetched, archive.sha256)) {
+      fetched.renameSync(download.path);
+    } else {
+      if (fetched.existsSync()) fetched.deleteSync();
       throw BuildError(
         message:
             '${archive.url} does not match its pinned SHA-256 '

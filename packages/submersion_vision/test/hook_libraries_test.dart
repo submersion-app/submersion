@@ -66,7 +66,11 @@ void main() {
     expect(fetched, ['https://example.org/ort.zip']);
     expect(files.single.$2.readAsBytesSync(), library);
     expect(
-      shared.listSync(recursive: true).where((f) => f.path.endsWith('.part')),
+      shared
+          .listSync(recursive: true)
+          .where(
+            (f) => f.path.endsWith('.part') || f.path.endsWith('.fetched'),
+          ),
       isEmpty,
     );
   });
@@ -86,6 +90,31 @@ void main() {
       expect(File(p.join(shared.path, 'ort.zip')).existsSync(), isFalse);
     },
   );
+
+  test('a bad download never replaces or removes an archive another build '
+      'already placed', () async {
+    final placed = File(p.join(shared.path, 'ort.zip'));
+
+    await expectLater(
+      hook.ensureLibraries(
+        archive(),
+        shared,
+        'linux-x64',
+        fetch: (url, to) async {
+          // Another build (Android builds each ABI at once) finishes its
+          // download while this one is still fetching a corrupt copy.
+          placed.writeAsBytesSync(zip);
+          await to.writeAsBytes([9, 9, 9]);
+        },
+      ),
+      throwsA(isA<BuildError>()),
+    );
+    expect(placed.readAsBytesSync(), zip);
+    expect(
+      shared.listSync().map((f) => p.basename(f.path)),
+      unorderedEquals(['linux-x64', 'ort.zip']),
+    );
+  });
 
   test('a download that stalls fails instead of hanging the build', () async {
     final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
