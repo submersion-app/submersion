@@ -84,13 +84,13 @@ Widget _buildTestWidget({required List<Override> overrides}) {
       ),
       GoRoute(
         path: '/certifications/:id',
-        builder: (context, state) =>
-            Scaffold(body: Text('detail-${state.pathParameters['id']}')),
-      ),
-      GoRoute(
-        path: '/certifications/:id/edit',
-        builder: (context, state) =>
-            Scaffold(body: Text('edit-${state.pathParameters['id']}')),
+        builder: (context, state) => Scaffold(
+          body: Text(
+            state.uri.queryParameters['mode'] == 'edit'
+                ? 'unlocked-${state.pathParameters['id']}'
+                : 'detail-${state.pathParameters['id']}',
+          ),
+        ),
       ),
     ],
   );
@@ -253,8 +253,10 @@ void main() {
       expect(find.text('detail-cert-1'), findsOneWidget);
     });
 
-    testWidgets('the options sheet\'s "Edit" navigates to the certification '
-        'edit route', (tester) async {
+    // A card has no lock to tap, so its Edit opens the certification
+    // unlocked (issue #4527, plan 12, Question 3).
+    testWidgets('the options sheet\'s "Edit" opens the certification '
+        'unlocked', (tester) async {
       await tester.pumpWidget(
         _buildTestWidget(
           overrides: baseOverrides(certifications: [_makeCert(id: 'cert-1')]),
@@ -267,7 +269,7 @@ void main() {
       await tester.tap(find.text('Edit'));
       await tester.pumpAndSettle();
 
-      expect(find.text('edit-cert-1'), findsOneWidget);
+      expect(find.text('unlocked-cert-1'), findsOneWidget);
     });
 
     testWidgets('long-pressing a card opens the same options sheet', (

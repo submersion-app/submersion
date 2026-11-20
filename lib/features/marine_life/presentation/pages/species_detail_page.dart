@@ -101,11 +101,6 @@ class _SpeciesDetailPageState extends ConsumerState<SpeciesDetailPage>
     ),
     actions: [
       if (species != null) lockButton(species),
-      IconButton(
-        icon: const Icon(Icons.edit_outlined),
-        tooltip: context.l10n.marineLife_speciesDetail_editTooltip,
-        onPressed: () => context.push('/species/$speciesId/edit'),
-      ),
       if (species != null) _menu(species),
     ],
   );

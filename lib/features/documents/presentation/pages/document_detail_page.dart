@@ -235,15 +235,7 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage>
       title: Text(
         documentDisplayTitle(l10n, doc, ownerLabel: entry.ownerLabel),
       ),
-      actions: [
-        if (shown != null) lockButton(shown),
-        IconButton(
-          tooltip: l10n.common_action_edit,
-          icon: const Icon(Icons.edit_outlined),
-          onPressed: () => _edit(doc.id),
-        ),
-        _menu(doc),
-      ],
+      actions: [if (shown != null) lockButton(shown), _menu(doc)],
     );
   }
 
@@ -380,27 +372,6 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage>
       tags: _heldTags(),
     );
     return _framedDetails(card);
-  }
-
-  /// In the list's detail pane the editor opens in that pane, as every
-  /// master-detail feature's does; a full page pushes the edit route.
-  void _edit(String id) {
-    if (!widget.embedded) {
-      context.push('/documents/$id/edit');
-      return;
-    }
-    final uri = GoRouterState.of(context).uri;
-    context.go(
-      uri
-          .replace(
-            queryParameters: {
-              ...uri.queryParameters,
-              'selected': id,
-              'mode': 'edit',
-            },
-          )
-          .toString(),
-    );
   }
 
   /// Deletes [doc] after asking, and leaves the page. Answers whether it

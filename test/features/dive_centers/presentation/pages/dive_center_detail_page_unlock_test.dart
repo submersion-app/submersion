@@ -48,6 +48,25 @@ void main() {
 
   final header = DiveCenterCardId.header.localizedDisplayName(l);
 
+  // The lock is the one way in (issue #4527, plan 12): no Edit pencil.
+  testWidgets('the locked bar has the lock and no Edit pencil', (tester) async {
+    await pumpDiveCenterPage(tester);
+
+    expect(find.byIcon(Icons.lock_outline), findsOneWidget);
+    expect(find.widgetWithIcon(IconButton, Icons.edit), findsNothing);
+    expect(find.widgetWithIcon(IconButton, Icons.edit_outlined), findsNothing);
+  });
+
+  testWidgets('the pane header has the lock and no Edit pencil', (
+    tester,
+  ) async {
+    await pumpDiveCenterPage(tester, embedded: true);
+
+    expect(find.byIcon(Icons.lock_outline), findsOneWidget);
+    expect(find.widgetWithIcon(IconButton, Icons.edit), findsNothing);
+    expect(find.widgetWithIcon(IconButton, Icons.edit_outlined), findsNothing);
+  });
+
   testWidgets('locked, no tap writes', (tester) async {
     final harness = await pumpDiveCenterPage(tester);
 

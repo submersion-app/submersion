@@ -85,6 +85,15 @@ void main() {
   Finder inStrip(String title) =>
       find.descendant(of: find.byType(AddStrip), matching: find.text(title));
 
+  // The lock is the one way in (issue #4527, plan 12): no Edit pencil.
+  testWidgets('the locked bar has the lock and no Edit pencil', (tester) async {
+    await pumpSetPage(tester);
+
+    expect(find.byIcon(Icons.lock_outline), findsOneWidget);
+    expect(find.widgetWithIcon(IconButton, Icons.edit), findsNothing);
+    expect(find.widgetWithIcon(IconButton, Icons.edit_outlined), findsNothing);
+  });
+
   testWidgets('a long name fills the header row, with the switch on or off', (
     tester,
   ) async {

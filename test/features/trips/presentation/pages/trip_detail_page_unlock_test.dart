@@ -55,6 +55,25 @@ void main() {
 
   final notes = l.trips_detail_sectionTitle_notes;
 
+  // The lock is the one way in (issue #4527, plan 12): no Edit pencil.
+  testWidgets('the locked bar has the lock and no Edit pencil', (tester) async {
+    await pumpTripPage(tester);
+
+    expect(find.byIcon(Icons.lock_outline), findsOneWidget);
+    expect(find.widgetWithIcon(IconButton, Icons.edit), findsNothing);
+    expect(find.widgetWithIcon(IconButton, Icons.edit_outlined), findsNothing);
+  });
+
+  testWidgets('the pane header has the lock and no Edit pencil', (
+    tester,
+  ) async {
+    await pumpTripPage(tester, embedded: true);
+
+    expect(find.byIcon(Icons.lock_outline), findsOneWidget);
+    expect(find.widgetWithIcon(IconButton, Icons.edit), findsNothing);
+    expect(find.widgetWithIcon(IconButton, Icons.edit_outlined), findsNothing);
+  });
+
   testWidgets('locked, no tap on any tab writes', (tester) async {
     final harness = await pumpTripPage(tester);
 
