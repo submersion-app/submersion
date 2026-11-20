@@ -79,6 +79,18 @@ void main() {
       expect(r.futureOnly, isEmpty);
     });
 
+    test('a part moved onto another row is kept: only the part that left is '
+        'removed', () {
+      final r = gearAssemblyRewrites(
+        [row('r1', 'p1'), row('r2', 'p2')],
+        [row('r1', 'p2')],
+        const {},
+      );
+
+      expect(r.alsoPast, isEmpty);
+      expect(r.futureOnly, [const GearPartRemoved('p1')]);
+    });
+
     test('each part goes under its last answer', () {
       final r = gearAssemblyRewrites([row('r1', 'p1')], [row('r2', 'p2')], {
         'p1': AssemblyHistoryChoice.futureOnly,
@@ -183,6 +195,31 @@ void main() {
         ]);
       },
     );
+
+    test('a part another device added meanwhile keeps the held role and '
+        'order on its stored row', () async {
+      await components.addComponent(parentId: 'g1', componentId: 'p2');
+      await gearItemComponentsList.load(session);
+      final stored = gearItemComponentsList.current(session)!;
+      final p1 = stored.firstWhere((c) => c.componentEquipmentId == 'p1');
+      final p2Elsewhere = stored.firstWhere(
+        (c) => c.componentEquipmentId == 'p2',
+      );
+      // The sitting removes p2, adds it back under a new row with a role,
+      // first; meanwhile another device's p2 row is what is stored.
+      gearItemComponentsList.set(session, [
+        row('held', 'p2').copyWith(role: 'Spare'),
+        p1,
+      ]);
+      await components.removeComponent(p2Elsewhere.id);
+      await components.addComponent(parentId: 'g1', componentId: 'p2');
+
+      await session.runHeldWrites();
+
+      final after = await components.getComponents('g1');
+      expect(after.map((c) => c.componentEquipmentId), ['p2', 'p1']);
+      expect(after.first.role, 'Spare');
+    });
 
     test('a part that would now make a loop refuses the Save', () async {
       final parts = gearItemComponentsList.current(session)!;

@@ -69,35 +69,42 @@ Map<String, AssemblyHistoryChoice> _answers(
 ) =>
     session.recall<Map<String, AssemblyHistoryChoice>>(_answersKey) ?? const {};
 
-/// The dive rewrites the sitting's parts make: each part's net change
-/// against [loaded] (added, removed, or swapped on a kept row, oldest to
-/// newest), under the last answer given for it. A part added and removed in
-/// the sitting, or removed and added back, changes no dive.
+/// The dive rewrites the sitting's parts make, from which parts the
+/// assembly holds before and after rather than from its rows: a part the
+/// assembly still holds, on whatever row, is neither removed nor swapped. A
+/// row whose part went for a part that came is a swap (oldest to newest);
+/// any other part that went is removed, and any other that came is added.
+/// Each goes under the last answer given for it, so a part added and
+/// removed in the sitting, or removed and added back, changes no dive.
 ({List<GearHistoryRewrite> alsoPast, List<GearHistoryRewrite> futureOnly})
 gearAssemblyRewrites(
   List<EquipmentComponent> loaded,
   List<EquipmentComponent> current,
   Map<String, AssemblyHistoryChoice> answers,
 ) {
-  final before = {for (final c in loaded) c.id: c.componentEquipmentId};
-  final after = {for (final c in current) c.id: c.componentEquipmentId};
-  final removed = <String>{
-    for (final MapEntry(key: row, value: part) in before.entries)
-      if (!after.containsKey(row)) part,
-  };
-  final added = <String>{
-    for (final MapEntry(key: row, value: part) in after.entries)
-      if (!before.containsKey(row)) part,
-  };
-  // A part taken out and put back in the sitting is where it was.
-  final back = removed.intersection(added);
-  final rewrites = <(String, GearHistoryRewrite)>[
-    for (final part in removed.difference(back)) (part, GearPartRemoved(part)),
-    for (final MapEntry(key: row, value: part) in after.entries)
-      if (before[row] case final old? when old != part)
-        (part, GearPartReplaced(oldPartId: old, newPartId: part)),
-    for (final part in added.difference(back)) (part, GearPartAdded(part)),
-  ];
+  final heldBefore = {for (final c in loaded) c.componentEquipmentId};
+  final heldAfter = {for (final c in current) c.componentEquipmentId};
+  final went = heldBefore.difference(heldAfter);
+  final came = heldAfter.difference(heldBefore);
+  final partBefore = {for (final c in loaded) c.id: c.componentEquipmentId};
+  final swappedOut = <String>{};
+  final swappedIn = <String>{};
+  final rewrites = <(String, GearHistoryRewrite)>[];
+  for (final c in current) {
+    final old = partBefore[c.id];
+    final part = c.componentEquipmentId;
+    if (old == null || old == part) continue;
+    if (!went.contains(old) || !came.contains(part)) continue;
+    if (swappedOut.contains(old) || swappedIn.contains(part)) continue;
+    swappedOut.add(old);
+    swappedIn.add(part);
+    rewrites.add((part, GearPartReplaced(oldPartId: old, newPartId: part)));
+  }
+  rewrites.addAll([
+    for (final part in went.difference(swappedOut))
+      (part, GearPartRemoved(part)),
+    for (final part in came.difference(swappedIn)) (part, GearPartAdded(part)),
+  ]);
   bool alsoPast(String part) => answers[part] == AssemblyHistoryChoice.alsoPast;
   return (
     alsoPast: [
@@ -124,6 +131,8 @@ Future<Object?> writeGearItemComponents(
   final assemblyId = session.stored.id;
   final before = {for (final c in loaded) c.id: c};
   final kept = {for (final c in current) c.id};
+  // A new row's id as stored, where another device's row took its place.
+  final storedIds = <String, String>{};
   try {
     // Removals first: a part taken off one row and put on another, or
     // removed and added back, must find its old row gone, or the add would
@@ -134,12 +143,21 @@ Future<Object?> writeGearItemComponents(
     for (final row in current) {
       final old = before[row.id];
       if (old == null) {
-        await repository.addComponent(
+        final stored = await repository.addComponent(
           parentId: assemblyId,
           componentId: row.componentEquipmentId,
           role: row.role,
           id: row.id,
         );
+        // Another device added the same part meanwhile: its row is the
+        // part's, and takes the sitting's place and, when it gave one, role.
+        if (stored.id != row.id) {
+          storedIds[row.id] = stored.id;
+          final role = row.role.trim();
+          if (role.isNotEmpty && stored.role != role) {
+            await repository.updateRole(stored.id, row.role);
+          }
+        }
         continue;
       }
       if (old.componentEquipmentId != row.componentEquipmentId) {
@@ -152,13 +170,14 @@ Future<Object?> writeGearItemComponents(
   }
   // New rows are appended, so the order needs writing only when it is not
   // the stored order with them at the end.
+  String storedId(String id) => storedIds[id] ?? id;
   final appended = [
     for (final c in loaded)
       if (kept.contains(c.id)) c.id,
     for (final c in current)
-      if (!before.containsKey(c.id)) c.id,
+      if (!before.containsKey(c.id)) storedId(c.id),
   ];
-  final order = [for (final c in current) c.id];
+  final order = [for (final c in current) storedId(c.id)];
   if (!listEquals(order, appended)) {
     await repository.reorder(assemblyId, order);
   }
