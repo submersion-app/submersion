@@ -4,9 +4,12 @@ Findings of the naming layer
 ([design](../specs/2026-11-18-marine-life-naming-layer-design.md),
 [plan](../plans/2026-11-18-marine-life-naming-layer.md),
 [runbook](../plans/2026-11-18-marine-life-naming-layer-runbook.md)),
-issue #4724. Trained and gated on 2026-11-20 on an Apple M5 Pro, through
-the app's own Swift pipeline, with the tools in the
-[species pack repository](https://github.com/submersion-app/species-pack).
+issue #4724. Trained and gated on 2026-11-20 on an Apple M5 Pro, with the
+tools in the
+[species pack repository](https://github.com/submersion-app/species-pack):
+the training photos were embedded and the packs scored through the app's
+own Swift pipeline, and the rows were trained with PyTorch on the Mac's
+GPU.
 
 The trained pack is `2026.11.20.0513`. It is pack `2026.11.18.0356` (both
 detectors, 9,151 candidates) with one file changed: `text_embeddings.f16`
@@ -32,7 +35,10 @@ Where each number comes from:
 **The trained pack passed the gate: it may ship.** With both detectors
 and centre crop, it names **602 of the 1,076 held-out natural photos
 right, against 304** for the current pack (305 photos only the trained
-pack named right, 7 only the current one; p 1.3e-80). Its confident bar
+pack named right, 7 only the current one; p 1.3e-80). Named right here,
+as in the gate, means suggested at the pack's own bars (Surer, with a
+location) and right; the table's first row is the largest box's top-1
+with no bar. Its confident bar
 is **0.93**, a real bar for the first time (the current pack's is never).
 No animal group is named right less often, junk is named on 1.82% of
 tune-half junk crops, and the rare-species check names 1.40% of unseen
@@ -40,7 +46,7 @@ species' photos confidently wrong.
 
 | Held-out natural photos, both detectors, centre crop | Current pack | Trained pack |
 | --- | --- | --- |
-| Largest box named right | 55.0% | 65.2% (62.3% to 68.0%) |
+| Largest box's top-1 right, no bar | 55.0% | 65.2% (62.3% to 68.0%) |
 | Top-1 / top-3 with a location | 56.7% / 71.5% | 67.2% / 78.7% |
 | Top-1 / top-3 without one | 48.1% / 63.1% | 58.9% / 72.3% |
 | Suggested: coverage | 32.4% | 65.9% (63.0% to 68.7%) |
@@ -83,10 +89,18 @@ From `training.json` of the trained pack:
 | Validation loss | 1.9266 | 2.7868 |
 | Validation top-1 | 61.1% | 43.5% |
 
-Chosen on the validation photos from 3 pulls, 4 blends and 4 sharpness
-values: **pull 0.0001, 4 epochs, blend 0.75, sharpness 0.75, seed 0**.
+Chosen on the validation photos: the pull towards the name rows
+(`anchor` in `training.json`) from 0.0001, 0.001 and 0.01; the blend from
+0.25, 0.5, 0.75 and 1.0; the sharpness from 0.75, 1.0, 1.5 and 2.0; and
+the epochs by stopping once the validation loss stopped falling. The
+choice: **pull 0.0001, 4 epochs, blend 0.75, sharpness 0.75, seed 0**.
 Training took under four minutes on the Mac's GPU. The pull and the
 sharpness both chose the lowest value searched.
+
+The pack has 9,151 candidates, and 8,747 of them had training photos.
+The other 404 keep BioCLIP 2's name rows, scaled by the same sharpness,
+so they compete with trained rows; the rare-species check below measures
+how such a species fares.
 
 ## The gate
 
@@ -120,8 +134,9 @@ with every photo of the test set's 100 held-back species removed
 (346,359 training photos, 8,654 species). Named at the trained pack's
 bars, it named **3 of the 215 held-back species' photos confidently
 wrong** and 4 confidently right: a rate of **1.40%** (0.48% to 4.02%).
-This is how the shipped layer treats a species it has no training photos
-for.
+This estimates how the shipped layer treats a species it has no training
+photos for, such as its 404 untrained candidates; on 215 photos, the
+interval allows up to about twice the 2% limit.
 
 ## Bars
 
@@ -142,14 +157,20 @@ The trained rows separate species far better, so lower bars name twice
 as many photos at about the same precision. The scorer left the Eager
 level out of the trained pack; a level is left out when it adds nothing
 over the one above, does not hold on the held-out half, or would show a
-higher figure than the level above. The bars are recorded for this pack
-only, in `manifest.py` of the species pack repository.
+higher figure than the level above. Eager is the app's default level
+until a diver picks one (#4789), and a pack without it names at its most
+eager level, so with this pack every diver on the default names at
+Balanced: 83.4% right, on 73.4% of photos with a location, against
+today's Eager, 75.5% right on 45.4%. The bars are recorded for this pack only, in
+`manifest.py` of the species pack repository.
 
 ## Known limits
 
 - **Recent photos only:** each candidate's list was one request for its
   newest 200 observations, so older photos were never offered. 583
   species had fewer than 10 photos selected for training.
+- **Untrained candidates:** 404 of the 9,151 candidates had no training
+  photos and keep their name rows.
 - **Thin samples on two gate items:** junk passed at 1 of 55 crops, and
   the rare-species interval reaches 4.0%, above the 2% limit.
 - **The search's edges:** the pull and the sharpness chose the lowest

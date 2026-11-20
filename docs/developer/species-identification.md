@@ -378,21 +378,25 @@ The trained pack is the base pack with one file changed:
 `text_embeddings.f16` holds one trained row per candidate, so the app names
 with it unchanged. Every step below runs in the pack repository, with
 `$DATA` a work folder outside the repository and `$BASE` the base pack's
-folder (its release files, downloaded). Each stage resumes where it
-stopped, and the
+folder (its release files, downloaded). The fetch resumes where it
+stopped; training reruns from the start in minutes, and the scorer reuses
+its cached vision runs. The
 [runbook](../design/plans/2026-11-18-marine-life-naming-layer-runbook.md)
-says what a good result of each looks like.
+says what a good result of each step looks like.
 
-Fetch, select and embed the training photos. It takes about a day: one
-list request per candidate, within iNaturalist's limits, then the photos
-from its AWS Open Data bucket, each deleted once its embedding is taken:
+Fetch, select and embed the training photos. The first run took about a
+day: 7 hours of lists (one request per candidate, within iNaturalist's
+limits), then 17 hours for about 225 GB of photos from its AWS Open Data
+bucket, paced by the connection (about 6 MB/s). Each photo is deleted
+once its embedding is taken, so the disk holds one batch at a time:
 
 ```bash
 caffeinate -i .venv-species-pack/bin/python -I fetch_training.py all --wait --pack $BASE --set testdata/accuracy_set.csv --work $DATA/training
 ```
 
-Train the shipped layer. It chooses the pull, blend and sharpness on the
-validation photos and writes the trained pack, with provisional bars:
+Train the shipped layer. It chooses the pull, epochs, blend and sharpness
+on the validation photos and writes the trained pack, with provisional
+bars:
 
 ```bash
 .venv-species-pack/bin/python -I train_naming.py --base $BASE --training $DATA/training --out $DATA/pack-trained
@@ -406,8 +410,17 @@ without the test set's held-back species. It is never shipped:
 ```
 
 Score the base pack and the trained pack on the test photos, as in
-"Measuring accuracy" (link one work folder's `photos` into the others
-rather than copy them):
+"Measuring accuracy". Fetch the photos into the baseline's work folder
+once, and link that folder's `photos` into the others rather than copy
+them:
+
+```bash
+.venv-species-pack/bin/python -I fetch_testset.py photos-from-csv --work $DATA/score-baseline
+```
+
+```bash
+for w in score-trained score-check; do mkdir -p $DATA/$w && ln -sfn $DATA/score-baseline/photos $DATA/$w/photos; done
+```
 
 ```bash
 .venv-species-pack/bin/python -I score.py --pack $BASE --work $DATA/score-baseline
@@ -418,9 +431,25 @@ rather than copy them):
 ```
 
 Then score the check pack at the trained pack's measured bars.
-`--naming-from` reads a pack folder's `manifest.json`: write the trained
-pack's manifest there with its `naming` replaced by the pair's `measured`
-entry from `$DATA/score-trained/results.json`:
+`--naming-from` reads a pack folder's `manifest.json`, so write the trained
+pack's manifest into `$DATA/score-trained/bars-pack` with its `naming`
+block replaced by the `naming` of the pair's `measured` entry. The entry's
+`cropFit` must be `centreCrop`, the fitting the packs use; otherwise its
+bars are not the ones the gate or the app would read:
+
+```bash
+python3.14 - <<'EOF'
+import json, os
+d = os.environ["DATA"]
+r = json.load(open(f"{d}/score-trained/results.json"))
+both = [m for m in r["measured"] if len(m["detectorIds"]) == 2][0]
+assert both["cropFit"] == "centreCrop", both["cropFit"]
+m = json.load(open(f"{d}/pack-trained/manifest.json"))
+m["naming"] = both["naming"]
+os.makedirs(f"{d}/score-trained/bars-pack", exist_ok=True)
+json.dump(m, open(f"{d}/score-trained/bars-pack/manifest.json", "w"), indent=1)
+EOF
+```
 
 ```bash
 .venv-species-pack/bin/python -I score.py --pack $DATA/pack-check --work $DATA/score-check --naming-from $DATA/score-trained/bars-pack
@@ -433,13 +462,23 @@ three cover the same photos:
 .venv-species-pack/bin/python -I gate.py --baseline $DATA/score-baseline --trained $DATA/score-trained --check $DATA/score-check --baseline-pack $BASE --trained-pack $DATA/pack-trained --check-pack $DATA/pack-check --set testdata/accuracy_set.csv
 ```
 
-It exits 0 when the trained pack may ship: significantly more held-out
-photos named right than the base pack, a confident bar that is a real bar,
-no animal group named right less often, junk named on at most 2% of junk
-crops, and at most 2% of the held-back species' photos named confidently
-wrong. Then add the pair's `measured` entry to `NAMING_MEASURED` in
-`manifest.py` and rewrite the trained pack's manifest with
-`manifest.derive_manifest`, which gives it the measured bars.
+It exits 0 when the trained pack may ship:
+
+- significantly more held-out natural photos named right than the base
+  pack (paired test, p < 0.05);
+- a confident bar with a location, chosen on the tune half as proven 95%
+  right, that survives the held-out gate;
+- no animal group named right significantly less often;
+- junk named on at most 2% of the tune half's junk crops;
+- at most 2% of the held-back species' photos named confidently wrong.
+
+Then add the pair's `measured` entry to `NAMING_MEASURED` in
+`manifest.py`, with `findings` naming the findings file in this
+repository's `docs/design/findings/`, and rewrite the trained pack's
+manifest with `manifest.derive_manifest`, which gives it the measured
+bars. The pack repository's `manifest_test.py` checks that the findings
+file exists on this repository's main, so the findings land here before
+the pull request adding the entry there can pass.
 
 The trained file is credited CC BY-NC 4.0, since most of its photos carry
 that licence; `build_pack.py` still builds the untrained pack, the open
