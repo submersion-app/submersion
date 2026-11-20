@@ -238,15 +238,9 @@ class _PassportPageState extends ConsumerState<PassportPage>
             ),
           ),
           // The dives this cylinder was used on (issue #2650), with its
-          // own gap so a cylinder never used leaves none.
-          if (passportId != null)
-            calculated(
-              PassportUsageCard(
-                passportId: passportId,
-                title: PassportUsageTitle.own,
-                topGap: 16,
-              ),
-            ),
+          // own gap so a cylinder never used leaves none. Faded only while
+          // it shows something: an empty card draws nothing to label.
+          if (passportId != null) _usageCard(passportId),
           const SizedBox(height: 16),
           _framed(
             _tagCard,
@@ -263,6 +257,22 @@ class _PassportPageState extends ConsumerState<PassportPage>
           ),
         ],
       ),
+    );
+  }
+}
+
+extension on _PassportPageState {
+  Widget _usageCard(String passportId) {
+    final card = PassportUsageCard(
+      passportId: passportId,
+      title: PassportUsageTitle.own,
+      topGap: 16,
+    );
+    final dives = ref.watch(passportUsageProvider(passportId)).value;
+    if (dives == null || dives.isEmpty) return card;
+    return RecordCardFade<EquipmentItem>(
+      reason: RecordCardFadeReason.calculated,
+      child: card,
     );
   }
 }

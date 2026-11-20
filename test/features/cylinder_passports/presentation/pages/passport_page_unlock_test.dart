@@ -189,6 +189,16 @@ void main() {
     expect(find.byIcon(Icons.lock_outline), findsOneWidget);
   });
 
+  testWidgets('unlocked, a cylinder never dived labels only its spec as '
+      'calculated', (tester) async {
+    await pump(tester);
+    await tester.tap(find.byIcon(Icons.lock_outline));
+    await tester.pumpAndSettle();
+
+    // The empty Usage card draws nothing, so it has no label to float.
+    expect(find.text(l.recordEdit_calculated), findsOneWidget);
+  });
+
   testWidgets('alone: a change, then Cancel asks and writes nothing', (
     tester,
   ) async {

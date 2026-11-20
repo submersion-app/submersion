@@ -103,17 +103,22 @@ class GearTagCard extends ConsumerWidget {
           children: [
             Row(
               children: [
-                Flexible(
-                  child: Text(
-                    l10n.passport_tag_title,
-                    style: Theme.of(context).textTheme.titleMedium,
+                Expanded(
+                  child: Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          l10n.passport_tag_title,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ),
+                      if (session != null && holdsPassportTag(session)) ...[
+                        const SizedBox(width: 6),
+                        const RecordChangedDot(),
+                      ],
+                    ],
                   ),
                 ),
-                if (session != null && holdsPassportTag(session)) ...[
-                  const SizedBox(width: 6),
-                  const RecordChangedDot(),
-                ],
-                const Spacer(),
                 RecordCardPencil(cardTitle: l10n.passport_tag_title),
               ],
             ),
