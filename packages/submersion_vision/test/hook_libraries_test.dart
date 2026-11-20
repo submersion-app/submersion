@@ -87,6 +87,33 @@ void main() {
     },
   );
 
+  test('a download that stalls fails instead of hanging the build', () async {
+    final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+    addTearDown(() => server.close(force: true));
+    server.listen((request) {
+      // Headers and a little of the body, then nothing more.
+      request.response
+        ..statusCode = HttpStatus.ok
+        ..contentLength = 1000
+        ..add([1, 2, 3]);
+      request.response.flush();
+    });
+    final to = File(p.join(shared.path, 'ort.zip'));
+
+    await expectLater(
+      hook
+          .fetchUrl(
+            'http://127.0.0.1:${server.port}/ort.zip',
+            to,
+            idle: const Duration(milliseconds: 200),
+          )
+          .timeout(const Duration(seconds: 10)),
+      throwsA(isA<InfraError>()),
+    );
+    expect(to.existsSync(), isFalse);
+    expect(shared.listSync().where((f) => f.path.endsWith('.part')), isEmpty);
+  });
+
   test('temporary files are named for the process, so two builds at once '
       'never share one', () {
     final target = File(p.join(shared.path, 'ort.zip'));

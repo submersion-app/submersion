@@ -168,6 +168,14 @@ const _moment = IdentificationBox(x: 0.1, y: 0.1, width: 0.2, height: 0.2);
 Matcher _fails(String code) =>
     throwsA(isA<VisionEngineException>().having((e) => e.code, 'code', code));
 
+/// [engine], removed from the binding's observers when the test ends: an
+/// engine that loads models observes memory pressure, and one left behind
+/// would hear the next test file's events in CI's shared isolate.
+OnnxVisionEngine _tracked(OnnxVisionEngine engine) {
+  addTearDown(() => WidgetsBinding.instance.removeObserver(engine));
+  return engine;
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -178,13 +186,15 @@ void main() {
   Future<OnnxVisionEngine> engine([
     TargetPlatform platform = TargetPlatform.android,
   ]) async {
-    final e = OnnxVisionEngine(
-      platform: platform,
-      worker: () async => worker,
-      deviceMemory: _Memory(),
-      frames: frames,
-      lifecycle: () => lifecycle,
-      decode: (bytes) async => RgbaImage(2, 1, Uint8List(8)),
+    final e = _tracked(
+      OnnxVisionEngine(
+        platform: platform,
+        worker: () async => worker,
+        deviceMemory: _Memory(),
+        frames: frames,
+        lifecycle: () => lifecycle,
+        decode: (bytes) async => RgbaImage(2, 1, Uint8List(8)),
+      ),
     );
     await e.load(_models);
     return e;

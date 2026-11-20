@@ -281,11 +281,20 @@ class OnnxVisionEngine with WidgetsBindingObserver implements VisionEngine {
       await (await spawning).unload();
     } on VisionEngineException catch (e) {
       if (e.code != OnnxWorker.stoppedCode) rethrow;
-      _worker = null;
+      _dropWorker();
     } on Object {
       // The spawn failed: nothing was loaded.
       _worker = null;
     }
+  }
+
+  /// Forgets the worker whose isolate stopped and closes it, so its ports
+  /// go with it; the next call starts a new one.
+  void _dropWorker() {
+    final spawning = _worker;
+    _worker = null;
+    if (spawning == null) return;
+    unawaited(spawning.then((w) => w.close()).catchError((Object _) {}));
   }
 
   @override
@@ -327,7 +336,7 @@ class OnnxVisionEngine with WidgetsBindingObserver implements VisionEngine {
       return await call;
     } on VisionEngineException catch (e) {
       if (e.code == OnnxWorker.stoppedCode) {
-        _worker = null;
+        _dropWorker();
         _loaded = null;
         throw VisionEngineException(VisionEngineException.notLoaded, e.message);
       }

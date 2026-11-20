@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 
@@ -123,18 +124,28 @@ const _models = VisionModels(
   cropThumbnailSize: 320,
 );
 
+/// [engine], removed from the binding's observers when the test ends: an
+/// engine that loads models observes memory pressure, and one left behind
+/// would hear the next test file's events in CI's shared isolate.
+OnnxVisionEngine _tracked(OnnxVisionEngine engine) {
+  addTearDown(() => WidgetsBinding.instance.removeObserver(engine));
+  return engine;
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late FakeWorker worker;
   late List<Uint8List> decoded;
 
-  OnnxVisionEngine engine() => OnnxVisionEngine(
-    worker: () async => worker,
-    decode: (bytes) async {
-      decoded.add(bytes);
-      return RgbaImage(3, 2, Uint8List(3 * 2 * 4));
-    },
+  OnnxVisionEngine engine() => _tracked(
+    OnnxVisionEngine(
+      worker: () async => worker,
+      decode: (bytes) async {
+        decoded.add(bytes);
+        return RgbaImage(3, 2, Uint8List(3 * 2 * 4));
+      },
+    ),
   );
 
   setUp(() {
@@ -146,15 +157,20 @@ void main() {
     'a worker that failed to start is started again on the next call',
     () async {
       var spawns = 0;
-      final e = OnnxVisionEngine(
-        worker: () async {
-          spawns++;
-          if (spawns == 1) {
-            throw const VisionEngineException('unsupported', 'no runtime yet');
-          }
-          return worker;
-        },
-        decode: (bytes) async => RgbaImage(3, 2, Uint8List(3 * 2 * 4)),
+      final e = _tracked(
+        OnnxVisionEngine(
+          worker: () async {
+            spawns++;
+            if (spawns == 1) {
+              throw const VisionEngineException(
+                'unsupported',
+                'no runtime yet',
+              );
+            }
+            return worker;
+          },
+          decode: (bytes) async => RgbaImage(3, 2, Uint8List(3 * 2 * 4)),
+        ),
       );
 
       await expectLater(e.load(_models), throwsA(isA<VisionEngineException>()));
@@ -170,9 +186,11 @@ void main() {
     () async {
       final first = FakeWorker(), second = FakeWorker();
       final workers = [first, second];
-      final e = OnnxVisionEngine(
-        worker: () async => workers.removeAt(0),
-        decode: (bytes) async => RgbaImage(3, 2, Uint8List(3 * 2 * 4)),
+      final e = _tracked(
+        OnnxVisionEngine(
+          worker: () async => workers.removeAt(0),
+          decode: (bytes) async => RgbaImage(3, 2, Uint8List(3 * 2 * 4)),
+        ),
       );
       await e.load(_models);
       first.stopped = true;
@@ -190,6 +208,7 @@ void main() {
       await e.load(_models);
 
       expect(second.calls, ['load']);
+      expect(first.calls.last, 'close', reason: 'the stopped worker is closed');
       expect((await e.analyze(bytes: Uint8List(1))).imageWidth, 3);
     },
   );
@@ -328,14 +347,16 @@ void main() {
       bool is64Bit = true,
       bool libraryLoads = true,
       bool onnxPlatforms = true,
-    }) => OnnxVisionEngine(
-      platform: platform,
-      worker: () async => worker,
-      deviceMemory: FakeDeviceMemory(total),
-      ignoreFloor: ignoreFloor,
-      is64Bit: is64Bit,
-      libraryLoads: () async => libraryLoads,
-      onnxPlatforms: onnxPlatforms,
+    }) => _tracked(
+      OnnxVisionEngine(
+        platform: platform,
+        worker: () async => worker,
+        deviceMemory: FakeDeviceMemory(total),
+        ignoreFloor: ignoreFloor,
+        is64Bit: is64Bit,
+        libraryLoads: () async => libraryLoads,
+        onnxPlatforms: onnxPlatforms,
+      ),
     );
 
     test('a build without MARINE_LIFE_ID_ONNX reports the engine as not '
