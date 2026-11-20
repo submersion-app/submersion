@@ -116,8 +116,11 @@ class _GearItemHeaderEditorState extends ConsumerState<GearItemHeaderEditor> {
     final l10n = context.l10n;
     final id = _session.stored.id;
     // Locked until the lookup answers, so the field is never briefly
-    // editable on a device's item.
-    final typeLocked = ref.watch(equipmentHasDeviceProvider(id)).value ?? true;
+    // editable on a device's item. An item not yet created has no device
+    // (issue #4527, plan 11), as the form never locks a new item.
+    final typeLocked =
+        !_session.isNew &&
+        (ref.watch(equipmentHasDeviceProvider(id)).value ?? true);
     return ListenableBuilder(
       listenable: Listenable.merge([
         _session,
