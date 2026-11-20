@@ -38,22 +38,13 @@ void main() {
     );
   });
 
-  test(
-    'Windows ships ONNX Runtime, DirectML and Windows ML from one package',
-    () {
-      final windows = ortArchiveFor('windows', 'x64')!;
-      expect(windows.libraries.map((l) => l.assetName).toSet(), {
-        ortNativeAsset,
-        winmlNativeAsset,
-        directMlAsset,
-      });
-      expect(windows.libraries.map((l) => l.entry.split('/').last).toSet(), {
-        'onnxruntime.dll',
-        'Microsoft.Windows.AI.MachineLearning.dll',
-        'DirectML.dll',
-      });
-    },
-  );
+  test('Windows and Linux take plain ONNX Runtime from one package', () {
+    final windows = ortArchiveFor('windows', 'x64')!;
+    final linux = ortArchiveFor('linux', 'x64')!;
+    expect(windows.url, linux.url);
+    expect(windows.libraries.single.entry, endsWith('/onnxruntime.dll'));
+    expect(linux.libraries.single.entry, endsWith('/libonnxruntime.so'));
+  });
 
   test('Apple platforms, the web and 32-bit Android get nothing', () {
     expect(ortArchiveFor('macos', 'arm64'), isNull);

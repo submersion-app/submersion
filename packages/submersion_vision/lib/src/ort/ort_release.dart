@@ -4,9 +4,8 @@
 /// 2.5.96 ships (1.28.3), so the processor path is the same code on Android,
 /// Windows and Linux. Apple platforms use Core ML and get nothing.
 ///
-/// Sources (official, Microsoft's): Maven Central for Android, NuGet's
-/// `Microsoft.ML.OnnxRuntime` for Linux, and NuGet's
-/// `Microsoft.Windows.AI.MachineLearning` for Windows. To move to a new
+/// Sources (official, Microsoft's): Maven Central for Android and NuGet's
+/// `Microsoft.ML.OnnxRuntime` for Linux and Windows. To move to a new
 /// version, replace every URL and hash here, the vendored headers in
 /// `third_party/onnxruntime/`, and the generated bindings
 /// (`dart run tool/ffigen_ort.dart`).
@@ -15,12 +14,6 @@ library;
 /// The asset id the engine's ONNX Runtime binding is bound to
 /// (`ort_native.dart`).
 const String ortNativeAsset = 'src/ort/ort_native.dart';
-
-/// Windows ML's own library, whose catalogue finds hardware engines.
-const String winmlNativeAsset = 'src/winml/winml_native.dart';
-
-/// DirectML, which ONNX Runtime on Windows loads from beside itself.
-const String directMlAsset = 'src/winml/directml';
 
 /// One library inside an [OrtArchive], shipped as a code asset.
 class OrtLibrary {
@@ -59,6 +52,12 @@ const _androidAar =
     'onnxruntime-android/1.28.0/onnxruntime-android-1.28.0.aar';
 const _androidAarSha256 =
     'f351a0638696f54b35184290dbc001d66daae17281ad0b548d2c70347d53b8a9';
+
+const _ortNuget =
+    'https://api.nuget.org/v3-flatcontainer/microsoft.ml.onnxruntime/'
+    '1.28.0/microsoft.ml.onnxruntime.1.28.0.nupkg';
+const _ortNugetSha256 =
+    '769d1d3ea8ab6cd69f737c9dd4d4462aa4ad0ccfa106eaf506efc40d7bead5db';
 
 const _archives = <String, OrtArchive>{
   'android-arm64': OrtArchive(
@@ -99,31 +98,17 @@ const _archives = <String, OrtArchive>{
       ),
     ],
   ),
+  // Plain ONNX Runtime (MIT), the processor only, until Windows ML's
+  // distribution terms are settled for a GPLv3 app (piece 3, section 2a).
   'windows-x64': OrtArchive(
-    url:
-        'https://api.nuget.org/v3-flatcontainer/'
-        'microsoft.windows.ai.machinelearning/2.5.96/'
-        'microsoft.windows.ai.machinelearning.2.5.96.nupkg',
-    sha256: '35d6e84feb4142e8cecaf36704fa3ab0fc8251d892850fb80e8341f7d09653a3',
+    url: _ortNuget,
+    sha256: _ortNugetSha256,
     libraries: [
       OrtLibrary(
         assetName: ortNativeAsset,
         entry: 'runtimes/win-x64/native/onnxruntime.dll',
         sha256:
-            'f4904f839c48216fa98c83847a9eb8ded25e3258105630cad98916329a0538ef',
-      ),
-      OrtLibrary(
-        assetName: winmlNativeAsset,
-        entry:
-            'runtimes/win-x64/native/Microsoft.Windows.AI.MachineLearning.dll',
-        sha256:
-            '8205a572b36423860a7a584e67d6c4f2dd2ece497ab8a3c82129c114fb6d7be0',
-      ),
-      OrtLibrary(
-        assetName: directMlAsset,
-        entry: 'runtimes/win-x64/native/DirectML.dll',
-        sha256:
-            '82c6e345cc62a9d1e06874aac4e3e1f990432a2baeae5888477933e26b2c0894',
+            '18370c375f07357fa5874344a9d9ac17e6b6fe1eb18b1dd209d79483b4470257',
       ),
     ],
   ),
