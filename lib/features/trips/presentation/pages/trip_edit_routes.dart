@@ -2,9 +2,11 @@ import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/trips/domain/services/trip_day_notes.dart';
+import 'package:submersion/features/trips/domain/services/trip_draft.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
+import 'package:submersion/shared/widgets/record_editing/open_new_record.dart';
 import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
 /// Where the old trip edit address (`/trips/<id>/edit`) goes (issue #4527,
@@ -109,3 +111,46 @@ Widget tripEditPane(
     noteDay: noteDay,
   );
 }
+
+/// The new-trip address (`/trips/new`, with a [TripDraft] from selected
+/// dives or a dive's edit as [extra]; issue #4527, phase 3, plan 11): with
+/// [unlockEditing], the trip page opened unlocked on a new trip, which pops
+/// the id of the trip it created; else the form, as before.
+Widget newTripPage(Object? extra, {bool unlockEditing = kUnlockRecordEditing}) {
+  final draft = extra is TripDraft ? extra : null;
+  if (unlockEditing) return TripDetailPage.newTrip(draft: draft);
+  return TripEditPage(draft: draft);
+}
+
+/// The trips list's new-trip pane (`?mode=new`), as the master-detail
+/// scaffold's and table mode's `createBuilder`: with [unlockEditing], the
+/// trip page on a new trip, whose created id is handed to [onSaved]; else
+/// the form.
+Widget newTripPane(
+  BuildContext context,
+  void Function(String savedId) onSaved,
+  VoidCallback onCancel, {
+  bool unlockEditing = kUnlockRecordEditing,
+}) {
+  if (unlockEditing) {
+    return TripDetailPage.newTrip(
+      embedded: true,
+      onCreated: onSaved,
+      onCreateCancelled: onCancel,
+    );
+  }
+  return TripEditPage(embedded: true, onSaved: onSaved, onCancel: onCancel);
+}
+
+/// Opens a new trip from the trips list on a phone or its empty state:
+/// with [unlockEditing], the trip opens, locked, once created, as a new
+/// site does (plan 11, Question 3); else the form, as before.
+Future<void> openNewTrip(
+  BuildContext context, {
+  bool unlockEditing = kUnlockRecordEditing,
+}) => openNewRecord(
+  context,
+  newLocation: '/trips/new',
+  recordLocation: (id) => '/trips/$id',
+  openCreated: unlockEditing,
+);

@@ -29,7 +29,6 @@ import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.da
 import 'package:submersion/features/trips/presentation/widgets/trip_list_content.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_summary_widget.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
-import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_routes.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_list_count_provider.dart';
@@ -62,7 +61,7 @@ class _TripListPageState extends ConsumerState<TripListPage>
           final currentPath = state.uri.path;
           context.goInPlace('$currentPath?mode=new');
         } else {
-          context.push('/trips/new');
+          openNewTrip(context);
         }
       },
       icon: const Icon(Icons.add),
@@ -96,11 +95,8 @@ class _TripListPageState extends ConsumerState<TripListPage>
           ),
           summaryBuilder: (context) => const TripSummaryWidget(),
           editBuilder: _buildEditPane,
-          createBuilder: (context, onSaved, onCancel) => TripEditPage(
-            embedded: true,
-            onSaved: onSaved,
-            onCancel: onCancel,
-          ),
+          createBuilder: (context, onSaved, onCancel) =>
+              newTripPane(context, onSaved, onCancel),
           selectedId: ref.watch(highlightedTripIdProvider),
           onEntitySelected: (id) {
             ref.read(highlightedTripIdProvider.notifier).state = id;
@@ -212,7 +208,7 @@ class _TripListPageState extends ConsumerState<TripListPage>
         summaryBuilder: (context) => const TripSummaryWidget(),
         editBuilder: _buildEditPane,
         createBuilder: (context, onSaved, onCancel) =>
-            TripEditPage(embedded: true, onSaved: onSaved, onCancel: onCancel),
+            newTripPane(context, onSaved, onCancel),
         floatingActionButton: fab,
       );
     }
