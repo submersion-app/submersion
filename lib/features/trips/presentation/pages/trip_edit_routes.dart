@@ -18,13 +18,37 @@ String? tripEditLocation(
   bool unlockEditing = kUnlockRecordEditing,
 }) {
   if (!unlockEditing) return null;
-  final query = {
-    'mode': 'edit',
-    'section': ?(noteDay != null ? TripEditSection.notes : section)?.name,
-    if (noteDay != null) ...tripNoteDayQuery(noteDay),
-  };
-  return Uri(path: '/trips/$tripId', queryParameters: query).toString();
+  return Uri(
+    path: '/trips/$tripId',
+    queryParameters: _editQuery(section, noteDay),
+  ).toString();
 }
+
+/// The query asking for a trip unlocked at [section] or at [noteDay]'s note.
+Map<String, String> _editQuery(
+  TripEditSection? section,
+  TripNoteDay? noteDay,
+) => {
+  'mode': 'edit',
+  'section': ?(noteDay != null ? TripEditSection.notes : section)?.name,
+  if (noteDay != null) ...tripNoteDayQuery(noteDay),
+};
+
+/// Where a full trip page reached directly moves to on a wide screen: the
+/// list's pane, still asking to open unlocked, at the same card, when it was
+/// ([openUnlocked]), so the edit address is not lost in the move.
+String tripPaneLocation(
+  String tripId, {
+  required bool openUnlocked,
+  TripEditSection? section,
+  TripNoteDay? noteDay,
+}) => Uri(
+  path: '/trips',
+  queryParameters: {
+    'selected': tripId,
+    if (openUnlocked) ..._editQuery(section, noteDay),
+  },
+).toString();
 
 /// The edit route's redirect: [tripEditLocation] for its address, keeping
 /// its section and day.

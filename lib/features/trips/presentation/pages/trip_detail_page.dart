@@ -25,6 +25,7 @@ import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigat
 import 'package:submersion/features/trips/presentation/helpers/trip_scan_actions.dart';
 import 'package:submersion/features/trips/presentation/providers/side_trip_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/features/trips/presentation/pages/trip_edit_routes.dart';
 import 'package:submersion/features/trips/presentation/widgets/dive_assignment_dialog.dart';
 import 'package:submersion/features/trips/presentation/widgets/part_of_trip_link.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_view.dart';
@@ -209,10 +210,16 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage>
           viewMode: ref.read(tripListViewModeProvider),
         )) {
       _hasRedirected = true;
+      // An edit address keeps asking for edit mode, at its card, in the
+      // pane (issue #4527).
+      final location = tripPaneLocation(
+        widget.tripId,
+        openUnlocked: hostsEditing && widget.openUnlocked,
+        section: widget.openSection,
+        noteDay: widget.openNoteDay,
+      );
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          context.go('/trips?selected=${widget.tripId}');
-        }
+        if (mounted) context.go(location);
       });
     }
 

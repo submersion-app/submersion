@@ -28,6 +28,31 @@ void main() {
       );
     });
 
+    test('moving into the pane keeps an edit address asking for edit', () {
+      expect(tripPaneLocation('t1', openUnlocked: false), '/trips?selected=t1');
+      expect(
+        tripPaneLocation('t1', openUnlocked: true),
+        '/trips?selected=t1&mode=edit',
+      );
+      expect(
+        tripPaneLocation(
+          't1',
+          openUnlocked: true,
+          section: TripEditSection.planning,
+        ),
+        '/trips?selected=t1&mode=edit&section=planning',
+      );
+      expect(
+        tripPaneLocation(
+          't1',
+          openUnlocked: true,
+          noteDay: TripNoteDay(date: DateTime(2030, 6, 2), dayNumber: 2),
+        ),
+        '/trips?selected=t1&mode=edit&section=notes&noteDate=2030-06-02'
+        '&noteDay=2',
+      );
+    });
+
     test('the redirect keeps the section and the day', () {
       expect(
         tripEditLocation(
