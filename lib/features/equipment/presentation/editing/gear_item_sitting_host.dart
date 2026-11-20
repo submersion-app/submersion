@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/log_failure.dart';
+import 'package:submersion/features/cylinder_passports/presentation/utils/write_fill_to_tag.dart';
+import 'package:submersion/features/cylinder_passports/presentation/widgets/log_fill_sheet.dart';
 import 'package:submersion/features/dive_computer/presentation/editing/dive_computer_settings_sitting.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/clock_sync_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -12,6 +16,7 @@ import 'package:submersion/features/equipment/presentation/editing/gear_item_car
 import 'package:submersion/features/equipment/presentation/editing/gear_item_check_ins_sitting.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_components_sitting.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_edit_fields.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_fills_sitting.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_findings_sitting.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_header_editor.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_location_sitting.dart';
@@ -70,6 +75,7 @@ mixin GearItemSittingHost<W extends ConsumerStatefulWidget>
     // Read now: the sitting ends with the Save.
     final clockSync = heldClockSync(session);
     final changedCards = session.changedCardIds;
+    final loggedFills = newFillsOf(session);
     // A failed write takes back what the media write did outside the
     // database.
     final result = await undoMediaOnFailure(
@@ -86,6 +92,18 @@ mixin GearItemSittingHost<W extends ConsumerStatefulWidget>
     );
     justSavedRecord = result?.after ?? session.working;
     onGearItemSaved(session, result?.after, container);
+    // A fill logged in the sitting is offered for the cylinder's tag once
+    // it is stored, never before: a Cancel would leave it on the tag only.
+    if (loggedFills.isNotEmpty && mounted) {
+      unawaited(
+        offerWriteFillsToTags(
+          context,
+          ref,
+          LoggedFill(fill: loggedFills.first),
+          equipmentId: session.stored.id,
+        ),
+      );
+    }
     afterGearItemSave(
       container,
       equipmentId: session.stored.id,
@@ -146,6 +164,7 @@ void loadGearItemSitting(
   holdFindingDismissals(session, container.read);
   holdGearItemComponents(session, container.read);
   gearItemTripsList.load(session);
+  loadGearItemFills(session);
 }
 
 /// What a saved sitting still has to do outside the database: uploads and
