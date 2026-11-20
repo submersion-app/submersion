@@ -29,6 +29,25 @@ only the first row. Tiles report decoded shapes to
 - No new user-visible strings.
 - Run only the test files named here, by path (pre-push runs the rest).
 
+## Amendment (2026-11-20): share the dive and species work
+
+PRs #4792 (dive media, #4739) and #4793 (species, #4740) landed in review
+while this plan ran, and #4793 adds its own `JustifiedMediaBlock` at the path
+Task 1 planned. To keep one way of doing this and let the three PRs merge in
+any order, Task 1 is replaced:
+
+- `mediaLayoutRatios`, `MediaThumbnailTile`'s `targetSize` / `onImageSize` and
+  `mediaLibraryRatios` are taken verbatim from #4792.
+- `JustifiedMediaBlock` (Stack-based, `maxRows`) and its test, and
+  `FakeAspectCacheRepository` in the media test harness, are taken verbatim
+  from #4793.
+- Task 2 draws the strip with `JustifiedMediaBlock(maxRows: 1)` and the
+  expanded view with no cap; Show all appears when the block hides any or the
+  site holds more than the strip read. Both wait for the learned shapes.
+- Task 3 follows #4792's dive card: each group caches its table while width
+  and shapes hold, waits for the learned shapes, and a tile decodes at its
+  table cell's size.
+
 ## Review Focus
 
 1. A grid with `padding: null` in a scroll view picks up MediaQuery padding
