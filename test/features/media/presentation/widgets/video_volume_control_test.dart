@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/media/presentation/helpers/viewer_audio.dart';
@@ -133,7 +134,8 @@ void main() {
     );
   });
 
-  testWidgets('semantics name the action and the slider', (tester) async {
+  testWidgets('semantics name the button and the slider each', (tester) async {
+    // Disposed in the body: the handle check runs before tear-downs.
     final handle = tester.ensureSemantics();
     await pumpControl(tester);
     expect(find.bySemanticsLabel('Unmute video'), findsOneWidget);
@@ -141,7 +143,16 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.bySemanticsLabel('Mute video'), findsOneWidget);
     await hover(tester, button);
-    expect(find.bySemanticsLabel(RegExp('Video volume')), findsOneWidget);
+    // The node a screen reader adjusts is the one named, not a group
+    // around the button and slider together.
+    final sliderNodes = find.semantics
+        .byAction(SemanticsAction.increase)
+        .evaluate();
+    expect(sliderNodes.single.label, 'Video volume');
+    expect(
+      find.semantics.byLabel('Video volume').evaluate().single,
+      sliderNodes.single,
+    );
     handle.dispose();
   });
 }

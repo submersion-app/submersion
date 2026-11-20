@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/features/media/presentation/widgets/video_volume_control.dart';
 
 import '../../../../helpers/test_database.dart';
 import 'video_viewer_test_harness.dart';
@@ -79,8 +80,14 @@ void main() {
       prefs,
       mediaList: [video('v1'), video('v2')],
     );
-    await pressM(tester);
-    expect(platform.volume, 1.0);
+    // A level of its own, not the players' default 1.0: only a carried
+    // sound gives the next player this.
+    tester
+        .widget<VideoVolumeControl>(find.byType(VideoVolumeControl))
+        .audio
+        .setLevel(0.4);
+    await tester.pump();
+    expect(platform.volume, 0.4);
     final createdBefore = platform.created;
 
     await tester.runAsync(() async {
@@ -94,8 +101,9 @@ void main() {
       await tester.pump();
     });
     expect(platform.created, createdBefore + 1);
-    // Reset to muted, the second player would open at 0.
-    expect(platform.volume, 1.0);
+    // Reset to muted, the second player would open at 0; left to its own
+    // default, at 1.0.
+    expect(platform.volume, 0.4);
   });
 
   testWidgets('a new viewer opens muted again', (tester) async {

@@ -632,6 +632,35 @@ void main() {
     await finishBar(tester, controller);
   });
 
+  // The fullscreen fish labels keep VideoControlsBar.height clear above the
+  // bar, so the mute button must not make it taller (on a touch screen a
+  // Material button pads itself to 48).
+  testWidgets(
+    'the volume control keeps the bar at its own height',
+    (tester) async {
+      useBarPlatform();
+      final controller = (await tester.runAsync(readyController))!;
+      final audio = ViewerAudio();
+      addTearDown(audio.dispose);
+      await tester.pumpWidget(
+        barApp(
+          VideoControlsBar(controller: controller, mediaId: 'm1', audio: audio),
+        ),
+      );
+      expect(
+        tester.getSize(find.byType(VideoControlsBar)).height,
+        VideoControlsBar.height,
+      );
+      await finishBar(tester, controller);
+    },
+    variant: const TargetPlatformVariant({
+      TargetPlatform.iOS,
+      TargetPlatform.android,
+      TargetPlatform.macOS,
+      TargetPlatform.windows,
+    }),
+  );
+
   testWidgets('the bar shows no volume control without audio', (tester) async {
     useBarPlatform();
     final controller = (await tester.runAsync(readyController))!;

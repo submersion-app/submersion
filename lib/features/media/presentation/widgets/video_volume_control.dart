@@ -94,6 +94,12 @@ class _VideoVolumeControlState extends State<VideoVolumeControl> {
                       child: IconButton(
                         key: VideoVolumeControl.buttonKey,
                         onPressed: widget.audio.toggleMute,
+                        // No taller than the bar it sits in, whose height
+                        // the fullscreen fish labels keep clear: a touch
+                        // screen's padded 48 px target would grow it.
+                        style: IconButton.styleFrom(
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
                         iconSize: 20,
                         color: Colors.white,
                         icon: Icon(_icon(volume)),
@@ -106,40 +112,42 @@ class _VideoVolumeControlState extends State<VideoVolumeControl> {
                   child: _hovered || _focused || _dragging
                       ? SizedBox(
                           width: VideoVolumeControl.sliderWidth,
-                          child: Semantics(
-                            label: l10n.media_photoViewer_videoVolumeLabel,
-                            child: SliderTheme(
-                              data: SliderTheme.of(context).copyWith(
-                                activeTrackColor: Colors.white,
-                                inactiveTrackColor: Colors.white.withValues(
-                                  alpha: 0.3,
-                                ),
-                                thumbColor: Colors.white,
-                                overlayColor: Colors.white.withValues(
-                                  alpha: 0.12,
-                                ),
-                                // Sized to the scrub bar beside it: a 4 px
-                                // track, a small thumb, and the track run up
-                                // close to the button rather than inset by a
-                                // full-size thumb's reach.
-                                trackHeight: 4,
-                                thumbShape: const RoundSliderThumbShape(
-                                  enabledThumbRadius: 7,
-                                ),
-                                overlayShape: const RoundSliderOverlayShape(
-                                  overlayRadius: 14,
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                ),
+                          child: SliderTheme(
+                            data: SliderTheme.of(context).copyWith(
+                              activeTrackColor: Colors.white,
+                              inactiveTrackColor: Colors.white.withValues(
+                                alpha: 0.3,
                               ),
-                              child: Slider(
-                                key: VideoVolumeControl.sliderKey,
-                                value: volume,
-                                onChanged: widget.audio.setLevel,
-                                onChangeStart: (_) => _setInUse(dragging: true),
-                                onChangeEnd: (_) => _setInUse(dragging: false),
+                              thumbColor: Colors.white,
+                              overlayColor: Colors.white.withValues(
+                                alpha: 0.12,
                               ),
+                              // Sized to the scrub bar beside it: a 4 px
+                              // track, a small thumb, and the track run up
+                              // close to the button rather than inset by a
+                              // full-size thumb's reach.
+                              trackHeight: 4,
+                              thumbShape: const RoundSliderThumbShape(
+                                enabledThumbRadius: 7,
+                              ),
+                              overlayShape: const RoundSliderOverlayShape(
+                                overlayRadius: 14,
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                              ),
+                              showValueIndicator: ShowValueIndicator.never,
+                            ),
+                            child: Slider(
+                              key: VideoVolumeControl.sliderKey,
+                              value: volume,
+                              onChanged: widget.audio.setLevel,
+                              onChangeStart: (_) => _setInUse(dragging: true),
+                              onChangeEnd: (_) => _setInUse(dragging: false),
+                              // The slider's own name for screen readers;
+                              // the value bubble that would also show it is
+                              // off in the theme above.
+                              label: l10n.media_photoViewer_videoVolumeLabel,
                             ),
                           ),
                         )

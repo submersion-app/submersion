@@ -64,7 +64,9 @@ the boat), not the default.
 - **M key** on the video page toggles mute, also in people tag mode (muting
   does not move the frame).
 - **Accessibility:** the button is a button labelled "Mute video" or "Unmute
-  video"; the slider is a slider labelled "Video volume" stepping by 10%.
+  video"; the slider is a slider labelled "Video volume" on its own node,
+  stepping by each platform's native slider step (10% on Apple platforms, 5%
+  on Android, Windows and Linux), as Flutter's Slider does.
 - New strings go through the ARB files in `lib/l10n/arb/`.
 
 ## Left to the builder
