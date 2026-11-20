@@ -3,9 +3,11 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/features/media/data/repositories/media_aspect_cache_repository.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/domain/value_objects/learned_aspect.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -96,3 +98,20 @@ MediaItem testMediaItem({
   createdAt: DateTime(2026, 3, 1),
   updatedAt: DateTime(2026, 3, 1),
 );
+
+/// The learned-shape store with no database behind it: it starts with
+/// [shapes] and records the ids written to it, in order.
+class FakeAspectCacheRepository implements MediaAspectCacheRepository {
+  FakeAspectCacheRepository([this.shapes = const {}]);
+
+  final Map<String, LearnedAspect> shapes;
+  final List<String> written = [];
+
+  @override
+  Future<Map<String, LearnedAspect>> loadAll() async => shapes;
+
+  @override
+  Future<void> putAll(Map<String, LearnedAspect> entries) async {
+    written.addAll(entries.keys);
+  }
+}

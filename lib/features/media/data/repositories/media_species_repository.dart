@@ -11,6 +11,7 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/media/data/repositories/media_row_mapper.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
 import 'package:submersion/features/media/domain/entities/species_tag_candidate_group.dart';
 import 'package:submersion/features/media/domain/entities/species_tag_chip.dart';
 
@@ -36,6 +37,16 @@ class MediaSpeciesRepository {
   /// Ticks whenever `media_species` changes, from any writer.
   Stream<void> watchTagChanges() =>
       _db.tableUpdates(TableUpdateQuery.onTable(_db.mediaSpecies));
+
+  /// Ticks when a dive or a site changes, which is what moves the date and
+  /// site name [getMediaEntriesForSpecies] reads (issue #4740). Narrower than
+  /// the dive detail stream, which also ticks on profile and gear writes.
+  Stream<void> watchDiveAndSiteChanges() => _db.tableUpdates(
+    TableUpdateQuery.allOf([
+      TableUpdateQuery.onTable(_db.dives),
+      TableUpdateQuery.onTable(_db.diveSites),
+    ]),
+  );
 
   Future<List<MediaSpeciesTag>> getTagsForMedia(String mediaId) async {
     final rows =
@@ -260,8 +271,27 @@ class MediaSpeciesRepository {
     String speciesId, {
     String? diverId,
     String? diveId,
+  }) async => [
+    for (final entry in await getMediaEntriesForSpecies(
+      speciesId,
+      diverId: diverId,
+      diveId: diveId,
+    ))
+      entry.item,
+  ];
+
+  /// [getMediaForSpecies] with each photo's dive date and site name, which
+  /// the species page captions its photos with (issue #4740). The date is
+  /// null for a photo with no dive, and the site name for a dive with no
+  /// site. Each photo appears once.
+  Future<List<MediaLibraryEntry>> getMediaEntriesForSpecies(
+    String speciesId, {
+    String? diverId,
+    String? diveId,
   }) async {
     final m = _db.media;
+    final d = _db.dives;
+    final s = _db.diveSites;
     final query =
         _db.select(m, distinct: true).join([
             innerJoin(
@@ -273,12 +303,12 @@ class MediaSpeciesRepository {
               _db.mediaEnrichment,
               _db.mediaEnrichment.mediaId.equalsExp(m.id),
             ),
-            leftOuterJoin(
-              _db.dives,
-              _db.dives.id.equalsExp(m.diveId),
-              useColumns: false,
-            ),
+            // Only the two columns an entry carries: a dive row is wide,
+            // and DISTINCT compares every column selected.
+            leftOuterJoin(d, d.id.equalsExp(m.diveId), useColumns: false),
+            leftOuterJoin(s, s.id.equalsExp(d.siteId), useColumns: false),
           ])
+          ..addColumns([d.diveDateTime, s.name])
           ..where(
             _db.mediaSpecies.speciesId.equals(speciesId) &
                 _diverScope(diverId) &
@@ -286,16 +316,35 @@ class MediaSpeciesRepository {
                     ? const Constant(true)
                     : m.diveId.equals(diveId)),
           )
-          ..orderBy([OrderingTerm.desc(m.takenAt), OrderingTerm.asc(m.id)]);
+          ..orderBy([
+            OrderingTerm.desc(m.takenAt),
+            OrderingTerm.asc(m.id),
+            // Ties a photo's enrichment rows, so the same one always wins.
+            OrderingTerm.asc(_db.mediaEnrichment.id),
+          ]);
     final rows = await query.get();
-    return rows
-        .map(
-          (row) => mediaItemFromRow(
-            row.readTable(m),
-            row.readTableOrNull(_db.mediaEnrichment),
-          ),
-        )
-        .toList();
+    // media_enrichment is keyed by its own id, so a sync can leave a photo
+    // two rows (one per device that enriched it); keep the photo once.
+    final seen = <String>{};
+    return [
+      for (final row in rows)
+        if (seen.add(row.readTable(m).id)) _speciesEntry(row),
+    ];
+  }
+
+  /// One row of [getMediaEntriesForSpecies] as an entry.
+  MediaLibraryEntry _speciesEntry(TypedResult row) {
+    final diveDateTime = row.read(_db.dives.diveDateTime);
+    return MediaLibraryEntry(
+      item: mediaItemFromRow(
+        row.readTable(_db.media),
+        row.readTableOrNull(_db.mediaEnrichment),
+      ),
+      diveDateTime: diveDateTime == null
+          ? null
+          : wallClockUtcFromMillis(diveDateTime),
+      siteName: row.read(_db.diveSites.name),
+    );
   }
 
   /// Photos the diver could tag with [speciesId]: the photos and videos on

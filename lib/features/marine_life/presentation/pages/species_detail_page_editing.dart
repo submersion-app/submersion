@@ -136,7 +136,6 @@ mixin _SpeciesDetailPageEditing
     final added = session == null
         ? const <String>{}
         : {for (final p in heldSpeciesImports(session)) p.item.id};
-    final settings = ref.watch(unitFormatterProvider).settings;
     final l10n = context.l10n;
     return SpeciesPhotosSection(
       speciesId: widget.speciesId,
@@ -150,35 +149,21 @@ mixin _SpeciesDetailPageEditing
               child: RecordChangedDot(),
             )
           : null,
-      pendingTiles: [
-        for (final item in held)
-          Stack(
-            fit: StackFit.expand,
-            children: [
-              MediaThumbnailTile(
-                item: item,
-                settings: settings,
-                isSelectionMode: false,
-                isSelected: false,
-                semanticsLabel: l10n.marineLife_speciesPhotos_thumbnailLabel,
-              ),
-              Align(
-                alignment: AlignmentDirectional.topEnd,
-                child: IconButton.filledTonal(
-                  key: ValueKey('species_pending_remove_${item.id}'),
-                  visualDensity: VisualDensity.compact,
-                  icon: const Icon(Icons.close, size: 16),
-                  tooltip: l10n.forms_cancel,
-                  onPressed: session == null
-                      ? null
-                      : () => added.contains(item.id)
-                            ? releaseSpeciesImport(session, item.id)
-                            : releaseSpeciesTag(session, item.id),
-                ),
-              ),
-            ],
-          ),
-      ],
+      pendingItems: held,
+      pendingOverlay: (item) => Align(
+        alignment: AlignmentDirectional.topEnd,
+        child: IconButton.filledTonal(
+          key: ValueKey('species_pending_remove_${item.id}'),
+          visualDensity: VisualDensity.compact,
+          icon: const Icon(Icons.close, size: 16),
+          tooltip: l10n.forms_cancel,
+          onPressed: session == null
+              ? null
+              : () => added.contains(item.id)
+                    ? releaseSpeciesImport(session, item.id)
+                    : releaseSpeciesTag(session, item.id),
+        ),
+      ),
     );
   }
 

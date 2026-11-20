@@ -12106,6 +12106,14 @@
   "marineLife_speciesPhotos_tagPhotos": "Tag photos",
   "marineLife_speciesPhotos_addPhotos": "Add photos",
   "marineLife_speciesPhotos_thumbnailLabel": "Species photo",
+  "marineLife_speciesPhotos_moreLabel": "{count, plural, one{{count} more photo} other{{count} more photos}}",
+  "@marineLife_speciesPhotos_moreLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "marineLife_speciesPhotos_importAdded": "{count, plural, =1{1 photo added} other{{count} photos added}}",
   "@marineLife_speciesPhotos_importAdded": {
     "placeholders": {

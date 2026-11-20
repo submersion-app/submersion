@@ -188,6 +188,9 @@ Future<SpeciesPageHarness> pumpSpeciesPage(
           species.id,
         ).overrideWith((ref) async => const []),
         mediaForSpeciesProvider(species.id).overrideWith((ref) async => []),
+        mediaEntriesForSpeciesProvider(
+          species.id,
+        ).overrideWith((ref) async => []),
         speciesMapSpeciesPinsProvider(
           species.id,
         ).overrideWith((ref) async => []),
