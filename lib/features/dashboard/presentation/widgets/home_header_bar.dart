@@ -133,12 +133,14 @@ class HomeHeaderBar extends ConsumerWidget {
               const SizedBox(width: 8),
               FilledButton.icon(
                 onPressed: () => _logDive(context),
-                icon: const Icon(Icons.add, size: 18),
+                style: _compactButton(FilledButton.styleFrom),
+                icon: const Icon(Icons.add, size: 16),
                 label: Text(l10n.dashboard_quickActions_logDive),
               ),
               const SizedBox(width: 6),
               OutlinedButton(
                 onPressed: () => context.push('/planning/dive-planner'),
+                style: _compactButton(OutlinedButton.styleFrom),
                 child: Text(l10n.dashboard_quickActions_planDive),
               ),
             ],
@@ -150,6 +152,21 @@ class HomeHeaderBar extends ConsumerWidget {
     );
   }
 }
+
+/// Text buttons in the bar: drawn small to suit a slim bar, with the
+/// default padded tap target keeping the hit area at 48 points.
+ButtonStyle _compactButton(
+  ButtonStyle Function({
+    VisualDensity? visualDensity,
+    EdgeInsetsGeometry? padding,
+    TextStyle? textStyle,
+  })
+  styleFrom,
+) => styleFrom(
+  visualDensity: VisualDensity.compact,
+  padding: const EdgeInsets.symmetric(horizontal: 12),
+  textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+);
 
 /// Icon buttons in the bar reach the 44-point minimum hit area.
 final ButtonStyle _iconStyle = IconButton.styleFrom(

@@ -182,6 +182,41 @@ void main() {
     }
   });
 
+  testWidgets('a bar row puts its value at the right edge', (tester) async {
+    await _pump(
+      tester,
+      const Align(
+        alignment: Alignment.topLeft,
+        child: SizedBox(
+          width: 300,
+          child: HomeBarRow(label: 'Nitrox', value: '61%', fraction: 0.61),
+        ),
+      ),
+    );
+    final row = tester.getRect(find.byType(HomeBarRow));
+    final value = tester.getRect(find.text('61%'));
+    expect(value.right, closeTo(row.right, 0.5));
+  });
+
+  testWidgets('a long value still leaves the label room', (tester) async {
+    await _pump(
+      tester,
+      const Align(
+        alignment: Alignment.topLeft,
+        child: SizedBox(
+          width: 200,
+          child: HomeBarRow(
+            label: 'Max depth',
+            value: '18.4 m · avg 21.0 m and a very long tail of text',
+            fraction: 0.4,
+          ),
+        ),
+      ),
+    );
+    expect(tester.getSize(find.text('Max depth')).width, greaterThan(60));
+    expect(tester.takeException(), isNull);
+  });
+
   test('the day grid fits a full year at 600 wide and trims when narrow', () {
     final from = DateTime(2025, 11, 21);
     final to = DateTime(2026, 11, 20);
