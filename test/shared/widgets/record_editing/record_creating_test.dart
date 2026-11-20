@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -473,5 +474,49 @@ void main() {
     probe.afterGate!.complete();
     await tester.pumpAndSettle();
     expect(popped, probe.creates.single.id);
+  });
+  testWidgets('pushed without the router inside a routed app, it pops its id', (
+    tester,
+  ) async {
+    probe = _Probe();
+    Object? result;
+    final router = GoRouter(
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, _) => Scaffold(
+            body: TextButton(
+              onPressed: () async {
+                result = await Navigator.of(context).push<Object?>(
+                  MaterialPageRoute<Object?>(
+                    builder: (_) => const _NewNotePage(),
+                  ),
+                );
+              },
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [_probeProvider.overrideWithValue(probe)],
+        child: MaterialApp.router(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: router,
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await type(tester, 'Calm');
+
+    await tapSave(tester);
+
+    expect(result, probe.creates.single.id);
   });
 }

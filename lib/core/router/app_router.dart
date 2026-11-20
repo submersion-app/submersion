@@ -36,7 +36,6 @@ import 'package:submersion/features/buddies/presentation/pages/buddy_merge_page.
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
-import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/pages/document_detail_page.dart';
 import 'package:submersion/features/documents/presentation/pages/document_edit_routes.dart';
 import 'package:submersion/features/documents/presentation/pages/document_edit_page.dart';
@@ -1104,17 +1103,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newDocument',
-                builder: (context, state) {
-                  final q = state.uri.queryParameters;
-                  final kind = DocumentOwnerKind.fromStorage(q['ownerKind']);
-                  final ownerId = q['ownerId'];
-                  return DocumentEditPage(
-                    owner: kind == DocumentOwnerKind.personal || ownerId == null
-                        ? const DocumentOwner.personal()
-                        : DocumentOwner(kind, ownerId),
-                    initialType: DocumentType.values.asNameMap()[q['type']],
-                  );
-                },
+                onExit: confirmLeaveRecordSitting,
+                // Behind phase 3's switch, the document page opened on a
+                // new document (issue #4527, plan 11).
+                builder: (context, state) =>
+                    newDocumentPage(state.uri.queryParameters),
               ),
               GoRoute(
                 path: ':documentId',

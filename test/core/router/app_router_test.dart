@@ -3,6 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/documents/presentation/pages/document_detail_page.dart';
+import 'package:submersion/features/documents/presentation/pages/document_edit_page.dart';
+import 'package:submersion/features/documents/presentation/pages/document_edit_routes.dart';
 import 'package:submersion/features/gps_log/presentation/pages/gps_track_detail_page.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_align_page.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_detail_page.dart';
@@ -501,6 +505,23 @@ void main() {
       final route = _findRouteByName(router.configuration.routes, name);
       expect(route?.onExit, same(confirmLeaveRecordSitting), reason: name);
     }
+  });
+
+  // A new record opens on its own page behind the phase 3 switch (issue
+  // #4527, phase 3, plan 11).
+  test('a new document opens the page with the switch on', () {
+    const query = {'ownerKind': 'trip', 'ownerId': 't1', 'type': 'permit'};
+    final page = newDocumentPage(query, unlockEditing: true);
+    expect(page, isA<DocumentDetailPage>());
+    final request = (page as DocumentDetailPage).newDocument!;
+    expect(request.owner, const DocumentOwner(DocumentOwnerKind.trip, 't1'));
+    expect(request.type, DocumentType.permit);
+    final form = newDocumentPage(query, unlockEditing: false);
+    expect(form, isA<DocumentEditPage>());
+    expect((form as DocumentEditPage).initialType, DocumentType.permit);
+    expect(form.owner, const DocumentOwner(DocumentOwnerKind.trip, 't1'));
+    final route = _findRouteByName(router.configuration.routes, 'newDocument');
+    expect(route?.onExit, same(confirmLeaveRecordSitting));
   });
 
   // A track's sitting is asked about before a `go` leaves it (issue #4527,

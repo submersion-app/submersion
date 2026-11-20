@@ -9,11 +9,14 @@ import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_link_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/documents/presentation/editing/record_document_links_sitting.dart';
+import 'package:submersion/features/documents/presentation/editing/document_new_sitting.dart';
+import 'package:submersion/features/documents/presentation/pages/document_detail_page.dart';
 import 'package:submersion/features/documents/presentation/pages/document_edit_page.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dart';
+import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
 /// The Documents card on an owner's detail page (dive, site, trip, gear,
 /// course, certification, buddy, dive center): its documents and an "Add
@@ -33,11 +36,17 @@ class DocumentsSection<T> extends ConsumerWidget {
   /// sitting given, the card reads only.
   final EditSession<T>? editing;
 
+  /// Whether Add in a sitting opens the document page on a new document
+  /// (issue #4527, phase 3, plan 11): phase 3's switch, a parameter so a
+  /// test can turn it on.
+  final bool unlockEditing;
+
   const DocumentsSection({
     super.key,
     required this.owner,
     this.excludeCards = false,
     this.editing,
+    this.unlockEditing = kUnlockRecordEditing,
   });
 
   /// A new document, filed as Personal until the sitting is saved.
@@ -45,6 +54,7 @@ class DocumentsSection<T> extends ConsumerWidget {
     BuildContext context,
     EditSession<T> session,
   ) async {
+    if (unlockEditing) return _addOnNewPage(context, session);
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (pageContext) => Consumer(
@@ -62,6 +72,30 @@ class DocumentsSection<T> extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  /// [_addInSitting] behind the switch: the document page on a new
+  /// document, its owner not offered, which pops with the id of the
+  /// document it created as Personal; that document is then joined to the
+  /// record in [session], as the form's was.
+  Future<void> _addOnNewPage(
+    BuildContext context,
+    EditSession<T> session,
+  ) async {
+    final repository = ProviderScope.containerOf(
+      context,
+      listen: false,
+    ).read(documentRepositoryProvider);
+    final id = await Navigator.of(context).push<Object?>(
+      MaterialPageRoute<Object?>(
+        builder: (_) => const DocumentDetailPage.newDocument(
+          request: NewDocumentRequest(ownerFixed: true),
+        ),
+      ),
+    );
+    if (id is! String || session.isDisposed) return;
+    final saved = await repository.getById(id);
+    if (saved != null && !session.isDisposed) attachDocument(session, saved);
   }
 
   @override
