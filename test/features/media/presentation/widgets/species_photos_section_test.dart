@@ -340,9 +340,13 @@ void main() {
       pendingItems: [_photo('held', width: 900, height: 600)],
       shapes: shapes,
     );
-    for (var i = 0; i < 5; i++) {
+    // Decoding runs on real time: wait on a clock, not a fixed number of
+    // rounds, so a loaded runner does not fail it.
+    final clock = Stopwatch()..start();
+    while (!shapes.written.contains('stored') &&
+        clock.elapsed < const Duration(seconds: 5)) {
       await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 50)),
+        () => Future<void>.delayed(const Duration(milliseconds: 20)),
       );
       await tester.pump();
     }
