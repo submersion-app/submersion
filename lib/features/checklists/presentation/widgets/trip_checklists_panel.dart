@@ -33,7 +33,15 @@ import 'package:submersion/l10n/l10n_extension.dart';
 class TripChecklistsPanel extends ConsumerStatefulWidget {
   final Trip trip;
 
-  const TripChecklistsPanel({super.key, required this.trip});
+  /// Shows the checklists without changing them (a trip page that edits in
+  /// place, issue #4527, before checklists join its sitting).
+  final bool readOnly;
+
+  const TripChecklistsPanel({
+    super.key,
+    required this.trip,
+    this.readOnly = false,
+  });
 
   @override
   ConsumerState<TripChecklistsPanel> createState() =>
@@ -91,12 +99,13 @@ class _TripChecklistsPanelState extends ConsumerState<TripChecklistsPanel>
             initiallyExpanded: _justCreatedChecklistIds.contains(
               checklists[i].id,
             ),
+            readOnly: widget.readOnly,
             onMoveUp: i == 0 ? null : () => _moveChecklist(checklists, i, -1),
             onMoveDown: i == checklists.length - 1
                 ? null
                 : () => _moveChecklist(checklists, i, 1),
           ),
-        _buildAddChecklistPlaceholder(context),
+        if (!widget.readOnly) _buildAddChecklistPlaceholder(context),
       ],
     );
   }

@@ -10364,6 +10364,7 @@
     }
   },
   "trips_overview_plan_notSet": "Nicht festgelegt",
+  "trips_overview_plan_runtime": "{minutes} Min. pro Tauchgang",
   "trips_detail_tab_itinerary": "Reiseroute",
   "trips_detail_tab_overview": "Übersicht",
   "trips_detail_tab_photos": "Fotos",

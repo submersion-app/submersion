@@ -10230,6 +10230,7 @@
     }
   },
   "trips_overview_plan_notSet": "غير محدد",
+  "trips_overview_plan_runtime": "{minutes} دقيقة لكل غوصة",
   "trips_detail_tab_itinerary": "برنامج الرحلة",
   "trips_detail_tab_overview": "نظرة عامة",
   "trips_detail_tab_photos": "الصور",

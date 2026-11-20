@@ -12,14 +12,16 @@ class ChecklistItemTile extends ConsumerWidget {
 
   /// Whether overdue styling applies (false for past trips - they never nag).
   final bool showOverdue;
-  final ValueChanged<bool> onToggle;
+
+  /// Ticks or unticks the item; null shows the tick without changing it.
+  final ValueChanged<bool>? onToggle;
   final VoidCallback? onEdit;
 
   const ChecklistItemTile({
     super.key,
     required this.item,
     required this.showOverdue,
-    required this.onToggle,
+    this.onToggle,
     this.onEdit,
   });
 
@@ -35,7 +37,10 @@ class ChecklistItemTile extends ConsumerWidget {
       contentPadding: const EdgeInsets.only(left: 4, right: 0),
       leading: Checkbox(
         value: item.isDone,
-        onChanged: (value) => onToggle(value ?? false),
+        onChanged: switch (onToggle) {
+          final toggle? => (value) => toggle(value ?? false),
+          null => null,
+        },
       ),
       title: Text(
         item.title,

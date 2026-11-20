@@ -292,6 +292,7 @@ final exempt = <String, String>{
     'lib/features/trips/data/repositories/itinerary_day_repository.dart:deleteBarePlanDaysOutside',
     'lib/features/trips/data/repositories/itinerary_day_repository.dart:deleteByTripId',
     'lib/features/trips/data/repositories/liveaboard_details_repository.dart:deleteByTripId',
+    'lib/features/trips/data/repositories/side_trip_links.dart:clearForeignLinksOnTripDives',
     'lib/features/trips/data/repositories/side_trip_links.dart:detachSideTripsForDelete',
     'lib/features/trips/data/repositories/trip_date_stretch.dart:restoreStretchedTripDates',
     'lib/features/trips/data/repositories/trip_day_weather_repository.dart:deleteByTripId',
