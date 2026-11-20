@@ -213,12 +213,15 @@ class HomeBarRow extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Text(
-                value,
-                maxLines: 1,
-                style: text?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                  fontFeatures: const [FontFeature.tabularFigures()],
+              Flexible(
+                child: Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: text?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
                 ),
               ),
             ],

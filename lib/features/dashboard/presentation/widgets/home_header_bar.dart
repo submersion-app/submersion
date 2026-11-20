@@ -109,10 +109,14 @@ class HomeHeaderBar extends ConsumerWidget {
               ),
             ),
             const SizedBox(width: 8),
-            Text(
-              'Submersion',
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w700,
+            Flexible(
+              child: Text(
+                'Submersion',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
             const SizedBox(width: 12),

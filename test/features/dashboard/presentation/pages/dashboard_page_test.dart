@@ -1,126 +1,92 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/courses/presentation/providers/course_requirement_providers.dart';
+import 'package:submersion/features/dashboard/presentation/home_panels.dart';
 import 'package:submersion/features/dashboard/presentation/pages/dashboard_page.dart';
+import 'package:submersion/features/dashboard/presentation/panels/conditional_panels.dart';
+import 'package:submersion/features/dashboard/presentation/panels/first_dive_panel.dart';
+import 'package:submersion/features/dashboard/presentation/panels/key_numbers_panel.dart';
+import 'package:submersion/features/dashboard/presentation/panels/recent_dives_panel.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/gauge_providers.dart';
-import 'package:submersion/features/dashboard/presentation/providers/milestone_providers.dart';
+import 'package:submersion/features/dashboard/presentation/providers/home_panel_data.dart';
+import 'package:submersion/features/dashboard/presentation/providers/home_panel_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/media_ribbon_providers.dart';
-import 'package:submersion/features/dashboard/presentation/widgets/gauge_strip.dart';
-import 'package:submersion/features/dashboard/presentation/widgets/hero_header.dart';
-import 'package:submersion/features/dashboard/presentation/widgets/milestones_card.dart';
-import 'package:submersion/features/dashboard/presentation/widgets/on_this_day_card.dart';
-import 'package:submersion/features/dashboard/presentation/widgets/media_ribbon_card.dart';
-import 'package:submersion/features/dashboard/presentation/widgets/quick_actions_card.dart';
-import 'package:submersion/features/dashboard/presentation/widgets/recent_dives_card.dart';
-import 'package:submersion/features/dashboard/presentation/widgets/recent_sites_map_card.dart';
-import 'package:submersion/features/dashboard/presentation/widgets/year_in_review_card.dart';
-import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
-import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
-import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
-import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/divers/domain/entities/diver.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/dashboard/presentation/home_cards.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/home_header_bar.dart';
 import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
 import 'package:submersion/features/demo_mode/presentation/widgets/demo_exit_entries.dart';
-import 'package:submersion/features/media/domain/entities/media_item.dart';
-import 'package:submersion/features/media/domain/entities/media_source_type.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_draft_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
-/// Counts how many times a refreshed provider was rebuilt.
-int refreshBuilds = 0;
+/// How often each counted provider was built, by name.
+final builds = <String, int>{};
 
-/// How many times each conditional card's provider was built, by card.
-final cardProviderBuilds = <HomeCardType, int>{};
-
-/// Counts a build of [card]'s provider and returns [value].
-T _built<T>(HomeCardType card, T value) {
-  cardProviderBuilds.update(card, (n) => n + 1, ifAbsent: () => 1);
+T _count<T>(String name, T value) {
+  builds.update(name, (n) => n + 1, ifAbsent: () => 1);
   return value;
 }
 
-/// Gauges carrying one dive-safety alert (an expired policy), the state that
-/// hardens the strip against being hidden.
-final _expiredInsuranceGauges = DashboardGauges(
-  hasGear: false,
-  insurance: DiverInsurance(provider: 'DAN', expiryDate: DateTime(2020, 1, 1)),
-  noFlyStatus: null,
-  daysSinceLastDive: null,
+final _dives = [
+  Dive(
+    id: 'd1',
+    dateTime: DateTime.utc(2026, 11, 8, 10),
+    maxDepth: 18.4,
+    runtime: const Duration(minutes: 52),
+    site: const DiveSite(id: 's1', name: 'Salt Pier'),
+  ),
+];
+
+DiveStatistics _stats(int dives) => DiveStatistics(
+  totalDives: dives,
+  totalTimeSeconds: dives * 3000,
+  maxDepth: 30,
+  avgMaxDepth: 20,
+  totalSites: dives == 0 ? 0 : 1,
 );
 
-/// The other way into the same override: a lapsed service clock rather than
-/// an expired policy.
-final _overdueGearGauges = DashboardGauges(
-  gearOverdue: GearSeverityGroup(
-    count: 1,
-    worst: GearGauge(
-      type: EquipmentType.regulator,
-      itemId: 'reg-1',
-      itemName: 'Regulator',
-      status: ServiceClockStatus(
-        schedule: ServiceSchedule(
-          id: 'schedule',
-          equipmentId: 'reg-1',
-          serviceKindId: 'kind',
-          createdAt: DateTime(2026, 1, 1),
-          updatedAt: DateTime(2026, 1, 1),
-        ),
-        kind: ServiceKind(
-          id: 'kind',
-          name: 'Annual service',
-          createdAt: DateTime(2026, 1, 1),
-          updatedAt: DateTime(2026, 1, 1),
-        ),
-        anchor: DateTime(2026, 1, 1),
-        dueDate: DateTime(2026, 6, 1),
-        severity: ServiceClockSeverity.overdue,
-        now: DateTime(2026, 9, 1),
-      ),
-    ),
-  ),
+const _gauges = DashboardGauges(
   hasGear: true,
   insurance: null,
   noFlyStatus: null,
-  daysSinceLastDive: null,
+  daysSinceLastDive: 12,
 );
 
-Future<void> pumpDashboard(
+Future<void> pumpHome(
   WidgetTester tester, {
-  DashboardMilestones? milestones,
-  List<MediaItem> photos = const [],
-  Future<List<MediaItem>>? lateMedia,
-  List<Dive> onThisDay = const [],
-  YearInReview? yearInReview,
-  List<RecentSitePin> sites = const [],
-  MockSettingsNotifier? settingsNotifier,
-  DashboardGauges? gauges,
+  double width = 1280,
+  double height = 3000,
+  double textScale = 1,
+  int dives = 1,
+  AppSettings settings = const AppSettings(),
   bool demo = false,
+  List<Dive> onThisDay = const [],
 }) async {
-  refreshBuilds = 0;
-  cardProviderBuilds.clear();
-  final overrides = await getBaseOverrides(settingsNotifier: settingsNotifier);
+  tester.view.physicalSize = Size(width, height);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+  builds.clear();
+  final overrides = await getBaseOverrides(
+    settingsNotifier: MockSettingsNotifier(settings),
+  );
   final router = GoRouter(
     routes: [
       GoRoute(path: '/', builder: (_, _) => const DashboardPage()),
-      GoRoute(path: '/dives', builder: (_, _) => const Scaffold()),
-      GoRoute(
-        path: '/equipment',
-        builder: (_, _) => const Scaffold(),
-        routes: [GoRoute(path: 'new', builder: (_, _) => const Scaffold())],
-      ),
       GoRoute(
         path: '/settings/appearance/home',
         builder: (_, _) => const Scaffold(),
@@ -131,101 +97,192 @@ Future<void> pumpDashboard(
     ProviderScope(
       overrides: [
         ...overrides,
-        currentDiverProvider.overrideWith((ref) async => null),
         demoModeActiveProvider.overrideWithValue(demo),
-        recentDivesProvider.overrideWith((ref) async {
-          refreshBuilds++;
-          return <Dive>[];
-        }),
+        currentDiverProvider.overrideWith((ref) async => null),
+        diverCountProvider.overrideWith((ref) async => 1),
+        dashboardDiverProvider.overrideWith((ref) async => null),
+        dashboardGaugesProvider.overrideWith(
+          (ref) async => _count('gauges', _gauges),
+        ),
         diveStatisticsProvider.overrideWith(
-          (ref) async => DiveStatistics(
-            totalDives: 0,
-            totalTimeSeconds: 0,
-            maxDepth: 0,
-            avgMaxDepth: 0,
-            totalSites: 0,
+          (ref) async => _count('stats', _stats(dives)),
+        ),
+        recentDivesProvider.overrideWith(
+          (ref) async => _count('recentDives', dives == 0 ? <Dive>[] : _dives),
+        ),
+        homeKeyNumbersProvider.overrideWith(
+          (ref) async => _count(
+            'keyNumbers',
+            HomeKeyNumbers(careerDives: dives, careerTimeSeconds: dives * 3000),
           ),
         ),
+        homeActivityDaysProvider.overrideWith(
+          (ref) async => _count('activity', <DateTime, int>{}),
+        ),
+        homeMonthlyDivesProvider.overrideWith(
+          (ref) async => _count('months', [
+            for (var m = 1; m <= 12; m++) MonthCount(2026, m, m % 4),
+          ]),
+        ),
+        homeSacSeriesProvider.overrideWith((ref) async => _count('sac', [])),
+        homeAveragesProvider.overrideWith(
+          (ref) async => _count('averages', (
+            averages: const HomeAverages(
+              maxDepth: 20,
+              runtimeSeconds: 2800,
+              diveCount: 10,
+            ),
+            sac: null,
+          )),
+        ),
+        homeGasMixProvider.overrideWith(
+          (ref) async => _count('gasMix', [
+            DistributionSegment(label: 'Air', count: 1, percentage: 100),
+          ]),
+        ),
+        homeDiveTypesProvider.overrideWith(
+          (ref) async => _count('diveTypes', <DistributionSegment>[]),
+        ),
+        homeTopBuddiesProvider.overrideWith(
+          (ref) async => _count('buddies', <RankingItem>[]),
+        ),
+        homeRecentSpeciesProvider.overrideWith(
+          (ref) async => _count('species', const <SpeciesSighting>[]),
+        ),
+        homeGearServiceProvider.overrideWith(
+          (ref) async => _count('gear', <GearServiceBar>[]),
+        ),
+        homeComingDueProvider.overrideWith(
+          (ref) async => _count('comingDue', <ComingDueItem>[]),
+        ),
+        homeLatestProfileProvider.overrideWith(
+          (ref) async => _count('profile', null),
+        ),
+        recentMediaProvider.overrideWith(
+          (ref) async => _count('photos', <MediaItem>[]),
+        ),
+        recentSitesProvider.overrideWith(
+          (ref) async => _count('sites', <RecentSitePin>[]),
+        ),
+        onThisDayProvider.overrideWith(
+          (ref) async => _count('onThisDay', onThisDay),
+        ),
+        activeCoursesProgressProvider.overrideWith(
+          (ref) async => _count('courses', []),
+        ),
+        draftDivesProvider.overrideWith(
+          (ref) async => _count('drafts', <Dive>[]),
+        ),
+        homeTripChecklistProvider.overrideWith((ref) async => null),
+        preDiveActiveSessionProvider.overrideWith((ref) async => null),
+        preDiveSessionsProvider.overrideWith((ref) async => []),
+        preDiveTemplatesProvider.overrideWith((ref) async => []),
         dashboardQuickStatsProvider.overrideWith(
           (ref) async => const DashboardQuickStats(),
         ),
-        dashboardGaugesProvider.overrideWith(
-          (ref) async =>
-              gauges ??
-              const DashboardGauges(
-                hasGear: false,
-                insurance: null,
-                noFlyStatus: null,
-                daysSinceLastDive: null,
-              ),
-        ),
-        milestonesProvider.overrideWith(
-          (ref) async => _built(
-            HomeCardType.milestones,
-            milestones ??
-                const DashboardMilestones(
-                  nextMilestone: null,
-                  divesRemaining: null,
-                  anniversaries: [],
-                ),
-          ),
-        ),
-        recentMediaProvider.overrideWith(
-          (ref) => _built(
-            HomeCardType.photoRibbon,
-            lateMedia ?? Future.value(photos),
-          ),
-        ),
-        onThisDayProvider.overrideWith(
-          (ref) async => _built(HomeCardType.onThisDay, onThisDay),
-        ),
-        yearInReviewProvider.overrideWith(
-          (ref) async => _built(HomeCardType.yearInReview, yearInReview),
-        ),
-        activeCoursesProgressProvider.overrideWith((ref) async => []),
-        recentSitesProvider.overrideWith(
-          (ref) async => _built(HomeCardType.recentSitesMap, sites),
-        ),
       ].cast(),
       child: MaterialApp.router(
-        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         routerConfig: router,
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: TextScaler.linear(textScale)),
+          child: child!,
+        ),
       ),
     ),
   );
-  // Cannot pumpAndSettle: the hero's ocean animation never settles.
-  for (int i = 0; i < 10; i++) {
-    await tester.pump(const Duration(milliseconds: 100));
+  for (var i = 0; i < 6; i++) {
+    await tester.pump(const Duration(milliseconds: 50));
   }
 }
 
 void main() {
-  testWidgets('empty data renders always-on blocks, hides conditional cards', (
+  testWidgets('nothing stored shows the header and the Balanced panels', (
     tester,
   ) async {
-    await pumpDashboard(tester);
-
-    expect(find.byType(HeroHeader), findsOneWidget);
-    expect(find.byType(GaugeStrip), findsOneWidget);
-    expect(find.byType(RecentDivesCard), findsOneWidget);
-    expect(find.byType(QuickActionsCard), findsOneWidget);
-
-    expect(find.byType(MilestonesCard), findsNothing);
-    expect(find.byType(MediaRibbonCard), findsNothing);
-    expect(find.byType(OnThisDayCard), findsNothing);
-    expect(find.byType(YearInReviewCard), findsNothing);
-    expect(find.byType(RecentSitesMapCard), findsNothing);
+    await pumpHome(tester);
+    expect(find.byType(HomeHeaderBar), findsOneWidget);
+    expect(find.byType(KeyNumbersPanel, skipOffstage: false), findsOneWidget);
+    expect(find.byType(RecentDivesPanel, skipOffstage: false), findsOneWidget);
+    expect(find.text('GAS MIX', skipOffstage: false), findsOneWidget);
+    // Not in Balanced.
+    expect(find.text('TOP BUDDIES', skipOffstage: false), findsNothing);
   });
 
-  testWidgets('pull-to-refresh refetches the dashboard providers', (
+  testWidgets('a hidden panel is absent and its data is never read', (
     tester,
   ) async {
-    await pumpDashboard(tester);
+    await pumpHome(
+      tester,
+      settings: const AppSettings(
+        homePanelOrder: ['keyNumbers', 'onThisDay', 'gasMix', 'recentDives'],
+        hiddenHomePanels: {'onThisDay', 'gasMix'},
+      ),
+    );
+    expect(find.text('GAS MIX', skipOffstage: false), findsNothing);
+    expect(builds['gasMix'], isNull);
+    expect(builds['onThisDay'], isNull);
+    expect(find.byType(RecentDivesPanel, skipOffstage: false), findsOneWidget);
+  });
 
-    // Providers are counted through the shared build counter below; showing
-    // the indicator runs onRefresh directly, which is what a drag does.
+  testWidgets('conditional panels with nothing to show leave no box', (
+    tester,
+  ) async {
+    await pumpHome(tester);
+    expect(find.byType(OnThisDayPanel, skipOffstage: false), findsNothing);
+    expect(find.byType(PhotosPanel, skipOffstage: false), findsNothing);
+    expect(find.byType(PreDivePanel, skipOffstage: false), findsNothing);
+  });
+
+  testWidgets('a conditional panel with content appears', (tester) async {
+    await pumpHome(
+      tester,
+      onThisDay: [
+        Dive(
+          id: 'old',
+          dateTime: DateTime.utc(2024, 11, 20),
+          site: const DiveSite(id: 'b', name: 'Blue Hole'),
+        ),
+      ],
+    );
+    expect(find.byType(OnThisDayPanel, skipOffstage: false), findsOneWidget);
+  });
+
+  testWidgets('a diver with no dives sees the first-dive panel', (
+    tester,
+  ) async {
+    await pumpHome(tester, dives: 0);
+    expect(find.byType(FirstDivePanel, skipOffstage: false), findsOneWidget);
+  });
+
+  testWidgets('all panels hidden keeps the header and the customise link', (
+    tester,
+  ) async {
+    await pumpHome(
+      tester,
+      settings: AppSettings(
+        homePanelOrder: [for (final p in HomePanelType.values) p.name],
+        hiddenHomePanels: {for (final p in HomePanelType.values) p.name},
+      ),
+    );
+    expect(find.byType(HomeHeaderBar), findsOneWidget);
+    final l10n = lookupAppLocalizations(const Locale('en'));
+    expect(find.text(l10n.dashboard_allHidden_customize), findsOneWidget);
+  });
+
+  testWidgets('demo mode puts its card above the panels', (tester) async {
+    await pumpHome(tester, demo: true);
+    final demo = tester.getRect(find.byType(DemoModeDashboardCard));
+    final keys = tester.getRect(find.byType(KeyNumbersPanel));
+    expect(demo.top, lessThan(keys.top));
+  });
+
+  testWidgets('pull to refresh refetches', (tester) async {
+    await pumpHome(tester);
+    final before = builds['stats'] ?? 0;
     final indicator = tester.state<RefreshIndicatorState>(
       find.byType(RefreshIndicator),
     );
@@ -233,469 +290,40 @@ void main() {
     for (var i = 0; i < 10; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
-
-    expect(refreshBuilds, greaterThan(1));
-    expect(tester.takeException(), isNull);
+    expect(builds['stats'], greaterThan(before));
   });
 
-  testWidgets('a page with nothing to scroll can still be pulled', (
-    tester,
-  ) async {
-    // Taller than every card, so the list has no extent of its own.
-    tester.view.physicalSize = const Size(800, 2000);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.reset);
-    await pumpDashboard(tester);
-    final before = refreshBuilds;
-
-    await tester.drag(find.byType(CustomScrollView), const Offset(0, 800));
-    for (var i = 0; i < 10; i++) {
-      await tester.pump(const Duration(milliseconds: 100));
-    }
-
-    expect(refreshBuilds, greaterThan(before));
-  });
-
-  testWidgets('renders without layout errors at phone width', (tester) async {
-    // Regression: QuickActionsCard once used an internal Expanded that
-    // threw in the unbounded 1-column scroll layout, collapsing the page.
-    tester.view.physicalSize = const Size(400, 900);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.reset);
-
-    await pumpDashboard(
-      tester,
-      milestones: const DashboardMilestones(
-        nextMilestone: 250,
-        divesRemaining: 3,
-        anniversaries: [],
-      ),
-    );
-
-    expect(tester.takeException(), isNull);
-    expect(find.byType(HeroHeader), findsOneWidget);
-    expect(find.byType(QuickActionsCard), findsOneWidget);
-    // Below this fold, but built for the band a lazy list keeps ready.
-    expect(find.byType(MilestonesCard, skipOffstage: false), findsOneWidget);
-  });
-
-  testWidgets('populated data shows the conditional cards', (tester) async {
-    // Tall enough for every row: below the fold they are built on approach.
-    tester.view.physicalSize = const Size(800, 2000);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.reset);
-
-    await pumpDashboard(
-      tester,
-      milestones: const DashboardMilestones(
-        nextMilestone: 250,
-        divesRemaining: 3,
-        anniversaries: [],
-      ),
-      photos: [
-        MediaItem(
-          id: 'p1',
-          mediaType: MediaType.photo,
-          sourceType: MediaSourceType.platformGallery,
-          filePath: '/tmp/p1.jpg',
-          takenAt: DateTime(2026, 7, 1),
-          createdAt: DateTime(2026, 7, 1),
-          updatedAt: DateTime(2026, 7, 1),
-        ),
-      ],
-      onThisDay: [Dive(id: 'otd', dateTime: DateTime(2023, 7, 24))],
-      yearInReview: const YearInReview(
-        year: 2026,
-        current: YearStats(diveCount: 34, totalSeconds: 147600, maxDepth: 48),
-        previous: YearStats(diveCount: 28, totalSeconds: 100800, maxDepth: 40),
-      ),
-    );
-
-    expect(find.byType(MilestonesCard), findsOneWidget);
-    expect(find.byType(MediaRibbonCard), findsOneWidget);
-    expect(find.byType(OnThisDayCard), findsOneWidget);
-    expect(find.byType(YearInReviewCard), findsOneWidget);
-  });
-
-  testWidgets('demo mode puts its card first, with the way out (#4436)', (
-    tester,
-  ) async {
-    await pumpDashboard(tester, demo: true);
-
-    final l10n = lookupAppLocalizations(const Locale('en'));
-    expect(find.text(l10n.demo_active_label), findsOneWidget);
-    expect(find.text(l10n.demo_exit_button), findsOneWidget);
-    final card = tester.getRect(find.byType(DemoModeDashboardCard));
-    // The hero heads the cards; the demo card comes before it.
-    final hero = tester.getRect(find.byType(HeroHeader));
-    expect(card.bottom, lessThanOrEqualTo(hero.top));
-  });
-
-  testWidgets('no demo card outside demo mode', (tester) async {
-    await pumpDashboard(tester);
-
-    expect(find.byType(DemoModeDashboardCard), findsNothing);
-  });
-
-  testWidgets('hidden card is absent', (tester) async {
-    await pumpDashboard(
-      tester,
-      settingsNotifier: MockSettingsNotifier(
-        AppSettings(hiddenHomeCards: {HomeCardType.quickActions.name}),
-      ),
-    );
-
-    expect(find.byType(QuickActionsCard), findsNothing);
-    expect(find.byType(RecentDivesCard), findsOneWidget);
-  });
-
-  testWidgets('a hidden card loads nothing (#4251)', (tester) async {
-    // Each of these would otherwise have content, so only hiding them keeps
-    // their reads (On This Day's dive reads among them) off Home.
-    const hidden = {
-      HomeCardType.milestones,
-      HomeCardType.photoRibbon,
-      HomeCardType.onThisDay,
-      HomeCardType.yearInReview,
-      HomeCardType.recentSitesMap,
-    };
-    await pumpDashboard(
-      tester,
-      onThisDay: [Dive(id: 'otd', dateTime: DateTime(2023, 7, 24))],
-      sites: const [RecentSitePin(siteName: 'A', latitude: 36, longitude: 25)],
-      settingsNotifier: MockSettingsNotifier(
-        AppSettings(hiddenHomeCards: {for (final c in hidden) c.name}),
-      ),
-    );
-
-    expect(find.byType(OnThisDayCard, skipOffstage: false), findsNothing);
-    expect(
-      {for (final c in hidden) c: cardProviderBuilds[c] ?? 0},
-      {for (final c in hidden) c: 0},
-    );
-  });
-
-  testWidgets('a hidden photo ribbon does not hold back the map', (
-    tester,
-  ) async {
-    tester.view.physicalSize = const Size(1400, 1600);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.reset);
-    // Photos that never arrive: the map must not wait on a card that is off.
-    await pumpDashboard(
-      tester,
-      sites: const [RecentSitePin(siteName: 'A', latitude: 36, longitude: 25)],
-      lateMedia: Completer<List<MediaItem>>().future,
-      settingsNotifier: MockSettingsNotifier(
-        AppSettings(hiddenHomeCards: {HomeCardType.photoRibbon.name}),
-      ),
-    );
-
-    expect(find.byType(RecentSitesMapCard), findsOneWidget);
-    expect(cardProviderBuilds[HomeCardType.photoRibbon], isNull);
-  });
-
-  testWidgets('custom order is respected', (tester) async {
-    // Recent dives first, hero last.
-    final order = [
-      HomeCardType.recentDives.name,
-      for (final c in HomeCardType.values)
-        if (c != HomeCardType.recentDives && c != HomeCardType.hero) c.name,
-      HomeCardType.hero.name,
-    ];
-    tester.view.physicalSize = const Size(800, 2000);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.reset);
-
-    await pumpDashboard(
-      tester,
-      settingsNotifier: MockSettingsNotifier(AppSettings(homeCardOrder: order)),
-    );
-
-    // The rows are lazy, so the tall view above is what puts both widgets
-    // in the tree without scrolling, in one coordinate space.
-    final recentDivesY = tester.getTopLeft(find.byType(RecentDivesCard)).dy;
-    final heroY = tester.getTopLeft(find.byType(HeroHeader)).dy;
-    expect(heroY, greaterThan(recentDivesY));
-  });
-
-  group('first load (#3819)', () {
-    const sites = [
-      RecentSitePin(siteName: 'Site A', latitude: 36.0, longitude: 25.0),
-      RecentSitePin(siteName: 'Site B', latitude: 35.0, longitude: 24.0),
-    ];
-
-    /// A phone page tall with cards, so the map sits far below the fold.
-    Future<void> pumpPhone(WidgetTester tester) async {
-      tester.view.physicalSize = const Size(400, 800);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.reset);
-      await pumpDashboard(
-        tester,
-        milestones: const DashboardMilestones(
-          nextMilestone: 250,
-          divesRemaining: 3,
-          anniversaries: [],
-        ),
-        yearInReview: const YearInReview(
-          year: 2026,
-          current: YearStats(diveCount: 34, totalSeconds: 147600, maxDepth: 48),
-          previous: YearStats(
-            diveCount: 28,
-            totalSeconds: 100800,
-            maxDepth: 40,
-          ),
-        ),
-        onThisDay: [Dive(id: 'otd', dateTime: DateTime(2023, 7, 24))],
-        sites: sites,
-      );
-    }
-
-    testWidgets('leaves cards and the map below the fold unbuilt', (
+  for (final width in [320.0, 390.0, 799.0, 800.0, 1199.0, 1200.0, 1600.0]) {
+    testWidgets('every panel on: no layout error at $width wide', (
       tester,
     ) async {
-      await pumpPhone(tester);
-
-      expect(find.byType(HeroHeader), findsOneWidget);
-      expect(find.byType(RecentDivesCard), findsOneWidget);
-      expect(
-        find.byType(RecentSitesMapCard, skipOffstage: false),
-        findsNothing,
+      await pumpHome(
+        tester,
+        width: width,
+        settings: AppSettings(
+          homePanelOrder: [for (final p in HomePanelType.values) p.name],
+          hiddenHomePanels: const {},
+          hiddenHomeKeyNumbers: const {},
+        ),
       );
-      expect(find.byType(OnThisDayCard, skipOffstage: false), findsNothing);
-      expect(find.byType(FlutterMap, skipOffstage: false), findsNothing);
-    });
-
-    group('photos resolving after the sites', () {
-      const pin = RecentSitePin(siteName: 'A', latitude: 36, longitude: 25);
-      final photo = MediaItem(
-        id: 'p1',
-        mediaType: MediaType.photo,
-        sourceType: MediaSourceType.platformGallery,
-        filePath: '/tmp/p1.jpg',
-        takenAt: DateTime(2026, 7, 1),
-        createdAt: DateTime(2026, 7, 1),
-        updatedAt: DateTime(2026, 7, 1),
-      );
-
-      /// A desktop page, where the map and photos pair up on one row.
-      Future<Completer<List<MediaItem>>> pumpWithLatePhotos(
-        WidgetTester tester,
-      ) async {
-        tester.view.physicalSize = const Size(1400, 1600);
-        tester.view.devicePixelRatio = 1.0;
-        addTearDown(tester.view.reset);
-        final media = Completer<List<MediaItem>>();
-        await pumpDashboard(
-          tester,
-          sites: const [pin],
-          lateMedia: media.future,
-        );
-        return media;
-      }
-
-      Future<void> settle(WidgetTester tester) async {
-        for (var i = 0; i < 5; i++) {
-          await tester.pump(const Duration(milliseconds: 100));
-        }
-      }
-
-      testWidgets('the map mounts once, in its pair', (tester) async {
-        final media = await pumpWithLatePhotos(tester);
-
-        // Mounting it now would throw it away: joining the pair moves the
-        // card under a Row, which no key on the row can keep alive.
-        expect(find.byType(FlutterMap), findsNothing);
-
-        media.complete([photo]);
-        await settle(tester);
-
-        expect(find.byType(FlutterMap), findsOneWidget);
-        expect(find.byType(MediaRibbonCard), findsOneWidget);
-      });
-
-      testWidgets('a pull-to-refresh leaves the mounted map alone', (
-        tester,
-      ) async {
-        final media = await pumpWithLatePhotos(tester);
-        media.complete([photo]);
-        await settle(tester);
-        final state = tester.state(find.byType(FlutterMap));
-
-        // Photos reload here, but the earlier result is still on hand, so
-        // the hold for a first result must not take the map off the page.
-        unawaited(
-          tester
-              .state<RefreshIndicatorState>(find.byType(RefreshIndicator))
-              .show(),
-        );
-        await settle(tester);
-        await settle(tester);
-
-        expect(tester.state(find.byType(FlutterMap)), same(state));
-      });
-
-      testWidgets('no photos still leaves the map on its own row', (
-        tester,
-      ) async {
-        final media = await pumpWithLatePhotos(tester);
-
-        media.complete(const []);
-        await settle(tester);
-
-        expect(find.byType(FlutterMap), findsOneWidget);
-      });
-
-      testWidgets('a failed photo load does not strand the map', (
-        tester,
-      ) async {
-        final media = await pumpWithLatePhotos(tester);
-
-        media.completeError(StateError('no media'));
-        await settle(tester);
-
-        expect(find.byType(FlutterMap), findsOneWidget);
-      });
-    });
-
-    testWidgets('scrolling down builds the card and mounts its map', (
-      tester,
-    ) async {
-      await pumpPhone(tester);
-
-      await tester.drag(find.byType(CustomScrollView), const Offset(0, -700));
-      for (var i = 0; i < 5; i++) {
-        await tester.pump(const Duration(milliseconds: 100));
-      }
-
-      expect(find.byType(RecentSitesMapCard), findsOneWidget);
-      expect(find.byType(FlutterMap), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
+  }
 
-    testWidgets('the map survives scrolling back to the top', (tester) async {
-      await pumpPhone(tester);
-
-      await tester.drag(find.byType(CustomScrollView), const Offset(0, -700));
-      for (var i = 0; i < 5; i++) {
-        await tester.pump(const Duration(milliseconds: 100));
-      }
-      final mapState = tester.state(find.byType(FlutterMap));
-
-      await tester.drag(find.byType(CustomScrollView), const Offset(0, 2000));
-      for (var i = 0; i < 5; i++) {
-        await tester.pump(const Duration(milliseconds: 100));
-      }
-
-      expect(
-        tester.state(find.byType(FlutterMap, skipOffstage: false)),
-        same(mapState),
-      );
-    });
-  });
-
-  testWidgets('a live alert no longer pushes anything above the hero', (
+  testWidgets('every panel on: no overflow at text scale 2 on a phone', (
     tester,
   ) async {
-    await pumpDashboard(tester, gauges: _expiredInsuranceGauges);
-
-    // The alert now lives in the gauge strip, so the greeting stays the
-    // first thing on the page instead of being pushed down by a banner.
-    expect(find.byType(GaugeStrip), findsOneWidget);
-    final heroY = tester.getTopLeft(find.byType(HeroHeader)).dy;
-    final stripY = tester.getTopLeft(find.byType(GaugeStrip)).dy;
-    expect(heroY, lessThan(stripY));
-  });
-
-  testWidgets('a safety alert forces the gauge strip back on when hidden', (
-    tester,
-  ) async {
-    await pumpDashboard(
+    await pumpHome(
       tester,
-      gauges: _expiredInsuranceGauges,
-      settingsNotifier: MockSettingsNotifier(
-        AppSettings(hiddenHomeCards: {HomeCardType.gaugeStrip.name}),
+      width: 390,
+      height: 6000,
+      textScale: 2,
+      settings: AppSettings(
+        homePanelOrder: [for (final p in HomePanelType.values) p.name],
+        hiddenHomePanels: const {},
+        hiddenHomeKeyNumbers: const {},
       ),
     );
-
-    expect(find.byType(GaugeStrip), findsOneWidget);
-    // The override is scoped to the strip: other hidden cards stay hidden.
-    final heroY = tester.getTopLeft(find.byType(HeroHeader)).dy;
-    final stripY = tester.getTopLeft(find.byType(GaugeStrip)).dy;
-    expect(heroY, lessThan(stripY));
-  });
-
-  testWidgets('overdue gear also forces the gauge strip back on', (
-    tester,
-  ) async {
-    await pumpDashboard(
-      tester,
-      gauges: _overdueGearGauges,
-      settingsNotifier: MockSettingsNotifier(
-        AppSettings(hiddenHomeCards: {HomeCardType.gaugeStrip.name}),
-      ),
-    );
-
-    expect(find.byType(GaugeStrip), findsOneWidget);
-  });
-
-  testWidgets('hiding the gauge strip works when no alert is live', (
-    tester,
-  ) async {
-    await pumpDashboard(
-      tester,
-      settingsNotifier: MockSettingsNotifier(
-        AppSettings(hiddenHomeCards: {HomeCardType.gaugeStrip.name}),
-      ),
-    );
-
-    expect(find.byType(GaugeStrip), findsNothing);
-    expect(find.byType(HeroHeader), findsOneWidget);
-  });
-
-  testWidgets('all cards hidden shows empty state with settings link', (
-    tester,
-  ) async {
-    await pumpDashboard(
-      tester,
-      settingsNotifier: MockSettingsNotifier(
-        AppSettings(
-          hiddenHomeCards: {for (final c in HomeCardType.values) c.name},
-        ),
-      ),
-    );
-
-    final l10n = await AppLocalizations.delegate.load(const Locale('en'));
-    expect(find.text(l10n.dashboard_allHidden_message), findsOneWidget);
-
-    await tester.tap(find.text(l10n.dashboard_allHidden_customize));
-    await tester.pump(const Duration(milliseconds: 300));
     expect(tester.takeException(), isNull);
   });
-
-  testWidgets(
-    'all cards hidden with a live alert shows the strip AND the empty state',
-    (tester) async {
-      await pumpDashboard(
-        tester,
-        settingsNotifier: MockSettingsNotifier(
-          AppSettings(
-            hiddenHomeCards: {for (final c in HomeCardType.values) c.name},
-          ),
-        ),
-        gauges: _expiredInsuranceGauges,
-      );
-
-      final l10n = await AppLocalizations.delegate.load(const Locale('en'));
-      // The forced strip must not swallow the CTA: without it the diver has
-      // no route back to re-enabling their cards.
-      expect(find.byType(GaugeStrip), findsOneWidget);
-      expect(find.text(l10n.dashboard_allHidden_message), findsOneWidget);
-      final stripY = tester.getTopLeft(find.byType(GaugeStrip)).dy;
-      final messageY = tester
-          .getTopLeft(find.text(l10n.dashboard_allHidden_message))
-          .dy;
-      expect(stripY, lessThan(messageY));
-    },
-  );
 }
