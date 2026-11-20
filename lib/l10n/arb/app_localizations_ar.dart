@@ -67104,4 +67104,90 @@ class AppLocalizationsAr extends AppLocalizations {
   String dashboard_key_tripChecklist(String name, int done, int total) {
     return '$name · checklist $done/$total';
   }
+
+  @override
+  String dashboard_panel_activity(int months) {
+    return 'Activity, $months months';
+  }
+
+  @override
+  String dashboard_panel_activitySummary(int dives, int days) {
+    return '$dives dives · $days days';
+  }
+
+  @override
+  String get dashboard_panel_divesPerMonth => 'Dives per month';
+
+  @override
+  String get dashboard_panel_sacTrend => 'SAC trend';
+
+  @override
+  String get dashboard_panel_rmvTrend => 'RMV trend';
+
+  @override
+  String dashboard_panel_lastDives(int count) {
+    return 'last $count dives';
+  }
+
+  @override
+  String get dashboard_panel_noSac => 'No dives with gas data yet';
+
+  @override
+  String get dashboard_panel_depthMix => 'Depth mix';
+
+  @override
+  String get dashboard_panel_noDives => 'No dives yet';
+
+  @override
+  String get dashboard_panel_gasMix => 'Gas mix';
+
+  @override
+  String get dashboard_panel_diveTypes => 'Dive types';
+
+  @override
+  String get dashboard_panel_topSites => 'Top sites';
+
+  @override
+  String get dashboard_panel_topBuddies => 'Top buddies';
+
+  @override
+  String get dashboard_panel_noBuddies => 'No buddies logged yet';
+
+  @override
+  String get dashboard_panel_gearService => 'Gear service';
+
+  @override
+  String get dashboard_panel_noGear => 'Add gear to track its service';
+
+  @override
+  String get dashboard_panel_overdue => 'Overdue';
+
+  @override
+  String dashboard_panel_daysLeft(int days) {
+    return '$days d';
+  }
+
+  @override
+  String dashboard_panel_divesLeft(int count) {
+    return '$count dives';
+  }
+
+  @override
+  String dashboard_panel_hoursLeft(int hours) {
+    return '$hours h';
+  }
+
+  @override
+  String get dashboard_panel_comingDue => 'Coming due';
+
+  @override
+  String get dashboard_panel_nothingDue => 'Nothing due in the next year';
+
+  @override
+  String dashboard_panel_inDays(int days) {
+    return 'in $days days';
+  }
+
+  @override
+  String get dashboard_panel_tripChecklist => 'Trip checklist';
 }

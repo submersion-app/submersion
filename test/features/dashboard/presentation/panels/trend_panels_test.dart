@@ -1,0 +1,282 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/features/dashboard/presentation/panels/activity_calendar_panel.dart';
+import 'package:submersion/features/dashboard/presentation/panels/depth_mix_panel.dart';
+import 'package:submersion/features/dashboard/presentation/panels/distribution_panels.dart';
+import 'package:submersion/features/dashboard/presentation/panels/dives_per_month_panel.dart';
+import 'package:submersion/features/dashboard/presentation/panels/ranking_panels.dart';
+import 'package:submersion/features/dashboard/presentation/panels/sac_trend_panel.dart';
+import 'package:submersion/features/dashboard/presentation/providers/home_panel_data.dart';
+import 'package:submersion/features/dashboard/presentation/providers/home_panel_providers.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+
+import 'panel_harness.dart';
+
+DiveStatistics _stats({
+  List<DepthRangeStat> depths = const [],
+  List<TopSiteStat> sites = const [],
+}) => DiveStatistics(
+  totalDives: 10,
+  totalTimeSeconds: 36000,
+  maxDepth: 40,
+  avgMaxDepth: 20,
+  totalSites: 3,
+  depthDistribution: depths,
+  topSites: sites,
+);
+
+final _depths = [
+  DepthRangeStat(label: '0-10', minDepth: 0, maxDepth: 10, count: 3),
+  DepthRangeStat(label: '10-20', minDepth: 10, maxDepth: 20, count: 8),
+  DepthRangeStat(label: '20-30', minDepth: 20, maxDepth: 30, count: 5),
+  DepthRangeStat(label: '30-40', minDepth: 30, maxDepth: 40, count: 0),
+  DepthRangeStat(label: '40-50', minDepth: 40, maxDepth: 50, count: 0),
+];
+
+void main() {
+  group('activity calendar', () {
+    testWidgets('sums dives and dive days, and opens the log', (tester) async {
+      final nav = await pumpPanel(
+        tester,
+        const ActivityCalendarPanel(),
+        width: 800,
+        overrides: [
+          homeActivityDaysProvider.overrideWith(
+            (ref) async => {DateTime(2026, 3, 4): 2, DateTime(2026, 6, 1): 1},
+          ),
+        ],
+      );
+      expect(find.text('3 dives · 2 days'), findsOneWidget);
+      await tester.tap(find.byType(ActivityCalendarPanel));
+      await tester.pumpAndSettle();
+      expect(nav.location, '/dives');
+    });
+
+    testWidgets('a phone shows six months', (tester) async {
+      await pumpPanel(
+        tester,
+        const ActivityCalendarPanel(),
+        width: 390,
+        overrides: [homeActivityDaysProvider.overrideWith((ref) async => {})],
+      );
+      expect(find.text('ACTIVITY, 6 MONTHS'), findsOneWidget);
+    });
+  });
+
+  group('dives per month', () {
+    testWidgets('shows a bar per month', (tester) async {
+      await pumpPanel(
+        tester,
+        const DivesPerMonthPanel(),
+        overrides: [
+          homeMonthlyDivesProvider.overrideWith(
+            (ref) async => [
+              for (var m = 1; m <= 12; m++) MonthCount(2026, m, m % 3),
+            ],
+          ),
+        ],
+      );
+      expect(find.text('DIVES PER MONTH'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('SAC trend', () {
+    testWidgets('one point renders without error', (tester) async {
+      await pumpPanel(
+        tester,
+        const SacTrendPanel(),
+        overrides: [
+          homeSacSeriesProvider.overrideWith(
+            (ref) async => [
+              TrendDataPoint(date: DateTime(2026), value: 14, label: ''),
+            ],
+          ),
+        ],
+      );
+      expect(find.text('RMV TREND'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('no gas data says so', (tester) async {
+      await pumpPanel(
+        tester,
+        const SacTrendPanel(),
+        overrides: [homeSacSeriesProvider.overrideWith((ref) async => [])],
+      );
+      expect(find.text('No dives with gas data yet'), findsOneWidget);
+    });
+  });
+
+  group('depth mix', () {
+    testWidgets('trims empty deep bands and opens Insights', (tester) async {
+      final nav = await pumpPanel(
+        tester,
+        const DepthMixPanel(),
+        overrides: [
+          diveStatisticsProvider.overrideWith(
+            (ref) async => _stats(depths: _depths),
+          ),
+        ],
+      );
+      expect(find.textContaining('20-30'), findsOneWidget);
+      expect(find.textContaining('40-50'), findsNothing);
+      await tester.tap(find.byType(DepthMixPanel));
+      await tester.pumpAndSettle();
+      expect(nav.location, '/insights');
+    });
+
+    testWidgets('labels bands in feet for an imperial diver', (tester) async {
+      await pumpPanel(
+        tester,
+        const DepthMixPanel(),
+        settings: const AppSettings(depthUnit: DepthUnit.feet),
+        overrides: [
+          diveStatisticsProvider.overrideWith(
+            (ref) async => _stats(depths: _depths),
+          ),
+        ],
+      );
+      expect(find.textContaining('ft'), findsWidgets);
+    });
+
+    testWidgets('no dives shows the empty text', (tester) async {
+      await pumpPanel(
+        tester,
+        const DepthMixPanel(),
+        overrides: [
+          diveStatisticsProvider.overrideWith((ref) async => _stats()),
+        ],
+      );
+      expect(find.text('No dives yet'), findsOneWidget);
+    });
+  });
+
+  group('distributions', () {
+    testWidgets('gas mix shows its top three shares', (tester) async {
+      await pumpPanel(
+        tester,
+        const GasMixPanel(),
+        overrides: [
+          homeGasMixProvider.overrideWith(
+            (ref) async => [
+              DistributionSegment(label: 'Nitrox', count: 6, percentage: 61),
+              DistributionSegment(label: 'Air', count: 3, percentage: 33),
+              DistributionSegment(label: 'Trimix', count: 1, percentage: 6),
+            ],
+          ),
+        ],
+      );
+      expect(find.text('Nitrox'), findsOneWidget);
+      expect(find.text('61%'), findsOneWidget);
+    });
+
+    testWidgets('dive types name their types', (tester) async {
+      await pumpPanel(
+        tester,
+        const DiveTypesPanel(),
+        overrides: [
+          homeDiveTypesProvider.overrideWith(
+            (ref) async => [
+              DistributionSegment(
+                label: 'recreational',
+                key: 'recreational',
+                count: 6,
+                percentage: 60,
+              ),
+            ],
+          ),
+        ],
+      );
+      expect(find.text('DIVE TYPES'), findsOneWidget);
+      expect(find.text('60%'), findsOneWidget);
+    });
+  });
+
+  group('rankings', () {
+    testWidgets('top sites lists sites and opens the site list', (
+      tester,
+    ) async {
+      final nav = await pumpPanel(
+        tester,
+        const TopSitesPanel(),
+        width: 390,
+        overrides: [
+          diveStatisticsProvider.overrideWith(
+            (ref) async => _stats(
+              sites: [
+                TopSiteStat(
+                  siteId: 's1',
+                  siteName:
+                      'Salt Pier, a very long name that keeps going past the edge',
+                  diveCount: 14,
+                ),
+                TopSiteStat(siteId: 's2', siteName: 'Bari', diveCount: 7),
+              ],
+            ),
+          ),
+        ],
+      );
+      expect(find.text('14'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.tap(find.byType(TopSitesPanel));
+      await tester.pumpAndSettle();
+      expect(nav.location, '/sites');
+    });
+
+    testWidgets('top buddies with none says so', (tester) async {
+      await pumpPanel(
+        tester,
+        const TopBuddiesPanel(),
+        overrides: [homeTopBuddiesProvider.overrideWith((ref) async => [])],
+      );
+      expect(find.text('No buddies logged yet'), findsOneWidget);
+    });
+
+    testWidgets('top buddies opens the buddy list', (tester) async {
+      final nav = await pumpPanel(
+        tester,
+        const TopBuddiesPanel(),
+        overrides: [
+          homeTopBuddiesProvider.overrideWith(
+            (ref) async => [RankingItem(id: 'b', name: 'Sam', count: 31)],
+          ),
+        ],
+      );
+      expect(find.text('Sam'), findsOneWidget);
+      await tester.tap(find.byType(TopBuddiesPanel));
+      await tester.pumpAndSettle();
+      expect(nav.location, '/buddies');
+    });
+  });
+
+  testWidgets('trend panels survive text scale 2 at phone width', (
+    tester,
+  ) async {
+    await pumpPanel(
+      tester,
+      const Column(
+        children: [
+          Expanded(child: DepthMixPanel()),
+          Expanded(child: TopSitesPanel()),
+        ],
+      ),
+      width: 195,
+      height: 360,
+      textScale: 2,
+      overrides: [
+        diveStatisticsProvider.overrideWith(
+          (ref) async => _stats(
+            depths: _depths,
+            sites: [TopSiteStat(siteId: 's', siteName: 'Salt', diveCount: 1)],
+          ),
+        ),
+      ],
+    );
+    expect(tester.takeException(), isNull);
+  });
+}

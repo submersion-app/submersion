@@ -103697,6 +103697,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name} · checklist {done}/{total}'**
   String dashboard_key_tripChecklist(String name, int done, int total);
+
+  /// No description provided for @dashboard_panel_activity.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity, {months} months'**
+  String dashboard_panel_activity(int months);
+
+  /// No description provided for @dashboard_panel_activitySummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{dives} dives · {days} days'**
+  String dashboard_panel_activitySummary(int dives, int days);
+
+  /// No description provided for @dashboard_panel_divesPerMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives per month'**
+  String get dashboard_panel_divesPerMonth;
+
+  /// No description provided for @dashboard_panel_sacTrend.
+  ///
+  /// In en, this message translates to:
+  /// **'SAC trend'**
+  String get dashboard_panel_sacTrend;
+
+  /// No description provided for @dashboard_panel_rmvTrend.
+  ///
+  /// In en, this message translates to:
+  /// **'RMV trend'**
+  String get dashboard_panel_rmvTrend;
+
+  /// No description provided for @dashboard_panel_lastDives.
+  ///
+  /// In en, this message translates to:
+  /// **'last {count} dives'**
+  String dashboard_panel_lastDives(int count);
+
+  /// No description provided for @dashboard_panel_noSac.
+  ///
+  /// In en, this message translates to:
+  /// **'No dives with gas data yet'**
+  String get dashboard_panel_noSac;
+
+  /// No description provided for @dashboard_panel_depthMix.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth mix'**
+  String get dashboard_panel_depthMix;
+
+  /// No description provided for @dashboard_panel_noDives.
+  ///
+  /// In en, this message translates to:
+  /// **'No dives yet'**
+  String get dashboard_panel_noDives;
+
+  /// No description provided for @dashboard_panel_gasMix.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas mix'**
+  String get dashboard_panel_gasMix;
+
+  /// No description provided for @dashboard_panel_diveTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive types'**
+  String get dashboard_panel_diveTypes;
+
+  /// No description provided for @dashboard_panel_topSites.
+  ///
+  /// In en, this message translates to:
+  /// **'Top sites'**
+  String get dashboard_panel_topSites;
+
+  /// No description provided for @dashboard_panel_topBuddies.
+  ///
+  /// In en, this message translates to:
+  /// **'Top buddies'**
+  String get dashboard_panel_topBuddies;
+
+  /// No description provided for @dashboard_panel_noBuddies.
+  ///
+  /// In en, this message translates to:
+  /// **'No buddies logged yet'**
+  String get dashboard_panel_noBuddies;
+
+  /// No description provided for @dashboard_panel_gearService.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear service'**
+  String get dashboard_panel_gearService;
+
+  /// No description provided for @dashboard_panel_noGear.
+  ///
+  /// In en, this message translates to:
+  /// **'Add gear to track its service'**
+  String get dashboard_panel_noGear;
+
+  /// No description provided for @dashboard_panel_overdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get dashboard_panel_overdue;
+
+  /// No description provided for @dashboard_panel_daysLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} d'**
+  String dashboard_panel_daysLeft(int days);
+
+  /// No description provided for @dashboard_panel_divesLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} dives'**
+  String dashboard_panel_divesLeft(int count);
+
+  /// No description provided for @dashboard_panel_hoursLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} h'**
+  String dashboard_panel_hoursLeft(int hours);
+
+  /// No description provided for @dashboard_panel_comingDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming due'**
+  String get dashboard_panel_comingDue;
+
+  /// No description provided for @dashboard_panel_nothingDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing due in the next year'**
+  String get dashboard_panel_nothingDue;
+
+  /// No description provided for @dashboard_panel_inDays.
+  ///
+  /// In en, this message translates to:
+  /// **'in {days} days'**
+  String dashboard_panel_inDays(int days);
+
+  /// No description provided for @dashboard_panel_tripChecklist.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip checklist'**
+  String get dashboard_panel_tripChecklist;
 }
 
 class _AppLocalizationsDelegate
