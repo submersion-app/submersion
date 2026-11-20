@@ -24,6 +24,7 @@
 #include <share_plus/share_plus_windows_plugin_c_api.h>
 #include <submersion_ocr/submersion_ocr_plugin_c_api.h>
 #include <submersion_transcoder/submersion_transcoder_plugin_c_api.h>
+#include <submersion_vision/submersion_vision_plugin_c_api.h>
 #include <universal_ble/universal_ble_plugin_c_api.h>
 #include <url_launcher_windows/url_launcher_windows.h>
 #include <video_player_win/video_player_win_plugin_c_api.h>
@@ -67,6 +68,8 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("SubmersionOcrPluginCApi"));
   SubmersionTranscoderPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("SubmersionTranscoderPluginCApi"));
+  SubmersionVisionPluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("SubmersionVisionPluginCApi"));
   UniversalBlePluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("UniversalBlePluginCApi"));
   UrlLauncherWindowsRegisterWithRegistrar(

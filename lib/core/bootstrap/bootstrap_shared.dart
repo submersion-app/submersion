@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/features/species_id/data/engines/onnx/onnx_runtime_attribution.dart';
 import 'package:submersion/core/network/proxy/proxy_controller.dart';
 import 'package:submersion/core/presentation/pages/startup_page.dart';
 import 'package:submersion/core/services/database_location_service.dart';
@@ -28,11 +29,13 @@ ProxyController? processProxyController;
 /// The ocean and sea table is CC-BY, so its credit has to reach the license
 /// page whether or not anything ever geocodes a coordinate; likewise the
 /// CC BY bathymetry sources behind the seascape, and the OpenStreetMap
-/// data (ODbL) behind the built-in dive sites.
+/// data (ODbL) behind the built-in dive sites, and ONNX Runtime (MIT) with
+/// its notices where the marine life engine ships it.
 void registerBundledLicenses() {
   SeaAreaService.registerLicense();
   BathymetryAttribution.registerLicense();
   SiteCatalogueAttribution.registerLicense();
+  OnnxRuntimeAttribution.registerLicense();
 }
 
 /// Applies the preferences that must be in force before the first frame.

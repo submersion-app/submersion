@@ -1,5 +1,5 @@
 name: submersion_vision
-description: On-device marine life detection and embedding for Submersion. Core ML on iOS and macOS.
+description: On-device marine life detection and embedding for Submersion. Core ML on iOS and macOS; ONNX Runtime, with native video frames, on Android, Windows and Linux.
 version: 0.1.0
 publish_to: none
 
@@ -8,20 +8,30 @@ environment:
   flutter: ">=3.10.0"
 
 dependencies:
+  archive: ^4.0.9
+  code_assets: ^1.2.0
+  crypto: ^3.0.3
+  ffi: ^2.1.0
   flutter:
     sdk: flutter
-
+  hooks: ^2.1.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  path: ^1.9.1
 
 flutter:
   plugin:
     platforms:
+      android:
+        package: app.submersion.vision
+        pluginClass: SubmersionVisionPlugin
       ios:
         pluginClass: SubmersionVisionPlugin
         sharedDarwinSource: true
       macos:
         pluginClass: SubmersionVisionPlugin
         sharedDarwinSource: true
+      windows:
+        pluginClass: SubmersionVisionPluginCApi

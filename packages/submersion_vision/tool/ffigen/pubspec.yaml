@@ -1,0 +1,9 @@
+name: submersion_vision_ffigen
+description: Generates submersion_vision's ONNX Runtime bindings. A tool of its own so the plugin never depends on ffigen.
+publish_to: none
+
+environment:
+  sdk: ^3.10.0
+
+dev_dependencies:
+  ffigen: ^23.0.0

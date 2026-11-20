@@ -29069,8 +29069,16 @@ class AppLocalizationsNl extends AppLocalizations {
       'Stel de soorten in je foto\'s en video\'s voor';
 
   @override
+  String get settings_speciesId_entrySubtitlePhotos =>
+      'Stel de soorten in je foto\'s voor';
+
+  @override
   String get speciesId_downloadPrompt_title =>
       'Herken de soorten in je foto\'s en video\'s';
+
+  @override
+  String get speciesId_downloadPrompt_titlePhotos =>
+      'Herken de soorten in je foto\'s';
 
   @override
   String get speciesId_downloadPrompt_subtitle =>
@@ -29082,6 +29090,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_speciesId_intro =>
       'Stelt de soorten in je foto\'s en video\'s voor. Draait op dit apparaat. Je foto\'s en video\'s verlaten het nooit.';
+
+  @override
+  String get settings_speciesId_introPhotos =>
+      'Stelt de soorten in je foto\'s voor. Draait op dit apparaat. Je foto\'s verlaten het nooit.';
 
   @override
   String get settings_speciesId_model => 'Model';
@@ -29158,6 +29170,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_speciesId_toggle =>
       'Soorten herkennen als ik een foto of video open';
+
+  @override
+  String get settings_speciesId_togglePhotos =>
+      'Soorten herkennen als ik een foto open';
 
   @override
   String get settings_speciesId_autoApply =>

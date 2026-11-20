@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 /// The app's memory at one moment, as the system accounts for it, for the
-/// debug log's readout during an iPhone memory test. Sizes are in bytes. A
+/// debug log's readout during a phone memory test. Sizes are in bytes. A
 /// field the platform does not report is null: macOS has no per-app limit,
 /// and older iOS versions report fewer ledgers.
 class VisionMemory extends Equatable {
@@ -12,6 +12,7 @@ class VisionMemory extends Equatable {
     this.neuralCountedBytes,
     this.neuralNotCountedBytes,
     this.neuralNotCountedPeakBytes,
+    this.lowMemory,
   });
 
   /// The physical footprint: what iOS compares with the app's limit.
@@ -30,6 +31,10 @@ class VisionMemory extends Equatable {
   final int? neuralNotCountedBytes;
   final int? neuralNotCountedPeakBytes;
 
+  /// Whether the system reports itself low on memory (Android's
+  /// `ActivityManager.MemoryInfo.lowMemory`); null where it says nothing.
+  final bool? lowMemory;
+
   VisionMemory copyWith({
     int? footprintBytes,
     int? footprintPeakBytes,
@@ -37,6 +42,7 @@ class VisionMemory extends Equatable {
     int? neuralCountedBytes,
     int? neuralNotCountedBytes,
     int? neuralNotCountedPeakBytes,
+    bool? lowMemory,
   }) => VisionMemory(
     footprintBytes: footprintBytes ?? this.footprintBytes,
     footprintPeakBytes: footprintPeakBytes ?? this.footprintPeakBytes,
@@ -45,6 +51,7 @@ class VisionMemory extends Equatable {
     neuralNotCountedBytes: neuralNotCountedBytes ?? this.neuralNotCountedBytes,
     neuralNotCountedPeakBytes:
         neuralNotCountedPeakBytes ?? this.neuralNotCountedPeakBytes,
+    lowMemory: lowMemory ?? this.lowMemory,
   );
 
   @override
@@ -55,5 +62,6 @@ class VisionMemory extends Equatable {
     neuralCountedBytes,
     neuralNotCountedBytes,
     neuralNotCountedPeakBytes,
+    lowMemory,
   ];
 }

@@ -18,6 +18,7 @@ import 'package:submersion/features/media/presentation/providers/video_color_tra
 import 'package:submersion/features/media/presentation/providers/video_playback_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/species_id/data/engines/channel_vision_engine.dart';
+import 'package:submersion/features/species_id/data/engines/onnx/onnx_vision_engine.dart';
 import 'package:submersion/features/species_id/data/pack/species_pack_store.dart';
 import 'package:submersion/features/species_id/data/repositories/identification_embedding_repository.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
@@ -27,6 +28,7 @@ import 'package:submersion/features/species_id/domain/entities/media_identificat
 import 'package:submersion/features/species_id/domain/entities/naming_level.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
+import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 
 import '../../../helpers/temp_dir.dart';
@@ -342,12 +344,30 @@ void main() {
     });
   });
 
-  test('the engine is the channel engine, unsupported off Apple', () async {
-    final engine = container.read(visionEngineProvider);
-    expect(engine, isA<ChannelVisionEngine>());
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      expect(engine.engineName, isNull);
+  test('Apple platforms get the Core ML engine', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final c = ProviderContainer();
+    addTearDown(c.dispose);
+    expect(c.read(visionEngineProvider), isA<ChannelVisionEngine>());
+    debugDefaultTargetPlatformOverride = null;
+  });
+
+  test('Android, Windows and Linux get the ONNX engine', () async {
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    for (final platform in [
+      TargetPlatform.android,
+      TargetPlatform.windows,
+      TargetPlatform.linux,
+    ]) {
+      debugDefaultTargetPlatformOverride = platform;
+      final c = ProviderContainer();
+      final engine = c.read(visionEngineProvider);
+      c.dispose();
+      expect(engine, isA<OnnxVisionEngine>(), reason: '$platform');
+      expect(engine.engineName, VisionEngine.onnxEngine);
     }
+    debugDefaultTargetPlatformOverride = null;
   });
 
   group('the naming level (issue #4721)', () {

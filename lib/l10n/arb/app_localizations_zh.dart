@@ -27598,7 +27598,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_speciesId_entrySubtitle => '为照片和视频中的生物建议物种';
 
   @override
+  String get settings_speciesId_entrySubtitlePhotos => '为照片中的生物建议物种';
+
+  @override
   String get speciesId_downloadPrompt_title => '识别照片和视频中的物种';
+
+  @override
+  String get speciesId_downloadPrompt_titlePhotos => '识别照片中的物种';
 
   @override
   String get speciesId_downloadPrompt_subtitle => '下载物种识别模型以获取建议';
@@ -27608,6 +27614,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_speciesId_intro => '为照片和视频中的生物建议物种。在此设备上运行，照片和视频绝不会离开设备。';
+
+  @override
+  String get settings_speciesId_introPhotos => '为照片中的生物建议物种。在此设备上运行，照片绝不会离开设备。';
 
   @override
   String get settings_speciesId_model => '模型';
@@ -27679,6 +27688,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_speciesId_toggle => '打开照片或视频时识别物种';
+
+  @override
+  String get settings_speciesId_togglePhotos => '打开照片时识别物种';
 
   @override
   String get settings_speciesId_autoApply => '自动标记有把握的匹配';

@@ -8,7 +8,9 @@ photos and videos on the device and suggests what they are (issues #4668,
 (photos) and
 [the second](../design/specs/2026-11-17-marine-life-identification-2-video-design.md)
 (video), with packs of one or two detectors in
-[the two detectors design](../design/specs/2026-11-17-marine-life-two-detectors-design.md).
+[the two detectors design](../design/specs/2026-11-17-marine-life-two-detectors-design.md),
+and Android, Windows and Linux in
+[the third piece](../design/specs/2026-11-19-marine-life-identification-3-other-platforms-design.md).
 
 The feature is on for divers on iPhone, iPad and Mac. This page is for
 working on it.
@@ -16,9 +18,11 @@ working on it.
 ## Where it is on
 
 The flag is `marineLifeIdEnabled` in `lib/core/constants/feature_flags.dart`.
-It is on by default wherever the engine runs (iPhone, iPad and Mac, asked of
-`visionEngineRuns`) and hidden on the web, Android, Windows and Linux, which
-no build define can turn on until they have an engine. A build turns it off
+It is on by default wherever an engine runs (asked of `visionEngineRuns`):
+Core ML on iPhone, iPad and Mac. The ONNX engine's platforms, Android,
+Windows and Linux, are on only in a build made with
+`--dart-define=MARINE_LIFE_ID_ONNX=true` until their pack is published and
+the Android floor measured. The web never has it. A build turns it off
 everywhere with:
 
 ```bash
@@ -53,6 +57,7 @@ clear that preference.
 | Part | Where |
 | --- | --- |
 | Native engine (Core ML) | `packages/submersion_vision/` (video passes in `VideoScanner.swift`) |
+| ONNX engine (Android, Windows, Linux) | `lib/features/species_id/data/engines/onnx/` (pure pipeline in `pipeline/`), ONNX Runtime bindings and build hook in `packages/submersion_vision/` |
 | Pack format, download, install | `lib/features/species_id/data/pack/` |
 | Naming and decision rules (pure Dart) | `lib/features/species_id/domain/services/` |
 | Analysis queue | `lib/features/species_id/data/services/media_identification_service.dart` |
@@ -71,7 +76,65 @@ What is stored:
 - Crop embeddings: the device-local cache, `identification_embeddings`.
 - Crops: `<application support>/species_id/crops/`.
 - The installed pack: `<application support>/species_id/pack/`, excluded
-  from device backups.
+  from device backups (on Android by the backup rules in
+  `android/app/src/main/res/xml/`, since no runtime call can exclude a
+  folder there).
+
+## The ONNX engine
+
+Android, Windows and Linux run the pack's models through ONNX Runtime 1.28
+(`OnnxVisionEngine`). The work around the models (resizing, reading boxes,
+merging, cropping, fitting) is Dart, ported step for step from
+`VisionPipeline.swift` and tested with fake model runners; the merge tests
+mirror species-pack's `merge_check.swift` case for case. The models run in a
+worker isolate; photos are decoded by Flutter's own decoder; video frames
+come from a small native reader on the `submersion_vision/frames` channel
+(Kotlin on Android, Media Foundation on Windows). Linux scans no video, since
+the app has no video player there.
+
+ONNX Runtime ships through `packages/submersion_vision/hook/build.dart`,
+which downloads the pinned official package for the target (Maven for
+Android, NuGet `Microsoft.ML.OnnxRuntime` for Linux and Windows), checks it
+and each library against the hashes in `lib/src/ort/ort_release.dart`, and
+ships the library as a code asset. Apple builds and the web get none. CI
+checks the Android archive (`scripts/check_native_libs_present.py`, ONNX
+Runtime on arm64-v8a and x86_64 only) and the desktop bundles
+(`scripts/check_bundled_native_assets.py`).
+
+Devices need 8 GB at launch (`androidMinimumMemoryBytes` and
+`pcMinimumMemoryBytes` in `device_memory.dart`, 6.5 GiB as reported). A build
+for measuring a smaller phone lifts the floor:
+
+```bash
+flutter build apk --dart-define=MARINE_LIFE_ID_ONNX=true --dart-define=MARINE_LIFE_ID_IGNORE_FLOOR=true
+```
+
+The package's tests run the real ONNX Runtime. On Linux they load the hook's
+library; on a Mac they need ONNX Runtime's macOS library (from the same NuGet
+package, `runtimes/osx-arm64/native/libonnxruntime.dylib`) named in
+`SUBMERSION_ORT_LIBRARY`, and skip without it:
+
+```bash
+cd packages/submersion_vision && SUBMERSION_ORT_LIBRARY=/path/to/libonnxruntime.dylib flutter test
+```
+
+The pack's scorer measures this engine with the app's own code through a
+scoring runner, `tool/species_vision_onnx/species_vision_onnx_test.dart`,
+which runs under Flutter's test host (so photos are decoded by Flutter's own
+decoder, as in the app) and writes the Swift vision tool's JSON lines. It
+runs only when `SPECIES_VISION_REQUEST` names a request file:
+`{manifest, detectors, classifier, cropFit, detectorBoxes, photos, out,
+ortLibrary}`. species-pack's `score.py --engine onnx` writes the request and
+runs it. `test/features/species_id/data/onnx/onnx_worker_real_test.dart`
+runs the worker isolate end to end through real ONNX Runtime with two
+constant-output models (`tool/species_id/make_fake_onnx_models.py`).
+
+To move to a new ONNX Runtime, replace the headers in
+`packages/submersion_vision/third_party/onnxruntime/`, regenerate the
+bindings (`cd packages/submersion_vision/tool/ffigen && dart pub get && dart
+run ffigen_ort.dart`; a package of its own because ffigen needs a newer
+`code_assets` than the app), and update every URL and hash in
+`ort_release.dart`.
 
 ## Building a pack
 

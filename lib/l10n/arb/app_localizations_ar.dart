@@ -29545,8 +29545,15 @@ class AppLocalizationsAr extends AppLocalizations {
       'اقتراح الأنواع في صورك ومقاطع الفيديو';
 
   @override
+  String get settings_speciesId_entrySubtitlePhotos => 'اقتراح الأنواع في صورك';
+
+  @override
   String get speciesId_downloadPrompt_title =>
       'تعرّف على الأنواع في صورك ومقاطع الفيديو';
+
+  @override
+  String get speciesId_downloadPrompt_titlePhotos =>
+      'تعرّف على الأنواع في صورك';
 
   @override
   String get speciesId_downloadPrompt_subtitle =>
@@ -29558,6 +29565,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_speciesId_intro =>
       'يقترح الأنواع في صورك ومقاطع الفيديو. يعمل على هذا الجهاز. لا تغادر صورك ومقاطع الفيديو الجهاز أبدًا.';
+
+  @override
+  String get settings_speciesId_introPhotos =>
+      'يقترح الأنواع في صورك. يعمل على هذا الجهاز. لا تغادر صورك الجهاز أبدًا.';
 
   @override
   String get settings_speciesId_model => 'النموذج';
@@ -29633,6 +29644,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_speciesId_toggle =>
       'التعرّف على الأنواع عند فتح صورة أو مقطع فيديو';
+
+  @override
+  String get settings_speciesId_togglePhotos =>
+      'التعرّف على الأنواع عند فتح صورة';
 
   @override
   String get settings_speciesId_autoApply => 'وسم المطابقات المؤكدة تلقائيًا';

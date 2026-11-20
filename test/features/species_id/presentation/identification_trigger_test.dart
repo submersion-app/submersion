@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -119,6 +120,19 @@ void main() {
     expect(service.requested, isEmpty);
     await tester.pump(const Duration(milliseconds: 2));
     expect(service.requested, ['v1']);
+  });
+
+  testWidgets('on Linux a video is never asked for: it has no player', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    await tester.pumpWidget(
+      host(testMediaItem(id: 'v1', mediaType: MediaType.video)),
+    );
+    await tester.pump(const Duration(seconds: 2));
+    expect(service.requested, isEmpty);
+    debugDefaultTargetPlatformOverride = null;
   });
 
   testWidgets('a video is asked for again when the app comes back', (

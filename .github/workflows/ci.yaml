@@ -604,6 +604,35 @@ jobs:
             echo "::endgroup::"
           done
 
+  # The marine life vision package on its own (piece 3, ONNX Runtime): its
+  # tests load the real ONNX Runtime library that the package's build hook
+  # ships for Linux, so a broken binding, a hash that no longer matches or a
+  # missing library fails here. On Linux the real-runtime test never skips.
+  vision-package-tests:
+    name: Vision Package Tests
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Read Flutter version
+        id: flutter-ver
+        run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
+
+      - uses: ./.github/actions/setup-flutter
+        id: setup-flutter
+        with:
+          flutter-version: ${{ steps.flutter-ver.outputs.version }}
+          channel: 'stable'
+
+      - name: Run the vision package's tests
+        working-directory: packages/submersion_vision
+        run: |
+          set -euo pipefail
+          flutter pub get
+          flutter test
+
   # Unit-tests the dependency-free Python guard scripts (e.g. the issue #318
   # ProGuard keep-rule checker). No Flutter/codegen needed, so it runs in
   # parallel and gives the guard logic its own coverage, scoped to the script.
@@ -2332,6 +2361,7 @@ jobs:
       - analyze
       - test
       - timezone-tests
+      - vision-package-tests
       - script-tests
       - web-build
       - web-tests
