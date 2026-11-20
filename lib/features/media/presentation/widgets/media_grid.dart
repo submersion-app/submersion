@@ -71,7 +71,7 @@ class MediaThumbnailTile extends StatelessWidget {
   final String semanticsLabel;
 
   /// The size the thumbnail is decoded at. A larger tile asks for more, as
-  /// the library's do (see `mediaThumbnailDecodeTarget`).
+  /// the library's tiles do (see `mediaThumbnailDecodeTarget`).
   final Size targetSize;
 
   /// Called with the thumbnail's decoded size, which is how a justified

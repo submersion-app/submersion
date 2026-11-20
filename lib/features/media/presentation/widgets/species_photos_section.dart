@@ -261,14 +261,18 @@ class _SpeciesPhotoTile extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          if (onTap == null)
-            thumbnail
-          else
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: onTap,
-              child: thumbnail,
-            ),
+          // Under a "+N" the photo is only a backdrop: the count is the one
+          // control a screen reader reaches there.
+          ExcludeSemantics(
+            excluding: hiddenCount > 0,
+            child: onTap == null
+                ? thumbnail
+                : GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: onTap,
+                    child: thumbnail,
+                  ),
+          ),
           if (hiddenCount > 0)
             _MoreOverlay(count: hiddenCount, onTap: onTapMore),
           ?overlay,
@@ -333,6 +337,9 @@ class _MoreOverlay extends StatelessWidget {
     return Semantics(
       button: true,
       label: context.l10n.marineLife_speciesPhotos_moreLabel(count),
+      // excludeSemantics drops the detector's own tap action, so the node
+      // carries it.
+      onTap: onTap,
       excludeSemantics: true,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,

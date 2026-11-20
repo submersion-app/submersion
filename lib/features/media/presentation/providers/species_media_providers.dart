@@ -47,8 +47,8 @@ final mediaForSpeciesProvider = FutureProvider.family<List<MediaItem>, String>(
 );
 
 /// Every photo tagged with the species, each with its dive's date and site
-/// name for the captions on the species page (issue #4740). Refreshes on tag
-/// and media changes.
+/// name for the captions on the species page (issue #4740). Refreshes on tag,
+/// media, dive and site changes.
 final mediaEntriesForSpeciesProvider =
     FutureProvider.family<List<MediaLibraryEntry>, String>((
       ref,
@@ -60,6 +60,8 @@ final mediaEntriesForSpeciesProvider =
       ref.invalidateSelfWhen(
         ref.watch(mediaRepositoryProvider).watchMediaChanges(),
       );
+      // A dive's new date or a renamed site changes the captions.
+      ref.invalidateSelfWhen(repository.watchDiveAndSiteChanges());
       return repository.getMediaEntriesForSpecies(speciesId, diverId: diverId);
     });
 

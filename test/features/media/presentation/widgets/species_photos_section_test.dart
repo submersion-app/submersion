@@ -368,4 +368,23 @@ void main() {
     expect(find.byKey(const ValueKey('overlay_both')), findsOneWidget);
     expect(find.byType(MediaThumbnailTile), findsNWidgets(2));
   });
+
+  testWidgets('+N is the only control on its tile for a screen reader', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await _pump(tester, _squares(20), width: 390);
+
+    // Nine tiles shown; the ninth is the "+N" one, announced only as that.
+    expect(find.bySemanticsLabel('Species photo'), findsNWidgets(8));
+
+    tester.semantics.tap(find.semantics.byLabel(RegExp('11 more photos')));
+    await tester.pumpAndSettle();
+
+    final viewer = tester.widget<SpeciesPhotoViewerPage>(
+      find.byType(SpeciesPhotoViewerPage),
+    );
+    expect(viewer.initialMediaId, 'p9');
+    semantics.dispose();
+  });
 }

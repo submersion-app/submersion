@@ -38,6 +38,16 @@ class MediaSpeciesRepository {
   Stream<void> watchTagChanges() =>
       _db.tableUpdates(TableUpdateQuery.onTable(_db.mediaSpecies));
 
+  /// Ticks when a dive or a site changes, which is what moves the date and
+  /// site name [getMediaEntriesForSpecies] reads (issue #4740). Narrower than
+  /// the dive detail stream, which also ticks on profile and gear writes.
+  Stream<void> watchDiveAndSiteChanges() => _db.tableUpdates(
+    TableUpdateQuery.allOf([
+      TableUpdateQuery.onTable(_db.dives),
+      TableUpdateQuery.onTable(_db.diveSites),
+    ]),
+  );
+
   Future<List<MediaSpeciesTag>> getTagsForMedia(String mediaId) async {
     final rows =
         await (_db.select(_db.mediaSpecies)
