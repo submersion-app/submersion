@@ -134,11 +134,21 @@ class OnnxVisionEngine with WidgetsBindingObserver implements VisionEngine {
       if (_loaded == null) {
         throw const VisionEngineException(VisionEngineException.notLoaded);
       }
-      final encoded = bytes ?? await File(path!).readAsBytes();
+      final encoded = bytes ?? await _readPhoto(path!);
       final image = await _decode(encoded);
       final result = await _fromWorker((await _workerHandle()).analyze(image));
       return result.analysis;
     });
+  }
+
+  /// The photo's bytes; a file that cannot be read fails as `decode_failed`,
+  /// as the Swift engine reports it, rather than as a file system error.
+  static Future<Uint8List> _readPhoto(String path) async {
+    try {
+      return await File(path).readAsBytes();
+    } on FileSystemException catch (e) {
+      throw VisionEngineException('decode_failed', 'unreadable: ${e.message}');
+    }
   }
 
   /// Pass 1, as the Swift pass runs it: frames read in order at most

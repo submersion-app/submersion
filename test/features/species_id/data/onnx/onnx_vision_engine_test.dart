@@ -242,6 +242,22 @@ void main() {
     expect(onnxThreadsFor(1), 1);
   });
 
+  test('a photo that cannot be read fails as decode_failed', () async {
+    final e = engine();
+    await e.load(_models);
+
+    await expectLater(
+      e.analyze(path: p.join(Directory.systemTemp.path, 'no-such-photo.jpg')),
+      throwsA(
+        isA<VisionEngineException>().having(
+          (x) => x.code,
+          'code',
+          'decode_failed',
+        ),
+      ),
+    );
+  });
+
   test('is the onnx engine', () {
     expect(engine().engineName, VisionEngine.onnxEngine);
     expect(VisionEngine.onnxEngine, 'onnx');
