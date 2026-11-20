@@ -418,6 +418,8 @@ void main() {
             ],
           ),
           speciesReviewSaverProvider.overrideWithValue(saver),
+          // No list: nothing here reaches GBIF or a logbook.
+          recordedNearbyListProvider.overrideWith((ref, request) async => null),
         ],
         home: const SpeciesReviewPage(scope: scope),
       ),
@@ -475,6 +477,8 @@ void main() {
             ],
           ),
           speciesReviewSaverProvider.overrideWithValue(saver),
+          // No list: nothing here reaches GBIF or a logbook.
+          recordedNearbyListProvider.overrideWith((ref, request) async => null),
         ],
         home: const SpeciesReviewPage(scope: scope),
       ),
@@ -494,6 +498,8 @@ void main() {
             scope,
           ).overrideWith((ref) async => throw StateError('no logbook')),
           speciesReviewSaverProvider.overrideWithValue(saver),
+          // No list: nothing here reaches GBIF or a logbook.
+          recordedNearbyListProvider.overrideWith((ref, request) async => null),
         ],
         home: const SpeciesReviewPage(scope: scope),
       ),

@@ -116,8 +116,14 @@ class NearbySpeciesService {
         speciesKeys: {for (final c in counts) c.key},
       );
       // Nothing to show because the lookups failed is not "nothing nearby".
+      // Lookups that got no answer at all (the connection dropped) say
+      // nothing about the source, so that failure is not saved.
       if (result.isEmpty && result.namesIncomplete) {
-        return const ReefPart.unavailable();
+        return ReefPart.unavailable(
+          unanswered: resolved
+              .where((r) => r.failed)
+              .every((r) => r.unanswered),
+        );
       }
       // Nothing GBIF could name still keeps its keys, so marine life
       // suggestions can be matched; the site page shows nothing either way.
@@ -158,10 +164,13 @@ class NearbySpeciesService {
   /// Resolves a taxon key to its scientific name. The name is null when the
   /// record is unusable or belongs to a [_terrestrialFamilies] family, which
   /// is a finished answer, as is a permanent client error such as 404: asking
-  /// again would get the same reply. `failed` means a later try could succeed.
-  Future<({String? name, bool failed})> _scientificName(int key) async {
-    const lookupFailed = (name: null, failed: true);
-    const noName = (name: null, failed: false);
+  /// again would get the same reply. `failed` means a later try could succeed;
+  /// `unanswered` that the lookup got no reply at all.
+  Future<({String? name, bool failed, bool unanswered})> _scientificName(
+    int key,
+  ) async {
+    const lookupFailed = (name: null, failed: true, unanswered: false);
+    const noName = (name: null, failed: false, unanswered: false);
     try {
       final response = await _client
           .get(Uri.https(_host, '$_speciesPath/$key'), headers: _headers)
@@ -175,10 +184,10 @@ class NearbySpeciesService {
       if (_terrestrialFamilies.contains(decoded['family'])) return noName;
       final name = decoded['scientificName'];
       return name is String && name.isNotEmpty
-          ? (name: name, failed: false)
+          ? (name: name, failed: false, unanswered: false)
           : noName;
-    } catch (_) {
-      return lookupFailed;
+    } catch (e) {
+      return (name: null, failed: true, unanswered: gotNoAnswer(e));
     }
   }
 }

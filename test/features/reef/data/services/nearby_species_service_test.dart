@@ -229,6 +229,31 @@ void main() {
       // The site has records this lookup could not name, so "nothing nearby"
       // would state something untrue.
       expect(result.status, ReefDataStatus.unavailable);
+      // The server answered: saved, so the next try is spaced out.
+      expect(result.unanswered, isFalse);
+    });
+
+    test('names lost to no answer are not saved as a failure', () async {
+      // The connection dropped between the search and its name lookups.
+      final client = MockClient((request) async {
+        if (request.url.path.startsWith('/v1/species/')) {
+          throw http.ClientException('Connection reset', request.url);
+        }
+        return http.Response(
+          _facetBody([
+            ['9999999', 10],
+          ]),
+          200,
+        );
+      });
+
+      final result = await NearbySpeciesService(
+        client: client,
+        matcher: _matcher(),
+      ).fetch(const GeoPoint(1, 2));
+
+      expect(result.status, ReefDataStatus.unavailable);
+      expect(result.unanswered, isTrue);
     });
 
     test('keeps the keys of a list it could name nothing of', () async {

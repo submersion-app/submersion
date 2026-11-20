@@ -131,6 +131,48 @@ void main() {
     expect(groups, isEmpty);
   });
 
+  group('ReviewRow.gbifKey', () {
+    ReviewItem tagOn(String mediaId, {int? key}) => ReviewItem(
+      media: media(mediaId, diveId: 'd1'),
+      tag: appTag(mediaId, 'own-9'),
+      tagGbifKey: key,
+    );
+
+    test('a suggested row: its candidate\'s', () {
+      final row = ReviewRow(
+        key: 'g:1',
+        candidate: suggestion.top.candidate,
+        items: const [],
+      );
+      expect(row.gbifKey, suggestion.top.candidate.gbifKey);
+    });
+
+    test('a row of the app\'s tags: a suggestion grouped under it first', () {
+      final row = ReviewRow(
+        key: 's:own-9',
+        items: [
+          tagOn('a', key: 777),
+          ReviewItem(
+            media: media('b', diveId: 'd1'),
+            suggestion: suggestion,
+          ),
+        ],
+      );
+      expect(row.gbifKey, suggestion.top.candidate.gbifKey);
+    });
+
+    test('else the key a tag was made from, else none', () {
+      expect(
+        ReviewRow(
+          key: 's:own-9',
+          items: [tagOn('a'), tagOn('b', key: 777)],
+        ).gbifKey,
+        777,
+      );
+      expect(ReviewRow(key: 's:own-9', items: [tagOn('a')]).gbifKey, isNull);
+    });
+  });
+
   test('review entities copy with each field', () {
     final m = onDive('a', 'd1', may);
     expect(m.copyWith(diveName: () => 'Punta Sur').diveName, 'Punta Sur');

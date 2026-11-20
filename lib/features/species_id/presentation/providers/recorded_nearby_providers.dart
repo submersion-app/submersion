@@ -3,8 +3,10 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_reposit
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/services/media_location.dart';
 import 'package:submersion/features/reef/domain/entities/nearby_species.dart';
 import 'package:submersion/features/reef/domain/entities/reef_data_status.dart';
+import 'package:submersion/features/reef/domain/services/reef_coordinate_key.dart';
 import 'package:submersion/features/reef/presentation/providers/reef_providers.dart';
 import 'package:submersion/features/species_id/data/services/nearby_list_gate.dart';
 import 'package:submersion/features/species_id/domain/services/recorded_nearby.dart';
@@ -16,16 +18,8 @@ typedef NearbyListRequest = ({String? diveId, GeoPoint? photo});
 
 /// [item]'s request: its dive, and its own GPS when it has both
 /// coordinates, as naming reads a photo's position.
-NearbyListRequest nearbyRequestForMedia(MediaItem item) {
-  final latitude = item.latitude;
-  final longitude = item.longitude;
-  return (
-    diveId: item.diveId,
-    photo: latitude != null && longitude != null
-        ? GeoPoint(latitude, longitude)
-        : null,
-  );
-}
+NearbyListRequest nearbyRequestForMedia(MediaItem item) =>
+    (diveId: item.diveId, photo: mediaLocation(item));
 
 /// The "Recorded nearby" list a marine life suggestion is checked against
 /// (issue #4668): the site page's list for the place [nearbyListLocation]
@@ -55,35 +49,44 @@ final recordedNearbyListProvider = FutureProvider.autoDispose
       }
       // A dive that is gone has no site and no entry.
       final known = place != null && place.exists;
+      final photo = request.photo;
       final point = nearbyListLocation(
         site: known ? place.site : null,
-        photo: request.photo,
+        // Photos a few metres apart read one list: the cache keeps one per
+        // ~110 m cell anyway.
+        photo: photo == null ? null : ReefCoordinateKey.quantize(photo),
         entry: known ? place.entry : null,
       );
       if (point == null) return null;
-      final gate = ref.read(nearbyListGateProvider);
-      await gate.acquire();
+      final list = reefNearbySpeciesProvider(point);
+      // A list already here or on its way, for another row or the site
+      // page, is read at once: the queue is only for asking GBIF.
+      if (ref.exists(list)) return _shown(await ref.watch(list.future));
+      final turn = await ref.read(nearbyListGateProvider).acquire();
       // Its turn came after it left the screen: pass the turn on.
       if (!ref.mounted) {
-        gate.release();
+        turn.release();
         return null;
       }
-      var holding = true;
-      void handBack() {
-        if (!holding) return;
-        holding = false;
-        gate.release();
+      // Another row started this list while it waited: join that fetch and
+      // hand the turn straight on, since GBIF need not be asked again.
+      if (ref.exists(list)) {
+        turn.release();
+        return _shown(await ref.watch(list.future));
       }
-
       // Leaving while the list is on the way frees the turn at once.
-      ref.onDispose(handBack);
+      ref.onDispose(turn.release);
       try {
-        final part = await ref.watch(reefNearbySpeciesProvider(point).future);
-        return part.status == ReefDataStatus.ok ? part.value : null;
+        return _shown(await ref.watch(list.future));
       } finally {
-        handBack();
+        turn.release();
       }
     }, retry: (_, _) => null);
+
+/// The list a marker reads: only a complete or partial answer, never an
+/// empty or failed one.
+NearbySpecies? _shown(ReefPart<NearbySpecies> part) =>
+    part.status == ReefDataStatus.ok ? part.value : null;
 
 /// One gate for every marker, so a long Species to review page asks GBIF
 /// for a few lists at a time rather than every one at once.

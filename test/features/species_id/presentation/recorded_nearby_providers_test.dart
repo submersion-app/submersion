@@ -263,6 +263,74 @@ void main() {
         expect(asked, [site, otherSite, thirdSite]);
       },
     );
+    test('a row whose list is already on its way does not wait for a '
+        'turn', () async {
+      final (c, _) = await fourRows();
+      // A fifth dive at the first site, whose list d1 is fetching now,
+      // while d3 and d4 wait their turns.
+      places.places['d5'] = (site: site, entry: null);
+      const fifth = (diveId: 'd5', photo: null);
+      c.listen(recordedNearbyListProvider(fifth), (_, _) {});
+      await pumpEventQueue();
+
+      held[site]!.complete(const ReefPart.ok(listAtSite));
+      await pumpEventQueue();
+
+      expect(c.read(recordedNearbyListProvider(fifth)).value, listAtSite);
+      expect(asked, [site, otherSite, thirdSite]);
+    });
+  });
+
+  test('a row whose turn comes once its list is on its way hands the turn '
+      'on', () async {
+    const fifthSite = GeoPoint(14.0, -70.0);
+    const thirdSite = GeoPoint(13.0, -69.0);
+    // d1 and d2 take the two turns; d5 and d6 (both at the fifth site) and
+    // then d3 wait, in that order.
+    for (final (dive, at) in [
+      ('d1', site),
+      ('d2', otherSite),
+      ('d5', fifthSite),
+      ('d6', fifthSite),
+      ('d3', thirdSite),
+    ]) {
+      places.places[dive] = (site: at, entry: null);
+    }
+    for (final at in [site, otherSite, fifthSite, thirdSite]) {
+      held[at] = Completer();
+    }
+    final c = await container();
+    for (final dive in ['d1', 'd2', 'd5', 'd6', 'd3']) {
+      c.listen(
+        recordedNearbyListProvider((diveId: dive, photo: null)),
+        (_, _) {},
+      );
+      await pumpEventQueue();
+    }
+    expect(asked, [site, otherSite]);
+
+    held[site]!.complete(const ReefPart.ok(listAtSite));
+    await pumpEventQueue();
+    expect(asked, [site, otherSite, fifthSite]);
+
+    // d6's turn: its list is already on its way for d5, so the turn goes
+    // straight on to d3 rather than waiting on d5's fetch.
+    held[otherSite]!.complete(const ReefPart.ok(listAtOther));
+    await pumpEventQueue();
+    expect(asked, [site, otherSite, fifthSite, thirdSite]);
+  });
+
+  test('photos a few metres apart share one list', () async {
+    final c = await container();
+    const near = GeoPoint(12.20012, -68.30011);
+    const nearer = GeoPoint(12.20018, -68.30016);
+
+    await Future.wait([
+      c.read(recordedNearbyListProvider((diveId: null, photo: near)).future),
+      c.read(recordedNearbyListProvider((diveId: null, photo: nearer)).future),
+    ]);
+
+    expect(asked, [photo]);
   });
 
   test('a photo in no dive uses its own position', () async {

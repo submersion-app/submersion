@@ -16,26 +16,42 @@ class NearbyListGate {
   final int limit;
 
   int _running = 0;
-  final Queue<Completer<void>> _waiting = Queue<Completer<void>>();
+  final Queue<Completer<NearbyListTurn>> _waiting =
+      Queue<Completer<NearbyListTurn>>();
 
-  /// Completes when it is the caller's turn. Each turn taken is handed
-  /// back with [release], exactly once.
-  Future<void> acquire() {
+  /// Completes with the caller's turn, to [NearbyListTurn.release] when its
+  /// list has arrived or is no longer wanted.
+  Future<NearbyListTurn> acquire() {
     if (_running < limit) {
       _running++;
-      return Future.value();
+      return Future.value(NearbyListTurn._(this));
     }
-    final turn = Completer<void>();
+    final turn = Completer<NearbyListTurn>();
     _waiting.add(turn);
     return turn.future;
   }
 
-  /// Hands a turn to the next caller waiting, or frees it.
-  void release() {
+  /// Hands a released turn to the next caller waiting, or frees it.
+  void _handOn() {
     if (_waiting.isNotEmpty) {
-      _waiting.removeFirst().complete();
+      _waiting.removeFirst().complete(NearbyListTurn._(this));
     } else {
       _running--;
     }
+  }
+}
+
+/// One caller's place in [NearbyListGate]. Releasing it again does nothing,
+/// so a caller that hands it back from several exits cannot widen the gate.
+class NearbyListTurn {
+  NearbyListTurn._(this._gate);
+
+  final NearbyListGate _gate;
+  bool _held = true;
+
+  void release() {
+    if (!_held) return;
+    _held = false;
+    _gate._handOn();
   }
 }

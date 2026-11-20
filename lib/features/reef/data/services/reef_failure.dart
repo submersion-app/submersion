@@ -14,4 +14,8 @@ import 'package:submersion/features/reef/domain/entities/reef_data_status.dart';
 /// is slow) or a reply that could not be read. Those are saved, so the next
 /// try is spaced out.
 ReefPart<T> reefFailure<T>(Object error) =>
-    ReefPart<T>.unavailable(unanswered: error is http.ClientException);
+    ReefPart<T>.unavailable(unanswered: gotNoAnswer(error));
+
+/// Whether a request that threw [error] got no reply at all, as
+/// [reefFailure] reads it.
+bool gotNoAnswer(Object error) => error is http.ClientException;

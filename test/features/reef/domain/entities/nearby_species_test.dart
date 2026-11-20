@@ -24,6 +24,19 @@ void main() {
       expect(const NearbySpecies(speciesKeys: {2335}).isEmpty, isTrue);
     });
 
+    test('copies with each field', () {
+      const nearby = NearbySpecies(
+        matched: [MatchedNearbySpecies(speciesId: 'a', occurrenceCount: 1)],
+        unmatchedNames: ['B c'],
+        speciesKeys: {1},
+      );
+      expect(nearby.copyWith(speciesKeys: {2}).speciesKeys, {2});
+      expect(nearby.copyWith(matched: const []).matched, isEmpty);
+      expect(nearby.copyWith(unmatchedNames: const []).unmatchedNames, isEmpty);
+      expect(nearby.copyWith(namesIncomplete: true).namesIncomplete, isTrue);
+      expect(nearby.copyWith(), nearby);
+    });
+
     test('two lists differing only in keys are not equal', () {
       expect(
         const NearbySpecies(speciesKeys: {1}),

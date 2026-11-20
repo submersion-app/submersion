@@ -86,12 +86,8 @@ class SpeciesReviewRowTile extends StatelessWidget {
               ),
               // Once per row: its photos' lines below would only repeat it.
               RecordedNearbyLine(
-                // A dive's row reads the dive's list; photos in no dive
-                // read the shown photo's own position.
-                request: best.media.diveId != null
-                    ? (diveId: best.media.diveId, photo: null)
-                    : nearbyRequestForMedia(best.media),
-                gbifKey: _gbifKey(row),
+                request: _nearbyRequest(best),
+                gbifKey: row.gbifKey,
                 catalogId: row.species?.id ?? row.candidate?.catalogId,
               ),
             ],
@@ -176,19 +172,12 @@ class SpeciesReviewRowTile extends StatelessWidget {
         : l10n.speciesReview_decided;
   }
 
-  /// The row's GBIF species key: its candidate's, or, on a row of the
-  /// app's tags, that of a suggestion grouped under it, else that of the
-  /// candidate a tag was made from.
-  static int? _gbifKey(ReviewRow row) =>
-      row.candidate?.gbifKey ??
-      row.items
-          .map((i) => i.suggestion)
-          .nonNulls
-          .firstOrNull
-          ?.top
-          .candidate
-          .gbifKey ??
-      row.items.map((i) => i.tagGbifKey).nonNulls.firstOrNull;
+  /// Whose nearby list a row reads: its dive's, so one list serves every
+  /// row of a dive; photos in no dive read the shown photo's own position.
+  static NearbyListRequest _nearbyRequest(ReviewItem best) =>
+      best.media.diveId != null
+      ? (diveId: best.media.diveId, photo: null)
+      : nearbyRequestForMedia(best.media);
 
   /// A score as the locale writes a percentage, as the species sheet does.
   static String _percent(BuildContext context, double score) =>

@@ -62,6 +62,18 @@ class NearbySpecies extends Equatable {
 
   bool get isEmpty => matched.isEmpty && unmatchedNames.isEmpty;
 
+  NearbySpecies copyWith({
+    List<MatchedNearbySpecies>? matched,
+    List<String>? unmatchedNames,
+    bool? namesIncomplete,
+    Set<int>? speciesKeys,
+  }) => NearbySpecies(
+    matched: matched ?? this.matched,
+    unmatchedNames: unmatchedNames ?? this.unmatchedNames,
+    namesIncomplete: namesIncomplete ?? this.namesIncomplete,
+    speciesKeys: speciesKeys ?? this.speciesKeys,
+  );
+
   Map<String, dynamic> toJson() => {
     'matched': matched.map((m) => m.toJson()).toList(),
     'unmatchedNames': unmatchedNames,
