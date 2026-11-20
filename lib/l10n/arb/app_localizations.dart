@@ -103943,6 +103943,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Import'**
   String get dashboard_panel_import;
+
+  /// No description provided for @settings_homeLayout_sectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Layout'**
+  String get settings_homeLayout_sectionTitle;
+
+  /// No description provided for @settings_homeLayout_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a starting layout, then show, hide or drag panels below. Your changes make it Custom.'**
+  String get settings_homeLayout_description;
+
+  /// No description provided for @settings_homeLayout_balanced.
+  ///
+  /// In en, this message translates to:
+  /// **'Balanced'**
+  String get settings_homeLayout_balanced;
+
+  /// No description provided for @settings_homeLayout_ready.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready'**
+  String get settings_homeLayout_ready;
+
+  /// No description provided for @settings_homeLayout_trends.
+  ///
+  /// In en, this message translates to:
+  /// **'Trends'**
+  String get settings_homeLayout_trends;
+
+  /// No description provided for @settings_homeLayout_logbook.
+  ///
+  /// In en, this message translates to:
+  /// **'Logbook'**
+  String get settings_homeLayout_logbook;
+
+  /// No description provided for @settings_homeLayout_replaceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace your layout?'**
+  String get settings_homeLayout_replaceTitle;
+
+  /// No description provided for @settings_homeLayout_replaceMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your own arrangement of panels will be replaced by the {preset} layout.'**
+  String settings_homeLayout_replaceMessage(String preset);
+
+  /// No description provided for @settings_homeLayout_replace.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get settings_homeLayout_replace;
+
+  /// No description provided for @settings_homePanels_sectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Panels'**
+  String get settings_homePanels_sectionTitle;
+
+  /// No description provided for @settings_homePanels_resetMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This returns Home to the Balanced layout.'**
+  String get settings_homePanels_resetMessage;
+
+  /// No description provided for @settings_homePanels_keyNumbers.
+  ///
+  /// In en, this message translates to:
+  /// **'Key numbers'**
+  String get settings_homePanels_keyNumbers;
+
+  /// No description provided for @settings_homePanels_keyNumbersCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{shown} of {total}'**
+  String settings_homePanels_keyNumbersCount(int shown, int total);
+
+  /// No description provided for @settings_homePanels_activityCalendar.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity calendar'**
+  String get settings_homePanels_activityCalendar;
+
+  /// No description provided for @settings_homeKeyNumbers_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the numbers shown at the top of Home. A number with nothing to show yet is left out.'**
+  String get settings_homeKeyNumbers_description;
 }
 
 class _AppLocalizationsDelegate

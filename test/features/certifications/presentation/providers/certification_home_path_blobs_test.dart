@@ -10,7 +10,6 @@ import 'package:submersion/features/certifications/data/repositories/certificati
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_currency_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
-import 'package:submersion/features/dashboard/presentation/providers/milestone_providers.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -109,13 +108,16 @@ void main() {
     expectNoCardBlobs(statements);
   });
 
-  test('the home milestones read no card images', () async {
+  test('the home coming-due list reads no card images', () async {
     final container = makeContainer();
 
     final statements = await statementsOf(() async {
-      final sub = container.listen(milestonesProvider, (_, _) {});
+      // Home's coming-due panel reads the certification list.
+      final sub = container.listen(
+        certificationListNotifierProvider,
+        (_, _) {},
+      );
       addTearDown(sub.close);
-      await container.read(milestonesProvider.future);
       for (var i = 0; i < 200; i++) {
         if (!container.read(certificationListNotifierProvider).isLoading) break;
         await Future<void>.delayed(const Duration(milliseconds: 5));

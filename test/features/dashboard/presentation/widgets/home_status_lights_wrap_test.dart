@@ -12,7 +12,7 @@ import 'package:submersion/features/courses/presentation/providers/course_requir
 import 'package:submersion/features/certifications/presentation/providers/certification_currency_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_query_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/gauge_providers.dart';
-import 'package:submersion/features/dashboard/presentation/widgets/gauge_strip.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/home_status_lights_wrap.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
@@ -103,7 +103,7 @@ Future<NavSpy> pumpStrip(
     routes: [
       GoRoute(
         path: '/',
-        builder: (_, _) => const Scaffold(body: GaugeStrip()),
+        builder: (_, _) => const Scaffold(body: HomeStatusLightsWrap()),
       ),
       GoRoute(
         path: '/equipment',
@@ -1389,7 +1389,7 @@ void main() {
       expect(spy.router.canPop(), isTrue);
       spy.router.pop();
       await tester.pumpAndSettle();
-      expect(find.byType(GaugeStrip), findsOneWidget);
+      expect(find.byType(HomeStatusLightsWrap), findsOneWidget);
     });
 
     testWidgets('every rendered chip is tappable', (tester) async {
@@ -1841,7 +1841,7 @@ void main() {
             locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(body: GaugeStrip()),
+            home: Scaffold(body: HomeStatusLightsWrap()),
           ),
         ),
       );
@@ -1872,7 +1872,7 @@ void main() {
             locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(body: GaugeStrip()),
+            home: Scaffold(body: HomeStatusLightsWrap()),
           ),
         ),
       );

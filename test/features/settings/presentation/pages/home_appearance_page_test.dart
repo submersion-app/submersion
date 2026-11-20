@@ -1,147 +1,167 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/dashboard/presentation/home_cards.dart';
+import 'package:submersion/features/dashboard/presentation/home_panels.dart';
+import 'package:submersion/features/dashboard/presentation/home_presets.dart';
 import 'package:submersion/features/dashboard/presentation/providers/gauge_providers.dart';
 import 'package:submersion/features/settings/presentation/pages/home_appearance_page.dart';
+import 'package:submersion/features/settings/presentation/pages/home_key_numbers_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
-void main() {
-  Future<MockSettingsNotifier> pumpPage(
-    WidgetTester tester, {
-    AppSettings? initial,
-  }) async {
-    final notifier = MockSettingsNotifier(initial);
-    final overrides = await getBaseOverrides(settingsNotifier: notifier);
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: overrides.cast(),
-        child: const MaterialApp(
-          locale: Locale('en'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: HomeAppearancePage(),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-    return notifier;
-  }
+AppSettings _custom() {
+  final layout = homeLayoutForPreset(
+    HomeLayoutPreset.balanced,
+  ).withPanelEnabled(HomePanelType.recentDives, false);
+  return AppSettings(
+    homePanelOrder: layout.orderNames,
+    hiddenHomePanels: layout.hiddenNames,
+  );
+}
 
-  testWidgets('shows one enabled toggle per chip type', (tester) async {
-    await pumpPage(tester);
-    for (final type in HomeChipType.values) {
-      final toggle = find.byKey(Key('homeChipToggle_${type.name}'));
-      await tester.scrollUntilVisible(toggle, 100);
-      expect(toggle, findsOneWidget);
-      expect(tester.widget<SwitchListTile>(toggle).value, isTrue);
+Future<MockSettingsNotifier> _pump(
+  WidgetTester tester, {
+  AppSettings? initial,
+  Widget page = const HomeAppearancePage(),
+  double width = 800,
+}) async {
+  tester.view.physicalSize = Size(width, 900);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+  final notifier = MockSettingsNotifier(initial);
+  final overrides = await getBaseOverrides(settingsNotifier: notifier);
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: overrides.cast(),
+      child: MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: page,
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+  return notifier;
+}
+
+bool _selected(WidgetTester tester, HomeLayoutPreset p) => tester
+    .widget<HomePresetTile>(find.byKey(Key('homePreset_${p.name}')))
+    .selected;
+
+void main() {
+  testWidgets('a fresh install highlights Balanced', (tester) async {
+    await _pump(tester);
+    expect(_selected(tester, HomeLayoutPreset.balanced), isTrue);
+    expect(_selected(tester, HomeLayoutPreset.trends), isFalse);
+  });
+
+  testWidgets('switching a panel off makes the layout Custom', (tester) async {
+    final notifier = await _pump(tester);
+    final toggle = find.byKey(const Key('homePanelToggle_recentDives'));
+    await tester.scrollUntilVisible(toggle, 100);
+    await tester.tap(toggle);
+    await tester.pumpAndSettle();
+    expect(notifier.state.hiddenHomePanels, contains('recentDives'));
+    expect(notifier.state.homePanelOrder, isNotNull);
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('homePreset_balanced')),
+      -100,
+    );
+    expect(_selected(tester, HomeLayoutPreset.balanced), isFalse);
+  });
+
+  testWidgets('picking a preset from a preset applies it at once', (
+    tester,
+  ) async {
+    final notifier = await _pump(tester);
+    await tester.tap(find.byKey(const Key('homePreset_trends')));
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(
+      notifier.state.homePanelOrder,
+      homeLayoutForPreset(HomeLayoutPreset.trends).orderNames,
+    );
+  });
+
+  testWidgets('picking a preset over a Custom layout asks first', (
+    tester,
+  ) async {
+    final notifier = await _pump(tester, initial: _custom());
+    await tester.tap(find.byKey(const Key('homePreset_trends')));
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(notifier.state.hiddenHomePanels, contains('recentDives'));
+
+    await tester.tap(find.byKey(const Key('homePreset_trends')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Replace'));
+    await tester.pumpAndSettle();
+    expect(
+      notifier.state.homePanelOrder,
+      homeLayoutForPreset(HomeLayoutPreset.trends).orderNames,
+    );
+  });
+
+  testWidgets('every panel has a row', (tester) async {
+    await _pump(tester);
+    // In list order: the test only scrolls down.
+    final order = homeLayoutForPreset(HomeLayoutPreset.balanced).order;
+    expect(order.length, HomePanelType.values.length);
+    for (final p in order) {
+      final tile = find.byKey(Key('homePanelTile_${p.name}'));
+      await tester.scrollUntilVisible(tile, 100);
+      expect(tile, findsOneWidget, reason: p.name);
     }
   });
 
-  testWidgets('toggling a chip records it as hidden', (tester) async {
-    final notifier = await pumpPage(tester);
+  testWidgets('reset returns to Balanced after confirming', (tester) async {
+    final notifier = await _pump(tester, initial: _custom());
+    final reset = find.byKey(const Key('homePanelsReset'));
+    await tester.scrollUntilVisible(reset, 100);
+    await tester.tap(reset);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Reset'));
+    await tester.pumpAndSettle();
+    expect(
+      notifier.state.homePanelOrder,
+      homeLayoutForPreset(HomeLayoutPreset.balanced).orderNames,
+    );
+  });
+
+  testWidgets('status light switches still hide lights', (tester) async {
+    final notifier = await _pump(tester);
     final toggle = find.byKey(const Key('homeChipToggle_noFly'));
-    await tester.scrollUntilVisible(toggle, 100);
+    await tester.scrollUntilVisible(toggle, 200);
     await tester.tap(toggle);
     await tester.pumpAndSettle();
     expect(notifier.state.hiddenHomeChips, contains('noFly'));
-    expect(tester.widget<SwitchListTile>(toggle).value, isFalse);
-  });
-
-  testWidgets('renders one card tile per card type in effective order', (
-    tester,
-  ) async {
-    await pumpPage(tester);
-    for (final card in HomeCardType.values) {
-      final tile = find.byKey(Key('homeCardTile_${card.name}'));
-      await tester.scrollUntilVisible(tile, 100);
-      expect(tile, findsOneWidget);
+    for (final type in HomeChipType.values) {
+      final t = find.byKey(Key('homeChipToggle_${type.name}'));
+      await tester.scrollUntilVisible(t, 200);
+      expect(t, findsOneWidget);
     }
   });
 
-  testWidgets('toggle off calls setHomeCardEnabled and persists in state', (
-    tester,
-  ) async {
-    final notifier = await pumpPage(tester);
-    final toggle = find.byKey(Key('homeCardToggle_${HomeCardType.hero.name}'));
-    await tester.scrollUntilVisible(toggle, 100);
-    await tester.tap(toggle);
+  testWidgets('a narrow page puts the presets two by two', (tester) async {
+    await _pump(tester, width: 340);
+    final a = tester.getRect(find.byKey(const Key('homePreset_balanced')));
+    final c = tester.getRect(find.byKey(const Key('homePreset_trends')));
+    expect(c.top, greaterThan(a.top));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('the key numbers page toggles a tile', (tester) async {
+    final notifier = await _pump(tester, page: const HomeKeyNumbersPage());
+    final species = find.byKey(const Key('homeKeyNumberToggle_species'));
+    expect(tester.widget<SwitchListTile>(species).value, isFalse);
+    await tester.tap(species);
     await tester.pumpAndSettle();
-    expect(notifier.state.hiddenHomeCards, {HomeCardType.hero.name});
-  });
-
-  testWidgets('hidden card row is switched off', (tester) async {
-    await pumpPage(
-      tester,
-      initial: AppSettings(hiddenHomeCards: {HomeCardType.milestones.name}),
-    );
-    final toggle = find.byKey(
-      Key('homeCardToggle_${HomeCardType.milestones.name}'),
-    );
-    await tester.scrollUntilVisible(toggle, 100);
-    expect(tester.widget<Switch>(toggle).value, isFalse);
-  });
-
-  testWidgets('reset asks for confirmation then clears customization', (
-    tester,
-  ) async {
-    final notifier = await pumpPage(
-      tester,
-      initial: AppSettings(hiddenHomeCards: {HomeCardType.hero.name}),
-    );
-    await tester.scrollUntilVisible(
-      find.byKey(const Key('homeCardsReset')),
-      100,
-    );
-    await tester.tap(find.byKey(const Key('homeCardsReset')));
-    await tester.pumpAndSettle();
-    final l10n = await AppLocalizations.delegate.load(const Locale('en'));
-    expect(
-      find.text(l10n.settings_homeCards_resetDialog_title),
-      findsOneWidget,
-    );
-    await tester.tap(find.text(l10n.settings_homeCards_resetDialog_confirm));
-    await tester.pumpAndSettle();
-    expect(notifier.state.hiddenHomeCards, isEmpty);
-    expect(notifier.state.homeCardOrder, isEmpty);
-  });
-
-  testWidgets('chips section header says Status chips, not the page title', (
-    tester,
-  ) async {
-    await pumpPage(tester);
-    final l10n = await AppLocalizations.delegate.load(const Locale('en'));
-    await tester.scrollUntilVisible(
-      find.text(l10n.settings_homeChips_sectionTitle),
-      100,
-    );
-    expect(find.text(l10n.settings_homeChips_sectionTitle), findsOneWidget);
-    // The page title ("Home screen") must not double as the section header.
-    expect(find.text(l10n.settings_homeChips_pageTitle), findsOneWidget);
-  });
-
-  testWidgets('stored order drives the card tile order', (tester) async {
-    await pumpPage(
-      tester,
-      initial: AppSettings(
-        homeCardOrder: [
-          HomeCardType.recentDives.name,
-          for (final c in HomeCardType.values)
-            if (c != HomeCardType.recentDives) c.name,
-        ],
-      ),
-    );
-    final firstTileY = tester
-        .getTopLeft(
-          find.byKey(Key('homeCardTile_${HomeCardType.recentDives.name}')),
-        )
-        .dy;
-    final heroTileY = tester
-        .getTopLeft(find.byKey(Key('homeCardTile_${HomeCardType.hero.name}')))
-        .dy;
-    expect(firstTileY, lessThan(heroTileY));
+    expect(notifier.state.hiddenHomeKeyNumbers, isNot(contains('species')));
+    expect(notifier.state.hiddenHomeKeyNumbers, contains('avgDepth'));
   });
 }

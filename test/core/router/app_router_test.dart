@@ -1635,6 +1635,14 @@ void main() {
       '/settings/diver-profile/emergency-card',
       '/buddies/swap',
       '/trips/t1',
+      // Home panel destinations (issue #4824).
+      '/insights',
+      '/sites',
+      '/buddies',
+      '/species',
+      '/certifications/c1',
+      '/transfer/import-wizard',
+      '/settings/appearance/home/key-numbers',
     ];
 
     for (final destination in destinations) {

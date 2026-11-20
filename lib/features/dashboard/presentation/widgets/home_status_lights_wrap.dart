@@ -13,10 +13,10 @@ export 'package:submersion/features/dashboard/presentation/widgets/home_status_l
         kCurrencyAlertDays,
         kCurrencyWarnDays;
 
-/// The old Home's status chips, drawn from the status-light models. Kept
-/// until the new Home replaces the page that shows it.
-class GaugeStrip extends ConsumerWidget {
-  const GaugeStrip({super.key});
+/// Every status light as a wrap of full-size pills, alerts first: what the
+/// phone's status strip opens when the diver taps its "all clear" count.
+class HomeStatusLightsWrap extends ConsumerWidget {
+  const HomeStatusLightsWrap({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

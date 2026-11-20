@@ -7,6 +7,7 @@ import 'package:submersion/features/dashboard/presentation/home_layout.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/gauge_providers.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/home_light_chip.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/home_status_lights_wrap.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/home_status_lights.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
@@ -306,7 +307,7 @@ class HomeStatusStrip extends ConsumerWidget {
                   ? l10n.dashboard_header_allClear
                   : l10n.dashboard_header_clearCount(split.clear),
               tone: HomeLightTone.ok,
-              onTap: () => _showAllLights(context, lights),
+              onTap: () => _showAllLights(context),
             ),
             dense: true,
           ),
@@ -336,7 +337,7 @@ class HomeStatusStrip extends ConsumerWidget {
     );
   }
 
-  void _showAllLights(BuildContext context, List<HomeStatusLight> lights) {
+  void _showAllLights(BuildContext context) {
     showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
@@ -352,11 +353,7 @@ class HomeStatusStrip extends ConsumerWidget {
                 style: Theme.of(sheetContext).textTheme.titleMedium,
               ),
               const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [for (final l in lights) HomeLightChip(l)],
-              ),
+              const HomeStatusLightsWrap(),
             ],
           ),
         ),

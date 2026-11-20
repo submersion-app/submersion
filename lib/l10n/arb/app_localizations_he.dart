@@ -64958,4 +64958,56 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get dashboard_panel_import => 'Import';
+
+  @override
+  String get settings_homeLayout_sectionTitle => 'Layout';
+
+  @override
+  String get settings_homeLayout_description =>
+      'Pick a starting layout, then show, hide or drag panels below. Your changes make it Custom.';
+
+  @override
+  String get settings_homeLayout_balanced => 'Balanced';
+
+  @override
+  String get settings_homeLayout_ready => 'Ready';
+
+  @override
+  String get settings_homeLayout_trends => 'Trends';
+
+  @override
+  String get settings_homeLayout_logbook => 'Logbook';
+
+  @override
+  String get settings_homeLayout_replaceTitle => 'Replace your layout?';
+
+  @override
+  String settings_homeLayout_replaceMessage(String preset) {
+    return 'Your own arrangement of panels will be replaced by the $preset layout.';
+  }
+
+  @override
+  String get settings_homeLayout_replace => 'Replace';
+
+  @override
+  String get settings_homePanels_sectionTitle => 'Panels';
+
+  @override
+  String get settings_homePanels_resetMessage =>
+      'This returns Home to the Balanced layout.';
+
+  @override
+  String get settings_homePanels_keyNumbers => 'Key numbers';
+
+  @override
+  String settings_homePanels_keyNumbersCount(int shown, int total) {
+    return '$shown of $total';
+  }
+
+  @override
+  String get settings_homePanels_activityCalendar => 'Activity calendar';
+
+  @override
+  String get settings_homeKeyNumbers_description =>
+      'Choose the numbers shown at the top of Home. A number with nothing to show yet is left out.';
 }

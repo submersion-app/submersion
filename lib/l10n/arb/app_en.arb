@@ -38599,5 +38599,22 @@
   "dashboard_panel_onDives": "{count, plural, =1{1 dive} other{{count} dives}}",
   "@dashboard_panel_onDives": {"placeholders": {"count": {"type": "int"}}},
   "dashboard_panel_firstDive": "Log or import your first dive",
-  "dashboard_panel_import": "Import"
+  "dashboard_panel_import": "Import",
+  "settings_homeLayout_sectionTitle": "Layout",
+  "settings_homeLayout_description": "Pick a starting layout, then show, hide or drag panels below. Your changes make it Custom.",
+  "settings_homeLayout_balanced": "Balanced",
+  "settings_homeLayout_ready": "Ready",
+  "settings_homeLayout_trends": "Trends",
+  "settings_homeLayout_logbook": "Logbook",
+  "settings_homeLayout_replaceTitle": "Replace your layout?",
+  "settings_homeLayout_replaceMessage": "Your own arrangement of panels will be replaced by the {preset} layout.",
+  "@settings_homeLayout_replaceMessage": {"placeholders": {"preset": {"type": "String"}}},
+  "settings_homeLayout_replace": "Replace",
+  "settings_homePanels_sectionTitle": "Panels",
+  "settings_homePanels_resetMessage": "This returns Home to the Balanced layout.",
+  "settings_homePanels_keyNumbers": "Key numbers",
+  "settings_homePanels_keyNumbersCount": "{shown} of {total}",
+  "@settings_homePanels_keyNumbersCount": {"placeholders": {"shown": {"type": "int"}, "total": {"type": "int"}}},
+  "settings_homePanels_activityCalendar": "Activity calendar",
+  "settings_homeKeyNumbers_description": "Choose the numbers shown at the top of Home. A number with nothing to show yet is left out."
 }

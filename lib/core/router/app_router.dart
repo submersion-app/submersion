@@ -152,6 +152,7 @@ import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blo
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/settings/presentation/pages/appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/home_appearance_page.dart';
+import 'package:submersion/features/settings/presentation/pages/home_key_numbers_page.dart';
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
 import 'package:submersion/features/settings/presentation/pages/default_visible_metrics_page.dart';
 import 'package:submersion/features/settings/presentation/pages/equipment_default_view_page.dart';
@@ -1673,6 +1674,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     path: 'home',
                     name: 'appearanceHome',
                     builder: (context, state) => const HomeAppearancePage(),
+                    routes: [
+                      GoRoute(
+                        path: 'key-numbers',
+                        name: 'appearanceHomeKeyNumbers',
+                        builder: (context, state) => const HomeKeyNumbersPage(),
+                      ),
+                    ],
                   ),
                   GoRoute(
                     path: 'navigation',
