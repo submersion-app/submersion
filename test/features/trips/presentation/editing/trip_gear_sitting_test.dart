@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart'
-    hide Trip, TripCylinder, TripChecklistItem;
+    hide Trip, TripChecklistItem;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/change_log/data/services/change_log_revert_service.dart';

@@ -2,8 +2,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/database/database.dart'
-    hide Trip, TripCylinder, TripCylinderEvent;
+import 'package:submersion/core/database/database.dart' hide Trip;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/change_log/data/services/change_log_revert_service.dart';
@@ -20,7 +19,6 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
-import 'package:submersion/features/trips/domain/services/trip_fill_copy_id.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_cylinder_events_sitting.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_gear_sitting.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
