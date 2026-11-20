@@ -3,7 +3,8 @@ import 'dart:async';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/write_fill_to_tag.dart';
-import 'package:submersion/features/cylinder_passports/presentation/widgets/log_fill_sheet.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/editing/dive_computer_settings_sitting.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/clock_sync_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -94,13 +95,14 @@ mixin GearItemSittingHost<W extends ConsumerStatefulWidget>
     onGearItemSaved(session, result?.after, container);
     // A fill logged in the sitting is offered for the cylinder's tag once
     // it is stored, never before: a Cancel would leave it on the tag only.
+    // The newest one (the list is newest first), read back so a twin fill
+    // offers its partner's tag too.
     if (loggedFills.isNotEmpty && mounted) {
       unawaited(
-        offerWriteFillsToTags(
-          context,
-          ref,
-          LoggedFill(fill: loggedFills.first),
+        _offerLoggedFill(
+          loggedFills.first.id,
           equipmentId: session.stored.id,
+          fills: ref.read(cylinderFillRepositoryProvider),
         ),
       );
     }
@@ -113,6 +115,18 @@ mixin GearItemSittingHost<W extends ConsumerStatefulWidget>
       afterCommit: gearItemAfterCommit(session),
       changedCardIds: changedCards,
     );
+  }
+
+  /// Offers to write the stored fill [fillId] (and its twin partner's) to
+  /// the tags, as logging it outside a sitting does.
+  Future<void> _offerLoggedFill(
+    String fillId, {
+    required String equipmentId,
+    required CylinderFillRepository fills,
+  }) async {
+    final logged = await savedLoggedFill(fills, fillId);
+    if (logged == null || !mounted) return;
+    await offerWriteFillsToTags(context, ref, logged, equipmentId: equipmentId);
   }
 
   @override

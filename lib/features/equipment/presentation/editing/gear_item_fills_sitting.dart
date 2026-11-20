@@ -7,6 +7,7 @@ import 'package:submersion/features/cylinder_passports/data/services/twin_fill_s
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_pairing.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/pairing_rules.dart';
+import 'package:submersion/features/cylinder_passports/presentation/widgets/log_fill_sheet.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_card_ids.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_twin_set_sitting.dart';
@@ -118,6 +119,18 @@ List<CylinderFill> newFillsOf(EditSession<EquipmentItem> session) {
   ];
 }
 
+/// The fill [fillId] as a Save stored it, with the partner's fill of its
+/// twin set fill, for the tag write offered after Save; null when it is
+/// not stored.
+Future<LoggedFill?> savedLoggedFill(
+  CylinderFillRepository fills,
+  String fillId,
+) async {
+  final saved = await fills.getById(fillId);
+  if (saved == null) return null;
+  return LoggedFill(fill: saved, partnerFill: await fills.tiedFillOf(saved));
+}
+
 /// Whether [fill] is the sitting's: logged or edited in it.
 bool isHeldFill(EditSession<EquipmentItem> session, CylinderFill fill) =>
     !(gearItemFillsList.loaded(session) ?? const []).contains(fill);
@@ -171,7 +184,14 @@ Future<Object?> _write(
         await twins.recordTwinFill(fill, partnerEquipmentId: partner);
       }
     } else if (old != fill) {
-      await twins.applyEdit(fill, toTied: toTied.contains(fill.id));
+      // An edit keeps the passport its row has by now: a tag linked in the
+      // sitting may have re-keyed it already, and writing the id the edit
+      // was made under would take that back.
+      final row = await fills.getById(fill.id);
+      await twins.applyEdit(
+        row == null ? fill : fill.copyWith(passportId: row.passportId),
+        toTied: toTied.contains(fill.id),
+      );
     }
   }
   for (final old in loaded) {

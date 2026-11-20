@@ -226,6 +226,32 @@ void main() {
     expect((await fillsOf('a')).map((f) => f.passportId).toSet(), {mine});
   });
 
+  test('a stored fill edited after a tag is linked in the sitting stays on '
+      'the new id', () async {
+    holdPassportTag(session, tag, stored: mine, repository: passports);
+    final f0 = gearItemFillsList.current(session)!.single;
+    holdEditedFill(session, f0.copyWith(o2Percent: 36));
+
+    await db.transaction(session.runHeldWrites);
+
+    final after = (await fillsOf('a')).single;
+    expect(after.o2Percent, 36);
+    expect(after.passportId, tag);
+  });
+
+  test(
+    'the fill a Save offers for the tag carries its twin partner\'s',
+    () async {
+      final held = holdLoggedFill(session, fill(), twinPartnerId: 'b')!;
+      await db.transaction(session.runHeldWrites);
+
+      final logged = await savedLoggedFill(fills, held.id);
+
+      expect(logged!.fill.id, held.id);
+      expect(logged.partnerFill?.equipmentId, 'b');
+    },
+  );
+
   // Review Focus 5: a twin set made in the sitting is the partner of a
   // fill logged after it.
   test('a pairing made, then a twin fill logged: the pairing is written '
