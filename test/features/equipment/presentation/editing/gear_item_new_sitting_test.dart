@@ -6,6 +6,8 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_location_move_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_location_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_tag_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
@@ -13,9 +15,12 @@ import 'package:submersion/features/equipment/data/services/equipment_clone_serv
 import 'package:submersion/features/equipment/data/services/gear_item_edit_save_service.dart';
 import 'package:submersion/features/equipment/data/repositories/gear_photo_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_location_sitting.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_edit_fields.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_header_editor.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_new_sitting.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_location_picker_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_creating.dart';
@@ -35,6 +40,22 @@ class _FailingClone extends EquipmentCloneService {
     required EquipmentType cloneType,
     required String? diverId,
   }) async => failing;
+}
+
+/// A clone service that keeps the diver each copy of extras was made for.
+class _RecordingClone extends EquipmentCloneService {
+  final diverIds = <String?>[];
+
+  @override
+  Future<Set<CloneExtrasStep>> copyExtras({
+    required String sourceId,
+    required String cloneId,
+    required EquipmentType cloneType,
+    required String? diverId,
+  }) async {
+    diverIds.add(diverId);
+    return const {};
+  }
 }
 
 /// A new gear item's sitting (issue #4527, phase 3, plan 11): its seed, the
@@ -285,5 +306,79 @@ void main() {
     await session.settled().timeout(const Duration(seconds: 2));
 
     expect([for (final t in gearItemTagsList.current(session)!) t.id], ['t1']);
+  });
+  test("a clone's place is its held move, shown on Location and written "
+      'once', () async {
+    await equipment.createEquipment(
+      const EquipmentItem(
+        id: 'src',
+        diverId: 'd1',
+        name: 'Steel 12',
+        type: EquipmentType.tank,
+      ),
+    );
+    final shop = await EquipmentLocationRepository().createLocation(
+      diverId: 'd1',
+      name: 'Shop',
+      kind: EquipmentLocationKind.serviceShop,
+    );
+    final moves = EquipmentLocationMoveRepository();
+    await moves.recordMoves(
+      equipmentIds: const ['src'],
+      locationId: shop.id,
+      movedAt: DateTime(2026),
+    );
+
+    final session = await cloneSitting(EquipmentCloneService());
+
+    expect(
+      heldGearItemMove(session)?.pick,
+      isA<PlacePick>().having((p) => p.location.id, 'place', shop.id),
+    );
+    final created = await create(session);
+    expect(
+      [for (final m in await moves.getMovesFor(created.id)) m.locationId],
+      [shop.id],
+    );
+  });
+
+  test("a clone's extras are copied for the diver it is created for, the "
+      'seed having none', () async {
+    await equipment.createEquipment(
+      const EquipmentItem(
+        id: 'src',
+        diverId: 'd1',
+        name: 'Steel 12',
+        type: EquipmentType.tank,
+      ),
+    );
+    final clone = await readGearClone(
+      container.read,
+      'src',
+      copyName: (n) => '$n (copy)',
+    );
+    final recording = _RecordingClone();
+    // The diver could not be read as the page opened; Save takes it.
+    final session = EditSession(
+      const EquipmentItem(id: 'n1', name: '', type: EquipmentType.regulator),
+      isNew: true,
+    );
+    addTearDown(session.dispose);
+    await applyNewGearItemPrefill(
+      session,
+      clone: clone,
+      cloneService: recording,
+    );
+
+    await GearItemEditSaveService(equipment, GearPhotoRepository()).create(
+      item: gearItemToSave(
+        session.stored,
+        session.applyTo(session.stored),
+      ).copyWith(diverId: 'd1'),
+      changedCardIds: session.changedCardIds,
+      alsoWrite: heldWritesForCreate(session),
+    );
+
+    expect(recording.diverIds, ['d1']);
   });
 }

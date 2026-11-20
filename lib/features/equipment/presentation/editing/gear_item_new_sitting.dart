@@ -4,9 +4,9 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/new_record_diver.dart';
-import 'package:submersion/features/equipment/data/repositories/equipment_location_move_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/services/equipment_clone_service.dart';
+import 'package:submersion/features/equipment/data/services/equipment_move_flow.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_fitting.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
@@ -14,9 +14,11 @@ import 'package:submersion/features/equipment/domain/services/equipment_clone_se
 import 'package:submersion/features/equipment/presentation/editing/gear_item_card_ids.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_edit_fields.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_header_editor.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_location_sitting.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_clone_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_location_picker_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
@@ -123,12 +125,11 @@ final List<String> newGearItemLaidOut = List.unmodifiable([
   GearItemCardId.location.name,
 ]);
 
-const _firstPlaceKey = 'equipment.new.firstPlace';
 const _cloneExtrasKey = 'equipment.new.cloneExtras';
 
 /// Puts what [request] or [clone] brings on [session], each through its
 /// card's field, so each is a change. A clone's place is held as the
-/// item's first move, and its extras (clocks without a baseline, set
+/// item's first move, as its Location card holds one, and its extras (clocks without a baseline, set
 /// memberships, document copies) as one write of the clone, made at Save
 /// after the row: if one fails the Save fails, where the form copied them
 /// after the item, best effort (plan 11, Question 8).
@@ -167,14 +168,17 @@ Future<void> applyNewGearItemPrefill(
       if (!a.isCustom) session.set(gearAttributeField(a.key), a);
     }
     final itemId = session.stored.id;
+    // The item's first move, held as a move made on its Location card is,
+    // so the card shows the place and a move made by hand replaces it.
     if (clone.ownPlace case final place?) {
-      session.holdChange(
-        _firstPlaceKey,
-        cardId: GearItemCardId.location.name,
-        write: () => EquipmentLocationMoveRepository().recordMoves(
-          equipmentIds: [itemId],
-          locationId: place.id,
-          movedAt: DateTime.now(),
+      holdGearItemMove(
+        session,
+        HeldGearItemMove(
+          pick: PlacePick(place),
+          plan: EquipmentMovePlan(
+            items: {itemId: session.valueOf(gearStatusField)},
+            movedAt: DateTime.now(),
+          ),
         ),
       );
     }
@@ -182,11 +186,14 @@ Future<void> applyNewGearItemPrefill(
       _cloneExtrasKey,
       cardId: GearItemCardId.details.name,
       write: () async {
+        // For the diver the item was created for, which Save may have read
+        // when the seed could not.
+        final created = await EquipmentRepository().getEquipmentById(itemId);
         final failed = await cloneService.copyExtras(
           sourceId: clone.sourceId,
           cloneId: itemId,
           cloneType: session.working.type,
-          diverId: session.working.diverId,
+          diverId: created?.diverId ?? session.working.diverId,
         );
         if (failed.isNotEmpty) {
           throw StateError(
