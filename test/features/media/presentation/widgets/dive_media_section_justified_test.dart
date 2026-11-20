@@ -1,8 +1,12 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/dive_detail_sections.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/repositories/media_aspect_cache_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/value_objects/learned_aspect.dart';
+import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
 import 'package:submersion/features/media/presentation/providers/media_learned_aspect_provider.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/dive_media_section.dart';
@@ -10,6 +14,8 @@ import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import 'package:submersion/features/media/presentation/widgets/media_hover_region.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/drag_select_grid_view.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -59,6 +65,7 @@ void main() {
     List<MediaItem> media, {
     MediaAspectCacheRepository? cache,
     double width = 800,
+    EditSession<Dive>? editing,
   }) async {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = Size(width, 900);
@@ -73,12 +80,33 @@ void main() {
             cache ?? _FakeAspectCache(),
           ),
         ],
-        child: const SingleChildScrollView(
-          child: DiveMediaSection(diveId: 'dive-1'),
+        child: SingleChildScrollView(
+          child: DiveMediaSection(diveId: 'dive-1', editing: editing),
         ),
       ),
     );
     await tester.pumpAndSettle();
+  }
+
+  /// The open card's sitting, which selection belongs to (issue #4673).
+  EditSession<Dive> openSitting() {
+    final controller = RecordEditController<Dive>(onSave: (_) async {})
+      ..unlock(Dive(id: 'dive-1', dateTime: DateTime.utc(2026)));
+    addTearDown(controller.dispose);
+    final session = controller.session!;
+    holdSittingMedia(
+      session,
+      SittingMediaWriters(
+        writeRows: (_) async => const [],
+        insertNetwork: (_) async => const [],
+        unlink: (_) async {},
+        replace: (_, _, _) async {},
+        drainDeletes: () async {},
+        enqueueUpload: (_) {},
+      ),
+      cardId: DiveDetailSectionId.media.name,
+    );
+    return session;
   }
 
   Finder tiles() => find.descendant(
@@ -187,6 +215,34 @@ void main() {
       expect(tiles(), findsNWidgets(2));
       final rects = tileRects(tester);
       expect(rects[0].width / rects[0].height, closeTo(1.5, 0.01));
+    });
+
+    testWidgets('drag-select runs across a row break in list order', (
+      tester,
+    ) async {
+      await pumpSection(tester, [
+        for (var i = 0; i < 12; i++) _photo('p$i', 600, 400),
+      ], editing: openSitting());
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+
+      final rects = tileRects(tester);
+      final perRow = rects.where((r) => r.top == rects.first.top).length;
+      // From the second tile of the first row to the second of the next.
+      final gesture = await tester.startGesture(rects[1].center);
+      await tester.pump(kLongPressTimeout + const Duration(milliseconds: 50));
+      await gesture.moveTo(rects[perRow + 1].center);
+      await tester.pump();
+      await gesture.up();
+      await tester.pumpAndSettle();
+
+      final checked = [
+        for (final tile in tester.widgetList<MediaThumbnailTile>(
+          find.byType(MediaThumbnailTile),
+        ))
+          if (tile.isSelected) tile.item.id,
+      ];
+      expect(checked, [for (var i = 1; i <= perRow + 1; i++) 'p$i']);
     });
 
     testWidgets('repacks when the card width changes', (tester) async {

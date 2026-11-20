@@ -160,29 +160,27 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
   /// The last layout, kept while the card's width and the items' shapes
   /// stay the same, so the grid delegate (which compares tables by
   /// identity) does not relayout on every rebuild.
-  JustifiedMediaTable? _table;
-  List<double>? _tableRatios;
-  double? _tableWidth;
+  ({List<double> ratios, double width, JustifiedMediaTable table})? _layout;
 
   /// The justified layout of [ratios] across [width] (issue #4739): rows of
   /// about [kDiveMediaRowHeight], [kDiveMediaGap] apart, ending flush with
   /// the card.
   JustifiedMediaTable _tableFor(List<double> ratios, double width) {
-    final cached = _table;
+    final cached = _layout;
     if (cached != null &&
-        _tableWidth == width &&
-        listEquals(_tableRatios, ratios)) {
-      return cached;
+        cached.width == width &&
+        listEquals(cached.ratios, ratios)) {
+      return cached.table;
     }
-    _tableRatios = ratios;
-    _tableWidth = width;
-    return _table = JustifiedMediaTable.build(
+    final table = JustifiedMediaTable.build(
       sections: [JustifiedSection(headerExtents: const [], ratios: ratios)],
       paneWidth: width,
       targetHeight: kDiveMediaRowHeight,
       gap: kDiveMediaGap,
       inset: 0,
     );
+    _layout = (ratios: ratios, width: width, table: table);
+    return table;
   }
 
   @override
