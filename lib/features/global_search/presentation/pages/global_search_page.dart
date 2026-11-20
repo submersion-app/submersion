@@ -13,6 +13,7 @@ import 'package:submersion/features/query/presentation/entity_query_editor.dart'
 import 'package:submersion/features/query/presentation/query_error_text.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/debounced_search_results.dart';
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
 /// The field and results stop growing here on a wide window.
 const double _kMaxResultsWidth = 720;
@@ -59,12 +60,17 @@ class _GlobalSearchPageState extends ConsumerState<GlobalSearchPage> {
     super.dispose();
   }
 
+  /// Under the bottom bar's width the keyboard covers the bar, and this page,
+  /// a nav destination, has no back arrow: the keyboard comes up only when
+  /// asked for there (#4813).
+  bool get _keyboardCoversNav => ResponsiveBreakpoints.isMobile(context);
+
   void _take(GlobalSearchRequest request) {
     setState(() {
       _text = request.text;
       _override = QueryTextOverride(request.text, commit: true);
     });
-    _focus.requestFocus();
+    if (!_keyboardCoversNav) _focus.requestFocus();
     ref.read(globalSearchRequestProvider.notifier).state = null;
   }
 
@@ -104,22 +110,28 @@ class _GlobalSearchPageState extends ConsumerState<GlobalSearchPage> {
               constraints: const BoxConstraints(maxWidth: _kMaxResultsWidth),
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-                child: QueryTextField(
-                  fieldKey: const ValueKey('global-search-field'),
-                  context: editorContext,
-                  textReader: GlobalSearchTextReader(editorContext),
-                  value: null,
-                  onChanged: (_) {},
-                  onTextChanged: (text) => setState(() => _text = text),
-                  onTextAccepted: (text) => setState(() => _query = text),
-                  hintText: l10n.globalSearch_hint,
-                  clearTooltip: l10n.globalSearch_clear,
-                  describeError: (e) => describeQueryError(l10n, e),
-                  focusNode: _focus,
-                  autofocus: true,
-                  textOverride: _override,
-                  // Empty leaves Esc to whatever sits outside the field.
-                  onEscape: _text.isEmpty ? null : _clear,
+                // A tap anywhere else puts the keyboard away and brings the
+                // bottom bar back. The field's own group keeps its
+                // completions, handles and toolbar inside.
+                child: TextFieldTapRegion(
+                  onTapOutside: (_) => _focus.unfocus(),
+                  child: QueryTextField(
+                    fieldKey: const ValueKey('global-search-field'),
+                    context: editorContext,
+                    textReader: GlobalSearchTextReader(editorContext),
+                    value: null,
+                    onChanged: (_) {},
+                    onTextChanged: (text) => setState(() => _text = text),
+                    onTextAccepted: (text) => setState(() => _query = text),
+                    hintText: l10n.globalSearch_hint,
+                    clearTooltip: l10n.globalSearch_clear,
+                    describeError: (e) => describeQueryError(l10n, e),
+                    focusNode: _focus,
+                    autofocus: !_keyboardCoversNav,
+                    textOverride: _override,
+                    // Empty leaves Esc to whatever sits outside the field.
+                    onEscape: _text.isEmpty ? null : _clear,
+                  ),
                 ),
               ),
             ),

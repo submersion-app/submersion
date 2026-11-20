@@ -487,6 +487,86 @@ void main() {
     expect(field.controller!.selection.textInside('reef'), 'reef');
   });
 
+  // The keyboard covers the bottom bar there, and Search, a nav destination,
+  // has no back arrow: nothing may bring the keyboard up unasked, and a tap
+  // off the field must put it away (#4813).
+  group('on a phone', () {
+    void usePhone(WidgetTester tester) {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+    }
+
+    TextField field(WidgetTester tester) => tester.widget<TextField>(
+      find.byKey(const ValueKey('global-search-field')),
+    );
+
+    testWidgets('arrives with the keyboard down', (tester) async {
+      usePhone(tester);
+      await tester.pumpWidget(_app((_) async => const []));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          'Find dives, sites, trips, gear, buddies, documents and more',
+        ),
+        findsOneWidget,
+      );
+      expect(field(tester).focusNode!.hasFocus, isFalse);
+    });
+
+    testWidgets('a request made while the page is up leaves it down', (
+      tester,
+    ) async {
+      usePhone(tester);
+      await tester.pumpWidget(_app((_) async => const []));
+      await tester.pumpAndSettle();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(GlobalSearchPage)),
+      );
+      container.read(globalSearchRequestProvider.notifier).state =
+          GlobalSearchRequest('wreck');
+      await tester.pump();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 350));
+      await tester.pumpAndSettle();
+
+      expect(field(tester).controller!.text, 'wreck');
+      expect(field(tester).focusNode!.hasFocus, isFalse);
+    });
+
+    testWidgets('a tap off the field puts the keyboard away', (tester) async {
+      usePhone(tester);
+      await tester.pumpWidget(_app((_) async => const []));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('global-search-field')));
+      await tester.pumpAndSettle();
+      expect(field(tester).focusNode!.hasFocus, isTrue);
+
+      await tester.tap(
+        find.text(
+          'Find dives, sites, trips, gear, buddies, documents and more',
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(field(tester).focusNode!.hasFocus, isFalse);
+    });
+
+    testWidgets('a tap on a completion keeps the keyboard up', (tester) async {
+      usePhone(tester);
+      await tester.pumpWidget(_app((_) async => const []));
+      await _search(tester, 'expir');
+
+      await tester.tap(find.widgetWithText(ActionChip, 'expiryDate'));
+      await tester.pumpAndSettle();
+
+      expect(field(tester).controller!.text, 'expiryDate');
+      expect(field(tester).focusNode!.hasFocus, isTrue);
+    });
+  });
+
   group('See all hands the search to the list', () {
     Future<ProviderContainer> seeAll(
       WidgetTester tester,
