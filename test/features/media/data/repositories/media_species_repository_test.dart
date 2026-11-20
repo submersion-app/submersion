@@ -1,4 +1,6 @@
+import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/media/data/repositories/media_species_repository.dart';
 
@@ -129,5 +131,31 @@ void main() {
       (await repository.getMediaForSpecies('c1')).map((m) => m.id),
       entries.map((e) => e.item.id),
     );
+  });
+
+  test('a photo with two enrichment rows is listed once', () async {
+    // media_enrichment is keyed by its own id, so two devices that each
+    // enriched the photo can leave two rows for it after a sync.
+    final db = DatabaseService.instance.database;
+    for (final id in ['e1', 'e2']) {
+      await db
+          .into(db.mediaEnrichment)
+          .insert(
+            MediaEnrichmentCompanion(
+              id: Value(id),
+              mediaId: const Value('m1'),
+              diveId: const Value('d1'),
+              depthMeters: Value(id == 'e1' ? 12.0 : 12.5),
+              createdAt: const Value(0),
+            ),
+          );
+    }
+    await repository.addTag(mediaId: 'm1', speciesId: 'c1');
+
+    final entries = await repository.getMediaEntriesForSpecies('c1');
+    final items = await repository.getMediaForSpecies('c1');
+
+    expect(entries.map((e) => e.item.id), ['m1']);
+    expect(items.map((m) => m.id), ['m1']);
   });
 }
