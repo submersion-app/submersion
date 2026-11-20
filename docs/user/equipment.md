@@ -12,8 +12,14 @@ attention before your next dive.
 
 ## Adding gear
 
-Tap **Add Equipment** to create an item. Only **Type** and **Name** are
-required.
+Tap **Add Equipment** to create an item. It opens on its own page, unlocked:
+fill in its cards and tap **Save**. Only **Type** and **Name** are required.
+
+To change an item later, open it and tap the lock (in the top bar on a phone,
+in the pane's header on desktop), open the cards you want with their pencils,
+then tap **Save**. Everything done on the item's page, logging a service and
+moving it included, waits for that **Save** and adds one entry to its
+**History**. **Cancel** discards it all.
 
 | Field | Notes |
 |-------|-------|
@@ -169,8 +175,8 @@ defaults are in **Settings > Notifications**:
 The longest day in the reminder schedule is also how early a date-based clock
 reads as due soon.
 
-To change reminders for one item, open its edit form and use
-**Notifications (Optional)**: **Use Custom Reminders** sets different days for this item, and
+To change reminders for one item, unlock it and open its **Service clocks**
+card: **Use Custom Reminders** sets different days for this item, and
 **Disable Reminders** turns its reminders off.
 
 ## Exposure and condition

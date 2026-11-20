@@ -55,21 +55,15 @@ import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
 import 'package:submersion/shared/widgets/record_editing/record_open_unlocked.dart';
 import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 import 'package:submersion/shared/widgets/record_editing/record_sitting_refusal.dart';
-import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
 part 'equipment_set_detail_page_creating.dart';
 part 'equipment_set_detail_page_editing.dart';
 part 'equipment_set_detail_page_sections.dart';
 
-/// An equipment set's page. Behind phase 3's switch ([unlockEditing]) it
-/// opens locked and edits in place (issue #4527): its cards are held in one
-/// sitting and written by one Save.
+/// An equipment set's page. It opens locked and edits in place (issue #4527):
+/// its cards are held in one sitting and written by one Save.
 class EquipmentSetDetailPage extends ConsumerStatefulWidget {
   final String setId;
-
-  /// Whether the page edits in place: phase 3's switch, a parameter so a
-  /// test can turn it on.
-  final bool unlockEditing;
 
   /// Opens unlocked, as the old edit address asks (`?mode=edit`).
   final bool openUnlocked;
@@ -85,17 +79,14 @@ class EquipmentSetDetailPage extends ConsumerStatefulWidget {
   const EquipmentSetDetailPage({
     super.key,
     required this.setId,
-    this.unlockEditing = kUnlockRecordEditing,
     this.openUnlocked = false,
     this.onSittingEnded,
   }) : newSet = null;
 
-  /// A new set's page, unlocked whatever the switch: only the switch's
-  /// openers build it.
+  /// A new set's page.
   const EquipmentSetDetailPage.newSet({super.key, String? cloneFromId})
     : newSet = (cloneFromId: cloneFromId),
       setId = '',
-      unlockEditing = true,
       openUnlocked = false,
       onSittingEnded = null;
 
@@ -113,10 +104,6 @@ class _EquipmentSetDetailPageState extends ConsumerState<EquipmentSetDetailPage>
         _EquipmentSetDetailPageSections,
         RecordCreating<EquipmentSetDetailPage, EquipmentSet>,
         _EquipmentSetDetailPageCreating {
-  /// The menu value that shows or hides the diver figure, shared by the menu
-  /// item and its handler so the two cannot drift apart.
-  static const _toggleFigureAction = 'toggleFigure';
-
   /// The menu value that clones the set (issue #2156).
   static const _cloneAction = 'clone';
 
@@ -143,7 +130,7 @@ class _EquipmentSetDetailPageState extends ConsumerState<EquipmentSetDetailPage>
           _buildContent(context, shownRecord(seed!), seed);
     }
     final setAsync = ref.watch(equipmentSetProvider(setId));
-    if (hostsEditing) followStored(equipmentSetProvider(setId));
+    followStored(equipmentSetProvider(setId));
 
     return setAsync.when(
       data: (set) {
@@ -157,7 +144,6 @@ class _EquipmentSetDetailPageState extends ConsumerState<EquipmentSetDetailPage>
             ),
           );
         }
-        if (!hostsEditing) return _buildContent(context, set, set);
         openUnlockedOnce(set);
         return _buildContent(context, shownRecord(set), set);
       },

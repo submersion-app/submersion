@@ -2,7 +2,7 @@ part of 'equipment_detail_page.dart';
 
 /// The gear item page's menu (issue #4527, phase 3, plan 6): History, Open
 /// in Connections and Clone work locked; Transfer and Delete are
-/// whole-record operations where the page edits in place, under the lock.
+/// whole-record operations, under the lock.
 extension _EquipmentDetailMenu on _EquipmentDetailContent {
   /// The overflow menu shared by the standalone and embedded headers.
   Widget _buildMenu(BuildContext context, WidgetRef ref) {
@@ -30,7 +30,7 @@ extension _EquipmentDetailMenu on _EquipmentDetailContent {
     required bool canDelete,
     required bool canTransfer,
   }) {
-    final operationsAvailable = recordOperationsAvailable(host?.editController);
+    final operationsAvailable = recordOperationsAvailable(host.editController);
     return [
       changeLogHistoryMenuItem(
         context,
@@ -48,7 +48,7 @@ extension _EquipmentDetailMenu on _EquipmentDetailContent {
       ),
       // Transfer and Delete are whole-record operations, under the lock.
       if (canTransfer || canDelete)
-        ...recordOperationMenuCaption<String>(context, host?.editController),
+        ...recordOperationMenuCaption<String>(context, host.editController),
       if (canTransfer)
         PopupMenuItem(
           value: 'transfer',
@@ -95,14 +95,8 @@ extension _EquipmentDetailMenu on _EquipmentDetailContent {
     }
   }
 
-  /// Runs [operation] through the sitting where the page edits in place,
-  /// else at once, as before.
+  /// Runs [operation] through the sitting.
   Future<void> _operation(Future<bool> Function() operation) async {
-    final host = this.host;
-    if (host == null) {
-      await operation();
-      return;
-    }
     await recordOperationRunnerOf(
       host.editController,
       record: 'equipment $equipmentId',

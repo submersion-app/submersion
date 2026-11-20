@@ -35,10 +35,9 @@ class TwinSetCard extends ConsumerWidget {
   /// sitting's Worn as (issue #4527, phase 3). The stored item when null.
   final EquipmentItem? working;
 
-  /// The open card's sitting: pairing, replacing, unlinking and deleting
-  /// are held there until Save. On a page that edits in place and with no
-  /// sitting given, the card reads only; during a sitting every view shows
-  /// its pairings.
+  /// The open card's sitting: pairing, replacing, unlinking and deleting are
+  /// held there until Save. With no sitting given, the card reads only; during
+  /// a sitting every view shows its pairings.
   final EditSession<EquipmentItem>? editing;
 
   @override

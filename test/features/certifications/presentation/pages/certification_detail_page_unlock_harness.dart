@@ -88,14 +88,12 @@ class CertificationPageHarness {
 
 final _storedProvider = StateProvider<Certification?>((ref) => openWater);
 
-/// Pumps the certification page with the phase 3 switch on (unless
-/// [unlockEditing] is false), at phone width, or as the list's pane when
+/// Pumps the certification page, at phone width, or as the list's pane when
 /// [embedded].
 Future<CertificationPageHarness> pumpCertificationPage(
   WidgetTester tester, {
   Brightness brightness = Brightness.light,
   Certification? certification,
-  bool unlockEditing = true,
   bool openUnlocked = false,
   bool embedded = false,
   Size size = const Size(600, 1400),
@@ -110,7 +108,6 @@ Future<CertificationPageHarness> pumpCertificationPage(
   late CertificationPageHarness harness;
   final page = CertificationDetailPage(
     certificationId: shown.id,
-    unlockEditing: unlockEditing,
     openUnlocked: openUnlocked,
     embedded: embedded,
     onSittingEnded: onSittingEnded,

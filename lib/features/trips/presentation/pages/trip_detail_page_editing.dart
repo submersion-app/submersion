@@ -35,9 +35,6 @@ mixin _TripDetailPageEditing
   String get hostRecordId => widget.tripId;
 
   @override
-  bool get hostsEditing => widget.unlockEditing;
-
-  @override
   bool openUnlockedOf(TripDetailPage widget) => widget.openUnlocked;
 
   @override

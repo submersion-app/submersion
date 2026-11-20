@@ -11,8 +11,6 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
-import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
-import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/site_picker_sheet.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/track_camera.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_corner_controls.dart';
@@ -23,7 +21,6 @@ import 'package:submersion/features/maps/presentation/widgets/world_copies.dart'
 import 'package:submersion/features/nav_track/data/services/nav_track_edit_save_service.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
-import 'package:submersion/features/nav_track/domain/nav_track_site_anchor_rule.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_stats.dart';
 import 'package:submersion/features/nav_track/presentation/editing/nav_track_card_ids.dart';
 import 'package:submersion/features/nav_track/presentation/editing/nav_track_edit_cards.dart';
@@ -35,13 +32,10 @@ import 'package:submersion/features/nav_track/presentation/providers/nav_track_p
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_correction_card.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_detail_cards.dart';
-import 'package:submersion/features/nav_track/presentation/widgets/nav_track_dive_choice.dart';
-import 'package:submersion/features/nav_track/presentation/widgets/nav_track_equipment_picker_sheet.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_marker_layer.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_polyline_layer.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_recorder_card.dart';
 import 'package:submersion/features/tracks/domain/track_list_item.dart';
-import 'package:submersion/features/tracks/presentation/track_item_location.dart';
 import 'package:submersion/features/tracks/presentation/widgets/delete_track_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
@@ -52,7 +46,6 @@ import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart
 import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
 import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
-import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
 part 'nav_track_detail_page_editing.dart';
 
@@ -60,14 +53,12 @@ part 'nav_track_detail_page_editing.dart';
 /// status, and 3D (spec 2026-09-10-underwater-nav-track-design.md, "The
 /// routes area", detail page).
 ///
-/// Behind phase 3's switch ([unlockEditing]) it opens locked and edits in
-/// place (issue #4527, plan 5): its name, dive, site, device and correction
-/// are held in one sitting and written by one Save.
+/// It opens locked and edits in place (issue #4527, plan 5): its name, dive,
+/// site, device and correction are held in one sitting and written by one Save.
 class NavTrackDetailPage extends ConsumerStatefulWidget {
   const NavTrackDetailPage({
     super.key,
     required this.trackId,
-    this.unlockEditing = kUnlockRecordEditing,
     this.fileActions = const NavTrackFileActions(),
   });
 
@@ -76,10 +67,6 @@ class NavTrackDetailPage extends ConsumerStatefulWidget {
   /// Update from file and Export CSV, with their file picker and export,
   /// which a test replaces.
   final NavTrackFileActions fileActions;
-
-  /// Whether the page edits in place: phase 3's switch, a parameter so a
-  /// test can turn it on.
-  final bool unlockEditing;
 
   @override
   ConsumerState<NavTrackDetailPage> createState() => _NavTrackDetailPageState();
@@ -109,134 +96,6 @@ class _NavTrackDetailPageState extends ConsumerState<NavTrackDetailPage>
     disposeEditing();
     _dropPreviewLater();
     super.dispose();
-  }
-
-  // What the page writes at once where it does not edit in place.
-
-  Future<void> _rename(NavTrack route) async {
-    final l10n = context.l10n;
-    final controller = TextEditingController(text: route.name ?? '');
-    final newName = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.navTrack_detail_renameTrackTitle),
-        content: TextField(controller: controller, autofocus: true),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(l10n.navTrack_common_cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(controller.text),
-            child: Text(l10n.navTrack_common_save),
-          ),
-        ],
-      ),
-    );
-    if (newName == null) return;
-    await ref
-        .read(navTrackRepositoryProvider)
-        .rename(route.id, newName.trim().isEmpty ? null : newName.trim());
-  }
-
-  Future<void> _unlink(NavTrack route) async {
-    await ref.read(navTrackRepositoryProvider).unlink(route.id);
-  }
-
-  Future<void> _changeDevice(NavTrack route) async {
-    final choice = await pickNavTrackEquipment(
-      context,
-      selectedEquipmentId: route.equipmentId,
-    );
-    if (!mounted) return;
-    final repository = ref.read(navTrackRepositoryProvider);
-    switch (choice) {
-      case NavTrackEquipmentChosen(:final item):
-        await repository.setEquipment(
-          route.id,
-          equipmentId: item.id,
-          deviceName: item.name,
-        );
-      case NavTrackEquipmentCleared():
-        await repository.setEquipment(route.id);
-      case NavTrackEquipmentPickCancelled():
-        break;
-    }
-  }
-
-  Future<void> _delete(NavTrack route) async {
-    if (!await _confirmDelete()) return;
-    await ref.read(navTrackRepositoryProvider).delete(route.id);
-    if (!mounted) return;
-    forgetOpenedTrack(ref, UnderwaterTrackItem(route));
-    context.pop();
-  }
-
-  Future<void> _chooseDive(NavTrack route) async {
-    final linkedId = route.diveId;
-    final chosen = await chooseNavTrackDive(
-      context,
-      ref,
-      route,
-      linkedId: linkedId,
-    );
-    if (chosen == null || !mounted) return;
-    final repository = ref.read(navTrackRepositoryProvider);
-    if (linkedId == null) {
-      await repository.link(
-        route.id,
-        chosen,
-        linkMode: NavTrackLinkMode.manual,
-      );
-    } else {
-      await repository.relink(
-        route.id,
-        fromDiveId: linkedId,
-        toDiveId: chosen,
-        linkMode: NavTrackLinkMode.manual,
-      );
-    }
-  }
-
-  /// Opens the same site picker the import review page uses and, on a
-  /// choice, persists the new site. "New Dive Site" opens the site form
-  /// seeded with the route's anchor and assigns the site once it is saved.
-  ///
-  /// The anchor follows the new site's pin only when the diver never moved
-  /// the start point away from the old site's pin: the current anchor is
-  /// unset, or still exactly equals the old site's stored location. If the
-  /// diver already corrected the start point by hand, changing the site
-  /// must not silently move that correction (item 5).
-  Future<void> _changeSite(NavTrack route) async {
-    final oldSiteId = route.siteId;
-    final oldSiteLocation = oldSiteId == null
-        ? null
-        : await ref
-              .read(siteProvider(oldSiteId).future)
-              .then((s) => s?.location);
-    if (!mounted) return;
-
-    final site = await pickOrCreateSite(
-      context,
-      ref,
-      selectedSiteId: oldSiteId,
-      newSiteSeedLocation: route.anchor,
-    );
-    if (site == null || !mounted) return;
-
-    final anchorChange = navTrackAnchorChangeForSite(
-      route.anchor,
-      oldSiteLocation,
-      site.location,
-    );
-    await ref
-        .read(navTrackRepositoryProvider)
-        .setSite(
-          route.id,
-          site.id,
-          anchor: anchorChange.anchor,
-          clearAnchor: anchorChange.write && anchorChange.anchor == null,
-        );
   }
 
   // The bar and the menu.
@@ -299,25 +158,16 @@ class _NavTrackDetailPageState extends ConsumerState<NavTrackDetailPage>
         push: () => context.push(underwaterTrackSeascapeLocation(shown.id)),
       );
 
-  /// The align page: its own address where the page does not edit in
-  /// place; otherwise pushed with this page's sitting, if one is open, so
+  /// The align page, pushed with this page's sitting, if one is open, so
   /// it hands its correction to it, and reading only if none is.
   void _openAlign(NavTrack route) {
-    if (!hostsEditing) {
-      context.push(underwaterTrackAlignLocation(route.id));
-      return;
-    }
     pushSatellite<void>(
-      (joined) => NavTrackAlignPage(
-        routeId: route.id,
-        joinedSitting: joined,
-        unlockEditing: true,
-      ),
+      (joined) => NavTrackAlignPage(routeId: route.id, joinedSitting: joined),
     );
   }
 
-  /// The overflow menu. Where the page edits in place, the name and the
-  /// dive link are cards, so Rename and Unlink are not here.
+  /// The overflow menu. The name and the dive link are cards, so Rename
+  /// and Unlink are not here.
   // A Builder so the export can anchor the iPad share popover to this
   // button rather than to the whole page.
   ///
@@ -331,16 +181,10 @@ class _NavTrackDetailPageState extends ConsumerState<NavTrackDetailPage>
             await _open3dPreview(route, stored);
           case '3dSeascape' when stored != null:
             await _openSeascape(route, stored);
-          case 'rename':
-            await _rename(route);
-          case 'unlink':
-            await _unlink(route);
-          case 'updateFromFile' when hostsEditing:
+          case 'updateFromFile':
             await _runOperation(
               () => widget.fileActions.updateFromFile(context, ref, route),
             );
-          case 'updateFromFile':
-            await widget.fileActions.updateFromFile(context, ref, route);
           case 'exportCsv':
             await widget.fileActions.exportCsv(
               context,
@@ -348,10 +192,8 @@ class _NavTrackDetailPageState extends ConsumerState<NavTrackDetailPage>
               route,
               shareOrigin: shareAnchorFrom(menuContext),
             );
-          case 'delete' when hostsEditing:
-            await _runOperation(() => _deleteInSitting(route));
           case 'delete':
-            await _delete(route);
+            await _runOperation(() => _deleteInSitting(route));
         }
       },
       itemBuilder: (context) {
@@ -388,40 +230,17 @@ class _NavTrackDetailPageState extends ConsumerState<NavTrackDetailPage>
             rootTable: 'nav_tracks',
             rootId: trackId,
           ),
-          if (!hostsEditing)
-            PopupMenuItem(
-              value: 'rename',
-              child: Text(l10n.navTrack_detail_menuRename),
-            ),
-          if (!hostsEditing && route.diveId != null)
-            PopupMenuItem(
-              value: 'unlink',
-              child: Text(l10n.navTrack_common_unlink),
-            ),
           // Only an ENC route is read from a file this app can read again
           // and keeps that file (issue #4231).
-          if (route.source == NavTrackSource.seacraftEnc) ...[
-            if (!hostsEditing)
-              PopupMenuItem(
-                key: const ValueKey('nav-track-update-from-file'),
-                value: 'updateFromFile',
-                child: Text(l10n.navTrack_detail_menuUpdateFromFile),
-              ),
+          if (route.source == NavTrackSource.seacraftEnc)
             PopupMenuItem(
               key: const ValueKey('nav-track-export-csv'),
               value: 'exportCsv',
               child: Text(l10n.navTrack_detail_menuExportCsv),
             ),
-          ],
-          if (hostsEditing)
-            // Update from file and Delete: whole-record operations, under
-            // the lock.
-            ..._operationItems(route)
-          else
-            PopupMenuItem(
-              value: 'delete',
-              child: Text(l10n.navTrack_common_delete),
-            ),
+          // Update from file and Delete: whole-record operations, under
+          // the lock.
+          ..._operationItems(route),
         ];
       },
     ),
@@ -430,7 +249,7 @@ class _NavTrackDetailPageState extends ConsumerState<NavTrackDetailPage>
   @override
   Widget build(BuildContext context) {
     final routeAsync = ref.watch(navTrackWithMarkersProvider(trackId));
-    if (hostsEditing) followStored(navTrackWithMarkersProvider(trackId));
+    followStored(navTrackWithMarkersProvider(trackId));
     final l10n = context.l10n;
 
     return routeAsync.when(
@@ -445,18 +264,10 @@ class _NavTrackDetailPageState extends ConsumerState<NavTrackDetailPage>
             body: Center(child: Text(l10n.navTrack_common_trackNotFound)),
           );
         }
-        if (!hostsEditing) {
-          // No title in the toolbar row (#4022): a long track name no
-          // longer competes with four icons/menu items for space on a
-          // narrow window. It instead opens the body as its own
-          // emphasized card, the same box the stats card uses right below.
-          return Scaffold(
-            appBar: AppBar(
-              actions: _barActions(stored, stored, menu: _menu(stored)),
-            ),
-            body: _body(stored, stored),
-          );
-        }
+        // No title in the toolbar row (#4022): a long track name no longer
+        // competes with four icons/menu items for space on a narrow window.
+        // It instead opens the body as its own emphasized card, the same
+        // box the stats card uses right below.
         final shown = shownRecord(stored);
         return editScaffold(
           record: stored,
@@ -480,14 +291,12 @@ class _NavTrackDetailPageState extends ConsumerState<NavTrackDetailPage>
   }
 
   /// The page's cards for [shown] (the route with the sitting's changes, or
-  /// as [stored]), framed for editing in place where the page offers it.
+  /// as [stored]), framed for editing in place: they act only in a
+  /// sitting, through their editors.
   Widget _body(NavTrack stored, NavTrack shown) {
     final l10n = context.l10n;
     final units = ref.watch(unitFormatterProvider);
     final stats = _statsOf(shown.points);
-    // Where the page edits in place, the cards act only in a sitting,
-    // through their editors.
-    final acts = !hostsEditing;
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -506,27 +315,18 @@ class _NavTrackDetailPageState extends ConsumerState<NavTrackDetailPage>
         const SizedBox(height: 16),
         _framed(
           NavTrackCardId.dive,
-          NavTrackLinkCard(
-            route: shown,
-            onChooseDive: acts ? () => _chooseDive(stored) : null,
-            pencil: _pencil(NavTrackCardId.dive),
-          ),
+          NavTrackLinkCard(route: shown, pencil: _pencil(NavTrackCardId.dive)),
         ),
         const SizedBox(height: 16),
         _framed(
           NavTrackCardId.site,
-          NavTrackSiteCard(
-            route: shown,
-            onChangeSite: acts ? () => _changeSite(stored) : null,
-            pencil: _pencil(NavTrackCardId.site),
-          ),
+          NavTrackSiteCard(route: shown, pencil: _pencil(NavTrackCardId.site)),
         ),
         const SizedBox(height: 16),
         _framed(
           NavTrackCardId.device,
           NavTrackEquipmentCard(
             route: shown,
-            onChangeDevice: acts ? () => _changeDevice(stored) : null,
             pencil: _pencil(NavTrackCardId.device),
           ),
         ),
@@ -537,7 +337,7 @@ class _NavTrackDetailPageState extends ConsumerState<NavTrackDetailPage>
           NavTrackCardId.correction,
           NavTrackCorrectionCard(
             route: shown,
-            onOpen: hostsEditing ? () => _openAlign(stored) : null,
+            onOpen: () => _openAlign(stored),
             pencil: _pencil(NavTrackCardId.correction),
           ),
         ),

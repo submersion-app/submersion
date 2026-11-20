@@ -70,11 +70,6 @@ void main() {
     (l, n) => l.trips_detail_scan_linkedPhotos(n),
     linkedPhotos,
   );
-  check(
-    'trips_gallery_linkedPhotos',
-    (l, n) => l.trips_gallery_linkedPhotos(n),
-    linkedPhotos,
-  );
 
   check('trips_diveScan_addButton', (l, n) => l.trips_diveScan_addButton(n), {
     'en': ('Add 1 Dive', 'Add 3 Dives'),

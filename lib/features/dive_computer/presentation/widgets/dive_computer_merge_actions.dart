@@ -22,7 +22,7 @@ class DiveComputerDuplicateBanner extends ConsumerWidget {
 
   final DiveComputer computer;
 
-  /// Where the computer's gear item edits in place (issue #4527, phase 3):
+  /// On the computer's gear item page (issue #4527, phase 3):
   /// merging is a whole-record operation.
   final DiveComputerOperations? operations;
 

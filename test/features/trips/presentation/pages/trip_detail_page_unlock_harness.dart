@@ -542,15 +542,13 @@ class TripPageHarness {
 
 final _storedProvider = StateProvider<Trip?>((ref) => redSea);
 
-/// Pumps the trip page with the phase 3 switch on (unless [unlockEditing]
-/// is false), at phone width, or as the list's pane when [embedded].
+/// Pumps the trip page, at phone width, or as the list's pane when [embedded].
 /// [vessel], [days] and [dives] stand in for what the page reads besides
 /// the trip.
 Future<TripPageHarness> pumpTripPage(
   WidgetTester tester, {
   Brightness brightness = Brightness.light,
   Trip? trip,
-  bool unlockEditing = true,
   bool openUnlocked = false,
   TripEditSection? openSection,
   TripNoteDay? openNoteDay,
@@ -587,7 +585,6 @@ Future<TripPageHarness> pumpTripPage(
   late TripPageHarness harness;
   final page = TripDetailPage(
     tripId: shown.id,
-    unlockEditing: unlockEditing,
     openUnlocked: openUnlocked,
     openSection: openSection,
     openNoteDay: openNoteDay,

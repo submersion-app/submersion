@@ -121,20 +121,22 @@ class DocumentPageHarness {
 
 final _storedProvider = StateProvider<DocumentRecord?>((ref) => null);
 
-/// Pumps the document page with the phase 3 switch on (unless
-/// [unlockEditing] is false), at [size].
+/// Pumps the document page, at [size].
 Future<DocumentPageHarness> pumpDocumentPage(
   WidgetTester tester, {
   Brightness brightness = Brightness.light,
   Document? document,
   List<DocumentPage> pages = const [],
   List<String>? tagIds = const [],
-  bool unlockEditing = true,
   bool openUnlocked = false,
   bool embedded = false,
   VoidCallback? onSittingEnded,
   Size size = const Size(600, 1000),
   String? ownerLabel,
+  // The record read throws this, or (true) finds no record, while the
+  // list entry still reads.
+  Object? recordReadError,
+  bool recordMissing = false,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -150,9 +152,11 @@ Future<DocumentPageHarness> pumpDocumentPage(
       overrides: [
         ...overrides,
         _storedProvider.overrideWith((ref) => record),
-        documentRecordProvider(
-          doc.id,
-        ).overrideWith((ref) async => ref.watch(_storedProvider)),
+        documentRecordProvider(doc.id).overrideWith((ref) async {
+          if (recordReadError != null) throw recordReadError;
+          if (recordMissing) return null;
+          return ref.watch(_storedProvider);
+        }),
         documentEntryProvider(doc.id).overrideWith((ref) async {
           final now = ref.watch(_storedProvider)?.document ?? doc;
           return DocumentListEntry(now, ownerLabel, pages.length);
@@ -195,7 +199,6 @@ Future<DocumentPageHarness> pumpDocumentPage(
         ),
         child: DocumentDetailPage(
           documentId: doc.id,
-          unlockEditing: unlockEditing,
           openUnlocked: openUnlocked,
           embedded: embedded,
           onSittingEnded: onSittingEnded,

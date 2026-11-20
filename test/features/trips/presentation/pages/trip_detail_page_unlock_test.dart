@@ -55,15 +55,23 @@ void main() {
 
   final notes = l.trips_detail_sectionTitle_notes;
 
-  testWidgets('with the switch off there is no lock and the menu is '
-      'unchanged', (tester) async {
-    await pumpTripPage(tester, unlockEditing: false);
+  // The lock is the one way in (issue #4527, plan 12): no Edit pencil.
+  testWidgets('the locked bar has the lock and no Edit pencil', (tester) async {
+    await pumpTripPage(tester);
 
-    expect(find.byIcon(Icons.lock_outline), findsNothing);
-    expect(find.byIcon(Icons.edit), findsOneWidget);
-    await openMenu(tester);
-    expect(find.text(l.trips_diveScan_findButton), findsOneWidget);
-    expect(find.text(l.trips_photos_tooltip_scan), findsOneWidget);
+    expect(find.byIcon(Icons.lock_outline), findsOneWidget);
+    expect(find.widgetWithIcon(IconButton, Icons.edit), findsNothing);
+    expect(find.widgetWithIcon(IconButton, Icons.edit_outlined), findsNothing);
+  });
+
+  testWidgets('the pane header has the lock and no Edit pencil', (
+    tester,
+  ) async {
+    await pumpTripPage(tester, embedded: true);
+
+    expect(find.byIcon(Icons.lock_outline), findsOneWidget);
+    expect(find.widgetWithIcon(IconButton, Icons.edit), findsNothing);
+    expect(find.widgetWithIcon(IconButton, Icons.edit_outlined), findsNothing);
   });
 
   testWidgets('locked, no tap on any tab writes', (tester) async {
@@ -98,16 +106,6 @@ void main() {
     expect(find.text(l.checklists_addChecklist), findsNothing);
     // Starting a pre-dive session makes a record of its own.
     expect(find.text(l.trips_detail_preDive_action), findsOneWidget);
-  });
-
-  testWidgets('with the switch off the Gear and Checklist tabs offer their '
-      'actions', (tester) async {
-    await pumpTripPage(tester, unlockEditing: false);
-
-    await showTab(tester, l.trips_detail_tab_gear);
-    expect(find.byKey(const Key('trip-gear-add')), findsOneWidget);
-    await showTab(tester, l.trips_detail_tab_checklist);
-    expect(find.text(l.checklists_addChecklist), findsOneWidget);
   });
 
   testWidgets('notes in one sitting save as one entry and lock', (
@@ -261,6 +259,34 @@ void main() {
     final tabs = tester.getRect(find.byType(TabBar));
     expect(editor.bottom, lessThan(tabs.top));
   });
+
+  for (final (kind, trip) in [
+    ('to come', redSea),
+    // A past trip's Overview has the story's day strip at its top.
+    (
+      'in the past',
+      redSea.copyWith(
+        startDate: DateTime(2024, 6, 1),
+        endDate: DateTime(2024, 6, 8),
+      ),
+    ),
+  ]) {
+    testWidgets('on a phone with the keyboard up, the open header editor of '
+        'a trip $kind fits above the tab row', (tester) async {
+      await pumpTripPage(tester, trip: trip, size: const Size(402, 874));
+      tester.view.padding = const FakeViewPadding(top: 62, bottom: 34);
+      await tester.pumpAndSettle();
+      await unlock(tester);
+      await openCard(tester, l.settings_conflict_ref_trip);
+      // The keyboard, as an iPhone 17 Pro shows it for the name field.
+      tester.view.viewInsets = const FakeViewPadding(bottom: 336);
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      final tabs = tester.getRect(find.byType(TabBar));
+      expect(tabs.bottom, lessThanOrEqualTo(874 - 336));
+    });
+  }
 
   testWidgets('Cancel with changes asks first', (tester) async {
     final harness = await pumpTripPage(tester);

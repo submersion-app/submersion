@@ -44,7 +44,6 @@ void main() {
     RecordEditController<Dive>? lockable,
     bool open = false,
     Future<List<Document>> Function()? read,
-    bool unlockEditing = false,
     List<Override> overrides = const [],
   }) async {
     pushed = null;
@@ -64,7 +63,6 @@ void main() {
                           owner: owner,
                           excludeCards: excludeCards,
                           editing: open ? lockable.session : null,
-                          unlockEditing: unlockEditing,
                         ),
                       ),
                     ),
@@ -283,7 +281,6 @@ void main() {
         const [],
         lockable: controller,
         open: true,
-        unlockEditing: true,
         overrides: [
           validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
           documentRepositoryProvider.overrideWithValue(created.repository),
@@ -326,6 +323,32 @@ void main() {
       final linked = documentsInSitting(session, const []);
       expect(linked.single.title, 'Waiver');
       expect(linked.single.owner, const DocumentOwner.personal());
+    });
+
+    // Review Focus 4 (issue #4527, plan 12): the owner's Cancel leaves the
+    // document created, filed as Personal, and joins nothing.
+    testWidgets('the owner\'s Cancel keeps the Personal document and links '
+        'nothing', (t) async {
+      final created = await pumpOpen(t);
+
+      await t.tap(find.text('Add document'));
+      await t.pumpAndSettle();
+      await t.enterText(find.widgetWithText(TextFormField, 'Title'), 'Waiver');
+      await t.pumpAndSettle();
+      await t.tap(find.text('Save'));
+      await t.pumpAndSettle();
+      final session = created.controller.session!;
+      expect(documentsInSitting(session, const []), hasLength(1));
+
+      created.controller.lock();
+      await t.pumpAndSettle();
+
+      expect(created.controller.session, isNull);
+      expect(created.stored.values.single.title, 'Waiver');
+      expect(
+        created.stored.values.single.owner,
+        const DocumentOwner.personal(),
+      );
     });
 
     testWidgets('Cancel on it links nothing and creates nothing', (t) async {

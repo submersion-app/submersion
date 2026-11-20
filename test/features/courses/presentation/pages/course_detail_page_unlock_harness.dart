@@ -92,15 +92,13 @@ class CoursePageHarness {
 
 final _storedProvider = StateProvider<Course?>((ref) => rescue);
 
-/// Pumps the course page with the phase 3 switch on (unless
-/// [unlockEditing] is false), at phone width, or as the list's pane when
+/// Pumps the course page, at phone width, or as the list's pane when
 /// [embedded]. [progress], [certifications] and [buddies] stand in for what
 /// the page reads besides the course.
 Future<CoursePageHarness> pumpCoursePage(
   WidgetTester tester, {
   Brightness brightness = Brightness.light,
   Course? course,
-  bool unlockEditing = true,
   bool openUnlocked = false,
   bool embedded = false,
   Size size = const Size(600, 1600),
@@ -120,7 +118,6 @@ Future<CoursePageHarness> pumpCoursePage(
   late CoursePageHarness harness;
   final page = CourseDetailPage(
     courseId: shown.id,
-    unlockEditing: unlockEditing,
     openUnlocked: openUnlocked,
     embedded: embedded,
     onSittingEnded: onSittingEnded,

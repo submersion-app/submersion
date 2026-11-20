@@ -100,15 +100,17 @@ void main() {
     expect(find.text('CLONE FORM from=s1'), findsOneWidget);
   });
 
-  testWidgets('Clone sits just above Delete', (tester) async {
+  testWidgets('Clone is the last choice before Delete', (tester) async {
     await pump(tester, '/equipment/sets/s1');
     await tester.tap(find.byIcon(Icons.more_vert));
     await tester.pumpAndSettle();
+    // Locked, the caption that says Delete needs the unlock sits between
+    // them (issue #4527); it carries no value.
     final values = [
       for (final item in tester.widgetList<PopupMenuItem<String>>(
         find.byType(PopupMenuItem<String>),
       ))
-        item.value,
+        ?item.value,
     ];
     expect(values.sublist(values.length - 2), ['clone', 'delete']);
   });

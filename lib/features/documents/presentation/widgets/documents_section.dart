@@ -11,12 +11,10 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/documents/presentation/editing/record_document_links_sitting.dart';
 import 'package:submersion/features/documents/presentation/editing/document_new_sitting.dart';
 import 'package:submersion/features/documents/presentation/pages/document_detail_page.dart';
-import 'package:submersion/features/documents/presentation/pages/document_edit_page.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dart';
-import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
 /// The Documents card on an owner's detail page (dive, site, trip, gear,
 /// course, certification, buddy, dive center): its documents and an "Add
@@ -30,55 +28,24 @@ class DocumentsSection<T> extends ConsumerWidget {
   /// The certification page shows its card images itself.
   final bool excludeCards;
 
-  /// The open Documents card's sitting on the record (issue #4527): Add
-  /// creates a Personal document at once and holds joining it to the record;
-  /// Remove holds detaching. On a page that offers editing and with no
-  /// sitting given, the card reads only.
+  /// The open Documents card's sitting on the record (issue #4527): Add opens
+  /// the new-document page, whose Save creates a Personal document, and holds
+  /// joining it to the record; Remove holds detaching. With no sitting given,
+  /// the card reads only.
   final EditSession<T>? editing;
-
-  /// Whether Add in a sitting opens the document page on a new document
-  /// (issue #4527, phase 3, plan 11): phase 3's switch, a parameter so a
-  /// test can turn it on.
-  final bool unlockEditing;
 
   const DocumentsSection({
     super.key,
     required this.owner,
     this.excludeCards = false,
     this.editing,
-    this.unlockEditing = kUnlockRecordEditing,
   });
 
-  /// A new document, filed as Personal until the sitting is saved.
+  /// A new document, filed as Personal until the sitting is saved: the
+  /// document page on a new document, its owner not offered, which pops
+  /// with the id of the document it created as Personal; that document is
+  /// then joined to the record in [session].
   Future<void> _addInSitting(
-    BuildContext context,
-    EditSession<T> session,
-  ) async {
-    if (unlockEditing) return _addOnNewPage(context, session);
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (pageContext) => Consumer(
-          builder: (pageContext, ref, _) => DocumentEditPage(
-            ownerFixed: true,
-            onSaved: (id) async {
-              final navigator = Navigator.of(pageContext);
-              final saved = await ref
-                  .read(documentRepositoryProvider)
-                  .getById(id);
-              if (saved != null) attachDocument(session, saved);
-              navigator.pop();
-            },
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// [_addInSitting] behind the switch: the document page on a new
-  /// document, its owner not offered, which pops with the id of the
-  /// document it created as Personal; that document is then joined to the
-  /// record in [session], as the form's was.
-  Future<void> _addOnNewPage(
     BuildContext context,
     EditSession<T> session,
   ) async {

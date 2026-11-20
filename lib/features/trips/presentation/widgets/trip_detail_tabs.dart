@@ -26,13 +26,11 @@ export 'package:submersion/features/trips/presentation/widgets/trip_detail_tab.d
 class TripDetailTabs extends ConsumerStatefulWidget {
   final TripWithStats tripWithStats;
 
-  /// Where the Overview's Plan row goes; null pushes the edit page.
-  final VoidCallback? onEditPlan;
-
-  /// Opens the trip editor at a day's note (#4625); null hides the action.
+  /// Opens the Notes card at a day's note (#4625, issue #4527); null hides
+  /// the action.
   final ValueChanged<TripNoteDay>? onEditDayNote;
 
-  /// The tab controller of a page that edits in place (issue #4527), which
+  /// The trip page's tab controller (issue #4527), which
   /// needs to know the tab in view and to bring another forward. With one,
   /// each tab is kept alive while the trip is unlocked. Null uses a tab
   /// controller of its own.
@@ -45,7 +43,6 @@ class TripDetailTabs extends ConsumerStatefulWidget {
   const TripDetailTabs({
     super.key,
     required this.tripWithStats,
-    this.onEditPlan,
     this.onEditDayNote,
     this.controller,
     this.storySelection,
@@ -86,7 +83,6 @@ class _TripDetailTabsState extends ConsumerState<TripDetailTabs> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final tripWithStats = widget.tripWithStats;
-    final onEditPlan = widget.onEditPlan;
     final trip = tripWithStats.trip;
     // Held here for the same reason as the selection above: the story's day
     // picker reads which plans were dived, and that read is dropped with the
@@ -141,7 +137,6 @@ class _TripDetailTabsState extends ConsumerState<TripDetailTabs> {
                   onOpenTab: controller == null
                       ? null
                       : (tab) => controller.animateTo(tab.index),
-                  onEditPlan: onEditPlan,
                   selection: _storySelection,
                   onEditDayNote: widget.onEditDayNote,
                 ),

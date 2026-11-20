@@ -114,7 +114,7 @@ class DocumentsPage extends ConsumerWidget {
           color: Theme.of(context).colorScheme.outlineVariant,
         ),
       ),
-      // Behind phase 3's switch, the page opened unlocked (issue #4527).
+      // The page opened unlocked (issue #4527).
       editBuilder: (context, id, onSaved, onCancel) => documentEditPane(
         context,
         id,
@@ -122,7 +122,7 @@ class DocumentsPage extends ConsumerWidget {
         onCancel,
         onDeleted: () => context.go(GoRouterState.of(context).uri.path),
       ),
-      // Behind phase 3's switch, the page on a new document (plan 11).
+      // The page on a new document (plan 11).
       createBuilder: (context, onSaved, onCancel) =>
           newDocumentPane(context, onSaved, onCancel, initialType: initialType),
       floatingActionButton: fab,

@@ -63,18 +63,6 @@ void main() {
   final trimTitle = l.gpsTrack_editCard_trim;
   final headerTitle = l.gpsTrack_detail_title;
 
-  testWidgets('with the switch off there is no lock and the menu offers Trim', (
-    tester,
-  ) async {
-    await pumpGpsTrackPage(tester, unlockEditing: false);
-
-    expect(find.byIcon(Icons.lock_outline), findsNothing);
-    expect(find.byKey(const ValueKey('gps-track-header-block')), findsNothing);
-    await tester.tap(find.byKey(const ValueKey('gps-track-overflow')));
-    await tester.pumpAndSettle();
-    expect(find.text(l.gpsTrack_action_trim), findsOneWidget);
-  });
-
   testWidgets('locked, no tap writes and the menu offers no Trim', (
     tester,
   ) async {
@@ -91,7 +79,6 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('gps-track-overflow')));
     await tester.pumpAndSettle();
 
-    expect(find.text(l.gpsTrack_action_trim), findsNothing);
     expect(find.text(l.gpsTrack_action_resetTrim), findsNothing);
     expect(harness.save.calls, isEmpty);
     expect(find.byType(RecordEditBar), findsNothing);

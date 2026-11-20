@@ -305,20 +305,12 @@ class _ControlsPanel extends ConsumerWidget {
                         child: Text(l10n.navTrack_common_cancel),
                       ),
                       const Spacer(),
-                      // In the track's sitting, Done hands the correction
-                      // to it; Save writes it otherwise.
-                      if (state._joined != null)
-                        FilledButton(
-                          key: const ValueKey('nav-track-align-done'),
-                          onPressed: state._done,
-                          child: Text(l10n.common_action_done),
-                        )
-                      else
-                        FilledButton(
-                          key: const ValueKey('nav-track-align-save'),
-                          onPressed: () => state._save(route),
-                          child: Text(l10n.navTrack_common_save),
-                        ),
+                      // Done hands the correction to the track's sitting.
+                      FilledButton(
+                        key: const ValueKey('nav-track-align-done'),
+                        onPressed: state._done,
+                        child: Text(l10n.common_action_done),
+                      ),
                     ],
                   ),
                 ],

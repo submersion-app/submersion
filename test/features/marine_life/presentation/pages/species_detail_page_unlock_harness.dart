@@ -167,13 +167,11 @@ class SpeciesPageHarness {
 
 final _storedProvider = StateProvider<Species?>((ref) => manta);
 
-/// Pumps the species page with the phase 3 switch on (unless
-/// [unlockEditing] is false), its calculated sections empty, at phone width.
+/// Pumps the species page, its calculated sections empty, at phone width.
 Future<SpeciesPageHarness> pumpSpeciesPage(
   WidgetTester tester, {
   Brightness brightness = Brightness.light,
   Species species = manta,
-  bool unlockEditing = true,
   bool openUnlocked = false,
   Locale locale = const Locale('en'),
   SpeciesLookupOutcome? lookupAnswer,
@@ -263,7 +261,6 @@ Future<SpeciesPageHarness> pumpSpeciesPage(
                 ),
                 child: SpeciesDetailPage(
                   speciesId: species.id,
-                  unlockEditing: unlockEditing,
                   openUnlocked: openUnlocked,
                 ),
               )

@@ -13,7 +13,7 @@ import 'package:submersion/shared/widgets/record_editing/record_satellite.dart';
 /// Opens [item]'s passport from its page: the cylinder passport for a tank,
 /// the gear passport for anything else.
 ///
-/// On a page that edits in place (issue #4527, phase 3) the passport is a
+/// From the item's page (issue #4527, phase 3) the passport is a
 /// satellite of the item: pushed while the page is unlocked, it joins the
 /// page's sitting; pushed while it is locked, it has a lock of its own and
 /// its Save writes one History entry on the item. Elsewhere it opens its
@@ -34,15 +34,7 @@ Future<void> openItemPassport(BuildContext context, EquipmentItem item) async {
     context,
     rootNavigator: false,
     builder: (joined) => tank
-        ? PassportPage(
-            equipmentId: item.id,
-            joined: joined,
-            unlockEditing: true,
-          )
-        : GearPassportPage(
-            equipmentId: item.id,
-            joined: joined,
-            unlockEditing: true,
-          ),
+        ? PassportPage(equipmentId: item.id, joined: joined)
+        : GearPassportPage(equipmentId: item.id, joined: joined),
   );
 }

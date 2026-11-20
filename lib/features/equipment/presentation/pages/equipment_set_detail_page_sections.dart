@@ -1,9 +1,8 @@
 part of 'equipment_set_detail_page.dart';
 
-/// The equipment set page's read sections, its bar and its menu. Where the
-/// page edits in place ([RecordEditHost.hostsEditing]) each section is a
-/// card of the sitting, drawn from the record the page shows: the sitting's
-/// while unlocked.
+/// The equipment set page's read sections, its bar and its menu. Each
+/// section is a card of the sitting, drawn from the record the page shows:
+/// the sitting's while unlocked.
 mixin _EquipmentSetDetailPageSections
     on
         ConsumerState<EquipmentSetDetailPage>,
@@ -19,13 +18,9 @@ mixin _EquipmentSetDetailPageSections
     EquipmentSet shown,
     EquipmentSet stored,
   ) {
-    final setId = stored.id;
-    final editing = hostsEditing;
     // The gear the set applies, as the sitting has it while unlocked
     // (Question 4): its own and that of the sets it includes.
-    final items =
-        (editing ? setItemsShown(ref, shown, stored) : stored.items) ??
-        const <EquipmentItem>[];
+    final items = setItemsShown(ref, shown, stored) ?? const <EquipmentItem>[];
     // Labelled as one list, so identical items in the set read differently
     // from each other (#1549).
     final labels = equipmentRowLabelsOf(context, ref, items);
@@ -151,7 +146,7 @@ mixin _EquipmentSetDetailPageSections
                 ),
                 const SizedBox(height: 8),
                 if (items.isEmpty)
-                  _buildEmptyMembers(context, setId)
+                  _buildEmptyMembers(context)
                 else
                   for (final group in groups) ...[
                     if (group.type != null)
@@ -201,20 +196,7 @@ mixin _EquipmentSetDetailPageSections
                   EquipmentSetCardId.geofences,
                 ),
                 const SizedBox(height: 8),
-                if (editing)
-                  _buildGeofenceRows(context, shown.geofences)
-                else
-                  Consumer(
-                    builder: (context, ref, _) {
-                      final fencesAsync = ref.watch(
-                        equipmentSetGeofencesProvider(setId),
-                      );
-                      return fencesAsync.maybeWhen(
-                        data: (fences) => _buildGeofenceRows(context, fences),
-                        orElse: () => const SizedBox.shrink(),
-                      );
-                    },
-                  ),
+                _buildGeofenceRows(context, shown.geofences),
               ],
             ),
           ),
@@ -225,20 +207,8 @@ mixin _EquipmentSetDetailPageSections
     final menu = _buildMenu(context, shown);
     final bar = AppBar(
       title: Text(shown.name),
-      actions: [
-        if (editing) lockButton(shown),
-        IconButton(
-          icon: const Icon(Icons.edit),
-          tooltip: context.l10n.equipment_setDetail_editTooltip,
-          // Where the page edits in place, Edit unlocks it as the lock does.
-          onPressed: editing
-              ? () => editController.unlock(shown)
-              : () => context.push('/equipment/sets/$setId/edit'),
-        ),
-        menu,
-      ],
+      actions: [lockButton(shown), menu],
     );
-    if (!editing) return Scaffold(appBar: bar, body: body);
     return editScaffold(
       record: stored,
       shown: shown,
@@ -249,8 +219,7 @@ mixin _EquipmentSetDetailPageSections
   }
 
   /// The header block: the set's name, its Default chip, its description,
-  /// auto-apply where the page edits in place and it is on, and the count
-  /// of what it applies (calculated).
+  /// auto-apply when it is on, and the count of what it applies (calculated).
   Widget _buildHeaderCard(
     BuildContext context,
     EquipmentSet set,
@@ -302,13 +271,12 @@ mixin _EquipmentSetDetailPageSections
                           ],
                         ),
                       ),
-                      if (hostsEditing)
-                        RecordCardPencil(
-                          cardTitle: _cardTitle(
-                            context,
-                            EquipmentSetCardId.header,
-                          ),
+                      RecordCardPencil(
+                        cardTitle: _cardTitle(
+                          context,
+                          EquipmentSetCardId.header,
                         ),
+                      ),
                     ],
                   ),
                   if (set.description.isNotEmpty) ...[
@@ -320,7 +288,7 @@ mixin _EquipmentSetDetailPageSections
                   ],
                   // Shown nowhere before the page edited in place (decision
                   // 7).
-                  if (hostsEditing && set.autoApplyOnComputerImport) ...[
+                  if (set.autoApplyOnComputerImport) ...[
                     const SizedBox(height: 4),
                     Row(
                       children: [
@@ -361,9 +329,9 @@ mixin _EquipmentSetDetailPageSections
     );
   }
 
-  /// The Members card with no gear. Where the page edits in place its
-  /// pencil opens the editor, so the button to the form goes (Call 6).
-  Widget _buildEmptyMembers(BuildContext context, String setId) {
+  /// The Members card with no gear: its pencil opens the editor
+  /// (Call 6).
+  Widget _buildEmptyMembers(BuildContext context) {
     final theme = Theme.of(context);
     return Card(
       child: Padding(
@@ -385,16 +353,6 @@ mixin _EquipmentSetDetailPageSections
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
-              if (!hostsEditing) ...[
-                const SizedBox(height: 16),
-                OutlinedButton.icon(
-                  onPressed: () => context.push('/equipment/sets/$setId/edit'),
-                  icon: const Icon(Icons.add),
-                  label: Text(
-                    context.l10n.equipment_setDetail_addEquipmentButton,
-                  ),
-                ),
-              ],
             ],
           ),
         ),
@@ -420,27 +378,24 @@ mixin _EquipmentSetDetailPageSections
           ],
         );
 
-  /// A section's title, with the card's pencil where the page edits in
-  /// place.
+  /// A section's title, with the card's pencil.
   Widget _titleRow(BuildContext context, String title, EquipmentSetCardId id) =>
       Row(
         children: [
           Expanded(
             child: Text(title, style: Theme.of(context).textTheme.titleMedium),
           ),
-          if (hostsEditing)
-            RecordCardPencil(cardTitle: _cardTitle(context, id)),
+          RecordCardPencil(cardTitle: _cardTitle(context, id)),
         ],
       );
 
-  /// [card], a card with no title row, with the pencil in its top corner
-  /// where the page edits in place. Locked, the pencil takes no room.
+  /// [card], a card with no title row, with the pencil in its top corner.
+  /// Locked, the pencil takes no room.
   Widget _cornerPencil(
     BuildContext context,
     EquipmentSetCardId id,
     Widget card,
   ) {
-    if (!hostsEditing) return card;
     return Stack(
       children: [
         card,
@@ -554,14 +509,13 @@ mixin _EquipmentSetDetailPageSections
     );
   }
 
-  /// The bar's menu. Where the page edits in place, Show figure and Set as
-  /// default are the Figure and header cards' (Question 1), and Delete is a
-  /// whole-record operation under the lock.
+  /// The bar's menu. Show figure and Set as default are the Figure and
+  /// header cards' (Question 1), and Delete is a whole-record operation
+  /// under the lock.
   Widget _buildMenu(BuildContext context, EquipmentSet set) {
     // Nothing acts on a set not yet created (plan 11, call 3).
     if (isCreating) return const SizedBox.shrink();
-    final editing = hostsEditing;
-    final controller = editing ? editController : null;
+    final controller = editController;
     return PopupMenuButton<String>(
       onSelected: (value) => _handleMenuAction(context, value, set),
       itemBuilder: (context) => [
@@ -570,32 +524,6 @@ mixin _EquipmentSetDetailPageSections
           rootTable: 'equipment_sets',
           rootId: set.id,
         ),
-        if (!editing)
-          PopupMenuItem(
-            value: _EquipmentSetDetailPageState._toggleFigureAction,
-            child: ListTile(
-              leading: Icon(
-                set.showFigure
-                    ? Icons.visibility_off_outlined
-                    : Icons.accessibility_new,
-              ),
-              title: Text(
-                set.showFigure
-                    ? context.l10n.equipment_setDetail_hideFigure
-                    : context.l10n.equipment_setDetail_showFigure,
-              ),
-              contentPadding: EdgeInsets.zero,
-            ),
-          ),
-        if (!editing && !set.isDefault)
-          PopupMenuItem(
-            value: 'setAsDefault',
-            child: ListTile(
-              leading: const Icon(Icons.star_outline),
-              title: Text(context.l10n.equipment_setDetail_setAsDefault),
-              contentPadding: EdgeInsets.zero,
-            ),
-          ),
         // Clone (issue #2156), just above Delete. It creates another set,
         // so it works locked.
         PopupMenuItem(
@@ -632,32 +560,7 @@ mixin _EquipmentSetDetailPageSections
       await cloneEquipmentSet(context, set.id);
       return;
     }
-    if (action == _EquipmentSetDetailPageState._toggleFigureAction) {
-      await ref
-          .read(equipmentSetListNotifierProvider.notifier)
-          .setShowFigure(set.id, !set.showFigure);
-      return;
-    }
-    if (action == 'setAsDefault') {
-      await ref
-          .read(equipmentSetListNotifierProvider.notifier)
-          .setAsDefault(set.id);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              context.l10n.equipment_setDetail_setAsDefaultSnackbar(set.name),
-            ),
-          ),
-        );
-      }
-      return;
-    }
     if (action == 'delete') {
-      if (!hostsEditing) {
-        await _confirmDelete(context, set.id);
-        return;
-      }
       recordOperationRunnerOf(
         editController,
         record: 'equipment set ${set.id}',

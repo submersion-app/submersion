@@ -25,7 +25,7 @@ import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 /// links here, loaned or in everyday family use. Builds nothing, its spacing
 /// included, when there is none, so most buddies show no trace of it.
 ///
-/// On a page that edits in place (issue #4527, phase 3) it offers nothing
+/// On the buddy's page (issue #4527, phase 3) it offers nothing
 /// while locked ([readOnly]); in the page's sitting ([editing]) Lend gear,
 /// All returned and Returned are asked about at once and held until Save,
 /// and the rows show the gear as the sitting holds it.

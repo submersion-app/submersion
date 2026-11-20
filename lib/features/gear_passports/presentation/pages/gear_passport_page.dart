@@ -30,23 +30,20 @@ import 'package:submersion/shared/widgets/record_editing/record_card_fade.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
-import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
 /// One item's gear passport (gear tag spec 9). A tank shows the cylinder
 /// passport instead, so a stale link or a retyped item never lands on the
 /// wrong page.
 ///
-/// Behind phase 3's switch ([unlockEditing]) it is a satellite page of the
-/// item (issue #4527), as the cylinder passport is: opened alone it has its
-/// own lock and Save, pushed from an unlocked item page ([joined]) it joins
-/// that sitting.
+/// It is a satellite page of the item (issue #4527), as the cylinder passport
+/// is: opened alone it has its own lock and Save, pushed from an unlocked item
+/// page ([joined]) it joins that sitting.
 class GearPassportPage extends ConsumerStatefulWidget {
   const GearPassportPage({
     super.key,
     required this.equipmentId,
     this.scannedTag,
     this.joined,
-    this.unlockEditing = kUnlockRecordEditing,
   });
 
   final String equipmentId;
@@ -54,10 +51,6 @@ class GearPassportPage extends ConsumerStatefulWidget {
 
   /// The item page's sitting this page was pushed into, while unlocked.
   final RecordEditController<EquipmentItem>? joined;
-
-  /// Whether the page edits in place: phase 3's switch, a parameter so a
-  /// test can turn it on.
-  final bool unlockEditing;
 
   @override
   ConsumerState<GearPassportPage> createState() => _GearPassportPageState();
@@ -71,9 +64,6 @@ class _GearPassportPageState extends ConsumerState<GearPassportPage>
 
   @override
   String get hostRecordId => widget.equipmentId;
-
-  @override
-  bool get hostsEditing => widget.unlockEditing;
 
   @override
   RecordEditController<EquipmentItem>? get joinedSitting => widget.joined;
@@ -114,10 +104,9 @@ class _GearPassportPageState extends ConsumerState<GearPassportPage>
     super.dispose();
   }
 
-  /// [child] as [card] where the page edits in place.
-  Widget _framed(EditCard<EquipmentItem> card, Widget child) => hostsEditing
-      ? RecordCardFrame<EquipmentItem>(card: card, child: child)
-      : child;
+  /// [child] as [card].
+  Widget _framed(EditCard<EquipmentItem> card, Widget child) =>
+      RecordCardFrame<EquipmentItem>(card: card, child: child);
 
   @override
   void initState() {
@@ -176,14 +165,10 @@ class _GearPassportPageState extends ConsumerState<GearPassportPage>
     final equipmentAsync = ref.watch(equipmentItemProvider(widget.equipmentId));
     final stored = equipmentAsync.value;
     if (stored != null && stored.type == EquipmentType.tank) {
-      return PassportPage(
-        equipmentId: stored.id,
-        joined: widget.joined,
-        unlockEditing: widget.unlockEditing,
-      );
+      return PassportPage(equipmentId: stored.id, joined: widget.joined);
     }
-    if (hostsEditing) followStored(equipmentItemProvider(widget.equipmentId));
-    if (hostsEditing && stored != null) {
+    followStored(equipmentItemProvider(widget.equipmentId));
+    if (stored != null) {
       final shown = shownRecord(stored);
       return editScaffold(
         record: stored,
@@ -204,24 +189,21 @@ class _GearPassportPageState extends ConsumerState<GearPassportPage>
         appBar: AppBar(title: Text(l10n.gearPassport_title)),
         body: Center(child: Text(e.toString())),
       ),
-      data: (equipment) {
-        return Scaffold(
-          appBar: AppBar(title: Text(l10n.gearPassport_title)),
-          body: equipment == null ? const SizedBox.shrink() : _body(equipment),
-        );
-      },
+      data: (_) => Scaffold(
+        appBar: AppBar(title: Text(l10n.gearPassport_title)),
+        body: const SizedBox.shrink(),
+      ),
     );
   }
 
   /// The cards, of [equipment] as the page shows it: the sitting's while
   /// one is open.
   Widget _body(EquipmentItem equipment) {
-    final session = hostsEditing ? maybeEditController?.session : null;
+    final session = maybeEditController?.session;
     // See all opens the item's own page: not while this page is in a
     // sitting on the item, its own or the item page's it joined, which
     // would put a second page of the item over it (Call 10).
-    final inSitting =
-        hostsEditing && (maybeEditController?.isUnlocked ?? false);
+    final inSitting = maybeEditController?.isUnlocked ?? false;
     Widget calculated(Widget child) => RecordCardFade<EquipmentItem>(
       reason: RecordCardFadeReason.calculated,
       child: child,
@@ -239,7 +221,7 @@ class _GearPassportPageState extends ConsumerState<GearPassportPage>
               ServiceClocksCard(
                 equipmentId: equipment.id,
                 equipmentType: equipment.type,
-                readOnly: hostsEditing,
+                readOnly: true,
                 onLogService: (status) => showLogServiceDialog(
                   context,
                   ref,
@@ -264,7 +246,7 @@ class _GearPassportPageState extends ConsumerState<GearPassportPage>
             EquipmentLocationCard(
               equipment: equipment,
               shown: session,
-              readOnly: hostsEditing,
+              readOnly: true,
             ),
           ),
           const SizedBox(height: 16),

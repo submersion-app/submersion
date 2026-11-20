@@ -15,7 +15,7 @@ A buddy record stores everything you want to remember about a fellow diver: cont
 
 ### Adding a buddy
 
-Tap the **+** button (or **Add Buddy** on desktop) to open the edit form. The fields available are:
+Tap the **+** button (or **Add Buddy** on desktop). The new buddy opens on its own page, unlocked, with a card for each part of the record: open a card with its pencil, fill it in and tap **Done**, then **Save**. Only the name is required. The fields are:
 
 | Field | Notes |
 |-------|-------|
@@ -28,6 +28,10 @@ Tap the **+** button (or **Add Buddy** on desktop) to open the edit form. The fi
 | **Notes** | Free text. |
 
 You can also give a buddy a profile photo.
+
+### Changing a buddy
+
+Open the buddy and tap the lock (in the top bar on a phone, in the pane's header on desktop). Each card shows its pencil: open the ones you want, change them and tap **Done**, then **Save** at the top. One Save writes every card you changed and adds one entry to the buddy's **History** (in the menu). **Cancel**, or leaving with unsaved changes, asks before discarding them. Lending gear and taking it back happen on the **Gear** card, and **Delete** needs the buddy unlocked first. The favorite star in the lists only shows a favorite; set it in the buddy's header.
 
 ### Importing from your contacts
 
@@ -66,7 +70,7 @@ Once you [tag a buddy in a photo or video](marine-life-and-photos.md#tagging-peo
 
 ### Leaving a buddy out of the rankings
 
-If you remember diving with someone but not their name, you can add a buddy called "Unknown" and still record those dives as buddy dives. To stop that record showing up as your top buddy, turn on **Leave out of buddy rankings** in the buddy's edit form. It works for any buddy, not only a placeholder.
+If you remember diving with someone but not their name, you can add a buddy called "Unknown" and still record those dives as buddy dives. To stop that record showing up as your top buddy, unlock the buddy and turn on **Leave out of buddy rankings** on its **Statistics** card. It works for any buddy, not only a placeholder.
 
 A buddy left out of the rankings no longer appears in **Top Dive Buddies** in Insights, as a regular buddy in your Insights observations, or under **Most Dives** in the Buddies overview. Everything else stays the same: their dives still count as buddy dives in **Solo vs Buddy Dives**, and they stay in your buddy list and on each dive. Their detail page shows **Left out of buddy rankings** in the **Dive Statistics** card.
 
@@ -111,7 +115,7 @@ A dive center record stores details about a shop, club, or operator you have div
 
 ### Adding a dive center manually
 
-Tap **+** (or **Add Center** on desktop) to open the edit form. The fields are:
+Tap **+** (or **Add Center** on desktop). The new center opens on its own page, unlocked: fill in its cards and tap **Save**. To change a center later, open it, tap the lock, open the cards you want with their pencils and tap **Save**; one Save adds one entry to its **History**. The fields are:
 
 | Field | Notes |
 |-------|-------|

@@ -56,7 +56,9 @@ class CertificationWalletPage extends ConsumerWidget {
                 title: Text(context.l10n.certifications_wallet_options_edit),
                 onTap: () {
                   Navigator.pop(context);
-                  context.push('/certifications/${certification.id}/edit');
+                  // A card has no lock to tap: Edit opens the
+                  // certification unlocked (issue #4527).
+                  context.push(certificationEditLocation(certification.id));
                 },
               ),
             ],

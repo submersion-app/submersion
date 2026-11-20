@@ -100,7 +100,7 @@ class _CertificationListPageState extends ConsumerState<CertificationListPage>
             },
           ),
           summaryBuilder: (context) => const CertificationSummaryWidget(),
-          // Behind phase 3's switch, the page opened unlocked (issue #4527).
+          // The page opened unlocked (issue #4527).
           editBuilder: (context, certificationId, onSaved, onCancel) =>
               certificationEditPane(
                 context,
@@ -109,7 +109,7 @@ class _CertificationListPageState extends ConsumerState<CertificationListPage>
                 onCancel,
                 onDeleted: () => context.go(GoRouterState.of(context).uri.path),
               ),
-          // Behind phase 3's switch, the page on a new certification.
+          // The page on a new certification.
           createBuilder: (context, onSaved, onCancel) =>
               newCertificationPane(context, onSaved, onCancel),
           selectedId: ref.watch(highlightedCertificationIdProvider),
@@ -209,7 +209,7 @@ class _CertificationListPageState extends ConsumerState<CertificationListPage>
           },
         ),
         summaryBuilder: (context) => const CertificationSummaryWidget(),
-        // Behind phase 3's switch, the page opened unlocked (issue #4527).
+        // The page opened unlocked (issue #4527).
         editBuilder: (context, certificationId, onSaved, onCancel) =>
             certificationEditPane(
               context,
@@ -218,7 +218,7 @@ class _CertificationListPageState extends ConsumerState<CertificationListPage>
               onCancel,
               onDeleted: () => context.go(GoRouterState.of(context).uri.path),
             ),
-        // Behind phase 3's switch, the page on a new certification.
+        // The page on a new certification.
         createBuilder: (context, onSaved, onCancel) =>
             newCertificationPane(context, onSaved, onCancel),
         floatingActionButton: fab,

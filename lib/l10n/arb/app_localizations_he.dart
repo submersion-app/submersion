@@ -1556,20 +1556,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_sets_defaultBadge => 'ברירת מחדל';
 
   @override
-  String get equipment_setDetail_hideFigure => 'הסתרת דמות הצולל';
-
-  @override
-  String get equipment_setDetail_showFigure => 'הצגת דמות הצולל';
-
-  @override
-  String get equipment_setDetail_setAsDefault => 'הגדר כברירת מחדל';
-
-  @override
-  String equipment_setDetail_setAsDefaultSnackbar(String name) {
-    return '\"$name\" הוא כעת סט ברירת המחדל שלך';
-  }
-
-  @override
   String get equipment_setDetail_geofencesTitle => 'גדרות גאוגרפיות';
 
   @override
@@ -3332,9 +3318,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buddies_action_clearSearch => 'נקה חיפוש';
 
   @override
-  String get buddies_action_edit => 'ערוך חבר צוללים';
-
-  @override
   String get buddies_action_importFromContacts => 'ייבא מאנשי קשר';
 
   @override
@@ -4393,12 +4376,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String certifications_detail_status_expiresOn(Object date) {
     return 'פגה ב-$date';
   }
-
-  @override
-  String get certifications_detail_tooltip_edit => 'ערוך הסמכה';
-
-  @override
-  String get certifications_detail_tooltip_editShort => 'ערוך';
 
   @override
   String get certifications_detail_tooltip_moreOptions => 'אפשרויות נוספות';
@@ -5917,9 +5894,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get courses_action_deleteRequirement => 'מחק דרישה';
 
   @override
-  String get courses_action_edit => 'ערוך קורס';
-
-  @override
   String get courses_action_editRequirement => 'ערוך דרישה';
 
   @override
@@ -5978,13 +5952,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get courses_dialog_deleteTitle => 'למחוק קורס?';
-
-  @override
-  String get courses_dialog_markCompletedMessage =>
-      'פעולה זו תסמן את הקורס כהושלם עם תאריך היום. להמשיך?';
-
-  @override
-  String get courses_dialog_markCompletedTitle => 'לסמן כהושלם?';
 
   @override
   String get courses_empty_button => 'הוסף את קורס האימון הראשון שלך';
@@ -7283,9 +7250,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveCenters_tooltip_clearSearch => 'נקה חיפוש';
-
-  @override
-  String get diveCenters_tooltip_edit => 'ערוך מרכז צלילה';
 
   @override
   String get diveCenters_tooltip_fitAllCenters => 'התאם כל המרכזים';
@@ -16181,12 +16145,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get equipment_detail_editTooltip => 'ערוך ציוד';
-
-  @override
-  String get equipment_detail_editTooltipShort => 'ערוך';
-
-  @override
   String equipment_detail_errorMessage(Object error) {
     return 'שגיאה: $error';
   }
@@ -18052,9 +18010,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get equipment_setDetail_addEquipmentButton => 'הוסף ציוד';
-
-  @override
   String get equipment_setDetail_deleteDialog_cancel => 'ביטול';
 
   @override
@@ -18069,9 +18024,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_setDetail_deleteMenuItem => 'מחק';
-
-  @override
-  String get equipment_setDetail_editTooltip => 'ערוך סט';
 
   @override
   String get equipment_setDetail_emptySet => 'אין ציוד בסט זה';
@@ -19395,9 +19347,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get marineLife_speciesDetail_divesLabel => 'צלילות';
 
   @override
-  String get marineLife_speciesDetail_editTooltip => 'ערוך מין';
-
-  @override
   String marineLife_speciesDetail_errorPrefix(Object error) {
     return 'שגיאה: $error';
   }
@@ -19721,17 +19670,6 @@ class AppLocalizationsHe extends AppLocalizations {
       locale: localeName,
       other: 'תיוג $count תמונות',
       one: 'תיוג תמונה אחת',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String marineLife_tagPicker_tagged(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count תמונות תויגו',
-      one: 'תמונה אחת תויגה',
     );
     return '$_temp0';
   }
@@ -35009,12 +34947,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_detail_tab_checklist => 'רשימת משימות';
 
   @override
-  String get trips_detail_tooltip_edit => 'ערוך טיול';
-
-  @override
-  String get trips_detail_tooltip_editShort => 'עריכה';
-
-  @override
   String get trips_detail_tooltip_moreOptions => 'אפשרויות נוספות';
 
   @override
@@ -35211,12 +35143,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_edit_validation_nameRequired => 'נא להזין שם טיול';
 
   @override
-  String get trips_gallery_accessDenied => 'הגישה לספריית התמונות נדחתה';
-
-  @override
-  String get trips_gallery_addDivesFirst => 'הוסף צלילות תחילה כדי לקשר תמונות';
-
-  @override
   String get trips_gallery_appBar_title => 'תמונות טיול';
 
   @override
@@ -35243,33 +35169,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_gallery_empty_title => 'אין תמונות בטיול זה';
 
   @override
-  String get trips_gallery_errorLinking => 'לא ניתן לקשר את התמונות. נסו שוב.';
-
-  @override
-  String get trips_gallery_errorScanning => 'לא ניתן לסרוק תמונות. נסו שוב.';
-
-  @override
   String get trips_gallery_error_loading => 'לא ניתן לטעון את התמונות.';
 
   @override
-  String trips_gallery_linkedPhotos(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'קושרו $count תמונות',
-      one: 'קושרה תמונה אחת',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get trips_gallery_linkingPhotos => 'מקשר תמונות...';
-
-  @override
   String get trips_gallery_tooltip_scan => 'סרוק גלריית מכשיר';
-
-  @override
-  String get trips_gallery_tripNotFound => 'הטיול לא נמצא';
 
   @override
   String get trips_list_button_retry => 'נסה שוב';
@@ -38311,16 +38214,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gpsTrack_editCard_nameHint => 'שם המסלול';
 
   @override
-  String get gpsTrack_action_trim => 'חיתוך...';
-
-  @override
   String get gpsTrack_action_split => 'פיצול...';
 
   @override
   String get gpsTrack_action_resetTrim => 'איפוס החיתוך';
-
-  @override
-  String get gpsTrack_edit_applyTrim => 'החל חיתוך';
 
   @override
   String get gpsTrack_edit_confirmSplit => 'פצל כאן';
@@ -58263,9 +58160,6 @@ class AppLocalizationsHe extends AppLocalizations {
       ' (בתימטריה גסה: נבדקו רק התנגשויות ביבשה)';
 
   @override
-  String get navTrack_detail_renameTrackTitle => 'שינוי שם המסלול';
-
-  @override
   String get navTrack_detail_deleteTrackTitle => 'למחוק את המסלול?';
 
   @override
@@ -58285,9 +58179,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get navTrack_detail_defaultTrackTitle => 'מסלול תת-ימי';
-
-  @override
-  String get navTrack_detail_menuRename => 'שינוי שם';
 
   @override
   String get navTrack_detail_menuChangeDive => 'שינוי צלילה';

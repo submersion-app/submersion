@@ -100,24 +100,18 @@ import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart
 import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
 import 'package:submersion/shared/widgets/record_editing/record_open_unlocked.dart';
 import 'package:submersion/shared/widgets/record_editing/record_pane_row.dart';
-import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
 part 'equipment_detail_page_creating.dart';
 part 'equipment_detail_page_editing.dart';
 part 'equipment_detail_page_menu.dart';
 part 'equipment_detail_page_sections.dart';
 
-/// A gear item's page. Behind phase 3's switch ([unlockEditing]) it opens
-/// locked and edits in place (issue #4527): its cards are held in one
-/// sitting and written by one Save.
+/// A gear item's page. It opens locked and edits in place (issue #4527): its
+/// cards are held in one sitting and written by one Save.
 class EquipmentDetailPage extends ConsumerStatefulWidget {
   final String equipmentId;
   final bool embedded;
   final VoidCallback? onDeleted;
-
-  /// Whether the page edits in place: phase 3's switch, a parameter so a
-  /// test can turn it on.
-  final bool unlockEditing;
 
   /// Opens unlocked, as the old edit address asks (`?mode=edit`).
   final bool openUnlocked;
@@ -141,15 +135,13 @@ class EquipmentDetailPage extends ConsumerStatefulWidget {
     required this.equipmentId,
     this.embedded = false,
     this.onDeleted,
-    this.unlockEditing = kUnlockRecordEditing,
     this.openUnlocked = false,
     this.onSittingEnded,
   }) : newItem = null,
        onCreated = null,
        onCreateCancelled = null;
 
-  /// A new item's page, unlocked whatever the switch: only the switch's
-  /// openers build it.
+  /// A new item's page.
   const EquipmentDetailPage.newItem({
     super.key,
     NewGearItemRequest request = const NewGearItemRequest(),
@@ -159,7 +151,6 @@ class EquipmentDetailPage extends ConsumerStatefulWidget {
   }) : newItem = request,
        equipmentId = '',
        onDeleted = null,
-       unlockEditing = true,
        openUnlocked = false,
        onSittingEnded = null;
 
@@ -222,7 +213,7 @@ class _EquipmentDetailPageState extends ConsumerState<EquipmentDetailPage>
     }
 
     final equipmentAsync = ref.watch(equipmentItemProvider(widget.equipmentId));
-    if (hostsEditing) followStored(equipmentItemProvider(widget.equipmentId));
+    followStored(equipmentItemProvider(widget.equipmentId));
 
     return equipmentAsync.when(
       data: (equipment) {
@@ -239,15 +230,6 @@ class _EquipmentDetailPageState extends ConsumerState<EquipmentDetailPage>
             body: Center(
               child: Text(context.l10n.equipment_detail_notFoundMessage),
             ),
-          );
-        }
-        if (!hostsEditing) {
-          return _EquipmentDetailContent(
-            equipment: equipment,
-            stored: equipment,
-            equipmentId: widget.equipmentId,
-            embedded: widget.embedded,
-            onDeleted: widget.onDeleted,
           );
         }
         openUnlockedOnce(equipment);
@@ -298,34 +280,30 @@ class _EquipmentDetailContent extends ConsumerWidget {
   final bool embedded;
   final VoidCallback? onDeleted;
 
-  /// The page, where it edits in place.
-  final _EquipmentDetailPageState? host;
+  /// The page, which edits in place.
+  final _EquipmentDetailPageState host;
 
   const _EquipmentDetailContent({
     required this.equipment,
     required this.stored,
     required this.equipmentId,
     required this.embedded,
+    required this.host,
     this.onDeleted,
-    this.host,
   });
 
-  /// Whether the page edits in place (phase 3's switch), locked or not.
-  bool get _editing => host != null;
-
   /// An item not yet created: only the cards of its own values are shown.
-  bool get _creating => host?.isCreating ?? false;
+  bool get _creating => host.isCreating;
 
-  /// [child] as the card [id] where the page edits in place.
+  /// [child] as the card [id].
   Widget _framed(GearItemCardId id, Widget child, {double topGap = 0}) =>
-      host?._framed(id, child, topGap: topGap) ?? child;
+      host._framed(id, child, topGap: topGap);
 
   /// The page's sitting, while it has one.
-  EditSession<EquipmentItem>? get _session =>
-      host?.maybeEditController?.session;
+  EditSession<EquipmentItem>? get _session => host.maybeEditController?.session;
 
   /// Whether the empty card [id] is shown in the sitting.
-  bool _shows(GearItemCardId id) => host?._showsWhileEmpty(id) ?? false;
+  bool _shows(GearItemCardId id) => host._showsWhileEmpty(id);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -406,7 +384,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
             EquipmentLocationCard(
               equipment: equipment,
               shown: _session,
-              readOnly: _editing,
+              readOnly: true,
             ),
           ),
           const SizedBox(height: 24),
@@ -431,7 +409,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
               ServiceClocksCard(
                 equipmentId: equipmentId,
                 equipmentType: equipment.type,
-                readOnly: _editing,
+                readOnly: true,
                 customReminder: (
                   enabled: equipment.customReminderEnabled,
                   days: equipment.customReminderDays,
@@ -474,7 +452,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
             EquipmentPhotosSection(
               equipment: equipment,
               shown: _session,
-              readOnly: _editing,
+              readOnly: true,
             ),
           ),
           const SizedBox(height: 24),
@@ -483,7 +461,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
             ObservationsCard(
               equipment: equipment,
               shown: _session,
-              readOnly: _editing,
+              readOnly: true,
             ),
           ),
           const SizedBox(height: 24),
@@ -506,7 +484,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
               onOpenDocument: (item) =>
                   DocumentOpenHelper.open(context, ref, item),
               shown: _session,
-              readOnly: _editing,
+              readOnly: true,
             ),
             topGap: 24,
           ),
@@ -522,7 +500,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
             ServiceHistorySection(
               equipmentId: equipmentId,
               shown: _session,
-              readOnly: _editing,
+              readOnly: true,
             ),
           ),
           // Notes of only spaces are empty, as the card counts them.
@@ -546,57 +524,33 @@ class _EquipmentDetailContent extends ConsumerWidget {
     );
     final body = _creating ? _newItemBody(context, ref, units) : storedBody();
 
-    final host = this.host;
     if (embedded) {
       // No status line in this strip: the body below it carries the page
       // header's banner in embedded mode too, so a line here would show and
       // announce the same status twice.
-      final header = _buildEmbeddedHeader(context, ref, isServiceOverdue);
-      if (host != null) {
-        return host.editPane(
-          header: RecordPaneRow(
-            locked: header,
-            unlocked: host.isSittingOpen
-                ? host.editingPaneRow(stored, menu: _buildMenu(context, ref))
-                : null,
-          ),
-          shown: equipment,
-          content: body,
-        );
-      }
-      return Column(
-        children: [
-          header,
-          Expanded(child: body),
-        ],
+      return host.editPane(
+        header: RecordPaneRow(
+          locked: _buildEmbeddedHeader(context, ref, isServiceOverdue),
+          unlocked: host.isSittingOpen
+              ? host.editingPaneRow(stored, menu: _buildMenu(context, ref))
+              : null,
+        ),
+        shown: equipment,
+        content: body,
       );
     }
 
     final bar = AppBar(
       title: Text(equipment.name),
-      actions: [
-        if (host != null) host.lockButton(equipment),
-        IconButton(
-          icon: const Icon(Icons.edit),
-          tooltip: context.l10n.equipment_detail_editTooltip,
-          // Where the page edits in place, Edit unlocks it as the lock does.
-          onPressed: host != null
-              ? () => host.editController.unlock(equipment)
-              : () => context.push('/equipment/$equipmentId/edit'),
-        ),
-        _buildMenu(context, ref),
-      ],
+      actions: [host.lockButton(equipment), _buildMenu(context, ref)],
     );
-    if (host != null) {
-      return host.editScaffold(
-        record: stored,
-        shown: equipment,
-        lockedBar: bar,
-        unlockedActions: [_buildMenu(context, ref)],
-        content: body,
-      );
-    }
-    return Scaffold(appBar: bar, body: body);
+    return host.editScaffold(
+      record: stored,
+      shown: equipment,
+      lockedBar: bar,
+      unlockedActions: [_buildMenu(context, ref)],
+      content: body,
+    );
   }
 
   /// Delete is owner-only (issue #2046), so the page menu offers it only to
@@ -667,18 +621,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
               ],
             ),
           ),
-          if (host != null) host.lockButton(equipment, compact: true),
-          IconButton(
-            icon: const Icon(Icons.edit, size: 20),
-            tooltip: context.l10n.equipment_detail_editTooltipShort,
-            onPressed: host != null
-                ? () => host.editController.unlock(equipment)
-                : () {
-                    final state = GoRouterState.of(context);
-                    final currentPath = state.uri.path;
-                    context.go('$currentPath?selected=$equipmentId&mode=edit');
-                  },
-          ),
+          host.lockButton(equipment, compact: true),
           _buildMenu(context, ref),
         ],
       ),

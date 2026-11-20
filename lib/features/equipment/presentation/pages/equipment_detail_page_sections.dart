@@ -1,11 +1,11 @@
 part of 'equipment_detail_page.dart';
 
 /// The gear item page's read sections, each a card that the editing host
-/// frames where the page edits in place (issue #4527, phase 3, plan 6).
+/// frames (issue #4527, phase 3, plan 6).
 extension _EquipmentDetailSections on _EquipmentDetailContent {
   /// The item's tags under its name: the sitting's while it holds them.
   Widget _headerTagChips() {
-    final session = host?.maybeEditController?.session;
+    final session = host.maybeEditController?.session;
     if (session == null) return EquipmentTagChips(equipmentId: equipmentId);
     return ListenableBuilder(
       listenable: gearItemTagsList.changes(session),
@@ -66,13 +66,12 @@ extension _EquipmentDetailSections on _EquipmentDetailContent {
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
-                      // Why the item is out of the kit, and the purchase
-                      // action for wishlist gear (#2025).
-                      // Where the page edits in place, the purchase is made
-                      // in the header block's editor.
+                      // Why the item is out of the kit (#2025). The purchase
+                      // of wishlist gear is made in the header block's
+                      // editor.
                       EquipmentHeaderStatus(
                         item: equipment,
-                        offerPurchase: !_editing,
+                        offerPurchase: false,
                       ),
                       // Tags (issue #1942), under the name and type: the
                       // sitting's while unlocked.
@@ -190,13 +189,12 @@ extension _EquipmentDetailSections on _EquipmentDetailContent {
                 ),
                 error: (e, s) => const SizedBox.shrink(),
               ),
-              // Where the page edits in place, sharing is chosen in the
-              // Details editor; closed, the card shows what the sitting
-              // holds.
+              // Sharing is chosen in the Details editor; closed, the card
+              // shows what the sitting holds.
               EquipmentSharingRow(
                 equipment: equipment,
-                shown: this.host?.maybeEditController?.session,
-                readOnly: _editing,
+                shown: this.host.maybeEditController?.session,
+                readOnly: true,
               ),
               if (equipment.brand != null)
                 _buildDetailRow(

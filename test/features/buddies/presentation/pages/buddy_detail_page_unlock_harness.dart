@@ -93,13 +93,11 @@ class BuddyPageHarness {
 
 final _storedProvider = StateProvider<Buddy?>((ref) => alex);
 
-/// Pumps the buddy page with the phase 3 switch on (unless [unlockEditing]
-/// is false), its calculated sections empty.
+/// Pumps the buddy page, its calculated sections empty.
 Future<BuddyPageHarness> pumpBuddyPage(
   WidgetTester tester, {
   Brightness brightness = Brightness.light,
   Buddy? buddy,
-  bool unlockEditing = true,
   bool openUnlocked = false,
   bool embedded = false,
   Size size = const Size(700, 1600),
@@ -115,7 +113,6 @@ Future<BuddyPageHarness> pumpBuddyPage(
   late BuddyPageHarness harness;
   final page = BuddyDetailPage(
     buddyId: shown.id,
-    unlockEditing: unlockEditing,
     openUnlocked: openUnlocked,
     embedded: embedded,
     onSittingEnded: onSittingEnded,

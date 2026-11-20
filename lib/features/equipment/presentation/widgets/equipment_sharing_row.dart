@@ -16,7 +16,7 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 /// shares; a profile the item is shared with sees "Owned by" and the shares
 /// read-only.
 ///
-/// Where the page edits in place (issue #4527, phase 3), it offers no edit
+/// On the item's page (issue #4527, phase 3), it offers no edit
 /// while locked ([readOnly]); in the page's sitting ([editing]) the owner's
 /// choice is held until Save, and a closed card shows what a sitting holds
 /// ([shown]).

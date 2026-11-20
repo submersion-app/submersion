@@ -15,10 +15,10 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 import 'package:submersion/core/data/visibility/item_sharing.dart';
-import 'package:submersion/shared/widgets/shared_items/item_sharing_field.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/shared_items_fixture.dart';
+import 'open_unlocked_trip_menu.dart';
 
 /// A shared trip's page offers Delete to its owner and "Remove from my
 /// profile" to everyone else (issue #2594).
@@ -125,7 +125,7 @@ void main() {
   ) async {
     await pump(tester, active: 'd2', profileUnreadable: true);
 
-    await tester.tap(find.byIcon(Icons.more_vert));
+    await openUnlockedTripMenu(tester);
     await tester.pumpAndSettle();
     expect(find.text('Export'), findsOneWidget);
     expect(find.text('Delete'), findsNothing);
@@ -138,7 +138,7 @@ void main() {
     final notifier = await pump(tester, active: 'd2');
     expect(find.text('Shared by Alice'), findsOneWidget);
 
-    await tester.tap(find.byIcon(Icons.more_vert));
+    await openUnlockedTripMenu(tester);
     await tester.pumpAndSettle();
     expect(find.text('Delete'), findsNothing);
     await tester.tap(find.text('Remove from my profile'));
@@ -169,7 +169,7 @@ void main() {
       findsOneWidget,
     );
 
-    await tester.tap(find.byIcon(Icons.more_vert));
+    await openUnlockedTripMenu(tester);
     await tester.pumpAndSettle();
     expect(find.text('Remove from my profile'), findsNothing);
     expect(find.text('Delete'), findsNothing);
@@ -186,7 +186,7 @@ void main() {
     tester,
   ) async {
     final notifier = await pump(tester, active: 'd2', allowed: false);
-    await tester.tap(find.byIcon(Icons.more_vert));
+    await openUnlockedTripMenu(tester);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Remove from my profile'));
     await tester.pumpAndSettle();
@@ -202,7 +202,7 @@ void main() {
     tester,
   ) async {
     await pump(tester, active: 'd2', failHides: true);
-    await tester.tap(find.byIcon(Icons.more_vert));
+    await openUnlockedTripMenu(tester);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Remove from my profile'));
     await tester.pumpAndSettle();
@@ -222,7 +222,7 @@ void main() {
     tester,
   ) async {
     final notifier = await pump(tester, active: 'd2');
-    await tester.tap(find.byIcon(Icons.more_vert));
+    await openUnlockedTripMenu(tester);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Remove from my profile'));
     await tester.pumpAndSettle();
@@ -253,7 +253,7 @@ void main() {
     ).invalidate(validatedCurrentDiverIdProvider);
     await tester.pump();
 
-    await tester.tap(find.byIcon(Icons.more_vert));
+    await openUnlockedTripMenu(tester);
     await tester.pumpAndSettle();
     expect(find.text('Delete'), findsNothing);
     expect(find.text('Remove from my profile'), findsNothing);
@@ -262,7 +262,8 @@ void main() {
 
     activeProfile.settle('d2');
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.more_vert));
+    // Still unlocked from the first look.
+    await tester.tap(find.byIcon(Icons.more_vert).last);
     await tester.pumpAndSettle();
     expect(find.text('Remove from my profile'), findsOneWidget);
     expect(find.text('Delete'), findsNothing);
@@ -277,7 +278,7 @@ void main() {
       hidden: true,
       failHides: true,
     );
-    await tester.tap(find.byIcon(Icons.more_vert));
+    await openUnlockedTripMenu(tester);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Show in my profile'));
     await tester.pumpAndSettle();
@@ -293,7 +294,7 @@ void main() {
     tester,
   ) async {
     final notifier = await pump(tester, active: 'd1', allowed: false);
-    await tester.tap(find.byIcon(Icons.more_vert));
+    await openUnlockedTripMenu(tester);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Delete'));
     await tester.pumpAndSettle();
@@ -311,7 +312,7 @@ void main() {
     await pump(tester, active: 'd1');
     expect(find.textContaining('Shared by'), findsNothing);
 
-    await tester.tap(find.byIcon(Icons.more_vert));
+    await openUnlockedTripMenu(tester);
     await tester.pumpAndSettle();
     expect(find.text('Remove from my profile'), findsNothing);
     await tester.tap(find.text('Delete'));
@@ -324,15 +325,6 @@ void main() {
     );
   });
 
-  // Sharing is seen and changed on the edit page only (issue #3766).
-  testWidgets('the owner sees no Shared with row on the page', (tester) async {
-    await pump(tester, active: 'd1');
-
-    expect(find.byType(SharingTile), findsNothing);
-    expect(find.text('Shared with'), findsNothing);
-    expect(find.text('Everyone'), findsNothing);
-  });
-
   testWidgets('a profile the trip no longer reaches is not offered Remove '
       '(issue #2151)', (tester) async {
     // Opened by id from one of this profile's dives after its owner took
@@ -343,7 +335,7 @@ void main() {
       sharing: const ItemSharing(profileIds: {'d3'}),
     );
     expect(find.textContaining('Shared by'), findsNothing);
-    await tester.tap(find.byIcon(Icons.more_vert).first);
+    await openUnlockedTripMenu(tester);
     await tester.pumpAndSettle();
     expect(find.text('Remove from my profile'), findsNothing);
   });
@@ -356,7 +348,7 @@ void main() {
       active: 'd2',
       sharing: const ItemSharing(profileIds: {'d2'}),
     );
-    await tester.tap(find.byIcon(Icons.more_vert).first);
+    await openUnlockedTripMenu(tester);
     await tester.pumpAndSettle();
     expect(find.text('Remove from my profile'), findsOneWidget);
   });

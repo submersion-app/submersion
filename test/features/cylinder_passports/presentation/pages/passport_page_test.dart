@@ -12,7 +12,6 @@ import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_pairing_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
-import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -264,12 +263,13 @@ void main() {
     );
   });
 
-  testWidgets('with no fill shows the empty state and the log button', (
+  testWidgets('with no fill shows the empty state; locked, no log button', (
     tester,
   ) async {
     final l10n = await pump(tester);
     expect(find.text(l10n.passport_fill_none), findsOneWidget);
-    expect(find.text(l10n.passport_fill_log), findsOneWidget);
+    // Logging a fill is in the Fills card's editor (issue #4527).
+    expect(find.text(l10n.passport_fill_log), findsNothing);
     // No hydro was ever recorded, so there is nothing to count from.
     expect(find.text(l10n.passport_history_sinceHydro(0)), findsNothing);
   });
@@ -311,7 +311,8 @@ void main() {
       clocks: [clock('hydro', ServiceClockSeverity.ok)],
     );
     expect(find.text(l10n.passport_o2Warning_untracked('50%')), findsOneWidget);
-    expect(find.text(l10n.passport_service_trackO2Clean), findsOneWidget);
+    // Tracking it is in the Service card's editor (issue #4527).
+    expect(find.text(l10n.passport_service_trackO2Clean), findsNothing);
   });
 
   testWidgets('an untracked O2 clean row shows the kind name', (tester) async {
@@ -471,34 +472,10 @@ void main() {
     expect(texts, isNot(contains('°C')));
     expect(RegExp(r'\d m\b|\dm\b').hasMatch(texts), isFalse);
   });
-
-  testWidgets('a failure to track O2 cleaning says so', (tester) async {
-    final l10n = await pump(
-      tester,
-      extraOverrides: [
-        serviceScheduleRepositoryProvider.overrideWithValue(
-          _BrokenScheduleRepository(),
-        ),
-      ],
-    );
-    final track = find.text(l10n.passport_service_trackO2Clean);
-    await tester.ensureVisible(track);
-    await tester.tap(track);
-    await tester.pumpAndSettle();
-    expect(tester.takeException(), isNull);
-    expect(find.text(l10n.passport_service_trackFailed), findsOneWidget);
-  });
 }
 
 class _BrokenEquipmentRepository extends EquipmentRepository {
   @override
   Future<List<EquipmentItem>> getEquipmentByIds(List<String> ids) async =>
       throw StateError('database is locked');
-}
-
-class _BrokenScheduleRepository extends ServiceScheduleRepository {
-  @override
-  Future<List<ServiceSchedule>> getSchedulesForEquipment(
-    String equipmentId,
-  ) async => throw StateError('database is locked');
 }

@@ -1577,20 +1577,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get equipment_sets_defaultBadge => 'Padrão';
 
   @override
-  String get equipment_setDetail_hideFigure => 'Ocultar figura do mergulhador';
-
-  @override
-  String get equipment_setDetail_showFigure => 'Mostrar figura do mergulhador';
-
-  @override
-  String get equipment_setDetail_setAsDefault => 'Definir como padrão';
-
-  @override
-  String equipment_setDetail_setAsDefaultSnackbar(String name) {
-    return '\"$name\" agora é o seu conjunto padrão';
-  }
-
-  @override
   String get equipment_setDetail_geofencesTitle => 'Geocercas';
 
   @override
@@ -3395,9 +3381,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get buddies_action_clearSearch => 'Limpar busca';
 
   @override
-  String get buddies_action_edit => 'Editar companheiro';
-
-  @override
   String get buddies_action_importFromContacts => 'Importar dos Contatos';
 
   @override
@@ -4477,12 +4460,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String certifications_detail_status_expiresOn(Object date) {
     return 'Expira em $date';
   }
-
-  @override
-  String get certifications_detail_tooltip_edit => 'Editar certificação';
-
-  @override
-  String get certifications_detail_tooltip_editShort => 'Editar';
 
   @override
   String get certifications_detail_tooltip_moreOptions => 'Mais opções';
@@ -6050,9 +6027,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get courses_action_deleteRequirement => 'Excluir requisito';
 
   @override
-  String get courses_action_edit => 'Editar curso';
-
-  @override
   String get courses_action_editRequirement => 'Editar requisito';
 
   @override
@@ -6113,13 +6087,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get courses_dialog_deleteTitle => 'Excluir Curso?';
-
-  @override
-  String get courses_dialog_markCompletedMessage =>
-      'Isso marcará o curso como concluído com a data de hoje. Continuar?';
-
-  @override
-  String get courses_dialog_markCompletedTitle => 'Marcar como Concluído?';
 
   @override
   String get courses_empty_button =>
@@ -7447,9 +7414,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveCenters_tooltip_clearSearch => 'Limpar busca';
-
-  @override
-  String get diveCenters_tooltip_edit => 'Editar centro de mergulho';
 
   @override
   String get diveCenters_tooltip_fitAllCenters => 'Ajustar Todos os Centros';
@@ -16517,12 +16481,6 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get equipment_detail_editTooltip => 'Editar Equipamento';
-
-  @override
-  String get equipment_detail_editTooltipShort => 'Editar';
-
-  @override
   String equipment_detail_errorMessage(Object error) {
     return 'Erro: $error';
   }
@@ -18435,9 +18393,6 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get equipment_setDetail_addEquipmentButton => 'Adicionar Equipamento';
-
-  @override
   String get equipment_setDetail_deleteDialog_cancel => 'Cancelar';
 
   @override
@@ -18453,9 +18408,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get equipment_setDetail_deleteMenuItem => 'Excluir';
-
-  @override
-  String get equipment_setDetail_editTooltip => 'Editar Conjunto';
 
   @override
   String get equipment_setDetail_emptySet =>
@@ -19827,9 +19779,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get marineLife_speciesDetail_divesLabel => 'Mergulhos';
 
   @override
-  String get marineLife_speciesDetail_editTooltip => 'Editar espécie';
-
-  @override
   String marineLife_speciesDetail_errorPrefix(Object error) {
     return 'Erro: $error';
   }
@@ -20164,17 +20113,6 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: 'Marcar $count fotos',
       one: 'Marcar $count foto',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String marineLife_tagPicker_tagged(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count fotos marcadas',
-      one: '$count foto marcada',
     );
     return '$_temp0';
   }
@@ -35882,12 +35820,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get trips_detail_tab_checklist => 'Lista de Verificação';
 
   @override
-  String get trips_detail_tooltip_edit => 'Editar viagem';
-
-  @override
-  String get trips_detail_tooltip_editShort => 'Editar';
-
-  @override
   String get trips_detail_tooltip_moreOptions => 'Mais opções';
 
   @override
@@ -36087,14 +36019,6 @@ class AppLocalizationsPt extends AppLocalizations {
       'Por favor, insira um nome para a viagem';
 
   @override
-  String get trips_gallery_accessDenied =>
-      'Acesso a biblioteca de fotos negado';
-
-  @override
-  String get trips_gallery_addDivesFirst =>
-      'Adicione mergulhos primeiro para vincular fotos';
-
-  @override
   String get trips_gallery_appBar_title => 'Fotos da Viagem';
 
   @override
@@ -36121,36 +36045,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get trips_gallery_empty_title => 'Nenhuma foto nesta viagem';
 
   @override
-  String get trips_gallery_errorLinking =>
-      'Não foi possível vincular as fotos. Tente novamente.';
-
-  @override
-  String get trips_gallery_errorScanning =>
-      'Não foi possível procurar fotos. Tente novamente.';
-
-  @override
   String get trips_gallery_error_loading =>
       'Não foi possível carregar as fotos.';
 
   @override
-  String trips_gallery_linkedPhotos(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count fotos vinculadas',
-      one: '$count foto vinculada',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get trips_gallery_linkingPhotos => 'Vinculando fotos...';
-
-  @override
   String get trips_gallery_tooltip_scan => 'Escanear galeria do dispositivo';
-
-  @override
-  String get trips_gallery_tripNotFound => 'Viagem não encontrada';
 
   @override
   String get trips_list_button_retry => 'Tentar novamente';
@@ -39248,16 +39147,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get gpsTrack_editCard_nameHint => 'Nome da trilha';
 
   @override
-  String get gpsTrack_action_trim => 'Recortar...';
-
-  @override
   String get gpsTrack_action_split => 'Dividir...';
 
   @override
   String get gpsTrack_action_resetTrim => 'Remover recorte';
-
-  @override
-  String get gpsTrack_edit_applyTrim => 'Aplicar recorte';
 
   @override
   String get gpsTrack_edit_confirmSplit => 'Dividir aqui';
@@ -59518,9 +59411,6 @@ class AppLocalizationsPt extends AppLocalizations {
       ' (batimetria de baixa resolução: só conflitos em terra foram verificados)';
 
   @override
-  String get navTrack_detail_renameTrackTitle => 'Renomear trilha';
-
-  @override
   String get navTrack_detail_deleteTrackTitle => 'Excluir trilha?';
 
   @override
@@ -59540,9 +59430,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get navTrack_detail_defaultTrackTitle => 'Trilha subaquática';
-
-  @override
-  String get navTrack_detail_menuRename => 'Renomear';
 
   @override
   String get navTrack_detail_menuChangeDive => 'Alterar mergulho';

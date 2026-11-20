@@ -40,7 +40,7 @@ enum CurrencyRowAction { log, interval, mapping, mute }
 /// refresher row), so mute, interval and mapping changes write prefs for
 /// every member, and the row means what it appears to mean.
 ///
-/// On a page that edits in place (issue #4527, phase 3) it offers nothing
+/// On the certification's page (issue #4527, phase 3) it offers nothing
 /// while locked ([readOnly]); in the page's sitting ([editing]) what it
 /// logs, deletes and sets is held until Save.
 class CertificationCurrencySection extends ConsumerWidget {
@@ -50,8 +50,7 @@ class CertificationCurrencySection extends ConsumerWidget {
   /// editor, drawn inside the open card.
   final EditSession<Certification>? editing;
 
-  /// Offers no action: the page edits in place and is locked, or its card
-  /// is closed.
+  /// Offers no action: the page is locked, or its card is closed.
   final bool readOnly;
 
   /// The sitting whose events and preferences a closed card shows.

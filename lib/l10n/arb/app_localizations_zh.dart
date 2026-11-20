@@ -1514,20 +1514,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_sets_defaultBadge => '默认';
 
   @override
-  String get equipment_setDetail_hideFigure => '隐藏潜水员图示';
-
-  @override
-  String get equipment_setDetail_showFigure => '显示潜水员图示';
-
-  @override
-  String get equipment_setDetail_setAsDefault => '设为默认';
-
-  @override
-  String equipment_setDetail_setAsDefaultSnackbar(String name) {
-    return '\"$name\"现在是您的默认套装';
-  }
-
-  @override
   String get equipment_setDetail_geofencesTitle => '地理围栏';
 
   @override
@@ -3208,9 +3194,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buddies_action_clearSearch => '清除搜索';
 
   @override
-  String get buddies_action_edit => '编辑潜伴';
-
-  @override
   String get buddies_action_importFromContacts => '从通讯录导入';
 
   @override
@@ -4229,12 +4212,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String certifications_detail_status_expiresOn(Object date) {
     return '于 $date 到期';
   }
-
-  @override
-  String get certifications_detail_tooltip_edit => '编辑证书';
-
-  @override
-  String get certifications_detail_tooltip_editShort => '编辑';
 
   @override
   String get certifications_detail_tooltip_moreOptions => '更多选项';
@@ -5722,9 +5699,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get courses_action_deleteRequirement => '删除要求';
 
   @override
-  String get courses_action_edit => '编辑课程';
-
-  @override
   String get courses_action_editRequirement => '编辑要求';
 
   @override
@@ -5783,12 +5757,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get courses_dialog_deleteTitle => '删除课程？';
-
-  @override
-  String get courses_dialog_markCompletedMessage => '这将以今天的日期标记课程为已完成。继续？';
-
-  @override
-  String get courses_dialog_markCompletedTitle => '标记为已完成？';
 
   @override
   String get courses_empty_button => '添加您的第一个训练课程';
@@ -7054,9 +7022,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveCenters_tooltip_clearSearch => '清除搜索';
-
-  @override
-  String get diveCenters_tooltip_edit => '编辑潜水中心';
 
   @override
   String get diveCenters_tooltip_fitAllCenters => '显示全部潜水中心';
@@ -15749,12 +15714,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get equipment_detail_editTooltip => '编辑装备';
-
-  @override
-  String get equipment_detail_editTooltipShort => '编辑';
-
-  @override
   String equipment_detail_errorMessage(Object error) {
     return '错误： $error';
   }
@@ -17543,9 +17502,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get equipment_setDetail_addEquipmentButton => '添加装备';
-
-  @override
   String get equipment_setDetail_deleteDialog_cancel => '取消';
 
   @override
@@ -17560,9 +17516,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_setDetail_deleteMenuItem => '删除';
-
-  @override
-  String get equipment_setDetail_editTooltip => '编辑套装';
 
   @override
   String get equipment_setDetail_emptySet => '此套装中没有装备';
@@ -18846,9 +18799,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get marineLife_speciesDetail_divesLabel => '潜水';
 
   @override
-  String get marineLife_speciesDetail_editTooltip => '编辑物种';
-
-  @override
   String marineLife_speciesDetail_errorPrefix(Object error) {
     return '错误： $error';
   }
@@ -19162,17 +19112,6 @@ class AppLocalizationsZh extends AppLocalizations {
       locale: localeName,
       other: '标记 $count 张照片',
       one: '标记 1 张照片',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String marineLife_tagPicker_tagged(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '已标记 $count 张照片',
-      one: '已标记 1 张照片',
     );
     return '$_temp0';
   }
@@ -33789,12 +33728,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_detail_tab_checklist => '清单';
 
   @override
-  String get trips_detail_tooltip_edit => '编辑旅行';
-
-  @override
-  String get trips_detail_tooltip_editShort => '编辑';
-
-  @override
   String get trips_detail_tooltip_moreOptions => '更多选项';
 
   @override
@@ -33977,12 +33910,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_edit_validation_nameRequired => '请输入旅行名称';
 
   @override
-  String get trips_gallery_accessDenied => '相册访问被拒绝';
-
-  @override
-  String get trips_gallery_addDivesFirst => '请先添加潜水以关联照片';
-
-  @override
   String get trips_gallery_appBar_title => '旅行照片';
 
   @override
@@ -34008,32 +33935,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_gallery_empty_title => '此旅行暂无照片';
 
   @override
-  String get trips_gallery_errorLinking => '无法关联照片，请重试。';
-
-  @override
-  String get trips_gallery_errorScanning => '无法扫描照片，请重试。';
-
-  @override
   String get trips_gallery_error_loading => '无法加载照片。';
 
   @override
-  String trips_gallery_linkedPhotos(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '已关联 $count 照片',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get trips_gallery_linkingPhotos => '正在关联照片...';
-
-  @override
   String get trips_gallery_tooltip_scan => '扫描设备图库';
-
-  @override
-  String get trips_gallery_tripNotFound => '找不到该旅行';
 
   @override
   String get trips_list_button_retry => '重试';
@@ -36922,16 +36827,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gpsTrack_editCard_nameHint => '轨迹名称';
 
   @override
-  String get gpsTrack_action_trim => '裁剪...';
-
-  @override
   String get gpsTrack_action_split => '拆分...';
 
   @override
   String get gpsTrack_action_resetTrim => '重置裁剪';
-
-  @override
-  String get gpsTrack_edit_applyTrim => '应用裁剪';
 
   @override
   String get gpsTrack_edit_confirmSplit => '在此拆分';
@@ -55823,9 +55722,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navTrack_terrain_coarsePart => '（低分辨率测深数据：仅检查了陆地冲突）';
 
   @override
-  String get navTrack_detail_renameTrackTitle => '重命名轨迹';
-
-  @override
   String get navTrack_detail_deleteTrackTitle => '删除轨迹？';
 
   @override
@@ -55845,9 +55741,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get navTrack_detail_defaultTrackTitle => '水下轨迹';
-
-  @override
-  String get navTrack_detail_menuRename => '重命名';
 
   @override
   String get navTrack_detail_menuChangeDive => '更改潜水记录';

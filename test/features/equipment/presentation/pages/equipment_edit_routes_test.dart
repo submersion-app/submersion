@@ -7,22 +7,16 @@ import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_detail_page.dart';
-import 'package:submersion/features/equipment/presentation/pages/equipment_edit_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_edit_routes.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 
-/// The gear item's edit addresses and panes behind phase 3's switch (issue
-/// #4527, plan 6).
+/// The gear item's edit addresses and panes (issue #4527, plan 6).
 void main() {
-  test('the edit address redirects with the switch on, not off', () {
-    expect(
-      gearItemEditLocation('g1', unlockEditing: true),
-      '/equipment/g1?mode=edit',
-    );
-    expect(gearItemEditLocation('g1', unlockEditing: false), isNull);
+  test('the edit address opens the page unlocked', () {
+    expect(gearItemEditLocation('g1'), '/equipment/g1?mode=edit');
   });
 
   test('on a wide screen, mode=edit moves into the pane unlocked', () {
@@ -33,20 +27,12 @@ void main() {
     expect(gearItemPaneLocation('g1'), '/equipment?selected=g1');
   });
 
-  testWidgets('the pane is the item page, unlocked, with the switch on', (
-    tester,
-  ) async {
+  testWidgets('the pane is the item page, unlocked', (tester) async {
     late Widget pane;
     await tester.pumpWidget(
       Builder(
         builder: (context) {
-          pane = gearItemEditPane(
-            context,
-            'g1',
-            (_) {},
-            () {},
-            unlockEditing: true,
-          );
+          pane = gearItemEditPane(context, 'g1', (_) {}, () {});
           return const SizedBox();
         },
       ),
@@ -56,26 +42,6 @@ void main() {
     final page = pane as EquipmentDetailPage;
     expect(page.openUnlocked, isTrue);
     expect(page.embedded, isTrue);
-  });
-
-  testWidgets('with the switch off the pane opens the form', (tester) async {
-    late Widget pane;
-    await tester.pumpWidget(
-      Builder(
-        builder: (context) {
-          pane = gearItemEditPane(
-            context,
-            'g1',
-            (_) {},
-            () {},
-            unlockEditing: false,
-          );
-          return const SizedBox();
-        },
-      ),
-    );
-
-    expect(pane, isA<EquipmentEditPage>());
   });
 
   group('after a Save in the list\'s pane', () {

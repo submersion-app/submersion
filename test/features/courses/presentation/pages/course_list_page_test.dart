@@ -7,7 +7,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/courses/domain/constants/course_field.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/pages/course_detail_page.dart';
-import 'package:submersion/features/courses/presentation/pages/course_edit_page.dart';
 import 'package:submersion/features/courses/presentation/pages/course_edit_routes.dart';
 import 'package:submersion/features/courses/presentation/pages/course_list_page.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
@@ -595,7 +594,7 @@ void main() {
       await tester.pump();
       tester.takeException();
 
-      expect(find.byType(CourseEditPage), findsOneWidget);
+      expect(find.byType(CourseDetailPage), findsOneWidget);
     });
 
     testWidgets('table mode edit builder invoked via edit query param', (
@@ -625,15 +624,13 @@ void main() {
       await tester.pump();
       tester.takeException();
 
-      expect(find.byType(CourseEditPage), findsOneWidget);
+      expect(find.byType(CourseDetailPage), findsOneWidget);
     });
   });
 
   // A new course opens on the course page behind the phase 3 switch (issue
   // #4527, phase 3, plan 11).
-  testWidgets("the pane's new course is the page with the switch on", (
-    tester,
-  ) async {
+  testWidgets("the pane's new course is the page", (tester) async {
     void onSaved(String id) {}
     void onCancel() {}
     late BuildContext context;
@@ -645,16 +642,10 @@ void main() {
         },
       ),
     );
-    final page =
-        newCoursePane(context, onSaved, onCancel, unlockEditing: true)
-            as CourseDetailPage;
+    final page = newCoursePane(context, onSaved, onCancel) as CourseDetailPage;
     expect(page.embedded, isTrue);
     expect(page.newCourse, isTrue);
     expect(page.onCreated, same(onSaved));
-    expect(
-      newCoursePane(context, onSaved, onCancel, unlockEditing: false),
-      isA<CourseEditPage>(),
-    );
   });
 
   testWidgets('Add on a phone opens the new course once created', (
@@ -667,7 +658,7 @@ void main() {
           path: '/courses',
           builder: (context, _) => Scaffold(
             body: TextButton(
-              onPressed: () => openNewCourse(context, unlockEditing: true),
+              onPressed: () => openNewCourse(context),
               child: const Text('add'),
             ),
           ),

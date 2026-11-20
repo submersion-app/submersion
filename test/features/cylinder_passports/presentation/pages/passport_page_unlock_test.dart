@@ -65,7 +65,6 @@ void main() {
   /// tests use, running the held writes.
   Future<FakeGearItemSave?> pump(
     WidgetTester tester, {
-    bool unlockEditing = true,
     RecordEditController<EquipmentItem>? joined,
     List<PassportUsageDive> usage = const [],
   }) async {
@@ -121,19 +120,13 @@ void main() {
             (ref) => save = FakeGearItemSave(ref.watch(item.notifier)),
           ),
         ],
-        child: PassportPage(
-          equipmentId: 'c1',
-          unlockEditing: unlockEditing,
-          joined: joined,
-        ),
+        child: PassportPage(equipmentId: 'c1', joined: joined),
       ),
     );
     await tester.pumpAndSettle();
-    if (unlockEditing) {
-      ProviderScope.containerOf(
-        tester.element(find.byType(PassportPage)),
-      ).read(gearItemEditSaveServiceProvider);
-    }
+    ProviderScope.containerOf(
+      tester.element(find.byType(PassportPage)),
+    ).read(gearItemEditSaveServiceProvider);
     return save;
   }
 
@@ -158,13 +151,6 @@ void main() {
     );
     await tester.pumpAndSettle();
   }
-
-  testWidgets('with the switch off the page is as before', (tester) async {
-    await pump(tester, unlockEditing: false);
-
-    expect(find.byIcon(Icons.lock_outline), findsNothing);
-    expect(find.text(l.passport_fill_log), findsOneWidget);
-  });
 
   testWidgets('opened alone it opens locked, and offers no change', (
     tester,

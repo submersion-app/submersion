@@ -119,14 +119,12 @@ class CountingServiceRecords
   dynamic noSuchMethod(Invocation invocation) => null;
 }
 
-/// Pumps the gear item page with the phase 3 switch on (unless
-/// [unlockEditing] is false), at phone width, or as the list's pane when
+/// Pumps the gear item page, at phone width, or as the list's pane when
 /// [embedded]. The page's other reads answer with nothing.
 Future<GearPageHarness> pumpGearPage(
   WidgetTester tester, {
   Brightness brightness = Brightness.light,
   EquipmentItem? item,
-  bool unlockEditing = true,
   bool openUnlocked = false,
   bool embedded = false,
   Size size = const Size(600, 2400),
@@ -145,7 +143,6 @@ Future<GearPageHarness> pumpGearPage(
   final serviceRecords = CountingServiceRecords();
   final page = EquipmentDetailPage(
     equipmentId: shown.id,
-    unlockEditing: unlockEditing,
     openUnlocked: openUnlocked,
     embedded: embedded,
     onSittingEnded: onSittingEnded,

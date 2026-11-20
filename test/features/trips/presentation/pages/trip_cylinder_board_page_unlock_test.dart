@@ -41,7 +41,7 @@ void main() {
   Future<TripPageHarness> pumpBoard(WidgetTester tester) => pumpTripPage(
     tester,
     board: board,
-    wrap: (_) => const TripCylinderBoardPage(tripId: 't1', unlockEditing: true),
+    wrap: (_) => const TripCylinderBoardPage(tripId: 't1'),
   );
 
   Future<void> tapText(WidgetTester tester, String text) async {
@@ -178,8 +178,7 @@ void main() {
       tester,
       board: board,
       days: [june1],
-      wrap: (_) =>
-          const TripCylinderBoardPage(tripId: 't1', unlockEditing: true),
+      wrap: (_) => const TripCylinderBoardPage(tripId: 't1'),
     );
     await tester.tap(find.byIcon(Icons.lock_outline));
     await tester.pumpAndSettle();
@@ -225,8 +224,7 @@ void main() {
     final harness = await pumpTripPage(
       tester,
       board: board,
-      wrap: (_) =>
-          const TripCylinderBoardPage(tripId: 't1', unlockEditing: true),
+      wrap: (_) => const TripCylinderBoardPage(tripId: 't1'),
     );
     final gate = Completer<void>();
     harness.itinerary.gate = gate;
@@ -261,8 +259,7 @@ void main() {
     final harness = await pumpTripPage(
       tester,
       board: board,
-      wrap: (_) =>
-          const TripCylinderBoardPage(tripId: 't1', unlockEditing: true),
+      wrap: (_) => const TripCylinderBoardPage(tripId: 't1'),
     );
     harness.itinerary.failRead = true;
     await tester.tap(find.byIcon(Icons.lock_outline));

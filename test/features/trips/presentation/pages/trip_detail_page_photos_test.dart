@@ -33,20 +33,6 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('with the switch off the Photos tab offers no scan', (
-    tester,
-  ) async {
-    await pumpTripPage(
-      tester,
-      unlockEditing: false,
-      size: const Size(1000, 1600),
-      extraOverrides: noPhotos,
-    );
-    await showPhotos(tester);
-
-    expect(find.byTooltip(l.trips_photos_tooltip_scan), findsNothing);
-  });
-
   testWidgets('locked, the Photos tab offers Scan photos; in a sitting the '
       'photos held show apart, and Take out drops one', (tester) async {
     final harness = await pumpTripPage(

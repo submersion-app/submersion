@@ -105,10 +105,10 @@ class PassportTagCard extends ConsumerWidget {
   /// point at the button rather than at the whole page.
   final Future<void> Function(BuildContext buttonContext)? onPrintLabel;
 
-  /// The open card's sitting (issue #4527, phase 3): Link existing tag is
-  /// held there until Save. On a page that edits in place and with no
-  /// sitting given, the tag cannot be linked; during a sitting every view
-  /// shows the linked tag. Writing the tag and printing are not changes.
+  /// The open card's sitting (issue #4527, phase 3): Link existing tag is held
+  /// there until Save. With no sitting given, the tag cannot be linked; during
+  /// a sitting every view shows the linked tag. Writing the tag and printing
+  /// are not changes.
   final EditSession<EquipmentItem>? editing;
 
   @override

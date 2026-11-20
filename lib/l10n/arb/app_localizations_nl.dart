@@ -1569,20 +1569,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_sets_defaultBadge => 'Standaard';
 
   @override
-  String get equipment_setDetail_hideFigure => 'Duikerfiguur verbergen';
-
-  @override
-  String get equipment_setDetail_showFigure => 'Duikerfiguur tonen';
-
-  @override
-  String get equipment_setDetail_setAsDefault => 'Als standaard instellen';
-
-  @override
-  String equipment_setDetail_setAsDefaultSnackbar(String name) {
-    return '\"$name\" is nu je standaardset';
-  }
-
-  @override
   String get equipment_setDetail_geofencesTitle => 'Geofences';
 
   @override
@@ -3375,9 +3361,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get buddies_action_clearSearch => 'Zoekopdracht wissen';
 
   @override
-  String get buddies_action_edit => 'Buddy bewerken';
-
-  @override
   String get buddies_action_importFromContacts => 'Importeren uit contacten';
 
   @override
@@ -4451,12 +4434,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String certifications_detail_status_expiresOn(Object date) {
     return 'Verloopt op $date';
   }
-
-  @override
-  String get certifications_detail_tooltip_edit => 'Certificering bewerken';
-
-  @override
-  String get certifications_detail_tooltip_editShort => 'Bewerken';
 
   @override
   String get certifications_detail_tooltip_moreOptions => 'Meer opties';
@@ -6015,9 +5992,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get courses_action_deleteRequirement => 'Vereiste verwijderen';
 
   @override
-  String get courses_action_edit => 'Cursus bewerken';
-
-  @override
   String get courses_action_editRequirement => 'Vereiste bewerken';
 
   @override
@@ -6077,13 +6051,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get courses_dialog_deleteTitle => 'Cursus verwijderen?';
-
-  @override
-  String get courses_dialog_markCompletedMessage =>
-      'Dit markeert de cursus als voltooid met de datum van vandaag. Doorgaan?';
-
-  @override
-  String get courses_dialog_markCompletedTitle => 'Markeren als voltooid?';
 
   @override
   String get courses_empty_button => 'Voeg je eerste trainingscursus toe';
@@ -7396,9 +7363,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveCenters_tooltip_clearSearch => 'Zoekopdracht wissen';
-
-  @override
-  String get diveCenters_tooltip_edit => 'Duikcentrum bewerken';
 
   @override
   String get diveCenters_tooltip_fitAllCenters => 'Alle centra tonen';
@@ -16416,12 +16380,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get equipment_detail_editTooltip => 'Uitrusting bewerken';
-
-  @override
-  String get equipment_detail_editTooltipShort => 'Bewerken';
-
-  @override
   String equipment_detail_errorMessage(Object error) {
     return 'Fout: $error';
   }
@@ -18325,9 +18283,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get equipment_setDetail_addEquipmentButton => 'Uitrusting toevoegen';
-
-  @override
   String get equipment_setDetail_deleteDialog_cancel => 'Annuleren';
 
   @override
@@ -18343,9 +18298,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_setDetail_deleteMenuItem => 'Verwijderen';
-
-  @override
-  String get equipment_setDetail_editTooltip => 'Set bewerken';
 
   @override
   String get equipment_setDetail_emptySet => 'Geen uitrusting in deze set';
@@ -19702,9 +19654,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get marineLife_speciesDetail_divesLabel => 'Duiken';
 
   @override
-  String get marineLife_speciesDetail_editTooltip => 'Soort bewerken';
-
-  @override
   String marineLife_speciesDetail_errorPrefix(Object error) {
     return 'Fout: $error';
   }
@@ -20037,17 +19986,6 @@ class AppLocalizationsNl extends AppLocalizations {
       locale: localeName,
       other: '$count foto\'s taggen',
       one: '1 foto taggen',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String marineLife_tagPicker_tagged(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count foto\'s getagd',
-      one: '1 foto getagd',
     );
     return '$_temp0';
   }
@@ -35657,12 +35595,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_detail_tab_checklist => 'Checklist';
 
   @override
-  String get trips_detail_tooltip_edit => 'Reis bewerken';
-
-  @override
-  String get trips_detail_tooltip_editShort => 'Bewerken';
-
-  @override
   String get trips_detail_tooltip_moreOptions => 'Meer opties';
 
   @override
@@ -35860,14 +35792,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_edit_validation_nameRequired => 'Voer een reisnaam in';
 
   @override
-  String get trips_gallery_accessDenied =>
-      'Toegang tot fotobibliotheek geweigerd';
-
-  @override
-  String get trips_gallery_addDivesFirst =>
-      'Voeg eerst duiken toe om foto\'s te koppelen';
-
-  @override
   String get trips_gallery_appBar_title => 'Reisfoto\'s';
 
   @override
@@ -35894,35 +35818,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_gallery_empty_title => 'Geen foto\'s in deze reis';
 
   @override
-  String get trips_gallery_errorLinking =>
-      'Kan de foto\'s niet koppelen. Probeer het opnieuw.';
-
-  @override
-  String get trips_gallery_errorScanning =>
-      'Kan niet naar foto\'s zoeken. Probeer het opnieuw.';
-
-  @override
   String get trips_gallery_error_loading => 'Kan de foto\'s niet laden.';
 
   @override
-  String trips_gallery_linkedPhotos(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count foto\'s gekoppeld',
-      one: '$count foto gekoppeld',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get trips_gallery_linkingPhotos => 'Foto\'s koppelen...';
-
-  @override
   String get trips_gallery_tooltip_scan => 'Apparaatgalerij scannen';
-
-  @override
-  String get trips_gallery_tripNotFound => 'Reis niet gevonden';
 
   @override
   String get trips_list_button_retry => 'Opnieuw proberen';
@@ -39004,16 +38903,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get gpsTrack_editCard_nameHint => 'Naam van de track';
 
   @override
-  String get gpsTrack_action_trim => 'Bijsnijden...';
-
-  @override
   String get gpsTrack_action_split => 'Splitsen...';
 
   @override
   String get gpsTrack_action_resetTrim => 'Bijsnijden ongedaan maken';
-
-  @override
-  String get gpsTrack_edit_applyTrim => 'Bijsnijden toepassen';
 
   @override
   String get gpsTrack_edit_confirmSplit => 'Hier splitsen';
@@ -59153,9 +59046,6 @@ class AppLocalizationsNl extends AppLocalizations {
       ' (grove bathymetrie: alleen landconflicten gecontroleerd)';
 
   @override
-  String get navTrack_detail_renameTrackTitle => 'Track hernoemen';
-
-  @override
   String get navTrack_detail_deleteTrackTitle => 'Track verwijderen?';
 
   @override
@@ -59176,9 +59066,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get navTrack_detail_defaultTrackTitle => 'Onderwatertrack';
-
-  @override
-  String get navTrack_detail_menuRename => 'Hernoemen';
 
   @override
   String get navTrack_detail_menuChangeDive => 'Duik wijzigen';

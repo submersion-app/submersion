@@ -34,7 +34,6 @@ import 'package:submersion/features/certification_agencies/presentation/provider
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
-import 'package:submersion/features/equipment/presentation/widgets/lend_gear_flow.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 import 'package:submersion/features/buddies/data/services/buddy_edit_save_service.dart';
@@ -59,15 +58,13 @@ import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
 import 'package:submersion/shared/widgets/record_editing/record_open_unlocked.dart';
 import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 import 'package:submersion/shared/widgets/record_editing/record_pane_row.dart';
-import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
 part 'buddy_detail_page_creating.dart';
 part 'buddy_detail_page_editing.dart';
 part 'buddy_detail_page_header.dart';
 
-/// A buddy's page. Behind phase 3's switch ([unlockEditing]) it opens
-/// locked and edits in place (issue #4527): its cards are held in one
-/// sitting and written by one Save.
+/// A buddy's page. It opens locked and edits in place (issue #4527): its cards
+/// are held in one sitting and written by one Save.
 
 class BuddyDetailPage extends ConsumerStatefulWidget {
   final String buddyId;
@@ -77,10 +74,6 @@ class BuddyDetailPage extends ConsumerStatefulWidget {
 
   /// Callback when delete completes (used in embedded mode).
   final VoidCallback? onDeleted;
-
-  /// Whether the page edits in place: phase 3's switch, a parameter so a
-  /// test can turn it on.
-  final bool unlockEditing;
 
   /// Opens unlocked, as the old edit address asks (`?mode=edit`).
   final bool openUnlocked;
@@ -104,15 +97,13 @@ class BuddyDetailPage extends ConsumerStatefulWidget {
     required this.buddyId,
     this.embedded = false,
     this.onDeleted,
-    this.unlockEditing = kUnlockRecordEditing,
     this.openUnlocked = false,
     this.onSittingEnded,
   }) : newBuddy = null,
        onCreated = null,
        onCreateCancelled = null;
 
-  /// A new buddy's page, which edits in place whatever the switch: only the
-  /// switch's openers build it.
+  /// A new buddy's page.
   const BuddyDetailPage.newBuddy({
     super.key,
     NewBuddySeed? seed,
@@ -122,7 +113,6 @@ class BuddyDetailPage extends ConsumerStatefulWidget {
   }) : newBuddy = (seed: seed),
        buddyId = '',
        onDeleted = null,
-       unlockEditing = true,
        openUnlocked = false,
        onSittingEnded = null;
 
@@ -183,7 +173,7 @@ class _BuddyDetailPageState extends ConsumerState<BuddyDetailPage>
     }
 
     final buddyAsync = ref.watch(buddyByIdProvider(widget.buddyId));
-    if (hostsEditing) followStored(buddyByIdProvider(widget.buddyId));
+    followStored(buddyByIdProvider(widget.buddyId));
 
     return buddyAsync.when(
       data: (buddy) {
@@ -194,14 +184,6 @@ class _BuddyDetailPageState extends ConsumerState<BuddyDetailPage>
           return Scaffold(
             appBar: AppBar(title: Text(context.l10n.buddies_title_singular)),
             body: Center(child: Text(context.l10n.buddies_detail_notFound)),
-          );
-        }
-        if (!hostsEditing) {
-          return _BuddyDetailContent(
-            buddy: buddy,
-            stored: buddy,
-            embedded: widget.embedded,
-            onDeleted: widget.onDeleted,
           );
         }
         openUnlockedOnce(buddy);
@@ -248,33 +230,26 @@ class _BuddyDetailContent extends ConsumerWidget {
   final bool embedded;
   final VoidCallback? onDeleted;
 
-  /// The page, where it edits in place.
-  final _BuddyDetailPageState? host;
+  /// The page, which edits in place.
+  final _BuddyDetailPageState host;
 
   const _BuddyDetailContent({
     required this.buddy,
     required this.stored,
+    required this.host,
     this.embedded = false,
     this.onDeleted,
-    this.host,
   });
-
-  bool get _editing => host != null;
 
   /// Whether the buddy is not yet created: what it cannot have yet (gear
   /// lent, shared dives, photos) is left out, and nothing acts on it.
-  bool get _creating => host?.isCreating ?? false;
+  bool get _creating => host.isCreating;
 
-  /// [child] as the card [id] where the page edits in place.
-  Widget _framed(BuddyCardId id, Widget child) =>
-      host?._framed(id, child) ?? child;
+  /// [child] as the card [id].
+  Widget _framed(BuddyCardId id, Widget child) => host._framed(id, child);
 
   /// Whether the empty card [id] is shown in the sitting.
-  bool _shows(BuddyCardId id) => host?._showsWhileEmpty(id) ?? false;
-
-  /// [child] faded for [reason] where the page edits in place.
-  Widget _fade(RecordCardFadeReason reason, Widget child) =>
-      _editing ? _faded(reason, child) : child;
+  bool _shows(BuddyCardId id) => host._showsWhileEmpty(id);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -304,7 +279,7 @@ class _BuddyDetailContent extends ConsumerWidget {
 
           // What their buddy card said (issue #3728).
           if (buddy.hasCardDetails) ...[
-            _fade(
+            _faded(
               RecordCardFadeReason.imported,
               BuddyCardDetailsSection(buddy: buddy),
             ),
@@ -328,18 +303,15 @@ class _BuddyDetailContent extends ConsumerWidget {
 
           // Gear they have (issue #3790), with its own spacing: most buddies
           // have none and show no gap.
-          if (!_editing)
-            BuddyGearSection(buddy: buddy)
-          else if (_creating)
+          if (_creating)
             const SizedBox.shrink()
-          else if (!this.host!._gearEmpty(ref, buddy) ||
-              _shows(BuddyCardId.gear))
+          else if (!host._gearEmpty(ref, buddy) || _shows(BuddyCardId.gear))
             _framed(
               BuddyCardId.gear,
               BuddyGearSection(
                 buddy: buddy,
                 readOnly: true,
-                shown: this.host!.maybeEditController?.session,
+                shown: host.maybeEditController?.session,
               ),
             ),
 
@@ -358,13 +330,13 @@ class _BuddyDetailContent extends ConsumerWidget {
 
           if (!_creating) ...[
             // Shared dives
-            _fade(
+            _faded(
               RecordCardFadeReason.calculated,
               BuddySharedDivesSection(buddyId: buddy.id),
             ),
 
             // Photos and videos they are tagged in (issue #1745)
-            _fade(
+            _faded(
               RecordCardFadeReason.calculated,
               BuddyPhotosSection(buddyId: buddy.id),
             ),
@@ -373,66 +345,40 @@ class _BuddyDetailContent extends ConsumerWidget {
       ),
     );
 
-    final host = this.host;
     if (embedded) {
-      final header = _buildEmbeddedHeader(context, ref);
-      if (host != null) {
-        return host.editPane(
-          header: RecordPaneRow(
-            locked: header,
-            unlocked: host.isSittingOpen
-                ? host.editingPaneRow(
-                    stored,
-                    menu: _creating
-                        ? const SizedBox.shrink()
-                        : _menu(context, ref),
-                  )
-                : null,
-          ),
-          shown: buddy,
-          content: body,
-        );
-      }
-      return Column(
-        children: [
-          header,
-          Expanded(child: body),
-        ],
+      return host.editPane(
+        header: RecordPaneRow(
+          locked: _buildEmbeddedHeader(context, ref),
+          unlocked: host.isSittingOpen
+              ? host.editingPaneRow(
+                  stored,
+                  menu: _creating
+                      ? const SizedBox.shrink()
+                      : _menu(context, ref),
+                )
+              : null,
+        ),
+        shown: buddy,
+        content: body,
       );
     }
 
     final bar = AppBar(
       title: Text(buddy.name),
       actions: [
-        if (host != null) host.lockButton(buddy),
-        // Where the page edits in place, the favourite is set on the
-        // header: the bar's star only shows it.
-        BuddyFavoriteButton(
-          buddyId: buddy.id,
-          isFavorite: buddy.isFavorite,
-          readOnly: host != null,
-        ),
-        IconButton(
-          icon: const Icon(Icons.edit),
-          tooltip: context.l10n.buddies_action_edit,
-          // Where the page edits in place, Edit unlocks it as the lock does.
-          onPressed: host != null
-              ? () => host.editController.unlock(buddy)
-              : () => context.push('/buddies/${buddy.id}/edit'),
-        ),
+        host.lockButton(buddy),
+        // The favourite is set on the header: the bar's star only shows it.
+        BuddyFavoriteButton(isFavorite: buddy.isFavorite),
         _menu(context, ref),
       ],
     );
-    if (host != null) {
-      return host.editScaffold(
-        record: stored,
-        shown: buddy,
-        lockedBar: bar,
-        unlockedActions: [if (!_creating) _menu(context, ref)],
-        content: body,
-      );
-    }
-    return Scaffold(appBar: bar, body: body);
+    return host.editScaffold(
+      record: stored,
+      shown: buddy,
+      lockedBar: bar,
+      unlockedActions: [if (!_creating) _menu(context, ref)],
+      content: body,
+    );
   }
 
   Widget _buildProfileHeader(BuildContext context, WidgetRef ref) {
@@ -459,12 +405,11 @@ class _BuddyDetailContent extends ConsumerWidget {
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
               ),
-              if (_editing)
-                RecordCardPencil(
-                  cardTitle: BuddyCardId.header.localizedDisplayName(
-                    context.l10n,
-                  ),
+              RecordCardPencil(
+                cardTitle: BuddyCardId.header.localizedDisplayName(
+                  context.l10n,
                 ),
+              ),
             ],
           ),
         ],
@@ -487,11 +432,7 @@ class _BuddyDetailContent extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _sectionTitle(
-              context,
-              context.l10n.buddies_section_contact,
-              editing: _editing,
-            ),
+            _sectionTitle(context, context.l10n.buddies_section_contact),
             const SizedBox(height: 12),
             if (buddy.linkedDiverId != null)
               ListTile(
@@ -556,7 +497,7 @@ class _BuddyDetailContent extends ConsumerWidget {
   Widget _buildCertificationSection(BuildContext context, WidgetRef ref) {
     final stored = ref.watch(buddyCertificationsProvider(buddy.id));
     // The sitting's list once it holds a change.
-    final session = host?.maybeEditController?.session;
+    final session = host.maybeEditController?.session;
     final held = session != null && buddyCertificationsList.isChanged(session)
         ? buddyCertificationsList.current(session)
         : null;
@@ -569,11 +510,7 @@ class _BuddyDetailContent extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _sectionTitle(
-              context,
-              context.l10n.buddies_section_certifications,
-              editing: _editing,
-            ),
+            _sectionTitle(context, context.l10n.buddies_section_certifications),
             const SizedBox(height: 12),
             certsAsync.when(
               loading: () => const Padding(
@@ -633,7 +570,6 @@ class _BuddyDetailContent extends ConsumerWidget {
               _sectionTitle(
                 context,
                 context.l10n.buddies_section_diveStatistics,
-                editing: _editing,
               ),
               const SizedBox(height: 12),
               statsAsync.when(
@@ -706,11 +642,7 @@ class _BuddyDetailContent extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _sectionTitle(
-              context,
-              context.l10n.buddies_section_notes,
-              editing: _editing,
-            ),
+            _sectionTitle(context, context.l10n.buddies_section_notes),
             const SizedBox(height: 12),
             MarkdownNotesView(buddy.notes),
           ],

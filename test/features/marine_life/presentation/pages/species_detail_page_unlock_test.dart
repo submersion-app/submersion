@@ -40,11 +40,13 @@ void main() {
   String headerTitle() => l.settings_conflict_ref_species;
   String descriptionTitle() => l.marineLife_speciesDetail_descriptionTitle;
 
-  testWidgets('with the switch off there is no lock', (tester) async {
-    await pumpSpeciesPage(tester, unlockEditing: false);
+  // The lock is the one way in (issue #4527, plan 12): no Edit pencil.
+  testWidgets('the locked bar has the lock and no Edit pencil', (tester) async {
+    await pumpSpeciesPage(tester);
 
-    expect(find.byIcon(Icons.lock_outline), findsNothing);
-    expect(find.byIcon(Icons.edit_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.lock_outline), findsOneWidget);
+    expect(find.widgetWithIcon(IconButton, Icons.edit), findsNothing);
+    expect(find.widgetWithIcon(IconButton, Icons.edit_outlined), findsNothing);
   });
 
   testWidgets('locked, no tap writes', (tester) async {

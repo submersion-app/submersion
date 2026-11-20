@@ -87,7 +87,7 @@ class _BuddyListPageState extends ConsumerState<BuddyListPage>
             },
           ),
           summaryBuilder: (context) => const BuddySummaryWidget(),
-          // Behind phase 3's switch, the page opened unlocked (issue #4527).
+          // The page opened unlocked (issue #4527).
           editBuilder: (context, buddyId, onSaved, onCancel) => buddyEditPane(
             context,
             buddyId,
@@ -95,7 +95,7 @@ class _BuddyListPageState extends ConsumerState<BuddyListPage>
             onCancel,
             onDeleted: () => context.go(GoRouterState.of(context).uri.path),
           ),
-          // Behind phase 3's switch, the page on a new buddy (plan 11).
+          // The page on a new buddy (plan 11).
           createBuilder: (context, onSaved, onCancel) =>
               newBuddyPane(context, onSaved, onCancel),
           selectedId: ref.watch(highlightedBuddyIdProvider),
@@ -206,7 +206,7 @@ class _BuddyListPageState extends ConsumerState<BuddyListPage>
             },
           ),
           summaryBuilder: (context) => const BuddySummaryWidget(),
-          // Behind phase 3's switch, the page opened unlocked (issue #4527).
+          // The page opened unlocked (issue #4527).
           editBuilder: (context, buddyId, onSaved, onCancel) => buddyEditPane(
             context,
             buddyId,
@@ -214,7 +214,7 @@ class _BuddyListPageState extends ConsumerState<BuddyListPage>
             onCancel,
             onDeleted: () => context.go(GoRouterState.of(context).uri.path),
           ),
-          // Behind phase 3's switch, the page on a new buddy (plan 11).
+          // The page on a new buddy (plan 11).
           createBuilder: (context, onSaved, onCancel) =>
               newBuddyPane(context, onSaved, onCancel),
           floatingActionButton: fab,

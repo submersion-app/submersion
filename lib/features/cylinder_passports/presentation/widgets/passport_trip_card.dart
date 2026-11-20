@@ -29,10 +29,10 @@ class PassportTripCard extends ConsumerStatefulWidget {
 
   final String equipmentId;
 
-  /// The open card's sitting (issue #4527, phase 3): packing and unpacking
-  /// are held there until Save. On a page that edits in place and with no
-  /// sitting given, the card reads only; during a sitting every view shows
-  /// its packing. New trip creates the trip at once, as a picker does.
+  /// The open card's sitting (issue #4527, phase 3): packing and unpacking are
+  /// held there until Save. With no sitting given, the card reads only; during
+  /// a sitting every view shows its packing. New trip creates the trip at once,
+  /// as a picker does.
   final EditSession<EquipmentItem>? editing;
 
   @override

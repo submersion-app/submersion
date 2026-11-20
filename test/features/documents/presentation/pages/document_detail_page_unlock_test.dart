@@ -16,9 +16,8 @@ import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 import '../../../../helpers/test_database.dart';
 import 'document_detail_page_unlock_harness.dart';
 
-/// The document page edits in place behind the phase 3 switch (issue
-/// #4527): it opens locked, a sitting edits its details, and one Save
-/// writes it.
+/// The document page edits in place (issue #4527): it opens locked, a
+/// sitting edits its details, and one Save writes it.
 void main() {
   final l = AppLocalizationsEn();
 
@@ -41,11 +40,23 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('with the switch off there is no lock', (tester) async {
-    await pumpDocumentPage(tester, unlockEditing: false);
+  // The lock is the one way in (issue #4527, plan 12): no Edit pencil.
+  testWidgets('the locked bar has the lock and no Edit pencil', (tester) async {
+    await pumpDocumentPage(tester);
 
-    expect(find.byIcon(Icons.lock_outline), findsNothing);
-    expect(find.byIcon(Icons.edit_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.lock_outline), findsOneWidget);
+    expect(find.widgetWithIcon(IconButton, Icons.edit), findsNothing);
+    expect(find.widgetWithIcon(IconButton, Icons.edit_outlined), findsNothing);
+  });
+
+  testWidgets('the pane header has the lock and no Edit pencil', (
+    tester,
+  ) async {
+    await pumpDocumentPage(tester, embedded: true);
+
+    expect(find.byIcon(Icons.lock_outline), findsOneWidget);
+    expect(find.widgetWithIcon(IconButton, Icons.edit), findsNothing);
+    expect(find.widgetWithIcon(IconButton, Icons.edit_outlined), findsNothing);
   });
 
   testWidgets('locked, no tap writes', (tester) async {
@@ -145,6 +156,26 @@ void main() {
       find.byKey(const ValueKey('document_details_tags_browse')),
     );
     expect(browse.onPressed, isNull);
+  });
+
+  testWidgets('a record that cannot be read says so, with a way back', (
+    tester,
+  ) async {
+    await pumpDocumentPage(tester, recordReadError: StateError('broken'));
+
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.textContaining('broken'), findsOneWidget);
+    expect(find.byType(AppBar), findsOneWidget);
+  });
+
+  testWidgets('a record that is gone says so instead of waiting', (
+    tester,
+  ) async {
+    await pumpDocumentPage(tester, recordMissing: true);
+
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.text(l.documents_empty), findsOneWidget);
+    expect(find.byType(AppBar), findsOneWidget);
   });
 
   testWidgets('Cancel with changes asks first', (tester) async {

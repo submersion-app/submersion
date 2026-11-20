@@ -15,9 +15,6 @@ mixin _EquipmentSetDetailPageEditing
   String recordIdOf(EquipmentSet record) => record.id;
 
   @override
-  bool get hostsEditing => widget.unlockEditing;
-
-  @override
   bool openUnlockedOf(EquipmentSetDetailPage widget) => widget.openUnlocked;
 
   @override
@@ -183,14 +180,12 @@ mixin _EquipmentSetDetailPageEditing
         controller.addedCardIds.contains(id.name);
   }
 
-  /// [child] as the card [id], framed for editing in place where the page
-  /// does.
-  Widget _framed(EquipmentSetCardId id, Widget child) => hostsEditing
-      ? RecordCardFrame<EquipmentSet>(
-          card: equipmentSetEditCards[id]!,
-          child: child,
-        )
-      : child;
+  /// [child] as the card [id], framed for editing in place.
+  Widget _framed(EquipmentSetCardId id, Widget child) =>
+      RecordCardFrame<EquipmentSet>(
+        card: equipmentSetEditCards[id]!,
+        child: child,
+      );
 }
 
 /// The session note holding the answer to "Update past dives?": whether

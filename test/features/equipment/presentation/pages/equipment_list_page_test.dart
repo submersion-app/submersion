@@ -713,7 +713,7 @@ void main() {
       await tester.pump();
       tester.takeException();
 
-      expect(find.byType(EquipmentEditPage), findsOneWidget);
+      expect(find.byType(EquipmentDetailPage), findsOneWidget);
     });
 
     testWidgets('table mode edit builder invoked via edit query param', (
@@ -745,7 +745,7 @@ void main() {
       await tester.pump();
       tester.takeException();
 
-      expect(find.byType(EquipmentEditPage), findsOneWidget);
+      expect(find.byType(EquipmentDetailPage), findsOneWidget);
     });
   });
 
@@ -947,9 +947,7 @@ void main() {
 
   // A new gear item opens on the item page behind the phase 3 switch
   // (issue #4527, phase 3, plan 11).
-  testWidgets("the pane's new item is the page with the switch on", (
-    tester,
-  ) async {
+  testWidgets("the pane's new item is the page", (tester) async {
     void onSaved(String id) {}
     void onCancel() {}
     late BuildContext context;
@@ -962,15 +960,10 @@ void main() {
       ),
     );
     final page =
-        newGearItemPane(context, onSaved, onCancel, unlockEditing: true)
-            as EquipmentDetailPage;
+        newGearItemPane(context, onSaved, onCancel) as EquipmentDetailPage;
     expect(page.embedded, isTrue);
     expect(page.newItem, isNotNull);
     expect(page.onCreated, same(onSaved));
-    expect(
-      newGearItemPane(context, onSaved, onCancel, unlockEditing: false),
-      isA<EquipmentEditPage>(),
-    );
   });
 
   testWidgets('Add on a phone opens the new item once created', (tester) async {
@@ -981,7 +974,7 @@ void main() {
           path: '/equipment',
           builder: (context, _) => Scaffold(
             body: TextButton(
-              onPressed: () => openNewGearItem(context, unlockEditing: true),
+              onPressed: () => openNewGearItem(context),
               child: const Text('add'),
             ),
           ),

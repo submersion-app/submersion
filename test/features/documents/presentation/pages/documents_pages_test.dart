@@ -12,7 +12,6 @@ import 'package:submersion/features/documents/data/repositories/document_reposit
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
 import 'package:submersion/features/documents/presentation/pages/document_detail_page.dart';
-import 'package:submersion/features/documents/presentation/pages/document_edit_page.dart';
 import 'package:submersion/features/documents/presentation/pages/documents_page.dart';
 import 'package:submersion/features/documents/presentation/widgets/documents_expiring_strip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -313,6 +312,9 @@ void main() {
     expect(find.text('Bonaire'), findsOneWidget);
     expect(find.text('Park permit.txt'), findsOneWidget);
 
+    // Delete is a whole-record operation, under the lock (issue #4527).
+    await t.tap(find.byIcon(Icons.lock_outline));
+    await t.pumpAndSettle();
     await t.tap(
       find.descendant(
         of: find.byType(DocumentDetailPage),
@@ -334,23 +336,14 @@ void main() {
     );
   });
 
-  testWidgets('on a wide screen, Edit opens the editor in the detail pane', (
-    t,
-  ) async {
-    final doc = await _save('Park permit', DocumentType.permit);
-    await pump(t, '/documents?selected=${doc.id}', size: const Size(1400, 900));
-    await t.tap(find.byTooltip('Edit'));
-    await t.pumpAndSettle();
-    // Not the standalone /documents/:id/edit page over the whole shell.
-    expect(find.text('EDIT'), findsNothing);
-    expect(find.byType(DocumentEditPage), findsOneWidget);
-  });
-
   testWidgets('on a wide screen, Delete in the pane menu clears the pane', (
     t,
   ) async {
     final doc = await _save('Park permit', DocumentType.permit);
     await pump(t, '/documents?selected=${doc.id}', size: const Size(1400, 900));
+    // Delete is a whole-record operation, under the lock (issue #4527).
+    await t.tap(find.byIcon(Icons.lock_outline));
+    await t.pumpAndSettle();
     await t.tap(
       find.descendant(
         of: find.byType(DocumentDetailPage),
@@ -428,9 +421,7 @@ void main() {
   }
   // A new document opens on the document page behind the phase 3 switch
   // (issue #4527, phase 3, plan 11).
-  testWidgets("the pane's new document is the page with the switch on", (
-    t,
-  ) async {
+  testWidgets("the pane's new document is the page", (t) async {
     void onSaved(String id) {}
     void onCancel() {}
     late BuildContext context;
@@ -448,23 +439,12 @@ void main() {
               onSaved,
               onCancel,
               initialType: DocumentType.insurance,
-              unlockEditing: true,
             )
             as DocumentDetailPage;
     expect(page.embedded, isTrue);
     expect(page.newDocument?.type, DocumentType.insurance);
     expect(page.onCreated, same(onSaved));
     expect(page.onCreateCancelled, same(onCancel));
-    expect(
-      newDocumentPane(
-        context,
-        onSaved,
-        onCancel,
-        initialType: DocumentType.insurance,
-        unlockEditing: false,
-      ),
-      isA<DocumentEditPage>(),
-    );
   });
 
   testWidgets('Add on a phone opens the new document once created', (t) async {
@@ -475,11 +455,8 @@ void main() {
           path: '/documents',
           builder: (context, _) => Scaffold(
             body: TextButton(
-              onPressed: () => openNewDocument(
-                context,
-                type: DocumentType.insurance,
-                unlockEditing: true,
-              ),
+              onPressed: () =>
+                  openNewDocument(context, type: DocumentType.insurance),
               child: const Text('add'),
             ),
           ),

@@ -16,7 +16,7 @@ instructor signatures.
 
 ### Adding a certification
 
-Tap **Add Certification** on the Certifications list.
+Tap **Add Certification** on the Certifications list. The new certification opens on its own page, unlocked: fill in its cards and tap **Save**. To change one later, open it, tap the lock, open the cards you want with their pencils and tap **Save**; one Save adds one entry to its **History**.
 
 | Field | Notes |
 |-------|-------|
@@ -104,7 +104,7 @@ what it requires, and the training dives you made.
 
 ### Adding a course
 
-Tap **Add Course** on the Courses list.
+Tap **Add Course** on the Courses list. The new course opens on its own page, unlocked: fill in its cards and tap **Save**. To change a course later, including ticking requirements, crediting dives and marking it completed, open it and tap the lock first; **Save** writes it all as one entry in its **History**.
 
 | Field | Notes |
 |-------|-------|

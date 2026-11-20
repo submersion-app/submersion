@@ -33,10 +33,10 @@ class PassportFillHistoryCard extends ConsumerWidget {
 
   final String equipmentId;
 
-  /// The open card's sitting (issue #4527, phase 3): edits and deletes are
-  /// held there until Save, today's questions asked as they are made. On a
-  /// page that edits in place and with no sitting given, the fills read
-  /// only; during a sitting every view shows the sitting's fills.
+  /// The open card's sitting (issue #4527, phase 3): edits and deletes are held
+  /// there until Save, today's questions asked as they are made. With no
+  /// sitting given, the fills read only; during a sitting every view shows the
+  /// sitting's fills.
   final EditSession<EquipmentItem>? editing;
 
   Future<void> _confirmDelete(

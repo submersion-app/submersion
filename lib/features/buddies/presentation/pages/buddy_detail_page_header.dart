@@ -58,25 +58,8 @@ extension _BuddyDetailPaneHeader on _BuddyDetailContent {
               ],
             ),
           ),
-          if (host != null) host!.lockButton(buddy, compact: true),
-          BuddyFavoriteButton(
-            buddyId: buddy.id,
-            isFavorite: buddy.isFavorite,
-            iconSize: 20,
-            readOnly: host != null,
-          ),
-          IconButton(
-            icon: const Icon(Icons.edit, size: 20),
-            tooltip: context.l10n.common_action_edit,
-            onPressed: host != null
-                ? () => host!.editController.unlock(buddy)
-                : () {
-                    final state = GoRouterState.of(context);
-                    context.go(
-                      '${state.uri.path}?selected=${buddy.id}&mode=edit',
-                    );
-                  },
-          ),
+          host.lockButton(buddy, compact: true),
+          BuddyFavoriteButton(isFavorite: buddy.isFavorite, iconSize: 20),
           _menu(context, ref, compact: true),
         ],
       ),

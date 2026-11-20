@@ -9,7 +9,6 @@ import 'package:submersion/features/buddies/domain/constants/buddy_field.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/editing/buddy_new_sitting.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page.dart';
-import 'package:submersion/features/buddies/presentation/pages/buddy_edit_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_edit_routes.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_list_page.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
@@ -657,8 +656,8 @@ void main() {
       await tester.pump();
       tester.takeException();
 
-      // The create builder closure body was invoked, creating BuddyEditPage
-      expect(find.byType(BuddyEditPage), findsOneWidget);
+      // The create builder closure body was invoked, creating BuddyDetailPage
+      expect(find.byType(BuddyDetailPage), findsOneWidget);
     });
 
     testWidgets('table mode edit builder invoked via edit query param', (
@@ -688,16 +687,14 @@ void main() {
       await tester.pump();
       tester.takeException();
 
-      // The edit builder closure body was invoked, creating BuddyEditPage
-      expect(find.byType(BuddyEditPage), findsOneWidget);
+      // The edit builder closure body was invoked, creating BuddyDetailPage
+      expect(find.byType(BuddyDetailPage), findsOneWidget);
     });
   });
 
   // A new buddy opens on the buddy page behind the phase 3 switch (issue
   // #4527, phase 3, plan 11).
-  testWidgets("the pane's new buddy is the page with the switch on", (
-    tester,
-  ) async {
+  testWidgets("the pane's new buddy is the page", (tester) async {
     void onSaved(String id) {}
     void onCancel() {}
     late BuildContext context;
@@ -709,17 +706,11 @@ void main() {
         },
       ),
     );
-    final page =
-        newBuddyPane(context, onSaved, onCancel, unlockEditing: true)
-            as BuddyDetailPage;
+    final page = newBuddyPane(context, onSaved, onCancel) as BuddyDetailPage;
     expect(page.embedded, isTrue);
     expect(page.newBuddy, isNotNull);
     expect(page.onCreated, same(onSaved));
     expect(page.onCreateCancelled, same(onCancel));
-    expect(
-      newBuddyPane(context, onSaved, onCancel, unlockEditing: false),
-      isA<BuddyEditPage>(),
-    );
   });
 
   testWidgets('Add on a phone opens the new buddy once created', (
@@ -738,11 +729,8 @@ void main() {
           path: '/buddies',
           builder: (context, _) => Scaffold(
             body: TextButton(
-              onPressed: () => openNewBuddy(
-                context,
-                seed: const NewBuddySeed(name: 'Kai'),
-                unlockEditing: true,
-              ),
+              onPressed: () =>
+                  openNewBuddy(context, seed: const NewBuddySeed(name: 'Kai')),
               child: const Text('add'),
             ),
           ),
