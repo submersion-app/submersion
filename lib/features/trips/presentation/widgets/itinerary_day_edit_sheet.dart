@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
@@ -16,7 +15,6 @@ import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.da
 Future<void> showItineraryDayEditSheet({
   required BuildContext context,
   required ItineraryDay day,
-  required String tripId,
   required bool isLiveaboard,
   required ValueChanged<ItineraryDay> hold,
 }) {
@@ -26,16 +24,14 @@ Future<void> showItineraryDayEditSheet({
     useSafeArea: true,
     builder: (context) => _ItineraryDayEditSheet(
       day: day,
-      tripId: tripId,
       isLiveaboard: isLiveaboard,
       hold: hold,
     ),
   );
 }
 
-class _ItineraryDayEditSheet extends ConsumerStatefulWidget {
+class _ItineraryDayEditSheet extends StatefulWidget {
   final ItineraryDay day;
-  final String tripId;
   final bool isLiveaboard;
 
   /// Takes the edited day: the trip page holds it in its sitting until Save
@@ -44,18 +40,15 @@ class _ItineraryDayEditSheet extends ConsumerStatefulWidget {
 
   const _ItineraryDayEditSheet({
     required this.day,
-    required this.tripId,
     required this.isLiveaboard,
     required this.hold,
   });
 
   @override
-  ConsumerState<_ItineraryDayEditSheet> createState() =>
-      _ItineraryDayEditSheetState();
+  State<_ItineraryDayEditSheet> createState() => _ItineraryDayEditSheetState();
 }
 
-class _ItineraryDayEditSheetState
-    extends ConsumerState<_ItineraryDayEditSheet> {
+class _ItineraryDayEditSheetState extends State<_ItineraryDayEditSheet> {
   late DayType _selectedDayType;
   late TextEditingController _portNameController;
   late TextEditingController _notesController;

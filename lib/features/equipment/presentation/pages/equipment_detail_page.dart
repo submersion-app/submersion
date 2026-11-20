@@ -403,7 +403,6 @@ class _EquipmentDetailContent extends ConsumerWidget {
               GearItemCardId.serviceClocks,
               ServiceClocksCard(
                 equipmentId: equipmentId,
-                equipmentType: equipment.type,
                 customReminder: (
                   enabled: equipment.customReminderEnabled,
                   days: equipment.customReminderDays,

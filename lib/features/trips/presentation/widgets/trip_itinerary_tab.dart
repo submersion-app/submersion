@@ -202,7 +202,6 @@ class TripItineraryTab extends ConsumerWidget {
       return ItineraryDayCard(
         day: day,
         dives: dayDives,
-        tripId: tripId,
         isLiveaboard: trip?.isLiveaboard ?? false,
         kind: tripDayKind(day.date, now),
         photoCount: storyDay?.photoCount ?? 0,

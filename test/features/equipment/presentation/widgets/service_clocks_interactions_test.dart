@@ -91,10 +91,7 @@ void main() {
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: SingleChildScrollView(
-            child: ServiceClocksCard(
-              equipmentId: equipmentId,
-              equipmentType: type,
-            ),
+            child: ServiceClocksCard(equipmentId: equipmentId),
           ),
         ),
       ),

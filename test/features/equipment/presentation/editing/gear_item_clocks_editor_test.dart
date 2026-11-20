@@ -215,13 +215,7 @@ void main() {
 
   group('the clocks card on a page that edits in place', () {
     testWidgets('locked, it offers no clock and no clock menu', (tester) async {
-      await pump(
-        tester,
-        const ServiceClocksCard(
-          equipmentId: 'g1',
-          equipmentType: EquipmentType.regulator,
-        ),
-      );
+      await pump(tester, const ServiceClocksCard(equipmentId: 'g1'));
 
       expect(find.text(l.equipment_serviceClocks_addClock), findsNothing);
       expect(find.byType(PopupMenuButton<String>), findsNothing);
@@ -232,7 +226,6 @@ void main() {
         tester,
         const ServiceClocksCard(
           equipmentId: 'g1',
-          equipmentType: EquipmentType.regulator,
           customReminder: (enabled: true, days: [30, 7]),
         ),
       );
@@ -249,7 +242,6 @@ void main() {
         tester,
         const ServiceClocksCard(
           equipmentId: 'g1',
-          equipmentType: EquipmentType.regulator,
           customReminder: (enabled: false, days: null),
         ),
       );
@@ -259,7 +251,6 @@ void main() {
         tester,
         const ServiceClocksCard(
           equipmentId: 'g1',
-          equipmentType: EquipmentType.regulator,
           customReminder: (enabled: null, days: null),
         ),
       );

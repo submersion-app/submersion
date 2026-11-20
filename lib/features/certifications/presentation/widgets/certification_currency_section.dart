@@ -461,7 +461,7 @@ class _CurrencyRow extends ConsumerWidget {
   }
 }
 
-class _EventTile extends ConsumerWidget {
+class _EventTile extends StatelessWidget {
   final CurrencyEvent event;
   final UnitFormatter units;
   final EditSession<Certification>? editing;
@@ -479,7 +479,7 @@ class _EventTile extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final details = [

@@ -16,7 +16,7 @@ import 'package:submersion/features/courses/presentation/editing/course_requirem
 /// What a tap does is [actions]'s, held in a course page's sitting (issue
 /// #4527, phase 3). With none (the page is locked, or the card is closed) it
 /// offers no action and shows the tick as it is.
-class RequirementTile extends ConsumerWidget {
+class RequirementTile extends StatelessWidget {
   const RequirementTile({
     super.key,
     required this.progress,
@@ -31,7 +31,7 @@ class RequirementTile extends ConsumerWidget {
   final RequirementActions? actions;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final requirement = progress.requirement;
     final actions = this.actions;
     if (requirement.kind == RequirementKind.checklist) {

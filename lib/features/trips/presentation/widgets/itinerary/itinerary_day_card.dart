@@ -28,7 +28,6 @@ import 'package:submersion/core/text/markdown/notes_plain_text.dart';
 class ItineraryDayCard extends ConsumerWidget {
   final ItineraryDay day;
   final List<Dive> dives;
-  final String tripId;
   final bool isLiveaboard;
 
   /// Where the day sits against today; drives the Today styling and whether
@@ -57,7 +56,6 @@ class ItineraryDayCard extends ConsumerWidget {
     super.key,
     required this.day,
     required this.dives,
-    required this.tripId,
     required this.isLiveaboard,
     required this.kind,
     this.photoCount = 0,
@@ -106,7 +104,6 @@ class ItineraryDayCard extends ConsumerWidget {
             final hold => () => showItineraryDayEditSheet(
               context: context,
               day: day,
-              tripId: tripId,
               isLiveaboard: isLiveaboard,
               hold: hold,
             ),

@@ -145,7 +145,7 @@ class _ServiceHistorySectionState extends ConsumerState<ServiceHistorySection> {
                 ),
                 if (_canAct)
                   FilledButton.tonalIcon(
-                    onPressed: () => _showAddServiceDialog(context, ref),
+                    onPressed: () => _showAddServiceDialog(context),
                     icon: const Icon(Icons.add, size: 18),
                     label: Text(context.l10n.equipment_service_addButton),
                   ),
@@ -287,11 +287,8 @@ class _ServiceHistorySectionState extends ConsumerState<ServiceHistorySection> {
                               kindsById: kindsById,
                               onTap: !_canAct
                                   ? null
-                                  : () => _showEditServiceDialog(
-                                      context,
-                                      ref,
-                                      record,
-                                    ),
+                                  : () =>
+                                        _showEditServiceDialog(context, record),
                               onDelete: !_canAct
                                   ? null
                                   : () => _removeRecord(record),
@@ -520,7 +517,7 @@ class _ServiceHistorySectionState extends ConsumerState<ServiceHistorySection> {
     );
   }
 
-  void _showAddServiceDialog(BuildContext context, WidgetRef ref) {
+  void _showAddServiceDialog(BuildContext context) {
     final editing = widget.editing;
     if (editing == null) return;
     showDialog(
@@ -532,11 +529,7 @@ class _ServiceHistorySectionState extends ConsumerState<ServiceHistorySection> {
     );
   }
 
-  void _showEditServiceDialog(
-    BuildContext context,
-    WidgetRef ref,
-    ServiceRecord record,
-  ) {
+  void _showEditServiceDialog(BuildContext context, ServiceRecord record) {
     final editing = widget.editing;
     if (editing == null) return;
     showDialog(

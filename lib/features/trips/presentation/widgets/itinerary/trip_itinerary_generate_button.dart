@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -12,7 +11,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// itinerary"; with some dates missing, "Fill in missing days"; with every
 /// date covered it renders nothing. Only the missing dates are made, so a
 /// day the diver already planned keeps its row.
-class TripItineraryGenerateButton extends ConsumerStatefulWidget {
+class TripItineraryGenerateButton extends StatelessWidget {
   final Trip trip;
   final List<ItineraryDay> days;
 
@@ -27,40 +26,32 @@ class TripItineraryGenerateButton extends ConsumerStatefulWidget {
     required this.hold,
   });
 
-  @override
-  ConsumerState<TripItineraryGenerateButton> createState() =>
-      _TripItineraryGenerateButtonState();
-}
-
-class _TripItineraryGenerateButtonState
-    extends ConsumerState<TripItineraryGenerateButton> {
-  Set<DateTime> _covered() => {for (final d in widget.days) tripDay(d.date)};
+  Set<DateTime> _covered() => {for (final d in days) tripDay(d.date)};
 
   /// Whether any trip date has no row: answered from the dates, so a
   /// rebuild does not build the rows themselves.
   bool _anyMissing() {
     final covered = _covered();
     return tripDaysBetween(
-      widget.trip.startDate,
-      widget.trip.endDate,
+      trip.startDate,
+      trip.endDate,
     ).any((d) => !covered.contains(d));
   }
 
-  List<ItineraryDay> _missing() =>
-      missingItineraryDays(widget.days, widget.trip);
+  List<ItineraryDay> _missing() => missingItineraryDays(days, trip);
 
   @override
   Widget build(BuildContext context) {
     if (!_anyMissing()) return const SizedBox.shrink();
     final l10n = context.l10n;
-    final label = widget.days.isEmpty
+    final label = days.isEmpty
         ? l10n.trips_story_generateItinerary
         : l10n.trips_itinerary_fillMissing;
     return OutlinedButton.icon(
       key: const Key('trip-itinerary-generate'),
       icon: const Icon(Icons.event_note, size: 18),
       label: Text(label),
-      onPressed: () => widget.hold(_missing()),
+      onPressed: () => hold(_missing()),
     );
   }
 }

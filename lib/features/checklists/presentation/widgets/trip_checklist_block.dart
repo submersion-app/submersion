@@ -64,9 +64,6 @@ class TripChecklistBlock extends ConsumerWidget {
 
   bool get readOnly => writes == null;
 
-  /// The writes of an action, offered only when [writes] is given.
-  TripChecklistWrites _writesOf(WidgetRef ref) => writes!;
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final held = this.held;
@@ -314,7 +311,7 @@ class TripChecklistBlock extends ConsumerWidget {
 
     // Read now, not when the menu opened: a sync can fill the checklist while
     // the picker is up, and this decides whether the diver gets warned.
-    final repository = _writesOf(ref);
+    final repository = writes!;
     final isEmpty = await repository.isChecklistEmpty(checklist.id);
     if (!context.mounted) return;
 
@@ -372,7 +369,7 @@ class TripChecklistBlock extends ConsumerWidget {
   ) async {
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
-    final repository = _writesOf(ref);
+    final repository = writes!;
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -410,7 +407,7 @@ class TripChecklistBlock extends ConsumerWidget {
       ),
     );
     if (name == null || !context.mounted) return;
-    await _writesOf(ref).renameChecklist(checklist.id, name);
+    await writes!.renameChecklist(checklist.id, name);
   }
 
   Future<void> _deleteChecklist(BuildContext context, WidgetRef ref) async {
@@ -433,7 +430,7 @@ class TripChecklistBlock extends ConsumerWidget {
       ),
     );
     if (confirmed != true || !context.mounted) return;
-    await _writesOf(ref).deleteChecklist(checklist.id);
+    await writes!.deleteChecklist(checklist.id);
   }
 
   Widget _buildEmptyState(BuildContext context) {

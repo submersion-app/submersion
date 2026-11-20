@@ -116,7 +116,7 @@ class EquipmentDocumentsSection extends ConsumerWidget {
             documentsAsync.when(
               data: (_) => Column(
                 children: [
-                  for (final item in leftovers) _buildTile(context, ref, item),
+                  for (final item in leftovers) _buildTile(context, item),
                 ],
               ),
               loading: () => const Padding(
@@ -138,7 +138,7 @@ class EquipmentDocumentsSection extends ConsumerWidget {
     return Padding(padding: const EdgeInsets.only(top: 24), child: card);
   }
 
-  Widget _buildTile(BuildContext context, WidgetRef ref, MediaItem item) {
+  Widget _buildTile(BuildContext context, MediaItem item) {
     return ListTile(
       key: ValueKey('equipment-document-${item.id}'),
       contentPadding: EdgeInsets.zero,

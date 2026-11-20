@@ -189,7 +189,6 @@ extension _EquipmentDetailNewItemBody on _EquipmentDetailContent {
             GearItemCardId.serviceClocks,
             ServiceClocksCard(
               equipmentId: equipmentId,
-              equipmentType: equipment.type,
               customReminder: (
                 enabled: equipment.customReminderEnabled,
                 days: equipment.customReminderDays,

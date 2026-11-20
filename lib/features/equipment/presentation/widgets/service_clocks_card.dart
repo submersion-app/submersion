@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
@@ -16,7 +15,6 @@ import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart
 /// the clocks are edited in the open card's editor (issue #4527, phase 3).
 class ServiceClocksCard extends ConsumerWidget {
   final String equipmentId;
-  final EquipmentType equipmentType;
 
   /// The item's own reminder days, shown as a row when set: they are edited
   /// on this card, so they are shown on it.
@@ -25,7 +23,6 @@ class ServiceClocksCard extends ConsumerWidget {
   const ServiceClocksCard({
     super.key,
     required this.equipmentId,
-    required this.equipmentType,
     this.customReminder,
   });
 

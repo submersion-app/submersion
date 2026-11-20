@@ -215,13 +215,7 @@ class _GearPassportPageState extends ConsumerState<GearPassportPage>
           GearPassportHeader(equipment: equipment),
           const SizedBox(height: 16),
           if (!equipment.isWanted) ...[
-            _framed(
-              _clocksCard,
-              ServiceClocksCard(
-                equipmentId: equipment.id,
-                equipmentType: equipment.type,
-              ),
-            ),
+            _framed(_clocksCard, ServiceClocksCard(equipmentId: equipment.id)),
             const SizedBox(height: 16),
           ],
           calculated(
