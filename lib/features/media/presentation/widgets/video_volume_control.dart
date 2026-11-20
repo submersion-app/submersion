@@ -4,17 +4,18 @@ import 'package:submersion/features/media/presentation/helpers/viewer_audio.dart
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The video controls' sound: a mute button, and beside it a volume slider
-/// while a mouse rests on the control or keyboard focus is inside it (issue
-/// #4817).
+/// while a mouse rests on the control, keyboard focus is inside it, or the
+/// slider is being dragged (issue #4817).
 ///
 /// A touch screen never hovers, so it gets the button alone: its hardware
 /// buttons set the level, and a second slider would fight them.
 class VideoVolumeControl extends StatefulWidget {
   final ViewerAudio audio;
 
-  /// Whether keyboard focus is inside the control, so a host that hides its
-  /// controls on a timer can hold them while the slider is in use.
-  final ValueChanged<bool>? onFocusChanged;
+  /// Whether the slider is in use (keyboard focus inside the control, or a
+  /// drag under way), so a host that hides its controls on a timer can hold
+  /// them meanwhile. Hover is the host's own to track.
+  final ValueChanged<bool>? onHoldChanged;
 
   /// The mute button, for tests that tap or hover it.
   @visibleForTesting
@@ -30,7 +31,7 @@ class VideoVolumeControl extends StatefulWidget {
   const VideoVolumeControl({
     super.key,
     required this.audio,
-    this.onFocusChanged,
+    this.onHoldChanged,
   });
 
   @override
@@ -40,6 +41,20 @@ class VideoVolumeControl extends StatefulWidget {
 class _VideoVolumeControlState extends State<VideoVolumeControl> {
   bool _hovered = false;
   bool _focused = false;
+
+  /// A drag on the slider, which may stray off the control: the slider stays
+  /// until release rather than vanish from under the pointer.
+  bool _dragging = false;
+
+  void _setInUse({bool? focused, bool? dragging}) {
+    final wasInUse = _focused || _dragging;
+    setState(() {
+      _focused = focused ?? _focused;
+      _dragging = dragging ?? _dragging;
+    });
+    final inUse = _focused || _dragging;
+    if (inUse != wasInUse) widget.onHoldChanged?.call(inUse);
+  }
 
   IconData _icon(double volume) {
     if (volume == 0) return Icons.volume_off;
@@ -57,10 +72,7 @@ class _VideoVolumeControlState extends State<VideoVolumeControl> {
       child: Focus(
         canRequestFocus: false,
         skipTraversal: true,
-        onFocusChange: (focused) {
-          setState(() => _focused = focused);
-          widget.onFocusChanged?.call(focused);
-        },
+        onFocusChange: (focused) => _setInUse(focused: focused),
         child: ListenableBuilder(
           listenable: widget.audio,
           builder: (context, _) {
@@ -91,7 +103,7 @@ class _VideoVolumeControlState extends State<VideoVolumeControl> {
                 ),
                 AnimatedSize(
                   duration: const Duration(milliseconds: 150),
-                  child: _hovered || _focused
+                  child: _hovered || _focused || _dragging
                       ? SizedBox(
                           width: VideoVolumeControl.sliderWidth,
                           child: Semantics(
@@ -125,6 +137,8 @@ class _VideoVolumeControlState extends State<VideoVolumeControl> {
                                 key: VideoVolumeControl.sliderKey,
                                 value: volume,
                                 onChanged: widget.audio.setLevel,
+                                onChangeStart: (_) => _setInUse(dragging: true),
+                                onChangeEnd: (_) => _setInUse(dragging: false),
                               ),
                             ),
                           ),

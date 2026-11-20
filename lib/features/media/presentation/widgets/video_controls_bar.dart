@@ -86,9 +86,10 @@ class _VideoControlsBarState extends State<VideoControlsBar>
   /// Whether the mouse rests on the bar, which holds the host's controls.
   bool _hovered = false;
 
-  /// Whether keyboard focus is in the volume control, which holds them too:
-  /// a hidden bar would take the slider from under the arrow keys.
-  bool _volumeFocused = false;
+  /// Whether the volume slider is in use (keyboard focus in it, or a drag
+  /// that may have strayed off the bar), which holds them too: a hidden bar
+  /// would take the slider from under the arrow keys or the pointer.
+  bool _volumeHeld = false;
 
   /// Whether the video was playing when the current scrub began.
   bool _resumeAfterScrub = false;
@@ -131,7 +132,7 @@ class _VideoControlsBarState extends State<VideoControlsBar>
       final onHoldChanged = widget.onHoldChanged;
       if (_scrubFraction != null && onHoldChanged != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) onHoldChanged(_hovered || _volumeFocused);
+          if (mounted) onHoldChanged(_hovered || _volumeHeld);
         });
       }
       _scrubId++;
@@ -153,7 +154,7 @@ class _VideoControlsBarState extends State<VideoControlsBar>
     // a drag): release the host's hold, or its controls never hide again.
     // After this frame, since the host may rebuild in answer.
     final onHoldChanged = widget.onHoldChanged;
-    if ((_scrubFraction != null || _hovered || _volumeFocused) &&
+    if ((_scrubFraction != null || _hovered || _volumeHeld) &&
         onHoldChanged != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) => onHoldChanged(false));
     }
@@ -161,12 +162,12 @@ class _VideoControlsBarState extends State<VideoControlsBar>
   }
 
   /// Tells the host whether to hold its controls: while [scrubbing], while
-  /// the mouse rests on the bar, or while the volume control has focus.
+  /// the mouse rests on the bar, or while the volume slider is in use.
   void _reportHold({required bool scrubbing}) =>
-      widget.onHoldChanged?.call(scrubbing || _hovered || _volumeFocused);
+      widget.onHoldChanged?.call(scrubbing || _hovered || _volumeHeld);
 
-  void _onVolumeFocus(bool focused) {
-    _volumeFocused = focused;
+  void _onVolumeHold(bool held) {
+    _volumeHeld = held;
     _reportHold(scrubbing: _scrubFraction != null);
   }
 
@@ -478,10 +479,7 @@ class _VideoControlsBarState extends State<VideoControlsBar>
                 ),
               ),
               if (widget.audio case final audio?)
-                VideoVolumeControl(
-                  audio: audio,
-                  onFocusChanged: _onVolumeFocus,
-                ),
+                VideoVolumeControl(audio: audio, onHoldChanged: _onVolumeHold),
             ],
           ),
         ),

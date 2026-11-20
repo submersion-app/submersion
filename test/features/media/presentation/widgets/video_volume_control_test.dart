@@ -89,6 +89,26 @@ void main() {
     expect(slider, findsOneWidget);
   });
 
+  testWidgets('a drag that leaves the control keeps the slider until '
+      'release', (tester) async {
+    await pumpControl(tester);
+    final mouse = await hover(tester, button);
+    final rect = tester.getRect(slider);
+    // Press on the thumb (at the left end: muted) and drag right, past the
+    // slider's end and off the control, as a drag to full volume does.
+    await mouse.down(Offset(rect.left + 10, rect.center.dy));
+    await tester.pump();
+    await mouse.moveTo(Offset(rect.right + 120, rect.center.dy + 60));
+    await tester.pumpAndSettle();
+    expect(slider, findsOneWidget);
+    expect(audio.level, 1.0);
+    expect(audio.muted, isFalse);
+    await mouse.up();
+    await tester.pumpAndSettle();
+    // Released off the control: now it goes.
+    expect(slider, findsNothing);
+  });
+
   testWidgets('the slider goes once the mouse leaves', (tester) async {
     await pumpControl(tester);
     final mouse = await hover(tester, button);
