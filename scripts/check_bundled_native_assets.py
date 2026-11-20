@@ -69,6 +69,11 @@ BUNDLED_LINK_MODES = ("absolute", "relative")
 # from passing on file-presence alone.
 REQUIRED_ASSET_ID = "package:sqlite3/src/ffi/libsqlite3.g.dart"
 
+# ONNX Runtime, the marine life identification engine on Windows and Linux,
+# from ``packages/submersion_vision``'s build hook. Without it the app still
+# opens, but identification cannot run, so it is required too.
+ONNX_RUNTIME_ASSET_ID = "package:submersion_vision/src/ort/ort_native.dart"
+
 
 def bundled_libraries(manifest):
     """Return ``[(asset_id, filename), ...]`` for assets shipped in the bundle.
@@ -121,11 +126,18 @@ def check_bundle(root):
     lines = []
     ok = True
 
-    if REQUIRED_ASSET_ID not in declared_asset_ids(manifest):
+    declared = declared_asset_ids(manifest)
+    if REQUIRED_ASSET_ID not in declared:
         ok = False
         lines.append(
             f"  FAIL  manifest does not declare {REQUIRED_ASSET_ID} "
             "(the SQLCipher engine); the app cannot open its database"
+        )
+    if ONNX_RUNTIME_ASSET_ID not in declared:
+        ok = False
+        lines.append(
+            f"  FAIL  manifest does not declare {ONNX_RUNTIME_ASSET_ID} "
+            "(ONNX Runtime); marine life identification cannot run"
         )
 
     libraries = bundled_libraries(manifest)

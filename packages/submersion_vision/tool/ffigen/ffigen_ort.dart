@@ -1,8 +1,9 @@
 // Generates lib/src/ort/ort_c_api.g.dart from ONNX Runtime's C header
 // (third_party/onnxruntime, version 1.28). Run it again whenever that
-// header is replaced:
+// header is replaced, from this folder (a package of its own, so the plugin
+// never depends on ffigen):
 //
-//   dart run tool/ffigen_ort.dart
+//   cd tool/ffigen && dart pub get && dart run ffigen_ort.dart
 //
 // Only the API table and the enums the engine uses are generated;
 // OrtGetApiBase, the library's one exported function, is declared by hand
@@ -23,7 +24,7 @@ const _enums = {
 };
 
 Future<void> main() async {
-  final root = Platform.script.resolve('../');
+  final root = Platform.script.resolve('../../');
   final header = root.resolve('third_party/onnxruntime/onnxruntime_c_api.h');
   await FfiGenerator(
     output: Output(
