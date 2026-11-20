@@ -29,6 +29,7 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 import '../../../../../../helpers/mock_providers.dart';
+import '../../../../../../helpers/pump_until.dart';
 import '../../../../../../helpers/test_database.dart';
 
 Trip _trip(String id, String name) => Trip(
@@ -415,12 +416,13 @@ void main() {
       await tester.pumpAndSettle();
       // The new page reads its sharing default and Documents from the
       // database, which answers only outside the test's fake clock.
-      for (var i = 0; i < 5; i++) {
-        await tester.runAsync(
-          () => Future<void>.delayed(const Duration(milliseconds: 50)),
-        );
-        await tester.pump(const Duration(milliseconds: 50));
-      }
+      await pumpUntilRealAsync(
+        tester,
+        () =>
+            find.byKey(const Key('trip-edit-name')).evaluate().isNotEmpty &&
+            find.byType(CircularProgressIndicator).evaluate().isEmpty,
+        reason: 'the new trip page to open',
+      );
       await tester.pumpAndSettle();
 
       // Prefilled from the dive, the draft is already a change to save.

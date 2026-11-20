@@ -111,6 +111,9 @@ class FakeTripSave implements TripEditSaveService {
   /// Each create the page asks for (issue #4527, plan 11).
   final creates = <({Trip trip, Set<String> cards, List<String> dives})>[];
 
+  /// The id of every create asked for, a failed one included.
+  final createAttempts = <String>[];
+
   @override
   Future<Trip> create({
     required Trip trip,
@@ -118,6 +121,7 @@ class FakeTripSave implements TripEditSaveService {
     List<String> draftDiveIds = const [],
     Future<void> Function()? alsoWrite,
   }) async {
+    createAttempts.add(trip.id);
     if (fail) throw StateError('the create failed');
     await gate?.future;
     if (runHeld) await alsoWrite?.call();
@@ -227,6 +231,15 @@ class FakeTripDives implements TripRepository {
   bool failRead = false;
   final asked = <({DateTime start, DateTime end})>[];
   final assigned = <List<String>>[];
+
+  /// The trips stored, by id, for what reads one.
+  final byId = <String, Trip>{};
+
+  @override
+  Future<Trip?> getTripById(String id) async => byId[id];
+
+  @override
+  Stream<void> watchTripsChanges() => const Stream.empty();
 
   @override
   Future<List<DiveCandidate>> findCandidateDivesForTrip({

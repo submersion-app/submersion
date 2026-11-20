@@ -12,6 +12,7 @@ import 'package:submersion/features/trips/presentation/providers/trip_equipment_
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
+import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
@@ -67,6 +68,14 @@ void main() {
     expect(find.byKey(const Key('trip-prepare-overview')), findsOneWidget);
     expect(find.byType(TabBar), findsNothing);
     expect(find.byType(PopupMenuButton<String>), findsNothing);
+    // The Overview always draws the Plan row, so the strip never offers it.
+    expect(
+      find.descendant(
+        of: find.byType(AddStrip),
+        matching: find.text(l.trips_overview_plan),
+      ),
+      findsNothing,
+    );
   });
 
   testWidgets('Save waits for the first entry', (tester) async {
@@ -151,7 +160,51 @@ void main() {
     await tapSave(tester);
 
     final created = harness.save.creates.single;
+    expect(harness.save.createAttempts, [created.trip.id, created.trip.id]);
     expect(harness.popped, created.trip.id);
+  });
+
+  testWidgets('a profile switch before Save keeps the trip the profile it '
+      'was opened for', (tester) async {
+    final harness = await pumpNewTripPage(tester);
+    await typeName(tester);
+
+    harness.container.read(newTripPageDiverProvider.notifier).state = 'd2';
+    await tester.pumpAndSettle();
+    await tapSave(tester);
+
+    expect(harness.save.creates.single.trip.diverId, 'd1');
+  });
+
+  testWidgets('a larger trip from a draft shows on the page', (tester) async {
+    final draft = TripDraft(
+      trip: Trip(
+        id: '',
+        name: 'Misool',
+        startDate: DateTime(2030, 5, 30),
+        endDate: DateTime(2030, 6, 2),
+        parentTripId: 'p1',
+        createdAt: DateTime(2030),
+        updatedAt: DateTime(2030),
+      ),
+      diveIds: const ['a'],
+    );
+    await pumpNewTripPage(
+      tester,
+      draft: draft,
+      trips: {
+        'p1': Trip(
+          id: 'p1',
+          name: 'Raja Ampat',
+          startDate: DateTime(2030, 5, 20),
+          endDate: DateTime(2030, 6, 10),
+          createdAt: DateTime(2030),
+          updatedAt: DateTime(2030),
+        ),
+      },
+    );
+
+    expect(find.text(l.trips_partOf('Raja Ampat')), findsOneWidget);
   });
 
   testWidgets('a new trip builds with no stored row, every offered card '
@@ -188,10 +241,11 @@ void main() {
     controllerOf(tester).session!.set(tripTypeField, TripType.liveaboard);
     await tester.pumpAndSettle();
 
-    await tapSave(tester);
-    expect(harness.save.creates, isEmpty);
+    // Laid out open as the trip becomes a liveaboard, before any Save.
     final vesselName = find.byKey(const Key('trip-edit-vessel-name'));
     expect(vesselName, findsOneWidget);
+    await tapSave(tester);
+    expect(harness.save.creates, isEmpty);
 
     await tester.enterText(vesselName, 'MV Green');
     await tester.pumpAndSettle();

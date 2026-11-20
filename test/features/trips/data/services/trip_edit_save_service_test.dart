@@ -670,6 +670,25 @@ void main() {
       expect(await operations(), hasLength(1));
     });
 
+    test("a liveaboard's days cover the dates its draft's dives stretch it "
+        'to', () async {
+      // Dived on 2 September; the diver moved the draft's start to the 3rd.
+      await dive('a');
+      await clearLog();
+
+      final created = await service.create(
+        trip: fresh(
+          type: TripType.liveaboard,
+        ).copyWith(startDate: DateTime(2026, 9, 3)),
+        changedCardIds: const ['header'],
+        draftDiveIds: const ['a'],
+      );
+
+      final generated = await days.getByTripId('n1');
+      expect(generated, hasLength(created.durationDays));
+      expect(generated.first.date, DateTime(2026, 9, 2));
+    });
+
     test('a failed held write leaves the dives on their old trips and no '
         'trip', () async {
       await dive('a', tripId: 't1');

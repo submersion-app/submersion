@@ -17,6 +17,7 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/pump_until.dart';
 import '../../../../helpers/shared_items_fixture.dart';
 import 'trip_detail_page_unlock_harness.dart';
 
@@ -36,10 +37,15 @@ class NewTripHarness {
 
 final _createdProvider = StateProvider<Trip?>((ref) => null);
 
+/// The active diver on a new trip's page; a test switches profile by
+/// setting it.
+final newTripPageDiverProvider = StateProvider<String?>((ref) => 'd1');
+
 /// Pumps a new trip's page, from [draft] when given, pushed over a
 /// launcher at `/trips/new`; or the pane's ([embedded]). The dives the
 /// question at Save finds are [candidates]; the active diver is
-/// [activeDiverId]. Nothing is stood in for the new trip's id: a read of a
+/// [activeDiverId] ([newTripPageDiverProvider]); [trips] are the trips
+/// stored, for a larger trip to name. Nothing is stood in for the new trip's id: a read of a
 /// stored trip under it reaches the fake repository, which has none, and
 /// throws, as the real providers throw for a trip not found. Needs the
 /// test database for the Documents card.
@@ -47,6 +53,7 @@ Future<NewTripHarness> pumpNewTripPage(
   WidgetTester tester, {
   TripDraft? draft,
   bool embedded = false,
+  Map<String, Trip> trips = const {},
   List<DiveCandidate> candidates = const [],
   String? activeDiverId = 'd1',
   Size size = const Size(600, 1600),
@@ -56,7 +63,7 @@ Future<NewTripHarness> pumpNewTripPage(
   addTearDown(tester.view.reset);
   final overrides = await getBaseOverrides();
   final harness = NewTripHarness()
-    ..tripDives = FakeTripDives(candidates)
+    ..tripDives = (FakeTripDives(candidates)..byId.addAll(trips))
     ..vessels = FakeVessels()
     ..shares = FakeItemShares();
   final router = GoRouter(
@@ -93,8 +100,9 @@ Future<NewTripHarness> pumpNewTripPage(
     ProviderScope(
       overrides: [
         ...overrides,
+        newTripPageDiverProvider.overrideWith((ref) => activeDiverId),
         validatedCurrentDiverIdProvider.overrideWith(
-          (ref) async => activeDiverId,
+          (ref) async => ref.watch(newTripPageDiverProvider),
         ),
         shareByDefaultProvider.overrideWith((ref) async => false),
         tripRepositoryProvider.overrideWithValue(harness.tripDives),
@@ -123,14 +131,15 @@ Future<NewTripHarness> pumpNewTripPage(
     await tester.tap(find.text('open'));
     await tester.pump();
   }
-  // The Documents card reads the database, which answers only outside the
-  // test's fake clock.
-  for (var i = 0; i < 5; i++) {
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 50)),
-    );
-    await tester.pump(const Duration(milliseconds: 50));
-  }
+  // The seed and the Documents card read the database, which answers only
+  // outside the test's fake clock.
+  await pumpUntilRealAsync(
+    tester,
+    () =>
+        find.byKey(const Key('trip-edit-name')).evaluate().isNotEmpty &&
+        find.byType(CircularProgressIndicator).evaluate().isEmpty,
+    reason: "the new trip's page to open",
+  );
   await tester.pumpAndSettle();
   harness.container = ProviderScope.containerOf(
     tester.element(find.byType(MaterialApp)),

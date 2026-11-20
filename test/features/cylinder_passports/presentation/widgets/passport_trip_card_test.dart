@@ -20,6 +20,7 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/pump_until.dart';
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/test_database.dart';
 
@@ -330,24 +331,27 @@ void main() {
     final l10n = AppLocalizations.of(
       tester.element(find.byType(PassportTripCard)),
     );
-    Future<void> settleDatabase() async {
-      for (var i = 0; i < 5; i++) {
-        await tester.runAsync(
-          () => Future<void>.delayed(const Duration(milliseconds: 50)),
-        );
-        await tester.pump(const Duration(milliseconds: 50));
-      }
-      await tester.pumpAndSettle();
-    }
-
+    final nameField = find.byKey(const Key('trip-edit-name'));
     await tester.tap(find.text(l10n.passport_trip_assign));
     await tester.pumpAndSettle();
     await tester.tap(find.text(l10n.trips_picker_empty_createButton));
-    await settleDatabase();
-    await tester.enterText(find.byKey(const Key('trip-edit-name')), 'Malta');
+    await pumpUntilRealAsync(
+      tester,
+      () =>
+          nameField.evaluate().isNotEmpty &&
+          find.byType(CircularProgressIndicator).evaluate().isEmpty,
+      reason: 'the new trip page to open',
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(nameField, 'Malta');
     await tester.pumpAndSettle();
     await tester.tap(find.text(l10n.forms_save));
-    await settleDatabase();
+    await pumpUntilRealAsync(
+      tester,
+      () => fake.packed.isNotEmpty,
+      reason: 'the created trip to be packed for',
+    );
+    await tester.pumpAndSettle();
 
     final created = save.created.single;
     expect(fake.packed.map((p) => p.$1), [created]);

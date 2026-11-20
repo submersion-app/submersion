@@ -72,9 +72,10 @@ class TripEditSaveService {
   /// keeping its id: the row (its parent checked inside, as the form's
   /// create checks it), then [alsoWrite], the sitting's held writes
   /// (sharing, the vessel, itinerary days, documents, the dives chosen at
-  /// Save), then a liveaboard's days, generated as the form generated them
-  /// when the sitting held none, then the dives of a trip made from
-  /// selected ones ([draftDiveIds]), all in one transaction and one History
+  /// Save), then the dives of a trip made from selected ones
+  /// ([draftDiveIds]), then a liveaboard's days, generated as the form
+  /// generated them when the sitting held none, over the dates the dives
+  /// may have stretched it to, all in one transaction and one History
   /// entry naming [changedCardIds]. If any of them throws nothing is left,
   /// and the dives stay on their trips. Throws [StateError] when [trip] has
   /// no id, or one a stored trip has.
@@ -91,17 +92,20 @@ class TripEditSaveService {
     insert: () => _trips.createTrip(trip),
     alsoWrite: () async {
       await alsoWrite?.call();
-      if (trip.tripType == TripType.liveaboard &&
+      await _trips.assignDivesToTrip(draftDiveIds, trip.id);
+      // From the dates as stored now: a dive assigned outside them has
+      // stretched the trip to cover it.
+      final stored = await _trips.getTripById(trip.id) ?? trip;
+      if (stored.tripType == TripType.liveaboard &&
           (await _days.getByTripId(trip.id)).isEmpty) {
         await _days.saveAll(
           ItineraryDay.generateForTrip(
             tripId: trip.id,
-            startDate: trip.startDate,
-            endDate: trip.endDate,
+            startDate: stored.startDate,
+            endDate: stored.endDate,
           ),
         );
       }
-      await _trips.assignDivesToTrip(draftDiveIds, trip.id);
     },
     readBack: () => _trips.getTripById(trip.id),
     created: trip,

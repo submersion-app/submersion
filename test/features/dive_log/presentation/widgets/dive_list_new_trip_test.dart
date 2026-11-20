@@ -16,6 +16,7 @@ import 'package:submersion/features/trips/presentation/pages/trip_edit_routes.da
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/pump_until.dart';
 import '../../../../helpers/select_items_menu.dart';
 import '../../../../helpers/test_database.dart';
 
@@ -220,21 +221,25 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('New Trip from Selection'));
     }
-    Future<void> settleDatabase() async {
-      for (var i = 0; i < 6; i++) {
-        await tester.runAsync(
-          () => Future<void>.delayed(const Duration(milliseconds: 50)),
-        );
-        await tester.pump(const Duration(milliseconds: 50));
-      }
-      await tester.pumpAndSettle();
-    }
-
-    await settleDatabase();
+    // The dives' facts, the new page and its create are read and written
+    // in the database, which answers only outside the test's fake clock.
+    await pumpUntilRealAsync(
+      tester,
+      () =>
+          find.byKey(const Key('trip-edit-name')).evaluate().isNotEmpty &&
+          find.byType(CircularProgressIndicator).evaluate().isEmpty,
+      reason: 'the new trip page to open',
+    );
+    await tester.pumpAndSettle();
     expect(find.text('Raja Ampat, Indonesia, Mar 2026'), findsWidgets);
 
     await tester.tap(find.text('Save'));
-    await settleDatabase();
+    await pumpUntilRealAsync(
+      tester,
+      () => find.textContaining('TRIP ').evaluate().isNotEmpty,
+      reason: 'the created trip to open',
+    );
+    await tester.pumpAndSettle();
 
     final trips = await db.customSelect('SELECT id FROM trips').get();
     final tripId = trips.single.read<String>('id');

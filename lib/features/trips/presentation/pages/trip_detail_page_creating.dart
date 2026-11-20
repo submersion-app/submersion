@@ -42,9 +42,10 @@ mixin _TripDetailPageCreating
   Future<bool> beforeCreate(EditSession<Trip> session) =>
       askDivesInDates(session, ask: _draft == null);
 
-  /// The trip and its held writes in one transaction, for the diver active
-  /// at Save, as the form's create took it (so the trip shows in the list
-  /// the diver is on); the seed's when none can be read.
+  /// The trip and its held writes in one transaction, for the diver the
+  /// page was opened for, whose trips it offered as a larger one and who
+  /// acts on its sharing; the diver active at Save when the seed could
+  /// read none, as the form's create took it.
   @override
   Future<Trip> createRecord(EditSession<Trip> session) async {
     // Read before the first wait: the page can be gone by the end.
@@ -53,7 +54,7 @@ mixin _TripDetailPageCreating
     final dives = _draft?.diveIds ?? const <String>[];
     final trip = session.applyTo(session.stored);
     final diverId =
-        await newRecordDiverId(read, record: 'trip') ?? trip.diverId;
+        trip.diverId ?? await newRecordDiverId(read, record: 'trip');
     return service.create(
       trip: trip.copyWith(diverId: diverId),
       changedCardIds: session.changedCardIds,
@@ -85,6 +86,42 @@ mixin _TripDetailPageCreating
         );
       }
     };
+  }
+
+  /// Lays out what a new trip's type brings as it changes to it: a
+  /// liveaboard's Vessel, whose name Save requires. Heard from the sitting
+  /// itself: the controller tells only when the changed cards move, and a
+  /// header already changed (its name typed) does not move them.
+  @override
+  void onSittingStart(EditSession<Trip> session, ProviderContainer container) {
+    super.onSittingStart(session, container);
+    if (!isCreating) return;
+    var seen = session.working.tripType;
+    session.addListener(() {
+      if (session.isDisposed) return;
+      final type = session.working.tripType;
+      if (type == seen) return;
+      seen = type;
+      _layOutForType(session);
+    });
+  }
+
+  /// Opens the cards [session]'s working trip lays out that its seed did
+  /// not, once this change has been told.
+  void _layOutForType(EditSession<Trip> session) {
+    final controller = maybeEditController;
+    if (controller == null) return;
+    final atOpen = newTripLaidOut(session.stored);
+    final now = newTripLaidOut(session.working);
+    // Opening a card tells again: not from inside this notice.
+    Future.microtask(() {
+      if (!mounted || controller.session != session) return;
+      for (final id in now) {
+        if (!atOpen.contains(id) && !controller.openCardIds.contains(id)) {
+          controller.openCard(id);
+        }
+      }
+    });
   }
 
   @override
@@ -132,6 +169,13 @@ mixin _TripDetailPageCreating
       slots: slots,
       child: Column(
         children: [
+          // Its larger trip, as the sitting holds it: the stored page's
+          // link reads the trip's own row, which a new trip does not have.
+          if (shown.parentTripId case final parentId?)
+            PartOfTripLink.toParent(
+              parentId: parentId,
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+            ),
           slots.frame(TripCardId.header, TripHeaderRows(trip: shown)),
           Expanded(child: TripPrepareOverview(story: story, tabRows: false)),
         ],
