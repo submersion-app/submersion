@@ -8,7 +8,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
-import 'package:submersion/features/media/data/repositories/media_aspect_cache_repository.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
@@ -17,7 +16,6 @@ import 'package:submersion/features/media/domain/services/media_source_resolver.
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
 import 'package:submersion/features/media/presentation/pages/media_library_view.dart';
-import 'package:submersion/features/media/domain/value_objects/learned_aspect.dart';
 import 'package:submersion/features/media/presentation/providers/media_learned_aspect_provider.dart';
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
@@ -28,6 +26,7 @@ import 'package:submersion/features/settings/data/repositories/app_settings_repo
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'support/fake_media_aspect_cache.dart';
 
 class _UnavailableResolver implements MediaSourceResolver {
   @override
@@ -63,14 +62,6 @@ class _SeededLibraryNotifier extends StateNotifier<MediaLibraryState>
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class _NoShapesRepository implements MediaAspectCacheRepository {
-  @override
-  Future<Map<String, LearnedAspect>> loadAll() async => const {};
-
-  @override
-  Future<void> putAll(Map<String, LearnedAspect> entries) async {}
-}
-
 class _FakeSettingsRepo extends AppSettingsRepository {
   final Map<String, String> values = {};
 
@@ -103,7 +94,7 @@ void main() {
         mediaLibraryNotifierProvider.overrideWith((ref) => notifier),
         appSettingsRepositoryProvider.overrideWithValue(_FakeSettingsRepo()),
         mediaAspectCacheRepositoryProvider.overrideWithValue(
-          _NoShapesRepository(),
+          FakeMediaAspectCache(),
         ),
         mediaSourceResolverRegistryProvider.overrideWithValue(
           MediaSourceResolverRegistry({

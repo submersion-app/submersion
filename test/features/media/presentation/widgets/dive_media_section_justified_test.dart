@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/repositories/media_aspect_cache_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
-import 'package:submersion/features/media/domain/value_objects/learned_aspect.dart';
 import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
 import 'package:submersion/features/media/presentation/helpers/media_hold.dart';
 import 'package:submersion/features/media/presentation/providers/media_learned_aspect_provider.dart';
@@ -19,29 +18,7 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 import '../support/dive_media_sitting.dart';
-
-/// Learned shapes from a fixed map, or a read that fails. Implements rather
-/// than extends the repository, so a method added to it fails to compile
-/// here instead of reaching the real local cache.
-class _FakeAspectCache implements MediaAspectCacheRepository {
-  _FakeAspectCache({this.learned = const {}, this.fails = false});
-
-  final Map<String, LearnedAspect> learned;
-  final bool fails;
-
-  /// How many times the shapes were read.
-  int loads = 0;
-
-  @override
-  Future<Map<String, LearnedAspect>> loadAll() async {
-    loads++;
-    if (fails) throw StateError('cache unreadable');
-    return learned;
-  }
-
-  @override
-  Future<void> putAll(Map<String, LearnedAspect> entries) async {}
-}
+import '../support/fake_media_aspect_cache.dart';
 
 MediaItem _photo(String id, int width, int height) => MediaItem(
   id: id,
@@ -84,7 +61,7 @@ void main() {
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           mediaForDiveProvider('dive-1').overrideWith((ref) => media),
           mediaAspectCacheRepositoryProvider.overrideWithValue(
-            cache ?? _FakeAspectCache(),
+            cache ?? FakeMediaAspectCache(),
           ),
         ],
         child: Directionality(
@@ -201,7 +178,7 @@ void main() {
       await pumpSection(
         tester,
         [_photo('sideways', 600, 400)],
-        cache: _FakeAspectCache(
+        cache: FakeMediaAspectCache(
           learned: {'sideways': (ratio: 0.75, width: 600, height: 400)},
         ),
       );
@@ -229,7 +206,7 @@ void main() {
     testWidgets('a dive with no media does not read the learned shapes', (
       tester,
     ) async {
-      final cache = _FakeAspectCache();
+      final cache = FakeMediaAspectCache();
       await pumpSection(tester, const [], cache: cache);
 
       expect(tiles(), findsNothing);
@@ -242,7 +219,7 @@ void main() {
       await pumpSection(tester, [
         _photo('a', 600, 400),
         _photo('b', 400, 600),
-      ], cache: _FakeAspectCache(fails: true));
+      ], cache: FakeMediaAspectCache(fails: true));
 
       expect(tiles(), findsNWidgets(2));
       final rects = tileRects(tester);
