@@ -7,26 +7,16 @@ import 'package:submersion/features/equipment/domain/entities/service_clock_stat
 import 'package:submersion/features/equipment/presentation/editing/gear_item_clocks_editor.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/service_severity_colors.dart';
-import 'package:submersion/features/equipment/presentation/widgets/service_schedule_dialogs.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_trigger_text.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
-import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
 /// The Service clocks card on the equipment detail page: one row per
-/// schedule with severity dot, binding trigger text, and per-clock actions.
+/// schedule with severity dot and binding trigger text. It offers no action:
+/// the clocks are edited in the open card's editor (issue #4527, phase 3).
 class ServiceClocksCard extends ConsumerWidget {
   final String equipmentId;
   final EquipmentType equipmentType;
-
-  /// Opens the add-service dialog pre-filled with the clock's kind; provided
-  /// by the detail page (which owns ServiceRecordDialog).
-  final void Function(ServiceClockStatus status)? onLogService;
-
-  /// Offers no action: the page edits in place (issue #4527, phase 3) and
-  /// is locked, or its card is closed; the clocks are edited in the open
-  /// card's editor.
-  final bool readOnly;
 
   /// The item's own reminder days, shown as a row when set: they are edited
   /// on this card, so they are shown on it.
@@ -36,8 +26,6 @@ class ServiceClocksCard extends ConsumerWidget {
     super.key,
     required this.equipmentId,
     required this.equipmentType,
-    this.onLogService,
-    this.readOnly = false,
     this.customReminder,
   });
 
@@ -84,17 +72,6 @@ class ServiceClocksCard extends ConsumerWidget {
                   ),
                 ),
                 RecordCardPencil(cardTitle: l10n.equipment_serviceClocks_title),
-                if (!readOnly)
-                  TextButton.icon(
-                    onPressed: () => showServiceKindPicker(
-                      context,
-                      ref,
-                      equipmentId: equipmentId,
-                      equipmentType: equipmentType,
-                    ),
-                    icon: const Icon(Icons.add),
-                    label: Text(l10n.equipment_serviceClocks_addClock),
-                  ),
               ],
             ),
             const Divider(),
@@ -204,38 +181,6 @@ class ServiceClocksCard extends ConsumerWidget {
                               ),
                           ],
                         ),
-                        trailing: readOnly
-                            ? null
-                            : PopupMenuButton<String>(
-                                onSelected: (action) =>
-                                    _onAction(context, ref, action, status),
-                                itemBuilder: (context) => [
-                                  PopupMenuItem(
-                                    value: 'log',
-                                    child: Text(
-                                      l10n.equipment_serviceClocks_logService,
-                                    ),
-                                  ),
-                                  PopupMenuItem(
-                                    value: 'edit',
-                                    child: Text(
-                                      l10n.equipment_serviceClocks_edit,
-                                    ),
-                                  ),
-                                  PopupMenuItem(
-                                    value: 'pause',
-                                    child: Text(
-                                      l10n.equipment_serviceClocks_pause,
-                                    ),
-                                  ),
-                                  PopupMenuItem(
-                                    value: 'remove',
-                                    child: Text(
-                                      l10n.equipment_serviceClocks_remove,
-                                    ),
-                                  ),
-                                ],
-                              ),
                       ),
                     for (final schedule in unconfigured)
                       ListTile(
@@ -252,24 +197,6 @@ class ServiceClocksCard extends ConsumerWidget {
                         subtitle: Text(
                           l10n.equipment_serviceClocks_unconfigured,
                         ),
-                        trailing: readOnly
-                            ? null
-                            : const Icon(Icons.chevron_right),
-                        onTap: readOnly
-                            ? null
-                            : () async {
-                                final kind = kindsById[schedule.serviceKindId];
-                                if (kind == null) return;
-                                // The dialog invalidates the clock providers itself
-                                // on Save (and on Cancel nothing changed), so none
-                                // is needed here, as for the 'edit' action.
-                                await showScheduleOverrideDialog(
-                                  context,
-                                  ref,
-                                  schedule: schedule,
-                                  kind: kind,
-                                );
-                              },
                       ),
                     for (final schedule in paused)
                       ListTile(
@@ -286,32 +213,7 @@ class ServiceClocksCard extends ConsumerWidget {
                             color: Theme.of(context).colorScheme.outline,
                           ),
                         ),
-                        // Resume sits on its own line under "Paused" rather
-                        // than in trailing: a ListTile lays trailing out at
-                        // its natural width first, so a translated label
-                        // there starves the kind name (issue #2717).
-                        subtitle: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(l10n.equipment_serviceClocks_paused),
-                            if (!readOnly)
-                              TileSubtitleAction(
-                                onPressed: () async {
-                                  await ref
-                                      .read(serviceScheduleRepositoryProvider)
-                                      .updateSchedule(
-                                        schedule.copyWith(enabled: true),
-                                      );
-                                  invalidateServiceClockProviders(
-                                    ref,
-                                    equipmentId,
-                                  );
-                                },
-                                label: l10n.equipment_serviceClocks_resume,
-                              ),
-                          ],
-                        ),
+                        subtitle: Text(l10n.equipment_serviceClocks_paused),
                       ),
                   ],
                 );
@@ -321,34 +223,5 @@ class ServiceClocksCard extends ConsumerWidget {
         ),
       ),
     );
-  }
-
-  Future<void> _onAction(
-    BuildContext context,
-    WidgetRef ref,
-    String action,
-    ServiceClockStatus status,
-  ) async {
-    switch (action) {
-      case 'log':
-        onLogService?.call(status);
-      case 'edit':
-        await showScheduleOverrideDialog(
-          context,
-          ref,
-          schedule: status.schedule,
-          kind: status.kind,
-        );
-      case 'pause':
-        await ref
-            .read(serviceScheduleRepositoryProvider)
-            .updateSchedule(status.schedule.copyWith(enabled: false));
-        invalidateServiceClockProviders(ref, equipmentId);
-      case 'remove':
-        await ref
-            .read(serviceScheduleRepositoryProvider)
-            .deleteSchedule(status.schedule.id);
-        invalidateServiceClockProviders(ref, equipmentId);
-    }
   }
 }

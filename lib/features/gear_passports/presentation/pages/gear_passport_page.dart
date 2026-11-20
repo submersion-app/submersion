@@ -12,7 +12,6 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/widgets/equipment_location_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/exposure_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_clocks_card.dart';
-import 'package:submersion/features/equipment/presentation/widgets/service_record_dialog.dart';
 import 'package:submersion/features/gear_passports/domain/entities/gear_tag_payload.dart';
 import 'package:submersion/features/gear_passports/presentation/widgets/gear_passport_header.dart';
 import 'package:submersion/features/gear_passports/presentation/widgets/gear_recent_service_card.dart';
@@ -221,13 +220,6 @@ class _GearPassportPageState extends ConsumerState<GearPassportPage>
               ServiceClocksCard(
                 equipmentId: equipment.id,
                 equipmentType: equipment.type,
-                readOnly: true,
-                onLogService: (status) => showLogServiceDialog(
-                  context,
-                  ref,
-                  equipmentId: equipment.id,
-                  serviceKindId: status.kind.id,
-                ),
               ),
             ),
             const SizedBox(height: 16),

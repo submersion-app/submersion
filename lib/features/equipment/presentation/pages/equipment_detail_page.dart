@@ -76,7 +76,6 @@ import 'package:submersion/features/equipment/presentation/widgets/installed_in_
 import 'package:submersion/features/equipment/presentation/widgets/observations_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_clocks_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_history_section.dart';
-import 'package:submersion/features/equipment/presentation/widgets/service_record_dialog.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/features/gear_passports/presentation/widgets/gear_passport_entry_card.dart';
 import 'package:submersion/features/media/presentation/helpers/document_open_helper.dart';
@@ -409,15 +408,9 @@ class _EquipmentDetailContent extends ConsumerWidget {
               ServiceClocksCard(
                 equipmentId: equipmentId,
                 equipmentType: equipment.type,
-                readOnly: true,
                 customReminder: (
                   enabled: equipment.customReminderEnabled,
                   days: equipment.customReminderDays,
-                ),
-                onLogService: (status) => _showAddServiceDialogForKind(
-                  context,
-                  ref,
-                  serviceKindId: status.kind.id,
                 ),
               ),
             ),

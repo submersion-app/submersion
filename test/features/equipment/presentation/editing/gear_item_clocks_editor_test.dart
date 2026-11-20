@@ -220,7 +220,6 @@ void main() {
         const ServiceClocksCard(
           equipmentId: 'g1',
           equipmentType: EquipmentType.regulator,
-          readOnly: true,
         ),
       );
 
@@ -234,7 +233,6 @@ void main() {
         const ServiceClocksCard(
           equipmentId: 'g1',
           equipmentType: EquipmentType.regulator,
-          readOnly: true,
           customReminder: (enabled: true, days: [30, 7]),
         ),
       );

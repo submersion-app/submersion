@@ -359,21 +359,6 @@ extension _EquipmentDetailSections on _EquipmentDetailContent {
     );
   }
 
-  /// Opens the add-service dialog pre-tagged with a clock's kind so the
-  /// saved record resets that clock.
-  void _showAddServiceDialogForKind(
-    BuildContext context,
-    WidgetRef ref, {
-    required String serviceKindId,
-  }) {
-    showLogServiceDialog(
-      context,
-      ref,
-      equipmentId: equipmentId,
-      serviceKindId: serviceKindId,
-    );
-  }
-
   Widget _buildNotesSection(BuildContext context, EquipmentItem equipment) {
     return Card(
       child: Padding(

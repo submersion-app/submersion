@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -13,19 +12,6 @@ import 'package:submersion/features/equipment/data/repositories/service_record_r
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 
 import '../../../../helpers/mock_providers.dart';
-
-class _FakeScheduleRepo extends ServiceScheduleRepository {
-  final created = <ServiceSchedule>[];
-  @override
-  Future<ServiceSchedule> createSchedule(
-    ServiceSchedule schedule, {
-    bool notify = true,
-  }) async {
-    final withId = schedule.copyWith(id: 'new-${created.length}');
-    created.add(withId);
-    return withId;
-  }
-}
 
 /// No service records: the override dialog reads them to decide whether the
 /// stored baseline is still the one the clock counts from.
@@ -55,9 +41,11 @@ void main() {
     updatedAt: t0,
   );
 
+  /// Opens the picker as the clocks editor does; [held] gets each clock
+  /// it hands over.
   Future<void> pumpPicker(
     WidgetTester tester,
-    _FakeScheduleRepo repo, {
+    List<ServiceSchedule> held, {
     MockSettingsNotifier? settings,
   }) async {
     await tester.pumpWidget(
@@ -69,13 +57,9 @@ void main() {
           serviceKindsProvider.overrideWith(
             (ref) async => [noDefault, withDefault],
           ),
-          serviceSchedulesForEquipmentProvider(
-            'e1',
-          ).overrideWith((ref) async => const []),
           serviceRecordRepositoryProvider.overrideWithValue(
             _NoServiceRecords(),
           ),
-          serviceScheduleRepositoryProvider.overrideWithValue(repo),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -90,6 +74,8 @@ void main() {
                     ref,
                     equipmentId: 'e1',
                     equipmentType: EquipmentType.regulator,
+                    attachedKindIds: const {},
+                    onHold: held.add,
                   ),
                   child: const Text('open'),
                 ),
@@ -103,24 +89,24 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('no-default kind opens the interval dialog after create', (
+  testWidgets('no-default kind opens the interval dialog after it is held', (
     tester,
   ) async {
-    final repo = _FakeScheduleRepo();
-    await pumpPicker(tester, repo);
+    final held = <ServiceSchedule>[];
+    await pumpPicker(tester, held);
     await tester.tap(find.text('General service'));
     await tester.pumpAndSettle();
-    expect(repo.created, hasLength(1));
+    expect(held, hasLength(1));
     // The interval-days field from the override dialog is present.
     expect(find.byType(TextField), findsWidgets);
   });
 
   testWidgets('default-bearing kind is one-tap (no dialog)', (tester) async {
-    final repo = _FakeScheduleRepo();
-    await pumpPicker(tester, repo);
+    final held = <ServiceSchedule>[];
+    await pumpPicker(tester, held);
     await tester.tap(find.text('Regulator service'));
     await tester.pumpAndSettle();
-    expect(repo.created, hasLength(1));
+    expect(held, hasLength(1));
     // No override dialog: no TextField on screen.
     expect(find.byType(TextField), findsNothing);
   });
@@ -130,7 +116,7 @@ void main() {
   ) async {
     await pumpPicker(
       tester,
-      _FakeScheduleRepo(),
+      <ServiceSchedule>[],
       settings: MockSettingsNotifier(
         const AppSettings(
           hiddenBuiltInIds: {

@@ -194,12 +194,10 @@ extension _EquipmentDetailNewItemBody on _EquipmentDetailContent {
             ServiceClocksCard(
               equipmentId: equipmentId,
               equipmentType: equipment.type,
-              readOnly: true,
               customReminder: (
                 enabled: equipment.customReminderEnabled,
                 days: equipment.customReminderDays,
               ),
-              onLogService: null,
             ),
           ),
         ],
