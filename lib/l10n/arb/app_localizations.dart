@@ -2893,12 +2893,6 @@ abstract class AppLocalizations {
   /// **'Open trip photos'**
   String get trips_story_openGallery;
 
-  /// No description provided for @trips_story_generateItineraryError.
-  ///
-  /// In en, this message translates to:
-  /// **'Couldn\'t generate the itinerary. Try again.'**
-  String get trips_story_generateItineraryError;
-
   /// No description provided for @trips_dayType_diveDay.
   ///
   /// In en, this message translates to:
@@ -58255,12 +58249,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t load the itinerary.'**
   String get trips_itinerary_error_loading;
-
-  /// No description provided for @trips_itinerary_daySaveError.
-  ///
-  /// In en, this message translates to:
-  /// **'Couldn\'t save the day. Try again.'**
-  String get trips_itinerary_daySaveError;
 
   /// No description provided for @trips_itinerary_empty.
   ///

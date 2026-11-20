@@ -1851,10 +1851,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_story_openGallery => 'Open trip photos';
 
   @override
-  String get trips_story_generateItineraryError =>
-      'Couldn\'t generate the itinerary. Try again.';
-
-  @override
   String get trips_dayType_diveDay => 'Dive Day';
 
   @override
@@ -36416,10 +36412,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trips_itinerary_error_loading => 'Couldn\'t load the itinerary.';
-
-  @override
-  String get trips_itinerary_daySaveError =>
-      'Couldn\'t save the day. Try again.';
 
   @override
   String get trips_itinerary_empty =>

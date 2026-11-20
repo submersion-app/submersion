@@ -1857,10 +1857,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_story_openGallery => 'Reisfoto\'s openen';
 
   @override
-  String get trips_story_generateItineraryError =>
-      'Kan het reisschema niet genereren. Probeer het opnieuw.';
-
-  @override
   String get trips_dayType_diveDay => 'Duikdag';
 
   @override
@@ -36782,10 +36778,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get trips_itinerary_error_loading => 'Kan het reisschema niet laden.';
-
-  @override
-  String get trips_itinerary_daySaveError =>
-      'Kan de dag niet opslaan. Probeer het opnieuw.';
 
   @override
   String get trips_itinerary_empty =>

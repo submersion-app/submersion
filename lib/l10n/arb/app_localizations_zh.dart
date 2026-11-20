@@ -1793,9 +1793,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_story_openGallery => '打开行程照片';
 
   @override
-  String get trips_story_generateItineraryError => '无法生成行程，请重试。';
-
-  @override
   String get trips_dayType_diveDay => '潜水日';
 
   @override
@@ -34856,9 +34853,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trips_itinerary_error_loading => '无法加载行程。';
-
-  @override
-  String get trips_itinerary_daySaveError => '无法保存日程，请重试。';
 
   @override
   String get trips_itinerary_empty => '还没有行程。根据旅行日期生成一个。';

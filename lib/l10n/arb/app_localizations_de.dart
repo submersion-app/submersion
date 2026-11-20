@@ -1864,10 +1864,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trips_story_openGallery => 'Reisefotos öffnen';
 
   @override
-  String get trips_story_generateItineraryError =>
-      'Der Reiseplan konnte nicht erstellt werden. Versuche es erneut.';
-
-  @override
   String get trips_dayType_diveDay => 'Tauchtag';
 
   @override
@@ -36951,10 +36947,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get trips_itinerary_error_loading =>
       'Der Reiseplan konnte nicht geladen werden.';
-
-  @override
-  String get trips_itinerary_daySaveError =>
-      'Der Tag konnte nicht gespeichert werden. Versuche es erneut.';
 
   @override
   String get trips_itinerary_empty =>

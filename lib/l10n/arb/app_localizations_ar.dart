@@ -1912,10 +1912,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_story_openGallery => 'فتح صور الرحلة';
 
   @override
-  String get trips_story_generateItineraryError =>
-      'تعذّر إنشاء برنامج الرحلة. حاول مرة أخرى.';
-
-  @override
   String get trips_dayType_diveDay => 'يوم غوص';
 
   @override
@@ -37495,9 +37491,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get trips_itinerary_error_loading => 'تعذّر تحميل برنامج الرحلة.';
-
-  @override
-  String get trips_itinerary_daySaveError => 'تعذّر حفظ اليوم. حاول مرة أخرى.';
 
   @override
   String get trips_itinerary_empty =>

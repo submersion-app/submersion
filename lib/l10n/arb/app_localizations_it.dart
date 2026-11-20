@@ -1870,10 +1870,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get trips_story_openGallery => 'Apri le foto del viaggio';
 
   @override
-  String get trips_story_generateItineraryError =>
-      'Impossibile generare l\'itinerario. Riprova.';
-
-  @override
   String get trips_dayType_diveDay => 'Giorno di immersione';
 
   @override
@@ -37042,10 +37038,6 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get trips_itinerary_error_loading =>
       'Impossibile caricare l\'itinerario.';
-
-  @override
-  String get trips_itinerary_daySaveError =>
-      'Impossibile salvare la giornata. Riprova.';
 
   @override
   String get trips_itinerary_empty =>

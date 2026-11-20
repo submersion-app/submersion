@@ -1843,10 +1843,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_story_openGallery => 'פתיחת תמונות הטיול';
 
   @override
-  String get trips_story_generateItineraryError =>
-      'לא ניתן ליצור מסלול. נסו שוב.';
-
-  @override
   String get trips_dayType_diveDay => 'יום צלילה';
 
   @override
@@ -36132,9 +36128,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get trips_itinerary_error_loading => 'לא ניתן לטעון את המסלול.';
-
-  @override
-  String get trips_itinerary_daySaveError => 'לא ניתן לשמור את היום. נסו שוב.';
 
   @override
   String get trips_itinerary_empty => 'אין עדיין מסלול. צרו אחד מתאריכי הטיול.';

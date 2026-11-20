@@ -1864,10 +1864,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_story_openGallery => 'Utazási fotók megnyitása';
 
   @override
-  String get trips_story_generateItineraryError =>
-      'Nem sikerült létrehozni az útitervet. Próbáld újra.';
-
-  @override
   String get trips_dayType_diveDay => 'Merülőnap';
 
   @override
@@ -36842,10 +36838,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get trips_itinerary_error_loading =>
       'Nem sikerült betölteni az útitervet.';
-
-  @override
-  String get trips_itinerary_daySaveError =>
-      'Nem sikerült menteni a napot. Próbáld újra.';
 
   @override
   String get trips_itinerary_empty =>
