@@ -97,13 +97,16 @@ mixin GearItemSittingHost<W extends ConsumerStatefulWidget>
     // it is stored, never before: a Cancel would leave it on the tag only.
     // The newest one (the list is newest first), read back so a twin fill
     // offers its partner's tag too.
+    // Best effort, as the other steps after a save: a failure is logged.
     if (loggedFills.isNotEmpty && mounted) {
-      unawaited(
+      logFailure(
         _offerLoggedFill(
           loggedFills.first.id,
           equipmentId: session.stored.id,
           fills: ref.read(cylinderFillRepositoryProvider),
         ),
+        GearItemSittingHost,
+        'offer the logged fill for its tag',
       );
     }
     afterGearItemSave(

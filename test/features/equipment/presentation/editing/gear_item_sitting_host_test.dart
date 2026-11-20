@@ -3,7 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_fills_sitting.dart';
 import 'package:submersion/features/equipment/data/services/gear_item_edit_save_service.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_card_ids.dart';
@@ -82,8 +86,9 @@ void main() {
   tearDown(tearDownTestDatabase);
 
   Future<({FakeGearItemSave save, _OtherItemPageState state})> pump(
-    WidgetTester tester,
-  ) async {
+    WidgetTester tester, {
+    List<Object> extraOverrides = const [],
+  }) async {
     final stored = StateProvider<EquipmentItem?>((ref) => apex);
     late FakeGearItemSave save;
     await tester.pumpWidget(
@@ -100,6 +105,7 @@ void main() {
           gearItemEditSaveServiceProvider.overrideWith(
             (ref) => save = FakeGearItemSave(ref.watch(stored.notifier)),
           ),
+          ...extraOverrides,
         ],
         child: const _OtherItemPage(),
       ),
@@ -128,6 +134,40 @@ void main() {
     expect(page.state.saved.single?.notes, 'Serviced in May');
   });
 
+  // The tag write offered after Save reads the stored fill back; a read
+  // that fails there is the offer's, never an uncaught error.
+  testWidgets('a failed read behind the tag offer after Save is logged, not '
+      'thrown', (tester) async {
+    final page = await pump(
+      tester,
+      extraOverrides: [
+        cylinderFillRepositoryProvider.overrideWithValue(_BrokenFills()),
+      ],
+    );
+    page.save.runHeld = false;
+    await tester.tap(find.byIcon(Icons.lock_outline));
+    await tester.pumpAndSettle();
+    final controller = page.state.editController;
+    holdLoggedFill(
+      controller.session!,
+      CylinderFill(
+        id: '',
+        passportId: 'pp',
+        equipmentId: apex.id,
+        filledAt: DateTime(2026, 3, 3),
+        o2Percent: 32,
+        createdAt: DateTime(2026, 3, 3),
+        updatedAt: DateTime(2026, 3, 3),
+      ),
+    );
+
+    await controller.save();
+    await tester.pumpAndSettle();
+
+    expect(page.save.calls, hasLength(1));
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('its sitting loads the item\'s lists', (tester) async {
     final page = await pump(tester);
     await tester.tap(find.byIcon(Icons.lock_outline));
@@ -139,4 +179,11 @@ void main() {
 
     expect(gearItemClocksList.loaded(session), isEmpty);
   });
+}
+
+/// A fills repository whose reads fail.
+class _BrokenFills extends CylinderFillRepository {
+  @override
+  Future<CylinderFill?> getById(String id) =>
+      Future.error(StateError('database is locked'));
 }
