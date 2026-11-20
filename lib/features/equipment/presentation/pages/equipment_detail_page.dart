@@ -365,188 +365,185 @@ class _EquipmentDetailContent extends ConsumerWidget {
     final isServiceOverdue =
         headerClock?.status.severity == ServiceClockSeverity.overdue;
 
-    final body = _creating
-        ? _newItemBody(context, ref, units)
-        : SingleChildScrollView(
-            controller: DetailScrollController.maybeOf(context),
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _framed(
-                  GearItemCardId.header,
-                  _buildHeaderSection(
-                    context,
-                    equipment,
-                    isServiceOverdue,
-                    headerClock,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                // The device's controls (issue #3676): this item is its one entry.
-                // Downloading is what the page is opened for, so they lead, above
-                // the Details card (issue #4622). Brings its own bottom gap: it
-                // takes no room while it loads or when it fails.
-                if (equipment.type == EquipmentType.computer)
-                  _framed(
-                    GearItemCardId.diveComputer,
-                    DiveComputerSection(equipmentId: equipmentId),
-                  ),
-                _framed(
-                  GearItemCardId.details,
-                  _buildDetailsSection(context, ref, equipment, units),
-                ),
-                const SizedBox(height: 24),
-                if (equipment.type == EquipmentType.transmitter) ...[
-                  TransmitterSection(equipmentId: equipmentId),
-                  const SizedBox(height: 24),
-                ],
-                _framed(
-                  GearItemCardId.location,
-                  EquipmentLocationCard(
-                    equipment: equipment,
-                    shown: _session,
-                    readOnly: _editing,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                if (equipment.type == EquipmentType.tank) ...[
-                  _calculated(PassportEntryCard(equipment: equipment)),
-                  const SizedBox(height: 24),
-                  // Twin set pairing (issue #4242). It hides as Worn as says, as
-                  // the sitting has it.
-                  _framed(
-                    GearItemCardId.twinSet,
-                    TwinSetCard(equipmentId: equipmentId, working: equipment),
-                  ),
-                  const SizedBox(height: 24),
-                ] else if (!equipment.isWanted) ...[
-                  // Any other gear's tag (issue #2652).
-                  _calculated(GearPassportEntryCard(equipment: equipment)),
-                  const SizedBox(height: 24),
-                ],
-                if (!equipment.isWanted) ...[
-                  _framed(
-                    GearItemCardId.serviceClocks,
-                    ServiceClocksCard(
-                      equipmentId: equipmentId,
-                      equipmentType: equipment.type,
-                      readOnly: _editing,
-                      customReminder: (
-                        enabled: equipment.customReminderEnabled,
-                        days: equipment.customReminderDays,
-                      ),
-                      onLogService: (status) => _showAddServiceDialogForKind(
-                        context,
-                        ref,
-                        serviceKindId: status.kind.id,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                ],
-                _calculated(ExposureCard(equipmentId: equipmentId)),
-                // The findings and trend cards carry their own top gap and render
-                // nothing when they have nothing to say, so the page never shows
-                // a blank slot for a rule engine.
-                _framed(
-                  GearItemCardId.conditionFindings,
-                  ConditionFindingsCard(equipment: equipment),
-                  topGap: 24,
-                ),
-                _calculated(ConditionTrendCard(equipment: equipment)),
-                if (equipment.type == EquipmentType.rebreather)
-                  _calculated(
-                    ConditionTrendCard(
-                      equipment: equipment,
-                      kind: ConditionTrendKind.scrubberMinutes,
-                    ),
-                  ),
-                if (childHostTypes.contains(equipment.type)) ...[
-                  const SizedBox(height: 24),
-                  ChildrenCard(equipment: equipment),
-                ],
-                const SizedBox(height: 24),
-                // Reference photos of the item (issue #3355), above the check-ins
-                // that carry the condition photos.
-                _framed(
-                  GearItemCardId.photos,
-                  EquipmentPhotosSection(
-                    equipment: equipment,
-                    shown: _session,
-                    readOnly: _editing,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                _framed(
-                  GearItemCardId.observations,
-                  ObservationsCard(
-                    equipment: equipment,
-                    shown: _session,
-                    readOnly: _editing,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                _framed(
-                  GearItemCardId.components,
-                  ComponentsCard(equipmentId: equipmentId),
-                ),
-                // Only rebreathers own configurations; every other type would show
-                // a card that can never be anything but empty.
-                if (equipment.type == EquipmentType.rebreather) ...[
-                  const SizedBox(height: 24),
-                  UnitConfigurationsCard(equipmentId: equipmentId),
-                ],
-                // Brings its own top gap: it hides itself once every linked file
-                // has moved into Documents.
-                _framed(
-                  GearItemCardId.legacyFiles,
-                  EquipmentDocumentsSection(
-                    equipmentId: equipmentId,
-                    onOpenDocument: (item) =>
-                        DocumentOpenHelper.open(context, ref, item),
-                    shown: _session,
-                    readOnly: _editing,
-                  ),
-                  topGap: 24,
-                ),
-                const SizedBox(height: 24),
-                // Who used it and every share (issue #2046); only with two or more
-                // profiles, so a single-profile page keeps its spacing.
-                if (ref.watch(hasMultipleDiversProvider)) ...[
-                  _calculated(EquipmentHistoryCard(equipmentId: equipmentId)),
-                  const SizedBox(height: 24),
-                ],
-                _framed(
-                  GearItemCardId.serviceHistory,
-                  ServiceHistorySection(
-                    equipmentId: equipmentId,
-                    shown: _session,
-                    readOnly: _editing,
-                  ),
-                ),
-                // Notes of only spaces are empty, as the card counts them.
-                if (equipment.notes.trim().isNotEmpty ||
-                    _shows(GearItemCardId.notes)) ...[
-                  const SizedBox(height: 24),
-                  _framed(
-                    GearItemCardId.notes,
-                    _buildNotesSection(context, equipment),
-                  ),
-                ],
-                const SizedBox(height: 24),
-                _framed(
-                  GearItemCardId.documents,
-                  DocumentsSection<EquipmentItem>(
-                    owner: DocumentOwner(
-                      DocumentOwnerKind.equipment,
-                      equipmentId,
-                    ),
-                  ),
-                ),
-              ],
+    // Built only for a stored item: its sections read by the item's id.
+    Widget storedBody() => SingleChildScrollView(
+      controller: DetailScrollController.maybeOf(context),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _framed(
+            GearItemCardId.header,
+            _buildHeaderSection(
+              context,
+              equipment,
+              isServiceOverdue,
+              headerClock,
             ),
-          );
+          ),
+          const SizedBox(height: 24),
+          // The device's controls (issue #3676): this item is its one entry.
+          // Downloading is what the page is opened for, so they lead, above
+          // the Details card (issue #4622). Brings its own bottom gap: it
+          // takes no room while it loads or when it fails.
+          if (equipment.type == EquipmentType.computer)
+            _framed(
+              GearItemCardId.diveComputer,
+              DiveComputerSection(equipmentId: equipmentId),
+            ),
+          _framed(
+            GearItemCardId.details,
+            _buildDetailsSection(context, ref, equipment, units),
+          ),
+          const SizedBox(height: 24),
+          if (equipment.type == EquipmentType.transmitter) ...[
+            TransmitterSection(equipmentId: equipmentId),
+            const SizedBox(height: 24),
+          ],
+          _framed(
+            GearItemCardId.location,
+            EquipmentLocationCard(
+              equipment: equipment,
+              shown: _session,
+              readOnly: _editing,
+            ),
+          ),
+          const SizedBox(height: 24),
+          if (equipment.type == EquipmentType.tank) ...[
+            _calculated(PassportEntryCard(equipment: equipment)),
+            const SizedBox(height: 24),
+            // Twin set pairing (issue #4242). It hides as Worn as says, as
+            // the sitting has it.
+            _framed(
+              GearItemCardId.twinSet,
+              TwinSetCard(equipmentId: equipmentId, working: equipment),
+            ),
+            const SizedBox(height: 24),
+          ] else if (!equipment.isWanted) ...[
+            // Any other gear's tag (issue #2652).
+            _calculated(GearPassportEntryCard(equipment: equipment)),
+            const SizedBox(height: 24),
+          ],
+          if (!equipment.isWanted) ...[
+            _framed(
+              GearItemCardId.serviceClocks,
+              ServiceClocksCard(
+                equipmentId: equipmentId,
+                equipmentType: equipment.type,
+                readOnly: _editing,
+                customReminder: (
+                  enabled: equipment.customReminderEnabled,
+                  days: equipment.customReminderDays,
+                ),
+                onLogService: (status) => _showAddServiceDialogForKind(
+                  context,
+                  ref,
+                  serviceKindId: status.kind.id,
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
+          _calculated(ExposureCard(equipmentId: equipmentId)),
+          // The findings and trend cards carry their own top gap and render
+          // nothing when they have nothing to say, so the page never shows
+          // a blank slot for a rule engine.
+          _framed(
+            GearItemCardId.conditionFindings,
+            ConditionFindingsCard(equipment: equipment),
+            topGap: 24,
+          ),
+          _calculated(ConditionTrendCard(equipment: equipment)),
+          if (equipment.type == EquipmentType.rebreather)
+            _calculated(
+              ConditionTrendCard(
+                equipment: equipment,
+                kind: ConditionTrendKind.scrubberMinutes,
+              ),
+            ),
+          if (childHostTypes.contains(equipment.type)) ...[
+            const SizedBox(height: 24),
+            ChildrenCard(equipment: equipment),
+          ],
+          const SizedBox(height: 24),
+          // Reference photos of the item (issue #3355), above the check-ins
+          // that carry the condition photos.
+          _framed(
+            GearItemCardId.photos,
+            EquipmentPhotosSection(
+              equipment: equipment,
+              shown: _session,
+              readOnly: _editing,
+            ),
+          ),
+          const SizedBox(height: 24),
+          _framed(
+            GearItemCardId.observations,
+            ObservationsCard(
+              equipment: equipment,
+              shown: _session,
+              readOnly: _editing,
+            ),
+          ),
+          const SizedBox(height: 24),
+          _framed(
+            GearItemCardId.components,
+            ComponentsCard(equipmentId: equipmentId),
+          ),
+          // Only rebreathers own configurations; every other type would show
+          // a card that can never be anything but empty.
+          if (equipment.type == EquipmentType.rebreather) ...[
+            const SizedBox(height: 24),
+            UnitConfigurationsCard(equipmentId: equipmentId),
+          ],
+          // Brings its own top gap: it hides itself once every linked file
+          // has moved into Documents.
+          _framed(
+            GearItemCardId.legacyFiles,
+            EquipmentDocumentsSection(
+              equipmentId: equipmentId,
+              onOpenDocument: (item) =>
+                  DocumentOpenHelper.open(context, ref, item),
+              shown: _session,
+              readOnly: _editing,
+            ),
+            topGap: 24,
+          ),
+          const SizedBox(height: 24),
+          // Who used it and every share (issue #2046); only with two or more
+          // profiles, so a single-profile page keeps its spacing.
+          if (ref.watch(hasMultipleDiversProvider)) ...[
+            _calculated(EquipmentHistoryCard(equipmentId: equipmentId)),
+            const SizedBox(height: 24),
+          ],
+          _framed(
+            GearItemCardId.serviceHistory,
+            ServiceHistorySection(
+              equipmentId: equipmentId,
+              shown: _session,
+              readOnly: _editing,
+            ),
+          ),
+          // Notes of only spaces are empty, as the card counts them.
+          if (equipment.notes.trim().isNotEmpty ||
+              _shows(GearItemCardId.notes)) ...[
+            const SizedBox(height: 24),
+            _framed(
+              GearItemCardId.notes,
+              _buildNotesSection(context, equipment),
+            ),
+          ],
+          const SizedBox(height: 24),
+          _framed(
+            GearItemCardId.documents,
+            DocumentsSection<EquipmentItem>(
+              owner: DocumentOwner(DocumentOwnerKind.equipment, equipmentId),
+            ),
+          ),
+        ],
+      ),
+    );
+    final body = _creating ? _newItemBody(context, ref, units) : storedBody();
 
     final host = this.host;
     if (embedded) {
