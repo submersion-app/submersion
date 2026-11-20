@@ -26,6 +26,15 @@ class FakeWorker implements OnnxWorkerHandle {
   int mostAtOnce = 0;
   Completer<void>? gate;
 
+  /// Answers every call as a worker whose isolate has stopped.
+  bool stopped = false;
+
+  void _alive() {
+    if (stopped) {
+      throw const VisionEngineException(OnnxWorker.stoppedCode, 'stopped');
+    }
+  }
+
   static const analysis = VisionAnalysis(
     imageWidth: 3,
     imageHeight: 2,
@@ -34,12 +43,14 @@ class FakeWorker implements OnnxWorkerHandle {
 
   @override
   Future<void> load(VisionModels models) async {
+    _alive();
     calls.add('load');
     loaded = models;
   }
 
   @override
   Future<PipelineResult> analyze(RgbaImage image) async {
+    _alive();
     if (loaded == null) {
       throw const VisionEngineException(VisionEngineException.notLoaded);
     }
@@ -130,6 +141,58 @@ void main() {
     worker = FakeWorker();
     decoded = [];
   });
+
+  test(
+    'a worker that failed to start is started again on the next call',
+    () async {
+      var spawns = 0;
+      final e = OnnxVisionEngine(
+        worker: () async {
+          spawns++;
+          if (spawns == 1) {
+            throw const VisionEngineException('unsupported', 'no runtime yet');
+          }
+          return worker;
+        },
+        decode: (bytes) async => RgbaImage(3, 2, Uint8List(3 * 2 * 4)),
+      );
+
+      await expectLater(e.load(_models), throwsA(isA<VisionEngineException>()));
+      await e.load(_models);
+
+      expect(spawns, 2);
+      expect(worker.calls, ['load']);
+    },
+  );
+
+  test(
+    'a worker that stopped is replaced and the models loaded again',
+    () async {
+      final first = FakeWorker(), second = FakeWorker();
+      final workers = [first, second];
+      final e = OnnxVisionEngine(
+        worker: () async => workers.removeAt(0),
+        decode: (bytes) async => RgbaImage(3, 2, Uint8List(3 * 2 * 4)),
+      );
+      await e.load(_models);
+      first.stopped = true;
+
+      await expectLater(
+        e.analyze(bytes: Uint8List(1)),
+        throwsA(
+          isA<VisionEngineException>().having(
+            (x) => x.code,
+            'code',
+            VisionEngineException.notLoaded,
+          ),
+        ),
+      );
+      await e.load(_models);
+
+      expect(second.calls, ['load']);
+      expect((await e.analyze(bytes: Uint8List(1))).imageWidth, 3);
+    },
+  );
 
   test('a worker that lost its models is loaded again', () async {
     // A run that failed on the worker's last device closes its models.
@@ -325,6 +388,18 @@ void main() {
     test('a 32-bit Android device is not eligible', () async {
       expect(
         await on(TargetPlatform.android, is64Bit: false).availability(),
+        VisionAvailability.deviceNotEligible,
+      );
+    });
+
+    test('a 32-bit Android device, which ships no library, is not '
+        'eligible rather than unsupported', () async {
+      expect(
+        await on(
+          TargetPlatform.android,
+          is64Bit: false,
+          libraryLoads: false,
+        ).availability(),
         VisionAvailability.deviceNotEligible,
       );
     });

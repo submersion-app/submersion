@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -23,9 +25,17 @@ class FakeFrames implements FrameReader {
     this.durationMs = 1000,
     this.unreadable = const {},
     this.undecodable = false,
+    this.frameEveryMs = 33,
   });
 
   final int durationMs;
+
+  /// The time between frames; a large one stands for a sparse,
+  /// variable-rate stretch.
+  final int frameEveryMs;
+
+  /// Holds each frame until completed, so a test can act mid-chunk.
+  Completer<void>? gate;
   final Set<int> unreadable;
 
   /// Opens, but no frame of it can be read (a codec the device lacks).
@@ -53,7 +63,8 @@ class FakeFrames implements FrameReader {
     required int maxSide,
   }) async {
     asked.add('next $atOrAfterMs $maxSide');
-    final ms = (atOrAfterMs / 33).ceil() * 33;
+    await gate?.future;
+    final ms = (atOrAfterMs / frameEveryMs).ceil() * frameEveryMs;
     if (ms >= durationMs || undecodable) return null;
     beforeFrame?.call(ms);
     return VideoFrame(ms, _image);
@@ -75,16 +86,31 @@ class FakeFrames implements FrameReader {
 
 class FakeWorker implements OnnxWorkerHandle {
   int detected = 0;
+  int loads = 0;
+  int unloads = 0;
+
+  /// What the worker was asked, in order.
+  final calls = <String>[];
 
   @override
-  Future<void> load(VisionModels models) async {}
+  Future<void> load(VisionModels models) async => loads++;
 
   @override
-  Future<PipelineResult> analyze(RgbaImage image) => throw UnimplementedError();
+  Future<PipelineResult> analyze(RgbaImage image) async {
+    calls.add('analyze');
+    return const PipelineResult(
+      analysis: VisionAnalysis(imageWidth: 2, imageHeight: 1, detections: []),
+      detectorBoxes: [[]],
+      mergedBoxes: [],
+      detectMs: 0,
+      embedMs: [],
+    );
+  }
 
   @override
   Future<List<PipelineBox>> detect(RgbaImage frame) async {
     detected++;
+    calls.add('detect');
     return const [PipelineBox(0.1, 0.2, 0.3, 0.4, 0.9)];
   }
 
@@ -100,7 +126,7 @@ class FakeWorker implements OnnxWorkerHandle {
   );
 
   @override
-  Future<void> unload() async {}
+  Future<void> unload() async => unloads++;
 
   @override
   Future<void> close() async {}
@@ -158,6 +184,7 @@ void main() {
       deviceMemory: _Memory(),
       frames: frames,
       lifecycle: () => lifecycle,
+      decode: (bytes) async => RgbaImage(2, 1, Uint8List(8)),
     );
     await e.load(_models);
     return e;
@@ -265,6 +292,69 @@ void main() {
         expect(frames.closed, frames.opened);
       },
     );
+
+    test(
+      'a frame shown past the chunk end is left for the next chunk',
+      () async {
+        // A sparse stretch: the frame after 0 ms is shown at 400 ms, past
+        // this chunk's end, so the next chunk is the one that reads it.
+        frames = FakeFrames(frameEveryMs: 400);
+
+        final result = await (await engine()).detectVideo(
+          path: '/videos/a.mp4',
+          startMs: 0,
+          endMs: 300,
+          sampleIntervalMs: 250,
+        );
+
+        expect(result.frames.map((f) => f.ms), [0]);
+      },
+    );
+
+    test('memory pressure between frames frees the models and ends the '
+        'chunk as not_loaded', () async {
+      late OnnxVisionEngine e;
+      frames.beforeFrame = (ms) {
+        if (ms > 300) e.didHaveMemoryPressure();
+      };
+      e = await engine();
+
+      await expectLater(
+        e.detectVideo(
+          path: '/videos/a.mp4',
+          startMs: 0,
+          endMs: 1000,
+          sampleIntervalMs: 250,
+        ),
+        _fails(VisionEngineException.notLoaded),
+      );
+      expect(worker.detected, 3, reason: 'stopped at the next frame');
+      expect(worker.unloads, greaterThanOrEqualTo(1));
+      expect(frames.closed, frames.opened);
+
+      await e.load(_models);
+      expect(worker.loads, 2, reason: 'the reload reaches the worker');
+    });
+
+    test('a photo opened during a chunk waits for the chunk', () async {
+      final e = await engine();
+      frames.gate = Completer<void>();
+
+      final video = e.detectVideo(
+        path: '/videos/a.mp4',
+        startMs: 0,
+        endMs: 1000,
+        sampleIntervalMs: 250,
+      );
+      final photo = e.analyze(bytes: Uint8List(1));
+      await Future<void>.delayed(Duration.zero);
+      expect(worker.calls, isEmpty, reason: 'the chunk holds the queue');
+      frames.gate!.complete();
+      await video;
+      await photo;
+
+      expect(worker.calls, [...List.filled(4, 'detect'), 'analyze']);
+    });
 
     test('refuses to start in the background', () async {
       lifecycle = AppLifecycleState.paused;

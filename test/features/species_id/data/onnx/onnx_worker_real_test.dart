@@ -85,6 +85,18 @@ void main() {
     );
   }, skip: skip);
 
+  test('a worker that dies while starting fails instead of hanging', () async {
+    // No device makes the worker's core throw outside the guarded open,
+    // so the isolate dies before it answers.
+    await expectLater(
+      OnnxWorker.spawn(
+        ortLibraryPath: Platform.isLinux ? null : libraryPath,
+        devices: const [],
+      ).timeout(const Duration(seconds: 20)),
+      throwsA(isA<VisionEngineException>()),
+    );
+  }, skip: skip);
+
   test('a model that is not there fails to load', () async {
     final worker = await OnnxWorker.spawn(
       ortLibraryPath: Platform.isLinux ? null : libraryPath,

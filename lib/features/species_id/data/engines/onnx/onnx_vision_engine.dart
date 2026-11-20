@@ -76,6 +76,10 @@ class OnnxVisionEngine with WidgetsBindingObserver implements VisionEngine {
   Future<void> _tail = Future.value();
   bool _observing = false;
 
+  /// Set when the system asks for memory, so a video chunk that is running
+  /// frees the models at its next frame instead of at its end.
+  bool _memoryPressure = false;
+
   /// Whether this engine is the one for [_platform]: Android, Windows and
   /// Linux, never Core ML's platforms or the web.
   bool get _runsHere =>
@@ -90,10 +94,11 @@ class OnnxVisionEngine with WidgetsBindingObserver implements VisionEngine {
   /// for the Pixel 6a measurement only.
   @override
   Future<VisionAvailability> availability() async {
-    if (!_runsHere || !await _libraryLoads()) {
-      return VisionAvailability.unsupportedPlatform;
-    }
+    if (!_runsHere) return VisionAvailability.unsupportedPlatform;
+    // Before the library: no library ships for 32-bit Android, and such a
+    // device is not eligible rather than waiting for support.
     if (!_is64Bit) return VisionAvailability.deviceNotEligible;
+    if (!await _libraryLoads()) return VisionAvailability.unsupportedPlatform;
     if (_ignoreFloor) return VisionAvailability.available;
     final floor = _platform == TargetPlatform.android
         ? androidMinimumMemoryBytes
@@ -108,7 +113,7 @@ class OnnxVisionEngine with WidgetsBindingObserver implements VisionEngine {
   Future<void> load(VisionModels models) => _serial(() async {
     if (_loaded == models) return;
     _loaded = null;
-    await (await _workerHandle()).load(models);
+    await _fromWorker((await _workerHandle()).load(models));
     _loaded = models;
     _observe();
   });
@@ -173,6 +178,9 @@ class OnnxVisionEngine with WidgetsBindingObserver implements VisionEngine {
             }
             break;
           }
+          // A sparse stretch can put the next frame past this chunk; the
+          // next chunk reads it, so it is not counted twice.
+          if (frame.ms >= end) break;
           while (next <= frame.ms) {
             next += sampleIntervalMs;
           }
@@ -252,10 +260,26 @@ class OnnxVisionEngine with WidgetsBindingObserver implements VisionEngine {
 
   @override
   Future<void> unload() => _serial(() async {
-    _loaded = null;
-    final worker = _worker;
-    if (worker != null) await (await worker).unload();
+    _memoryPressure = false;
+    await _unloadNow();
   });
+
+  /// Frees the models in the worker, inside a serial call. A worker that
+  /// never started or has stopped holds none.
+  Future<void> _unloadNow() async {
+    _loaded = null;
+    final spawning = _worker;
+    if (spawning == null) return;
+    try {
+      await (await spawning).unload();
+    } on VisionEngineException catch (e) {
+      if (e.code != OnnxWorker.stoppedCode) rethrow;
+      _worker = null;
+    } on Object {
+      // The spawn failed: nothing was loaded.
+      _worker = null;
+    }
+  }
 
   @override
   Future<VisionMemory> memory() => _deviceMemory.reading();
@@ -270,18 +294,36 @@ class OnnxVisionEngine with WidgetsBindingObserver implements VisionEngine {
   /// `not_loaded`, which the service answers by loading them again.
   @override
   void didHaveMemoryPressure() {
+    _memoryPressure = true;
     unawaited(unload().catchError((Object _) {}));
   }
 
-  Future<OnnxWorkerHandle> _workerHandle() => _worker ??= _spawn();
+  /// The worker, started on first use. A start that failed is not kept, so
+  /// the next call tries again.
+  Future<OnnxWorkerHandle> _workerHandle() async {
+    final spawning = _worker ??= _spawn();
+    try {
+      return await spawning;
+    } on Object {
+      if (identical(_worker, spawning)) _worker = null;
+      rethrow;
+    }
+  }
 
   /// [call]'s answer. A worker that answers `not_loaded` has closed its
   /// models (a run failed on its last device), so the engine forgets them
-  /// too and the service's reload reaches the worker.
+  /// too and the service's reload reaches the worker. A worker whose
+  /// isolate stopped is dropped, and the call fails as `not_loaded` so the
+  /// reload starts a new one.
   Future<T> _fromWorker<T>(Future<T> call) async {
     try {
       return await call;
     } on VisionEngineException catch (e) {
+      if (e.code == OnnxWorker.stoppedCode) {
+        _worker = null;
+        _loaded = null;
+        throw VisionEngineException(VisionEngineException.notLoaded, e.message);
+      }
       if (e.code == VisionEngineException.notLoaded) _loaded = null;
       rethrow;
     }
@@ -315,6 +357,14 @@ class OnnxVisionEngine with WidgetsBindingObserver implements VisionEngine {
   /// system dialog) is still in front, as Swift stops only in the
   /// background. PCs check neither, as the Mac does not.
   Future<void> _checkVideoAllowed() async {
+    // Asked for memory while a chunk runs: the models go now and the chunk
+    // fails as `not_loaded`, which the scan answers by loading them again
+    // and running the chunk once more.
+    if (_memoryPressure) {
+      _memoryPressure = false;
+      await _unloadNow();
+      throw const VisionEngineException(VisionEngineException.notLoaded);
+    }
     if (_platform != TargetPlatform.android) return;
     final state = _lifecycle();
     if (state == AppLifecycleState.paused ||

@@ -30,37 +30,83 @@ abstract interface class OnnxWorkerHandle {
 }
 
 /// [OnnxWorkerCore] in an isolate of its own, so model work never runs on
-/// the UI isolate. Images cross as transferable bytes, without a copy.
+/// the UI isolate. Images cross as transferable bytes: copied once on the
+/// sending side, then handed over without another copy.
 class OnnxWorker implements OnnxWorkerHandle {
-  OnnxWorker._(this._isolate, this._requests);
+  OnnxWorker._(this._isolate, this._events);
+
+  /// The code every call fails with once the worker's isolate has stopped
+  /// (an uncaught error, or the Dart heap exhausted): the engine starts a
+  /// new worker.
+  static const String stoppedCode = 'worker_stopped';
 
   final Isolate _isolate;
-  final SendPort _requests;
+  final ReceivePort _events;
+  late final SendPort _requests;
+  final _pending = <Completer<Object?>>{};
+  String? _stopped;
   bool _closed = false;
 
   /// Starts a worker. ONNX Runtime comes from the build hook's library, or
   /// from [ortLibraryPath] (the scoring runner on a Mac). Sessions open on
   /// the first of [devices] that takes them; [providerLibraries] are
-  /// registered first.
+  /// registered first. Fails, rather than waiting for ever, when the
+  /// isolate stops before it is ready.
   static Future<OnnxWorker> spawn({
     String? ortLibraryPath,
     List<OrtDevice> devices = const [OrtDevice.cpu],
     List<ProviderLibrary> providerLibraries = const [],
     int intraOpThreads = 0,
   }) async {
-    final ready = ReceivePort();
-    final isolate = await Isolate.spawn(_workerMain, (
-      ready.sendPort,
-      ortLibraryPath,
-      devices,
-      providerLibraries,
-      intraOpThreads,
-    ), debugName: 'species_id_onnx');
-    final first = await ready.first;
-    ready.close();
-    if (first is SendPort) return OnnxWorker._(isolate, first);
-    isolate.kill();
-    throw VisionEngineException('unsupported', '$first');
+    // One port hears the worker's ready answer, a setup failure, an
+    // uncaught error and the isolate's exit, whichever comes first.
+    final events = ReceivePort();
+    final Isolate isolate;
+    try {
+      isolate = await Isolate.spawn(
+        _workerMain,
+        (
+          events.sendPort,
+          ortLibraryPath,
+          devices,
+          providerLibraries,
+          intraOpThreads,
+        ),
+        debugName: 'species_id_onnx',
+        onError: events.sendPort,
+        onExit: events.sendPort,
+      );
+    } on Object catch (e) {
+      events.close();
+      throw VisionEngineException('unsupported', '$e');
+    }
+    final worker = OnnxWorker._(isolate, events);
+    final ready = Completer<void>();
+    events.listen((message) {
+      if (message is SendPort && !ready.isCompleted) {
+        worker._requests = message;
+        ready.complete();
+        return;
+      }
+      final reason = switch (message) {
+        final String text => text,
+        [final Object? error, ...] => '$error',
+        _ => 'the worker stopped',
+      };
+      if (!ready.isCompleted) {
+        ready.completeError(VisionEngineException('unsupported', reason));
+      } else {
+        worker._stop(reason);
+      }
+    });
+    try {
+      await ready.future;
+    } on Object {
+      isolate.kill();
+      events.close();
+      rethrow;
+    }
+    return worker;
   }
 
   @override
@@ -86,25 +132,57 @@ class OnnxWorker implements OnnxWorkerHandle {
   @override
   Future<void> close() async {
     if (_closed) return;
-    await _call('close', null);
-    _closed = true;
-    _isolate.kill();
+    try {
+      if (_stopped == null) await _call('close', null);
+    } finally {
+      _closed = true;
+      _isolate.kill();
+      _events.close();
+    }
+  }
+
+  /// The isolate stopped: every call waiting on it fails, as will later
+  /// ones.
+  void _stop(String reason) {
+    _stopped ??= reason;
+    final waiting = [..._pending];
+    _pending.clear();
+    for (final call in waiting) {
+      if (!call.isCompleted) {
+        call.completeError(VisionEngineException(stoppedCode, reason));
+      }
+    }
   }
 
   Future<Object?> _call(String kind, Object? payload) async {
     if (_closed) {
       throw const VisionEngineException(VisionEngineException.notLoaded);
     }
+    final stopped = _stopped;
+    if (stopped != null) throw VisionEngineException(stoppedCode, stopped);
     final reply = ReceivePort();
-    _requests.send((kind, payload, reply.sendPort));
-    final answer = await reply.first;
-    reply.close();
-    return switch (answer) {
-      (true, final Object? value) => value,
-      (false, (final String code, final String? message)) =>
-        throw VisionEngineException(code, message),
-      _ => throw VisionEngineException('inference_failed', '$answer'),
-    };
+    final answer = Completer<Object?>();
+    _pending.add(answer);
+    // The port closes unanswered when the isolate stops; [_stop] has
+    // failed the call by then.
+    reply.first.then((value) {
+      if (!answer.isCompleted) answer.complete(value);
+    }, onError: (Object _) {});
+    try {
+      _requests.send((kind, payload, reply.sendPort));
+      return switch (await answer.future) {
+        (true, final Object? value) => value,
+        (false, (final String code, final String? message)) =>
+          throw VisionEngineException(code, message),
+        final other => throw VisionEngineException(
+          'inference_failed',
+          '$other',
+        ),
+      };
+    } finally {
+      _pending.remove(answer);
+      reply.close();
+    }
   }
 }
 
