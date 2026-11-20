@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/accessibility/app_shortcuts.dart';
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -58,7 +57,6 @@ import 'package:submersion/features/dive_centers/presentation/pages/dive_center_
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_list_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_map_page.dart';
 import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
-import 'package:submersion/features/trips/domain/services/trip_draft.dart';
 import 'package:submersion/features/trips/presentation/navigation/open_trip_list.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
 import 'package:submersion/features/data_quality/presentation/pages/data_quality_inbox_page.dart';
@@ -776,15 +774,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newEquipment',
-                builder: (context, state) => EquipmentEditPage(
-                  initialParentId: state.uri.queryParameters['parent'],
-                  cloneFromId: state.uri.queryParameters['cloneFrom'],
-                  // The Dive Computers and Transmitters lists' "add by hand"
-                  // (issue #3676).
-                  initialType: EquipmentType.values
-                      .asNameMap()[state.uri.queryParameters['type']],
-                  initialSerial: state.uri.queryParameters['serial'],
-                ),
+                onExit: confirmLeaveRecordSitting,
+                // Behind phase 3's switch, the item page opened on a new
+                // item or a clone (issue #4527, plan 11).
+                builder: (context, state) =>
+                    newGearItemPage(state.uri.queryParameters),
               ),
               GoRoute(
                 path: 'sets',
@@ -795,8 +789,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'new',
                     name: 'newEquipmentSet',
-                    builder: (context, state) => EquipmentSetEditPage(
-                      // A set page's Clone (issue #2156).
+                    onExit: confirmLeaveRecordSitting,
+                    // Behind phase 3's switch, the set page opened on a new
+                    // set or a set page's Clone (issues #2156, #4527).
+                    builder: (context, state) => newEquipmentSetPage(
                       cloneFromId: state.uri.queryParameters['cloneFrom'],
                     ),
                   ),
@@ -1239,9 +1235,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newTrip',
+                onExit: confirmLeaveRecordSitting,
                 // Selected dives can arrive as a prefilled draft (#3658).
-                builder: (context, state) =>
-                    TripEditPage(draft: state.extra as TripDraft?),
+                // Behind phase 3's switch, the trip page opened on a new
+                // trip (issue #4527).
+                builder: (context, state) => newTripPage(state.extra),
               ),
               GoRoute(
                 path: ':tripId',

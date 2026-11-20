@@ -18,8 +18,10 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
+import 'package:submersion/features/trips/data/services/trip_edit_save_service.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/services/trip_draft.dart';
+import 'package:submersion/features/trips/presentation/pages/trip_edit_routes.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
@@ -28,6 +30,7 @@ import 'package:submersion/shared/widgets/record_editing/record_edit_controller.
 
 import '../../../../../../helpers/mock_providers.dart';
 import '../../../../../../helpers/test_database.dart';
+import '../../../../../trips/presentation/pages/new_trip_test_helpers.dart';
 
 Trip _trip(String id, String name) => Trip(
   id: id,
@@ -131,6 +134,7 @@ void main() {
     Dive dive, {
     Trip? suggested,
     Widget Function()? newCenterPage,
+    Widget Function(Object? extra)? newTripScreen,
     List<Object> extraOverrides = const [],
   }) async {
     tester.view.physicalSize = const Size(900, 1600);
@@ -188,7 +192,8 @@ void main() {
           path: '/trips/new',
           builder: (context, state) {
             newTripExtra = state.extra;
-            return stub('save the trip', 'new-trip');
+            return newTripScreen?.call(state.extra) ??
+                stub('save the trip', 'new-trip');
           },
         ),
         GoRoute(
@@ -367,6 +372,33 @@ void main() {
 
       expect(working(controller).tripId, 'new-trip');
       expect(find.text('Brand New Trip'), findsOneWidget);
+    });
+
+    // Behind the phase 3 switch the new trip is the trip page itself, which
+    // pops the id of the trip it created (issue #4527, plan 11).
+    testWidgets('a new trip made on the new trip page is set when it '
+        'returns', (tester) async {
+      final save = CreatingTripSave(onCreate: (t) => trips.byId[t.id] = t);
+      final controller = await pumpRows(
+        tester,
+        bare,
+        newTripScreen: (extra) => newTripPage(extra, unlockEditing: true),
+        extraOverrides: [
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
+          tripEditSaveServiceProvider.overrideWithValue(save),
+        ],
+      );
+      await openTripSheet(tester);
+      await tester.tap(find.text(l.trips_picker_newTrip));
+      await tester.pumpAndSettle();
+      await pumpUntilNewTripPageOpens(tester);
+
+      // Prefilled from the dive, the draft is already a change to save.
+      await tester.tap(find.text(l.forms_save));
+      await tester.pumpAndSettle();
+
+      final createdId = save.created.single;
+      expect(working(controller).tripId, createdId);
     });
 
     testWidgets('a new trip that cannot be read back says so and sets '

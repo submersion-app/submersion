@@ -8,6 +8,7 @@ import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/gear_photo_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/data/services/gear_item_edit_save_service.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
@@ -327,5 +328,89 @@ void main() {
     await db.customStatement("DELETE FROM equipment WHERE id = 'g1'");
 
     expect(save(session), throwsStateError);
+  });
+
+  /// A new gear item's sitting (issue #4527, phase 3, plan 11).
+  group('create', () {
+    EquipmentItem fresh({String id = 'n1'}) => EquipmentItem(
+      id: id,
+      diverId: 'd1',
+      name: 'Backup reg',
+      type: EquipmentType.regulator,
+    );
+
+    test('creates the item with its id, as one History entry', () async {
+      final created = await service.create(
+        item: fresh(),
+        changedCardIds: const ['header'],
+      );
+
+      expect(created.id, 'n1');
+      expect((await equipment.getEquipmentById('n1'))?.name, 'Backup reg');
+      final ops = await operations();
+      expect(ops, hasLength(1));
+      expect(ops.single['source'], 'manual');
+      expect(ops.single['label'], 'record_edit:equipment:n1:header');
+    });
+
+    test("the type's clocks are attached in the same entry", () async {
+      await service.create(item: fresh(), changedCardIds: const ['header']);
+
+      expect(
+        await ServiceScheduleRepository().getSchedulesForEquipment('n1'),
+        isNotEmpty,
+      );
+      expect(await operations(), hasLength(1));
+    });
+
+    test('held writes run after the row, in the same entry', () async {
+      EquipmentItem? seen;
+      await service.create(
+        item: fresh(),
+        changedCardIds: const ['header'],
+        alsoWrite: () async => seen = await equipment.getEquipmentById('n1'),
+      );
+
+      expect(seen?.name, 'Backup reg');
+      expect(await operations(), hasLength(1));
+    });
+
+    test('a held write that throws leaves nothing', () async {
+      await expectLater(
+        service.create(
+          item: fresh(),
+          changedCardIds: const ['header'],
+          alsoWrite: () async => throw StateError('refused'),
+        ),
+        throwsStateError,
+      );
+
+      expect(await equipment.getEquipmentById('n1'), isNull);
+      expect(
+        await ServiceScheduleRepository().getSchedulesForEquipment('n1'),
+        isEmpty,
+      );
+      expect(await operations(), isEmpty);
+    });
+
+    test('an empty id or one already stored is refused', () async {
+      await expectLater(
+        service.create(
+          item: fresh(id: ''),
+          changedCardIds: const [],
+        ),
+        throwsStateError,
+      );
+      await expectLater(
+        service.create(
+          item: fresh(id: 'g1'),
+          changedCardIds: const [],
+        ),
+        throwsStateError,
+      );
+
+      expect((await stored()).name, 'Apex');
+      expect(await operations(), isEmpty);
+    });
   });
 }

@@ -178,7 +178,7 @@ class _GearItemDetailsEditorState extends ConsumerState<GearItemDetailsEditor> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _CalculatedRows(item: working),
+            _CalculatedRows(item: working, counted: !_session.isNew),
             const SizedBox(height: 8),
             DropdownButtonFormField<EquipmentStatus>(
               key: const ValueKey('gear-edit-status'),
@@ -395,17 +395,23 @@ class _ParentPicker extends ConsumerWidget {
 }
 
 /// The card's calculated rows, read only: the dives, time and trips the
-/// item has been on and how long it has been owned.
+/// item has been on, unless it is not [counted] (a new item, which nothing
+/// is stored under yet), and how long it has been owned.
 class _CalculatedRows extends ConsumerWidget {
-  const _CalculatedRows({required this.item});
+  const _CalculatedRows({required this.item, required this.counted});
 
   final EquipmentItem item;
+  final bool counted;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final dives = ref.watch(equipmentDiveCountProvider(item.id)).value;
-    final trips = ref.watch(equipmentTripCountProvider(item.id)).value;
+    final dives = counted
+        ? ref.watch(equipmentDiveCountProvider(item.id)).value
+        : null;
+    final trips = counted
+        ? ref.watch(equipmentTripCountProvider(item.id)).value
+        : null;
     final owned = item.ownershipDuration;
     return DetailRowGroup(
       child: Column(
@@ -418,7 +424,7 @@ class _CalculatedRows extends ConsumerWidget {
                   ? l10n.equipment_detail_divesCountSingular(dives)
                   : l10n.equipment_detail_divesCountPlural(dives),
             ),
-          EquipmentDiveTimeRow(equipmentId: item.id),
+          if (counted) EquipmentDiveTimeRow(equipmentId: item.id),
           if (trips != null)
             DetailRow.text(
               label: l10n.equipment_detail_tripsLabel,

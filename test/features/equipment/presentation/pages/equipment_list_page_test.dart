@@ -12,6 +12,7 @@ import 'package:submersion/features/equipment/domain/constants/equipment_field.d
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_detail_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_edit_page.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_edit_routes.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_list_page.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_content.dart';
@@ -942,5 +943,73 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('equipment_menu_scanTag')));
     await tester.pumpAndSettle();
     expect(launched, 1);
+  });
+
+  // A new gear item opens on the item page behind the phase 3 switch
+  // (issue #4527, phase 3, plan 11).
+  testWidgets("the pane's new item is the page with the switch on", (
+    tester,
+  ) async {
+    void onSaved(String id) {}
+    void onCancel() {}
+    late BuildContext context;
+    await tester.pumpWidget(
+      Builder(
+        builder: (c) {
+          context = c;
+          return const SizedBox.shrink();
+        },
+      ),
+    );
+    final page =
+        newGearItemPane(context, onSaved, onCancel, unlockEditing: true)
+            as EquipmentDetailPage;
+    expect(page.embedded, isTrue);
+    expect(page.newItem, isNotNull);
+    expect(page.onCreated, same(onSaved));
+    expect(
+      newGearItemPane(context, onSaved, onCancel, unlockEditing: false),
+      isA<EquipmentEditPage>(),
+    );
+  });
+
+  testWidgets('Add on a phone opens the new item once created', (tester) async {
+    final router = GoRouter(
+      initialLocation: '/equipment',
+      routes: [
+        GoRoute(
+          path: '/equipment',
+          builder: (context, _) => Scaffold(
+            body: TextButton(
+              onPressed: () => openNewGearItem(context, unlockEditing: true),
+              child: const Text('add'),
+            ),
+          ),
+          routes: [
+            GoRoute(
+              path: 'new',
+              builder: (context, _) => Scaffold(
+                body: TextButton(
+                  onPressed: () => context.pop('n1'),
+                  child: const Text('NEW'),
+                ),
+              ),
+            ),
+            GoRoute(
+              path: ':id',
+              builder: (_, state) => Text('ITEM ${state.pathParameters['id']}'),
+            ),
+          ],
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+    await tester.tap(find.text('add'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('NEW'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('ITEM n1'), findsOneWidget);
   });
 }

@@ -84,6 +84,34 @@ class EquipmentSetEditSaveService {
     return result;
   }
 
+  /// Creates [set], a new set's or a clone's sitting (issue #4527, phase
+  /// 3, plan 11), keeping its id: the row with its members and bundle
+  /// lists, the default (demoting the diver's other default) and each
+  /// geofence, then [alsoWrite], in one transaction and one History entry
+  /// naming [changedCardIds]. A new set has no dives, so none are asked
+  /// about or rewritten. If any write throws nothing is left. Throws
+  /// [StateError] when [set] has no id, or one a stored set has.
+  Future<EquipmentSet> create({
+    required EquipmentSet set,
+    required Iterable<String> changedCardIds,
+    Future<void> Function()? alsoWrite,
+  }) => createRecordSitting<EquipmentSet>(
+    table: 'equipment_sets',
+    recordId: set.id,
+    changedCardIds: changedCardIds,
+    isStored: () async => await _sets.getSetById(set.id) != null,
+    insert: () async {
+      await _sets.createSet(set);
+      if (set.isDefault) await _sets.setAsDefault(set.id);
+      for (final fence in set.geofences) {
+        await _sets.addGeofence(fence.copyWith(setId: set.id));
+      }
+    },
+    alsoWrite: alsoWrite,
+    readBack: () => _sets.getSetById(set.id, includeGeofences: true),
+    created: set,
+  );
+
   Future<void> _write(
     EquipmentSet stored,
     EquipmentSet merged, {

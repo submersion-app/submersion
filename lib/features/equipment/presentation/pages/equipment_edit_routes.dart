@@ -5,6 +5,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_new_sitting.dart';
 import 'package:submersion/features/equipment/presentation/helpers/saved_equipment_visibility.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_detail_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_edit_page.dart';
@@ -13,6 +14,7 @@ import 'package:submersion/features/query/presentation/providers/query_cache_awa
 import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/record_editing/open_new_record.dart';
 import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
 final _log = LoggerService.forClass(EquipmentDetailPage);
@@ -124,3 +126,58 @@ Future<void> offerViewRevealingSavedItem({
     );
   }
 }
+
+/// The new-item address (`/equipment/new`, with `type`, `serial`, `parent`
+/// and `cloneFrom` in [query]; issue #4527, phase 3, plan 11): with
+/// [unlockEditing], the item page opened unlocked on a new item or a
+/// clone; else the form, as before.
+Widget newGearItemPage(
+  Map<String, String> query, {
+  bool unlockEditing = kUnlockRecordEditing,
+}) {
+  final request = NewGearItemRequest.fromQuery(query);
+  if (unlockEditing) return EquipmentDetailPage.newItem(request: request);
+  return EquipmentEditPage(
+    initialParentId: request.parentId,
+    cloneFromId: request.cloneFromId,
+    // The Dive Computers and Transmitters lists' "add by hand" (#3676).
+    initialType: request.type,
+    initialSerial: request.serial,
+  );
+}
+
+/// The gear list's new-item pane (`?mode=new`), as the master-detail
+/// scaffold's `createBuilder`: with [unlockEditing], the item page on a new
+/// item, whose created id is handed to [onSaved]; else the form.
+Widget newGearItemPane(
+  BuildContext context,
+  void Function(String savedId) onSaved,
+  VoidCallback onCancel, {
+  bool unlockEditing = kUnlockRecordEditing,
+}) {
+  if (unlockEditing) {
+    return EquipmentDetailPage.newItem(
+      embedded: true,
+      onCreated: onSaved,
+      onCreateCancelled: onCancel,
+    );
+  }
+  return EquipmentEditPage(
+    embedded: true,
+    onSaved: onSaved,
+    onCancel: onCancel,
+  );
+}
+
+/// Opens a new item from the gear list on a phone, in table mode or from
+/// its empty state: with [unlockEditing], the item opens, locked, once
+/// created, as a new site does (plan 11, Question 3); else the form.
+Future<void> openNewGearItem(
+  BuildContext context, {
+  bool unlockEditing = kUnlockRecordEditing,
+}) => openNewRecord(
+  context,
+  newLocation: '/equipment/new',
+  recordLocation: (id) => '/equipment/$id',
+  openCreated: unlockEditing,
+);

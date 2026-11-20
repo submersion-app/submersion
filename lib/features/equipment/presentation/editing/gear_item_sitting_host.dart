@@ -163,6 +163,8 @@ void loadGearItemSitting(
         container.read(equipmentShareRepositoryProvider),
       ),
       actingDiverId: container.read(validatedCurrentDiverIdProvider).value,
+      // A new item is shared with no one: gear has no sharing default.
+      newRecordSharing: session.isNew ? const <String>{} : null,
     );
   }
   holdDocumentLinks(

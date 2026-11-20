@@ -107,6 +107,32 @@ class FakeTripSave implements TripEditSaveService {
     stored.state = after;
     return (before: before, after: after);
   }
+
+  /// Each create the page asks for (issue #4527, plan 11).
+  final creates = <({Trip trip, Set<String> cards, List<String> dives})>[];
+
+  /// The id of every create asked for, a failed one included.
+  final createAttempts = <String>[];
+
+  @override
+  Future<Trip> create({
+    required Trip trip,
+    required Iterable<String> changedCardIds,
+    List<String> draftDiveIds = const [],
+    Future<void> Function()? alsoWrite,
+  }) async {
+    createAttempts.add(trip.id);
+    if (fail) throw StateError('the create failed');
+    await gate?.future;
+    if (runHeld) await alsoWrite?.call();
+    creates.add((
+      trip: trip,
+      cards: changedCardIds.toSet(),
+      dives: draftDiveIds,
+    ));
+    stored.state = trip;
+    return trip;
+  }
 }
 
 /// A trip list that records deletes and hides, and writes nothing.
@@ -203,8 +229,17 @@ class FakeTripDives implements TripRepository {
 
   /// The candidates read throws, as a database that cannot be read does.
   bool failRead = false;
-  final asked = <({DateTime start, DateTime end})>[];
+  final asked = <({DateTime start, DateTime end, String diverId})>[];
   final assigned = <List<String>>[];
+
+  /// The trips stored, by id, for what reads one.
+  final byId = <String, Trip>{};
+
+  @override
+  Future<Trip?> getTripById(String id) async => byId[id];
+
+  @override
+  Stream<void> watchTripsChanges() => const Stream.empty();
 
   @override
   Future<List<DiveCandidate>> findCandidateDivesForTrip({
@@ -213,7 +248,7 @@ class FakeTripDives implements TripRepository {
     required DateTime endDate,
     required String diverId,
   }) async {
-    asked.add((start: startDate, end: endDate));
+    asked.add((start: startDate, end: endDate, diverId: diverId));
     if (failRead) throw StateError('the read failed');
     return candidates;
   }

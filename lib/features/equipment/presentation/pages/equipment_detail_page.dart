@@ -5,6 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/divers/presentation/providers/new_record_diver.dart';
+import 'package:submersion/features/equipment/data/services/gear_item_edit_save_service.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_edit_fields.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_new_sitting.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_clone_providers.dart';
+import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
+import 'package:submersion/shared/widgets/record_editing/record_creating.dart';
 import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_edit_routes.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -95,6 +102,7 @@ import 'package:submersion/shared/widgets/record_editing/record_open_unlocked.da
 import 'package:submersion/shared/widgets/record_editing/record_pane_row.dart';
 import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
+part 'equipment_detail_page_creating.dart';
 part 'equipment_detail_page_editing.dart';
 part 'equipment_detail_page_menu.dart';
 part 'equipment_detail_page_sections.dart';
@@ -118,6 +126,16 @@ class EquipmentDetailPage extends ConsumerStatefulWidget {
   /// edit returns to the item in view.
   final VoidCallback? onSittingEnded;
 
+  /// A new item or a clone (issue #4527, phase 3, plan 11): the page
+  /// opened unlocked on an item not yet created, with what [request] asks.
+  final NewGearItemRequest? newItem;
+
+  /// The pane's own: given the new item's id once created.
+  final void Function(String equipmentId)? onCreated;
+
+  /// The pane's own: told when a new item's page leaves uncreated.
+  final VoidCallback? onCreateCancelled;
+
   const EquipmentDetailPage({
     super.key,
     required this.equipmentId,
@@ -126,7 +144,24 @@ class EquipmentDetailPage extends ConsumerStatefulWidget {
     this.unlockEditing = kUnlockRecordEditing,
     this.openUnlocked = false,
     this.onSittingEnded,
-  });
+  }) : newItem = null,
+       onCreated = null,
+       onCreateCancelled = null;
+
+  /// A new item's page, unlocked whatever the switch: only the switch's
+  /// openers build it.
+  const EquipmentDetailPage.newItem({
+    super.key,
+    NewGearItemRequest request = const NewGearItemRequest(),
+    this.embedded = false,
+    this.onCreated,
+    this.onCreateCancelled,
+  }) : newItem = request,
+       equipmentId = '',
+       onDeleted = null,
+       unlockEditing = true,
+       openUnlocked = false,
+       onSittingEnded = null;
 
   @override
   ConsumerState<EquipmentDetailPage> createState() =>
@@ -138,7 +173,9 @@ class _EquipmentDetailPageState extends ConsumerState<EquipmentDetailPage>
         RecordEditHost<EquipmentDetailPage, EquipmentItem>,
         RecordOpenUnlocked<EquipmentDetailPage, EquipmentItem>,
         GearItemSittingHost<EquipmentDetailPage>,
-        _EquipmentDetailPageEditing {
+        _EquipmentDetailPageEditing,
+        RecordCreating<EquipmentDetailPage, EquipmentItem>,
+        _EquipmentDetailPageCreating {
   bool _hasRedirected = false;
 
   @override
@@ -149,6 +186,17 @@ class _EquipmentDetailPageState extends ConsumerState<EquipmentDetailPage>
 
   @override
   Widget build(BuildContext context) {
+    if (isCreating) {
+      final seed = newRecordSeed;
+      return newRecordWaiting(context) ??
+          _EquipmentDetailContent(
+            equipment: shownRecord(seed!),
+            stored: seed,
+            equipmentId: seed.id,
+            embedded: widget.embedded,
+            host: this,
+          );
+    }
     // Desktop redirect: a root visit (deep link, sidebar) moves into the
     // master-detail split. A pushed page, opened from a dive's details
     // say, stays put: the redirect's go() would erase the page under it
@@ -265,6 +313,9 @@ class _EquipmentDetailContent extends ConsumerWidget {
   /// Whether the page edits in place (phase 3's switch), locked or not.
   bool get _editing => host != null;
 
+  /// An item not yet created: only the cards of its own values are shown.
+  bool get _creating => host?.isCreating ?? false;
+
   /// [child] as the card [id] where the page edits in place.
   Widget _framed(GearItemCardId id, Widget child, {double topGap = 0}) =>
       host?._framed(id, child, topGap: topGap) ?? child;
@@ -296,8 +347,9 @@ class _EquipmentDetailContent extends ConsumerWidget {
     }
 
     // Wishlist gear (#2025) is out of service clocks: a schedule kept from
-    // when it was owned shows nothing until the item is bought again.
-    if (!equipment.isWanted) {
+    // when it was owned shows nothing until the item is bought again. An
+    // item not yet created has no clock to show (plan 11).
+    if (!equipment.isWanted && !_creating) {
       consider(ref.watch(equipmentRollupClockProvider).value?[equipmentId]);
       for (final status
           in ref.watch(serviceClockStatusesProvider(equipmentId)).value ??
@@ -314,7 +366,8 @@ class _EquipmentDetailContent extends ConsumerWidget {
     final isServiceOverdue =
         headerClock?.status.severity == ServiceClockSeverity.overdue;
 
-    final body = SingleChildScrollView(
+    // Built only for a stored item: its sections read by the item's id.
+    Widget storedBody() => SingleChildScrollView(
       controller: DetailScrollController.maybeOf(context),
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -491,6 +544,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
         ],
       ),
     );
+    final body = _creating ? _newItemBody(context, ref, units) : storedBody();
 
     final host = this.host;
     if (embedded) {

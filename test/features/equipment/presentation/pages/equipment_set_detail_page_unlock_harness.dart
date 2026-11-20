@@ -18,6 +18,7 @@ import 'package:submersion/features/equipment/presentation/pages/equipment_set_d
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/pump_until.dart';
 import '../../../../helpers/test_database.dart';
 
 /// The set page's tests' database: diver d1 with a drysuit (e1), a
@@ -181,4 +182,87 @@ Future<void> pumpSetPage(
     ),
   );
   await tester.pumpAndSettle();
+}
+
+/// The active diver on a new set's page; a test switches profile by
+/// setting it.
+final newSetPageDiverProvider = StateProvider<String?>((ref) => 'd1');
+
+/// How a new set's page (issue #4527, phase 3, plan 11) ended.
+class NewSetHarness {
+  Object? popped;
+  bool poppedAtAll = false;
+}
+
+/// Pumps a new set's page, or a clone of [cloneFromId], pushed at
+/// `/equipment/sets/new` over a launcher, on the database [seedSetPage]
+/// made, with [diverAtOpen] active as it opens. The real save service writes
+/// it.
+Future<NewSetHarness> pumpNewSetPage(
+  WidgetTester tester, {
+  String? cloneFromId,
+  Size size = const Size(600, 2400),
+  String? diverAtOpen = 'd1',
+}) async {
+  tester.view.physicalSize = size;
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+  final overrides = await getBaseOverrides();
+  overrides.addAll([
+    newSetPageDiverProvider.overrideWith((ref) => diverAtOpen),
+    validatedCurrentDiverIdProvider.overrideWith(
+      (ref) async => ref.watch(newSetPageDiverProvider),
+    ),
+  ]);
+  final harness = NewSetHarness();
+  final router = GoRouter(
+    initialLocation: '/launch',
+    routes: [
+      GoRoute(
+        path: '/launch',
+        builder: (context, _) => Scaffold(
+          body: TextButton(
+            onPressed: () async {
+              final result = await context.push<Object?>('/equipment/sets/new');
+              harness
+                ..poppedAtAll = true
+                ..popped = result;
+            },
+            child: const Text('open'),
+          ),
+        ),
+      ),
+      GoRoute(
+        path: '/equipment/sets/new',
+        builder: (_, _) =>
+            EquipmentSetDetailPage.newSet(cloneFromId: cloneFromId),
+      ),
+    ],
+  );
+  addTearDown(router.dispose);
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: overrides.cast(),
+      child: MaterialApp.router(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        routerConfig: router,
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('open'));
+  await tester.pump();
+  // The seed (and a clone's source) are read from the database, which
+  // answers only outside the test's fake clock.
+  await pumpUntilRealAsync(
+    tester,
+    () =>
+        find.byType(EquipmentSetDetailPage).evaluate().isNotEmpty &&
+        find.byType(CircularProgressIndicator).evaluate().isEmpty,
+    reason: "the new set's page to open or say why not",
+  );
+  await tester.pumpAndSettle();
+  return harness;
 }

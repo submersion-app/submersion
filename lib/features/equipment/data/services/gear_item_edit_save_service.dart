@@ -61,6 +61,29 @@ class GearItemEditSaveService {
       alsoWriteIsAChange: alsoWriteIsAChange,
     );
   }
+
+  /// Creates [item], a new gear item's sitting (issue #4527, phase 3, plan
+  /// 11), keeping its id: the row with its attributes and the clocks its
+  /// type attaches, then [alsoWrite], the sitting's held writes (tags,
+  /// sharing, its first place, documents, a clone's extras), in one
+  /// transaction and one History entry naming [changedCardIds]. If any of
+  /// them throws nothing is left. Throws [StateError] when [item] has no
+  /// id, or one a stored item has.
+  Future<EquipmentItem> create({
+    required EquipmentItem item,
+    required Iterable<String> changedCardIds,
+    Future<void> Function()? alsoWrite,
+  }) => createRecordSitting<EquipmentItem>(
+    table: 'equipment',
+    recordId: item.id,
+    changedCardIds: changedCardIds,
+    isStored: () async => await _equipment.getEquipmentById(item.id) != null,
+    // The sitting tells sync once, after its commit.
+    insert: () => _equipment.createEquipment(item, notify: false),
+    alsoWrite: alsoWrite,
+    readBack: () => _equipment.getEquipmentById(item.id),
+    created: item,
+  );
 }
 
 final gearItemEditSaveServiceProvider = Provider<GearItemEditSaveService>(

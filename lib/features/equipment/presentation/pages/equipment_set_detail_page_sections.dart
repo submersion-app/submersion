@@ -558,6 +558,8 @@ mixin _EquipmentSetDetailPageSections
   /// default are the Figure and header cards' (Question 1), and Delete is a
   /// whole-record operation under the lock.
   Widget _buildMenu(BuildContext context, EquipmentSet set) {
+    // Nothing acts on a set not yet created (plan 11, call 3).
+    if (isCreating) return const SizedBox.shrink();
     final editing = hostsEditing;
     final controller = editing ? editController : null;
     return PopupMenuButton<String>(

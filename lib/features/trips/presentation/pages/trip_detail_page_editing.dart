@@ -86,9 +86,12 @@ mixin _TripDetailPageEditing
 
   /// Whether the strip offers [id]: an empty card, or the Plan from the
   /// trip's first day, when the story has no place of its own for it. The
-  /// Overview is laid out from the trip as stored while unlocked.
+  /// Overview is laid out from the trip as stored while unlocked; a new
+  /// trip's always has the Plan row.
   bool _offered(TripCardId id, Trip working) {
     if (id == TripCardId.plan) {
+      // A new trip's Overview always draws its Plan row (plan 11).
+      if (isCreating) return false;
       final stored = maybeEditController?.session?.stored ?? working;
       return !stored.startsAfter(clock.now());
     }

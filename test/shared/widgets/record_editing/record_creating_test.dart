@@ -52,12 +52,24 @@ final _textCard = EditCard<_Note>(
   ),
 );
 
+/// A card a note lays out only once its text is 'more'.
+final _extraCard = EditCard<_Note>(
+  id: 'extra',
+  title: (_) => 'Extra',
+  isEmpty: (note) => true,
+  editorBuilder: (context, session) =>
+      const Text('extra editor', key: ValueKey('extraEditor')),
+);
+
 /// What the page under test was asked to do, and how it answers.
 class _Probe {
   final creates = <_Note>[];
   bool failCreate = false;
   bool seedGone = false;
   bool seedFails = false;
+
+  /// Whether the seed reads the page's context, as a clone's name does.
+  bool seedReadsContext = false;
 
   /// A prefill that sets 'A', then waits on [prefillGate], then sets 'AB'.
   bool prefill = false;
@@ -71,6 +83,13 @@ class _Probe {
   Completer<void>? createGate;
   final createdIds = <String>[];
   int cancelled = 0;
+
+  /// What the question before a create answers, and what it was asked on.
+  bool beforeCreateAnswer = true;
+  final askedOn = <String>[];
+
+  /// How many questions had been asked when what follows was captured.
+  final askedWhenCaptured = <int>[];
 }
 
 final _probeProvider = Provider<_Probe>((ref) => throw UnimplementedError());
@@ -114,7 +133,7 @@ class _NewNotePageState extends ConsumerState<_NewNotePage>
   String recordIdOf(_Note record) => record.id;
 
   @override
-  Iterable<EditCard<_Note>> get hostEditCards => [_textCard];
+  Iterable<EditCard<_Note>> get hostEditCards => [_textCard, _extraCard];
 
   @override
   Future<_Note?> rereadStored(
@@ -128,13 +147,15 @@ class _NewNotePageState extends ConsumerState<_NewNotePage>
   @override
   Future<_Note?> makeNewRecordSeed(RecordSeedRead read, String id) async {
     final probe = read(_probeProvider);
+    if (probe.seedReadsContext) Localizations.localeOf(context);
     if (probe.seedFails) throw StateError('could not read');
     if (probe.seedGone) return null;
     return _Note(id, '');
   }
 
   @override
-  List<String> newRecordLaidOut(_Note seed) => const ['text'];
+  List<String> newRecordLaidOut(_Note record) =>
+      record.text == 'more' ? const ['text', 'extra'] : const ['text'];
 
   @override
   Future<void> applyNewRecordPrefill(EditSession<_Note> session) async {
@@ -156,9 +177,17 @@ class _NewNotePageState extends ConsumerState<_NewNotePage>
   }
 
   @override
+  Future<bool> beforeCreate(EditSession<_Note> session) async {
+    final probe = _probe;
+    probe.askedOn.add(session.working.text);
+    return probe.beforeCreateAnswer;
+  }
+
+  @override
   Future<void> Function(_Note created) captureAfterRecordCreated() {
     // Read now: by the time the create commits the page may have gone.
     final probe = _probe;
+    probe.askedWhenCaptured.add(probe.askedOn.length);
     return (created) async {
       await probe.afterGate?.future;
       if (probe.afterThrows) throw StateError('after failed');
@@ -212,6 +241,10 @@ class _NewNotePageState extends ConsumerState<_NewNotePage>
               Text(shown.text, key: const ValueKey('text')),
             ],
           ),
+        ),
+        RecordCardFrame<_Note>(
+          card: _extraCard,
+          child: const RecordCardHeader(title: 'Extra'),
         ),
       ],
     );
@@ -376,6 +409,40 @@ void main() {
     expect(created.text, 'Calm');
     expect(created.id, isNotEmpty);
     expect(popped, created.id);
+  });
+
+  testWidgets('a question before the create is asked on what was entered, '
+      'before what follows is captured', (tester) async {
+    await pump(tester);
+    await type(tester, 'Calm');
+
+    await tapSave(tester);
+
+    expect(probe.askedOn, ['Calm']);
+    expect(probe.askedWhenCaptured, [1]);
+    expect(probe.creates.single.text, 'Calm');
+  });
+
+  testWidgets('a create declined before it is written creates nothing and '
+      'keeps the page', (tester) async {
+    await pump(tester, setUp: (probe) => probe.beforeCreateAnswer = false);
+    await type(tester, 'Calm');
+
+    await tapSave(tester);
+
+    expect(probe.askedOn, ['Calm']);
+    expect(probe.creates, isEmpty);
+    expect(find.byType(RecordEditBar), findsOneWidget);
+    expect(popped, isNull);
+  });
+
+  testWidgets('a change that lays out another card opens it', (tester) async {
+    await pump(tester);
+    expect(find.byKey(const ValueKey('extraEditor')), findsNothing);
+
+    await type(tester, 'more');
+
+    expect(find.byKey(const ValueKey('extraEditor')), findsOneWidget);
   });
 
   testWidgets('a pane create calls onCreated and never pops', (tester) async {
@@ -653,5 +720,11 @@ void main() {
 
       expect(heldWritesForCreate(session), isNull);
     });
+  });
+  testWidgets('a seed may read the page context', (tester) async {
+    await pump(tester, setUp: (probe) => probe.seedReadsContext = true);
+
+    expect(find.byType(RecordEditBar), findsOneWidget);
+    expect(find.text('Could not read'), findsNothing);
   });
 }

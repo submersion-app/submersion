@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_edit_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_detail_page.dart';
@@ -15,6 +16,11 @@ import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/pages/document_detail_page.dart';
 import 'package:submersion/features/documents/presentation/pages/document_edit_page.dart';
 import 'package:submersion/features/documents/presentation/pages/document_edit_routes.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_detail_page.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_edit_page.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_edit_routes.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_set_detail_page.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_set_edit_page.dart';
 import 'package:submersion/features/gps_log/presentation/pages/gps_track_detail_page.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_detail_page.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_edit_page.dart';
@@ -79,6 +85,9 @@ import 'package:submersion/features/buddies/presentation/pages/buddy_edit_routes
 import 'package:submersion/features/certifications/presentation/pages/certification_edit_routes.dart';
 import 'package:submersion/features/courses/presentation/pages/course_edit_routes.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_routes.dart';
+import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
+import 'package:submersion/features/trips/domain/services/trip_draft.dart';
+import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_edit_routes.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_routes.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_routes.dart';
@@ -593,6 +602,68 @@ void main() {
     expect((page as CourseDetailPage).newCourse, isTrue);
     expect(newCoursePage(unlockEditing: false), isA<CourseEditPage>());
     final route = _findRouteByName(router.configuration.routes, 'newCourse');
+    expect(route?.onExit, same(confirmLeaveRecordSitting));
+  });
+
+  test('a new gear item opens the page with the switch on, every seed '
+      'carried', () {
+    const query = {
+      'type': 'computer',
+      'serial': 'S9',
+      'parent': 'host',
+      'cloneFrom': 'src',
+    };
+    final page = newGearItemPage(query, unlockEditing: true);
+    expect(page, isA<EquipmentDetailPage>());
+    final request = (page as EquipmentDetailPage).newItem!;
+    expect(request.type, EquipmentType.computer);
+    expect(request.serial, 'S9');
+    expect(request.parentId, 'host');
+    expect(request.cloneFromId, 'src');
+    final form = newGearItemPage(query, unlockEditing: false);
+    expect(form, isA<EquipmentEditPage>());
+    expect((form as EquipmentEditPage).initialType, EquipmentType.computer);
+    expect(form.initialSerial, 'S9');
+    expect(form.initialParentId, 'host');
+    expect(form.cloneFromId, 'src');
+    final route = _findRouteByName(router.configuration.routes, 'newEquipment');
+    expect(route?.onExit, same(confirmLeaveRecordSitting));
+  });
+
+  test('a new trip opens the page with the switch on, a draft carried', () {
+    final draft = TripDraft(
+      trip: Trip(
+        id: '',
+        name: 'Bonaire',
+        startDate: DateTime(2030, 5, 1),
+        endDate: DateTime(2030, 5, 4),
+        createdAt: DateTime(2030),
+        updatedAt: DateTime(2030),
+      ),
+      diveIds: const ['a'],
+    );
+    final page = newTripPage(draft, unlockEditing: true);
+    expect(page, isA<TripDetailPage>());
+    expect((page as TripDetailPage).newTrip?.draft, same(draft));
+    final blank = newTripPage(null, unlockEditing: true) as TripDetailPage;
+    expect(blank.newTrip, isNotNull);
+    expect(blank.newTrip?.draft, isNull);
+    final form = newTripPage(draft, unlockEditing: false);
+    expect((form as TripEditPage).draft, same(draft));
+    final route = _findRouteByName(router.configuration.routes, 'newTrip');
+    expect(route?.onExit, same(confirmLeaveRecordSitting));
+  });
+
+  test('a new set opens the page with the switch on, a clone carried', () {
+    final page = newEquipmentSetPage(cloneFromId: 's1', unlockEditing: true);
+    expect(page, isA<EquipmentSetDetailPage>());
+    expect((page as EquipmentSetDetailPage).newSet?.cloneFromId, 's1');
+    final form = newEquipmentSetPage(cloneFromId: 's1', unlockEditing: false);
+    expect((form as EquipmentSetEditPage).cloneFromId, 's1');
+    final route = _findRouteByName(
+      router.configuration.routes,
+      'newEquipmentSet',
+    );
     expect(route?.onExit, same(confirmLeaveRecordSitting));
   });
 

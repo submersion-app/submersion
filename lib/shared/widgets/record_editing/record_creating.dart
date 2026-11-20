@@ -48,7 +48,9 @@ mixin RecordCreating<W extends ConsumerStatefulWidget, T>
   /// whose source has gone). A throw is a read that failed.
   Future<T?> makeNewRecordSeed(RecordSeedRead read, String id);
 
-  /// The cards laid out open when the sitting opens on [seed].
+  /// The cards [seed] lays out open when the sitting opens on it. Asked
+  /// again with the record as each change leaves it: a card it lays out
+  /// anew opens then (a trip made a liveaboard lays out its Vessel).
   List<String> newRecordLaidOut(T seed);
 
   /// Puts what the opener brought on [session], each through its card's
@@ -89,6 +91,13 @@ mixin RecordCreating<W extends ConsumerStatefulWidget, T>
     Object? error,
   });
 
+  /// Asked before a create that would write, as a stored record's page
+  /// asks [beforeSave]: false creates nothing and leaves the sitting as it
+  /// is, as a dialog the diver cancelled does. Asked after the opener's
+  /// prefill and before what follows a create is captured, so what it
+  /// decides can be part of both.
+  Future<bool> beforeCreate(EditSession<T> session) async => true;
+
   /// What a full page pops with once created: the new id, unless the
   /// type's openers take the record itself.
   Object? newRecordResult(T created) => recordIdOf(created);
@@ -126,6 +135,9 @@ mixin RecordCreating<W extends ConsumerStatefulWidget, T>
   /// The page is leaving: nothing opens or leaves again.
   bool _leaving = false;
 
+  /// [beforeCreate] is being asked: a second Save meanwhile does nothing.
+  bool _askingBeforeCreate = false;
+
   /// The app's own leave check ended the sitting: its navigation leaves.
   bool _endedByLeave = false;
 
@@ -149,6 +161,10 @@ mixin RecordCreating<W extends ConsumerStatefulWidget, T>
   }
 
   Future<void> _makeSeed() async {
+    // Once initState has returned: a seed may read the page's context (a
+    // clone's name is in the diver's language).
+    await null;
+    if (!mounted) return;
     try {
       final seed = await makeNewRecordSeed(ref.read, newRecordId);
       if (!mounted) return;
@@ -184,7 +200,29 @@ mixin RecordCreating<W extends ConsumerStatefulWidget, T>
     final session = controller.session;
     if (session == null) return;
     setState(() => _opened = true);
+    var laidOut = newRecordLaidOut(seed).toSet();
+    // Heard from the sitting itself: the controller tells only when the
+    // changed cards move, and a card already changed does not move them.
+    session.addListener(() {
+      if (session.isDisposed) return;
+      final now = newRecordLaidOut(session.working).toSet();
+      final anew = now.difference(laidOut);
+      laidOut = now;
+      if (anew.isNotEmpty) _openLaidOutAnew(session, anew);
+    });
     session.track(applyNewRecordPrefill(session));
+  }
+
+  /// Opens the cards in [ids], laid out anew by a change to [session]'s
+  /// record, once the change has been told: opening one tells again.
+  void _openLaidOutAnew(EditSession<T> session, Set<String> ids) {
+    final controller = editController;
+    Future.microtask(() {
+      if (!mounted || controller.session != session) return;
+      for (final id in ids) {
+        if (!controller.openCardIds.contains(id)) controller.openCard(id);
+      }
+    });
   }
 
   /// The page in place of the record while a new record has no sitting
@@ -266,10 +304,19 @@ mixin RecordCreating<W extends ConsumerStatefulWidget, T>
   /// everything entered.
   @override
   Future<void> saveNewRecord() async {
-    if (_created != null || _leaving) return;
+    if (_created != null || _leaving || _askingBeforeCreate) return;
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
     final controller = editController;
+    final session = controller.session;
+    if (session != null && controller.saveWouldWrite) {
+      _askingBeforeCreate = true;
+      try {
+        if (!await beforeCreate(session) || !mounted) return;
+      } finally {
+        _askingBeforeCreate = false;
+      }
+    }
     final afterCreated = captureAfterRecordCreated();
     final saved = await controller.save();
     if (!saved) {
