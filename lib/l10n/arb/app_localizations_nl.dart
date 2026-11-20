@@ -29117,11 +29117,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_speciesId_entrySubtitle =>
-      'Vind vissen in je foto\'s en video\'s en stel de soort voor';
+      'Stel de soorten in je foto\'s en video\'s voor';
 
   @override
   String get speciesId_downloadPrompt_title =>
-      'Herken de vissen in je foto\'s en video\'s';
+      'Herken de soorten in je foto\'s en video\'s';
 
   @override
   String get speciesId_downloadPrompt_subtitle =>
@@ -29132,7 +29132,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_speciesId_intro =>
-      'Vindt vissen in je foto\'s en video\'s en stelt voor welke soort het is. Draait op dit apparaat. Je foto\'s en video\'s verlaten het nooit.';
+      'Stelt de soorten in je foto\'s en video\'s voor. Draait op dit apparaat. Je foto\'s en video\'s verlaten het nooit.';
 
   @override
   String get settings_speciesId_model => 'Model';
@@ -29208,7 +29208,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_speciesId_toggle =>
-      'Vissen herkennen als ik een foto of video open';
+      'Soorten herkennen als ik een foto of video open';
 
   @override
   String get settings_speciesId_autoApply =>
@@ -29238,7 +29238,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_speciesId_levelTitle =>
-      'Hoe zeker de app moet zijn om een vis te benoemen';
+      'Hoe snel een soort wordt voorgesteld';
 
   @override
   String get settings_speciesId_levelSurer => 'Zekerder';

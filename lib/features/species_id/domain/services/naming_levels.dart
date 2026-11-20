@@ -1,5 +1,5 @@
-/// How sure the app must be before it names a fish (issue #4721): the
-/// level in force, and what an identification the installed pack named
+/// How readily the app suggests a species (issue #4721): the level in
+/// force, and what an identification the installed pack named
 /// would be at it. Pure functions, so every screen and the service share
 /// them.
 library;

@@ -223,7 +223,7 @@ void main() {
     testWidgets('offers the download where it is wanted', (tester) async {
       await pumpPrompt(tester, overrides: promptOverrides());
       expect(prompt, findsOneWidget);
-      expect(find.text('Identify fish in your photos and videos'), findsOne);
+      expect(find.text('Identify species in your photos and videos'), findsOne);
     });
 
     testWidgets('as a banner, draws in the banner colours', (tester) async {
@@ -235,7 +235,7 @@ void main() {
           .style
           ?.color;
       expect(
-        textColor('Identify fish in your photos and videos'),
+        textColor('Identify species in your photos and videos'),
         scheme.onSecondaryContainer,
       );
       expect(
