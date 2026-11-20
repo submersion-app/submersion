@@ -217,6 +217,19 @@ Per type (`<f>` its feature folder, `<x>` its file stem):
 - [ ] **Step 3:** Screenshots from headless widget goldens with the switch on (light and dark, phone and desktop): a new document, one from a Documents card with its owner shown, a new species; "before" from the forms on origin/main. Attach through the project's highest-numbered secret PR screenshot gist.
 - [ ] **Step 4:** Push; open the PR (`Refs #4527`; names the shared files changed and that the switch stays off); bind it, turn Auto-fix on.
 
+### As built (Part A)
+
+Built natively on 2026-11-20. Where the code differs from the tasks above, the code is right, and Parts B to D use its names:
+
+- `makeNewRecordSeed` takes a `RecordSeedRead` (the same function type as `ProviderRead`, declared in shared code, which may not import the equipment feature where `ProviderRead` lives).
+- `afterRecordCreated(T)` became `captureAfterRecordCreated()`, returning the work as a closure made before Save, so it runs once the record exists even if the page has gone, and never reads the page's `ref` late (review fix).
+- Every type's `createRecord` passes `alsoWrite: heldWritesForCreate(session)`, which runs the writes held before the record, then the rest, as a new site's create does (review fix).
+- `newRecordUnavailable(context, {Object? error})` takes the seed's error (null when the source has gone), in place of `failed`.
+- `openNewRecord` takes `idOf` (default `poppedId`) for a page that pops its record rather than its id (the buddy's, Question 3).
+- `DocumentEditSaveService.create` takes the whole `DocumentRecord` (row, pages, tags); `NewDocumentRequest` has `ownerFixed: bool` in place of `shownOwner`, as the form's `ownerFixed` shows no owner; `newDocumentSeed` takes no type (the opener's type is a change).
+- `DocumentsSection` and the route helpers take `unlockEditing` so tests can turn the switch on. No "added" snack bar on a new document or species: the page leaves to its opener or the record, as a new site does.
+- A document's expiry status stays shown while creating: it is calculated from the working copy and reads nothing by id.
+
 ## Part B: buddies, dive centres, certifications, courses (PR 2)
 
 ### Task 7: A new buddy: service, seed, page
@@ -229,7 +242,7 @@ Per type (`<f>` its feature folder, `<x>` its file stem):
 
 **Interfaces:**
 - Produces: `Future<Buddy> BuddyEditSaveService.create({required Buddy buddy, required Iterable<String> changedCardIds, Future<void> Function()? alsoWrite})`: `assertLinkAllowed` inside, a refusal a `RecordSittingRefusal` as in `save`; then `createBuddy`, then the held writes (certifications through `replaceBuddyCertifications`).
-- Produces: `class NewBuddySeed { name, email, phone, photo }` with `NewBuddySeed.fromRouteExtra(Object?)` (today's `extra` map); `Future<Buddy> newBuddySeed(ProviderRead read, {required String id})` (the active diver, ranked, not a favourite); laid out `[header, contact, notes]`; `applyNewBuddyPrefill` puts each given value, the photo alone included, on its card's field.
+- Produces: `class NewBuddySeed { name, email, phone, photo }` with `NewBuddySeed.fromRouteExtra(Object?)` (today's `extra` map); `Future<Buddy> newBuddySeed(RecordSeedRead read, {required String id})` (the active diver, ranked, not a favourite); laid out `[header, contact, notes]`; `applyNewBuddyPrefill` puts each given value, the photo alone included, on its card's field.
 - Produces: `BuddyDetailPage.newBuddy({Key? key, NewBuddySeed? seed, bool embedded = false, onCreated, onCreateCancelled})`; `newRecordResult` is the created `Buddy` (Question 3).
 
 - [ ] **Step 1: Write the failing tests.** Service: S1 to S4; `a profile already linked to another buddy is refused, nothing written`; `certifications staged in the sitting are created for the new buddy`. Page: P1 to P7 (result the `Buddy`; P6: no Gear, Photos or Card details; Statistics offered with its switch and no figures); `a seed from contacts is a change of the header and Contact, a photo alone included`; `a new buddy starts ranked and can be excluded`.
@@ -262,7 +275,7 @@ Per type (`<f>` its feature folder, `<x>` its file stem):
 - Test: `test/features/dive_centers/data/services/dive_center_edit_save_service_test.dart`, `test/features/dive_centers/presentation/pages/dive_center_detail_page_new_test.dart` (create), `test/core/router/app_router_test.dart`, `test/features/dive_centers/presentation/pages/dive_center_list_page_test.dart`, `test/features/dive_log/presentation/widgets/dive_detail/editing/dive_details_trip_rows_test.dart`
 
 **Interfaces:**
-- Produces: `Future<DiveCenter> DiveCenterEditSaveService.create({required DiveCenter center, ...})` (row, then rental gear notes); `DiveCenter newDiveCenterSeed(ProviderRead read, {required String id})`; laid out `[header, contact, map]`; `DiveCenterDetailPage.newDiveCenter(...)`; `newDiveCenterPage`, `newDiveCenterPane`, `openNewDiveCenter` (FAB, empty state, map's Add; Question 3).
+- Produces: `Future<DiveCenter> DiveCenterEditSaveService.create({required DiveCenter center, ...})` (row, then rental gear notes); `DiveCenter newDiveCenterSeed(RecordSeedRead read, {required String id})`; laid out `[header, contact, map]`; `DiveCenterDetailPage.newDiveCenter(...)`; `newDiveCenterPage`, `newDiveCenterPane`, `openNewDiveCenter` (FAB, empty state, map's Add; Question 3).
 - The page's sections keyed by `widget.centerId` (Dives, Gear kept here, Rental gear, Documents) take `hostRecordId` while creating; Dives and Gear kept here are left out (Question 9).
 
 - [ ] **Step 1: Write the failing tests**: S1 to S4; P1 to P7 (result the id); `an address typed with no coordinates looks them up, and Save waits for it` (`FakeLocations`); `fill hours both or neither, closing after opening`; R1, R2, R3 for FAB and map; Review Focus 4: `a new centre from a dive's Details card is read back into the dive's sitting` (switch on).
@@ -280,7 +293,7 @@ Per type (`<f>` its feature folder, `<x>` its file stem):
 - Test: `test/features/certifications/data/services/certification_edit_save_service_test.dart`, `test/features/certifications/presentation/pages/certification_detail_page_new_test.dart` (create), `test/core/router/app_router_test.dart`, `test/features/certifications/presentation/pages/certification_list_page_test.dart`, `test/features/certifications/presentation/pages/certification_wallet_page_test.dart`
 
 **Interfaces:**
-- Produces: `Future<Certification> CertificationEditSaveService.create({required Certification certification, ...})`: the row with its card images (`createCertification` saves them), then currency events and preferences held, all inside; `Certification newCertificationSeed(ProviderRead read, {required String id})` (agency PADI, no level, the active diver, no buddy); laid out `[details, dates, cardPhotos]`; `CertificationDetailPage.newCertification(...)`; `newCertificationPage`, `newCertificationPane`, `openNewCertification` (FAB, empty state, wallet; Question 3).
+- Produces: `Future<Certification> CertificationEditSaveService.create({required Certification certification, ...})`: the row with its card images (`createCertification` saves them), then currency events and preferences held, all inside; `Certification newCertificationSeed(RecordSeedRead read, {required String id})` (agency PADI, no level, the active diver, no buddy); laid out `[details, dates, cardPhotos]`; `CertificationDetailPage.newCertification(...)`; `newCertificationPage`, `newCertificationPane`, `openNewCertification` (FAB, empty state, wallet; Question 3).
 
 - [ ] **Step 1: Write the failing tests**: S1 to S4; `card photos are written with the row`; P1 to P7 (result the id; P6: no Currency, no Training course); `a title or a level is required`; `a second recognition is saved with the first`; `picking an instructor fills the name and number`; R1, R2, R3 for FAB and wallet.
 - [ ] **Step 2: Run** the five files. Expected: compile failure.
@@ -297,7 +310,7 @@ Per type (`<f>` its feature folder, `<x>` its file stem):
 - Test: `test/features/courses/data/services/course_edit_save_service_test.dart`, `test/features/courses/presentation/pages/course_detail_page_new_test.dart` (create), `test/core/router/app_router_test.dart`, `test/features/courses/presentation/pages/course_list_page_test.dart`
 
 **Interfaces:**
-- Produces: `Future<Course> CourseEditSaveService.create({required Course course, ...})`: the row, then earned certifications (`setCourseCertifications`, which can move a certification off another course, inside); `Course newCourseSeed(ProviderRead read, {required String id})` (agency PADI, start today, the active diver); laid out `[status, details, instructor]`; `CourseDetailPage.newCourse(...)`; `newCoursePage`, `newCoursePane`, `openNewCourse` (FAB, empty state, summary Add; Question 3: the page pops the id, the opener opens the course).
+- Produces: `Future<Course> CourseEditSaveService.create({required Course course, ...})`: the row, then earned certifications (`setCourseCertifications`, which can move a certification off another course, inside); `Course newCourseSeed(RecordSeedRead read, {required String id})` (agency PADI, start today, the active diver); laid out `[status, details, instructor]`; `CourseDetailPage.newCourse(...)`; `newCoursePage`, `newCoursePane`, `openNewCourse` (FAB, empty state, summary Add; Question 3: the page pops the id, the opener opens the course).
 
 - [ ] **Step 1: Write the failing tests**: S1 to S4; `a certification moved off another course moves with the create`; P1 to P7 (result the id; P6: no Requirements, no Training dives); `switching completed on fills today, a start after the completion pulls it along`; `a start more than a year ahead can be set`; R1, R2, R3 for FAB and summary; `a new course from the dive's course picker leaves the dive page under it` (the form's `go` threw it away).
 - [ ] **Step 2: Run** the four files. Expected: compile failure.
@@ -335,7 +348,7 @@ As Task 6, with screenshots of a new buddy (and one from contacts), a new centre
 
 **Interfaces:**
 - Produces: `class NewGearItemRequest { const NewGearItemRequest({this.type, this.serial, this.parentId, this.cloneFromId}); ...; factory NewGearItemRequest.fromQuery(Map<String, String> query); }` (`type`, `serial`, `parent`, `cloneFrom`, as the route reads them).
-- Produces: `Future<EquipmentItem> newGearItemSeed(ProviderRead read, {required String id})` (call 4); `typedef GearCloneSource = ({EquipmentItem item, List<String> ownTagIds, String? ownPlaceId, List<ServiceClock> clocks, List<String> setIds, List<MediaItem> documents});` and `Future<GearCloneSource?> readGearClone(ProviderRead read, String itemId)` (null when the diver cannot see it); `List<String> newGearItemLaidOut({NewGearItemRequest? request, GearCloneSource? clone})` (`[header, details, location]`, plus `serviceClocks` and `legacyFiles` when a clone carries them); `Future<void> applyNewGearItemPrefill(EditSession<EquipmentItem> session, {NewGearItemRequest? request, GearCloneSource? clone, required String cloneName})`: the type, serial and parent through the header and Details setters; a clone's fields from `equipmentCloneSeed`, its own tags, its own place as the first move, its clocks without a baseline on the clocks list, its set memberships and document copies through `EditSession.holdChange` (Question 8). Tracked, so Save waits.
+- Produces: `Future<EquipmentItem> newGearItemSeed(RecordSeedRead read, {required String id})` (call 4); `typedef GearCloneSource = ({EquipmentItem item, List<String> ownTagIds, String? ownPlaceId, List<ServiceClock> clocks, List<String> setIds, List<MediaItem> documents});` and `Future<GearCloneSource?> readGearClone(RecordSeedRead read, String itemId)` (null when the diver cannot see it); `List<String> newGearItemLaidOut({NewGearItemRequest? request, GearCloneSource? clone})` (`[header, details, location]`, plus `serviceClocks` and `legacyFiles` when a clone carries them); `Future<void> applyNewGearItemPrefill(EditSession<EquipmentItem> session, {NewGearItemRequest? request, GearCloneSource? clone, required String cloneName})`: the type, serial and parent through the header and Details setters; a clone's fields from `equipmentCloneSeed`, its own tags, its own place as the first move, its clocks without a baseline on the clocks list, its set memberships and document copies through `EditSession.holdChange` (Question 8). Tracked, so Save waits.
 
 - [ ] **Step 1: Write the failing tests** (the last two on the test database, through the real `GearItemEditSaveService.create`): `a seed is a regulator, active, in the default currency, with no dot`; `a type and a serial from the device lists are changes`; `a part's parent is a change and is dropped for a type that cannot be fitted`; `a clone is named as a copy, with no serial, owner or passport id`; `a sharee's clone leaves the owner's tags and place behind`; `a quick Save waits for the clone's tags`; `a clone the diver cannot see reads null`; Review Focus 3: `a clone of a tank keeps one hydro clock, the clone's, without a baseline`; Review Focus 2: `a failed set membership leaves no item, clock, move or tag`.
 - [ ] **Step 2: Run** both files. Expected: compile failure.
@@ -351,7 +364,7 @@ As Task 6, with screenshots of a new buddy (and one from contacts), a new centre
 - Test: `test/features/equipment/presentation/pages/equipment_detail_page_new_test.dart` (create)
 
 **Interfaces:**
-- Produces: `EquipmentDetailPage.newItem({Key? key, NewGearItemRequest request = const NewGearItemRequest(), bool embedded = false, onCreated, onCreateCancelled})`; `afterRecordCreated` runs `offerViewRevealingSavedItem` (call 8); a clone's `leaveCreated` replaces the page with `/equipment/<id>` (Question 3); title `equipment_edit_appBar_cloneTitle` for a clone.
+- Produces: `EquipmentDetailPage.newItem({Key? key, NewGearItemRequest request = const NewGearItemRequest(), bool embedded = false, onCreated, onCreateCancelled})`; `captureAfterRecordCreated` runs `offerViewRevealingSavedItem` (call 8); a clone's `leaveCreated` replaces the page with `/equipment/<id>` (Question 3); title `equipment_edit_appBar_cloneTitle` for a clone.
 
 - [ ] **Step 1: Write the failing tests**: P1 to P7 (result the id; P6 as Question 9); `the type is never locked`; `a Wanted item saved under the default view offers the Wanted view`; `a new item under Service Due offers the default view`; `a clone opens titled Clone, prefilled, and its Save replaces the page with the clone`; `a clone whose source is gone opens as not found`; `a clone keeps its form when the source changes after it opened`.
 - [ ] **Step 2: Run** the file. Expected: compile failure.
@@ -384,7 +397,7 @@ As Task 6, with screenshots of a new buddy (and one from contacts), a new centre
 
 **Interfaces:**
 - Produces: `Future<EquipmentSet> EquipmentSetEditSaveService.create({required EquipmentSet set, required List<SetGeofence> geofences, required Iterable<String> changedCardIds, Future<void> Function()? alsoWrite})`: `createSet`, the default (demoting the diver's other default) and each geofence inside; never the "Update past dives?" question (the note).
-- Produces: `Future<EquipmentSet> newEquipmentSetSeed(ProviderRead read, {required String id})`; `Future<EquipmentSet?> readSetClone(ProviderRead read, String setId)` (`equipmentSetCloneSeed`, members the diver can see); laid out `[header, members]`, plus `bundle` for a clone that carries one; `EquipmentSetDetailPage.newSet({String? cloneFromId})`; `newEquipmentSetPage`, `openNewEquipmentSet` (FAB, empty state). A profile switch before Save ends the clone's sitting and leaves (call 9).
+- Produces: `Future<EquipmentSet> newEquipmentSetSeed(RecordSeedRead read, {required String id})`; `Future<EquipmentSet?> readSetClone(RecordSeedRead read, String setId)` (`equipmentSetCloneSeed`, members the diver can see); laid out `[header, members]`, plus `bundle` for a clone that carries one; `EquipmentSetDetailPage.newSet({String? cloneFromId})`; `newEquipmentSetPage`, `openNewEquipmentSet` (FAB, empty state). A profile switch before Save ends the clone's sitting and leaves (call 9).
 
 - [ ] **Step 1: Write the failing tests**: S1 to S4; Review Focus 2: `a failed geofence leaves the old default default`; P1 to P7 (result the id); `a new default set with a geofence saves both`; `a new set saves with the figure on`; `a clone opens named as a copy and saving leaves the source as it was`; `a clone keeps only the gear the diver can see`; `a profile switch before Save drops the clone`; `another diver's set is not cloned`; R1, R3; with the switch on, `a saved clone takes the source page's place, and in the split view is selected`.
 - [ ] **Step 2: Run** the four files. Expected: compile failure.
@@ -421,7 +434,7 @@ As Task 6, with screenshots of a new item, one from Add by hand, a clone, a new 
 - Test: `test/features/trips/presentation/editing/trip_new_sitting_test.dart` (create)
 
 **Interfaces:**
-- Produces: `Future<Trip> newTripSeed(ProviderRead read, {required String id})` (call 4: shore, now to seven days on, divers sharing one) and its sharing `Future<ItemSharing> newTripSharing(ProviderRead read)`; `List<String> newTripLaidOut(Trip working)` (`[header, notes]`, plus `vessel` for a liveaboard); `void applyNewTripPrefill(EditSession<Trip> session, TripDraft? draft)` (name, dates, location, resort, parent through the header block's setters; the dives kept for Save, Question 7).
+- Produces: `Future<Trip> newTripSeed(RecordSeedRead read, {required String id})` (call 4: shore, now to seven days on, divers sharing one) and its sharing `Future<ItemSharing> newTripSharing(RecordSeedRead read)`; `List<String> newTripLaidOut(Trip working)` (`[header, notes]`, plus `vessel` for a liveaboard); `void applyNewTripPrefill(EditSession<Trip> session, TripDraft? draft)` (name, dates, location, resort, parent through the header block's setters; the dives kept for Save, Question 7).
 
 - [ ] **Step 1: Write the failing tests**: `a seed is shore, eight calendar days, shared by default, with no dot`; Review Focus 5: `sharing by default arrives before the sitting opens`; `a draft's values are changes of the header block`; `a draft's parent the diver cannot choose is dropped`.
 - [ ] **Step 2: Run** the file. Expected: compile failure.
