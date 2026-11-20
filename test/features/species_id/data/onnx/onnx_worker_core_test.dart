@@ -1,9 +1,12 @@
+import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion_vision/onnx_runtime.dart';
 
+import 'package:submersion/features/species_id/data/engines/onnx/device_crash_guard.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/onnx_worker_core.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/pipeline/onnx_pipeline.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/pipeline/pixels.dart';
@@ -129,6 +132,36 @@ void main() {
     failToRun = {OrtDevice.hardware};
     c.analyze(image);
     expect(c.deviceDescription, 'directMl');
+  });
+
+  test('every model open is noted while it runs, a fallback during a run '
+      'included, and the note is gone once it returns', () {
+    // The note survives only if the app ends mid-open: DeviceCrashGuard then
+    // skips the device it names at the next start.
+    final dir = Directory.systemTemp.createTempSync('opening_note');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final path = p.join(dir.path, 'onnx_opening');
+    final noted = <String>[];
+    failToRun = {OrtDevice.hardware};
+    final c = OnnxWorkerCore(
+      devices: devices,
+      open: noteOpens((modelPath, device) {
+        noted.add(File(path).readAsStringSync());
+        final model = FakeModel(
+          modelPath,
+          device,
+          () => failToRun.contains(device),
+        );
+        opened.add(model);
+        return model;
+      }, OpeningNote(path)),
+    );
+
+    c.load(_models);
+    c.analyze(image);
+
+    expect(noted.toSet(), {'hardware', 'directMl'});
+    expect(File(path).existsSync(), isFalse);
   });
 
   test('failing on DirectML too lands on the processor', () {

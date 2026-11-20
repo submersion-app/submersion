@@ -4,6 +4,7 @@ import 'package:path/path.dart' as p;
 import 'package:submersion_vision/onnx_runtime.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/species_id/data/engines/onnx/onnx_worker_core.dart';
 
 /// Keeps a device that ended the app from doing it again. Opening models on
 /// a hardware engine or DirectML can end the process outright, with no error
@@ -11,13 +12,14 @@ import 'package:submersion/core/services/logger_service.dart';
 /// and identification may start by itself when the app opens, so one bad
 /// driver could make the app close at every launch.
 ///
-/// Before a load the devices about to be tried are written down, and the note
-/// is removed once the load returns, worked or failed. A note still there at
-/// the next start means the app ended during that load: the first of its
-/// devices not yet skipped is skipped from then on (the hardware engine, then
-/// DirectML; never the processor). A newly fetched engine clears the skips.
-/// Every failure to read or write here is ignored: the guard only ever
-/// removes devices, so losing its notes costs at most one more try.
+/// The worker notes each device just before it opens a model there and
+/// removes the note once the open returns, worked or failed ([OpeningNote],
+/// [noteOpens]); that covers a fallback opened after a run failed as well as
+/// the first load. A note still there when the next worker starts means the
+/// app ended mid-open: the device it names is skipped from then on (never the
+/// processor). A newly fetched engine clears the skips. Every failure to read
+/// or write here is ignored: the guard only ever removes devices, so losing
+/// its notes costs at most one more try.
 class DeviceCrashGuard {
   DeviceCrashGuard(this._dir);
 
@@ -30,27 +32,32 @@ class DeviceCrashGuard {
   final Directory _dir;
   final _log = LoggerService.forClass(DeviceCrashGuard);
 
-  File get _loading => File(p.join(_dir.path, 'onnx_load_in_progress'));
+  /// Where the worker notes the device it is opening ([OpeningNote]).
+  String get openingNotePath => p.join(_dir.path, 'onnx_opening');
+
   File get _skipped => File(p.join(_dir.path, 'onnx_devices_skipped'));
 
-  /// [wanted], without the devices an earlier load ended the app on; never
-  /// empty, since the processor is never skipped.
+  /// [wanted], without the devices the app ended on while opening models;
+  /// never empty, since the processor is never skipped.
   Future<List<OrtDevice>> devicesFor(List<OrtDevice> wanted) async {
-    final skipped = await _read(_skipped);
-    final interrupted = await _read(_loading);
-    if (interrupted.isNotEmpty) {
-      final culprit = interrupted
-          .where((d) => d != OrtDevice.cpu.name && !skipped.contains(d))
-          .firstOrNull;
-      if (culprit != null) {
-        skipped.add(culprit);
-        _log.warning(
-          'The app ended while opening models on $culprit; '
-          'it is skipped from now on',
-        );
-        await _write(_skipped, skipped);
+    final skipped = await _readSkipped();
+    final note = File(openingNotePath);
+    try {
+      if (await note.exists()) {
+        final culprit = (await note.readAsString()).trim();
+        if (culprit.isNotEmpty &&
+            culprit != OrtDevice.cpu.name &&
+            skipped.add(culprit)) {
+          _log.warning(
+            'The app ended while opening models on $culprit; '
+            'it is skipped from now on',
+          );
+          await _writeSkipped(skipped);
+        }
+        await note.delete();
       }
-      await _delete(_loading);
+    } on FileSystemException catch (e) {
+      _log.warning('Could not read the device note', error: e);
     }
     final left = [
       for (final device in wanted)
@@ -59,21 +66,20 @@ class DeviceCrashGuard {
     return left.isEmpty ? const [OrtDevice.cpu] : left;
   }
 
-  /// Notes that a load on [devices] is starting.
-  Future<void> loading(List<OrtDevice> devices) =>
-      _write(_loading, {for (final d in devices) d.name});
-
-  /// Notes that the load returned.
-  Future<void> loaded() => _delete(_loading);
-
   /// Forgets the skipped devices: a new engine arrived.
-  Future<void> reset() => _delete(_skipped);
-
-  Future<Set<String>> _read(File file) async {
+  Future<void> reset() async {
     try {
-      if (!await file.exists()) return <String>{};
+      if (await _skipped.exists()) await _skipped.delete();
+    } on FileSystemException catch (e) {
+      _log.warning('Could not clear the skipped devices', error: e);
+    }
+  }
+
+  Future<Set<String>> _readSkipped() async {
+    try {
+      if (!await _skipped.exists()) return <String>{};
       return {
-        for (final line in await file.readAsLines())
+        for (final line in await _skipped.readAsLines())
           if (line.trim().isNotEmpty) line.trim(),
       };
     } on FileSystemException {
@@ -81,21 +87,51 @@ class DeviceCrashGuard {
     }
   }
 
-  /// Keeps the order the devices were tried in, one per line.
-  Future<void> _write(File file, Set<String> names) async {
+  Future<void> _writeSkipped(Set<String> names) async {
     try {
       await _dir.create(recursive: true);
-      await file.writeAsString(names.join('\n'), flush: true);
+      await _skipped.writeAsString(names.join('\n'), flush: true);
     } on FileSystemException catch (e) {
-      _log.warning('Could not note the devices being tried', error: e);
-    }
-  }
-
-  Future<void> _delete(File file) async {
-    try {
-      if (await file.exists()) await file.delete();
-    } on FileSystemException catch (e) {
-      _log.warning('Could not clear a device note', error: e);
+      _log.warning('Could not note the skipped devices', error: e);
     }
   }
 }
+
+/// The worker's side of [DeviceCrashGuard], in the worker isolate: the
+/// device being opened, written before the open and removed after it.
+/// Synchronous, so the note is on disk before the native call that may end
+/// the process.
+class OpeningNote {
+  OpeningNote(this._path);
+
+  final String _path;
+
+  void opening(OrtDevice device) {
+    try {
+      final file = File(_path);
+      file.parent.createSync(recursive: true);
+      file.writeAsStringSync(device.name, flush: true);
+    } on FileSystemException {
+      // The guard only ever removes devices; without a note it removes none.
+    }
+  }
+
+  void opened() {
+    try {
+      final file = File(_path);
+      if (file.existsSync()) file.deleteSync();
+    } on FileSystemException {
+      // A note left behind skips that device once; it does no other harm.
+    }
+  }
+}
+
+/// [open], with every model open bracketed by [note].
+ModelOpener noteOpens(ModelOpener open, OpeningNote note) => (path, device) {
+  note.opening(device);
+  try {
+    return open(path, device);
+  } finally {
+    note.opened();
+  }
+};

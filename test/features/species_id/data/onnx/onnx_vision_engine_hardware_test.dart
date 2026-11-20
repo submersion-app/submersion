@@ -99,6 +99,7 @@ void main() {
   late List<OrtDevice> seenDevices;
   late List<ProviderLibrary> seenLibraries;
   late int spawns;
+  String? seenNote;
 
   late Directory guardDir;
 
@@ -113,7 +114,9 @@ void main() {
             required List<OrtDevice> devices,
             required List<ProviderLibrary> providerLibraries,
             required int intraOpThreads,
+            String? openingNote,
           }) async {
+            seenNote = openingNote;
             seenDevices = devices;
             seenLibraries = providerLibraries;
             spawns++;
@@ -193,49 +196,61 @@ void main() {
     expect(hardware.asked, isEmpty);
   });
 
-  group('a load the app did not come back from', () {
+  group('a device the app ended on while opening models', () {
     const all = [OrtDevice.hardware, OrtDevice.directMl, OrtDevice.cpu];
 
-    test('drops the hardware engine the next time', () async {
-      // As if the app ended while the models opened on these devices.
-      await DeviceCrashGuard(guardDir).loading(all);
+    test('is skipped the next time', () async {
+      // The worker's note, left behind because the app ended mid-open.
+      OpeningNote(
+        DeviceCrashGuard(guardDir).openingNotePath,
+      ).opening(OrtDevice.hardware);
 
       await engine(TargetPlatform.windows, FakeHardware()).load(_models);
 
       expect(seenDevices, [OrtDevice.directMl, OrtDevice.cpu]);
     });
 
-    test('a second one drops DirectML too, never the processor', () async {
-      final guard = DeviceCrashGuard(guardDir);
-      await guard.loading(all);
-      expect(await guard.devicesFor(all), [OrtDevice.directMl, OrtDevice.cpu]);
-      await guard.loading(const [OrtDevice.directMl, OrtDevice.cpu]);
-      expect(await guard.devicesFor(all), [OrtDevice.cpu]);
-      await guard.loading(const [OrtDevice.cpu]);
-      expect(await guard.devicesFor(all), [OrtDevice.cpu]);
+    test(
+      'the device named is the one skipped, and never the processor',
+      () async {
+        final guard = DeviceCrashGuard(guardDir);
+        final note = OpeningNote(guard.openingNotePath);
+
+        note.opening(OrtDevice.directMl);
+        expect(await guard.devicesFor(all), [
+          OrtDevice.hardware,
+          OrtDevice.cpu,
+        ]);
+        note.opening(OrtDevice.hardware);
+        expect(await guard.devicesFor(all), [OrtDevice.cpu]);
+        note.opening(OrtDevice.cpu);
+        expect(await guard.devicesFor(all), [OrtDevice.cpu]);
+      },
+    );
+
+    test('the worker is told where to note each open', () async {
+      await engine(TargetPlatform.windows, FakeHardware()).load(_models);
+
+      expect(seenNote, DeviceCrashGuard(guardDir).openingNotePath);
     });
 
-    test('a load that finishes leaves every device for the next one', () async {
-      await engine(TargetPlatform.windows, FakeHardware()).load(_models);
-      await engine(TargetPlatform.windows, FakeHardware()).load(_models);
-
-      expect(seenDevices, all);
-    });
-
-    test('a guard that cannot write its notes never fails a load', () async {
-      // A file where the guard's folder should be: every note fails to write.
+    test('notes that cannot be written never fail anything', () async {
+      // A file where the guard's folder should be: every note fails.
       final blocked = File('${guardDir.path}${Platform.pathSeparator}blocked')
         ..writeAsStringSync('in the way');
       final guard = DeviceCrashGuard(Directory(blocked.path));
+      final note = OpeningNote(guard.openingNotePath);
 
-      await guard.loading(all);
+      note.opening(OrtDevice.hardware);
+      note.opened();
       expect(await guard.devicesFor(all), all);
-      await guard.loaded();
       await guard.reset();
     });
 
     test('a newly fetched engine gets another chance', () async {
-      await DeviceCrashGuard(guardDir).loading(all);
+      OpeningNote(
+        DeviceCrashGuard(guardDir).openingNotePath,
+      ).opening(OrtDevice.hardware);
       final e = engine(
         TargetPlatform.windows,
         FakeHardware(fetched: const [_nv]),

@@ -35,16 +35,19 @@ typedef WorkerSpawner =
       required List<OrtDevice> devices,
       required List<ProviderLibrary> providerLibraries,
       required int intraOpThreads,
+      String? openingNote,
     });
 
 Future<OnnxWorkerHandle> _spawnOnnxWorker({
   required List<OrtDevice> devices,
   required List<ProviderLibrary> providerLibraries,
   required int intraOpThreads,
+  String? openingNote,
 }) => OnnxWorker.spawn(
   devices: devices,
   providerLibraries: providerLibraries,
   intraOpThreads: intraOpThreads,
+  openingNote: openingNote,
 );
 
 /// [VisionEngine] over ONNX Runtime, on Android, Windows and Linux (piece 3,
@@ -111,8 +114,6 @@ class OnnxVisionEngine
   /// On Windows, keeps a device that ended the app from being tried again.
   final DeviceCrashGuard? _crashGuard;
 
-  /// The devices the running worker was started with, for [_crashGuard].
-  List<OrtDevice> _workerDevices = const [OrtDevice.cpu];
   final Future<OnnxWorkerHandle> Function()? _customWorker;
   final _log = LoggerService.forClass(OnnxVisionEngine);
   final Future<RgbaImage> Function(Uint8List encoded) _decode;
@@ -166,15 +167,7 @@ class OnnxVisionEngine
   Future<void> load(VisionModels models) => _serial(() async {
     if (_loaded == models) return;
     _loaded = null;
-    final worker = await _workerHandle();
-    final guard = _customWorker == null ? _crashGuard : null;
-    await guard?.loading(_workerDevices);
-    final String? device;
-    try {
-      device = await _fromWorker(worker.load(models));
-    } finally {
-      await guard?.loaded();
-    }
+    final device = await _fromWorker((await _workerHandle()).load(models));
     _log.info('Marine life models open on ${device ?? 'an unknown device'}');
     _loaded = models;
     _observe();
@@ -395,13 +388,13 @@ class OnnxVisionEngine
     }
     const wanted = [OrtDevice.hardware, OrtDevice.directMl, OrtDevice.cpu];
     final devices = await _crashGuard?.devicesFor(wanted) ?? wanted;
-    _workerDevices = devices;
     return _spawnWorker(
       devices: devices,
       providerLibraries: devices.contains(OrtDevice.hardware)
           ? await _hardware.readyProviderLibraries()
           : const [],
       intraOpThreads: threads,
+      openingNote: _crashGuard?.openingNotePath,
     );
   }
 

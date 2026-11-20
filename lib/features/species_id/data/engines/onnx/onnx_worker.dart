@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'package:submersion_vision/onnx_runtime.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/species_id/data/engines/onnx/device_crash_guard.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/onnx_worker_core.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/ort_model_runner.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/pipeline/detector_reading.dart';
@@ -59,6 +60,7 @@ class OnnxWorker implements OnnxWorkerHandle {
     List<OrtDevice> devices = const [OrtDevice.cpu],
     List<ProviderLibrary> providerLibraries = const [],
     int intraOpThreads = 0,
+    String? openingNote,
   }) async {
     // One port hears the worker's ready answer, a setup failure, an
     // uncaught error and the isolate's exit, whichever comes first.
@@ -73,6 +75,7 @@ class OnnxWorker implements OnnxWorkerHandle {
           devices,
           providerLibraries,
           intraOpThreads,
+          openingNote,
         ),
         debugName: 'species_id_onnx',
         onError: events.sendPort,
@@ -222,9 +225,10 @@ RgbaImage _receive(_Image image) =>
     RgbaImage(image.$1, image.$2, image.$3.materialize().asUint8List());
 
 void _workerMain(
-  (SendPort, String?, List<OrtDevice>, List<ProviderLibrary>, int) args,
+  (SendPort, String?, List<OrtDevice>, List<ProviderLibrary>, int, String?)
+  args,
 ) {
-  final (ready, libraryPath, devices, libraries, threads) = args;
+  final (ready, libraryPath, devices, libraries, threads, notePath) = args;
   final OrtRuntime runtime;
   try {
     runtime = OrtRuntime.open(libraryPath: libraryPath);
@@ -232,30 +236,31 @@ void _workerMain(
     ready.send('$e');
     return;
   }
-  final registered = <String>{};
   for (final library in libraries) {
     // A hardware engine that will not register leaves the others, and
-    // DirectML and the processor, to run the models.
+    // DirectML and the processor, to run the models. ONNX Runtime's
+    // environment is one per process, so an engine an earlier worker
+    // registered refuses a second registration yet is still there: every
+    // engine given stays allowed, and one with no devices attaches nothing.
     try {
       runtime.registerProviderLibrary(library.name, library.path);
-      registered.add(library.name);
     } on OrtException {
       continue;
     }
   }
-  final core = OnnxWorkerCore(
-    open: (path, device) => OrtModelRunner(
-      runtime.openSession(
-        path,
-        settings: OrtSessionSettings(
-          device: device,
-          intraOpThreads: threads,
-          hardwareEngines: registered,
-        ),
+  final engines = {for (final library in libraries) library.name};
+  ModelOpener open = (path, device) => OrtModelRunner(
+    runtime.openSession(
+      path,
+      settings: OrtSessionSettings(
+        device: device,
+        intraOpThreads: threads,
+        hardwareEngines: engines,
       ),
     ),
-    devices: devices,
   );
+  if (notePath != null) open = noteOpens(open, OpeningNote(notePath));
+  final core = OnnxWorkerCore(open: open, devices: devices);
   final requests = ReceivePort();
   ready.send(requests.sendPort);
   requests.listen((message) {
