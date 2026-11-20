@@ -129,10 +129,6 @@ class PassportFillHistoryCard extends ConsumerWidget {
                 holdEditedFill(session, edited, toTied: toTied),
           null => null,
         },
-        pairingOn: switch (editing) {
-          final session? => sittingPairingOn(session),
-          null => null,
-        },
       );
 
   @override

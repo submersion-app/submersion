@@ -204,7 +204,9 @@ class _LogFillSheetState extends ConsumerState<LogFillSheet> {
   }
 
   /// The twin set partner of this cylinder on the fill's day (issue #4242),
-  /// or null when it had none or the sheet edits a fill.
+  /// or null when it had none, the sheet edits a fill, or (in a sitting)
+  /// the stored pairings are still loading: Save waits for them, so null
+  /// here is not "no twin set".
   EquipmentItem? _watchPartner() {
     if (widget.editing != null) return null;
     final pairing = switch (widget.pairingOn) {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/enums.dart';
@@ -112,7 +114,7 @@ void main() {
     tearDown(tearDownTestDatabase);
 
     SittingPairingWrites writes() =>
-        SittingPairingWrites(session, () => const [], repository);
+        SittingPairingWrites(session, () async => const [], repository);
 
     test('deleting a pairing made in the sitting takes the making back, and '
         'releases the change', () async {
@@ -144,6 +146,30 @@ void main() {
       expect(stored.single.unpairedOn, DateTime.utc(2026, 4, 1));
     });
 
+    // A link made before the stored pairings load waits for them, so a
+    // clash with one of them is still met now (and the diver asked), not
+    // only at Save.
+    test(
+      'a pairing made while the stored pairings load meets their clash',
+      () async {
+        final stored = await repository.createPairing(
+          cylinderAId: 'A',
+          cylinderBId: 'B',
+          pairedOn: DateTime.utc(2025, 1, 1),
+        );
+        final loading = Completer<List<CylinderPairing>>();
+        final making = SittingPairingWrites(
+          session,
+          () => loading.future,
+          repository,
+        ).createPairing(cylinderAId: 'A', cylinderBId: 'C', pairedOn: day);
+        loading.complete([stored]);
+
+        await expectLater(making, throwsA(isA<PairingClash>()));
+        expect(heldPairingSteps(session), isEmpty);
+      },
+    );
+
     // Call 3: a pairing is logged under its first cylinder, and a sitting
     // is pinned to the item it edits.
     test(
@@ -164,7 +190,7 @@ void main() {
         addTearDown(onB.dispose);
         await SittingPairingWrites(
           onB,
-          () => [stored],
+          () async => [stored],
           repository,
         ).endPairing(stored.id, day);
 

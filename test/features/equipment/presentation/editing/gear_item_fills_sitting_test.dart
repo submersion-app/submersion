@@ -257,7 +257,11 @@ void main() {
   test('a pairing made, then a twin fill logged: the pairing is written '
       'before both fills', () async {
     final pairings = CylinderPairingRepository();
-    await SittingPairingWrites(session, () => const [], pairings).createPairing(
+    await SittingPairingWrites(
+      session,
+      () async => const [],
+      pairings,
+    ).createPairing(
       cylinderAId: 'a',
       cylinderBId: 'b',
       pairedOn: DateTime(2026),

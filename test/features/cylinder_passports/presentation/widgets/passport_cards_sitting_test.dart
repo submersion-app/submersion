@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/database/database.dart' show AppDatabase;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_pairing_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
@@ -31,6 +33,7 @@ import '../../../../helpers/test_database.dart';
 /// the gear item's sitting (issue #4527, phase 3, plan 7): their changes
 /// wait for Save.
 void main() {
+  late AppDatabase db;
   late EditSession<EquipmentItem> session;
   late CylinderFill stored;
   final at = DateTime(2026, 3, 3, 10);
@@ -41,7 +44,7 @@ void main() {
   );
 
   setUp(() async {
-    await setUpTestDatabase();
+    db = await setUpTestDatabase();
     addTearDown(SyncCoordinator.reset);
   });
   tearDown(tearDownTestDatabase);
@@ -196,6 +199,48 @@ void main() {
     expect(gearItemFillsList.current(session), hasLength(2));
     expect(newFillsOf(session).single.o2Percent, 36);
     expect(await storedFills(tester), hasLength(1));
+  });
+
+  // The card hands the sheet the sitting's lookup, which the sheet gives
+  // the stored pairings: a fill logged on a paired cylinder is a twin fill.
+  testWidgets('Log fill in the sitting on a paired cylinder is written on '
+      'both at Save', (tester) async {
+    final l10n = await pump(
+      tester,
+      Builder(
+        builder: (context) => PassportCurrentFillCard(
+          equipmentId: 'a',
+          passportId: stored.passportId,
+          editing: session,
+        ),
+      ),
+    );
+    await tester.runAsync(() async {
+      await EquipmentRepository().createEquipment(
+        const EquipmentItem(
+          id: 'b',
+          name: 'Right 12',
+          type: EquipmentType.tank,
+        ),
+      );
+      await CylinderPairingRepository().createPairing(
+        cylinderAId: 'a',
+        cylinderBId: 'b',
+        pairedOn: DateTime(2020),
+      );
+    });
+
+    await tester.tap(find.text(l10n.passport_fill_log));
+    await saveSheet(tester, l10n);
+    await tester.runAsync(() => db.transaction(session.runHeldWrites));
+
+    final onB = await tester.runAsync(
+      () async => CylinderFillRepository().getForCylinder(
+        passportId: await CylinderPassportRepository().getPassportId('b'),
+        equipmentId: 'b',
+      ),
+    );
+    expect(onB!.single.o2Percent, 36);
   });
 
   testWidgets('an edit from the fill history is held until Save', (
