@@ -490,11 +490,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
           ],
           _framed(
             GearItemCardId.serviceHistory,
-            ServiceHistorySection(
-              equipmentId: equipmentId,
-              shown: _session,
-              readOnly: true,
-            ),
+            ServiceHistorySection(equipmentId: equipmentId, shown: _session),
           ),
           // Notes of only spaces are empty, as the card counts them.
           if (equipment.notes.trim().isNotEmpty ||

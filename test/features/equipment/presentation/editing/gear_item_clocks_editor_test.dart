@@ -310,10 +310,7 @@ void main() {
     testWidgets('locked, it offers no Add and its records open nothing', (
       tester,
     ) async {
-      await pump(
-        tester,
-        const ServiceHistorySection(equipmentId: 'g1', readOnly: true),
-      );
+      await pump(tester, const ServiceHistorySection(equipmentId: 'g1'));
 
       expect(find.text(l.equipment_service_addButton), findsNothing);
       await tester.tap(find.text(l.equipment_service_historyTitle));

@@ -28,10 +28,10 @@ part 'service_history_filter_dropdown.dart';
 
 /// Service History Section Widget
 ///
-/// Where the item's page edits in place (issue #4527, phase 3), it offers
-/// nothing while locked ([readOnly]); in the page's sitting ([editing])
-/// records added, edited and deleted are held until Save, a delete asking
-/// nothing, and a closed card shows what a sitting holds ([shown]).
+/// It offers nothing outside the open Service history card (issue #4527,
+/// phase 3); in the page's sitting ([editing]) records added, edited and
+/// deleted are held until Save, a delete asking nothing, and a closed card
+/// shows what a sitting holds ([shown]).
 class ServiceHistorySection extends ConsumerStatefulWidget {
   final String equipmentId;
 
@@ -41,15 +41,11 @@ class ServiceHistorySection extends ConsumerStatefulWidget {
   /// The sitting whose records a closed card shows.
   final EditSession<EquipmentItem>? shown;
 
-  /// Offers no action: the page edits in place and is locked.
-  final bool readOnly;
-
   const ServiceHistorySection({
     super.key,
     required this.equipmentId,
     this.editing,
     this.shown,
-    this.readOnly = false,
   });
 
   @override
@@ -70,15 +66,13 @@ class _ServiceHistorySectionState extends ConsumerState<ServiceHistorySection> {
 
   String get equipmentId => widget.equipmentId;
 
-  /// Whether a tap may act: not on a locked page, and in a sitting only in
-  /// the open card.
-  /// In the open card, only once the sitting has read its records: an
-  /// action before then would have no list to go into.
-  bool get _canAct =>
-      !widget.readOnly &&
-      (widget.shown == null || widget.editing != null) &&
-      (widget.editing == null ||
-          gearItemServiceRecordsList.current(widget.editing!) != null);
+  /// Whether a tap may act: only in the open card, and only once the
+  /// sitting has read its records: an action before then would have no
+  /// list to go into.
+  bool get _canAct => switch (widget.editing) {
+    final editing? => gearItemServiceRecordsList.current(editing) != null,
+    null => false,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -300,11 +294,7 @@ class _ServiceHistorySectionState extends ConsumerState<ServiceHistorySection> {
                                     ),
                               onDelete: !_canAct
                                   ? null
-                                  : () => _confirmDeleteRecord(
-                                      context,
-                                      ref,
-                                      record,
-                                    ),
+                                  : () => _removeRecord(record),
                             ),
                           ),
                       if (visible.length > _collapsedRowCount)
@@ -532,17 +522,12 @@ class _ServiceHistorySectionState extends ConsumerState<ServiceHistorySection> {
 
   void _showAddServiceDialog(BuildContext context, WidgetRef ref) {
     final editing = widget.editing;
+    if (editing == null) return;
     showDialog(
       context: context,
       builder: (context) => ServiceRecordDialog(
         equipmentId: equipmentId,
-        announce: editing == null,
-        onSave: (record) async {
-          if (editing != null) return holdServiceRecord(editing, record);
-          await ref
-              .read(serviceRecordNotifierProvider(equipmentId).notifier)
-              .addRecord(record);
-        },
+        onSave: (record) async => holdServiceRecord(editing, record),
       ),
     );
   }
@@ -553,70 +538,23 @@ class _ServiceHistorySectionState extends ConsumerState<ServiceHistorySection> {
     ServiceRecord record,
   ) {
     final editing = widget.editing;
+    if (editing == null) return;
     showDialog(
       context: context,
       builder: (context) => ServiceRecordDialog(
         equipmentId: equipmentId,
         existingRecord: record,
-        announce: editing == null,
-        onSave: (updatedRecord) async {
-          if (editing != null) {
-            return holdServiceRecord(editing, updatedRecord);
-          }
-          await ref
-              .read(serviceRecordNotifierProvider(equipmentId).notifier)
-              .updateRecord(updatedRecord);
-        },
+        onSave: (updatedRecord) async =>
+            holdServiceRecord(editing, updatedRecord),
       ),
     );
   }
 
-  Future<void> _confirmDeleteRecord(
-    BuildContext context,
-    WidgetRef ref,
-    ServiceRecord record,
-  ) async {
-    // In a sitting a delete asks nothing: Cancel brings it back.
+  /// Takes [record] out of the sitting, asking nothing: Cancel brings it
+  /// back.
+  void _removeRecord(ServiceRecord record) {
     if (widget.editing case final editing?) {
       removeHeldServiceRecord(editing, record.id);
-      return;
-    }
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.l10n.equipment_service_deleteDialog_title),
-        content: Text(
-          context.l10n.equipment_service_deleteDialog_content(
-            record.serviceCategory.label(context.l10n),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(context.l10n.equipment_service_deleteDialog_cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-            child: Text(context.l10n.equipment_service_deleteDialog_confirm),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      await ref
-          .read(serviceRecordNotifierProvider(equipmentId).notifier)
-          .deleteRecord(record.id);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.l10n.equipment_service_snackbar_deleted),
-          ),
-        );
-      }
     }
   }
 }
