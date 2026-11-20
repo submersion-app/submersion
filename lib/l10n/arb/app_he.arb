@@ -2814,6 +2814,7 @@
   "diveLog_annotation_time_outsideDive": "חייב להיות בתוך הצלילה",
   "diveLog_annotation_pickOnProfile": "או הקישו על הפרופיל כדי למקם",
   "diveLog_annotation_noProfile": "לצלילה זו אין פרופיל להצביע עליו. הזינו את הזמן במקום זאת.",
+  "diveLog_annotation_brokenLink": "הקישור של אחד הסימונים כאן פגום, ולכן שמירה תמחק את הסימון. תקנו את הקישור, או מחקו אותו כולו כדי להסיר את הסימון.",
   "diveLog_annotation_action_annotate": "סימון",
   "diveLog_annotation_action_add": "הוספה",
   "diveLog_annotation_add": "הוספת סימון",

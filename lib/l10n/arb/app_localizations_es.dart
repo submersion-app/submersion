@@ -8802,6 +8802,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Esta inmersión no tiene perfil que señalar. Escribe la hora en su lugar.';
 
   @override
+  String get diveLog_annotation_brokenLink =>
+      'El enlace de una anotación está roto aquí, así que guardar eliminaría la anotación. Arregla el enlace o bórralo entero para quitar la anotación.';
+
+  @override
   String get diveLog_annotation_action_annotate => 'Anotar';
 
   @override

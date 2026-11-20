@@ -8355,6 +8355,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_annotation_noProfile => '此次潜水没有可指向的轮廓。请改为输入时间。';
 
   @override
+  String get diveLog_annotation_brokenLink =>
+      '此处某个标注的链接已损坏，保存会删除该标注。请修复链接，或将其整个删除以移除该标注。';
+
+  @override
   String get diveLog_annotation_action_annotate => '标注';
 
   @override

@@ -3043,6 +3043,7 @@
   "diveLog_annotation_time_outsideDive": "必须在潜水时间范围内",
   "diveLog_annotation_pickOnProfile": "或点击轮廓以放置",
   "diveLog_annotation_noProfile": "此次潜水没有可指向的轮廓。请改为输入时间。",
+  "diveLog_annotation_brokenLink": "此处某个标注的链接已损坏，保存会删除该标注。请修复链接，或将其整个删除以移除该标注。",
   "diveLog_annotation_action_annotate": "标注",
   "diveLog_annotation_action_add": "添加",
   "diveLog_annotation_add": "添加标注",

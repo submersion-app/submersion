@@ -2940,6 +2940,7 @@
   "diveLog_annotation_time_outsideDive": "Moet binnen de duik liggen",
   "diveLog_annotation_pickOnProfile": "Of tik op het profiel om haar te plaatsen",
   "diveLog_annotation_noProfile": "Deze duik heeft geen profiel om aan te wijzen. Typ in plaats daarvan de tijd.",
+  "diveLog_annotation_brokenLink": "De link van een annotatie is hier kapot, dus opslaan zou de annotatie verwijderen. Herstel de link, of verwijder hem helemaal om de annotatie te verwijderen.",
   "diveLog_annotation_action_annotate": "Annoteren",
   "diveLog_annotation_action_add": "Toevoegen",
   "diveLog_annotation_add": "Annotatie toevoegen",

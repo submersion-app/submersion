@@ -2814,6 +2814,7 @@
   "diveLog_annotation_time_outsideDive": "Deve essere entro l'immersione",
   "diveLog_annotation_pickOnProfile": "Oppure tocca il profilo per posizionarla",
   "diveLog_annotation_noProfile": "Questa immersione non ha un profilo da indicare. Inserisci invece l'orario.",
+  "diveLog_annotation_brokenLink": "Il link di un'annotazione qui è rotto, quindi salvare eliminerebbe l'annotazione. Ripara il link, oppure eliminalo del tutto per rimuovere l'annotazione.",
   "diveLog_annotation_action_annotate": "Annota",
   "diveLog_annotation_action_add": "Aggiungi",
   "diveLog_annotation_add": "Aggiungi annotazione",
