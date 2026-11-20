@@ -22,6 +22,11 @@ class _FakePlatform extends VideoPlayerPlatform {
   final Map<int, Duration> seeks = {};
   final Set<int> playing = {};
   final Set<int> disposed = {};
+
+  /// Volume and play calls in order, as `(playerId, 'volume' | 'play',
+  /// volume)`, so a test can tell what a player's volume was when it began
+  /// to play.
+  final List<(int, String, double?)> calls = [];
   int _next = 0;
 
   /// When set, every player waits for it before it is created.
@@ -71,11 +76,29 @@ class _FakePlatform extends VideoPlayerPlatform {
   @override
   Future<void> setLooping(int playerId, bool looping) async {}
   @override
-  Future<void> play(int playerId) async => playing.add(playerId);
+  Future<void> play(int playerId) async {
+    calls.add((playerId, 'play', null));
+    playing.add(playerId);
+  }
+
   @override
   Future<void> pause(int playerId) async => playing.remove(playerId);
   @override
-  Future<void> setVolume(int playerId, double volume) async {}
+  Future<void> setVolume(int playerId, double volume) async =>
+      calls.add((playerId, 'volume', volume));
+
+  /// The volume [playerId] was last given before its first play, or null
+  /// when it never played.
+  double? volumeAtFirstPlay(int playerId) {
+    double? volume;
+    for (final (id, call, value) in calls) {
+      if (id != playerId) continue;
+      if (call == 'play') return volume;
+      volume = value;
+    }
+    return null;
+  }
+
   @override
   Future<void> setPlaybackSpeed(int playerId, double speed) async {}
   @override
@@ -344,6 +367,56 @@ void main() {
     await opener.reopenAfterError(first);
     opener.dispose();
     expect(original.closed, original.opened);
+  });
+
+  group('volume', () {
+    test('an opened stream takes the volume', () async {
+      final opener = VideoPlaybackOpener(
+        StreamPlayback([_Candidate('original', ServedTier.original).candidate]),
+        release: release,
+        network: network,
+        volume: () => 0,
+      );
+      final controller = await opener.open();
+      expect(controller.value.volume, 0.0);
+    });
+
+    test('an opened file takes the volume', () async {
+      final opener = VideoPlaybackOpener(
+        const FilePlayback('/videos/clip.mp4'),
+        release: release,
+        network: network,
+        file: file,
+        volume: () => 0.4,
+      );
+      final controller = await opener.open();
+      expect(controller.value.volume, 0.4);
+    });
+
+    test('reopen applies the volume before play', () async {
+      var volume = 0.0;
+      final opener = VideoPlaybackOpener(
+        StreamPlayback([_Candidate('original', ServedTier.original).candidate]),
+        release: release,
+        network: network,
+        volume: () => volume,
+      );
+      final first = await opener.open();
+      await first.play();
+      // The viewer's sound changed while the first player played.
+      volume = 0.7;
+      final next = await opener.reopenAfterError(first);
+      final id = platform.idOf(next!);
+      expect(platform.playing, contains(id));
+      expect(platform.volumeAtFirstPlay(id), 0.7);
+      expect(next.value.volume, 0.7);
+    });
+
+    test('without a volume a player keeps its default', () async {
+      final opener = openerFor([_Candidate('original', ServedTier.original)]);
+      final controller = await opener.open();
+      expect(controller.value.volume, 1.0);
+    });
   });
 
   test('a file plays from its path and is not reopened', () async {
