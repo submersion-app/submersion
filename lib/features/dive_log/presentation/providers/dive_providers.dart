@@ -423,7 +423,7 @@ void mergeIntoBatchProfileCache(
 
 /// Statistics provider (filtered by current diver).
 ///
-/// Feeds the dashboard HeroHeader headline totals (total dives, etc.).
+/// Feeds the Home key numbers and depth panels (total dives, etc.).
 /// Self-invalidates whenever the `dives` table is written -- e.g. a dive
 /// computer import or an iCloud sync applying remote changes directly to the DB
 /// -- so those totals refresh without an app restart, using the same

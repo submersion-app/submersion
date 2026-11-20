@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/courses/presentation/providers/course_requirement_providers.dart';
 import 'package:submersion/features/dashboard/presentation/panels/conditional_panels.dart';
@@ -13,6 +16,7 @@ import 'package:submersion/features/dashboard/presentation/providers/media_ribbo
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_draft_providers.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 
@@ -243,5 +247,114 @@ void main() {
       overrides: [recentDivesProvider.overrideWith((ref) async => _dives)],
     );
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+    'each recent dive row stays its own tap target for screen readers',
+    (tester) async {
+      final handle = tester.ensureSemantics();
+      await pumpPanel(
+        tester,
+        const RecentDivesPanel(),
+        width: 900,
+        overrides: [recentDivesProvider.overrideWith((ref) async => _dives)],
+      );
+      final node = tester.getSemantics(find.text('Something Special'));
+      expect(node.getSemanticsData().hasAction(SemanticsAction.tap), isTrue);
+      handle.dispose();
+    },
+  );
+
+  testWidgets('the photos panel opens the media library', (tester) async {
+    final nav = await pumpPanel(
+      tester,
+      const PhotosPanel(),
+      overrides: [
+        recentMediaProvider.overrideWith(
+          (ref) async => [
+            MediaItem(
+              id: 'p1',
+              mediaType: MediaType.photo,
+              sourceType: MediaSourceType.platformGallery,
+              filePath: '/tmp/p1.jpg',
+              takenAt: DateTime(2026, 7, 1),
+              createdAt: DateTime(2026, 7, 1),
+              updatedAt: DateTime(2026, 7, 1),
+            ),
+          ],
+        ),
+      ],
+    );
+    await tester.tap(find.text('RECENT MEDIA'));
+    await tester.pumpAndSettle();
+    expect(nav.location, '/media');
+  });
+
+  testWidgets('latest vs average with no average draws no bars', (
+    tester,
+  ) async {
+    await pumpPanel(
+      tester,
+      const LatestVsAveragePanel(),
+      overrides: [
+        recentDivesProvider.overrideWith((ref) async => _dives),
+        homeAveragesProvider.overrideWith(
+          (ref) async => (
+            averages: const HomeAverages(
+              maxDepth: null,
+              runtimeSeconds: null,
+              diveCount: 0,
+            ),
+            sac: null,
+          ),
+        ),
+        homeSacSeriesProvider.overrideWith((ref) async => []),
+      ],
+    );
+    expect(find.byType(LinearProgressIndicator), findsNothing);
+  });
+
+  testWidgets('latest vs average while loading does not claim no dives', (
+    tester,
+  ) async {
+    await pumpPanel(
+      tester,
+      const LatestVsAveragePanel(),
+      overrides: [
+        recentDivesProvider.overrideWith(
+          (ref) => Completer<List<Dive>>().future,
+        ),
+        homeAveragesProvider.overrideWith(
+          (ref) async => (
+            averages: const HomeAverages(
+              maxDepth: 20,
+              runtimeSeconds: 2000,
+              diveCount: 3,
+            ),
+            sac: null,
+          ),
+        ),
+        homeSacSeriesProvider.overrideWith((ref) async => []),
+      ],
+    );
+    expect(find.text('No dives logged yet'), findsNothing);
+  });
+
+  testWidgets('the latest profile names its numbers before the site', (
+    tester,
+  ) async {
+    await pumpPanel(
+      tester,
+      const LatestProfilePanel(),
+      overrides: [
+        homeLatestProfileProvider.overrideWith(
+          (ref) async => (
+            dive: _dives.first,
+            points: [(0.0, 0.0), (600.0, 18.4), (3120.0, 0.0)],
+          ),
+        ),
+      ],
+    );
+    expect(find.textContaining(RegExp(r'^18\.4')), findsOneWidget);
   });
 }

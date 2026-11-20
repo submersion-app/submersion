@@ -43,6 +43,8 @@ Future<void> _pump(
   int divers = 1,
   String name = 'Eric',
   Future<DashboardGauges> Function()? gauges,
+  Locale locale = const Locale('en'),
+  double textScale = 1,
 }) async {
   tester.view.physicalSize = Size(width, 800);
   tester.view.devicePixelRatio = 1;
@@ -71,6 +73,13 @@ Future<void> _pump(
         dashboardDiverProvider.overrideWith((ref) async => _diver(name)),
       ].cast(),
       child: MaterialApp.router(
+        locale: locale,
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: TextScaler.linear(textScale)),
+          child: child!,
+        ),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         routerConfig: router,
@@ -185,5 +194,18 @@ void main() {
       expect(size.width, greaterThanOrEqualTo(44), reason: '$finder');
       expect(size.height, greaterThanOrEqualTo(44), reason: '$finder');
     }
+  });
+
+  testWidgets('German at text scale 2 fits the bar at 800 wide', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      width: 800,
+      divers: 2,
+      locale: const Locale('de'),
+      textScale: 2,
+    );
+    expect(tester.takeException(), isNull);
   });
 }

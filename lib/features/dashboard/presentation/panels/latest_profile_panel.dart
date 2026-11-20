@@ -21,11 +21,12 @@ class LatestProfilePanel extends ConsumerWidget {
     final runtime = dive?.measuredRuntime;
     final summary = dive == null
         ? null
+        // Numbers first: a long site name elides, never the numbers.
         : [
-            dive.site?.name ?? dive.name ?? '',
             units.formatDepth(dive.maxDepth),
             if (runtime != null) "${runtime.inMinutes}'",
             if (dive.waterTemp != null) units.formatTemperature(dive.waterTemp),
+            dive.site?.name ?? dive.name ?? '',
           ].join(' · ');
     return HomePanel(
       title: l10n.dashboard_panel_latestProfile,

@@ -66924,7 +66924,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String dashboard_key_tripChecklist(String name, int done, int total) {
-    return '$name · القائمة $done/$total';
+    return 'القائمة $done/$total · $name';
   }
 
   @override

@@ -19273,7 +19273,7 @@
   "dashboard_key_daysUnit": "dagen",
   "dashboard_key_vsPrevious": "{change} t.o.v. vorige 10",
   "dashboard_key_lastYear": "Vorig jaar {value}",
-  "dashboard_key_tripChecklist": "{name} · checklist {done}/{total}",
+  "dashboard_key_tripChecklist": "checklist {done}/{total} · {name}",
   "dashboard_panel_activity": "Activiteit, {months} maanden",
   "dashboard_panel_activitySummary": "{dives, plural, =1{1 duik} other{{dives} duiken}} · {days, plural, =1{1 dag} other{{days} dagen}}",
   "dashboard_panel_divesPerMonth": "Duiken per maand",

@@ -27,7 +27,7 @@ class DivesPerMonthPanel extends ConsumerWidget {
       onTap: () => context.push('/insights'),
       child: HomePanelAsync<List<MonthCount>>(
         value: months,
-        isEmpty: (m) => m.isEmpty,
+        isEmpty: (m) => m.every((c) => c.count == 0),
         emptyText: l10n.dashboard_panel_noDives,
         builder: (m) => HomeBars(
           [for (final c in m) c.count.toDouble()],

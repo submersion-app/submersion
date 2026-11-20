@@ -64970,7 +64970,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String dashboard_key_tripChecklist(String name, int done, int total) {
-    return '$name · checklist $done/$total';
+    return 'checklist $done/$total · $name';
   }
 
   @override

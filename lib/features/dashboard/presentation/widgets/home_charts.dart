@@ -169,11 +169,11 @@ class _BarsPainter extends CustomPainter {
 enum HomeBarTone { accent, ok, warn, alert }
 
 /// A label and value on one line with a thin bar under them showing
-/// [fraction] (0 to 1) of the width.
+/// [fraction] (0 to 1) of the width; no bar when [fraction] is null.
 class HomeBarRow extends StatelessWidget {
   final String label;
   final String value;
-  final double fraction;
+  final double? fraction;
   final HomeBarTone tone;
 
   const HomeBarRow({
@@ -232,16 +232,18 @@ class HomeBarRow extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 3),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(3),
-            child: LinearProgressIndicator(
-              value: fraction.isNaN ? 0 : fraction.clamp(0.0, 1.0),
-              minHeight: 4,
-              color: color,
-              backgroundColor: scheme.outlineVariant.withValues(alpha: 0.5),
+          if (fraction case final f?) ...[
+            const SizedBox(height: 3),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(3),
+              child: LinearProgressIndicator(
+                value: f.isNaN ? 0 : f.clamp(0.0, 1.0),
+                minHeight: 4,
+                color: color,
+                backgroundColor: scheme.outlineVariant.withValues(alpha: 0.5),
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );

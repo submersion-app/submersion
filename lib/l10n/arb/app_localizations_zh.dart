@@ -61878,7 +61878,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String dashboard_key_tripChecklist(String name, int done, int total) {
-    return '$name · 清单 $done/$total';
+    return '清单 $done/$total · $name';
   }
 
   @override

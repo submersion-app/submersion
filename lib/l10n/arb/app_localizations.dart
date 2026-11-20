@@ -103389,7 +103389,7 @@ abstract class AppLocalizations {
   /// No description provided for @dashboard_key_tripChecklist.
   ///
   /// In en, this message translates to:
-  /// **'{name} · checklist {done}/{total}'**
+  /// **'checklist {done}/{total} · {name}'**
   String dashboard_key_tripChecklist(String name, int done, int total);
 
   /// No description provided for @dashboard_panel_activity.

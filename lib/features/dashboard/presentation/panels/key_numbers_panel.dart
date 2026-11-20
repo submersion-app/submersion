@@ -140,15 +140,21 @@ class KeyNumbersPanel extends ConsumerWidget {
           comparison: n.divesThisYear == null
               ? null
               : l10n.dashboard_key_countThisYear(n.divesThisYear!),
+          highlight: true,
           series: n.monthlySeries,
           semantics: '${n.careerDives}',
           onTap: () => context.push('/dives'),
         );
       case HomeKeyNumber.timeUnder:
-        final hours = n.careerTimeSeconds ~/ 3600;
+        // A decimal under ten hours, so a first 45-minute dive is not "0".
+        final exact = n.careerTimeSeconds / 3600;
+        final hours = exact < 10
+            ? exact.toStringAsFixed(1)
+            : exact.floor().toString();
         return _Tile(
           title: l10n.dashboard_key_timeUnder,
-          value: '$hours',
+          value: hours,
+          highlight: true,
           unit: l10n.dashboard_key_hoursUnit,
           comparison: n.timeThisYearSeconds == null
               ? null
@@ -241,6 +247,7 @@ class KeyNumbersPanel extends ConsumerWidget {
           comparison: (n.newSpeciesThisYear ?? 0) == 0
               ? null
               : l10n.dashboard_key_countThisYear(n.newSpeciesThisYear!),
+          highlight: true,
           semantics: '${n.species}',
           onTap: () => context.push('/species'),
         );
@@ -257,6 +264,10 @@ class _Tile extends StatelessWidget {
   final String? comparison;
   final List<double>? series;
   final String semantics;
+
+  /// Draws the comparison in the accent colour: for counts that grew this
+  /// year, never for a change whose sign means better or worse.
+  final bool highlight;
   final VoidCallback? onTap;
   final Widget? child;
 
@@ -269,13 +280,14 @@ class _Tile extends StatelessWidget {
     this.series,
     this.onTap,
     this.child,
+    this.highlight = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final muted = theme.colorScheme.onSurfaceVariant;
-    final positive = comparison?.startsWith('+') ?? false;
+
     return HomePanel(
       title: title,
       semanticsValue: semantics,
@@ -314,7 +326,7 @@ class _Tile extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.labelSmall?.copyWith(
-                    color: positive ? theme.colorScheme.primary : muted,
+                    color: highlight ? theme.colorScheme.primary : muted,
                   ),
                 ),
               if (series != null && series!.length > 1) ...[

@@ -85,6 +85,21 @@ void main() {
     });
   });
 
+  testWidgets('dives per month with no dives in the year says so', (
+    tester,
+  ) async {
+    await pumpPanel(
+      tester,
+      const DivesPerMonthPanel(),
+      overrides: [
+        homeMonthlyDivesProvider.overrideWith(
+          (ref) async => [for (var m = 1; m <= 12; m++) MonthCount(2026, m, 0)],
+        ),
+      ],
+    );
+    expect(find.text('No dives yet'), findsOneWidget);
+  });
+
   group('SAC trend', () {
     testWidgets('one point renders without error', (tester) async {
       await pumpPanel(

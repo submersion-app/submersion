@@ -118,11 +118,13 @@ class HomePanel extends StatelessWidget {
         ),
       ),
     );
+    // The panel reads as its title and headline, and rows or tiles inside
+    // it stay their own nodes, so each keeps its own action.
     return Semantics(
       container: true,
-      button: onTap != null,
+      explicitChildNodes: true,
       label: semanticsValue.isEmpty ? title : '$title, $semanticsValue',
-      child: ExcludeSemantics(child: box),
+      child: box,
     );
   }
 }

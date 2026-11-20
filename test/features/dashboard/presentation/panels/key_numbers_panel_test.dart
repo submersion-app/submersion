@@ -181,4 +181,36 @@ void main() {
     );
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('a SAC that went up is not drawn as a gain', (tester) async {
+    await _pump(
+      tester,
+      width: 1280,
+      numbers: const HomeKeyNumbers(
+        careerDives: 30,
+        careerTimeSeconds: 100000,
+        avgSac: 15,
+        avgSacChange: 0.4,
+      ),
+    );
+    final text = tester.widget<Text>(find.textContaining('+0.4'));
+    final context = tester.element(find.textContaining('+0.4'));
+    expect(text.style?.color, isNot(Theme.of(context).colorScheme.primary));
+  });
+
+  testWidgets('under ten hours shows a decimal', (tester) async {
+    await _pump(
+      tester,
+      width: 1280,
+      numbers: const HomeKeyNumbers(careerDives: 1, careerTimeSeconds: 2700),
+    );
+    expect(find.textContaining('0.8 h'), findsOneWidget);
+  });
+
+  testWidgets('the trip checklist count comes before the trip name', (
+    tester,
+  ) async {
+    await _pump(tester, width: 1280);
+    expect(find.text('checklist 6/14 · Bonaire'), findsOneWidget);
+  });
 }

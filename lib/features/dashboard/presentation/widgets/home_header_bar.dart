@@ -98,60 +98,75 @@ class HomeHeaderBar extends ConsumerWidget {
             bottom: BorderSide(color: theme.colorScheme.outlineVariant),
           ),
         ),
-        child: Row(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(6),
-              child: Image.asset(
-                'assets/icon/icon.png',
-                width: 24,
-                height: 24,
-                excludeFromSemantics: true,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Flexible(
-              child: Text(
-                'Submersion',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
+        // Compact controls (an icon to log, Plan in More, no name on the
+        // switcher) on a phone, and wherever the bar's own width cannot fit
+        // the labelled buttons at the current text size.
+        child: LayoutBuilder(
+          builder: (context, box) {
+            final compact =
+                phone ||
+                box.maxWidth <
+                    _labelledWidth * MediaQuery.textScalerOf(context).scale(1);
+            return Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: Image.asset(
+                    'assets/icon/icon.png',
+                    width: 24,
+                    height: 24,
+                    excludeFromSemantics: true,
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(child: phone ? const SizedBox() : lightsRow()),
-            if (phone)
-              IconButton(
-                tooltip: l10n.dashboard_quickActions_logDive,
-                onPressed: () => _logDive(context),
-                style: _iconStyle,
-                icon: const Icon(Icons.add),
-              )
-            else ...[
-              const SizedBox(width: 8),
-              FilledButton.icon(
-                onPressed: () => _logDive(context),
-                style: _compactButton(context, FilledButton.styleFrom),
-                icon: const Icon(Icons.add, size: 16),
-                label: Text(l10n.dashboard_quickActions_logDive),
-              ),
-              const SizedBox(width: 6),
-              OutlinedButton(
-                onPressed: () => context.push('/planning/dive-planner'),
-                style: _compactButton(context, OutlinedButton.styleFrom),
-                child: Text(l10n.dashboard_quickActions_planDive),
-              ),
-            ],
-            _MoreMenu(includePlan: phone),
-            _DiverSwitcher(showName: !phone),
-          ],
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    'Submersion',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(child: phone ? const SizedBox() : lightsRow()),
+                if (compact)
+                  IconButton(
+                    tooltip: l10n.dashboard_quickActions_logDive,
+                    onPressed: () => _logDive(context),
+                    style: _iconStyle,
+                    icon: const Icon(Icons.add),
+                  )
+                else ...[
+                  const SizedBox(width: 8),
+                  FilledButton.icon(
+                    onPressed: () => _logDive(context),
+                    style: _compactButton(context, FilledButton.styleFrom),
+                    icon: const Icon(Icons.add, size: 16),
+                    label: Text(l10n.dashboard_quickActions_logDive),
+                  ),
+                  const SizedBox(width: 6),
+                  OutlinedButton(
+                    onPressed: () => context.push('/planning/dive-planner'),
+                    style: _compactButton(context, OutlinedButton.styleFrom),
+                    child: Text(l10n.dashboard_quickActions_planDive),
+                  ),
+                ],
+                _MoreMenu(includePlan: compact),
+                _DiverSwitcher(showName: !compact),
+              ],
+            );
+          },
         ),
       ),
     );
   }
 }
+
+/// The bar width, at text scale 1, below which the labelled buttons and
+/// the switcher's name give way to their compact forms.
+const double _labelledWidth = 900;
 
 /// Text buttons in the bar: drawn small to suit a slim bar, with the
 /// default padded tap target keeping the hit area at 48 points.

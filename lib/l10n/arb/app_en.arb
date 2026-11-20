@@ -38404,7 +38404,7 @@
   "@dashboard_key_vsPrevious": {"placeholders": {"change": {"type": "String"}}},
   "dashboard_key_lastYear": "Last year {value}",
   "@dashboard_key_lastYear": {"placeholders": {"value": {"type": "String"}}},
-  "dashboard_key_tripChecklist": "{name} · checklist {done}/{total}",
+  "dashboard_key_tripChecklist": "checklist {done}/{total} · {name}",
   "@dashboard_key_tripChecklist": {"placeholders": {"name": {"type": "String"}, "done": {"type": "int"}, "total": {"type": "int"}}},
   "dashboard_panel_activity": "Activity, {months} months",
   "@dashboard_panel_activity": {"placeholders": {"months": {"type": "int"}}},

@@ -19273,7 +19273,7 @@
   "dashboard_key_daysUnit": "ימים",
   "dashboard_key_vsPrevious": "{change} לעומת 10 הקודמות",
   "dashboard_key_lastYear": "שנה שעברה {value}",
-  "dashboard_key_tripChecklist": "{name} · רשימה {done}/{total}",
+  "dashboard_key_tripChecklist": "רשימה {done}/{total} · {name}",
   "dashboard_panel_activity": "פעילות, {months} חודשים",
   "dashboard_panel_activitySummary": "{dives, plural, =1{צלילה אחת} other{{dives} צלילות}} · {days, plural, =1{יום אחד} other{{days} ימים}}",
   "dashboard_panel_divesPerMonth": "צלילות לחודש",

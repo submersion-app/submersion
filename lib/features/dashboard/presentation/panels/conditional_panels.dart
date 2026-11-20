@@ -263,6 +263,7 @@ class PhotosPanel extends ConsumerWidget {
     return HomePanel(
       title: l10n.dashboard_media_title,
       semanticsValue: '${media.length}',
+      onTap: () => context.push('/media'),
       child: LayoutBuilder(
         builder: (context, box) {
           final cols = math.max(1, (box.maxWidth + _gap) ~/ (_tile + _gap));

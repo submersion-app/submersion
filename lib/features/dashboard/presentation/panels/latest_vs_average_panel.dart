@@ -21,21 +21,30 @@ class LatestVsAveragePanel extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final units = ref.watch(unitFormatterProvider);
-    final dive = ref.watch(recentDivesProvider).value?.firstOrNull;
+    final divesAsync = ref.watch(recentDivesProvider);
+    final dive = divesAsync.value?.firstOrNull;
     final avg = ref.watch(homeAveragesProvider).value;
     final series = ref.watch(homeSacSeriesProvider).value ?? const [];
     final sacLane = ref.watch(homeSacLaneProvider) == GasConsumptionLane.sac;
     if (dive == null) {
+      // Loading and error get their own states; only a loaded empty log
+      // says there are no dives.
       return HomePanel(
         title: l10n.dashboard_panel_latestVsAverage,
         semanticsValue: '',
-        child: Text(l10n.dashboard_recentDives_empty),
+        child: HomePanelAsync(
+          value: divesAsync,
+          isEmpty: (_) => true,
+          emptyText: l10n.dashboard_recentDives_empty,
+          builder: (_) => const SizedBox.shrink(),
+        ),
       );
     }
 
-    double fraction(double value, double? average) =>
+    // No average, no bar: a full bar would read as "far above average".
+    double? fraction(double value, double? average) =>
         average == null || average <= 0
-        ? 1
+        ? null
         : math.min(1, value / (2 * average));
     String compare(String value, String? average) => average == null
         ? value
