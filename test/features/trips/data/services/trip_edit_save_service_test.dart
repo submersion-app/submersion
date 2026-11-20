@@ -530,7 +530,8 @@ void main() {
         .insert(
           DivesCompanion.insert(
             id: id,
-            diveDateTime: DateTime(2026, 9, 2).millisecondsSinceEpoch,
+            // Dives keep their wall clock as UTC: 10:00 on 2 September.
+            diveDateTime: DateTime.utc(2026, 9, 2, 10).millisecondsSinceEpoch,
             tripId: Value(tripId),
             createdAt: 1,
             updatedAt: 1,
