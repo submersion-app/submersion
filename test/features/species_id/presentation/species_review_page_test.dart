@@ -232,6 +232,50 @@ void main() {
       expect(markerIn('species_review_row_g:1_e'), findsOneWidget);
     });
 
+    testWidgets('a row of the app\'s tags says so by its tag\'s key, though '
+        'a suggestion with another key is grouped under it', (tester) async {
+      // The suggestion matched the tagged species by name, under a synonym's
+      // key; the tag was made from the key the nearby list holds.
+      final ownRow = ReviewRow(
+        key: 's:own-9',
+        species: const Species(
+          id: 'own-9',
+          commonName: 'Spotted Drum',
+          category: SpeciesCategory.fish,
+        ),
+        items: [
+          ReviewItem(
+            media: testMediaItem(id: 'a', diveId: 'd1'),
+            tag: MediaSpeciesTag(
+              id: 't9',
+              mediaId: 'a',
+              speciesId: 'own-9',
+              createdAt: DateTime.utc(2026),
+              unconfirmed: true,
+            ),
+            tagGbifKey: 2401398,
+          ),
+          ReviewItem(
+            media: testMediaItem(id: 'b', diveId: 'd1'),
+            suggestion: suggestion,
+            score: 0.71,
+          ),
+        ],
+      );
+      await pump(
+        tester,
+        taggedRows: [ownRow],
+        nearby: const NearbySpecies(speciesKeys: {2401398}),
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('species_review_row_s:own-9_b')),
+          matching: find.text('Recorded nearby'),
+        ),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('the marker is read with the row', (tester) async {
       final semantics = tester.ensureSemantics();
       await pump(

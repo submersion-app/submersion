@@ -87,7 +87,7 @@ class SpeciesReviewRowTile extends StatelessWidget {
               // Once per row: its photos' lines below would only repeat it.
               RecordedNearbyLine(
                 request: _nearbyRequest(best),
-                gbifKey: row.gbifKey,
+                gbifKeys: row.gbifKeys,
                 catalogId: row.species?.id ?? row.candidate?.catalogId,
               ),
             ],

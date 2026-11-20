@@ -262,7 +262,7 @@ class _SuggestionRow extends ConsumerWidget {
                 ),
                 RecordedNearbyLine(
                   request: nearbyRequestForMedia(item),
-                  gbifKey: key,
+                  gbifKeys: {key},
                   catalogId: candidate.catalogId,
                 ),
               ],
@@ -368,7 +368,7 @@ class SuggestionCropView extends ConsumerWidget {
                 Text(alternative.candidate.scientificName),
                 RecordedNearbyLine(
                   request: nearbyRequestForMedia(item),
-                  gbifKey: alternative.candidate.gbifKey,
+                  gbifKeys: {alternative.candidate.gbifKey},
                   catalogId: alternative.candidate.catalogId,
                 ),
               ],

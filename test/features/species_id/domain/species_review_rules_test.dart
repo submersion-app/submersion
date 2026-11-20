@@ -131,7 +131,7 @@ void main() {
     expect(groups, isEmpty);
   });
 
-  group('ReviewRow.gbifKey', () {
+  group('ReviewRow.gbifKeys', () {
     ReviewItem tagOn(String mediaId, {int? key}) => ReviewItem(
       media: media(mediaId, diveId: 'd1'),
       tag: appTag(mediaId, 'own-9'),
@@ -144,32 +144,29 @@ void main() {
         candidate: suggestion.top.candidate,
         items: const [],
       );
-      expect(row.gbifKey, suggestion.top.candidate.gbifKey);
+      expect(row.gbifKeys, {suggestion.top.candidate.gbifKey});
     });
 
-    test('a row of the app\'s tags: a suggestion grouped under it first', () {
+    test('a row of the app\'s tags: every key it holds, its tags\' and its '
+        'grouped suggestions\'', () {
+      // A suggestion grouped by name may carry a synonym's key, so the
+      // tag's own key is kept beside it.
       final row = ReviewRow(
         key: 's:own-9',
         items: [
           tagOn('a', key: 777),
+          tagOn('c'),
           ReviewItem(
             media: media('b', diveId: 'd1'),
             suggestion: suggestion,
           ),
         ],
       );
-      expect(row.gbifKey, suggestion.top.candidate.gbifKey);
+      expect(row.gbifKeys, {777, suggestion.top.candidate.gbifKey});
     });
 
-    test('else the key a tag was made from, else none', () {
-      expect(
-        ReviewRow(
-          key: 's:own-9',
-          items: [tagOn('a'), tagOn('b', key: 777)],
-        ).gbifKey,
-        777,
-      );
-      expect(ReviewRow(key: 's:own-9', items: [tagOn('a')]).gbifKey, isNull);
+    test('none when nothing on this device names it', () {
+      expect(ReviewRow(key: 's:own-9', items: [tagOn('a')]).gbifKeys, isEmpty);
     });
   });
 

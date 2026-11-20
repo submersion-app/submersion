@@ -16,25 +16,26 @@ class RecordedNearbyLine extends ConsumerWidget {
   const RecordedNearbyLine({
     super.key,
     required this.request,
-    this.gbifKey,
+    this.gbifKeys = const {},
     this.catalogId,
   });
 
   /// The dive or photo whose list is read.
   final NearbyListRequest request;
 
-  /// The suggestion's GBIF species key.
-  final int? gbifKey;
+  /// The suggestion's GBIF species keys: one for a suggestion, every key a
+  /// review row's species is known by.
+  final Set<int> gbifKeys;
 
-  /// The suggestion's catalogue id, which still matches when [gbifKey] is
-  /// a synonym of the key the list holds.
+  /// The suggestion's catalogue id, which still matches when its key is a
+  /// synonym of the key the list holds.
   final String? catalogId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final nearby = ref.watch(recordedNearbyListProvider(request)).value;
     if (nearby == null ||
-        !isRecordedNearby(nearby, gbifKey: gbifKey, catalogId: catalogId)) {
+        !isRecordedNearby(nearby, gbifKeys: gbifKeys, catalogId: catalogId)) {
       return const SizedBox.shrink();
     }
     // Small, in the colour of the text around it: under a list tile's

@@ -34,20 +34,27 @@ void main() {
     );
 
     test('a listed GBIF key is recorded nearby', () {
-      expect(isRecordedNearby(nearby, gbifKey: 2335), isTrue);
+      expect(isRecordedNearby(nearby, gbifKeys: {2335}), isTrue);
+    });
+
+    test('one listed key among several is enough', () {
+      expect(isRecordedNearby(nearby, gbifKeys: {1, 2335}), isTrue);
     });
 
     test('a listed catalogue species is, whatever its key', () {
       // A pack candidate may carry a synonym's key; its catalogue id still
       // ties it to the species the list matched.
       expect(
-        isRecordedNearby(nearby, gbifKey: 1, catalogId: 'queen-parrotfish'),
+        isRecordedNearby(nearby, gbifKeys: {1}, catalogId: 'queen-parrotfish'),
         isTrue,
       );
     });
 
     test('anything else is not', () {
-      expect(isRecordedNearby(nearby, gbifKey: 1, catalogId: 'other'), isFalse);
+      expect(
+        isRecordedNearby(nearby, gbifKeys: {1, 2}, catalogId: 'other'),
+        isFalse,
+      );
       expect(isRecordedNearby(nearby), isFalse);
     });
   });

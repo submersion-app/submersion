@@ -16,15 +16,19 @@ GeoPoint? nearbyListLocation({
   GeoPoint? entry,
 }) => site ?? photo ?? entry;
 
-/// Whether a suggestion is on [nearby]: its [gbifKey] is one of the
-/// species the search returned, or its [catalogId] is a catalogue species
-/// the list matched.
+/// Whether a suggestion is on [nearby]: one of its [gbifKeys] is a species
+/// the search returned, or its [catalogId] is a catalogue species the list
+/// matched.
 ///
 /// The catalogue id is the fallback for a pack candidate whose key is a
 /// synonym of the one GBIF's occurrence search reports: the list matched
 /// that species to the catalogue by its own key, so the ids still agree.
-bool isRecordedNearby(NearbySpecies nearby, {int? gbifKey, String? catalogId}) {
-  if (gbifKey != null && nearby.speciesKeys.contains(gbifKey)) return true;
+bool isRecordedNearby(
+  NearbySpecies nearby, {
+  Iterable<int> gbifKeys = const [],
+  String? catalogId,
+}) {
+  if (gbifKeys.any(nearby.speciesKeys.contains)) return true;
   if (catalogId == null) return false;
   return nearby.matched.any((m) => m.speciesId == catalogId);
 }

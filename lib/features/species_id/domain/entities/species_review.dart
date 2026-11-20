@@ -147,19 +147,18 @@ class ReviewRow extends Equatable {
 
   String? get speciesId => species?.id;
 
-  /// The species' GBIF key, to match a nearby list by: the candidate's, or
-  /// on a row of the app's tags, that of a suggestion grouped under it,
-  /// else that of the candidate a tag was made from.
-  int? get gbifKey =>
-      candidate?.gbifKey ??
-      items
-          .map((i) => i.suggestion)
-          .nonNulls
-          .firstOrNull
-          ?.top
-          .candidate
-          .gbifKey ??
-      items.map((i) => i.tagGbifKey).nonNulls.firstOrNull;
+  /// Every GBIF key this row's species is known by on this device, to
+  /// match a nearby list by: its candidate's, each grouped suggestion's,
+  /// and the key each of the app's tags was made from. A suggestion grouped
+  /// under a tag by name may carry a synonym's key, so all are kept.
+  Set<int> get gbifKeys => {
+    ?candidate?.gbifKey,
+    for (final i in items) ...[
+      ?i.suggestion?.top.candidate.gbifKey,
+      ?i.tagGbifKey,
+    ],
+  };
+
   int get taggedCount => items.where((i) => i.isTagged).length;
   int get suggestedCount => items.length - taggedCount;
   bool get isTagged => taggedCount > 0;
