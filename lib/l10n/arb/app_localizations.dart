@@ -103841,6 +103841,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Trip checklist'**
   String get dashboard_panel_tripChecklist;
+
+  /// No description provided for @dashboard_panel_latestProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest profile'**
+  String get dashboard_panel_latestProfile;
+
+  /// No description provided for @dashboard_panel_latestVsAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest dive vs average'**
+  String get dashboard_panel_latestVsAverage;
+
+  /// No description provided for @dashboard_panel_vsAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} · avg {average}'**
+  String dashboard_panel_vsAverage(String value, String average);
+
+  /// No description provided for @dashboard_panel_maxDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Max depth'**
+  String get dashboard_panel_maxDepth;
+
+  /// No description provided for @dashboard_panel_runtime.
+  ///
+  /// In en, this message translates to:
+  /// **'Runtime'**
+  String get dashboard_panel_runtime;
+
+  /// No description provided for @dashboard_panel_sac.
+  ///
+  /// In en, this message translates to:
+  /// **'SAC'**
+  String get dashboard_panel_sac;
+
+  /// No description provided for @dashboard_panel_rmv.
+  ///
+  /// In en, this message translates to:
+  /// **'RMV'**
+  String get dashboard_panel_rmv;
+
+  /// No description provided for @dashboard_panel_recentDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent dives'**
+  String get dashboard_panel_recentDives;
+
+  /// No description provided for @dashboard_panel_colSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Site'**
+  String get dashboard_panel_colSite;
+
+  /// No description provided for @dashboard_panel_colDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get dashboard_panel_colDate;
+
+  /// No description provided for @dashboard_panel_colDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth'**
+  String get dashboard_panel_colDepth;
+
+  /// No description provided for @dashboard_panel_colTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get dashboard_panel_colTime;
+
+  /// No description provided for @dashboard_panel_speciesSeen.
+  ///
+  /// In en, this message translates to:
+  /// **'Species seen lately'**
+  String get dashboard_panel_speciesSeen;
+
+  /// No description provided for @dashboard_panel_speciesTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} total'**
+  String dashboard_panel_speciesTotal(int count);
+
+  /// No description provided for @dashboard_panel_onDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive} other{{count} dives}}'**
+  String dashboard_panel_onDives(int count);
+
+  /// No description provided for @dashboard_panel_firstDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Log or import your first dive'**
+  String get dashboard_panel_firstDive;
+
+  /// No description provided for @dashboard_panel_import.
+  ///
+  /// In en, this message translates to:
+  /// **'Import'**
+  String get dashboard_panel_import;
 }
 
 class _AppLocalizationsDelegate

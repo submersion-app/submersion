@@ -66394,4 +66394,67 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get dashboard_panel_tripChecklist => 'Trip checklist';
+
+  @override
+  String get dashboard_panel_latestProfile => 'Latest profile';
+
+  @override
+  String get dashboard_panel_latestVsAverage => 'Latest dive vs average';
+
+  @override
+  String dashboard_panel_vsAverage(String value, String average) {
+    return '$value · avg $average';
+  }
+
+  @override
+  String get dashboard_panel_maxDepth => 'Max depth';
+
+  @override
+  String get dashboard_panel_runtime => 'Runtime';
+
+  @override
+  String get dashboard_panel_sac => 'SAC';
+
+  @override
+  String get dashboard_panel_rmv => 'RMV';
+
+  @override
+  String get dashboard_panel_recentDives => 'Recent dives';
+
+  @override
+  String get dashboard_panel_colSite => 'Site';
+
+  @override
+  String get dashboard_panel_colDate => 'Date';
+
+  @override
+  String get dashboard_panel_colDepth => 'Depth';
+
+  @override
+  String get dashboard_panel_colTime => 'Time';
+
+  @override
+  String get dashboard_panel_speciesSeen => 'Species seen lately';
+
+  @override
+  String dashboard_panel_speciesTotal(int count) {
+    return '$count total';
+  }
+
+  @override
+  String dashboard_panel_onDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives',
+      one: '1 dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashboard_panel_firstDive => 'Log or import your first dive';
+
+  @override
+  String get dashboard_panel_import => 'Import';
 }
