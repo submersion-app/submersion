@@ -171,8 +171,18 @@ class FakeItineraryDays implements ItineraryDayRepository {
   final saved = <ItineraryDay>[];
   final updated = <ItineraryDay>[];
 
+  /// Holds the read until completed.
+  Completer<void>? gate;
+
+  /// The read throws, as a database that cannot be read does.
+  bool failRead = false;
+
   @override
-  Future<List<ItineraryDay>> getByTripId(String tripId) async => [...days];
+  Future<List<ItineraryDay>> getByTripId(String tripId) async {
+    await gate?.future;
+    if (failRead) throw StateError('the read failed');
+    return [...days];
+  }
 
   @override
   Future<void> saveAll(List<ItineraryDay> days) async => saved.addAll(days);

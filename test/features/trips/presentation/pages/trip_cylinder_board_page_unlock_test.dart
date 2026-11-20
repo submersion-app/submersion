@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -215,6 +217,61 @@ void main() {
 
     expect(harness.save.calls.single.cards, {'itineraryDays'});
     expect(harness.itinerary.updated.single.plannedDives, 1);
+    expect(harness.itinerary.saved, isEmpty);
+  });
+
+  testWidgets('the unlocked board waits for the itinerary before it draws '
+      'the forecast, so a planned dive set then is held', (tester) async {
+    final harness = await pumpTripPage(
+      tester,
+      board: board,
+      wrap: (_) =>
+          const TripCylinderBoardPage(tripId: 't1', unlockEditing: true),
+    );
+    final gate = Completer<void>();
+    harness.itinerary.gate = gate;
+    await tester.tap(find.byIcon(Icons.lock_outline));
+    await tester.pump();
+
+    expect(find.byKey(const Key('forecast-day-0')), findsNothing);
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+    gate.complete();
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('forecast-day-0')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('plan-more')));
+    await tester.pump();
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(FilledButton),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final session = RecordEditScope.maybeOf<Trip>(
+      tester.element(find.byType(TripCylinderSlotCard).first),
+    )!.session!;
+    expect(tripItineraryDays().current(session)!.single.plannedDives, 1);
+  });
+
+  testWidgets('when the itinerary cannot be read the strip shows its days '
+      'and offers no edit', (tester) async {
+    final harness = await pumpTripPage(
+      tester,
+      board: board,
+      wrap: (_) =>
+          const TripCylinderBoardPage(tripId: 't1', unlockEditing: true),
+    );
+    harness.itinerary.failRead = true;
+    await tester.tap(find.byIcon(Icons.lock_outline));
+    await tester.pumpAndSettle();
+
+    final chip = tester.widget<ActionChip>(
+      find.byKey(const Key('forecast-day-0')),
+    );
+    expect(chip.onPressed, isNull);
     expect(harness.itinerary.saved, isEmpty);
   });
 }

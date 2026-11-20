@@ -109,7 +109,11 @@ mixin _TripCylinderBoardEditing
       ]),
       builder: (context, _) {
         final held = heldCylindersOf(session, board);
-        if (held == null) {
+        final itinerary = days.current(session);
+        // The forecast and its strip are the held days': drawn once they
+        // are read, so a plan set on the strip is never dropped. A failed
+        // read draws the forecast from the trip alone, its days not edited.
+        if (held == null || (itinerary == null && !days.failed(session))) {
           return Center(
             child: board.failed(session)
                 ? Text(context.l10n.common_label_error)
@@ -125,7 +129,7 @@ mixin _TripCylinderBoardEditing
             : tripFillForecastOf(
                 trip: trip,
                 states: states,
-                itinerary: days.current(session) ?? const [],
+                itinerary: itinerary ?? const [],
                 loggedToday: logged.value ?? 0,
                 center: centers.where((c) => c.id == centerId).firstOrNull,
                 now: now,
@@ -138,7 +142,7 @@ mixin _TripCylinderBoardEditing
           readOnly: false,
           hold: hold,
           ledger: orderTripLedger(held.events, held.slots),
-          holdPlan: holdPlan,
+          holdPlan: itinerary == null ? null : holdPlan,
         );
       },
     );

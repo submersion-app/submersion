@@ -272,7 +272,9 @@ class _TripCylinderBoardPageState extends ConsumerState<TripCylinderBoardPage>
               days: forecast.days,
               units: units,
               hold: holdPlan,
-              readOnly: readOnly,
+              // In a sitting with no held days to set (their read failed),
+              // the strip only shows: it must not write at once.
+              readOnly: readOnly || (hold != null && holdPlan == null),
             ),
         ],
         Padding(
