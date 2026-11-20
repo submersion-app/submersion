@@ -18,11 +18,17 @@ class TripPhotoSection extends ConsumerWidget {
   final VoidCallback? onScanPressed;
   final VoidCallback? onLightroomScanPressed;
 
+  /// Opens the trip's gallery from [context]; null pushes its address, as
+  /// always. A trip page that edits in place hands the gallery its sitting
+  /// this way (issue #4527).
+  final void Function(BuildContext context)? onOpenGallery;
+
   const TripPhotoSection({
     super.key,
     required this.tripId,
     this.onScanPressed,
     this.onLightroomScanPressed,
+    this.onOpenGallery,
   });
 
   @override
@@ -102,7 +108,12 @@ class TripPhotoSection extends ConsumerWidget {
                 if (preview.mediaCount == 0) {
                   return _EmptyState(onScanPressed: onScanPressed);
                 }
-                return _PhotoRow(tripId: tripId, preview: preview);
+                return _PhotoRow(
+                  preview: preview,
+                  openGallery:
+                      onOpenGallery ??
+                      (context) => context.push('/trips/$tripId/gallery'),
+                );
               },
               loading: () => const SizedBox(
                 height: 80,
@@ -169,10 +180,10 @@ class _EmptyState extends StatelessWidget {
 
 /// Horizontal scrollable row of photo thumbnails.
 class _PhotoRow extends StatelessWidget {
-  final String tripId;
   final TripMediaPreview preview;
+  final void Function(BuildContext context) openGallery;
 
-  const _PhotoRow({required this.tripId, required this.preview});
+  const _PhotoRow({required this.preview, required this.openGallery});
 
   @override
   Widget build(BuildContext context) {
@@ -197,8 +208,8 @@ class _PhotoRow extends StatelessWidget {
                   itemBuilder: (context, index) {
                     if (index < visibleCount) {
                       return _PhotoThumbnail(
-                        tripId: tripId,
                         item: media[index],
+                        openGallery: openGallery,
                       );
                     }
                     // More indicator
@@ -214,7 +225,7 @@ class _PhotoRow extends StatelessWidget {
         Align(
           alignment: AlignmentDirectional.centerEnd,
           child: TextButton(
-            onPressed: () => context.push('/trips/$tripId/gallery'),
+            onPressed: () => openGallery(context),
             child: Text(context.l10n.trips_photos_viewAll),
           ),
         ),
@@ -225,10 +236,10 @@ class _PhotoRow extends StatelessWidget {
 
 /// Individual photo thumbnail.
 class _PhotoThumbnail extends StatelessWidget {
-  final String tripId;
   final MediaItem item;
+  final void Function(BuildContext context) openGallery;
 
-  const _PhotoThumbnail({required this.tripId, required this.item});
+  const _PhotoThumbnail({required this.item, required this.openGallery});
 
   @override
   Widget build(BuildContext context) {
@@ -240,7 +251,7 @@ class _PhotoThumbnail extends StatelessWidget {
       button: true,
       label: semanticsLabel,
       child: GestureDetector(
-        onTap: () => context.push('/trips/$tripId/gallery'),
+        onTap: () => openGallery(context),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: SizedBox(

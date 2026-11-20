@@ -19,6 +19,11 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 import '../../../media/presentation/support/capturing_media_repository.dart';
 import '../../../media/presentation/support/media_widget_harness.dart';
+import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
+import 'package:submersion/features/media/presentation/helpers/media_hold.dart';
+import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 void main() {
   group('TripGalleryPage', () {
@@ -518,6 +523,93 @@ void main() {
       );
       expect(find.byIcon(Icons.videocam), findsOneWidget);
       semantics.dispose();
+    });
+  });
+
+  group('following the trip page lock (issue #4527)', () {
+    final trip = Trip(
+      id: 'test-trip',
+      name: 'Red Sea',
+      startDate: DateTime(2030, 6, 1),
+      endDate: DateTime(2030, 6, 8),
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+
+    Future<void> pumpGallery(
+      WidgetTester tester, {
+      RecordEditController<Trip>? sitting,
+    }) => tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          mediaForTripProvider(
+            'test-trip',
+          ).overrideWith((ref) => Future.value(<Dive, List<MediaItem>>{})),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: TripGalleryPage(
+            tripId: 'test-trip',
+            sitting: sitting,
+            unlockEditing: true,
+          ),
+        ),
+      ),
+    );
+
+    testWidgets('opened by its address it offers no Scan', (tester) async {
+      await pumpGallery(tester);
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.photo_camera), findsNothing);
+    });
+
+    testWidgets('handed a sitting it offers Scan, shows what the sitting '
+        'holds, and drops the Scan when the sitting ends', (tester) async {
+      final controller = RecordEditController<Trip>(onSave: (_) async {});
+      addTearDown(controller.dispose);
+      controller.unlock(trip);
+      final session = controller.session!;
+      holdSittingMedia(
+        session,
+        SittingMediaWriters(
+          writeRows: (_) async => const [],
+          insertNetwork: (_) async => const [],
+          unlink: (_) async {},
+          replace: (_, _, _) async {},
+          drainDeletes: () async {},
+          enqueueUpload: (_) {},
+        ),
+        cardId: 'photos',
+      );
+      addMediaToSitting(session, [
+        HeldMediaRow((
+          item: MediaItem(
+            id: 'm1',
+            diveId: 'd1',
+            mediaType: MediaType.photo,
+            sourceType: MediaSourceType.platformGallery,
+            platformAssetId: 'a1',
+            takenAt: DateTime.utc(2030, 6, 2),
+            createdAt: DateTime.utc(2030, 6, 2),
+            updatedAt: DateTime.utc(2030, 6, 2),
+          ),
+          enrichment: null,
+        )),
+      ]);
+
+      await pumpGallery(tester, sitting: controller);
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.photo_camera), findsOneWidget);
+      expect(find.byKey(const Key('trip-held-photo-m1')), findsOneWidget);
+
+      controller.lock();
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.photo_camera), findsNothing);
+      expect(find.byKey(const Key('trip-held-photos')), findsNothing);
     });
   });
 }

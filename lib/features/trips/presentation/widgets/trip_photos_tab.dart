@@ -5,9 +5,11 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_card_slots.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_scan_in_sitting.dart';
+import 'package:submersion/features/trips/presentation/pages/trip_gallery_page.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_held_photos.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_photo_section.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_satellite.dart';
 
 /// The Photos tab: the trip's photo section on its own scroll.
 ///
@@ -45,6 +47,16 @@ class TripPhotosTab extends ConsumerWidget {
             tripId: tripId,
             onScanPressed: () => run(scanTripPhotosInSitting),
             onLightroomScanPressed: () => run(scanLightroomForTripInSitting),
+            // The gallery follows the trip's lock: handed the sitting while
+            // the page is unlocked, it scans into it; locked, it scans not.
+            onOpenGallery: (context) => pushRecordSatellite<Trip, void>(
+              context,
+              builder: (sitting) => TripGalleryPage(
+                tripId: tripId,
+                sitting: sitting,
+                unlockEditing: true,
+              ),
+            ),
           ),
           if (session != null) TripHeldPhotos(session: session),
         ],
