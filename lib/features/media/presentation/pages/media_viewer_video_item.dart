@@ -38,6 +38,10 @@ class _VideoItem extends ConsumerStatefulWidget {
   final void Function(String mediaId, VideoPlayerController? controller)
   onControllerChanged;
 
+  /// The viewer's sound: this page's player plays at it and follows each
+  /// change, and M toggles it (issue #4817).
+  final ViewerAudio audio;
+
   /// The viewer's people tag mode (issue #1745).
   final PeopleTagSession people;
 
@@ -58,6 +62,7 @@ class _VideoItem extends ConsumerStatefulWidget {
     required this.onSetOverlay,
     required this.onHoldChanged,
     required this.onControllerChanged,
+    required this.audio,
     required this.people,
     this.identificationsEditable = true,
     this.hideIdentifications = false,
@@ -99,6 +104,7 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
   @override
   void initState() {
     super.initState();
+    widget.audio.addListener(_applyAudio);
     // A neighbour built ahead holds no native player: only the page on
     // screen gets a decoder and texture, as before neighbours stayed built
     // (#1175 is the memory budget this protects).
@@ -108,6 +114,11 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
   @override
   void didUpdateWidget(covariant _VideoItem oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.audio != widget.audio) {
+      oldWidget.audio.removeListener(_applyAudio);
+      widget.audio.addListener(_applyAudio);
+      _applyAudio();
+    }
     if (!oldWidget.isCurrent && widget.isCurrent) {
       _initializeVideo();
     } else if (oldWidget.isCurrent && !widget.isCurrent) {
@@ -136,8 +147,25 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
     _releaseController(controller, widget.item.id);
   }
 
+  /// Gives the live player the viewer's sound after it changed. A player
+  /// opening meanwhile takes it from the opener instead.
+  void _applyAudio() {
+    final controller = _controller;
+    if (controller == null) return;
+    unawaited(
+      widget.audio.applyTo(controller).catchError((Object e) {
+        _log.warning('Video ${widget.item.id} volume change failed', error: e);
+      }),
+    );
+  }
+
   /// Handle keyboard events for video playback
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
+    // M mutes or unmutes, in tag mode too: it does not move the frame.
+    if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.keyM) {
+      widget.audio.toggleMute();
+      return KeyEventResult.handled;
+    }
     // In people tag mode the video stays on the frame its boxes are drawn
     // on (issue #1745), so Space does not play it.
     if (event is KeyDownEvent &&
@@ -175,6 +203,9 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
       final opener = VideoPlaybackOpener(
         playback,
         release: (controller) => _releaseController(controller, mediaId),
+        // Read at each open, a reopen included: never a moment of sound
+        // while the viewer is muted.
+        volume: () => widget.audio.effectiveVolume,
       );
       final controller = await opener.open();
 
@@ -232,6 +263,7 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
 
   @override
   void dispose() {
+    widget.audio.removeListener(_applyAudio);
     final controller = _controller;
     _opener?.dispose();
     if (controller != null) {

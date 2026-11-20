@@ -1,0 +1,99 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../../../helpers/test_database.dart';
+import 'video_viewer_test_harness.dart';
+
+/// The viewer's sound (issue #4817): videos open muted, M toggles it, and an
+/// unmute lasts until the viewer closes.
+void main() {
+  late SharedPreferences prefs;
+
+  setUp(() async {
+    await setUpTestDatabase();
+    SharedPreferences.setMockInitialValues({});
+    prefs = await SharedPreferences.getInstance();
+  });
+
+  tearDown(tearDownTestDatabase);
+
+  Finder playPause() => find.byWidgetPredicate(
+    (w) => w is Semantics && w.properties.label == 'Play or pause video',
+  );
+
+  Future<void> pressM(WidgetTester tester) async {
+    await tester.sendKeyEvent(LogicalKeyboardKey.keyM);
+    await tester.pump();
+  }
+
+  testWidgets('a video opens muted', (tester) async {
+    final platform = await pumpVideoViewer(tester, prefs);
+    expect(platform.volume, 0.0);
+  });
+
+  testWidgets('M toggles mute on the live player', (tester) async {
+    final platform = await pumpVideoViewer(tester, prefs);
+    await pressM(tester);
+    expect(platform.volume, 1.0);
+    await pressM(tester);
+    expect(platform.volume, 0.0);
+  });
+
+  testWidgets('toggling mute reaches a playing video without a replay', (
+    tester,
+  ) async {
+    final platform = await pumpVideoViewer(tester, prefs);
+    // Held for the photo pager's double-tap window before it lands.
+    await tester.tap(playPause());
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(platform.playing, isTrue);
+    await pressM(tester);
+    expect(platform.volume, 1.0);
+    expect(platform.playing, isTrue);
+    // Pause before the test ends: a playing controller polls on a timer.
+    await tester.tap(playPause());
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(platform.playing, isFalse);
+  });
+
+  testWidgets('an unmute carries to the next video', (tester) async {
+    final platform = await pumpVideoViewer(
+      tester,
+      prefs,
+      mediaList: [video('v1'), video('v2')],
+    );
+    await pressM(tester);
+    expect(platform.volume, 1.0);
+    final createdBefore = platform.created;
+
+    await tester.runAsync(() async {
+      await tester.tap(find.byTooltip('Next media'));
+      for (var i = 0; i < 8; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      platform.completeInitialization();
+      await Future<void>.delayed(const Duration(milliseconds: 150));
+      await tester.pump();
+    });
+    expect(platform.created, createdBefore + 1);
+    // Reset to muted, the second player would open at 0.
+    expect(platform.volume, 1.0);
+  });
+
+  testWidgets('a new viewer opens muted again', (tester) async {
+    final first = await pumpVideoViewer(tester, prefs);
+    await pressM(tester);
+    expect(first.volume, 1.0);
+
+    // Close the viewer, then open another.
+    await tester.runAsync(() async {
+      await tester.pumpWidget(const SizedBox());
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+    });
+    final second = await pumpVideoViewer(tester, prefs);
+    expect(second.volume, 0.0);
+  });
+}
