@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 
+import 'package:submersion/features/species_id/data/engines/onnx/device_memory.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/onnx_vision_engine.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/onnx_worker.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/pipeline/detector_reading.dart';
@@ -14,6 +15,7 @@ import 'package:submersion/features/species_id/domain/entities/media_identificat
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
 import 'package:submersion/features/species_id/domain/entities/video_detections.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
+import 'package:submersion/features/species_id/domain/entities/vision_memory.dart';
 import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 
 /// A worker that records its calls and holds each analysis until [release].
@@ -72,6 +74,19 @@ class FakeWorker implements OnnxWorkerHandle {
 
   @override
   Future<void> close() async => calls.add('close');
+}
+
+class FakeDeviceMemory implements DeviceMemory {
+  FakeDeviceMemory(this.total);
+
+  final int? total;
+
+  @override
+  Future<int?> totalBytes() async => total;
+
+  @override
+  Future<VisionMemory> reading() async =>
+      const VisionMemory(footprintBytes: 42, footprintPeakBytes: 43);
 }
 
 const _models = VisionModels(
@@ -211,5 +226,98 @@ void main() {
   test('excludeFromBackup touches nothing', () async {
     await engine().excludeFromBackup('/nowhere/at/all');
     expect(worker.calls, isEmpty);
+  });
+
+  group('availability', () {
+    OnnxVisionEngine on(
+      TargetPlatform platform, {
+      int? total = androidMinimumMemoryBytes,
+      bool ignoreFloor = false,
+      bool is64Bit = true,
+      bool libraryLoads = true,
+    }) => OnnxVisionEngine(
+      platform: platform,
+      worker: () async => worker,
+      deviceMemory: FakeDeviceMemory(total),
+      ignoreFloor: ignoreFloor,
+      is64Bit: is64Bit,
+      libraryLoads: () async => libraryLoads,
+    );
+
+    test('is available at exactly the floor', () async {
+      expect(
+        await on(TargetPlatform.android).availability(),
+        VisionAvailability.available,
+      );
+      expect(
+        await on(
+          TargetPlatform.windows,
+          total: pcMinimumMemoryBytes,
+        ).availability(),
+        VisionAvailability.available,
+      );
+    });
+
+    test('a device one byte under the floor is not eligible', () async {
+      expect(
+        await on(
+          TargetPlatform.android,
+          total: androidMinimumMemoryBytes - 1,
+        ).availability(),
+        VisionAvailability.deviceNotEligible,
+      );
+      expect(
+        await on(
+          TargetPlatform.linux,
+          total: pcMinimumMemoryBytes - 1,
+        ).availability(),
+        VisionAvailability.deviceNotEligible,
+      );
+    });
+
+    test('the measurement build lifts the floor', () async {
+      expect(
+        await on(
+          TargetPlatform.android,
+          total: 4 * 1024 * 1024 * 1024,
+          ignoreFloor: true,
+        ).availability(),
+        VisionAvailability.available,
+      );
+    });
+
+    test('an unknown memory size is not eligible', () async {
+      expect(
+        await on(TargetPlatform.android, total: null).availability(),
+        VisionAvailability.deviceNotEligible,
+      );
+    });
+
+    test('a 32-bit Android device is not eligible', () async {
+      expect(
+        await on(TargetPlatform.android, is64Bit: false).availability(),
+        VisionAvailability.deviceNotEligible,
+      );
+    });
+
+    test('no library is an unsupported platform', () async {
+      expect(
+        await on(TargetPlatform.linux, libraryLoads: false).availability(),
+        VisionAvailability.unsupportedPlatform,
+      );
+    });
+
+    test('Core ML platforms are not this engine\'s', () async {
+      expect(
+        await on(TargetPlatform.iOS).availability(),
+        VisionAvailability.unsupportedPlatform,
+      );
+    });
+
+    test('memory reads the device', () async {
+      final reading = await on(TargetPlatform.linux).memory();
+      expect(reading.footprintBytes, 42);
+      expect(reading.footprintPeakBytes, 43);
+    });
   });
 }

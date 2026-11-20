@@ -10,4 +10,5 @@ export 'src/ort/ort_runtime.dart'
         OrtModelSession,
         OrtRuntime,
         OrtSessionSettings,
-        OrtTensor;
+        OrtTensor,
+        ortLibraryLoads;

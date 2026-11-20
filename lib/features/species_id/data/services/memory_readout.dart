@@ -64,6 +64,7 @@ String describeMemory(String stage, VisionMemory reading) {
     if (available != null && available > 0 && peak != null)
       '${mb(available + reading.footprintBytes - peak)} left at the peak',
     if (neural.isNotEmpty) 'Neural Engine ${neural.join(', ')}',
+    if (reading.lowMemory == true) 'low memory',
   ];
   return 'Memory after $stage: ${parts.join(', ')}';
 }

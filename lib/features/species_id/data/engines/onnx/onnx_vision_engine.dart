@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:ffi' show IntPtr, sizeOf;
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:submersion_vision/onnx_runtime.dart';
 
 import 'package:submersion/core/constants/feature_flags.dart';
+import 'package:submersion/features/species_id/data/engines/onnx/device_memory.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/flutter_image_decoder.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/onnx_worker.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/pipeline/pixels.dart';
@@ -25,13 +28,29 @@ class OnnxVisionEngine with WidgetsBindingObserver implements VisionEngine {
     TargetPlatform? platform,
     Future<OnnxWorkerHandle> Function()? worker,
     Future<RgbaImage> Function(Uint8List encoded)? decode,
+    DeviceMemory? deviceMemory,
+    bool ignoreFloor = marineLifeIgnoreFloor,
+    bool? is64Bit,
+    Future<bool> Function()? libraryLoads,
   }) : _platform = platform ?? defaultTargetPlatform,
        _spawn = worker ?? (() => OnnxWorker.spawn()),
-       _decode = decode ?? decodeForAnalysis;
+       _decode = decode ?? decodeForAnalysis,
+       _deviceMemory =
+           deviceMemory ??
+           ((platform ?? defaultTargetPlatform) == TargetPlatform.windows
+               ? WindowsDeviceMemory()
+               : ProcDeviceMemory()),
+       _ignoreFloor = ignoreFloor,
+       _is64Bit = is64Bit ?? sizeOf<IntPtr>() == 8,
+       _libraryLoads = libraryLoads ?? (() async => ortLibraryLoads());
 
   final TargetPlatform _platform;
   final Future<OnnxWorkerHandle> Function() _spawn;
   final Future<RgbaImage> Function(Uint8List encoded) _decode;
+  final DeviceMemory _deviceMemory;
+  final bool _ignoreFloor;
+  final bool _is64Bit;
+  final Future<bool> Function() _libraryLoads;
 
   Future<OnnxWorkerHandle>? _worker;
   VisionModels? _loaded;
@@ -46,10 +65,25 @@ class OnnxVisionEngine with WidgetsBindingObserver implements VisionEngine {
   @override
   String? get engineName => VisionEngine.onnxEngine;
 
+  /// `available` when ONNX Runtime loads, the process is 64-bit and the
+  /// device has at least the floor's memory (8 GB devices at launch); a
+  /// build made with `MARINE_LIFE_ID_IGNORE_FLOOR` skips the memory check,
+  /// for the Pixel 6a measurement only.
   @override
-  Future<VisionAvailability> availability() async => _runsHere
-      ? VisionAvailability.available
-      : VisionAvailability.unsupportedPlatform;
+  Future<VisionAvailability> availability() async {
+    if (!_runsHere || !await _libraryLoads()) {
+      return VisionAvailability.unsupportedPlatform;
+    }
+    if (!_is64Bit) return VisionAvailability.deviceNotEligible;
+    if (_ignoreFloor) return VisionAvailability.available;
+    final floor = _platform == TargetPlatform.android
+        ? androidMinimumMemoryBytes
+        : pcMinimumMemoryBytes;
+    final total = await _deviceMemory.totalBytes();
+    return total != null && total >= floor
+        ? VisionAvailability.available
+        : VisionAvailability.deviceNotEligible;
+  }
 
   @override
   Future<void> load(VisionModels models) => _serial(() async {
@@ -98,8 +132,7 @@ class OnnxVisionEngine with WidgetsBindingObserver implements VisionEngine {
   });
 
   @override
-  Future<VisionMemory> memory() async =>
-      throw const VisionEngineException('no_reading', 'no memory reading');
+  Future<VisionMemory> memory() => _deviceMemory.reading();
 
   /// Nothing to do: Windows and Linux have no device backup, and on Android
   /// the app's backup rules leave the pack out.

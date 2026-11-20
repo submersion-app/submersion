@@ -55,6 +55,25 @@ class OrtException implements Exception {
 
 typedef _Status = Pointer<OrtStatus>;
 
+/// Whether ONNX Runtime loads and offers the API version these bindings
+/// need: the build hook's library, or the one at [libraryPath].
+bool ortLibraryLoads({String? libraryPath}) {
+  try {
+    final base = libraryPath == null
+        ? ortGetApiBaseFromAsset()
+        : DynamicLibrary.open(libraryPath).lookupFunction<
+            Pointer<OrtApiBase> Function(),
+            Pointer<OrtApiBase> Function()
+          >('OrtGetApiBase')();
+    return base.ref.GetApi.asFunction<Pointer<OrtApi> Function(int)>()(
+          _ortApiVersion,
+        ) !=
+        nullptr;
+  } on Object {
+    return false;
+  }
+}
+
 /// ONNX Runtime's environment and API table. One per isolate is enough.
 class OrtRuntime {
   OrtRuntime._(this._api, this._env);
