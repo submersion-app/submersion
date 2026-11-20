@@ -15,7 +15,10 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_c
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/component_picker_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_components_sitting.dart';
+import 'package:submersion/features/equipment/presentation/widgets/assembly_history_dialog.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/folded_groups.dart';
@@ -135,6 +138,7 @@ void main() {
     EquipmentComponent? replacing,
     _DiveCount? count,
     _FakeDiveRepository? dives,
+    EditSession<EquipmentItem>? editing,
   }) => ProviderScope(
     overrides: [
       equipmentComponentRepositoryProvider.overrideWithValue(repo),
@@ -157,6 +161,7 @@ void main() {
           parentId: 'reg',
           scrollController: ScrollController(),
           replacing: replacing,
+          editing: editing,
         ),
       ),
     ),
@@ -251,6 +256,69 @@ void main() {
       ]),
     );
     expect(dives.rewrites.single.$3, isTrue);
+  });
+
+  // Issue #4527, phase 3: in the assembly's sitting the picker holds its
+  // choice, with the answer to Update past dives?, and writes nothing.
+  group('in a sitting', () {
+    late EditSession<EquipmentItem> session;
+
+    setUp(() {
+      session = EditSession(item('reg', EquipmentType.regulator));
+      addTearDown(session.dispose);
+      gearItemComponentsList.loadNone(session);
+    });
+
+    testWidgets('Add holds the parts and writes nothing', (tester) async {
+      final repo = _FakeComponentRepository();
+      final dives = _FakeDiveRepository();
+      await tester.pumpWidget(
+        build(
+          repo,
+          count: _DiveCount()..diveCount = 3,
+          dives: dives,
+          editing: session,
+        ),
+      );
+      await tester.pumpAndSettle();
+      await openFoldedGroups(tester);
+      await tester.tap(find.text('Name hose'));
+      await tester.pump();
+      await tester.tap(find.text('Add 1'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Also update 3 dives'));
+      await tester.pumpAndSettle();
+
+      expect(repo.added, isEmpty);
+      expect(dives.rewrites, isEmpty);
+      final held = gearItemComponentsList.current(session)!;
+      expect(held.single.componentEquipmentId, 'hose');
+      expect(held.single.component?.name, 'Name hose');
+      final rewrites = gearAssemblyRewrites(const [], held, {
+        'hose': AssemblyHistoryChoice.alsoPast,
+      });
+      expect(rewrites.alsoPast, [const GearPartAdded('hose')]);
+    });
+
+    testWidgets('Replace swaps the part on its row and writes nothing', (
+      tester,
+    ) async {
+      final row = edge('reg', 'first');
+      gearItemComponentsList.set(session, [row]);
+      final repo = _FakeComponentRepository();
+      await tester.pumpWidget(build(repo, replacing: row, editing: session));
+      await tester.pumpAndSettle();
+      await openFoldedGroups(tester);
+      await tester.tap(find.text('Name hose'));
+      await tester.pump();
+      await tester.tap(find.text('Replace'));
+      await tester.pumpAndSettle();
+
+      expect(repo.replaced, isEmpty);
+      final held = gearItemComponentsList.current(session)!;
+      expect(held.single.id, row.id);
+      expect(held.single.componentEquipmentId, 'hose');
+    });
   });
 
   testWidgets('a failed dive count is reported, and adds nothing', (
