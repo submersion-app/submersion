@@ -179,6 +179,22 @@ void main() {
   // Link markup broken by hand (#4815) would read at Save as the
   // annotation removed, so the Notes card holds Save until it is mended.
   group('annotationLinksIntact', () {
+    test('a link deleted whole beside a stored break left as it is: a '
+        'removal, as always', () async {
+      final stored = dive.copyWith(
+        notes: '${dive.notes}\n\n[x](annotation:orphan',
+      );
+      final session = EditSession<Dive>(stored);
+      addTearDown(() {
+        if (!session.isDisposed) session.dispose();
+      });
+      loadDiveAnnotations(session, container.read);
+      await session.settled();
+
+      session.set(diveNotesField, 'Calm\n\n[x](annotation:orphan');
+      expect(annotationLinksIntact(session), isTrue);
+    });
+
     test('a link pasted from elsewhere, to an annotation this dive does not '
         'hold, loses nothing and is intact', () async {
       final session = await started();
