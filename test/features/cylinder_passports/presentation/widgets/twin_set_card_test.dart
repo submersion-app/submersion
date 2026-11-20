@@ -13,7 +13,10 @@ import 'package:submersion/features/equipment/domain/entities/equipment_attribut
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_card_ids.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
@@ -133,6 +136,7 @@ void main() {
     List<CylinderPairing> pairings = const [],
     FakePairingRepository? repository,
     AppSettings? settings,
+    Widget card = const TwinSetCard(equipmentId: 'A'),
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(600, 1400);
@@ -157,19 +161,121 @@ void main() {
             repository ?? FakePairingRepository(),
           ),
         ].cast(),
-        child: const MaterialApp(
-          locale: Locale('en'),
+        child: MaterialApp(
+          locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(
-            body: SingleChildScrollView(child: TwinSetCard(equipmentId: 'A')),
-          ),
+          home: Scaffold(body: SingleChildScrollView(child: card)),
         ),
       ),
     );
     await tester.pumpAndSettle();
     return AppLocalizations.of(tester.element(find.byType(TwinSetCard)));
   }
+
+  // Issue #4527, phase 3: in the gear item's sitting every pairing change
+  // waits for Save.
+  group('in a sitting', () {
+    late EditSession<EquipmentItem> session;
+
+    setUp(() {
+      session = EditSession(cylinder('A'));
+      addTearDown(session.dispose);
+    });
+
+    Widget held() => TwinSetCard(
+      equipmentId: 'A',
+      working: session.working,
+      editing: session,
+    );
+
+    testWidgets('linking holds the pairing until Save', (tester) async {
+      final repository = FakePairingRepository();
+      final l10n = await pump(
+        tester,
+        gear: [cylinder('A'), cylinder('B')],
+        repository: repository,
+        card: held(),
+      );
+
+      await tester.tap(find.text(l10n.twinSet_link));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Double 12 B'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      expect(repository.creates, isEmpty);
+      expect(find.text('Double 12 B'), findsOneWidget);
+      expect(find.byType(RecordChangedDot), findsOneWidget);
+      expect(session.changedCardIds, {GearItemCardId.twinSet.name});
+
+      await session.runHeldWrites();
+      expect(repository.creates.single.b, 'B');
+    });
+
+    testWidgets('unlink and delete are held, and run in order at Save', (
+      tester,
+    ) async {
+      final repository = FakePairingRepository();
+      final l10n = await pump(
+        tester,
+        gear: [cylinder('A'), cylinder('B'), cylinder('C')],
+        repository: repository,
+        pairings: [
+          pairing('p2', 'A', 'B', DateTime.utc(2025, 5, 1)),
+          pairing(
+            'p1',
+            'A',
+            'C',
+            DateTime.utc(2024, 1, 1),
+            DateTime.utc(2025, 5, 1),
+          ),
+        ],
+        card: held(),
+      );
+
+      await tester.tap(find.text(l10n.twinSet_unlink));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+      expect(find.text(l10n.twinSet_none), findsOneWidget);
+      await tester.tap(find.byTooltip(l10n.twinSet_deletePairing).last);
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.widgetWithText(FilledButton, l10n.twinSet_deletePairing),
+      );
+      await tester.pumpAndSettle();
+
+      expect(repository.ends, isEmpty);
+      expect(repository.deletes, isEmpty);
+      await session.runHeldWrites();
+      expect(repository.ends.single.id, 'p2');
+      expect(repository.deletes, ['p1']);
+    });
+
+    testWidgets('Worn as set to Twin set in the sitting hides an unpaired '
+        'card', (tester) async {
+      final doubles = cylinder('A').copyWith(
+        attributes: [
+          ...cylinder('A').attributes,
+          const EquipmentAttribute(
+            id: 'A-worn',
+            equipmentId: 'A',
+            key: EquipmentAttrKeys.wornAs,
+            valueText: kWornAsTwinSet,
+          ),
+        ],
+      );
+      final l10n = await pump(
+        tester,
+        gear: [cylinder('A'), cylinder('B')],
+        card: TwinSetCard(equipmentId: 'A', working: doubles, editing: session),
+      );
+
+      expect(find.text(l10n.twinSet_title), findsNothing);
+    });
+  });
 
   testWidgets('an unlinked cylinder offers a link', (tester) async {
     final l10n = await pump(tester, gear: [cylinder('A'), cylinder('B')]);

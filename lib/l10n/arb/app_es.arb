@@ -18640,6 +18640,7 @@
   "changeLog_table_settings": "Ajustes de la app",
   "changeLog_table_diverSettings": "Ajustes del buceador",
   "changeLog_table_safetyFinding": "Hallazgo de seguridad",
+  "changeLog_table_conditionFinding": "Hallazgo de estado",
   "changeLog_table_pressureSeries": "Lecturas de presión",
   "changeLog_table_navTrack": "Track submarino",
   "changeLog_history": "Historial",

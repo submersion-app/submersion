@@ -46,7 +46,6 @@ const Set<String> kSqlReadableExcludedTables = {
   'dive_derived_metrics',
   'dive_sensor_summaries',
   'equipment_condition_reviews',
-  'equipment_findings',
   'equipment_service_status',
   'gps_track_points_local',
   'quality_findings',

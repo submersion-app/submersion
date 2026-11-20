@@ -12,7 +12,9 @@ import 'package:submersion/shared/widgets/record_editing/record_edit_controller.
 import 'package:submersion/shared/widgets/record_editing/record_edit_leave_guard.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_pane_header.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_shortcuts.dart';
+import 'package:submersion/shared/widgets/record_editing/record_satellite.dart';
 import 'package:submersion/shared/widgets/record_editing/record_satellite_bar.dart';
+import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blocker.dart';
 
 import 'fake_note_record.dart';
 
@@ -47,6 +49,46 @@ void main() {
 
   FakeNotePageState parent(WidgetTester tester) =>
       tester.state(find.byType(FakeNotePage, skipOffstage: false));
+
+  // A satellite's route is not a page, so its exit blocker answers for the
+  // record page it was pushed from: leaving that page asks about a sitting
+  // the satellite holds on its own.
+  testWidgets('a satellite is on the page of the record it was pushed '
+      'from', (tester) async {
+    Object? satellitePage;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Navigator(
+          onDidRemovePage: (_) {},
+          pages: [
+            MaterialPage<void>(
+              key: const ValueKey('record'),
+              child: Builder(
+                builder: (context) => TextButton(
+                  onPressed: () => pushRecordSatellite<FakeNote, void>(
+                    context,
+                    rootNavigator: false,
+                    builder: (_) => Builder(
+                      builder: (context) {
+                        satellitePage = recordSittingPageOf(context);
+                        return const SizedBox.shrink();
+                      },
+                    ),
+                  ),
+                  child: const Text('open'),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    expect(satellitePage, const ValueKey('record'));
+  });
 
   testWidgets("pushed during the parent's sitting it joins it", (tester) async {
     final probe = await pumpFakeNotes(tester, const FakeNotePage());

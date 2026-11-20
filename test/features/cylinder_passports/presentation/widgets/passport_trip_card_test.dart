@@ -4,13 +4,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_trip_card.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_passport_sitting.dart';
 import 'package:submersion/features/trips/data/repositories/trip_equipment_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_equipment_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_picker.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -35,6 +40,7 @@ void main() {
     List<PackedTrip> trips = const [],
     List<Trip> allTrips = const [],
     bool failing = false,
+    EditSession<EquipmentItem>? editing,
   }) async {
     final fake = _FakePacks(failing: failing);
     final overrides = await getBaseOverrides();
@@ -46,8 +52,8 @@ void main() {
           allTripsProvider.overrideWith((ref) async => allTrips),
           tripEquipmentRepositoryProvider.overrideWithValue(fake),
         ],
-        child: const SingleChildScrollView(
-          child: PassportTripCard(equipmentId: 'tank'),
+        child: SingleChildScrollView(
+          child: PassportTripCard(equipmentId: 'tank', editing: editing),
         ),
       ),
     );
@@ -57,6 +63,30 @@ void main() {
     );
     return (l10n, fake);
   }
+
+  // Issue #4527: in the gear item's sitting packing waits for Save.
+  testWidgets('in a sitting Pack for a trip holds the trip', (tester) async {
+    final session = EditSession(
+      const EquipmentItem(id: 'tank', name: 'Tank', type: EquipmentType.tank),
+    );
+    addTearDown(session.dispose);
+    gearItemTripsList.loadNone(session);
+    final (l10n, fake) = await pump(
+      tester,
+      allTrips: [trip('a')],
+      editing: session,
+    );
+
+    await tester.tap(find.text(l10n.passport_trip_assign));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Trip a'));
+    await tester.pumpAndSettle();
+
+    expect(fake.packed, isEmpty);
+    expect(find.text(l10n.passport_trip_packedFor('Trip a')), findsOneWidget);
+    expect(find.byType(RecordChangedDot), findsOneWidget);
+    expect(gearItemTripsList.current(session), ['a']);
+  });
 
   testWidgets('with no trips it says so and offers Pack for a trip', (
     tester,

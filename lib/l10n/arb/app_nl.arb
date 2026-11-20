@@ -18640,6 +18640,7 @@
   "changeLog_table_settings": "App-instellingen",
   "changeLog_table_diverSettings": "Duikerinstellingen",
   "changeLog_table_safetyFinding": "Veiligheidsbevinding",
+  "changeLog_table_conditionFinding": "Conditiebevinding",
   "changeLog_table_pressureSeries": "Drukmetingen",
   "changeLog_table_navTrack": "Onderwatertrack",
   "changeLog_history": "Geschiedenis",

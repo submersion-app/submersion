@@ -18640,6 +18640,7 @@
   "changeLog_table_settings": "إعدادات التطبيق",
   "changeLog_table_diverSettings": "إعدادات الغواص",
   "changeLog_table_safetyFinding": "نتيجة سلامة",
+  "changeLog_table_conditionFinding": "نتيجة حالة",
   "changeLog_table_pressureSeries": "قراءات الضغط",
   "changeLog_table_navTrack": "مسار تحت الماء",
   "changeLog_history": "السجل",

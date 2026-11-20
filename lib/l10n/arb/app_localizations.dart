@@ -100036,6 +100036,12 @@ abstract class AppLocalizations {
   /// **'Safety finding'**
   String get changeLog_table_safetyFinding;
 
+  /// No description provided for @changeLog_table_conditionFinding.
+  ///
+  /// In en, this message translates to:
+  /// **'Condition finding'**
+  String get changeLog_table_conditionFinding;
+
   /// No description provided for @changeLog_table_pressureSeries.
   ///
   /// In en, this message translates to:

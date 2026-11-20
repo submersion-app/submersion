@@ -69,8 +69,23 @@ Future<bool> confirmLeaveRecordSitting(
 ).read(appExitGuardProvider).mayLeave(page: state.pageKey);
 
 /// The key of the page [context] is built in, as [GoRouterState.pageKey]
-/// names it, for [RecordSittingExitBlocker]'s `page`.
-Object? recordSittingPageOf(BuildContext context) {
-  final settings = ModalRoute.of(context)?.settings;
-  return settings is Page ? settings.key : null;
+/// names it, for [RecordSittingExitBlocker]'s `page`. A satellite page,
+/// pushed on a route of its own, is on the page of its record
+/// ([RecordSatelliteRouteSettings]).
+Object? recordSittingPageOf(BuildContext context) =>
+    switch (ModalRoute.of(context)?.settings) {
+      final Page<Object?> page => page.key,
+      RecordSatelliteRouteSettings(:final recordPage) => recordPage,
+      _ => null,
+    };
+
+/// The settings of a satellite page's route (`pushRecordSatellite`): the
+/// key of the record page it was pushed from, so a sitting the satellite
+/// holds is asked about when that page is left.
+class RecordSatelliteRouteSettings extends RouteSettings {
+  const RecordSatelliteRouteSettings({required this.recordPage});
+
+  /// The record page's key, as [recordSittingPageOf] read it; null when
+  /// that page is not a [Page] either.
+  final Object? recordPage;
 }

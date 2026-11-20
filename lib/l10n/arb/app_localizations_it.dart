@@ -63844,6 +63844,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get changeLog_table_safetyFinding => 'Rilievo di sicurezza';
 
   @override
+  String get changeLog_table_conditionFinding => 'Rilievo sullo stato';
+
+  @override
   String get changeLog_table_pressureSeries => 'Letture di pressione';
 
   @override

@@ -64770,6 +64770,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get changeLog_table_safetyFinding => 'نتيجة سلامة';
 
   @override
+  String get changeLog_table_conditionFinding => 'نتيجة حالة';
+
+  @override
   String get changeLog_table_pressureSeries => 'قراءات الضغط';
 
   @override

@@ -119,6 +119,21 @@ class CylinderPassportRepository {
       row.status != EquipmentStatus.sold.name &&
       row.status != EquipmentStatus.wanted.name;
 
+  /// The item still in service, other than [exceptEquipmentId], that holds
+  /// [passportId] for [diverId]: what [assignPassportId] refuses on, read
+  /// without writing, so a gear item's sitting can ask before it holds a
+  /// link (issue #4527). Null when the id is free to take.
+  Future<String?> fittedHolderOf(
+    String passportId, {
+    required String exceptEquipmentId,
+    String? diverId,
+  }) async {
+    for (final row in await _holdersOf(passportId, diverId: diverId)) {
+      if (row.id != exceptEquipmentId && _isFitted(row)) return row.id;
+    }
+    return null;
+  }
+
   /// Removes [equipmentId]'s passport id, so a tag can move off a cylinder
   /// that is no longer in service.
   Future<void> _releasePassportId(String equipmentId) async {

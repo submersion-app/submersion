@@ -20,11 +20,27 @@ class PairingClash implements Exception {
   String toString() => 'PairingClash(${clashes.map((p) => p.id).join(', ')})';
 }
 
+/// The pairing writes the Twin set card's flows make: the repository's, or
+/// a gear item sitting's, which holds them until Save (issue #4527).
+abstract interface class PairingWrites {
+  Future<CylinderPairing> createPairing({
+    required String cylinderAId,
+    required String cylinderBId,
+    required DateTime pairedOn,
+    DateTime? unpairedOn,
+    bool replace = false,
+  });
+
+  Future<void> endPairing(String id, DateTime unpairedOn);
+
+  Future<void> deletePairing(String id);
+}
+
 /// Twin set pairings of two cylinders (issue #4242). Every read goes through
 /// [resolvePairings], so two pairings stored offline on two devices still
 /// show one partner. Registered for sync like the fill history: every write
 /// marks the row pending, every delete logs a tombstone.
-class CylinderPairingRepository {
+class CylinderPairingRepository implements PairingWrites {
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
@@ -58,6 +74,7 @@ class CylinderPairingRepository {
   /// throws. With [unpairedOn] the pairing is stored already ended (a past
   /// pair entered after the fact); the whole range is checked, and an end on
   /// or before the start throws [ArgumentError].
+  @override
   Future<CylinderPairing> createPairing({
     required String cylinderAId,
     required String cylinderBId,
@@ -141,6 +158,7 @@ class CylinderPairingRepository {
   /// cylinders are apart. An end on or before its start throws
   /// [ArgumentError]; one that overlaps a later pairing of either cylinder
   /// throws [PairingClash].
+  @override
   Future<void> endPairing(String id, DateTime unpairedOn) async {
     final end = calendarDay(unpairedOn);
     final now = DateTime.now().millisecondsSinceEpoch;
@@ -168,6 +186,7 @@ class CylinderPairingRepository {
 
   /// Deletes pairing [id], for one made by mistake. Fills and dives are not
   /// touched.
+  @override
   Future<void> deletePairing(String id) async {
     await _deleteRow(id);
     SyncEventBus.notifyLocalChange();

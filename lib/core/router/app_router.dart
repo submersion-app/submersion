@@ -915,6 +915,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'passport',
                     name: 'equipmentPassport',
+                    // A satellite of the item: it may hold a sitting.
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) => PassportPage(
                       equipmentId: state.pathParameters['equipmentId']!,
                       scannedTag: scannedTagFrom(state.extra),
@@ -943,6 +945,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'gear-passport',
                     name: 'gearPassport',
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) => GearPassportPage(
                       equipmentId: state.pathParameters['equipmentId']!,
                       scannedTag: scannedGearTagFrom(state.extra),

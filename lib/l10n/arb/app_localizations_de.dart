@@ -63708,6 +63708,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get changeLog_table_safetyFinding => 'Sicherheitsbefund';
 
   @override
+  String get changeLog_table_conditionFinding => 'Zustandsbefund';
+
+  @override
   String get changeLog_table_pressureSeries => 'Druckwerte';
 
   @override

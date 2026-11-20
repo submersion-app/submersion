@@ -63493,6 +63493,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get changeLog_table_safetyFinding => 'Biztonsági megállapítás';
 
   @override
+  String get changeLog_table_conditionFinding => 'Állapotmegállapítás';
+
+  @override
   String get changeLog_table_pressureSeries => 'Nyomásértékek';
 
   @override

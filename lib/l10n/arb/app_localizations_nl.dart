@@ -63449,6 +63449,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get changeLog_table_safetyFinding => 'Veiligheidsbevinding';
 
   @override
+  String get changeLog_table_conditionFinding => 'Conditiebevinding';
+
+  @override
   String get changeLog_table_pressureSeries => 'Drukmetingen';
 
   @override

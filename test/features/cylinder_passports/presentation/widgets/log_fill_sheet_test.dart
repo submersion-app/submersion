@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_pairing.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
@@ -122,6 +126,55 @@ void main() {
     await pump(tester);
     final l10n = AppLocalizations.of(tester.element(find.byType(LogFillSheet)));
     expect(find.text(l10n.passport_logFill_analysedHint), findsNothing);
+  });
+
+  // Issue #4527: in a gear item's sitting the sheet writes nothing.
+  testWidgets('in a sitting Save hands back a twin fill with the sitting\'s '
+      'partner and writes nothing', (tester) async {
+    await tester.runAsync(
+      () => EquipmentRepository().createEquipment(
+        const EquipmentItem(
+          id: 'eq-2',
+          name: 'Right 12',
+          type: EquipmentType.tank,
+        ),
+      ),
+    );
+    final held = <(CylinderFill, String?)>[];
+    await pump(
+      tester,
+      sheet: LogFillSheet(
+        passportId: 'pp-1',
+        equipmentId: 'eq-1',
+        onHold: (fill, {twinPartnerId, toTied = false}) =>
+            held.add((fill, twinPartnerId)),
+        pairingOn: (day) => CylinderPairing(
+          id: 'p',
+          cylinderAId: 'eq-1',
+          cylinderBId: 'eq-2',
+          pairedOn: DateTime(2020),
+          createdAt: DateTime(2020),
+          updatedAt: DateTime(2020),
+        ),
+      ),
+    );
+    final l10n = AppLocalizations.of(tester.element(find.byType(LogFillSheet)));
+    await tester.ensureVisible(find.text(l10n.forms_save));
+    await tester.tap(find.text(l10n.forms_save));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 50)),
+    );
+    await tester.pumpAndSettle();
+
+    expect(held.single.$1.passportId, 'pp-1');
+    expect(held.single.$2, 'eq-2');
+    final stored = await tester.runAsync(
+      () => CylinderFillRepository().getForCylinder(
+        passportId: 'pp-1',
+        equipmentId: 'eq-1',
+      ),
+    );
+    expect(stored, isEmpty);
   });
 
   testWidgets('shows every field with the diver units', (tester) async {
