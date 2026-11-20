@@ -260,6 +260,34 @@ void main() {
     expect(editor.bottom, lessThan(tabs.top));
   });
 
+  for (final (kind, trip) in [
+    ('to come', redSea),
+    // A past trip's Overview has the story's day strip at its top.
+    (
+      'in the past',
+      redSea.copyWith(
+        startDate: DateTime(2024, 6, 1),
+        endDate: DateTime(2024, 6, 8),
+      ),
+    ),
+  ]) {
+    testWidgets('on a phone with the keyboard up, the open header editor of '
+        'a trip $kind fits above the tab row', (tester) async {
+      await pumpTripPage(tester, trip: trip, size: const Size(402, 874));
+      tester.view.padding = const FakeViewPadding(top: 62, bottom: 34);
+      await tester.pumpAndSettle();
+      await unlock(tester);
+      await openCard(tester, l.settings_conflict_ref_trip);
+      // The keyboard, as an iPhone 17 Pro shows it for the name field.
+      tester.view.viewInsets = const FakeViewPadding(bottom: 336);
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      final tabs = tester.getRect(find.byType(TabBar));
+      expect(tabs.bottom, lessThanOrEqualTo(874 - 336));
+    });
+  }
+
   testWidgets('Cancel with changes asks first', (tester) async {
     final harness = await pumpTripPage(tester);
     await unlock(tester);

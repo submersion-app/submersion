@@ -318,32 +318,42 @@ class _TripDetailContent extends ConsumerWidget {
     // Who the trip is shared with is changed on its header block (#3766,
     // issue #4527).
     final slots = host._slots(trip, stored);
-    Widget body = Column(
-      children: [
-        SharedByBanner(
-          kind: SharedItemKind.trip,
-          itemId: trip.id,
-          ownerId: trip.diverId,
-        ),
-        // A side trip names its larger trip (issue #3658).
-        PartOfTripLink(
-          tripId: trip.id,
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
-        ),
-        // The header block, on every tab: the trip's values nothing else
-        // shows, and its editor (issue #4527).
-        slots.frame(TripCardId.header, TripHeaderRows(trip: trip)),
-        Expanded(
-          child: TripDetailTabs(
-            tripWithStats: tripWithStats,
-            controller: host.tabController,
-            storySelection: host._storySelection,
-            // The day's note is its Day plan, opened where it is, unlocking
-            // first when locked.
-            onEditDayNote: (day) => host._openCard(TripCardId.notes, trip),
+    Widget body = LayoutBuilder(
+      builder: (context, constraints) => Column(
+        children: [
+          SharedByBanner(
+            kind: SharedItemKind.trip,
+            itemId: trip.id,
+            ownerId: trip.diverId,
           ),
-        ),
-      ],
+          // A side trip names its larger trip (issue #3658).
+          PartOfTripLink(
+            tripId: trip.id,
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+          ),
+          // The header block, on every tab: the trip's values nothing else
+          // shows, and its editor (issue #4527). At most half the page,
+          // scrolling within that, so the open editor fits above the tab row
+          // and the tab's top with a phone's keyboard up.
+          ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: constraints.maxHeight / 2),
+            child: SingleChildScrollView(
+              primary: false,
+              child: slots.frame(TripCardId.header, TripHeaderRows(trip: trip)),
+            ),
+          ),
+          Expanded(
+            child: TripDetailTabs(
+              tripWithStats: tripWithStats,
+              controller: host.tabController,
+              storySelection: host._storySelection,
+              // The day's note is its Day plan, opened where it is, unlocking
+              // first when locked.
+              onEditDayNote: (day) => host._openCard(TripCardId.notes, trip),
+            ),
+          ),
+        ],
+      ),
     );
     body = TripCardSlotsScope(slots: slots, child: body);
 
