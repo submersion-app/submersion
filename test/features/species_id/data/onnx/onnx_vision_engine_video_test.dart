@@ -93,7 +93,10 @@ class FakeWorker implements OnnxWorkerHandle {
   final calls = <String>[];
 
   @override
-  Future<void> load(VisionModels models) async => loads++;
+  Future<String?> load(VisionModels models) async {
+    loads++;
+    return 'cpu';
+  }
 
   @override
   Future<PipelineResult> analyze(RgbaImage image) async {

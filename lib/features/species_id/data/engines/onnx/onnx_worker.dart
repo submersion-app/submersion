@@ -18,7 +18,8 @@ typedef ProviderLibrary = ({String name, String path});
 
 /// The models and the pipeline, wherever they run.
 abstract interface class OnnxWorkerHandle {
-  Future<void> load(VisionModels models);
+  /// Opens [models]; answers the device they opened on, for the debug log.
+  Future<String?> load(VisionModels models);
   Future<PipelineResult> analyze(RgbaImage image);
   Future<List<PipelineBox>> detect(RgbaImage frame);
   Future<VisionMomentCrop?> cropAndEmbed(
@@ -110,7 +111,8 @@ class OnnxWorker implements OnnxWorkerHandle {
   }
 
   @override
-  Future<void> load(VisionModels models) => _call('load', models);
+  Future<String?> load(VisionModels models) async =>
+      await _call('load', models) as String?;
 
   @override
   Future<PipelineResult> analyze(RgbaImage image) async =>
@@ -235,7 +237,10 @@ void _workerMain(
     final (kind, payload, reply) = message as (String, Object?, SendPort);
     try {
       final Object? value = switch (kind) {
-        'load' => _done(() => core.load(payload! as VisionModels)),
+        'load' => () {
+          core.load(payload! as VisionModels);
+          return core.device?.name;
+        }(),
         'analyze' => core.analyze(_receive(payload! as _Image)),
         'detect' => core.detect(_receive(payload! as _Image)),
         'crop' => switch (payload! as (_Image, IdentificationBox)) {
