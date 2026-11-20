@@ -20,15 +20,21 @@ import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 import '../support/dive_media_sitting.dart';
 
-/// Learned shapes from a fixed map, or a read that fails.
-class _FakeAspectCache extends MediaAspectCacheRepository {
-  _FakeAspectCache([this.learned = const {}, this.fails = false]);
+/// Learned shapes from a fixed map, or a read that fails. Implements rather
+/// than extends the repository, so a method added to it fails to compile
+/// here instead of reaching the real local cache.
+class _FakeAspectCache implements MediaAspectCacheRepository {
+  _FakeAspectCache({this.learned = const {}, this.fails = false});
 
   final Map<String, LearnedAspect> learned;
   final bool fails;
 
+  /// How many times the shapes were read.
+  int loads = 0;
+
   @override
   Future<Map<String, LearnedAspect>> loadAll() async {
+    loads++;
     if (fails) throw StateError('cache unreadable');
     return learned;
   }
@@ -64,13 +70,12 @@ void main() {
     WidgetTester tester,
     List<MediaItem> media, {
     MediaAspectCacheRepository? cache,
-    double width = 800,
     EditSession<Dive>? editing,
     void Function(MediaItem)? onOpenDocument,
     TextDirection textDirection = TextDirection.ltr,
   }) async {
     tester.view.devicePixelRatio = 1;
-    tester.view.physicalSize = Size(width, 900);
+    tester.view.physicalSize = const Size(800, 900);
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
       testApp(
@@ -107,6 +112,10 @@ void main() {
       tester.getRect(tiles().at(i)),
   ];
 
+  /// The tiles sharing [member]'s row, in list order.
+  List<Rect> rowOf(List<Rect> rects, Rect member) =>
+      rects.where((r) => r.top == member.top).toList();
+
   Rect gridRect(WidgetTester tester) =>
       tester.getRect(find.byType(DragSelectGridView<MediaItem>));
 
@@ -140,7 +149,7 @@ void main() {
 
       final rects = tileRects(tester);
       final grid = gridRect(tester);
-      final firstRow = rects.where((r) => r.top == rects.first.top).toList();
+      final firstRow = rowOf(rects, rects.first);
       expect(firstRow.length, greaterThan(1));
       expect(firstRow.first.left, closeTo(grid.left, 0.5));
       expect(firstRow.last.right, closeTo(grid.right, 0.5));
@@ -164,7 +173,7 @@ void main() {
 
       final rects = tileRects(tester);
       final grid = gridRect(tester);
-      final firstRow = rects.where((r) => r.top == rects.first.top).toList();
+      final firstRow = rowOf(rects, rects.first);
       // The first item sits at the right edge and the row runs leftward,
       // ending flush with the left edge, gaps as in left to right.
       expect(firstRow.first.right, closeTo(grid.right, 0.5));
@@ -176,7 +185,7 @@ void main() {
         );
       }
       // The open last row keeps its items' widths and starts at the right.
-      final lastRow = rects.where((r) => r.top == rects.last.top).toList();
+      final lastRow = rowOf(rects, rects.last);
       expect(lastRow.first.right, closeTo(grid.right, 0.5));
     });
 
@@ -192,9 +201,9 @@ void main() {
       await pumpSection(
         tester,
         [_photo('sideways', 600, 400)],
-        cache: _FakeAspectCache({
-          'sideways': (ratio: 0.75, width: 600, height: 400),
-        }),
+        cache: _FakeAspectCache(
+          learned: {'sideways': (ratio: 0.75, width: 600, height: 400)},
+        ),
       );
 
       final rect = tileRects(tester).single;
@@ -217,13 +226,23 @@ void main() {
       expect(after.width / after.height, closeTo(2 / 3, 0.01));
     });
 
+    testWidgets('a dive with no media does not read the learned shapes', (
+      tester,
+    ) async {
+      final cache = _FakeAspectCache();
+      await pumpSection(tester, const [], cache: cache);
+
+      expect(tiles(), findsNothing);
+      expect(cache.loads, 0);
+    });
+
     testWidgets('lays out when the learned shapes cannot be read', (
       tester,
     ) async {
       await pumpSection(tester, [
         _photo('a', 600, 400),
         _photo('b', 400, 600),
-      ], cache: _FakeAspectCache(const {}, true));
+      ], cache: _FakeAspectCache(fails: true));
 
       expect(tiles(), findsNWidgets(2));
       final rects = tileRects(tester);
@@ -240,7 +259,7 @@ void main() {
       await tester.pumpAndSettle();
 
       final rects = tileRects(tester);
-      final perRow = rects.where((r) => r.top == rects.first.top).length;
+      final perRow = rowOf(rects, rects.first).length;
       // From the second tile of the first row to the second of the next.
       final gesture = await tester.startGesture(rects[1].center);
       await tester.pump(kLongPressTimeout + const Duration(milliseconds: 50));
@@ -294,7 +313,7 @@ void main() {
       await pumpSection(tester, media);
       int firstRowCount() {
         final rects = tileRects(tester);
-        return rects.where((r) => r.top == rects.first.top).length;
+        return rowOf(rects, rects.first).length;
       }
 
       final wide = firstRowCount();
@@ -303,7 +322,7 @@ void main() {
 
       expect(firstRowCount(), lessThan(wide));
       final rects = tileRects(tester);
-      final firstRow = rects.where((r) => r.top == rects.first.top);
+      final firstRow = rowOf(rects, rects.first);
       expect(firstRow.last.right, closeTo(gridRect(tester).right, 0.5));
     });
   });

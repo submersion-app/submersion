@@ -385,9 +385,13 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
     // The shapes the library has learned from decoded thumbnails, so a photo
     // stored sideways lays out the way it is shown. Watched here, in this
     // State's build, so the subscription lives with the card rather than
-    // being reopened by the selection builder below. A cache that cannot be
-    // read loads as empty, so this never waits for good.
-    final learned = ref.watch(mediaLearnedAspectsProvider).value;
+    // being reopened by the selection builder below, and only once there is
+    // media to lay out, so an empty dive does not read the whole cache. A
+    // cache that cannot be read loads as empty, so this never waits for good.
+    final hasMedia = mediaAsync.value?.isNotEmpty ?? false;
+    final learned = hasMedia
+        ? ref.watch(mediaLearnedAspectsProvider).value
+        : null;
     final settings = ref.watch(unitFormatterProvider).settings;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
