@@ -59,3 +59,13 @@ bool decodedAspectDiffers(double raw, Size decoded) {
   // The epsilon keeps exactly 2 % on the "same" side despite rounding.
   return (ratio / raw - 1).abs() > _kAspectTolerance + 1e-9;
 }
+
+/// Each item's shape as a justified layout packs it: learned, stored or
+/// fallback, then clamped (issues #4738, #4741).
+List<double> mediaItemRatios(
+  List<MediaItem> items,
+  Map<String, LearnedAspect> learned,
+) => [
+  for (final item in items)
+    clampMediaAspect(mediaRawAspect(item, learned: learned[item.id])),
+];

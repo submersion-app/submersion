@@ -32898,11 +32898,11 @@ abstract class AppLocalizations {
   /// **'+{count}'**
   String media_justifiedPreview_moreCount(int count);
 
-  /// Screen reader label of the +N thumbnail on a media preview; opens the Media section filtered to the same items. Media is the section's name in the navigation.
+  /// Screen reader label of the +N thumbnail on a media preview; opens a gallery of everything the preview holds.
   ///
   /// In en, this message translates to:
-  /// **'Show all in Media'**
-  String get media_justifiedPreview_showAllInMedia;
+  /// **'Show all'**
+  String get media_justifiedPreview_showAll;
 
   /// No description provided for @media_siteMediaSection_unlinkSelectedTitle.
   ///

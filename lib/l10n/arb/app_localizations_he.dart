@@ -20281,7 +20281,7 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get media_justifiedPreview_showAllInMedia => 'הצג הכול במדיה';
+  String get media_justifiedPreview_showAll => 'הצג הכול';
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {

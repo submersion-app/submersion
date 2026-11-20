@@ -21035,7 +21035,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get media_justifiedPreview_showAllInMedia => 'عرض الكل في الوسائط';
+  String get media_justifiedPreview_showAll => 'إظهار الكل';
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {

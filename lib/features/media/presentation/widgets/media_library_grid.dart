@@ -24,12 +24,7 @@ const double kMediaTileDetailWidth = 64;
 List<double> mediaLibraryRatios(
   List<MediaLibraryEntry> entries,
   Map<String, LearnedAspect> learned,
-) => [
-  for (final entry in entries)
-    clampMediaAspect(
-      mediaRawAspect(entry.item, learned: learned[entry.item.id]),
-    ),
-];
+) => mediaItemRatios([for (final entry in entries) entry.item], learned);
 
 /// One library thumbnail with the shared selection overlay. Used by both the
 /// flat grid and the grouped list so the two modes cannot diverge.

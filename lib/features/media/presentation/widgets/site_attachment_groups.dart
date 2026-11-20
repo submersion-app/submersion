@@ -13,10 +13,12 @@ import 'package:submersion/features/media/presentation/widgets/justified_media_g
 import 'package:submersion/features/media/presentation/widgets/justified_media_preview.dart';
 import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import 'package:submersion/features/media/presentation/widgets/site_attachment_large_card.dart';
-import 'package:submersion/features/media/presentation/widgets/site_attachment_preview.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/widgets/drag_select_grid_view.dart';
+
+/// The height a group's tile rows aim for (issue #4741).
+const double kSiteAttachmentRowHeight = 120;
 
 /// A site's attachments in category groups (issue #1039): a heading per
 /// group when anything is categorized, the group's large cards, then its
@@ -47,9 +49,9 @@ class SiteAttachmentGroups extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final learned =
-        ref.watch(mediaLearnedAspectsProvider).value ??
-        const <String, LearnedAspect>{};
+    // Tiles wait for the learned shapes, as the library does, so a photo
+    // stored sideways never lays out wide and then jumps.
+    final learned = ref.watch(mediaLearnedAspectsProvider).value;
     final children = <Widget>[];
     for (final group in layout.groups) {
       if (children.isNotEmpty) children.add(const SizedBox(height: 16));
@@ -90,7 +92,7 @@ class SiteAttachmentGroups extends ConsumerWidget {
           ),
         );
       }
-      if (group.tiles.isNotEmpty) {
+      if (group.tiles.isNotEmpty && learned != null) {
         children.add(_tileGrid(context, ref, group, learned));
       }
     }
@@ -108,23 +110,12 @@ class SiteAttachmentGroups extends ConsumerWidget {
   ) {
     final tiles = group.tiles;
     final groupIds = {for (final t in tiles) t.id};
-    final ratios = [
-      for (final t in tiles)
-        clampMediaAspect(mediaRawAspect(t, learned: learned[t.id])),
-    ];
     final aspects = ref.read(mediaLearnedAspectsProvider.notifier);
-    return LayoutBuilder(
+    return _JustifiedTileTable(
       key: ValueKey('tiles-${group.category?.storageKey ?? 'none'}'),
-      builder: (context, constraints) {
-        final table = JustifiedMediaTable.build(
-          sections: [JustifiedSection(headerExtents: const [], ratios: ratios)],
-          paneWidth: constraints.maxWidth,
-          targetHeight: kSiteAttachmentRowHeight,
-          gap: kJustifiedPreviewGap,
-          inset: 0,
-        );
-        return _dragSelectGrid(context, tiles, groupIds, table, aspects);
-      },
+      ratios: mediaItemRatios(tiles, learned),
+      builder: (context, table) =>
+          _dragSelectGrid(context, tiles, groupIds, table, aspects),
     );
   }
 
@@ -135,7 +126,6 @@ class SiteAttachmentGroups extends ConsumerWidget {
     JustifiedMediaTable table,
     MediaLearnedAspectsNotifier aspects,
   ) {
-    final cellOfId = {for (var i = 0; i < tiles.length; i++) tiles[i].id: i};
     return DragSelectGridView<MediaItem>(
       items: tiles,
       shrinkWrap: true,
@@ -169,17 +159,71 @@ class SiteAttachmentGroups extends ConsumerWidget {
       onSelectionModeChanged: (_) {},
       onItemTap: (index) => onOpen(tiles[index]),
       gridDelegate: JustifiedMediaGridDelegate(table),
-      itemBuilder: (context, item, isSelected) => MediaThumbnailTile(
-        item: item,
-        settings: settings,
-        isSelectionMode: isSelectionMode,
-        isSelected: isSelected,
-        semanticsLabel: context.l10n.media_diveMediaSection_thumbnailLabel,
-        targetSize: mediaThumbnailDecodeTarget(
-          table.rectOf(cellOfId[item.id] ?? 0).size,
+      // A grid child gets its cell's size as tight constraints, so the tile
+      // decodes at what it shows.
+      itemBuilder: (context, item, isSelected) => LayoutBuilder(
+        builder: (context, constraints) => MediaThumbnailTile(
+          item: item,
+          settings: settings,
+          isSelectionMode: isSelectionMode,
+          isSelected: isSelected,
+          semanticsLabel: context.l10n.media_diveMediaSection_thumbnailLabel,
+          targetSize: mediaThumbnailDecodeTarget(constraints.biggest),
+          onImageSize: (size) => aspects.report(item, size),
         ),
-        onImageSize: (size) => aspects.report(item, size),
       ),
     );
   }
+}
+
+/// One group's tiles packed into justified rows across the width it is
+/// given (issue #4741), handed to [builder] as a table for the grid's
+/// delegate.
+///
+/// The table is kept while the shapes and the width are unchanged: the
+/// delegate lays the grid out again on a new table, and every check in
+/// Select mode rebuilds every group.
+class _JustifiedTileTable extends StatefulWidget {
+  const _JustifiedTileTable({
+    super.key,
+    required this.ratios,
+    required this.builder,
+  });
+
+  final List<double> ratios;
+  final Widget Function(BuildContext context, JustifiedMediaTable table)
+  builder;
+
+  @override
+  State<_JustifiedTileTable> createState() => _JustifiedTileTableState();
+}
+
+class _JustifiedTileTableState extends State<_JustifiedTileTable> {
+  JustifiedSection? _section;
+  JustifiedMediaTable? _table;
+
+  JustifiedMediaTable _tableFor(double width) {
+    final section = JustifiedSection(
+      headerExtents: const [],
+      ratios: widget.ratios,
+    );
+    final kept = _table;
+    if (kept != null && section == _section && kept.paneWidth == width) {
+      return kept;
+    }
+    _section = section;
+    return _table = JustifiedMediaTable.build(
+      sections: [section],
+      paneWidth: width,
+      targetHeight: kSiteAttachmentRowHeight,
+      gap: kJustifiedPreviewGap,
+      inset: 0,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) =>
+        widget.builder(context, _tableFor(constraints.maxWidth)),
+  );
 }

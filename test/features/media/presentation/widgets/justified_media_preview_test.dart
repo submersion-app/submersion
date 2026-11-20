@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -11,12 +13,15 @@ import 'package:submersion/features/media/presentation/widgets/media_thumbnail_w
 import '../support/media_widget_harness.dart';
 
 class _ShapesRepository implements MediaAspectCacheRepository {
-  _ShapesRepository([this.shapes = const {}]);
+  _ShapesRepository([this.shapes = const {}, this.load]);
 
   final Map<String, LearnedAspect> shapes;
 
+  /// When set, the load waits for it instead of returning [shapes].
+  final Future<Map<String, LearnedAspect>>? load;
+
   @override
-  Future<Map<String, LearnedAspect>> loadAll() async => shapes;
+  Future<Map<String, LearnedAspect>> loadAll() async => load ?? shapes;
 
   @override
   Future<void> putAll(Map<String, LearnedAspect> entries) async {}
@@ -45,13 +50,14 @@ void main() {
     int? totalCount,
     bool withShowMore = true,
     Map<String, LearnedAspect> shapes = const {},
+    Future<Map<String, LearnedAspect>>? load,
     TextDirection direction = TextDirection.ltr,
   }) async {
     await tester.pumpWidget(
       await mediaTestApp(
         overrides: [
           mediaAspectCacheRepositoryProvider.overrideWithValue(
-            _ShapesRepository(shapes),
+            _ShapesRepository(shapes, load),
           ),
         ],
         home: Scaffold(
@@ -196,5 +202,27 @@ void main() {
   testWidgets('the preview does not zoom', (tester) async {
     await pump(tester, squares(20));
     expect(find.byType(MediaThumbnailWheelZoom), findsNothing);
+  });
+
+  testWidgets('nothing is laid out until the learned shapes load', (
+    tester,
+  ) async {
+    // A rotated photo must not lay out wide first and then jump.
+    final load = Completer<Map<String, LearnedAspect>>();
+    await pump(tester, squares(3), load: load.future);
+    expect(shownIds(tester), isEmpty);
+
+    load.complete({'p0': (ratio: 0.5, width: 100, height: 100)});
+    await tester.pumpAndSettle();
+    expect(shownIds(tester), ['p0', 'p1', 'p2']);
+    final first = tester.getSize(find.byKey(const ValueKey('tile-p0')));
+    expect(first.width / first.height, closeTo(0.5, 0.01));
+  });
+
+  testWidgets('+N reads Show all to a screen reader', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await pump(tester, squares(10));
+    expect(find.bySemanticsLabel('Show all'), findsOneWidget);
+    semantics.dispose();
   });
 }

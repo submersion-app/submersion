@@ -6027,7 +6027,7 @@
   "media_siteDivePhotos_title": "صور من الغوصات",
   "media_siteDivePhotos_titleWithCount": "صور من الغوصات ({count})",
   "media_justifiedPreview_moreCount": "+{count}",
-  "media_justifiedPreview_showAllInMedia": "عرض الكل في الوسائط",
+  "media_justifiedPreview_showAll": "إظهار الكل",
   "media_siteMediaSection_unlinkSelectedTitle": "إلغاء ربط {count} عنصر؟",
   "media_siteMediaSection_unlinkSelectedContent": "يزيل {count} عنصرًا من مكتبتك مع نسخها السحابية وصورها المصغرة. تُحفظ الوسائط التي لا تزال غطسة تستخدمها. ملفاتك الأصلية لا تتأثر.",
   "media_siteMediaSection_unlinkSelectedSuccess": "تم إلغاء ربط {count} عنصر",

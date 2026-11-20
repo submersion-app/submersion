@@ -6027,7 +6027,7 @@
   "media_siteDivePhotos_title": "Fotos de inmersiones",
   "media_siteDivePhotos_titleWithCount": "Fotos de inmersiones ({count})",
   "media_justifiedPreview_moreCount": "+{count}",
-  "media_justifiedPreview_showAllInMedia": "Ver todo en Multimedia",
+  "media_justifiedPreview_showAll": "Mostrar todo",
   "media_siteMediaSection_unlinkSelectedTitle": "Desvincular {count} elementos?",
   "media_siteMediaSection_unlinkSelectedContent": "Elimina {count} elementos de tu biblioteca, junto con sus copias en la nube y miniaturas. Los medios que un buceo todavía usa se conservan. Tus archivos originales no se ven afectados.",
   "media_siteMediaSection_unlinkSelectedSuccess": "{count} elementos desvinculados",

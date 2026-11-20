@@ -5,10 +5,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/utils/unit_formatter_settings.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
-import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
-import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
-import 'package:submersion/features/media/presentation/pages/media_scoped_gallery_page.dart';
-import 'package:submersion/features/media/presentation/widgets/site_attachment_preview.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
 import 'package:submersion/features/media/presentation/helpers/document_open_helper.dart';
@@ -248,20 +244,6 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
     );
   }
 
-  /// The site's own photos and maps in a focused gallery, from the
-  /// preview's +N (issue #4741). The library's site facet also matches the
-  /// photos of dives at the site, which have their own card, so Attached to
-  /// keeps it to the site's.
-  void _showAllInLibrary(BuildContext context) => openMediaGallery(
-    context,
-    title: context.l10n.media_siteMediaSection_title,
-    subtitle: ref.read(siteProvider(widget.siteId)).value?.name,
-    filter: MediaLibraryFilter(
-      siteId: widget.siteId,
-      attachedTo: const {MediaAttachmentKind.site},
-    ),
-  );
-
   @override
   Widget build(BuildContext context) {
     final scope = RecordEditScope.maybeOf<DiveSite>(context);
@@ -457,19 +439,6 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
                   return MediaEmptyState(
                     icon: Icons.map_outlined,
                     message: context.l10n.media_siteMediaSection_emptyState,
-                  );
-                }
-                // Outside selection, a two-row preview (issue #4741);
-                // selecting shows everything, grouped, so a selection can
-                // still reach every attachment and Set category shows
-                // where each one went.
-                if (!_isSelectionMode) {
-                  return SiteAttachmentPreview(
-                    media: media,
-                    settings: settings,
-                    onOpen: (item) =>
-                        _openItem(context, item, SiteViewerScope.attachments),
-                    onShowMore: () => _showAllInLibrary(context),
                   );
                 }
                 return SiteAttachmentGroups(

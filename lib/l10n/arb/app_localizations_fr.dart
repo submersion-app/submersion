@@ -20793,7 +20793,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get media_justifiedPreview_showAllInMedia => 'Tout voir dans Médias';
+  String get media_justifiedPreview_showAll => 'Tout afficher';
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {

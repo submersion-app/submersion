@@ -5901,7 +5901,7 @@
   "media_siteDivePhotos_title": "Foto dalle immersioni",
   "media_siteDivePhotos_titleWithCount": "Foto dalle immersioni ({count})",
   "media_justifiedPreview_moreCount": "+{count}",
-  "media_justifiedPreview_showAllInMedia": "Mostra tutto in Media",
+  "media_justifiedPreview_showAll": "Mostra tutto",
   "media_siteMediaSection_unlinkSelectedTitle": "Scollegare {count} elementi?",
   "media_siteMediaSection_unlinkSelectedContent": "Rimuove {count} elementi dalla libreria, insieme alle copie cloud e alle miniature. I media ancora usati da un'immersione vengono conservati. I file originali non vengono toccati.",
   "media_siteMediaSection_unlinkSelectedSuccess": "{count} elementi scollegati",

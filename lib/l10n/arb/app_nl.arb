@@ -6027,7 +6027,7 @@
   "media_siteDivePhotos_title": "Foto's van duiken",
   "media_siteDivePhotos_titleWithCount": "Foto's van duiken ({count})",
   "media_justifiedPreview_moreCount": "+{count}",
-  "media_justifiedPreview_showAllInMedia": "Alles tonen in Media",
+  "media_justifiedPreview_showAll": "Alles tonen",
   "media_siteMediaSection_unlinkSelectedTitle": "{count} items ontkoppelen?",
   "media_siteMediaSection_unlinkSelectedContent": "Verwijdert {count} items uit je bibliotheek, inclusief cloudkopieën en miniaturen. Media die een duik nog gebruikt, blijven bewaard. Je originele bestanden blijven onaangetast.",
   "media_siteMediaSection_unlinkSelectedSuccess": "{count} items ontkoppeld",

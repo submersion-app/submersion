@@ -19705,7 +19705,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get media_justifiedPreview_showAllInMedia => '在媒体中查看全部';
+  String get media_justifiedPreview_showAll => '显示全部';
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {

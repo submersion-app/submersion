@@ -5901,7 +5901,7 @@
   "media_siteDivePhotos_title": "תמונות מצלילות",
   "media_siteDivePhotos_titleWithCount": "תמונות מצלילות ({count})",
   "media_justifiedPreview_moreCount": "+{count}",
-  "media_justifiedPreview_showAllInMedia": "הצג הכול במדיה",
+  "media_justifiedPreview_showAll": "הצג הכול",
   "media_siteMediaSection_unlinkSelectedTitle": "לבטל קישור של {count} פריטים?",
   "media_siteMediaSection_unlinkSelectedContent": "מסיר {count} פריטים מהספרייה שלך, יחד עם עותקי הענן והתמונות הממוזערות. מדיה שצלילה עדיין משתמשת בה נשמרת. הקבצים המקוריים שלך אינם מושפעים.",
   "media_siteMediaSection_unlinkSelectedSuccess": "בוטל קישור של {count} פריטים",

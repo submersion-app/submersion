@@ -20708,7 +20708,7 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get media_justifiedPreview_showAllInMedia => 'Alle in Medien anzeigen';
+  String get media_justifiedPreview_showAll => 'Alle anzeigen';
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {

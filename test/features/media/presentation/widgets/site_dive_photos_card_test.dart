@@ -227,6 +227,22 @@ void main() {
     await tester.pump();
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
     expect(find.byType(MediaThumbnailTile), findsNothing);
+    // As tall as the two rows it stands in for, so the page does not jump
+    // when they arrive.
+    expect(
+      tester
+          .getSize(
+            find
+                .ancestor(
+                  of: find.byType(CircularProgressIndicator),
+                  matching: find.byType(SizedBox),
+                )
+                .first,
+          )
+          .height,
+      kJustifiedPreviewRows * kSiteDivePhotoRowHeight +
+          (kJustifiedPreviewRows - 1) * kJustifiedPreviewGap,
+    );
 
     pending.complete(photos(2));
     await tester.pumpAndSettle();

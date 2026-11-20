@@ -20668,8 +20668,7 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get media_justifiedPreview_showAllInMedia =>
-      'Összes megjelenítése a Médiában';
+  String get media_justifiedPreview_showAll => 'Összes megjelenítése';
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {

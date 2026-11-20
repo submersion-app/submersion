@@ -99,8 +99,12 @@ class SiteDivePhotosCard extends ConsumerWidget {
         style: textTheme.bodyMedium?.copyWith(color: colorScheme.error),
       );
     } else {
+      // As tall as the rows it stands in for, so the page does not jump
+      // when they arrive.
       body = const SizedBox(
-        height: kSiteDivePhotoRowHeight,
+        height:
+            kJustifiedPreviewRows * kSiteDivePhotoRowHeight +
+            (kJustifiedPreviewRows - 1) * kJustifiedPreviewGap,
         child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
       );
     }

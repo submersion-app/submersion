@@ -273,8 +273,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Documents lead the preview (issue #4741).
-      await tester.tap(find.byType(MediaThumbnailTile).first);
+      await tester.tap(find.byType(MediaThumbnailTile).at(1));
       await tester.pumpAndSettle();
 
       expect(opened.map((m) => m.id), ['doc-1']);
@@ -565,7 +564,7 @@ void main() {
 
   // Issue #1039: categories, large cards and the new bulk actions.
   group('categories', () {
-    testWidgets('the preview lumps categories; selecting shows the groups', (
+    testWidgets('categorized attachments render under headings', (
       tester,
     ) async {
       await tester.pumpWidget(
@@ -576,12 +575,6 @@ void main() {
           ],
         ),
       );
-      await tester.pumpAndSettle();
-      // Issue #4741: one preview, no headings, until a selection needs them.
-      expect(find.text('Underwater (1)'), findsNothing);
-      expect(find.byType(MediaThumbnailTile), findsNWidgets(2));
-
-      await tester.tap(find.byKey(const ValueKey('enter_selection')));
       await tester.pumpAndSettle();
       expect(find.text('Underwater (1)'), findsOneWidget);
       expect(find.text('Uncategorized (1)'), findsOneWidget);

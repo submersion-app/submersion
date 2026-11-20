@@ -68,15 +68,12 @@ class JustifiedMediaPreview extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // A cache that is still loading or cannot be read lays out from the
-    // stored sizes; the card is short, so a late correction costs little.
-    final learned =
-        ref.watch(mediaLearnedAspectsProvider).value ??
-        const <String, LearnedAspect>{};
-    final ratios = [
-      for (final item in items)
-        clampMediaAspect(mediaRawAspect(item, learned: learned[item.id])),
-    ];
+    // Waits for the learned shapes, as the library does, so a photo stored
+    // sideways never lays out wide and then jumps. A cache that cannot be
+    // read loads as empty, so this never waits for good.
+    final learned = ref.watch(mediaLearnedAspectsProvider).value;
+    if (learned == null) return const SizedBox.shrink();
+    final ratios = mediaItemRatios(items, learned);
     final isRtl = Directionality.of(context) == TextDirection.rtl;
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -160,7 +157,7 @@ class _MoreCover extends StatelessWidget {
     final l10n = context.l10n;
     return Semantics(
       button: true,
-      label: l10n.media_justifiedPreview_showAllInMedia,
+      label: l10n.media_justifiedPreview_showAll,
       excludeSemantics: true,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,

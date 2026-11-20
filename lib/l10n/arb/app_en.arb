@@ -12610,8 +12610,8 @@
   "media_siteDivePhotos_titleWithCount": "Photos from dives ({count})",
   "media_justifiedPreview_moreCount": "+{count}",
   "@media_justifiedPreview_moreCount": {"description": "Over the last thumbnail of a media preview on a detail card: how many more items there are than are shown.", "placeholders": {"count": {"type": "int"}}},
-  "media_justifiedPreview_showAllInMedia": "Show all in Media",
-  "@media_justifiedPreview_showAllInMedia": {"description": "Screen reader label of the +N thumbnail on a media preview; opens the Media section filtered to the same items. Media is the section's name in the navigation."},
+  "media_justifiedPreview_showAll": "Show all",
+  "@media_justifiedPreview_showAll": {"description": "Screen reader label of the +N thumbnail on a media preview; opens a gallery of everything the preview holds."},
   "media_siteMediaSection_unlinkSelectedTitle": "Unlink {count} items?",
   "media_siteMediaSection_unlinkSelectedContent": "Removes {count} items from your library, along with their cloud copies and thumbnails. Media a dive still uses is kept. Your original files are not affected.",
   "@media_siteMediaSection_unlinkSelectedContent": {

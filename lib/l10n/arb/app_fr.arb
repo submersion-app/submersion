@@ -5901,7 +5901,7 @@
   "media_siteDivePhotos_title": "Photos des plongées",
   "media_siteDivePhotos_titleWithCount": "Photos des plongées ({count})",
   "media_justifiedPreview_moreCount": "+{count}",
-  "media_justifiedPreview_showAllInMedia": "Tout voir dans Médias",
+  "media_justifiedPreview_showAll": "Tout afficher",
   "media_siteMediaSection_unlinkSelectedTitle": "Dissocier {count} éléments ?",
   "media_siteMediaSection_unlinkSelectedContent": "Supprime {count} éléments de votre bibliothèque, ainsi que leurs copies cloud et vignettes. Les médias encore utilisés par une plongée sont conservés. Vos fichiers d'origine ne sont pas affectés.",
   "media_siteMediaSection_unlinkSelectedSuccess": "{count} éléments dissocies",

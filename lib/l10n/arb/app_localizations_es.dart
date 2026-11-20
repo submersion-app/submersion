@@ -20727,7 +20727,7 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get media_justifiedPreview_showAllInMedia => 'Ver todo en Multimedia';
+  String get media_justifiedPreview_showAll => 'Mostrar todo';
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {

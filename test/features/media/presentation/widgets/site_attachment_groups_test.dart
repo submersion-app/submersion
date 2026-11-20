@@ -4,13 +4,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/site_attachment_category.dart';
 import 'package:submersion/features/media/domain/services/site_attachment_layout.dart';
+import 'package:submersion/features/media/presentation/providers/media_thumbnail_scale_provider.dart';
 import 'package:submersion/features/media/presentation/providers/pdf_preview_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/justified_media_grid.dart';
 import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import 'package:submersion/features/media/presentation/widgets/site_attachment_groups.dart';
 import 'package:submersion/features/media/presentation/widgets/site_attachment_large_card.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
+import 'package:submersion/shared/widgets/drag_select_grid_view.dart';
 
 import '../support/media_widget_harness.dart';
 
@@ -144,5 +147,32 @@ void main() {
     await tester.tap(find.byType(MediaThumbnailTile).last);
     await tester.pumpAndSettle();
     expect(selection.value.checkedIds, {'w1', 'u1'});
+  });
+
+  JustifiedMediaTable tableOf(WidgetTester tester) =>
+      (tester
+                  .widget<DragSelectGridView<MediaItem>>(
+                    find.byType(DragSelectGridView<MediaItem>),
+                  )
+                  .gridDelegate
+              as JustifiedMediaGridDelegate)
+          .table;
+
+  testWidgets('a selection change keeps the tile layout', (tester) async {
+    // Every check rebuilds the groups; a new table would relayout them all.
+    await pump(tester, [m('a', 1), m('b', 2)]);
+    final before = tableOf(tester);
+    selection.toggle('a');
+    await tester.pump();
+    expect(identical(tableOf(tester), before), isTrue);
+  });
+
+  testWidgets('a tile decodes at its own laid-out size', (tester) async {
+    await pump(tester, [m('a', 1).copyWith(width: 300, height: 100)]);
+    final tile = find.byType(MediaThumbnailTile);
+    expect(
+      tester.widget<MediaThumbnailTile>(tile).targetSize,
+      mediaThumbnailDecodeTarget(tester.getSize(tile)),
+    );
   });
 }
