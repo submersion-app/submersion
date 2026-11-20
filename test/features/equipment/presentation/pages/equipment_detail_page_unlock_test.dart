@@ -21,7 +21,17 @@ import 'package:submersion/features/equipment/presentation/editing/gear_item_edi
 import 'package:submersion/features/equipment/presentation/editing/gear_item_sitting_host.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/components_card.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_pairing_repository.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/passport_usage.dart';
+import 'package:submersion/features/cylinder_passports/presentation/pages/passport_page.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
+import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_entry_card.dart';
+import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/domain/entities/service_record.dart';
+import 'package:submersion/shared/widgets/record_editing/record_satellite_bar.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_pairing.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_pairing_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_component_repository.dart';
@@ -340,6 +350,129 @@ void main() {
       expect(
         await tester.runAsync(() => components.getComponents('g1')),
         isEmpty,
+      );
+    });
+  });
+
+  // Plan 7: a passport is a satellite of the item, joined while the item
+  // page is unlocked, with a lock of its own while it is locked.
+  group('passports', () {
+    final tank = apex.copyWith(name: 'Left 12', type: EquipmentType.tank);
+    late CylinderFill stored;
+
+    Future<GearPageHarness> pumpTank(WidgetTester tester) async {
+      await tester.runAsync(() async {
+        await EquipmentRepository().createEquipment(tank);
+        final passport = await CylinderPassportRepository().ensurePassportId(
+          'g1',
+        );
+        stored = await CylinderFillRepository().create(
+          CylinderFill(
+            id: 'f0',
+            passportId: passport,
+            equipmentId: 'g1',
+            filledAt: DateTime(2026, 3, 3),
+            o2Percent: 32,
+            createdAt: DateTime(2026, 3, 3),
+            updatedAt: DateTime(2026, 3, 3),
+          ),
+        );
+      });
+      return pumpGearPage(
+        tester,
+        item: tank,
+        extraOverrides: [
+          allPairingsProvider.overrideWith((ref) async => const []),
+          passportIdProvider(
+            'g1',
+          ).overrideWith((ref) async => stored.passportId),
+          passportUsageProvider(
+            stored.passportId,
+          ).overrideWith((ref) async => const <PassportUsageDive>[]),
+          fillsForEquipmentProvider('g1').overrideWith((ref) async => [stored]),
+          newestFillProvider('g1').overrideWith((ref) async => stored),
+          tiedFillsProvider('g1').overrideWith((ref) async => const {}),
+          tripCopyFillIdsProvider('g1').overrideWith((ref) async => const {}),
+          serviceClockStatusesProvider(
+            'g1',
+          ).overrideWith((ref) async => const <ServiceClockStatus>[]),
+          serviceRecordsForEquipmentProvider(
+            'g1',
+          ).overrideWith((ref) async => const <ServiceRecord>[]),
+        ],
+      );
+    }
+
+    Future<void> openPassport(WidgetTester tester) async {
+      await tester.ensureVisible(find.byType(PassportEntryCard));
+      await tester.tap(find.byType(PassportEntryCard));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('from an unlocked item page the passport joins its sitting, '
+        'and the item page saves what it held', (tester) async {
+      final harness = await pumpTank(tester);
+      await unlock(tester);
+      await openPassport(tester);
+
+      expect(find.byType(PassportPage), findsOneWidget);
+      expect(find.byType(RecordSatelliteBar), findsOneWidget);
+      final pencil = find.byTooltip(
+        l.recordEdit_editCardTooltip(l.passport_history_title),
+      );
+      await tester.ensureVisible(pencil);
+      await tester.tap(pencil);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byTooltip(l.passport_history_delete));
+      await tester.tap(find.byTooltip(l.passport_history_delete));
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 50)),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.widgetWithText(FilledButton, l.passport_history_delete),
+      );
+      await tester.pumpAndSettle();
+      // The bar's Done closes the card the passport opened, then leaves.
+      await tester.tap(
+        find.descendant(
+          of: find.byType(RecordSatelliteBar),
+          matching: find.text(l.common_action_done),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(PassportPage), findsNothing);
+      expect(harness.save.calls, isEmpty);
+      await save(tester);
+      await tester.runAsync(() async {});
+
+      expect(harness.save.calls.single.cards, {
+        GearItemCardId.passportFills.name,
+      });
+      final left = await tester.runAsync(
+        () => CylinderFillRepository().getForCylinder(
+          passportId: stored.passportId,
+          equipmentId: 'g1',
+        ),
+      );
+      expect(left, isEmpty);
+    });
+
+    testWidgets('from a locked item page the passport has its own lock', (
+      tester,
+    ) async {
+      await pumpTank(tester);
+      await openPassport(tester);
+
+      expect(find.byType(PassportPage), findsOneWidget);
+      expect(find.byType(RecordSatelliteBar), findsNothing);
+      expect(
+        find.descendant(
+          of: find.byType(PassportPage),
+          matching: find.byIcon(Icons.lock_outline),
+        ),
+        findsOneWidget,
       );
     });
   });

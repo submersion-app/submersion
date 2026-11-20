@@ -1,16 +1,21 @@
+import 'package:drift/drift.dart' show Variable;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
+import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_pairing_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/services/twin_fill_service.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/data/repositories/gear_photo_repository.dart';
+import 'package:submersion/features/equipment/data/services/gear_item_edit_save_service.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_card_ids.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_edit_fields.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_fills_sitting.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_passport_sitting.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_twin_set_sitting.dart';
@@ -163,6 +168,50 @@ void main() {
         expect(after.map((f) => f.passportId).toSet(), {tag});
       });
     }
+  });
+
+  // Review Focus 4: a tag scan imports the tag's fill before the passport
+  // opens, outside any sitting; the sitting's entry holds only its own.
+  test('a fill imported before the sitting is its own entry; the sitting\'s '
+      'entry holds only the fill logged in it', () async {
+    final changeLog = ChangeLogRepository();
+    await changeLog.settleAll();
+    await db.customStatement('DELETE FROM change_log_events');
+    await db.customStatement('DELETE FROM change_log_operations');
+    await fills.create(fill(id: 'imported'));
+    await changeLog.settleAll();
+    session = EditSession((await EquipmentRepository().getEquipmentById('a'))!);
+    addTearDown(session.dispose);
+    await gearItemFillsList.currentOrRead(session);
+    final logged = holdLoggedFill(session, fill())!;
+
+    await GearItemEditSaveService(
+      EquipmentRepository(),
+      GearPhotoRepository(),
+    ).save(
+      equipmentId: 'a',
+      apply: (stored) => gearItemToSave(stored, session.applyTo(stored)),
+      changedCardIds: session.changedCardIds,
+      alsoWrite: session.runHeldWrites,
+      alsoWriteIsAChange: session.hasHeldChanges,
+    );
+    await changeLog.settleAll();
+
+    final ops = await db
+        .customSelect('SELECT id, label FROM change_log_operations')
+        .get();
+    expect(ops, hasLength(2));
+    final sitting = ops.singleWhere(
+      (o) => o.data['label'] == 'record_edit:equipment:a:passportFills',
+    );
+    final events = await db
+        .customSelect(
+          'SELECT record_id FROM change_log_events WHERE operation_id = ? '
+          "AND table_name = 'cylinder_fills'",
+          variables: [Variable<String>(sitting.data['id']! as String)],
+        )
+        .get();
+    expect(events.map((e) => e.data['record_id']), [logged.id]);
   });
 
   // Review Focus 5: a twin set made in the sitting is the partner of a
