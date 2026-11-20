@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/accessibility/app_shortcuts.dart';
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -776,15 +775,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newEquipment',
-                builder: (context, state) => EquipmentEditPage(
-                  initialParentId: state.uri.queryParameters['parent'],
-                  cloneFromId: state.uri.queryParameters['cloneFrom'],
-                  // The Dive Computers and Transmitters lists' "add by hand"
-                  // (issue #3676).
-                  initialType: EquipmentType.values
-                      .asNameMap()[state.uri.queryParameters['type']],
-                  initialSerial: state.uri.queryParameters['serial'],
-                ),
+                onExit: confirmLeaveRecordSitting,
+                // Behind phase 3's switch, the item page opened on a new
+                // item or a clone (issue #4527, plan 11).
+                builder: (context, state) =>
+                    newGearItemPage(state.uri.queryParameters),
               ),
               GoRoute(
                 path: 'sets',
