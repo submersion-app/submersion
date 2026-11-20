@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/trips/domain/services/trip_day_notes.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_overview_card_editors.dart';
@@ -62,6 +63,37 @@ void main() {
       );
     });
   });
+
+  // Review Focus 2 (issue #4527, plan 12): an old address's section and
+  // day survive the redirect; a malformed day is dropped, so the trip opens
+  // unlocked at no card.
+  for (final (from, to) in [
+    ('/trips/t1/edit', '/trips/t1?mode=edit'),
+    ('/trips/t1/edit?section=planning', '/trips/t1?mode=edit&section=planning'),
+    (
+      '/trips/t1/edit?section=notes&noteDate=2030-06-02&noteDay=2',
+      '/trips/t1?mode=edit&section=notes&noteDate=2030-06-02&noteDay=2',
+    ),
+    ('/trips/t1/edit?noteDate=2030-02-31&noteDay=2', '/trips/t1?mode=edit'),
+  ]) {
+    testWidgets('the old address $from lands on $to', (tester) async {
+      final router = GoRouter(
+        initialLocation: from,
+        routes: [
+          GoRoute(
+            path: '/trips/:tripId',
+            builder: (_, state) => Text('TRIP ${state.uri}'),
+            routes: [GoRoute(path: 'edit', redirect: tripEditRedirect)],
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+      await tester.pumpAndSettle();
+
+      expect(find.text('TRIP $to'), findsOneWidget);
+    });
+  }
 
   testWidgets('opened with mode=edit, the page is unlocked', (tester) async {
     await pumpTripPage(tester, openUnlocked: true);

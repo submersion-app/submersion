@@ -14,7 +14,6 @@ import 'package:submersion/features/nav_track/presentation/editing/nav_track_car
 import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_detail_tabs.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
-import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
 /// Every phase 3 record type's card ids, with each card's title.
 Map<String, Map<String, String Function(AppLocalizations)>> _all() => {
@@ -53,10 +52,6 @@ Map<String, Map<String, String Function(AppLocalizations)>> _all() => {
 
 void main() {
   final l = lookupAppLocalizations(const Locale('en'));
-
-  test('the switch is off by default', () {
-    expect(kUnlockRecordEditing, isFalse);
-  });
 
   test('every card id is unique within its type and none is empty', () {
     final lists = <String, List<Enum>>{
