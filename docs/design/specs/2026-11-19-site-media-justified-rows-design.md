@@ -23,8 +23,8 @@ site's photos keep their aspect ratios like the rest of the app.
 - Large attachment cards. Whether an attachment shows as a large card or a
   tile is the diver's choice per item (`effectiveDisplaySize`), so large
   cards, group headings and their order stay as they are.
-- The dive details and species media sections (#4739, #4740). The shared
-  wrapper below is written so they can reuse it, but they are not changed.
+- The dive details and species media sections (#4739, #4740). They are not
+  changed; their shared pieces are reused here.
 - The strip's query and its cap (`kSiteDivePhotoStripLimit`, 12).
 
 ## Approaches
@@ -43,31 +43,38 @@ The maintainer picked approach 2.
 
 ## Design
 
-**Shared wrapper.** A small widget in `lib/features/media/presentation/widgets/`
-that takes the items' ratios and a target height, measures its width with a
-`LayoutBuilder`, builds one `JustifiedMediaTable` (one section, no headers, no
-inset, 4 px gap, the library's 48 px minimum tile width), and passes the table
-to a builder that returns the grid. It waits for `mediaLearnedAspectsProvider`
-before its first layout, as the library grid does, so a returning diver never
-sees rotated photos jump into place.
+**Shared pieces (as built).** The dive (#4792) and species (#4793) sections
+landed the shared pieces while this was built, so the site cards use theirs
+rather than a wrapper of their own: #4793's `JustifiedMediaBlock`, a
+non-scrolling `Stack` of justified rows with an optional `maxRows` cap, and
+#4792's `mediaLayoutRatios` and `MediaThumbnailTile` decode size. Every
+justified layout here uses no inset, a 4 px gap and the library's 48 px
+minimum tile width, and waits for `mediaLearnedAspectsProvider` before its
+first layout, as the library grid does, so a returning diver never sees
+rotated photos jump into place.
 
 **Dive photos card.**
 
 - Collapsed: pack the strip's newest photos (up to 12) at about 100 px and
-  show only the first row. A row that reaches the card's edge is justified
+  show only the first row (`JustifiedMediaBlock` with `maxRows: 1`). A row that reaches the card's edge is justified
   flush (maintainer's decision); when every photo fits short of the edge, the
   packer's open last row keeps the target height and is not stretched.
 - Show all appears when that first row holds fewer photos than the site's
   photo count, replacing today's column-count check.
-- Expanded: the full chronological list in justified rows at about 100 px, in
-  a non-scrolling `GridView` with the justified delegate.
+- Expanded: the full chronological list in justified rows at about 100 px,
+  the same `JustifiedMediaBlock` with no cap. Like the square grid it
+  replaces (a shrink-wrapped `GridView` in the page's scroll view), it builds
+  every photo it shows; a lazy view would need Site Details to become a
+  sliver page.
 - A tap opens `SiteMediaViewerPage` in the dive-photos scope, as now. The card
   stays read-only.
 
 **Site attachments.**
 
 - Each category group's tiles go in its existing `DragSelectGridView`, now
-  given the justified delegate, packed at about 120 px with a 4 px gap.
+  given the justified delegate, packed at about 120 px with a 4 px gap. As
+  #4792's dive card does, a group keeps its table while its width and shapes
+  hold, since every check in Select mode rebuilds every group.
 - Selection, drag-select, bulk Set category and opening items are unchanged:
   the grid finds the item under a drag by each item's key, not by column
   arithmetic.
@@ -86,8 +93,8 @@ sees rotated photos jump into place.
 
 ## Left to the builder
 
-- Names and file split of the wrapper, and how the strip reads its first row's
-  count out of the table.
+- How the strip reads its first row's count (as built: `packJustifiedRows`
+  over the strip's shapes at the card's width).
 - Test coverage: the strip's first-row count and Show all rule at several
   widths, cross-group selection and drag-select under the new delegate, and
   that no tile is square-cropped.
