@@ -15,12 +15,15 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 ///
 /// Sync is told of the sitting once, after the commit, and not at all when
 /// it rolls back ([SyncEventBus.holdNotices]): the writes inside it hold
-/// their notices.
+/// their notices. With [wrote], a committed sitting whose result it says
+/// wrote something tells sync itself, so one whose writes were told to
+/// stay quiet (a repository's `notify: false`) is still heard of.
 Future<R> runRecordSitting<R>({
   required String table,
   required String recordId,
   required Iterable<String> changedCardIds,
   required Future<R> Function() body,
+  bool Function(R result)? wrote,
 }) => ChangeLogScope.run(
   DatabaseService.instance.databaseOrNull,
   source: ChangeLogSource.manual,
@@ -31,9 +34,12 @@ Future<R> runRecordSitting<R>({
   ),
   // Sync hears of the sitting once it has committed, not of each write
   // inside it: a write a later one rolls back was never saved.
-  body: () => SyncEventBus.holdNotices(
-    () => DatabaseService.instance.database.transaction(body),
-  ),
+  body: () => SyncEventBus.holdNotices(() async {
+    final result = await DatabaseService.instance.database.transaction(body);
+    // Held with any notice the writes sent: one goes out for both.
+    if (wrote?.call(result) ?? false) SyncEventBus.notifyLocalChange();
+    return result;
+  }),
 );
 
 /// Creates the record [recordId] of [table], a new record's sitting (issue
@@ -65,6 +71,8 @@ Future<T> createRecordSitting<T>({
     table: table,
     recordId: recordId,
     changedCardIds: changedCardIds,
+    // A create always writes its row.
+    wrote: (_) => true,
     body: () async {
       if (await isStored()) {
         throw StateError('$table record $recordId already exists');
@@ -106,6 +114,8 @@ Future<({T before, T after})?> writeRecordSitting<T>({
   table: table,
   recordId: recordId,
   changedCardIds: changedCardIds,
+  // Null when nothing changed, which wrote nothing.
+  wrote: (result) => result != null,
   body: () async {
     final stored = await read();
     if (stored == null) {
