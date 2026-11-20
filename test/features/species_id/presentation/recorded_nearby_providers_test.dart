@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
@@ -49,10 +51,14 @@ void main() {
   late List<GeoPoint> asked;
   late Map<GeoPoint, ReefPart<NearbySpecies>> parts;
 
+  /// Lists still on their way, answered when a test completes them.
+  late Map<GeoPoint, Completer<ReefPart<NearbySpecies>>> held;
+
   setUp(() async {
     db = await setUpTestDatabase();
     places = _Places();
     asked = [];
+    held = {};
     parts = {
       site: const ReefPart.ok(listAtSite),
       otherSite: const ReefPart.ok(listAtOther),
@@ -70,6 +76,7 @@ void main() {
         divePlaceRepositoryProvider.overrideWithValue(places),
         reefNearbySpeciesProvider.overrideWith((ref, point) async {
           asked.add(point);
+          if (held[point] case final pending?) return pending.future;
           return parts[point] ?? const ReefPart.empty();
         }),
         ...overrides,
@@ -184,6 +191,62 @@ void main() {
     await c.read(recordedNearbyListProvider(second).future);
 
     expect(asked, [site]);
+  });
+
+  group('a long review page', () {
+    const thirdSite = GeoPoint(13.0, -69.0);
+    const fourthSite = GeoPoint(13.5, -69.5);
+
+    /// Four dives at four sites, each list held until completed, and
+    /// each row's subscription, by dive.
+    Future<(ProviderContainer, Map<String, ProviderSubscription<Object?>>)>
+    fourRows() async {
+      final sites = [site, otherSite, thirdSite, fourthSite];
+      for (var i = 0; i < sites.length; i++) {
+        places.places['d${i + 1}'] = (site: sites[i], entry: null);
+        held[sites[i]] = Completer();
+      }
+      final c = await container();
+      final rows = {
+        for (var i = 1; i <= sites.length; i++)
+          'd$i': c.listen(
+            recordedNearbyListProvider((diveId: 'd$i', photo: null)),
+            (_, _) {},
+          ),
+      };
+      await pumpEventQueue();
+      return (c, rows);
+    }
+
+    test('asks GBIF for at most two lists at once', () async {
+      await fourRows();
+      expect(asked, [site, otherSite]);
+
+      held[site]!.complete(const ReefPart.ok(listAtSite));
+      await pumpEventQueue();
+      expect(asked, [site, otherSite, thirdSite]);
+    });
+
+    test('a row that leaves while waiting gives up its turn', () async {
+      final (_, rows) = await fourRows();
+      rows['d3']!.close();
+      await pumpEventQueue();
+
+      held[site]!.complete(const ReefPart.ok(listAtSite));
+      await pumpEventQueue();
+      expect(asked, [site, otherSite, fourthSite]);
+    });
+
+    test(
+      'a row that leaves while its list is on the way frees its turn',
+      () async {
+        final (_, rows) = await fourRows();
+        rows['d1']!.close();
+        await pumpEventQueue();
+
+        expect(asked, [site, otherSite, thirdSite]);
+      },
+    );
   });
 
   test('a photo in no dive uses its own position', () async {

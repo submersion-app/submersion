@@ -6,6 +6,7 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/reef/domain/entities/nearby_species.dart';
 import 'package:submersion/features/reef/domain/entities/reef_data_status.dart';
 import 'package:submersion/features/reef/presentation/providers/reef_providers.dart';
+import 'package:submersion/features/species_id/data/services/nearby_list_gate.dart';
 import 'package:submersion/features/species_id/domain/services/recorded_nearby.dart';
 import 'package:submersion/features/species_id/presentation/providers/dive_species_run_providers.dart';
 
@@ -60,6 +61,32 @@ final recordedNearbyListProvider = FutureProvider.autoDispose
         entry: known ? place.entry : null,
       );
       if (point == null) return null;
-      final part = await ref.watch(reefNearbySpeciesProvider(point).future);
-      return part.status == ReefDataStatus.ok ? part.value : null;
+      final gate = ref.read(nearbyListGateProvider);
+      await gate.acquire();
+      // Its turn came after it left the screen: pass the turn on.
+      if (!ref.mounted) {
+        gate.release();
+        return null;
+      }
+      var holding = true;
+      void handBack() {
+        if (!holding) return;
+        holding = false;
+        gate.release();
+      }
+
+      // Leaving while the list is on the way frees the turn at once.
+      ref.onDispose(handBack);
+      try {
+        final part = await ref.watch(reefNearbySpeciesProvider(point).future);
+        return part.status == ReefDataStatus.ok ? part.value : null;
+      } finally {
+        handBack();
+      }
     }, retry: (_, _) => null);
+
+/// One gate for every marker, so a long Species to review page asks GBIF
+/// for a few lists at a time rather than every one at once.
+final nearbyListGateProvider = Provider<NearbyListGate>(
+  (ref) => NearbyListGate(),
+);
