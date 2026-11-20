@@ -76,6 +76,18 @@ void main() {
     );
   });
 
+  testWidgets('Done keeps the card open while the link is broken', (
+    tester,
+  ) async {
+    await breakTheLink(tester);
+
+    await tester.tap(find.text('Done'));
+    await settle(tester);
+
+    expect(find.byType(MarkdownNotesField), findsOneWidget);
+    expect(find.text(l.diveLog_annotation_brokenLink), findsOneWidget);
+  });
+
   testWidgets('the link mended, the message goes and Save goes through', (
     tester,
   ) async {

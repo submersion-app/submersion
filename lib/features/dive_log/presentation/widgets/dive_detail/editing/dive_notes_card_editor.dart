@@ -70,10 +70,17 @@ class _DiveNotesCardEditorState extends ConsumerState<DiveNotesCardEditor> {
   /// broken the field says so, and Save is held by the card's check.
   late bool _linksIntact = annotationLinksIntact(widget.session);
 
+  /// The notes, working and stored, [_linksIntact] last answered for, so a
+  /// change on another card does not read them again.
+  (String, String)? _linksCheckedFor;
+
   /// Redraws only when the answer changes, not on every keystroke.
   void _followLinks() {
     final session = widget.session;
     if (session.isDisposed) return;
+    final notes = (session.valueOf(diveNotesField), session.stored.notes);
+    if (notes == _linksCheckedFor) return;
+    _linksCheckedFor = notes;
     final intact = annotationLinksIntact(session);
     if (intact == _linksIntact || !mounted) return;
     setState(() => _linksIntact = intact);
