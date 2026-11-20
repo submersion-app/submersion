@@ -11,6 +11,7 @@ import 'package:submersion/features/checklists/data/repositories/trip_checklist_
 import 'package:submersion/features/checklists/data/repositories/trip_checklists_repository.dart';
 import 'package:submersion/features/checklists/domain/entities/checklist_template.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
+import 'package:submersion/features/checklists/presentation/editing/trip_checklist_writes.dart';
 import 'package:submersion/features/trips/data/repositories/itinerary_day_repository.dart';
 import 'package:submersion/features/trips/data/repositories/liveaboard_details_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
@@ -361,5 +362,131 @@ void main() {
     await writes.reorderChecklists(['c1', 'c3']);
 
     expect(session.changedCardIds, isEmpty);
+  });
+
+  test('items and sections are held through every edit, and written at '
+      'Save', () async {
+    final session = await open();
+    final writes = writesOf(session);
+
+    expect(await writes.isChecklistEmpty('c1'), isFalse);
+    // A title that matches a section (any case) is that section.
+    expect(await writes.findOrCreateSectionId('c1', ' gear '), 's1');
+    expect(await writes.findOrCreateSectionId('c1', '  '), isNull);
+    final docs = (await writes.findOrCreateSectionId('c1', 'Docs'))!;
+    await writes.createItem(
+      TripChecklistItem(
+        id: '',
+        checklistId: 'c1',
+        title: 'Passport',
+        sectionId: docs,
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      ),
+    );
+    var held = heldChecklistsOf(session, list)!;
+    final passport = held
+        .itemsOf('c1')
+        .firstWhere((i) => i.title == 'Passport');
+    await writes.updateItem(passport.copyWith(notes: 'In the bag'));
+    await writes.renameSection(docs, 'Papers');
+    await writes.moveItem(
+      checklistId: 'c1',
+      itemId: 'i1',
+      targetSectionId: docs,
+      orderedIds: [passport.id, 'i1'],
+    );
+    await writes.deleteSection('s1', moveItemsToSectionId: docs);
+
+    held = heldChecklistsOf(session, list)!;
+    expect([for (final s in held.sectionsOf('c1')) s.title], ['Papers']);
+    expect([for (final i in held.itemsOf('c1')) i.title], ['Passport', 'Mask']);
+    expect({for (final i in held.itemsOf('c1')) i.sectionId}, {docs});
+
+    await save(session);
+
+    final sections = await items.getSectionsForChecklist('c1');
+    expect([for (final s in sections) s.title], ['Papers']);
+    final stored = await items.getByChecklistId('c1');
+    expect([for (final i in stored) i.title], ['Passport', 'Mask']);
+    expect(stored.first.notes, 'In the bag');
+    expect({for (final i in stored) i.sectionId}, {docs});
+  });
+
+  test('clearing and deleting items in a sitting keeps the sections', () async {
+    final session = await open();
+    final writes = writesOf(session);
+    await writes.deleteItem('i1');
+    expect(heldChecklistsOf(session, list)!.itemsOf('c1'), isEmpty);
+    await writes.createItem(
+      TripChecklistItem(
+        id: '',
+        checklistId: 'c1',
+        title: 'Fins',
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      ),
+    );
+    await writes.clearItems('c1');
+
+    await save(session);
+
+    expect(await items.getByChecklistId('c1'), isEmpty);
+    expect(await items.getSectionsForChecklist('c1'), hasLength(1));
+  });
+
+  test('the repository writes write each change at once', () async {
+    final writes = RepositoryTripChecklistWrites(
+      trip: (await trips.getTripById('t1'))!,
+      checklists: checklists,
+      items: items,
+    );
+
+    final paper = await writes.createChecklist('Paperwork');
+    await writes.renameChecklist(paper.id, 'Papers');
+    await writes.reorderChecklists([paper.id, 'c1']);
+    await writes.createSection(checklistId: paper.id, title: 'Docs');
+    final docs = (await writes.findOrCreateSectionId(paper.id, 'docs'))!;
+    await writes.createItem(
+      TripChecklistItem(
+        id: '',
+        checklistId: paper.id,
+        title: 'Passport',
+        sectionId: docs,
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      ),
+    );
+    final passport = (await items.getByChecklistId(paper.id)).single;
+    await writes.toggleDone(passport.id, isDone: true);
+    await writes.updateItem(
+      (await items.getByChecklistId(paper.id)).single.copyWith(notes: 'n'),
+    );
+    await writes.renameSection(docs, 'Papers');
+    await writes.reorderSections(paper.id, [docs]);
+    await writes.moveItem(
+      checklistId: paper.id,
+      itemId: passport.id,
+      targetSectionId: null,
+      orderedIds: [passport.id],
+    );
+
+    expect(
+      [for (final c in await checklists.getChecklistsForTrip('t1')) c.name],
+      ['Papers', 'Packing'],
+    );
+    final stored = (await items.getByChecklistId(paper.id)).single;
+    expect(stored.isDone, isTrue);
+    expect(stored.notes, 'n');
+    expect(stored.sectionId, isNull);
+    expect(await writes.isChecklistEmpty(paper.id), isFalse);
+
+    await writes.deleteItem(passport.id);
+    await writes.deleteSection(docs);
+    expect(await writes.isChecklistEmpty(paper.id), isTrue);
+    await writes.clearItems('c1');
+    expect(await items.getByChecklistId('c1'), isEmpty);
+    await writes.deleteChecklist(paper.id);
+    expect(await checklists.getChecklistsForTrip('t1'), hasLength(1));
   });
 }
