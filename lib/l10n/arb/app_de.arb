@@ -4925,7 +4925,7 @@
   "equipment_serviceClocks_remindersOff": "Keine Erinnerungen für diesen Artikel",
   "equipment_serviceClocks_paused": "Pausiert",
   "equipment_serviceClocks_empty": "Keine Wartungsintervalle",
-  "equipment_serviceClocks_unconfigured": "Kein Intervall festgelegt - zum Konfigurieren tippen",
+  "equipment_serviceClocks_unconfigured": "Kein Intervall festgelegt",
   "equipment_serviceClocks_dueOn": "Fällig am {date}",
   "equipment_serviceClocks_overdueSince": "Überfällig seit {date}",
   "equipment_serviceClocks_countingSince": "Zählt seit {date}",

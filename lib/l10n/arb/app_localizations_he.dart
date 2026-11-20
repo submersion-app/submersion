@@ -16229,8 +16229,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_serviceClocks_empty => 'אין שעוני טיפולים';
 
   @override
-  String get equipment_serviceClocks_unconfigured =>
-      'לא הוגדר מרווח - הקישו כדי להגדיר';
+  String get equipment_serviceClocks_unconfigured => 'לא הוגדר מרווח';
 
   @override
   String equipment_serviceClocks_dueOn(String date) {
