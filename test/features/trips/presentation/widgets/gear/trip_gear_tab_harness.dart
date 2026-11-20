@@ -280,6 +280,7 @@ Future<Harness> pumpTab(
   EditSession<Trip>? session;
   if (editing) {
     final open = session = EditSession<Trip>(shown);
+    addTearDown(open.dispose);
     await packed.load(open);
     await board.load(open);
     await tripChecklistsList(

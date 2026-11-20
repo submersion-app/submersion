@@ -128,6 +128,7 @@ void main() {
       updatedAt: today,
     );
     final session = EditSession<Trip>(trip);
+    addTearDown(session.dispose);
     // Nothing is packed for the trip yet.
     await tripPackedGearList(
       read: (_) async => const [],

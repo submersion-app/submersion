@@ -697,15 +697,6 @@ final serviceRecordsForEquipmentProvider =
       return repository.getRecordsForEquipment(equipmentId);
     });
 
-/// Single service record provider
-final serviceRecordByIdProvider = FutureProvider.family<ServiceRecord?, String>(
-  (ref, id) async {
-    final repository = ref.watch(serviceRecordRepositoryProvider);
-    ref.invalidateSelfWhen(repository.watchServiceRecordsChanges());
-    return repository.getRecordById(id);
-  },
-);
-
 /// Most recent service record for equipment
 final mostRecentServiceRecordProvider =
     FutureProvider.family<ServiceRecord?, String>((ref, equipmentId) async {
