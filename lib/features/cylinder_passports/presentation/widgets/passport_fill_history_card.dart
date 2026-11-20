@@ -12,7 +12,6 @@ import 'package:submersion/features/cylinder_passports/presentation/widgets/pass
 import 'package:submersion/features/cylinder_passports/presentation/widgets/tied_fill_dialogs.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_pairing_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_fills_sitting.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -131,10 +130,7 @@ class PassportFillHistoryCard extends ConsumerWidget {
           null => null,
         },
         pairingOn: switch (editing) {
-          final session? => sittingPairingOn(
-            session,
-            () => ref.read(allPairingsProvider).value ?? const [],
-          ),
+          final session? => sittingPairingOn(session),
           null => null,
         },
       );

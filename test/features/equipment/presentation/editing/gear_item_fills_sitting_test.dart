@@ -262,7 +262,7 @@ void main() {
       cylinderBId: 'b',
       pairedOn: DateTime(2026),
     );
-    final partner = sittingPairingOn(session, () => const [])(at);
+    final partner = sittingPairingOn(session)(const [], at);
     expect(partner?.partnerOf('a'), 'b');
     holdLoggedFill(session, fill(), twinPartnerId: partner!.partnerOf('a'));
 

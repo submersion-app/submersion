@@ -9,7 +9,6 @@ import 'package:submersion/features/cylinder_passports/domain/services/passport_
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/write_fill_to_tag.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/log_fill_sheet.dart';
-import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_pairing_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_fills_sitting.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -129,10 +128,7 @@ extension on PassportCurrentFillCard {
         equipmentId: equipmentId,
         onHold: (fill, {twinPartnerId, toTied = false}) =>
             holdLoggedFill(editing, fill, twinPartnerId: twinPartnerId),
-        pairingOn: sittingPairingOn(
-          editing,
-          () => ref.read(allPairingsProvider).value ?? const [],
-        ),
+        pairingOn: sittingPairingOn(editing),
       );
       return;
     }

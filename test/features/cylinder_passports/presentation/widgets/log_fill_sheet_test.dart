@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_pairing.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_pairing_repository.dart';
+import 'package:submersion/features/cylinder_passports/domain/services/pairing_rules.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/constants/units.dart';
@@ -148,7 +150,7 @@ void main() {
         equipmentId: 'eq-1',
         onHold: (fill, {twinPartnerId, toTied = false}) =>
             held.add((fill, twinPartnerId)),
-        pairingOn: (day) => CylinderPairing(
+        pairingOn: (stored, day) => CylinderPairing(
           id: 'p',
           cylinderAId: 'eq-1',
           cylinderBId: 'eq-2',
@@ -175,6 +177,51 @@ void main() {
       ),
     );
     expect(stored, isEmpty);
+  });
+
+  // A sitting's pairings lay its steps over the stored ones, which the
+  // sheet reads and waits for: a sheet opened before they load still finds
+  // a stored twin set partner, rather than holding a single fill.
+  testWidgets('in a sitting the stored pairings reach the sitting\'s lookup '
+      'and Save names their partner', (tester) async {
+    await tester.runAsync(() async {
+      for (final (id, name) in [('eq-1', 'Left 12'), ('eq-2', 'Right 12')]) {
+        await EquipmentRepository().createEquipment(
+          EquipmentItem(id: id, name: name, type: EquipmentType.tank),
+        );
+      }
+      await CylinderPairingRepository().createPairing(
+        cylinderAId: 'eq-1',
+        cylinderBId: 'eq-2',
+        pairedOn: DateTime(2020),
+      );
+    });
+    final held = <String?>[];
+    final seen = <List<CylinderPairing>>[];
+    await pump(
+      tester,
+      sheet: LogFillSheet(
+        passportId: 'pp-1',
+        equipmentId: 'eq-1',
+        onHold: (fill, {twinPartnerId, toTied = false}) =>
+            held.add(twinPartnerId),
+        pairingOn: (stored, day) {
+          seen.add(stored);
+          return pairingOn(stored, 'eq-1', day);
+        },
+      ),
+    );
+    final l10n = AppLocalizations.of(tester.element(find.byType(LogFillSheet)));
+    await tester.ensureVisible(find.text(l10n.forms_save));
+    await tester.tap(find.text(l10n.forms_save));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 50)),
+    );
+    await tester.pumpAndSettle();
+
+    expect(seen, isNotEmpty);
+    expect(seen.every((s) => s.length == 1), isTrue);
+    expect(held.single, 'eq-2');
   });
 
   testWidgets('shows every field with the diver units', (tester) async {

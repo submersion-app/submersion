@@ -137,13 +137,11 @@ bool isHeldFill(EditSession<EquipmentItem> session, CylinderFill fill) =>
 
 /// The pairing a fill dated [day] uses, as the sitting has the pairings: a
 /// twin set made in the sitting is offered for a fill logged after it.
-/// [stored] gives every pairing as stored.
-CylinderPairing? Function(DateTime day) sittingPairingOn(
-  EditSession<EquipmentItem> session,
-  List<CylinderPairing> Function() stored,
-) =>
-    (day) => pairingOn(
-      pairingsInSitting(stored(), heldPairingSteps(session)),
+/// The log fill sheet hands it every pairing as stored, once they are read.
+CylinderPairing? Function(List<CylinderPairing> stored, DateTime day)
+sittingPairingOn(EditSession<EquipmentItem> session) =>
+    (stored, day) => pairingOn(
+      pairingsInSitting(stored, heldPairingSteps(session)),
       session.stored.id,
       day,
     );
