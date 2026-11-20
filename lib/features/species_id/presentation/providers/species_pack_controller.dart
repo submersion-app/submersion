@@ -149,7 +149,7 @@ class SpeciesPackController extends Notifier<SpeciesPackState> {
     // the files are the same, so nothing is downloaded (issue #4721).
     if (installed != null &&
         published != null &&
-        installed.manifest.adoptableFrom(published)) {
+        installed.manifest.adoptableFrom(published, engine: engineName)) {
       try {
         installed = await store.adoptManifest(installed, published);
         ref.invalidate(installedSpeciesPackProvider);
