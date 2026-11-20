@@ -6,6 +6,7 @@ import 'package:submersion/features/media/domain/value_objects/learned_aspect.da
 import 'package:submersion/features/media/presentation/providers/media_learned_aspect_provider.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/dive_media_section.dart';
+import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import 'package:submersion/features/media/presentation/widgets/media_hover_region.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/drag_select_grid_view.dart';
@@ -157,6 +158,22 @@ void main() {
 
       final rect = tileRects(tester).single;
       expect(rect.width / rect.height, closeTo(0.75, 0.01));
+    });
+
+    testWidgets('a tile\'s decoded shape relays the card out', (tester) async {
+      await pumpSection(tester, [_photo('sideways', 600, 400)]);
+      final before = tileRects(tester).single;
+      expect(before.width / before.height, closeTo(1.5, 0.01));
+
+      // The thumbnail decodes upright: the tile reports it, and the card
+      // learns the shape the photo is shown at.
+      tester
+          .widget<MediaThumbnailTile>(find.byType(MediaThumbnailTile))
+          .onImageSize!(const Size(400, 600));
+      await tester.pumpAndSettle();
+
+      final after = tileRects(tester).single;
+      expect(after.width / after.height, closeTo(2 / 3, 0.01));
     });
 
     testWidgets('lays out when the learned shapes cannot be read', (

@@ -579,12 +579,7 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                 // The first layout waits for the learned shapes, as the
                 // library's does, so photos do not jump into place.
                 if (learned == null) return const _MediaLoading();
-                final ratios = [
-                  for (final item in media)
-                    clampMediaAspect(
-                      mediaRawAspect(item, learned: learned[item.id]),
-                    ),
-                ];
+                final ratios = mediaLayoutRatios(media, learned);
                 final indexById = {
                   for (var i = 0; i < media.length; i++) media[i].id: i,
                 };
