@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/certifications/presentation/pages/certification_edit_routes.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
@@ -109,7 +110,7 @@ class CertificationWalletPage extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.add),
             tooltip: context.l10n.certifications_wallet_tooltip_add,
-            onPressed: () => context.push('/certifications/new'),
+            onPressed: () => openNewCertification(context),
           ),
         ],
       ),

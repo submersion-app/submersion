@@ -192,4 +192,76 @@ void main() {
     expect(await save(EditSession(await stored())), isNull);
     expect(await operations(), isEmpty);
   });
+
+  /// A new dive centre's sitting (issue #4527, phase 3, plan 11).
+  group('create', () {
+    DiveCenter fresh({String id = 'n1'}) => DiveCenter(
+      id: id,
+      diverId: 'me',
+      name: 'Blue Planet',
+      city: 'Hurghada',
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+
+    test('creates the centre with its id, as one History entry', () async {
+      final created = await service.create(
+        center: fresh(),
+        changedCardIds: const ['header'],
+      );
+
+      expect(created.id, 'n1');
+      expect((await centers.getDiveCenterById('n1'))?.city, 'Hurghada');
+      final ops = await operations();
+      expect(ops, hasLength(1));
+      expect(ops.single['source'], 'manual');
+      expect(ops.single['label'], 'record_edit:dive_centers:n1:header');
+    });
+
+    test('held writes run after the row, in the same entry', () async {
+      DiveCenter? seen;
+      await service.create(
+        center: fresh(),
+        changedCardIds: const ['header'],
+        alsoWrite: () async => seen = await centers.getDiveCenterById('n1'),
+      );
+
+      expect(seen?.name, 'Blue Planet');
+      expect(await operations(), hasLength(1));
+    });
+
+    test('a held write that throws leaves nothing', () async {
+      await expectLater(
+        service.create(
+          center: fresh(),
+          changedCardIds: const ['header'],
+          alsoWrite: () async => throw StateError('refused'),
+        ),
+        throwsStateError,
+      );
+
+      expect(await centers.getDiveCenterById('n1'), isNull);
+      expect(await operations(), isEmpty);
+    });
+
+    test('an empty id or one already stored is refused', () async {
+      await expectLater(
+        service.create(
+          center: fresh(id: ''),
+          changedCardIds: const [],
+        ),
+        throwsStateError,
+      );
+      await expectLater(
+        service.create(
+          center: fresh(id: 'dc1'),
+          changedCardIds: const [],
+        ),
+        throwsStateError,
+      );
+
+      expect((await stored()).name, 'Reef Divers');
+      expect(await operations(), isEmpty);
+    });
+  });
 }

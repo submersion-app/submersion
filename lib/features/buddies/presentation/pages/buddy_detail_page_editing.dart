@@ -91,7 +91,8 @@ mixin _BuddyDetailPageEditing
     return [
       for (final id in [
         ...buddyOptionalCards,
-        BuddyCardId.gear,
+        // Lending needs a buddy that exists (plan 11, Question 9).
+        if (!isCreating) BuddyCardId.gear,
       ]..sort((a, b) => a.index.compareTo(b.index)))
         if (empty(id) && !_showsWhileEmpty(id))
           AddStripEntry(

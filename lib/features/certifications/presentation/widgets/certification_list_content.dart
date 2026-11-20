@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/certifications/presentation/pages/certification_edit_routes.dart';
 import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/estimated_row_scroll.dart';
@@ -871,7 +872,7 @@ class _CertificationListContentState
                   final routerState = GoRouterState.of(context);
                   context.go('${routerState.uri.path}?mode=new');
                 } else {
-                  context.push('/certifications/new');
+                  openNewCertification(context);
                 }
               },
               icon: const Icon(Icons.add_card),

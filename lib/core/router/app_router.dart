@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/accessibility/app_shortcuts.dart';
@@ -36,7 +34,6 @@ import 'package:submersion/features/buddies/presentation/pages/buddy_merge_page.
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
-import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/pages/document_detail_page.dart';
 import 'package:submersion/features/documents/presentation/pages/document_edit_routes.dart';
 import 'package:submersion/features/documents/presentation/pages/document_edit_page.dart';
@@ -976,15 +973,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 // in the foreground (see app_router_test.dart and
                 // buddy_picker_navigation_render_test.dart).
                 parentNavigatorKey: rootNavigatorKey,
-                builder: (context, state) {
-                  final extra = state.extra as Map<String, dynamic>?;
-                  return BuddyEditPage(
-                    initialName: extra?['name'] as String?,
-                    initialEmail: extra?['email'] as String?,
-                    initialPhone: extra?['phone'] as String?,
-                    initialPhoto: extra?['photo'] as Uint8List?,
-                  );
-                },
+                onExit: confirmLeaveRecordSitting,
+                // Behind phase 3's switch, the buddy page opened on a new
+                // buddy (issue #4527, plan 11).
+                builder: (context, state) => newBuddyPage(state.extra),
               ),
               GoRoute(
                 path: 'merge',
@@ -1061,7 +1053,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newCertification',
-                builder: (context, state) => const CertificationEditPage(),
+                onExit: confirmLeaveRecordSitting,
+                // Behind phase 3's switch, the certification page opened on
+                // a new certification (issue #4527, plan 11).
+                builder: (context, state) => newCertificationPage(),
               ),
               GoRoute(
                 path: ':certificationId',
@@ -1104,17 +1099,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newDocument',
-                builder: (context, state) {
-                  final q = state.uri.queryParameters;
-                  final kind = DocumentOwnerKind.fromStorage(q['ownerKind']);
-                  final ownerId = q['ownerId'];
-                  return DocumentEditPage(
-                    owner: kind == DocumentOwnerKind.personal || ownerId == null
-                        ? const DocumentOwner.personal()
-                        : DocumentOwner(kind, ownerId),
-                    initialType: DocumentType.values.asNameMap()[q['type']],
-                  );
-                },
+                onExit: confirmLeaveRecordSitting,
+                // Behind phase 3's switch, the document page opened on a
+                // new document (issue #4527, plan 11).
+                builder: (context, state) =>
+                    newDocumentPage(state.uri.queryParameters),
               ),
               GoRoute(
                 path: ':documentId',
@@ -1150,7 +1139,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newCourse',
-                builder: (context, state) => const CourseEditPage(),
+                onExit: confirmLeaveRecordSitting,
+                // Behind phase 3's switch, the course page opened on a new
+                // course (issue #4527, plan 11).
+                builder: (context, state) => newCoursePage(),
               ),
               GoRoute(
                 path: ':courseId',
@@ -1198,7 +1190,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newDiveCenter',
-                builder: (context, state) => const DiveCenterEditPage(),
+                onExit: confirmLeaveRecordSitting,
+                // Behind phase 3's switch, the centre page opened on a new
+                // centre (issue #4527, plan 11).
+                builder: (context, state) => newDiveCenterPage(),
               ),
               GoRoute(
                 path: ':centerId',
@@ -2351,7 +2346,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newSpecies',
-                builder: (context, state) => const SpeciesEditPage(),
+                onExit: confirmLeaveRecordSitting,
+                // Behind phase 3's switch, the species page opened on a new
+                // species (issue #4527, plan 11).
+                builder: (context, state) => newSpeciesPage(),
               ),
               // Species to review (issue #4727): one dive with `?dive=`,
               // else the whole log. Before `:speciesId`, which would take

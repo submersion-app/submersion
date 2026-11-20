@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_detail_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_page.dart';
+import 'package:submersion/shared/widgets/record_editing/open_new_record.dart';
 import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
 /// Where the old dive centre edit address (`/dive-centers/<id>/edit`)
@@ -53,5 +54,52 @@ Widget diveCenterEditPane(
     embedded: true,
     onSaved: onSaved,
     onCancel: onCancel,
+  );
+}
+
+/// The new-centre address (`/dive-centers/new`; issue #4527, phase 3, plan
+/// 11): with [unlockEditing], the centre page opened unlocked on a new
+/// centre, which pops its id; else the form, as before.
+Widget newDiveCenterPage({bool unlockEditing = kUnlockRecordEditing}) =>
+    unlockEditing
+    ? const DiveCenterDetailPage.newDiveCenter()
+    : const DiveCenterEditPage();
+
+/// The centre list's new-centre pane (`?mode=new`), as the master-detail
+/// scaffold's `createBuilder`: with [unlockEditing], the centre page on a
+/// new centre, whose created id is handed to [onSaved]; else the form.
+Widget newDiveCenterPane(
+  BuildContext context,
+  void Function(String savedId) onSaved,
+  VoidCallback onCancel, {
+  bool unlockEditing = kUnlockRecordEditing,
+}) {
+  if (unlockEditing) {
+    return DiveCenterDetailPage.newDiveCenter(
+      embedded: true,
+      onCreated: onSaved,
+      onCreateCancelled: onCancel,
+    );
+  }
+  return DiveCenterEditPage(
+    embedded: true,
+    onSaved: onSaved,
+    onCancel: onCancel,
+  );
+}
+
+/// Opens a new dive centre from the centre list on a phone, its empty
+/// state or the centre map: with [unlockEditing], the centre opens,
+/// locked, once created, as a new site does (plan 11, Question 3); else
+/// the form, as before.
+Future<void> openNewDiveCenter(
+  BuildContext context, {
+  bool unlockEditing = kUnlockRecordEditing,
+}) {
+  return openNewRecord(
+    context,
+    newLocation: '/dive-centers/new',
+    recordLocation: (id) => '/dive-centers/$id',
+    openCreated: unlockEditing,
   );
 }

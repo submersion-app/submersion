@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/documents/presentation/pages/document_edit_routes.dart';
 import 'package:submersion/features/query/presentation/providers/entity_search_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -425,4 +426,88 @@ void main() {
       expect(find.text('There are no documents to export'), findsOneWidget);
     });
   }
+  // A new document opens on the document page behind the phase 3 switch
+  // (issue #4527, phase 3, plan 11).
+  testWidgets("the pane's new document is the page with the switch on", (
+    t,
+  ) async {
+    void onSaved(String id) {}
+    void onCancel() {}
+    late BuildContext context;
+    await t.pumpWidget(
+      Builder(
+        builder: (c) {
+          context = c;
+          return const SizedBox.shrink();
+        },
+      ),
+    );
+    final page =
+        newDocumentPane(
+              context,
+              onSaved,
+              onCancel,
+              initialType: DocumentType.insurance,
+              unlockEditing: true,
+            )
+            as DocumentDetailPage;
+    expect(page.embedded, isTrue);
+    expect(page.newDocument?.type, DocumentType.insurance);
+    expect(page.onCreated, same(onSaved));
+    expect(page.onCreateCancelled, same(onCancel));
+    expect(
+      newDocumentPane(
+        context,
+        onSaved,
+        onCancel,
+        initialType: DocumentType.insurance,
+        unlockEditing: false,
+      ),
+      isA<DocumentEditPage>(),
+    );
+  });
+
+  testWidgets('Add on a phone opens the new document once created', (t) async {
+    final router = GoRouter(
+      initialLocation: '/documents',
+      routes: [
+        GoRoute(
+          path: '/documents',
+          builder: (context, _) => Scaffold(
+            body: TextButton(
+              onPressed: () => openNewDocument(
+                context,
+                type: DocumentType.insurance,
+                unlockEditing: true,
+              ),
+              child: const Text('add'),
+            ),
+          ),
+          routes: [
+            GoRoute(
+              path: 'new',
+              builder: (context, state) => Scaffold(
+                body: TextButton(
+                  onPressed: () => context.pop('n1'),
+                  child: Text('NEW ${state.uri.query}'),
+                ),
+              ),
+            ),
+            GoRoute(
+              path: ':id',
+              builder: (_, state) => Text('DOC ${state.pathParameters['id']}'),
+            ),
+          ],
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await t.pumpWidget(MaterialApp.router(routerConfig: router));
+    await t.tap(find.text('add'));
+    await t.pumpAndSettle();
+    await t.tap(find.text('NEW type=insurance'));
+    await t.pumpAndSettle();
+
+    expect(find.text('DOC n1'), findsOneWidget);
+  });
 }

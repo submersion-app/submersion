@@ -104,7 +104,7 @@ mixin _CourseDetailPageEditing
   bool _isEmptyInSitting(CourseCardId id, Course working) {
     if (id == CourseCardId.earnedCertifications) {
       final certifications = _certificationsInSitting(
-        ref.read(certificationsForCourseProvider(widget.courseId)).value,
+        ref.read(certificationsForCourseProvider(hostRecordId)).value,
       );
       return certifications != null && certifications.isEmpty;
     }

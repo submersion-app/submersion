@@ -8,6 +8,7 @@ import 'package:submersion/features/certifications/domain/constants/certificatio
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_detail_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_edit_page.dart';
+import 'package:submersion/features/certifications/presentation/pages/certification_edit_routes.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_list_page.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_list_content.dart';
@@ -709,5 +710,76 @@ void main() {
 
       expect(find.byType(CertificationEditPage), findsOneWidget);
     });
+  });
+
+  // A new certification opens on its page behind the phase 3 switch (issue
+  // #4527, phase 3, plan 11).
+  testWidgets("the pane's new certification is the page with the switch on", (
+    tester,
+  ) async {
+    void onSaved(String id) {}
+    void onCancel() {}
+    late BuildContext context;
+    await tester.pumpWidget(
+      Builder(
+        builder: (c) {
+          context = c;
+          return const SizedBox.shrink();
+        },
+      ),
+    );
+    final page =
+        newCertificationPane(context, onSaved, onCancel, unlockEditing: true)
+            as CertificationDetailPage;
+    expect(page.embedded, isTrue);
+    expect(page.newCertification, isTrue);
+    expect(page.onCreated, same(onSaved));
+    expect(
+      newCertificationPane(context, onSaved, onCancel, unlockEditing: false),
+      isA<CertificationEditPage>(),
+    );
+  });
+
+  testWidgets('Add on a phone opens the new certification once created', (
+    tester,
+  ) async {
+    final router = GoRouter(
+      initialLocation: '/certifications',
+      routes: [
+        GoRoute(
+          path: '/certifications',
+          builder: (context, _) => Scaffold(
+            body: TextButton(
+              onPressed: () =>
+                  openNewCertification(context, unlockEditing: true),
+              child: const Text('add'),
+            ),
+          ),
+          routes: [
+            GoRoute(
+              path: 'new',
+              builder: (context, _) => Scaffold(
+                body: TextButton(
+                  onPressed: () => context.pop('n1'),
+                  child: const Text('NEW'),
+                ),
+              ),
+            ),
+            GoRoute(
+              path: ':id',
+              builder: (_, state) => Text('CERT ${state.pathParameters['id']}'),
+            ),
+          ],
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+    await tester.tap(find.text('add'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('NEW'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('CERT n1'), findsOneWidget);
   });
 }

@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_centers/domain/constants/dive_center_fi
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_detail_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_page.dart';
+import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_routes.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_list_page.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_list_content.dart';
@@ -794,5 +795,77 @@ void main() {
       expect(find.text('Add Your First Dive Center'), findsNothing);
       expect(find.text('Import'), findsOneWidget);
     });
+  });
+
+  // A new dive centre opens on its page behind the phase 3 switch (issue
+  // #4527, phase 3, plan 11).
+  testWidgets("the pane's new centre is the page with the switch on", (
+    tester,
+  ) async {
+    void onSaved(String id) {}
+    void onCancel() {}
+    late BuildContext context;
+    await tester.pumpWidget(
+      Builder(
+        builder: (c) {
+          context = c;
+          return const SizedBox.shrink();
+        },
+      ),
+    );
+    final page =
+        newDiveCenterPane(context, onSaved, onCancel, unlockEditing: true)
+            as DiveCenterDetailPage;
+    expect(page.embedded, isTrue);
+    expect(page.newDiveCenter, isTrue);
+    expect(page.onCreated, same(onSaved));
+    expect(page.onCreateCancelled, same(onCancel));
+    expect(
+      newDiveCenterPane(context, onSaved, onCancel, unlockEditing: false),
+      isA<DiveCenterEditPage>(),
+    );
+  });
+
+  testWidgets('Add on a phone opens the new centre once created', (
+    tester,
+  ) async {
+    final router = GoRouter(
+      initialLocation: '/dive-centers',
+      routes: [
+        GoRoute(
+          path: '/dive-centers',
+          builder: (context, _) => Scaffold(
+            body: TextButton(
+              onPressed: () => openNewDiveCenter(context, unlockEditing: true),
+              child: const Text('add'),
+            ),
+          ),
+          routes: [
+            GoRoute(
+              path: 'new',
+              builder: (context, _) => Scaffold(
+                body: TextButton(
+                  onPressed: () => context.pop('n1'),
+                  child: const Text('NEW'),
+                ),
+              ),
+            ),
+            GoRoute(
+              path: ':id',
+              builder: (_, state) =>
+                  Text('CENTRE ${state.pathParameters['id']}'),
+            ),
+          ],
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+    await tester.tap(find.text('add'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('NEW'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('CENTRE n1'), findsOneWidget);
   });
 }

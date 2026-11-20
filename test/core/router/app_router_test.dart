@@ -3,7 +3,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page.dart';
+import 'package:submersion/features/buddies/presentation/pages/buddy_edit_page.dart';
+import 'package:submersion/features/certifications/presentation/pages/certification_detail_page.dart';
+import 'package:submersion/features/certifications/presentation/pages/certification_edit_page.dart';
+import 'package:submersion/features/courses/presentation/pages/course_detail_page.dart';
+import 'package:submersion/features/courses/presentation/pages/course_edit_page.dart';
+import 'package:submersion/features/dive_centers/presentation/pages/dive_center_detail_page.dart';
+import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_page.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/documents/presentation/pages/document_detail_page.dart';
+import 'package:submersion/features/documents/presentation/pages/document_edit_page.dart';
+import 'package:submersion/features/documents/presentation/pages/document_edit_routes.dart';
 import 'package:submersion/features/gps_log/presentation/pages/gps_track_detail_page.dart';
+import 'package:submersion/features/marine_life/presentation/pages/species_detail_page.dart';
+import 'package:submersion/features/marine_life/presentation/pages/species_edit_page.dart';
+import 'package:submersion/features/marine_life/presentation/pages/species_edit_routes.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_align_page.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_detail_page.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_seascape_page.dart';
@@ -501,6 +516,84 @@ void main() {
       final route = _findRouteByName(router.configuration.routes, name);
       expect(route?.onExit, same(confirmLeaveRecordSitting), reason: name);
     }
+  });
+
+  // A new record opens on its own page behind the phase 3 switch (issue
+  // #4527, phase 3, plan 11).
+  test('a new document opens the page with the switch on', () {
+    const query = {'ownerKind': 'trip', 'ownerId': 't1', 'type': 'permit'};
+    final page = newDocumentPage(query, unlockEditing: true);
+    expect(page, isA<DocumentDetailPage>());
+    final request = (page as DocumentDetailPage).newDocument!;
+    expect(request.owner, const DocumentOwner(DocumentOwnerKind.trip, 't1'));
+    expect(request.type, DocumentType.permit);
+    final form = newDocumentPage(query, unlockEditing: false);
+    expect(form, isA<DocumentEditPage>());
+    expect((form as DocumentEditPage).initialType, DocumentType.permit);
+    expect(form.owner, const DocumentOwner(DocumentOwnerKind.trip, 't1'));
+    final route = _findRouteByName(router.configuration.routes, 'newDocument');
+    expect(route?.onExit, same(confirmLeaveRecordSitting));
+  });
+
+  test('a new species opens the page with the switch on', () {
+    final page = newSpeciesPage(unlockEditing: true);
+    expect(page, isA<SpeciesDetailPage>());
+    expect((page as SpeciesDetailPage).newSpecies, isTrue);
+    expect(newSpeciesPage(unlockEditing: false), isA<SpeciesEditPage>());
+    final route = _findRouteByName(router.configuration.routes, 'newSpecies');
+    expect(route?.onExit, same(confirmLeaveRecordSitting));
+  });
+
+  test('a new buddy opens the page with the switch on', () {
+    const extra = {'name': 'Kai', 'email': 'kai@example.com'};
+    final page = newBuddyPage(extra, unlockEditing: true);
+    expect(page, isA<BuddyDetailPage>());
+    final seed = (page as BuddyDetailPage).newBuddy!.seed!;
+    expect(seed.name, 'Kai');
+    expect(seed.email, 'kai@example.com');
+    final form = newBuddyPage(extra, unlockEditing: false);
+    expect(form, isA<BuddyEditPage>());
+    expect((form as BuddyEditPage).initialName, 'Kai');
+    final route = _findRouteByName(router.configuration.routes, 'newBuddy');
+    expect(route?.onExit, same(confirmLeaveRecordSitting));
+    // Still on the root navigator, over a dialog it is opened from.
+    expect(route?.parentNavigatorKey, isNotNull);
+  });
+
+  test('a new dive centre opens the page with the switch on', () {
+    final page = newDiveCenterPage(unlockEditing: true);
+    expect(page, isA<DiveCenterDetailPage>());
+    expect((page as DiveCenterDetailPage).newDiveCenter, isTrue);
+    expect(newDiveCenterPage(unlockEditing: false), isA<DiveCenterEditPage>());
+    final route = _findRouteByName(
+      router.configuration.routes,
+      'newDiveCenter',
+    );
+    expect(route?.onExit, same(confirmLeaveRecordSitting));
+  });
+
+  test('a new certification opens the page with the switch on', () {
+    final page = newCertificationPage(unlockEditing: true);
+    expect(page, isA<CertificationDetailPage>());
+    expect((page as CertificationDetailPage).newCertification, isTrue);
+    expect(
+      newCertificationPage(unlockEditing: false),
+      isA<CertificationEditPage>(),
+    );
+    final route = _findRouteByName(
+      router.configuration.routes,
+      'newCertification',
+    );
+    expect(route?.onExit, same(confirmLeaveRecordSitting));
+  });
+
+  test('a new course opens the page with the switch on', () {
+    final page = newCoursePage(unlockEditing: true);
+    expect(page, isA<CourseDetailPage>());
+    expect((page as CourseDetailPage).newCourse, isTrue);
+    expect(newCoursePage(unlockEditing: false), isA<CourseEditPage>());
+    final route = _findRouteByName(router.configuration.routes, 'newCourse');
+    expect(route?.onExit, same(confirmLeaveRecordSitting));
   });
 
   // A track's sitting is asked about before a `go` leaves it (issue #4527,

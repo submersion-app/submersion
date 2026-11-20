@@ -174,4 +174,18 @@ void main() {
     gate.complete();
     await loading;
   });
+  test("a new record's sharing is the seed's, read from nowhere", () async {
+    adapter.failRead = true;
+    final fresh = EditSession(const _Rec('n1', ''), isNew: true);
+    addTearDown(fresh.dispose);
+
+    await _sharing.load(fresh, adapter, newRecordSharing: {'everyone'});
+
+    expect(_sharing.loaded(fresh), {'everyone'});
+    expect(_sharing.unread(fresh), isFalse);
+    expect(fresh.isDirty, isFalse);
+    _sharing.set(fresh, <String>{}, actingDiverId: 'me');
+    expect(fresh.isDirty, isTrue);
+    expect(fresh.changedCardIds, {'header'});
+  });
 }

@@ -9,6 +9,9 @@ import 'package:submersion/features/buddies/data/repositories/buddy_repository.d
 import 'package:submersion/features/buddies/data/services/buddy_edit_save_service.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/editing/buddy_edit_fields.dart';
+import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
+import 'package:submersion/features/certifications/domain/entities/certification.dart'
+    as domain;
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
@@ -252,5 +255,111 @@ void main() {
   test('unchanged returns null and writes nothing', () async {
     expect(await save(EditSession(await stored())), isNull);
     expect(await operations(), isEmpty);
+  });
+
+  /// A new buddy's sitting (issue #4527, phase 3, plan 11).
+  group('create', () {
+    Buddy fresh({String id = 'n1', String? linkedDiverId}) => Buddy(
+      id: id,
+      diverId: 'me',
+      name: 'Kai',
+      email: 'kai@example.com',
+      linkedDiverId: linkedDiverId,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+
+    test('creates the buddy with its id, as one History entry', () async {
+      final created = await service.create(
+        buddy: fresh(),
+        changedCardIds: const ['header', 'contact'],
+      );
+
+      expect(created.id, 'n1');
+      expect((await stored('n1')).email, 'kai@example.com');
+      final ops = await operations();
+      expect(ops, hasLength(1));
+      expect(ops.single['source'], 'manual');
+      expect(ops.single['label'], 'record_edit:buddies:n1:contact,header');
+    });
+
+    test('certifications held in the sitting are created for it', () async {
+      await service.create(
+        buddy: fresh(),
+        changedCardIds: const ['certifications'],
+        alsoWrite: () =>
+            CertificationRepository().replaceBuddyCertifications('n1', [
+              domain.Certification(
+                id: '',
+                name: 'Open Water',
+                agency: 'padi',
+                createdAt: DateTime(2026),
+                updatedAt: DateTime(2026),
+              ),
+            ]),
+      );
+
+      final certs = await CertificationRepository().getCertificationsByBuddy(
+        'n1',
+      );
+      expect(certs.single.name, 'Open Water');
+      expect(await operations(), hasLength(1));
+    });
+
+    test('a held write that throws leaves nothing', () async {
+      await expectLater(
+        service.create(
+          buddy: fresh(),
+          changedCardIds: const ['header'],
+          alsoWrite: () async => throw StateError('refused'),
+        ),
+        throwsStateError,
+      );
+
+      expect(await buddies.getBuddyById('n1'), isNull);
+      expect(await operations(), isEmpty);
+    });
+
+    test('an empty id or one already stored is refused', () async {
+      await expectLater(
+        service.create(
+          buddy: fresh(id: ''),
+          changedCardIds: const [],
+        ),
+        throwsStateError,
+      );
+      await expectLater(
+        service.create(
+          buddy: fresh(id: 'b1'),
+          changedCardIds: const [],
+        ),
+        throwsStateError,
+      );
+
+      expect((await stored()).name, 'Alex');
+      expect(await operations(), isEmpty);
+    });
+
+    test(
+      'a profile linked to another buddy is refused, nothing written',
+      () async {
+        await db.customStatement(
+          "UPDATE buddies SET linked_diver_id = 'p1' WHERE id = 'b2'",
+        );
+        await changeLog.settleAll();
+        await db.customStatement('DELETE FROM change_log_operations');
+
+        await expectLater(
+          service.create(
+            buddy: fresh(linkedDiverId: 'p1'),
+            changedCardIds: const ['contact'],
+          ),
+          throwsA(isA<RecordSittingRefusal>()),
+        );
+
+        expect(await buddies.getBuddyById('n1'), isNull);
+        expect(await operations(), isEmpty);
+      },
+    );
   });
 }

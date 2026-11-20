@@ -15,12 +15,15 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 ///
 /// Sync is told of the sitting once, after the commit, and not at all when
 /// it rolls back ([SyncEventBus.holdNotices]): the writes inside it hold
-/// their notices.
+/// their notices. With [wrote], a committed sitting whose result it says
+/// wrote something tells sync itself, so one whose writes were told to
+/// stay quiet (a repository's `notify: false`) is still heard of.
 Future<R> runRecordSitting<R>({
   required String table,
   required String recordId,
   required Iterable<String> changedCardIds,
   required Future<R> Function() body,
+  bool Function(R result)? wrote,
 }) => ChangeLogScope.run(
   DatabaseService.instance.databaseOrNull,
   source: ChangeLogSource.manual,
@@ -31,10 +34,55 @@ Future<R> runRecordSitting<R>({
   ),
   // Sync hears of the sitting once it has committed, not of each write
   // inside it: a write a later one rolls back was never saved.
-  body: () => SyncEventBus.holdNotices(
-    () => DatabaseService.instance.database.transaction(body),
-  ),
+  body: () => SyncEventBus.holdNotices(() async {
+    final result = await DatabaseService.instance.database.transaction(body);
+    // Held with any notice the writes sent: one goes out for both.
+    if (wrote?.call(result) ?? false) SyncEventBus.notifyLocalChange();
+    return result;
+  }),
 );
+
+/// Creates the record [recordId] of [table], a new record's sitting (issue
+/// #4527, phase 3, plan 11), inside [runRecordSitting].
+///
+/// The id is the one the sitting was opened with, which its held writes
+/// already point at. [insert] writes the record's row, then [alsoWrite]
+/// the sitting's held writes, in one transaction and one change log
+/// operation naming [changedCardIds]: if either throws nothing is left.
+/// Returns the record as [readBack] reads it at the end, or [created] when
+/// it reads nothing. Throws [StateError], before anything is written, when
+/// [recordId] is empty or [isStored] says a stored record already has it.
+Future<T> createRecordSitting<T>({
+  required String table,
+  required String recordId,
+  required Iterable<String> changedCardIds,
+  required Future<bool> Function() isStored,
+  required Future<void> Function() insert,
+  Future<void> Function()? alsoWrite,
+  required Future<T?> Function() readBack,
+  required T created,
+}) {
+  if (recordId.isEmpty) {
+    return Future.error(
+      StateError('A new $table record needs its id before it is created'),
+    );
+  }
+  return runRecordSitting(
+    table: table,
+    recordId: recordId,
+    changedCardIds: changedCardIds,
+    // A create always writes its row.
+    wrote: (_) => true,
+    body: () async {
+      if (await isStored()) {
+        throw StateError('$table record $recordId already exists');
+      }
+      await insert();
+      await alsoWrite?.call();
+      return await readBack() ?? created;
+    },
+  );
+}
 
 /// Writes one editing sitting on the record [recordId] of [table], inside
 /// [runRecordSitting].
@@ -66,6 +114,8 @@ Future<({T before, T after})?> writeRecordSitting<T>({
   table: table,
   recordId: recordId,
   changedCardIds: changedCardIds,
+  // Null when nothing changed, which wrote nothing.
+  wrote: (result) => result != null,
   body: () async {
     final stored = await read();
     if (stored == null) {
