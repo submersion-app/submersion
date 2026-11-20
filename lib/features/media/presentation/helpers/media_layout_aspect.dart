@@ -50,6 +50,17 @@ double mediaRawAspect(MediaItem item, {LearnedAspect? learned}) {
 double clampMediaAspect(double raw) =>
     raw.clamp(kMediaMinAspect, kMediaMaxAspect).toDouble();
 
+/// Each of [items]' shapes as a justified grid lays it out: learned, stored
+/// or fallback, then clamped. The one rule the library and the dive card
+/// share (issues #4738, #4739).
+List<double> mediaLayoutRatios(
+  Iterable<MediaItem> items,
+  Map<String, LearnedAspect> learned,
+) => [
+  for (final item in items)
+    clampMediaAspect(mediaRawAspect(item, learned: learned[item.id])),
+];
+
 /// Whether a thumbnail decoded at [decoded] has a different shape from
 /// [raw], the unclamped shape it was laid out from. Compared unclamped so a
 /// panorama held at 3:1 does not count as a mismatch on every draw.
@@ -59,13 +70,3 @@ bool decodedAspectDiffers(double raw, Size decoded) {
   // The epsilon keeps exactly 2 % on the "same" side despite rounding.
   return (ratio / raw - 1).abs() > _kAspectTolerance + 1e-9;
 }
-
-/// Each item's shape as a justified layout packs it: learned, stored or
-/// fallback, then clamped (issues #4738, #4741).
-List<double> mediaItemRatios(
-  List<MediaItem> items,
-  Map<String, LearnedAspect> learned,
-) => [
-  for (final item in items)
-    clampMediaAspect(mediaRawAspect(item, learned: learned[item.id])),
-];

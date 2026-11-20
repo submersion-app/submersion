@@ -70,12 +70,12 @@ class MediaThumbnailTile extends StatelessWidget {
   final bool isSelected;
   final String semanticsLabel;
 
-  /// The size the thumbnail is resolved and decoded at. A justified tile
-  /// asks for its own size's bucket (`mediaThumbnailDecodeTarget`).
+  /// The size the thumbnail is resolved and decoded at. A grid whose tiles
+  /// vary in size passes each tile's own (issue #4739).
   final Size targetSize;
 
   /// Called with the thumbnail's decoded size, which is how a justified
-  /// layout learns a photo's displayed shape (issue #4738).
+  /// grid learns a photo's displayed shape (issue #4739).
   final ValueChanged<Size>? onImageSize;
 
   const MediaThumbnailTile({

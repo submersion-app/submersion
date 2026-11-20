@@ -113,7 +113,7 @@ class SiteAttachmentGroups extends ConsumerWidget {
     final aspects = ref.read(mediaLearnedAspectsProvider.notifier);
     return _JustifiedTileTable(
       key: ValueKey('tiles-${group.category?.storageKey ?? 'none'}'),
-      ratios: mediaItemRatios(tiles, learned),
+      ratios: mediaLayoutRatios(tiles, learned),
       builder: (context, table) =>
           _dragSelectGrid(context, tiles, groupIds, table, aspects),
     );

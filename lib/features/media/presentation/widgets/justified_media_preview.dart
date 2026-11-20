@@ -73,7 +73,7 @@ class JustifiedMediaPreview extends ConsumerWidget {
     // read loads as empty, so this never waits for good.
     final learned = ref.watch(mediaLearnedAspectsProvider).value;
     if (learned == null) return const SizedBox.shrink();
-    final ratios = mediaItemRatios(items, learned);
+    final ratios = mediaLayoutRatios(items, learned);
     final isRtl = Directionality.of(context) == TextDirection.rtl;
     return LayoutBuilder(
       builder: (context, constraints) {
