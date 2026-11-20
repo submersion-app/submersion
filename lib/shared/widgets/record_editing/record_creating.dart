@@ -89,6 +89,13 @@ mixin RecordCreating<W extends ConsumerStatefulWidget, T>
     Object? error,
   });
 
+  /// Asked before a create that would write, as a stored record's page
+  /// asks [beforeSave]: false creates nothing and leaves the sitting as it
+  /// is, as a dialog the diver cancelled does. Asked after the opener's
+  /// prefill and before what follows a create is captured, so what it
+  /// decides can be part of both.
+  Future<bool> beforeCreate(EditSession<T> session) async => true;
+
   /// What a full page pops with once created: the new id, unless the
   /// type's openers take the record itself.
   Object? newRecordResult(T created) => recordIdOf(created);
@@ -125,6 +132,9 @@ mixin RecordCreating<W extends ConsumerStatefulWidget, T>
 
   /// The page is leaving: nothing opens or leaves again.
   bool _leaving = false;
+
+  /// [beforeCreate] is being asked: a second Save meanwhile does nothing.
+  bool _askingBeforeCreate = false;
 
   /// The app's own leave check ended the sitting: its navigation leaves.
   bool _endedByLeave = false;
@@ -270,10 +280,19 @@ mixin RecordCreating<W extends ConsumerStatefulWidget, T>
   /// everything entered.
   @override
   Future<void> saveNewRecord() async {
-    if (_created != null || _leaving) return;
+    if (_created != null || _leaving || _askingBeforeCreate) return;
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
     final controller = editController;
+    final session = controller.session;
+    if (session != null && controller.saveWouldWrite) {
+      _askingBeforeCreate = true;
+      try {
+        if (!await beforeCreate(session) || !mounted) return;
+      } finally {
+        _askingBeforeCreate = false;
+      }
+    }
     final afterCreated = captureAfterRecordCreated();
     final saved = await controller.save();
     if (!saved) {

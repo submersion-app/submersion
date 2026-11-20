@@ -74,6 +74,13 @@ class _Probe {
   Completer<void>? createGate;
   final createdIds = <String>[];
   int cancelled = 0;
+
+  /// What the question before a create answers, and what it was asked on.
+  bool beforeCreateAnswer = true;
+  final askedOn = <String>[];
+
+  /// How many questions had been asked when what follows was captured.
+  final askedWhenCaptured = <int>[];
 }
 
 final _probeProvider = Provider<_Probe>((ref) => throw UnimplementedError());
@@ -160,9 +167,17 @@ class _NewNotePageState extends ConsumerState<_NewNotePage>
   }
 
   @override
+  Future<bool> beforeCreate(EditSession<_Note> session) async {
+    final probe = _probe;
+    probe.askedOn.add(session.working.text);
+    return probe.beforeCreateAnswer;
+  }
+
+  @override
   Future<void> Function(_Note created) captureAfterRecordCreated() {
     // Read now: by the time the create commits the page may have gone.
     final probe = _probe;
+    probe.askedWhenCaptured.add(probe.askedOn.length);
     return (created) async {
       await probe.afterGate?.future;
       if (probe.afterThrows) throw StateError('after failed');
@@ -380,6 +395,31 @@ void main() {
     expect(created.text, 'Calm');
     expect(created.id, isNotEmpty);
     expect(popped, created.id);
+  });
+
+  testWidgets('a question before the create is asked on what was entered, '
+      'before what follows is captured', (tester) async {
+    await pump(tester);
+    await type(tester, 'Calm');
+
+    await tapSave(tester);
+
+    expect(probe.askedOn, ['Calm']);
+    expect(probe.askedWhenCaptured, [1]);
+    expect(probe.creates.single.text, 'Calm');
+  });
+
+  testWidgets('a create declined before it is written creates nothing and '
+      'keeps the page', (tester) async {
+    await pump(tester, setUp: (probe) => probe.beforeCreateAnswer = false);
+    await type(tester, 'Calm');
+
+    await tapSave(tester);
+
+    expect(probe.askedOn, ['Calm']);
+    expect(probe.creates, isEmpty);
+    expect(find.byType(RecordEditBar), findsOneWidget);
+    expect(popped, isNull);
   });
 
   testWidgets('a pane create calls onCreated and never pops', (tester) async {
