@@ -8,6 +8,7 @@ import 'package:submersion/features/reef/data/services/reef_request_timeout.dart
 import 'package:submersion/features/reef/domain/entities/nearby_species.dart';
 import 'package:submersion/features/reef/domain/entities/reef_data_status.dart';
 import 'package:submersion/features/reef/domain/services/species_catalog_matcher.dart';
+import 'package:submersion/features/reef/data/services/reef_failure.dart';
 
 /// Fetches species recorded near a dive site from GBIF.
 ///
@@ -126,7 +127,7 @@ class NearbySpeciesService {
         'Nearby species fetch failed: $e',
         name: 'NearbySpeciesService',
       );
-      return const ReefPart.unavailable();
+      return reefFailure(e);
     }
   }
 

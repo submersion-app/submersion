@@ -545,6 +545,42 @@ void main() {
     expect(habitatCalls, 2);
   });
 
+  // A request that got no answer (no network) says nothing about the
+  // source, so it is not saved: back online, the next view asks again
+  // rather than reading "could not fetch" for the next hour. A failure the
+  // server answered is still saved, as the test above shows.
+  group('a request that got no answer is not saved as a failure', () {
+    const point = GeoPoint(12.16, -68.28);
+    final parts = <String, Future<ReefPart<Object?>> Function(ReefRepository)>{
+      'habitat': (repo) => repo.habitatFor(point),
+      'current health': (repo) => repo.currentHealthFor(point),
+      'protection': (repo) => repo.protectionFor(point),
+      'nearby species': (repo) => repo.speciesFor(point),
+    };
+    for (final MapEntry(key: name, value: read) in parts.entries) {
+      test(name, () async {
+        var requests = 0;
+        final offline = MockClient((request) async {
+          requests++;
+          throw http.ClientException('Failed host lookup', request.url);
+        });
+        final repo = buildRepository(
+          habitatClient: offline,
+          healthClient: offline,
+          protectionClient: offline,
+          speciesClient: offline,
+        );
+
+        final first = await read(repo);
+        expect(first.status, ReefDataStatus.unavailable);
+        final asked = requests;
+        await read(repo);
+
+        expect(requests, greaterThan(asked));
+      });
+    }
+  });
+
   test('healthFor caches a past dive date permanently', () async {
     var healthCalls = 0;
     final ok = MockClient(

@@ -193,6 +193,9 @@ class ReefRepository {
     }
 
     final part = await fetch();
+    // No answer is no news about the source: offline, it is asked again on
+    // the next view rather than read back as a failure for an hour.
+    if (part.unanswered) return part;
     if (part.hasValue && (skipStore?.call(part.value as T) ?? false)) {
       return part;
     }
