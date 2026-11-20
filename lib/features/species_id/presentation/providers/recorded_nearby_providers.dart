@@ -59,9 +59,11 @@ final recordedNearbyListProvider = FutureProvider.autoDispose
       );
       if (point == null) return null;
       final list = reefNearbySpeciesProvider(point);
+      Future<NearbySpecies?> read() async =>
+          _shown(await ref.watch(list.future));
       // A list already here or on its way, for another row or the site
       // page, is read at once: the queue is only for asking GBIF.
-      if (ref.exists(list)) return _shown(await ref.watch(list.future));
+      if (ref.exists(list)) return read();
       final turn = await ref.read(nearbyListGateProvider).acquire();
       // Its turn came after it left the screen: pass the turn on.
       if (!ref.mounted) {
@@ -72,12 +74,12 @@ final recordedNearbyListProvider = FutureProvider.autoDispose
       // hand the turn straight on, since GBIF need not be asked again.
       if (ref.exists(list)) {
         turn.release();
-        return _shown(await ref.watch(list.future));
+        return read();
       }
       // Leaving while the list is on the way frees the turn at once.
       ref.onDispose(turn.release);
       try {
-        return _shown(await ref.watch(list.future));
+        return await read();
       } finally {
         turn.release();
       }

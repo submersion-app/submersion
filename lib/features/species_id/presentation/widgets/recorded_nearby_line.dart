@@ -16,7 +16,7 @@ class RecordedNearbyLine extends ConsumerWidget {
   const RecordedNearbyLine({
     super.key,
     required this.request,
-    this.gbifKeys = const {},
+    required this.gbifKeys,
     this.catalogId,
   });
 
@@ -39,9 +39,13 @@ class RecordedNearbyLine extends ConsumerWidget {
       return const SizedBox.shrink();
     }
     // Small, in the colour of the text around it: under a list tile's
-    // secondary line it matches that line rather than outranking it.
+    // secondary line it matches that line rather than outranking it. One
+    // line, so a long translation arriving late cannot push the row's
+    // buttons down.
     return Text(
       context.l10n.reef_species_recordedNearby,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
       style: Theme.of(context).textTheme.bodySmall?.copyWith(
         color: DefaultTextStyle.of(context).style.color,
       ),

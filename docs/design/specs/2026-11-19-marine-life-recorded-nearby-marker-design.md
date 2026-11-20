@@ -102,3 +102,27 @@ the tag.
   it is unavailable.
 - Pull request screenshots: before and after of the three screens. Colours
   do not change, so light only.
+
+## Decided during build and review (2026-11-19)
+
+- **Look:** text only, no icon; `bodySmall`'s size in the colour of the text
+  around it, so under a list tile's secondary line it adds no colour; one
+  line, ellipsised, so a long translation cannot push a row's buttons down
+  when the list arrives.
+- **Review rows** are matched by every GBIF key the species is known by on
+  the device: the row's candidate, each grouped suggestion, and the key each
+  of the app's tags was made from (the tagged species' own entry in the
+  identification behind the tag, which also gives the row its score). Rows
+  of photos in no dive read the shown photo's own GPS.
+- **Traffic:** at most two lists are fetched at a time, in the page's
+  order; a list already loaded or on its way is read at once; a row that
+  leaves the screen gives up its turn; photo positions use the reef cache's
+  ~110 m cell, so nearby photos share one list.
+- **Data:** a list GBIF could name nothing of keeps its keys (saved as
+  `ok` with empty tiers, which the site page hides as before).
+- **Offline, all four reef parts (the maintainer's call):** a request that
+  got no answer at all (`http.ClientException`: no network, host not found,
+  connection dropped) is not saved as a one-hour failure, so the next view
+  asks again. A server's failure and a timeout are still saved.
+- **Failures** in the marker's own read are not retried: they only mean no
+  marker.
