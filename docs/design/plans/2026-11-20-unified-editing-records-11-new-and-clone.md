@@ -409,6 +409,18 @@ As Task 6, with screenshots of a new buddy (and one from contacts), a new centre
 
 As Task 6, with screenshots of a new item, one from Add by hand, a clone, a new set and a set clone.
 
+### As built (Part C)
+
+Built natively on 2026-11-20. Where the code differs from the tasks above, the code is right:
+
+- A clone's extras (clocks without a baseline, set memberships, document copies) are one held write of the clone that runs the existing `EquipmentCloneService.copyExtras` inside the Save and fails it when any step fails, rather than prefilled card by card. Its clocks therefore show on the card only once saved, as with the form. The write reads the created row's diver, which Save may have read when the seed could not.
+- A clone's place is held as the item's first move through the Location card's own `holdGearItemMove`, so the card shows it and a move made by hand replaces it. Its tags start empty with `SittingList.loadNone` (no read, which a tracked prefill must not wait for) and take the source's own.
+- A clock added to a new item, of a kind `createEquipment` attaches itself at Save, takes that clock's place (`clockMergedInto`, keeping its baseline when the added one sets none) instead of making a second.
+- A new item's page shows the header, Details, Location, Service clocks (not for wanted gear), Notes and Documents; the stored item's body is built only for a stored item.
+- `RecordCreating` asks for the seed one microtask after `initState`, so a seed may read the page's context (the clone's localized name).
+- `EquipmentSetEditSaveService.create` takes the set with its geofences on the record. A profile switch before Save drops a set clone's sitting.
+- No transmitter rescan after a create: the rescan finds registry entries naming the item, and none can name a new item's id at Save; the entry that later names it rescans on its own save.
+
 ## Part D: trips (PR 4)
 
 ### Task 19: `TripEditSaveService.create`
