@@ -360,10 +360,37 @@ void removeSittingAnnotation(EditSession<Dive> session, String id) {
 /// editing around it did not ask for. The Notes card holds Save until the
 /// link is mended, or deleted whole, address and all, which removes the
 /// annotation as it always has. Notes stored already broken hold nothing
-/// while left as they are.
-bool annotationLinksIntact(EditSession<Dive> session) =>
-    strayAnnotationAddresses(session.working.notes) <=
-    strayAnnotationAddresses(session.stored.notes);
+/// while left as they are. The addresses themselves are compared, not how
+/// many there are, so mending a stored break does not excuse a new one.
+bool annotationLinksIntact(EditSession<Dive> session) {
+  final working = strayAnnotationAddresses(session.valueOf(diveNotesField));
+  if (working.isEmpty) return true;
+  final allowed = <String, int>{};
+  for (final address in _storedStrayAddresses(session)) {
+    allowed[address] = (allowed[address] ?? 0) + 1;
+  }
+  for (final address in working) {
+    final left = (allowed[address] ?? 0) - 1;
+    if (left < 0) return false;
+    allowed[address] = left;
+  }
+  return true;
+}
+
+const String _storedStrayKey = 'annotations.storedStray';
+
+/// The stored notes' stray addresses, read again only when the stored
+/// notes change: the check runs on every keystroke.
+List<String> _storedStrayAddresses(EditSession<Dive> session) {
+  final notes = session.stored.notes;
+  final kept = session.recall<({String notes, List<String> addresses})>(
+    _storedStrayKey,
+  );
+  if (kept != null && kept.notes == notes) return kept.addresses;
+  final addresses = strayAnnotationAddresses(notes);
+  session.remember(_storedStrayKey, (notes: notes, addresses: addresses));
+  return addresses;
+}
 
 /// The earliest and latest second an annotation may fall on: from the
 /// start, to the stored profile's end, else the sitting's runtime, bottom

@@ -222,6 +222,22 @@ void main() {
       session.set(diveNotesField, '${broken.notes} [x](annotation:abc');
       expect(annotationLinksIntact(session), isFalse);
     });
+
+    test('a stored break mended does not excuse another link broken in the '
+        'same sitting', () async {
+      final broken = dive.copyWith(
+        notes: '[a](annotation:old\n\n[b](annotation:other)',
+      );
+      final session = EditSession<Dive>(broken);
+      addTearDown(session.dispose);
+
+      // The stored break mended, and the other link's parenthesis deleted.
+      session.set(
+        diveNotesField,
+        '[a](annotation:old)\n\n[b](annotation:other',
+      );
+      expect(annotationLinksIntact(session), isFalse);
+    });
   });
 
   test('limits: the profile end, else the runtime, capped as today', () async {
