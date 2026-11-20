@@ -19,7 +19,7 @@ import 'package:submersion/features/media/domain/value_objects/sighting_timing.d
 import 'package:submersion/features/settings/presentation/providers/media_badge_settings_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/serial_preference_writes.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/species_id/data/engines/channel_vision_engine.dart';
+import 'package:submersion/features/species_id/data/engines/platform_vision_engine.dart';
 import 'package:submersion/features/species_id/data/pack/species_pack_store.dart';
 import 'package:submersion/features/species_id/data/repositories/identification_embedding_repository.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
@@ -41,7 +41,7 @@ import 'package:submersion/features/species_id/domain/services/vision_engine.dar
 /// Marine life identification (issue #4668).
 
 final visionEngineProvider = Provider<VisionEngine>(
-  (ref) => ChannelVisionEngine(),
+  (ref) => createPlatformVisionEngine(),
 );
 
 final visionAvailabilityProvider = FutureProvider<VisionAvailability>(
