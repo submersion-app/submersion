@@ -99,6 +99,34 @@ final annotationLinkPattern = RegExp(
   caseSensitive: false,
 );
 
+/// An annotation address in Notes: the scheme with something after it, so
+/// prose such as "annotation: none" is not one.
+final RegExp _annotationAddress = RegExp(
+  '$annotationLinkScheme:[^\\s)]',
+  caseSensitive: false,
+);
+
+/// How many annotation addresses in [notes] are not part of a link the
+/// Notes render as one (#4815): what is left when a bracket, a parenthesis
+/// or part of the id is deleted by hand. Save reads such an annotation as
+/// removed, though the diver only meant to edit around its link.
+int strayAnnotationAddresses(String notes) {
+  if (!mayLinkAnnotations(notes)) return 0;
+  final linked = annotationIdsInNotes(notes);
+  final links = [
+    for (final link in annotationLinkPattern.allMatches(notes))
+      if (linked.contains(link[1])) link,
+  ];
+  var stray = 0;
+  for (final address in _annotationAddress.allMatches(notes)) {
+    final inLink = links.any(
+      (link) => link.start < address.start && address.start < link.end,
+    );
+    if (!inLink) stray++;
+  }
+  return stray;
+}
+
 /// [notes] with each annotation link's id replaced by its entry in [ids]. A
 /// link to any other id is left as it is.
 String renameAnnotationLinks(String notes, Map<String, String> ids) {

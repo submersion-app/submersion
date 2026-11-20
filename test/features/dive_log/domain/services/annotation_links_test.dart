@@ -185,4 +185,47 @@ void main() {
       expect(mayLinkAnnotations('plain words'), isFalse);
     });
   });
+
+  // An address left behind by link markup the diver broke (#4815): Save
+  // reads the annotation as removed, so the sitting counts these.
+  group('strayAnnotationAddresses', () {
+    const id = '1170e3dc-5a6d-43d6-9d68-410d4280845e';
+
+    test('is zero for intact links and plain words', () {
+      expect(strayAnnotationAddresses(''), 0);
+      expect(strayAnnotationAddresses('Calm. My annotation: none.'), 0);
+      expect(
+        strayAnnotationAddresses(
+          '[Vomit](annotation:$id) and [b](annotation:x)',
+        ),
+        0,
+      );
+    });
+
+    test('counts an address whose link lost a bracket or parenthesis', () {
+      expect(strayAnnotationAddresses('[Vomit](annotation:$id'), 1);
+      expect(strayAnnotationAddresses('Vomit](annotation:$id)'), 1);
+      expect(strayAnnotationAddresses('[Vomit]annotation:$id)'), 1);
+      expect(strayAnnotationAddresses('[Vomit] (annotation:$id)'), 1);
+    });
+
+    test('counts an address whose id was cut short', () {
+      expect(strayAnnotationAddresses('Vomit annotation:1170e3dc'), 1);
+    });
+
+    test('the nested shape a pin left on a phone: one stray, one link', () {
+      const notes =
+          '[Vomit buggy](annotation:$id\n'
+          '[Fff](annotation:84baa0c1-f949-41b1-a117-994304f15de2))';
+      expect(strayAnnotationAddresses(notes), 1);
+      expect(annotationIdsInNotes(notes), {
+        '84baa0c1-f949-41b1-a117-994304f15de2',
+      });
+    });
+
+    test('ignores case, as links do', () {
+      expect(strayAnnotationAddresses('[a](Annotation:$id)'), 0);
+      expect(strayAnnotationAddresses('[a](Annotation:$id'), 1);
+    });
+  });
 }

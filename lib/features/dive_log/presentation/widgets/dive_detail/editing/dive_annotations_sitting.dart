@@ -354,6 +354,17 @@ void removeSittingAnnotation(EditSession<Dive> session, String id) {
   );
 }
 
+/// Whether the sitting's notes break no annotation link the stored notes
+/// had whole (#4815): a link with a bracket, a parenthesis or part of its
+/// id deleted reads at Save as its annotation removed, which the diver
+/// editing around it did not ask for. The Notes card holds Save until the
+/// link is mended, or deleted whole, address and all, which removes the
+/// annotation as it always has. Notes stored already broken hold nothing
+/// while left as they are.
+bool annotationLinksIntact(EditSession<Dive> session) =>
+    strayAnnotationAddresses(session.working.notes) <=
+    strayAnnotationAddresses(session.stored.notes);
+
 /// The earliest and latest second an annotation may fall on: from the
 /// start, to the stored profile's end, else the sitting's runtime, bottom
 /// time or exit, capped as the time sheet caps it today.

@@ -176,6 +176,54 @@ void main() {
     },
   );
 
+  // Link markup broken by hand (#4815) would read at Save as the
+  // annotation removed, so the Notes card holds Save until it is mended.
+  group('annotationLinksIntact', () {
+    test('a sitting as opened is intact', () async {
+      final session = await started();
+      expect(annotationLinksIntact(session), isTrue);
+    });
+
+    test('a link that lost its closing parenthesis is not', () async {
+      final session = await started();
+      final notes = session.working.notes;
+      session.set(diveNotesField, notes.substring(0, notes.length - 1));
+      expect(annotationLinksIntact(session), isFalse);
+
+      session.set(diveNotesField, notes);
+      expect(annotationLinksIntact(session), isTrue);
+    });
+
+    test('the link deleted whole, address and all, removes the annotation '
+        'as before', () async {
+      final session = await started();
+      session.set(diveNotesField, 'Calm');
+      expect(annotationLinksIntact(session), isTrue);
+    });
+
+    test('words edited inside the link are intact', () async {
+      final session = await started();
+      session.set(
+        diveNotesField,
+        session.working.notes.replaceFirst('turtle', 'turtle buggy'),
+      );
+      expect(annotationLinksIntact(session), isTrue);
+    });
+
+    test('notes stored already broken do not hold Save while left so, but a '
+        'second break does', () async {
+      final broken = dive.copyWith(
+        notes: '${dive.notes.substring(0, dive.notes.length - 1)} more',
+      );
+      final session = EditSession<Dive>(broken);
+      addTearDown(session.dispose);
+      expect(annotationLinksIntact(session), isTrue);
+
+      session.set(diveNotesField, '${broken.notes} [x](annotation:abc');
+      expect(annotationLinksIntact(session), isFalse);
+    });
+  });
+
   test('limits: the profile end, else the runtime, capped as today', () async {
     final session = await started();
     expect(annotationTimeLimits(session), (min: 0, max: 2400));
