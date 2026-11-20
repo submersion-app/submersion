@@ -354,8 +354,8 @@ Future<bool> writeTripCylinders({
   return wrote;
 }
 
-/// What the Gear tab's Add and its rows change, and where it goes: straight
-/// to the repositories, or into the trip page's sitting (issue #4527).
+/// What the Gear tab's Add and its rows change: held in the trip page's
+/// sitting (issue #4527, [HeldTripGearWrites]).
 abstract interface class TripGearWrites {
   /// Packs [items]; answers how many were not packed already.
   Future<int> pack(List<EquipmentItem> items);
@@ -371,37 +371,6 @@ abstract interface class TripGearWrites {
 
   /// The board's slots now.
   Future<List<TripCylinder>> slots();
-}
-
-/// Writes each change at once, as the Gear tab always has.
-class RepositoryTripGearWrites implements TripGearWrites {
-  RepositoryTripGearWrites({
-    required this.tripId,
-    required this.packs,
-    required this.cylinders,
-  });
-
-  final String tripId;
-  final TripEquipmentRepository packs;
-  final TripCylinderRepository cylinders;
-
-  @override
-  Future<int> pack(List<EquipmentItem> items) =>
-      packs.pack(tripId, [for (final i in items) i.id]);
-
-  @override
-  Future<void> unpack(String equipmentId) => packs.unpack(tripId, equipmentId);
-
-  @override
-  Future<List<TripCylinder>> appendCylinders(List<TripCylinder> drafts) =>
-      cylinders.appendCylinders(tripId, drafts);
-
-  @override
-  Future<void> createCylinders(List<TripCylinder> drafts) =>
-      cylinders.createCylinders(drafts);
-
-  @override
-  Future<List<TripCylinder>> slots() => cylinders.getCylindersForTrip(tripId);
 }
 
 /// Holds each change in [session] until Save: packed gear in [packed], the

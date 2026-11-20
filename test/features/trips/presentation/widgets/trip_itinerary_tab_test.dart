@@ -6,7 +6,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/trips/data/repositories/itinerary_day_repository.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -15,13 +14,17 @@ import 'package:submersion/features/trips/domain/entities/trip_day_weather.dart'
 import 'package:submersion/features/trips/domain/entities/trip_media_preview.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story.dart';
 import 'package:submersion/features/trips/domain/services/trip_story_builder.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_card_slots.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_itinerary_sitting.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_itinerary_tab.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../pages/trip_detail_page_unlock_harness.dart';
 
 Trip _trip(DateTime start) => Trip(
   id: 'trip-1',
@@ -53,25 +56,41 @@ Trip _resortTrip() => Trip(
   updatedAt: DateTime(2026, 1, 1),
 );
 
-/// An updateDay that records the day it was given.
-class _RecordingItineraryRepo extends ItineraryDayRepository {
-  final updated = <ItineraryDay>[];
-  @override
-  Future<void> updateDay(ItineraryDay day) async => updated.add(day);
-}
+/// The trip page's sitting the tab acts in (issue #4527): its session, and
+/// the itinerary store its held writes go to at Save.
+typedef _Sitting = ({EditSession<Trip> session, FakeItineraryDays store});
 
-/// An updateDay that fails the way a locked database does.
-class _FailingItineraryRepo extends ItineraryDayRepository {
-  @override
-  Future<void> updateDay(ItineraryDay day) async {
-    throw StateError('database is locked');
-  }
+/// The trip page's slots for an open sitting on [trip], with no frames.
+TripCardSlots _slots(Trip trip, EditSession<Trip> session) => TripCardSlots(
+  shown: trip,
+  layout: trip,
+  session: session,
+  frame: (_, child) => child,
+  dayPlanFrame: (_, child) => child,
+  showsWhileEmpty: (_) => false,
+  openCard: (_) {},
+  unlockAt: (_) => session,
+);
+
+/// The day [id] as [sitting] holds it.
+ItineraryDay _heldDay(_Sitting sitting, String id) => tripItineraryDays(
+  sitting.store,
+).current(sitting.session)!.singleWhere((d) => d.id == id);
+
+/// What Save writes for the days the sheet changed.
+Future<List<ItineraryDay>> _savedDays(_Sitting sitting) async {
+  await sitting.session.runHeldWrites();
+  return sitting.store.updated;
 }
 
 /// [reload], when given, is what every itinerary load after the first
 /// returns, so a test can hold a reload open; [tripAfter] is likewise what
 /// every trip read after the first returns.
-Future<void> _pumpTab(
+///
+/// [inSitting] pumps the tab as the unlocked trip page shows it, under its
+/// slots with a sitting open on [trip] holding [days], and answers that
+/// sitting; otherwise the tab only reads, and the answer is null.
+Future<_Sitting?> _pumpTab(
   WidgetTester tester, {
   required Trip? trip,
   required List<ItineraryDay> days,
@@ -83,7 +102,16 @@ Future<void> _pumpTab(
   TripStory? story,
   Map<int, TripDayWeather>? tripDayWeather,
   Size viewSize = const Size(800, 2000),
+  bool inSitting = false,
 }) async {
+  _Sitting? sitting;
+  if (inSitting) {
+    final store = FakeItineraryDays(days);
+    final session = EditSession<Trip>(trip!);
+    addTearDown(session.dispose);
+    await tripItineraryDays(store).load(session);
+    sitting = (session: session, store: store);
+  }
   var loads = 0;
   var tripReads = 0;
   tester.view.physicalSize = viewSize;
@@ -118,17 +146,27 @@ Future<void> _pumpTab(
             today: clock.now(),
           );
         }),
+        if (sitting != null)
+          itineraryDayRepositoryProvider.overrideWithValue(sitting.store),
         ...extra,
       ].cast(),
-      child: const MaterialApp(
-        locale: Locale('en'),
+      child: MaterialApp(
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(body: TripItineraryTab(tripId: 'trip-1')),
+        home: Scaffold(
+          body: sitting == null
+              ? const TripItineraryTab(tripId: 'trip-1')
+              : TripCardSlotsScope(
+                  slots: _slots(trip!, sitting.session),
+                  child: const TripItineraryTab(tripId: 'trip-1'),
+                ),
+        ),
       ),
     ),
   );
   await tester.pumpAndSettle();
+  return sitting;
 }
 
 void main() {
@@ -151,7 +189,12 @@ void main() {
   });
 
   testWidgets('the edit sheet names the renumbered day', (tester) async {
-    await _pumpTab(tester, trip: _trip(DateTime(2026, 3, 6)), days: staleRows);
+    await _pumpTab(
+      tester,
+      trip: _trip(DateTime(2026, 3, 6)),
+      days: staleRows,
+      inSitting: true,
+    );
 
     await tester.tap(find.text('Day 4'));
     await tester.pumpAndSettle();
@@ -192,7 +235,7 @@ void main() {
       reload: pending.future,
     );
 
-    // What the edit sheet does on save.
+    // What a Save of the sitting, or a sync, does.
     final container = ProviderScope.containerOf(
       tester.element(find.byType(TripItineraryTab)),
     );
@@ -226,33 +269,25 @@ void main() {
     expect(find.textContaining('database is locked'), findsNothing);
   });
 
-  testWidgets('a failed day save says so without the exception', (
-    tester,
-  ) async {
-    await _pumpTab(
-      tester,
-      trip: _trip(DateTime(2026, 3, 6)),
-      days: staleRows,
-      extra: [
-        itineraryDayRepositoryProvider.overrideWithValue(
-          _FailingItineraryRepo(),
-        ),
-      ],
-    );
-
-    await tester.tap(find.text('Day 4'));
+  testWidgets('with no sitting it offers no Generate and a tapped day opens '
+      'no sheet', (tester) async {
+    // Some dates have no row, so a sitting would offer Fill in missing days.
+    await _pumpTab(tester, trip: _resortTrip(), days: staleRows);
+    expect(find.byKey(const Key('trip-itinerary-generate')), findsNothing);
+    await tester.tap(find.text('Day 2'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
-
-    expect(find.text("Couldn't save the day. Try again."), findsOneWidget);
-    expect(find.textContaining('database is locked'), findsNothing);
+    expect(find.byType(BottomSheet), findsNothing);
   });
 
   testWidgets('an empty itinerary explains itself and offers Generate', (
     tester,
   ) async {
-    await _pumpTab(tester, trip: _resortTrip(), days: const []);
+    await _pumpTab(
+      tester,
+      trip: _resortTrip(),
+      days: const [],
+      inSitting: true,
+    );
     expect(
       find.text('No itinerary yet. Generate one from the trip dates.'),
       findsOneWidget,
@@ -263,7 +298,12 @@ void main() {
 
   testWidgets('a partial itinerary offers Fill in missing days above the '
       'list', (tester) async {
-    await _pumpTab(tester, trip: _resortTrip(), days: staleRows);
+    await _pumpTab(
+      tester,
+      trip: _resortTrip(),
+      days: staleRows,
+      inSitting: true,
+    );
     expect(find.text('Fill in missing days'), findsOneWidget);
     expect(find.text('Day 2'), findsOneWidget);
   });
@@ -282,7 +322,12 @@ void main() {
 
   testWidgets('off a boat the sheet labels the place Location and offers '
       'land day types', (tester) async {
-    await _pumpTab(tester, trip: _resortTrip(), days: staleRows);
+    await _pumpTab(
+      tester,
+      trip: _resortTrip(),
+      days: staleRows,
+      inSitting: true,
+    );
     await tester.tap(find.text('Day 2'));
     await tester.pumpAndSettle();
     expect(find.text('Location'), findsOneWidget);
@@ -296,7 +341,12 @@ void main() {
 
   testWidgets('on a boat the sheet keeps Port / Anchorage and the maritime '
       'types', (tester) async {
-    await _pumpTab(tester, trip: _trip(DateTime(2026, 3, 6)), days: staleRows);
+    await _pumpTab(
+      tester,
+      trip: _trip(DateTime(2026, 3, 6)),
+      days: staleRows,
+      inSitting: true,
+    );
     await tester.tap(find.text('Day 2'));
     await tester.pumpAndSettle();
     expect(find.text('Port / Anchorage'), findsOneWidget);
@@ -316,32 +366,42 @@ void main() {
       createdAt: DateTime(2026, 1, 1),
       updatedAt: DateTime(2026, 1, 1),
     );
-    final repo = _RecordingItineraryRepo();
-    await _pumpTab(
+    final sitting = await _pumpTab(
       tester,
       trip: _resortTrip(),
       days: [sea],
-      extra: [itineraryDayRepositoryProvider.overrideWithValue(repo)],
+      inSitting: true,
     );
     await tester.tap(find.text('Day 2'));
     await tester.pumpAndSettle();
     // The dropdown shows the stored value even though a resort trip does
     // not offer it.
     expect(find.text('Sea Day'), findsWidgets);
+    // A note, so the sheet hands back a changed day for Save to write.
+    await tester.enterText(
+      find
+          .descendant(
+            of: find.byType(BottomSheet),
+            matching: find.byType(EditableText),
+          )
+          .at(1),
+      'Crossing',
+    );
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
-    expect(repo.updated.single.dayType, DayType.seaDay);
+    final saved = (await _savedDays(sitting!)).single;
+    expect(saved.notes, 'Crossing');
+    expect(saved.dayType, DayType.seaDay);
   });
 
   testWidgets(
     'the sheet saves planned dives, and a dive day at 0 keeps its type',
     (tester) async {
-      final repo = _RecordingItineraryRepo();
-      await _pumpTab(
+      final sitting = await _pumpTab(
         tester,
         trip: _resortTrip(),
         days: staleRows,
-        extra: [itineraryDayRepositoryProvider.overrideWithValue(repo)],
+        inSitting: true,
       );
       await tester.tap(find.text('Day 2'));
       await tester.pumpAndSettle();
@@ -351,20 +411,20 @@ void main() {
       );
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
-      expect(repo.updated.single.plannedDives, 0);
+      final saved = (await _savedDays(sitting!)).single;
+      expect(saved.plannedDives, 0);
       // The spec: saving as Dive day with 0 keeps the type; the story still
       // reads it as a planned rest day (TripStoryDay.isPlannedRest).
-      expect(repo.updated.single.dayType, DayType.diveDay);
+      expect(saved.dayType, DayType.diveDay);
     },
   );
 
   testWidgets('saving a day as Rest plans it at none', (tester) async {
-    final repo = _RecordingItineraryRepo();
-    await _pumpTab(
+    final sitting = await _pumpTab(
       tester,
       trip: _resortTrip(),
       days: staleRows,
-      extra: [itineraryDayRepositoryProvider.overrideWithValue(repo)],
+      inSitting: true,
     );
     await tester.tap(find.text('Day 2'));
     await tester.pumpAndSettle();
@@ -374,19 +434,19 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
-    expect(repo.updated.single.dayType, DayType.rest);
-    expect(repo.updated.single.plannedDives, 0);
+    final saved = (await _savedDays(sitting!)).single;
+    expect(saved.dayType, DayType.rest);
+    expect(saved.plannedDives, 0);
   });
 
   testWidgets('a non-number in planned dives is refused in place', (
     tester,
   ) async {
-    final repo = _RecordingItineraryRepo();
-    await _pumpTab(
+    final sitting = await _pumpTab(
       tester,
       trip: _resortTrip(),
       days: staleRows,
-      extra: [itineraryDayRepositoryProvider.overrideWithValue(repo)],
+      inSitting: true,
     );
     await tester.tap(find.text('Day 2'));
     await tester.pumpAndSettle();
@@ -400,18 +460,19 @@ void main() {
       find.text('Enter a whole number of dives, or leave it blank.'),
       findsOneWidget,
     );
-    expect(repo.updated, isEmpty);
+    // The sheet stays open, and the sitting holds no change.
+    expect(find.byType(BottomSheet), findsOneWidget);
+    expect(sitting!.session.changedCardIds, isEmpty);
   });
 
   testWidgets('planned dives above the board cap are refused in place', (
     tester,
   ) async {
-    final repo = _RecordingItineraryRepo();
-    await _pumpTab(
+    final sitting = await _pumpTab(
       tester,
       trip: _resortTrip(),
       days: staleRows,
-      extra: [itineraryDayRepositoryProvider.overrideWithValue(repo)],
+      inSitting: true,
     );
     await tester.tap(find.text('Day 2'));
     await tester.pumpAndSettle();
@@ -425,16 +486,17 @@ void main() {
       find.text('Plan at most $kMaxPlannedDivesPerDay dives a day.'),
       findsOneWidget,
     );
-    expect(repo.updated, isEmpty);
+    // The sheet stays open, and the sitting holds no change.
+    expect(find.byType(BottomSheet), findsOneWidget);
+    expect(sitting!.session.changedCardIds, isEmpty);
   });
 
   testWidgets('planned dives at the board cap save', (tester) async {
-    final repo = _RecordingItineraryRepo();
-    await _pumpTab(
+    final sitting = await _pumpTab(
       tester,
       trip: _resortTrip(),
       days: staleRows,
-      extra: [itineraryDayRepositoryProvider.overrideWithValue(repo)],
+      inSitting: true,
     );
     await tester.tap(find.text('Day 2'));
     await tester.pumpAndSettle();
@@ -444,7 +506,7 @@ void main() {
     );
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
-    expect(repo.updated.single.plannedDives, kMaxPlannedDivesPerDay);
+    expect(_heldDay(sitting!, 'a').plannedDives, kMaxPlannedDivesPerDay);
   });
 
   testWidgets('a Rest day switched to Dive day goes back to the estimate', (
@@ -460,12 +522,11 @@ void main() {
       createdAt: DateTime(2026, 1, 1),
       updatedAt: DateTime(2026, 1, 1),
     );
-    final repo = _RecordingItineraryRepo();
-    await _pumpTab(
+    final sitting = await _pumpTab(
       tester,
       trip: _resortTrip(),
       days: [rest],
-      extra: [itineraryDayRepositoryProvider.overrideWithValue(repo)],
+      inSitting: true,
     );
     await tester.tap(find.text('Day 2'));
     await tester.pumpAndSettle();
@@ -475,8 +536,9 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
-    expect(repo.updated.single.dayType, DayType.diveDay);
-    expect(repo.updated.single.plannedDives, isNull);
+    final saved = (await _savedDays(sitting!)).single;
+    expect(saved.dayType, DayType.diveDay);
+    expect(saved.plannedDives, isNull);
   });
 
   testWidgets('a past day reports its plan as progress', (tester) async {
@@ -497,7 +559,12 @@ void main() {
   testWidgets('on a Rest day the planned dives field reads 0 and is locked', (
     tester,
   ) async {
-    await _pumpTab(tester, trip: _resortTrip(), days: staleRows);
+    await _pumpTab(
+      tester,
+      trip: _resortTrip(),
+      days: staleRows,
+      inSitting: true,
+    );
     await tester.tap(find.text('Day 2'));
     await tester.pumpAndSettle();
     await tester.enterText(
@@ -549,6 +616,7 @@ void main() {
           trip: _resortTrip(),
           days: [rest],
           dives: [Dive(id: 'd1', dateTime: DateTime(2026, 3, 8, 9))],
+          inSitting: true,
         );
       });
       await tester.tap(find.text('Day 3'));

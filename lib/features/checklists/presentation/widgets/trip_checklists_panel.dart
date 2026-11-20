@@ -36,20 +36,12 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 class TripChecklistsPanel extends ConsumerStatefulWidget {
   final Trip trip;
 
-  /// Shows the checklists without changing them: a trip page that edits in
-  /// place, locked (issue #4527).
-  final bool readOnly;
-
   /// The trip page's open sitting: the checklists it holds are shown, and
-  /// every change waits for its Save. Null writes each change at once.
+  /// every change waits for its Save. Null shows the checklists without
+  /// changing them: the page is locked (issue #4527).
   final EditSession<Trip>? editing;
 
-  const TripChecklistsPanel({
-    super.key,
-    required this.trip,
-    this.readOnly = false,
-    this.editing,
-  });
+  const TripChecklistsPanel({super.key, required this.trip, this.editing});
 
   @override
   ConsumerState<TripChecklistsPanel> createState() =>
@@ -67,8 +59,8 @@ class _TripChecklistsPanelState extends ConsumerState<TripChecklistsPanel>
   @override
   bool get wantKeepAlive => true;
 
-  /// Where this panel's changes go.
-  late TripChecklistWrites _writes;
+  /// Where this panel's changes go: the sitting's, or none while locked.
+  TripChecklistWrites? _writes;
 
   @override
   Widget build(BuildContext context) {
@@ -105,11 +97,7 @@ class _TripChecklistsPanelState extends ConsumerState<TripChecklistsPanel>
         },
       );
     }
-    _writes = RepositoryTripChecklistWrites(
-      trip: widget.trip,
-      checklists: ref.read(tripChecklistsRepositoryProvider),
-      items: ref.read(tripChecklistRepositoryProvider),
-    );
+    _writes = null;
     final checklistsAsync = ref.watch(tripChecklistsProvider(widget.trip.id));
     final checklists = checklistsAsync.value;
 
@@ -155,7 +143,6 @@ class _TripChecklistsPanelState extends ConsumerState<TripChecklistsPanel>
             initiallyExpanded: _justCreatedChecklistIds.contains(
               checklists[i].id,
             ),
-            readOnly: widget.readOnly,
             held: held,
             writes: _writes,
             onMoveUp: i == 0 ? null : () => _moveChecklist(checklists, i, -1),
@@ -163,7 +150,7 @@ class _TripChecklistsPanelState extends ConsumerState<TripChecklistsPanel>
                 ? null
                 : () => _moveChecklist(checklists, i, 1),
           ),
-        if (!widget.readOnly) _buildAddChecklistPlaceholder(context),
+        if (_writes != null) _buildAddChecklistPlaceholder(context),
       ],
     );
   }
@@ -233,7 +220,7 @@ class _TripChecklistsPanelState extends ConsumerState<TripChecklistsPanel>
       ),
     );
     if (name == null || !mounted) return;
-    final checklist = await _writes.createChecklist(name);
+    final checklist = await _writes!.createChecklist(name);
     if (!mounted) return;
     _markJustCreated(checklist.id);
   }
@@ -257,6 +244,7 @@ class _TripChecklistsPanelState extends ConsumerState<TripChecklistsPanel>
     // Read up front: ref is unusable once the panel unmounts, and the
     // create and apply below must finish together even if the diver leaves.
     final writes = _writes;
+    if (writes == null) return;
     final checklist = await writes.createChecklist(template.name);
     final ({int added, int skipped}) result;
     try {
@@ -297,6 +285,6 @@ class _TripChecklistsPanelState extends ConsumerState<TripChecklistsPanel>
     final orderedIds = checklists.map((c) => c.id).toList();
     final moved = orderedIds.removeAt(index);
     orderedIds.insert(index + delta, moved);
-    await _writes.reorderChecklists(orderedIds);
+    await _writes!.reorderChecklists(orderedIds);
   }
 }

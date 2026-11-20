@@ -34,22 +34,13 @@ const _log = LoggerService('tripGearTab');
 class TripGearTab extends ConsumerWidget {
   final Trip trip;
 
-  /// Offers no action (no Add, unpack or put on board): the trip page edits
-  /// in place and is locked (issue #4527). Open board still opens the
-  /// board.
-  final bool readOnly;
-
   /// The trip page's open sitting: the packed gear and the board it holds
-  /// are shown, and every change waits for its Save. Null writes each
-  /// change at once.
+  /// are shown, and every change waits for its Save. Null, the page is
+  /// locked (issue #4527): the gear only shows, with no Add, unpack or put
+  /// on board, and Open board still opens the board.
   final EditSession<Trip>? editing;
 
-  const TripGearTab({
-    super.key,
-    required this.trip,
-    this.readOnly = false,
-    this.editing,
-  });
+  const TripGearTab({super.key, required this.trip, this.editing});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -76,24 +67,7 @@ class TripGearTab extends ConsumerWidget {
       }
       return const Center(child: CircularProgressIndicator.adaptive());
     }
-    final checklists = ref.read(tripChecklistsRepositoryProvider);
-    final items = ref.read(tripChecklistRepositoryProvider);
-    return _buildGear(
-      context,
-      ref,
-      gear: gear,
-      states: states,
-      writes: RepositoryTripGearWrites(
-        tripId: trip.id,
-        packs: ref.read(tripEquipmentRepositoryProvider),
-        cylinders: ref.read(tripCylinderRepositoryProvider),
-      ),
-      lead: (
-        checklists: () => checklists.getChecklistsForTrip(trip.id),
-        itemsOf: items.getByChecklistId,
-        createItem: items.createItem,
-      ),
-    );
+    return _buildGear(context, ref, gear: gear, states: states);
   }
 
   /// The gear and board [editing] holds, drawn as they change.
@@ -180,8 +154,8 @@ class TripGearTab extends ConsumerWidget {
     WidgetRef ref, {
     required List<EquipmentItem> gear,
     required List<TripCylinderState> states,
-    required TripGearWrites writes,
-    required TripLeadChecklists lead,
+    TripGearWrites? writes,
+    TripLeadChecklists? lead,
   }) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
@@ -224,22 +198,24 @@ class TripGearTab extends ConsumerWidget {
     // is a tank packed without a slot (#2873), offered to the board.
     final (:packed, :unslottedTanks) = splitTripGear(gear, slots);
 
-    Future<void> add() => showTripGearAddSheet(
-      context,
-      ref,
-      trip: trip,
-      packed: gear,
-      slots: slots,
-      writes: writes,
-      lead: lead,
-    );
     void openBoard() => openTripCylinderBoard(context, trip.id);
-    final addButton = FilledButton.tonalIcon(
-      key: const Key('trip-gear-add'),
-      icon: const Icon(Icons.add),
-      label: Text(l10n.trips_gear_add_action),
-      onPressed: add,
-    );
+    // Only the open sitting changes the gear: locked, nothing is offered.
+    final addButton = writes == null || lead == null || !upcoming
+        ? null
+        : FilledButton.tonalIcon(
+            key: const Key('trip-gear-add'),
+            icon: const Icon(Icons.add),
+            label: Text(l10n.trips_gear_add_action),
+            onPressed: () => showTripGearAddSheet(
+              context,
+              ref,
+              trip: trip,
+              packed: gear,
+              slots: slots,
+              writes: writes,
+              lead: lead,
+            ),
+          );
 
     if (packed.isEmpty && unslottedTanks.isEmpty && states.isEmpty) {
       return Center(
@@ -257,10 +233,7 @@ class TripGearTab extends ConsumerWidget {
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
-              if (upcoming && !readOnly) ...[
-                const SizedBox(height: 16),
-                addButton,
-              ],
+              if (addButton != null) ...[const SizedBox(height: 16), addButton],
             ],
           ),
         ),
@@ -270,7 +243,7 @@ class TripGearTab extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.only(bottom: 24),
       children: [
-        if (upcoming && !readOnly)
+        if (addButton != null)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
             child: Align(
@@ -285,7 +258,7 @@ class TripGearTab extends ConsumerWidget {
               item: item,
               alerts: alertsByItem[item.id] ?? const [],
               margin: marginByItem[item.id],
-              onUnpack: readOnly
+              onUnpack: writes == null
                   ? null
                   : () => _unpack(context, writes, item.id),
             ),
@@ -322,10 +295,10 @@ class TripGearTab extends ConsumerWidget {
               units: units,
               alerts: alertsByItem[item.id] ?? const [],
               // An ended trip's board is history: no prompt to put it on.
-              onPutOnBoard: ended || readOnly
+              onPutOnBoard: ended || writes == null
                   ? null
                   : () => _putOnBoard(context, writes, item),
-              onUnpack: readOnly
+              onUnpack: writes == null
                   ? null
                   : () => _unpack(context, writes, item.id),
             ),

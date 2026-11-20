@@ -36,15 +36,14 @@ class TripItineraryTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Where the trip page edits in place (issue #4527): unlocked, the days
-    // are the sitting's, and Generate and the day sheet hold their changes
-    // until Save; locked, the days only read.
+    // On the trip page (issue #4527): unlocked, the days are the sitting's,
+    // and Generate and the day sheet hold their changes until Save; locked,
+    // the days only read.
     final slots = TripCardSlotsScope.maybeOf(context);
     final session = slots?.session;
     if (slots != null && session != null) {
       return _buildInSitting(context, ref, slots.shown, session);
     }
-    final readOnly = slots != null;
     final daysAsync = ref.watch(numberedItineraryDaysProvider(tripId));
     final divesAsync = ref.watch(divesForTripProvider(tripId));
     // The trip types the days Generate writes and labels the sheet's place
@@ -58,8 +57,7 @@ class TripItineraryTab extends ConsumerWidget {
     return daysAsync.when(
       skipLoadingOnReload: true,
       data: (days) => divesAsync.when(
-        data: (dives) =>
-            _buildTimeline(context, ref, days, dives, trip, readOnly: readOnly),
+        data: (dives) => _buildTimeline(context, ref, days, dives, trip),
         loading: () => const Center(child: CircularProgressIndicator()),
         // The repositories log the failure; the diver gets a plain line.
         error: (_, _) =>
@@ -120,7 +118,6 @@ class TripItineraryTab extends ConsumerWidget {
     List<ItineraryDay> days,
     List<Dive> dives,
     Trip? trip, {
-    bool readOnly = false,
     ValueChanged<List<ItineraryDay>>? onGenerate,
     ValueChanged<ItineraryDay>? onEditDay,
   }) {
@@ -138,7 +135,7 @@ class TripItineraryTab extends ConsumerWidget {
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
-              if (trip != null && !readOnly) ...[
+              if (trip != null && onGenerate != null) ...[
                 const SizedBox(height: 16),
                 TripItineraryGenerateButton(
                   trip: trip,
@@ -184,7 +181,7 @@ class TripItineraryTab extends ConsumerWidget {
     final now = ref.watch(tripTodayProvider);
 
     // The fill-in button renders nothing once every date has a row.
-    final header = trip == null || readOnly
+    final header = trip == null || onGenerate == null
         ? null
         : Padding(
             padding: const EdgeInsets.only(bottom: 12),
@@ -213,7 +210,6 @@ class TripItineraryTab extends ConsumerWidget {
         storedWeather: storedWeather[tripDayMillis(day.date)]?.toStoryWeather(),
         bottomGap: bottomGap,
         hold: onEditDay,
-        readOnly: readOnly,
       );
     }
 

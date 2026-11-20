@@ -11,7 +11,6 @@ import 'package:submersion/features/checklists/data/repositories/trip_checklist_
 import 'package:submersion/features/checklists/data/repositories/trip_checklists_repository.dart';
 import 'package:submersion/features/checklists/domain/entities/checklist_template.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
-import 'package:submersion/features/checklists/presentation/editing/trip_checklist_writes.dart';
 import 'package:submersion/features/trips/data/repositories/itinerary_day_repository.dart';
 import 'package:submersion/features/trips/data/repositories/liveaboard_details_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
@@ -433,61 +432,6 @@ void main() {
 
     expect(await items.getByChecklistId('c1'), isEmpty);
     expect(await items.getSectionsForChecklist('c1'), hasLength(1));
-  });
-
-  test('the repository writes write each change at once', () async {
-    final writes = RepositoryTripChecklistWrites(
-      trip: (await trips.getTripById('t1'))!,
-      checklists: checklists,
-      items: items,
-    );
-
-    final paper = await writes.createChecklist('Paperwork');
-    await writes.renameChecklist(paper.id, 'Papers');
-    await writes.reorderChecklists([paper.id, 'c1']);
-    await writes.createSection(checklistId: paper.id, title: 'Docs');
-    final docs = (await writes.findOrCreateSectionId(paper.id, 'docs'))!;
-    await writes.createItem(
-      TripChecklistItem(
-        id: '',
-        checklistId: paper.id,
-        title: 'Passport',
-        sectionId: docs,
-        createdAt: DateTime(2026),
-        updatedAt: DateTime(2026),
-      ),
-    );
-    final passport = (await items.getByChecklistId(paper.id)).single;
-    await writes.toggleDone(passport.id, isDone: true);
-    await writes.updateItem(
-      (await items.getByChecklistId(paper.id)).single.copyWith(notes: 'n'),
-    );
-    await writes.renameSection(docs, 'Papers');
-    await writes.reorderSections(paper.id, [docs]);
-    await writes.moveItem(
-      checklistId: paper.id,
-      itemId: passport.id,
-      targetSectionId: null,
-      orderedIds: [passport.id],
-    );
-
-    expect(
-      [for (final c in await checklists.getChecklistsForTrip('t1')) c.name],
-      ['Papers', 'Packing'],
-    );
-    final stored = (await items.getByChecklistId(paper.id)).single;
-    expect(stored.isDone, isTrue);
-    expect(stored.notes, 'n');
-    expect(stored.sectionId, isNull);
-    expect(await writes.isChecklistEmpty(paper.id), isFalse);
-
-    await writes.deleteItem(passport.id);
-    await writes.deleteSection(docs);
-    expect(await writes.isChecklistEmpty(paper.id), isTrue);
-    await writes.clearItems('c1');
-    expect(await items.getByChecklistId('c1'), isEmpty);
-    await writes.deleteChecklist(paper.id);
-    expect(await checklists.getChecklistsForTrip('t1'), hasLength(1));
   });
 
   test("a section deleted with its items moved takes another device's item "

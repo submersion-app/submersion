@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
+import 'package:submersion/features/checklists/data/repositories/checklist_template_repository.dart';
 import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
 import 'package:submersion/features/checklists/data/repositories/trip_checklists_repository.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist.dart';
@@ -9,42 +10,12 @@ import 'package:submersion/features/checklists/domain/entities/trip_checklist_it
 import 'package:submersion/features/checklists/presentation/widgets/checklist_item_edit_sheet.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_checklists_sitting.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/sitting_list.dart';
 
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/test_database.dart';
-
-/// Pumps a host page with a button that opens the sheet for [checklistId],
-/// seeded with an optional existing [item], [categorySuggestions] (section
-/// titles) and the [item]'s [currentSectionTitle].
-Future<void> _openSheet(
-  WidgetTester tester, {
-  required String checklistId,
-  TripChecklistItem? item,
-  List<String> categorySuggestions = const [],
-  String? currentSectionTitle,
-}) async {
-  await tester.pumpWidget(
-    testApp(
-      // Every finder below matches a localized label, so the UI language has
-      // to be deterministic rather than the host machine's.
-      locale: const Locale('en'),
-      child: Builder(
-        builder: (context) => TextButton(
-          onPressed: () => showChecklistItemEditSheet(
-            context: context,
-            checklistId: checklistId,
-            item: item,
-            categorySuggestions: categorySuggestions,
-            currentSectionTitle: currentSectionTitle,
-          ),
-          child: const Text('open'),
-        ),
-      ),
-    ),
-  );
-  await tester.tap(find.text('open'));
-  await tester.pumpAndSettle();
-}
 
 void main() {
   late TripRepository tripRepository;
@@ -52,6 +23,8 @@ void main() {
   late TripChecklistsRepository checklistsRepository;
   late Trip trip;
   late TripChecklist checklist;
+  late EditSession<Trip> session;
+  late SittingList<Trip, TripChecklistsHeld> list;
 
   setUp(() async {
     await setUpTestDatabase();
@@ -76,6 +49,60 @@ void main() {
 
   tearDown(tearDownTestDatabase);
 
+  /// Opens a sitting over the trip, reading what is stored now, and pumps a
+  /// host page with a button that opens the sheet for [checklistId] in it,
+  /// seeded with an optional existing [item], [categorySuggestions]
+  /// (section titles) and the [item]'s [currentSectionTitle]. The sheet's
+  /// changes are held in the sitting until Save (issue #4527).
+  Future<void> openSheet(
+    WidgetTester tester, {
+    required String checklistId,
+    TripChecklistItem? item,
+    List<String> categorySuggestions = const [],
+    String? currentSectionTitle,
+  }) async {
+    session = EditSession<Trip>(trip);
+    addTearDown(session.dispose);
+    list = tripChecklistsList(
+      checklists: checklistsRepository,
+      items: checklistRepository,
+    );
+    await list.load(session);
+    final writes = HeldTripChecklistWrites(
+      session: session,
+      list: list,
+      templates: ChecklistTemplateRepository(),
+    );
+    await tester.pumpWidget(
+      testApp(
+        // Every finder below matches a localized label, so the UI language
+        // has to be deterministic rather than the host machine's.
+        locale: const Locale('en'),
+        child: Builder(
+          builder: (context) => TextButton(
+            onPressed: () => showChecklistItemEditSheet(
+              context: context,
+              checklistId: checklistId,
+              item: item,
+              categorySuggestions: categorySuggestions,
+              currentSectionTitle: currentSectionTitle,
+              writes: writes,
+            ),
+            child: const Text('open'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+  }
+
+  /// Runs Save's writes, then reads the checklist's stored items.
+  Future<List<TripChecklistItem>> savedItems() async {
+    await session.runHeldWrites();
+    return checklistRepository.getByChecklistId(checklist.id);
+  }
+
   /// The title of the section [item] is grouped under, resolving `null` for
   /// an unsectioned item, mirroring what the real caller
   /// (TripChecklistBlock widget) passes as `currentSectionTitle`.
@@ -87,10 +114,8 @@ void main() {
     return sections.firstWhere((s) => s.id == item.sectionId).title;
   }
 
-  testWidgets('creating a new item persists it via the repository', (
-    tester,
-  ) async {
-    await _openSheet(tester, checklistId: checklist.id);
+  testWidgets('creating a new item holds it, stored at Save', (tester) async {
+    await openSheet(tester, checklistId: checklist.id);
 
     expect(find.text('Title'), findsOneWidget);
     await tester.enterText(find.widgetWithText(TextFormField, 'Title'), 'Mask');
@@ -102,22 +127,29 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
-    final items = await checklistRepository.getByChecklistId(checklist.id);
+    expect(
+      [
+        for (final i in heldChecklistsOf(session, list)!.itemsOf(checklist.id))
+          i.title,
+      ],
+      ['Mask'],
+    );
+    expect(await checklistRepository.getByChecklistId(checklist.id), isEmpty);
+    final items = await savedItems();
     expect(items, hasLength(1));
     expect(items.single.title, 'Mask');
     expect(items.single.notes, 'annual check');
   });
 
-  testWidgets('empty title fails validation and does not persist', (
-    tester,
-  ) async {
-    await _openSheet(tester, checklistId: checklist.id);
+  testWidgets('empty title fails validation and holds nothing', (tester) async {
+    await openSheet(tester, checklistId: checklist.id);
 
     await tester.tap(find.widgetWithText(FilledButton, 'Save'));
     await tester.pumpAndSettle();
 
     expect(find.text('Title is required'), findsOneWidget);
-    expect(await checklistRepository.getByChecklistId(checklist.id), isEmpty);
+    expect(session.changedCardIds, isEmpty);
+    expect(await savedItems(), isEmpty);
   });
 
   testWidgets('editing an existing item updates it in place', (tester) async {
@@ -137,7 +169,7 @@ void main() {
       ),
     );
 
-    await _openSheet(
+    await openSheet(
       tester,
       checklistId: checklist.id,
       item: existing,
@@ -157,7 +189,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
-    final items = await checklistRepository.getByChecklistId(checklist.id);
+    final items = await savedItems();
     expect(items, hasLength(1));
     expect(items.single.title, 'Split fins');
     expect(items.single.id, existing.id);
@@ -184,7 +216,7 @@ void main() {
       ),
     );
 
-    await _openSheet(
+    await openSheet(
       tester,
       checklistId: checklist.id,
       item: existing,
@@ -198,7 +230,7 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Save'));
     await tester.pumpAndSettle();
 
-    final items = await checklistRepository.getByChecklistId(checklist.id);
+    final items = await savedItems();
     expect(items.single.title, 'Split fins');
     expect(items.single.sectionId, second.id);
   });
@@ -217,7 +249,7 @@ void main() {
       ),
     );
 
-    await _openSheet(tester, checklistId: checklist.id, item: existing);
+    await openSheet(tester, checklistId: checklist.id, item: existing);
 
     // Due-date chip renders the formatted date and a clear button when set.
     // Compute the expected label with the same formatter the widget uses
@@ -234,7 +266,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
-    final items = await checklistRepository.getByChecklistId(checklist.id);
+    final items = await savedItems();
     expect(items.single.dueDate, isNull);
   });
 
@@ -242,7 +274,7 @@ void main() {
     'the category field offers matching suggestions and selecting one '
     'fills it in',
     (tester) async {
-      await _openSheet(
+      await openSheet(
         tester,
         checklistId: checklist.id,
         categorySuggestions: const ['Gear', 'Bookings'],
@@ -271,7 +303,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-      final items = await checklistRepository.getByChecklistId(checklist.id);
+      final items = await savedItems();
       expect(await sectionTitleOf(items.single), 'Gear');
     },
   );
@@ -279,7 +311,7 @@ void main() {
   testWidgets('due date field with no date shows a calendar affordance', (
     tester,
   ) async {
-    await _openSheet(tester, checklistId: checklist.id);
+    await openSheet(tester, checklistId: checklist.id);
     expect(find.text('-'), findsOneWidget);
     expect(find.byIcon(Icons.calendar_today), findsOneWidget);
     expect(find.byIcon(Icons.clear), findsNothing);
@@ -287,7 +319,7 @@ void main() {
 
   testWidgets('tapping the due date row opens the date picker and picking '
       'a day sets it', (tester) async {
-    await _openSheet(tester, checklistId: checklist.id);
+    await openSheet(tester, checklistId: checklist.id);
 
     await tester.tap(find.text('Due date'));
     await tester.pumpAndSettle();
@@ -306,7 +338,7 @@ void main() {
     'the category suggestion list is navigable with the arrow keys and '
     'committed with Enter',
     (tester) async {
-      await _openSheet(
+      await openSheet(
         tester,
         checklistId: checklist.id,
         categorySuggestions: const ['Gases', 'Galley', 'Bookings'],
@@ -352,7 +384,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-      final items = await checklistRepository.getByChecklistId(checklist.id);
+      final items = await savedItems();
       expect(await sectionTitleOf(items.single), 'Galley');
     },
   );
@@ -363,7 +395,7 @@ void main() {
       checklistId: checklist.id,
       title: 'Diving',
     );
-    await _openSheet(
+    await openSheet(
       tester,
       checklistId: checklist.id,
       categorySuggestions: const ['Diving', 'Bookings'],
@@ -381,7 +413,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
-    final items = await checklistRepository.getByChecklistId(checklist.id);
+    final items = await savedItems();
     // Folds onto the existing section rather than creating 'diving' anew.
     expect(items.single.sectionId, diving.id);
     expect(
@@ -393,7 +425,7 @@ void main() {
   testWidgets(
     'a category with no case-insensitive match keeps what was typed',
     (tester) async {
-      await _openSheet(
+      await openSheet(
         tester,
         checklistId: checklist.id,
         categorySuggestions: const ['Diving'],
@@ -411,7 +443,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-      final items = await checklistRepository.getByChecklistId(checklist.id);
+      final items = await savedItems();
       expect(await sectionTitleOf(items.single), 'paperwork');
     },
   );
