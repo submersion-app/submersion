@@ -161,6 +161,22 @@ void main() {
     );
   });
 
+  test('an unpacked ONNX model is found beside its data file', () async {
+    final manifest = _manifest('2026.11.1');
+    await stage(manifest);
+    final pack = await store.install(manifest);
+    final folder = p.dirname(pack.detectorPaths.single);
+    // An ONNX model may keep its weights in a file beside it, which can
+    // sort first.
+    File(p.join(folder, 'a.onnx.data')).writeAsStringSync('weights');
+    File(p.join(folder, 'b.onnx')).writeAsStringSync('model');
+
+    expect(
+      p.basename((await store.installed())!.detectorPaths.single),
+      'b.onnx',
+    );
+  });
+
   test('installing a newer pack removes the older one', () async {
     final first = _manifest('2026.11.1');
     await stage(first);
