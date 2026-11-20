@@ -155,6 +155,39 @@ void main() {
     test('no dives gives an empty series', () async {
       expect(await repository.getRecentSacPerDive(limit: 30), isEmpty);
     });
+
+    test('the per-dive SAC queries limit to the newest dives in SQL', () async {
+      for (var i = 1; i <= 5; i++) {
+        await dive(
+          'd$i',
+          start: utc(2026, 1, i),
+          runtimeSeconds: 3000,
+          startPressure: 200,
+        );
+      }
+      final volume = await repository.getSacVolumePerDive(limit: 2);
+      final pressure = await repository.getSacPressurePerDive(limit: 2);
+      expect(volume.map((p) => p.date.day), [4, 5]);
+      expect(pressure.map((p) => p.date.day), [4, 5]);
+      // No limit still reads them all.
+      expect(await repository.getSacVolumePerDive(), hasLength(5));
+    });
+
+    test('a dive whose tank has no volume does not use up the limit', () async {
+      for (var i = 1; i <= 3; i++) {
+        await dive(
+          'd$i',
+          start: utc(2026, 1, i),
+          runtimeSeconds: 3000,
+          startPressure: 200,
+        );
+      }
+      await db.customStatement(
+        "UPDATE dive_tanks SET volume = NULL WHERE dive_id = 'd3'",
+      );
+      final volume = await repository.getSacVolumePerDive(limit: 2);
+      expect(volume.map((p) => p.date.day), [1, 2]);
+    });
   });
 
   group('getAveragesSince', () {

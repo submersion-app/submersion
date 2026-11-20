@@ -90,18 +90,17 @@ extension InsightsRepositoryHome on InsightsRepository {
   /// minute, or bar a minute when [pressure] is true, using the same
   /// definitions as the Insights SAC charts.
   ///
-  /// Reads every dive's SAC and keeps the tail rather than limiting in SQL:
-  /// a dive's SAC sums all its breathing tanks, so a row limit would cut a
-  /// dive in half, and a second copy of the gas arithmetic could drift from
-  /// the one Insights uses.
+  /// The limit is applied in SQL by the Insights queries themselves, so the
+  /// gas arithmetic stays in one place. The tail is trimmed again here only
+  /// as a guard: a chosen dive can still compute no SAC.
   Future<List<TrendDataPoint>> getRecentSacPerDive({
     String? diverId,
     required int limit,
     bool pressure = false,
   }) async {
     final all = pressure
-        ? await getSacPressurePerDive(diverId: diverId)
-        : await getSacVolumePerDive(diverId: diverId);
+        ? await getSacPressurePerDive(diverId: diverId, limit: limit)
+        : await getSacVolumePerDive(diverId: diverId, limit: limit);
     final sorted = [...all]..sort((a, b) => a.date.compareTo(b.date));
     return sorted.length <= limit
         ? sorted

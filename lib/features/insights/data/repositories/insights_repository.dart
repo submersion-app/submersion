@@ -416,16 +416,24 @@ class InsightsRepository with InsightsChartDives {
   ///
   /// Gas used is summed across a dive's tanks first, so a twinset or a stage
   /// dive yields one SAC value rather than one per cylinder.
+  ///
+  /// With [limit], only the newest [limit] dives that have a cylinder with a
+  /// volume are read, chosen in SQL so every tank of each chosen dive stays
+  /// in (a row limit would split a twinset).
   Future<List<TrendDataPoint>> getSacVolumePerDive({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
+    int? limit,
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final df = _diveFilter(filter, alias: 'd', consumptionRate: true);
-      final params = diverId != null ? [diverId, ...df.params] : [...df.params];
+      final baseParams = diverId != null
+          ? [diverId, ...df.params]
+          : [...df.params];
 
-      final results = await _db.customSelect('''
+      final inner =
+          '''
         SELECT
           d.id AS dive_id,
           d.dive_date_time,
@@ -443,8 +451,26 @@ class InsightsRepository with InsightsChartDives {
           AND ${measuredRuntimeSecondsSql('d')} > 0
           AND d.avg_depth > 0
           AND t.start_pressure > t.end_pressure
-        ORDER BY d.dive_date_time
-        ''', variables: params.map((p) => Variable(p)).toList()).get();
+        ''';
+      final sql = limit == null
+          ? '$inner ORDER BY d.dive_date_time'
+          : '''
+        SELECT * FROM ($inner) AS r
+        WHERE r.dive_id IN (
+          SELECT q.dive_id FROM ($inner) AS q
+          WHERE q.volume IS NOT NULL
+          GROUP BY q.dive_id
+          ORDER BY MAX(q.dive_date_time) DESC
+          LIMIT ?
+        )
+        ORDER BY r.dive_date_time''';
+      final params = limit == null
+          ? baseParams
+          : [...baseParams, ...baseParams, limit];
+
+      final results = await _db
+          .customSelect(sql, variables: params.map((p) => Variable(p)).toList())
+          .get();
 
       // Sum gas across each dive's tanks before dividing, so a twinset is one
       // SAC value and not two.
@@ -528,16 +554,20 @@ class InsightsRepository with InsightsChartDives {
   /// Does not require tank volume: the back-gas pressure drop plus every
   /// other breathed cylinder's converted to it, normalised to surface
   /// pressure, as `Dive.sac` computes it (issue #3109).
+  ///
+  /// With [limit], only the newest [limit] dives with a SAC are read.
   Future<List<TrendDataPoint>> getSacPressurePerDive({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
+    int? limit,
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final df = _diveFilter(filter, alias: 'd', consumptionRate: true);
       final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
-      final results = await _db.customSelect('''
+      final results = await _db.customSelect(
+        '''
         SELECT * FROM (
           SELECT
             d.id AS dive_id,
@@ -549,10 +579,13 @@ class InsightsRepository with InsightsChartDives {
             AND d.avg_depth > 0
         )
         WHERE sac IS NOT NULL
-        ORDER BY dive_date_time
-        ''', variables: params.map((p) => Variable(p)).toList()).get();
+        ORDER BY dive_date_time ${limit == null ? '' : 'DESC LIMIT ?'}
+        ''',
+        variables: [...params, ?limit].map((p) => Variable(p)).toList(),
+      ).get();
 
-      return results
+      final rows = limit == null ? results : results.reversed;
+      return rows
           .map(
             (row) => TrendDataPoint(
               date: DateTime.fromMillisecondsSinceEpoch(
