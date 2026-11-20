@@ -38,7 +38,6 @@ import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
-import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
 part 'trip_cylinder_board_page_editing.dart';
 
@@ -61,8 +60,7 @@ typedef BoardLook = ({Map<String, String> centerNames, UnitFormatter units});
 /// to fill several at once.
 enum _BoardView { board, ledger, record }
 
-/// Behind phase 3's switch ([unlockEditing]) the board is a satellite page
-/// of its trip (issue #4527, decision 9): pushed from an unlocked trip page
+/// The board is a satellite page of its trip (issue #4527, decision 9): pushed from an unlocked trip page
 /// it joins that page's sitting ([joined]) and finishes with Done; opened
 /// otherwise it opens locked, with its own Unlock, Cancel and Save, and its
 /// Save writes one History entry on the trip.
@@ -72,16 +70,7 @@ class TripCylinderBoardPage extends ConsumerStatefulWidget {
   /// The trip page's sitting, when the board was pushed during one.
   final RecordEditController<Trip>? joined;
 
-  /// Whether the trip's pages edit in place: phase 3's switch, a parameter
-  /// so a test can turn it on.
-  final bool unlockEditing;
-
-  const TripCylinderBoardPage({
-    super.key,
-    required this.tripId,
-    this.joined,
-    this.unlockEditing = kUnlockRecordEditing,
-  });
+  const TripCylinderBoardPage({super.key, required this.tripId, this.joined});
 
   @override
   ConsumerState<TripCylinderBoardPage> createState() =>
@@ -107,17 +96,6 @@ class _TripCylinderBoardPageState extends ConsumerState<TripCylinderBoardPage>
       centerNames: {for (final c in centers) c.id: c.name},
       units: ref.watch(unitFormatterProvider),
     );
-    if (!hostsEditing) {
-      final statesAsync = ref.watch(tripCylinderStatesProvider(tripId));
-      final states = statesAsync.value ?? const <TripCylinderState>[];
-      return Scaffold(
-        appBar: AppBar(
-          title: Text(l10n.trips_cylinders_title),
-          actions: _actions(states, ready: statesAsync.hasValue),
-        ),
-        body: _storedBody(statesAsync, look, readOnly: false),
-      );
-    }
     followStored(tripByIdProvider(tripId));
     final stored = ref.watch(tripByIdProvider(tripId)).value;
     if (stored == null) {
@@ -136,17 +114,12 @@ class _TripCylinderBoardPageState extends ConsumerState<TripCylinderBoardPage>
         actions: [lockButton(shown)],
       ),
       content: session == null
-          ? _storedBody(
-              ref.watch(tripCylinderStatesProvider(tripId)),
-              look,
-              readOnly: true,
-            )
+          ? _storedBody(ref.watch(tripCylinderStatesProvider(tripId)), look)
           : heldBoard(session, look),
     );
   }
 
-  /// Fill several and Add: in the bar of a board that writes at once, and
-  /// above the board in a sitting.
+  /// Fill several and Add, above the board in a sitting.
   List<Widget> _actions(
     List<TripCylinderState> states, {
     required bool ready,
@@ -189,13 +162,11 @@ class _TripCylinderBoardPageState extends ConsumerState<TripCylinderBoardPage>
     ];
   }
 
-  /// The board as stored: written at once, or ([readOnly]) only shown, on
-  /// a locked board that edits in place.
+  /// The board as stored, only shown, on a locked board.
   Widget _storedBody(
     AsyncValue<List<TripCylinderState>> statesAsync,
-    BoardLook look, {
-    required bool readOnly,
-  }) {
+    BoardLook look,
+  ) {
     final l10n = context.l10n;
     final states = statesAsync.value ?? const <TripCylinderState>[];
     if (!statesAsync.hasValue && statesAsync.isLoading) {
@@ -208,7 +179,7 @@ class _TripCylinderBoardPageState extends ConsumerState<TripCylinderBoardPage>
       states: states,
       look: look,
       forecast: ref.watch(tripFillForecastProvider(widget.tripId)).value,
-      readOnly: readOnly,
+      readOnly: true,
     );
   }
 

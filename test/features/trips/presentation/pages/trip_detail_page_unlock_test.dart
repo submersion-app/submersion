@@ -55,17 +55,6 @@ void main() {
 
   final notes = l.trips_detail_sectionTitle_notes;
 
-  testWidgets('with the switch off there is no lock and the menu is '
-      'unchanged', (tester) async {
-    await pumpTripPage(tester, unlockEditing: false);
-
-    expect(find.byIcon(Icons.lock_outline), findsNothing);
-    expect(find.byIcon(Icons.edit), findsOneWidget);
-    await openMenu(tester);
-    expect(find.text(l.trips_diveScan_findButton), findsOneWidget);
-    expect(find.text(l.trips_photos_tooltip_scan), findsOneWidget);
-  });
-
   testWidgets('locked, no tap on any tab writes', (tester) async {
     final harness = await pumpTripPage(tester);
 
@@ -98,16 +87,6 @@ void main() {
     expect(find.text(l.checklists_addChecklist), findsNothing);
     // Starting a pre-dive session makes a record of its own.
     expect(find.text(l.trips_detail_preDive_action), findsOneWidget);
-  });
-
-  testWidgets('with the switch off the Gear and Checklist tabs offer their '
-      'actions', (tester) async {
-    await pumpTripPage(tester, unlockEditing: false);
-
-    await showTab(tester, l.trips_detail_tab_gear);
-    expect(find.byKey(const Key('trip-gear-add')), findsOneWidget);
-    await showTab(tester, l.trips_detail_tab_checklist);
-    expect(find.text(l.checklists_addChecklist), findsOneWidget);
   });
 
   testWidgets('notes in one sitting save as one entry and lock', (

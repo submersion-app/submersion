@@ -14,7 +14,6 @@ import 'package:submersion/features/trips/domain/services/trip_gear_split.dart';
 import 'package:submersion/features/trips/domain/services/trip_story_builder.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_card_slots.dart';
-import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_equipment_providers.dart';
@@ -33,11 +32,6 @@ class TripOverviewSummaryCard extends ConsumerWidget {
   /// Where a row goes; without one the page's DefaultTabController is used.
   final ValueChanged<TripDetailTab>? onOpenTab;
 
-  /// Where the Plan row goes; without one the edit page is pushed, open at
-  /// its Planning section. The page passes one so that in the master-detail
-  /// pane the edit opens in the pane (#2880).
-  final VoidCallback? onEditPlan;
-
   /// Whether the rows that open the other tabs show: not for a new trip,
   /// whose page has no tabs and nothing stored to count (issue #4527, plan
   /// 11). The Plan row always shows.
@@ -47,7 +41,6 @@ class TripOverviewSummaryCard extends ConsumerWidget {
     super.key,
     required this.trip,
     this.onOpenTab,
-    this.onEditPlan,
     this.tabRows = true,
   });
 
@@ -199,10 +192,9 @@ class TripOverviewSummaryCard extends ConsumerWidget {
     ];
   }
 
-  /// The edit page's planning numbers.
-  /// The Plan row: what the trip plans with. Where the page edits in
-  /// place it is the Plan card (issue #4527): a tap opens it, unlocking
-  /// the page first when it is locked, as the plan's edit address does.
+  /// The Plan row: what the trip plans with. It is the Plan card (issue
+  /// #4527): a tap opens it, unlocking the page first when it is locked, as
+  /// the plan's edit address does.
   Widget _planRow(BuildContext context, AppLocalizations l10n) {
     final slots = TripCardSlotsScope.maybeOf(context);
     final row = _Row(
@@ -213,15 +205,7 @@ class TripOverviewSummaryCard extends ConsumerWidget {
       trailing: slots?.isUnlocked ?? false
           ? RecordCardPencil(cardTitle: l10n.trips_overview_plan)
           : null,
-      onTap: slots != null
-          ? () => slots.openCard(TripCardId.plan)
-          : onEditPlan ??
-                () => openTripEdit(
-                  context,
-                  trip.id,
-                  embedded: false,
-                  section: TripEditSection.planning,
-                ),
+      onTap: slots == null ? null : () => slots.openCard(TripCardId.plan),
     );
     return slots?.frame(TripCardId.plan, row) ?? row;
   }
@@ -234,7 +218,9 @@ class _Row extends StatelessWidget {
   final IconData icon;
   final String label;
   final List<InlineSpan>? summary;
-  final VoidCallback onTap;
+
+  /// Null when there is nothing to open: the Plan row outside a trip page.
+  final VoidCallback? onTap;
 
   /// In place of the chevron: the Plan card's pencil where the page edits
   /// in place.

@@ -178,8 +178,7 @@ void main() {
         ),
         GoRoute(
           path: '/trips/new',
-          builder: (context, state) =>
-              newTripPage(state.extra, unlockEditing: true),
+          builder: (context, state) => newTripPage(state.extra),
         ),
         GoRoute(
           path: '/trips/:id',

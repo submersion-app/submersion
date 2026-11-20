@@ -20,9 +20,6 @@ class TripPrepareOverview extends StatelessWidget {
   final TripStory story;
   final ValueChanged<TripDetailTab>? onOpenTab;
 
-  /// Where the summary card's Plan row goes; see [TripOverviewSummaryCard].
-  final VoidCallback? onEditPlan;
-
   /// Whether the summary card's rows that open the other tabs show; see
   /// [TripOverviewSummaryCard.tabRows].
   final bool tabRows;
@@ -31,7 +28,6 @@ class TripPrepareOverview extends StatelessWidget {
     super.key,
     required this.story,
     this.onOpenTab,
-    this.onEditPlan,
     this.tabRows = true,
   });
 
@@ -61,7 +57,6 @@ class TripPrepareOverview extends StatelessWidget {
         TripOverviewSummaryCard(
           trip: trip,
           onOpenTab: onOpenTab,
-          onEditPlan: onEditPlan,
           tabRows: tabRows,
         ),
         // A liveaboard's vessel, before departure too, where the page edits

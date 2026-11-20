@@ -1,18 +1,14 @@
 part of 'trip_detail_page.dart';
 
 /// The trip page's overflow menu and what it runs: History and Open in
-/// Connections, the scans (only where the page does not edit in place:
-/// they join its sitting in phase 3's next trip plan), Export, and Delete,
-/// Remove or Unhide, which are whole-record operations under the lock where
-/// it does (issue #4527).
+/// Connections, Export, and Delete, Remove or Unhide, which are
+/// whole-record operations under the lock (issue #4527). The scans are on
+/// the Dives and Photos cards.
 extension _TripDetailMenu on _TripDetailContent {
   Widget _buildMoreMenu(BuildContext context, WidgetRef ref, Trip trip) {
     // Read this during build, not inside itemBuilder: itemBuilder runs when the
     // menu opens (outside this consumer's build phase), where ref.watch would
     // register a dependency outside Riverpod's build lifecycle.
-    // Lightroom scan hidden pending Adobe review (lightroomUiEnabled).
-    final hasLightroomAccount =
-        lightroomUiEnabled && ref.watch(lightroomAccountProvider).value != null;
     final canDestroy = canDestroySharedItemOnceKnown(
       ref.watch(validatedCurrentDiverIdProvider),
       ownerId: trip.diverId,
@@ -26,9 +22,7 @@ extension _TripDetailMenu on _TripDetailContent {
     );
     // Remove only while the trip reaches this profile (issue #2151).
     final reachesHere = watchReachesHere(ref, SharedItemKind.trip, trip.id);
-    final host = this.host;
-    final controller = host?.editController;
-    final scans = host == null;
+    final controller = host.editController;
     final operationsAvailable = recordOperationsAvailable(controller);
     return PopupMenuButton<String>(
       tooltip: context.l10n.trips_detail_tooltip_moreOptions,
@@ -54,50 +48,11 @@ extension _TripDetailMenu on _TripDetailContent {
           });
         } else if (value == 'export') {
           _showExportOptions(context, ref);
-        } else if (value == 'scan-dives') {
-          await scanForTripDives(context, ref, trip);
-        } else if (value == 'scan-photos') {
-          await scanGalleryForTripPhotos(context, ref, trip.id, trip);
-        } else if (value == 'scan-lightroom') {
-          await scanLightroomForTrip(context, ref, trip.id);
         }
       },
       itemBuilder: (context) => [
         changeLogHistoryMenuItem(context, rootTable: 'trips', rootId: trip.id),
         openInConnectionsMenuItem(context),
-        if (scans)
-          PopupMenuItem(
-            value: 'scan-dives',
-            child: Row(
-              children: [
-                const Icon(Icons.playlist_add),
-                const SizedBox(width: 8),
-                Flexible(child: Text(context.l10n.trips_diveScan_findButton)),
-              ],
-            ),
-          ),
-        if (scans)
-          PopupMenuItem(
-            value: 'scan-photos',
-            child: Row(
-              children: [
-                const Icon(Icons.photo_library_outlined),
-                const SizedBox(width: 8),
-                Flexible(child: Text(context.l10n.trips_photos_tooltip_scan)),
-              ],
-            ),
-          ),
-        if (scans && hasLightroomAccount)
-          PopupMenuItem(
-            value: 'scan-lightroom',
-            child: Row(
-              children: [
-                const Icon(Icons.cloud_outlined),
-                const SizedBox(width: 8),
-                Flexible(child: Text(context.l10n.settings_lightroom_scanNow)),
-              ],
-            ),
-          ),
         PopupMenuItem(
           value: 'export',
           child: Row(
@@ -160,14 +115,8 @@ extension _TripDetailMenu on _TripDetailContent {
     );
   }
 
-  /// Runs a whole-record operation: through the sitting where the page
-  /// edits in place, at once where it does not.
+  /// Runs a whole-record operation through the sitting.
   void _runOperation(Future<bool> Function() operation) {
-    final host = this.host;
-    if (host == null) {
-      operation();
-      return;
-    }
     recordOperationRunnerOf(
       host.editController,
       record: 'trip ${tripWithStats.trip.id}',

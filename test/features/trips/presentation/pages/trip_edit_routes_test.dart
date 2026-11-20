@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/trips/domain/services/trip_day_notes.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_overview_card_editors.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
-import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_routes.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
@@ -20,12 +19,8 @@ void main() {
   final today = DateTime(now.year, now.month, now.day);
 
   group('addresses', () {
-    test('the edit address redirects with the switch on, not off', () {
-      expect(tripEditLocation('t1'), isNull);
-      expect(
-        tripEditLocation('t1', unlockEditing: true),
-        '/trips/t1?mode=edit',
-      );
+    test('the edit address opens the page unlocked', () {
+      expect(tripEditLocation('t1'), '/trips/t1?mode=edit');
     });
 
     test('moving into the pane keeps an edit address asking for edit', () {
@@ -55,18 +50,13 @@ void main() {
 
     test('the redirect keeps the section and the day', () {
       expect(
-        tripEditLocation(
-          't1',
-          section: TripEditSection.planning,
-          unlockEditing: true,
-        ),
+        tripEditLocation('t1', section: TripEditSection.planning),
         '/trips/t1?mode=edit&section=planning',
       );
       expect(
         tripEditLocation(
           't1',
           noteDay: TripNoteDay(date: DateTime(2030, 6, 2), dayNumber: 2),
-          unlockEditing: true,
         ),
         '/trips/t1?mode=edit&section=notes&noteDate=2030-06-02&noteDay=2',
       );
@@ -120,13 +110,8 @@ void main() {
       embedded: true,
       wrap: (_) => Scaffold(
         body: Builder(
-          builder: (context) => tripEditPane(
-            context,
-            't1',
-            (_) {},
-            () => cancelled++,
-            unlockEditing: true,
-          ),
+          builder: (context) =>
+              tripEditPane(context, 't1', (_) {}, () => cancelled++),
         ),
       ),
     );
@@ -146,8 +131,7 @@ void main() {
       embedded: true,
       wrap: (_) => Scaffold(
         body: Builder(
-          builder: (context) =>
-              tripEditPane(context, 't1', (_) {}, () {}, unlockEditing: true),
+          builder: (context) => tripEditPane(context, 't1', (_) {}, () {}),
         ),
       ),
     );
@@ -165,27 +149,6 @@ void main() {
 
     expect(harness.save.calls.single.after.id, 't1');
     expect(harness.save.calls.single.after.notes, 'Windy');
-  });
-
-  testWidgets('with the switch off the pane opens the form', (tester) async {
-    late Widget pane;
-    await tester.pumpWidget(
-      Builder(
-        builder: (context) {
-          pane = tripEditPane(
-            context,
-            't1',
-            (_) {},
-            () {},
-            unlockEditing: false,
-          );
-          return const SizedBox();
-        },
-      ),
-    );
-
-    expect(pane, isA<TripEditPage>());
-    expect((pane as TripEditPage).tripId, 't1');
   });
 
   testWidgets('opened at section=planning on a trip under way, the story '

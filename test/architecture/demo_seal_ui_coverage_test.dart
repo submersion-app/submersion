@@ -101,10 +101,6 @@ const _guardedHandlers = <(String, String)>[
     'Future<void> scanGalleryInSitting(',
   ),
   (
-    'lib/features/trips/presentation/pages/trip_gallery_page.dart',
-    'Future<void> _showScanDialog(',
-  ),
-  (
     'lib/features/trips/presentation/helpers/trip_scan_actions.dart',
     'Future<void> scanGalleryForTripPhotos(',
   ),

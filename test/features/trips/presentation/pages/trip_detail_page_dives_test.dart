@@ -25,15 +25,11 @@ void main() {
     ),
   ];
 
-  Future<TripPageHarness> pumpWithDiver(
-    WidgetTester tester, {
-    bool unlockEditing = true,
-  }) async {
+  Future<TripPageHarness> pumpWithDiver(WidgetTester tester) async {
     final harness = await pumpTripPage(
       tester,
       candidates: candidates,
       activeDiverId: 'd1',
-      unlockEditing: unlockEditing,
       // Wide enough that the tab row shows the Dives tab.
       size: const Size(1000, 1600),
     );
@@ -59,15 +55,6 @@ void main() {
     await tester.pumpAndSettle();
     if (choose) await tapText(tester, l.trips_diveScan_addButton(1));
   }
-
-  testWidgets('with the switch off the Dives tab offers no scan', (
-    tester,
-  ) async {
-    await pumpWithDiver(tester, unlockEditing: false);
-    await showDives(tester);
-
-    expect(find.byKey(const Key('trip-dives-scan')), findsNothing);
-  });
 
   testWidgets('locked, Scan for dives unlocks the page, and the dives it '
       'chose wait for Save, then are assigned in one entry', (tester) async {

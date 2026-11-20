@@ -382,7 +382,7 @@ void main() {
       final controller = await pumpRows(
         tester,
         bare,
-        newTripScreen: (extra) => newTripPage(extra, unlockEditing: true),
+        newTripScreen: (extra) => newTripPage(extra),
         extraOverrides: [
           validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
           tripEditSaveServiceProvider.overrideWithValue(save),
@@ -654,7 +654,7 @@ void main() {
       final controller = await pumpRows(
         tester,
         bare,
-        newCenterPage: () => newDiveCenterPage(unlockEditing: true),
+        newCenterPage: () => newDiveCenterPage(),
         extraOverrides: [
           validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
           diveCenterEditSaveServiceProvider.overrideWithValue(save),

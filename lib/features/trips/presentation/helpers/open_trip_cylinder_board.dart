@@ -18,10 +18,6 @@ Future<void> openTripCylinderBoard(BuildContext context, String tripId) {
   }
   return pushRecordSatellite<Trip, void>(
     context,
-    builder: (joined) => TripCylinderBoardPage(
-      tripId: tripId,
-      joined: joined,
-      unlockEditing: true,
-    ),
+    builder: (joined) => TripCylinderBoardPage(tripId: tripId, joined: joined),
   );
 }

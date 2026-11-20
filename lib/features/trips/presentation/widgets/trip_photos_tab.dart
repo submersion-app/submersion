@@ -51,11 +51,8 @@ class TripPhotosTab extends ConsumerWidget {
             // the page is unlocked, it scans into it; locked, it scans not.
             onOpenGallery: (context) => pushRecordSatellite<Trip, void>(
               context,
-              builder: (sitting) => TripGalleryPage(
-                tripId: tripId,
-                sitting: sitting,
-                unlockEditing: true,
-              ),
+              builder: (sitting) =>
+                  TripGalleryPage(tripId: tripId, sitting: sitting),
             ),
           ),
           if (session != null) TripHeldPhotos(session: session),

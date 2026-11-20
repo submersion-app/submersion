@@ -13,9 +13,6 @@ mixin _TripCylinderBoardEditing
   String get hostRecordId => widget.tripId;
 
   @override
-  bool get hostsEditing => widget.unlockEditing;
-
-  @override
   RecordEditController<Trip>? get joinedSitting => widget.joined;
 
   /// The board's cards are drawn in place, with no frame: its slots and

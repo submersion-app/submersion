@@ -118,25 +118,6 @@ void main() {
       );
     });
 
-    testWidgets('shows camera icon button in app bar', (tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            mediaForTripProvider('test-trip').overrideWith((ref) {
-              return Future.value(<Dive, List<MediaItem>>{});
-            }),
-          ],
-          child: const MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: TripGalleryPage(tripId: 'test-trip'),
-          ),
-        ),
-      );
-
-      expect(find.byIcon(Icons.photo_camera), findsOneWidget);
-    });
-
     testWidgets('shows dive sections with photos', (tester) async {
       const testSite = DiveSite(id: 'site-1', name: 'Blue Corner');
 
@@ -549,11 +530,7 @@ void main() {
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: TripGalleryPage(
-            tripId: 'test-trip',
-            sitting: sitting,
-            unlockEditing: true,
-          ),
+          home: TripGalleryPage(tripId: 'test-trip', sitting: sitting),
         ),
       ),
     );
