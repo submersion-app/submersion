@@ -2,17 +2,38 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/media/data/repositories/media_aspect_cache_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/value_objects/learned_aspect.dart';
 import 'package:submersion/features/media/presentation/pages/site_media_viewer_page.dart';
+import 'package:submersion/features/media/presentation/providers/media_learned_aspect_provider.dart';
+import 'package:submersion/features/media/presentation/providers/media_thumbnail_scale_provider.dart';
 import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/justified_media_block.dart';
 import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import 'package:submersion/features/media/presentation/widgets/site_dive_photos_card.dart';
 
 import '../support/media_widget_harness.dart';
 
+/// A learned-shape store whose load waits for [load].
+class _PendingShapes implements MediaAspectCacheRepository {
+  _PendingShapes(this.load);
+
+  final Future<Map<String, LearnedAspect>> load;
+
+  @override
+  Future<Map<String, LearnedAspect>> loadAll() => load;
+
+  @override
+  Future<void> putAll(Map<String, LearnedAspect> entries) async {}
+}
+
 /// The Site Details card that shows photos from the dives logged at the site
-/// (issue #4502): a one-row strip of the newest, and the full grid on demand.
+/// (issue #4502): one justified row of the newest, flush with the card, and
+/// every photo in justified rows on demand (issue #4741).
 void main() {
+  /// Photos with no stored size, so each lays out at the 4:3 fallback: at
+  /// the 100 px target three fill the 400 px strip (133 px each, 4 apart).
   List<MediaItem> photos(int n, {String prefix = 'p'}) => [
     for (var i = 0; i < n; i++)
       testMediaItem(
@@ -33,8 +54,12 @@ void main() {
     List<String>? allReads,
     Object? recentError,
     Future<List<MediaItem>>? pendingRecent,
+    MediaAspectCacheRepository? shapes,
   }) => mediaTestApp(
     overrides: [
+      mediaAspectCacheRepositoryProvider.overrideWithValue(
+        shapes ?? FakeAspectCacheRepository(),
+      ),
       recentMediaFromDivesAtSiteProvider('site-1').overrideWith((ref) async {
         recentReads?.add('site-1');
         if (recentError != null) throw recentError;
@@ -72,24 +97,41 @@ void main() {
     expect(find.text('Photos from dives (23)'), findsOneWidget);
   });
 
-  testWidgets('strip shows as many of the newest photos as fit', (
+  testWidgets('strip shows one justified row of the newest photos', (
     tester,
   ) async {
-    final recent = photos(10);
-    await tester.pumpWidget(await host(count: 10, recent: recent));
+    await tester.pumpWidget(await host(count: 10, recent: photos(10)));
     await tester.pumpAndSettle();
-    // 400 of strip: four 88-wide tiles with 8 between them.
-    expect(shownIds(tester), ['p0', 'p1', 'p2', 'p3']);
+    expect(shownIds(tester), ['p0', 'p1', 'p2']);
+    final tiles = find.byType(MediaThumbnailTile);
+    final heights = {
+      for (final e in tiles.evaluate())
+        tester.getSize(find.byWidget(e.widget)).height,
+    };
+    expect(heights, hasLength(1));
   });
 
-  testWidgets('the strip tiles fill the row edge to edge', (tester) async {
+  testWidgets('the strip ends flush with the card and keeps shapes', (
+    tester,
+  ) async {
     await tester.pumpWidget(await host(count: 10, recent: photos(10)));
     await tester.pumpAndSettle();
     final tiles = find.byType(MediaThumbnailTile);
     final first = tester.getRect(tiles.first);
     final last = tester.getRect(tiles.last);
-    expect(last.right - first.left, closeTo(400, 0.01));
-    expect(first.width, first.height);
+    expect(last.right - first.left, closeTo(400, 0.5));
+    expect(first.width / first.height, closeTo(4 / 3, 0.02));
+  });
+
+  testWidgets('a strip that does not reach the edge is not stretched', (
+    tester,
+  ) async {
+    await tester.pumpWidget(await host(count: 1, recent: photos(1)));
+    await tester.pumpAndSettle();
+    final size = tester.getSize(find.byType(MediaThumbnailTile));
+    expect(size.height, closeTo(100, 0.01));
+    expect(size.width, closeTo(400 / 3, 0.01));
+    expect(find.text('Show all'), findsNothing);
   });
 
   testWidgets('strip never exceeds the query cap', (tester) async {
@@ -107,19 +149,19 @@ void main() {
     expect(shownIds(tester), hasLength(kSiteDivePhotoStripLimit));
   });
 
-  testWidgets('a card under two tiles wide shows one tile filling it', (
+  testWidgets('a card narrower than one photo shows it at the card width', (
     tester,
   ) async {
-    // 160 of strip, under two tiles' worth. One photo, so the header has no
+    // 80 of strip, under one 133 px photo. One photo, so the header has no
     // Show all button competing for the narrow row.
     await tester.pumpWidget(
-      await host(count: 1, recent: photos(1), width: 200),
+      await host(count: 1, recent: photos(1), width: 120),
     );
     await tester.pumpAndSettle();
     expect(shownIds(tester), ['p0']);
     expect(
       tester.getSize(find.byType(MediaThumbnailTile)).width,
-      closeTo(160, 0.01),
+      closeTo(80, 0.01),
     );
   });
 
@@ -127,14 +169,14 @@ void main() {
     tester,
   ) async {
     tester.view.devicePixelRatio = 1.0;
-    tester.view.physicalSize = const Size(1700, 900);
+    tester.view.physicalSize = const Size(1800, 900);
     addTearDown(tester.view.reset);
-    // 1560 of strip fits 16 tiles, but the strip reads at most 12 of 14.
+    // 1660 of strip holds all 12 photos the strip reads, but there are 14.
     await tester.pumpWidget(
       await host(
         count: 14,
         recent: photos(kSiteDivePhotoStripLimit),
-        width: 1600,
+        width: 1700,
       ),
     );
     await tester.pumpAndSettle();
@@ -147,6 +189,18 @@ void main() {
     await tester.pumpAndSettle();
     expect(shownIds(tester), hasLength(3));
     expect(find.text('Show all'), findsNothing);
+  });
+
+  testWidgets('Show all is hidden while the strip loads', (tester) async {
+    final pending = Completer<List<MediaItem>>();
+    await tester.pumpWidget(
+      await host(count: 20, pendingRecent: pending.future),
+    );
+    await tester.pump();
+    expect(find.text('Show all'), findsNothing);
+    pending.complete(photos(10));
+    await tester.pumpAndSettle();
+    expect(find.text('Show all'), findsOneWidget);
   });
 
   testWidgets('Show all reads the full list only when tapped', (tester) async {
@@ -162,12 +216,66 @@ void main() {
     await tester.pumpAndSettle();
     expect(allReads, hasLength(1));
     expect(shownIds(tester), [for (final m in all) m.id]);
-    expect(find.byType(GridView), findsOneWidget);
 
     await tester.tap(find.text('Show less'));
     await tester.pumpAndSettle();
-    expect(shownIds(tester), ['p0', 'p1', 'p2', 'p3']);
-    expect(find.byType(GridView), findsNothing);
+    expect(shownIds(tester), ['p0', 'p1', 'p2']);
+  });
+
+  testWidgets('expanded photos keep their shapes', (tester) async {
+    final tall = testMediaItem(
+      id: 'tall',
+      diveId: 'dive-1',
+    ).copyWith(width: 300, height: 400);
+    await tester.pumpWidget(
+      await host(count: 9, recent: photos(9), all: [...photos(3), tall]),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Show all'));
+    await tester.pumpAndSettle();
+    final size = tester.getSize(
+      find.byWidgetPredicate(
+        (w) => w is MediaThumbnailTile && w.item.id == 'tall',
+      ),
+    );
+    expect(size.width / size.height, closeTo(0.75, 0.02));
+    expect(find.byType(JustifiedMediaBlock), findsOneWidget);
+  });
+
+  testWidgets('nothing is laid out until the learned shapes load', (
+    tester,
+  ) async {
+    // A photo stored landscape and shown portrait must not lay out wide
+    // first and then jump.
+    final load = Completer<Map<String, LearnedAspect>>();
+    await tester.pumpWidget(
+      await host(
+        count: 1,
+        recent: photos(1),
+        shapes: _PendingShapes(load.future),
+      ),
+    );
+    await tester.pump();
+    expect(find.byType(MediaThumbnailTile), findsNothing);
+
+    load.complete({'p0': (ratio: 0.75, width: null, height: null)});
+    await tester.pumpAndSettle();
+    final size = tester.getSize(find.byType(MediaThumbnailTile));
+    expect(size.width / size.height, closeTo(0.75, 0.02));
+  });
+
+  testWidgets('a tile decodes at its laid-out size and reports its shape', (
+    tester,
+  ) async {
+    final shapes = FakeAspectCacheRepository();
+    await tester.pumpWidget(
+      await host(count: 1, recent: photos(1), width: 1200, shapes: shapes),
+    );
+    await tester.pumpAndSettle();
+    final finder = find.byType(MediaThumbnailTile);
+    final tile = tester.widget<MediaThumbnailTile>(finder);
+    expect(tile.targetSize, mediaThumbnailDecodeTarget(tester.getSize(finder)));
+    expect(tile.onImageSize, isNotNull);
   });
 
   testWidgets('tiles are read-only dive photos', (tester) async {
@@ -197,7 +305,7 @@ void main() {
     expect(viewer.scope, SiteViewerScope.divePhotos);
   });
 
-  testWidgets('tapping a photo in the expanded grid opens the viewer there', (
+  testWidgets('tapping a photo in the expanded rows opens the viewer there', (
     tester,
   ) async {
     await tester.pumpWidget(
