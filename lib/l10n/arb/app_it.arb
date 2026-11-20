@@ -5761,6 +5761,7 @@
   "marineLife_speciesPhotos_tagPhotos": "Tagga foto",
   "marineLife_speciesPhotos_addPhotos": "Aggiungi foto",
   "marineLife_speciesPhotos_thumbnailLabel": "Foto della specie",
+  "marineLife_speciesPhotos_moreLabel": "{count, plural, one{{count} altra foto} other{altre {count} foto}}",
   "marineLife_speciesPhotos_importAdded": "{count, plural, =1{1 foto aggiunta} other{{count} foto aggiunte}}",
   "marineLife_speciesPhotos_importSkipped": "{count, plural, =1{1 saltata} other{{count} saltate}}",
   "marineLife_speciesPhotos_importFailed": "{count, plural, =1{1 non riuscita} other{{count} non riuscite}}",

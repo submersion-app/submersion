@@ -5761,6 +5761,7 @@
   "marineLife_speciesPhotos_tagPhotos": "תיוג תמונות",
   "marineLife_speciesPhotos_addPhotos": "הוספת תמונות",
   "marineLife_speciesPhotos_thumbnailLabel": "תמונת מין",
+  "marineLife_speciesPhotos_moreLabel": "{count, plural, one{תמונה נוספת אחת} other{{count} תמונות נוספות}}",
   "marineLife_speciesPhotos_importAdded": "{count, plural, =1{תמונה אחת נוספה} other{{count} תמונות נוספו}}",
   "marineLife_speciesPhotos_importSkipped": "{count, plural, =1{אחת דולגה} other{{count} דולגו}}",
   "marineLife_speciesPhotos_importFailed": "{count, plural, =1{אחת נכשלה} other{{count} נכשלו}}",

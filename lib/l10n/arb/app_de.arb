@@ -6013,6 +6013,7 @@
   "marineLife_speciesPhotos_tagPhotos": "Fotos markieren",
   "marineLife_speciesPhotos_addPhotos": "Fotos hinzufügen",
   "marineLife_speciesPhotos_thumbnailLabel": "Artenfoto",
+  "marineLife_speciesPhotos_moreLabel": "{count, plural, one{{count} weiteres Foto} other{{count} weitere Fotos}}",
   "marineLife_speciesPhotos_importAdded": "{count, plural, =1{1 Foto hinzugefügt} other{{count} Fotos hinzugefügt}}",
   "marineLife_speciesPhotos_importSkipped": "{count, plural, =1{1 übersprungen} other{{count} übersprungen}}",
   "marineLife_speciesPhotos_importFailed": "{count, plural, =1{1 fehlgeschlagen} other{{count} fehlgeschlagen}}",

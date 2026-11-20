@@ -20345,6 +20345,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get marineLife_speciesPhotos_thumbnailLabel => 'صورة النوع';
 
   @override
+  String marineLife_speciesPhotos_moreLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صورة أخرى',
+      many: '$count صورة أخرى',
+      few: '$count صور أخرى',
+      two: 'صورتان أخريان',
+      one: 'صورة أخرى واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String marineLife_speciesPhotos_importAdded(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

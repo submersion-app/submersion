@@ -19101,6 +19101,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get marineLife_speciesPhotos_thumbnailLabel => '物种照片';
 
   @override
+  String marineLife_speciesPhotos_moreLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '还有 $count 张照片',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String marineLife_speciesPhotos_importAdded(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

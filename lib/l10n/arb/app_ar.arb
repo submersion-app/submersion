@@ -5887,6 +5887,7 @@
   "marineLife_speciesPhotos_tagPhotos": "وسم الصور",
   "marineLife_speciesPhotos_addPhotos": "إضافة صور",
   "marineLife_speciesPhotos_thumbnailLabel": "صورة النوع",
+  "marineLife_speciesPhotos_moreLabel": "{count, plural, one{صورة أخرى واحدة} two{صورتان أخريان} few{{count} صور أخرى} many{{count} صورة أخرى} other{{count} صورة أخرى}}",
   "marineLife_speciesPhotos_importAdded": "{count, plural, =1{تمت إضافة صورة واحدة} two{تمت إضافة صورتين} few{تمت إضافة {count} صور} many{تمت إضافة {count} صورة} other{تمت إضافة {count} صورة}}",
   "marineLife_speciesPhotos_importSkipped": "{count, plural, =1{تم تخطي صورة واحدة} two{تم تخطي صورتين} few{تم تخطي {count}} many{تم تخطي {count}} other{تم تخطي {count}}}",
   "marineLife_speciesPhotos_importFailed": "{count, plural, =1{فشلت صورة واحدة} two{فشلت صورتان} few{فشل {count}} many{فشل {count}} other{فشل {count}}}",

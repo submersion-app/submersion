@@ -5887,6 +5887,7 @@
   "marineLife_speciesPhotos_tagPhotos": "Marcar fotos",
   "marineLife_speciesPhotos_addPhotos": "Adicionar fotos",
   "marineLife_speciesPhotos_thumbnailLabel": "Foto da espécie",
+  "marineLife_speciesPhotos_moreLabel": "{count, plural, one{mais {count} foto} other{mais {count} fotos}}",
   "marineLife_speciesPhotos_importAdded": "{count, plural, =1{{count} foto adicionada} other{{count} fotos adicionadas}}",
   "marineLife_speciesPhotos_importSkipped": "{count, plural, =1{{count} ignorada} other{{count} ignoradas}}",
   "marineLife_speciesPhotos_importFailed": "{count, plural, =1{{count} com falha} other{{count} com falha}}",

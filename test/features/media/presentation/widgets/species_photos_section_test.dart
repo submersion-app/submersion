@@ -1,21 +1,60 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/platform/device_capabilities.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/media/data/repositories/media_aspect_cache_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
+import 'package:submersion/features/media/presentation/helpers/media_layout_aspect.dart';
 import 'package:submersion/features/media/presentation/pages/species_photo_viewer_page.dart';
+import 'package:submersion/features/media/presentation/providers/media_learned_aspect_provider.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import 'package:submersion/features/media/presentation/widgets/species_photos_section.dart';
 
 import '../support/media_widget_harness.dart';
 
+class _NoShapesRepository implements MediaAspectCacheRepository {
+  @override
+  Future<Map<String, LearnedAspect>> loadAll() async => const {};
+
+  @override
+  Future<void> putAll(Map<String, LearnedAspect> entries) async {}
+}
+
+MediaItem _photo(String id, {int width = 600, int height = 600}) =>
+    testMediaItem(id: id, diveId: 'd1').copyWith(width: width, height: height);
+
+MediaLibraryEntry _entry(
+  String id, {
+  int width = 600,
+  int height = 600,
+  DateTime? diveDateTime,
+  String? siteName,
+}) => MediaLibraryEntry(
+  item: _photo(id, width: width, height: height),
+  diveDateTime: diveDateTime,
+  siteName: siteName,
+);
+
+List<MediaLibraryEntry> _squares(int count, {String prefix = 'p'}) => [
+  for (var i = 0; i < count; i++) _entry('$prefix$i'),
+];
+
 Future<void> _pump(
   WidgetTester tester,
-  List<MediaItem> items, {
+  List<MediaLibraryEntry> entries, {
   VoidCallback? onTagPhotos,
   VoidCallback? onAddPhotos,
+  List<MediaItem> pendingItems = const [],
+  Widget Function(MediaItem item)? pendingOverlay,
   bool browser = false,
+  double width = 800,
 }) async {
+  tester.view.physicalSize = Size(width, 3000);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
   await tester.pumpWidget(
     await mediaTestApp(
       home: Scaffold(
@@ -24,11 +63,21 @@ Future<void> _pump(
             speciesId: 'sp_x',
             onTagPhotos: onTagPhotos,
             onAddPhotos: onAddPhotos,
+            pendingItems: pendingItems,
+            pendingOverlay: pendingOverlay,
           ),
         ),
       ),
       overrides: [
-        mediaForSpeciesProvider('sp_x').overrideWith((ref) async => items),
+        mediaEntriesForSpeciesProvider(
+          'sp_x',
+        ).overrideWith((ref) async => entries),
+        mediaForSpeciesProvider(
+          'sp_x',
+        ).overrideWith((ref) async => [for (final e in entries) e.item]),
+        mediaAspectCacheRepositoryProvider.overrideWithValue(
+          _NoShapesRepository(),
+        ),
         if (browser)
           deviceCapabilitiesProvider.overrideWithValue(DeviceCapabilities.web),
       ],
@@ -37,14 +86,19 @@ Future<void> _pump(
   await tester.pumpAndSettle();
 }
 
-void main() {
-  final items = [
-    testMediaItem(id: 'p1', diveId: 'd1', takenAt: DateTime(2024, 1, 11)),
-    testMediaItem(id: 'p2', diveId: 'd1', takenAt: DateTime(2024, 1, 10)),
-  ];
+Rect _tileRect(WidgetTester tester, String id) =>
+    tester.getRect(find.byKey(ValueKey('species_photo_$id')));
 
-  testWidgets('renders a titled grid of tagged photos', (tester) async {
-    await _pump(tester, items);
+String _formatDate(WidgetTester tester, DateTime date) =>
+    ProviderScope.containerOf(
+      tester.element(find.byType(SpeciesPhotosSection)),
+    ).read(unitFormatterProvider).formatDate(date);
+
+void main() {
+  final entries = [_entry('p1'), _entry('p2')];
+
+  testWidgets('renders a titled section of tagged photos', (tester) async {
+    await _pump(tester, entries);
 
     expect(find.text('Photos (2)'), findsOneWidget);
     expect(find.byType(MediaThumbnailTile), findsNWidgets(2));
@@ -63,7 +117,7 @@ void main() {
   });
 
   testWidgets('hides an action whose callback is absent', (tester) async {
-    await _pump(tester, items, onAddPhotos: () {});
+    await _pump(tester, entries, onAddPhotos: () {});
 
     expect(find.text('Tag photos'), findsNothing);
     expect(find.text('Add photos'), findsOneWidget);
@@ -74,7 +128,7 @@ void main() {
     var added = false;
     await _pump(
       tester,
-      items,
+      entries,
       onTagPhotos: () => tagged = true,
       onAddPhotos: () => added = true,
     );
@@ -89,7 +143,7 @@ void main() {
   testWidgets('tapping a thumbnail opens the species viewer on that photo', (
     tester,
   ) async {
-    await _pump(tester, items);
+    await _pump(tester, entries);
 
     await tester.tap(find.byType(MediaThumbnailTile).last);
     await tester.pumpAndSettle();
@@ -106,12 +160,128 @@ void main() {
   ) async {
     await _pump(
       tester,
-      items,
+      entries,
       onTagPhotos: () {},
       onAddPhotos: () {},
       browser: true,
     );
     expect(find.byKey(const ValueKey('species_tag_photos')), findsOneWidget);
     expect(find.byKey(const ValueKey('species_add_photos')), findsNothing);
+  });
+
+  testWidgets('lays photos out at their own shapes', (tester) async {
+    await _pump(tester, [
+      _entry('wide', width: 900, height: 600),
+      _entry('tall', width: 600, height: 900),
+    ]);
+
+    final wide = _tileRect(tester, 'wide');
+    final tall = _tileRect(tester, 'tall');
+    expect(wide.height, tall.height);
+    expect(wide.height, kSpeciesPhotoRowHeight);
+    expect(wide.width / tall.width, closeTo(9 / 4, 0.01));
+    expect(tall.left - wide.right, closeTo(kSpeciesPhotoGap, 0.01));
+  });
+
+  testWidgets('captions each photo with its dive date and site', (
+    tester,
+  ) async {
+    final date = DateTime.utc(2025, 3, 12, 9, 30);
+    await _pump(tester, [
+      _entry('p1', diveDateTime: date, siteName: 'Blue Hole'),
+    ]);
+
+    expect(
+      find.text('${_formatDate(tester, date)} · Blue Hole'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a dive with no site captions the date alone', (tester) async {
+    final date = DateTime.utc(2025, 3, 12);
+    await _pump(tester, [_entry('p1', diveDateTime: date)]);
+
+    expect(find.text(_formatDate(tester, date)), findsOneWidget);
+  });
+
+  testWidgets('a photo with no dive has no caption', (tester) async {
+    await _pump(tester, [_entry('p1')]);
+
+    expect(
+      find.byKey(const ValueKey('species_photo_caption_p1')),
+      findsNothing,
+    );
+  });
+
+  testWidgets(
+    'caps at three rows and opens the viewer at the first hidden photo',
+    (tester) async {
+      // 390 wide holds three squares a row: 9 shown, 11 left out.
+      await _pump(tester, _squares(20), width: 390);
+
+      expect(find.byType(MediaThumbnailTile), findsNWidgets(9));
+      expect(find.text('+11'), findsOneWidget);
+
+      await tester.tap(find.text('+11'));
+      await tester.pumpAndSettle();
+
+      final viewer = tester.widget<SpeciesPhotoViewerPage>(
+        find.byType(SpeciesPhotoViewerPage),
+      );
+      expect(viewer.initialMediaId, 'p9');
+    },
+  );
+
+  testWidgets('+N is announced as more photos', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await _pump(tester, _squares(20), width: 390);
+
+    expect(find.bySemanticsLabel(RegExp('11 more photos')), findsOneWidget);
+    semantics.dispose();
+  });
+
+  testWidgets('a photo with a caption carries it in its label', (tester) async {
+    final semantics = tester.ensureSemantics();
+    final date = DateTime.utc(2025, 3, 12);
+    await _pump(tester, [
+      _entry('p1', diveDateTime: date, siteName: 'Blue Hole'),
+    ]);
+
+    expect(
+      find.bySemanticsLabel(
+        'Species photo, ${_formatDate(tester, date)} · Blue Hole',
+      ),
+      findsOneWidget,
+    );
+    semantics.dispose();
+  });
+
+  testWidgets('pending photos come first, uncaptioned, never hidden', (
+    tester,
+  ) async {
+    final date = DateTime.utc(2025, 3, 12);
+    await _pump(
+      tester,
+      [
+        for (final e in _squares(20))
+          MediaLibraryEntry(item: e.item, diveDateTime: date),
+      ],
+      pendingItems: [for (var i = 0; i < 12; i++) _photo('held$i')],
+      pendingOverlay: (item) => SizedBox(key: ValueKey('overlay_${item.id}')),
+      width: 390,
+    );
+
+    for (var i = 0; i < 12; i++) {
+      expect(find.byKey(ValueKey('overlay_held$i')), findsOneWidget);
+      expect(
+        find.byKey(ValueKey('species_photo_caption_held$i')),
+        findsNothing,
+      );
+    }
+    expect(
+      _tileRect(tester, 'held0').top,
+      lessThan(_tileRect(tester, 'held11').top),
+    );
+    expect(find.text('+20'), findsOneWidget);
   });
 }
