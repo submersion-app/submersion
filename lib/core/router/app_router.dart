@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/accessibility/app_shortcuts.dart';
@@ -975,15 +973,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 // in the foreground (see app_router_test.dart and
                 // buddy_picker_navigation_render_test.dart).
                 parentNavigatorKey: rootNavigatorKey,
-                builder: (context, state) {
-                  final extra = state.extra as Map<String, dynamic>?;
-                  return BuddyEditPage(
-                    initialName: extra?['name'] as String?,
-                    initialEmail: extra?['email'] as String?,
-                    initialPhone: extra?['phone'] as String?,
-                    initialPhoto: extra?['photo'] as Uint8List?,
-                  );
-                },
+                onExit: confirmLeaveRecordSitting,
+                // Behind phase 3's switch, the buddy page opened on a new
+                // buddy (issue #4527, plan 11).
+                builder: (context, state) => newBuddyPage(state.extra),
               ),
               GoRoute(
                 path: 'merge',

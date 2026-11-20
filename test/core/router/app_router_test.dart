@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page.dart';
+import 'package:submersion/features/buddies/presentation/pages/buddy_edit_page.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/pages/document_detail_page.dart';
 import 'package:submersion/features/documents/presentation/pages/document_edit_page.dart';
@@ -534,6 +536,22 @@ void main() {
     expect(newSpeciesPage(unlockEditing: false), isA<SpeciesEditPage>());
     final route = _findRouteByName(router.configuration.routes, 'newSpecies');
     expect(route?.onExit, same(confirmLeaveRecordSitting));
+  });
+
+  test('a new buddy opens the page with the switch on', () {
+    const extra = {'name': 'Kai', 'email': 'kai@example.com'};
+    final page = newBuddyPage(extra, unlockEditing: true);
+    expect(page, isA<BuddyDetailPage>());
+    final seed = (page as BuddyDetailPage).newBuddy!.seed!;
+    expect(seed.name, 'Kai');
+    expect(seed.email, 'kai@example.com');
+    final form = newBuddyPage(extra, unlockEditing: false);
+    expect(form, isA<BuddyEditPage>());
+    expect((form as BuddyEditPage).initialName, 'Kai');
+    final route = _findRouteByName(router.configuration.routes, 'newBuddy');
+    expect(route?.onExit, same(confirmLeaveRecordSitting));
+    // Still on the root navigator, over a dialog it is opened from.
+    expect(route?.parentNavigatorKey, isNotNull);
   });
 
   // A track's sitting is asked about before a `go` leaves it (issue #4527,
