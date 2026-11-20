@@ -5,7 +5,6 @@ import 'package:submersion/features/cylinder_passports/data/repositories/cylinde
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/services/twin_fill_service.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
-import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_pairing.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/pairing_rules.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/log_fill_sheet.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -137,13 +136,10 @@ bool isHeldFill(EditSession<EquipmentItem> session, CylinderFill fill) =>
 
 /// The pairing a fill dated [day] uses, as the sitting has the pairings: a
 /// twin set made in the sitting is offered for a fill logged after it.
-/// [stored] gives every pairing as stored.
-CylinderPairing? Function(DateTime day) sittingPairingOn(
-  EditSession<EquipmentItem> session,
-  List<CylinderPairing> Function() stored,
-) =>
-    (day) => pairingOn(
-      pairingsInSitting(stored(), heldPairingSteps(session)),
+/// The log fill sheet hands it every pairing as stored, once they are read.
+SittingPairingOn sittingPairingOn(EditSession<EquipmentItem> session) =>
+    (stored, day) => pairingOn(
+      pairingsInSitting(stored, heldPairingSteps(session)),
       session.stored.id,
       day,
     );

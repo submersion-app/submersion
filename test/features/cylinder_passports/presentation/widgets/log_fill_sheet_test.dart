@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_pairing.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_pairing_providers.dart';
+import 'package:submersion/features/cylinder_passports/domain/services/pairing_rules.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/constants/units.dart';
@@ -50,6 +54,7 @@ void main() {
     WidgetTester tester, {
     CylinderFillRepository? repository,
     AppSettings? settings,
+    List<dynamic> extraOverrides = const [],
     LogFillSheet sheet = const LogFillSheet(
       passportId: 'pp-1',
       equipmentId: 'eq-1',
@@ -66,6 +71,7 @@ void main() {
           ...overrides,
           if (repository != null)
             cylinderFillRepositoryProvider.overrideWithValue(repository),
+          ...extraOverrides,
         ],
         child: sheet,
       ),
@@ -148,7 +154,7 @@ void main() {
         equipmentId: 'eq-1',
         onHold: (fill, {twinPartnerId, toTied = false}) =>
             held.add((fill, twinPartnerId)),
-        pairingOn: (day) => CylinderPairing(
+        pairingOn: (stored, day) => CylinderPairing(
           id: 'p',
           cylinderAId: 'eq-1',
           cylinderBId: 'eq-2',
@@ -175,6 +181,67 @@ void main() {
       ),
     );
     expect(stored, isEmpty);
+  });
+
+  // A sitting's pairings lay its steps over the stored ones, which the
+  // sheet reads and waits for: Save tapped while they are still loading
+  // waits for them and names the stored twin set partner, rather than
+  // holding a single fill.
+  testWidgets('in a sitting Save tapped while the stored pairings load '
+      'waits for them and names their partner', (tester) async {
+    await tester.runAsync(() async {
+      for (final (id, name) in [('eq-1', 'Left 12'), ('eq-2', 'Right 12')]) {
+        await EquipmentRepository().createEquipment(
+          EquipmentItem(id: id, name: name, type: EquipmentType.tank),
+        );
+      }
+    });
+    final loading = Completer<List<CylinderPairing>>();
+    final held = <String?>[];
+    final seen = <List<CylinderPairing>>[];
+    await pump(
+      tester,
+      extraOverrides: [
+        allPairingsProvider.overrideWith((ref) => loading.future),
+      ],
+      sheet: LogFillSheet(
+        passportId: 'pp-1',
+        equipmentId: 'eq-1',
+        onHold: (fill, {twinPartnerId, toTied = false}) =>
+            held.add(twinPartnerId),
+        pairingOn: (stored, day) {
+          seen.add(stored);
+          return pairingOn(stored, 'eq-1', day);
+        },
+      ),
+    );
+    final l10n = AppLocalizations.of(tester.element(find.byType(LogFillSheet)));
+    await tester.ensureVisible(find.text(l10n.forms_save));
+    await tester.tap(find.text(l10n.forms_save));
+    await tester.pump();
+
+    // Still loading: nothing is held, and the lookup has not been asked.
+    expect(held, isEmpty);
+    expect(seen, isEmpty);
+
+    loading.complete([
+      CylinderPairing(
+        id: 'p',
+        cylinderAId: 'eq-1',
+        cylinderBId: 'eq-2',
+        pairedOn: DateTime(2020),
+        createdAt: DateTime(2020),
+        updatedAt: DateTime(2020),
+      ),
+    ]);
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 50)),
+    );
+    await tester.pumpAndSettle();
+
+    expect(seen, isNotEmpty);
+    expect(seen.every((s) => s.length == 1), isTrue);
+    expect(held.single, 'eq-2');
   });
 
   testWidgets('shows every field with the diver units', (tester) async {

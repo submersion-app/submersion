@@ -83,7 +83,7 @@ class TwinSetCard extends ConsumerWidget {
         ? null
         : SittingPairingWrites(
             editing,
-            () => ref.read(allPairingsProvider).value ?? const [],
+            () => ref.read(allPairingsProvider.future),
             ref.read(cylinderPairingRepositoryProvider),
           );
     bool changed(CylinderPairing p) => session != null && !stored.contains(p);
