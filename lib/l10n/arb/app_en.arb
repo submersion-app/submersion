@@ -17272,10 +17272,22 @@
   "settings_photosVideos_title": "Photos & videos",
   "settings_speciesId_title": "Species identification",
   "settings_speciesId_entrySubtitle": "Suggest the species in your photos and videos",
+  "settings_speciesId_entrySubtitlePhotos": "Suggest the species in your photos",
+  "@settings_speciesId_entrySubtitlePhotos": {
+    "description": "The settings entry subtitle on Linux, where the app has no video player and only photos are looked at."
+  },
   "speciesId_downloadPrompt_title": "Identify species in your photos and videos",
+  "speciesId_downloadPrompt_titlePhotos": "Identify species in your photos",
+  "@speciesId_downloadPrompt_titlePhotos": {
+    "description": "The download prompt title on Linux, where only photos are looked at."
+  },
   "speciesId_downloadPrompt_subtitle": "Download the species identification model to get suggestions",
   "speciesId_downloadPrompt_dismiss": "Don't show again",
   "settings_speciesId_intro": "Suggests the species in your photos and videos. Runs on this device. Your photos and videos never leave it.",
+  "settings_speciesId_introPhotos": "Suggests the species in your photos. Runs on this device. Your photos never leave it.",
+  "@settings_speciesId_introPhotos": {
+    "description": "The settings page introduction on Linux, where only photos are looked at."
+  },
   "settings_speciesId_model": "Model",
   "settings_speciesId_modelNotDownloaded": "Not downloaded",
   "settings_speciesId_modelNotAvailable": "Not available yet",
@@ -17302,6 +17314,10 @@
   "settings_speciesId_downloadNoSpace": "There is not enough free space on this device.",
   "settings_speciesId_needsAppUpdate": "This model needs a newer version of Submersion.",
   "settings_speciesId_toggle": "Identify species when I open a photo or video",
+  "settings_speciesId_togglePhotos": "Identify species when I open a photo",
+  "@settings_speciesId_togglePhotos": {
+    "description": "The per-device toggle on Linux, where only photos are looked at."
+  },
   "settings_speciesId_autoApply": "Tag confident matches automatically",
   "settings_speciesId_autoApplyDescription": "The app adds a species tag when it is sure of a match. You confirm each one in Species to review.",
   "settings_speciesId_autoApplyNever": "The installed model isn't yet sure enough of any species to tag on its own. Suggestions still appear for you to add.",

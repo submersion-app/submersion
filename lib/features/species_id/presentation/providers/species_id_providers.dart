@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/constants/feature_flags.dart';
@@ -290,6 +291,7 @@ final Provider<MediaIdentificationService> mediaIdentificationServiceProvider =
         resolveImage: (item) => identificationImageOf(ref, item),
         resolveVideo: (item) => ref.read(videoFileReaderProvider(item).future),
         taggedSpecies: identifications.taggedSpecies,
+        videoRuns: () => visionVideoRuns(defaultTargetPlatform),
         enabled: () =>
             marineLifeIdEnabled && ref.read(identifyFishOnOpenProvider),
         // A Find species run is the diver's own request (issue #4727).

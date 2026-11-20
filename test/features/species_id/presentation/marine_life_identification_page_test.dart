@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -120,6 +121,25 @@ void main() {
     }
     return controller;
   }
+
+  testWidgets('on Linux the page speaks of photos only', (tester) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    await pump(
+      tester,
+      const PackNotInstalled(bytes: 660000000, resumable: false),
+    );
+    expect(
+      find.text(
+        'Suggests the species in your photos. Runs on this device. Your '
+        'photos never leave it.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Identify species when I open a photo'), findsOneWidget);
+    expect(find.textContaining('photos and videos'), findsNothing);
+    debugDefaultTargetPlatformOverride = null;
+  });
 
   testWidgets('opening the page checks the model', (tester) async {
     final controller = await pump(tester, const PackChecking());

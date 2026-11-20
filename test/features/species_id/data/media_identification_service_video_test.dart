@@ -158,6 +158,61 @@ void main() {
       expect(done(), isTrue);
     }
 
+    group('where videos are not scanned (Linux)', () {
+      late MediaIdentificationService photosOnly;
+      var resolved = 0;
+
+      setUp(() {
+        resolved = 0;
+        photosOnly = MediaIdentificationService(
+          engine: engine,
+          loadPack: () async => installed,
+          identifications: identifications,
+          embeddings: embeddings,
+          crops: crops,
+          resolveImage: (item) async => imageFor(item),
+          resolveVideo: (item) async {
+            resolved++;
+            return null;
+          },
+          taggedSpecies: (_) async => tagged,
+          enabled: () => enabled,
+          videoRuns: () => false,
+          databaseGeneration: () => generation,
+          now: () => DateTime.utc(2026, 11, 17),
+          newId: () => 'id-${ids++}',
+          idleUnload: const Duration(milliseconds: 50),
+        );
+      });
+      tearDown(() => photosOnly.dispose());
+
+      test('a viewer video request is skipped, its file never read', () async {
+        oneFish();
+        await photosOnly.request(video());
+        expect(engine.detectCalls, isEmpty);
+        expect(resolved, 0);
+        expect(await identifications.runFor('v1'), isNull);
+      });
+
+      test('a run passes over a video without counting it as failed', () async {
+        final outcome = await photosOnly.requestFromRun(
+          video(),
+          resolveImage: (item) async => imageFor(item),
+          resolveVideo: (item) async {
+            resolved++;
+            return null;
+          },
+        );
+        expect(outcome, RunItemOutcome.skipped);
+        expect(resolved, 0);
+      });
+
+      test('a photo is still analysed', () async {
+        await photosOnly.request(photo('p1'));
+        expect(await identifications.runFor('p1'), isNotNull);
+      });
+    });
+
     test('a video is scanned to the end and its fish stored', () async {
       oneFish();
       await service.request(video());

@@ -29320,8 +29320,16 @@ class AppLocalizationsEs extends AppLocalizations {
       'Sugiere las especies de tus fotos y vídeos';
 
   @override
+  String get settings_speciesId_entrySubtitlePhotos =>
+      'Sugiere las especies de tus fotos';
+
+  @override
   String get speciesId_downloadPrompt_title =>
       'Identifica las especies de tus fotos y vídeos';
+
+  @override
+  String get speciesId_downloadPrompt_titlePhotos =>
+      'Identifica las especies de tus fotos';
 
   @override
   String get speciesId_downloadPrompt_subtitle =>
@@ -29333,6 +29341,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_speciesId_intro =>
       'Sugiere las especies de tus fotos y vídeos. Funciona en este dispositivo. Tus fotos y vídeos nunca salen de él.';
+
+  @override
+  String get settings_speciesId_introPhotos =>
+      'Sugiere las especies de tus fotos. Funciona en este dispositivo. Tus fotos nunca salen de él.';
 
   @override
   String get settings_speciesId_model => 'Modelo';
@@ -29409,6 +29421,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_speciesId_toggle =>
       'Identificar especies al abrir una foto o un vídeo';
+
+  @override
+  String get settings_speciesId_togglePhotos =>
+      'Identificar especies al abrir una foto';
 
   @override
   String get settings_speciesId_autoApply =>

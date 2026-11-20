@@ -28579,8 +28579,15 @@ class AppLocalizationsHe extends AppLocalizations {
       'הצעת המינים בתמונות ובסרטונים שלך';
 
   @override
+  String get settings_speciesId_entrySubtitlePhotos =>
+      'הצעת המינים בתמונות שלך';
+
+  @override
   String get speciesId_downloadPrompt_title =>
       'זיהוי המינים בתמונות ובסרטונים שלך';
+
+  @override
+  String get speciesId_downloadPrompt_titlePhotos => 'זיהוי המינים בתמונות שלך';
 
   @override
   String get speciesId_downloadPrompt_subtitle =>
@@ -28592,6 +28599,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_speciesId_intro =>
       'מציע את המינים בתמונות ובסרטונים שלך. פועל במכשיר הזה. התמונות והסרטונים שלך לא יוצאים ממנו לעולם.';
+
+  @override
+  String get settings_speciesId_introPhotos =>
+      'מציע את המינים בתמונות שלך. פועל במכשיר הזה. התמונות שלך לא יוצאות ממנו לעולם.';
 
   @override
   String get settings_speciesId_model => 'מודל';
@@ -28667,6 +28678,9 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_speciesId_toggle =>
       'זיהוי מינים כשאני פותח תמונה או סרטון';
+
+  @override
+  String get settings_speciesId_togglePhotos => 'זיהוי מינים כשאני פותח תמונה';
 
   @override
   String get settings_speciesId_autoApply => 'תיוג אוטומטי של התאמות ודאיות';

@@ -29173,8 +29173,16 @@ class AppLocalizationsHu extends AppLocalizations {
       'Fajjavaslatok a fotóidhoz és videóidhoz';
 
   @override
+  String get settings_speciesId_entrySubtitlePhotos =>
+      'Fajjavaslatok a fotóidhoz';
+
+  @override
   String get speciesId_downloadPrompt_title =>
       'Fajok felismerése a fotóidon és videóidon';
+
+  @override
+  String get speciesId_downloadPrompt_titlePhotos =>
+      'Fajok felismerése a fotóidon';
 
   @override
   String get speciesId_downloadPrompt_subtitle =>
@@ -29186,6 +29194,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_speciesId_intro =>
       'Fajokat javasol a fotóidon és videóidon. Ezen az eszközön fut. A fotóid és videóid soha nem hagyják el.';
+
+  @override
+  String get settings_speciesId_introPhotos =>
+      'Fajokat javasol a fotóidon. Ezen az eszközön fut. A fotóid soha nem hagyják el.';
 
   @override
   String get settings_speciesId_model => 'Modell';
@@ -29262,6 +29274,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_speciesId_toggle =>
       'Fajok felismerése fotó vagy videó megnyitásakor';
+
+  @override
+  String get settings_speciesId_togglePhotos =>
+      'Fajok felismerése fotó megnyitásakor';
 
   @override
   String get settings_speciesId_autoApply =>
