@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/media/data/repositories/media_aspect_cache_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 import 'package:submersion/features/media/domain/value_objects/learned_aspect.dart';
 import 'package:submersion/features/media/presentation/pages/site_media_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_learned_aspect_provider.dart';
@@ -56,6 +57,10 @@ void main() {
     Future<List<MediaItem>>? pendingRecent,
     MediaAspectCacheRepository? shapes,
   }) => mediaTestApp(
+    // No thumbnail decodes, so no tile teaches the learned shapes a stand-in
+    // image's 1:1 and the stored shapes stay the ones laid out (issue
+    // #4741). A test that needs a report calls onImageSize.
+    resolverData: const UnavailableData(kind: UnavailableKind.notFound),
     overrides: [
       mediaAspectCacheRepositoryProvider.overrideWithValue(
         shapes ?? FakeAspectCacheRepository(),
