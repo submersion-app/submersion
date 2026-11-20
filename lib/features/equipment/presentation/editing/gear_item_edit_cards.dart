@@ -9,6 +9,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_history_section.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_clocks_editor.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_location_card.dart';
+import 'package:submersion/features/cylinder_passports/presentation/widgets/twin_set_card.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/dive_computer_section.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
@@ -62,6 +63,19 @@ final Map<GearItemCardId, EditCard<EquipmentItem>> gearItemEditCards = {
     isEmpty: (_) => false,
     editorBuilder: (context, session) =>
         EquipmentLocationCard(equipment: session.working, editing: session),
+  ),
+  GearItemCardId.twinSet: EditCard<EquipmentItem>(
+    id: GearItemCardId.twinSet.name,
+    title: (context) =>
+        GearItemCardId.twinSet.localizedDisplayName(context.l10n),
+    // A tank's, with none it says so; it hides itself for doubles kept as
+    // one item.
+    isEmpty: (_) => false,
+    editorBuilder: (context, session) => TwinSetCard(
+      equipmentId: session.stored.id,
+      working: session.working,
+      editing: session,
+    ),
   ),
   GearItemCardId.serviceClocks: EditCard<EquipmentItem>(
     id: GearItemCardId.serviceClocks.name,

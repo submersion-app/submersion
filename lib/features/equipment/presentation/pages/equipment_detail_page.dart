@@ -360,9 +360,12 @@ class _EquipmentDetailContent extends ConsumerWidget {
           if (equipment.type == EquipmentType.tank) ...[
             _calculated(PassportEntryCard(equipment: equipment)),
             const SizedBox(height: 24),
-            // Twin set pairing (issue #4242). Read only where the page edits
-            // in place, until its pairings are held in the sitting.
-            TwinSetCard(equipmentId: equipmentId, readOnly: _editing),
+            // Twin set pairing (issue #4242). It hides as Worn as says, as
+            // the sitting has it.
+            _framed(
+              GearItemCardId.twinSet,
+              TwinSetCard(equipmentId: equipmentId, working: equipment),
+            ),
             const SizedBox(height: 24),
           ] else if (!equipment.isWanted) ...[
             // Any other gear's tag (issue #2652).

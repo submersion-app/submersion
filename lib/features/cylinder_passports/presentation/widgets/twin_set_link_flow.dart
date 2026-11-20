@@ -124,11 +124,14 @@ class _TwinPartnerPicker extends ConsumerWidget {
 /// (today unless changed): warns when the working pressures differ, offers
 /// to replace a partner either cylinder already has, and names any other
 /// pairing the new one would overlap. Replace partner runs the same flow.
+/// [writer] makes the pairing: the repository unless given (a gear item's
+/// sitting holds it, issue #4527).
 Future<void> linkTwinSetPartner(
   BuildContext context,
   WidgetRef ref,
   EquipmentItem cylinder, {
   String? currentPartnerId,
+  PairingWrites? writer,
 }) async {
   final l10n = context.l10n;
   final messenger = ScaffoldMessenger.of(context);
@@ -149,7 +152,7 @@ Future<void> linkTwinSetPartner(
   if (pairedOn == null || !context.mounted) return;
   if (!await _acceptPressures(context, ref, cylinder, partner)) return;
   if (!context.mounted) return;
-  final repository = ref.read(cylinderPairingRepositoryProvider);
+  final repository = _writes(ref, writer);
   try {
     try {
       await repository.createPairing(
@@ -188,12 +191,14 @@ Future<void> linkTwinSetPartner(
   }
 }
 
-/// Ends [pairing] on a day the diver picks (today unless changed).
+/// Ends [pairing] on a day the diver picks (today unless changed), through
+/// [writer] when given.
 Future<void> unlinkTwinSet(
   BuildContext context,
   WidgetRef ref,
-  CylinderPairing pairing,
-) async {
+  CylinderPairing pairing, {
+  PairingWrites? writer,
+}) async {
   final l10n = context.l10n;
   final messenger = ScaffoldMessenger.of(context);
   final units = ref.read(unitFormatterProvider);
@@ -209,9 +214,7 @@ Future<void> unlinkTwinSet(
   );
   if (picked == null || !context.mounted) return;
   try {
-    await ref
-        .read(cylinderPairingRepositoryProvider)
-        .endPairing(pairing.id, picked);
+    await _writes(ref, writer).endPairing(pairing.id, picked);
   } on ArgumentError {
     messenger.showSnackBar(
       SnackBar(
@@ -228,13 +231,14 @@ Future<void> unlinkTwinSet(
   }
 }
 
-/// Asks before deleting [pairing], made by mistake, and deletes it. Fills
-/// and dives are not changed.
+/// Asks before deleting [pairing], made by mistake, and deletes it, through
+/// [writer] when given. Fills and dives are not changed.
 Future<void> confirmDeletePairing(
   BuildContext context,
   WidgetRef ref,
-  CylinderPairing pairing,
-) async {
+  CylinderPairing pairing, {
+  PairingWrites? writer,
+}) async {
   final l10n = context.l10n;
   final messenger = ScaffoldMessenger.of(context);
   final ok = await showDialog<bool>(
@@ -256,12 +260,16 @@ Future<void> confirmDeletePairing(
   );
   if (ok != true) return;
   try {
-    await ref.read(cylinderPairingRepositoryProvider).deletePairing(pairing.id);
+    await _writes(ref, writer).deletePairing(pairing.id);
   } catch (e, stackTrace) {
     _log.error('Failed to delete a pairing', error: e, stackTrace: stackTrace);
     messenger.showSnackBar(SnackBar(content: Text(l10n.twinSet_saveFailed)));
   }
 }
+
+/// [writer], or the repository when none is given.
+PairingWrites _writes(WidgetRef ref, PairingWrites? writer) =>
+    writer ?? ref.read(cylinderPairingRepositoryProvider);
 
 /// A calendar day as a local date, for the date picker.
 DateTime _local(DateTime day) => DateTime(day.year, day.month, day.day);

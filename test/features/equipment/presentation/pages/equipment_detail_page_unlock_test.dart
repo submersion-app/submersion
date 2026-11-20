@@ -21,7 +21,11 @@ import 'package:submersion/features/equipment/presentation/editing/gear_item_edi
 import 'package:submersion/features/equipment/presentation/editing/gear_item_sitting_host.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/components_card.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_pairing_repository.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_pairing.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_pairing_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_findings_repository.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_card_ids.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_condition_providers.dart';
@@ -297,6 +301,47 @@ void main() {
         find.byTooltip(l.equipmentCondition_findings_dismiss),
         findsNothing,
       );
+    });
+  });
+
+  // Plan 7: a tank's pairings are held in the item's sitting.
+  group('twin set', () {
+    final tank = apex.copyWith(name: 'Left 12', type: EquipmentType.tank);
+    final partner = EquipmentItem(
+      id: 'g2',
+      name: 'Right 12',
+      type: EquipmentType.tank,
+      createdAt: DateTime(2026),
+    );
+
+    testWidgets('a pairing made in the sitting is saved with it', (
+      tester,
+    ) async {
+      final repository = _RecordingPairings();
+      final harness = await pumpGearPage(
+        tester,
+        item: tank,
+        extraOverrides: [
+          allPairingsProvider.overrideWith((ref) async => const []),
+          activeEquipmentProvider.overrideWith((ref) async => [tank, partner]),
+          cylinderPairingRepositoryProvider.overrideWithValue(repository),
+        ],
+      );
+      expect(find.text(l.twinSet_link), findsNothing);
+      await unlock(tester);
+      await openCard(tester, l.twinSet_title);
+
+      await tester.tap(find.text(l.twinSet_link));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Right 12'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+      expect(repository.created, isEmpty);
+      await save(tester);
+
+      expect(harness.save.calls.single.cards, {GearItemCardId.twinSet.name});
+      expect(repository.created, ['g1+g2']);
     });
   });
 
@@ -902,5 +947,29 @@ class _RecordingFindings extends EquipmentFindingsRepository {
     required DateTime now,
   }) async {
     calls.add((findingId, dismissed));
+  }
+}
+
+/// Records the pairings the page makes, storing none.
+class _RecordingPairings extends CylinderPairingRepository {
+  final created = <String>[];
+
+  @override
+  Future<CylinderPairing> createPairing({
+    required String cylinderAId,
+    required String cylinderBId,
+    required DateTime pairedOn,
+    DateTime? unpairedOn,
+    bool replace = false,
+  }) async {
+    created.add('$cylinderAId+$cylinderBId');
+    return CylinderPairing(
+      id: 'p',
+      cylinderAId: cylinderAId,
+      cylinderBId: cylinderBId,
+      pairedOn: calendarDay(pairedOn),
+      createdAt: pairedOn,
+      updatedAt: pairedOn,
+    );
   }
 }
