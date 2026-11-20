@@ -182,3 +182,76 @@ Future<void> pumpSetPage(
   );
   await tester.pumpAndSettle();
 }
+
+/// How a new set's page (issue #4527, phase 3, plan 11) ended.
+class NewSetHarness {
+  Object? popped;
+  bool poppedAtAll = false;
+}
+
+/// Pumps a new set's page, or a clone of [cloneFromId], pushed at
+/// `/equipment/sets/new` over a launcher, on the database [seedSetPage]
+/// made. The real save service writes it.
+Future<NewSetHarness> pumpNewSetPage(
+  WidgetTester tester, {
+  String? cloneFromId,
+  Size size = const Size(600, 2400),
+}) async {
+  tester.view.physicalSize = size;
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+  final overrides = await getBaseOverrides();
+  overrides.add(
+    validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
+  );
+  final harness = NewSetHarness();
+  final router = GoRouter(
+    initialLocation: '/launch',
+    routes: [
+      GoRoute(
+        path: '/launch',
+        builder: (context, _) => Scaffold(
+          body: TextButton(
+            onPressed: () async {
+              final result = await context.push<Object?>('/equipment/sets/new');
+              harness
+                ..poppedAtAll = true
+                ..popped = result;
+            },
+            child: const Text('open'),
+          ),
+        ),
+      ),
+      GoRoute(
+        path: '/equipment/sets/new',
+        builder: (_, _) =>
+            EquipmentSetDetailPage.newSet(cloneFromId: cloneFromId),
+      ),
+    ],
+  );
+  addTearDown(router.dispose);
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: overrides.cast(),
+      child: MaterialApp.router(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        routerConfig: router,
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('open'));
+  await tester.pump();
+  // The seed (and a clone's source) are read from the database, which
+  // answers only outside the test's fake clock.
+  for (var i = 0; i < 5; i++) {
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 50)),
+    );
+    await tester.pump(const Duration(milliseconds: 50));
+  }
+  await tester.pumpAndSettle();
+  return harness;
+}

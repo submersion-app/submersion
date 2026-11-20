@@ -2,6 +2,8 @@ import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_detail_page.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_set_edit_page.dart';
+import 'package:submersion/shared/widgets/record_editing/open_new_record.dart';
 import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
 /// The sets pane's edit builder, as the master-detail scaffold takes it.
@@ -39,3 +41,27 @@ EquipmentSetPaneEditBuilder? equipmentSetsPaneEditBuilder({
         onSittingEnded: onCancel,
       )
     : null;
+
+/// The new-set address (`/equipment/sets/new`, `?cloneFrom=` for a clone;
+/// issue #4527, phase 3, plan 11): with [unlockEditing], the set page
+/// opened unlocked on a new set or a clone, which pops its id; else the
+/// form, as before.
+Widget newEquipmentSetPage({
+  String? cloneFromId,
+  bool unlockEditing = kUnlockRecordEditing,
+}) => unlockEditing
+    ? EquipmentSetDetailPage.newSet(cloneFromId: cloneFromId)
+    : EquipmentSetEditPage(cloneFromId: cloneFromId);
+
+/// Opens a new set from the sets list on a phone or its empty state: with
+/// [unlockEditing], the set opens, locked, once created, as a new site
+/// does (plan 11, Question 3); else the form, as before.
+Future<void> openNewEquipmentSet(
+  BuildContext context, {
+  bool unlockEditing = kUnlockRecordEditing,
+}) => openNewRecord(
+  context,
+  newLocation: '/equipment/sets/new',
+  recordLocation: (id) => '/equipment/sets/$id',
+  openCreated: unlockEditing,
+);

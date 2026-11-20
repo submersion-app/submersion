@@ -790,8 +790,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'new',
                     name: 'newEquipmentSet',
-                    builder: (context, state) => EquipmentSetEditPage(
-                      // A set page's Clone (issue #2156).
+                    onExit: confirmLeaveRecordSitting,
+                    // Behind phase 3's switch, the set page opened on a new
+                    // set or a set page's Clone (issues #2156, #4527).
+                    builder: (context, state) => newEquipmentSetPage(
                       cloneFromId: state.uri.queryParameters['cloneFrom'],
                     ),
                   ),

@@ -19,6 +19,8 @@ import 'package:submersion/features/documents/presentation/pages/document_edit_r
 import 'package:submersion/features/equipment/presentation/pages/equipment_detail_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_edit_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_edit_routes.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_set_detail_page.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_set_edit_page.dart';
 import 'package:submersion/features/gps_log/presentation/pages/gps_track_detail_page.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_detail_page.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_edit_page.dart';
@@ -622,6 +624,19 @@ void main() {
     expect(form.initialParentId, 'host');
     expect(form.cloneFromId, 'src');
     final route = _findRouteByName(router.configuration.routes, 'newEquipment');
+    expect(route?.onExit, same(confirmLeaveRecordSitting));
+  });
+
+  test('a new set opens the page with the switch on, a clone carried', () {
+    final page = newEquipmentSetPage(cloneFromId: 's1', unlockEditing: true);
+    expect(page, isA<EquipmentSetDetailPage>());
+    expect((page as EquipmentSetDetailPage).newSet?.cloneFromId, 's1');
+    final form = newEquipmentSetPage(cloneFromId: 's1', unlockEditing: false);
+    expect((form as EquipmentSetEditPage).cloneFromId, 's1');
+    final route = _findRouteByName(
+      router.configuration.routes,
+      'newEquipmentSet',
+    );
     expect(route?.onExit, same(confirmLeaveRecordSitting));
   });
 

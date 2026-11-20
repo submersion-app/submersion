@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/services/equipment_set_edit_save_service.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
@@ -25,6 +26,7 @@ import 'package:submersion/features/equipment/figure/presentation/gear_figure.da
 import 'package:submersion/features/equipment/presentation/editing/equipment_set_card_ids.dart';
 import 'package:submersion/features/equipment/presentation/editing/equipment_set_edit_cards.dart';
 import 'package:submersion/features/equipment/presentation/editing/equipment_set_members_editor.dart';
+import 'package:submersion/features/equipment/presentation/editing/equipment_set_new_sitting.dart';
 import 'package:submersion/features/equipment/presentation/helpers/equipment_set_clone_action.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
@@ -47,12 +49,14 @@ import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
+import 'package:submersion/shared/widgets/record_editing/record_creating.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
 import 'package:submersion/shared/widgets/record_editing/record_open_unlocked.dart';
 import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 import 'package:submersion/shared/widgets/record_editing/record_sitting_refusal.dart';
 import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
+part 'equipment_set_detail_page_creating.dart';
 part 'equipment_set_detail_page_editing.dart';
 part 'equipment_set_detail_page_sections.dart';
 
@@ -73,13 +77,26 @@ class EquipmentSetDetailPage extends ConsumerStatefulWidget {
   /// edit returns to the set in view.
   final VoidCallback? onSittingEnded;
 
+  /// A new set, or a clone of [cloneFromId] (issue #4527, phase 3, plan
+  /// 11): the page opened unlocked on a set not yet created.
+  final ({String? cloneFromId})? newSet;
+
   const EquipmentSetDetailPage({
     super.key,
     required this.setId,
     this.unlockEditing = kUnlockRecordEditing,
     this.openUnlocked = false,
     this.onSittingEnded,
-  });
+  }) : newSet = null;
+
+  /// A new set's page, unlocked whatever the switch: only the switch's
+  /// openers build it.
+  const EquipmentSetDetailPage.newSet({super.key, String? cloneFromId})
+    : newSet = (cloneFromId: cloneFromId),
+      setId = '',
+      unlockEditing = true,
+      openUnlocked = false,
+      onSittingEnded = null;
 
   @override
   ConsumerState<EquipmentSetDetailPage> createState() =>
@@ -92,7 +109,9 @@ class _EquipmentSetDetailPageState extends ConsumerState<EquipmentSetDetailPage>
         RecordEditHost<EquipmentSetDetailPage, EquipmentSet>,
         RecordOpenUnlocked<EquipmentSetDetailPage, EquipmentSet>,
         _EquipmentSetDetailPageEditing,
-        _EquipmentSetDetailPageSections {
+        _EquipmentSetDetailPageSections,
+        RecordCreating<EquipmentSetDetailPage, EquipmentSet>,
+        _EquipmentSetDetailPageCreating {
   /// The menu value that shows or hides the diver figure, shared by the menu
   /// item and its handler so the two cannot drift apart.
   static const _toggleFigureAction = 'toggleFigure';
@@ -116,6 +135,12 @@ class _EquipmentSetDetailPageState extends ConsumerState<EquipmentSetDetailPage>
 
   @override
   Widget build(BuildContext context) {
+    if (isCreating) {
+      _dropCloneOnProfileSwitch();
+      final seed = newRecordSeed;
+      return newRecordWaiting(context) ??
+          _buildContent(context, shownRecord(seed!), seed);
+    }
     final setAsync = ref.watch(equipmentSetProvider(setId));
     if (hostsEditing) followStored(equipmentSetProvider(setId));
 

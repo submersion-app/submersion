@@ -521,4 +521,84 @@ void main() {
 
     await expectLater(save(session), throwsStateError);
   });
+
+  /// A new set's sitting (issue #4527, phase 3, plan 11).
+  group('create', () {
+    EquipmentSet fresh({String id = 'n1', bool isDefault = false}) =>
+        EquipmentSet(
+          id: id,
+          diverId: 'd1',
+          name: 'Travel kit',
+          equipmentIds: const ['e1'],
+          isDefault: isDefault,
+          geofences: [fence('nf')],
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        );
+
+    test('creates the set with its id, as one History entry', () async {
+      final created = await service.create(
+        set: fresh(),
+        changedCardIds: const ['header', 'members'],
+      );
+
+      expect(created.id, 'n1');
+      final read = await stored('n1');
+      expect(read.equipmentIds, ['e1']);
+      expect(read.geofences.single.id, 'nf');
+      final ops = await operations();
+      expect(ops, hasLength(1));
+      expect(ops.single['source'], 'manual');
+      expect(
+        ops.single['label'],
+        'record_edit:equipment_sets:n1:header,members',
+      );
+    });
+
+    test('a new default set takes the default, in the same entry', () async {
+      await service.create(
+        set: fresh(isDefault: true),
+        changedCardIds: const ['header'],
+      );
+
+      expect(await isDefault('n1'), isTrue);
+      expect(await isDefault('s2'), isFalse);
+      expect(await operations(), hasLength(1));
+    });
+
+    test('a write that fails leaves the old default default', () async {
+      await expectLater(
+        service.create(
+          set: fresh(isDefault: true),
+          changedCardIds: const ['header'],
+          alsoWrite: () async => throw StateError('refused'),
+        ),
+        throwsStateError,
+      );
+
+      expect(await sets.getSetById('n1'), isNull);
+      expect(await isDefault('s2'), isTrue);
+      expect(await operations(), isEmpty);
+    });
+
+    test('an empty id or one already stored is refused', () async {
+      await expectLater(
+        service.create(
+          set: fresh(id: ''),
+          changedCardIds: const [],
+        ),
+        throwsStateError,
+      );
+      await expectLater(
+        service.create(
+          set: fresh(id: 's1'),
+          changedCardIds: const [],
+        ),
+        throwsStateError,
+      );
+
+      expect((await stored()).name, isNot('Travel kit'));
+      expect(await operations(), isEmpty);
+    });
+  });
 }

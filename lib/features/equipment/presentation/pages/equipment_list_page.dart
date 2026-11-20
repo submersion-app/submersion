@@ -531,7 +531,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
       );
     }
     return FloatingActionButton.extended(
-      onPressed: () => context.push('/equipment/sets/new'),
+      onPressed: () => openNewEquipmentSet(context),
       icon: const Icon(Icons.add),
       label: Text(context.l10n.equipment_fab_addSet),
     );
