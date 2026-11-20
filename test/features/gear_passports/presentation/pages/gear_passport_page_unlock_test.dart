@@ -35,9 +35,8 @@ void main() {
 
   Future<FakeGearItemSave?> pump(
     WidgetTester tester,
-    EquipmentItem item, {
-    bool unlockEditing = true,
-  }) async {
+    EquipmentItem item,
+  ) async {
     await tester.runAsync(() => EquipmentRepository().createEquipment(item));
     tester.view.physicalSize = const Size(600, 2800);
     tester.view.devicePixelRatio = 1;
@@ -75,22 +74,12 @@ void main() {
             (ref) => save = FakeGearItemSave(ref.watch(stored.notifier)),
           ),
         ],
-        child: GearPassportPage(
-          equipmentId: item.id,
-          unlockEditing: unlockEditing,
-        ),
+        child: GearPassportPage(equipmentId: item.id),
       ),
     );
     await tester.pumpAndSettle();
     return save;
   }
-
-  testWidgets('with the switch off there is no lock', (tester) async {
-    await pump(tester, apex, unlockEditing: false);
-
-    expect(find.byIcon(Icons.lock_outline), findsNothing);
-    expect(find.text(l.passport_tag_linkExisting), findsOneWidget);
-  });
 
   testWidgets('opened alone it opens locked, and no tap writes', (
     tester,

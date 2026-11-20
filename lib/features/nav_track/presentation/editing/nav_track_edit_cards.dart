@@ -300,11 +300,8 @@ class NavTrackCorrectionCardEditor extends StatelessWidget {
   Widget build(BuildContext context) {
     void align() => pushRecordSatellite<NavTrack, void>(
       context,
-      builder: (joined) => NavTrackAlignPage(
-        routeId: session.stored.id,
-        joinedSitting: joined,
-        unlockEditing: true,
-      ),
+      builder: (joined) =>
+          NavTrackAlignPage(routeId: session.stored.id, joinedSitting: joined),
     );
     return ListenableBuilder(
       listenable: session,

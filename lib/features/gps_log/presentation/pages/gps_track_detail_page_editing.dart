@@ -15,9 +15,6 @@ mixin _GpsTrackDetailPageEditing
   String recordIdOf(GpsTrack record) => record.id;
 
   @override
-  bool get hostsEditing => widget.unlockEditing;
-
-  @override
   Iterable<EditCard<GpsTrack>> get hostEditCards => gpsTrackEditCards.values;
 
   @override
@@ -73,8 +70,7 @@ mixin _GpsTrackDetailPageEditing
   @override
   void onEditChanged() {
     final controller = maybeEditController;
-    if (hostsEditing &&
-        ref.read(trackEditModeProvider) != TrackEditMode.none &&
+    if (ref.read(trackEditModeProvider) != TrackEditMode.none &&
         !(controller?.isOperating ?? false) &&
         _operationBlock != RecordOperationBlock.none) {
       ref.read(trackEditModeProvider.notifier).state = TrackEditMode.none;
@@ -134,12 +130,10 @@ mixin _GpsTrackDetailPageEditing
 
   /// [child], a section the page calculates, faded and labelled
   /// "Calculated" while unlocked.
-  Widget _calculated(Widget child) => hostsEditing
-      ? RecordCardFade<GpsTrack>(
-          reason: RecordCardFadeReason.calculated,
-          child: child,
-        )
-      : child;
+  Widget _calculated(Widget child) => RecordCardFade<GpsTrack>(
+    reason: RecordCardFadeReason.calculated,
+    child: child,
+  );
 
   /// The header block: the track's name. Locked, an unnamed track shows
   /// none; unlocked it always shows, so the name can be given.
@@ -214,13 +208,12 @@ mixin _GpsTrackDetailPageEditing
 
   /// Whether the record's operations may run now, or why not.
   RecordOperationBlock? get _operationBlock =>
-      recordOperationBlockOf(hostsEditing ? editController : null);
+      recordOperationBlockOf(editController);
 
   /// The menu's whole-record operations, Split and Delete, under the
   /// caption that says why they are unavailable; none where the page edits
   /// nothing in place.
   List<PopupMenuEntry<_TrackAction>> _operationItems() {
-    if (!hostsEditing) return const [];
     final l10n = context.l10n;
     final block = _operationBlock;
     final reason = recordOperationReason(l10n, block, plural: true);

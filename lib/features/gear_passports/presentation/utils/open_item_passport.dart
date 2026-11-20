@@ -34,15 +34,7 @@ Future<void> openItemPassport(BuildContext context, EquipmentItem item) async {
     context,
     rootNavigator: false,
     builder: (joined) => tank
-        ? PassportPage(
-            equipmentId: item.id,
-            joined: joined,
-            unlockEditing: true,
-          )
-        : GearPassportPage(
-            equipmentId: item.id,
-            joined: joined,
-            unlockEditing: true,
-          ),
+        ? PassportPage(equipmentId: item.id, joined: joined)
+        : GearPassportPage(equipmentId: item.id, joined: joined),
   );
 }

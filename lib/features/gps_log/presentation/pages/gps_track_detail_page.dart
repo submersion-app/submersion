@@ -40,45 +40,27 @@ import 'package:submersion/shared/widgets/record_editing/record_card_header.dart
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
 import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
-import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
 part 'gps_track_detail_page_editing.dart';
 
-/// Full-screen map of one recorded GPS surface track. Behind phase 3's
-/// switch ([unlockEditing]) it opens locked and edits in place (issue
-/// #4527): its name and trim are held in one sitting and written by one
+/// Full-screen map of one recorded GPS surface track. It opens locked and
+/// edits in place (issue #4527): its name and trim are held in one sitting and written by one
 /// Save.
 class GpsTrackDetailPage extends ConsumerStatefulWidget {
-  const GpsTrackDetailPage({
-    super.key,
-    required this.trackId,
-    this.unlockEditing = kUnlockRecordEditing,
-  });
+  const GpsTrackDetailPage({super.key, required this.trackId});
 
   final String trackId;
-
-  /// Whether the page edits in place: phase 3's switch, a parameter so a
-  /// test can turn it on.
-  final bool unlockEditing;
 
   @override
   ConsumerState<GpsTrackDetailPage> createState() => _GpsTrackDetailPageState();
 }
 
 /// Which overflow-menu entry was chosen.
-enum _TrackAction {
-  shareGpx,
-  saveGpx,
-  shareKml,
-  saveKml,
-  trim,
-  split,
-  resetTrim,
-  delete,
-}
+enum _TrackAction { shareGpx, saveGpx, shareKml, saveKml, split, delete }
 
-/// Which editing affordance the detail page is showing.
-enum TrackEditMode { none, trim, split }
+/// Which editing affordance the detail page is showing: the split panel,
+/// or none (a trim is the Trim card's).
+enum TrackEditMode { none, split }
 
 /// Active editing mode on the track detail page.
 ///
@@ -96,9 +78,9 @@ class _GpsTrackDetailPageState extends ConsumerState<GpsTrackDetailPage>
   final MapController _mapController = MapController();
   final _log = LoggerService.forClass(GpsTrackDetailPage);
 
-  /// Live scrubber values, applied only when the user confirms.
+  /// The split point the scrubber shows, applied only when the diver
+  /// confirms.
   int? _pendingStartMs;
-  int? _pendingEndMs;
 
   /// The fixes inside a trim, kept while the track's fixes and the trim
   /// stay the same: a sitting rebuilds the page on every change, and a new
@@ -145,27 +127,19 @@ class _GpsTrackDetailPageState extends ConsumerState<GpsTrackDetailPage>
   }
 
   Future<void> _onMenu(_TrackAction action, GpsTrack track) async {
-    // Seed the pending values to what the scrubber will visibly show, so
-    // confirming WITHOUT dragging does exactly what the screen depicts.
-    // Leaving them null meant Apply wrote (null, null) - identical to
-    // clearTrim - silently erasing an existing trim.
+    // Seed the split point to what the scrubber will visibly show, so
+    // confirming without dragging does exactly what the screen depicts.
     final points = track.effectivePoints;
     final spanStart = points.isEmpty ? null : points.first.timestamp * 1000;
     final spanEnd = points.isEmpty ? null : points.last.timestamp * 1000;
 
     switch (action) {
-      case _TrackAction.trim:
-        _pendingStartMs = spanStart;
-        _pendingEndMs = spanEnd;
-        ref.read(trackEditModeProvider.notifier).state = TrackEditMode.trim;
       case _TrackAction.split:
         // Matches TrackTimelineScrubber's initial single-handle position.
         _pendingStartMs = (spanStart == null || spanEnd == null)
             ? null
             : spanStart + (spanEnd - spanStart) ~/ 2;
         ref.read(trackEditModeProvider.notifier).state = TrackEditMode.split;
-      case _TrackAction.resetTrim:
-        await ref.read(trimTrackProvider)(track.id);
       case _TrackAction.delete:
         await _runOperation(() => _deleteTrack(track));
       default:
@@ -173,36 +147,13 @@ class _GpsTrackDetailPageState extends ConsumerState<GpsTrackDetailPage>
     }
   }
 
-  Future<void> _applyTrim(GpsTrack track) async {
-    await ref.read(trimTrackProvider)(
-      track.id,
-      startMs: _pendingStartMs,
-      endMs: _pendingEndMs,
-    );
-    if (!mounted) return;
-    ref.read(trackEditModeProvider.notifier).state = TrackEditMode.none;
-  }
-
   Future<void> _applySplit(GpsTrack track) async {
     final at = _pendingStartMs;
     if (at == null) return;
-    if (hostsEditing) {
-      await _runOperation(() => _splitTrack(track, at));
-      return;
-    }
-    final messenger = ScaffoldMessenger.of(context);
-    try {
-      await ref.read(splitTrackProvider)(track.id, at);
-      if (!mounted) return;
-      ref.read(trackEditModeProvider.notifier).state = TrackEditMode.none;
-      Navigator.of(context).pop();
-    } on ArgumentError catch (e) {
-      if (!mounted) return;
-      messenger.showSnackBar(SnackBar(content: Text('${e.message}')));
-    }
+    await _runOperation(() => _splitTrack(track, at));
   }
 
-  /// Trim or split controls, shown only while the corresponding mode is on.
+  /// The split controls, shown only while splitting.
   Widget _buildEditPanel(BuildContext context, GpsTrack track) {
     final mode = ref.watch(trackEditModeProvider);
     if (mode == TrackEditMode.none) return const SizedBox.shrink();
@@ -214,7 +165,6 @@ class _GpsTrackDetailPageState extends ConsumerState<GpsTrackDetailPage>
     final theme = Theme.of(context);
     final startMs = points.first.timestamp * 1000;
     final endMs = points.last.timestamp * 1000;
-    final isSplit = mode == TrackEditMode.split;
 
     return Card(
       key: const ValueKey('gps-track-edit-panel'),
@@ -227,24 +177,17 @@ class _GpsTrackDetailPageState extends ConsumerState<GpsTrackDetailPage>
             TrackTimelineScrubber(
               startMs: startMs,
               endMs: endMs,
-              mode: isSplit
-                  ? TrackScrubberMode.single
-                  : TrackScrubberMode.range,
-              onChanged: (s, e) {
-                _pendingStartMs = s;
-                _pendingEndMs = isSplit ? null : e;
-              },
+              mode: TrackScrubberMode.single,
+              onChanged: (s, _) => _pendingStartMs = s,
             ),
-            if (isSplit) ...[
-              const SizedBox(height: 4),
-              // Trim is reversible and split is not, so only split warns.
-              Text(
-                l10n.gpsTrack_edit_splitWarning,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.error,
-                ),
+            const SizedBox(height: 4),
+            // A split cannot be undone, so it warns.
+            Text(
+              l10n.gpsTrack_edit_splitWarning,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.error,
               ),
-            ],
+            ),
             const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
@@ -259,13 +202,8 @@ class _GpsTrackDetailPageState extends ConsumerState<GpsTrackDetailPage>
                 const SizedBox(width: 8),
                 FilledButton(
                   key: const ValueKey('gps-track-edit-apply'),
-                  onPressed: () =>
-                      isSplit ? _applySplit(track) : _applyTrim(track),
-                  child: Text(
-                    isSplit
-                        ? l10n.gpsTrack_edit_confirmSplit
-                        : l10n.gpsTrack_edit_applyTrim,
-                  ),
+                  onPressed: () => _applySplit(track),
+                  child: Text(l10n.gpsTrack_edit_confirmSplit),
                 ),
               ],
             ),
@@ -311,7 +249,7 @@ class _GpsTrackDetailPageState extends ConsumerState<GpsTrackDetailPage>
   PreferredSizeWidget _lockedBar(GpsTrack? track) => AppBar(
     title: Text(context.l10n.gpsTrack_detail_title),
     actions: [
-      if (hostsEditing && track != null) lockButton(track),
+      if (track != null) lockButton(track),
       if (track != null) _menu(track),
     ],
     bottom: const PreferredSize(
@@ -324,8 +262,7 @@ class _GpsTrackDetailPageState extends ConsumerState<GpsTrackDetailPage>
   );
 
   /// The overflow menu: History, the exports, and what changes the track.
-  /// On a page that edits in place, the name and trim are cards, so Trim
-  /// and Reset trim are not here.
+  /// The name and trim are cards, so Trim and Reset trim are not here.
   Widget _menu(GpsTrack track) {
     final l10n = context.l10n;
     return PopupMenuButton<_TrackAction>(
@@ -355,25 +292,7 @@ class _GpsTrackDetailPageState extends ConsumerState<GpsTrackDetailPage>
           child: Text(l10n.gpsTrack_action_saveKml),
         ),
         const PopupMenuDivider(),
-        if (!hostsEditing)
-          PopupMenuItem(
-            value: _TrackAction.trim,
-            child: Text(l10n.gpsTrack_action_trim),
-          ),
-        if (!hostsEditing)
-          PopupMenuItem(
-            value: _TrackAction.split,
-            child: Text(l10n.gpsTrack_action_split),
-          ),
-        // Only offered when there is a trim to undo.
-        if (!hostsEditing &&
-            (track.trimStartTime != null || track.trimEndTime != null))
-          PopupMenuItem(
-            value: _TrackAction.resetTrim,
-            child: Text(l10n.gpsTrack_action_resetTrim),
-          ),
-        // Split and Delete, on a page that edits in place: whole-record
-        // operations, under the lock.
+        // Split and Delete: whole-record operations, under the lock.
         ..._operationItems(),
       ],
     );
@@ -383,10 +302,10 @@ class _GpsTrackDetailPageState extends ConsumerState<GpsTrackDetailPage>
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final trackAsync = ref.watch(gpsTrackDetailProvider(widget.trackId));
-    if (hostsEditing) followStored(gpsTrackDetailProvider(widget.trackId));
+    followStored(gpsTrackDetailProvider(widget.trackId));
     final stored = trackAsync.value;
 
-    if (hostsEditing && stored != null) {
+    if (stored != null) {
       final shown = shownRecord(stored);
       return editScaffold(
         record: stored,
@@ -404,12 +323,7 @@ class _GpsTrackDetailPageState extends ConsumerState<GpsTrackDetailPage>
         // A corrupt or undecodable blob must not crash the page. Surface it
         // as a readable message; deletion is offered from the list.
         error: (_, _) => Center(child: Text(l10n.gpsTrack_detail_unreadable)),
-        data: (track) {
-          if (track == null) {
-            return Center(child: Text(l10n.gpsTrack_detail_notFound));
-          }
-          return _content(track, track);
-        },
+        data: (_) => Center(child: Text(l10n.gpsTrack_detail_notFound)),
       ),
     );
   }
@@ -423,7 +337,6 @@ class _GpsTrackDetailPageState extends ConsumerState<GpsTrackDetailPage>
     final points = _effectivePointsOf(shown);
     if (points.length < 2) {
       final noPoints = Center(child: Text(l10n.gpsTrack_detail_noPoints));
-      if (!hostsEditing) return noPoints;
       // Too few fixes to draw, held trim or not: the name can still be
       // given, and a held trim changed back while the track has the fixes.
       return Column(
@@ -447,9 +360,9 @@ class _GpsTrackDetailPageState extends ConsumerState<GpsTrackDetailPage>
               const <Dive>[];
     return Column(
       children: [
-        if (hostsEditing) _headerBlock(shown),
+        _headerBlock(shown),
         _calculated(_statsHeader(drawable, dives.length)),
-        if (hostsEditing) _trimCard(shown),
+        _trimCard(shown),
         _buildEditPanel(context, stored),
         Expanded(
           child: _TrackMap(

@@ -85,16 +85,6 @@ void main() {
   Finder inStrip(String title) =>
       find.descendant(of: find.byType(AddStrip), matching: find.text(title));
 
-  testWidgets('with the switch off there is no lock and the menu is '
-      'unchanged', (tester) async {
-    await pumpSetPage(tester, unlockEditing: false);
-
-    expect(find.byIcon(Icons.lock_outline), findsNothing);
-    await openMenu(tester);
-    expect(find.text(l.equipment_setDetail_showFigure), findsOneWidget);
-    expect(find.text(l.equipment_setDetail_setAsDefault), findsOneWidget);
-  });
-
   testWidgets('a long name fills the header row, with the switch on or off', (
     tester,
   ) async {
@@ -102,20 +92,14 @@ void main() {
     await DatabaseService.instance.database.customStatement(
       "UPDATE equipment_sets SET name = '$long' WHERE id = 's1'",
     );
-    for (final unlockEditing in [false, true]) {
-      await pumpSetPage(tester, unlockEditing: unlockEditing);
-      final name = find.descendant(
-        of: find.byType(Card).first,
-        matching: find.text(long),
-      );
-      // The avatar and its gap take about 100 of the 600 wide page; the
-      // name must have the rest, not half of it.
-      expect(
-        tester.getSize(name).width,
-        greaterThan(330),
-        reason: 'unlockEditing: $unlockEditing',
-      );
-    }
+    await pumpSetPage(tester);
+    final name = find.descendant(
+      of: find.byType(Card).first,
+      matching: find.text(long),
+    );
+    // The avatar and its gap take about 100 of the 600 wide page; the name
+    // must have the rest, not half of it.
+    expect(tester.getSize(name).width, greaterThan(330));
   });
 
   testWidgets('default on in a sitting moves the default for the rest of the '
@@ -326,12 +310,6 @@ void main() {
       'switch on', (tester) async {
     await pumpSetPage(tester, setId: 's2');
     expect(find.text(l.equipment_setDetail_addEquipmentButton), findsNothing);
-  });
-
-  testWidgets('the empty Members card keeps Add Equipment with the switch '
-      'off', (tester) async {
-    await pumpSetPage(tester, setId: 's2', unlockEditing: false);
-    expect(find.text(l.equipment_setDetail_addEquipmentButton), findsOne);
   });
 
   testWidgets('Cancel with changes asks first', (tester) async {

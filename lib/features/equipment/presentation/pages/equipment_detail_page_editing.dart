@@ -13,9 +13,6 @@ mixin _EquipmentDetailPageEditing
   String get hostRecordId => widget.equipmentId;
 
   @override
-  bool get hostsEditing => widget.unlockEditing;
-
-  @override
   bool openUnlockedOf(EquipmentDetailPage widget) => widget.openUnlocked;
 
   @override

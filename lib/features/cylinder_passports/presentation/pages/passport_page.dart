@@ -31,7 +31,6 @@ import 'package:submersion/shared/widgets/record_editing/record_card_fade.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
-import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
 /// The scanned tag a route carried, or null when the route's extra is
 /// anything else. A deep link or a restored route can arrive with an extra
@@ -42,8 +41,7 @@ CylinderPassportPayload? scannedTagFrom(Object? extra) =>
 /// One cylinder's passport (spec section 8): every card names its source of
 /// truth, and every value with a unit goes through the unit formatter.
 ///
-/// Behind phase 3's switch ([unlockEditing]) it is a satellite page of the
-/// cylinder's gear item (issue #4527): opened alone it opens locked, and its
+/// It is a satellite page of the cylinder's gear item (issue #4527): opened alone it opens locked, and its
 /// own Unlock, Cancel and Save hold and write the item's changes as one
 /// History entry; pushed from an unlocked item page ([joined]) it joins that
 /// sitting and shows Done.
@@ -53,7 +51,6 @@ class PassportPage extends ConsumerStatefulWidget {
     required this.equipmentId,
     this.scannedTag,
     this.joined,
-    this.unlockEditing = kUnlockRecordEditing,
   });
 
   final String equipmentId;
@@ -64,10 +61,6 @@ class PassportPage extends ConsumerStatefulWidget {
 
   /// The item page's sitting this page was pushed into, while unlocked.
   final RecordEditController<EquipmentItem>? joined;
-
-  /// Whether the page edits in place: phase 3's switch, a parameter so a
-  /// test can turn it on.
-  final bool unlockEditing;
 
   @override
   ConsumerState<PassportPage> createState() => _PassportPageState();
@@ -81,9 +74,6 @@ class _PassportPageState extends ConsumerState<PassportPage>
 
   @override
   String get hostRecordId => widget.equipmentId;
-
-  @override
-  bool get hostsEditing => widget.unlockEditing;
 
   @override
   RecordEditController<EquipmentItem>? get joinedSitting => widget.joined;
@@ -118,10 +108,9 @@ class _PassportPageState extends ConsumerState<PassportPage>
     super.dispose();
   }
 
-  /// [child] as [card] where the page edits in place.
-  Widget _framed(EditCard<EquipmentItem> card, Widget child) => hostsEditing
-      ? RecordCardFrame<EquipmentItem>(card: card, child: child)
-      : child;
+  /// [child] as [card].
+  Widget _framed(EditCard<EquipmentItem> card, Widget child) =>
+      RecordCardFrame<EquipmentItem>(card: card, child: child);
 
   @override
   void initState() {
@@ -178,16 +167,15 @@ class _PassportPageState extends ConsumerState<PassportPage>
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final equipmentAsync = ref.watch(equipmentItemProvider(widget.equipmentId));
-    if (hostsEditing) followStored(equipmentItemProvider(widget.equipmentId));
+    followStored(equipmentItemProvider(widget.equipmentId));
     final equipment = equipmentAsync.value;
-    if (!hostsEditing || equipment == null) {
+    if (equipment == null) {
       return Scaffold(
         appBar: AppBar(title: Text(l10n.passport_title)),
         body: equipmentAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => Center(child: Text(e.toString())),
-          data: (equipment) =>
-              equipment == null ? const SizedBox.shrink() : _body(equipment),
+          data: (_) => const SizedBox.shrink(),
         ),
       );
     }
@@ -207,7 +195,7 @@ class _PassportPageState extends ConsumerState<PassportPage>
   /// one is open.
   Widget _body(EquipmentItem equipment) {
     final stored = ref.watch(passportIdProvider(widget.equipmentId)).value;
-    final session = hostsEditing ? maybeEditController?.session : null;
+    final session = maybeEditController?.session;
     final passportId = session == null
         ? stored
         : passportIdInSitting(session, stored);

@@ -184,7 +184,7 @@ extension _EquipmentDetailNewItemBody on _EquipmentDetailContent {
           EquipmentLocationCard(
             equipment: equipment,
             shown: _session,
-            readOnly: _editing,
+            readOnly: true,
           ),
         ),
         if (!equipment.isWanted) ...[
@@ -194,7 +194,7 @@ extension _EquipmentDetailNewItemBody on _EquipmentDetailContent {
             ServiceClocksCard(
               equipmentId: equipmentId,
               equipmentType: equipment.type,
-              readOnly: _editing,
+              readOnly: true,
               customReminder: (
                 enabled: equipment.customReminderEnabled,
                 days: equipment.customReminderDays,

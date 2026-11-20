@@ -119,14 +119,12 @@ Future<EquipmentSet> storedSet(WidgetTester tester, [String id = 's1']) async =>
       () => EquipmentSetRepository().getSetById(id, includeGeofences: true),
     ))!;
 
-/// Pumps the set page for [setId] with the phase 3 switch on (unless
-/// [unlockEditing] is false), at phone width. A gear item's page is a
+/// Pumps the set page for [setId], at phone width. A gear item's page is a
 /// placeholder reading "item" and its id, the gear list "gear list", and
 /// the new set form "new set" and the set it clones.
 Future<void> pumpSetPage(
   WidgetTester tester, {
   String setId = 's1',
-  bool unlockEditing = true,
   bool openUnlocked = false,
   Size size = const Size(600, 2400),
   VoidCallback? onSittingEnded,
@@ -156,7 +154,6 @@ Future<void> pumpSetPage(
             path: 'sets/:setId',
             builder: (_, state) => EquipmentSetDetailPage(
               setId: state.pathParameters['setId']!,
-              unlockEditing: unlockEditing,
               openUnlocked: openUnlocked,
               onSittingEnded: onSittingEnded,
             ),

@@ -217,12 +217,10 @@ class NavTrackPageHarness {
 
 final _storedProvider = StateProvider<NavTrack?>((ref) => null);
 
-/// Pumps the underwater track page with the phase 3 switch on (unless
-/// [unlockEditing] is false), tall enough to show every card.
+/// Pumps the underwater track page, tall enough to show every card.
 Future<NavTrackPageHarness> pumpNavTrackPage(
   WidgetTester tester, {
   NavTrack? route,
-  bool unlockEditing = true,
   Brightness? brightness,
   Size size = const Size(800, 1600),
 }) async {
@@ -260,7 +258,6 @@ Future<NavTrackPageHarness> pumpNavTrackPage(
         theme: brightness,
         page: NavTrackDetailPage(
           trackId: initial.id,
-          unlockEditing: unlockEditing,
           fileActions: NavTrackFileActions(
             // The route's own file read again: same name, same recording.
             pickFile: () async =>

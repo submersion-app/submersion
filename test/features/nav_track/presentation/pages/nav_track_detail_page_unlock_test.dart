@@ -65,23 +65,6 @@ void main() {
       .route
       .anchor;
 
-  testWidgets('with the switch off there is no lock and Choose dive links at '
-      'once', (tester) async {
-    final harness = await pumpNavTrackPage(
-      tester,
-      route: navRoute(diveId: null),
-      unlockEditing: false,
-    );
-    expect(find.byIcon(Icons.lock_outline), findsNothing);
-
-    await tester.tap(find.text(l.navTrack_detail_chooseDive));
-    await tester.pumpAndSettle();
-    await tester.tap(find.textContaining('#9'));
-    await tester.pumpAndSettle();
-
-    expect(harness.repository.writes, ['link']);
-  });
-
   testWidgets('locked, no tap writes and no card offers an action', (
     tester,
   ) async {

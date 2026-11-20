@@ -73,15 +73,6 @@ void main() {
   final notes = l.equipment_detail_notesTitle;
 
   group('the page on the host', () {
-    testWidgets('with the switch off there is no lock and the page is as '
-        'before', (tester) async {
-      await pumpGearPage(tester, unlockEditing: false);
-
-      expect(find.byIcon(Icons.lock_outline), findsNothing);
-      expect(find.byIcon(Icons.edit), findsOneWidget);
-      expect(find.byType(RecordCardFade<EquipmentItem>), findsWidgets);
-    });
-
     testWidgets('locked, no tap writes', (tester) async {
       final harness = await pumpGearPage(
         tester,
@@ -718,14 +709,6 @@ void main() {
       await pumpGearPage(tester, item: wanted);
 
       expect(find.text(l.equipment_detail_markPurchased), findsNothing);
-    });
-
-    testWidgets('with the switch off the chip still buys in one tap', (
-      tester,
-    ) async {
-      await pumpGearPage(tester, item: wanted, unlockEditing: false);
-
-      expect(find.text(l.equipment_detail_markPurchased), findsOneWidget);
     });
 
     testWidgets('Mark purchased, then Cancel: still wanted', (tester) async {
