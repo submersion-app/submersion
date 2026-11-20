@@ -64,6 +64,18 @@ class _StoreHookRepository extends MediaIdentificationRepository {
   }
 }
 
+/// Waits for [done], turning the event loop, for up to five seconds.
+///
+/// A wall-clock budget, not a count of turns: the scan writes crops with
+/// real file I/O, and on a loaded CI runner 200 turns ran out first.
+Future<void> until(bool Function() done) async {
+  final clock = Stopwatch()..start();
+  while (!done() && clock.elapsed < const Duration(seconds: 5)) {
+    await Future<void>.delayed(Duration.zero);
+  }
+  expect(done(), isTrue);
+}
+
 void main() {
   late AppDatabase library;
   late LocalCacheDatabase local;
@@ -149,13 +161,6 @@ void main() {
             ),
           ],
       };
-    }
-
-    Future<void> until(bool Function() done) async {
-      for (var k = 0; k < 200 && !done(); k++) {
-        await Future<void>.delayed(Duration.zero);
-      }
-      expect(done(), isTrue);
     }
 
     test('a video is scanned to the end and its fish stored', () async {
@@ -737,13 +742,6 @@ void main() {
 
   group('following the playhead (issue #4709)', () {
     MediaItem video([String id = 'v1']) => photo(id, type: MediaType.video);
-
-    Future<void> until(bool Function() done) async {
-      for (var k = 0; k < 200 && !done(); k++) {
-        await Future<void>.delayed(Duration.zero);
-      }
-      expect(done(), isTrue);
-    }
 
     setUp(() => engine.videoDurationMs = 60000);
 

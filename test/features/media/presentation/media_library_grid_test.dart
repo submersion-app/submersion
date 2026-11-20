@@ -26,7 +26,8 @@ import 'package:submersion/features/settings/data/repositories/app_settings_repo
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
-import 'support/fake_media_aspect_cache.dart';
+
+import 'support/media_widget_harness.dart';
 
 class _UnavailableResolver implements MediaSourceResolver {
   @override
@@ -94,7 +95,7 @@ void main() {
         mediaLibraryNotifierProvider.overrideWith((ref) => notifier),
         appSettingsRepositoryProvider.overrideWithValue(_FakeSettingsRepo()),
         mediaAspectCacheRepositoryProvider.overrideWithValue(
-          FakeMediaAspectCache(),
+          FakeAspectCacheRepository(),
         ),
         mediaSourceResolverRegistryProvider.overrideWithValue(
           MediaSourceResolverRegistry({

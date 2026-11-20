@@ -6021,6 +6021,7 @@
   "marineLife_speciesPhotos_tagPhotos": "标记照片",
   "marineLife_speciesPhotos_addPhotos": "添加照片",
   "marineLife_speciesPhotos_thumbnailLabel": "物种照片",
+  "marineLife_speciesPhotos_moreLabel": "{count, plural, other{还有 {count} 张照片}}",
   "marineLife_speciesPhotos_importAdded": "{count, plural, =1{已添加 1 张照片} other{已添加 {count} 张照片}}",
   "marineLife_speciesPhotos_importSkipped": "{count, plural, =1{跳过 1 张} other{跳过 {count} 张}}",
   "marineLife_speciesPhotos_importFailed": "{count, plural, =1{1 张失败} other{{count} 张失败}}",

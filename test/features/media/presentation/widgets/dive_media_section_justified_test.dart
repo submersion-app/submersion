@@ -19,7 +19,7 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 import '../support/dive_media_sitting.dart';
-import '../support/fake_media_aspect_cache.dart';
+import '../support/media_widget_harness.dart';
 
 MediaItem _photo(String id, int width, int height) => MediaItem(
   id: id,
@@ -68,7 +68,7 @@ void main() {
             'dive-1',
           ).overrideWith((ref) => ref.watch(_storedMedia)),
           mediaAspectCacheRepositoryProvider.overrideWithValue(
-            cache ?? FakeMediaAspectCache(),
+            cache ?? FakeAspectCacheRepository(),
           ),
         ],
         child: Directionality(
@@ -190,9 +190,9 @@ void main() {
       await pumpSection(
         tester,
         [_photo('sideways', 600, 400)],
-        cache: FakeMediaAspectCache(
-          learned: {'sideways': (ratio: 0.75, width: 600, height: 400)},
-        ),
+        cache: FakeAspectCacheRepository({
+          'sideways': (ratio: 0.75, width: 600, height: 400),
+        }),
       );
 
       final rect = tileRects(tester).single;
@@ -218,7 +218,7 @@ void main() {
     testWidgets('a dive with no media does not read the learned shapes', (
       tester,
     ) async {
-      final cache = FakeMediaAspectCache();
+      final cache = FakeAspectCacheRepository();
       await pumpSection(tester, const [], cache: cache);
 
       expect(tiles(), findsNothing);
@@ -228,7 +228,7 @@ void main() {
     testWidgets(
       'a dive gaining its first media reads the shapes and lays out',
       (tester) async {
-        final cache = FakeMediaAspectCache();
+        final cache = FakeAspectCacheRepository();
         await pumpSection(tester, const [], cache: cache);
         expect(cache.loads, 0);
 
@@ -247,7 +247,7 @@ void main() {
     testWidgets(
       'a first photo held in the sitting reads the shapes and lays out',
       (tester) async {
-        final cache = FakeMediaAspectCache();
+        final cache = FakeAspectCacheRepository();
         final editing = openDiveMediaSitting();
         await pumpSection(tester, const [], cache: cache, editing: editing);
         expect(cache.loads, 0);
@@ -269,7 +269,7 @@ void main() {
       await pumpSection(tester, [
         _photo('a', 600, 400),
         _photo('b', 400, 600),
-      ], cache: FakeMediaAspectCache(fails: true));
+      ], cache: FakeAspectCacheRepository.failing());
 
       expect(tiles(), findsNWidgets(2));
       final rects = tileRects(tester);

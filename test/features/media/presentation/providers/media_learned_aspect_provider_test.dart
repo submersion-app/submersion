@@ -5,7 +5,7 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/value_objects/learned_aspect.dart';
 import 'package:submersion/features/media/presentation/providers/media_learned_aspect_provider.dart';
-import '../support/fake_media_aspect_cache.dart';
+import '../support/media_widget_harness.dart';
 
 MediaItem _item(
   String id, {
@@ -25,13 +25,13 @@ MediaItem _item(
 
 /// Shapes learned from decoded library thumbnails (issue #4738).
 void main() {
-  late FakeMediaAspectCache repository;
+  late FakeAspectCacheRepository repository;
   late ProviderContainer container;
 
   Future<MediaLearnedAspectsNotifier> start([
     Map<String, LearnedAspect> stored = const {},
   ]) async {
-    repository = FakeMediaAspectCache(learned: stored);
+    repository = FakeAspectCacheRepository(stored);
     container = ProviderContainer(
       overrides: [
         mediaAspectCacheRepositoryProvider.overrideWithValue(repository),
@@ -48,7 +48,7 @@ void main() {
   testWidgets('a cache that cannot be read starts with nothing learned', (
     tester,
   ) async {
-    repository = FakeMediaAspectCache(fails: true);
+    repository = FakeAspectCacheRepository.failing();
     container = ProviderContainer(
       overrides: [
         mediaAspectCacheRepositoryProvider.overrideWithValue(repository),

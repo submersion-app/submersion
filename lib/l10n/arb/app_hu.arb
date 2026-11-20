@@ -5761,6 +5761,7 @@
   "marineLife_speciesPhotos_tagPhotos": "Fotók címkézése",
   "marineLife_speciesPhotos_addPhotos": "Fotók hozzáadása",
   "marineLife_speciesPhotos_thumbnailLabel": "Fajfotó",
+  "marineLife_speciesPhotos_moreLabel": "{count, plural, one{még {count} fotó} other{még {count} fotó}}",
   "marineLife_speciesPhotos_importAdded": "{count, plural, =1{1 fotó hozzáadva} other{{count} fotó hozzáadva}}",
   "marineLife_speciesPhotos_importSkipped": "{count, plural, =1{1 kihagyva} other{{count} kihagyva}}",
   "marineLife_speciesPhotos_importFailed": "{count, plural, =1{1 sikertelen} other{{count} sikertelen}}",

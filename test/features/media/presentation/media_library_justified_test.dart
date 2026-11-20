@@ -16,7 +16,6 @@ import 'package:submersion/features/media/presentation/widgets/media_library_gro
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 
 import 'support/media_widget_harness.dart';
-import 'support/fake_media_aspect_cache.dart';
 
 MediaLibraryEntry _entry(String id, {int? width, int? height}) =>
     MediaLibraryEntry(
@@ -52,7 +51,7 @@ void main() {
           mediaStoreAttachedProvider.overrideWith((ref) async => false),
           mediaQueueFactsProvider.overrideWith((ref, id) => Stream.value(null)),
           mediaAspectCacheRepositoryProvider.overrideWithValue(
-            shapes ?? FakeMediaAspectCache(),
+            shapes ?? FakeAspectCacheRepository(),
           ),
         ],
       ),
@@ -118,7 +117,7 @@ void main() {
     await pumpHost(
       tester,
       grid([_entry('a', width: 4000, height: 3000)]),
-      shapes: FakeMediaAspectCache(load: load.future),
+      shapes: FakeAspectCacheRepository.held(load.future),
     );
     await tester.pump();
     expect(_tile('a'), findsNothing);
