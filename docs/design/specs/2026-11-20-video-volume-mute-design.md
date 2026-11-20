@@ -61,6 +61,10 @@ the boat), not the default.
   otherwise. Hovering the button, or giving it keyboard focus, shows a short
   slider beside it; it stays while the pointer is on the button or the slider.
   The bar's existing hover hold keeps the controls up meanwhile.
+- **Background audio** (added after review): players open with
+  `VideoPlayerOptions(mixWithOthers: true)`, so opening a muted video on iOS
+  or Android no longer pauses the diver's music or podcast. Chosen knowing
+  that an unmuted video then plays over that audio instead of pausing it.
 - **M key** on the video page toggles mute, also in people tag mode (muting
   does not move the frame).
 - **Accessibility:** the button is a button labelled "Mute video" or "Unmute

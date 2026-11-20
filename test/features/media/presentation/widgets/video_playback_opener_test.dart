@@ -112,8 +112,13 @@ class _FakePlatform extends VideoPlayerPlatform {
   @override
   Future<Duration> getPosition(int playerId) async =>
       seeks[playerId] ?? Duration.zero;
+
+  /// Every mix-with-others setting a player asked for, oldest first.
+  final List<bool> mixWithOthers = [];
+
   @override
-  Future<void> setMixWithOthers(bool mixWithOthers) async {}
+  Future<void> setMixWithOthers(bool mixWithOthers) async =>
+      this.mixWithOthers.add(mixWithOthers);
   @override
   Widget buildView(int playerId) => const SizedBox.expand();
 
@@ -410,6 +415,28 @@ void main() {
       expect(platform.playing, contains(id));
       expect(platform.volumeAtFirstPlay(id), 0.7);
       expect(next.value.volume, 0.7);
+    });
+
+    // Issue #4817: a muted dive video must not stop the diver's music or
+    // podcast, so players mix with other audio rather than take it over.
+    test('a streamed player mixes with other audio', () async {
+      final opener = VideoPlaybackOpener(
+        StreamPlayback([_Candidate('original', ServedTier.original).candidate]),
+        release: release,
+      );
+      final controller = await opener.open();
+      addTearDown(controller.dispose);
+      expect(platform.mixWithOthers, [true]);
+    });
+
+    test('a file player mixes with other audio', () async {
+      final opener = VideoPlaybackOpener(
+        const FilePlayback('/videos/clip.mp4'),
+        release: release,
+      );
+      final controller = await opener.open();
+      addTearDown(controller.dispose);
+      expect(platform.mixWithOthers, [true]);
     });
 
     test('without a volume a player keeps its default', () async {

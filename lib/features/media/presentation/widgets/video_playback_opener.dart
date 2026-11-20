@@ -29,8 +29,23 @@ class VideoPlaybackOpener {
     double Function()? volume,
   }) : _release = release,
        _volume = volume,
-       _network = network ?? VideoPlayerController.networkUrl,
-       _file = file ?? ((path) => VideoPlayerController.file(File(path)));
+       _network =
+           network ??
+           ((url) => VideoPlayerController.networkUrl(
+             url,
+             videoPlayerOptions: _options,
+           )),
+       _file =
+           file ??
+           ((path) => VideoPlayerController.file(
+             File(path),
+             videoPlayerOptions: _options,
+           ));
+
+  /// Players mix with other audio rather than take it over: a dive video
+  /// opens muted, and opening one must not stop the diver's music or podcast
+  /// (issue #4817). An unmuted video plays over that audio too.
+  static final _options = VideoPlayerOptions(mixWithOthers: true);
 
   final VideoPlayback playback;
   final void Function(VideoPlayerController controller) _release;
