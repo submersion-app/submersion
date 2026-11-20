@@ -481,7 +481,7 @@ Do not start until Task B1 has answered how Windows ML is reached.
 - Produces:
   - `abstract interface class HardwareEngineSource { Future<bool> offersEngineToFetch(); Future<bool> fetchEngine(); }` (in `vision_engine.dart`; `OnnxVisionEngine` implements it, `FakeEngine` does not)
   - `abstract interface class HardwareEngines { Future<bool> offersEngineToFetch(); Future<bool> fetchEngine(); Future<List<ProviderLibrary>> readyProviderLibraries(); }` with `WindowsMlEngines` (the catalogue, from the main isolate) and `NoHardwareEngines`
-  - `OnnxVisionEngine` gains `HardwareEngines? hardware`; on Windows it spawns the worker with `devices: [OrtDevice.preferGpu, OrtDevice.directMl, OrtDevice.cpu]` and `providerLibraries: await hardware.readyProviderLibraries()`, elsewhere with the processor only.
+  - `OnnxVisionEngine` gains `HardwareEngines? hardware`; on Windows it spawns the worker with `devices: [OrtDevice.hardware, OrtDevice.directMl, OrtDevice.cpu]` and `providerLibraries: await hardware.readyProviderLibraries()`, elsewhere with the processor only. *(Amended after B1: `OrtDevice.preferGpu` became `OrtDevice.hardware`, an explicit attach of the devices `chooseHardwareDevices` picks, never Windows' software renderer; the catalogue is declared by hand in `winml_native.dart` rather than generated from the package's header, which may not be redistributed.)*
 
 - [ ] **Step 1: Write the failing tests**
   - A fake catalogue with one ready and one not-present provider: `readyProviderLibraries` lists only the ready one; `offersEngineToFetch` is true; `fetchEngine` makes it ready.

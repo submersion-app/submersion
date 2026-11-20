@@ -94,12 +94,22 @@ the app has no video player there.
 
 ONNX Runtime ships through `packages/submersion_vision/hook/build.dart`,
 which downloads the pinned official package for the target (Maven for
-Android, NuGet `Microsoft.ML.OnnxRuntime` for Linux and Windows), checks it
+Android, NuGet `Microsoft.ML.OnnxRuntime` for Linux, NuGet
+`Microsoft.Windows.AI.MachineLearning`, Windows ML, for Windows), checks it
 and each library against the hashes in `lib/src/ort/ort_release.dart`, and
-ships the library as a code asset. Apple builds and the web get none. CI
+ships the libraries as code assets. Apple builds and the web get none. CI
 checks the Android archive (`scripts/check_native_libs_present.py`, ONNX
 Runtime on arm64-v8a and x86_64 only) and the desktop bundles
 (`scripts/check_bundled_native_assets.py`).
+
+On Windows the models open on a hardware engine Windows ML offers (a GPU or
+NPU vendor's, registered from its catalogue in `hardware_engines.dart`),
+then DirectML, then the processor. The session picks the hardware devices
+itself (`chooseHardwareDevices`) and never hands Windows' software renderer,
+the Microsoft Basic Render Driver, to an engine: that ends the process, and
+ONNX Runtime's own prefer-GPU policy does it on a PC without a display driver
+(`docs/design/findings/2026-11-20-windows-ml-unpackaged.md`). A vendor engine
+that is not on the PC is fetched once, as part of the pack's download.
 
 Devices need 8 GB at launch (`androidMinimumMemoryBytes` and
 `pcMinimumMemoryBytes` in `device_memory.dart`, 6.5 GiB as reported). A build
