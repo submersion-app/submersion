@@ -75,10 +75,11 @@ void main() {
     await hover(tester, button);
     expect(slider, findsOneWidget);
 
-    // Muted, the thumb sits at the left end; drag it part way right.
+    // Muted, the thumb sits at the track's left end, just inside the
+    // slider's 8 px padding; drag it part way right.
     final rect = tester.getRect(slider);
     await tester.dragFrom(
-      Offset(rect.left + 2, rect.center.dy),
+      Offset(rect.left + 10, rect.center.dy),
       Offset(rect.width / 2, 0),
     );
     await tester.pumpAndSettle();

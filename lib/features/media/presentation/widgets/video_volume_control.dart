@@ -95,6 +95,20 @@ class _VideoVolumeControlState extends State<VideoVolumeControl> {
                                 overlayColor: Colors.white.withValues(
                                   alpha: 0.12,
                                 ),
+                                // Sized to the scrub bar beside it: a 4 px
+                                // track, a small thumb, and the track run up
+                                // close to the button rather than inset by a
+                                // full-size thumb's reach.
+                                trackHeight: 4,
+                                thumbShape: const RoundSliderThumbShape(
+                                  enabledThumbRadius: 7,
+                                ),
+                                overlayShape: const RoundSliderOverlayShape(
+                                  overlayRadius: 14,
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                ),
                               ),
                               child: Slider(
                                 key: VideoVolumeControl.sliderKey,
