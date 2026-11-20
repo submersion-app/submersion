@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/platform/desktop_target_platform.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/presentation/query_text_field.dart';
 import 'package:submersion/core/router/section_navigation.dart';
@@ -60,10 +61,14 @@ class _GlobalSearchPageState extends ConsumerState<GlobalSearchPage> {
     super.dispose();
   }
 
-  /// Under the bottom bar's width the keyboard covers the bar, and this page,
-  /// a nav destination, has no back arrow: the keyboard comes up only when
-  /// asked for there (#4813).
-  bool get _keyboardCoversNav => ResponsiveBreakpoints.isMobile(context);
+  /// On a phone or tablet under the bottom bar's width the on-screen keyboard
+  /// covers the bar, and this page, a nav destination, has no back arrow: the
+  /// keyboard comes up only when asked for there (#4813). A narrow desktop
+  /// window has no on-screen keyboard, so it keeps the focus. Reads only the
+  /// size, so the keyboard's own inset does not rebuild the page.
+  bool get _keyboardCoversNav =>
+      !isDesktopTargetPlatform(Theme.of(context).platform) &&
+      MediaQuery.sizeOf(context).width < ResponsiveBreakpoints.desktop;
 
   void _take(GlobalSearchRequest request) {
     setState(() {

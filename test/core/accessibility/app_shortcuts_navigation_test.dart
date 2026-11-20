@@ -82,11 +82,15 @@ void main() {
       tester,
     ) async {
       final router = await pumpShortcutHost(tester, initialLocation: '/sites');
+      final before = container.read(globalSearchFocusTickProvider);
 
       await pressControl(tester, LogicalKeyboardKey.keyK);
 
       expect(find.text('Global search'), findsOneWidget);
       expect(router.routerDelegate.canPop(), isTrue);
+      // Moved once the page is up, so it focuses the field even where the
+      // field does not autofocus (#4813).
+      expect(container.read(globalSearchFocusTickProvider), before + 1);
     });
 
     testWidgets('on the search page the global shortcut asks for the field', (

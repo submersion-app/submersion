@@ -554,6 +554,34 @@ void main() {
       expect(field(tester).focusNode!.hasFocus, isFalse);
     });
 
+    testWidgets('the focus tick, from Ctrl+K, still brings the keyboard up', (
+      tester,
+    ) async {
+      usePhone(tester);
+      await tester.pumpWidget(_app((_) async => const []));
+      await tester.pumpAndSettle();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(GlobalSearchPage)),
+      );
+      container.read(globalSearchFocusTickProvider.notifier).state++;
+      await tester.pumpAndSettle();
+
+      expect(field(tester).focusNode!.hasFocus, isTrue);
+    });
+
+    testWidgets(
+      'a narrow desktop window has no on-screen keyboard, so keeps the focus',
+      (tester) async {
+        usePhone(tester);
+        await tester.pumpWidget(_app((_) async => const []));
+        await tester.pumpAndSettle();
+
+        expect(field(tester).focusNode!.hasFocus, isTrue);
+      },
+      variant: TargetPlatformVariant.only(TargetPlatform.macOS),
+    );
+
     testWidgets('a tap on a completion keeps the keyboard up', (tester) async {
       usePhone(tester);
       await tester.pumpWidget(_app((_) async => const []));
