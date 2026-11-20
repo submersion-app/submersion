@@ -188,6 +188,9 @@ class _TileGridState extends ConsumerState<_TileGrid> {
       items: tiles,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
+      // The page owns the safe-area insets; a grid with no padding would
+      // add them again inside every group.
+      padding: EdgeInsets.zero,
       startInSelectionMode: widget.isSelectionMode,
       initialSelection: {
         for (var i = 0; i < tiles.length; i++)

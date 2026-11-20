@@ -228,6 +228,20 @@ void main() {
     expect(identical(tableOf(tester), before), isTrue);
   });
 
+  testWidgets('a group adds no safe-area padding around its tiles', (
+    tester,
+  ) async {
+    // A phone's home indicator inset belongs to the page, not to each grid.
+    tester.view.padding = const FakeViewPadding(top: 40, bottom: 34);
+    addTearDown(tester.view.resetPadding);
+    await pump(tester, [sized('a', 1, 400, 300), sized('b', 2, 300, 400)]);
+    final grid = find.byType(DragSelectGridView<MediaItem>);
+    expect(
+      tester.getSize(grid).height,
+      closeTo(tableOf(tester).totalExtent, 0.5),
+    );
+  });
+
   testWidgets('a tile decodes at its own laid-out size', (tester) async {
     // A 3:1 panorama at the 120 px target is 360 wide: past the 200 px
     // default, so the tile must ask for more.
