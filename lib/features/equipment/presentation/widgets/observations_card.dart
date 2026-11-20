@@ -22,14 +22,12 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// The item page's check-in list: every observation on the item, newest
 /// first, with the dive it was made on (or "Bench"). Adding and editing go
 /// through the same sheet the dive page uses, in its no-dive mode so a new
-/// row may pick a dive or stay a bench note; deleting asks first, as the
-/// sheet does.
+/// row may pick a dive or stay a bench note.
 ///
-/// Where the item's page edits in place (issue #4527, phase 3), it offers
-/// nothing while locked ([readOnly]); in the page's sitting ([editing])
-/// check-ins added, edited and deleted, with their photos, are held until
-/// Save, a delete asking nothing, and a closed card shows what a sitting
-/// holds ([shown]).
+/// It offers nothing outside the open Observations card (issue #4527, phase
+/// 3); in the page's sitting ([editing]) check-ins added, edited and
+/// deleted, with their photos, are held until Save, a delete asking
+/// nothing, and a closed card shows what a sitting holds ([shown]).
 class ObservationsCard extends ConsumerWidget {
   final EquipmentItem equipment;
 
@@ -39,25 +37,20 @@ class ObservationsCard extends ConsumerWidget {
   /// The sitting whose check-ins a closed card shows.
   final EditSession<EquipmentItem>? shown;
 
-  /// Offers no action: the page edits in place and is locked.
-  final bool readOnly;
-
   const ObservationsCard({
     super.key,
     required this.equipment,
     this.editing,
     this.shown,
-    this.readOnly = false,
   });
 
-  /// Whether a tap may act: not on a locked page, and in a sitting only in
-  /// the open card.
-  /// In the open card, only once the sitting has read its check-ins: an
-  /// action before then would have no list to go into.
-  bool get _canAct =>
-      !readOnly &&
-      (shown == null || editing != null) &&
-      (editing == null || gearItemCheckInsList.current(editing!) != null);
+  /// The open card's sitting once it has read its check-ins: an action
+  /// before then would have no list to go into. Null offers no action.
+  EditSession<EquipmentItem>? get _acting => switch (editing) {
+    final session? when gearItemCheckInsList.current(session) != null =>
+      session,
+    _ => null,
+  };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -69,15 +62,13 @@ class ObservationsCard extends ConsumerWidget {
     );
   }
 
-  Future<void> _add(BuildContext context) => switch (editing) {
-    final session? => showEquipmentObservationSheet(
-      context,
-      equipment: equipment,
-      onHold: (held) => holdCheckIn(session, held),
-      elsewhere: photosHeldOutside(session),
-    ),
-    null => showEquipmentObservationSheet(context, equipment: equipment),
-  };
+  Future<void> _add(BuildContext context, EditSession<EquipmentItem> session) =>
+      showEquipmentObservationSheet(
+        context,
+        equipment: equipment,
+        onHold: (held) => holdCheckIn(session, held),
+        elsewhere: photosHeldOutside(session),
+      );
 
   Widget _build(
     BuildContext context,
@@ -104,6 +95,7 @@ class ObservationsCard extends ConsumerWidget {
     final heldById = {
       for (final c in held ?? const <HeldCheckIn>[]) c.observation.id: c,
     };
+    final acting = _acting;
 
     return Card(
       child: Padding(
@@ -127,9 +119,9 @@ class ObservationsCard extends ConsumerWidget {
                 RecordCardPencil(
                   cardTitle: l10n.equipmentObservation_card_title,
                 ),
-                if (_canAct)
+                if (acting != null)
                   TextButton.icon(
-                    onPressed: () => _add(context),
+                    onPressed: () => _add(context, acting),
                     icon: const Icon(Icons.add),
                     label: Text(l10n.equipmentObservation_card_add),
                   ),
@@ -168,41 +160,22 @@ class ObservationsCard extends ConsumerWidget {
                         // stored yet: no near-miss can stand behind it.
                         stored:
                             sitting == null || loaded[o.id] == heldById[o.id],
-                        onEdit: !_canAct
+                        onEdit: acting == null
                             ? null
-                            : switch (editing) {
-                                final session? =>
-                                  () => showEquipmentObservationSheet(
-                                    context,
-                                    equipment: equipment,
-                                    held: heldById[o.id],
-                                    onHold: (next) =>
-                                        holdCheckIn(session, next),
-                                    elsewhere: photosHeldOutside(
-                                      session,
-                                      checkIn: o.id,
-                                    ),
-                                  ),
-                                null => () => showEquipmentObservationSheet(
-                                  context,
-                                  equipment: equipment,
-                                  editing: o,
+                            : () => showEquipmentObservationSheet(
+                                context,
+                                equipment: equipment,
+                                held: heldById[o.id],
+                                onHold: (next) => holdCheckIn(acting, next),
+                                elsewhere: photosHeldOutside(
+                                  acting,
+                                  checkIn: o.id,
                                 ),
-                              },
-                        onDelete: !_canAct
+                              ),
+                        // A delete asks nothing: Cancel brings it back.
+                        onDelete: acting == null
                             ? null
-                            : switch (editing) {
-                                // In a sitting a delete asks nothing.
-                                final session? => () => deleteHeldCheckIn(
-                                  session,
-                                  o.id,
-                                ),
-                                null => () => confirmDeleteObservation(
-                                  context,
-                                  ref,
-                                  o,
-                                ),
-                              },
+                            : () => deleteHeldCheckIn(acting, o.id),
                       ),
                   ],
                 );

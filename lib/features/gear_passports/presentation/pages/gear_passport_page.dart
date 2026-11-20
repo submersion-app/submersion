@@ -235,11 +235,7 @@ class _GearPassportPageState extends ConsumerState<GearPassportPage>
           const SizedBox(height: 16),
           _framed(
             _locationCard,
-            EquipmentLocationCard(
-              equipment: equipment,
-              shown: session,
-              readOnly: true,
-            ),
+            EquipmentLocationCard(equipment: equipment, shown: session),
           ),
           const SizedBox(height: 16),
           _framed(

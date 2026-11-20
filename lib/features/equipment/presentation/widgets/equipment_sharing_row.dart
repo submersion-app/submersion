@@ -16,10 +16,9 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 /// shares; a profile the item is shared with sees "Owned by" and the shares
 /// read-only.
 ///
-/// On the item's page (issue #4527, phase 3), it offers no edit
-/// while locked ([readOnly]); in the page's sitting ([editing]) the owner's
-/// choice is held until Save, and a closed card shows what a sitting holds
-/// ([shown]).
+/// It offers no edit outside the open Details card (issue #4527, phase 3);
+/// in the page's sitting ([editing]) the owner's choice is held until Save,
+/// and a closed card shows what a sitting holds ([shown]).
 class EquipmentSharingRow extends ConsumerWidget {
   final EquipmentItem equipment;
 
@@ -29,15 +28,11 @@ class EquipmentSharingRow extends ConsumerWidget {
   /// The sitting whose shares a closed card shows.
   final EditSession<EquipmentItem>? shown;
 
-  /// Offers no edit: the page edits in place and its card is closed.
-  final bool readOnly;
-
   const EquipmentSharingRow({
     super.key,
     required this.equipment,
     this.editing,
     this.shown,
-    this.readOnly = false,
   });
 
   @override
@@ -78,11 +73,9 @@ class EquipmentSharingRow extends ConsumerWidget {
     final isOwner = canShareEquipment(equipment, activeDiverId);
     // In the open card, only once the sitting has read the shares: a
     // choice made before then, or after the read failed, could not be held.
+    final editing = this.editing;
     final canEdit =
-        isOwner &&
-        !readOnly &&
-        (sitting == null || editing != null) &&
-        (editing == null || gearItemSharing.loaded(editing!) != null);
+        isOwner && editing != null && gearItemSharing.loaded(editing) != null;
     String nameOf(String id) => names[id] ?? l10n.equipment_owner_unknown;
 
     final sharedWith = shareIds.isEmpty
@@ -157,9 +150,9 @@ class EquipmentSharingRow extends ConsumerWidget {
     String? activeDiverId,
     Set<String> current,
   ) async {
-    if (activeDiverId == null) return;
+    final session = editing;
+    if (activeDiverId == null || session == null) return;
     final l10n = context.l10n;
-    final messenger = ScaffoldMessenger.of(context);
     final divers = await ref.read(allDiversProvider.future);
     final others = [
       for (final d in divers)
@@ -174,26 +167,8 @@ class EquipmentSharingRow extends ConsumerWidget {
       initiallySelected: current,
       confirmLabel: l10n.common_action_save,
     );
-    if (chosen == null) return;
-    // In a sitting, held until Save.
-    if (editing case final session?) {
-      gearItemSharing.set(session, chosen, actingDiverId: activeDiverId);
-      return;
-    }
-    try {
-      await ref
-          .read(equipmentShareRepositoryProvider)
-          .setShares(
-            equipmentId: equipment.id,
-            diverIds: chosen,
-            actingDiverId: activeDiverId,
-          );
-    } catch (_) {
-      // The page may have closed while the save ran.
-      if (!context.mounted) return;
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.common_error_tryAgain)),
-      );
-    }
+    // Held until Save.
+    if (chosen == null || session.isDisposed) return;
+    gearItemSharing.set(session, chosen, actingDiverId: activeDiverId);
   }
 }

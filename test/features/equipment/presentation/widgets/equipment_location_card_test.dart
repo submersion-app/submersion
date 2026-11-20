@@ -77,7 +77,7 @@ void main() {
     ) async {
       await pump(tester, [
         move('b', 'shop', 3),
-      ], card: const EquipmentLocationCard(equipment: reg, readOnly: true));
+      ], card: const EquipmentLocationCard(equipment: reg));
       await tester.pumpAndSettle();
 
       expect(
@@ -104,15 +104,9 @@ void main() {
           ),
         ),
       );
-      await pump(
-        tester,
-        [move('a', 'old', 1)],
-        card: EquipmentLocationCard(
-          equipment: reg,
-          shown: session,
-          readOnly: true,
-        ),
-      );
+      await pump(tester, [
+        move('a', 'old', 1),
+      ], card: EquipmentLocationCard(equipment: reg, shown: session));
       await tester.pumpAndSettle();
 
       final current = find.byKey(const ValueKey('equipment_location_current'));
@@ -217,25 +211,6 @@ void main() {
     await tester.pumpAndSettle();
     expect(
       find.byKey(const ValueKey('equipment_location_move_m1')),
-      findsOneWidget,
-    );
-  });
-
-  testWidgets('a move that fails says so instead of throwing', (tester) async {
-    // No database behind this test: recording the move throws.
-    await pump(tester, const []);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('equipment_location_move')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('move_equipment_to')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text("Joe's Scuba"));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('move_equipment_confirm')));
-    await tester.pumpAndSettle();
-    expect(tester.takeException(), isNull);
-    expect(
-      find.text('Something went wrong. Please try again.'),
       findsOneWidget,
     );
   });

@@ -69,10 +69,7 @@ extension _EquipmentDetailSections on _EquipmentDetailContent {
                       // Why the item is out of the kit (#2025). The purchase
                       // of wishlist gear is made in the header block's
                       // editor.
-                      EquipmentHeaderStatus(
-                        item: equipment,
-                        offerPurchase: false,
-                      ),
+                      EquipmentHeaderStatus(item: equipment),
                       // Tags (issue #1942), under the name and type: the
                       // sitting's while unlocked.
                       _headerTagChips(),
@@ -194,7 +191,6 @@ extension _EquipmentDetailSections on _EquipmentDetailContent {
               EquipmentSharingRow(
                 equipment: equipment,
                 shown: this.host.maybeEditController?.session,
-                readOnly: true,
               ),
               if (equipment.brand != null)
                 _buildDetailRow(

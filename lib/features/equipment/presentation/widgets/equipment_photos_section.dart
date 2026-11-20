@@ -11,10 +11,8 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/helpers/gear_photo_import_helper.dart';
 import 'package:submersion/features/equipment/presentation/providers/gear_photo_providers.dart';
-import 'package:submersion/features/equipment/presentation/widgets/gear_photo_remove_dialog.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_launcher.dart';
-import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
@@ -30,18 +28,16 @@ import 'package:submersion/shared/selection/selection_state.dart';
 /// One photo can be chosen as the item's cover, which stands for it in the
 /// equipment list and the page header.
 ///
-/// Where the item's page edits in place (issue #4527, phase 3), it offers
-/// nothing that writes while locked ([readOnly]); in the page's sitting
-/// ([editing]) photos added and removed and the cover chosen are held until
-/// Save, a remove asking nothing, and a closed card shows what a sitting
-/// holds ([shown]).
+/// It offers nothing that changes the photos outside the open Photos card
+/// (issue #4527, phase 3); in the page's sitting ([editing]) photos added
+/// and removed and the cover chosen are held until Save, a remove asking
+/// nothing, and a closed card shows what a sitting holds ([shown]).
 class EquipmentPhotosSection extends ConsumerStatefulWidget {
   const EquipmentPhotosSection({
     super.key,
     required this.equipment,
     this.editing,
     this.shown,
-    this.readOnly = false,
   });
 
   /// The item as shown: the sitting's while unlocked, so its cover is the
@@ -53,9 +49,6 @@ class EquipmentPhotosSection extends ConsumerStatefulWidget {
 
   /// The sitting whose photos a closed card shows.
   final EditSession<EquipmentItem>? shown;
-
-  /// Offers nothing that writes: the page edits in place and is locked.
-  final bool readOnly;
 
   @override
   ConsumerState<EquipmentPhotosSection> createState() =>
@@ -79,21 +72,12 @@ class _EquipmentPhotosSectionState
     null => widget.equipment.coverMediaId,
   };
 
-  /// Whether a change may be made: not on a locked page, and in a sitting
-  /// only in the open card.
-  bool get _canAct =>
-      !widget.readOnly && (widget.shown == null || widget.editing != null);
+  /// Whether a change may be made: only in the open card.
+  bool get _canAct => widget.editing != null;
 
   Future<void> _addPhotos() async {
     final editing = widget.editing;
-    if (editing == null) {
-      await GearPhotoImportHelper.importPhotos(
-        context: context,
-        ref: ref,
-        equipmentId: _equipmentId,
-      );
-      return;
-    }
+    if (editing == null) return;
     await GearPhotoImportHelper.holdPhotos(
       context: context,
       ref: ref,
@@ -119,69 +103,27 @@ class _EquipmentPhotosSectionState
 
   Future<BulkActionOutcome> _removeSelected(BuildContext context) async {
     final ids = _selection.value.checkedIds.toList();
-    // A locked page writes nothing, however the selection was started.
-    if (ids.isEmpty || !_canAct) return BulkActionOutcome.cancelled;
-    // In a sitting a remove asks nothing: Cancel brings it back. A cover
-    // among them is cleared with them, as the unlink does.
-    if (widget.editing case final editing?) {
-      unlinkMediaInSitting(editing, ids.toSet());
-      if (ids.contains(editing.valueOf(gearCoverField))) {
-        editing.set(gearCoverField, null);
-      }
-      return BulkActionOutcome.completed;
+    final editing = widget.editing;
+    // Outside the open card nothing changes, however the selection was
+    // started.
+    if (ids.isEmpty || editing == null) return BulkActionOutcome.cancelled;
+    // A remove asks nothing: Cancel brings it back. A cover among them is
+    // cleared with them, as the unlink does.
+    unlinkMediaInSitting(editing, ids.toSet());
+    if (ids.contains(editing.valueOf(gearCoverField))) {
+      editing.set(gearCoverField, null);
     }
-    final l10n = context.l10n;
-    final confirmed = await confirmRemoveGearPhotos(context, ids.length);
-    if (!confirmed || !context.mounted) {
-      return BulkActionOutcome.cancelled;
-    }
-    try {
-      await ref.read(mediaUnlinkServiceProvider).unlinkFromEquipment(ids);
-      ref.invalidate(identificationPhotosProvider(_equipmentId));
-      return BulkActionOutcome.completed;
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.media_siteMediaSection_unlinkError(e)),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      }
-      return BulkActionOutcome.failed;
-    }
+    return BulkActionOutcome.completed;
   }
 
   /// Chooses the one checked photo as the cover, or clears the cover when
   /// that photo already is it.
   Future<BulkActionOutcome> _toggleCover() async {
     final ids = _selection.value.checkedIds;
-    if (ids.length != 1 || !_canAct) return BulkActionOutcome.cancelled;
+    final editing = widget.editing;
+    if (ids.length != 1 || editing == null) return BulkActionOutcome.cancelled;
     final id = ids.single;
-    final isCover = _coverId == id;
-    if (widget.editing case final editing?) {
-      editing.set(gearCoverField, isCover ? null : id);
-      return BulkActionOutcome.completed;
-    }
-    try {
-      await ref
-          .read(gearPhotoRepositoryProvider)
-          .setCover(_equipmentId, isCover ? null : id);
-    } catch (_) {
-      // A concurrent sync can delete the item mid-tap: say the cover did
-      // not change rather than failing silently.
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.l10n.common_error_tryAgain),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      }
-      return BulkActionOutcome.failed;
-    }
-    // The item's new cover id is a new key for the avatar's cover read, so
-    // nothing needs invalidating here.
+    editing.set(gearCoverField, _coverId == id ? null : id);
     return BulkActionOutcome.completed;
   }
 

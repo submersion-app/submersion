@@ -380,11 +380,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
           ],
           _framed(
             GearItemCardId.location,
-            EquipmentLocationCard(
-              equipment: equipment,
-              shown: _session,
-              readOnly: true,
-            ),
+            EquipmentLocationCard(equipment: equipment, shown: _session),
           ),
           const SizedBox(height: 24),
           if (equipment.type == EquipmentType.tank) ...[
@@ -442,20 +438,12 @@ class _EquipmentDetailContent extends ConsumerWidget {
           // that carry the condition photos.
           _framed(
             GearItemCardId.photos,
-            EquipmentPhotosSection(
-              equipment: equipment,
-              shown: _session,
-              readOnly: true,
-            ),
+            EquipmentPhotosSection(equipment: equipment, shown: _session),
           ),
           const SizedBox(height: 24),
           _framed(
             GearItemCardId.observations,
-            ObservationsCard(
-              equipment: equipment,
-              shown: _session,
-              readOnly: true,
-            ),
+            ObservationsCard(equipment: equipment, shown: _session),
           ),
           const SizedBox(height: 24),
           _framed(
@@ -477,7 +465,6 @@ class _EquipmentDetailContent extends ConsumerWidget {
               onOpenDocument: (item) =>
                   DocumentOpenHelper.open(context, ref, item),
               shown: _session,
-              readOnly: true,
             ),
             topGap: 24,
           ),

@@ -181,11 +181,7 @@ extension _EquipmentDetailNewItemBody on _EquipmentDetailContent {
         const SizedBox(height: 24),
         _framed(
           GearItemCardId.location,
-          EquipmentLocationCard(
-            equipment: equipment,
-            shown: _session,
-            readOnly: true,
-          ),
+          EquipmentLocationCard(equipment: equipment, shown: _session),
         ),
         if (!equipment.isWanted) ...[
           const SizedBox(height: 24),

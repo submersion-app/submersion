@@ -93,9 +93,7 @@ void main() {
     );
 
     testWidgets('locked, it offers no add, edit or delete', (tester) async {
-      await pump(tester, [
-        issue,
-      ], card: ObservationsCard(equipment: reg, readOnly: true));
+      await pump(tester, [issue], card: ObservationsCard(equipment: reg));
 
       expect(find.byIcon(Icons.add), findsNothing);
       expect(find.byIcon(Icons.edit_outlined), findsNothing);
@@ -151,7 +149,7 @@ void main() {
       await pump(
         tester,
         const [],
-        card: ObservationsCard(equipment: reg, shown: session, readOnly: true),
+        card: ObservationsCard(equipment: reg, shown: session),
       );
 
       expect(find.byType(RecordChangedDot), findsOneWidget);
@@ -284,35 +282,22 @@ void main() {
     expect(find.textContaining('Dive #42'), findsOneWidget);
   });
 
-  testWidgets('the edit button opens that check-in in the editor', (
-    tester,
-  ) async {
-    await pump(tester, [observation(diveId: 'd1', note: 'Cold water')]);
+  testWidgets('the open card\'s edit button opens that check-in in the '
+      'editor', (tester) async {
+    final cold = observation(diveId: 'd1', note: 'Cold water');
+    final session = EditSession(reg);
+    addTearDown(session.dispose);
+    // No database here: the list starts empty and is given the row.
+    gearItemCheckInsList
+      ..loadNone(session)
+      ..set(session, [HeldCheckIn(observation: cold)]);
+    await pump(tester, [
+      cold,
+    ], card: ObservationsCard(equipment: reg, editing: session));
     await tester.tap(find.byIcon(Icons.edit_outlined));
     await tester.pumpAndSettle();
     expect(find.text('Save'), findsOneWidget);
     expect(find.widgetWithText(TextField, 'Cold water'), findsOneWidget);
-  });
-
-  testWidgets('the delete button asks first and then deletes that row', (
-    tester,
-  ) async {
-    await pump(tester, [observation(diveId: 'd1')]);
-    await tester.tap(find.byIcon(Icons.delete_outline));
-    await tester.pumpAndSettle();
-    expect(find.text('Delete this check-in?'), findsOneWidget);
-    await tester.tap(find.text('Delete'));
-    await tester.pumpAndSettle();
-    expect(repo.deleted, ['o1']);
-  });
-
-  testWidgets('cancelling the delete keeps the row', (tester) async {
-    await pump(tester, [observation(diveId: 'd1')]);
-    await tester.tap(find.byIcon(Icons.delete_outline));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Cancel'));
-    await tester.pumpAndSettle();
-    expect(repo.deleted, isEmpty);
   });
 }
 
