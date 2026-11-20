@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/repositories/media_aspect_cache_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -42,6 +43,9 @@ MediaItem _document(String id) => MediaItem(
   updatedAt: DateTime(2026, 3, 15),
 );
 
+/// The dive's stored media, changeable mid-test the way a first link is.
+final _storedMedia = StateProvider<List<MediaItem>>((ref) => const []);
+
 void main() {
   Future<void> pumpSection(
     WidgetTester tester,
@@ -59,7 +63,10 @@ void main() {
         locale: const Locale('en'),
         overrides: [
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
-          mediaForDiveProvider('dive-1').overrideWith((ref) => media),
+          _storedMedia.overrideWith((ref) => media),
+          mediaForDiveProvider(
+            'dive-1',
+          ).overrideWith((ref) => ref.watch(_storedMedia)),
           mediaAspectCacheRepositoryProvider.overrideWithValue(
             cache ?? FakeMediaAspectCache(),
           ),
@@ -67,10 +74,15 @@ void main() {
         child: Directionality(
           textDirection: textDirection,
           child: SingleChildScrollView(
-            child: DiveMediaSection(
-              diveId: 'dive-1',
-              editing: editing,
-              onOpenDocument: onOpenDocument,
+            // Rebuilt on every change to the sitting, as the card's editor
+            // rebuilds it (DiveMediaCardEditor).
+            child: ListenableBuilder(
+              listenable: editing ?? const AlwaysStoppedAnimation(0),
+              builder: (context, _) => DiveMediaSection(
+                diveId: 'dive-1',
+                editing: editing,
+                onOpenDocument: onOpenDocument,
+              ),
             ),
           ),
         ),
@@ -212,6 +224,44 @@ void main() {
       expect(tiles(), findsNothing);
       expect(cache.loads, 0);
     });
+
+    testWidgets(
+      'a dive gaining its first media reads the shapes and lays out',
+      (tester) async {
+        final cache = FakeMediaAspectCache();
+        await pumpSection(tester, const [], cache: cache);
+        expect(cache.loads, 0);
+
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(DiveMediaSection)),
+        );
+        container.read(_storedMedia.notifier).state = [_photo('a', 600, 400)];
+        await tester.pumpAndSettle();
+
+        expect(cache.loads, 1);
+        final rect = tileRects(tester).single;
+        expect(rect.width / rect.height, closeTo(1.5, 0.01));
+      },
+    );
+
+    testWidgets(
+      'a first photo held in the sitting reads the shapes and lays out',
+      (tester) async {
+        final cache = FakeMediaAspectCache();
+        final editing = openDiveMediaSitting();
+        await pumpSection(tester, const [], cache: cache, editing: editing);
+        expect(cache.loads, 0);
+
+        addMediaToSitting(editing, [
+          HeldMediaRow((item: _photo('held', 400, 600), enrichment: null)),
+        ]);
+        await tester.pumpAndSettle();
+
+        expect(cache.loads, 1);
+        final rect = tileRects(tester).single;
+        expect(rect.width / rect.height, closeTo(2 / 3, 0.01));
+      },
+    );
 
     testWidgets('lays out when the learned shapes cannot be read', (
       tester,

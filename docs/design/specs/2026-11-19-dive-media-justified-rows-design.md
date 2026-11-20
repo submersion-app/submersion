@@ -48,9 +48,10 @@ library.
 - **Shapes:** each item's ratio is `clampMediaAspect(mediaRawAspect(item,
   learned: ...))`, the library's rule: fixed 3:4 for a document, else a
   learned shape that still applies, else the stored size, else 4:3.
-- **Learned shapes:** the card watches `mediaLearnedAspectsProvider` and lays
-  out once it has loaded (the card's spinner shows meanwhile; a cache that
-  cannot be read yields an empty map, so the card never waits forever). Each
+- **Learned shapes:** once the card has media to lay out, it watches
+  `mediaLearnedAspectsProvider` and lays out once that has loaded (the card's
+  spinner shows meanwhile; a cache that cannot be read yields an empty map, so
+  the card never waits forever). A dive with no media reads no shapes. Each
   tile reports its decoded thumbnail size to the provider, as library tiles
   do, so a photo stored sideways corrects itself here and in the library.
 - **Layout:** a `LayoutBuilder` gives the card's inner width;
