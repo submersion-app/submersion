@@ -29380,11 +29380,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_speciesId_entrySubtitle =>
-      'Trouver les poissons dans vos photos et vidéos et suggérer leur espèce';
+      'Suggérer les espèces de vos photos et vidéos';
 
   @override
   String get speciesId_downloadPrompt_title =>
-      'Identifier les poissons de vos photos et vidéos';
+      'Identifier les espèces de vos photos et vidéos';
 
   @override
   String get speciesId_downloadPrompt_subtitle =>
@@ -29395,7 +29395,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_speciesId_intro =>
-      'Trouve les poissons dans vos photos et vidéos et suggère leur espèce. Fonctionne sur cet appareil. Vos photos et vidéos ne le quittent jamais.';
+      'Suggère les espèces de vos photos et vidéos. Fonctionne sur cet appareil. Vos photos et vidéos ne le quittent jamais.';
 
   @override
   String get settings_speciesId_model => 'Modèle';
@@ -29472,7 +29472,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_speciesId_toggle =>
-      'Identifier les poissons à l\'ouverture d\'une photo ou d\'une vidéo';
+      'Identifier les espèces à l\'ouverture d\'une photo ou d\'une vidéo';
 
   @override
   String get settings_speciesId_autoApply =>
@@ -29502,8 +29502,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_speciesId_sightingStraightAway => 'Tout de suite';
 
   @override
-  String get settings_speciesId_levelTitle =>
-      'Degré de certitude avant de nommer un poisson';
+  String get settings_speciesId_levelTitle => 'Facilité à suggérer une espèce';
 
   @override
   String get settings_speciesId_levelSurer => 'Plus sûr';

@@ -290,16 +290,17 @@ repository's `contract_test.py` fails while the two copies differ.
 
 ## Naming levels
 
-The diver chooses how sure the app must be before it names a fish (issue
-#4721), in Settings, Data, Photos and videos, Species identification.
+The diver chooses how readily the app suggests a species (issue #4721),
+in Settings, Data, Photos and videos, Species identification. Eager is the
+default until the diver picks a level (issue #4789).
 The design is in
 [the naming levels design](../design/specs/2026-11-18-marine-life-naming-levels-design.md).
 
 | Level | Suggest bars |
 | --- | --- |
-| Surer (default) | the pack's own `suggestScore` and `suggestScoreNoLocation` |
+| Surer | the pack's own `suggestScore` and `suggestScoreNoLocation` |
 | Balanced | measured for a 75% precision target |
-| Eager | measured for a 65% precision target |
+| Eager (default) | measured for a 65% precision target |
 
 A level moves only the two suggest bars. The open-score floor, the
 minimum box size and the confident bars are the pack's at every level, so
@@ -362,7 +363,10 @@ diver's choice is kept through a fallback, so it returns with a pack that
 carries it; meanwhile the section selects the level in force and says
 which level is missing. Choosing the level in force replaces the stored
 choice: its tile is `toggleable` only then, because a radio tile reports
-no tap on the selected value otherwise.
+no tap on the selected value otherwise. The default is no choice of the
+diver's (`NamingLevelNotifier.picked` is false until a level is stored), so
+a pack without Eager names at its most eager level with no note and no
+toggleable tile.
 
 ## Trying a pack locally
 

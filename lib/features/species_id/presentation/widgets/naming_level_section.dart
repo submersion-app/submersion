@@ -7,8 +7,8 @@ import 'package:submersion/features/species_id/presentation/providers/species_id
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// How sure the app must be before it names a fish (issue #4721): one
-/// choice per level the installed pack carries, each with how often its
+/// How readily the app suggests a species (issue #4721): one choice per
+/// level the installed pack carries, each with how often its
 /// names were right when measured. Nothing shows while there is no pack,
 /// or the pack carries no levels below its own bars.
 class NamingLevelSection extends ConsumerWidget {
@@ -25,8 +25,12 @@ class NamingLevelSection extends ConsumerWidget {
     final chosen = ref.watch(namingLevelNotifierProvider);
     final inForce = levelInForce(manifest, chosen)!.level;
     // The diver chose a level this pack lacks: the list shows the one in
-    // force, and a note says so.
-    final fallback = chosen != inForce;
+    // force, and a note says so. The default level the pack lacks is no
+    // choice of the diver's, so the list shows the one in force without a
+    // note (issue #4789). Picked only changes with the level watched above.
+    final fallback =
+        chosen != inForce &&
+        ref.watch(namingLevelNotifierProvider.notifier).picked;
 
     return RadioGroup<NamingLevel>(
       groupValue: inForce,
