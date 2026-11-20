@@ -234,6 +234,12 @@ void main() {
       expect(strayAnnotationAddresses('[a](Annotation:$id'), hasLength(1));
     });
 
+    test('ends the id where an id can end, not at punctuation after it', () {
+      expect(strayAnnotationAddresses('[a](annotation:abc-12.'), [
+        'annotation:abc-12',
+      ]);
+    });
+
     test('keeps the id as written: ids are compared case and all', () {
       expect(strayAnnotationAddresses('[a](Annotation:ABC'), [
         'annotation:ABC',

@@ -49,10 +49,13 @@ class _DiveNotesCardEditorState extends ConsumerState<DiveNotesCardEditor> {
     _redrawAfter(annotationsRead(widget.session));
   }
 
-  /// Offers annotating once the sitting holds the annotations: keeping
-  /// them does not notify the sitting's listeners.
+  /// Offers annotating once the sitting holds the annotations, and checks
+  /// the links against them: keeping them does not notify the sitting's
+  /// listeners.
   void _redrawAfter(Future<void> read) => read.then((_) {
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    _followLinks();
+    setState(() {});
   });
 
   /// Keeps the field showing the sitting's value. While the diver types the
@@ -70,10 +73,10 @@ class _DiveNotesCardEditorState extends ConsumerState<DiveNotesCardEditor> {
   /// broken the field says so, and Save is held by the card's check.
   late bool _linksIntact = annotationLinksIntact(widget.session);
 
-  /// The notes, working and stored, and whether the annotations were
-  /// touched, as [_linksIntact] last answered for them, so a change on
-  /// another card does not read the notes again.
-  (String, String, bool)? _linksCheckedFor;
+  /// The notes, working and stored, and the annotations the sitting holds
+  /// (kept anew on each change), as [_linksIntact] last answered for them,
+  /// so a change on another card does not read the notes again.
+  (String, String, SittingAnnotations?)? _linksCheckedFor;
 
   /// Redraws only when the answer changes, not on every keystroke.
   void _followLinks() {
@@ -82,7 +85,7 @@ class _DiveNotesCardEditorState extends ConsumerState<DiveNotesCardEditor> {
     final notes = (
       session.valueOf(diveNotesField),
       session.stored.notes,
-      sittingAnnotations(session)?.isTouched ?? false,
+      sittingAnnotations(session),
     );
     if (notes == _linksCheckedFor) return;
     _linksCheckedFor = notes;

@@ -99,11 +99,12 @@ final annotationLinkPattern = RegExp(
   caseSensitive: false,
 );
 
-/// An annotation address in Notes: the scheme and the id after it, or the
-/// scheme alone where a link's id was deleted whole (`](annotation:)`), so
-/// prose such as "annotation: none" is not one.
+/// An annotation address in Notes: the scheme and the id after it (ids are
+/// letters, digits, `_` and `-`, so punctuation after one is not part of
+/// it), or the scheme alone where a link's id was deleted whole
+/// (`](annotation:)`). Prose such as "annotation: none" is not one.
 final RegExp _annotationAddress = RegExp(
-  '$annotationLinkScheme:[^\\s()\\[\\]]+'
+  '$annotationLinkScheme:[\\w-]+'
   '|(?<=\\]\\()$annotationLinkScheme:(?=\\))',
   caseSensitive: false,
 );
@@ -113,21 +114,21 @@ final RegExp _annotationAddress = RegExp(
 /// lower-cased and the id as written (ids are compared case and all): what
 /// is left when a bracket, a parenthesis or part of the id is deleted by
 /// hand. Save reads such an annotation as removed, though the diver only
-/// meant to edit around its link.
-List<String> strayAnnotationAddresses(String notes) {
+/// meant to edit around its link. [linked] is [annotationIdsInNotes] of
+/// [notes], for a caller that has already read it.
+List<String> strayAnnotationAddresses(String notes, {Set<String>? linked}) {
   if (!mayLinkAnnotations(notes)) return const [];
-  final linked = annotationIdsInNotes(notes);
+  final ids = linked ?? annotationIdsInNotes(notes);
   final links = [
     for (final link in annotationLinkPattern.allMatches(notes))
-      if (linked.contains(link[1])) link,
+      if (ids.contains(link[1])) link,
   ];
   return [
     for (final address in _annotationAddress.allMatches(notes))
       if (!links.any(
         (link) => link.start < address.start && address.start < link.end,
       ))
-        '$annotationLinkScheme:'
-            '${address[0]!.substring(annotationLinkScheme.length + 1)}',
+        '$annotationLinkScheme:${annotationIdFromHref(address[0]) ?? ''}',
   ];
 }
 

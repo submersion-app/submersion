@@ -179,6 +179,26 @@ void main() {
   // Link markup broken by hand (#4815) would read at Save as the
   // annotation removed, so the Notes card holds Save until it is mended.
   group('annotationLinksIntact', () {
+    test('a link pasted from elsewhere, to an annotation this dive does not '
+        'hold, loses nothing and is intact', () async {
+      final session = await started();
+      session.set(
+        diveNotesField,
+        '${session.working.notes}\n\n[shark](annotation:from-another-dive)',
+      );
+      expect(annotationLinksIntact(session), isTrue);
+    });
+
+    test('a broken link whose annotation is gone loses nothing and is '
+        'intact', () async {
+      final session = await started();
+      session.set(
+        diveNotesField,
+        '${session.working.notes}\n\n[old](annotation:no-row-for-this',
+      );
+      expect(annotationLinksIntact(session), isTrue);
+    });
+
     test('an id edited inside a link that still reads as one is not '
         'intact', () async {
       final session = await started();

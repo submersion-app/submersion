@@ -1,14 +1,29 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/features/dive_log/data/repositories/annotation_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
+import 'package:submersion/features/dive_log/presentation/providers/annotation_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 
 import '../../../../helpers/test_database.dart';
 import 'dive_detail_page_unlock_harness.dart';
+
+/// Reads the annotations only once [gate] opens.
+class _GatedRepo extends AnnotationRepository {
+  final gate = Completer<void>();
+
+  @override
+  Future<List<ProfileEvent>> annotationsForDive(String diveId) async {
+    await gate.future;
+    return super.annotationsForDive(diveId);
+  }
+}
 
 /// A link in Notes whose markup the diver broke would read at Save as its
 /// annotation removed, and the annotation went without a word (#4815). The
@@ -100,5 +115,31 @@ void main() {
     await tester.tap(find.text('Save'));
     await settle(tester);
     expect(save.calls, hasLength(1));
+  });
+
+  testWidgets('the message follows the annotations read when it lands after '
+      'the card opened', (tester) async {
+    // A stored break whose annotation is gone: until the read says so, the
+    // check counts it as held, and an edit to the notes is held with it.
+    final stored = linked.copyWith(
+      notes: '${linked.notes}\n\n[Old](annotation:gone',
+    );
+    final repo = _GatedRepo();
+    await pumpPage(
+      tester,
+      stored: stored,
+      visible: const {DiveDetailSectionId.notes},
+      extra: [annotationRepositoryProvider.overrideWithValue(repo)],
+    );
+    await unlock(tester);
+    await openNotes(tester);
+    await tester.enterText(field, '${stored.notes} more');
+    await settle(tester);
+    expect(find.text(l.diveLog_annotation_brokenLink), findsOneWidget);
+
+    repo.gate.complete();
+    await settle(tester);
+
+    expect(find.text(l.diveLog_annotation_brokenLink), findsNothing);
   });
 }

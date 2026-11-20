@@ -363,11 +363,13 @@ void removeSittingAnnotation(EditSession<Dive> session, String id) {
 /// annotation as it always has.
 ///
 /// Checked only when Save would settle the annotations: the notes changed,
-/// or an annotation was placed, moved or removed. Then the notes must hold
-/// no stray address the stored notes did not (compared as written, not
-/// counted), link no id the sitting does not know, and leave no held
-/// annotation unlinked while its address is still there. Notes stored
-/// already broken hold nothing while left as they are.
+/// or an annotation was placed, moved or removed. Only an annotation the
+/// sitting holds whose link is gone is at risk; it is a removal unless the
+/// notes show the link was damaged rather than deleted: its address still
+/// there out of any link, a stray address the stored notes did not have, or
+/// a link to an id the sitting does not know (its id edited). A link that
+/// names no annotation this dive holds loses nothing and holds nothing, nor
+/// do notes stored already broken while they are left as they are.
 bool annotationLinksIntact(EditSession<Dive> session) {
   final notes = session.valueOf(diveNotesField);
   final held = sittingAnnotations(session);
@@ -376,42 +378,45 @@ bool annotationLinksIntact(EditSession<Dive> session) {
   }
   if (!mayLinkAnnotations(notes)) return true;
   final stored = _storedLinks(session);
-  if (!_withinStored(strayAnnotationAddresses(notes), stored.stray)) {
-    return false;
-  }
   final linked = annotationIdsInNotes(notes);
-  final placed = {
+  final holding = {
+    // Before the read answers, or after it failed, the stored notes' links,
+    // whole or broken, stand for the rows.
+    if (held == null) ...{...stored.linked, ...stored.strayIds},
+    if (held != null)
+      for (final event in held.loaded)
+        if (!held.removed.contains(event.id)) event.id,
     for (final pin in held?.placed ?? const <PendingAnnotation>[]) pin.id,
   };
-  final rows = held == null
-      ? stored.linked
-      : {
-          for (final event in held.loaded)
-            if (!held.removed.contains(event.id)) event.id,
-        };
-  // An id the diver edited inside a link that still reads as one.
-  final known = {...stored.linked, ...stored.strayIds, ...rows, ...placed};
-  if (!known.containsAll(linked)) return false;
-  // A held annotation whose address is still there, out of any link.
+  final lost = holding.difference(linked);
+  if (lost.isEmpty) return true;
+  // Its address still there, out of any link.
   final lower = notes.toLowerCase();
-  return !{...rows, ...placed}.any(
-    (id) =>
-        !linked.contains(id) &&
-        lower.contains('$annotationLinkScheme:${id.toLowerCase()}'),
-  );
+  if (lost.any(
+    (id) => lower.contains('$annotationLinkScheme:${id.toLowerCase()}'),
+  )) {
+    return false;
+  }
+  // Part of its address left behind, or its link's markup broken.
+  if (!_withinStored(
+    strayAnnotationAddresses(notes, linked: linked),
+    stored.strayCounts,
+  )) {
+    return false;
+  }
+  // Its id edited inside a link that still reads as one.
+  return {...stored.linked, ...stored.strayIds, ...holding}.containsAll(linked);
 }
 
-/// Whether every one of [addresses] is one of [allowed], each used once.
-bool _withinStored(List<String> addresses, List<String> allowed) {
+/// Whether every one of [addresses] is counted in [allowed], each use
+/// taking one.
+bool _withinStored(List<String> addresses, Map<String, int> allowed) {
   if (addresses.isEmpty) return true;
-  final left = <String, int>{};
-  for (final address in allowed) {
-    left[address] = (left[address] ?? 0) + 1;
-  }
+  final used = <String, int>{};
   for (final address in addresses) {
-    final n = (left[address] ?? 0) - 1;
-    if (n < 0) return false;
-    left[address] = n;
+    final n = (used[address] ?? 0) + 1;
+    if (n > (allowed[address] ?? 0)) return false;
+    used[address] = n;
   }
   return true;
 }
@@ -421,7 +426,7 @@ const String _storedLinksKey = 'annotations.storedLinks';
 typedef _StoredLinks = ({
   String notes,
   Set<String> linked,
-  List<String> stray,
+  Map<String, int> strayCounts,
   Set<String> strayIds,
 });
 
@@ -431,16 +436,20 @@ _StoredLinks _storedLinks(EditSession<Dive> session) {
   final notes = session.stored.notes;
   final kept = session.recall<_StoredLinks>(_storedLinksKey);
   if (kept != null && kept.notes == notes) return kept;
-  final stray = strayAnnotationAddresses(notes);
+  final linked = annotationIdsInNotes(notes);
+  final strayCounts = <String, int>{};
+  final strayIds = <String>{};
+  for (final address in strayAnnotationAddresses(notes, linked: linked)) {
+    strayCounts[address] = (strayCounts[address] ?? 0) + 1;
+    // A stored break mended links its id again, which is no edit of it.
+    final id = annotationIdFromHref(address);
+    if (id != null) strayIds.add(id);
+  }
   final links = (
     notes: notes,
-    linked: annotationIdsInNotes(notes),
-    stray: stray,
-    // A stored break mended links its id again, which is no edit of it.
-    strayIds: {
-      for (final address in stray)
-        address.substring(annotationLinkScheme.length + 1),
-    },
+    linked: linked,
+    strayCounts: strayCounts,
+    strayIds: strayIds,
   );
   session.remember(_storedLinksKey, links);
   return links;
