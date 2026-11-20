@@ -19,6 +19,7 @@ import 'package:submersion/features/equipment/presentation/editing/gear_item_car
 import 'package:submersion/features/equipment/presentation/editing/gear_item_details_editor.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_edit_fields.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_header_editor.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_passport_cards.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
@@ -162,6 +163,11 @@ final Map<GearItemCardId, EditCard<EquipmentItem>> gearItemEditCards = {
       editing: session,
     ),
   ),
+  // The passports' cards (plan 7): the item page shows none of them, but a
+  // passport joins its sitting, so its Save checks them too.
+  GearItemCardId.passportFills: passportFillsCard,
+  GearItemCardId.passportTag: passportTagCard(),
+  GearItemCardId.passportTrip: passportTripCard,
 };
 
 /// The cards the page leaves out while they are empty, offered in the

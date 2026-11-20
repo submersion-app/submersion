@@ -20,7 +20,17 @@ import 'package:submersion/features/equipment/domain/constants/equipment_attribu
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_l10n.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_passport_cards.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_passport_sitting.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_sitting_host.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_fade.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
+import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
 /// The scanned tag a route carried, or null when the route's extra is
 /// anything else. A deep link or a restored route can arrive with an extra
@@ -30,8 +40,20 @@ CylinderPassportPayload? scannedTagFrom(Object? extra) =>
 
 /// One cylinder's passport (spec section 8): every card names its source of
 /// truth, and every value with a unit goes through the unit formatter.
+///
+/// Behind phase 3's switch ([unlockEditing]) it is a satellite page of the
+/// cylinder's gear item (issue #4527): opened alone it opens locked, and its
+/// own Unlock, Cancel and Save hold and write the item's changes as one
+/// History entry; pushed from an unlocked item page ([joined]) it joins that
+/// sitting and shows Done.
 class PassportPage extends ConsumerStatefulWidget {
-  const PassportPage({super.key, required this.equipmentId, this.scannedTag});
+  const PassportPage({
+    super.key,
+    required this.equipmentId,
+    this.scannedTag,
+    this.joined,
+    this.unlockEditing = kUnlockRecordEditing,
+  });
 
   final String equipmentId;
 
@@ -39,12 +61,59 @@ class PassportPage extends ConsumerStatefulWidget {
   /// the stale-tag hint on the Tag card.
   final CylinderPassportPayload? scannedTag;
 
+  /// The item page's sitting this page was pushed into, while unlocked.
+  final RecordEditController<EquipmentItem>? joined;
+
+  /// Whether the page edits in place: phase 3's switch, a parameter so a
+  /// test can turn it on.
+  final bool unlockEditing;
+
   @override
   ConsumerState<PassportPage> createState() => _PassportPageState();
 }
 
-class _PassportPageState extends ConsumerState<PassportPage> {
+class _PassportPageState extends ConsumerState<PassportPage>
+    with
+        RecordEditHost<PassportPage, EquipmentItem>,
+        GearItemSittingHost<PassportPage> {
   static final _log = LoggerService.forClass(PassportPage);
+
+  @override
+  String get hostRecordId => widget.equipmentId;
+
+  @override
+  bool get hostsEditing => widget.unlockEditing;
+
+  @override
+  RecordEditController<EquipmentItem>? get joinedSitting => widget.joined;
+
+  /// The Tag card keeps the page's stale hint and Print button when open.
+  late final EditCard<EquipmentItem> _tagCard = passportTagCard(
+    scannedTag: widget.scannedTag,
+    onPrintLabel: (button) => _printLabel(widget.equipmentId, button),
+  );
+
+  @override
+  Iterable<EditCard<EquipmentItem>> get hostEditCards => [
+    passportServiceCard,
+    passportFillsCard,
+    _tagCard,
+    passportTripCard,
+  ];
+
+  @override
+  List<AddStripEntry> addStripEntries(EquipmentItem working) => const [];
+
+  @override
+  void dispose() {
+    disposeEditing();
+    super.dispose();
+  }
+
+  /// [child] as [card] where the page edits in place.
+  Widget _framed(EditCard<EquipmentItem> card, Widget child) => hostsEditing
+      ? RecordCardFrame<EquipmentItem>(card: card, child: child)
+      : child;
 
   @override
   void initState() {
@@ -101,53 +170,98 @@ class _PassportPageState extends ConsumerState<PassportPage> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final equipmentAsync = ref.watch(equipmentItemProvider(widget.equipmentId));
-    final passportId = ref.watch(passportIdProvider(widget.equipmentId)).value;
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.passport_title)),
-      body: equipmentAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text(e.toString())),
-        data: (equipment) {
-          if (equipment == null) return const SizedBox.shrink();
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
+    if (hostsEditing) followStored(equipmentItemProvider(widget.equipmentId));
+    final equipment = equipmentAsync.value;
+    if (!hostsEditing || equipment == null) {
+      return Scaffold(
+        appBar: AppBar(title: Text(l10n.passport_title)),
+        body: equipmentAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => Center(child: Text(e.toString())),
+          data: (equipment) =>
+              equipment == null ? const SizedBox.shrink() : _body(equipment),
+        ),
+      );
+    }
+    final shown = shownRecord(equipment);
+    return editScaffold(
+      record: equipment,
+      shown: shown,
+      lockedBar: AppBar(
+        title: Text(l10n.passport_title),
+        actions: [lockButton(shown)],
+      ),
+      content: _body(shown),
+    );
+  }
+
+  /// The cards, of [equipment] as the page shows it: the sitting's while
+  /// one is open.
+  Widget _body(EquipmentItem equipment) {
+    final stored = ref.watch(passportIdProvider(widget.equipmentId)).value;
+    final session = hostsEditing ? maybeEditController?.session : null;
+    final passportId = session == null
+        ? stored
+        : passportIdInSitting(session, stored);
+    Widget calculated(Widget child) => RecordCardFade<EquipmentItem>(
+      reason: RecordCardFadeReason.calculated,
+      child: child,
+    );
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _PassportHeader(equipment: equipment),
+          TwinSetPartnerLine(equipmentId: equipment.id),
+          const SizedBox(height: 16),
+          PassportO2WarningBanner(equipmentId: equipment.id),
+          calculated(PassportSpecCard(equipment: equipment)),
+          const SizedBox(height: 16),
+          _framed(
+            passportServiceCard,
+            PassportServiceCard(equipment: equipment),
+          ),
+          const SizedBox(height: 16),
+          _framed(
+            passportFillsCard,
+            Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _PassportHeader(equipment: equipment),
-                TwinSetPartnerLine(equipmentId: equipment.id),
-                const SizedBox(height: 16),
-                PassportO2WarningBanner(equipmentId: equipment.id),
-                PassportSpecCard(equipment: equipment),
-                const SizedBox(height: 16),
-                PassportServiceCard(equipment: equipment),
-                const SizedBox(height: 16),
                 PassportCurrentFillCard(
                   equipmentId: equipment.id,
                   passportId: passportId,
                 ),
                 const SizedBox(height: 16),
                 PassportFillHistoryCard(equipmentId: equipment.id),
-                // The dives this cylinder was used on (issue #2650), with its
-                // own gap so a cylinder never used leaves none.
-                if (passportId != null)
-                  PassportUsageCard(
-                    passportId: passportId,
-                    title: PassportUsageTitle.own,
-                    topGap: 16,
-                  ),
-                const SizedBox(height: 16),
-                PassportTagCard(
-                  equipment: equipment,
-                  scannedTag: widget.scannedTag,
-                  onPrintLabel: (button) => _printLabel(equipment.id, button),
-                ),
-                const SizedBox(height: 16),
-                PassportTripCard(equipmentId: equipment.id),
               ],
             ),
-          );
-        },
+          ),
+          // The dives this cylinder was used on (issue #2650), with its
+          // own gap so a cylinder never used leaves none.
+          if (passportId != null)
+            calculated(
+              PassportUsageCard(
+                passportId: passportId,
+                title: PassportUsageTitle.own,
+                topGap: 16,
+              ),
+            ),
+          const SizedBox(height: 16),
+          _framed(
+            _tagCard,
+            PassportTagCard(
+              equipment: equipment,
+              scannedTag: widget.scannedTag,
+              onPrintLabel: (button) => _printLabel(equipment.id, button),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _framed(
+            passportTripCard,
+            PassportTripCard(equipmentId: equipment.id),
+          ),
+        ],
       ),
     );
   }
