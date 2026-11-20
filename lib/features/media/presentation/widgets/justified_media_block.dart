@@ -108,6 +108,17 @@ class JustifiedMediaBlock extends StatelessWidget {
           keepAtLeast: keepAtLeast,
         );
         final hidden = ratios.length - visible;
+        // The table lays rows out left to right; a right-to-left language
+        // reads them from the right, as the library's grid does.
+        final rtl = Directionality.of(context) == TextDirection.rtl;
+        Rect place(Rect rect) => rtl
+            ? Rect.fromLTWH(
+                width - rect.right,
+                rect.top,
+                rect.width,
+                rect.height,
+              )
+            : rect;
         return SizedBox(
           width: width,
           height: table.rectOf(visible - 1).bottom,
@@ -115,7 +126,7 @@ class JustifiedMediaBlock extends StatelessWidget {
             children: [
               for (var i = 0; i < visible; i++)
                 Positioned.fromRect(
-                  rect: table.rectOf(i),
+                  rect: place(table.rectOf(i)),
                   child: cellBuilder(
                     context,
                     JustifiedBlockCell(

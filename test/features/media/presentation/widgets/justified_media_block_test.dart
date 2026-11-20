@@ -19,11 +19,12 @@ Future<List<JustifiedBlockCell>> _pump(
   double width = 616,
   int? maxRows,
   int keepAtLeast = 0,
+  TextDirection direction = TextDirection.ltr,
 }) async {
   final cells = <JustifiedBlockCell>[];
   await tester.pumpWidget(
     Directionality(
-      textDirection: TextDirection.ltr,
+      textDirection: direction,
       child: Align(
         alignment: Alignment.topLeft,
         child: SizedBox(
@@ -150,5 +151,15 @@ void main() {
       ),
       throwsAssertionError,
     );
+  });
+
+  testWidgets('lays rows out from the right in a right-to-left language', (
+    tester,
+  ) async {
+    await _pump(tester, [1.5, 1.0], direction: TextDirection.rtl);
+
+    // An open row keeps its shapes; in RTL it starts at the right edge.
+    expect(_rect(tester, 0).right, closeTo(616, 0.01));
+    expect(_rect(tester, 1).right, closeTo(_rect(tester, 0).left - 4, 0.01));
   });
 }
