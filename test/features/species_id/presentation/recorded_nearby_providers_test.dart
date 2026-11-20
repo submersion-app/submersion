@@ -86,6 +86,22 @@ void main() {
     return c;
   }
 
+  /// Completes once [request]'s list is [want]: a tick's refresh is
+  /// waited for, not timed, so a slow machine cannot fail it.
+  Future<void> shows(
+    ProviderContainer c,
+    NearbyListRequest request,
+    NearbySpecies want,
+  ) {
+    final seen = Completer<void>();
+    final sub = c.listen(recordedNearbyListProvider(request), (_, next) {
+      if (next.value == want && !seen.isCompleted) seen.complete();
+    });
+    return seen.future
+        .timeout(const Duration(seconds: 10))
+        .whenComplete(sub.close);
+  }
+
   test('reads the dive site\'s list, not the photo\'s position', () async {
     places.places['d1'] = (site: site, entry: entry);
     final c = await container();
@@ -308,15 +324,11 @@ void main() {
       listAtSite,
     );
 
+    final moved = shows(c, request, listAtOther);
     places.places['d1'] = (site: otherSite, entry: null);
     db.markTablesUpdated([db.dives]);
-    // Past the dives tick's debounce.
-    await Future<void>.delayed(const Duration(milliseconds: 400));
 
-    expect(
-      await c.read(recordedNearbyListProvider(request).future),
-      listAtOther,
-    );
+    await moved;
   });
 
   test('a site moved on the map reads the new point\'s list', () async {
@@ -329,14 +341,11 @@ void main() {
       listAtSite,
     );
 
+    final moved = shows(c, request, listAtOther);
     places.places['d1'] = (site: otherSite, entry: null);
     db.markTablesUpdated([db.diveSites]);
-    await Future<void>.delayed(const Duration(milliseconds: 50));
 
-    expect(
-      await c.read(recordedNearbyListProvider(request).future),
-      listAtOther,
-    );
+    await moved;
   });
 
   group('nearbyRequestForMedia', () {
