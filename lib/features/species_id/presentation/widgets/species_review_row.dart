@@ -6,6 +6,7 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/species_id/domain/entities/species_review.dart';
 import 'package:submersion/features/species_id/domain/value_objects/species_review_edits.dart';
+import 'package:submersion/features/species_id/presentation/providers/recorded_nearby_providers.dart';
 import 'package:submersion/features/species_id/presentation/widgets/recorded_nearby_line.dart';
 import 'package:submersion/features/species_id/presentation/widgets/suggested_species_section.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -85,7 +86,11 @@ class SpeciesReviewRowTile extends StatelessWidget {
               ),
               // Once per row: its photos' lines below would only repeat it.
               RecordedNearbyLine(
-                request: (diveId: best.media.diveId, photo: null),
+                // A dive's row reads the dive's list; photos in no dive
+                // read the shown photo's own position.
+                request: best.media.diveId != null
+                    ? (diveId: best.media.diveId, photo: null)
+                    : nearbyRequestForMedia(best.media),
                 gbifKey: _gbifKey(row),
                 catalogId: row.species?.id ?? row.candidate?.catalogId,
               ),

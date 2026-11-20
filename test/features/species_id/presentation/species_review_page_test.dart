@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/reef/domain/entities/nearby_species.dart';
@@ -80,6 +83,7 @@ void main() {
     required List<ReviewRow> taggedRows,
     List<ReviewRow> suggestedRows = const [],
     NearbySpecies? nearby,
+    Completer<NearbySpecies?>? pending,
   }) async {
     saver = _Saver();
     nearbyAsked = [];
@@ -103,7 +107,7 @@ void main() {
           speciesReviewSaverProvider.overrideWithValue(saver),
           recordedNearbyListProvider.overrideWith((ref, request) {
             nearbyAsked.add(request);
-            return Future.value(nearby);
+            return pending?.future ?? Future.value(nearby);
           }),
         ],
         home: const SpeciesReviewPage(scope: scope),
@@ -181,6 +185,53 @@ void main() {
       expect(markerIn('species_review_row_s:own-9_a'), findsOneWidget);
     });
 
+    testWidgets('a row of photos in no dive reads its photo\'s own position', (
+      tester,
+    ) async {
+      saver = _Saver();
+      nearbyAsked = [];
+      final unfiled = ReviewRow(
+        key: 'g:1',
+        candidate: suggestedRow.candidate,
+        items: [
+          ReviewItem(
+            media: testMediaItem(
+              id: 'e',
+            ).copyWith(latitude: 12.2, longitude: -68.3),
+            suggestion: suggestion,
+            score: 0.71,
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        await mediaTestApp(
+          overrides: [
+            speciesReviewProvider(scope).overrideWith(
+              (ref) async => [
+                ReviewGroup(
+                  kind: ReviewGroupKind.otherPhotos,
+                  tagged: const [],
+                  suggested: [unfiled],
+                ),
+              ],
+            ),
+            speciesReviewSaverProvider.overrideWithValue(saver),
+            recordedNearbyListProvider.overrideWith((ref, request) {
+              nearbyAsked.add(request);
+              return Future.value(keyOnly);
+            }),
+          ],
+          home: const SpeciesReviewPage(scope: scope),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(nearbyAsked.toSet(), {
+        (diveId: null, photo: const GeoPoint(12.2, -68.3)),
+      });
+      expect(markerIn('species_review_row_g:1_e'), findsOneWidget);
+    });
+
     testWidgets('the marker is read with the row', (tester) async {
       final semantics = tester.ensureSemantics();
       await pump(
@@ -216,6 +267,19 @@ void main() {
         colourOf(find.text('Recorded nearby')),
         colourOf(find.textContaining('on 1 photo')),
       );
+    });
+
+    testWidgets('while the list loads, no row shows the marker', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        taggedRows: [tagRow],
+        suggestedRows: [suggestedRow],
+        pending: Completer<NearbySpecies?>(),
+      );
+      expect(find.text('Rock Beauty'), findsOneWidget);
+      expect(find.text('Recorded nearby'), findsNothing);
     });
 
     testWidgets('with no list, no row shows the marker', (tester) async {

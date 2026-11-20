@@ -418,6 +418,55 @@ void main() {
       expect(find.text('Recorded nearby'), findsNothing);
     });
 
+    testWidgets('the marker arriving late moves no row or button', (
+      tester,
+    ) async {
+      // Add and dismiss act at once, so a line that pushed them down as
+      // the list arrived could turn a tap into the neighbour's.
+      final pending = Completer<NearbySpecies?>();
+      await pump(
+        tester,
+        suggestions: [
+          suggestion(parrotfish),
+          suggestion(chromis, cropId: 'i2'),
+        ],
+        pending: pending,
+      );
+      List<Rect> buttons() => [
+        for (final key in [
+          'media_suggested_add_1',
+          'media_suggested_dismiss_1',
+          'media_suggested_add_2',
+          'media_suggested_dismiss_2',
+        ])
+          tester.getRect(find.byKey(ValueKey(key))),
+      ];
+      final before = buttons();
+
+      pending.complete(const NearbySpecies(speciesKeys: {1}));
+      await tester.pumpAndSettle();
+
+      expect(markerIn('media_suggested_row_1'), findsOneWidget);
+      expect(buttons(), before);
+    });
+
+    testWidgets('while the list loads, the crop view shows no marker', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        suggestions: [suggestion(parrotfish)],
+        pending: Completer<NearbySpecies?>(),
+      );
+      await tester.tap(find.byKey(const ValueKey('media_suggested_crop_1')));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('media_suggested_candidate_2')),
+        findsOne,
+      );
+      expect(find.text('Recorded nearby'), findsNothing);
+    });
+
     testWidgets('a possible match recorded nearby says so in the crop view', (
       tester,
     ) async {
