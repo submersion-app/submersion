@@ -425,6 +425,13 @@ Counts are `test(`/`testWidgets(` matches. "Plan N" means that plan's table alre
 | `equipment/presentation/pages/equipment_set_detail_show_figure_test.dart` | (file deleted: its three cases were the menu's Show and Hide figure, now the Figure card's, pinned by equipment_set_detail_page_unlock_test and equipment_set_card_editors_test) |
 | `equipment/presentation/pages/equipment_set_detail_default_test.dart` | offers "Set as default" only when not already default |
 | `equipment/presentation/pages/equipment_set_detail_geofence_test.dart` | "Set as default" action promotes the set |
+| `gps_log/gps_track_edit_mode_test.dart` | Trim shows a range scrubber and an Apply action (the menu Trim is gone; the Trim card holds trims, pinned by gps_track_detail_page_unlock_test) |
+| `gps_log/gps_track_edit_mode_test.dart` | Trim does not warn, because it is reversible |
+| `gps_log/gps_track_edit_mode_test.dart` | Reset trim is absent when the track has no bounds (the menu offers no Trim at all: gps_track_detail_page_unlock_test "locked, no tap writes and the menu offers no Trim") |
+| `gps_log/gps_track_edit_mode_test.dart` | Reset trim appears once the track has bounds (Reset trim is the Trim card's: "Reset trim is a change of Trim") |
+| `gps_log/gps_track_edit_apply_test.dart` | Apply without dragging does not clear an existing trim (the Trim card: "opening the Trim editor and closing it changes nothing") |
+| `gps_log/gps_track_edit_apply_test.dart` | Apply without dragging preserves the visible span |
+| `gps_log/gps_track_edit_apply_test.dart` | Reset trim still clears both bounds ("Reset trim is a change of Trim") |
 
 ### Parts B and C
 
