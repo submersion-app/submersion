@@ -18,7 +18,9 @@ repeat their reasoning.
 Decisions are marked **(decided)** when the maintainer made them and
 **(proposed)** when they are the designer's call, open to correction.
 
-Approved by the maintainer on 2026-11-19.
+Approved by the maintainer on 2026-11-19. Amended on 2026-11-20 for GPUs on
+Windows through Windows ML (sections "GPUs on Windows" and 2a), and the
+amendment approved the same day.
 
 ## What this piece delivers
 
@@ -33,8 +35,11 @@ photos/videos")**:
 3. Auto-apply and review.
 
 The same pack, the same models and the same naming bars serve every device
-**(decided: "same models everywhere")**. Linux gets photos only, because the
-app has no video player there **(proposed)**.
+**(decided: "same models everywhere")**. On a Windows PC with a GPU (or an
+NPU) the models run there, through Windows ML **(decided 2026-11-19:
+"windows ML")**; everywhere else off Apple devices they run on the main
+processor. Linux gets photos only, because the app has no video player there
+**(proposed)**.
 
 ## Why
 
@@ -62,9 +67,13 @@ it, to within what the accuracy gate below can measure.
 - Video on Linux. It would need a video player in the app first, which is a
   piece of its own.
 - Phone AI chips (Qualcomm's NPU, GPU paths) and smaller 8-bit models
-  **(decided)**. The ONNX engine runs the same models on the main processor.
-  Core ML on Apple devices is unchanged: it still picks the GPU or Neural
-  Engine itself (`computeUnits = .all` in `VisionPipeline.swift`).
+  **(decided)**. On Android and Linux the ONNX engine runs the same models on
+  the main processor. Core ML on Apple devices is unchanged: it still picks
+  the GPU or Neural Engine itself (`computeUnits = .all` in
+  `VisionPipeline.swift`). Windows is the exception, through Windows ML
+  (section 2a).
+- GPUs on Linux. ONNX Runtime's Linux GPU route is NVIDIA's CUDA, hundreds of
+  megabytes for one vendor.
 - Changing the naming rules, the bars, the stored records, the screens or
   how labels look. Everything above the engine is shared and stays as it is.
 - The web build. It compiles and the feature stays absent.
@@ -76,7 +85,8 @@ it, to within what the accuracy gate below can measure.
 
 - **Different names on different devices.** A diver who sees one name on
   their Mac and another on their phone for the same fish stops trusting
-  both.
+  both. Unchecked GPU and NPU engines on Windows are the maintainer's
+  accepted exception (see "Risks").
 - **An iPhone or Mac downloading the pack again** because files for other
   engines were added to it.
 - **A phone that passes the floor getting the app killed for memory**, or a
@@ -159,6 +169,28 @@ The maintainer chose approach 2 **(decided)**.
 The maintainer chose option 1 **(decided)**. The early timing on a phone is
 recorded but does not change the models.
 
+### GPUs on Windows
+
+Option 1 was chosen for phones; desktop GPUs were weighed after the design
+was first approved.
+
+1. **The processor only**, as on phones. Nothing new to build or check; video
+   names lag playback on a PC.
+2. **DirectML** when the PC has a DirectX 12 GPU, the processor otherwise.
+   One ONNX Runtime setting for NVIDIA, AMD and Intel GPUs on Windows 10 and
+   11. Microsoft supports it but no longer adds to it.
+3. **Windows ML (chosen).** Microsoft's current route. It ships ONNX Runtime
+   with the processor and DirectML on Windows 10 (1903) and later, and on
+   Windows 11 24H2 and later fetches a vendor's engine for the PC's GPU or
+   NPU (NVIDIA, AMD, Intel, Qualcomm). The fastest option, with each vendor's
+   engine computing slightly differently, and the Windows App SDK in the
+   Windows build.
+
+The maintainer chose option 3 **(decided 2026-11-19)**, and chose that the
+app uses whichever engine Windows offers, checked or not, as Core ML's GPU
+and Neural Engine are trusted across Apple chips **(decided 2026-11-20: "Any
+of them")**.
+
 ## What the diver sees
 
 The same as on Apple devices: the settings page under Settings, Data, Photos
@@ -169,8 +201,13 @@ labels over video; auto-apply and review. The differences:
   files, which is about what an iPhone downloads.
 - **Speed.** On a mid-range phone a photo's suggestions appear several
   seconds after it opens, and a video's names mostly show when the diver
-  pauses or goes back. On a PC both are faster. First use after launch is
+  pauses or goes back. On a PC both are faster, and on a Windows PC with a
+  GPU video names can keep up with playback. First use after launch is
   slower still while the models load.
+- **On Windows 11 24H2 and later,** where Windows offers a vendor engine for
+  the PC's GPU or NPU, it is fetched as part of the diver's Download, and the
+  download confirmation says so: one or two new strings, in all 11 languages
+  **(proposed)**.
 - **Find species runs** on Android and Windows cover photos and videos, as
   on Apple devices, and pause when the phone gets hot or the app leaves the
   foreground, as runs already do on iPhone **(proposed)**. On a phone a run
@@ -245,11 +282,20 @@ file, running it, tensors and releasing them.
 
 **The library.** `packages/submersion_vision` gains a build hook
 (`hook/build.dart`), the first local package to have one, modelled on
-`package:sqlite3`'s. For Android (arm64-v8a, x86_64), Windows x64 and
-Linux x64 it fetches ONNX Runtime's official prebuilt release of the pinned
-version, checks it against a SHA-256 kept in the package, and hands it to
-Flutter as a code asset. iOS, macOS and the web get nothing. A 32-bit Android
-build gets no library, and the engine reports `deviceNotEligible` there.
+`package:sqlite3`'s. For Android (arm64-v8a, x86_64) and Linux x64 it
+fetches ONNX Runtime's official prebuilt release of the pinned version; for
+Windows x64 it fetches Windows ML's package (`Microsoft.Windows.AI.MachineLearning`
+on NuGet), which carries ONNX Runtime, DirectML and Windows ML's own library
+(section 2a). Each download is checked against a hash kept in the package
+and handed to Flutter as code assets. iOS, macOS and the web get nothing. A
+32-bit Android build gets no library, and the engine reports
+`deviceNotEligible` there.
+
+**One ONNX Runtime version.** Android and Linux are pinned to the ONNX
+Runtime version the pinned Windows ML package ships (1.24 at the time of
+writing), so the processor path is the same code on all three. The C API is
+versioned, so a newer runtime arriving with a Windows App SDK update still
+serves the same bindings.
 
 The library must pass the three CI checks above. The Android check today
 requires each listed library in every ABI the archive ships, and Flutter's
@@ -356,6 +402,52 @@ chunk that takes seconds; on a phone's processor one chunk can take
 minutes. The viewer's scan already ends on either code and resumes on the
 next opening, and a Find species run already pauses on either
 (`DiveRunPause`). Windows and Linux check neither, as the Mac does not.
+
+### 2a. Windows: the GPU through Windows ML
+
+**(decided: Windows ML, any engine Windows offers; the rest proposed)**
+
+Windows ML is a way of getting ONNX Runtime and hardware engines onto a PC,
+not a different runtime. The model files, the Dart pipeline and the ONNX
+Runtime calls are the same as on Android and Linux. What Windows adds:
+
+- **Finding an engine.** Before creating sessions, the engine asks Windows
+  ML's catalogue (its C interface, `WinMLEpCatalog.h`, through FFI) for the
+  hardware engines Windows offers for this PC, and registers each one that is
+  ready with ONNX Runtime's environment. Session options then ask ONNX
+  Runtime to prefer the GPU, then an NPU, then the processor. DirectML and
+  the processor come with Windows ML and are always there.
+- **Which engines.** Any engine Windows offers is used, whether or not it
+  has been checked against the bars **(decided)**. The debug log records
+  which engine ran each session.
+- **Fetching a vendor engine** (Windows 11 24H2 and later only). Windows ML
+  can download a vendor's engine for the PC's GPU or NPU from Microsoft
+  (NVIDIA's was just under 200 MB at launch). That download happens only as
+  part of the diver's Download of the pack, and the confirmation says so, so
+  the app uses no network after that one step **(proposed)**. An engine
+  that fails to arrive does not fail the pack's download; the PC uses DirectML
+  or the processor. Windows Update keeps vendor engines current afterwards,
+  on its own schedule.
+- **Falling back.** If a session cannot be created on the chosen engine, or a
+  run fails there, the engine tries DirectML, then the processor, and stays
+  on the one that worked until the models are next loaded.
+- **Memory.** On a GPU the models live in its memory; an integrated GPU
+  shares the PC's. The 8 GB PC floor stands.
+- **First load.** Some vendor engines compile the models for the GPU the
+  first time and cache the result, so the first load on a PC can take much
+  longer than later ones.
+- **Deployment.** Windows ML is part of the Windows App SDK. Whether the
+  Windows installer installs the Windows App SDK runtime, or the app carries
+  what it needs itself, is the builder's call; either way the app keeps
+  working on Windows 10, with DirectML and the processor only. The first step
+  of building this is a spike that proves the catalogue works from the app as
+  it is packaged today, an unpackaged Win32 app.
+
+The accuracy gate (section 6) covers the processor path, which every
+Windows PC can fall back to. The GPU and NPU paths are not gated
+**(decided)**. Where a Windows PC with a GPU is to hand, the 100-photo
+comparison of section 6 is run on it too and its agreement recorded in the
+findings, for information.
 
 ### 3. Video frames (Android and Windows)
 
@@ -513,7 +605,12 @@ hand on the maintainer's Pixel 6a, a Windows PC and a Linux PC:
 - on the 6a and Windows, a portrait and a landscape video scanned and
   labelled, live naming, and a scan stopping when the app goes to the
   background (6a);
-- the 6a's memory run (section 5).
+- the 6a's memory run (section 5);
+- on a Windows PC with a GPU: which engine ran (a vendor engine on Windows 11
+  24H2 and later, DirectML otherwise), the vendor engine fetched as part of
+  the Download, and the fall back to the processor when the GPU engine is
+  made to fail; the comparison of section 2a, for information;
+- on Windows 10, that DirectML and the processor still work.
 
 ## Order of work
 
@@ -522,6 +619,8 @@ hand on the maintainer's Pixel 6a, a Windows PC and a Linux PC:
 1. The small adoption pull request (section 4), in this repository.
 2. The engine pull request, in this repository, with the three platforms
    behind `MARINE_LIFE_ID_ONNX` (off by default). Everything in "The parts".
+   It starts with the Windows ML spike of section 2a, since its result can
+   change the Windows part.
 3. The pack pull request, in submersion-app/species-pack: the ONNX
    conversion, the scorer's engine option, the ONNX checks in the naming
    layer's gate, and the x64 comparison.
@@ -554,6 +653,10 @@ Tests are written first. Run only the test files written or changed, by path.
 - **Video:** `detectVideo` and `embedMoments` against a fake frame reader:
   sampling, chunk ends, `not_foreground`, `too_hot`, a reader failing part
   way.
+- **Windows engine choice:** against a fake catalogue: engines registered
+  when ready, the vendor engine fetched only during the Download, a failed
+  fetch leaving the Download whole, and the fall back from a failing GPU
+  engine to DirectML and then the processor.
 - **Frame readers:** the channel contract, with mock handlers restored in
   teardown. The Kotlin and C++ themselves are checked by hand (section 7).
 - **Pack:** file selection for `onnx`; `supportsEngine`; adoption ignoring
@@ -591,7 +694,10 @@ differs.
 - How the scorer builds or calls the scoring runner, and how it finds ONNX
   Runtime's macOS library.
 - How the measurement build reaches the 6a as an update.
-- Exact wording of the four Linux strings, in all 11 languages.
+- How Windows ML is deployed with the Windows build, and the exact order in
+  which ONNX Runtime is asked to prefer devices.
+- Exact wording of the four Linux strings and the Windows download note, in
+  all 11 languages.
 
 ## Calls made by the designer, for the maintainer to check
 
@@ -622,8 +728,18 @@ differs.
 12. The frame readers use channels of their own, separate from the Swift
     channel.
 13. ONNX Runtime arrives through a build hook in `submersion_vision`, fetched
-    from its official releases and checked against pinned hashes. The Mac app
-    carries none; Mac tests and the scoring runner load it from a path.
+    from its official releases (Windows ML's package on Windows) and checked
+    against pinned hashes. The Mac app carries none; Mac tests and the
+    scoring runner load it from a path.
+14. A Windows vendor engine is fetched only as part of the diver's Download,
+    and the confirmation says so; a failed fetch leaves the PC on DirectML or
+    the processor.
+15. On Windows a failing GPU engine falls back to DirectML, then the
+    processor.
+16. Android and Linux use the ONNX Runtime version that Windows ML ships.
+17. The Windows part starts with a spike proving Windows ML's catalogue works
+    in the app as it is packaged today; if it cannot, DirectML through plain
+    ONNX Runtime is the fallback, with the maintainer's say.
 
 ## Still open
 
@@ -648,3 +764,17 @@ differs.
   build without network access fails, as it already does for sqlite3.
 - **Heat and battery** while a video stays open on a phone. The thermal stop
   limits it; nothing else does.
+- **Unchecked Windows engines.** A vendor engine or DirectML may name a fish
+  differently from Core ML, and Windows Update can replace a vendor engine
+  without the app changing. Accepted by the maintainer, as Core ML's GPU and
+  Neural Engine are trusted across Apple chips and OS updates.
+- **Windows ML in an unpackaged app.** Microsoft documents Windows ML mainly
+  for packaged apps; whether its catalogue works from the app as packaged
+  today, and what the Windows App SDK adds to the installer, is unproven. The
+  spike in section 2a settles it first; if it cannot be made to work, the
+  fallback is DirectML through plain ONNX Runtime, which needs the
+  maintainer's say.
+- **Windows download size.** Windows ML's package carries DirectML and its
+  own library besides ONNX Runtime, so the Windows app grows more than the
+  others (tens of megabytes; an estimate), and a vendor engine adds its own
+  download inside the diver's Download.
