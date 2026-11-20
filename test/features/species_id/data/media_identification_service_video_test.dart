@@ -22,6 +22,7 @@ import 'package:submersion/features/species_id/domain/services/video_tracker.dar
 import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 
 import '../../../helpers/temp_dir.dart';
+import '../../../helpers/wait_until.dart';
 import 'fake_vision_engine.dart';
 import 'media_identification_service_fixtures.dart';
 
@@ -829,17 +830,8 @@ void main() {
   });
 }
 
-/// Waits for [done], giving the scan's real file writes time to finish: up
-/// to [budget] of wall-clock time, not a count of event-loop turns, since
-/// CI runs many test files in one isolate and a loaded runner can need more
-/// turns than any fixed number (issue #4796).
-Future<void> _until(
-  bool Function() done, {
-  Duration budget = const Duration(seconds: 10),
-}) async {
-  final waited = Stopwatch()..start();
-  while (!done() && waited.elapsed < budget) {
-    await Future<void>.delayed(const Duration(milliseconds: 1));
-  }
-  expect(done(), isTrue, reason: 'not done after $budget');
-}
+/// Waits for [done] on the shared wall-clock budget, not a count of
+/// event-loop turns: the scan's real file writes can need more turns than
+/// any fixed number when CI runs many test files in one isolate (issue
+/// #4796). Every wait here is behind a gate, so the state holds still.
+Future<void> _until(bool Function() done) => waitUntil(() async => done());
