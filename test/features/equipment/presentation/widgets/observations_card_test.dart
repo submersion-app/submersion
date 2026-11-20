@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/features/equipment/presentation/widgets/observation_near_miss_action.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_check_ins_sitting.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -37,6 +41,8 @@ void main() {
     WidgetTester tester,
     List<EquipmentObservation> observations, {
     Map<String, List<MediaItem>> photos = const {},
+    Widget? card,
+    bool settle = true,
   }) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -64,14 +70,94 @@ void main() {
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: SingleChildScrollView(
-              child: ObservationsCard(equipment: reg),
+              child: card ?? ObservationsCard(equipment: reg),
             ),
           ),
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    // A progress bar waiting for a read never settles.
+    settle ? await tester.pumpAndSettle() : await tester.pump();
   }
+
+  // Where the item page edits in place (issue #4527, phase 3).
+  group('on a page that edits in place', () {
+    final issue = EquipmentObservation(
+      id: 'o1',
+      equipmentId: 'reg',
+      observedAt: DateTime.utc(2026, 3, 1),
+      status: ObservationStatus.issue,
+      issueTags: const [ObservationTag.freeFlow],
+      createdAt: DateTime.utc(2026),
+      updatedAt: DateTime.utc(2026),
+    );
+
+    testWidgets('locked, it offers no add, edit or delete', (tester) async {
+      await pump(tester, [
+        issue,
+      ], card: ObservationsCard(equipment: reg, readOnly: true));
+
+      expect(find.byIcon(Icons.add), findsNothing);
+      expect(find.byIcon(Icons.edit_outlined), findsNothing);
+      expect(find.byIcon(Icons.delete_outline), findsNothing);
+    });
+
+    testWidgets(
+      'in a sitting nothing is offered until the check-ins are read',
+      (tester) async {
+        final session = EditSession(reg);
+        addTearDown(session.dispose);
+        await pump(
+          tester,
+          [issue],
+          card: ObservationsCard(equipment: reg, editing: session),
+          settle: false,
+        );
+
+        expect(find.byType(LinearProgressIndicator), findsOneWidget);
+        expect(find.byIcon(Icons.add), findsNothing);
+        expect(find.byIcon(Icons.edit_outlined), findsNothing);
+      },
+    );
+
+    testWidgets('in a sitting a delete asks nothing and is held', (
+      tester,
+    ) async {
+      final session = EditSession(reg);
+      addTearDown(session.dispose);
+      // No database here: the list starts empty and is given the row.
+      gearItemCheckInsList
+        ..loadNone(session)
+        ..set(session, [HeldCheckIn(observation: issue)]);
+      await pump(tester, [
+        issue,
+      ], card: ObservationsCard(equipment: reg, editing: session));
+
+      await tester.tap(find.byIcon(Icons.delete_outline));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(gearItemCheckInsList.current(session), isEmpty);
+      expect(repo.deleted, isEmpty);
+    });
+
+    testWidgets('a check-in held in the sitting shows the changed dot and no '
+        'near-miss', (tester) async {
+      final session = EditSession(reg);
+      addTearDown(session.dispose);
+      gearItemCheckInsList
+        ..loadNone(session)
+        ..set(session, [HeldCheckIn(observation: issue)]);
+      await pump(
+        tester,
+        const [],
+        card: ObservationsCard(equipment: reg, shown: session, readOnly: true),
+      );
+
+      expect(find.byType(RecordChangedDot), findsOneWidget);
+      expect(find.byType(ObservationNearMissAction), findsNothing);
+    });
+  });
 
   testWidgets('row shows a strip only when the check-in has photos', (
     tester,

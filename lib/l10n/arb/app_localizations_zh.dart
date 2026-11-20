@@ -15825,6 +15825,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_serviceClocks_remove => '移除';
 
   @override
+  String equipment_serviceClocks_remindersOwn(String days) {
+    return '到期前提醒：$days';
+  }
+
+  @override
+  String get equipment_serviceClocks_remindersOff => '此装备不提醒';
+
+  @override
   String get equipment_serviceClocks_paused => '已暂停';
 
   @override
@@ -27637,14 +27645,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_photosVideos_title => '照片与视频';
 
   @override
-  String get settings_speciesId_title => '海洋生物识别';
+  String get settings_speciesId_title => '物种识别';
 
   @override
-  String get settings_speciesId_entrySubtitle => '在照片和视频中查找鱼类并建议物种';
+  String get settings_speciesId_entrySubtitle => '为照片和视频中的生物建议物种';
 
   @override
-  String get settings_speciesId_intro =>
-      '在照片和视频中查找鱼类并建议物种。在此设备上运行，照片和视频绝不会离开设备。';
+  String get speciesId_downloadPrompt_title => '识别照片和视频中的物种';
+
+  @override
+  String get speciesId_downloadPrompt_subtitle => '下载物种识别模型以获取建议';
+
+  @override
+  String get speciesId_downloadPrompt_dismiss => '不再显示';
+
+  @override
+  String get settings_speciesId_intro => '为照片和视频中的生物建议物种。在此设备上运行，照片和视频绝不会离开设备。';
 
   @override
   String get settings_speciesId_model => '模型';
@@ -27715,7 +27731,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_speciesId_needsAppUpdate => '此模型需要更新版本的 Submersion。';
 
   @override
-  String get settings_speciesId_toggle => '打开照片或视频时识别鱼类';
+  String get settings_speciesId_toggle => '打开照片或视频时识别物种';
 
   @override
   String get settings_speciesId_autoApply => '自动标记有把握的匹配';
@@ -27741,7 +27757,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_speciesId_sightingStraightAway => '立即';
 
   @override
-  String get settings_speciesId_levelTitle => '应用需要多确定才为鱼命名';
+  String get settings_speciesId_levelTitle => '建议物种的积极程度';
 
   @override
   String get settings_speciesId_levelSurer => '更稳妥';
@@ -27797,7 +27813,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_speciesId_credits => '致谢与许可';
 
   @override
-  String get settings_speciesId_unsupported => '此设备暂不支持海洋生物识别。';
+  String get settings_speciesId_unsupported => '此设备暂不支持物种识别。';
 
   @override
   String get settings_speciesId_notEligible => '此设备内存不足，无法运行该模型。';
@@ -34950,6 +34966,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_overview_plan_notSet => '未设置';
 
   @override
+  String trips_overview_plan_runtime(int minutes) {
+    return '每次潜水 $minutes 分钟';
+  }
+
+  @override
   String get trips_detail_sectionTitle_vessel => '船只';
 
   @override
@@ -36882,6 +36903,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gpsTrack_editCard_trim => '裁剪';
+
+  @override
+  String get gpsTrack_editCard_nameHint => '轨迹名称';
 
   @override
   String get gpsTrack_action_trim => '裁剪...';
@@ -58494,6 +58518,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_photos_sourcesHeader => '照片来源';
 
   @override
+  String get settings_photos_speciesHeader => '物种';
+
+  @override
   String get settings_photos_library => '照片库和文件';
 
   @override
@@ -59849,7 +59876,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get changeLog_label_mediaRepair => '已修复媒体链接';
 
   @override
-  String get changeLog_label_marineLifeId => '海洋生物识别';
+  String get changeLog_label_marineLifeId => '物种识别';
 
   @override
   String get changeLog_label_speciesReview => '物种审核';

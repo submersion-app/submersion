@@ -16493,6 +16493,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_serviceClocks_remove => 'Verwijderen';
 
   @override
+  String equipment_serviceClocks_remindersOwn(String days) {
+    return 'Herinneringen vóór de vervaldatum: $days';
+  }
+
+  @override
+  String get equipment_serviceClocks_remindersOff =>
+      'Geen herinneringen voor dit item';
+
+  @override
   String get equipment_serviceClocks_paused => 'Gepauzeerd';
 
   @override
@@ -29106,15 +29115,26 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_photosVideos_title => 'Foto\'s en video\'s';
 
   @override
-  String get settings_speciesId_title => 'Herkenning van zeeleven';
+  String get settings_speciesId_title => 'Soortherkenning';
 
   @override
   String get settings_speciesId_entrySubtitle =>
-      'Vind vissen in je foto\'s en video\'s en stel de soort voor';
+      'Stel de soorten in je foto\'s en video\'s voor';
+
+  @override
+  String get speciesId_downloadPrompt_title =>
+      'Herken de soorten in je foto\'s en video\'s';
+
+  @override
+  String get speciesId_downloadPrompt_subtitle =>
+      'Download het model voor soortherkenning om suggesties te krijgen';
+
+  @override
+  String get speciesId_downloadPrompt_dismiss => 'Niet meer tonen';
 
   @override
   String get settings_speciesId_intro =>
-      'Vindt vissen in je foto\'s en video\'s en stelt voor welke soort het is. Draait op dit apparaat. Je foto\'s en video\'s verlaten het nooit.';
+      'Stelt de soorten in je foto\'s en video\'s voor. Draait op dit apparaat. Je foto\'s en video\'s verlaten het nooit.';
 
   @override
   String get settings_speciesId_model => 'Model';
@@ -29190,7 +29210,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_speciesId_toggle =>
-      'Vissen herkennen als ik een foto of video open';
+      'Soorten herkennen als ik een foto of video open';
 
   @override
   String get settings_speciesId_autoApply =>
@@ -29220,7 +29240,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_speciesId_levelTitle =>
-      'Hoe zeker de app moet zijn om een vis te benoemen';
+      'Hoe snel een soort wordt voorgesteld';
 
   @override
   String get settings_speciesId_levelSurer => 'Zekerder';
@@ -29278,7 +29298,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_speciesId_unsupported =>
-      'Herkenning van zeeleven is nog niet beschikbaar op dit apparaat.';
+      'Soortherkenning is nog niet beschikbaar op dit apparaat.';
 
   @override
   String get settings_speciesId_notEligible =>
@@ -36884,6 +36904,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_overview_plan_notSet => 'Niet ingesteld';
 
   @override
+  String trips_overview_plan_runtime(int minutes) {
+    return '$minutes min per duik';
+  }
+
+  @override
   String get trips_detail_sectionTitle_vessel => 'Schip';
 
   @override
@@ -38959,6 +38984,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get gpsTrack_editCard_trim => 'Bijsnijden';
+
+  @override
+  String get gpsTrack_editCard_nameHint => 'Naam van de track';
 
   @override
   String get gpsTrack_action_trim => 'Bijsnijden...';
@@ -61909,6 +61937,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_photos_sourcesHeader => 'Waar foto\'s vandaan komen';
 
   @override
+  String get settings_photos_speciesHeader => 'Soorten';
+
+  @override
   String get settings_photos_library => 'Fotobibliotheek en bestanden';
 
   @override
@@ -63357,7 +63388,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get changeLog_label_mediaRepair => 'Medialinks hersteld';
 
   @override
-  String get changeLog_label_marineLifeId => 'Herkenning van zeeleven';
+  String get changeLog_label_marineLifeId => 'Soortherkenning';
 
   @override
   String get changeLog_label_speciesReview => 'Soortcontrole';

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/presentation/equipment_tag_navigation.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -11,14 +12,18 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// to that tag, as a dive's tag chip opens the dive list. Renders nothing
 /// for an item without tags, so the header keeps its height.
 class EquipmentTagChips extends ConsumerWidget {
-  const EquipmentTagChips({super.key, required this.equipmentId});
+  const EquipmentTagChips({super.key, required this.equipmentId, this.tags});
 
   final String equipmentId;
 
+  /// The tags to show in place of the stored ones: those an unlocked page's
+  /// sitting holds (issue #4527, phase 3).
+  final List<Tag>? tags;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tags =
-        ref.watch(tagsForEquipmentProvider(equipmentId)).value ?? const [];
+    final stored = ref.watch(tagsForEquipmentProvider(equipmentId)).value;
+    final tags = this.tags ?? stored ?? const <Tag>[];
     if (tags.isEmpty) return const SizedBox.shrink();
 
     return Padding(

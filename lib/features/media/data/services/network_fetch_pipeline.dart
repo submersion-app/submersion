@@ -59,6 +59,7 @@ class NetworkInsertRequest {
     this.siteId,
     this.equipmentId,
     this.observationId,
+    this.id,
   }) : assert(
          [diveId, siteId, equipmentId].where((id) => id != null).length == 1,
          'exactly one of diveId / siteId / equipmentId',
@@ -71,6 +72,21 @@ class NetworkInsertRequest {
   /// A gear photo's item and check-in (issue #3355).
   final String? equipmentId;
   final String? observationId;
+
+  /// The id the row is written under; a fresh one when null. A sitting that
+  /// holds the request until Save sets it (issue #4527), so the photo it
+  /// draws meanwhile is the row Save writes.
+  final String? id;
+
+  /// This request, written under [id].
+  NetworkInsertRequest withId(String id) => NetworkInsertRequest(
+    media: media,
+    diveId: diveId,
+    siteId: siteId,
+    equipmentId: equipmentId,
+    observationId: observationId,
+    id: id,
+  );
 }
 
 /// Metadata fetch and row insert for HTTP(S) media, as two separate calls.
@@ -159,7 +175,7 @@ class NetworkFetchPipeline {
       final media = request.media;
       final entry = media.entry;
       final result = media.result;
-      final id = _uuid.v4();
+      final id = request.id ?? _uuid.v4();
       await _db
           .into(_db.media)
           .insert(

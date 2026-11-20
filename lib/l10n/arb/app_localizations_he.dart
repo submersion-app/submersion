@@ -16257,6 +16257,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_serviceClocks_remove => 'הסרה';
 
   @override
+  String equipment_serviceClocks_remindersOwn(String days) {
+    return 'תזכורות לפני מועד השירות: $days';
+  }
+
+  @override
+  String get equipment_serviceClocks_remindersOff => 'אין תזכורות לפריט זה';
+
+  @override
   String get equipment_serviceClocks_paused => 'מושהה';
 
   @override
@@ -28566,15 +28574,26 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_photosVideos_title => 'תמונות וסרטונים';
 
   @override
-  String get settings_speciesId_title => 'זיהוי חיים ימיים';
+  String get settings_speciesId_title => 'זיהוי מינים';
 
   @override
   String get settings_speciesId_entrySubtitle =>
-      'מציאת דגים בתמונות ובסרטונים שלך והצעת המין';
+      'הצעת המינים בתמונות ובסרטונים שלך';
+
+  @override
+  String get speciesId_downloadPrompt_title =>
+      'זיהוי המינים בתמונות ובסרטונים שלך';
+
+  @override
+  String get speciesId_downloadPrompt_subtitle =>
+      'יש להוריד את מודל זיהוי המינים כדי לקבל הצעות';
+
+  @override
+  String get speciesId_downloadPrompt_dismiss => 'לא להציג שוב';
 
   @override
   String get settings_speciesId_intro =>
-      'מוצא דגים בתמונות ובסרטונים שלך ומציע לאיזה מין הם שייכים. פועל במכשיר הזה. התמונות והסרטונים שלך לא יוצאים ממנו לעולם.';
+      'מציע את המינים בתמונות ובסרטונים שלך. פועל במכשיר הזה. התמונות והסרטונים שלך לא יוצאים ממנו לעולם.';
 
   @override
   String get settings_speciesId_model => 'מודל';
@@ -28649,7 +28668,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_speciesId_toggle =>
-      'זיהוי דגים כשאני פותח תמונה או סרטון';
+      'זיהוי מינים כשאני פותח תמונה או סרטון';
 
   @override
   String get settings_speciesId_autoApply => 'תיוג אוטומטי של התאמות ודאיות';
@@ -28676,8 +28695,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_speciesId_sightingStraightAway => 'מיד';
 
   @override
-  String get settings_speciesId_levelTitle =>
-      'עד כמה האפליקציה צריכה להיות בטוחה כדי לתת שם לדג';
+  String get settings_speciesId_levelTitle => 'באיזו קלות להציע מין';
 
   @override
   String get settings_speciesId_levelSurer => 'בטוח יותר';
@@ -28735,7 +28753,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_speciesId_unsupported =>
-      'זיהוי חיים ימיים עדיין לא זמין במכשיר הזה.';
+      'זיהוי מינים עדיין לא זמין במכשיר הזה.';
 
   @override
   String get settings_speciesId_notEligible =>
@@ -36228,6 +36246,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_overview_plan_notSet => 'לא הוגדר';
 
   @override
+  String trips_overview_plan_runtime(int minutes) {
+    return '$minutes דק׳ לצלילה';
+  }
+
+  @override
   String get trips_detail_sectionTitle_vessel => 'ספינה';
 
   @override
@@ -38268,6 +38291,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get gpsTrack_editCard_trim => 'חיתוך';
+
+  @override
+  String get gpsTrack_editCard_nameHint => 'שם המסלול';
 
   @override
   String get gpsTrack_action_trim => 'חיתוך...';
@@ -60994,6 +61020,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_photos_sourcesHeader => 'מאיפה מגיעות התמונות';
 
   @override
+  String get settings_photos_speciesHeader => 'מינים';
+
+  @override
   String get settings_photos_library => 'ספריית התמונות וקבצים';
 
   @override
@@ -62422,7 +62451,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get changeLog_label_mediaRepair => 'קישורי מדיה תוקנו';
 
   @override
-  String get changeLog_label_marineLifeId => 'זיהוי חיים ימיים';
+  String get changeLog_label_marineLifeId => 'זיהוי מינים';
 
   @override
   String get changeLog_label_speciesReview => 'בדיקת מינים';

@@ -77,8 +77,14 @@ class SelectableListScope extends StatelessWidget {
             // changes. A held Escape's repeats are kept here: they are the
             // press that left selection mode, not a new one asking to
             // cancel.
+            //
+            // Never a Tab stop: the node is here only to hear the keys, and
+            // as a stop it was a blank one spanning the whole list, which
+            // reads as focus lost (#4777). Autofocus and the keys still
+            // reach it.
             child: Focus(
               autofocus: true,
+              skipTraversal: true,
               onKeyEvent: (_, event) {
                 if (event.logicalKey != LogicalKeyboardKey.escape) {
                   return KeyEventResult.ignored;

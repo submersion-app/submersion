@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_itinerary_sitting.dart';
 import 'package:submersion/features/trips/domain/services/trip_dive_days.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
@@ -20,10 +21,15 @@ class TripItineraryGenerateButton extends ConsumerStatefulWidget {
   final Trip trip;
   final List<ItineraryDay> days;
 
+  /// Takes the missing days in place of writing them: a trip page that
+  /// edits in place holds them in its sitting until Save (issue #4527).
+  final ValueChanged<List<ItineraryDay>>? hold;
+
   const TripItineraryGenerateButton({
     super.key,
     required this.trip,
     required this.days,
+    this.hold,
   });
 
   @override
@@ -47,20 +53,18 @@ class _TripItineraryGenerateButtonState
     ).any((d) => !covered.contains(d));
   }
 
-  List<ItineraryDay> _missing() {
-    final covered = _covered();
-    return ItineraryDay.generateForTrip(
-      tripId: widget.trip.id,
-      startDate: widget.trip.startDate,
-      endDate: widget.trip.endDate,
-      tripType: widget.trip.tripType,
-    ).where((d) => !covered.contains(tripDay(d.date))).toList();
-  }
+  List<ItineraryDay> _missing() =>
+      missingItineraryDays(widget.days, widget.trip);
 
   Future<void> _generate() async {
     // A second tap while the first save is in flight would insert the days
     // twice: the table has no (trip, date) uniqueness.
     if (_saving) return;
+    final hold = widget.hold;
+    if (hold != null) {
+      hold(_missing());
+      return;
+    }
     setState(() => _saving = true);
     final tripId = widget.trip.id;
     try {

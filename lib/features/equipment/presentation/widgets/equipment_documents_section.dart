@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_media_sitting.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/equipment_media_providers.dart';
@@ -17,32 +21,72 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// [SiteMediaSection]: it reaches the platform opener and the PDF viewer, so
 /// keeping it out leaves this widget a pure function of its provider and
 /// its callback.
+///
+/// Where the item's page edits in place (issue #4527, phase 3), it offers
+/// no remove while locked ([readOnly]); in the page's sitting ([editing]) a
+/// remove asks nothing and is held until Save, and a closed card shows what
+/// a sitting holds ([shown]).
 class EquipmentDocumentsSection extends ConsumerWidget {
   final String equipmentId;
 
   /// Routes a tapped document (PDF viewer, or the platform opener).
   final void Function(MediaItem)? onOpenDocument;
 
+  /// The sitting removes are held in: the Legacy files card's editor.
+  final EditSession<EquipmentItem>? editing;
+
+  /// The sitting whose removes a closed card shows.
+  final EditSession<EquipmentItem>? shown;
+
+  /// Offers no remove: the page edits in place and is locked.
+  final bool readOnly;
+
   const EquipmentDocumentsSection({
     super.key,
     required this.equipmentId,
     this.onOpenDocument,
+    this.editing,
+    this.shown,
+    this.readOnly = false,
   });
+
+  /// Whether a remove may be offered: not on a locked page, and in a
+  /// sitting only in the open card.
+  bool get _canAct => !readOnly && (shown == null || editing != null);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final sitting = editing ?? shown;
+    if (sitting == null) return _build(context, ref, null);
+    return ListenableBuilder(
+      listenable: sitting,
+      builder: (context, _) => _build(context, ref, sitting),
+    );
+  }
+
+  Widget _build(
+    BuildContext context,
+    WidgetRef ref,
+    EditSession<EquipmentItem>? sitting,
+  ) {
     // Gear photos (issue #3355) belong to the Photos card and the check-ins;
     // what is left here is the paperwork Documents could not take.
     final documentsAsync = ref.watch(mediaForEquipmentProvider(equipmentId));
-    final leftovers = [
+    final stored = [
       for (final m in documentsAsync.value ?? const <MediaItem>[])
         if (!m.isGearPhoto) m,
     ];
+    final leftovers = sitting == null
+        ? stored
+        : legacyFilesInSitting(sitting, stored);
     // Nothing left behind, or not known yet: no card at all. Almost every
     // item has nothing linked, so a card shown while loading would only
     // flash and vanish.
     final unknown = !documentsAsync.hasValue && !documentsAsync.hasError;
-    if (unknown || (documentsAsync.hasValue && leftovers.isEmpty)) {
+    // A card the sitting emptied stays while open, to say so at Save.
+    if (unknown ||
+        (documentsAsync.hasValue && stored.isEmpty) ||
+        (documentsAsync.hasValue && leftovers.isEmpty && editing == null)) {
       return const SizedBox.shrink();
     }
 
@@ -65,6 +109,9 @@ class EquipmentDocumentsSection extends ConsumerWidget {
                     context.l10n.equipment_documents_linkedTitle,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
+                ),
+                RecordCardPencil(
+                  cardTitle: context.l10n.equipment_documents_linkedTitle,
                 ),
               ],
             ),
@@ -118,11 +165,20 @@ class EquipmentDocumentsSection extends ConsumerWidget {
       // Null, not a no-op closure: a non-null onTap gives the tile ripple
       // feedback and a tap target it cannot honour when no opener was wired.
       onTap: onOpenDocument == null ? null : () => onOpenDocument!(item),
-      trailing: IconButton(
-        icon: const Icon(Icons.close),
-        tooltip: context.l10n.common_action_remove,
-        onPressed: () => _confirmRemove(context, ref, item),
-      ),
+      trailing: !_canAct
+          ? null
+          : IconButton(
+              icon: const Icon(Icons.close),
+              tooltip: context.l10n.common_action_remove,
+              onPressed: switch (editing) {
+                // In a sitting a remove asks nothing: Cancel brings it back.
+                final session? => () => unlinkLegacyFileInSitting(
+                  session,
+                  item.id,
+                ),
+                null => () => _confirmRemove(context, ref, item),
+              },
+            ),
     );
   }
 

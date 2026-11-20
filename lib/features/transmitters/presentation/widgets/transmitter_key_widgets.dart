@@ -83,7 +83,9 @@ Future<List<SlotComputer>> _slotComputersOf(
 /// transmitter, after one confirmation that counts every tank they match.
 /// Where a key's serial was downloaded on a computer whose file-imported dives
 /// carry no serial, the dialog also offers to match those by slot (#4347).
-Future<void> applyTransmitterSetupToExistingDives(
+/// Whether anything was asked to be written: false when there was nothing
+/// to fill or the diver cancelled.
+Future<bool> applyTransmitterSetupToExistingDives(
   BuildContext context,
   WidgetRef ref,
   List<Transmitter> keys,
@@ -108,12 +110,12 @@ Future<void> applyTransmitterSetupToExistingDives(
       offers.add((key: key, computer: computer));
     }
   }
-  if (!context.mounted) return;
+  if (!context.mounted) return false;
   if (tanks == 0 && offers.isEmpty) {
     messenger.showSnackBar(
       SnackBar(content: Text(l10n.transmitters_apply_nothing_to_fill)),
     );
-    return;
+    return false;
   }
   final slotTankIds = await showDialog<Map<String, List<String>>>(
     context: context,
@@ -122,7 +124,7 @@ Future<void> applyTransmitterSetupToExistingDives(
       slotOffers: offers,
     ),
   );
-  if (slotTankIds == null) return;
+  if (slotTankIds == null) return false;
   try {
     var tanksDone = 0;
     var divesDone = 0;
@@ -144,4 +146,6 @@ Future<void> applyTransmitterSetupToExistingDives(
       SnackBar(content: Text('${l10n.common_label_error}: $e')),
     );
   }
+  // A failure part way may have filled some dives: they are read again.
+  return true;
 }

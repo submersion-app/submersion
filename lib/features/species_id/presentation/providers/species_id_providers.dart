@@ -134,28 +134,42 @@ final sightingTimingProvider =
       (ref) => SightingTimingNotifier.unstored(SightingTiming.onConfirm),
     );
 
-/// How sure the app must be before it names a fish (issue #4721). Per
-/// device, Surer by default; an id this version does not know reads as
-/// Surer and is kept until another level is chosen.
+/// How readily the app suggests a species (issue #4721). Per device,
+/// [NamingLevel.byDefault] until the diver picks one (issue #4789); an id
+/// this version does not know reads as Surer and is kept until another
+/// level is chosen.
 class NamingLevelNotifier extends StateNotifier<NamingLevel>
     with SerialPreferenceWrites {
   NamingLevelNotifier(SharedPreferences prefs)
+    : this._stored(prefs, prefs.getString(SettingsKeys.marineLifeNamingLevel));
+
+  NamingLevelNotifier._stored(SharedPreferences prefs, String? id)
     : _prefs = prefs,
+      _picked = id != null,
       super(
-        NamingLevel.fromId(
-              prefs.getString(SettingsKeys.marineLifeNamingLevel),
-            ) ??
-            NamingLevel.surer,
+        id == null
+            ? NamingLevel.byDefault
+            : NamingLevel.fromId(id) ?? NamingLevel.surer,
       );
 
   /// Fixed state with nothing behind it, as
-  /// [DeviceBadgeToggleNotifier.unstored].
-  NamingLevelNotifier.unstored(super.level) : _prefs = null;
+  /// [DeviceBadgeToggleNotifier.unstored]. [picked] says whether [level]
+  /// stands for a level the diver chose.
+  NamingLevelNotifier.unstored(super.level, {required bool picked})
+    : _prefs = null,
+      _picked = picked;
 
   final SharedPreferences? _prefs;
+  bool _picked;
+
+  /// Whether the diver chose the level, rather than it being the default
+  /// (issue #4789). It only turns true as the level itself changes, so a
+  /// widget watching the level rebuilds with it.
+  bool get picked => _picked;
 
   Future<void> setLevel(NamingLevel level) {
     if (state == level) return Future<void>.value();
+    _picked = true;
     state = level;
     final prefs = _prefs;
     if (prefs == null) return Future<void>.value();
@@ -165,11 +179,12 @@ class NamingLevelNotifier extends StateNotifier<NamingLevel>
   }
 }
 
-/// Surer, with no storage behind it; `rootProviderOverrides` gives it the
-/// stored preference.
+/// The default level, unpicked, with no storage behind it;
+/// `rootProviderOverrides` gives it the stored preference.
 final namingLevelNotifierProvider =
     StateNotifierProvider<NamingLevelNotifier, NamingLevel>(
-      (ref) => NamingLevelNotifier.unstored(NamingLevel.surer),
+      (ref) =>
+          NamingLevelNotifier.unstored(NamingLevel.byDefault, picked: false),
     );
 
 /// The level the installed pack names at for the diver's choice, or null

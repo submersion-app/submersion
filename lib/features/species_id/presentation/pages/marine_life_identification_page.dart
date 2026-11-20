@@ -5,6 +5,7 @@ import 'package:submersion/core/utils/byte_format.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_section_helpers.dart';
 import 'package:submersion/features/species_id/data/pack/species_pack_downloader.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
+import 'package:submersion/features/species_id/presentation/providers/species_download_prompt_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_pack_controller.dart';
 import 'package:submersion/features/species_id/presentation/widgets/naming_level_section.dart';
@@ -234,6 +235,12 @@ class _MarineLifeIdentificationPageState
 
   Future<void> _confirmRemove(BuildContext context, int bytes) async {
     final l10n = context.l10n;
+    // Read before the dialog: the page can go while it is up (the pane
+    // rebuilt under it), and a removal the diver confirms still runs.
+    final controller = ref.read(speciesPackControllerProvider.notifier);
+    final offer = ref.read(
+      speciesDownloadPromptDismissedNotifierProvider.notifier,
+    );
     final go = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -255,7 +262,10 @@ class _MarineLifeIdentificationPageState
       ),
     );
     if (go ?? false) {
-      await ref.read(speciesPackControllerProvider.notifier).remove();
+      await controller.remove();
+      // Removed on purpose: the app stops offering it (issue #4773). Written
+      // after the removal, so a failed preference write cannot hold it up.
+      await offer.setEnabled(true);
     }
   }
 

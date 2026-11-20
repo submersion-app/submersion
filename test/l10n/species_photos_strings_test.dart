@@ -18,7 +18,11 @@ void main() {
     expect(l10n.media_species_unnamedFishLocked, 'Unnamed fish');
     expect(
       l10n.settings_speciesId_toggle,
-      'Identify fish when I open a photo or video',
+      'Identify species when I open a photo or video',
+    );
+    expect(
+      l10n.settings_speciesId_levelTitle,
+      'How readily to suggest a species',
     );
     expect(l10n.marineLife_tagPicker_diveLabel(101), 'Dive 101');
   });

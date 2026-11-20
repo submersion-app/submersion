@@ -52,6 +52,9 @@ void main() {
     // Equipment card (issue #4527).
     'lib/features/dive_log/presentation/widgets/save_gear_as_set_dialog.dart':
         'MarkdownNotesField(',
+    // A trip's Notes card and a day's note edited in place (issue #4527).
+    'lib/features/trips/presentation/editing/trip_overview_card_editors.dart':
+        'MarkdownNotesField(',
     // A site's Description and Notes cards edited in place (issue #4527).
     'lib/features/dive_sites/presentation/editing/site_markdown_card_editor.dart':
         'MarkdownNotesField(',
@@ -68,7 +71,13 @@ void main() {
         'MarkdownNotesField(',
     'lib/features/documents/presentation/pages/document_edit_page.dart':
         'MarkdownNotesField(',
+    // A gear item's Notes card edited in place (issue #4527).
+    'lib/features/equipment/presentation/editing/gear_item_edit_cards.dart':
+        'MarkdownNotesField(',
     'lib/features/equipment/presentation/pages/equipment_edit_page.dart':
+        'MarkdownNotesField(',
+    // An equipment set's description edited in place (issue #4527).
+    'lib/features/equipment/presentation/editing/equipment_set_card_editors.dart':
         'MarkdownNotesField(',
     'lib/features/equipment/presentation/pages/equipment_set_edit_page.dart':
         'MarkdownNotesField(',
@@ -111,9 +120,9 @@ void main() {
     'lib/features/dive_log/presentation/widgets/dive_detail/dive_detail_text_sections.dart',
     'lib/features/dive_sites/presentation/pages/site_detail_page.dart',
     'lib/features/documents/presentation/widgets/document_details_panel.dart',
-    'lib/features/equipment/presentation/pages/equipment_detail_page.dart',
+    'lib/features/equipment/presentation/pages/equipment_detail_page_sections.dart',
     'lib/features/equipment/presentation/pages/equipment_location_detail_page.dart',
-    'lib/features/equipment/presentation/pages/equipment_set_detail_page.dart',
+    'lib/features/equipment/presentation/pages/equipment_set_detail_page_sections.dart',
     'lib/features/marine_life/presentation/pages/species_detail_page.dart',
     'lib/features/safety/presentation/pages/emergency_card_page.dart',
     'lib/features/shared_library/presentation/pages/connect_shared_library_page.dart',

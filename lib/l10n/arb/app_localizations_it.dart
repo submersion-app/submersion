@@ -16594,6 +16594,15 @@ class AppLocalizationsIt extends AppLocalizations {
   String get equipment_serviceClocks_remove => 'Rimuovi';
 
   @override
+  String equipment_serviceClocks_remindersOwn(String days) {
+    return 'Promemoria prima della scadenza: $days';
+  }
+
+  @override
+  String get equipment_serviceClocks_remindersOff =>
+      'Nessun promemoria per questa attrezzatura';
+
+  @override
   String get equipment_serviceClocks_paused => 'In pausa';
 
   @override
@@ -29307,15 +29316,26 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_photosVideos_title => 'Foto e video';
 
   @override
-  String get settings_speciesId_title => 'Identificazione della vita marina';
+  String get settings_speciesId_title => 'Identificazione delle specie';
 
   @override
   String get settings_speciesId_entrySubtitle =>
-      'Trova i pesci nelle tue foto e nei tuoi video e suggerisci la specie';
+      'Suggerisci le specie nelle tue foto e nei tuoi video';
+
+  @override
+  String get speciesId_downloadPrompt_title =>
+      'Identifica le specie nelle tue foto e nei tuoi video';
+
+  @override
+  String get speciesId_downloadPrompt_subtitle =>
+      'Scarica il modello di identificazione delle specie per ricevere suggerimenti';
+
+  @override
+  String get speciesId_downloadPrompt_dismiss => 'Non mostrare più';
 
   @override
   String get settings_speciesId_intro =>
-      'Trova i pesci nelle tue foto e nei tuoi video e suggerisce la specie. Funziona su questo dispositivo. Le tue foto e i tuoi video non lo lasciano mai.';
+      'Suggerisce le specie nelle tue foto e nei tuoi video. Funziona su questo dispositivo. Le tue foto e i tuoi video non lo lasciano mai.';
 
   @override
   String get settings_speciesId_model => 'Modello';
@@ -29391,7 +29411,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_speciesId_toggle =>
-      'Identifica i pesci quando apro una foto o un video';
+      'Identifica le specie quando apro una foto o un video';
 
   @override
   String get settings_speciesId_autoApply =>
@@ -29421,7 +29441,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_speciesId_levelTitle =>
-      'Quanto deve essere sicura l\'app per dare un nome a un pesce';
+      'Con quanta facilità suggerire una specie';
 
   @override
   String get settings_speciesId_levelSurer => 'Più sicuro';
@@ -29481,7 +29501,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_speciesId_unsupported =>
-      'L\'identificazione della vita marina non è ancora disponibile su questo dispositivo.';
+      'L\'identificazione delle specie non è ancora disponibile su questo dispositivo.';
 
   @override
   String get settings_speciesId_notEligible =>
@@ -37143,6 +37163,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get trips_overview_plan_notSet => 'Non impostato';
 
   @override
+  String trips_overview_plan_runtime(int minutes) {
+    return '$minutes min per immersione';
+  }
+
+  @override
   String get trips_detail_sectionTitle_vessel => 'Imbarcazione';
 
   @override
@@ -39233,6 +39258,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get gpsTrack_editCard_trim => 'Ritaglia';
+
+  @override
+  String get gpsTrack_editCard_nameHint => 'Nome della traccia';
 
   @override
   String get gpsTrack_action_trim => 'Ritaglia...';
@@ -62300,6 +62328,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_photos_sourcesHeader => 'Da dove arrivano le foto';
 
   @override
+  String get settings_photos_speciesHeader => 'Specie';
+
+  @override
   String get settings_photos_library => 'Libreria foto e file';
 
   @override
@@ -63752,8 +63783,7 @@ class AppLocalizationsIt extends AppLocalizations {
       'Collegamenti multimediali riparati';
 
   @override
-  String get changeLog_label_marineLifeId =>
-      'Identificazione della vita marina';
+  String get changeLog_label_marineLifeId => 'Identificazione delle specie';
 
   @override
   String get changeLog_label_speciesReview => 'Verifica delle specie';

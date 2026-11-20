@@ -63,6 +63,8 @@ import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blo
 import 'package:submersion/features/buddies/presentation/pages/buddy_edit_routes.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_edit_routes.dart';
 import 'package:submersion/features/courses/presentation/pages/course_edit_routes.dart';
+import 'package:submersion/features/trips/presentation/pages/trip_edit_routes.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_set_edit_routes.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_routes.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_routes.dart';
 
@@ -454,6 +456,37 @@ void main() {
     }
   });
 
+  test('the trip edit address redirects with the switch', () {
+    final route = _findRouteByName(router.configuration.routes, 'editTrip');
+    expect(route?.redirect, same(tripEditRedirect));
+    for (final name in const ['trips', 'tripDetail']) {
+      final route = _findRouteByName(router.configuration.routes, name);
+      expect(route?.onExit, same(confirmLeaveRecordSitting), reason: name);
+    }
+  });
+
+  test('the equipment set edit address redirects with the switch', () {
+    expect(
+      equipmentSetEditLocation('s1', unlockEditing: true),
+      '/equipment/sets/s1?mode=edit',
+    );
+    expect(equipmentSetEditLocation('s1', unlockEditing: false), isNull);
+    final route = _findRouteByName(
+      router.configuration.routes,
+      'editEquipmentSet',
+    );
+    expect(route?.redirect, same(equipmentSetEditRedirect));
+    // The sets pane lives under the equipment list.
+    for (final name in const [
+      'equipment',
+      'equipmentSets',
+      'equipmentSetDetail',
+    ]) {
+      final route = _findRouteByName(router.configuration.routes, name);
+      expect(route?.onExit, same(confirmLeaveRecordSitting), reason: name);
+    }
+  });
+
   // The merge address handed fewer than two sites goes back to the list
   // (issue #4527, phase 2, plan 7).
   test('the site merge address checks it was handed sites to merge', () {
@@ -464,6 +497,19 @@ void main() {
   test('leaving a site page goes through its sitting check', () {
     // A new site with something entered asks too (issue #4527, plan 6).
     for (final name in const ['sites', 'siteDetail', 'newSite']) {
+      final route = _findRouteByName(router.configuration.routes, name);
+      expect(route?.onExit, same(confirmLeaveRecordSitting), reason: name);
+    }
+  });
+
+  // A track's sitting is asked about before a `go` leaves it (issue #4527,
+  // phase 3, plan 5).
+  test('leaving a track page goes through its sitting check', () {
+    for (final name in const [
+      'gpsTrackDetail',
+      'underwaterTrackDetail',
+      'underwaterTrackAlign',
+    ]) {
       final route = _findRouteByName(router.configuration.routes, name);
       expect(route?.onExit, same(confirmLeaveRecordSitting), reason: name);
     }

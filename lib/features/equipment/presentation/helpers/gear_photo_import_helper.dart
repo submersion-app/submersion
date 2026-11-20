@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/gear_photo_providers.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
+import 'package:submersion/features/media/presentation/helpers/media_hold.dart';
 import 'package:submersion/features/media/presentation/pages/photo_picker_page.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
@@ -53,6 +54,56 @@ class GearPhotoImportHelper {
       observationId: observationId,
       selectedAssets: selectedAssets,
     );
+  }
+
+  /// Opens the photo picker for a sitting on the item (issue #4527, phase 3,
+  /// plan 6) and hands [onHold] what it would link, for a check-in
+  /// [observationId] when given: the rows are built now and written at Save.
+  /// [ignoringMediaIds] are photos the sitting has unlinked, which may be
+  /// picked again. Returns true if anything was handed over.
+  static Future<bool> holdPhotos({
+    required BuildContext context,
+    required WidgetRef ref,
+    required String equipmentId,
+    String? observationId,
+    Set<String> ignoringMediaIds = const {},
+    required MediaHoldSink onHold,
+  }) async {
+    final importService = ref.read(mediaImportServiceProvider);
+    final alreadyLinkedIds = await ref
+        .read(linkedGalleryAssetsProvider)
+        .idsOnThisDevice([
+          for (final row
+              in await ref
+                  .read(gearPhotoRepositoryProvider)
+                  .galleryLinksFor(equipmentId))
+            if (!ignoringMediaIds.contains(row.id)) row,
+        ]);
+    if (!context.mounted) return false;
+    // coverage:ignore-start
+    // showPhotoPicker drives a full-screen page tied to photo_manager and the
+    // platform photo library; not unit-testable from flutter_test. Its Files
+    // and URL tabs hand their own rows to [onHold].
+    final selectedAssets = await showPhotoPicker(
+      context: context,
+      diveStartTime: DateTime.fromMillisecondsSinceEpoch(0),
+      diveEndTime: DateTime.now().add(const Duration(days: 1)),
+      buffer: Duration.zero,
+      alreadyLinkedIds: alreadyLinkedIds,
+      target: EquipmentAttachTarget(equipmentId, observationId: observationId),
+      onHold: onHold,
+    );
+    // coverage:ignore-end
+    if (selectedAssets == null || selectedAssets.isEmpty) return false;
+    final prepared = await importService.prepareForEquipment(
+      selectedAssets: selectedAssets,
+      equipmentId: equipmentId,
+      observationId: observationId,
+      ignoringMediaIds: ignoringMediaIds,
+    );
+    if (prepared.isEmpty) return false;
+    onHold([for (final p in prepared) HeldMediaRow(p)]);
+    return true;
   }
 
   /// Links [selectedAssets] to the item, refreshes the gear photo providers

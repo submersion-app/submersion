@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_edit_routes.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/query/presentation/widgets/entity_search_action.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
@@ -33,6 +34,7 @@ import 'package:submersion/features/equipment/presentation/widgets/equipment_sum
 import 'package:submersion/features/equipment/presentation/pages/equipment_detail_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_edit_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_detail_page.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_set_edit_routes.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_list_count_provider.dart';
 import 'package:submersion/shared/widgets/section_title_toggle.dart';
@@ -132,11 +134,13 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
             },
           ),
           summaryBuilder: (context) => const EquipmentSummaryWidget(),
-          editBuilder: (context, id, onSaved, onCancel) => EquipmentEditPage(
-            equipmentId: id,
-            embedded: true,
-            onSaved: onSaved,
-            onCancel: onCancel,
+          // The item's page opened unlocked, behind phase 3's switch.
+          editBuilder: (context, id, onSaved, onCancel) => gearItemEditPane(
+            context,
+            id,
+            onSaved,
+            onCancel,
+            onDeleted: () => context.go('/equipment'),
           ),
           createBuilder: (context, onSaved, onCancel) => EquipmentEditPage(
             embedded: true,
@@ -437,11 +441,13 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
         },
       ),
       summaryBuilder: (context) => const EquipmentSummaryWidget(),
-      editBuilder: (context, id, onSaved, onCancel) => EquipmentEditPage(
-        equipmentId: id,
-        embedded: true,
-        onSaved: onSaved,
-        onCancel: onCancel,
+      // The item's page opened unlocked, behind phase 3's switch.
+      editBuilder: (context, id, onSaved, onCancel) => gearItemEditPane(
+        context,
+        id,
+        onSaved,
+        onCancel,
+        onDeleted: () => context.go('/equipment'),
       ),
       createBuilder: (context, onSaved, onCancel) => EquipmentEditPage(
         embedded: true,
@@ -469,6 +475,9 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
             toggleBuilder: _buildSectionToggle,
           ),
       detailBuilder: (context, id) => EquipmentSetDetailPage(setId: id),
+      // Behind phase 3's switch, `&mode=edit` opens the set page unlocked
+      // (issue #4527); without it the pane has no edit mode.
+      editBuilder: equipmentSetsPaneEditBuilder(),
       summaryBuilder: (context) => _buildSetsSummary(context),
       mobileDetailRoute: (id) => '/equipment/sets/$id',
       mobileCreateRoute: '/equipment/sets/new',

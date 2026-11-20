@@ -53,6 +53,7 @@ import 'package:submersion/features/pre_dive/presentation/pages/pre_dive_templat
 import 'package:submersion/features/courses/presentation/pages/course_detail_page.dart';
 import 'package:submersion/features/courses/presentation/pages/course_edit_page.dart';
 import 'package:submersion/features/courses/presentation/pages/course_edit_routes.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_set_edit_routes.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_detail_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_routes.dart';
@@ -88,6 +89,7 @@ import 'package:submersion/features/dive_sites/presentation/pages/site_match_rev
 import 'package:submersion/features/equipment/presentation/pages/equipment_list_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_detail_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_edit_page.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_edit_routes.dart';
 import 'package:submersion/features/cylinder_configs/presentation/pages/cylinder_config_edit_page.dart';
 import 'package:submersion/features/cylinder_configs/presentation/pages/cylinder_config_list_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_list_page.dart';
@@ -98,8 +100,8 @@ import 'package:submersion/features/equipment/presentation/pages/equipment_set_d
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_edit_page.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_list_page.dart';
-import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
+import 'package:submersion/features/trips/presentation/pages/trip_edit_routes.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_cylinder_board_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_gallery_page.dart';
 import 'package:submersion/features/connections/presentation/connections_links.dart';
@@ -766,6 +768,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/equipment',
             name: 'equipment',
+            // A sitting in the gear or sets pane, or on a page pushed above
+            // it, is asked about before a tab or a link goes (issue #4527).
+            onExit: confirmLeaveRecordSitting,
             pageBuilder: (context, state) => NoTransitionPage(
               key: state.pageKey,
               child: const EquipmentListPage(),
@@ -787,6 +792,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'sets',
                 name: 'equipmentSets',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => const EquipmentSetListPage(),
                 routes: [
                   GoRoute(
@@ -800,13 +806,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: ':setId',
                     name: 'equipmentSetDetail',
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) => EquipmentSetDetailPage(
                       setId: state.pathParameters['setId']!,
+                      // The old edit address opens the page unlocked
+                      // (issue #4527, phase 3).
+                      openUnlocked: state.uri.queryParameters['mode'] == 'edit',
                     ),
                     routes: [
                       GoRoute(
                         path: 'edit',
                         name: 'editEquipmentSet',
+                        // Behind phase 3's switch, the page opened unlocked.
+                        redirect: equipmentSetEditRedirect,
                         builder: (context, state) => EquipmentSetEditPage(
                           setId: state.pathParameters['setId'],
                         ),
@@ -885,13 +897,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: ':equipmentId',
                 name: 'equipmentDetail',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => EquipmentDetailPage(
                   equipmentId: state.pathParameters['equipmentId']!,
+                  openUnlocked: state.uri.queryParameters['mode'] == 'edit',
                 ),
                 routes: [
                   GoRoute(
                     path: 'edit',
                     name: 'editEquipment',
+                    // Behind phase 3's switch, the page opened unlocked.
+                    redirect: gearItemEditRedirect,
                     builder: (context, state) => EquipmentEditPage(
                       equipmentId: state.pathParameters['equipmentId'],
                     ),
@@ -1208,6 +1224,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/trips',
             name: 'trips',
+            // A trip pane's sitting asks before the list goes (issue #4527).
+            onExit: confirmLeaveRecordSitting,
             pageBuilder: (context, state) => NoTransitionPage(
               key: state.pageKey,
               // Set when openTripList pushed this list: what to put back
@@ -1230,12 +1248,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: ':tripId',
                 name: 'tripDetail',
-                builder: (context, state) =>
-                    TripDetailPage(tripId: state.pathParameters['tripId']!),
+                onExit: confirmLeaveRecordSitting,
+                builder: tripDetailRoutePage,
                 routes: [
                   GoRoute(
                     path: 'edit',
                     name: 'editTrip',
+                    // Behind phase 3's switch, the page opened unlocked.
+                    redirect: tripEditRedirect,
                     builder: (context, state) => TripEditPage(
                       tripId: state.pathParameters['tripId'],
                       initialSection: TripEditSection.fromQuery(
@@ -1455,18 +1475,21 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '$kTracksLocation/gps/:id',
             name: 'gpsTrackDetail',
+            onExit: confirmLeaveRecordSitting,
             builder: (context, state) =>
                 GpsTrackDetailPage(trackId: state.pathParameters['id']!),
           ),
           GoRoute(
             path: '$kTracksLocation/underwater/:id',
             name: 'underwaterTrackDetail',
+            onExit: confirmLeaveRecordSitting,
             builder: (context, state) =>
                 NavTrackDetailPage(trackId: state.pathParameters['id']!),
           ),
           GoRoute(
             path: '$kTracksLocation/underwater/:id/align',
             name: 'underwaterTrackAlign',
+            onExit: confirmLeaveRecordSitting,
             builder: (context, state) =>
                 NavTrackAlignPage(routeId: state.pathParameters['id']!),
           ),

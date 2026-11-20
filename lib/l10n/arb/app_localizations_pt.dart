@@ -16594,6 +16594,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get equipment_serviceClocks_remove => 'Remover';
 
   @override
+  String equipment_serviceClocks_remindersOwn(String days) {
+    return 'Lembretes antes do vencimento: $days';
+  }
+
+  @override
+  String get equipment_serviceClocks_remindersOff =>
+      'Sem lembretes para este equipamento';
+
+  @override
   String get equipment_serviceClocks_paused => 'Pausado';
 
   @override
@@ -29278,15 +29287,26 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_photosVideos_title => 'Fotos e vídeos';
 
   @override
-  String get settings_speciesId_title => 'Identificação de vida marinha';
+  String get settings_speciesId_title => 'Identificação de espécies';
 
   @override
   String get settings_speciesId_entrySubtitle =>
-      'Encontre peixes nas suas fotos e vídeos e sugira a espécie';
+      'Sugira as espécies nas suas fotos e vídeos';
+
+  @override
+  String get speciesId_downloadPrompt_title =>
+      'Identifique as espécies nas suas fotos e vídeos';
+
+  @override
+  String get speciesId_downloadPrompt_subtitle =>
+      'Baixe o modelo de identificação de espécies para receber sugestões';
+
+  @override
+  String get speciesId_downloadPrompt_dismiss => 'Não mostrar novamente';
 
   @override
   String get settings_speciesId_intro =>
-      'Encontra peixes nas suas fotos e vídeos e sugere qual é a espécie. Funciona neste dispositivo. Suas fotos e vídeos nunca saem dele.';
+      'Sugere as espécies nas suas fotos e vídeos. Funciona neste dispositivo. Suas fotos e vídeos nunca saem dele.';
 
   @override
   String get settings_speciesId_model => 'Modelo';
@@ -29362,7 +29382,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_speciesId_toggle =>
-      'Identificar peixes ao abrir uma foto ou um vídeo';
+      'Identificar espécies ao abrir uma foto ou um vídeo';
 
   @override
   String get settings_speciesId_autoApply =>
@@ -29393,7 +29413,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_speciesId_levelTitle =>
-      'Quão segura a app deve estar para nomear um peixe';
+      'Com que facilidade sugerir uma espécie';
 
   @override
   String get settings_speciesId_levelSurer => 'Mais seguro';
@@ -29452,7 +29472,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_speciesId_unsupported =>
-      'A identificação de vida marinha ainda não está disponível neste dispositivo.';
+      'A identificação de espécies ainda não está disponível neste dispositivo.';
 
   @override
   String get settings_speciesId_notEligible =>
@@ -37119,6 +37139,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get trips_overview_plan_notSet => 'Não definido';
 
   @override
+  String trips_overview_plan_runtime(int minutes) {
+    return '$minutes min por mergulho';
+  }
+
+  @override
   String get trips_detail_sectionTitle_vessel => 'Embarcação';
 
   @override
@@ -39203,6 +39228,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get gpsTrack_editCard_trim => 'Recortar';
+
+  @override
+  String get gpsTrack_editCard_nameHint => 'Nome da trilha';
 
   @override
   String get gpsTrack_action_trim => 'Recortar...';
@@ -62275,6 +62303,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_photos_sourcesHeader => 'De onde vêm as fotos';
 
   @override
+  String get settings_photos_speciesHeader => 'Espécies';
+
+  @override
   String get settings_photos_library => 'Fototeca e arquivos';
 
   @override
@@ -63728,7 +63759,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get changeLog_label_mediaRepair => 'Ligações multimédia reparadas';
 
   @override
-  String get changeLog_label_marineLifeId => 'Identificação de vida marinha';
+  String get changeLog_label_marineLifeId => 'Identificação de espécies';
 
   @override
   String get changeLog_label_speciesReview => 'Revisão de espécies';

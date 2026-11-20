@@ -12,6 +12,8 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/services/trip_dive_days.dart';
 import 'package:submersion/features/trips/domain/services/trip_gear_split.dart';
 import 'package:submersion/features/trips/domain/services/trip_story_builder.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_card_slots.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
@@ -20,6 +22,7 @@ import 'package:submersion/features/trips/presentation/widgets/trip_detail_tabs.
 import 'package:submersion/features/trips/presentation/widgets/trip_service_alert_list.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 
 /// The Prepare overview's one card (#2845): a row per thing to prepare,
 /// each a one-line summary that opens its tab. A row whose data has not
@@ -116,19 +119,7 @@ class TripOverviewSummaryCard extends ConsumerWidget {
                 : _itinerarySpans(l10n, tripStoryItinerary(trip, days)),
             onTap: () => _open(context, TripDetailTab.itinerary),
           ),
-          _Row(
-            icon: Icons.tune,
-            label: l10n.trips_overview_plan,
-            summary: [TextSpan(text: _planText(l10n))],
-            onTap:
-                onEditPlan ??
-                () => openTripEdit(
-                  context,
-                  trip.id,
-                  embedded: false,
-                  section: TripEditSection.planning,
-                ),
-          ),
+          _planRow(context, l10n),
         ],
       ),
     );
@@ -197,15 +188,34 @@ class TripOverviewSummaryCard extends ConsumerWidget {
   }
 
   /// The edit page's planning numbers.
-  String _planText(AppLocalizations l10n) {
-    final parts = [
-      if (trip.divesPerDayTarget != null)
-        l10n.trips_overview_plan_divesPerDay(trip.divesPerDayTarget!),
-      if (trip.diversSharingCylinders > 1)
-        l10n.trips_overview_plan_sharing(trip.diversSharingCylinders),
-    ];
-    return parts.isEmpty ? l10n.trips_overview_plan_notSet : parts.join(' · ');
+  /// The Plan row: what the trip plans with. Where the page edits in
+  /// place it is the Plan card (issue #4527): a tap opens it, unlocking
+  /// the page first when it is locked, as the plan's edit address does.
+  Widget _planRow(BuildContext context, AppLocalizations l10n) {
+    final slots = TripCardSlotsScope.maybeOf(context);
+    final row = _Row(
+      icon: Icons.tune,
+      label: l10n.trips_overview_plan,
+      summary: [TextSpan(text: _planText(l10n, editsInPlace: slots != null))],
+      // Locked it keeps its chevron: a tap still opens the card.
+      trailing: slots?.isUnlocked ?? false
+          ? RecordCardPencil(cardTitle: l10n.trips_overview_plan)
+          : null,
+      onTap: slots != null
+          ? () => slots.openCard(TripCardId.plan)
+          : onEditPlan ??
+                () => openTripEdit(
+                  context,
+                  trip.id,
+                  embedded: false,
+                  section: TripEditSection.planning,
+                ),
+    );
+    return slots?.frame(TripCardId.plan, row) ?? row;
   }
+
+  String _planText(AppLocalizations l10n, {bool editsInPlace = false}) =>
+      tripPlanText(l10n, trip, editsInPlace: editsInPlace);
 }
 
 class _Row extends StatelessWidget {
@@ -214,11 +224,16 @@ class _Row extends StatelessWidget {
   final List<InlineSpan>? summary;
   final VoidCallback onTap;
 
+  /// In place of the chevron: the Plan card's pencil where the page edits
+  /// in place.
+  final Widget? trailing;
+
   const _Row({
     required this.icon,
     required this.label,
     required this.summary,
     required this.onTap,
+    this.trailing,
   });
 
   @override
@@ -240,8 +255,28 @@ class _Row extends StatelessWidget {
                 children: spans,
               ),
             ),
-      trailing: const Icon(Icons.chevron_right),
+      trailing: trailing ?? const Icon(Icons.chevron_right),
       onTap: onTap,
     );
   }
+}
+
+/// The plan in a line. Where the page edits in place it also names the
+/// expected dives and runtime once set, which nothing else shows.
+String tripPlanText(
+  AppLocalizations l10n,
+  Trip trip, {
+  bool editsInPlace = false,
+}) {
+  final parts = [
+    if (trip.divesPerDayTarget != null)
+      l10n.trips_overview_plan_divesPerDay(trip.divesPerDayTarget!),
+    if (trip.diversSharingCylinders > 1)
+      l10n.trips_overview_plan_sharing(trip.diversSharingCylinders),
+    if (editsInPlace && trip.expectedDives != null)
+      l10n.trips_scrubber_expectedDives(trip.expectedDives!),
+    if (editsInPlace && trip.expectedRuntimeMinutes != null)
+      l10n.trips_overview_plan_runtime(trip.expectedRuntimeMinutes!),
+  ];
+  return parts.isEmpty ? l10n.trips_overview_plan_notSet : parts.join(' · ');
 }

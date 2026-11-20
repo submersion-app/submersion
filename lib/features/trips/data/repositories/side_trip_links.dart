@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/dive_log/data/repositories/trip_cylinder_links.dart';
 import 'package:submersion/features/trips/data/side_trip_sql.dart';
 
 /// Prepares the side-trip links for deleting [tripIds] (issue #3658). Run it
@@ -109,4 +110,32 @@ Future<String?> writableParentId(
       .getSingle();
   final ok = row.read<int>('parent_ok') == 1 && row.read<int>('children') == 0;
   return ok ? parentId : null;
+}
+
+/// Drops the links every dive on [tripId] (every profile's) has to cylinders
+/// of a trip it no longer shares cylinders with: for a side trip moved to
+/// another larger trip, or made a trip of its own (issue #3658). Run it
+/// after the trip's new parent is written, so the rule reads it.
+Future<void> clearForeignLinksOnTripDives(
+  AppDatabase db,
+  SyncRepository syncRepository,
+  String tripId, {
+  required int now,
+}) async {
+  final rows = await db
+      .customSelect(
+        // stats-scope-exempt: tank link cleanup, excluded dives included.
+        'SELECT id FROM dives WHERE trip_id = ?',
+        variables: [Variable.withString(tripId)],
+      )
+      .get();
+  for (final row in rows) {
+    await clearForeignTripCylinderLinks(
+      db,
+      syncRepository,
+      row.read<String>('id'),
+      tripId: tripId,
+      now: now,
+    );
+  }
 }

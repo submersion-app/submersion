@@ -16595,6 +16595,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get equipment_serviceClocks_remove => 'Eliminar';
 
   @override
+  String equipment_serviceClocks_remindersOwn(String days) {
+    return 'Recordatorios antes del vencimiento: $days';
+  }
+
+  @override
+  String get equipment_serviceClocks_remindersOff =>
+      'Sin recordatorios para este equipo';
+
+  @override
   String get equipment_serviceClocks_paused => 'En pausa';
 
   @override
@@ -29306,15 +29315,26 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_photosVideos_title => 'Fotos y vídeos';
 
   @override
-  String get settings_speciesId_title => 'Identificación de vida marina';
+  String get settings_speciesId_title => 'Identificación de especies';
 
   @override
   String get settings_speciesId_entrySubtitle =>
-      'Encuentra peces en tus fotos y vídeos y sugiere qué especie son';
+      'Sugiere las especies de tus fotos y vídeos';
+
+  @override
+  String get speciesId_downloadPrompt_title =>
+      'Identifica las especies de tus fotos y vídeos';
+
+  @override
+  String get speciesId_downloadPrompt_subtitle =>
+      'Descarga el modelo de identificación de especies para recibir sugerencias';
+
+  @override
+  String get speciesId_downloadPrompt_dismiss => 'No volver a mostrar';
 
   @override
   String get settings_speciesId_intro =>
-      'Encuentra peces en tus fotos y vídeos y sugiere qué especie son. Funciona en este dispositivo. Tus fotos y vídeos nunca salen de él.';
+      'Sugiere las especies de tus fotos y vídeos. Funciona en este dispositivo. Tus fotos y vídeos nunca salen de él.';
 
   @override
   String get settings_speciesId_model => 'Modelo';
@@ -29390,7 +29410,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_speciesId_toggle =>
-      'Identificar peces al abrir una foto o un vídeo';
+      'Identificar especies al abrir una foto o un vídeo';
 
   @override
   String get settings_speciesId_autoApply =>
@@ -29421,7 +29441,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_speciesId_levelTitle =>
-      'Qué tan segura debe estar la app para nombrar un pez';
+      'Con qué facilidad sugerir una especie';
 
   @override
   String get settings_speciesId_levelSurer => 'Más seguro';
@@ -29481,7 +29501,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_speciesId_unsupported =>
-      'La identificación de vida marina aún no está disponible en este dispositivo.';
+      'La identificación de especies aún no está disponible en este dispositivo.';
 
   @override
   String get settings_speciesId_notEligible =>
@@ -37159,6 +37179,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get trips_overview_plan_notSet => 'Sin definir';
 
   @override
+  String trips_overview_plan_runtime(int minutes) {
+    return '$minutes min por inmersión';
+  }
+
+  @override
   String get trips_detail_sectionTitle_vessel => 'Embarcación';
 
   @override
@@ -39249,6 +39274,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get gpsTrack_editCard_trim => 'Recortar';
+
+  @override
+  String get gpsTrack_editCard_nameHint => 'Nombre del track';
 
   @override
   String get gpsTrack_action_trim => 'Recortar...';
@@ -62341,6 +62369,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_photos_sourcesHeader => 'De dónde vienen las fotos';
 
   @override
+  String get settings_photos_speciesHeader => 'Especies';
+
+  @override
   String get settings_photos_library => 'Fototeca y archivos';
 
   @override
@@ -63794,7 +63825,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get changeLog_label_mediaRepair => 'Enlaces multimedia reparados';
 
   @override
-  String get changeLog_label_marineLifeId => 'Identificación de vida marina';
+  String get changeLog_label_marineLifeId => 'Identificación de especies';
 
   @override
   String get changeLog_label_speciesReview => 'Revisión de especies';

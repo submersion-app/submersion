@@ -292,6 +292,7 @@ final exempt = <String, String>{
     'lib/features/trips/data/repositories/itinerary_day_repository.dart:deleteBarePlanDaysOutside',
     'lib/features/trips/data/repositories/itinerary_day_repository.dart:deleteByTripId',
     'lib/features/trips/data/repositories/liveaboard_details_repository.dart:deleteByTripId',
+    'lib/features/trips/data/repositories/side_trip_links.dart:clearForeignLinksOnTripDives',
     'lib/features/trips/data/repositories/side_trip_links.dart:detachSideTripsForDelete',
     'lib/features/trips/data/repositories/trip_date_stretch.dart:restoreStretchedTripDates',
     'lib/features/trips/data/repositories/trip_day_weather_repository.dart:deleteByTripId',
@@ -319,6 +320,15 @@ final exempt = <String, String>{
       '(issue #4527, phase 3): the same rows an agent writes one by one '
       'through course_requirements (create, update, delete, tick, credit and '
       'uncredit a dive)',
+  'lib/features/gps_log/data/repositories/gps_track_repository.dart:writeEditedColumns':
+      'a GPS track page writes the name and trim its sitting held at Save '
+      '(issue #4527, phase 3): the same columns an agent writes through '
+      'gps_tracks (setTrimBounds, clearTrim)',
+  'lib/features/nav_track/data/repositories/nav_track_repository.dart:writeEditedColumns':
+      'an underwater track page writes the name, site, device and correction '
+      'its sitting held at Save (issue #4527, phase 3): the same columns an '
+      'agent writes through nav_tracks (rename, setSite, setEquipment, '
+      'updateCorrection)',
   // Planned dives.
   for (final method in const [
     'lib/features/dive_log/data/repositories/dive_repository_impl.dart:createPlannedDive',

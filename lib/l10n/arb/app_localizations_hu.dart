@@ -16549,6 +16549,15 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_serviceClocks_remove => 'Eltávolítás';
 
   @override
+  String equipment_serviceClocks_remindersOwn(String days) {
+    return 'Emlékeztetők esedékesség előtt: $days';
+  }
+
+  @override
+  String get equipment_serviceClocks_remindersOff =>
+      'Nincs emlékeztető ehhez a felszereléshez';
+
+  @override
   String get equipment_serviceClocks_paused => 'Szüneteltetve';
 
   @override
@@ -29160,15 +29169,26 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_photosVideos_title => 'Fotók és videók';
 
   @override
-  String get settings_speciesId_title => 'Tengeri élőlények felismerése';
+  String get settings_speciesId_title => 'Fajfelismerés';
 
   @override
   String get settings_speciesId_entrySubtitle =>
-      'Halak keresése a fotóidon és videóidon, és fajjavaslatok';
+      'Fajjavaslatok a fotóidhoz és videóidhoz';
+
+  @override
+  String get speciesId_downloadPrompt_title =>
+      'Fajok felismerése a fotóidon és videóidon';
+
+  @override
+  String get speciesId_downloadPrompt_subtitle =>
+      'Töltsd le a fajfelismerő modellt a javaslatokhoz';
+
+  @override
+  String get speciesId_downloadPrompt_dismiss => 'Ne mutasd újra';
 
   @override
   String get settings_speciesId_intro =>
-      'Megkeresi a halakat a fotóidon és videóidon, és javaslatot tesz a fajukra. Ezen az eszközön fut. A fotóid és videóid soha nem hagyják el.';
+      'Fajokat javasol a fotóidon és videóidon. Ezen az eszközön fut. A fotóid és videóid soha nem hagyják el.';
 
   @override
   String get settings_speciesId_model => 'Modell';
@@ -29244,7 +29264,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_speciesId_toggle =>
-      'Halak felismerése fotó vagy videó megnyitásakor';
+      'Fajok felismerése fotó vagy videó megnyitásakor';
 
   @override
   String get settings_speciesId_autoApply =>
@@ -29275,7 +29295,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_speciesId_levelTitle =>
-      'Mennyire legyen biztos az alkalmazás, mielőtt megnevez egy halat';
+      'Milyen könnyen javasoljon fajt az alkalmazás';
 
   @override
   String get settings_speciesId_levelSurer => 'Biztosabb';
@@ -29334,7 +29354,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_speciesId_unsupported =>
-      'A tengeri élőlények felismerése ezen az eszközön még nem érhető el.';
+      'A fajfelismerés ezen az eszközön még nem érhető el.';
 
   @override
   String get settings_speciesId_notEligible =>
@@ -36944,6 +36964,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_overview_plan_notSet => 'Nincs megadva';
 
   @override
+  String trips_overview_plan_runtime(int minutes) {
+    return '$minutes perc merülésenként';
+  }
+
+  @override
   String get trips_detail_sectionTitle_vessel => 'Hajó';
 
   @override
@@ -39024,6 +39049,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get gpsTrack_editCard_trim => 'Vágás';
+
+  @override
+  String get gpsTrack_editCard_nameHint => 'Nyomvonal neve';
 
   @override
   String get gpsTrack_action_trim => 'Vágás...';
@@ -61967,6 +61995,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_photos_sourcesHeader => 'Honnan származnak a fotók';
 
   @override
+  String get settings_photos_speciesHeader => 'Fajok';
+
+  @override
   String get settings_photos_library => 'Fotókönyvtár és fájlok';
 
   @override
@@ -63404,7 +63435,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get changeLog_label_mediaRepair => 'Médiahivatkozások javítva';
 
   @override
-  String get changeLog_label_marineLifeId => 'Tengeri élőlények felismerése';
+  String get changeLog_label_marineLifeId => 'Fajfelismerés';
 
   @override
   String get changeLog_label_speciesReview => 'Fajok ellenőrzése';

@@ -6,6 +6,7 @@ import 'package:submersion/features/checklists/presentation/widgets/trip_checkli
 import 'package:submersion/features/pre_dive/presentation/widgets/start_session_sheet.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/services/trip_day_notes.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_card_slots.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_day_picker_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/gear/trip_gear_tab.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_view.dart';
@@ -15,6 +16,7 @@ import 'package:submersion/features/trips/presentation/widgets/trip_overview_tab
 import 'package:submersion/features/trips/presentation/widgets/trip_photos_tab.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_detail_tab.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_tabs.dart';
 
 export 'package:submersion/features/trips/presentation/widgets/trip_detail_tab.dart';
 
@@ -29,11 +31,23 @@ class TripDetailTabs extends ConsumerStatefulWidget {
   /// Opens the trip editor at a day's note (#4625); null hides the action.
   final ValueChanged<TripNoteDay>? onEditDayNote;
 
+  /// The tab controller of a page that edits in place (issue #4527), which
+  /// needs to know the tab in view and to bring another forward. With one,
+  /// each tab is kept alive while the trip is unlocked. Null uses a tab
+  /// controller of its own.
+  final TabController? controller;
+
+  /// Which page of the Overview's story shows, held by a page that opens
+  /// the story at a day. Null holds it here.
+  final ValueNotifier<TripStorySelection?>? storySelection;
+
   const TripDetailTabs({
     super.key,
     required this.tripWithStats,
     this.onEditPlan,
     this.onEditDayNote,
+    this.controller,
+    this.storySelection,
   });
 
   @override
@@ -45,21 +59,25 @@ class _TripDetailTabsState extends ConsumerState<TripDetailTabs> {
   /// view, because the tab view does not keep an off-screen tab alive: kept
   /// inside the Overview it would be lost on a visit to another tab. Null
   /// until a page is chosen, when the story opens where it opens by rule.
-  final _storySelection = ValueNotifier<TripStorySelection?>(null);
+  final _ownSelection = ValueNotifier<TripStorySelection?>(null);
+
+  ValueNotifier<TripStorySelection?> get _storySelection =>
+      widget.storySelection ?? _ownSelection;
 
   @override
   void didUpdateWidget(TripDetailTabs oldWidget) {
     super.didUpdateWidget(oldWidget);
     // The master-detail pane reuses this widget for the next trip, which
     // starts from its own opening page.
-    if (oldWidget.tripWithStats.trip.id != widget.tripWithStats.trip.id) {
-      _storySelection.value = null;
+    if (oldWidget.tripWithStats.trip.id != widget.tripWithStats.trip.id &&
+        widget.storySelection == null) {
+      _ownSelection.value = null;
     }
   }
 
   @override
   void dispose() {
-    _storySelection.dispose();
+    _ownSelection.dispose();
     super.dispose();
   }
 
@@ -81,47 +99,66 @@ class _TripDetailTabsState extends ConsumerState<TripDetailTabs> {
     if (!trip.startsAfter(clock.now())) {
       ref.listen(tripUndivedPlanIdsProvider(trip.id), (_, _) {});
     }
+    // A page that edits in place keeps the gear and checklists read only
+    // until they join its sitting (issue #4527).
+    final editsInPlace = TripCardSlotsScope.maybeOf(context) != null;
+    final controller = widget.controller;
+    // Kept alive while unlocked, so an open card survives a visit to
+    // another tab.
+    Widget kept(Widget view) =>
+        controller == null ? view : RecordEditKeepAlive<Trip>(child: view);
+    final body = Column(
+      children: [
+        Material(
+          color: Theme.of(context).colorScheme.surface,
+          child: TabBar(
+            controller: controller,
+            isScrollable: true,
+            tabAlignment: TabAlignment.start,
+            tabs: [
+              Tab(text: l10n.trips_detail_tab_overview),
+              Tab(text: l10n.trips_detail_tab_itinerary),
+              Tab(text: l10n.trips_detail_tab_gear),
+              Tab(text: l10n.trips_detail_tab_checklist),
+              Tab(text: l10n.trips_detail_tab_dives),
+              Tab(text: l10n.trips_detail_tab_photos),
+            ],
+          ),
+        ),
+        Expanded(
+          child: TabBarView(
+            controller: controller,
+            children: [
+              kept(
+                TripOverviewTab(
+                  tripWithStats: tripWithStats,
+                  // With the page's controller there is no
+                  // DefaultTabController for the rows to find.
+                  onOpenTab: controller == null
+                      ? null
+                      : (tab) => controller.animateTo(tab.index),
+                  onEditPlan: onEditPlan,
+                  selection: _storySelection,
+                  onEditDayNote: widget.onEditDayNote,
+                ),
+              ),
+              kept(TripItineraryTab(tripId: trip.id)),
+              kept(TripGearTab(trip: trip, readOnly: editsInPlace)),
+              kept(_ChecklistTab(trip: trip, readOnly: editsInPlace)),
+              kept(TripDivesTab(tripId: trip.id)),
+              kept(TripPhotosTab(tripId: trip.id)),
+            ],
+          ),
+        ),
+      ],
+    );
+    if (controller != null) return body;
     return DefaultTabController(
       // Keyed by trip: the master-detail pane reuses this widget for the next
       // trip, which opens on its Overview, not on the tab left open before.
       key: ValueKey(trip.id),
       length: TripDetailTab.values.length,
-      child: Column(
-        children: [
-          Material(
-            color: Theme.of(context).colorScheme.surface,
-            child: TabBar(
-              isScrollable: true,
-              tabAlignment: TabAlignment.start,
-              tabs: [
-                Tab(text: l10n.trips_detail_tab_overview),
-                Tab(text: l10n.trips_detail_tab_itinerary),
-                Tab(text: l10n.trips_detail_tab_gear),
-                Tab(text: l10n.trips_detail_tab_checklist),
-                Tab(text: l10n.trips_detail_tab_dives),
-                Tab(text: l10n.trips_detail_tab_photos),
-              ],
-            ),
-          ),
-          Expanded(
-            child: TabBarView(
-              children: [
-                TripOverviewTab(
-                  tripWithStats: tripWithStats,
-                  onEditPlan: onEditPlan,
-                  selection: _storySelection,
-                  onEditDayNote: widget.onEditDayNote,
-                ),
-                TripItineraryTab(tripId: trip.id),
-                TripGearTab(trip: trip),
-                _ChecklistTab(trip: trip),
-                TripDivesTab(tripId: trip.id),
-                TripPhotosTab(tripId: trip.id),
-              ],
-            ),
-          ),
-        ],
-      ),
+      child: body,
     );
   }
 }
@@ -131,7 +168,11 @@ class _TripDetailTabsState extends ConsumerState<TripDetailTabs> {
 class _ChecklistTab extends StatelessWidget {
   final Trip trip;
 
-  const _ChecklistTab({required this.trip});
+  /// The checklists offer no change; starting a pre-dive session, which
+  /// makes a record of its own, still works.
+  final bool readOnly;
+
+  const _ChecklistTab({required this.trip, this.readOnly = false});
 
   @override
   Widget build(BuildContext context) {
@@ -149,7 +190,7 @@ class _ChecklistTab extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          TripChecklistsPanel(trip: trip),
+          TripChecklistsPanel(trip: trip, readOnly: readOnly),
         ],
       ),
     );

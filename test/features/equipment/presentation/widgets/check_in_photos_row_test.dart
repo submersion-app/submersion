@@ -45,6 +45,7 @@ void main() {
     List<List<String>>? calls,
     MediaUnlinkService? unlink,
     DeviceCapabilities? capabilities,
+    Widget? row,
   }) => mediaTestApp(
     overrides: [
       observationPhotosProvider('obs-1').overrideWith((ref) async => photos),
@@ -54,8 +55,10 @@ void main() {
       if (capabilities != null)
         deviceCapabilitiesProvider.overrideWithValue(capabilities),
     ],
-    home: const Scaffold(
-      body: CheckInPhotosRow(equipmentId: 'reg-1', observationId: 'obs-1'),
+    home: Scaffold(
+      body:
+          row ??
+          const CheckInPhotosRow(equipmentId: 'reg-1', observationId: 'obs-1'),
     ),
   );
 
@@ -115,6 +118,51 @@ void main() {
     expect(calls, [
       ['m1'],
     ]);
+  });
+
+  // A check-in held in an item page's sitting (issue #4527, phase 3).
+  testWidgets('held, a remove asks nothing and unlinks nothing', (
+    tester,
+  ) async {
+    final calls = <List<String>>[];
+    final held = <(List<int>, Set<String>)>[];
+    await tester.pumpWidget(
+      await host(
+        photos: [photo],
+        calls: calls,
+        row: CheckInPhotosRow(
+          equipmentId: 'reg-1',
+          observationId: 'obs-1',
+          onHeldChanged: (added, removed) =>
+              held.add(([for (final _ in added) 0], removed)),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('remove_checkin_photo_m1')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Remove 1 photo?'), findsNothing);
+    expect(calls, isEmpty);
+    expect(held.single.$2, {'m1'});
+  });
+
+  testWidgets('held, a photo the sitting removed is not shown', (tester) async {
+    await tester.pumpWidget(
+      await host(
+        photos: [photo],
+        row: CheckInPhotosRow(
+          equipmentId: 'reg-1',
+          observationId: 'obs-1',
+          heldRemoved: const {'m1'},
+          onHeldChanged: (_, _) {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('remove_checkin_photo_m1')), findsNothing);
   });
 
   testWidgets('no photos and no attach shows nothing', (tester) async {
