@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:submersion/features/buddies/presentation/editing/buddy_new_sitting.dart';
 import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
@@ -53,12 +54,14 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_fade.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
+import 'package:submersion/shared/widgets/record_editing/record_creating.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
 import 'package:submersion/shared/widgets/record_editing/record_open_unlocked.dart';
 import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 import 'package:submersion/shared/widgets/record_editing/record_pane_row.dart';
 import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
+part 'buddy_detail_page_creating.dart';
 part 'buddy_detail_page_editing.dart';
 
 /// A buddy's page. Behind phase 3's switch ([unlockEditing]) it opens
@@ -85,6 +88,16 @@ class BuddyDetailPage extends ConsumerStatefulWidget {
   /// edit returns to the buddy in view.
   final VoidCallback? onSittingEnded;
 
+  /// A new buddy (issue #4527, phase 3, plan 11): the page opened unlocked
+  /// on a buddy not yet created, with what the opener brought.
+  final ({NewBuddySeed? seed})? newBuddy;
+
+  /// The pane's own: given the new buddy's id once created.
+  final void Function(String buddyId)? onCreated;
+
+  /// The pane's own: told when a new buddy's page leaves uncreated.
+  final VoidCallback? onCreateCancelled;
+
   const BuddyDetailPage({
     super.key,
     required this.buddyId,
@@ -93,7 +106,24 @@ class BuddyDetailPage extends ConsumerStatefulWidget {
     this.unlockEditing = kUnlockRecordEditing,
     this.openUnlocked = false,
     this.onSittingEnded,
-  });
+  }) : newBuddy = null,
+       onCreated = null,
+       onCreateCancelled = null;
+
+  /// A new buddy's page, which edits in place whatever the switch: only the
+  /// switch's openers build it.
+  const BuddyDetailPage.newBuddy({
+    super.key,
+    NewBuddySeed? seed,
+    this.embedded = false,
+    this.onCreated,
+    this.onCreateCancelled,
+  }) : newBuddy = (seed: seed),
+       buddyId = '',
+       onDeleted = null,
+       unlockEditing = true,
+       openUnlocked = false,
+       onSittingEnded = null;
 
   @override
   ConsumerState<BuddyDetailPage> createState() => _BuddyDetailPageState();
@@ -103,7 +133,9 @@ class _BuddyDetailPageState extends ConsumerState<BuddyDetailPage>
     with
         RecordEditHost<BuddyDetailPage, Buddy>,
         RecordOpenUnlocked<BuddyDetailPage, Buddy>,
-        _BuddyDetailPageEditing {
+        _BuddyDetailPageEditing,
+        RecordCreating<BuddyDetailPage, Buddy>,
+        _BuddyDetailPageCreating {
   bool _hasRedirected = false;
 
   @override
@@ -115,6 +147,17 @@ class _BuddyDetailPageState extends ConsumerState<BuddyDetailPage>
   @override
   Widget build(BuildContext context) {
     ref.watch(certificationCatalogSyncProvider);
+    if (isCreating) {
+      final waiting = newRecordWaiting(context);
+      if (waiting != null) return waiting;
+      final seed = newRecordSeed!;
+      return _BuddyDetailContent(
+        buddy: shownRecord(seed),
+        stored: seed,
+        embedded: widget.embedded,
+        host: this,
+      );
+    }
     // Desktop redirect: a root visit (deep link, sidebar) moves into the
     // master-detail split. A pushed page, opened from a dive's details
     // say, stays put: the redirect's go() would erase the page under it
@@ -217,6 +260,10 @@ class _BuddyDetailContent extends ConsumerWidget {
 
   bool get _editing => host != null;
 
+  /// Whether the buddy is not yet created: what it cannot have yet (gear
+  /// lent, shared dives, photos) is left out, and nothing acts on it.
+  bool get _creating => host?.isCreating ?? false;
+
   /// [child] as the card [id] where the page edits in place.
   Widget _framed(BuddyCardId id, Widget child) =>
       host?._framed(id, child) ?? child;
@@ -282,6 +329,8 @@ class _BuddyDetailContent extends ConsumerWidget {
           // have none and show no gap.
           if (!_editing)
             BuddyGearSection(buddy: buddy)
+          else if (_creating)
+            const SizedBox.shrink()
           else if (!this.host!._gearEmpty(ref, buddy) ||
               _shows(BuddyCardId.gear))
             _framed(
@@ -306,17 +355,19 @@ class _BuddyDetailContent extends ConsumerWidget {
           ),
           const SizedBox(height: 24),
 
-          // Shared dives
-          _fade(
-            RecordCardFadeReason.calculated,
-            BuddySharedDivesSection(buddyId: buddy.id),
-          ),
+          if (!_creating) ...[
+            // Shared dives
+            _fade(
+              RecordCardFadeReason.calculated,
+              BuddySharedDivesSection(buddyId: buddy.id),
+            ),
 
-          // Photos and videos they are tagged in (issue #1745)
-          _fade(
-            RecordCardFadeReason.calculated,
-            BuddyPhotosSection(buddyId: buddy.id),
-          ),
+            // Photos and videos they are tagged in (issue #1745)
+            _fade(
+              RecordCardFadeReason.calculated,
+              BuddyPhotosSection(buddyId: buddy.id),
+            ),
+          ],
         ],
       ),
     );
@@ -329,7 +380,12 @@ class _BuddyDetailContent extends ConsumerWidget {
           header: RecordPaneRow(
             locked: header,
             unlocked: host.isSittingOpen
-                ? host.editingPaneRow(stored, menu: _menu(context, ref))
+                ? host.editingPaneRow(
+                    stored,
+                    menu: _creating
+                        ? const SizedBox.shrink()
+                        : _menu(context, ref),
+                  )
                 : null,
           ),
           shown: buddy,
@@ -371,7 +427,7 @@ class _BuddyDetailContent extends ConsumerWidget {
         record: stored,
         shown: buddy,
         lockedBar: bar,
-        unlockedActions: [_menu(context, ref)],
+        unlockedActions: [if (!_creating) _menu(context, ref)],
         content: body,
       );
     }
