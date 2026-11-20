@@ -29593,11 +29593,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_speciesId_entrySubtitle =>
-      'اعثر على الأسماك في صورك ومقاطع الفيديو واقترح أنواعها';
+      'اقتراح الأنواع في صورك ومقاطع الفيديو';
 
   @override
   String get speciesId_downloadPrompt_title =>
-      'تعرّف على الأسماك في صورك ومقاطع الفيديو';
+      'تعرّف على الأنواع في صورك ومقاطع الفيديو';
 
   @override
   String get speciesId_downloadPrompt_subtitle =>
@@ -29608,7 +29608,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_speciesId_intro =>
-      'يعثر على الأسماك في صورك ومقاطع الفيديو ويقترح أنواعها. يعمل على هذا الجهاز. لا تغادر صورك ومقاطع الفيديو الجهاز أبدًا.';
+      'يقترح الأنواع في صورك ومقاطع الفيديو. يعمل على هذا الجهاز. لا تغادر صورك ومقاطع الفيديو الجهاز أبدًا.';
 
   @override
   String get settings_speciesId_model => 'النموذج';
@@ -29683,7 +29683,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_speciesId_toggle =>
-      'التعرّف على الأسماك عند فتح صورة أو مقطع فيديو';
+      'التعرّف على الأنواع عند فتح صورة أو مقطع فيديو';
 
   @override
   String get settings_speciesId_autoApply => 'وسم المطابقات المؤكدة تلقائيًا';
@@ -29710,8 +29710,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_speciesId_sightingStraightAway => 'فورًا';
 
   @override
-  String get settings_speciesId_levelTitle =>
-      'مدى تأكّد التطبيق قبل تسمية سمكة';
+  String get settings_speciesId_levelTitle => 'مدى سهولة اقتراح نوع';
 
   @override
   String get settings_speciesId_levelSurer => 'أكثر تأكّدًا';

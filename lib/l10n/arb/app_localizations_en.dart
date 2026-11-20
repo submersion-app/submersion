@@ -28813,11 +28813,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_speciesId_entrySubtitle =>
-      'Find fish in your photos and videos and suggest what they are';
+      'Suggest the species in your photos and videos';
 
   @override
   String get speciesId_downloadPrompt_title =>
-      'Identify fish in your photos and videos';
+      'Identify species in your photos and videos';
 
   @override
   String get speciesId_downloadPrompt_subtitle =>
@@ -28828,7 +28828,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_speciesId_intro =>
-      'Finds fish in your photos and videos and suggests what they are. Runs on this device. Your photos and videos never leave it.';
+      'Suggests the species in your photos and videos. Runs on this device. Your photos and videos never leave it.';
 
   @override
   String get settings_speciesId_model => 'Model';
@@ -28904,7 +28904,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_speciesId_toggle =>
-      'Identify fish when I open a photo or video';
+      'Identify species when I open a photo or video';
 
   @override
   String get settings_speciesId_autoApply =>
@@ -28933,7 +28933,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_speciesId_sightingStraightAway => 'Straight away';
 
   @override
-  String get settings_speciesId_levelTitle => 'Name a fish when the app is';
+  String get settings_speciesId_levelTitle =>
+      'How readily to suggest a species';
 
   @override
   String get settings_speciesId_levelSurer => 'Surer';

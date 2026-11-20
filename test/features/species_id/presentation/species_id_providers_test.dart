@@ -518,23 +518,37 @@ void main() {
       expect(tracks.single.suggestable, isTrue);
     });
 
-    test(
-      'is Surer by default, remembered, and Surer for an unknown id',
-      () async {
-        expect(container.read(namingLevelNotifierProvider), NamingLevel.surer);
+    test('is Eager by default, unpicked until one is chosen, and '
+        'remembered (issue #4789)', () async {
+      expect(container.read(namingLevelNotifierProvider), NamingLevel.eager);
+      expect(
+        container.read(namingLevelNotifierProvider.notifier).picked,
+        isFalse,
+      );
 
-        SharedPreferences.setMockInitialValues({
-          SettingsKeys.marineLifeNamingLevel: 'reckless',
-        });
-        final prefs = await SharedPreferences.getInstance();
-        final notifier = NamingLevelNotifier(prefs);
-        expect(notifier.state, NamingLevel.surer);
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final notifier = NamingLevelNotifier(prefs);
+      expect(notifier.state, NamingLevel.eager);
+      expect(notifier.picked, isFalse);
 
-        await notifier.setLevel(NamingLevel.eager);
-        expect(prefs.getString(SettingsKeys.marineLifeNamingLevel), 'eager');
-        expect(NamingLevelNotifier(prefs).state, NamingLevel.eager);
-      },
-    );
+      await notifier.setLevel(NamingLevel.balanced);
+      expect(notifier.picked, isTrue);
+      expect(prefs.getString(SettingsKeys.marineLifeNamingLevel), 'balanced');
+      final reread = NamingLevelNotifier(prefs);
+      expect(reread.state, NamingLevel.balanced);
+      expect(reread.picked, isTrue);
+    });
+
+    test('an unknown stored id reads as Surer, as picked', () async {
+      SharedPreferences.setMockInitialValues({
+        SettingsKeys.marineLifeNamingLevel: 'reckless',
+      });
+      final prefs = await SharedPreferences.getInstance();
+      final notifier = NamingLevelNotifier(prefs);
+      expect(notifier.state, NamingLevel.surer);
+      expect(notifier.picked, isTrue);
+    });
 
     test('Surer is no level and never reads the pack', () async {
       var reads = 0;

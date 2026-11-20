@@ -410,13 +410,14 @@ void main() {
       WidgetTester tester,
       InstalledPack? pack, {
       NamingLevel chosen = NamingLevel.surer,
+      bool picked = true,
     }) => pump(
       tester,
       installed,
       extra: [
         installedSpeciesPackProvider.overrideWith((ref) async => pack),
         namingLevelNotifierProvider.overrideWith(
-          (ref) => NamingLevelNotifier.unstored(chosen),
+          (ref) => NamingLevelNotifier.unstored(chosen, picked: picked),
         ),
       ],
     );
@@ -437,7 +438,7 @@ void main() {
 
     testWidgets('show each level with its measured accuracy', (tester) async {
       await pumpLevels(tester, withLevels(const [balanced, eager]));
-      expect(find.text('Name a fish when the app is'), findsOneWidget);
+      expect(find.text('How readily to suggest a species'), findsOneWidget);
       expect(find.text('Surer'), findsOneWidget);
       expect(find.text('Fewest names. About 85% right'), findsOneWidget);
       expect(find.text('Balanced'), findsOneWidget);
@@ -490,6 +491,25 @@ void main() {
         chosen: NamingLevel.eager,
       );
       expect(find.text(fallbackNote), findsOneWidget);
+    });
+
+    testWidgets('with no level picked, a pack without Eager uses its most '
+        'eager level and says nothing (issue #4789)', (tester) async {
+      await pumpLevels(
+        tester,
+        withLevels(const [balanced]),
+        chosen: NamingLevel.eager,
+        picked: false,
+      );
+      final group = tester.widget<RadioGroup<NamingLevel>>(
+        find.byType(RadioGroup<NamingLevel>),
+      );
+      expect(group.groupValue, NamingLevel.balanced);
+      expect(find.text(fallbackNote), findsNothing);
+      final tile = tester.widget<RadioListTile<NamingLevel>>(
+        find.byKey(balancedKey),
+      );
+      expect(tile.toggleable, isFalse);
     });
 
     testWidgets('a level the pack carries has no note', (tester) async {
