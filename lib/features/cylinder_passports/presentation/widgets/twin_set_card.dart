@@ -25,15 +25,11 @@ class TwinSetCard extends ConsumerWidget {
   const TwinSetCard({
     super.key,
     required this.equipmentId,
-    this.readOnly = false,
     this.working,
     this.editing,
   });
 
   final String equipmentId;
-
-  /// Offers no pairing action, keeping the link to the partner.
-  final bool readOnly;
 
   /// The item as the page's sitting has it: whether it hides follows the
   /// sitting's Worn as (issue #4527, phase 3). The stored item when null.
@@ -49,7 +45,7 @@ class TwinSetCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final scope = RecordEditScope.maybeOf<EquipmentItem>(context);
     final session = editing ?? scope?.session;
-    final readOnly = this.readOnly || (scope != null && editing == null);
+    final readOnly = scope != null && editing == null;
     if (session == null) return _build(context, ref, null, readOnly);
     return ListenableBuilder(
       listenable: session,

@@ -40,9 +40,6 @@ bool hasVisibleConditionFindings(
 class ConditionFindingsCard extends ConsumerStatefulWidget {
   final EquipmentItem equipment;
 
-  /// Offers no dismiss or restore.
-  final bool readOnly;
-
   /// The open card's sitting (issue #4527, phase 3): dismissing and
   /// restoring are held there until Save. On a page that edits in place
   /// and with no sitting given, the findings read only; during a sitting
@@ -52,7 +49,6 @@ class ConditionFindingsCard extends ConsumerStatefulWidget {
   const ConditionFindingsCard({
     super.key,
     required this.equipment,
-    this.readOnly = false,
     this.editing,
   });
 
@@ -104,7 +100,7 @@ class _ConditionFindingsCardState extends ConsumerState<ConditionFindingsCard> {
     final scope = RecordEditScope.maybeOf<EquipmentItem>(context);
     final editing = widget.editing;
     final session = editing ?? scope?.session;
-    final readOnly = widget.readOnly || (scope != null && editing == null);
+    final readOnly = scope != null && editing == null;
     final findings = stored == null || session == null
         ? stored
         : findingsInSitting(session, stored);

@@ -18,11 +18,11 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
-/// The cards of a gear item's passports (issue #4527, phase 3, plan 7).
-/// They are cards of the item, held in its sitting: a passport opened
-/// alone holds them in its own sitting on the item, and one pushed from an
-/// unlocked item page joins the item's. The item page lists them too, so
-/// its Save checks them.
+// The cards of a gear item's passports (issue #4527, phase 3, plan 7).
+// They are cards of the item, held in its sitting: a passport opened alone
+// holds them in its own sitting on the item, and one pushed from an
+// unlocked item page joins the item's. The item page lists them too, so
+// its Save checks them.
 
 /// What a tag-card's buttons need from the page it is on.
 typedef PassportPrint = Future<void> Function(BuildContext buttonContext);

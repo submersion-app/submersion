@@ -20,7 +20,6 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/presentation/editing/gear_item_edit_fields.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_sitting_host.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
-import 'package:submersion/features/equipment/presentation/widgets/components_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/exposure_card.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
@@ -81,10 +80,6 @@ void main() {
       expect(find.byIcon(Icons.lock_outline), findsNothing);
       expect(find.byIcon(Icons.edit), findsOneWidget);
       expect(find.byType(RecordCardFade<EquipmentItem>), findsWidgets);
-      final components = tester.widget<ComponentsCard>(
-        find.byType(ComponentsCard),
-      );
-      expect(components.readOnly, isFalse);
     });
 
     testWidgets('locked, no tap writes', (tester) async {

@@ -40,21 +40,13 @@ import 'package:submersion/shared/widgets/record_editing/record_edit_controller.
 class ComponentsCard extends ConsumerWidget {
   final String equipmentId;
 
-  /// Offers no action, keeping the links to the parts.
-  final bool readOnly;
-
   /// The open card's sitting (issue #4527, phase 3): every change to the
   /// parts is held there until Save, its "Update past dives?" asked when
   /// it is made. On a page that edits in place and with no sitting given,
   /// the card reads only; during a sitting every view shows its parts.
   final EditSession<EquipmentItem>? editing;
 
-  const ComponentsCard({
-    super.key,
-    required this.equipmentId,
-    this.readOnly = false,
-    this.editing,
-  });
+  const ComponentsCard({super.key, required this.equipmentId, this.editing});
 
   /// [parts] once [change] has been applied in the open card's sitting.
   void _setInSitting(
@@ -104,6 +96,20 @@ class ComponentsCard extends ConsumerWidget {
     // question is built from included, and none of it may escape the icon
     // callback as an unhandled exception with nothing shown to the diver.
     final messenger = ScaffoldMessenger.of(context);
+    // A part added in the sitting was never on a dive: it just goes.
+    if (editing case final session?
+        when !(gearItemComponentsList.loaded(session) ?? const []).any(
+          (c) => c.id == part.id,
+        )) {
+      _setInSitting(
+        session,
+        (parts) => [
+          for (final p in parts)
+            if (p.id != part.id) p,
+        ],
+      );
+      return;
+    }
     try {
       final choice = await askAssemblyHistory(
         context,
@@ -141,7 +147,7 @@ class ComponentsCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final scope = RecordEditScope.maybeOf<EquipmentItem>(context);
     final session = editing ?? scope?.session;
-    final readOnly = this.readOnly || (scope != null && editing == null);
+    final readOnly = scope != null && editing == null;
     if (session == null) return _build(context, ref, null, readOnly);
     return ListenableBuilder(
       listenable: gearItemComponentsList.changes(session),

@@ -24,7 +24,9 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/widgets/assembly_totals_section.dart';
 import 'package:submersion/features/equipment/presentation/widgets/components_card.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_components_sitting.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
@@ -151,6 +153,7 @@ void main() {
     bool routed = false,
     Map<String, DueClock> worst = const {},
     AssemblyTotals? totals,
+    Widget home = card,
   }) {
     return ProviderScope(
       overrides: [
@@ -207,14 +210,52 @@ void main() {
                 ],
               ),
             )
-          : const MaterialApp(
-              locale: Locale('en'),
+          : MaterialApp(
+              locale: const Locale('en'),
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
-              home: card,
+              home: home,
             ),
     );
   }
+
+  // Issue #4527, phase 3: a part added in the item's sitting and removed
+  // again was never on a dive, so there is nothing to ask about.
+  testWidgets('in a sitting, removing a part added in it asks nothing', (
+    tester,
+  ) async {
+    final session = EditSession(
+      const EquipmentItem(
+        id: 'reg',
+        name: 'Reg',
+        type: EquipmentType.regulator,
+      ),
+    );
+    addTearDown(session.dispose);
+    gearItemComponentsList.loadNone(session);
+    gearItemComponentsList.set(session, [part('held', hose)]);
+    await tester.pumpWidget(
+      build(
+        const [],
+        _FakeComponentRepository(),
+        count: _DiveCount()..diveCount = 3,
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: ComponentsCard(equipmentId: 'reg', editing: session),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text(hose.name), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Remove component'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.text(hose.name), findsNothing);
+    expect(session.hasHeldWrites, isFalse);
+  });
 
   testWidgets('ends with what the parts add up to (#4443)', (tester) async {
     await tester.pumpWidget(
