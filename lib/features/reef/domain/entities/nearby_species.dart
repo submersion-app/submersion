@@ -47,6 +47,10 @@ class NearbySpecies extends Equatable {
   /// The GBIF species key of every species the search returned, matched or
   /// not, so a marine life suggestion can be checked against the list by its
   /// key. Not shown: [isEmpty] and the site page read only the two tiers.
+  ///
+  /// Wider than [unmatchedNames]: it also holds species past the 25 names
+  /// looked up, and any the site page drops as terrestrial (Araceae). No
+  /// marine life suggestion is one of those, so a match stays meaningful.
   final Set<int> speciesKeys;
 
   const NearbySpecies({

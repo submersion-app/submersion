@@ -231,6 +231,32 @@ void main() {
       expect(result.status, ReefDataStatus.unavailable);
     });
 
+    test('keeps the keys of a list it could name nothing of', () async {
+      // Every lookup is GBIF's final word (no such record), so this list is
+      // saved for 30 days: without its keys, no suggestion here could be
+      // marked for that long. The site page shows nothing either way.
+      final client = MockClient((request) async {
+        if (request.url.path.startsWith('/v1/species/')) {
+          return http.Response('not found', 404);
+        }
+        return http.Response(
+          _facetBody([
+            ['9999999', 10],
+          ]),
+          200,
+        );
+      });
+
+      final result = await NearbySpeciesService(
+        client: client,
+        matcher: _matcher(),
+      ).fetch(const GeoPoint(1, 2));
+
+      expect(result.status, ReefDataStatus.ok);
+      expect(result.value!.isEmpty, isTrue);
+      expect(result.value!.speciesKeys, {9999999});
+    });
+
     test('returns empty when no species are recorded nearby', () async {
       final client = MockClient(
         (_) async => http.Response(_facetBody([]), 200),

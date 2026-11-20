@@ -114,12 +114,12 @@ class NearbySpeciesService {
         namesIncomplete: resolved.any((r) => r.failed),
         speciesKeys: {for (final c in counts) c.key},
       );
-      if (result.isEmpty) {
-        // Nothing to show because the lookups failed is not "nothing nearby".
-        return result.namesIncomplete
-            ? const ReefPart.unavailable()
-            : const ReefPart.empty();
+      // Nothing to show because the lookups failed is not "nothing nearby".
+      if (result.isEmpty && result.namesIncomplete) {
+        return const ReefPart.unavailable();
       }
+      // Nothing GBIF could name still keeps its keys, so marine life
+      // suggestions can be matched; the site page shows nothing either way.
       return ReefPart.ok(result);
     } catch (e) {
       developer.log(
