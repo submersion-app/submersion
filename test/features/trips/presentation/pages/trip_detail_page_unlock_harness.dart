@@ -362,8 +362,9 @@ Future<TripPageHarness> pumpTripPage(
     ),
   );
   await tester.pumpAndSettle();
+  // Any page [wrap] puts in the trip page's place shares its scope.
   final container = ProviderScope.containerOf(
-    tester.element(find.byType(TripDetailPage)),
+    tester.element(find.byType(MaterialApp)),
   );
   container.read(tripEditSaveServiceProvider);
   return harness;
