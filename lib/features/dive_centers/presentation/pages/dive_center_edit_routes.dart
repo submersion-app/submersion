@@ -96,10 +96,10 @@ Future<void> openNewDiveCenter(
   BuildContext context, {
   bool unlockEditing = kUnlockRecordEditing,
 }) {
-  if (!unlockEditing) return context.push('/dive-centers/new');
   return openNewRecord(
     context,
     newLocation: '/dive-centers/new',
     recordLocation: (id) => '/dive-centers/$id',
+    openCreated: unlockEditing,
   );
 }

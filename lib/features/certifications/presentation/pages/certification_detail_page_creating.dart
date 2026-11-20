@@ -70,6 +70,8 @@ mixin _CertificationDetailPageCreating
     Object? error,
   }) => (
     title: context.l10n.certifications_edit_appBar_add,
-    body: context.l10n.certifications_detail_notFound,
+    body: error == null
+        ? context.l10n.certifications_detail_notFound
+        : '${context.l10n.common_label_error}: $error',
   );
 }

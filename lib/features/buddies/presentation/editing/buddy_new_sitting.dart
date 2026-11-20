@@ -1,14 +1,11 @@
 import 'package:flutter/foundation.dart';
 
-import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/editing/buddy_card_ids.dart';
 import 'package:submersion/features/buddies/presentation/editing/buddy_edit_fields.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/new_record_diver.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_creating.dart';
-
-const _log = LoggerService('BuddyNewSitting');
 
 /// A new buddy's sitting (issue #4527, phase 3, plan 11): what its opener
 /// brings, its seed, the cards laid out open, and the prefill.
@@ -51,16 +48,7 @@ class NewBuddySeed {
 /// name, ranked and not a favourite, as the form starts one. A diver that
 /// cannot be read leaves none, for Save to take the one active then.
 Future<Buddy> newBuddySeed(RecordSeedRead read, {required String id}) async {
-  String? diverId;
-  try {
-    diverId = await read(validatedCurrentDiverIdProvider.future);
-  } catch (error, stackTrace) {
-    _log.warning(
-      'Could not read the diver for a new buddy',
-      error: error,
-      stackTrace: stackTrace,
-    );
-  }
+  final diverId = await newRecordDiverId(read, record: 'buddy');
   final now = DateTime.now();
   return Buddy(
     id: id,

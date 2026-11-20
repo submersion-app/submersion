@@ -33,10 +33,10 @@ Future<void> openNewSpecies(
   BuildContext context, {
   bool unlockEditing = kUnlockRecordEditing,
 }) {
-  if (!unlockEditing) return context.push('/species/new');
   return openNewRecord(
     context,
     newLocation: '/species/new',
     recordLocation: (id) => '/species/$id',
+    openCreated: unlockEditing,
   );
 }

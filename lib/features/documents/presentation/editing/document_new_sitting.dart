@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/new_record_diver.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/editing/document_card_ids.dart';
 import 'package:submersion/features/documents/presentation/editing/document_edit_fields.dart';
@@ -54,21 +54,20 @@ Future<DocumentRecord> newDocumentSeed(
   RecordSeedRead read, {
   required String id,
 }) async {
-  String? diverId;
+  final diverId = await newRecordDiverId(read, record: 'document');
   var primary = false;
-  try {
-    diverId = await read(validatedCurrentDiverIdProvider.future);
-    if (diverId != null) {
+  if (diverId != null) {
+    try {
       primary = !await read(
         documentRepositoryProvider,
       ).hasPrimaryInsurance(diverId);
+    } catch (error, stackTrace) {
+      _log.warning(
+        'Could not read whether the diver has a primary insurance',
+        error: error,
+        stackTrace: stackTrace,
+      );
     }
-  } catch (error, stackTrace) {
-    _log.warning(
-      'Could not read the diver for a new document',
-      error: error,
-      stackTrace: stackTrace,
-    );
   }
   final now = DateTime.now();
   return DocumentRecord(

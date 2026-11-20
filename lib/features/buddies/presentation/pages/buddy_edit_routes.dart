@@ -123,12 +123,12 @@ Future<void> openNewBuddy(
           'phone': seed.phone,
           'photo': seed.photo,
         };
-  if (!unlockEditing) return context.push('/buddies/new', extra: extra);
   return openNewRecord(
     context,
     newLocation: '/buddies/new',
     extra: extra,
     recordLocation: (id) => '/buddies/$id',
     idOf: (popped) => popped is Buddy ? popped.id : poppedId(popped),
+    openCreated: unlockEditing,
   );
 }

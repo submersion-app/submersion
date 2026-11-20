@@ -114,10 +114,10 @@ Future<void> openNewDocument(
   final location = type == null
       ? '/documents/new'
       : '/documents/new?type=${type.storage}';
-  if (!unlockEditing) return context.push(location);
   return openNewRecord(
     context,
     newLocation: location,
     recordLocation: (id) => '/documents/$id',
+    openCreated: unlockEditing,
   );
 }

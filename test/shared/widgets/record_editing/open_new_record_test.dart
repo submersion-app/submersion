@@ -7,7 +7,11 @@ import 'package:submersion/shared/widgets/record_editing/open_new_record.dart';
 /// An opener with no place of its own to show a new record opens it once
 /// created (issue #4527, phase 3, plan 11).
 void main() {
-  Future<GoRouter> pump(WidgetTester tester, Object? Function() popWith) async {
+  Future<GoRouter> pump(
+    WidgetTester tester,
+    Object? Function() popWith, {
+    bool openCreated = true,
+  }) async {
     final router = GoRouter(
       routes: [
         GoRoute(
@@ -18,6 +22,7 @@ void main() {
                 context,
                 newLocation: '/notes/new',
                 recordLocation: (id) => '/notes/$id',
+                openCreated: openCreated,
                 idOf: (popped) => switch (popped) {
                   final String id => id,
                   (final String id,) => id,
@@ -69,6 +74,14 @@ void main() {
 
   testWidgets('nothing back stays', (tester) async {
     final router = await pump(tester, () => null);
+
+    expect(find.text('add'), findsOneWidget);
+    expect(router.routerDelegate.currentConfiguration.uri.path, '/notes');
+  });
+  // With the switch off an opener keeps today's behaviour: the form
+  // returns, and the record is not opened.
+  testWidgets('not asked to open what it created, it stays', (tester) async {
+    final router = await pump(tester, () => 'n1', openCreated: false);
 
     expect(find.text('add'), findsOneWidget);
     expect(router.routerDelegate.currentConfiguration.uri.path, '/notes');

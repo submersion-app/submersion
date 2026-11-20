@@ -98,10 +98,10 @@ Future<void> openNewCertification(
   BuildContext context, {
   bool unlockEditing = kUnlockRecordEditing,
 }) {
-  if (!unlockEditing) return context.push('/certifications/new');
   return openNewRecord(
     context,
     newLocation: '/certifications/new',
     recordLocation: (id) => '/certifications/$id',
+    openCreated: unlockEditing,
   );
 }

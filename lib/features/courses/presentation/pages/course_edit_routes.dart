@@ -85,10 +85,10 @@ Future<void> openNewCourse(
   BuildContext context, {
   bool unlockEditing = kUnlockRecordEditing,
 }) {
-  if (!unlockEditing) return context.push('/courses/new');
   return openNewRecord(
     context,
     newLocation: '/courses/new',
     recordLocation: (id) => '/courses/$id',
+    openCreated: unlockEditing,
   );
 }
