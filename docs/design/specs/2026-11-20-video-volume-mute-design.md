@@ -59,8 +59,11 @@ the boat), not the default.
   placements (fullscreen bottom edge and the bottom panel's top row). Icon:
   `volume_off` when muted or at 0, `volume_down` below half, `volume_up`
   otherwise. Hovering the button, or giving it keyboard focus, shows a short
-  slider beside it; it stays while the pointer is on the button or the slider.
-  The bar's existing hover hold keeps the controls up meanwhile.
+  slider beside it; it stays while the pointer is on the button or the slider,
+  while focus is inside the control, and through a drag that strays off it
+  until release. The bar holds the auto-hiding controls up for all three
+  (hover, focus, drag). The button is no taller than the bar (40 px), whose
+  height the fullscreen fish labels keep clear.
 - **Background audio** (added after review): players open with
   `VideoPlayerOptions(mixWithOthers: true)`, so opening a muted video on iOS
   or Android no longer pauses the diver's music or podcast. Chosen knowing
