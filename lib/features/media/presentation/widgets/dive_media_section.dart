@@ -382,6 +382,12 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
         ? stored
         : stored.whenData((media) => mediaInSitting(session, media));
     _scheduleEnrichmentBackfill(mediaAsync.valueOrNull);
+    // The shapes the library has learned from decoded thumbnails, so a photo
+    // stored sideways lays out the way it is shown. Watched here, in this
+    // State's build, so the subscription lives with the card rather than
+    // being reopened by the selection builder below. A cache that cannot be
+    // read loads as empty, so this never waits for good.
+    final learned = ref.watch(mediaLearnedAspectsProvider).value;
     final settings = ref.watch(unitFormatterProvider).settings;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
@@ -408,8 +414,14 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
       selectableIds: visibleIds,
       child: ValueListenableBuilder<SelectionState>(
         valueListenable: _selection,
-        builder: (context, selection, _) =>
-            _buildCard(context, mediaAsync, settings, colorScheme, textTheme),
+        builder: (context, selection, _) => _buildCard(
+          context,
+          mediaAsync,
+          learned,
+          settings,
+          colorScheme,
+          textTheme,
+        ),
       ),
     );
   }
@@ -417,15 +429,12 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
   Widget _buildCard(
     BuildContext context,
     AsyncValue<List<MediaItem>> mediaAsync,
+    Map<String, LearnedAspect>? learned,
     UnitFormatterSettings settings,
     ColorScheme colorScheme,
     TextTheme textTheme,
   ) {
     final selectionMedia = mediaAsync.value ?? const <MediaItem>[];
-    // The shapes the library has learned from decoded thumbnails, so a photo
-    // stored sideways lays out the way it is shown. A cache that cannot be
-    // read loads as empty, so this never waits for good.
-    final learned = ref.watch(mediaLearnedAspectsProvider).value;
     // Only the open card adds, holding what it adds in its sitting.
     final editing = widget.editing;
     final adding = _canAttach ? editing : null;

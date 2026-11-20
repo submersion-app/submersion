@@ -32,13 +32,13 @@
 
 **Files:**
 - Modify: `lib/features/media/presentation/widgets/media_grid.dart` (`MediaThumbnailTile`)
-- Test: `test/features/media/presentation/widgets/media_thumbnail_tile_test.dart` (create if absent)
+- Test: `test/features/media/presentation/widgets/media_grid_test.dart` (the tile's existing tests live here)
 
 **Interfaces:**
 - Produces: `MediaThumbnailTile({..., Size targetSize = const Size(200, 200), ValueChanged<Size>? onImageSize})`, both forwarded to its `MediaItemView`.
 
 - [ ] **Step 1: Write the failing tests**: `'forwards targetSize to MediaItemView'` (pump a tile with `targetSize: Size(400, 400)`, expect `tester.widget<MediaItemView>(...).targetSize == const Size(400, 400)`); `'defaults targetSize to 200 x 200'`; `'forwards onImageSize to MediaItemView'` (identical callback).
-- [ ] **Step 2: Run** `flutter test test/features/media/presentation/widgets/media_thumbnail_tile_test.dart`; expect compile failure on the new parameters.
+- [ ] **Step 2: Run** `flutter test test/features/media/presentation/widgets/media_grid_test.dart`; expect compile failure on the new parameters.
 - [ ] **Step 3: Add the two parameters** and pass them to `MediaItemView`.
 - [ ] **Step 4: Run** the same file; expect PASS.
 
@@ -62,6 +62,6 @@ The test host overrides `mediaAspectCacheRepositoryProvider` with a fake whose `
   - `'lays out when the learned shapes cannot be read'`: `loadAll` throws; after `pumpAndSettle` the tiles are there.
   - `'repacks when the card width changes'`: pump at 800 wide, then set `tester.view.physicalSize` narrower and pump; the first row holds fewer tiles.
 - [ ] **Step 2: Run** `flutter test test/features/media/presentation/widgets/dive_media_section_justified_test.dart`; expect FAIL (square tiles).
-- [ ] **Step 3: Implement** in `_buildCard`'s data branch: watch `mediaLearnedAspectsProvider`; while it has no value show the existing loading spinner. Wrap the grid in a `LayoutBuilder`; ratios as in Global Constraints; keep the table in State and rebuild it only when the width or the ratio list changes (`listEquals`), so `shouldRelayout` sees the same table. Pass `JustifiedMediaGridDelegate(table)`. In `itemBuilder` the cell size is `table.rectOf(index).size`; give the tile `targetSize: mediaThumbnailDecodeTarget(size)` and `onImageSize: (s) => ref.read(mediaLearnedAspectsProvider.notifier).report(item, s)`. `DragSelectGridView.itemBuilder` passes the item, not the index: use `media.indexOf(item)` or add the index to the builder only if indexOf proves wrong for duplicate ids (ids are unique).
+- [ ] **Step 3: Implement** in `_buildCard`'s data branch, with `mediaLearnedAspectsProvider` watched in the State's own `build` and passed down; while it has no value show the existing loading spinner. Wrap the grid in a `LayoutBuilder`; ratios as in Global Constraints; keep the table in State and rebuild it only when the width or the ratio list changes (`listEquals`), so `shouldRelayout` sees the same table. Pass `JustifiedMediaGridDelegate(table)`. In `itemBuilder` the cell size is `table.rectOf(index).size`; give the tile `targetSize: mediaThumbnailDecodeTarget(size)` and `onImageSize: (s) => ref.read(mediaLearnedAspectsProvider.notifier).report(item, s)`. `DragSelectGridView.itemBuilder` passes the item, not the index: look the index up in an id-to-index map built beside the ratios (ids are unique).
 - [ ] **Step 4: Run** the new file plus `dive_media_section_hover_test.dart`, `dive_media_section_unlink_test.dart`, `dive_media_section_lightroom_test.dart`, `test/features/dive_log/presentation/pages/dive_detail_media_hover_page_test.dart` and `test/features/media/presentation/pages/media_viewer_held_media_test.dart`; expect PASS.
 - [ ] **Step 5:** `dart format .`, `flutter analyze`, then commit `feat(media): lay dive media out in justified rows`.

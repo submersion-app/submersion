@@ -1,7 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/repositories/media_aspect_cache_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -16,10 +15,10 @@ import 'package:submersion/features/media/presentation/widgets/media_hover_regio
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/drag_select_grid_view.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
-import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
+import '../support/dive_media_sitting.dart';
 
 /// Learned shapes from a fixed map, or a read that fails.
 class _FakeAspectCache extends MediaAspectCacheRepository {
@@ -68,6 +67,7 @@ void main() {
     double width = 800,
     EditSession<Dive>? editing,
     void Function(MediaItem)? onOpenDocument,
+    TextDirection textDirection = TextDirection.ltr,
   }) async {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = Size(width, 900);
@@ -82,37 +82,19 @@ void main() {
             cache ?? _FakeAspectCache(),
           ),
         ],
-        child: SingleChildScrollView(
-          child: DiveMediaSection(
-            diveId: 'dive-1',
-            editing: editing,
-            onOpenDocument: onOpenDocument,
+        child: Directionality(
+          textDirection: textDirection,
+          child: SingleChildScrollView(
+            child: DiveMediaSection(
+              diveId: 'dive-1',
+              editing: editing,
+              onOpenDocument: onOpenDocument,
+            ),
           ),
         ),
       ),
     );
     await tester.pumpAndSettle();
-  }
-
-  /// The open card's sitting, which selection belongs to (issue #4673).
-  EditSession<Dive> openSitting() {
-    final controller = RecordEditController<Dive>(onSave: (_) async {})
-      ..unlock(Dive(id: 'dive-1', dateTime: DateTime.utc(2026)));
-    addTearDown(controller.dispose);
-    final session = controller.session!;
-    holdSittingMedia(
-      session,
-      SittingMediaWriters(
-        writeRows: (_) async => const [],
-        insertNetwork: (_) async => const [],
-        unlink: (_) async {},
-        replace: (_, _, _) async {},
-        drainDeletes: () async {},
-        enqueueUpload: (_) {},
-      ),
-      cardId: DiveDetailSectionId.media.name,
-    );
-    return session;
   }
 
   Finder tiles() => find.descendant(
@@ -173,6 +155,31 @@ void main() {
       expect(second.top - firstRow.first.bottom, closeTo(kDiveMediaGap, 0.01));
     });
 
+    testWidgets('right to left, rows start at the card\'s right edge', (
+      tester,
+    ) async {
+      await pumpSection(tester, [
+        for (var i = 0; i < 12; i++) _photo('p$i', 600, 400),
+      ], textDirection: TextDirection.rtl);
+
+      final rects = tileRects(tester);
+      final grid = gridRect(tester);
+      final firstRow = rects.where((r) => r.top == rects.first.top).toList();
+      // The first item sits at the right edge and the row runs leftward,
+      // ending flush with the left edge, gaps as in left to right.
+      expect(firstRow.first.right, closeTo(grid.right, 0.5));
+      expect(firstRow.last.left, closeTo(grid.left, 0.5));
+      for (var k = 1; k < firstRow.length; k++) {
+        expect(
+          firstRow[k - 1].left - firstRow[k].right,
+          closeTo(kDiveMediaGap, 0.01),
+        );
+      }
+      // The open last row keeps its items' widths and starts at the right.
+      final lastRow = rects.where((r) => r.top == rects.last.top).toList();
+      expect(lastRow.first.right, closeTo(grid.right, 0.5));
+    });
+
     testWidgets('the last row keeps the 120 px target height', (tester) async {
       await pumpSection(tester, [
         for (var i = 0; i < 12; i++) _photo('p$i', 600, 400),
@@ -228,7 +235,7 @@ void main() {
     ) async {
       await pumpSection(tester, [
         for (var i = 0; i < 12; i++) _photo('p$i', 600, 400),
-      ], editing: openSitting());
+      ], editing: openDiveMediaSitting());
       await tester.tap(find.byKey(const ValueKey('enter_selection')));
       await tester.pumpAndSettle();
 
@@ -254,7 +261,7 @@ void main() {
     testWidgets('a document held until Save does not open; a stored one does', (
       tester,
     ) async {
-      final editing = openSitting();
+      final editing = openDiveMediaSitting();
       addMediaToSitting(editing, [
         HeldMediaRow((item: _document('held'), enrichment: null)),
       ]);
