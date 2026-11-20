@@ -82,6 +82,10 @@ void main() {
     expect(fieldFocused(tester), isTrue);
   });
 
+  test('is the same map every call, so a rebuild changes nothing', () {
+    expect(identical(appActions(), appActions()), isTrue);
+  });
+
   test('keeps every one of Flutter\'s default actions', () {
     expect(appActions().keys, containsAll(WidgetsApp.defaultActions.keys));
   });
