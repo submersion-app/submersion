@@ -36,6 +36,46 @@ Future<R> runRecordSitting<R>({
   ),
 );
 
+/// Creates the record [recordId] of [table], a new record's sitting (issue
+/// #4527, phase 3, plan 11), inside [runRecordSitting].
+///
+/// The id is the one the sitting was opened with, which its held writes
+/// already point at. [insert] writes the record's row, then [alsoWrite]
+/// the sitting's held writes, in one transaction and one change log
+/// operation naming [changedCardIds]: if either throws nothing is left.
+/// Returns the record as [readBack] reads it at the end, or [created] when
+/// it reads nothing. Throws [StateError], before anything is written, when
+/// [recordId] is empty or [isStored] says a stored record already has it.
+Future<T> createRecordSitting<T>({
+  required String table,
+  required String recordId,
+  required Iterable<String> changedCardIds,
+  required Future<bool> Function() isStored,
+  required Future<void> Function() insert,
+  Future<void> Function()? alsoWrite,
+  required Future<T?> Function() readBack,
+  required T created,
+}) {
+  if (recordId.isEmpty) {
+    return Future.error(
+      StateError('A new $table record needs its id before it is created'),
+    );
+  }
+  return runRecordSitting(
+    table: table,
+    recordId: recordId,
+    changedCardIds: changedCardIds,
+    body: () async {
+      if (await isStored()) {
+        throw StateError('$table record $recordId already exists');
+      }
+      await insert();
+      await alsoWrite?.call();
+      return await readBack() ?? created;
+    },
+  );
+}
+
 /// Writes one editing sitting on the record [recordId] of [table], inside
 /// [runRecordSitting].
 ///

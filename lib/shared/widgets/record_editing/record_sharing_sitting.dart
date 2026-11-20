@@ -76,12 +76,30 @@ class RecordSharingSitting<T, S> {
   /// own writes nothing at all, so the rows wait for the next Save that
   /// changes something: upkeep the diver never asked for does not mark the
   /// sitting changed, which would make Cancel ask about it.
+  ///
+  /// A sitting on a record not yet created ([EditSession.isNew]) reads
+  /// nothing, as there is no row to read: it starts from
+  /// [newRecordSharing], the sharing the new record's seed was given (issue
+  /// #4527, phase 3, plan 11), which must then be given.
   Future<void> load(
     EditSession<T> session,
     RecordSharingAdapter<S> adapter, {
     String? actingDiverId,
+    S? newRecordSharing,
   }) {
     session.remember(_adapterKey, adapter);
+    if (session.isNew) {
+      assert(
+        newRecordSharing != null,
+        'A new record starts from the sharing its seed was given',
+      );
+      if (newRecordSharing != null) {
+        session
+          ..remember(_loadedKey, newRecordSharing)
+          ..remember(_unreadKey, null);
+      }
+      return Future.value();
+    }
     final recordId = recordIdOf(session.stored);
     final work = () async {
       try {

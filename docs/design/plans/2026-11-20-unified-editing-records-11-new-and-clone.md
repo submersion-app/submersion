@@ -12,6 +12,8 @@
 
 ## Questions for Eric
 
+**Eric chose every recommended answer, and confirmed every call, on 2026-11-20** ("Yes, as recommended"), and asked for the plan to be built here, natively.
+
 Each with the recommended answer first. The plan is written on the recommended answers; a different answer changes the tasks named.
 
 1. **Four pull requests, not one.** Nine types, two clones and about forty openers are too much for one review. Recommended: **A** the shared pieces, documents and species (Tasks 1 to 6); **B** buddies, dive centres, certifications, courses (Tasks 7 to 12); **C** gear items and equipment sets, with both clones (Tasks 13 to 18); **D** trips (Tasks 19 to 23). Each is green and switched off on its own; B, C and D need A merged and are independent of each other, so they can be built one after another or side by side. Other ways: one PR for all; or two (A with B, C with D).
