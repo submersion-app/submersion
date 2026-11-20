@@ -61980,4 +61980,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diverProfile_bodyEstimate_note => '仅用于估算身体成分以预测配重。';
+
+  @override
+  String get dashboard_header_more => 'More';
+
+  @override
+  String get dashboard_header_allClear => 'All clear';
+
+  @override
+  String dashboard_header_clearCount(int count) {
+    return '$count all clear';
+  }
+
+  @override
+  String get dashboard_header_statusTitle => 'Status';
 }

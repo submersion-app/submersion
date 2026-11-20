@@ -38521,5 +38521,10 @@
   "diverProfile_birthYear_invalid": "Enter a year from 1900 to {year}",
   "@diverProfile_birthYear_invalid": {"description": "Validation message for the birth year field. {year} is the current year.", "placeholders": {"year": {"type": "int"}}},
   "diverProfile_bodyEstimate_note": "Used only to estimate body composition for weight prediction.",
-  "@diverProfile_bodyEstimate_note": {"description": "Note under the sex and birth year fields."}
+  "@diverProfile_bodyEstimate_note": {"description": "Note under the sex and birth year fields."},
+  "dashboard_header_more": "More",
+  "dashboard_header_allClear": "All clear",
+  "dashboard_header_clearCount": "{count} all clear",
+  "@dashboard_header_clearCount": {"placeholders": {"count": {"type": "int"}}},
+  "dashboard_header_statusTitle": "Status"
 }

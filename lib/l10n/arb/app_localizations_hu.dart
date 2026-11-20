@@ -65726,4 +65726,18 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diverProfile_bodyEstimate_note =>
       'Csak a testösszetétel becslésére szolgál az ólomszükséglet előrejelzéséhez.';
+
+  @override
+  String get dashboard_header_more => 'More';
+
+  @override
+  String get dashboard_header_allClear => 'All clear';
+
+  @override
+  String dashboard_header_clearCount(int count) {
+    return '$count all clear';
+  }
+
+  @override
+  String get dashboard_header_statusTitle => 'Status';
 }

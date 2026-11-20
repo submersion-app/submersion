@@ -66130,4 +66130,18 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get diverProfile_bodyEstimate_note =>
       'Solo se usa para estimar la composición corporal en la predicción de lastre.';
+
+  @override
+  String get dashboard_header_more => 'More';
+
+  @override
+  String get dashboard_header_allClear => 'All clear';
+
+  @override
+  String dashboard_header_clearCount(int count) {
+    return '$count all clear';
+  }
+
+  @override
+  String get dashboard_header_statusTitle => 'Status';
 }

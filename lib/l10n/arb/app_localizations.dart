@@ -103571,6 +103571,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Used only to estimate body composition for weight prediction.'**
   String get diverProfile_bodyEstimate_note;
+
+  /// No description provided for @dashboard_header_more.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get dashboard_header_more;
+
+  /// No description provided for @dashboard_header_allClear.
+  ///
+  /// In en, this message translates to:
+  /// **'All clear'**
+  String get dashboard_header_allClear;
+
+  /// No description provided for @dashboard_header_clearCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} all clear'**
+  String dashboard_header_clearCount(int count);
+
+  /// No description provided for @dashboard_header_statusTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get dashboard_header_statusTitle;
 }
 
 class _AppLocalizationsDelegate
