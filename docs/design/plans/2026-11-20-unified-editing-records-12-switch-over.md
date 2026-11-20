@@ -314,4 +314,118 @@ Counts are `test(`/`testWidgets(` matches. "Plan N" means that plan's table alre
 
 ## After the build
 
-(Filled in while building: names, decisions made while building, and the per-case table: old file, old case, Pinned / Added / Form only, where.)
+### Part A (built 2026-11-20)
+
+**Decisions made while building.**
+
+- **Pencils went with each page's switch branches** (Tasks 1 to 3), not in a separate Task 4 pass: removing a pencil's switch-off branch left only an unlock button beside the lock. Task 4 then added the cases that pin "the lock and no Edit pencil" on every page and pane; they caught the document and species pencils, which Task 1 had missed.
+- **Host references are non-null.** Each page's content widget had a nullable `host` (null meant the switch was off); it is now required, and every `host?.`, `host != null` and `_editing` branch keeps its switch-on side.
+- **The empty equipment set's "Add equipment" button is gone**, not turned into an unlock: it only ever showed with the switch off, and the Members card always shows its pencil.
+- **The buddy star shows state only everywhere**: `BuddyFavoriteButton` lost `readOnly` and its write. A tap on a list row's star now opens the buddy, as a tap on the row does.
+- **The underwater track's read cards lost their actions** (Choose or Change dive, site and device): only the switch-off page passed them. `NavTrackActionCard` lost `actionLabel`, `onAction` and `actionKey`.
+- **The align page lost its own Save** and the save before 3D: it edits only in its track's sitting (Done) and reads only otherwise.
+- **The GPS page lost its trim mode** (Trim and Reset trim in the menu, the trim panel's Apply); the Trim card holds trims.
+- **The trip page lost the menu's scans** (they are on the Dives and Photos cards), `openTripEdit` and the `onEditPlan` chain through `TripDetailTabs`, `TripOverviewTab`, `TripPrepareOverview` and `TripOverviewSummaryCard`, and the gallery's immediate scan.
+- **`openNewRecord` lost `openCreated`**, which only the switch-off openers passed (shared code).
+- **Thirty strings went** (Task 5's sweep), by plan 7's rule: the pencils' tooltips, the set menu's figure and default items, the gallery scan's messages, the GPS trim item, the track rename and the course's Mark completed dialog.
+- **The write-at-once sweep is held for Eric** (call 4): about 14 widgets (`CourseRequirementsSection`, `RentalGearSection`, `CertificationCurrencySection`, `ServiceClocksCard`, `ServiceHistorySection`, `ObservationsCard`, `EquipmentPhotosSection`, `EquipmentLocationCard`, `EquipmentDocumentsSection`, `EquipmentSharingRow`, `BuddyGearSection`, `EquipmentHeaderStatus`'s `offerPurchase`, `DocumentDetailsPanel`'s `showReminder` and others) keep a write-at-once mode no caller reaches, and some helpers have no caller left (`showLendGearFlow`, `showEquipmentReturnFlow`, `scanGalleryForTripPhotos`, `scanLightroomForTrip`, `SpeciesPhotoImportHelper.importPhotosForSpecies`, `StoredRequirementActions`, `trimTrackProvider`). Their own widget tests exercise those modes and the sheets they share with the held paths, so removing them means porting those tests.
+- **The hook round** (Task 7) found 159 failing cases in 24 files that pumped a page with the switch's old default. Record operations unlock first; the align page test works through its track's sitting; the board and ledger tests hold their changes until Save; the stars only show. A case that pinned a write-at-once action, a pencil, a form or a moved menu item went where an unlock, sitting or card editor test pins the held behaviour (table below).
+- **Review Focus**: 1 by `test/core/router/old_edit_address_deleted_record_test.dart` (all nine types); 2 by `trip_edit_routes_test` ("the old address ... lands on ..."); 3 by the list tests' pane and table-mode cases (now the page) and each unlock test's "the pane header has the lock and no Edit pencil"; 4 by `documents_section_test` "the owner's Cancel keeps the Personal document and links nothing"; 5 by `buddy_favorite_button_test`, `buddy_detail_page_test` and the three list tile tests.
+
+**Test cases removed in Part A** (switch-off, write-at-once, pencil or form cases; each one's held or locked behaviour is pinned by the type's unlock, sitting or card editor tests):
+
+| Test file | Case removed |
+| --- | --- |
+| `buddies/presentation/pages/buddy_detail_page_unlock_test.dart` | with the switch off there is no lock and the star toggles |
+| `buddies/presentation/pages/buddy_detail_page_unlock_test.dart` | the menu offers Lend with the switch off |
+| `dive_centers/presentation/pages/dive_center_detail_page_unlock_test.dart` | with the switch off there is no lock |
+| `dive_centers/presentation/pages/dive_center_detail_page_unlock_test.dart` | with the switch off, Delete is offered as before |
+| `certifications/presentation/pages/certification_detail_page_unlock_test.dart` | with the switch off there is no lock |
+| `certifications/presentation/pages/certification_detail_page_unlock_test.dart` | with the switch off, Delete is offered as before |
+| `courses/presentation/pages/course_detail_page_unlock_test.dart` | with the switch off there is no lock and Mark completed stays |
+| `courses/presentation/pages/course_detail_page_unlock_test.dart` | with the switch off, Delete is offered as before |
+| `documents/presentation/pages/document_detail_page_unlock_test.dart` | with the switch off there is no lock |
+| `marine_life/presentation/pages/species_detail_page_unlock_test.dart` | with the switch off there is no lock |
+| `documents/presentation/pages/documents_pages_test.dart` | on a wide screen, Edit opens the editor in the detail pane |
+| `buddies/presentation/widgets/buddy_favorite_button_test.dart` | BuddyFavoriteButton tap target: meets the 48x48 minimum on touch platforms |
+| `buddies/presentation/widgets/buddy_favorite_button_test.dart` | BuddyFavoriteButton tap target: keeps a 32x32 floor on pointer-driven desktop |
+| `gps_log/presentation/pages/gps_track_detail_page_unlock_test.dart` | with the switch off there is no lock and the menu offers Trim |
+| `nav_track/presentation/pages/nav_track_detail_page_unlock_test.dart` | with the switch off there is no lock and Choose dive links at |
+| `equipment/presentation/pages/equipment_detail_page_unlock_test.dart` | with the switch off there is no lock and the page is as |
+| `equipment/presentation/pages/equipment_detail_page_unlock_test.dart` | with the switch off the chip still buys in one tap |
+| `equipment/presentation/pages/equipment_set_detail_page_unlock_test.dart` | with the switch off there is no lock and the menu is |
+| `equipment/presentation/pages/equipment_set_detail_page_unlock_test.dart` | the empty Members card keeps Add Equipment with the switch |
+| `equipment/presentation/pages/equipment_set_detail_page_unlock_test.dart` | the empty Members card has no Add Equipment button with the |
+| `cylinder_passports/presentation/pages/passport_page_unlock_test.dart` | with the switch off the page is as before |
+| `gear_passports/presentation/pages/gear_passport_page_unlock_test.dart` | with the switch off there is no lock |
+| `equipment/presentation/pages/equipment_set_edit_routes_test.dart` | with the switch off the pane has no edit mode |
+| `equipment/presentation/pages/equipment_edit_routes_test.dart` | with the switch off the pane opens the form |
+| `trips/presentation/pages/trip_detail_page_unlock_test.dart` | with the switch off there is no lock and the menu is |
+| `trips/presentation/pages/trip_detail_page_unlock_test.dart` | with the switch off the Gear and Checklist tabs offer their |
+| `trips/presentation/pages/trip_detail_page_photos_test.dart` | with the switch off the Photos tab offers no scan |
+| `trips/presentation/pages/trip_detail_page_dives_test.dart` | with the switch off the Dives tab offers no scan |
+| `trips/presentation/pages/trip_edit_routes_test.dart` | with the switch off the pane opens the form |
+| `trips/presentation/widgets/overview/trip_overview_summary_card_test.dart` | Plan goes to the handler when one is given (#2880) |
+| `trips/presentation/helpers/trip_edit_navigation_test.dart` | in the pane, switches the pane to edit mode |
+| `trips/presentation/helpers/trip_edit_navigation_test.dart` | as a page, pushes the edit page |
+| `trips/presentation/helpers/trip_edit_navigation_test.dart` | as a page, opens the notes at the day |
+| `trips/presentation/helpers/trip_edit_navigation_test.dart` | in the pane, opens the notes at the day |
+| `trips/presentation/pages/trip_gallery_page_test.dart` | shows camera icon button in app bar |
+| `shared/widgets/record_editing/record_card_ids_test.dart` | the switch is off by default |
+| `core/router/app_router_test.dart` | trip edit (#2880): openTripEdit pushes the editTrip route |
+| `core/router/app_router_test.dart` | trip edit (#2880): editTrip opens the form at the section in the URL |
+| `shared/widgets/record_editing/open_new_record_test.dart` | not asked to open what it created, it stays |
+| `nav_track/presentation/pages/nav_track_align_page_test.dart` | "Open 3D" saves the in-progress correction before navigating (item 22): pinned the other way by nav_track_align_page_unlock_test 'the 3D button previews the page's correction and writes nothing' |
+| `nav_track/presentation/pages/nav_track_detail_page_test.dart` | the site card keeps its label readable |
+| `nav_track/presentation/pages/nav_track_detail_page_test.dart` | tapping the action opens the site picker |
+| `nav_track/presentation/pages/nav_track_detail_page_test.dart` | picking an existing site in the picker assigns it to the |
+| `nav_track/presentation/pages/nav_track_detail_page_test.dart` | creating a new site in the picker pushes /sites/new and assigns the |
+| `nav_track/presentation/pages/nav_track_detail_page_test.dart` | creating a new site seeds the form with the route anchor and keeps a |
+| `nav_track/presentation/pages/nav_track_detail_page_test.dart` | "Choose dive" pre-selects the sole time-overlapping dive (#2394) |
+| `nav_track/presentation/pages/nav_track_detail_page_test.dart` | tapping "Choose dive" and picking one links the route to it |
+| `nav_track/presentation/pages/nav_track_detail_page_test.dart` | rename saves the trimmed new name through the repository |
+| `nav_track/presentation/pages/nav_track_detail_page_test.dart` | the unlink item only appears for a linked route, and calls |
+| `nav_track/presentation/pages/nav_track_detail_page_test.dart` | change device opens the picker and persists the chosen equipment |
+| `nav_track/presentation/pages/nav_track_detail_page_test.dart` | change device, choosing "no equipment", clears both fields |
+| `nav_track/presentation/pages/nav_track_detail_page_test.dart` | group: on a narrow phone in German (#2692) |
+| `nav_track/presentation/pages/nav_track_detail_page_test.dart` | "Change dive" still offers and marks a linked dive that is no longer |
+| `nav_track/presentation/pages/nav_track_detail_page_test.dart` | the linked dive card offers a "Change dive" action that re-links to |
+| `nav_track/presentation/pages/nav_track_detail_page_test.dart` | "Change dive" writes nothing when the same dive is picked |
+| `trips/presentation/pages/trip_cylinder_board_page_test.dart` | a failed slot delete says so and keeps the slot |
+| `trips/presentation/pages/trip_cylinder_board_page_test.dart` | a failed reorder says so and puts the slots back |
+| `trips/presentation/pages/trip_cylinder_board_page_test.dart` | adding waits until the slots on the trip are known |
+| `trips/presentation/pages/trip_cylinder_board_page_test.dart` | saving a day writes its plan to the itinerary |
+| `trips/presentation/pages/trip_cylinder_board_page_test.dart` | clearing the plan returns a planned day to blank |
+| `trips/presentation/pages/trip_cylinder_board_page_test.dart` | two quick drops never show the older order in between |
+| `trips/presentation/pages/trip_cylinder_board_page_test.dart` | a failure before the delete dialog says so |
+| `trips/presentation/pages/trip_cylinder_board_page_test.dart` | a failed plan save says so and frees the strip |
+| `trips/presentation/pages/trip_cylinder_board_page_test.dart` | the plan count reads as dives to a screen reader |
+| `trips/presentation/pages/trip_cylinder_board_page_test.dart` | cancel writes nothing (the forecast strip plan sheet; held in a sitting: trip_cylinder_board_page_unlock_test) |
+| `trips/presentation/widgets/cylinders/trip_cylinder_ledger_view_test.dart` | deleting a fill removes its passport copy |
+| `trips/presentation/widgets/cylinders/trip_cylinder_ledger_view_test.dart` | a failed delete says so and keeps the entry |
+| `trips/presentation/widgets/cylinders/trip_cylinder_ledger_view_test.dart` | a failed passport cleanup keeps the fill to delete again |
+| `trips/presentation/pages/trip_detail_page_test.dart` | as a page, opens the edit page at Planning |
+| `trips/presentation/pages/trip_detail_page_test.dart` | in the pane, edits in the pane at Planning |
+| `trips/presentation/pages/trip_detail_page_test.dart` | app bar edit button pushes to edit route |
+| `trips/presentation/pages/trip_detail_page_test.dart` | as a page, opens the edit page at the day note |
+| `trips/presentation/pages/trip_detail_page_test.dart` | in the pane, edits the day note in the pane |
+| `trips/presentation/pages/trip_detail_page_test.dart` | embedded edit button navigates to edit mode |
+| `trips/presentation/pages/trip_detail_page_test.dart` | should display edit icon button |
+| `trips/presentation/pages/trip_detail_page_test.dart` | overflow menu runs scan actions |
+| `trips/presentation/pages/trip_detail_page_sharing_test.dart` | the owner sees no Shared with row on the page (#3766; reversed by decision 7: the header block shows Shared with to the owner, pinned by trip_header_card_editor_test) |
+| `buddies/presentation/pages/buddy_detail_page_test.dart` | Lend gear (issue #3790): reachable from the menu with no gear (embedded, full page): Lend is on the Gear card, pinned by buddy_gear_section_test and buddy_detail_page_unlock_test |
+| `cylinder_passports/presentation/pages/passport_page_test.dart` | a failure to track O2 cleaning says so |
+| `cylinder_passports/presentation/pages/passport_page_mint_and_delete_test.dart` | a fill deleted from the history is gone |
+| `cylinder_passports/presentation/pages/passport_page_mint_and_delete_test.dart` | a double tap on Track O2 cleaning makes one schedule |
+| `equipment/presentation/pages/equipment_detail_sharing_test.dart` | tapping Shared with lists the other profiles |
+| `equipment/presentation/pages/equipment_set_detail_show_figure_test.dart` | the menu turns the figure on and saves it |
+| `equipment/presentation/pages/equipment_set_detail_show_figure_test.dart` | toggling the figure keeps the set |
+| `equipment/presentation/pages/equipment_set_detail_show_figure_test.dart` | with the figure on, the menu offers to hide it |
+| `equipment/presentation/pages/equipment_set_detail_show_figure_test.dart` | (file deleted: its three cases were the menu's Show and Hide figure, now the Figure card's, pinned by equipment_set_detail_page_unlock_test and equipment_set_card_editors_test) |
+| `equipment/presentation/pages/equipment_set_detail_default_test.dart` | offers "Set as default" only when not already default |
+| `equipment/presentation/pages/equipment_set_detail_geofence_test.dart` | "Set as default" action promotes the set |
+
+### Parts B and C
+
+(Filled in while building: the per-case table for each deleted form test file: old file, old case, Pinned / Added / Form only, where.)
+
