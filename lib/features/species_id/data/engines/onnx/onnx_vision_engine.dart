@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:submersion_vision/onnx_runtime.dart';
+import 'package:submersion_vision/windows_ml.dart';
 
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/platform/host_platform.dart';
@@ -75,7 +76,7 @@ class OnnxVisionEngine
        _hardware =
            hardware ??
            ((platform ?? defaultTargetPlatform) == TargetPlatform.windows
-               ? WindowsMlEngines()
+               ? WindowsMlEngines(const WinMlCatalog())
                : const NoHardwareEngines()),
        _spawnWorker = spawnWorker,
        _customWorker = worker,

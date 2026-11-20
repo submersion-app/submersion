@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:submersion_vision/windows_ml.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
@@ -39,42 +41,78 @@ class NoHardwareEngines implements HardwareEngines {
 /// The engines Windows ML's catalogue offers. A catalogue that cannot be
 /// read (an older Windows, a missing library) offers and registers
 /// nothing, so the models still run on DirectML or the processor.
+///
+/// Windows ML adds an installed engine to the app's process anew each time
+/// (it reads as not ready after every launch), so the engines are prepared
+/// whenever a worker starts; that downloads nothing. Only an engine that is
+/// not on the PC is fetched, during the pack's download.
 class WindowsMlEngines implements HardwareEngines {
-  WindowsMlEngines([this._catalogue = const WinMlCatalog()]);
+  WindowsMlEngines(
+    this._catalogue, {
+    this.fetchTimeout = const Duration(minutes: 20),
+    this.prepareTimeout = const Duration(minutes: 2),
+  });
 
   final WinMlCatalogue _catalogue;
+
+  /// How long a vendor engine's download may take before the install goes
+  /// on without it (about 200 MB on a slow line).
+  final Duration fetchTimeout;
+
+  /// How long preparing an installed engine may take.
+  final Duration prepareTimeout;
+
   final _log = LoggerService.forClass(WindowsMlEngines);
 
   @override
   Future<bool> offersEngineToFetch() async =>
-      (await _engines()).any((e) => e.state != WinMlReadyState.ready);
+      (await _engines()).any((e) => e.state == WinMlReadyState.notPresent);
 
   @override
   Future<bool> fetchEngine() async {
     var anyReady = false;
     for (final engine in await _engines()) {
-      if (engine.state == WinMlReadyState.ready) continue;
-      try {
-        final ready = await _catalogue.ensureReady(engine.name);
-        _log.info('Windows ML engine ${engine.name}: ready $ready');
-        anyReady = anyReady || ready;
-      } on Object catch (e) {
-        _log.warning(
-          'Windows ML engine ${engine.name} did not arrive',
-          error: e,
-        );
-      }
+      if (engine.state != WinMlReadyState.notPresent) continue;
+      anyReady = await _prepare(engine.name, fetchTimeout) || anyReady;
     }
     return anyReady;
   }
 
   @override
-  Future<List<ProviderLibrary>> readyProviderLibraries() async => [
-    for (final engine in await _engines())
-      if (engine.state == WinMlReadyState.ready &&
-          engine.libraryPath.isNotEmpty)
-        (name: engine.name, path: engine.libraryPath),
-  ];
+  Future<List<ProviderLibrary>> readyProviderLibraries() async {
+    var engines = await _engines();
+    final installed = [
+      for (final e in engines)
+        if (e.state == WinMlReadyState.notReady) e.name,
+    ];
+    if (installed.isNotEmpty) {
+      for (final name in installed) {
+        await _prepare(name, prepareTimeout);
+      }
+      engines = await _engines();
+    }
+    return [
+      for (final engine in engines)
+        if (engine.state == WinMlReadyState.ready &&
+            engine.libraryPath.isNotEmpty)
+          (name: engine.name, path: engine.libraryPath),
+    ];
+  }
+
+  /// Prepares [name], giving up after [limit]; never throws. A call that
+  /// times out goes on in its own isolate and does no harm.
+  Future<bool> _prepare(String name, Duration limit) async {
+    try {
+      final ready = await _catalogue.ensureReady(name).timeout(limit);
+      _log.info('Windows ML engine $name: ready $ready');
+      return ready;
+    } on TimeoutException {
+      _log.warning('Windows ML engine $name not ready after $limit');
+    } on Object catch (e) {
+      _log.warning('Windows ML engine $name did not arrive', error: e);
+    }
+    return false;
+  }
 
   Future<List<WinMlEngine>> _engines() async {
     try {

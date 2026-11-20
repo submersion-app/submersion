@@ -216,6 +216,8 @@ class SpeciesPackController extends Notifier<SpeciesPackState> {
         done += file.size;
       }
       state = const PackInstalling();
+      // Before the install holds analysis: an engine can take minutes.
+      await _fetchHardwareEngine(ref.read(visionEngineProvider));
       // With no analysis under way: install deletes the old version.
       final installed = await ref
           .read(mediaIdentificationServiceProvider)
@@ -256,7 +258,6 @@ class SpeciesPackController extends Notifier<SpeciesPackState> {
   /// Models that do not load are removed: an installed pack must work.
   Future<void> _prepare(InstalledPack pack) async {
     final engine = ref.read(visionEngineProvider);
-    await _fetchHardwareEngine(engine);
     try {
       await engine.load(
         VisionModels.fromManifest(

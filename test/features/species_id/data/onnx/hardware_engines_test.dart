@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion_vision/windows_ml.dart';
 
@@ -6,10 +8,18 @@ import 'package:submersion/features/species_id/data/engines/onnx/hardware_engine
 /// A catalogue holding [engines]; preparing one makes it ready, unless its
 /// name is in [refuse].
 class FakeCatalogue implements WinMlCatalogue {
-  FakeCatalogue(this._engines, {this.refuse = const {}, this.broken = false});
+  FakeCatalogue(
+    this._engines, {
+    this.refuse = const {},
+    this.hang = const {},
+    this.broken = false,
+  });
 
   List<WinMlEngine> _engines;
   final Set<String> refuse;
+
+  /// Engines whose preparing never finishes (a stalled download).
+  final Set<String> hang;
   final bool broken;
   final prepared = <String>[];
 
@@ -23,6 +33,7 @@ class FakeCatalogue implements WinMlCatalogue {
   Future<bool> ensureReady(String name) async {
     prepared.add(name);
     if (refuse.contains(name)) throw StateError('download failed');
+    if (hang.contains(name)) return Completer<bool>().future;
     _engines = [
       for (final e in _engines)
         e.name == name
@@ -42,6 +53,11 @@ const _ready = WinMlEngine(
   state: WinMlReadyState.ready,
   libraryPath: 'C:\\engines\\nv.dll',
 );
+const _installed = WinMlEngine(
+  name: 'QNNExecutionProvider',
+  state: WinMlReadyState.notReady,
+  libraryPath: '',
+);
 const _absent = WinMlEngine(
   name: 'OpenVINOExecutionProvider',
   state: WinMlReadyState.notPresent,
@@ -58,17 +74,66 @@ void main() {
       ]);
     });
 
-    test('an engine that is not ready is offered for fetching', () async {
-      expect(
-        await WindowsMlEngines(
-          FakeCatalogue([_ready, _absent]),
-        ).offersEngineToFetch(),
-        isTrue,
+    test('an engine that is installed but not ready is prepared and '
+        'registered when the worker starts, with nothing to fetch', () async {
+      // Windows ML adds an installed engine to each process anew, so it
+      // reads as not ready after every launch.
+      final catalogue = FakeCatalogue([_installed]);
+      final engines = WindowsMlEngines(catalogue);
+
+      expect(await engines.readyProviderLibraries(), [
+        (
+          name: 'QNNExecutionProvider',
+          path: 'C:\\engines\\QNNExecutionProvider.dll',
+        ),
+      ]);
+      expect(catalogue.prepared, ['QNNExecutionProvider']);
+      expect(await engines.offersEngineToFetch(), isFalse);
+    });
+
+    test(
+      'only an engine that is not on this PC is offered for fetching',
+      () async {
+        expect(
+          await WindowsMlEngines(
+            FakeCatalogue([_ready, _absent]),
+          ).offersEngineToFetch(),
+          isTrue,
+        );
+        expect(
+          await WindowsMlEngines(
+            FakeCatalogue([_ready, _installed]),
+          ).offersEngineToFetch(),
+          isFalse,
+        );
+      },
+    );
+
+    test(
+      'a download that never finishes gives up, so the install goes on',
+      () async {
+        final catalogue = FakeCatalogue(
+          [_absent],
+          hang: {'OpenVINOExecutionProvider'},
+        );
+        final engines = WindowsMlEngines(
+          catalogue,
+          fetchTimeout: const Duration(milliseconds: 20),
+        );
+
+        expect(await engines.fetchEngine(), isFalse);
+      },
+    );
+
+    test('an installed engine that never gets ready is left out', () async {
+      final engines = WindowsMlEngines(
+        FakeCatalogue([_ready, _installed], hang: {'QNNExecutionProvider'}),
+        prepareTimeout: const Duration(milliseconds: 20),
       );
-      expect(
-        await WindowsMlEngines(FakeCatalogue([_ready])).offersEngineToFetch(),
-        isFalse,
-      );
+
+      expect(await engines.readyProviderLibraries(), [
+        (name: 'NvTensorRTRTXExecutionProvider', path: 'C:\\engines\\nv.dll'),
+      ]);
     });
 
     test('fetching prepares each engine that is not ready', () async {

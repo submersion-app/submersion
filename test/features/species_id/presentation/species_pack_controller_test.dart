@@ -335,6 +335,18 @@ void main() {
       expect(state(), isA<PackInstalled>());
     });
 
+    test('identification is not held while the engine downloads', () async {
+      // An engine can be hundreds of megabytes; analysis is held only for
+      // the pack's own install.
+      final hardware = useHardwareEngine();
+      bool? heldWhileFetching;
+      hardware.whileFetching = () => heldWhileFetching = service.changing;
+      await controller().refresh();
+      await controller().download();
+      expect(heldWhileFetching, isFalse);
+      expect(hardware.events.take(2), ['fetch', 'load']);
+    });
+
     test('an engine that does not arrive still installs the pack', () async {
       final hardware = useHardwareEngine(arrives: false);
       await controller().refresh();
@@ -545,12 +557,16 @@ class _HardwareEngine extends FakeEngine implements HardwareEngineSource {
   final bool arrives;
   final bool throws;
 
+  /// Asked while fetching, to see what else is going on.
+  void Function()? whileFetching;
+
   @override
   Future<bool> offersEngineToFetch() async => offers;
 
   @override
   Future<bool> fetchEngine() async {
     events.add('fetch');
+    whileFetching?.call();
     if (throws) throw StateError('Windows ML failed');
     return arrives;
   }
