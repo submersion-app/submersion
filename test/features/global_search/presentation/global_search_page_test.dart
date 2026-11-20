@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/accessibility/app_shortcuts.dart';
+import 'package:submersion/core/ui/app_actions.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_error_code.dart';
 import 'package:submersion/core/query/domain/query_errors.dart';
@@ -167,6 +168,9 @@ Widget _app(
       ...overrides.cast(),
     ],
     child: MaterialApp.router(
+      // The app's own, as lib/app.dart sets them: a tap off the field puts
+      // the keyboard away.
+      actions: appActions(),
       routerConfig: router,
       locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,

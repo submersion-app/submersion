@@ -128,27 +128,23 @@ class _GlobalSearchPageState extends ConsumerState<GlobalSearchPage> {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
                 // A tap anywhere else puts the keyboard away and brings the
-                // bottom bar back. The field's own group keeps its
-                // completions, handles and toolbar inside.
-                child: TextFieldTapRegion(
-                  onTapOutside: (_) => _focus.unfocus(),
-                  child: QueryTextField(
-                    fieldKey: const ValueKey('global-search-field'),
-                    context: editorContext,
-                    textReader: GlobalSearchTextReader(editorContext),
-                    value: null,
-                    onChanged: (_) {},
-                    onTextChanged: (text) => setState(() => _text = text),
-                    onTextAccepted: (text) => setState(() => _query = text),
-                    hintText: l10n.globalSearch_hint,
-                    clearTooltip: l10n.globalSearch_clear,
-                    describeError: (e) => describeQueryError(l10n, e),
-                    focusNode: _focus,
-                    autofocus: !_keyboardCoversNav,
-                    textOverride: _override,
-                    // Empty leaves Esc to whatever sits outside the field.
-                    onEscape: _text.isEmpty ? null : _clear,
-                  ),
+                // bottom bar back: the app's actions do that for every field.
+                child: QueryTextField(
+                  fieldKey: const ValueKey('global-search-field'),
+                  context: editorContext,
+                  textReader: GlobalSearchTextReader(editorContext),
+                  value: null,
+                  onChanged: (_) {},
+                  onTextChanged: (text) => setState(() => _text = text),
+                  onTextAccepted: (text) => setState(() => _query = text),
+                  hintText: l10n.globalSearch_hint,
+                  clearTooltip: l10n.globalSearch_clear,
+                  describeError: (e) => describeQueryError(l10n, e),
+                  focusNode: _focus,
+                  autofocus: !_keyboardCoversNav,
+                  textOverride: _override,
+                  // Empty leaves Esc to whatever sits outside the field.
+                  onEscape: _text.isEmpty ? null : _clear,
                 ),
               ),
             ),
