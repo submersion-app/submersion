@@ -56,8 +56,8 @@ part 'trip_detail_page_editing.dart';
 part 'trip_detail_page_menu.dart';
 
 /// A trip's page: six tabs under its name. It opens locked and edits in
-/// place (issue #4527): its
-/// cards, on every tab, are held in one sitting and written by one Save.
+/// place (issue #4527): its cards, on every tab, are held in one sitting and
+/// written by one Save.
 class TripDetailPage extends ConsumerStatefulWidget {
   final String tripId;
   final bool embedded;

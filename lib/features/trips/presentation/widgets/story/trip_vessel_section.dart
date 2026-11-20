@@ -19,7 +19,7 @@ import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart
 class TripVesselSection extends ConsumerWidget {
   final String tripId;
 
-  /// The trip page's open sitting, where it edits in place.
+  /// The trip page's open sitting.
   final EditSession<Trip>? session;
 
   const TripVesselSection({super.key, required this.tripId, this.session});

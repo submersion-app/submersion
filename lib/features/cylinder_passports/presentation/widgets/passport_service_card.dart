@@ -32,8 +32,7 @@ class PassportServiceCard extends ConsumerWidget {
   final EquipmentItem equipment;
 
   /// The open card's sitting (issue #4527, phase 3): Track O2 clean holds
-  /// the clock in the item's service clocks until Save. On a page that
-  /// edits in place and with no sitting given, nothing is offered. The
+  /// the clock in the item's service clocks until Save. With no sitting given, nothing is offered. The
   /// statuses stay as stored until Save, as on the Service clocks card.
   final EditSession<EquipmentItem>? editing;
 

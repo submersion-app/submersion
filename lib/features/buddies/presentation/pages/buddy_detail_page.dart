@@ -251,10 +251,6 @@ class _BuddyDetailContent extends ConsumerWidget {
   /// Whether the empty card [id] is shown in the sitting.
   bool _shows(BuddyCardId id) => host._showsWhileEmpty(id);
 
-  /// [child] faded for [reason].
-  Widget _fade(RecordCardFadeReason reason, Widget child) =>
-      _faded(reason, child);
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(certificationCatalogSyncProvider);
@@ -283,7 +279,7 @@ class _BuddyDetailContent extends ConsumerWidget {
 
           // What their buddy card said (issue #3728).
           if (buddy.hasCardDetails) ...[
-            _fade(
+            _faded(
               RecordCardFadeReason.imported,
               BuddyCardDetailsSection(buddy: buddy),
             ),
@@ -334,13 +330,13 @@ class _BuddyDetailContent extends ConsumerWidget {
 
           if (!_creating) ...[
             // Shared dives
-            _fade(
+            _faded(
               RecordCardFadeReason.calculated,
               BuddySharedDivesSection(buddyId: buddy.id),
             ),
 
             // Photos and videos they are tagged in (issue #1745)
-            _fade(
+            _faded(
               RecordCardFadeReason.calculated,
               BuddyPhotosSection(buddyId: buddy.id),
             ),
@@ -372,7 +368,7 @@ class _BuddyDetailContent extends ConsumerWidget {
       actions: [
         host.lockButton(buddy),
         // The favourite is set on the header: the bar's star only shows it.
-        BuddyFavoriteButton(buddyId: buddy.id, isFavorite: buddy.isFavorite),
+        BuddyFavoriteButton(isFavorite: buddy.isFavorite),
         _menu(context, ref),
       ],
     );
@@ -436,11 +432,7 @@ class _BuddyDetailContent extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _sectionTitle(
-              context,
-              context.l10n.buddies_section_contact,
-              editing: true,
-            ),
+            _sectionTitle(context, context.l10n.buddies_section_contact),
             const SizedBox(height: 12),
             if (buddy.linkedDiverId != null)
               ListTile(
@@ -518,11 +510,7 @@ class _BuddyDetailContent extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _sectionTitle(
-              context,
-              context.l10n.buddies_section_certifications,
-              editing: true,
-            ),
+            _sectionTitle(context, context.l10n.buddies_section_certifications),
             const SizedBox(height: 12),
             certsAsync.when(
               loading: () => const Padding(
@@ -582,7 +570,6 @@ class _BuddyDetailContent extends ConsumerWidget {
               _sectionTitle(
                 context,
                 context.l10n.buddies_section_diveStatistics,
-                editing: true,
               ),
               const SizedBox(height: 12),
               statsAsync.when(
@@ -655,11 +642,7 @@ class _BuddyDetailContent extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _sectionTitle(
-              context,
-              context.l10n.buddies_section_notes,
-              editing: true,
-            ),
+            _sectionTitle(context, context.l10n.buddies_section_notes),
             const SizedBox(height: 12),
             MarkdownNotesView(buddy.notes),
           ],

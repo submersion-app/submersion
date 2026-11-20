@@ -100,7 +100,7 @@ void main() {
     expect(find.text('CLONE FORM from=s1'), findsOneWidget);
   });
 
-  testWidgets('Clone sits just above Delete', (tester) async {
+  testWidgets('Clone is the last choice before Delete', (tester) async {
     await pump(tester, '/equipment/sets/s1');
     await tester.tap(find.byIcon(Icons.more_vert));
     await tester.pumpAndSettle();

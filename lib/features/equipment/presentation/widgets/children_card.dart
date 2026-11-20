@@ -117,10 +117,9 @@ class ChildrenCard extends ConsumerWidget {
                               onSelected: (action) =>
                                   _onAction(context, ref, child, action),
                               itemBuilder: (context) {
-                                // Where the page edits in place (issue
-                                // #4527, phase 3), Replace is a whole-record
-                                // operation: it retires this part and makes
-                                // a new one.
+                                // Replace is a whole-record operation (issue
+                                // #4527, phase 3): it retires this part and
+                                // makes a new one.
                                 final reason = recordOperationReason(
                                   l10n,
                                   recordOperationBlockOf(

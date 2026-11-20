@@ -15,7 +15,7 @@ import 'package:submersion/features/courses/presentation/editing/course_requirem
 ///
 /// What a tap does is [actions]'s: written at once, as before, when none is
 /// given, or held in a course page's sitting (issue #4527, phase 3). With
-/// [readOnly] (the page edits in place and is locked, or the card is closed)
+/// [readOnly] (the page is locked, or the card is closed)
 /// it offers no action and shows the tick as it is.
 class RequirementTile extends ConsumerWidget {
   const RequirementTile({

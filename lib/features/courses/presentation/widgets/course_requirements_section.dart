@@ -14,7 +14,7 @@ import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dar
 /// The requirement tracker card on the course detail page: overall progress
 /// header, one tile per requirement, and empty-state actions.
 ///
-/// On a page that edits in place (issue #4527, phase 3) it offers nothing
+/// On the course's page (issue #4527, phase 3) it offers nothing
 /// while locked ([readOnly]); in the page's sitting ([editing]) everything
 /// it adds, ticks, credits and removes is held until Save.
 class CourseRequirementsSection extends ConsumerWidget {
@@ -32,7 +32,7 @@ class CourseRequirementsSection extends ConsumerWidget {
   /// editor, drawn inside the open card.
   final EditSession<Course>? editing;
 
-  /// Offers no action: the page edits in place and is locked, or its card
+  /// Offers no action: the page is locked, or its card
   /// is closed.
   final bool readOnly;
 

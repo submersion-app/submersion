@@ -1,7 +1,7 @@
 part of 'course_detail_page.dart';
 
 /// The course page's read sections, each a card that the editing host
-/// frames where the page edits in place (issue #4527, phase 3).
+/// frames (issue #4527, phase 3).
 extension _CourseDetailSections on _CourseDetailContent {
   Widget _buildStatusCard(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;

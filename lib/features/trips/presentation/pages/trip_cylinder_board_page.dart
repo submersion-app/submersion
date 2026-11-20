@@ -119,12 +119,8 @@ class _TripCylinderBoardPageState extends ConsumerState<TripCylinderBoardPage>
     );
   }
 
-  /// Fill several and Add, above the board in a sitting.
-  List<Widget> _actions(
-    List<TripCylinderState> states, {
-    required bool ready,
-    TripBoardHold? hold,
-  }) {
+  /// Fill several and Add, above the board in a sitting, each held in it.
+  List<Widget> _actions(List<TripCylinderState> states, TripBoardHold hold) {
     final l10n = context.l10n;
     return [
       IconButton(
@@ -141,23 +137,19 @@ class _TripCylinderBoardPageState extends ConsumerState<TripCylinderBoardPage>
                   for (final s in states)
                     if (s.status != TripCylinderStatus.full) s.cylinder.id,
                 },
-                hold: hold?.fills,
+                hold: hold.fills,
               ),
       ),
       IconButton(
         key: const Key('board-add'),
         tooltip: l10n.trips_cylinders_action_add,
         icon: const Icon(Icons.add),
-        // New labels and positions follow the slots already on the
-        // trip, so adding waits until those are known.
-        onPressed: ready
-            ? () => showAddTripCylindersSheet(
-                context,
-                tripId: widget.tripId,
-                existing: [for (final s in states) s.cylinder],
-                hold: hold?.addSlots,
-              )
-            : null,
+        onPressed: () => showAddTripCylindersSheet(
+          context,
+          tripId: widget.tripId,
+          existing: [for (final s in states) s.cylinder],
+          hold: hold.addSlots,
+        ),
       ),
     ];
   }
@@ -229,7 +221,7 @@ class _TripCylinderBoardPageState extends ConsumerState<TripCylinderBoardPage>
             padding: const EdgeInsets.fromLTRB(16, 4, 8, 0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
-              children: _actions(states, ready: true, hold: hold),
+              children: _actions(states, hold),
             ),
           ),
         if (forecast != null) ...[

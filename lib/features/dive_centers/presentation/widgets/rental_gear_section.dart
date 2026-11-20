@@ -20,7 +20,7 @@ import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dar
 /// and edit on tap. Matches the page's other sections: a titled column with
 /// a 16 px gutter, no card.
 ///
-/// On a page that edits in place (issue #4527, phase 3) it offers nothing
+/// On the centre's page (issue #4527, phase 3) it offers nothing
 /// while locked ([readOnly]); in the page's sitting ([editing]) notes
 /// added, edited and removed are held until Save, a removal asking
 /// nothing, and the notes the sitting holds show the changed dot.

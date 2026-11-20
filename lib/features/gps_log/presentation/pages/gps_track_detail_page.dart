@@ -243,9 +243,8 @@ class _GpsTrackDetailPageState extends ConsumerState<GpsTrackDetailPage>
     }
   }
 
-  /// The page's top bar while locked: the title, the lock (where the page
-  /// edits in place and the track has been read), the menu, and the colour
-  /// mode below.
+  /// The page's top bar while locked: the title, the lock (once the track
+  /// has been read), the menu, and the colour mode below.
   PreferredSizeWidget _lockedBar(GpsTrack? track) => AppBar(
     title: Text(context.l10n.gpsTrack_detail_title),
     actions: [

@@ -22,10 +22,10 @@ class NavTrackCorrectionCard extends StatelessWidget {
   final NavTrack route;
 
   /// Opens the alignment page; its own address when null. The track page
-  /// that edits in place hands it its sitting this way (issue #4527).
+  /// hands it its sitting this way (issue #4527).
   final VoidCallback? onOpen;
 
-  /// The card's pencil where the page edits in place.
+  /// The card's pencil.
   final Widget? pencil;
 
   /// To 0.1%, with no decimal on a whole percentage.

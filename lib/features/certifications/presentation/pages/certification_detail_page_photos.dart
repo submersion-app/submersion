@@ -12,7 +12,6 @@ extension _CertificationDetailPhotos on _CertificationDetailContent {
             _sectionTitle(
               context,
               context.l10n.certifications_detail_sectionTitle_cardPhotos,
-              editing: true,
             ),
             const SizedBox(height: 12),
             // Stacked full-width, not side by side: at card-width thumbnails

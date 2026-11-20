@@ -42,7 +42,7 @@ class ComponentsCard extends ConsumerWidget {
 
   /// The open card's sitting (issue #4527, phase 3): every change to the
   /// parts is held there until Save, its "Update past dives?" asked when
-  /// it is made. On a page that edits in place and with no sitting given,
+  /// it is made. With no sitting given,
   /// the card reads only; during a sitting every view shows its parts.
   final EditSession<EquipmentItem>? editing;
 

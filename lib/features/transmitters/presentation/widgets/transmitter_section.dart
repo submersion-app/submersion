@@ -101,8 +101,8 @@ class _SectionCard extends ConsumerWidget {
                     onPressed: () => context.push(addKey),
                     child: Text(l10n.transmitters_section_addKey),
                   ),
-                  // Where the item's page edits in place (issue #4527, phase
-                  // 3), Apply rewrites dives: a whole-record operation.
+                  // On the item's page (issue #4527, phase 3), Apply
+                  // rewrites dives: a whole-record operation.
                   if (setup.isSetUp)
                     Builder(
                       builder: (context) {

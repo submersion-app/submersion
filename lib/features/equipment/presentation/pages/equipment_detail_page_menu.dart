@@ -2,7 +2,7 @@ part of 'equipment_detail_page.dart';
 
 /// The gear item page's menu (issue #4527, phase 3, plan 6): History, Open
 /// in Connections and Clone work locked; Transfer and Delete are
-/// whole-record operations where the page edits in place, under the lock.
+/// whole-record operations, under the lock.
 extension _EquipmentDetailMenu on _EquipmentDetailContent {
   /// The overflow menu shared by the standalone and embedded headers.
   Widget _buildMenu(BuildContext context, WidgetRef ref) {

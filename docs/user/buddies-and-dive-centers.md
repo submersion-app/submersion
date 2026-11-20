@@ -31,7 +31,7 @@ You can also give a buddy a profile photo.
 
 ### Changing a buddy
 
-Open the buddy and tap the lock (in the top bar on a phone, in the pane's header on desktop). Each card shows its pencil: open the ones you want, change them and tap **Done**, then **Save** at the top. One Save writes every card you changed and adds one entry to the buddy's **History** (in the menu). **Cancel**, or leaving with unsaved changes, asks before discarding them. Lending gear and taking it back happen on the **Gear** card, and **Delete** needs the buddy unlocked first. The favourite star in the lists only shows a favourite; set it in the buddy's header.
+Open the buddy and tap the lock (in the top bar on a phone, in the pane's header on desktop). Each card shows its pencil: open the ones you want, change them and tap **Done**, then **Save** at the top. One Save writes every card you changed and adds one entry to the buddy's **History** (in the menu). **Cancel**, or leaving with unsaved changes, asks before discarding them. Lending gear and taking it back happen on the **Gear** card, and **Delete** needs the buddy unlocked first. The favorite star in the lists only shows a favorite; set it in the buddy's header.
 
 ### Importing from your contacts
 

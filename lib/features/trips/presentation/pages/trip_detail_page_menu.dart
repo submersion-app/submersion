@@ -64,7 +64,7 @@ extension _TripDetailMenu on _TripDetailContent {
           ),
         ),
         // Delete, Remove and Unhide are whole-record operations, under the
-        // lock where the page edits in place.
+        // lock.
         if (canDestroy == true ||
             hidden ||
             (canDestroy == false && reachesHere))

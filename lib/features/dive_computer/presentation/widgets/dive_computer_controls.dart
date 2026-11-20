@@ -30,7 +30,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// clock sync. Shown on the computer's Equipment page (issue #3676), which
 /// carries its name, notes, service and delete.
 ///
-/// On a gear item page that edits in place (issue #4527, phase 3), the
+/// On the computer's gear item page (issue #4527, phase 3), the
 /// favourite, the auto-download opt-out and the clock sync choice are held
 /// in the item's sitting and changed only in its open card ([editing]);
 /// merge and re-parse all are whole-record operations, needing the unlock
@@ -89,7 +89,7 @@ class _Controls extends ConsumerWidget {
     RecordEditController<EquipmentItem>? controller,
     EditSession<EquipmentItem>? session,
   ) {
-    // On a page that edits in place, the settings as the sitting holds
+    // On the gear item page, the settings as the sitting holds
     // them, changed only in the open card.
     DiveComputerSettingsControl? control;
     if (controller != null) {
@@ -185,7 +185,7 @@ class _Header extends ConsumerWidget {
                   style: theme.textTheme.titleLarge,
                 ),
         ),
-        // The card's pencil, where its gear item edits in place.
+        // The card's pencil, on its gear item page.
         RecordCardPencil(cardTitle: l10n.diveComputer_title),
         if (control?.shown.favourite ?? computer.isFavorite)
           IconButton(

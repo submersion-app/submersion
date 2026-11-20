@@ -59,11 +59,7 @@ extension _BuddyDetailPaneHeader on _BuddyDetailContent {
             ),
           ),
           host.lockButton(buddy, compact: true),
-          BuddyFavoriteButton(
-            buddyId: buddy.id,
-            isFavorite: buddy.isFavorite,
-            iconSize: 20,
-          ),
+          BuddyFavoriteButton(isFavorite: buddy.isFavorite, iconSize: 20),
           _menu(context, ref, compact: true),
         ],
       ),

@@ -1,7 +1,7 @@
 part of 'equipment_detail_page.dart';
 
 /// The gear item page's read sections, each a card that the editing host
-/// frames where the page edits in place (issue #4527, phase 3, plan 6).
+/// frames (issue #4527, phase 3, plan 6).
 extension _EquipmentDetailSections on _EquipmentDetailContent {
   /// The item's tags under its name: the sitting's while it holds them.
   Widget _headerTagChips() {

@@ -733,8 +733,6 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
                   ),
                 ),
               BuddyFavoriteButton(
-                // Set on the buddy's page where buddies edit in place.
-                buddyId: buddy.id,
                 isFavorite: buddy.isFavorite,
                 iconSize: 20,
                 unselectedColor: Theme.of(context).colorScheme.onSurfaceVariant,

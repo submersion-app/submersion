@@ -194,7 +194,7 @@ class _TripStoryViewState extends ConsumerState<TripStoryView> {
     // Fire and forget: the backfill's writes come back through the provider
     // above via the table tick, so a row landing re-renders its day's head.
     ref.watch(tripDayWeatherBackfillProvider(tripId));
-    // Where the page edits in place, the notes as the sitting has them.
+    // On the trip page, the notes as the sitting has them.
     final slots = TripCardSlotsScope.maybeOf(context);
     final dayNotes = _dayNotes.resolve(
       _story,

@@ -47,7 +47,6 @@ import 'package:submersion/shared/widgets/record_editing/record_card_fade.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 import 'package:submersion/shared/widgets/record_editing/record_creating.dart';
-import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
 import 'package:submersion/shared/widgets/record_editing/record_open_unlocked.dart';
 import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
@@ -198,7 +197,7 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage>
 class _HeaderSection extends StatelessWidget {
   final DiveCenter center;
 
-  /// The card's pencil, where the page edits in place.
+  /// The card's pencil.
   final Widget? pencil;
 
   const _HeaderSection({required this.center, this.pencil});
@@ -333,7 +332,7 @@ class _ContactSection extends StatelessWidget {
   final DiveCenter center;
   final UnitFormatter units;
 
-  /// The card's pencil, where the page edits in place.
+  /// The card's pencil.
   final Widget? pencil;
 
   /// Whether the title shows when there is nothing under it.
@@ -518,7 +517,7 @@ class _ContactTile extends StatelessWidget {
 class _NotesSection extends StatelessWidget {
   final String notes;
 
-  /// The card's pencil, where the page edits in place.
+  /// The card's pencil.
   final Widget? pencil;
 
   const _NotesSection({required this.notes, this.pencil});

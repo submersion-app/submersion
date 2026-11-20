@@ -629,7 +629,7 @@ class _ServiceRecordTile extends ConsumerWidget {
   /// Built once by the section rather than per row.
   final Map<String, ServiceKind> kindsById;
 
-  /// Null on a page that edits in place while it may not act.
+  /// Null while the page may not act (it is locked).
   final VoidCallback? onTap;
   final VoidCallback? onDelete;
 

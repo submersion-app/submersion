@@ -222,20 +222,19 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage>
     );
   }
 
-  /// The page's top bar while locked: its title, the lock where the page
-  /// edits in place, Edit and the menu.
+  /// The page's top bar while locked: its title, the lock and the menu.
   PreferredSizeWidget _bar(
     DocumentListEntry entry,
-    Document doc, [
-    DocumentRecord? shown,
-  ]) {
+    Document doc,
+    DocumentRecord shown,
+  ) {
     final l10n = context.l10n;
     return AppBar(
       automaticallyImplyLeading: !widget.embedded,
       title: Text(
         documentDisplayTitle(l10n, doc, ownerLabel: entry.ownerLabel),
       ),
-      actions: [if (shown != null) lockButton(shown), _menu(doc)],
+      actions: [lockButton(shown), _menu(doc)],
     );
   }
 

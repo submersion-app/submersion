@@ -199,7 +199,7 @@ class _TripStoryDayPageState extends ConsumerState<TripStoryDayPage> {
               ),
             ),
           );
-    // Where the page edits in place the plan and its note button are the
+    // On the trip page the plan and its note button are the
     // Notes card's frame on this day: its editor holds the day's passage
     // (issue #4527).
     final slots = TripCardSlotsScope.maybeOf(context);

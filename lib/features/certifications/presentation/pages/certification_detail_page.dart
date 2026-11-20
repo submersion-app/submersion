@@ -618,7 +618,6 @@ class _CertificationDetailContent extends ConsumerWidget {
               _sectionTitle(
                 context,
                 context.l10n.certifications_detail_sectionTitle_details,
-                editing: true,
               ),
               const SizedBox(height: 12),
               // Only shown when the stored name says something the agency and
@@ -696,7 +695,6 @@ class _CertificationDetailContent extends ConsumerWidget {
               _sectionTitle(
                 context,
                 context.l10n.certifications_detail_sectionTitle_dates,
-                editing: true,
               ),
               const SizedBox(height: 12),
               if (certification.issueDate != null)
@@ -755,7 +753,6 @@ class _CertificationDetailContent extends ConsumerWidget {
               _sectionTitle(
                 context,
                 context.l10n.certifications_detail_sectionTitle_instructor,
-                editing: true,
               ),
               const SizedBox(height: 12),
               if (displayName != null)
@@ -813,7 +810,6 @@ class _CertificationDetailContent extends ConsumerWidget {
             _sectionTitle(
               context,
               context.l10n.certifications_detail_sectionTitle_notes,
-              editing: true,
             ),
             const SizedBox(height: 12),
             MarkdownNotesView(certification.notes),

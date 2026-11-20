@@ -7,10 +7,9 @@ import 'package:submersion/features/trips/presentation/pages/trip_cylinder_board
 import 'package:submersion/shared/widgets/record_editing/record_satellite.dart';
 
 /// Opens trip [tripId]'s cylinder board from [context], a place on the trip
-/// page. On a page that edits in place (issue #4527) the board is pushed
-/// as a satellite: joined to the page's sitting while it is unlocked, with
-/// a lock of its own while it is locked. Otherwise by its address, as
-/// always.
+/// page (issue #4527): the board is pushed as a satellite, joined to the
+/// page's sitting while it is unlocked, with a lock of its own while it is
+/// locked. With no page above it, by its address.
 Future<void> openTripCylinderBoard(BuildContext context, String tripId) {
   // Read, not depended on: this runs from a tap.
   if (context.getInheritedWidgetOfExactType<TripCardSlotsScope>() == null) {

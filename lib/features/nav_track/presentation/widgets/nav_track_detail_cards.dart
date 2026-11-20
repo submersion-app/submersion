@@ -25,7 +25,7 @@ class NavTrackTitleCard extends StatelessWidget {
 
   final String title;
 
-  /// The card's pencil where the page edits in place (issue #4527).
+  /// The card's pencil (issue #4527).
   final Widget? pencil;
 
   @override
@@ -117,7 +117,7 @@ class NavTrackLinkCard extends ConsumerWidget {
 
   final NavTrack route;
 
-  /// The card's pencil where the page edits in place.
+  /// The card's pencil.
   final Widget? pencil;
 
   @override
@@ -154,7 +154,7 @@ class NavTrackSiteCard extends ConsumerWidget {
 
   final NavTrack route;
 
-  /// The card's pencil where the page edits in place.
+  /// The card's pencil.
   final Widget? pencil;
 
   @override
@@ -184,7 +184,7 @@ class NavTrackEquipmentCard extends ConsumerWidget {
 
   final NavTrack route;
 
-  /// The card's pencil where the page edits in place.
+  /// The card's pencil.
   final Widget? pencil;
 
   @override
@@ -229,7 +229,7 @@ class NavTrackActionCard extends StatelessWidget {
   final IconData icon;
   final String label;
 
-  /// The card's pencil where the page edits in place.
+  /// The card's pencil.
   final Widget? pencil;
 
   /// Opens whatever this card is about (the site, the equipment item);
@@ -251,8 +251,8 @@ class NavTrackActionCard extends StatelessWidget {
   }
 }
 
-/// A card row's trailing widgets: the pencil where the page edits in place,
-/// then the chevron of a card that opens what it is about.
+/// A card row's trailing widgets: the pencil, then the chevron of a card
+/// that opens what it is about.
 Widget? _trailing(Widget? pencil, {required bool opens}) {
   if (pencil == null) return opens ? const Icon(Icons.chevron_right) : null;
   return Row(

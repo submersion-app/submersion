@@ -220,7 +220,7 @@ mixin _EquipmentSetDetailPageSections
   }
 
   /// The header block: the set's name, its Default chip, its description,
-  /// auto-apply where the page edits in place and it is on, and the count
+  /// auto-apply when it is on, and the count
   /// of what it applies (calculated).
   Widget _buildHeaderCard(
     BuildContext context,
@@ -331,8 +331,8 @@ mixin _EquipmentSetDetailPageSections
     );
   }
 
-  /// The Members card with no gear. Where the page edits in place its
-  /// pencil opens the editor, so the button to the form goes (Call 6).
+  /// The Members card with no gear: its pencil opens the editor
+  /// (Call 6).
   Widget _buildEmptyMembers(BuildContext context, String setId) {
     final theme = Theme.of(context);
     return Card(

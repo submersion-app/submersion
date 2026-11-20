@@ -8,9 +8,7 @@ void main() {
   testWidgets('a tap writes nothing', (tester) async {
     await tester.pumpWidget(
       testApp(
-        child: const Center(
-          child: BuddyFavoriteButton(buddyId: 'buddy-1', isFavorite: true),
-        ),
+        child: const Center(child: BuddyFavoriteButton(isFavorite: true)),
       ),
     );
 

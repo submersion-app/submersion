@@ -20,7 +20,7 @@ class DiveComputerAutoDownloadCard extends ConsumerWidget {
 
   final DiveComputer computer;
 
-  /// Where the computer's gear item edits in place (issue #4527, phase 3):
+  /// On the computer's gear item page (issue #4527, phase 3):
   /// the value its sitting holds, changed only while its card is open.
   final DiveComputerSettingsControl? control;
 

@@ -339,6 +339,21 @@ void main() {
       expect(find.text('Transfer to...'), findsOneWidget);
     });
 
+    testWidgets('locked, the owner sees Transfer to but cannot pick it', (
+      tester,
+    ) async {
+      await pump(tester, activeDiverId: 'owner');
+      await tester.tap(find.byKey(overflow).last);
+      await tester.pumpAndSettle();
+      final item = tester.widget<PopupMenuItem<String>>(
+        find.ancestor(
+          of: find.text('Transfer to...'),
+          matching: find.byType(PopupMenuItem<String>),
+        ),
+      );
+      expect(item.enabled, isFalse);
+    });
+
     testWidgets('a sharee does not', (tester) async {
       await pump(tester, activeDiverId: 'wife');
       await openMenu(tester);

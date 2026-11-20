@@ -121,7 +121,6 @@ void main() {
     List<ServiceRecord> records = const [],
     List<dynamic> extraOverrides = const [],
     AppSettings? settings,
-    bool unlock = false,
     String? passportId = pid,
     List<PassportUsageDive> usage = const [],
   }) async {
@@ -173,12 +172,6 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    // Opened alone the passport has its own lock on the item's sitting
-    // (issue #4527, decision 4): what it logs is held until its Save.
-    if (unlock) {
-      await tester.tap(find.byIcon(Icons.lock_outline));
-      await tester.pumpAndSettle();
-    }
     return AppLocalizations.of(tester.element(find.byType(PassportPage)));
   }
 

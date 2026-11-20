@@ -19,7 +19,7 @@ class DiveComputerClockSyncCard extends ConsumerWidget {
 
   final DiveComputer computer;
 
-  /// Where the computer's gear item edits in place (issue #4527, phase 3):
+  /// On the computer's gear item page (issue #4527, phase 3):
   /// the choice its sitting holds, changed only while its card is open and
   /// written once its Save has committed. "Check again" asks the device
   /// afresh and records nothing the diver chose, so it is always offered.

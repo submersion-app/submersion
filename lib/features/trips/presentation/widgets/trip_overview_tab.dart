@@ -8,7 +8,6 @@ import 'package:submersion/features/trips/domain/services/trip_day_notes.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_card_slots.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_scan_in_sitting.dart';
-import 'package:submersion/features/trips/presentation/helpers/trip_scan_actions.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/overview/trip_prepare_overview.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_view.dart';
@@ -74,10 +73,10 @@ class TripOverviewTab extends ConsumerWidget {
       story: story,
       stats: tripWithStats,
       selection: selection,
-      // On a page that edits in place the scan is the Dives card's: it
-      // unlocks a locked page, and the dives it finds wait for Save.
+      // The scan is the Dives card's: it unlocks a locked page, and the
+      // dives it finds wait for Save. Outside a trip page it is not offered.
       onScanForDives: slots == null
-          ? () => scanForTripDives(context, ref, trip)
+          ? null
           : () {
               final session = slots.session ?? slots.unlockAt(TripCardId.dives);
               if (session != null) {

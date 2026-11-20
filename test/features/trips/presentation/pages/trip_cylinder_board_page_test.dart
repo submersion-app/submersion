@@ -93,6 +93,9 @@ void main() {
     TripGasRecord? record,
     bool unlock = false,
   }) async {
+    // The lock shows only once the board has read its states, so an
+    // unlock needs the page settled.
+    assert(!unlock || settle, 'unlock needs settle');
     tester.view.physicalSize = const Size(900, 1800);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -134,7 +137,7 @@ void main() {
     }
     // Opened alone the board has its own lock (issue #4527, decision 9):
     // what it changes is held until its Save.
-    if (unlock && settle) {
+    if (unlock) {
       await tester.tap(find.byIcon(Icons.lock_outline));
       await tester.pumpAndSettle();
     }

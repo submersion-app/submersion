@@ -119,9 +119,6 @@ mixin _DiveCenterDetailPageEditing
     child: child,
   );
 
-  /// The controller its operations wait on.
-  RecordEditController<DiveCenter> get _operationsController => editController;
-
   /// The list pane's header row; while unlocked the shared pane header
   /// (Cancel, the title, the menu and Save) is laid over it. [stored] is
   /// the centre as stored, [center] as shown.
@@ -217,10 +214,10 @@ mixin _DiveCenterDetailPageEditing
         ),
         openInConnectionsMenuItem(context),
         // Delete is a whole-record operation, under the lock.
-        ...recordOperationMenuCaption<String>(context, _operationsController),
+        ...recordOperationMenuCaption<String>(context, editController),
         PopupMenuItem(
           value: 'delete',
-          enabled: recordOperationsAvailable(_operationsController),
+          enabled: recordOperationsAvailable(editController),
           child: Row(
             children: [
               Icon(

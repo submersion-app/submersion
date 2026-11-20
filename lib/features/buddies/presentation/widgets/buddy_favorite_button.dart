@@ -13,14 +13,12 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// icon color, for instance). The favorite color is always the theme's
 /// primary color, unlike the unselected one.
 class BuddyFavoriteButton extends StatelessWidget {
-  final String buddyId;
   final bool isFavorite;
   final double iconSize;
   final Color? unselectedColor;
 
   const BuddyFavoriteButton({
     super.key,
-    required this.buddyId,
     required this.isFavorite,
     this.iconSize = 24,
     this.unselectedColor,

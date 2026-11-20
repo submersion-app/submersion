@@ -133,9 +133,8 @@ class _SpeciesDetailPageState extends ConsumerState<SpeciesDetailPage>
           value: 'suggest',
           child: Text(context.l10n.marineLife_speciesDetail_suggestForCatalog),
         ),
-      // Delete, where the manage page allows it (a custom species),
-      // and only on a page that edits in place: a whole-record
-      // operation, under the lock.
+      // Delete, where the manage page allows it (a custom species): a
+      // whole-record operation, under the lock.
       ..._speciesRecordMenuItems(species),
     ],
   );

@@ -2,8 +2,8 @@ import 'package:intl/intl.dart';
 
 import 'package:submersion/features/trips/domain/services/trip_day_notes.dart';
 
-/// A section of the trip edit form that it can open at (#2880), named in
-/// the URL's `section` query parameter.
+/// The card a trip page opened unlocked opens at (#2880, issue #4527),
+/// named in the URL's `section` query parameter.
 enum TripEditSection {
   planning,
 

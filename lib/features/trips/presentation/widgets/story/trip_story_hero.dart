@@ -33,8 +33,8 @@ class TripStoryHero extends ConsumerWidget {
   });
 
   /// The trip whose name, type and dates the hero shows, where it is not
-  /// the story's: the sitting's, on a page that edits in place (issue
-  /// #4527). Null shows the story's trip.
+  /// the story's: the sitting's, on the trip page (issue #4527). Null
+  /// shows the story's trip.
   final Trip? trip;
 
   @override
