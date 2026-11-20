@@ -17,6 +17,7 @@ import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.da
 import 'package:submersion/features/trips/domain/services/trip_cylinder_state_fold.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_gear_sitting.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
@@ -58,6 +59,8 @@ Future<void> showTripCylinderFillSheet(
   Set<String> preselected = const {},
   bool several = false,
   TripCylinderEvent? editing,
+  Future<void> Function(List<TripCylinderEvent> fills, TripFillCopyNote note)?
+  hold,
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -68,6 +71,7 @@ Future<void> showTripCylinderFillSheet(
       preselected: preselected,
       several: several && editing == null,
       editing: editing,
+      hold: hold,
     ),
   );
 }
@@ -78,11 +82,20 @@ class _FillSheet extends ConsumerStatefulWidget {
   final bool several;
   final TripCylinderEvent? editing;
 
+  /// Where the fills go instead of the repository: a trip's sitting, which
+  /// writes them and their passport copies at its Save (issue #4527).
+  final Future<void> Function(
+    List<TripCylinderEvent> fills,
+    TripFillCopyNote note,
+  )?
+  hold;
+
   const _FillSheet({
     required this.slots,
     required this.preselected,
     required this.several,
     required this.editing,
+    this.hold,
   });
 
   @override
@@ -313,11 +326,17 @@ class _FillSheetState extends ConsumerState<_FillSheet> {
 
       final e = widget.editing;
       final now = DateTime.now().toUtc();
-      final saved = e != null
-          ? [await _saver.writeEdit(withForm(e))]
-          : await _saver.writeFills([
-              for (final id in ids) withForm(_blankFill(id, now)),
-            ]);
+      final hold = widget.hold;
+      final List<TripCylinderEvent> saved;
+      if (hold != null) {
+        saved = const [];
+      } else {
+        saved = e != null
+            ? [await _saver.writeEdit(withForm(e))]
+            : await _saver.writeFills([
+                for (final id in ids) withForm(_blankFill(id, now)),
+              ]);
+      }
       // A fill on one of the diver's own cylinders is also written to its
       // passport, and an edit updates that copy (Task 6). Wait for the
       // centers rather than reading a list still loading, or the copy would
@@ -334,13 +353,33 @@ class _FillSheetState extends ConsumerState<_FillSheet> {
           stationResolved = false;
         }
       }
-      await _saver.copyToPassports(
-        saved,
-        {for (final s in widget.slots) s.cylinder.id: s.cylinder},
-        diverId: ref.read(currentDiverIdProvider),
-        stationName: centers.where((c) => c.id == _centerId).firstOrNull?.name,
-        stationResolved: stationResolved,
-      );
+      final diverId = ref.read(currentDiverIdProvider);
+      final stationName = centers
+          .where((c) => c.id == _centerId)
+          .firstOrNull
+          ?.name;
+      if (hold != null) {
+        // Held: the fills and their copies are written at the sitting's
+        // Save, together.
+        await hold(
+          e != null
+              ? [withForm(e)]
+              : [for (final id in ids) withForm(_blankFill(id, now))],
+          (
+            diverId: diverId,
+            stationName: stationName,
+            stationResolved: stationResolved,
+          ),
+        );
+      } else {
+        await _saver.copyToPassports(
+          saved,
+          {for (final s in widget.slots) s.cylinder.id: s.cylinder},
+          diverId: diverId,
+          stationName: stationName,
+          stationResolved: stationResolved,
+        );
+      }
       if (mounted) Navigator.of(context).pop();
     } catch (_) {
       if (mounted) setState(() => _error = l10n.common_error_tryAgain);

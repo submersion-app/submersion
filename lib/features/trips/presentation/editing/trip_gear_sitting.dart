@@ -130,6 +130,72 @@ class TripCylindersHeld {
     ],
   );
 
+  /// [edited] (a slot's label, size, pressure, preset or note) in place.
+  TripCylindersHeld withSlotEdited(TripCylinder edited) =>
+      copyWith(slots: [for (final s in slots) s.id == edited.id ? edited : s]);
+
+  /// The slot gone, with its fills and adjustments.
+  TripCylindersHeld withoutSlot(String id) => copyWith(
+    slots: [
+      for (final s in slots)
+        if (s.id != id) s,
+    ],
+    events: [
+      for (final e in events)
+        if (e.tripCylinderId != id) e,
+    ],
+    copies: {
+      for (final c in copies.entries)
+        if (events.any((e) => e.id == c.key && e.tripCylinderId != id))
+          c.key: c.value,
+    },
+  );
+
+  /// The board laid out in [orderedIds]' order, each slot at its position.
+  TripCylindersHeld withSlotsReordered(List<String> orderedIds) {
+    final byId = {for (final s in slots) s.id: s};
+    return copyWith(
+      slots: [
+        for (var i = 0; i < orderedIds.length; i++)
+          if (byId[orderedIds[i]] case final s?) s.copyWith(sortOrder: i),
+      ],
+    );
+  }
+
+  /// [logged] in the ledger: one with no id is new and gets one, one with
+  /// an id replaces the event it names. A fill's [note] is kept for its
+  /// copy to the passport at Save.
+  TripCylindersHeld withEvents(
+    List<TripCylinderEvent> logged, {
+    TripFillCopyNote? note,
+  }) {
+    final given = [
+      for (final e in logged) e.id.isEmpty ? e.copyWith(id: _uuid.v4()) : e,
+    ];
+    final byId = {for (final e in given) e.id: e};
+    return copyWith(
+      events: [for (final e in events) byId.remove(e.id) ?? e, ...byId.values],
+      copies: {
+        ...copies,
+        if (note != null)
+          for (final e in given)
+            if (e.kind == TripCylinderEventKind.fill) e.id: note,
+      },
+    );
+  }
+
+  /// The event gone from the ledger.
+  TripCylindersHeld withoutEvent(String id) => copyWith(
+    events: [
+      for (final e in events)
+        if (e.id != id) e,
+    ],
+    copies: {
+      for (final c in copies.entries)
+        if (c.key != id) c.key: c.value,
+    },
+  );
+
   @override
   bool operator ==(Object other) =>
       other is TripCylindersHeld &&
