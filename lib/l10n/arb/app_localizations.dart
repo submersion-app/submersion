@@ -10008,120 +10008,6 @@ abstract class AppLocalizations {
   /// **'Courses in progress'**
   String get dashboard_activeCourses_title;
 
-  /// No description provided for @dashboard_greeting_afternoon.
-  ///
-  /// In en, this message translates to:
-  /// **'Good afternoon'**
-  String get dashboard_greeting_afternoon;
-
-  /// No description provided for @dashboard_greeting_evening.
-  ///
-  /// In en, this message translates to:
-  /// **'Good evening'**
-  String get dashboard_greeting_evening;
-
-  /// No description provided for @dashboard_greeting_morning.
-  ///
-  /// In en, this message translates to:
-  /// **'Good morning'**
-  String get dashboard_greeting_morning;
-
-  /// No description provided for @dashboard_greeting_withName.
-  ///
-  /// In en, this message translates to:
-  /// **'{greeting}, {name}!'**
-  String dashboard_greeting_withName(Object greeting, Object name);
-
-  /// No description provided for @dashboard_greeting_withoutName.
-  ///
-  /// In en, this message translates to:
-  /// **'{greeting}!'**
-  String dashboard_greeting_withoutName(Object greeting);
-
-  /// No description provided for @dashboard_hero_divesLoggedOne.
-  ///
-  /// In en, this message translates to:
-  /// **'1 dive logged'**
-  String get dashboard_hero_divesLoggedOne;
-
-  /// No description provided for @dashboard_hero_divesLoggedOther.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} dives logged'**
-  String dashboard_hero_divesLoggedOther(Object count);
-
-  /// No description provided for @dashboard_hero_divesTotalOne.
-  ///
-  /// In en, this message translates to:
-  /// **'1 dive'**
-  String get dashboard_hero_divesTotalOne;
-
-  /// No description provided for @dashboard_hero_divesTotalOther.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} dives'**
-  String dashboard_hero_divesTotalOther(Object count);
-
-  /// No description provided for @dashboard_hero_error.
-  ///
-  /// In en, this message translates to:
-  /// **'Ready to explore the depths?'**
-  String get dashboard_hero_error;
-
-  /// No description provided for @dashboard_hero_hoursUnderwater.
-  ///
-  /// In en, this message translates to:
-  /// **'{hours} hours underwater'**
-  String dashboard_hero_hoursUnderwater(Object hours);
-
-  /// No description provided for @dashboard_hero_loading.
-  ///
-  /// In en, this message translates to:
-  /// **'Loading your dive stats...'**
-  String get dashboard_hero_loading;
-
-  /// No description provided for @dashboard_hero_minutesUnderwater.
-  ///
-  /// In en, this message translates to:
-  /// **'{minutes} minutes underwater'**
-  String dashboard_hero_minutesUnderwater(Object minutes);
-
-  /// No description provided for @dashboard_hero_noDives.
-  ///
-  /// In en, this message translates to:
-  /// **'Ready to log your first dive?'**
-  String get dashboard_hero_noDives;
-
-  /// No description provided for @dashboard_hero_diverFallbackName.
-  ///
-  /// In en, this message translates to:
-  /// **'Diver'**
-  String get dashboard_hero_diverFallbackName;
-
-  /// No description provided for @dashboard_hero_statDives.
-  ///
-  /// In en, this message translates to:
-  /// **'dives'**
-  String get dashboard_hero_statDives;
-
-  /// No description provided for @dashboard_hero_statHours.
-  ///
-  /// In en, this message translates to:
-  /// **'hours'**
-  String get dashboard_hero_statHours;
-
-  /// No description provided for @dashboard_hero_statSites.
-  ///
-  /// In en, this message translates to:
-  /// **'sites'**
-  String get dashboard_hero_statSites;
-
-  /// No description provided for @dashboard_hero_statCountries.
-  ///
-  /// In en, this message translates to:
-  /// **'countries'**
-  String get dashboard_hero_statCountries;
-
   /// No description provided for @dashboard_gauges_addGear.
   ///
   /// In en, this message translates to:
@@ -10242,18 +10128,6 @@ abstract class AppLocalizations {
   /// **'Status chips'**
   String get settings_homeChips_sectionTitle;
 
-  /// No description provided for @settings_homeCards_sectionTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Home cards'**
-  String get settings_homeCards_sectionTitle;
-
-  /// No description provided for @settings_homeCards_description.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose which cards appear on the Home tab and drag to reorder them.'**
-  String get settings_homeCards_description;
-
   /// No description provided for @settings_homeCards_autoHides.
   ///
   /// In en, this message translates to:
@@ -10272,12 +10146,6 @@ abstract class AppLocalizations {
   /// **'Reset Home layout?'**
   String get settings_homeCards_resetDialog_title;
 
-  /// No description provided for @settings_homeCards_resetDialog_message.
-  ///
-  /// In en, this message translates to:
-  /// **'This restores the default card order and shows all cards again.'**
-  String get settings_homeCards_resetDialog_message;
-
   /// No description provided for @settings_homeCards_resetDialog_cancel.
   ///
   /// In en, this message translates to:
@@ -10289,72 +10157,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reset'**
   String get settings_homeCards_resetDialog_confirm;
-
-  /// No description provided for @settings_homeCards_card_hero.
-  ///
-  /// In en, this message translates to:
-  /// **'Welcome header'**
-  String get settings_homeCards_card_hero;
-
-  /// No description provided for @settings_homeCards_card_gaugeStrip.
-  ///
-  /// In en, this message translates to:
-  /// **'Status chips'**
-  String get settings_homeCards_card_gaugeStrip;
-
-  /// No description provided for @settings_homeCards_card_preDive.
-  ///
-  /// In en, this message translates to:
-  /// **'Checklists'**
-  String get settings_homeCards_card_preDive;
-
-  /// No description provided for @settings_homeCards_card_recentDives.
-  ///
-  /// In en, this message translates to:
-  /// **'Recent dives'**
-  String get settings_homeCards_card_recentDives;
-
-  /// No description provided for @settings_homeCards_card_quickActions.
-  ///
-  /// In en, this message translates to:
-  /// **'Quick actions'**
-  String get settings_homeCards_card_quickActions;
-
-  /// No description provided for @settings_homeCards_card_milestones.
-  ///
-  /// In en, this message translates to:
-  /// **'Milestones'**
-  String get settings_homeCards_card_milestones;
-
-  /// No description provided for @settings_homeCards_card_photoRibbon.
-  ///
-  /// In en, this message translates to:
-  /// **'Recent media'**
-  String get settings_homeCards_card_photoRibbon;
-
-  /// No description provided for @settings_homeCards_card_onThisDay.
-  ///
-  /// In en, this message translates to:
-  /// **'On this day'**
-  String get settings_homeCards_card_onThisDay;
-
-  /// No description provided for @settings_homeCards_card_yearInReview.
-  ///
-  /// In en, this message translates to:
-  /// **'Year in review'**
-  String get settings_homeCards_card_yearInReview;
-
-  /// No description provided for @settings_homeCards_card_activeCourses.
-  ///
-  /// In en, this message translates to:
-  /// **'Course progress'**
-  String get settings_homeCards_card_activeCourses;
-
-  /// No description provided for @settings_homeCards_card_recentSitesMap.
-  ///
-  /// In en, this message translates to:
-  /// **'Recent sites map'**
-  String get settings_homeCards_card_recentSitesMap;
 
   /// No description provided for @settings_homeCards_card_waitingForDownload.
   ///
@@ -10554,30 +10356,6 @@ abstract class AppLocalizations {
   /// **'Recent sites'**
   String get dashboard_recentSites_title;
 
-  /// No description provided for @dashboard_yearInReview_title.
-  ///
-  /// In en, this message translates to:
-  /// **'This year'**
-  String get dashboard_yearInReview_title;
-
-  /// No description provided for @dashboard_yearInReview_divesVs.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} dives (vs {previous} last year)'**
-  String dashboard_yearInReview_divesVs(int count, int previous);
-
-  /// No description provided for @dashboard_yearInReview_hours.
-  ///
-  /// In en, this message translates to:
-  /// **'{hours} hours underwater'**
-  String dashboard_yearInReview_hours(String hours);
-
-  /// No description provided for @dashboard_yearInReview_maxDepth.
-  ///
-  /// In en, this message translates to:
-  /// **'Deepest: {depth}'**
-  String dashboard_yearInReview_maxDepth(String depth);
-
   /// No description provided for @dashboard_onThisDay_title.
   ///
   /// In en, this message translates to:
@@ -10589,24 +10367,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{year} - {site}'**
   String dashboard_onThisDay_entry(String year, String site);
-
-  /// No description provided for @dashboard_milestones_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Milestones'**
-  String get dashboard_milestones_title;
-
-  /// No description provided for @dashboard_milestones_nextDive.
-  ///
-  /// In en, this message translates to:
-  /// **'{remaining} dives to #{milestone}'**
-  String dashboard_milestones_nextDive(int remaining, int milestone);
-
-  /// No description provided for @dashboard_milestones_certYears.
-  ///
-  /// In en, this message translates to:
-  /// **'{name}: {years} years in {month}'**
-  String dashboard_milestones_certYears(String name, int years, String month);
 
   /// No description provided for @dashboard_quickActions_logDive.
   ///
@@ -10620,35 +10380,11 @@ abstract class AppLocalizations {
   /// **'Plan Dive'**
   String get dashboard_quickActions_planDive;
 
-  /// No description provided for @dashboard_quickActions_sectionTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Quick Actions'**
-  String get dashboard_quickActions_sectionTitle;
-
-  /// No description provided for @dashboard_quickActions_insights.
-  ///
-  /// In en, this message translates to:
-  /// **'Insights'**
-  String get dashboard_quickActions_insights;
-
   /// No description provided for @dashboard_recentDives_empty.
   ///
   /// In en, this message translates to:
   /// **'No dives logged yet'**
   String get dashboard_recentDives_empty;
-
-  /// No description provided for @dashboard_recentDives_errorLoading.
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to load dives'**
-  String get dashboard_recentDives_errorLoading;
-
-  /// No description provided for @dashboard_recentDives_latestProfileTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Latest dive profile'**
-  String get dashboard_recentDives_latestProfileTitle;
 
   /// No description provided for @dashboard_recentDives_noProfileData.
   ///
@@ -10661,48 +10397,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t load the dive profile'**
   String get dashboard_recentDives_profileLoadError;
-
-  /// No description provided for @dashboard_recentDives_logFirst.
-  ///
-  /// In en, this message translates to:
-  /// **'Log Your First Dive'**
-  String get dashboard_recentDives_logFirst;
-
-  /// No description provided for @dashboard_recentDives_sectionTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Recent Dives'**
-  String get dashboard_recentDives_sectionTitle;
-
-  /// No description provided for @dashboard_recentDives_viewAll.
-  ///
-  /// In en, this message translates to:
-  /// **'View All'**
-  String get dashboard_recentDives_viewAll;
-
-  /// No description provided for @dashboard_recentDives_viewAllTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'View all dives'**
-  String get dashboard_recentDives_viewAllTooltip;
-
-  /// No description provided for @dashboard_semantics_errorLoadingRecentDives.
-  ///
-  /// In en, this message translates to:
-  /// **'Error: Failed to load recent dives'**
-  String get dashboard_semantics_errorLoadingRecentDives;
-
-  /// No description provided for @dashboard_semantics_greetingBanner.
-  ///
-  /// In en, this message translates to:
-  /// **'Dashboard greeting banner'**
-  String get dashboard_semantics_greetingBanner;
-
-  /// No description provided for @dashboard_waitingForDownload_download.
-  ///
-  /// In en, this message translates to:
-  /// **'Download now'**
-  String get dashboard_waitingForDownload_download;
 
   /// No description provided for @dashboard_waitingForDownload_title.
   ///
@@ -103707,7 +103401,7 @@ abstract class AppLocalizations {
   /// No description provided for @dashboard_panel_activitySummary.
   ///
   /// In en, this message translates to:
-  /// **'{dives} dives · {days} days'**
+  /// **'{dives, plural, =1{1 dive} other{{dives} dives}} · {days, plural, =1{1 day} other{{days} days}}'**
   String dashboard_panel_activitySummary(int dives, int days);
 
   /// No description provided for @dashboard_panel_divesPerMonth.
@@ -103731,7 +103425,7 @@ abstract class AppLocalizations {
   /// No description provided for @dashboard_panel_lastDives.
   ///
   /// In en, this message translates to:
-  /// **'last {count} dives'**
+  /// **'{count, plural, =1{last dive} other{last {count} dives}}'**
   String dashboard_panel_lastDives(int count);
 
   /// No description provided for @dashboard_panel_noSac.
@@ -103809,7 +103503,7 @@ abstract class AppLocalizations {
   /// No description provided for @dashboard_panel_divesLeft.
   ///
   /// In en, this message translates to:
-  /// **'{count} dives'**
+  /// **'{count, plural, =1{1 dive} other{{count} dives}}'**
   String dashboard_panel_divesLeft(int count);
 
   /// No description provided for @dashboard_panel_hoursLeft.
@@ -103833,7 +103527,7 @@ abstract class AppLocalizations {
   /// No description provided for @dashboard_panel_inDays.
   ///
   /// In en, this message translates to:
-  /// **'in {days} days'**
+  /// **'{days, plural, =0{today} =1{tomorrow} other{in {days} days}}'**
   String dashboard_panel_inDays(int days);
 
   /// No description provided for @dashboard_panel_tripChecklist.

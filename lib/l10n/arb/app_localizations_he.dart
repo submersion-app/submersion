@@ -6248,75 +6248,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dashboard_activeCourses_title => 'קורסים בתהליך';
 
   @override
-  String get dashboard_greeting_afternoon => 'צהריים טובים';
-
-  @override
-  String get dashboard_greeting_evening => 'ערב טוב';
-
-  @override
-  String get dashboard_greeting_morning => 'בוקר טוב';
-
-  @override
-  String dashboard_greeting_withName(Object greeting, Object name) {
-    return '$greeting, $name!';
-  }
-
-  @override
-  String dashboard_greeting_withoutName(Object greeting) {
-    return '$greeting!';
-  }
-
-  @override
-  String get dashboard_hero_divesLoggedOne => 'צלילה אחת רשומה';
-
-  @override
-  String dashboard_hero_divesLoggedOther(Object count) {
-    return '$count צלילות רשומות';
-  }
-
-  @override
-  String get dashboard_hero_divesTotalOne => 'צלילה אחת';
-
-  @override
-  String dashboard_hero_divesTotalOther(Object count) {
-    return '$count צלילות';
-  }
-
-  @override
-  String get dashboard_hero_error => 'מוכן לחקור את המעמקים?';
-
-  @override
-  String dashboard_hero_hoursUnderwater(Object hours) {
-    return '$hours שעות מתחת למים';
-  }
-
-  @override
-  String get dashboard_hero_loading => 'טוען את נתוני הצלילה שלך...';
-
-  @override
-  String dashboard_hero_minutesUnderwater(Object minutes) {
-    return '$minutes דקות מתחת למים';
-  }
-
-  @override
-  String get dashboard_hero_noDives => 'מוכן לרשום את הצלילה הראשונה?';
-
-  @override
-  String get dashboard_hero_diverFallbackName => 'צוללן';
-
-  @override
-  String get dashboard_hero_statDives => 'צלילות';
-
-  @override
-  String get dashboard_hero_statHours => 'שעות';
-
-  @override
-  String get dashboard_hero_statSites => 'אתרים';
-
-  @override
-  String get dashboard_hero_statCountries => 'מדינות';
-
-  @override
   String get dashboard_gauges_addGear => 'הוסף ציוד';
 
   @override
@@ -6409,13 +6340,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_homeChips_sectionTitle => 'שבבי מצב';
 
   @override
-  String get settings_homeCards_sectionTitle => 'כרטיסי דף הבית';
-
-  @override
-  String get settings_homeCards_description =>
-      'בחר אילו כרטיסים יופיעו בלשונית הבית וגרור כדי לסדר מחדש.';
-
-  @override
   String get settings_homeCards_autoHides => 'מוסתר אוטומטית כשהוא ריק';
 
   @override
@@ -6425,47 +6349,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_homeCards_resetDialog_title => 'לאפס את פריסת דף הבית?';
 
   @override
-  String get settings_homeCards_resetDialog_message =>
-      'משחזר את סדר הכרטיסים המוגדר כברירת מחדל ומציג את כולם מחדש.';
-
-  @override
   String get settings_homeCards_resetDialog_cancel => 'ביטול';
 
   @override
   String get settings_homeCards_resetDialog_confirm => 'איפוס';
-
-  @override
-  String get settings_homeCards_card_hero => 'כותרת פתיחה';
-
-  @override
-  String get settings_homeCards_card_gaugeStrip => 'שבבי מצב';
-
-  @override
-  String get settings_homeCards_card_preDive => 'רשימות בדיקה';
-
-  @override
-  String get settings_homeCards_card_recentDives => 'צלילות אחרונות';
-
-  @override
-  String get settings_homeCards_card_quickActions => 'פעולות מהירות';
-
-  @override
-  String get settings_homeCards_card_milestones => 'אבני דרך';
-
-  @override
-  String get settings_homeCards_card_photoRibbon => 'מדיה אחרונה';
-
-  @override
-  String get settings_homeCards_card_onThisDay => 'ביום זה';
-
-  @override
-  String get settings_homeCards_card_yearInReview => 'סיכום השנה';
-
-  @override
-  String get settings_homeCards_card_activeCourses => 'התקדמות בקורס';
-
-  @override
-  String get settings_homeCards_card_recentSitesMap => 'מפת אתרים אחרונים';
 
   @override
   String get settings_homeCards_card_waitingForDownload => 'ממתין להורדה';
@@ -6597,42 +6484,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dashboard_recentSites_title => 'אתרים אחרונים';
 
   @override
-  String get dashboard_yearInReview_title => 'השנה';
-
-  @override
-  String dashboard_yearInReview_divesVs(int count, int previous) {
-    return '$count צלילות (לעומת $previous בשנה שעברה)';
-  }
-
-  @override
-  String dashboard_yearInReview_hours(String hours) {
-    return '$hours שעות מתחת למים';
-  }
-
-  @override
-  String dashboard_yearInReview_maxDepth(String depth) {
-    return 'העמוקה ביותר: $depth';
-  }
-
-  @override
   String get dashboard_onThisDay_title => 'ביום הזה';
 
   @override
   String dashboard_onThisDay_entry(String year, String site) {
     return '$year - $site';
-  }
-
-  @override
-  String get dashboard_milestones_title => 'אבני דרך';
-
-  @override
-  String dashboard_milestones_nextDive(int remaining, int milestone) {
-    return 'עוד $remaining צלילות עד מספר $milestone';
-  }
-
-  @override
-  String dashboard_milestones_certYears(String name, int years, String month) {
-    return '$name: $years שנים ב$month';
   }
 
   @override
@@ -6642,20 +6498,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dashboard_quickActions_planDive => 'תכנון צלילה';
 
   @override
-  String get dashboard_quickActions_sectionTitle => 'פעולות מהירות';
-
-  @override
-  String get dashboard_quickActions_insights => 'תובנות';
-
-  @override
   String get dashboard_recentDives_empty => 'אין צלילות רשומות עדיין';
-
-  @override
-  String get dashboard_recentDives_errorLoading => 'נכשל טעינת צלילות';
-
-  @override
-  String get dashboard_recentDives_latestProfileTitle =>
-      'פרופיל הצלילה האחרונה';
 
   @override
   String get dashboard_recentDives_noProfileData =>
@@ -6664,28 +6507,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get dashboard_recentDives_profileLoadError =>
       'לא ניתן לטעון את פרופיל הצלילה';
-
-  @override
-  String get dashboard_recentDives_logFirst => 'רשום את הצלילה הראשונה';
-
-  @override
-  String get dashboard_recentDives_sectionTitle => 'צלילות אחרונות';
-
-  @override
-  String get dashboard_recentDives_viewAll => 'הצג הכל';
-
-  @override
-  String get dashboard_recentDives_viewAllTooltip => 'הצגת כל הצלילות';
-
-  @override
-  String get dashboard_semantics_errorLoadingRecentDives =>
-      'שגיאה: נכשל טעינת צלילות אחרונות';
-
-  @override
-  String get dashboard_semantics_greetingBanner => 'באנר ברכה בלוח המחוונים';
-
-  @override
-  String get dashboard_waitingForDownload_download => 'להורדה עכשיו';
 
   @override
   String dashboard_waitingForDownload_title(int count) {
@@ -64736,182 +64557,213 @@ class AppLocalizationsHe extends AppLocalizations {
       'משמש רק להערכת הרכב הגוף לצורך חיזוי משקולות.';
 
   @override
-  String get dashboard_header_more => 'More';
+  String get dashboard_header_more => 'עוד';
 
   @override
-  String get dashboard_header_allClear => 'All clear';
+  String get dashboard_header_allClear => 'הכול תקין';
 
   @override
   String dashboard_header_clearCount(int count) {
-    return '$count all clear';
+    return '$count תקינים';
   }
 
   @override
-  String get dashboard_header_statusTitle => 'Status';
+  String get dashboard_header_statusTitle => 'מצב';
 
   @override
-  String get dashboard_panel_loadError => 'Couldn\'t load this';
+  String get dashboard_panel_loadError => 'לא ניתן לטעון';
 
   @override
-  String get dashboard_key_dives => 'Dives';
+  String get dashboard_key_dives => 'צלילות';
 
   @override
-  String get dashboard_key_timeUnder => 'Time under';
+  String get dashboard_key_timeUnder => 'זמן מתחת למים';
 
   @override
-  String get dashboard_key_lastDive => 'Last dive';
+  String get dashboard_key_lastDive => 'צלילה אחרונה';
 
   @override
-  String get dashboard_key_avgSac => 'Avg SAC';
+  String get dashboard_key_avgSac => 'SAC ממוצע';
 
   @override
-  String get dashboard_key_avgRmv => 'Avg RMV';
+  String get dashboard_key_avgRmv => 'RMV ממוצע';
 
   @override
-  String get dashboard_key_deepestThisYear => 'Deepest this year';
+  String get dashboard_key_deepestThisYear => 'העמוקה ביותר השנה';
 
   @override
-  String get dashboard_key_nextTrip => 'Next trip';
+  String get dashboard_key_nextTrip => 'הטיול הבא';
 
   @override
-  String get dashboard_key_avgDepth => 'Avg depth';
+  String get dashboard_key_avgDepth => 'עומק ממוצע';
 
   @override
-  String get dashboard_key_species => 'Species';
+  String get dashboard_key_species => 'מינים';
 
   @override
   String dashboard_key_countThisYear(int count) {
-    return '+$count this year';
+    return '+$count השנה';
   }
 
   @override
   String dashboard_key_hoursThisYear(int hours) {
-    return '+$hours h this year';
+    return '+$hours ש\' השנה';
   }
 
   @override
-  String get dashboard_key_hoursUnit => 'h';
+  String get dashboard_key_hoursUnit => 'ש\'';
 
   @override
-  String get dashboard_key_daysUnit => 'days';
+  String get dashboard_key_daysUnit => 'ימים';
 
   @override
   String dashboard_key_vsPrevious(String change) {
-    return '$change vs previous 10';
+    return '$change לעומת 10 הקודמות';
   }
 
   @override
   String dashboard_key_lastYear(String value) {
-    return 'Last year $value';
+    return 'שנה שעברה $value';
   }
 
   @override
   String dashboard_key_tripChecklist(String name, int done, int total) {
-    return '$name · checklist $done/$total';
+    return '$name · רשימה $done/$total';
   }
 
   @override
   String dashboard_panel_activity(int months) {
-    return 'Activity, $months months';
+    return 'פעילות, $months חודשים';
   }
 
   @override
   String dashboard_panel_activitySummary(int dives, int days) {
-    return '$dives dives · $days days';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives צלילות',
+      one: 'צלילה אחת',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days ימים',
+      one: 'יום אחד',
+    );
+    return '$_temp0 · $_temp1';
   }
 
   @override
-  String get dashboard_panel_divesPerMonth => 'Dives per month';
+  String get dashboard_panel_divesPerMonth => 'צלילות לחודש';
 
   @override
-  String get dashboard_panel_sacTrend => 'SAC trend';
+  String get dashboard_panel_sacTrend => 'מגמת SAC';
 
   @override
-  String get dashboard_panel_rmvTrend => 'RMV trend';
+  String get dashboard_panel_rmvTrend => 'מגמת RMV';
 
   @override
   String dashboard_panel_lastDives(int count) {
-    return 'last $count dives';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count הצלילות האחרונות',
+      one: 'הצלילה האחרונה',
+    );
+    return '$_temp0';
   }
 
   @override
-  String get dashboard_panel_noSac => 'No dives with gas data yet';
+  String get dashboard_panel_noSac => 'עדיין אין צלילות עם נתוני גז';
 
   @override
-  String get dashboard_panel_depthMix => 'Depth mix';
+  String get dashboard_panel_depthMix => 'התפלגות עומקים';
 
   @override
-  String get dashboard_panel_noDives => 'No dives yet';
+  String get dashboard_panel_noDives => 'עדיין אין צלילות';
 
   @override
-  String get dashboard_panel_gasMix => 'Gas mix';
+  String get dashboard_panel_gasMix => 'תערובות גז';
 
   @override
-  String get dashboard_panel_diveTypes => 'Dive types';
+  String get dashboard_panel_diveTypes => 'סוגי צלילה';
 
   @override
-  String get dashboard_panel_topSites => 'Top sites';
+  String get dashboard_panel_topSites => 'אתרים מובילים';
 
   @override
-  String get dashboard_panel_topBuddies => 'Top buddies';
+  String get dashboard_panel_topBuddies => 'שותפים מובילים';
 
   @override
-  String get dashboard_panel_noBuddies => 'No buddies logged yet';
+  String get dashboard_panel_noBuddies => 'עדיין לא נרשמו שותפים';
 
   @override
-  String get dashboard_panel_gearService => 'Gear service';
+  String get dashboard_panel_gearService => 'תחזוקת ציוד';
 
   @override
-  String get dashboard_panel_noGear => 'Add gear to track its service';
+  String get dashboard_panel_noGear => 'הוסף ציוד כדי לעקוב אחר התחזוקה שלו';
 
   @override
-  String get dashboard_panel_overdue => 'Overdue';
+  String get dashboard_panel_overdue => 'באיחור';
 
   @override
   String dashboard_panel_daysLeft(int days) {
-    return '$days d';
+    return '$days י\'';
   }
 
   @override
   String dashboard_panel_divesLeft(int count) {
-    return '$count dives';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות',
+      one: 'צלילה אחת',
+    );
+    return '$_temp0';
   }
 
   @override
   String dashboard_panel_hoursLeft(int hours) {
-    return '$hours h';
+    return '$hours ש\'';
   }
 
   @override
-  String get dashboard_panel_comingDue => 'Coming due';
+  String get dashboard_panel_comingDue => 'מועדים קרובים';
 
   @override
-  String get dashboard_panel_nothingDue => 'Nothing due in the next year';
+  String get dashboard_panel_nothingDue => 'אין דבר שמועדו בשנה הקרובה';
 
   @override
   String dashboard_panel_inDays(int days) {
-    return 'in $days days';
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'בעוד $days ימים',
+      one: 'מחר',
+      zero: 'היום',
+    );
+    return '$_temp0';
   }
 
   @override
-  String get dashboard_panel_tripChecklist => 'Trip checklist';
+  String get dashboard_panel_tripChecklist => 'רשימת הטיול';
 
   @override
-  String get dashboard_panel_latestProfile => 'Latest profile';
+  String get dashboard_panel_latestProfile => 'פרופיל אחרון';
 
   @override
-  String get dashboard_panel_latestVsAverage => 'Latest dive vs average';
+  String get dashboard_panel_latestVsAverage => 'צלילה אחרונה מול הממוצע';
 
   @override
   String dashboard_panel_vsAverage(String value, String average) {
-    return '$value · avg $average';
+    return '$value · ממוצע $average';
   }
 
   @override
-  String get dashboard_panel_maxDepth => 'Max depth';
+  String get dashboard_panel_maxDepth => 'עומק מרבי';
 
   @override
-  String get dashboard_panel_runtime => 'Runtime';
+  String get dashboard_panel_runtime => 'משך';
 
   @override
   String get dashboard_panel_sac => 'SAC';
@@ -64920,26 +64772,26 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dashboard_panel_rmv => 'RMV';
 
   @override
-  String get dashboard_panel_recentDives => 'Recent dives';
+  String get dashboard_panel_recentDives => 'צלילות אחרונות';
 
   @override
-  String get dashboard_panel_colSite => 'Site';
+  String get dashboard_panel_colSite => 'אתר';
 
   @override
-  String get dashboard_panel_colDate => 'Date';
+  String get dashboard_panel_colDate => 'תאריך';
 
   @override
-  String get dashboard_panel_colDepth => 'Depth';
+  String get dashboard_panel_colDepth => 'עומק';
 
   @override
-  String get dashboard_panel_colTime => 'Time';
+  String get dashboard_panel_colTime => 'זמן';
 
   @override
-  String get dashboard_panel_speciesSeen => 'Species seen lately';
+  String get dashboard_panel_speciesSeen => 'מינים שנצפו לאחרונה';
 
   @override
   String dashboard_panel_speciesTotal(int count) {
-    return '$count total';
+    return '$count בסך הכול';
   }
 
   @override
@@ -64947,67 +64799,67 @@ class AppLocalizationsHe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count dives',
-      one: '1 dive',
+      other: '$count צלילות',
+      one: 'צלילה אחת',
     );
     return '$_temp0';
   }
 
   @override
-  String get dashboard_panel_firstDive => 'Log or import your first dive';
+  String get dashboard_panel_firstDive => 'תעד או ייבא את הצלילה הראשונה שלך';
 
   @override
-  String get dashboard_panel_import => 'Import';
+  String get dashboard_panel_import => 'ייבוא';
 
   @override
-  String get settings_homeLayout_sectionTitle => 'Layout';
+  String get settings_homeLayout_sectionTitle => 'פריסה';
 
   @override
   String get settings_homeLayout_description =>
-      'Pick a starting layout, then show, hide or drag panels below. Your changes make it Custom.';
+      'בחר פריסת התחלה, ואז הצג, הסתר או גרור את הלוחות למטה. השינויים שלך הופכים אותה למותאמת אישית.';
 
   @override
-  String get settings_homeLayout_balanced => 'Balanced';
+  String get settings_homeLayout_balanced => 'מאוזנת';
 
   @override
-  String get settings_homeLayout_ready => 'Ready';
+  String get settings_homeLayout_ready => 'מוכנות';
 
   @override
-  String get settings_homeLayout_trends => 'Trends';
+  String get settings_homeLayout_trends => 'מגמות';
 
   @override
-  String get settings_homeLayout_logbook => 'Logbook';
+  String get settings_homeLayout_logbook => 'יומן';
 
   @override
-  String get settings_homeLayout_replaceTitle => 'Replace your layout?';
+  String get settings_homeLayout_replaceTitle => 'להחליף את הפריסה?';
 
   @override
   String settings_homeLayout_replaceMessage(String preset) {
-    return 'Your own arrangement of panels will be replaced by the $preset layout.';
+    return 'הסידור שלך ללוחות יוחלף בפריסה $preset.';
   }
 
   @override
-  String get settings_homeLayout_replace => 'Replace';
+  String get settings_homeLayout_replace => 'החלף';
 
   @override
-  String get settings_homePanels_sectionTitle => 'Panels';
+  String get settings_homePanels_sectionTitle => 'לוחות';
 
   @override
   String get settings_homePanels_resetMessage =>
-      'This returns Home to the Balanced layout.';
+      'פעולה זו מחזירה את מסך הבית לפריסה המאוזנת.';
 
   @override
-  String get settings_homePanels_keyNumbers => 'Key numbers';
+  String get settings_homePanels_keyNumbers => 'מספרי מפתח';
 
   @override
   String settings_homePanels_keyNumbersCount(int shown, int total) {
-    return '$shown of $total';
+    return '$shown מתוך $total';
   }
 
   @override
-  String get settings_homePanels_activityCalendar => 'Activity calendar';
+  String get settings_homePanels_activityCalendar => 'לוח פעילות';
 
   @override
   String get settings_homeKeyNumbers_description =>
-      'Choose the numbers shown at the top of Home. A number with nothing to show yet is left out.';
+      'בחר את המספרים שיוצגו בראש מסך הבית. מספר שעדיין אין לו מה להציג מושמט.';
 }

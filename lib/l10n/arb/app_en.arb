@@ -3945,25 +3945,6 @@
     }
   },
   "dashboard_activeCourses_title": "Courses in progress",
-  "dashboard_greeting_afternoon": "Good afternoon",
-  "dashboard_greeting_evening": "Good evening",
-  "dashboard_greeting_morning": "Good morning",
-  "dashboard_greeting_withName": "{greeting}, {name}!",
-  "dashboard_greeting_withoutName": "{greeting}!",
-  "dashboard_hero_divesLoggedOne": "1 dive logged",
-  "dashboard_hero_divesLoggedOther": "{count} dives logged",
-  "dashboard_hero_divesTotalOne": "1 dive",
-  "dashboard_hero_divesTotalOther": "{count} dives",
-  "dashboard_hero_error": "Ready to explore the depths?",
-  "dashboard_hero_hoursUnderwater": "{hours} hours underwater",
-  "dashboard_hero_loading": "Loading your dive stats...",
-  "dashboard_hero_minutesUnderwater": "{minutes} minutes underwater",
-  "dashboard_hero_noDives": "Ready to log your first dive?",
-  "dashboard_hero_diverFallbackName": "Diver",
-  "dashboard_hero_statDives": "dives",
-  "dashboard_hero_statHours": "hours",
-  "dashboard_hero_statSites": "sites",
-  "dashboard_hero_statCountries": "countries",
   "dashboard_gauges_addGear": "Add gear",
   "dashboard_gauges_gearDueIn": "{name} service due in {days}d",
   "@dashboard_gauges_gearDueIn": {
@@ -4053,25 +4034,11 @@
   "settings_homeChips_pageTitle": "Home screen",
   "settings_homeChips_description": "Choose which status chips appear at the top of the Home tab.",
   "settings_homeChips_sectionTitle": "Status chips",
-  "settings_homeCards_sectionTitle": "Home cards",
-  "settings_homeCards_description": "Choose which cards appear on the Home tab and drag to reorder them.",
   "settings_homeCards_autoHides": "Hides automatically when empty",
   "settings_homeCards_resetToDefault": "Reset to default",
   "settings_homeCards_resetDialog_title": "Reset Home layout?",
-  "settings_homeCards_resetDialog_message": "This restores the default card order and shows all cards again.",
   "settings_homeCards_resetDialog_cancel": "Cancel",
   "settings_homeCards_resetDialog_confirm": "Reset",
-  "settings_homeCards_card_hero": "Welcome header",
-  "settings_homeCards_card_gaugeStrip": "Status chips",
-  "settings_homeCards_card_preDive": "Checklists",
-  "settings_homeCards_card_recentDives": "Recent dives",
-  "settings_homeCards_card_quickActions": "Quick actions",
-  "settings_homeCards_card_milestones": "Milestones",
-  "settings_homeCards_card_photoRibbon": "Recent media",
-  "settings_homeCards_card_onThisDay": "On this day",
-  "settings_homeCards_card_yearInReview": "Year in review",
-  "settings_homeCards_card_activeCourses": "Course progress",
-  "settings_homeCards_card_recentSitesMap": "Recent sites map",
   "settings_homeCards_card_waitingForDownload": "Waiting for download",
   "dashboard_allHidden_message": "All Home cards are hidden.",
   "dashboard_allHidden_customize": "Customize Home",
@@ -4178,34 +4145,6 @@
   "dashboard_gauges_retry": "Status unavailable - tap to retry",
   "dashboard_media_title": "Recent media",
   "dashboard_recentSites_title": "Recent sites",
-  "dashboard_yearInReview_title": "This year",
-  "dashboard_yearInReview_divesVs": "{count} dives (vs {previous} last year)",
-  "@dashboard_yearInReview_divesVs": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      },
-      "previous": {
-        "type": "int"
-      }
-    }
-  },
-  "dashboard_yearInReview_hours": "{hours} hours underwater",
-  "@dashboard_yearInReview_hours": {
-    "placeholders": {
-      "hours": {
-        "type": "String"
-      }
-    }
-  },
-  "dashboard_yearInReview_maxDepth": "Deepest: {depth}",
-  "@dashboard_yearInReview_maxDepth": {
-    "placeholders": {
-      "depth": {
-        "type": "String"
-      }
-    }
-  },
   "dashboard_onThisDay_title": "On this day",
   "dashboard_onThisDay_entry": "{year} - {site}",
   "@dashboard_onThisDay_entry": {
@@ -4218,93 +4157,11 @@
       }
     }
   },
-  "dashboard_milestones_title": "Milestones",
-  "dashboard_milestones_nextDive": "{remaining} dives to #{milestone}",
-  "@dashboard_milestones_nextDive": {
-    "placeholders": {
-      "remaining": {
-        "type": "int"
-      },
-      "milestone": {
-        "type": "int"
-      }
-    }
-  },
-  "dashboard_milestones_certYears": "{name}: {years} years in {month}",
-  "@dashboard_milestones_certYears": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      },
-      "years": {
-        "type": "int"
-      },
-      "month": {
-        "type": "String"
-      }
-    }
-  },
   "dashboard_quickActions_logDive": "Log Dive",
   "dashboard_quickActions_planDive": "Plan Dive",
-  "dashboard_quickActions_sectionTitle": "Quick Actions",
-  "dashboard_quickActions_insights": "Insights",
   "dashboard_recentDives_empty": "No dives logged yet",
-  "dashboard_recentDives_errorLoading": "Failed to load dives",
-  "dashboard_recentDives_latestProfileTitle": "Latest dive profile",
   "dashboard_recentDives_noProfileData": "No profile data for this dive",
   "dashboard_recentDives_profileLoadError": "Couldn't load the dive profile",
-  "dashboard_recentDives_logFirst": "Log Your First Dive",
-  "dashboard_recentDives_sectionTitle": "Recent Dives",
-  "dashboard_recentDives_viewAll": "View All",
-  "dashboard_recentDives_viewAllTooltip": "View all dives",
-  "dashboard_semantics_errorLoadingRecentDives": "Error: Failed to load recent dives",
-  "dashboard_semantics_greetingBanner": "Dashboard greeting banner",
-  "@dashboard_greeting_withName": {
-    "placeholders": {
-      "greeting": {
-        "type": "Object"
-      },
-      "name": {
-        "type": "Object"
-      }
-    }
-  },
-  "@dashboard_greeting_withoutName": {
-    "placeholders": {
-      "greeting": {
-        "type": "Object"
-      }
-    }
-  },
-  "@dashboard_hero_divesLoggedOther": {
-    "placeholders": {
-      "count": {
-        "type": "Object"
-      }
-    }
-  },
-  "@dashboard_hero_divesTotalOther": {
-    "placeholders": {
-      "count": {
-        "type": "Object"
-      }
-    }
-  },
-  "@dashboard_hero_hoursUnderwater": {
-    "placeholders": {
-      "hours": {
-        "type": "Object"
-      }
-    }
-  },
-  "@dashboard_hero_minutesUnderwater": {
-    "placeholders": {
-      "minutes": {
-        "type": "Object"
-      }
-    }
-  },
-  "dashboard_waitingForDownload_download": "Download now",
   "dashboard_waitingForDownload_title": "{count, plural, =1{1 dive waiting for your dive computer} other{{count} dives waiting for your dive computer}}",
   "@dashboard_waitingForDownload_title": {
     "placeholders": {
@@ -38551,12 +38408,12 @@
   "@dashboard_key_tripChecklist": {"placeholders": {"name": {"type": "String"}, "done": {"type": "int"}, "total": {"type": "int"}}},
   "dashboard_panel_activity": "Activity, {months} months",
   "@dashboard_panel_activity": {"placeholders": {"months": {"type": "int"}}},
-  "dashboard_panel_activitySummary": "{dives} dives · {days} days",
+  "dashboard_panel_activitySummary": "{dives, plural, =1{1 dive} other{{dives} dives}} · {days, plural, =1{1 day} other{{days} days}}",
   "@dashboard_panel_activitySummary": {"placeholders": {"dives": {"type": "int"}, "days": {"type": "int"}}},
   "dashboard_panel_divesPerMonth": "Dives per month",
   "dashboard_panel_sacTrend": "SAC trend",
   "dashboard_panel_rmvTrend": "RMV trend",
-  "dashboard_panel_lastDives": "last {count} dives",
+  "dashboard_panel_lastDives": "{count, plural, =1{last dive} other{last {count} dives}}",
   "@dashboard_panel_lastDives": {"placeholders": {"count": {"type": "int"}}},
   "dashboard_panel_noSac": "No dives with gas data yet",
   "dashboard_panel_depthMix": "Depth mix",
@@ -38571,13 +38428,13 @@
   "dashboard_panel_overdue": "Overdue",
   "dashboard_panel_daysLeft": "{days} d",
   "@dashboard_panel_daysLeft": {"placeholders": {"days": {"type": "int"}}},
-  "dashboard_panel_divesLeft": "{count} dives",
+  "dashboard_panel_divesLeft": "{count, plural, =1{1 dive} other{{count} dives}}",
   "@dashboard_panel_divesLeft": {"placeholders": {"count": {"type": "int"}}},
   "dashboard_panel_hoursLeft": "{hours} h",
   "@dashboard_panel_hoursLeft": {"placeholders": {"hours": {"type": "int"}}},
   "dashboard_panel_comingDue": "Coming due",
   "dashboard_panel_nothingDue": "Nothing due in the next year",
-  "dashboard_panel_inDays": "in {days} days",
+  "dashboard_panel_inDays": "{days, plural, =0{today} =1{tomorrow} other{in {days} days}}",
   "@dashboard_panel_inDays": {"placeholders": {"days": {"type": "int"}}},
   "dashboard_panel_tripChecklist": "Trip checklist",
   "dashboard_panel_latestProfile": "Latest profile",
