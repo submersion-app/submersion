@@ -53,6 +53,13 @@ class _GlobalSearchPageState extends ConsumerState<GlobalSearchPage> {
         (_) => ref.read(globalSearchRequestProvider.notifier).state = null,
       );
     }
+    // Ctrl+K pressed before the page was up: the field takes the caret once
+    // it is built, autofocus or not.
+    if (ref.read(globalSearchFocusRequestProvider)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _takeFocusRequest();
+      });
+    }
   }
 
   @override
@@ -89,12 +96,19 @@ class _GlobalSearchPageState extends ConsumerState<GlobalSearchPage> {
     setState(() => _override = QueryTextOverride(_text, selectAll: true));
   }
 
+  void _takeFocusRequest() {
+    _focusField();
+    ref.read(globalSearchFocusRequestProvider.notifier).state = false;
+  }
+
   void _open(GlobalSearchKind kind, String id) =>
       context.pushOrReturnTo(globalSearchLocation(kind, id));
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(globalSearchFocusTickProvider, (_, _) => _focusField());
+    ref.listen(globalSearchFocusRequestProvider, (_, wanted) {
+      if (wanted) _takeFocusRequest();
+    });
     ref.listen(globalSearchRequestProvider, (_, request) {
       if (request != null) _take(request);
     });

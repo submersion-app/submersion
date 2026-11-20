@@ -468,7 +468,7 @@ void main() {
     expect(field.focusNode!.hasFocus, isTrue);
   });
 
-  testWidgets('the focus tick selects the text in the field', (tester) async {
+  testWidgets('a focus request selects the text in the field', (tester) async {
     await tester.pumpWidget(_app((_) async => const []));
     await _search(tester, 'reef');
     final field = tester.widget<TextField>(
@@ -480,11 +480,12 @@ void main() {
     final container = ProviderScope.containerOf(
       tester.element(find.byType(GlobalSearchPage)),
     );
-    container.read(globalSearchFocusTickProvider.notifier).state++;
+    container.read(globalSearchFocusRequestProvider.notifier).state = true;
     await tester.pumpAndSettle();
 
     expect(field.focusNode!.hasFocus, isTrue);
     expect(field.controller!.selection.textInside('reef'), 'reef');
+    expect(container.read(globalSearchFocusRequestProvider), isFalse);
   });
 
   // The keyboard covers the bottom bar there, and Search, a nav destination,
@@ -554,7 +555,7 @@ void main() {
       expect(field(tester).focusNode!.hasFocus, isFalse);
     });
 
-    testWidgets('the focus tick, from Ctrl+K, still brings the keyboard up', (
+    testWidgets('a focus request, from Ctrl+K, still brings the keyboard up', (
       tester,
     ) async {
       usePhone(tester);
@@ -564,10 +565,31 @@ void main() {
       final container = ProviderScope.containerOf(
         tester.element(find.byType(GlobalSearchPage)),
       );
-      container.read(globalSearchFocusTickProvider.notifier).state++;
+      container.read(globalSearchFocusRequestProvider.notifier).state = true;
       await tester.pumpAndSettle();
 
       expect(field(tester).focusNode!.hasFocus, isTrue);
+    });
+
+    testWidgets('a focus request made before the page opens is taken', (
+      tester,
+    ) async {
+      usePhone(tester);
+      await tester.pumpWidget(
+        _app(
+          (_) async => const [],
+          overrides: [
+            globalSearchFocusRequestProvider.overrideWith((ref) => true),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(field(tester).focusNode!.hasFocus, isTrue);
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(GlobalSearchPage)),
+      );
+      expect(container.read(globalSearchFocusRequestProvider), isFalse);
     });
 
     testWidgets(

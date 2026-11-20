@@ -277,17 +277,10 @@ class AppShortcuts {
 
       // Global search (#3882), over whatever page is up, so Back returns to
       // it. Pressed on the search page it puts the caret back in the field.
-      // The tick moves after the push's frame, so a page that push builds is
-      // listening for it: on a phone the field no longer autofocuses (#4813).
       platformShortcut(LogicalKeyboardKey.keyK): () {
         final container = ProviderScope.containerOf(context, listen: false);
+        container.read(globalSearchFocusRequestProvider.notifier).state = true;
         context.pushOrReturnTo(kGlobalSearchLocation);
-        WidgetsBinding.instance
-          ..addPostFrameCallback(
-            (_) =>
-                container.read(globalSearchFocusTickProvider.notifier).state++,
-          )
-          ..ensureVisualUpdate();
       },
 
       // Settings
