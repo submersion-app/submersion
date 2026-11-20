@@ -196,21 +196,24 @@ class NewSetHarness {
 
 /// Pumps a new set's page, or a clone of [cloneFromId], pushed at
 /// `/equipment/sets/new` over a launcher, on the database [seedSetPage]
-/// made. The real save service writes it.
+/// made, with [diverAtOpen] active as it opens. The real save service writes
+/// it.
 Future<NewSetHarness> pumpNewSetPage(
   WidgetTester tester, {
   String? cloneFromId,
   Size size = const Size(600, 2400),
+  String? diverAtOpen = 'd1',
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
   final overrides = await getBaseOverrides();
-  overrides.add(
+  overrides.addAll([
+    newSetPageDiverProvider.overrideWith((ref) => diverAtOpen),
     validatedCurrentDiverIdProvider.overrideWith(
       (ref) async => ref.watch(newSetPageDiverProvider),
     ),
-  );
+  ]);
   final harness = NewSetHarness();
   final router = GoRouter(
     initialLocation: '/launch',

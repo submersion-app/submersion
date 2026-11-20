@@ -8,6 +8,7 @@ import 'package:submersion/core/database/database.dart'
     hide EquipmentSet, EquipmentSetGeofence;
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/change_log/data/services/change_log_revert_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -579,6 +580,32 @@ void main() {
       expect(await sets.getSetById('n1'), isNull);
       expect(await isDefault('s2'), isTrue);
       expect(await operations(), isEmpty);
+    });
+
+    // The set's own repository write runs in a transaction nested in the
+    // sitting's: nothing of it is kept, marked for sync or told to sync
+    // when a later write rolls the sitting back.
+    test('a write that fails leaves no pending sync mark and tells sync '
+        'nothing', () async {
+      var told = 0;
+      final listening = SyncEventBus.changes.listen((_) => told++);
+      addTearDown(listening.cancel);
+
+      await expectLater(
+        service.create(
+          set: fresh(isDefault: true),
+          changedCardIds: const ['header'],
+          alsoWrite: () async => throw StateError('refused'),
+        ),
+        throwsStateError,
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      final marks = await db
+          .customSelect("SELECT id FROM sync_records WHERE record_id = 'n1'")
+          .get();
+      expect(marks, isEmpty);
+      expect(told, 0);
     });
 
     test('an empty id or one already stored is refused', () async {
