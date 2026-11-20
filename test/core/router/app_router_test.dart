@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_edit_page.dart';
+import 'package:submersion/features/certifications/presentation/pages/certification_detail_page.dart';
+import 'package:submersion/features/certifications/presentation/pages/certification_edit_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_detail_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_page.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
@@ -564,6 +566,21 @@ void main() {
     final route = _findRouteByName(
       router.configuration.routes,
       'newDiveCenter',
+    );
+    expect(route?.onExit, same(confirmLeaveRecordSitting));
+  });
+
+  test('a new certification opens the page with the switch on', () {
+    final page = newCertificationPage(unlockEditing: true);
+    expect(page, isA<CertificationDetailPage>());
+    expect((page as CertificationDetailPage).newCertification, isTrue);
+    expect(
+      newCertificationPage(unlockEditing: false),
+      isA<CertificationEditPage>(),
+    );
+    final route = _findRouteByName(
+      router.configuration.routes,
+      'newCertification',
     );
     expect(route?.onExit, same(confirmLeaveRecordSitting));
   });

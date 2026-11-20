@@ -1053,7 +1053,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newCertification',
-                builder: (context, state) => const CertificationEditPage(),
+                onExit: confirmLeaveRecordSitting,
+                // Behind phase 3's switch, the certification page opened on
+                // a new certification (issue #4527, plan 11).
+                builder: (context, state) => newCertificationPage(),
               ),
               GoRoute(
                 path: ':certificationId',
