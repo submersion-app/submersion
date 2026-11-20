@@ -129,10 +129,11 @@ const _cloneExtrasKey = 'equipment.new.cloneExtras';
 
 /// Puts what [request] or [clone] brings on [session], each through its
 /// card's field, so each is a change. A clone's place is held as the
-/// item's first move, as its Location card holds one, and its extras (clocks without a baseline, set
-/// memberships, document copies) as one write of the clone, made at Save
-/// after the row: if one fails the Save fails, where the form copied them
-/// after the item, best effort (plan 11, Question 8).
+/// item's first move, as its Location card holds one, and its extras
+/// (clocks without a baseline, set memberships, document copies) as one
+/// write of the clone, made at Save after the row: if one fails the Save
+/// fails, where the form copied them after the item, best effort (plan
+/// 11, Question 8).
 Future<void> applyNewGearItemPrefill(
   EditSession<EquipmentItem> session, {
   NewGearItemRequest? request,

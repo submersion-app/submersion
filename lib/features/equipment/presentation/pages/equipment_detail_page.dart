@@ -347,8 +347,9 @@ class _EquipmentDetailContent extends ConsumerWidget {
     }
 
     // Wishlist gear (#2025) is out of service clocks: a schedule kept from
-    // when it was owned shows nothing until the item is bought again.
-    if (!equipment.isWanted) {
+    // when it was owned shows nothing until the item is bought again. An
+    // item not yet created has no clock to show (plan 11).
+    if (!equipment.isWanted && !_creating) {
       consider(ref.watch(equipmentRollupClockProvider).value?[equipmentId]);
       for (final status
           in ref.watch(serviceClockStatusesProvider(equipmentId)).value ??
