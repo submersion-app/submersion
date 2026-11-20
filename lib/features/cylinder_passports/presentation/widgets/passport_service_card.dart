@@ -11,6 +11,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/widgets/service_schedule_dialogs.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_trigger_text.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_card_ids.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_service_sitting.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
@@ -136,7 +137,12 @@ class PassportServiceCard extends ConsumerWidget {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
-                RecordCardPencil(cardTitle: l10n.passport_service_title),
+                // On the passport this is the item's Service clocks card.
+                RecordCardPencil(
+                  cardTitle: GearItemCardId.serviceClocks.localizedDisplayName(
+                    l10n,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 8),

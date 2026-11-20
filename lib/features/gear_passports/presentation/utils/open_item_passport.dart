@@ -28,8 +28,11 @@ Future<void> openItemPassport(BuildContext context, EquipmentItem item) async {
     );
     return;
   }
+  // On the navigator the passport's route would use, so it keeps the app's
+  // navigation around it.
   await pushRecordSatellite<EquipmentItem, void>(
     context,
+    rootNavigator: false,
     builder: (joined) => tank
         ? PassportPage(
             equipmentId: item.id,

@@ -214,6 +214,18 @@ void main() {
     expect(events.map((e) => e.data['record_id']), [logged.id]);
   });
 
+  test('a fill logged under a tag linked in the sitting, after the link is '
+      'set back, is written under the cylinder\'s own id', () async {
+    holdPassportTag(session, tag, stored: mine, repository: passports);
+    holdLoggedFill(session, fill(passportId: tag));
+    holdPassportTag(session, mine, stored: mine, repository: passports);
+
+    await db.transaction(session.runHeldWrites);
+
+    expect(await passports.getPassportId('a'), mine);
+    expect((await fillsOf('a')).map((f) => f.passportId).toSet(), {mine});
+  });
+
   // Review Focus 5: a twin set made in the sitting is the partner of a
   // fill logged after it.
   test('a pairing made, then a twin fill logged: the pairing is written '

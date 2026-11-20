@@ -15,7 +15,6 @@ import 'package:submersion/features/equipment/presentation/editing/gear_item_fil
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
-import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 /// The newest fill: mix, pressure, station, and the depth limits at the
@@ -86,8 +85,8 @@ class PassportCurrentFillCard extends ConsumerWidget {
                   const SizedBox(width: 6),
                   const RecordChangedDot(),
                 ],
-                const Spacer(),
-                RecordCardPencil(cardTitle: l10n.passport_fill_title),
+                // The fills card's pencil is on the Fill history card below,
+                // which shares this card's frame.
               ],
             ),
             const SizedBox(height: 8),

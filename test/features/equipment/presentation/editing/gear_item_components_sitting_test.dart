@@ -149,6 +149,41 @@ void main() {
       expect(dives.calls, isEmpty);
     });
 
+    test('a part removed and added back is still a part, under its new '
+        'row', () async {
+      final parts = gearItemComponentsList.current(session)!;
+      gearItemComponentsList.set(session, [row('again', 'p1')]);
+      expect(parts.single.id, isNot('again'));
+
+      await session.runHeldWrites();
+
+      final stored = await components.getComponents('g1');
+      expect(stored.map((c) => (c.id, c.componentEquipmentId)), [
+        ('again', 'p1'),
+      ]);
+    });
+
+    test(
+      'a part taken off one row and swapped onto another is saved',
+      () async {
+        await components.addComponent(parentId: 'g1', componentId: 'p2');
+        await gearItemComponentsList.load(session);
+        final parts = gearItemComponentsList.current(session)!;
+        final first = parts.firstWhere((c) => c.componentEquipmentId == 'p1');
+        // p2's row goes, and p1's row takes p2.
+        gearItemComponentsList.set(session, [
+          first.copyWith(componentEquipmentId: 'p2'),
+        ]);
+
+        await session.runHeldWrites();
+
+        final stored = await components.getComponents('g1');
+        expect(stored.map((c) => (c.id, c.componentEquipmentId)), [
+          (first.id, 'p2'),
+        ]);
+      },
+    );
+
     test('a part that would now make a loop refuses the Save', () async {
       final parts = gearItemComponentsList.current(session)!;
       gearItemComponentsList.set(session, [...parts, row('new', 'p2')]);

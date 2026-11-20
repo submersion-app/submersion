@@ -111,8 +111,8 @@ gearAssemblyRewrites(
   );
 }
 
-/// Writes the parts at Save: new rows under the ids the sitting gave them,
-/// swapped parts, roles, removals, then the order, then the dives the change
+/// Writes the parts at Save: removals, new rows under the ids the sitting
+/// gave them, swapped parts, roles, then the order, then the dives the change
 /// reaches (planned always, logged as the diver answered). A part the
 /// database refuses as a cycle fails the whole Save.
 Future<Object?> writeGearItemComponents(
@@ -125,6 +125,12 @@ Future<Object?> writeGearItemComponents(
   final before = {for (final c in loaded) c.id: c};
   final kept = {for (final c in current) c.id};
   try {
+    // Removals first: a part taken off one row and put on another, or
+    // removed and added back, must find its old row gone, or the add would
+    // find that row and keep it and the swap would break the unique pair.
+    for (final old in loaded) {
+      if (!kept.contains(old.id)) await repository.removeComponent(old.id);
+    }
     for (final row in current) {
       final old = before[row.id];
       if (old == null) {
@@ -140,9 +146,6 @@ Future<Object?> writeGearItemComponents(
         await repository.replaceComponent(row.id, row.componentEquipmentId);
       }
       if (old.role != row.role) await repository.updateRole(row.id, row.role);
-    }
-    for (final old in loaded) {
-      if (!kept.contains(old.id)) await repository.removeComponent(old.id);
     }
   } on EquipmentComponentCycleException {
     throw RecordSittingRefusal((l) => l.equipment_components_cycleError);

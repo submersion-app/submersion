@@ -32,7 +32,8 @@ Future<void> linkExistingTag(
 }) async {
   final l10n = context.l10n;
   final repository = ref.read(cylinderPassportRepositoryProvider);
-  final stored = ref.read(passportIdProvider(equipment.id)).value;
+  // Awaited, so a link to the tag the item already holds is no change.
+  final stored = await ref.read(passportIdProvider(equipment.id).future);
   final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
   if (!context.mounted) return;
   final linked = await showLinkExistingTagDialog(
@@ -51,7 +52,7 @@ Future<void> linkExistingTag(
             diverId: diverId,
           ),
   );
-  // A held link is linked at Save, which says so.
+  // A held link is not linked yet: its changed dot says so, not a message.
   if (linked != null && editing == null && context.mounted) {
     ScaffoldMessenger.of(
       context,

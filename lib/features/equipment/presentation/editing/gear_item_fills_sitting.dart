@@ -151,8 +151,18 @@ Future<Object?> _write(
   final twinPartners = _twins(session);
   final toTied = _ids(session, _toTiedKey);
   final tiedToo = _ids(session, _tiedTooKey);
-  for (final fill in current) {
-    final old = before[fill.id];
+  // A new fill goes under the passport id the cylinder holds as it is
+  // written, whatever the sitting showed when it was logged: a tag linked
+  // in the sitting re-keys it with the others, whether it is written before
+  // or after the link, and a link set back leaves it on the cylinder's own.
+  final holds = await CylinderPassportRepository().getPassportId(
+    session.stored.id,
+  );
+  for (final logged in current) {
+    final old = before[logged.id];
+    final fill = old == null && holds != null
+        ? logged.copyWith(passportId: holds)
+        : logged;
     if (old == null) {
       final partner = twinPartners[fill.id];
       if (partner == null) {
