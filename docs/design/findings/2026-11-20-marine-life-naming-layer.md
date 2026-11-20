@@ -93,7 +93,7 @@ sharpness both chose the lowest value searched.
 | Item | Passes when | Result | |
 | --- | --- | --- | --- |
 | More named right | significantly more held-out natural photos named right (p < 0.05) | 602 against 304 of 1,076; 305 only trained, 7 only current; p 1.3e-80 | pass |
-| Confident bar | at most 1.0 | 0.93 | pass |
+| Confident bar | a confident bar with a location, chosen on the tune half as proven 95% right, survives the held-out gate (a bar that does not is never, 1.01) | 0.93 | pass |
 | No group worse | no group named right significantly less often | none worse | pass |
 | Junk | at most 2% of tune-half junk crops named | 1.82% (1 of 55) | pass |
 | Rare species | at most 2% confidently wrong | 1.40% | pass |
