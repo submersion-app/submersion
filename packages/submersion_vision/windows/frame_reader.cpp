@@ -39,10 +39,14 @@ std::optional<VideoFrames> VideoFrames::Open(const std::string& path,
                                              FrameError* error) {
   VideoFrames video;
   ComPtr<IMFAttributes> attrs;
-  MFCreateAttributes(&attrs, 1);
+  HRESULT hr = MFCreateAttributes(&attrs, 1);
+  if (FAILED(hr)) {
+    *error = {"decode_failed", Hr("the reader could not be set up", hr)};
+    return std::nullopt;
+  }
   attrs->SetUINT32(MF_SOURCE_READER_ENABLE_VIDEO_PROCESSING, TRUE);
-  HRESULT hr = MFCreateSourceReaderFromURL(Wide(path).c_str(), attrs.Get(),
-                                           &video.reader_);
+  hr = MFCreateSourceReaderFromURL(Wide(path).c_str(), attrs.Get(),
+                                   &video.reader_);
   if (FAILED(hr)) {
     *error = {"decode_failed", Hr("the video could not be opened", hr)};
     return std::nullopt;
@@ -72,7 +76,11 @@ std::optional<VideoFrames> VideoFrames::Open(const std::string& path,
                                             MFVideoRotationFormat_0)) % 360;
 
   ComPtr<IMFMediaType> rgb;
-  MFCreateMediaType(&rgb);
+  hr = MFCreateMediaType(&rgb);
+  if (FAILED(hr)) {
+    *error = {"decode_failed", Hr("the reader could not be set up", hr)};
+    return std::nullopt;
+  }
   rgb->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video);
   rgb->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_RGB32);
   hr = video.reader_->SetCurrentMediaType(video.stream_, nullptr, rgb.Get());
@@ -132,6 +140,8 @@ std::optional<Frame> VideoFrames::Next(int64_t at_or_after_ms, int max_side,
 
 std::optional<Frame> VideoFrames::FrameAt(int64_t ms, int max_side,
                                           FrameError* error) {
+  // A moment that cannot be reached is answered with no frame, not an
+  // error: the engine skips that moment and fails only when none is read.
   if (!Seek(ms)) return std::nullopt;
   return ReadTo(ms, max_side, error);
 }
