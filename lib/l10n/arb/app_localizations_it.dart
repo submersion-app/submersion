@@ -20106,6 +20106,17 @@ class AppLocalizationsIt extends AppLocalizations {
   String get marineLife_speciesPhotos_thumbnailLabel => 'Foto della specie';
 
   @override
+  String marineLife_speciesPhotos_moreLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'altre $count foto',
+      one: '$count altra foto',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String marineLife_speciesPhotos_importAdded(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

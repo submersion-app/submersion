@@ -32058,6 +32058,12 @@ abstract class AppLocalizations {
   /// **'Species photo'**
   String get marineLife_speciesPhotos_thumbnailLabel;
 
+  /// No description provided for @marineLife_speciesPhotos_moreLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} more photo} other{{count} more photos}}'**
+  String marineLife_speciesPhotos_moreLabel(int count);
+
   /// No description provided for @marineLife_speciesPhotos_importAdded.
   ///
   /// In en, this message translates to:

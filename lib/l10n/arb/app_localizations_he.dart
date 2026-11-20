@@ -19657,6 +19657,17 @@ class AppLocalizationsHe extends AppLocalizations {
   String get marineLife_speciesPhotos_thumbnailLabel => 'תמונת מין';
 
   @override
+  String marineLife_speciesPhotos_moreLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count תמונות נוספות',
+      one: 'תמונה נוספת אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String marineLife_speciesPhotos_importAdded(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
