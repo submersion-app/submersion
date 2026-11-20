@@ -101,13 +101,11 @@ class DiveCenterPageHarness {
 
 final _storedProvider = StateProvider<DiveCenter?>((ref) => reefDivers);
 
-/// Pumps the dive centre page with the phase 3 switch on (unless
-/// [unlockEditing] is false).
+/// Pumps the dive centre page.
 Future<DiveCenterPageHarness> pumpDiveCenterPage(
   WidgetTester tester, {
   Brightness brightness = Brightness.light,
   DiveCenter? center,
-  bool unlockEditing = true,
   bool openUnlocked = false,
   bool embedded = false,
   Size size = const Size(700, 1600),
@@ -123,7 +121,6 @@ Future<DiveCenterPageHarness> pumpDiveCenterPage(
   late DiveCenterPageHarness harness;
   final page = DiveCenterDetailPage(
     centerId: shown.id,
-    unlockEditing: unlockEditing,
     openUnlocked: openUnlocked,
     embedded: embedded,
     onSittingEnded: onSittingEnded,

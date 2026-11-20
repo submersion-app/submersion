@@ -20,13 +20,10 @@ extension _CertificationDetailSections on _CertificationDetailContent {
               rootId: certification.id,
             ),
             // Delete is a whole-record operation, under the lock.
-            ...recordOperationMenuCaption<String>(
-              context,
-              host?.editController,
-            ),
+            ...recordOperationMenuCaption<String>(context, host.editController),
             PopupMenuItem(
               value: 'delete',
-              enabled: recordOperationsAvailable(host?.editController),
+              enabled: recordOperationsAvailable(host.editController),
               child: Row(
                 children: [
                   Icon(

@@ -52,23 +52,19 @@ import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
 import 'package:submersion/shared/widgets/record_editing/record_open_unlocked.dart';
 import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 import 'package:submersion/shared/widgets/record_editing/record_pane_row.dart';
-import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
 part 'dive_center_detail_page_body.dart';
 part 'dive_center_detail_page_creating.dart';
 part 'dive_center_detail_page_dives.dart';
 part 'dive_center_detail_page_editing.dart';
 
-/// A dive centre's page. Behind phase 3's switch ([unlockEditing]) it
-/// opens locked and edits in place (issue #4527).
+/// A dive centre's page. It opens locked and edits in place (issue
+/// #4527).
 
 class DiveCenterDetailPage extends ConsumerStatefulWidget {
   final String centerId;
   final bool embedded;
   final VoidCallback? onDeleted;
-
-  /// Whether the page edits in place: phase 3's switch.
-  final bool unlockEditing;
 
   /// Opens unlocked, as the old edit address asks (`?mode=edit`).
   final bool openUnlocked;
@@ -91,15 +87,13 @@ class DiveCenterDetailPage extends ConsumerStatefulWidget {
     required this.centerId,
     this.embedded = false,
     this.onDeleted,
-    this.unlockEditing = kUnlockRecordEditing,
     this.openUnlocked = false,
     this.onSittingEnded,
   }) : newDiveCenter = false,
        onCreated = null,
        onCreateCancelled = null;
 
-  /// A new dive centre's page, which edits in place whatever the switch:
-  /// only the switch's openers build it.
+  /// A new dive centre's page.
   const DiveCenterDetailPage.newDiveCenter({
     super.key,
     this.embedded = false,
@@ -108,7 +102,6 @@ class DiveCenterDetailPage extends ConsumerStatefulWidget {
   }) : newDiveCenter = true,
        centerId = '',
        onDeleted = null,
-       unlockEditing = true,
        openUnlocked = false,
        onSittingEnded = null;
 
@@ -161,7 +154,7 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage>
     }
 
     final centerAsync = ref.watch(diveCenterByIdProvider(widget.centerId));
-    if (hostsEditing) followStored(diveCenterByIdProvider(widget.centerId));
+    followStored(diveCenterByIdProvider(widget.centerId));
 
     return centerAsync.when(
       loading: () => widget.embedded

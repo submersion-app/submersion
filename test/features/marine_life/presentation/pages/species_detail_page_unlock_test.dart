@@ -40,13 +40,6 @@ void main() {
   String headerTitle() => l.settings_conflict_ref_species;
   String descriptionTitle() => l.marineLife_speciesDetail_descriptionTitle;
 
-  testWidgets('with the switch off there is no lock', (tester) async {
-    await pumpSpeciesPage(tester, unlockEditing: false);
-
-    expect(find.byIcon(Icons.lock_outline), findsNothing);
-    expect(find.byIcon(Icons.edit_outlined), findsOneWidget);
-  });
-
   testWidgets('locked, no tap writes', (tester) async {
     final harness = await pumpSpeciesPage(tester);
 

@@ -47,15 +47,6 @@ void main() {
   final details = l.courses_section_details;
   final status = l.settings_conflict_ref_course;
 
-  testWidgets('with the switch off there is no lock and Mark completed stays '
-      'at the bottom', (tester) async {
-    await pumpCoursePage(tester, unlockEditing: false);
-
-    expect(find.byIcon(Icons.lock_outline), findsNothing);
-    expect(find.byIcon(Icons.edit), findsOneWidget);
-    expect(find.text(l.courses_action_markCompleted), findsOneWidget);
-  });
-
   testWidgets('locked, no tap writes', (tester) async {
     final harness = await pumpCoursePage(tester);
 
@@ -428,20 +419,6 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-    });
-
-    testWidgets('with the switch off, Delete is offered as before', (
-      tester,
-    ) async {
-      await pumpCoursePage(tester, unlockEditing: false);
-      await tester.tap(find.byType(PopupMenuButton<String>).first);
-      await tester.pumpAndSettle();
-
-      expect(find.text(l.recordEdit_unlockToUseThese), findsNothing);
-      final delete = tester.widget<PopupMenuItem<String>>(
-        find.widgetWithText(PopupMenuItem<String>, l.common_action_delete),
-      );
-      expect(delete.enabled, isTrue);
     });
   });
 }

@@ -15,9 +15,6 @@ mixin _CertificationDetailPageEditing
   String recordIdOf(Certification record) => record.id;
 
   @override
-  bool get hostsEditing => widget.unlockEditing;
-
-  @override
   bool openUnlockedOf(CertificationDetailPage widget) => widget.openUnlocked;
 
   @override

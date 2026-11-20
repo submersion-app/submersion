@@ -5,8 +5,8 @@ part of 'dive_center_detail_page.dart';
 /// edits, in the bar or the list pane.
 extension _DiveCenterDetailPageBody on _DiveCenterDetailPageState {
   Widget _centerPage(DiveCenter stored) {
-    if (hostsEditing) openUnlockedOnce(stored);
-    final center = hostsEditing ? shownRecord(stored) : stored;
+    openUnlockedOnce(stored);
+    final center = shownRecord(stored);
     final units = ref.watch(unitFormatterProvider);
     final body = SingleChildScrollView(
       controller: DetailScrollController.maybeOf(context),
@@ -20,15 +20,14 @@ extension _DiveCenterDetailPageBody on _DiveCenterDetailPageState {
                   ? Stack(
                       children: [
                         _MapSection(center: center),
-                        if (_pencil(DiveCenterCardId.map) case final p?)
-                          Positioned(
-                            top: 24,
-                            left: 24,
-                            child: Material(
-                              shape: const StadiumBorder(),
-                              child: p,
-                            ),
+                        Positioned(
+                          top: 24,
+                          left: 24,
+                          child: Material(
+                            shape: const StadiumBorder(),
+                            child: _pencil(DiveCenterCardId.map),
                           ),
+                        ),
                       ],
                     )
                   : const SizedBox(height: 16),
@@ -83,7 +82,7 @@ extension _DiveCenterDetailPageBody on _DiveCenterDetailPageState {
             DiveCenterCardId.rentalGear,
             RentalGearSection(
               centerId: stored.id,
-              readOnly: hostsEditing,
+              readOnly: true,
               shown: maybeEditController?.session,
             ),
           ),
@@ -96,33 +95,13 @@ extension _DiveCenterDetailPageBody on _DiveCenterDetailPageState {
 
     if (widget.embedded) {
       final header = _buildEmbeddedHeader(context, center, stored: stored);
-      if (hostsEditing) {
-        return editPane(header: header, shown: center, content: body);
-      }
-      return Column(
-        children: [
-          header,
-          Expanded(child: body),
-        ],
-      );
+      return editPane(header: header, shown: center, content: body);
     }
 
     final bar = AppBar(
       title: Text(center.name),
-      actions: [
-        if (hostsEditing) lockButton(center),
-        IconButton(
-          icon: const Icon(Icons.edit_outlined),
-          tooltip: context.l10n.diveCenters_tooltip_edit,
-          // Where the page edits in place, Edit unlocks it.
-          onPressed: hostsEditing
-              ? () => editController.unlock(center)
-              : () => context.push('/dive-centers/${stored.id}/edit'),
-        ),
-        _buildMoreMenu(context, center),
-      ],
+      actions: [lockButton(center), _buildMoreMenu(context, center)],
     );
-    if (!hostsEditing) return Scaffold(appBar: bar, body: body);
     return editScaffold(
       record: stored,
       shown: center,

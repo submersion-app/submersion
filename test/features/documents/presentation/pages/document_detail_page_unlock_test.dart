@@ -41,13 +41,6 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('with the switch off there is no lock', (tester) async {
-    await pumpDocumentPage(tester, unlockEditing: false);
-
-    expect(find.byIcon(Icons.lock_outline), findsNothing);
-    expect(find.byIcon(Icons.edit_outlined), findsOneWidget);
-  });
-
   testWidgets('locked, no tap writes', (tester) async {
     final harness = await pumpDocumentPage(tester);
 

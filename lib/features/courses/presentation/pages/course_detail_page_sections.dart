@@ -56,12 +56,11 @@ extension _CourseDetailSections on _CourseDetailContent {
                   ],
                 ),
               ),
-              if (_editing)
-                RecordCardPencil(
-                  cardTitle: CourseCardId.status.localizedDisplayName(
-                    context.l10n,
-                  ),
+              RecordCardPencil(
+                cardTitle: CourseCardId.status.localizedDisplayName(
+                  context.l10n,
                 ),
+              ),
             ],
           ),
         ),
@@ -81,7 +80,7 @@ extension _CourseDetailSections on _CourseDetailContent {
                 context,
                 context.l10n.courses_section_details,
                 Icons.school,
-                editing: _editing,
+                editing: true,
               ),
               const SizedBox(height: 12),
               _buildDetailRow(
@@ -119,21 +118,20 @@ extension _CourseDetailSections on _CourseDetailContent {
     );
   }
 
-  /// Whether the Instructor card is on the page. Where the page edits in
-  /// place, any of its values shows it (issue #4527); before, only a name.
-  bool _showsInstructor() => _editing
-      ? course.instructorName != null ||
-            course.instructorNumber != null ||
-            course.instructorId != null ||
-            _shows(CourseCardId.instructor)
-      : course.instructorName != null;
+  /// Whether the Instructor card is on the page: any of its values shows
+  /// it (issue #4527).
+  bool _showsInstructor() =>
+      course.instructorName != null ||
+      course.instructorNumber != null ||
+      course.instructorId != null ||
+      _shows(CourseCardId.instructor);
 
   Widget _buildInstructorCard(BuildContext context, WidgetRef ref) {
     final instructorId = course.instructorId;
     // With no name written, the buddy picked names the instructor.
     final name =
         course.instructorName ??
-        (_editing && instructorId != null
+        (instructorId != null
             ? ref.watch(buddyByIdProvider(instructorId)).value?.name
             : null);
     return Card(
@@ -147,7 +145,7 @@ extension _CourseDetailSections on _CourseDetailContent {
                 context,
                 context.l10n.courses_section_instructor,
                 Icons.person,
-                editing: _editing,
+                editing: true,
               ),
               const SizedBox(height: 12),
               if (name != null)
@@ -254,7 +252,7 @@ extension _CourseDetailSections on _CourseDetailContent {
               context,
               context.l10n.courses_section_notes,
               Icons.notes,
-              editing: _editing,
+              editing: true,
             ),
             const SizedBox(height: 12),
             MarkdownNotesView(course.notes),
@@ -290,7 +288,7 @@ extension _CourseDetailSections on _CourseDetailContent {
   }
 
   Widget _buildCertificationSection(BuildContext context, WidgetRef ref) {
-    final session = host?.maybeEditController?.session;
+    final session = host.maybeEditController?.session;
     if (session == null) return _certificationCard(context, ref);
     // What the sitting holds is drawn as it changes, and only then: not on
     // every keystroke in another card.
@@ -305,10 +303,7 @@ extension _CourseDetailSections on _CourseDetailContent {
     // The retained value, so a reload after a link change keeps the rows on
     // screen; nothing on the very first load, since an empty course shows no
     // section at all. In a sitting, the sitting's list once it is read.
-    final host = this.host;
-    final certs = host != null
-        ? host._certificationsInSitting(certsAsync.value)
-        : certsAsync.value;
+    final certs = host._certificationsInSitting(certsAsync.value);
     final failed = certs == null && certsAsync.hasError;
     final showsEmpty = _shows(CourseCardId.earnedCertifications);
     if (!failed && (certs == null || certs.isEmpty) && !showsEmpty) {
@@ -330,7 +325,7 @@ extension _CourseDetailSections on _CourseDetailContent {
                     context,
                     context.l10n.courses_section_earnedCertifications,
                     Icons.card_membership,
-                    editing: _editing,
+                    editing: true,
                   ),
                   const SizedBox(height: 12),
                   if (failed)

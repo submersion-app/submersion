@@ -207,7 +207,7 @@ void main() {
       tester,
       [anna],
       (b) => picked = b,
-      newBuddy: (state) => newBuddyPage(state.extra, unlockEditing: true),
+      newBuddy: (state) => newBuddyPage(state.extra),
       overrides: [
         ...base.cast<Override>(),
         validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),

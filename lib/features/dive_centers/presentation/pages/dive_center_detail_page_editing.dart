@@ -15,9 +15,6 @@ mixin _DiveCenterDetailPageEditing
   String recordIdOf(DiveCenter record) => record.id;
 
   @override
-  bool get hostsEditing => widget.unlockEditing;
-
-  @override
   bool openUnlockedOf(DiveCenterDetailPage widget) => widget.openUnlocked;
 
   @override
@@ -108,32 +105,22 @@ mixin _DiveCenterDetailPageEditing
         controller.addedCardIds.contains(id.name);
   }
 
-  /// [child] as the card [id], framed for editing in place while the page
-  /// offers it; as it is otherwise.
-  Widget _framed(DiveCenterCardId id, Widget child) => hostsEditing
-      ? RecordCardFrame<DiveCenter>(
-          card: diveCenterEditCards[id]!,
-          child: child,
-        )
-      : child;
+  /// [child] as the card [id], framed for editing in place.
+  Widget _framed(DiveCenterCardId id, Widget child) =>
+      RecordCardFrame<DiveCenter>(card: diveCenterEditCards[id]!, child: child);
 
-  /// The pencil of the card [id], where the page edits in place.
-  Widget? _pencil(DiveCenterCardId id) => hostsEditing
-      ? RecordCardPencil(cardTitle: id.localizedDisplayName(context.l10n))
-      : null;
+  /// The pencil of the card [id].
+  Widget _pencil(DiveCenterCardId id) =>
+      RecordCardPencil(cardTitle: id.localizedDisplayName(context.l10n));
 
   /// [child], a section the page calculates, faded while unlocked.
-  Widget _calculated(Widget child) => hostsEditing
-      ? RecordCardFade<DiveCenter>(
-          reason: RecordCardFadeReason.calculated,
-          child: child,
-        )
-      : child;
+  Widget _calculated(Widget child) => RecordCardFade<DiveCenter>(
+    reason: RecordCardFadeReason.calculated,
+    child: child,
+  );
 
-  /// The controller its operations wait on; none where the page edits
-  /// nothing in place, so they act as they always have.
-  RecordEditController<DiveCenter>? get _operationsController =>
-      hostsEditing ? editController : null;
+  /// The controller its operations wait on.
+  RecordEditController<DiveCenter> get _operationsController => editController;
 
   /// The list pane's header row; while unlocked the shared pane header
   /// (Cancel, the title, the menu and Save) is laid over it. [stored] is
@@ -195,27 +182,11 @@ mixin _DiveCenterDetailPageEditing
             ),
             const SizedBox(width: 8),
           ],
-          if (hostsEditing) lockButton(center, compact: true),
-          IconButton(
-            icon: const Icon(Icons.edit_outlined, size: 20),
-            // Where the page edits in place, Edit unlocks it as the lock
-            // does.
-            onPressed: hostsEditing
-                ? () => editController.unlock(center)
-                : () {
-                    final state = GoRouterState.of(context);
-                    final currentPath = state.uri.path;
-                    context.go(
-                      '$currentPath?selected=${widget.centerId}&mode=edit',
-                    );
-                  },
-            tooltip: context.l10n.common_action_edit,
-          ),
+          lockButton(center, compact: true),
           _buildMoreMenu(context, center),
         ],
       ),
     );
-    if (!hostsEditing) return locked;
     return RecordPaneRow(
       locked: locked,
       unlocked: isSittingOpen
@@ -268,12 +239,8 @@ mixin _DiveCenterDetailPageEditing
     );
   }
 
-  /// Delete, through the sitting where the page edits in place.
+  /// Delete, through the sitting.
   void _requestDelete(BuildContext context, DiveCenter center) {
-    if (!hostsEditing) {
-      _delete(context, center);
-      return;
-    }
     recordOperationRunnerOf(editController, record: 'dive centre ${center.id}')(
       () => _delete(context, center),
     );

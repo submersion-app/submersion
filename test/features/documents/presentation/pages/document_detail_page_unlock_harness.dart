@@ -121,15 +121,13 @@ class DocumentPageHarness {
 
 final _storedProvider = StateProvider<DocumentRecord?>((ref) => null);
 
-/// Pumps the document page with the phase 3 switch on (unless
-/// [unlockEditing] is false), at [size].
+/// Pumps the document page, at [size].
 Future<DocumentPageHarness> pumpDocumentPage(
   WidgetTester tester, {
   Brightness brightness = Brightness.light,
   Document? document,
   List<DocumentPage> pages = const [],
   List<String>? tagIds = const [],
-  bool unlockEditing = true,
   bool openUnlocked = false,
   bool embedded = false,
   VoidCallback? onSittingEnded,
@@ -195,7 +193,6 @@ Future<DocumentPageHarness> pumpDocumentPage(
         ),
         child: DocumentDetailPage(
           documentId: doc.id,
-          unlockEditing: unlockEditing,
           openUnlocked: openUnlocked,
           embedded: embedded,
           onSittingEnded: onSittingEnded,

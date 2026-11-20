@@ -15,9 +15,6 @@ mixin _BuddyDetailPageEditing
   String recordIdOf(Buddy record) => record.id;
 
   @override
-  bool get hostsEditing => widget.unlockEditing;
-
-  @override
   bool openUnlockedOf(BuddyDetailPage widget) => widget.openUnlocked;
 
   @override
@@ -159,18 +156,15 @@ Widget _faded(RecordCardFadeReason reason, Widget child) =>
 
 /// The buddy page's menu and its whole-record operations.
 extension _BuddyDetailMenus on _BuddyDetailContent {
-  /// History, Open in Connections, Lend gear (where the page does not edit
-  /// in place: lending is on the Gear card there), Share dives and Delete.
+  /// History, Open in Connections, Share dives and Delete. Lending is on
+  /// the Gear card.
   Widget _menu(BuildContext context, WidgetRef ref, {bool compact = false}) {
-    final host = this.host;
     final size = compact ? 20.0 : null;
     return PopupMenuButton<String>(
       icon: compact ? const Icon(Icons.more_vert, size: 20) : null,
       onSelected: (value) async {
         if (value == kOpenInConnectionsAction) {
           openInConnections(context, NodeRef(ConnectionKind.buddy, buddy.id));
-        } else if (value == 'lend') {
-          await showLendGearFlow(context, ref, buddy);
         } else if (value == 'share') {
           await shareDivesWithBuddy(context, ref, buddy.id);
         } else if (value == 'delete') {
@@ -184,17 +178,6 @@ extension _BuddyDetailMenus on _BuddyDetailContent {
           rootId: buddy.id,
         ),
         openInConnectionsMenuItem(context),
-        if (host == null)
-          PopupMenuItem(
-            value: 'lend',
-            child: Row(
-              children: [
-                Icon(Icons.volunteer_activism_outlined, size: size),
-                const SizedBox(width: 8),
-                Text(context.l10n.buddies_action_lendGear),
-              ],
-            ),
-          ),
         PopupMenuItem(
           value: 'share',
           child: Row(
@@ -206,10 +189,10 @@ extension _BuddyDetailMenus on _BuddyDetailContent {
           ),
         ),
         // Delete is a whole-record operation, under the lock.
-        ...recordOperationMenuCaption<String>(context, host?.editController),
+        ...recordOperationMenuCaption<String>(context, host.editController),
         PopupMenuItem(
           value: 'delete',
-          enabled: recordOperationsAvailable(host?.editController),
+          enabled: recordOperationsAvailable(host.editController),
           child: Row(
             children: [
               Icon(Icons.delete, color: Colors.red, size: size),
@@ -225,13 +208,8 @@ extension _BuddyDetailMenus on _BuddyDetailContent {
     );
   }
 
-  /// Delete, through the sitting where the page edits in place.
+  /// Delete, through the sitting.
   void _requestDelete(BuildContext context, WidgetRef ref) {
-    final host = this.host;
-    if (host == null) {
-      _handleDelete(context, ref);
-      return;
-    }
     recordOperationRunnerOf(host.editController, record: 'buddy ${buddy.id}')(
       () => _handleDelete(context, ref),
     );

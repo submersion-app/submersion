@@ -48,13 +48,6 @@ void main() {
 
   final header = DiveCenterCardId.header.localizedDisplayName(l);
 
-  testWidgets('with the switch off there is no lock', (tester) async {
-    await pumpDiveCenterPage(tester, unlockEditing: false);
-
-    expect(find.byIcon(Icons.lock_outline), findsNothing);
-    expect(find.byIcon(Icons.edit_outlined), findsOneWidget);
-  });
-
   testWidgets('locked, no tap writes', (tester) async {
     final harness = await pumpDiveCenterPage(tester);
 
@@ -305,20 +298,6 @@ void main() {
         find.widgetWithText(PopupMenuItem<String>, l.common_action_delete),
       );
       expect(delete.enabled, isFalse);
-    });
-
-    testWidgets('with the switch off, Delete is offered as before', (
-      tester,
-    ) async {
-      await pumpDiveCenterPage(tester, unlockEditing: false);
-      await tester.tap(find.byType(PopupMenuButton<String>).first);
-      await tester.pumpAndSettle();
-
-      expect(find.text(l.recordEdit_unlockToUseThese), findsNothing);
-      final delete = tester.widget<PopupMenuItem<String>>(
-        find.widgetWithText(PopupMenuItem<String>, l.common_action_delete),
-      );
-      expect(delete.enabled, isTrue);
     });
   });
 

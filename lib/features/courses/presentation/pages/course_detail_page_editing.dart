@@ -15,9 +15,6 @@ mixin _CourseDetailPageEditing
   String recordIdOf(Course record) => record.id;
 
   @override
-  bool get hostsEditing => widget.unlockEditing;
-
-  @override
   bool openUnlockedOf(CourseDetailPage widget) => widget.openUnlocked;
 
   @override

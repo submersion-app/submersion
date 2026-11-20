@@ -44,25 +44,19 @@ import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart
 import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
 import 'package:submersion/shared/widgets/record_editing/record_open_unlocked.dart';
 import 'package:submersion/shared/widgets/record_editing/record_pane_row.dart';
-import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
 part 'certification_detail_page_creating.dart';
 part 'certification_detail_page_editing.dart';
 part 'certification_detail_page_sections.dart';
 part 'certification_detail_page_photos.dart';
 
-/// A certification's page. Behind phase 3's switch ([unlockEditing]) it
-/// opens locked and edits in place (issue #4527): its cards are held in one
+/// A certification's page. It opens locked and edits in place (issue #4527): its cards are held in one
 /// sitting and written by one Save.
 
 class CertificationDetailPage extends ConsumerStatefulWidget {
   final String certificationId;
   final bool embedded;
   final VoidCallback? onDeleted;
-
-  /// Whether the page edits in place: phase 3's switch, a parameter so a
-  /// test can turn it on.
-  final bool unlockEditing;
 
   /// Opens unlocked, as the old edit address asks (`?mode=edit`).
   final bool openUnlocked;
@@ -85,15 +79,13 @@ class CertificationDetailPage extends ConsumerStatefulWidget {
     required this.certificationId,
     this.embedded = false,
     this.onDeleted,
-    this.unlockEditing = kUnlockRecordEditing,
     this.openUnlocked = false,
     this.onSittingEnded,
   }) : newCertification = false,
        onCreated = null,
        onCreateCancelled = null;
 
-  /// A new certification's page, unlocked whatever the switch: only the
-  /// switch's openers build it.
+  /// A new certification's page.
   const CertificationDetailPage.newCertification({
     super.key,
     this.embedded = false,
@@ -102,7 +94,6 @@ class CertificationDetailPage extends ConsumerStatefulWidget {
   }) : newCertification = true,
        certificationId = '',
        onDeleted = null,
-       unlockEditing = true,
        openUnlocked = false,
        onSittingEnded = null;
 
@@ -165,9 +156,7 @@ class _CertificationDetailPageState
     final certificationAsync = ref.watch(
       certificationByIdProvider(widget.certificationId),
     );
-    if (hostsEditing) {
-      followStored(certificationByIdProvider(widget.certificationId));
-    }
+    followStored(certificationByIdProvider(widget.certificationId));
 
     return certificationAsync.when(
       data: (certification) {
@@ -184,14 +173,6 @@ class _CertificationDetailPageState
             body: Center(
               child: Text(context.l10n.certifications_detail_notFound),
             ),
-          );
-        }
-        if (!hostsEditing) {
-          return _CertificationDetailContent(
-            certification: certification,
-            stored: certification,
-            embedded: widget.embedded,
-            onDeleted: widget.onDeleted,
           );
         }
         openUnlockedOnce(certification);
@@ -238,28 +219,26 @@ class _CertificationDetailContent extends ConsumerWidget {
   final bool embedded;
   final VoidCallback? onDeleted;
 
-  /// The page, where it edits in place.
-  final _CertificationDetailPageState? host;
+  /// The page, which edits in place.
+  final _CertificationDetailPageState host;
 
   const _CertificationDetailContent({
     required this.certification,
     required this.stored,
+    required this.host,
     this.embedded = false,
     this.onDeleted,
-    this.host,
   });
 
-  bool get _editing => host != null;
-
   /// A certification not yet created: what it cannot have yet is left out.
-  bool get _creating => host?.isCreating ?? false;
+  bool get _creating => host.isCreating;
 
-  /// [child] as the card [id] where the page edits in place.
+  /// [child] as the card [id].
   Widget _framed(CertificationCardId id, Widget child) =>
-      host?._framed(id, child) ?? child;
+      host._framed(id, child);
 
   /// Whether the empty card [id] is shown in the sitting.
-  bool _shows(CertificationCardId id) => host?._showsWhileEmpty(id) ?? false;
+  bool _shows(CertificationCardId id) => host._showsWhileEmpty(id);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -274,10 +253,8 @@ class _CertificationDetailContent extends ConsumerWidget {
           // Status banner
           if (_creating)
             const SizedBox.shrink()
-          else if (_editing)
-            _calculated(_buildStatusBanner(context, units))
           else
-            _buildStatusBanner(context, units),
+            _calculated(_buildStatusBanner(context, units)),
           if (!_creating) const SizedBox(height: 24),
 
           // Header with agency logo
@@ -298,17 +275,15 @@ class _CertificationDetailContent extends ConsumerWidget {
           // bottom gap, so an absent section leaves no extra space.
           if (_creating)
             const SizedBox.shrink()
-          else if (_editing)
+          else
             _framed(
               CertificationCardId.currency,
               CertificationCurrencySection(
                 certification: certification,
                 readOnly: true,
-                shown: this.host?.maybeEditController?.session,
+                shown: host.maybeEditController?.session,
               ),
-            )
-          else
-            CertificationCurrencySection(certification: certification),
+            ),
 
           // Instructor info
           if (certification.instructorName != null ||
@@ -356,26 +331,16 @@ class _CertificationDetailContent extends ConsumerWidget {
       ),
     );
 
-    final host = this.host;
     if (embedded) {
-      final header = _buildEmbeddedHeader(context, ref);
-      if (host != null) {
-        return host.editPane(
-          header: RecordPaneRow(
-            locked: header,
-            unlocked: host.isSittingOpen
-                ? host.editingPaneRow(stored, menu: _menu(context, ref))
-                : null,
-          ),
-          shown: certification,
-          content: body,
-        );
-      }
-      return Column(
-        children: [
-          header,
-          Expanded(child: body),
-        ],
+      return host.editPane(
+        header: RecordPaneRow(
+          locked: _buildEmbeddedHeader(context, ref),
+          unlocked: host.isSittingOpen
+              ? host.editingPaneRow(stored, menu: _menu(context, ref))
+              : null,
+        ),
+        shown: certification,
+        content: body,
       );
     }
 
@@ -387,29 +352,15 @@ class _CertificationDetailContent extends ConsumerWidget {
           catalog: context.certificationCatalog,
         ),
       ),
-      actions: [
-        if (host != null) host.lockButton(certification),
-        IconButton(
-          icon: const Icon(Icons.edit),
-          tooltip: context.l10n.certifications_detail_tooltip_edit,
-          // Where the page edits in place, Edit unlocks it as the lock does.
-          onPressed: host != null
-              ? () => host.editController.unlock(certification)
-              : () => context.push('/certifications/${certification.id}/edit'),
-        ),
-        _menu(context, ref),
-      ],
+      actions: [host.lockButton(certification), _menu(context, ref)],
     );
-    if (host != null) {
-      return host.editScaffold(
-        record: stored,
-        shown: certification,
-        lockedBar: bar,
-        unlockedActions: [_menu(context, ref)],
-        content: body,
-      );
-    }
-    return Scaffold(appBar: bar, body: body);
+    return host.editScaffold(
+      record: stored,
+      shown: certification,
+      lockedBar: bar,
+      unlockedActions: [_menu(context, ref)],
+      content: body,
+    );
   }
 
   Widget _buildEmbeddedHeader(BuildContext context, WidgetRef ref) {
@@ -475,32 +426,15 @@ class _CertificationDetailContent extends ConsumerWidget {
               ],
             ),
           ),
-          if (host != null) host!.lockButton(certification, compact: true),
-          IconButton(
-            icon: const Icon(Icons.edit, size: 20),
-            tooltip: context.l10n.certifications_detail_tooltip_editShort,
-            onPressed: host != null
-                ? () => host!.editController.unlock(certification)
-                : () {
-                    final state = GoRouterState.of(context);
-                    context.go(
-                      '${state.uri.path}?selected=${certification.id}&mode=edit',
-                    );
-                  },
-          ),
+          host.lockButton(certification, compact: true),
           _menu(context, ref, compact: true),
         ],
       ),
     );
   }
 
-  /// Delete, through the sitting where the page edits in place.
+  /// Delete, through the sitting.
   void _requestDelete(BuildContext context, WidgetRef ref) {
-    final host = this.host;
-    if (host == null) {
-      _handleDelete(context, ref);
-      return;
-    }
     recordOperationRunnerOf(
       host.editController,
       record: 'certification ${certification.id}',
@@ -684,7 +618,7 @@ class _CertificationDetailContent extends ConsumerWidget {
               _sectionTitle(
                 context,
                 context.l10n.certifications_detail_sectionTitle_details,
-                editing: _editing,
+                editing: true,
               ),
               const SizedBox(height: 12),
               // Only shown when the stored name says something the agency and
@@ -762,7 +696,7 @@ class _CertificationDetailContent extends ConsumerWidget {
               _sectionTitle(
                 context,
                 context.l10n.certifications_detail_sectionTitle_dates,
-                editing: _editing,
+                editing: true,
               ),
               const SizedBox(height: 12),
               if (certification.issueDate != null)
@@ -821,7 +755,7 @@ class _CertificationDetailContent extends ConsumerWidget {
               _sectionTitle(
                 context,
                 context.l10n.certifications_detail_sectionTitle_instructor,
-                editing: _editing,
+                editing: true,
               ),
               const SizedBox(height: 12),
               if (displayName != null)
@@ -879,7 +813,7 @@ class _CertificationDetailContent extends ConsumerWidget {
             _sectionTitle(
               context,
               context.l10n.certifications_detail_sectionTitle_notes,
-              editing: _editing,
+              editing: true,
             ),
             const SizedBox(height: 12),
             MarkdownNotesView(certification.notes),

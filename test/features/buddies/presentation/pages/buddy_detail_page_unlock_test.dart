@@ -53,18 +53,6 @@ void main() {
   final header = BuddyCardId.header.localizedDisplayName(l);
   final contact = l.buddies_section_contact;
 
-  testWidgets('with the switch off there is no lock and the star toggles', (
-    tester,
-  ) async {
-    await pumpBuddyPage(tester, unlockEditing: false);
-
-    expect(find.byIcon(Icons.lock_outline), findsNothing);
-    expect(
-      find.byTooltip(l.diveLog_detail_tooltip_addToFavorites),
-      findsOneWidget,
-    );
-  });
-
   testWidgets('locked, no tap writes', (tester) async {
     final harness = await pumpBuddyPage(tester);
 
@@ -170,14 +158,6 @@ void main() {
 
     expect(find.text(l.buddies_action_lendGear), findsNothing);
     expect(find.text(l.buddies_action_shareDives), findsOneWidget);
-  });
-
-  testWidgets('the menu offers Lend with the switch off', (tester) async {
-    await pumpBuddyPage(tester, unlockEditing: false);
-    await tester.tap(find.byType(PopupMenuButton<String>).first);
-    await tester.pumpAndSettle();
-
-    expect(find.text(l.buddies_action_lendGear), findsOneWidget);
   });
 
   testWidgets('Cancel with changes asks first', (tester) async {

@@ -7,7 +7,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/certifications/domain/constants/certification_field.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_detail_page.dart';
-import 'package:submersion/features/certifications/presentation/pages/certification_edit_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_edit_routes.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_list_page.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
@@ -676,7 +675,7 @@ void main() {
       await tester.pump();
       tester.takeException();
 
-      expect(find.byType(CertificationEditPage), findsOneWidget);
+      expect(find.byType(CertificationDetailPage), findsOneWidget);
     });
 
     testWidgets('table mode edit builder invoked via edit query param', (
@@ -708,15 +707,13 @@ void main() {
       await tester.pump();
       tester.takeException();
 
-      expect(find.byType(CertificationEditPage), findsOneWidget);
+      expect(find.byType(CertificationDetailPage), findsOneWidget);
     });
   });
 
   // A new certification opens on its page behind the phase 3 switch (issue
   // #4527, phase 3, plan 11).
-  testWidgets("the pane's new certification is the page with the switch on", (
-    tester,
-  ) async {
+  testWidgets("the pane's new certification is the page", (tester) async {
     void onSaved(String id) {}
     void onCancel() {}
     late BuildContext context;
@@ -729,15 +726,11 @@ void main() {
       ),
     );
     final page =
-        newCertificationPane(context, onSaved, onCancel, unlockEditing: true)
+        newCertificationPane(context, onSaved, onCancel)
             as CertificationDetailPage;
     expect(page.embedded, isTrue);
     expect(page.newCertification, isTrue);
     expect(page.onCreated, same(onSaved));
-    expect(
-      newCertificationPane(context, onSaved, onCancel, unlockEditing: false),
-      isA<CertificationEditPage>(),
-    );
   });
 
   testWidgets('Add on a phone opens the new certification once created', (
@@ -750,8 +743,7 @@ void main() {
           path: '/certifications',
           builder: (context, _) => Scaffold(
             body: TextButton(
-              onPressed: () =>
-                  openNewCertification(context, unlockEditing: true),
+              onPressed: () => openNewCertification(context),
               child: const Text('add'),
             ),
           ),

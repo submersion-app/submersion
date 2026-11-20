@@ -307,7 +307,7 @@ void main() {
           path: '/species/manage',
           builder: (context, _) => Scaffold(
             body: TextButton(
-              onPressed: () => openNewSpecies(context, unlockEditing: true),
+              onPressed: () => openNewSpecies(context),
               child: const Text('add'),
             ),
           ),
