@@ -129,10 +129,17 @@ class SpeciesPhotosSection extends ConsumerWidget {
   Widget _rows(
     BuildContext context,
     WidgetRef ref,
-    List<MediaLibraryEntry> entries,
+    List<MediaLibraryEntry> allEntries,
     Map<String, LearnedAspect> learned,
   ) {
     final units = ref.watch(unitFormatterProvider);
+    // Save writes a held photo's tag before the sitting lets it go, so for
+    // a moment it is in both lists: draw it once, as the held one.
+    final heldIds = {for (final item in pendingItems) item.id};
+    final entries = [
+      for (final e in allEntries)
+        if (!heldIds.contains(e.item.id)) e,
+    ];
     final items = [...pendingItems, for (final e in entries) e.item];
     return JustifiedMediaBlock(
       ratios: [

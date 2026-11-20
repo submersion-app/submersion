@@ -350,4 +350,22 @@ void main() {
     expect(shapes.written, contains('stored'));
     expect(shapes.written, isNot(contains('held')));
   });
+
+  testWidgets('a photo both held and stored shows once, as the held one', (
+    tester,
+  ) async {
+    // Save writes the tag before the sitting lets the photo go, so for a
+    // moment the stored list already holds it.
+    await _pump(
+      tester,
+      [_entry('both'), _entry('p1')],
+      pendingItems: [_photo('both')],
+      pendingOverlay: (item) => SizedBox(key: ValueKey('overlay_${item.id}')),
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(find.byKey(const ValueKey('species_photo_both')), findsOneWidget);
+    expect(find.byKey(const ValueKey('overlay_both')), findsOneWidget);
+    expect(find.byType(MediaThumbnailTile), findsNWidgets(2));
+  });
 }
