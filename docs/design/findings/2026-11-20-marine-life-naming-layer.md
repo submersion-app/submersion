@@ -16,8 +16,16 @@ is against pack `2026.11.18.0356`, scored again on the same day with the
 same scorer code (its pair named 304 right, as
 [measured accuracy](2026-11-17-marine-life-measured-accuracy.md) found).
 
-Every number is from the held-out half of the test set, with a 95%
-interval where one is given. The bars were chosen on the other half.
+Where each number comes from:
+
+- **Accuracy and the group results** (named right, coverage, precision,
+  junk named at the bars): the held-out half of the test set, with a 95%
+  interval where one is given.
+- **The bars, and the junk gate's 1.82%:** the other half, the tune half.
+- **The rare-species check:** every test photo of the 100 held-back
+  species, from both halves.
+- **The training data and validation figures:** the training photos, which
+  the leak guard keeps apart from the test set.
 
 ## Summary
 
