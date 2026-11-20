@@ -61,6 +61,7 @@ class MediaIdentificationService {
     required Future<List<TaggedSpecies>> Function(String mediaId) taggedSpecies,
     required bool Function() enabled,
     bool Function()? runEnabled,
+    bool Function()? videoRuns,
     int Function()? databaseGeneration,
     DateTime Function()? now,
     String Function()? newId,
@@ -79,6 +80,7 @@ class MediaIdentificationService {
        _taggedSpecies = taggedSpecies,
        _enabled = enabled,
        _runEnabled = runEnabled ?? enabled,
+       _videoRuns = videoRuns ?? (() => true),
        _databaseGeneration =
            databaseGeneration ?? (() => DatabaseService.instance.generation),
        _now = now ?? DateTime.now,
@@ -104,6 +106,10 @@ class MediaIdentificationService {
   /// Whether a Find species run is served (issue #4727): the feature, not
   /// the identify-on-open toggle, since the diver asked for the run.
   final bool Function() _runEnabled;
+
+  /// Whether videos are scanned here: not on Linux, which has no video
+  /// player, so neither the viewer nor a Find species run reads a video.
+  final bool Function() _videoRuns;
 
   /// Moves when another logbook is opened: what an analysis found for the
   /// one it started in is then dropped, not stored in the new one.
@@ -446,6 +452,10 @@ class MediaIdentificationService {
     try {
       final video = item.mediaType == MediaType.video;
       if (!video && item.mediaType != MediaType.photo) {
+        job.outcome = RunItemOutcome.skipped;
+        return false;
+      }
+      if (video && !_videoRuns()) {
         job.outcome = RunItemOutcome.skipped;
         return false;
       }

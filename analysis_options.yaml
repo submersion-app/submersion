@@ -6,6 +6,9 @@ analyzer:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
     - "packages/libdivecomputer_plugin/pigeons/**"
+    # A package of its own (ffigen needs code_assets 2; the app is on 1),
+    # resolved only when its bindings are regenerated.
+    - "packages/submersion_vision/tool/ffigen/**"
     - build/**
     - android/**
     - ios/**

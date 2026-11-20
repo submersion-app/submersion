@@ -57,6 +57,54 @@ void main() {
     expect(marineLifeIdEnabled, isTrue);
   });
 
+  test('the ONNX platforms run only with the define', () {
+    for (final platform in [
+      TargetPlatform.android,
+      TargetPlatform.windows,
+      TargetPlatform.linux,
+    ]) {
+      expect(
+        visionEngineRuns(platform, web: false, onnx: false),
+        isFalse,
+        reason: '$platform',
+      );
+      expect(
+        visionEngineRuns(platform, web: false, onnx: true),
+        isTrue,
+        reason: '$platform',
+      );
+    }
+    expect(
+      visionEngineRuns(TargetPlatform.android, web: true, onnx: true),
+      isFalse,
+    );
+    expect(
+      visionEngineRuns(TargetPlatform.fuchsia, web: false, onnx: true),
+      isFalse,
+    );
+  });
+
+  test('Core ML runs on Apple platforms only', () {
+    expect(coreMlRuns(TargetPlatform.macOS, web: false), isTrue);
+    expect(coreMlRuns(TargetPlatform.iOS, web: false), isTrue);
+    expect(coreMlRuns(TargetPlatform.android, web: false), isFalse);
+    expect(coreMlRuns(TargetPlatform.macOS, web: true), isFalse);
+  });
+
+  test('video runs everywhere but Linux and the web', () {
+    expect(visionVideoRuns(TargetPlatform.linux, web: false), isFalse);
+    expect(visionVideoRuns(TargetPlatform.windows, web: false), isTrue);
+    expect(visionVideoRuns(TargetPlatform.android, web: false), isTrue);
+    expect(visionVideoRuns(TargetPlatform.iOS, web: false), isTrue);
+    expect(visionVideoRuns(TargetPlatform.macOS, web: false), isTrue);
+    expect(visionVideoRuns(TargetPlatform.android, web: true), isFalse);
+  });
+
+  test('the platform defines are off by default', () {
+    expect(marineLifeOnnxPlatforms, isFalse);
+    expect(marineLifeIgnoreFloor, isFalse);
+  });
+
   test('a test override wins until reset', () {
     debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
     marineLifeIdEnabled = false;

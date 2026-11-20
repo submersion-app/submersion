@@ -19,8 +19,8 @@ class ChannelVisionEngine implements VisionEngine {
 
   final TargetPlatform _platform;
 
-  /// The same test the marine life flag uses, so the two always agree.
-  bool get _apple => visionEngineRuns(_platform);
+  /// Core ML's platforms: iPhone, iPad and Mac.
+  bool get _apple => coreMlRuns(_platform);
 
   @override
   String? get engineName => _apple ? VisionEngine.coreMlEngine : null;

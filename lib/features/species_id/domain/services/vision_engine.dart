@@ -11,7 +11,11 @@ abstract class VisionEngine {
   /// The engine name a model pack's files are labelled with.
   static const String coreMlEngine = 'coreml';
 
-  /// [coreMlEngine] on iPhone, iPad and Mac; null where there is no engine.
+  /// ONNX Runtime's, on Android, Windows and Linux.
+  static const String onnxEngine = 'onnx';
+
+  /// [coreMlEngine] on iPhone, iPad and Mac, [onnxEngine] on Android,
+  /// Windows and Linux; null where there is no engine.
   String? get engineName;
 
   Future<VisionAvailability> availability();

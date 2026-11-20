@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/router/pushed_route.dart';
@@ -36,7 +38,11 @@ class SpeciesDownloadPrompt extends ConsumerWidget {
       iconColor: color,
       textColor: color,
       leading: Icon(iconForSpeciesCategory(SpeciesCategory.fish)),
-      title: Text(l10n.speciesId_downloadPrompt_title),
+      title: Text(
+        visionVideoRuns(defaultTargetPlatform)
+            ? l10n.speciesId_downloadPrompt_title
+            : l10n.speciesId_downloadPrompt_titlePhotos,
+      ),
       subtitle: Text(l10n.speciesId_downloadPrompt_subtitle),
       trailing: IconButton(
         key: const ValueKey('species_download_prompt_dismiss'),

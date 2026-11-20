@@ -46438,11 +46438,23 @@ abstract class AppLocalizations {
   /// **'Suggest the species in your photos and videos'**
   String get settings_speciesId_entrySubtitle;
 
+  /// The settings entry subtitle on Linux, where the app has no video player and only photos are looked at.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggest the species in your photos'**
+  String get settings_speciesId_entrySubtitlePhotos;
+
   /// No description provided for @speciesId_downloadPrompt_title.
   ///
   /// In en, this message translates to:
   /// **'Identify species in your photos and videos'**
   String get speciesId_downloadPrompt_title;
+
+  /// The download prompt title on Linux, where only photos are looked at.
+  ///
+  /// In en, this message translates to:
+  /// **'Identify species in your photos'**
+  String get speciesId_downloadPrompt_titlePhotos;
 
   /// No description provided for @speciesId_downloadPrompt_subtitle.
   ///
@@ -46461,6 +46473,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Suggests the species in your photos and videos. Runs on this device. Your photos and videos never leave it.'**
   String get settings_speciesId_intro;
+
+  /// The settings page introduction on Linux, where only photos are looked at.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggests the species in your photos. Runs on this device. Your photos never leave it.'**
+  String get settings_speciesId_introPhotos;
 
   /// No description provided for @settings_speciesId_model.
   ///
@@ -46575,6 +46593,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Identify species when I open a photo or video'**
   String get settings_speciesId_toggle;
+
+  /// The per-device toggle on Linux, where only photos are looked at.
+  ///
+  /// In en, this message translates to:
+  /// **'Identify species when I open a photo'**
+  String get settings_speciesId_togglePhotos;
 
   /// No description provided for @settings_speciesId_autoApply.
   ///
