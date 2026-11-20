@@ -8411,7 +8411,7 @@
   "settings_speciesId_downloading": "מוריד {percent}%",
   "settings_speciesId_downloadConfirmTitle": "להוריד את המודל?",
   "settings_speciesId_downloadConfirmBody": "פעולה זו תוריד {size} ותשמור אותם במכשיר הזה. אפשר להסיר את המודל בכל עת.",
-  "settings_speciesId_downloadConfirmBodyHardware": "פעולה זו תוריד {size} ותשמור אותם במכשיר הזה. ייתכן ש-Windows יוריד גם מנוע לכרטיס הגרפי שלך מ-Microsoft. אפשר להסיר את המודל בכל עת.",
+  "settings_speciesId_downloadConfirmBodyHardware": "פעולה זו תוריד {size} ותשמור אותם במכשיר הזה. ייתכן ש-Windows יוריד גם מנוע לכרטיס הגרפי או ל-NPU שלך מ-Microsoft. אפשר להסיר את המודל בכל עת.",
   "settings_speciesId_downloadFailed": "ההורדה לא הסתיימה. נסו שוב כדי להמשיך מהמקום שבו נעצרה.",
   "settings_speciesId_downloadNoSpace": "אין מספיק מקום פנוי במכשיר הזה.",
   "settings_speciesId_needsAppUpdate": "המודל הזה דורש גרסה חדשה יותר של Submersion.",

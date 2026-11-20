@@ -28853,7 +28853,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String settings_speciesId_downloadConfirmBodyHardware(String size) {
-    return 'This downloads $size and keeps it on this device. Windows may also download an engine for your graphics card from Microsoft. You can remove the model at any time.';
+    return 'This downloads $size and keeps it on this device. Windows may also download an engine for your graphics card or NPU from Microsoft. You can remove the model at any time.';
   }
 
   @override

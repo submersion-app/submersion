@@ -147,11 +147,15 @@ bool _ensure(Pointer<Void> catalog, String name) {
 
 String _libraryPath(Pointer<Void> ep) {
   final size = calloc<Size>();
+  final used = calloc<Size>();
   try {
     if (winMLEpGetLibraryPathSize(ep, size) < 0) return '';
     final buffer = calloc<Uint8>(size.value + 1).cast<Utf8>();
     try {
-      if (winMLEpGetLibraryPath(ep, size.value + 1, buffer, nullptr) < 0) {
+      // The header marks the bytes-used argument optional; it is passed and
+      // checked anyway, as Microsoft's sample does.
+      if (winMLEpGetLibraryPath(ep, size.value + 1, buffer, used) < 0 ||
+          used.value == 0) {
         return '';
       }
       return buffer.toDartString();
@@ -160,6 +164,7 @@ String _libraryPath(Pointer<Void> ep) {
     }
   } finally {
     calloc.free(size);
+    calloc.free(used);
   }
 }
 

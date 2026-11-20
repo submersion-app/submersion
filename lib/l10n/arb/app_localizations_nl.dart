@@ -29157,7 +29157,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String settings_speciesId_downloadConfirmBodyHardware(String size) {
-    return 'Hiermee wordt $size gedownload en op dit apparaat bewaard. Windows kan ook een engine voor je videokaart van Microsoft downloaden. Je kunt het model op elk moment verwijderen.';
+    return 'Hiermee wordt $size gedownload en op dit apparaat bewaard. Windows kan ook een engine voor je videokaart of NPU van Microsoft downloaden. Je kunt het model op elk moment verwijderen.';
   }
 
   @override

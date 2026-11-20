@@ -197,8 +197,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(
       find.textContaining(
-        'Windows may also download an engine for your graphics card from '
-        'Microsoft.',
+        'Windows may also download an engine for your graphics card or NPU '
+        'from Microsoft.',
       ),
       findsOneWidget,
     );

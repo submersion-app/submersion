@@ -29358,7 +29358,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String settings_speciesId_downloadConfirmBodyHardware(String size) {
-    return 'Verranno scaricati $size e conservati su questo dispositivo. Windows potrebbe anche scaricare da Microsoft un motore per la tua scheda grafica. Puoi rimuovere il modello in qualsiasi momento.';
+    return 'Verranno scaricati $size e conservati su questo dispositivo. Windows potrebbe anche scaricare da Microsoft un motore per la tua scheda grafica o NPU. Puoi rimuovere il modello in qualsiasi momento.';
   }
 
   @override

@@ -29209,7 +29209,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String settings_speciesId_downloadConfirmBodyHardware(String size) {
-    return 'Ez $size adatot tölt le, és ezen az eszközön tárolja. A Windows a Microsofttól a videokártyádhoz való motort is letölthet. A modellt bármikor eltávolíthatod.';
+    return 'Ez $size adatot tölt le, és ezen az eszközön tárolja. A Windows a Microsofttól a videokártyádhoz vagy NPU-dhoz való motort is letölthet. A modellt bármikor eltávolíthatod.';
   }
 
   @override

@@ -8407,7 +8407,7 @@
   "settings_speciesId_downloading": "Descargando {percent} %",
   "settings_speciesId_downloadConfirmTitle": "¿Descargar el modelo?",
   "settings_speciesId_downloadConfirmBody": "Se descargarán {size} y se guardarán en este dispositivo. Puedes eliminarlo cuando quieras.",
-  "settings_speciesId_downloadConfirmBodyHardware": "Se descargarán {size} y se guardarán en este dispositivo. Windows también puede descargar de Microsoft un motor para tu tarjeta gráfica. Puedes eliminar el modelo cuando quieras.",
+  "settings_speciesId_downloadConfirmBodyHardware": "Se descargarán {size} y se guardarán en este dispositivo. Windows también puede descargar de Microsoft un motor para tu tarjeta gráfica o NPU. Puedes eliminar el modelo cuando quieras.",
   "settings_speciesId_downloadFailed": "La descarga no terminó. Vuelve a intentarlo para continuar donde se detuvo.",
   "settings_speciesId_downloadNoSpace": "No hay suficiente espacio libre en este dispositivo.",
   "settings_speciesId_needsAppUpdate": "Este modelo requiere una versión más reciente de Submersion.",

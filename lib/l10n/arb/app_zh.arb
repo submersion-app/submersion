@@ -8562,7 +8562,7 @@
   "settings_speciesId_downloading": "正在下载 {percent}%",
   "settings_speciesId_downloadConfirmTitle": "下载模型？",
   "settings_speciesId_downloadConfirmBody": "这将下载 {size} 并保存在此设备上。你可以随时移除它。",
-  "settings_speciesId_downloadConfirmBodyHardware": "这将下载 {size} 并保存在此设备上。Windows 还可能从 Microsoft 下载适用于你的显卡的引擎。你可以随时移除该模型。",
+  "settings_speciesId_downloadConfirmBodyHardware": "这将下载 {size} 并保存在此设备上。Windows 还可能从 Microsoft 下载适用于你的显卡或 NPU 的引擎。你可以随时移除该模型。",
   "settings_speciesId_downloadFailed": "下载未完成。重试即可从中断处继续。",
   "settings_speciesId_downloadNoSpace": "此设备的可用空间不足。",
   "settings_speciesId_needsAppUpdate": "此模型需要更新版本的 Submersion。",

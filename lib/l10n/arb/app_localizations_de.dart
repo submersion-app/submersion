@@ -29281,7 +29281,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String settings_speciesId_downloadConfirmBodyHardware(String size) {
-    return 'Dabei werden $size heruntergeladen und auf diesem Gerät gespeichert. Windows lädt eventuell zusätzlich eine Engine für deine Grafikkarte von Microsoft herunter. Du kannst das Modell jederzeit entfernen.';
+    return 'Dabei werden $size heruntergeladen und auf diesem Gerät gespeichert. Windows lädt eventuell zusätzlich eine Engine für deine Grafikkarte oder NPU von Microsoft herunter. Du kannst das Modell jederzeit entfernen.';
   }
 
   @override

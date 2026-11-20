@@ -29329,7 +29329,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String settings_speciesId_downloadConfirmBodyHardware(String size) {
-    return 'Isso baixa $size e mantém neste dispositivo. O Windows também pode baixar da Microsoft um mecanismo para sua placa de vídeo. Você pode remover o modelo a qualquer momento.';
+    return 'Isso baixa $size e mantém neste dispositivo. O Windows também pode baixar da Microsoft um mecanismo para sua placa de vídeo ou NPU. Você pode remover o modelo a qualquer momento.';
   }
 
   @override
