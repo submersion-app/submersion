@@ -220,7 +220,7 @@ class DashboardPage extends ConsumerWidget {
     ref.invalidate(recentDivesProvider);
     ref.invalidate(dashboardGaugesProvider);
     ref.invalidate(daysSinceLastDiveProvider);
-    ref.invalidate(dashboardQuickStatsProvider);
+    ref.invalidate(homeSpeciesCountProvider);
     ref.invalidate(yearInReviewProvider);
     ref.invalidate(recentMediaProvider);
     ref.invalidate(onThisDayProvider);

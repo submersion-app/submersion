@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/home_panel_providers.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/home_charts.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/home_panel.dart';
@@ -18,10 +17,7 @@ class SpeciesSeenPanel extends ConsumerWidget {
     final l10n = context.l10n;
     final species = ref.watch(homeRecentSpeciesProvider).value ?? const [];
     if (species.isEmpty) return const SizedBox.shrink();
-    final total = ref
-        .watch(dashboardQuickStatsProvider)
-        .value
-        ?.speciesDiscovered;
+    final total = ref.watch(homeSpeciesCountProvider).value;
     final top = species.first.diveCount;
     return HomePanel(
       title: l10n.dashboard_panel_speciesSeen,

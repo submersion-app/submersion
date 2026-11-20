@@ -178,9 +178,7 @@ Future<void> pumpHome(
         preDiveActiveSessionProvider.overrideWith((ref) async => null),
         preDiveSessionsProvider.overrideWith((ref) async => []),
         preDiveTemplatesProvider.overrideWith((ref) async => []),
-        dashboardQuickStatsProvider.overrideWith(
-          (ref) async => const DashboardQuickStats(),
-        ),
+        homeSpeciesCountProvider.overrideWith((ref) async => 0),
       ].cast(),
       child: MaterialApp.router(
         localizationsDelegates: AppLocalizations.localizationsDelegates,

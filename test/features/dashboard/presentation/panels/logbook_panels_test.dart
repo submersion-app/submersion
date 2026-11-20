@@ -171,9 +171,7 @@ void main() {
             SpeciesSighting(name: 'French angelfish', diveCount: 5),
           ],
         ),
-        dashboardQuickStatsProvider.overrideWith(
-          (ref) async => const DashboardQuickStats(speciesDiscovered: 143),
-        ),
+        homeSpeciesCountProvider.overrideWith((ref) async => 143),
       ],
     );
     expect(find.text('Green turtle'), findsOneWidget);

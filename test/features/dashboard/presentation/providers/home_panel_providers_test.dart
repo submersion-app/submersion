@@ -14,6 +14,7 @@ ProviderContainer _container({
   List<double> sac = const [],
   List<Dive> recent = const [],
   bool gaugesFail = false,
+  int species = 0,
 }) {
   final container = ProviderContainer(
     overrides: [
@@ -52,9 +53,7 @@ ProviderContainer _container({
               ),
       ),
       homeTripChecklistProvider.overrideWith((ref) async => null),
-      dashboardQuickStatsProvider.overrideWith(
-        (ref) async => const DashboardQuickStats(speciesDiscovered: 0),
-      ),
+      homeSpeciesCountProvider.overrideWith((ref) async => species),
       homeNewSpeciesThisYearProvider.overrideWith((ref) async => 0),
     ],
   );
@@ -106,5 +105,12 @@ void main() {
     ).read(homeKeyNumbersProvider.future);
     expect(n.avgSac, 15);
     expect(n.avgSacChange, isNull);
+  });
+
+  test('the species tile reads the species count', () async {
+    final n = await _container(
+      species: 143,
+    ).read(homeKeyNumbersProvider.future);
+    expect(n.species, 143);
   });
 }

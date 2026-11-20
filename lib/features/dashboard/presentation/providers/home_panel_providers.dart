@@ -199,6 +199,15 @@ final homeComingDueProvider = FutureProvider<List<ComingDueItem>>((ref) async {
   );
 });
 
+/// Distinct species the diver has seen.
+final homeSpeciesCountProvider = FutureProvider<int>((ref) async {
+  final repository = ref.watch(insightsRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchInsightsChanges());
+  return repository.getUniqueSpeciesCount(
+    diverId: ref.watch(currentDiverIdProvider),
+  );
+});
+
 /// Species the diver saw for the first time this calendar year.
 final homeNewSpeciesThisYearProvider = FutureProvider<int>((ref) async {
   final repository = ref.watch(insightsRepositoryProvider);
@@ -224,7 +233,7 @@ final homeKeyNumbersProvider = FutureProvider<HomeKeyNumbers>((ref) async {
   final sacF = ref.watch(homeSacSeriesProvider.future);
   final gaugesF = ref.watch(dashboardGaugesProvider.future);
   final checklistF = ref.watch(homeTripChecklistProvider.future);
-  final quickF = ref.watch(dashboardQuickStatsProvider.future);
+  final speciesF = ref.watch(homeSpeciesCountProvider.future);
   final newSpeciesF = ref.watch(homeNewSpeciesThisYearProvider.future);
 
   // Only the career totals are essential: any other source failing leaves
@@ -245,7 +254,7 @@ final homeKeyNumbersProvider = FutureProvider<HomeKeyNumbers>((ref) async {
   final sac = await optional(sacF) ?? const [];
   final gauges = await optional(gaugesF);
   final checklist = await optional(checklistF);
-  final quick = await optional(quickF);
+  final species = await optional(speciesF);
   final newSpecies = await optional(newSpeciesF);
 
   final sacValues = [for (final p in sac) p.value];
@@ -285,7 +294,7 @@ final homeKeyNumbersProvider = FutureProvider<HomeKeyNumbers>((ref) async {
         : null,
     avgDepthThisYear: year?.current.avgMaxDepth,
     avgDepthLastYear: year?.previous.avgMaxDepth,
-    species: quick?.speciesDiscovered,
+    species: species,
     newSpeciesThisYear: newSpecies,
   );
 });
