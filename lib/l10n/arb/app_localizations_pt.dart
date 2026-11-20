@@ -66084,4 +66084,62 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get dashboard_panel_loadError => 'Couldn\'t load this';
+
+  @override
+  String get dashboard_key_dives => 'Dives';
+
+  @override
+  String get dashboard_key_timeUnder => 'Time under';
+
+  @override
+  String get dashboard_key_lastDive => 'Last dive';
+
+  @override
+  String get dashboard_key_avgSac => 'Avg SAC';
+
+  @override
+  String get dashboard_key_avgRmv => 'Avg RMV';
+
+  @override
+  String get dashboard_key_deepestThisYear => 'Deepest this year';
+
+  @override
+  String get dashboard_key_nextTrip => 'Next trip';
+
+  @override
+  String get dashboard_key_avgDepth => 'Avg depth';
+
+  @override
+  String get dashboard_key_species => 'Species';
+
+  @override
+  String dashboard_key_countThisYear(int count) {
+    return '+$count this year';
+  }
+
+  @override
+  String dashboard_key_hoursThisYear(int hours) {
+    return '+$hours h this year';
+  }
+
+  @override
+  String get dashboard_key_hoursUnit => 'h';
+
+  @override
+  String get dashboard_key_daysUnit => 'days';
+
+  @override
+  String dashboard_key_vsPrevious(String change) {
+    return '$change vs previous 10';
+  }
+
+  @override
+  String dashboard_key_lastYear(String value) {
+    return 'Last year $value';
+  }
+
+  @override
+  String dashboard_key_tripChecklist(String name, int done, int total) {
+    return '$name · checklist $done/$total';
+  }
 }

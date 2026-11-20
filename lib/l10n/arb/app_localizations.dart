@@ -103601,6 +103601,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t load this'**
   String get dashboard_panel_loadError;
+
+  /// No description provided for @dashboard_key_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get dashboard_key_dives;
+
+  /// No description provided for @dashboard_key_timeUnder.
+  ///
+  /// In en, this message translates to:
+  /// **'Time under'**
+  String get dashboard_key_timeUnder;
+
+  /// No description provided for @dashboard_key_lastDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Last dive'**
+  String get dashboard_key_lastDive;
+
+  /// No description provided for @dashboard_key_avgSac.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg SAC'**
+  String get dashboard_key_avgSac;
+
+  /// No description provided for @dashboard_key_avgRmv.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg RMV'**
+  String get dashboard_key_avgRmv;
+
+  /// No description provided for @dashboard_key_deepestThisYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Deepest this year'**
+  String get dashboard_key_deepestThisYear;
+
+  /// No description provided for @dashboard_key_nextTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'Next trip'**
+  String get dashboard_key_nextTrip;
+
+  /// No description provided for @dashboard_key_avgDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg depth'**
+  String get dashboard_key_avgDepth;
+
+  /// No description provided for @dashboard_key_species.
+  ///
+  /// In en, this message translates to:
+  /// **'Species'**
+  String get dashboard_key_species;
+
+  /// No description provided for @dashboard_key_countThisYear.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count} this year'**
+  String dashboard_key_countThisYear(int count);
+
+  /// No description provided for @dashboard_key_hoursThisYear.
+  ///
+  /// In en, this message translates to:
+  /// **'+{hours} h this year'**
+  String dashboard_key_hoursThisYear(int hours);
+
+  /// No description provided for @dashboard_key_hoursUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'h'**
+  String get dashboard_key_hoursUnit;
+
+  /// No description provided for @dashboard_key_daysUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'days'**
+  String get dashboard_key_daysUnit;
+
+  /// No description provided for @dashboard_key_vsPrevious.
+  ///
+  /// In en, this message translates to:
+  /// **'{change} vs previous 10'**
+  String dashboard_key_vsPrevious(String change);
+
+  /// No description provided for @dashboard_key_lastYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Last year {value}'**
+  String dashboard_key_lastYear(String value);
+
+  /// No description provided for @dashboard_key_tripChecklist.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · checklist {done}/{total}'**
+  String dashboard_key_tripChecklist(String name, int done, int total);
 }
 
 class _AppLocalizationsDelegate
