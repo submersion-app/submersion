@@ -183,6 +183,10 @@ Future<void> pumpSetPage(
   await tester.pumpAndSettle();
 }
 
+/// The active diver on a new set's page; a test switches profile by
+/// setting it.
+final newSetPageDiverProvider = StateProvider<String?>((ref) => 'd1');
+
 /// How a new set's page (issue #4527, phase 3, plan 11) ended.
 class NewSetHarness {
   Object? popped;
@@ -202,7 +206,9 @@ Future<NewSetHarness> pumpNewSetPage(
   addTearDown(tester.view.reset);
   final overrides = await getBaseOverrides();
   overrides.add(
-    validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
+    validatedCurrentDiverIdProvider.overrideWith(
+      (ref) async => ref.watch(newSetPageDiverProvider),
+    ),
   );
   final harness = NewSetHarness();
   final router = GoRouter(

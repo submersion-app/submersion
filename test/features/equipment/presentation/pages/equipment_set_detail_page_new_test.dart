@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 
@@ -85,5 +86,23 @@ void main() {
 
     expect(find.text(l.equipment_setDetail_notFoundMessage), findsOneWidget);
     expect(find.byType(RecordEditBar), findsNothing);
+  });
+  testWidgets('a profile switch before Save drops the clone', (tester) async {
+    final harness = await pumpNewSetPage(tester, cloneFromId: 's1');
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(RecordEditBar)),
+    );
+
+    container.read(newSetPageDiverProvider.notifier).state = 'other';
+    for (var i = 0; i < 3; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 50)),
+      );
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    await tester.pumpAndSettle();
+
+    expect(harness.poppedAtAll, isTrue);
+    expect(harness.popped, isNull);
   });
 }
