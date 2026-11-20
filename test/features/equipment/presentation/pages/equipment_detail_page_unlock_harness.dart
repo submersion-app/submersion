@@ -27,6 +27,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/pump_until.dart';
 import '../../../../helpers/test_app.dart';
 
 /// The item the page shows, as stored: a regulator owned by no profile
@@ -305,12 +306,13 @@ Future<NewGearItemHarness> pumpNewGearItemPage(
   }
   // A clone's seed reads its source from the database, which answers only
   // outside the test's fake clock.
-  for (var i = 0; i < 5; i++) {
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 50)),
-    );
-    await tester.pump(const Duration(milliseconds: 50));
-  }
+  await pumpUntilRealAsync(
+    tester,
+    () =>
+        find.byType(EquipmentDetailPage).evaluate().isNotEmpty &&
+        find.byType(CircularProgressIndicator).evaluate().isEmpty,
+    reason: "the new item's page to open or say why not",
+  );
   await tester.pumpAndSettle();
   final page = find.byType(EquipmentDetailPage);
   if (page.evaluate().isNotEmpty) {

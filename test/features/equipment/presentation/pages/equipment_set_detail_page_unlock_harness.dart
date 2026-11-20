@@ -18,6 +18,7 @@ import 'package:submersion/features/equipment/presentation/pages/equipment_set_d
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/pump_until.dart';
 import '../../../../helpers/test_database.dart';
 
 /// The set page's tests' database: diver d1 with a drysuit (e1), a
@@ -252,12 +253,13 @@ Future<NewSetHarness> pumpNewSetPage(
   await tester.pump();
   // The seed (and a clone's source) are read from the database, which
   // answers only outside the test's fake clock.
-  for (var i = 0; i < 5; i++) {
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 50)),
-    );
-    await tester.pump(const Duration(milliseconds: 50));
-  }
+  await pumpUntilRealAsync(
+    tester,
+    () =>
+        find.byType(EquipmentSetDetailPage).evaluate().isNotEmpty &&
+        find.byType(CircularProgressIndicator).evaluate().isEmpty,
+    reason: "the new set's page to open or say why not",
+  );
   await tester.pumpAndSettle();
   return harness;
 }
