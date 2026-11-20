@@ -385,7 +385,8 @@ void main() {
           overrides: [
             installedSpeciesPackProvider.overrideWith((ref) => pack()),
             namingLevelNotifierProvider.overrideWith(
-              (ref) => NamingLevelNotifier.unstored(NamingLevel.eager),
+              (ref) =>
+                  NamingLevelNotifier.unstored(NamingLevel.eager, picked: true),
             ),
           ],
         );
@@ -465,7 +466,7 @@ void main() {
             (ref) async => levelledPack(),
           ),
           namingLevelNotifierProvider.overrideWith(
-            (ref) => NamingLevelNotifier.unstored(level),
+            (ref) => NamingLevelNotifier.unstored(level, picked: true),
           ),
         ],
       );
@@ -559,7 +560,8 @@ void main() {
             return levelledPack();
           }),
           namingLevelNotifierProvider.overrideWith(
-            (ref) => NamingLevelNotifier.unstored(NamingLevel.surer),
+            (ref) =>
+                NamingLevelNotifier.unstored(NamingLevel.surer, picked: true),
           ),
         ],
       );

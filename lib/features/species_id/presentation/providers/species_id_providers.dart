@@ -155,7 +155,7 @@ class NamingLevelNotifier extends StateNotifier<NamingLevel>
   /// Fixed state with nothing behind it, as
   /// [DeviceBadgeToggleNotifier.unstored]. [picked] says whether [level]
   /// stands for a level the diver chose.
-  NamingLevelNotifier.unstored(super.level, {bool picked = true})
+  NamingLevelNotifier.unstored(super.level, {required bool picked})
     : _prefs = null,
       _picked = picked;
 
