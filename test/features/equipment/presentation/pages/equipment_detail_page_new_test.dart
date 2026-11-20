@@ -67,6 +67,9 @@ void main() {
     );
 
     expect(find.byType(TwinSetCard), findsNothing);
+    // Details counts no dives or trips for an item not yet stored.
+    expect(find.text(l.equipment_detail_divesLabel), findsNothing);
+    expect(find.text(l.equipment_detail_tripsLabel), findsNothing);
   });
 
   testWidgets('Save waits for the first entry, then pops the id', (
