@@ -11,10 +11,13 @@ import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_checklists_sitting.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_gear_sitting.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_header_card_editor.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_itinerary_sitting.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_vessel_sitting.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_equipment_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/dive_assignment_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -24,8 +27,8 @@ import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
 const _log = LoggerService('TripSittingHost');
 
 /// Loads what a sitting on a trip holds besides its own values: who it is
-/// shared with, the vessel, the itinerary days, the checklists and the
-/// document links.
+/// shared with, the vessel, the itinerary days, the checklists, the packed
+/// gear and cylinder board, and the document links.
 void loadTripSitting(EditSession<Trip> session, ProviderContainer container) {
   // Read now: an owner's Save clears share rows a sync race left beside
   // the Everyone flag, as the form's did, whichever card it changed.
@@ -39,6 +42,14 @@ void loadTripSitting(EditSession<Trip> session, ProviderContainer container) {
   tripChecklistsList(
     checklists: container.read(tripChecklistsRepositoryProvider),
     items: container.read(tripChecklistRepositoryProvider),
+  ).load(session);
+  tripPackedGearList(
+    read: (id) => container.read(tripGearProvider(id).future),
+    packs: container.read(tripEquipmentRepositoryProvider),
+  ).load(session);
+  tripCylindersList(
+    cylinders: container.read(tripCylinderRepositoryProvider),
+    copier: container.read(tripFillPassportCopierProvider),
   ).load(session);
   holdDocumentLinks(
     session,

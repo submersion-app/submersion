@@ -100,9 +100,9 @@ class _TripDetailTabsState extends ConsumerState<TripDetailTabs> {
     if (!trip.startsAfter(clock.now())) {
       ref.listen(tripUndivedPlanIdsProvider(trip.id), (_, _) {});
     }
-    // A page that edits in place keeps the gear read only until it joins
-    // its sitting (issue #4527); the checklists are held in it while it is
-    // unlocked, and read only while it is locked.
+    // A page that edits in place holds the gear and checklists in its
+    // sitting while it is unlocked, and shows them read only while it is
+    // locked (issue #4527).
     final slots = TripCardSlotsScope.maybeOf(context);
     final editsInPlace = slots != null;
     final editing = slots?.session;
@@ -147,7 +147,13 @@ class _TripDetailTabsState extends ConsumerState<TripDetailTabs> {
                 ),
               ),
               kept(TripItineraryTab(tripId: trip.id)),
-              kept(TripGearTab(trip: trip, readOnly: editsInPlace)),
+              kept(
+                TripGearTab(
+                  trip: trip,
+                  readOnly: editsInPlace && editing == null,
+                  editing: editing,
+                ),
+              ),
               kept(
                 _ChecklistTab(
                   trip: trip,

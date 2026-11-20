@@ -32,6 +32,14 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/services/trip_day_notes.dart';
 import 'package:submersion/features/trips/domain/services/trip_story_builder.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_checklists_sitting.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/trips/data/repositories/trip_cylinder_repository.dart';
+import 'package:submersion/features/trips/data/repositories/trip_equipment_repository.dart';
+import 'package:submersion/features/trips/data/services/trip_fill_passport_copy.dart';
+import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
+import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
+import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_gear_sitting.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
@@ -316,6 +324,124 @@ class FakeTripChecklistItems implements TripChecklistRepository {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// A trip's packed gear links without a database: each write recorded.
+class FakeTripPacks implements TripEquipmentRepository {
+  FakeTripPacks(this.writes);
+
+  final List<String> writes;
+
+  @override
+  Future<int> pack(String tripId, Iterable<String> equipmentIds) async {
+    writes.add('pack ${equipmentIds.join(',')}');
+    return equipmentIds.length;
+  }
+
+  @override
+  Future<void> unpack(String tripId, String equipmentId) async =>
+      writes.add('unpack $equipmentId');
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// A trip's cylinder board without a database: [held] as stored, and each
+/// write recorded.
+class FakeTripBoard implements TripCylinderRepository {
+  FakeTripBoard(this.held, this.writes);
+
+  final TripCylindersHeld held;
+  final List<String> writes;
+
+  @override
+  Future<List<TripCylinder>> getCylindersForTrip(String tripId) async =>
+      held.slots;
+
+  @override
+  Future<Map<String, List<TripCylinderEvent>>> getEventsForTrip(
+    String tripId,
+  ) async => {
+    for (final e in held.events)
+      e.tripCylinderId: [
+        for (final o in held.events)
+          if (o.tripCylinderId == e.tripCylinderId) o,
+      ],
+  };
+
+  @override
+  Future<Map<String, List<TripCylinderTankUse>>> getTankUsesForTrip(
+    String tripId,
+  ) async => held.uses;
+
+  @override
+  Future<List<TripCylinder>> createCylinders(
+    List<TripCylinder> cylinders,
+  ) async {
+    writes.add(
+      'createCylinders ${[for (final c in cylinders) c.label].join(',')}',
+    );
+    return cylinders;
+  }
+
+  @override
+  Future<void> updateCylinder(TripCylinder cylinder) async =>
+      writes.add('updateCylinder ${cylinder.label}');
+
+  @override
+  Future<void> deleteCylinder(String id) async =>
+      writes.add('deleteCylinder $id');
+
+  @override
+  Future<void> reorderCylinders(List<String> orderedIds) async =>
+      writes.add('reorderCylinders ${orderedIds.join(',')}');
+
+  @override
+  Future<List<TripCylinderEvent>> createEvents(
+    List<TripCylinderEvent> events,
+  ) async {
+    writes.add('createEvents ${events.length}');
+    return events;
+  }
+
+  @override
+  Future<void> updateEvent(TripCylinderEvent event) async =>
+      writes.add('updateEvent ${event.id}');
+
+  @override
+  Future<void> deleteEvent(
+    String id, {
+    Future<void> Function()? alongside,
+  }) async {
+    writes.add('deleteEvent $id');
+    await alongside?.call();
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// Copies of trip fills to passports, recorded rather than written.
+class FakeFillCopier implements TripFillPassportCopier {
+  FakeFillCopier(this.writes);
+
+  final List<String> writes;
+
+  @override
+  Future<void> afterSave(
+    TripCylinderEvent event,
+    TripCylinder slot, {
+    String? diverId,
+    String? stationName,
+    bool stationResolved = true,
+  }) async => writes.add('copy ${event.id}');
+
+  @override
+  Future<void> afterDelete(String tripEventId) async =>
+      writes.add('uncopy $tripEventId');
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 class TripPageHarness {
   TripPageHarness(
     this.save,
@@ -326,6 +452,7 @@ class TripPageHarness {
     this.itinerary,
     this.tripDives,
     this.checklistWrites,
+    this.gearWrites,
   );
 
   final FakeTripSave save;
@@ -338,6 +465,9 @@ class TripPageHarness {
 
   /// Every checklist write, by name, in order.
   final List<String> checklistWrites;
+
+  /// Every packing, board and passport copy write, by name, in order.
+  final List<String> gearWrites;
 }
 
 final _storedProvider = StateProvider<Trip?>((ref) => redSea);
@@ -369,8 +499,11 @@ Future<TripPageHarness> pumpTripPage(
   bool hasSideTrips = false,
   List<DiveCandidate> candidates = const [],
   TripChecklistsHeld checklists = const TripChecklistsHeld(),
+  List<EquipmentItem> packed = const [],
+  TripCylindersHeld board = const TripCylindersHeld(),
 }) async {
   final checklistWrites = <String>[];
+  final gearWrites = <String>[];
   final itemShares = shares ?? FakeItemShares();
   final vessels = FakeVessels(vessel);
   final itinerary = FakeItineraryDays(days);
@@ -429,10 +562,19 @@ Future<TripPageHarness> pumpTripPage(
         tripRepositoryProvider.overrideWithValue(tripDives),
         tripDayWeatherProvider(shown.id).overrideWith((ref) async => const {}),
         tripDayWeatherBackfillProvider(shown.id).overrideWith((ref) async {}),
-        tripGearProvider(shown.id).overrideWith((ref) async => const []),
+        tripGearProvider(shown.id).overrideWith((ref) async => packed),
         tripCylinderStatesProvider(
           shown.id,
-        ).overrideWith((ref) async => const []),
+        ).overrideWith((ref) async => board.states),
+        tripEquipmentRepositoryProvider.overrideWithValue(
+          FakeTripPacks(gearWrites),
+        ),
+        tripCylinderRepositoryProvider.overrideWithValue(
+          FakeTripBoard(board, gearWrites),
+        ),
+        tripFillPassportCopierProvider.overrideWithValue(
+          FakeFillCopier(gearWrites),
+        ),
         tripServiceAlertsProvider(
           shown.id,
         ).overrideWith((ref) async => const []),
@@ -483,6 +625,7 @@ Future<TripPageHarness> pumpTripPage(
             itinerary,
             tripDives,
             checklistWrites,
+            gearWrites,
           );
           return save;
         }),

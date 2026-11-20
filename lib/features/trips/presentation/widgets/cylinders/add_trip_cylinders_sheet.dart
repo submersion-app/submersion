@@ -17,12 +17,14 @@ import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 /// are not on the trip yet. [existing] is the trip's current slots, so new
 /// rental labels and board positions continue after them. [rentalOnly]
 /// hides the rental/owned switch: the Gear tab's Add picks owned cylinders
-/// through the equipment picker instead (#2845).
+/// through the equipment picker instead (#2845). With [hold] the slots are
+/// handed to it rather than written.
 Future<void> showAddTripCylindersSheet(
   BuildContext context, {
   required String tripId,
   required List<TripCylinder> existing,
   bool rentalOnly = false,
+  Future<void> Function(List<TripCylinder> drafts)? hold,
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -32,6 +34,7 @@ Future<void> showAddTripCylindersSheet(
       tripId: tripId,
       existing: existing,
       rentalOnly: rentalOnly,
+      hold: hold,
     ),
   );
 }
@@ -72,10 +75,15 @@ class _AddTripCylindersSheet extends ConsumerStatefulWidget {
   final List<TripCylinder> existing;
   final bool rentalOnly;
 
+  /// Where the slots go instead of the repository: a trip page's sitting,
+  /// which writes them at its Save (issue #4527).
+  final Future<void> Function(List<TripCylinder> drafts)? hold;
+
   const _AddTripCylindersSheet({
     required this.tripId,
     required this.existing,
     this.rentalOnly = false,
+    this.hold,
   });
 
   @override
@@ -185,7 +193,12 @@ class _AddTripCylindersSheetState
     try {
       // One transaction: a failure part way adds nothing, so Save again
       // never doubles the batch.
-      await ref.read(tripCylinderRepositoryProvider).createCylinders(drafts);
+      final hold = widget.hold;
+      if (hold != null) {
+        await hold(drafts);
+      } else {
+        await ref.read(tripCylinderRepositoryProvider).createCylinders(drafts);
+      }
       if (mounted) Navigator.of(context).pop();
     } catch (_) {
       if (mounted) setState(() => _error = l10n.common_error_tryAgain);
