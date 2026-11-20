@@ -179,8 +179,8 @@ The app reads the latest release of
 `releases/latest/download/manifest.json` first, then every file it lists,
 resolved next to the manifest. Each pack is a release of its own, tagged
 with its version. Pack `2026.11.18.0356` (both detectors) is published there.
-It moved from this repository's `species-pack` pre-release, which stays in
-place for beta builds that still read it (#4769).
+It moved from this repository's `species-pack` pre-release, deleted on
+2026-11-19; only development builds from before #4770 read it (#4769).
 
 - **Draft first.** Create the release with `--draft`, upload every file
   and the manifest, check the sizes and digests, then publish it, which
@@ -367,6 +367,86 @@ no tap on the selected value otherwise. The default is no choice of the
 diver's (`NamingLevelNotifier.picked` is false until a level is stored), so
 a pack without Eager names at its most eager level with no note and no
 toggleable tile.
+
+## Training the naming layer
+
+A pack's naming rows can be trained on iNaturalist photos instead of read
+from BioCLIP 2's species names (issue #4724,
+[design](../design/specs/2026-11-18-marine-life-naming-layer-design.md),
+[findings](../design/findings/2026-11-20-marine-life-naming-layer.md)).
+The trained pack is the base pack with one file changed:
+`text_embeddings.f16` holds one trained row per candidate, so the app names
+with it unchanged. Every step below runs in the pack repository, with
+`$DATA` a work folder outside the repository and `$BASE` the base pack's
+folder (its release files, downloaded). Each stage resumes where it
+stopped, and the
+[runbook](../design/plans/2026-11-18-marine-life-naming-layer-runbook.md)
+says what a good result of each looks like.
+
+Fetch, select and embed the training photos. It takes about a day: one
+list request per candidate, within iNaturalist's limits, then the photos
+from its AWS Open Data bucket, each deleted once its embedding is taken:
+
+```bash
+caffeinate -i .venv-species-pack/bin/python -I fetch_training.py all --wait --pack $BASE --set testdata/accuracy_set.csv --work $DATA/training
+```
+
+Train the shipped layer. It chooses the pull, blend and sharpness on the
+validation photos and writes the trained pack, with provisional bars:
+
+```bash
+.venv-species-pack/bin/python -I train_naming.py --base $BASE --training $DATA/training --out $DATA/pack-trained
+```
+
+Train the rare-species check layer, at the shipped layer's settings
+without the test set's held-back species. It is never shipped:
+
+```bash
+.venv-species-pack/bin/python -I train_naming.py --base $BASE --training $DATA/training --out $DATA/pack-check --exclude-held-back testdata/accuracy_set.csv --settings-from $DATA/pack-trained
+```
+
+Score the base pack and the trained pack on the test photos, as in
+"Measuring accuracy" (link one work folder's `photos` into the others
+rather than copy them):
+
+```bash
+.venv-species-pack/bin/python -I score.py --pack $BASE --work $DATA/score-baseline
+```
+
+```bash
+.venv-species-pack/bin/python -I score.py --pack $DATA/pack-trained --work $DATA/score-trained
+```
+
+Then score the check pack at the trained pack's measured bars.
+`--naming-from` reads a pack folder's `manifest.json`: write the trained
+pack's manifest there with its `naming` replaced by the pair's `measured`
+entry from `$DATA/score-trained/results.json`:
+
+```bash
+.venv-species-pack/bin/python -I score.py --pack $DATA/pack-check --work $DATA/score-check --naming-from $DATA/score-trained/bars-pack
+```
+
+The gate first checks that each scoring was made on its pack and that the
+three cover the same photos:
+
+```bash
+.venv-species-pack/bin/python -I gate.py --baseline $DATA/score-baseline --trained $DATA/score-trained --check $DATA/score-check --baseline-pack $BASE --trained-pack $DATA/pack-trained --check-pack $DATA/pack-check --set testdata/accuracy_set.csv
+```
+
+It exits 0 when the trained pack may ship: significantly more held-out
+photos named right than the base pack, a confident bar that is a real bar,
+no animal group named right less often, junk named on at most 2% of junk
+crops, and at most 2% of the held-back species' photos named confidently
+wrong. Then add the pair's `measured` entry to `NAMING_MEASURED` in
+`manifest.py` and rewrite the trained pack's manifest with
+`manifest.derive_manifest`, which gives it the measured bars.
+
+The trained file is credited CC BY-NC 4.0, since most of its photos carry
+that licence; `build_pack.py` still builds the untrained pack, the open
+alternative. Publishing a trained pack also uploads `training_photos.csv`
+(each training photo's observation, licence and attribution) to the pack's
+release. The manifest does not list it, but the trained credit links it.
+Only the maintainer publishes a pack.
 
 ## Trying a pack locally
 
