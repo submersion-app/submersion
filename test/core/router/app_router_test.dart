@@ -85,6 +85,9 @@ import 'package:submersion/features/buddies/presentation/pages/buddy_edit_routes
 import 'package:submersion/features/certifications/presentation/pages/certification_edit_routes.dart';
 import 'package:submersion/features/courses/presentation/pages/course_edit_routes.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_routes.dart';
+import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
+import 'package:submersion/features/trips/domain/services/trip_draft.dart';
+import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_edit_routes.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_routes.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_routes.dart';
@@ -624,6 +627,30 @@ void main() {
     expect(form.initialParentId, 'host');
     expect(form.cloneFromId, 'src');
     final route = _findRouteByName(router.configuration.routes, 'newEquipment');
+    expect(route?.onExit, same(confirmLeaveRecordSitting));
+  });
+
+  test('a new trip opens the page with the switch on, a draft carried', () {
+    final draft = TripDraft(
+      trip: Trip(
+        id: '',
+        name: 'Bonaire',
+        startDate: DateTime(2030, 5, 1),
+        endDate: DateTime(2030, 5, 4),
+        createdAt: DateTime(2030),
+        updatedAt: DateTime(2030),
+      ),
+      diveIds: const ['a'],
+    );
+    final page = newTripPage(draft, unlockEditing: true);
+    expect(page, isA<TripDetailPage>());
+    expect((page as TripDetailPage).newTrip?.draft, same(draft));
+    final blank = newTripPage(null, unlockEditing: true) as TripDetailPage;
+    expect(blank.newTrip, isNotNull);
+    expect(blank.newTrip?.draft, isNull);
+    final form = newTripPage(draft, unlockEditing: false);
+    expect((form as TripEditPage).draft, same(draft));
+    final route = _findRouteByName(router.configuration.routes, 'newTrip');
     expect(route?.onExit, same(confirmLeaveRecordSitting));
   });
 

@@ -41,6 +41,7 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/query/presentation/widgets/entity_search_action.dart';
 import 'package:submersion/features/query/presentation/widgets/entity_search_frame.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
+import 'package:submersion/features/trips/presentation/pages/trip_edit_routes.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/query/trip_query_entity.dart';
 import 'package:submersion/features/trips/presentation/widgets/compact_trip_list_tile.dart';
@@ -1035,7 +1036,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                   final routerState = GoRouterState.of(context);
                   context.goInPlace('${routerState.uri.path}?mode=new');
                 } else {
-                  context.push('/trips/new');
+                  openNewTrip(context);
                 }
               },
               icon: const Icon(Icons.add),

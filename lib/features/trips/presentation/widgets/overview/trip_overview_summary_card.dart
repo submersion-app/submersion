@@ -38,11 +38,17 @@ class TripOverviewSummaryCard extends ConsumerWidget {
   /// pane the edit opens in the pane (#2880).
   final VoidCallback? onEditPlan;
 
+  /// Whether the rows that open the other tabs show: not for a new trip,
+  /// whose page has no tabs and nothing stored to count (issue #4527, plan
+  /// 11). The Plan row always shows.
+  final bool tabRows;
+
   const TripOverviewSummaryCard({
     super.key,
     required this.trip,
     this.onOpenTab,
     this.onEditPlan,
+    this.tabRows = true,
   });
 
   void _open(BuildContext context, TripDetailTab tab) {
@@ -57,6 +63,12 @@ class TripOverviewSummaryCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
+    if (!tabRows) {
+      return Card(
+        margin: const EdgeInsets.symmetric(horizontal: 16),
+        child: _planRow(context, l10n),
+      );
+    }
     final status = StatusColors.of(context);
     final checklist = ref.watch(tripChecklistAllItemsProvider(trip.id)).value;
     final gear = ref.watch(tripGearProvider(trip.id)).value;

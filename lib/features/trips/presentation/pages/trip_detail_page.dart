@@ -16,7 +16,12 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/new_record_diver.dart';
+import 'package:submersion/features/trips/data/services/trip_edit_save_service.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/entities/trip_story.dart';
+import 'package:submersion/features/trips/domain/services/trip_draft.dart';
+import 'package:submersion/features/trips/domain/services/trip_story_builder.dart';
 import 'package:submersion/features/trips/domain/services/trip_day_notes.dart';
 import 'package:submersion/features/trips/presentation/helpers/side_trip_delete_lines.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
@@ -24,6 +29,7 @@ import 'package:submersion/features/trips/presentation/helpers/trip_scan_actions
 import 'package:submersion/features/trips/presentation/providers/side_trip_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_routes.dart';
+import 'package:submersion/features/trips/presentation/widgets/overview/trip_prepare_overview.dart';
 import 'package:submersion/features/trips/presentation/widgets/part_of_trip_link.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_view.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_detail_tabs.dart';
@@ -34,11 +40,14 @@ import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dar
 import 'package:submersion/features/trips/presentation/editing/trip_card_slots.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_edit_cards.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_header_card_editor.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_new_sitting.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_overview_card_editors.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_sitting_host.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
+import 'package:submersion/shared/widgets/record_editing/record_creating.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_tabs.dart';
 import 'package:submersion/shared/widgets/record_editing/record_open_unlocked.dart';
@@ -46,6 +55,7 @@ import 'package:submersion/shared/widgets/record_editing/record_operation_gate.d
 import 'package:submersion/shared/widgets/record_editing/record_pane_row.dart';
 import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
+part 'trip_detail_page_creating.dart';
 part 'trip_detail_page_editing.dart';
 part 'trip_detail_page_menu.dart';
 
@@ -76,6 +86,16 @@ class TripDetailPage extends ConsumerStatefulWidget {
   /// that day with its Day plan open (`noteDate`, `noteDay`).
   final TripNoteDay? openNoteDay;
 
+  /// A trip not yet created, with what a trip made from selected dives
+  /// suggests ([TripDraft]), when the page is one (issue #4527, plan 11).
+  final ({TripDraft? draft})? newTrip;
+
+  /// The pane's own, for a new trip: told its id once it is created.
+  final void Function(String id)? onCreated;
+
+  /// The pane's own, for a new trip: told when it leaves uncreated.
+  final VoidCallback? onCreateCancelled;
+
   const TripDetailPage({
     super.key,
     required this.tripId,
@@ -86,7 +106,27 @@ class TripDetailPage extends ConsumerStatefulWidget {
     this.onSittingEnded,
     this.openSection,
     this.openNoteDay,
-  });
+  }) : newTrip = null,
+       onCreated = null,
+       onCreateCancelled = null;
+
+  /// A new trip's page (issue #4527, phase 3, plan 11): it opens unlocked
+  /// on a trip not yet created, its Overview in the prepare shape and no
+  /// other tab, with what [draft] suggests as changes.
+  const TripDetailPage.newTrip({
+    super.key,
+    TripDraft? draft,
+    this.embedded = false,
+    this.onCreated,
+    this.onCreateCancelled,
+  }) : newTrip = (draft: draft),
+       tripId = '',
+       onDeleted = null,
+       unlockEditing = true,
+       openUnlocked = false,
+       onSittingEnded = null,
+       openSection = null,
+       openNoteDay = null;
 
   @override
   ConsumerState<TripDetailPage> createState() => _TripDetailPageState();
@@ -99,7 +139,9 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage>
         RecordOpenUnlocked<TripDetailPage, Trip>,
         RecordEditTabs<TripDetailPage, Trip>,
         TripSittingHost<TripDetailPage>,
-        _TripDetailPageEditing {
+        _TripDetailPageEditing,
+        RecordCreating<TripDetailPage, Trip>,
+        _TripDetailPageCreating {
   bool _hasRedirected = false;
 
   /// The page's tabs, here so the sitting knows the tab in view and can
@@ -189,6 +231,11 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage>
 
   @override
   Widget build(BuildContext context) {
+    if (isCreating) {
+      final seed = newRecordSeed;
+      return newRecordWaiting(context) ??
+          _buildNewTrip(context, shownRecord(seed!), seed);
+    }
     // Desktop redirect: a root visit (deep link, sidebar) moves into the
     // master-detail split. A pushed page, opened from a dive's details
     // say, stays put: the redirect's go() would erase the page under it

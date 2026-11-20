@@ -489,6 +489,16 @@ Built natively on 2026-11-20. Where the code differs from the tasks above, the c
 
 As Task 6, with screenshots of a new trip, a new liveaboard and a trip from selected dives.
 
+### As built (Part D)
+
+Built natively on 2026-11-20. Where the code differs from the tasks above, the code is right:
+
+- `TripEditSaveService.create` takes the trip, its changed cards, the draft's dive ids and the held writes; no `actingDiverId` (the row carries `isShared`, and the sharing write is the sitting's own) and no source trips (they are invalidated after commit). It assigns the draft's dives, then generates a liveaboard's days over the dates as stored then, when the sitting held none. A parent that is a side trip itself is dropped, as the form's create drops it.
+- `RecordCreating` gained `beforeCreate(session)`, asked only when the Save would write and before what follows a create is captured: Save on a new record skips `beforeSave`. The trip's is `TripSittingHost.askDivesInDates`, shared with the stored path; a trip made from selected dives (any draft) is never asked, as the form.
+- A new trip keeps the diver it was opened for (the active one at Save only when the seed had none), like every other type.
+- The page shows its header block, a "Part of" line for its larger trip (`PartOfTripLink.toParent`), and `TripPrepareOverview(tabRows: false)`: the hero from the working dates, the Plan row alone, a liveaboard's Vessel (laid out open as the type changes to it), Notes and Documents. No tab bar, no `PartOfTripLink` by id, no `SharedByBanner`; its sitting loads only its sharing, its vessel (none) and its document links. In a pane its header is the editing row alone.
+- `newTripPage(extra)`, `newTripPane` and `openNewTrip` as in the other parts; the summary widget has no Add. The selection, a dive's Details trip row, the trip picker's quick add and the Pack card push `/trips/new` as before and take the popped id, pinned against the real page.
+
 ## The forms' create tests
 
 The forms stay until plan 12, so nothing is deleted here. Each create case named by plans 6, 8 and 9 for plan 11, and each found since, has its counterpart: documents (`document_edit_page_test.dart`'s create cases) in Tasks 3 and 4; species (`species_edit_page_test.dart`) in Task 5; buddies (`buddy_edit_cert_fields_test`, `buddy_rankings_form_detail_test`, `buddy_edit_photo_test`, `buddy_contact_import_test`, `buddy_pick_sheet_test`) in Tasks 7 and 8; centres (`dive_center_edit_page_fill_hours_test`, the list and Details card cases) in Task 9; certifications (`certification_edit_name_field_test`, `_credentials_test`, `_instructor_test`, `certification_photo_pick_test`) in Task 10; courses (`course_edit_agency_test`, `course_edit_date_range_test`) in Task 11; gear (`equipment_edit_clone_test.dart` all cases, `_device_type_test`, `_hidden_by_view_test`, `_parent_picker_test`, `_tags_test`, `_advanced_test`'s currency cases) in Tasks 13 to 16; sets (`equipment_set_edit_clone_test.dart` all cases, `equipment_set_edit_page_test`'s new-set cases, `_discard_test`'s new set) in Task 17; trips (`trip_edit_page_test.dart`'s New Trip group, defaults, sharing and save flow, `trip_edit_page_draft_test.dart`, `trip_edit_page_retry_test.dart`) in Tasks 19 to 22. A form case with no counterpart (the trip form's create retry, made needless by call 6) is named in its PR.
