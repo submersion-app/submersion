@@ -345,3 +345,14 @@ Modified:
   - light and dark for the passport's unlocked bar; phone and desktop for the passports.
   Attach them through the project's current secret screenshot gist.
 - [ ] **Step 5:** `gh pr create` from the template, title `feat(editing): gear passports, twin sets, components and findings edit in place, behind a switch`, body with `Refs #4527` and the screenshots. Bind it, turn Auto-fix on, and follow it until every check is green, fixing each failure and review comment as it comes.
+
+## As built
+
+Eric approved every question and call as recommended (2026-11-19). Where the build departs from the tasks above:
+
+- **Task 1.** The set of tables riding a parent's clock is `syncRidesParentClockTables` in its own file, `lib/core/services/sync/parent_clock_children.dart`, since `sync_repository.dart` is already past 800 lines. `change_log_lifecycle_test.dart` needed no change: it counts the triggers from the policy. The findings' change log and revert cases are in `test/features/change_log/data/services/change_log_equipment_findings_test.dart`.
+- **Task 4.** The flows take a `PairingWrites` writer (an interface the repository now implements) rather than the sitting itself: `SittingPairingWrites` checks each step against the sitting's pairings as the repository would and holds it. Only a delete of a pairing made in the sitting with no replace takes its making back; anything else is replayed in order at Save, with the sitting's ids mapped to the stored ones. The nested-transaction case is in the sitting test.
+- **Task 5.** The repositories the write uses are read as the sitting starts (`holdGearItemComponents`).
+- **Task 7.** The fills are held as a list of `CylinderFill` (`gearItemFillsList`) with three notes beside it (a new fill's twin partner, an edit that reaches its tied fill, a delete that takes its tied fill) instead of a `HeldFill` row. After Save the tag write is offered for the cylinder's newest logged fill; a twin fill's partner fill is not offered, since its row is made in the Save.
+- **Task 8.** The Current fill and Fill history cards are one `passportFills` frame, since both edit the fills; its editor shows both. The passports' cards are in `gear_item_passport_cards.dart`. `onGearItemSaved` also receives the sitting.
+- **Task 9.** On a page that edits in place, the entry cards always push the passport as a satellite: joined while the item page is unlocked, with its own lock while it is locked. The routes stay for scans, links and Add to my gear.
