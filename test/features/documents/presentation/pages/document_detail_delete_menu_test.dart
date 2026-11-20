@@ -84,9 +84,9 @@ void main() {
   Finder appBarFinder(Finder matching) =>
       find.descendant(of: find.byType(AppBar), matching: matching);
 
-  testWidgets('the app bar keeps Edit but no standalone Delete', (t) async {
+  testWidgets('the app bar has the lock but no standalone Delete', (t) async {
     await pumpDetail(t);
-    expect(appBarFinder(find.byIcon(Icons.edit_outlined)), findsOneWidget);
+    expect(appBarFinder(find.byIcon(Icons.lock_outline)), findsOneWidget);
     expect(appBarFinder(find.byIcon(Icons.delete_outline)), findsNothing);
     expect(appBarFinder(find.byTooltip('Delete')), findsNothing);
     expect(appBarFinder(find.byType(PopupMenuButton<String>)), findsOneWidget);
@@ -101,12 +101,20 @@ void main() {
 
   testWidgets('cancelling the confirmation keeps the document', (t) async {
     await pumpDetail(t);
+    // Delete is a whole-record operation, under the lock (issue #4527).
+    await t.tap(appBarFinder(find.byIcon(Icons.lock_outline)));
+    await t.pumpAndSettle();
     await t.tap(appBarFinder(find.byType(PopupMenuButton<String>)));
     await t.pumpAndSettle();
     await t.tap(find.widgetWithText(PopupMenuItem<String>, 'Delete'));
     await t.pumpAndSettle();
     expect(find.byType(AlertDialog), findsOneWidget);
-    await t.tap(find.widgetWithText(TextButton, 'Cancel'));
+    await t.tap(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.widgetWithText(TextButton, 'Cancel'),
+      ),
+    );
     await t.pumpAndSettle();
     expect(find.byType(DocumentDetailPage), findsOneWidget);
     expect(await DocumentRepository().getById(docId), isNotNull);
@@ -114,6 +122,9 @@ void main() {
 
   testWidgets('confirming deletes the document and leaves the page', (t) async {
     await pumpDetail(t);
+    // Delete is a whole-record operation, under the lock (issue #4527).
+    await t.tap(appBarFinder(find.byIcon(Icons.lock_outline)));
+    await t.pumpAndSettle();
     await t.tap(appBarFinder(find.byType(PopupMenuButton<String>)));
     await t.pumpAndSettle();
     await t.tap(find.widgetWithText(PopupMenuItem<String>, 'Delete'));

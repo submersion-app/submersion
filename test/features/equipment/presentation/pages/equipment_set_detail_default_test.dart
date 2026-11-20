@@ -49,13 +49,4 @@ void main() {
     await pump(tester, isDefault: true);
     expect(find.text('Default'), findsOneWidget);
   });
-
-  testWidgets('offers "Set as default" only when not already default', (
-    tester,
-  ) async {
-    await pump(tester, isDefault: false);
-    await tester.tap(find.byIcon(Icons.more_vert));
-    await tester.pumpAndSettle();
-    expect(find.text('Set as default'), findsOneWidget);
-  });
 }

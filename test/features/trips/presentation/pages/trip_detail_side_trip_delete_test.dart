@@ -92,7 +92,7 @@ void main() {
   }
 
   Future<void> openDelete(WidgetTester tester) async {
-    await tester.tap(find.byIcon(Icons.more_vert));
+    await _openTripMenu(tester);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Delete'));
     await tester.pumpAndSettle();
@@ -122,4 +122,16 @@ void main() {
       findsOneWidget,
     );
   });
+}
+
+/// Opens the trip page's menu, unlocking the page first: Delete, Remove
+/// from my profile and Unhide are whole-record operations, under the lock
+/// (issue #4527).
+Future<void> _openTripMenu(WidgetTester tester) async {
+  final lock = find.byIcon(Icons.lock_outline);
+  if (lock.evaluate().isNotEmpty) {
+    await tester.tap(lock.first);
+    await tester.pumpAndSettle();
+  }
+  await tester.tap(find.byIcon(Icons.more_vert).last);
 }

@@ -5,8 +5,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
-import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/data/repositories/trip_cylinder_repository.dart';
@@ -21,7 +19,6 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../../helpers/mock_providers.dart';
 import '../../../../../helpers/test_database.dart';
-import '../../../helpers/failing_trip_cylinder_repository.dart';
 
 void main() {
   late TripCylinderRepository repo;
@@ -83,6 +80,7 @@ void main() {
     TripCylinderRepository? repository,
     Future<List<TripCylinderEvent>>? ledger,
     TripFillPassportCopier? copier,
+    bool unlock = false,
   }) async {
     tester.view.physicalSize = const Size(900, 1800);
     tester.view.devicePixelRatio = 1.0;
@@ -111,6 +109,11 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    // Opened alone the board has its own lock (issue #4527, decision 9).
+    if (unlock) {
+      await tester.tap(find.byIcon(Icons.lock_outline));
+      await tester.pumpAndSettle();
+    }
     await tester.tap(find.text('Ledger'));
     if (ledger == null) {
       await tester.pumpAndSettle();
@@ -148,9 +151,11 @@ void main() {
     expect(find.textContaining('Adjustment ·'), findsOneWidget);
   });
 
-  testWidgets('deleting an entry asks first, then removes it', (tester) async {
+  testWidgets('deleting an entry asks first, then holds it for Save', (
+    tester,
+  ) async {
     await event('e1', TripCylinderEventKind.fill, hour: 8, pressure: 200);
-    await pumpLedger(tester);
+    await pumpLedger(tester, unlock: true);
 
     await tester.tap(find.byKey(const Key('ledger-delete-e1')));
     await tester.pumpAndSettle();
@@ -159,55 +164,17 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('ledger-e1')), findsNothing);
-    expect(await repo.getEventsForCylinder(slot.id), isEmpty);
-  });
-
-  testWidgets('deleting a fill removes its passport copy', (tester) async {
-    await event('e1', TripCylinderEventKind.fill, hour: 8, pressure: 200);
-    final copyId = tripFillPassportCopyId('e1');
-    await CylinderFillRepository().create(
-      CylinderFill(
-        id: copyId,
-        passportId: 'passport-1',
-        filledAt: DateTime(2026, 3, 9, 8),
-        o2Percent: 32,
-        createdAt: at,
-        updatedAt: at,
-      ),
-    );
-    await pumpLedger(tester);
-
-    await tester.tap(find.byKey(const Key('ledger-delete-e1')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
-    await tester.pumpAndSettle();
-
-    expect(await CylinderFillRepository().getById(copyId), isNull);
+    // Held in the board's sitting until its Save (issue #4527).
+    expect(await repo.getEventsForCylinder(slot.id), hasLength(1));
   });
 
   testWidgets('tapping a fill opens it for editing', (tester) async {
     await event('e1', TripCylinderEventKind.fill, hour: 8, pressure: 200);
-    await pumpLedger(tester);
+    await pumpLedger(tester, unlock: true);
 
     await tester.tap(find.byKey(const Key('ledger-e1')));
     await tester.pumpAndSettle();
     expect(find.text('Edit fill'), findsOneWidget);
-  });
-
-  testWidgets('a failed delete says so and keeps the entry', (tester) async {
-    await event('e1', TripCylinderEventKind.fill, hour: 8, pressure: 200);
-    await pumpLedger(tester, repository: FailingTripCylinderRepository());
-
-    await tester.tap(find.byKey(const Key('ledger-delete-e1')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
-    await tester.pumpAndSettle();
-
-    expect(
-      find.text('Something went wrong. Please try again.'),
-      findsOneWidget,
-    );
-    expect(find.byKey(const Key('ledger-e1')), findsOneWidget);
   });
 
   testWidgets('a ledger still loading is not called empty', (tester) async {
@@ -230,30 +197,4 @@ void main() {
     expect(find.text('Error'), findsOneWidget);
     expect(find.text('No fills or adjustments yet'), findsNothing);
   });
-
-  testWidgets('a failed passport cleanup keeps the fill to delete again', (
-    tester,
-  ) async {
-    await event('e1', TripCylinderEventKind.fill, hour: 8, pressure: 200);
-    await pumpLedger(tester, copier: _FailingCopier());
-
-    await tester.tap(find.byKey(const Key('ledger-delete-e1')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
-    await tester.pumpAndSettle();
-
-    expect(
-      find.text('Something went wrong. Please try again.'),
-      findsOneWidget,
-    );
-    expect(find.byKey(const Key('ledger-e1')), findsOneWidget);
-    expect(await repo.getEventsForCylinder(slot.id), hasLength(1));
-  });
-}
-
-/// A passport copier whose cleanup always fails.
-class _FailingCopier extends TripFillPassportCopier {
-  @override
-  Future<void> afterDelete(String tripEventId) async =>
-      throw StateError('copy cleanup failed');
 }

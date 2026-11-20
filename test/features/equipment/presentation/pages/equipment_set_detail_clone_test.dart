@@ -104,11 +104,13 @@ void main() {
     await pump(tester, '/equipment/sets/s1');
     await tester.tap(find.byIcon(Icons.more_vert));
     await tester.pumpAndSettle();
+    // Locked, the caption that says Delete needs the unlock sits between
+    // them (issue #4527); it carries no value.
     final values = [
       for (final item in tester.widgetList<PopupMenuItem<String>>(
         find.byType(PopupMenuItem<String>),
       ))
-        item.value,
+        ?item.value,
     ];
     expect(values.sublist(values.length - 2), ['clone', 'delete']);
   });
