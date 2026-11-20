@@ -8,6 +8,9 @@ import 'package:submersion/features/documents/presentation/pages/document_detail
 import 'package:submersion/features/documents/presentation/pages/document_edit_page.dart';
 import 'package:submersion/features/documents/presentation/pages/document_edit_routes.dart';
 import 'package:submersion/features/gps_log/presentation/pages/gps_track_detail_page.dart';
+import 'package:submersion/features/marine_life/presentation/pages/species_detail_page.dart';
+import 'package:submersion/features/marine_life/presentation/pages/species_edit_page.dart';
+import 'package:submersion/features/marine_life/presentation/pages/species_edit_routes.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_align_page.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_detail_page.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_seascape_page.dart';
@@ -521,6 +524,15 @@ void main() {
     expect((form as DocumentEditPage).initialType, DocumentType.permit);
     expect(form.owner, const DocumentOwner(DocumentOwnerKind.trip, 't1'));
     final route = _findRouteByName(router.configuration.routes, 'newDocument');
+    expect(route?.onExit, same(confirmLeaveRecordSitting));
+  });
+
+  test('a new species opens the page with the switch on', () {
+    final page = newSpeciesPage(unlockEditing: true);
+    expect(page, isA<SpeciesDetailPage>());
+    expect((page as SpeciesDetailPage).newSpecies, isTrue);
+    expect(newSpeciesPage(unlockEditing: false), isA<SpeciesEditPage>());
+    final route = _findRouteByName(router.configuration.routes, 'newSpecies');
     expect(route?.onExit, same(confirmLeaveRecordSitting));
   });
 

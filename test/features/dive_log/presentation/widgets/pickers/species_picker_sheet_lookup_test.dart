@@ -56,6 +56,7 @@ class _RecordingRepository extends Fake implements SpeciesRepository {
 
   @override
   Future<Species> createSpecies({
+    String? id,
     required String commonName,
     String? scientificName,
     required SpeciesCategory category,

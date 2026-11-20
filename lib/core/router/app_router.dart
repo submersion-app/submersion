@@ -2344,7 +2344,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newSpecies',
-                builder: (context, state) => const SpeciesEditPage(),
+                onExit: confirmLeaveRecordSitting,
+                // Behind phase 3's switch, the species page opened on a new
+                // species (issue #4527, plan 11).
+                builder: (context, state) => newSpeciesPage(),
               ),
               // Species to review (issue #4727): one dive with `?dive=`,
               // else the whole log. Before `:speciesId`, which would take

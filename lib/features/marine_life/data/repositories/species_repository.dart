@@ -714,19 +714,24 @@ class SpeciesRepository {
   // ===========================================================================
 
   /// Create a custom (non-built-in) species
+  /// Creates a custom species, under [id] when one is given (a new
+  /// species' page makes its id before Save; issue #4527, phase 3, plan
+  /// 11), else under a new one.
   Future<domain.Species> createSpecies({
+    String? id,
     required String commonName,
     String? scientificName,
     required SpeciesCategory category,
     String? taxonomyClass,
     String? description,
   }) async {
-    final id = _uuid.v4();
+    final givenId = id;
+    final speciesId = givenId == null || givenId.isEmpty ? _uuid.v4() : givenId;
     await _db
         .into(_db.species)
         .insert(
           SpeciesCompanion(
-            id: Value(id),
+            id: Value(speciesId),
             commonName: Value(commonName),
             scientificName: Value(scientificName),
             category: Value(category.name),
@@ -739,13 +744,13 @@ class SpeciesRepository {
     final now = DateTime.now().millisecondsSinceEpoch;
     await _syncRepository.markRecordPending(
       entityType: 'species',
-      recordId: id,
+      recordId: speciesId,
       localUpdatedAt: now,
     );
     SyncEventBus.notifyLocalChange();
 
     return domain.Species(
-      id: id,
+      id: speciesId,
       commonName: commonName,
       scientificName: scientificName,
       category: category,
