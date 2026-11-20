@@ -592,6 +592,32 @@ void main() {
       expect(container.read(globalSearchFocusRequestProvider), isFalse);
     });
 
+    testWidgets('a focus request made under an open result is kept for Back', (
+      tester,
+    ) async {
+      usePhone(tester);
+      await tester.pumpWidget(
+        _app((_) async => [_section(GlobalSearchKind.buddies, 1)]),
+      );
+      await _search(tester, 'reef');
+      await tester.tap(find.text('Hit 0'));
+      await tester.pumpAndSettle();
+      expect(find.text('page /buddies/id0'), findsOneWidget);
+
+      // Ctrl+K over the record: the request is made, then the app walks back.
+      final container = ProviderScope.containerOf(
+        tester.element(find.text('page /buddies/id0')),
+      );
+      container.read(globalSearchFocusRequestProvider.notifier).state = true;
+      await tester.pump();
+      tester.state<NavigatorState>(find.byType(Navigator).first).pop();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Hit 0'), findsOneWidget);
+      expect(field(tester).focusNode!.hasFocus, isTrue);
+      expect(container.read(globalSearchFocusRequestProvider), isFalse);
+    });
+
     testWidgets(
       'a narrow desktop window has no on-screen keyboard, so keeps the focus',
       (tester) async {
