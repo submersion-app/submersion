@@ -33,3 +33,5 @@ flutter:
       macos:
         pluginClass: SubmersionVisionPlugin
         sharedDarwinSource: true
+      windows:
+        pluginClass: SubmersionVisionPluginCApi
