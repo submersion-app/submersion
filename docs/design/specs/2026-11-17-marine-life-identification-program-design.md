@@ -387,7 +387,9 @@ Out of scope here, recorded so the storage design leaves room for it.
   a labelled example. The stored identifications are a training set.
 - The cheapest useful step is fine-tuning the detector to stop boxing divers
   and hands: a few thousand corrected boxes and hours of training.
-- Next is a small naming layer trained on top of BioCLIP 2's embeddings.
+- Next is a small naming layer trained on top of BioCLIP 2's embeddings:
+  designed in [the naming layer design](2026-11-18-marine-life-naming-layer-design.md)
+  (issue #4724).
 - A small model of our own (approach 2) is worth attempting only if download
   size or phone speed turns out to block people.
 - Nothing a diver labels leaves their device without a separate, explicit
