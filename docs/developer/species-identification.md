@@ -118,6 +118,17 @@ package, `runtimes/osx-arm64/native/libonnxruntime.dylib`) named in
 cd packages/submersion_vision && SUBMERSION_ORT_LIBRARY=/path/to/libonnxruntime.dylib flutter test
 ```
 
+The pack's scorer measures this engine with the app's own code through a
+scoring runner, `tool/species_vision_onnx/species_vision_onnx_test.dart`,
+which runs under Flutter's test host (so photos are decoded by Flutter's own
+decoder, as in the app) and writes the Swift vision tool's JSON lines. It
+runs only when `SPECIES_VISION_REQUEST` names a request file:
+`{manifest, detectors, classifier, cropFit, detectorBoxes, photos, out,
+ortLibrary}`. species-pack's `score.py --engine onnx` writes the request and
+runs it. `test/features/species_id/data/onnx/onnx_worker_real_test.dart`
+runs the worker isolate end to end through real ONNX Runtime with two
+constant-output models (`tool/species_id/make_fake_onnx_models.py`).
+
 To move to a new ONNX Runtime, replace the headers in
 `packages/submersion_vision/third_party/onnxruntime/`, regenerate the
 bindings (`cd packages/submersion_vision/tool/ffigen && dart pub get && dart
