@@ -39,9 +39,18 @@ void loadTripSitting(EditSession<Trip> session, ProviderContainer container) {
   // Read now: an owner's Save clears share rows a sync race left beside
   // the Everyone flag, as the form's did, whichever card it changed.
   loadTripSharing(session, container.read);
-  tripVesselDetails(
+  final vessel = tripVesselDetails(
     container.read(liveaboardDetailsRepositoryProvider),
-  ).load(session);
+  );
+  if (session.isNew) {
+    // A new trip (plan 11): nothing is stored under its id, and its page
+    // shows no tab, so only its vessel starts, empty, besides its
+    // documents.
+    vessel.loadNone(session);
+    _holdTripDocuments(session, container);
+    return;
+  }
+  vessel.load(session);
   tripItineraryDays(
     container.read(itineraryDayRepositoryProvider),
   ).load(session);
@@ -58,13 +67,18 @@ void loadTripSitting(EditSession<Trip> session, ProviderContainer container) {
     copier: container.read(tripFillPassportCopierProvider),
   ).load(session);
   holdTripPhotos(session, container.read);
-  holdDocumentLinks(
-    session,
-    container.read,
-    owner: DocumentOwner(DocumentOwnerKind.trip, session.stored.id),
-    cardId: TripCardId.documents.name,
-  );
+  _holdTripDocuments(session, container);
 }
+
+void _holdTripDocuments(
+  EditSession<Trip> session,
+  ProviderContainer container,
+) => holdDocumentLinks(
+  session,
+  container.read,
+  owner: DocumentOwner(DocumentOwnerKind.trip, session.stored.id),
+  cardId: TripCardId.documents.name,
+);
 
 /// What a sitting on a trip loads and how it is saved, for every page that
 /// holds one: the trip page and its cylinder board (issue #4527, phase 3).
@@ -104,14 +118,36 @@ mixin TripSittingHost<W extends ConsumerStatefulWidget>
   Future<bool> beforeSave() async {
     final session = maybeEditController?.session;
     if (session == null) return true;
-    session.releaseWrite(assignDivesKey);
-    _assigned = null;
     final stored = session.stored;
     final working = session.working;
-    if (stored.startDate == working.startDate &&
-        stored.endDate == working.endDate) {
-      return true;
-    }
+    return askDivesInDates(
+      session,
+      ask:
+          stored.startDate != working.startDate ||
+          stored.endDate != working.endDate,
+    );
+  }
+
+  /// The dives the question at Save chose for [session]'s trip while their
+  /// write is held: how many, and the trips they leave.
+  ({int count, Set<String> oldTripIds})? divesChosenAtSave(
+    EditSession<Trip> session,
+  ) => session.isHeld(assignDivesKey) ? _assigned : null;
+
+  /// Drops an earlier answer, then, when [ask], offers the dives in the
+  /// trip's working dates that are not on it, and holds the ones chosen
+  /// for the sitting's write. A new trip asks whatever its dates (plan 11,
+  /// as the form asked after every create); false when the page went
+  /// meanwhile.
+  Future<bool> askDivesInDates(
+    EditSession<Trip> session, {
+    bool ask = true,
+  }) async {
+    session.releaseWrite(assignDivesKey);
+    _assigned = null;
+    if (!ask) return true;
+    final stored = session.stored;
+    final working = session.working;
     final trips = ref.read(tripRepositoryProvider);
     final List<DiveCandidate> found;
     try {
@@ -177,7 +213,7 @@ mixin TripSittingHost<W extends ConsumerStatefulWidget>
     final messenger = ScaffoldMessenger.maybeOf(context);
     final l10n = context.l10n;
     final container = ProviderScope.containerOf(context, listen: false);
-    final asked = session.isHeld(assignDivesKey) ? _assigned : null;
+    final asked = divesChosenAtSave(session);
     final scanned = scannedDivesOf(session);
     final assigned = asked == null && scanned.dives.isEmpty
         ? null
