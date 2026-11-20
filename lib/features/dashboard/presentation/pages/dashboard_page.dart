@@ -8,7 +8,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/courses/presentation/providers/course_requirement_providers.dart';
 import 'package:submersion/features/dashboard/presentation/home_cards.dart';
-import 'package:submersion/features/dashboard/presentation/home_layout.dart';
+import 'package:submersion/features/dashboard/presentation/legacy/legacy_home_layout.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/gauge_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/milestone_providers.dart';

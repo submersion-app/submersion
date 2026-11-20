@@ -1,145 +1,148 @@
+import 'dart:math';
+
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/features/dashboard/presentation/home_cards.dart';
 import 'package:submersion/features/dashboard/presentation/home_layout.dart';
-import 'package:submersion/features/dashboard/presentation/widgets/dashboard_grid.dart';
-import 'package:submersion/features/dashboard/presentation/widgets/media_ribbon_card.dart';
-import 'package:submersion/features/dashboard/presentation/widgets/milestones_card.dart';
-import 'package:submersion/features/dashboard/presentation/widgets/quick_actions_card.dart';
-import 'package:submersion/features/dashboard/presentation/widgets/recent_dives_card.dart';
-import 'package:submersion/features/dashboard/presentation/widgets/recent_sites_map_card.dart';
-import 'package:submersion/features/dashboard/presentation/widgets/waiting_for_download_card.dart';
-import 'package:submersion/features/dashboard/presentation/widgets/year_in_review_card.dart';
+import 'package:submersion/features/dashboard/presentation/home_panels.dart';
+
+const _balanced = [
+  HomePanelType.keyNumbers,
+  HomePanelType.waitingForDownload,
+  HomePanelType.preDive,
+  HomePanelType.activeCourses,
+  HomePanelType.activityCalendar,
+  HomePanelType.gearService,
+  HomePanelType.latestProfile,
+  HomePanelType.recentDives,
+  HomePanelType.depthMix,
+  HomePanelType.divesPerMonth,
+  HomePanelType.gasMix,
+  HomePanelType.photoRibbon,
+  HomePanelType.recentSitesMap,
+  HomePanelType.onThisDay,
+];
+
+int _sum(HomeRow r) => r.units.reduce((a, b) => a + b);
 
 void main() {
-  group('buildDashboardEntries', () {
-    test('default order builds the reorganized block structure', () {
-      final entries = buildDashboardEntries(HomeCardType.values);
-      // hero, gaugeStrip, preDive and waitingForDownload as FullBlocks;
-      // recentDives absorbs quickActions + milestones + yearInReview into a
-      // LeadSideGroup; photoRibbon + recentSitesMap pair up; onThisDay and
-      // activeCourses trail as Thirds.
-      expect(entries, hasLength(8));
-      expect(entries[0], isA<FullBlock>());
-      expect(entries[1], isA<FullBlock>());
-      expect(entries[2], isA<FullBlock>());
-      expect((entries[3] as FullBlock).child, isA<WaitingForDownloadCard>());
-      final group = entries[4] as LeadSideGroup;
-      expect(group.lead, isA<RecentDivesCard>());
-      expect(group.side, hasLength(3));
-      expect(group.side[0], isA<QuickActionsCard>());
-      expect(group.side[1], isA<MilestonesCard>());
-      expect(group.side[2], isA<YearInReviewCard>());
-      final pair = entries[5] as PairBlock;
-      expect(pair.first, isA<MediaRibbonCard>());
-      expect(pair.second, isA<RecentSitesMapCard>());
-      expect(entries[6], isA<ThirdBlock>());
-      expect(entries[7], isA<ThirdBlock>());
-    });
+  test('desktop Balanced rows match the approved mockup', () {
+    final rows = packHomeRows(_balanced, HomeWidthTier.desktop);
+    expect(rows.map((r) => r.panels).toList(), [
+      [HomePanelType.keyNumbers],
+      [
+        HomePanelType.waitingForDownload,
+        HomePanelType.preDive,
+        HomePanelType.activeCourses,
+      ],
+      [HomePanelType.activityCalendar, HomePanelType.gearService],
+      [HomePanelType.latestProfile, HomePanelType.recentDives],
+      [
+        HomePanelType.depthMix,
+        HomePanelType.divesPerMonth,
+        HomePanelType.gasMix,
+      ],
+      [
+        HomePanelType.photoRibbon,
+        HomePanelType.recentSitesMap,
+        HomePanelType.onThisDay,
+      ],
+    ]);
+    for (final r in rows) {
+      expect(_sum(r), 12);
+    }
+  });
 
-    test('paired media ribbon asks for two rows', () {
-      final entries = buildDashboardEntries(const [
-        HomeCardType.photoRibbon,
-        HomeCardType.recentSitesMap,
-      ]);
-      final pair = entries.single as PairBlock;
-      expect((pair.first as MediaRibbonCard).rows, 2);
-    });
+  test('a row takes the tallest height in it', () {
+    final rows = packHomeRows([
+      HomePanelType.keyNumbers,
+      HomePanelType.recentDives,
+    ], HomeWidthTier.desktop);
+    expect(rows[0].height, HomePanelHeight.short);
+    expect(rows[1].height, HomePanelHeight.medium);
+  });
 
-    test('sites before media pairs in that visual order', () {
-      final entries = buildDashboardEntries(const [
-        HomeCardType.recentSitesMap,
-        HomeCardType.photoRibbon,
-      ]);
-      final pair = entries.single as PairBlock;
-      expect(pair.first, isA<RecentSitesMapCard>());
-      expect(pair.second, isA<MediaRibbonCard>());
-      expect((pair.second as MediaRibbonCard).rows, 2);
-    });
+  test('no row exceeds 12 units and order is kept, at any tier', () {
+    final random = Random(1);
+    for (var i = 0; i < 500; i++) {
+      final panels = [...HomePanelType.values]..shuffle(random);
+      final subset = panels.take(random.nextInt(panels.length) + 1).toList();
+      for (final tier in HomeWidthTier.values) {
+        final rows = packHomeRows(subset, tier);
+        expect(rows.expand((r) => r.panels).toList(), subset);
+        for (final r in rows) {
+          expect(r.panels, isNotEmpty);
+          expect(r.units.length, r.panels.length);
+          expect(_sum(r), lessThanOrEqualTo(12));
+        }
+      }
+    }
+  });
 
-    test('media and sites pair only when adjacent', () {
-      final entries = buildDashboardEntries(const [
-        HomeCardType.photoRibbon,
-        HomeCardType.onThisDay,
-        HomeCardType.recentSitesMap,
-      ]);
-      expect(entries, hasLength(3));
-      expect(entries[0], isA<FullBlock>());
-      expect(entries[1], isA<ThirdBlock>());
-      expect(entries[2], isA<FullBlock>());
-    });
+  test('conditional panels never share a row with other panels', () {
+    final random = Random(2);
+    for (var i = 0; i < 200; i++) {
+      final panels = [...HomePanelType.values]..shuffle(random);
+      for (final tier in HomeWidthTier.values) {
+        for (final r in packHomeRows(panels, tier)) {
+          final flags = r.panels.map((p) => homePanelSpec(p).conditional);
+          expect(flags.toSet().length, 1, reason: '${r.panels}');
+        }
+      }
+    }
+  });
 
-    test('an unpaired media ribbon keeps its single row', () {
-      final entries = buildDashboardEntries(const [HomeCardType.photoRibbon]);
-      final block = entries.single as FullBlock;
-      expect((block.child as MediaRibbonCard).rows, 1);
-    });
+  test('a conditional panel arriving changes only its own row', () {
+    final withAll = packHomeRows(_balanced, HomeWidthTier.desktop);
+    final withOne = packHomeRows(
+      _balanced
+          .where(
+            (p) =>
+                p != HomePanelType.preDive && p != HomePanelType.activeCourses,
+          )
+          .toList(),
+      HomeWidthTier.desktop,
+    );
+    List<List<HomePanelType>> others(List<HomeRow> rows) => [
+      for (final r in rows)
+        if (!r.panels.contains(HomePanelType.waitingForDownload)) r.panels,
+    ];
+    expect(others(withOne), others(withAll));
+  });
 
-    test('yearInReview is side-capable on its own, without milestones', () {
-      final entries = buildDashboardEntries(const [
-        HomeCardType.recentDives,
-        HomeCardType.yearInReview,
-      ]);
-      final group = entries.single as LeadSideGroup;
-      expect(group.side, hasLength(1));
-      expect(group.side.single, isA<YearInReviewCard>());
-    });
+  test('phone: small charts pair, small lists take a whole row', () {
+    final rows = packHomeRows([
+      HomePanelType.depthMix,
+      HomePanelType.divesPerMonth,
+      HomePanelType.gearService,
+      HomePanelType.topSites,
+    ], HomeWidthTier.phone);
+    expect(rows.map((r) => r.panels).toList(), [
+      [HomePanelType.depthMix, HomePanelType.divesPerMonth],
+      [HomePanelType.gearService],
+      [HomePanelType.topSites],
+    ]);
+  });
 
-    test('the side column absorbs at most three cards', () {
-      final entries = buildDashboardEntries(const [
-        HomeCardType.recentDives,
-        HomeCardType.quickActions,
-        HomeCardType.milestones,
-        HomeCardType.yearInReview,
-        HomeCardType.onThisDay,
-      ]);
-      expect(entries, hasLength(2));
-      expect((entries[0] as LeadSideGroup).side, hasLength(3));
-      expect(entries[1], isA<ThirdBlock>());
-    });
+  test('tablet: large panels take a whole row', () {
+    final rows = packHomeRows([
+      HomePanelType.activityCalendar,
+      HomePanelType.gearService,
+      HomePanelType.recentDives,
+    ], HomeWidthTier.tablet);
+    expect(rows.map((r) => r.panels).toList(), [
+      [HomePanelType.activityCalendar],
+      [HomePanelType.gearService, HomePanelType.recentDives],
+    ]);
+  });
 
-    test('side cards absorb only when immediately after recentDives', () {
-      final entries = buildDashboardEntries(const [
-        HomeCardType.quickActions,
-        HomeCardType.recentDives,
-        HomeCardType.milestones,
-      ]);
-      expect(entries, hasLength(2));
-      expect(entries[0], isA<ThirdBlock>());
-      final group = entries[1] as LeadSideGroup;
-      expect(group.side, hasLength(1));
-      expect(group.side.single, isA<MilestonesCard>());
-    });
+  test('an empty list gives no rows', () {
+    expect(packHomeRows(const [], HomeWidthTier.desktop), isEmpty);
+  });
 
-    test('recentDives with no following side cards is a FullBlock', () {
-      final entries = buildDashboardEntries(const [
-        HomeCardType.recentDives,
-        HomeCardType.photoRibbon,
-      ]);
-      expect(entries[0], isA<FullBlock>());
-      expect((entries[0] as FullBlock).child, isA<RecentDivesCard>());
-    });
-
-    test('side cards without recentDives render as ThirdBlocks', () {
-      final entries = buildDashboardEntries(const [
-        HomeCardType.quickActions,
-        HomeCardType.milestones,
-      ]);
-      expect(entries, hasLength(2));
-      expect(entries[0], isA<ThirdBlock>());
-      expect(entries[1], isA<ThirdBlock>());
-    });
-
-    test('a non-side card directly after recentDives is never absorbed', () {
-      final entries = buildDashboardEntries(const [
-        HomeCardType.recentDives,
-        HomeCardType.onThisDay,
-      ]);
-      expect(entries[0], isA<FullBlock>());
-      expect(entries[1], isA<ThirdBlock>());
-    });
-
-    test('empty input produces no entries', () {
-      expect(buildDashboardEntries(const []), isEmpty);
-    });
+  test('tier boundaries follow the app breakpoints', () {
+    expect(homeWidthTierForWidth(320), HomeWidthTier.phone);
+    expect(homeWidthTierForWidth(799), HomeWidthTier.phone);
+    expect(homeWidthTierForWidth(800), HomeWidthTier.tablet);
+    expect(homeWidthTierForWidth(1199), HomeWidthTier.tablet);
+    expect(homeWidthTierForWidth(1200), HomeWidthTier.desktop);
   });
 }
