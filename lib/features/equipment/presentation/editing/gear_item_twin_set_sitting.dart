@@ -272,16 +272,17 @@ class SittingPairingWrites implements PairingWrites {
 
   final EditSession<EquipmentItem> session;
 
-  /// Every pairing as stored now, resolved.
-  final List<CylinderPairing> Function() stored;
+  /// Every pairing as stored now, resolved: awaited, so a step taken
+  /// before they load is still checked against them.
+  final Future<List<CylinderPairing>> Function() stored;
 
   final CylinderPairingRepository repository;
 
-  List<CylinderPairing> get _current =>
-      pairingsInSitting(stored(), heldPairingSteps(session));
+  Future<List<CylinderPairing>> _current() async =>
+      pairingsInSitting(await stored(), heldPairingSteps(session));
 
-  void _hold(HeldPairingStep step) {
-    applyPairingStep(_current, step);
+  Future<void> _hold(HeldPairingStep step) async {
+    applyPairingStep(await _current(), step);
     holdPairingStep(session, step, repository: repository);
   }
 
@@ -301,8 +302,8 @@ class SittingPairingWrites implements PairingWrites {
       unpairedOn: unpairedOn == null ? null : calendarDay(unpairedOn),
       replace: replace,
     );
-    _hold(step);
-    return _current.firstWhere((p) => p.id == step.id);
+    await _hold(step);
+    return (await _current()).firstWhere((p) => p.id == step.id);
   }
 
   @override

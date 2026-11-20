@@ -52,8 +52,8 @@ typedef HoldFill =
 /// With [editing] the sheet edits that fill rather than logging a new one.
 ///
 /// With [onHold] the sheet writes nothing: it asks what it asks today and
-/// hands the fill over, and [pairingOn] (the sitting's pairings) names the
-/// twin set partner.
+/// hands the fill over, and [pairingOn] (the sitting's pairings over the
+/// stored ones) names the twin set partner.
 Future<LoggedFill?> showLogFillSheet(
   BuildContext context, {
   required String passportId,
@@ -64,7 +64,7 @@ Future<LoggedFill?> showLogFillSheet(
   bool mixFromPlan = false,
   CylinderFill? editing,
   HoldFill? onHold,
-  CylinderPairing? Function(DateTime day)? pairingOn,
+  SittingPairingOn? pairingOn,
 }) => showModalBottomSheet<LoggedFill>(
   context: context,
   isScrollControlled: true,
@@ -84,6 +84,11 @@ Future<LoggedFill?> showLogFillSheet(
     ),
   ),
 );
+
+/// The pairing a cylinder was in on [day], as a sitting has them laid over
+/// the [stored] pairings.
+typedef SittingPairingOn =
+    CylinderPairing? Function(List<CylinderPairing> stored, DateTime day);
 
 class LogFillSheet extends ConsumerStatefulWidget {
   const LogFillSheet({
@@ -115,9 +120,11 @@ class LogFillSheet extends ConsumerStatefulWidget {
   /// Takes the fill instead of writing it: a gear item's sitting.
   final HoldFill? onHold;
 
-  /// The pairing on a day, as the sitting has them; the stored pairings
+  /// The pairing on a day, as the sitting has them over the [stored]
+  /// pairings the sheet reads (and waits for at Save, so a sheet opened
+  /// before they load still finds the partner); the stored pairings alone
   /// when null.
-  final CylinderPairing? Function(DateTime day)? pairingOn;
+  final SittingPairingOn? pairingOn;
 
   @override
   ConsumerState<LogFillSheet> createState() => _LogFillSheetState();
@@ -197,11 +204,16 @@ class _LogFillSheetState extends ConsumerState<LogFillSheet> {
   }
 
   /// The twin set partner of this cylinder on the fill's day (issue #4242),
-  /// or null when it had none or the sheet edits a fill.
+  /// or null when it had none, the sheet edits a fill, or (in a sitting)
+  /// the stored pairings are still loading: Save waits for them, so null
+  /// here is not "no twin set".
   EquipmentItem? _watchPartner() {
     if (widget.editing != null) return null;
     final pairing = switch (widget.pairingOn) {
-      final on? => on(calendarDay(_filledAt)),
+      final on? => switch (ref.watch(allPairingsProvider).value) {
+        final stored? => on(stored, calendarDay(_filledAt)),
+        null => null,
+      },
       null =>
         ref
             .watch(
@@ -441,7 +453,10 @@ class _LogFillSheetState extends ConsumerState<LogFillSheet> {
   Future<EquipmentItem?> _partnerForSave() async {
     try {
       final pairing = switch (widget.pairingOn) {
-        final on? => on(calendarDay(_filledAt)),
+        final on? => on(
+          await ref.read(allPairingsProvider.future),
+          calendarDay(_filledAt),
+        ),
         null => await ref.read(
           pairingOnProvider((
             equipmentId: widget.equipmentId,
