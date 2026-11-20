@@ -9,7 +9,7 @@ set(PLUGIN_NAME "submersion_vision_plugin")
 
 # The Windows part of the marine life engine reads video frames for the ONNX
 # engine (piece 3). The models run in Dart through ONNX Runtime, which the
-# package's build hook ships with Windows ML and DirectML.
+# package's build hook ships (plain ONNX Runtime, on the processor).
 list(APPEND PLUGIN_SOURCES
   "submersion_vision_plugin.cpp"
   "submersion_vision_plugin.h"

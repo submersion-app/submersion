@@ -179,7 +179,17 @@ class OrtRuntime {
         api.ref.ReleaseSessionOptions
             .asFunction<void Function(Pointer<OrtSessionOptions>)>()(options);
       }
-      return OrtModelSession._(api, sessionOut.value, settings.device);
+      final session = sessionOut.value;
+      try {
+        return OrtModelSession._(api, session, settings.device);
+      } on Object {
+        // The session opened but could not be described (a model with no
+        // input): it is released here, not left loaded.
+        api.ref.ReleaseSession.asFunction<void Function(Pointer<OrtSession>)>()(
+          session,
+        );
+        rethrow;
+      }
     } finally {
       calloc.free(optionsOut);
       calloc.free(sessionOut);
@@ -293,8 +303,13 @@ class OrtRuntime {
 
 /// One loaded model.
 class OrtModelSession {
+  /// Reads the session's names and makes its memory info; whatever was
+  /// made before a failure is freed again, and the caller releases the
+  /// session.
   OrtModelSession._(this._api, this._session, this._device) {
+    Pointer<Pointer<Char>>? inputs, outputs;
     final allocatorOut = calloc<Pointer<OrtAllocator>>();
+    final infoOut = calloc<Pointer<OrtMemoryInfo>>();
     try {
       _check(
         _api,
@@ -304,13 +319,8 @@ class OrtModelSession {
         ),
       );
       final allocator = allocatorOut.value;
-      _inputNames = _names(allocator, input: true);
-      _outputNames = _names(allocator, input: false);
-    } finally {
-      calloc.free(allocatorOut);
-    }
-    final infoOut = calloc<Pointer<OrtMemoryInfo>>();
-    try {
+      inputs = _names(allocator, input: true);
+      outputs = _names(allocator, input: false);
       _check(
         _api,
         _api.ref.CreateCpuMemoryInfo
@@ -322,8 +332,15 @@ class OrtModelSession {
           infoOut,
         ),
       );
+      _inputNames = inputs;
+      _outputNames = outputs;
       _memoryInfo = infoOut.value;
+    } on Object {
+      if (inputs != null) _freeNames(inputs, 1);
+      if (outputs != null) _freeNames(outputs, _outputCount);
+      rethrow;
     } finally {
+      calloc.free(allocatorOut);
       calloc.free(infoOut);
     }
   }
@@ -345,7 +362,8 @@ class OrtModelSession {
     if (_closed) throw const OrtException('the session is closed');
     final api = _api;
     final count = input.data.length;
-    final data = calloc<Float>(count);
+    // Not zeroed: every value is written just below.
+    final data = malloc<Float>(count);
     final shape = calloc<Int64>(input.shape.length);
     final inputValue = calloc<Pointer<OrtValue>>();
     final outputs = calloc<Pointer<OrtValue>>(_outputCount);
@@ -413,7 +431,7 @@ class OrtModelSession {
         }
       }
     } finally {
-      calloc.free(data);
+      malloc.free(data);
       calloc.free(shape);
       calloc.free(inputValue);
       calloc.free(outputs);
@@ -456,6 +474,7 @@ class OrtModelSession {
         throw const OrtException('the model has no input');
       }
       if (!input) _outputCount = count;
+      // Zeroed, so a name not yet copied is null when freed after a failure.
       final names = calloc<Pointer<Char>>(count);
       final getName =
           (input ? api.ref.SessionGetInputName : api.ref.SessionGetOutputName)
@@ -469,11 +488,16 @@ class OrtModelSession {
               >();
       final free = api.ref.AllocatorFree
           .asFunction<_Status Function(Pointer<OrtAllocator>, Pointer<Void>)>();
-      for (var i = 0; i < count; i++) {
-        _check(api, getName(_session, i, allocator, nameOut));
-        final name = nameOut.value.cast<Utf8>().toDartString();
-        _check(api, free(allocator, nameOut.value.cast()));
-        names[i] = name.toNativeUtf8().cast();
+      try {
+        for (var i = 0; i < count; i++) {
+          _check(api, getName(_session, i, allocator, nameOut));
+          final name = nameOut.value.cast<Utf8>().toDartString();
+          _check(api, free(allocator, nameOut.value.cast()));
+          names[i] = name.toNativeUtf8(allocator: calloc).cast();
+        }
+      } on Object {
+        _freeNames(names, count);
+        rethrow;
       }
       return names;
     } finally {
@@ -484,7 +508,7 @@ class OrtModelSession {
 
   void _freeNames(Pointer<Pointer<Char>> names, int count) {
     for (var i = 0; i < count; i++) {
-      calloc.free(names[i]);
+      if (names[i] != nullptr) calloc.free(names[i]);
     }
     calloc.free(names);
   }

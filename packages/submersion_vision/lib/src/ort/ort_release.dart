@@ -8,7 +8,7 @@
 /// `Microsoft.ML.OnnxRuntime` for Linux and Windows. To move to a new
 /// version, replace every URL and hash here, the vendored headers in
 /// `third_party/onnxruntime/`, and the generated bindings
-/// (`dart run tool/ffigen_ort.dart`).
+/// (`cd tool/ffigen && dart run ffigen_ort.dart`).
 library;
 
 /// The asset id the engine's ONNX Runtime binding is bound to
@@ -85,10 +85,8 @@ const _archives = <String, OrtArchive>{
     ],
   ),
   'linux-x64': OrtArchive(
-    url:
-        'https://api.nuget.org/v3-flatcontainer/microsoft.ml.onnxruntime/'
-        '1.28.0/microsoft.ml.onnxruntime.1.28.0.nupkg',
-    sha256: '769d1d3ea8ab6cd69f737c9dd4d4462aa4ad0ccfa106eaf506efc40d7bead5db',
+    url: _ortNuget,
+    sha256: _ortNugetSha256,
     libraries: [
       OrtLibrary(
         assetName: ortNativeAsset,

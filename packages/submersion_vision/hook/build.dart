@@ -26,35 +26,11 @@ void main(List<String> args) async {
     final shared = Directory.fromUri(
       input.outputDirectoryShared.resolve('onnxruntime/'),
     )..createSync(recursive: true);
-    final download = File.fromUri(shared.uri.resolve(archive.fileName));
-    if (!await _matches(download, archive.sha256)) {
-      await _fetch(archive.url, download);
-      if (!await _matches(download, archive.sha256)) {
-        download.deleteSync();
-        throw BuildError(
-          message:
-              '${archive.url} does not match its pinned SHA-256 '
-              '(${archive.sha256})',
-        );
-      }
-    }
-
-    // One folder per target: Android's ABIs share a library name.
-    final dir = Directory.fromUri(shared.uri.resolve('$os-$arch/'))
-      ..createSync(recursive: true);
-    for (final library in archive.libraries) {
-      final file = File.fromUri(dir.uri.resolve(library.entry.split('/').last));
-      if (!await _matches(file, library.sha256)) {
-        await _extract(download, library.entry, file);
-        if (!await _matches(file, library.sha256)) {
-          file.deleteSync();
-          throw BuildError(
-            message:
-                '${library.entry} in ${archive.fileName} does not match its '
-                'pinned SHA-256 (${library.sha256})',
-          );
-        }
-      }
+    for (final (library, file) in await ensureLibraries(
+      archive,
+      shared,
+      '$os-$arch',
+    )) {
       output.assets.code.add(
         CodeAsset(
           package: input.packageName,
@@ -67,15 +43,71 @@ void main(List<String> args) async {
   });
 }
 
+/// Downloads [url] to [to].
+typedef Fetch = Future<void> Function(String url, File to);
+
+/// [archive]'s libraries in [shared]/[target] (one folder per target, since
+/// Android's ABIs share a library name), each checked against its pin. A
+/// library already there and matching is used as it is; the archive is
+/// downloaded, checked and read only when one is missing or changed.
+Future<List<(OrtLibrary, File)>> ensureLibraries(
+  OrtArchive archive,
+  Directory shared,
+  String target, {
+  Fetch fetch = fetchUrl,
+}) async {
+  final dir = Directory.fromUri(shared.uri.resolve('$target/'))
+    ..createSync(recursive: true);
+  final files = [
+    for (final library in archive.libraries)
+      (library, File.fromUri(dir.uri.resolve(library.entry.split('/').last))),
+  ];
+  final stale = [
+    for (final (library, file) in files)
+      if (!await _matches(file, library.sha256)) (library, file),
+  ];
+  if (stale.isEmpty) return files;
+
+  final download = File.fromUri(shared.uri.resolve(archive.fileName));
+  if (!await _matches(download, archive.sha256)) {
+    await fetch(archive.url, download);
+    if (!await _matches(download, archive.sha256)) {
+      if (download.existsSync()) download.deleteSync();
+      throw BuildError(
+        message:
+            '${archive.url} does not match its pinned SHA-256 '
+            '(${archive.sha256})',
+      );
+    }
+  }
+  for (final (library, file) in stale) {
+    await _extract(download, library.entry, file);
+    if (!await _matches(file, library.sha256)) {
+      file.deleteSync();
+      throw BuildError(
+        message:
+            '${library.entry} in ${archive.fileName} does not match its '
+            'pinned SHA-256 (${library.sha256})',
+      );
+    }
+  }
+  return files;
+}
+
 Future<bool> _matches(File file, String sha256Hex) async =>
     file.existsSync() &&
     (await file.openRead().transform(sha256).first).toString() == sha256Hex;
 
+/// Where [to] is written before it is complete: named for this process, so
+/// two builds at once (Android's ABIs share one archive) never write,
+/// rename or delete each other's file.
+File partFile(File to) => File('${to.path}.$pid.part');
+
 /// Downloads [url] to [to], through a temporary file so an interrupted
 /// download never looks finished.
-Future<void> _fetch(String url, File to) async {
+Future<void> fetchUrl(String url, File to) async {
   final client = HttpClient();
-  final tmp = File('${to.path}.part');
+  final tmp = partFile(to);
   try {
     final request = await client.getUrl(Uri.parse(url));
     final response = await request.close();
@@ -101,7 +133,7 @@ Future<void> _extract(File archive, String entry, File to) async {
     if (found == null) {
       throw BuildError(message: '${archive.path} holds no $entry');
     }
-    final tmp = File('${to.path}.part');
+    final tmp = partFile(to);
     await tmp.writeAsBytes(found.readBytes()!, flush: true);
     tmp.renameSync(to.path);
   } finally {

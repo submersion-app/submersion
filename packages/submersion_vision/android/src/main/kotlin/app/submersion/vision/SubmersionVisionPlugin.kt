@@ -49,8 +49,10 @@ class SubmersionVisionPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
             } catch (e: FrameException) {
                 main.post { result.error(e.code, e.message, null) }
                 return@execute
-            } catch (e: Exception) {
-                main.post { result.error("decode_failed", e.message, null) }
+            } catch (e: Throwable) {
+                // Throwable, not Exception: an OutOfMemoryError on a large
+                // frame fails that frame instead of leaving the call unanswered.
+                main.post { result.error("decode_failed", e.message ?: e.toString(), null) }
                 return@execute
             }
             main.post {
