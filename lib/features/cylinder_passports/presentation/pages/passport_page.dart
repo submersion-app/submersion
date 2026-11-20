@@ -41,10 +41,10 @@ CylinderPassportPayload? scannedTagFrom(Object? extra) =>
 /// One cylinder's passport (spec section 8): every card names its source of
 /// truth, and every value with a unit goes through the unit formatter.
 ///
-/// It is a satellite page of the cylinder's gear item (issue #4527): opened alone it opens locked, and its
-/// own Unlock, Cancel and Save hold and write the item's changes as one
-/// History entry; pushed from an unlocked item page ([joined]) it joins that
-/// sitting and shows Done.
+/// It is a satellite page of the cylinder's gear item (issue #4527): opened
+/// alone it opens locked, and its own Unlock, Cancel and Save hold and write
+/// the item's changes as one History entry; pushed from an unlocked item page
+/// ([joined]) it joins that sitting and shows Done.
 class PassportPage extends ConsumerStatefulWidget {
   const PassportPage({
     super.key,

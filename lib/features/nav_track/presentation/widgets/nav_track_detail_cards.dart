@@ -174,8 +174,8 @@ class NavTrackSiteCard extends ConsumerWidget {
   }
 }
 
-/// The route's device/equipment row, built from the same [NavTrackActionCard] as
-/// [NavTrackSiteCard]: an equipment or device name, or a "no device"
+/// The route's device/equipment row, built from the same [NavTrackActionCard]
+/// as [NavTrackSiteCard]: an equipment or device name, or a "no device"
 /// placeholder. Mirrors the site row so the two "set this once at import,
 /// change it any time afterward" fields read the same way. The device is
 /// changed in the Device card's editor.

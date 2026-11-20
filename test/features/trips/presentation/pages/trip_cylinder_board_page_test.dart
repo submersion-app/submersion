@@ -26,6 +26,7 @@ import 'package:submersion/features/trips/presentation/providers/trip_cylinder_p
 import 'package:submersion/features/trips/presentation/providers/trip_gas_record_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_fill_forecast_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
@@ -92,6 +93,7 @@ void main() {
     ItineraryDayRepository? itinerary,
     TripGasRecord? record,
     bool unlock = false,
+    Object? tripReadError,
   }) async {
     // The lock shows only once the board has read its states, so an
     // unlock needs the page settled.
@@ -121,6 +123,10 @@ void main() {
             tripCylinderRepositoryProvider.overrideWithValue(repository),
           if (states != null)
             tripCylinderStatesProvider(tripId).overrideWith((ref) => states),
+          if (tripReadError != null)
+            tripByIdProvider(
+              tripId,
+            ).overrideWith((ref) async => throw tripReadError),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -176,6 +182,29 @@ void main() {
     );
     await tester.pumpAndSettle();
   }
+
+  testWidgets('a board whose trip is gone says so instead of waiting', (
+    tester,
+  ) async {
+    await TripRepository().deleteTrip(tripId);
+    await pumpBoard(tester);
+
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(
+      find.text(AppLocalizationsEn().trips_detail_error_loading),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a board whose trip cannot be read says so', (tester) async {
+    await pumpBoard(tester, tripReadError: StateError('broken'));
+
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(
+      find.text(AppLocalizationsEn().trips_detail_error_loading),
+      findsOneWidget,
+    );
+  });
 
   testWidgets('an empty board offers to add cylinders', (tester) async {
     await pumpBoard(tester, unlock: true);

@@ -18,6 +18,7 @@ import 'package:submersion/core/data/visibility/item_sharing.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/shared_items_fixture.dart';
+import 'open_unlocked_trip_menu.dart';
 
 /// A shared trip's page offers Delete to its owner and "Remove from my
 /// profile" to everyone else (issue #2594).
@@ -124,7 +125,7 @@ void main() {
   ) async {
     await pump(tester, active: 'd2', profileUnreadable: true);
 
-    await _openTripMenu(tester);
+    await openUnlockedTripMenu(tester);
     await tester.pumpAndSettle();
     expect(find.text('Export'), findsOneWidget);
     expect(find.text('Delete'), findsNothing);
@@ -137,7 +138,7 @@ void main() {
     final notifier = await pump(tester, active: 'd2');
     expect(find.text('Shared by Alice'), findsOneWidget);
 
-    await _openTripMenu(tester);
+    await openUnlockedTripMenu(tester);
     await tester.pumpAndSettle();
     expect(find.text('Delete'), findsNothing);
     await tester.tap(find.text('Remove from my profile'));
@@ -168,7 +169,7 @@ void main() {
       findsOneWidget,
     );
 
-    await _openTripMenu(tester);
+    await openUnlockedTripMenu(tester);
     await tester.pumpAndSettle();
     expect(find.text('Remove from my profile'), findsNothing);
     expect(find.text('Delete'), findsNothing);
@@ -185,7 +186,7 @@ void main() {
     tester,
   ) async {
     final notifier = await pump(tester, active: 'd2', allowed: false);
-    await _openTripMenu(tester);
+    await openUnlockedTripMenu(tester);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Remove from my profile'));
     await tester.pumpAndSettle();
@@ -201,7 +202,7 @@ void main() {
     tester,
   ) async {
     await pump(tester, active: 'd2', failHides: true);
-    await _openTripMenu(tester);
+    await openUnlockedTripMenu(tester);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Remove from my profile'));
     await tester.pumpAndSettle();
@@ -221,7 +222,7 @@ void main() {
     tester,
   ) async {
     final notifier = await pump(tester, active: 'd2');
-    await _openTripMenu(tester);
+    await openUnlockedTripMenu(tester);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Remove from my profile'));
     await tester.pumpAndSettle();
@@ -252,7 +253,7 @@ void main() {
     ).invalidate(validatedCurrentDiverIdProvider);
     await tester.pump();
 
-    await _openTripMenu(tester);
+    await openUnlockedTripMenu(tester);
     await tester.pumpAndSettle();
     expect(find.text('Delete'), findsNothing);
     expect(find.text('Remove from my profile'), findsNothing);
@@ -261,7 +262,8 @@ void main() {
 
     activeProfile.settle('d2');
     await tester.pumpAndSettle();
-    await _openTripMenu(tester);
+    // Still unlocked from the first look.
+    await tester.tap(find.byIcon(Icons.more_vert).last);
     await tester.pumpAndSettle();
     expect(find.text('Remove from my profile'), findsOneWidget);
     expect(find.text('Delete'), findsNothing);
@@ -276,7 +278,7 @@ void main() {
       hidden: true,
       failHides: true,
     );
-    await _openTripMenu(tester);
+    await openUnlockedTripMenu(tester);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Show in my profile'));
     await tester.pumpAndSettle();
@@ -292,7 +294,7 @@ void main() {
     tester,
   ) async {
     final notifier = await pump(tester, active: 'd1', allowed: false);
-    await _openTripMenu(tester);
+    await openUnlockedTripMenu(tester);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Delete'));
     await tester.pumpAndSettle();
@@ -310,7 +312,7 @@ void main() {
     await pump(tester, active: 'd1');
     expect(find.textContaining('Shared by'), findsNothing);
 
-    await _openTripMenu(tester);
+    await openUnlockedTripMenu(tester);
     await tester.pumpAndSettle();
     expect(find.text('Remove from my profile'), findsNothing);
     await tester.tap(find.text('Delete'));
@@ -333,7 +335,7 @@ void main() {
       sharing: const ItemSharing(profileIds: {'d3'}),
     );
     expect(find.textContaining('Shared by'), findsNothing);
-    await _openTripMenu(tester);
+    await openUnlockedTripMenu(tester);
     await tester.pumpAndSettle();
     expect(find.text('Remove from my profile'), findsNothing);
   });
@@ -346,7 +348,7 @@ void main() {
       active: 'd2',
       sharing: const ItemSharing(profileIds: {'d2'}),
     );
-    await _openTripMenu(tester);
+    await openUnlockedTripMenu(tester);
     await tester.pumpAndSettle();
     expect(find.text('Remove from my profile'), findsOneWidget);
   });
@@ -412,16 +414,4 @@ class _RecordingTripListNotifier
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-/// Opens the trip page's menu, unlocking the page first: Delete, Remove
-/// from my profile and Unhide are whole-record operations, under the lock
-/// (issue #4527).
-Future<void> _openTripMenu(WidgetTester tester) async {
-  final lock = find.byIcon(Icons.lock_outline);
-  if (lock.evaluate().isNotEmpty) {
-    await tester.tap(lock.first);
-    await tester.pumpAndSettle();
-  }
-  await tester.tap(find.byIcon(Icons.more_vert).last);
 }

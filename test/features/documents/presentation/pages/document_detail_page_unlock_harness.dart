@@ -133,6 +133,10 @@ Future<DocumentPageHarness> pumpDocumentPage(
   VoidCallback? onSittingEnded,
   Size size = const Size(600, 1000),
   String? ownerLabel,
+  // The record read throws this, or (true) finds no record, while the
+  // list entry still reads.
+  Object? recordReadError,
+  bool recordMissing = false,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -148,9 +152,11 @@ Future<DocumentPageHarness> pumpDocumentPage(
       overrides: [
         ...overrides,
         _storedProvider.overrideWith((ref) => record),
-        documentRecordProvider(
-          doc.id,
-        ).overrideWith((ref) async => ref.watch(_storedProvider)),
+        documentRecordProvider(doc.id).overrideWith((ref) async {
+          if (recordReadError != null) throw recordReadError;
+          if (recordMissing) return null;
+          return ref.watch(_storedProvider);
+        }),
         documentEntryProvider(doc.id).overrideWith((ref) async {
           final now = ref.watch(_storedProvider)?.document ?? doc;
           return DocumentListEntry(now, ownerLabel, pages.length);

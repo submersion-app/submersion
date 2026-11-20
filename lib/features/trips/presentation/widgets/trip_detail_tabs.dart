@@ -26,10 +26,11 @@ export 'package:submersion/features/trips/presentation/widgets/trip_detail_tab.d
 class TripDetailTabs extends ConsumerStatefulWidget {
   final TripWithStats tripWithStats;
 
-  /// Opens the trip editor at a day's note (#4625); null hides the action.
+  /// Opens the Notes card at a day's note (#4625, issue #4527); null hides
+  /// the action.
   final ValueChanged<TripNoteDay>? onEditDayNote;
 
-  /// The tab controller of a page that edits in place (issue #4527), which
+  /// The trip page's tab controller (issue #4527), which
   /// needs to know the tab in view and to bring another forward. With one,
   /// each tab is kept alive while the trip is unlocked. Null uses a tab
   /// controller of its own.

@@ -18,7 +18,6 @@ mixin _EquipmentSetDetailPageSections
     EquipmentSet shown,
     EquipmentSet stored,
   ) {
-    final setId = stored.id;
     // The gear the set applies, as the sitting has it while unlocked
     // (Question 4): its own and that of the sets it includes.
     final items = setItemsShown(ref, shown, stored) ?? const <EquipmentItem>[];
@@ -147,7 +146,7 @@ mixin _EquipmentSetDetailPageSections
                 ),
                 const SizedBox(height: 8),
                 if (items.isEmpty)
-                  _buildEmptyMembers(context, setId)
+                  _buildEmptyMembers(context)
                 else
                   for (final group in groups) ...[
                     if (group.type != null)
@@ -220,8 +219,7 @@ mixin _EquipmentSetDetailPageSections
   }
 
   /// The header block: the set's name, its Default chip, its description,
-  /// auto-apply when it is on, and the count
-  /// of what it applies (calculated).
+  /// auto-apply when it is on, and the count of what it applies (calculated).
   Widget _buildHeaderCard(
     BuildContext context,
     EquipmentSet set,
@@ -333,7 +331,7 @@ mixin _EquipmentSetDetailPageSections
 
   /// The Members card with no gear: its pencil opens the editor
   /// (Call 6).
-  Widget _buildEmptyMembers(BuildContext context, String setId) {
+  Widget _buildEmptyMembers(BuildContext context) {
     final theme = Theme.of(context);
     return Card(
       child: Padding(

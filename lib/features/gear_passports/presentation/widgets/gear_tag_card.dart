@@ -39,9 +39,10 @@ class GearTagCard extends ConsumerWidget {
   final GearTagPayload? scannedTag;
   final Future<void> Function(BuildContext buttonContext)? onPrintLabel;
 
-  /// The open card's sitting (issue #4527, phase 3): Link existing tag is
-  /// held there until Save. With no sitting given, the tag cannot be linked; during a sitting every view
-  /// shows the linked tag. Writing the tag and printing are not changes.
+  /// The open card's sitting (issue #4527, phase 3): Link existing tag is held
+  /// there until Save. With no sitting given, the tag cannot be linked; during
+  /// a sitting every view shows the linked tag. Writing the tag and printing
+  /// are not changes.
   final EditSession<EquipmentItem>? editing;
 
   @override

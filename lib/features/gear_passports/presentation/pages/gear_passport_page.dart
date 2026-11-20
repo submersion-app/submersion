@@ -35,9 +35,9 @@ import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
 /// passport instead, so a stale link or a retyped item never lands on the
 /// wrong page.
 ///
-/// It is a satellite page of the item (issue #4527), as the cylinder passport is: opened alone it has its
-/// own lock and Save, pushed from an unlocked item page ([joined]) it joins
-/// that sitting.
+/// It is a satellite page of the item (issue #4527), as the cylinder passport
+/// is: opened alone it has its own lock and Save, pushed from an unlocked item
+/// page ([joined]) it joins that sitting.
 class GearPassportPage extends ConsumerStatefulWidget {
   const GearPassportPage({
     super.key,

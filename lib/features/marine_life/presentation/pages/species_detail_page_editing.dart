@@ -112,10 +112,9 @@ mixin _SpeciesDetailPageEditing
     child: child,
   );
 
-  /// The Photos card: locked it offers
-  /// nothing that writes; unlocked its Tag photos holds the choice for Save,
-  /// and the photos held show ahead of the stored ones, each with a way to
-  /// take it back.
+  /// The Photos card: locked it offers nothing that writes; unlocked its Tag
+  /// photos holds the choice for Save, and the photos held show ahead of the
+  /// stored ones, each with a way to take it back.
   Widget _photosInSitting() {
     final session = maybeEditController?.session;
     final held = session == null

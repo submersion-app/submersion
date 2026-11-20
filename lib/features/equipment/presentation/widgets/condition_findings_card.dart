@@ -40,9 +40,9 @@ bool hasVisibleConditionFindings(
 class ConditionFindingsCard extends ConsumerStatefulWidget {
   final EquipmentItem equipment;
 
-  /// The open card's sitting (issue #4527, phase 3): dismissing and
-  /// restoring are held there until Save. With no sitting given, the findings read only; during a sitting
-  /// every view shows its dismissals.
+  /// The open card's sitting (issue #4527, phase 3): dismissing and restoring
+  /// are held there until Save. With no sitting given, the findings read only;
+  /// during a sitting every view shows its dismissals.
   final EditSession<EquipmentItem>? editing;
 
   const ConditionFindingsCard({

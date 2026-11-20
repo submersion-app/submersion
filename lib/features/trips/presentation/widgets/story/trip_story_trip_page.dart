@@ -66,8 +66,8 @@ class TripStoryTripPage extends ConsumerWidget {
     final scheme = theme.colorScheme;
     final l10n = context.l10n;
     final units = ref.watch(unitFormatterProvider);
-    // On the trip page, the cards show the sitting's trip and
-    // sit in its frames (issue #4527).
+    // On the trip page, the cards show the sitting's trip and sit in its frames
+    // (issue #4527).
     final slots = TripCardSlotsScope.maybeOf(context);
     final trip = slots?.shown ?? story.trip;
     Widget framed(TripCardId id, Widget child) =>

@@ -325,10 +325,9 @@ void main() {
     /// whole-record operations, under the lock (issue #4527).
     Future<void> openMenu(WidgetTester tester) async {
       final lock = find.byIcon(Icons.lock_outline);
-      if (lock.evaluate().isNotEmpty) {
-        await tester.tap(lock.first);
-        await tester.pumpAndSettle();
-      }
+      expect(lock, findsOneWidget);
+      await tester.tap(lock);
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(overflow).last);
       await tester.pumpAndSettle();
     }

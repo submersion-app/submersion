@@ -53,9 +53,9 @@ Widget gearItemEditPane(
 );
 
 /// After a Save in the list's pane, says so when the list's view no longer
-/// shows item [equipmentId] of [status] and offers the view that does
-/// (#3068): an item the list hides seemed not to have
-/// saved at all. A check that fails says the item was updated instead.
+/// shows item [equipmentId] of [status] and offers the view that does (#3068):
+/// an item the list hides seemed not to have saved at all. A check that fails
+/// says the item was updated instead.
 ///
 /// Runs on [container] and [messenger], taken before the Save ended the
 /// pane's sitting: the pane's page is replaced as it ends, so its own ref

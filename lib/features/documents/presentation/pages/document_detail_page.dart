@@ -141,7 +141,8 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage>
     final entry = ref.watch(documentEntryProvider(widget.documentId));
     final units = ref.watch(unitFormatterProvider);
     followStored(documentRecordProvider(widget.documentId));
-    final record = ref.watch(documentRecordProvider(widget.documentId)).value;
+    final recordAsync = ref.watch(documentRecordProvider(widget.documentId));
+    final record = recordAsync.value;
     return entry.when(
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),
@@ -164,8 +165,18 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage>
           catalog: ref.watch(certificationCatalogSyncProvider),
         );
         if (record == null) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+          // The page edits the record: until it is read there is nothing to
+          // show, and a read that failed or found nothing says so.
+          final error = recordAsync.error;
+          return Scaffold(
+            appBar: AppBar(automaticallyImplyLeading: !widget.embedded),
+            body: Center(
+              child: error != null
+                  ? Text(l10n.documents_error_load('$error'))
+                  : recordAsync.hasValue
+                  ? Text(l10n.documents_empty)
+                  : const CircularProgressIndicator(),
+            ),
           );
         }
         openUnlockedOnce(record);

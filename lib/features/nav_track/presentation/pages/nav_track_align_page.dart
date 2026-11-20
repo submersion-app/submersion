@@ -66,9 +66,9 @@ enum _Placing { none, start, end }
 /// it needs from a [NavTrack], and building one here keeps that widget
 /// untouched.
 ///
-/// It follows the track's lock (issue #4527, plan 5): handed the track page's sitting
-/// ([joinedSitting]) it hands its correction to that sitting with Done and
-/// writes nothing; otherwise it only reads.
+/// It follows the track's lock (issue #4527, plan 5): handed the track page's
+/// sitting ([joinedSitting]) it hands its correction to that sitting with Done
+/// and writes nothing; otherwise it only reads.
 class NavTrackAlignPage extends ConsumerStatefulWidget {
   const NavTrackAlignPage({
     super.key,

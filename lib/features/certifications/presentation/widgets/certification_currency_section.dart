@@ -50,8 +50,7 @@ class CertificationCurrencySection extends ConsumerWidget {
   /// editor, drawn inside the open card.
   final EditSession<Certification>? editing;
 
-  /// Offers no action: the page is locked, or its card
-  /// is closed.
+  /// Offers no action: the page is locked, or its card is closed.
   final bool readOnly;
 
   /// The sitting whose events and preferences a closed card shows.

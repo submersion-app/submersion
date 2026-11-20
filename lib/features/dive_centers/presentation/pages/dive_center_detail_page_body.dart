@@ -1,8 +1,8 @@
 part of 'dive_center_detail_page.dart';
 
 /// The dive centre page's body for [stored], the centre as stored (or a new
-/// centre's seed): its cards, framed for editing in place where the page
-/// edits, in the bar or the list pane.
+/// centre's seed): its cards, framed for editing in place, in the bar or the
+/// list pane.
 extension _DiveCenterDetailPageBody on _DiveCenterDetailPageState {
   Widget _centerPage(DiveCenter stored) {
     openUnlockedOnce(stored);

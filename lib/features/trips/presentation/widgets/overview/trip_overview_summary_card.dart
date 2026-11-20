@@ -222,8 +222,8 @@ class _Row extends StatelessWidget {
   /// Null when there is nothing to open: the Plan row outside a trip page.
   final VoidCallback? onTap;
 
-  /// In place of the chevron: the Plan card's pencil where the page edits
-  /// in place.
+  /// In place of the chevron: the Plan card's pencil while the page is
+  /// unlocked.
   final Widget? trailing;
 
   const _Row({
@@ -253,7 +253,9 @@ class _Row extends StatelessWidget {
                 children: spans,
               ),
             ),
-      trailing: trailing ?? const Icon(Icons.chevron_right),
+      // A row with nothing to open shows no chevron.
+      trailing:
+          trailing ?? (onTap == null ? null : const Icon(Icons.chevron_right)),
       onTap: onTap,
     );
   }

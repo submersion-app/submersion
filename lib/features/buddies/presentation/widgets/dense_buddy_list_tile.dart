@@ -121,8 +121,8 @@ class DenseBuddyListTile extends StatelessWidget {
                         )
                       : null,
                 ),
-                // The favorite (issue #1336), shown whatever the bulk selection;
-                // it is set on the buddy's page.
+                // The favorite (issue #1336), shown whatever the bulk
+                // selection; it is set on the buddy's page.
                 BuddyFavoriteButton(
                   isFavorite: buddy.isFavorite,
                   iconSize: 16,

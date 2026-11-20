@@ -63,8 +63,8 @@ part 'buddy_detail_page_creating.dart';
 part 'buddy_detail_page_editing.dart';
 part 'buddy_detail_page_header.dart';
 
-/// A buddy's page. It opens locked and edits in place (issue #4527): its cards are held in one
-/// sitting and written by one Save.
+/// A buddy's page. It opens locked and edits in place (issue #4527): its cards
+/// are held in one sitting and written by one Save.
 
 class BuddyDetailPage extends ConsumerStatefulWidget {
   final String buddyId;

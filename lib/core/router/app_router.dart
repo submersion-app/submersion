@@ -765,8 +765,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'new',
                 name: 'newEquipment',
                 onExit: confirmLeaveRecordSitting,
-                // The item page opened on a new
-                // item or a clone (issue #4527, plan 11).
+                // The item page opened on a new item or a clone (issue #4527,
+                // plan 11).
                 builder: (context, state) =>
                     newGearItemPage(state.uri.queryParameters),
               ),
@@ -780,8 +780,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     path: 'new',
                     name: 'newEquipmentSet',
                     onExit: confirmLeaveRecordSitting,
-                    // The set page opened on a new
-                    // set or a set page's Clone (issues #2156, #4527).
+                    // The set page opened on a new set or a set page's Clone
+                    // (issues #2156, #4527).
                     builder: (context, state) => newEquipmentSetPage(
                       cloneFromId: state.uri.queryParameters['cloneFrom'],
                     ),
@@ -955,8 +955,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 // buddy_picker_navigation_render_test.dart).
                 parentNavigatorKey: rootNavigatorKey,
                 onExit: confirmLeaveRecordSitting,
-                // The buddy page opened on a new
-                // buddy (issue #4527, plan 11).
+                // The buddy page opened on a new buddy (issue #4527, plan 11).
                 builder: (context, state) => newBuddyPage(state.extra),
               ),
               GoRoute(
@@ -1033,8 +1032,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'new',
                 name: 'newCertification',
                 onExit: confirmLeaveRecordSitting,
-                // The certification page opened on
-                // a new certification (issue #4527, plan 11).
+                // The certification page opened on a new certification (issue
+                // #4527, plan 11).
                 builder: (context, state) => newCertificationPage(),
               ),
               GoRoute(
@@ -1076,8 +1075,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'new',
                 name: 'newDocument',
                 onExit: confirmLeaveRecordSitting,
-                // The document page opened on a
-                // new document (issue #4527, plan 11).
+                // The document page opened on a new document (issue #4527, plan
+                // 11).
                 builder: (context, state) =>
                     newDocumentPage(state.uri.queryParameters),
               ),
@@ -1113,8 +1112,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'new',
                 name: 'newCourse',
                 onExit: confirmLeaveRecordSitting,
-                // The course page opened on a new
-                // course (issue #4527, plan 11).
+                // The course page opened on a new course (issue #4527, plan
+                // 11).
                 builder: (context, state) => newCoursePage(),
               ),
               GoRoute(
@@ -1161,8 +1160,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'new',
                 name: 'newDiveCenter',
                 onExit: confirmLeaveRecordSitting,
-                // The centre page opened on a new
-                // centre (issue #4527, plan 11).
+                // The centre page opened on a new centre (issue #4527, plan
+                // 11).
                 builder: (context, state) => newDiveCenterPage(),
               ),
               GoRoute(
@@ -1207,9 +1206,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'new',
                 name: 'newTrip',
                 onExit: confirmLeaveRecordSitting,
-                // Selected dives can arrive as a prefilled draft (#3658).
-                // The trip page opened on a new
-                // trip (issue #4527).
+                // Selected dives can arrive as a prefilled draft (#3658). The
+                // trip page opened on a new trip (issue #4527).
                 builder: (context, state) => newTripPage(state.extra),
               ),
               GoRoute(
@@ -2309,8 +2307,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'new',
                 name: 'newSpecies',
                 onExit: confirmLeaveRecordSitting,
-                // The species page opened on a new
-                // species (issue #4527, plan 11).
+                // The species page opened on a new species (issue #4527, plan
+                // 11).
                 builder: (context, state) => newSpeciesPage(),
               ),
               // Species to review (issue #4727): one dive with `?dive=`,

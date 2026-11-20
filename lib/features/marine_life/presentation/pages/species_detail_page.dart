@@ -48,8 +48,8 @@ import 'package:submersion/shared/widgets/record_editing/record_operation_gate.d
 part 'species_detail_page_creating.dart';
 part 'species_detail_page_editing.dart';
 
-/// A species' page. It opens locked and edits in place (issue #4527): its names and description are
-/// held in one sitting and written by one Save.
+/// A species' page. It opens locked and edits in place (issue #4527): its names
+/// and description are held in one sitting and written by one Save.
 class SpeciesDetailPage extends ConsumerStatefulWidget {
   final String speciesId;
 

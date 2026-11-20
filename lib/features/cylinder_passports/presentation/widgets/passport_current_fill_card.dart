@@ -32,9 +32,10 @@ class PassportCurrentFillCard extends ConsumerWidget {
   /// links a tag.
   final String? passportId;
 
-  /// The open card's sitting (issue #4527, phase 3): a fill logged here is
-  /// held there until Save, and the tag write is offered after Save. With no sitting given, no fill can be
-  /// logged; during a sitting every view shows the sitting's newest fill.
+  /// The open card's sitting (issue #4527, phase 3): a fill logged here is held
+  /// there until Save, and the tag write is offered after Save. With no sitting
+  /// given, no fill can be logged; during a sitting every view shows the
+  /// sitting's newest fill.
   final EditSession<EquipmentItem>? editing;
 
   @override

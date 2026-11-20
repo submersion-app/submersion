@@ -33,8 +33,8 @@ class TripPrepareOverview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // On the trip page, the cards show the sitting's trip and
-    // sit in its frames (issue #4527).
+    // On the trip page, the cards show the sitting's trip and sit in its frames
+    // (issue #4527).
     final slots = TripCardSlotsScope.maybeOf(context);
     final trip = slots?.shown ?? story.trip;
     Widget framed(TripCardId id, Widget child) =>
@@ -59,8 +59,8 @@ class TripPrepareOverview extends StatelessWidget {
           onOpenTab: onOpenTab,
           tabRows: tabRows,
         ),
-        // A liveaboard's vessel, before departure too, where the page edits
-        // in place (issue #4527).
+        // A liveaboard's vessel, before departure too, on the trip page
+        // (issue #4527).
         if (slots != null && trip.isLiveaboard)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),

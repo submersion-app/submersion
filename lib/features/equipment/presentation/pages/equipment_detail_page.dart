@@ -106,8 +106,8 @@ part 'equipment_detail_page_editing.dart';
 part 'equipment_detail_page_menu.dart';
 part 'equipment_detail_page_sections.dart';
 
-/// A gear item's page. It opens locked and edits in place (issue #4527): its cards are held in one
-/// sitting and written by one Save.
+/// A gear item's page. It opens locked and edits in place (issue #4527): its
+/// cards are held in one sitting and written by one Save.
 class EquipmentDetailPage extends ConsumerStatefulWidget {
   final String equipmentId;
   final bool embedded;

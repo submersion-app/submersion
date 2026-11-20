@@ -60,10 +60,10 @@ typedef BoardLook = ({Map<String, String> centerNames, UnitFormatter units});
 /// to fill several at once.
 enum _BoardView { board, ledger, record }
 
-/// The board is a satellite page of its trip (issue #4527, decision 9): pushed from an unlocked trip page
-/// it joins that page's sitting ([joined]) and finishes with Done; opened
-/// otherwise it opens locked, with its own Unlock, Cancel and Save, and its
-/// Save writes one History entry on the trip.
+/// The board is a satellite page of its trip (issue #4527, decision 9): pushed
+/// from an unlocked trip page it joins that page's sitting ([joined]) and
+/// finishes with Done; opened otherwise it opens locked, with its own Unlock,
+/// Cancel and Save, and its Save writes one History entry on the trip.
 class TripCylinderBoardPage extends ConsumerStatefulWidget {
   final String tripId;
 
@@ -97,11 +97,19 @@ class _TripCylinderBoardPageState extends ConsumerState<TripCylinderBoardPage>
       units: ref.watch(unitFormatterProvider),
     );
     followStored(tripByIdProvider(tripId));
-    final stored = ref.watch(tripByIdProvider(tripId)).value;
+    final tripAsync = ref.watch(tripByIdProvider(tripId));
+    final stored = tripAsync.value;
     if (stored == null) {
+      // The board edits its trip: a trip that is gone, or whose read
+      // failed, is said so rather than waited for.
+      final settled = tripAsync.hasError || tripAsync.hasValue;
       return Scaffold(
         appBar: AppBar(title: Text(l10n.trips_cylinders_title)),
-        body: const Center(child: CircularProgressIndicator()),
+        body: Center(
+          child: settled
+              ? Text(l10n.trips_detail_error_loading)
+              : const CircularProgressIndicator(),
+        ),
       );
     }
     final shown = shownRecord(stored);

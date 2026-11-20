@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
-import 'package:submersion/core/router/track_locations.dart';
 import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
@@ -15,15 +13,15 @@ class NavTrackCorrectionCard extends StatelessWidget {
   const NavTrackCorrectionCard({
     super.key,
     required this.route,
-    this.onOpen,
+    required this.onOpen,
     this.pencil,
   });
 
   final NavTrack route;
 
-  /// Opens the alignment page; its own address when null. The track page
-  /// hands it its sitting this way (issue #4527).
-  final VoidCallback? onOpen;
+  /// Opens the alignment page: the track page hands it its sitting this
+  /// way (issue #4527).
+  final VoidCallback onOpen;
 
   /// The card's pencil.
   final Widget? pencil;
@@ -49,9 +47,7 @@ class NavTrackCorrectionCard extends StatelessWidget {
       key: const ValueKey('nav-track-correction-status'),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap:
-            onOpen ??
-            () => context.push(underwaterTrackAlignLocation(route.id)),
+        onTap: onOpen,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(

@@ -50,8 +50,8 @@ part 'certification_detail_page_editing.dart';
 part 'certification_detail_page_sections.dart';
 part 'certification_detail_page_photos.dart';
 
-/// A certification's page. It opens locked and edits in place (issue #4527): its cards are held in one
-/// sitting and written by one Save.
+/// A certification's page. It opens locked and edits in place (issue #4527):
+/// its cards are held in one sitting and written by one Save.
 
 class CertificationDetailPage extends ConsumerStatefulWidget {
   final String certificationId;

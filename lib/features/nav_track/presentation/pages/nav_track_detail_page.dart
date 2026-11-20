@@ -53,8 +53,8 @@ part 'nav_track_detail_page_editing.dart';
 /// status, and 3D (spec 2026-09-10-underwater-nav-track-design.md, "The
 /// routes area", detail page).
 ///
-/// It opens locked and edits in place (issue #4527, plan 5): its name, dive, site, device and correction
-/// are held in one sitting and written by one Save.
+/// It opens locked and edits in place (issue #4527, plan 5): its name, dive,
+/// site, device and correction are held in one sitting and written by one Save.
 class NavTrackDetailPage extends ConsumerStatefulWidget {
   const NavTrackDetailPage({
     super.key,

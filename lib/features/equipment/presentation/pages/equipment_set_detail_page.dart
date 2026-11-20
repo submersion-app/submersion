@@ -60,9 +60,8 @@ part 'equipment_set_detail_page_creating.dart';
 part 'equipment_set_detail_page_editing.dart';
 part 'equipment_set_detail_page_sections.dart';
 
-/// An equipment set's page. It opens locked and edits in place (issue
-/// #4527): its cards are held in one
-/// sitting and written by one Save.
+/// An equipment set's page. It opens locked and edits in place (issue #4527):
+/// its cards are held in one sitting and written by one Save.
 class EquipmentSetDetailPage extends ConsumerStatefulWidget {
   final String setId;
 
@@ -105,9 +104,6 @@ class _EquipmentSetDetailPageState extends ConsumerState<EquipmentSetDetailPage>
         _EquipmentSetDetailPageSections,
         RecordCreating<EquipmentSetDetailPage, EquipmentSet>,
         _EquipmentSetDetailPageCreating {
-  /// The menu value that shows or hides the diver figure, shared by the menu
-  /// item and its handler so the two cannot drift apart.
-
   /// The menu value that clones the set (issue #2156).
   static const _cloneAction = 'clone';
 

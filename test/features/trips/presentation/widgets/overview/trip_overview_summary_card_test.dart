@@ -310,6 +310,22 @@ void main() {
     expect(find.textContaining(' of '), findsNothing);
   });
 
+  testWidgets('outside a trip page the plan row shows nothing to open', (
+    tester,
+  ) async {
+    // No TripCardSlotsScope: there is no Plan card for the row to open.
+    await _pump(tester);
+    final row = find.ancestor(
+      of: find.text('Plan'),
+      matching: find.byType(ListTile),
+    );
+    expect(tester.widget<ListTile>(row).onTap, isNull);
+    expect(
+      find.descendant(of: row, matching: find.byIcon(Icons.chevron_right)),
+      findsNothing,
+    );
+  });
+
   testWidgets('each row opens its tab', (tester) async {
     final h = await _pump(tester);
     await tester.tap(find.text('Checklist'));

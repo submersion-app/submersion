@@ -28,11 +28,10 @@ class DocumentsSection<T> extends ConsumerWidget {
   /// The certification page shows its card images itself.
   final bool excludeCards;
 
-  /// The open Documents card's sitting on the record (issue #4527): Add
-  /// opens the new-document page, whose Save creates a Personal document,
-  /// and holds joining it to the record;
-  /// Remove holds detaching. On a page that offers editing and with no
-  /// sitting given, the card reads only.
+  /// The open Documents card's sitting on the record (issue #4527): Add opens
+  /// the new-document page, whose Save creates a Personal document, and holds
+  /// joining it to the record; Remove holds detaching. With no sitting given,
+  /// the card reads only.
   final EditSession<T>? editing;
 
   const DocumentsSection({

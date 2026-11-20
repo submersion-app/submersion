@@ -43,9 +43,9 @@ import 'package:submersion/shared/widgets/record_editing/record_operation_gate.d
 
 part 'gps_track_detail_page_editing.dart';
 
-/// Full-screen map of one recorded GPS surface track. It opens locked and
-/// edits in place (issue #4527): its name and trim are held in one sitting and written by one
-/// Save.
+/// Full-screen map of one recorded GPS surface track. It opens locked and edits
+/// in place (issue #4527): its name and trim are held in one sitting and
+/// written by one Save.
 class GpsTrackDetailPage extends ConsumerStatefulWidget {
   const GpsTrackDetailPage({super.key, required this.trackId});
 

@@ -211,8 +211,7 @@ mixin _GpsTrackDetailPageEditing
       recordOperationBlockOf(editController);
 
   /// The menu's whole-record operations, Split and Delete, under the
-  /// caption that says why they are unavailable; none where the page edits
-  /// nothing in place.
+  /// caption that says why they are unavailable.
   List<PopupMenuEntry<_TrackAction>> _operationItems() {
     final l10n = context.l10n;
     final block = _operationBlock;
