@@ -330,4 +330,90 @@ void main() {
       throwsStateError,
     );
   });
+
+  /// A new document's sitting (issue #4527, phase 3, plan 11).
+  group('create', () {
+    DocumentRecord fresh({String id = 'n1'}) => DocumentRecord(
+      document: Document(
+        id: id,
+        diverId: 'd1',
+        owner: const DocumentOwner.personal(),
+        type: DocumentType.permit,
+        title: 'Nitrox',
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      ),
+      pages: [_page(0)],
+      tagIds: const ['t2'],
+    );
+
+    test('creates the document with its id, as one History entry', () async {
+      final created = await service.create(
+        record: fresh(),
+        changedCardIds: const ['details'],
+      );
+
+      expect(created.id, 'n1');
+      final ops = await operations();
+      expect(ops, hasLength(1));
+      expect(ops.single['source'], 'manual');
+      expect(ops.single['label'], 'record_edit:documents:n1:details');
+    });
+
+    test('pages and tags are written with the row', () async {
+      await service.create(record: fresh(), changedCardIds: const ['details']);
+
+      final read = (await service.read('n1'))!;
+      expect(read.document.title, 'Nitrox');
+      expect(read.pages, hasLength(1));
+      expect(read.tagIds, ['t2']);
+    });
+
+    test('held writes run after the row, in the same entry', () async {
+      Document? seen;
+      await service.create(
+        record: fresh(),
+        changedCardIds: const ['details'],
+        alsoWrite: () async => seen = await documents.getById('n1'),
+      );
+
+      expect(seen?.title, 'Nitrox');
+      expect(await operations(), hasLength(1));
+    });
+
+    test('a held write that throws leaves nothing', () async {
+      await expectLater(
+        service.create(
+          record: fresh(),
+          changedCardIds: const ['details'],
+          alsoWrite: () async => throw StateError('refused'),
+        ),
+        throwsStateError,
+      );
+
+      expect(await documents.getById('n1'), isNull);
+      expect(await documents.getPages('n1', withBytes: false), isEmpty);
+      expect(await operations(), isEmpty);
+    });
+
+    test('an empty id or one already stored is refused', () async {
+      await expectLater(
+        service.create(
+          record: fresh(id: ''),
+          changedCardIds: const [],
+        ),
+        throwsStateError,
+      );
+      await expectLater(
+        service.create(
+          record: fresh(id: 'doc'),
+          changedCardIds: const [],
+        ),
+        throwsStateError,
+      );
+
+      expect((await stored()).document.title, 'Travel');
+      expect(await operations(), isEmpty);
+    });
+  });
 }

@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/document_l10n.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
@@ -19,6 +20,7 @@ import 'package:submersion/features/documents/presentation/editing/document_card
 import 'package:submersion/features/documents/presentation/editing/document_details_card_editor.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/documents/presentation/editing/document_edit_cards.dart';
+import 'package:submersion/features/documents/presentation/editing/document_new_sitting.dart';
 import 'package:submersion/features/documents/presentation/editing/document_record.dart';
 import 'package:submersion/features/documents/presentation/providers/document_record_provider.dart';
 import 'package:submersion/features/documents/presentation/pages/document_edit_routes.dart';
@@ -28,11 +30,13 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
+import 'package:submersion/shared/widgets/record_editing/record_creating.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
 import 'package:submersion/shared/widgets/record_editing/record_open_unlocked.dart';
 import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
+part 'document_detail_page_creating.dart';
 part 'document_detail_page_editing.dart';
 
 /// One document: its pages, its details and what it is filed under. Behind
@@ -57,6 +61,16 @@ class DocumentDetailPage extends ConsumerStatefulWidget {
   /// for editing returns to view mode.
   final VoidCallback? onSittingEnded;
 
+  /// A new document (issue #4527, phase 3, plan 11): the page opened
+  /// unlocked on a document not yet created, with what [request] brings.
+  final NewDocumentRequest? newDocument;
+
+  /// The pane's own: given the new document's id once created.
+  final void Function(String documentId)? onCreated;
+
+  /// The pane's own: told when a new document's page leaves uncreated.
+  final VoidCallback? onCreateCancelled;
+
   const DocumentDetailPage({
     super.key,
     required this.documentId,
@@ -65,7 +79,24 @@ class DocumentDetailPage extends ConsumerStatefulWidget {
     this.unlockEditing = kUnlockRecordEditing,
     this.openUnlocked = false,
     this.onSittingEnded,
-  });
+  }) : newDocument = null,
+       onCreated = null,
+       onCreateCancelled = null;
+
+  /// A new document's page, which edits in place whatever the switch:
+  /// only the switch's openers build it.
+  const DocumentDetailPage.newDocument({
+    super.key,
+    NewDocumentRequest request = const NewDocumentRequest(),
+    this.embedded = false,
+    this.onCreated,
+    this.onCreateCancelled,
+  }) : newDocument = request,
+       documentId = '',
+       onDeleted = null,
+       unlockEditing = true,
+       openUnlocked = false,
+       onSittingEnded = null;
 
   @override
   ConsumerState<DocumentDetailPage> createState() => _DocumentDetailPageState();
@@ -75,7 +106,9 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage>
     with
         RecordEditHost<DocumentDetailPage, DocumentRecord>,
         RecordOpenUnlocked<DocumentDetailPage, DocumentRecord>,
-        _DocumentDetailPageEditing {
+        _DocumentDetailPageEditing,
+        RecordCreating<DocumentDetailPage, DocumentRecord>,
+        _DocumentDetailPageCreating {
   @override
   void dispose() {
     disposeEditing();
@@ -94,6 +127,7 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage>
 
   @override
   Widget build(BuildContext context) {
+    if (isCreating) return newRecordWaiting(context) ?? _buildNewDocument();
     final l10n = context.l10n;
     // A full page reached directly (a deep link, the home chip) belongs in
     // the list's detail pane on a wide screen. One pushed from an owner
@@ -182,6 +216,28 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage>
           ),
         );
       },
+    );
+  }
+
+  /// A new document's page on its seed: the sitting's document, its
+  /// details and pages, with no menu, as nothing acts on a document not
+  /// yet created.
+  Widget _buildNewDocument() {
+    final seed = newRecordSeed!;
+    final shown = shownRecord(seed);
+    final doc = shown.document;
+    final entry = DocumentListEntry(doc, null, shown.pages.length);
+    return editScaffold(
+      record: seed,
+      shown: shown,
+      // Never shown: a new document's page leaves once its sitting ends.
+      lockedBar: AppBar(title: Text(newRecordTitle(context))),
+      content: _body(
+        entry,
+        doc,
+        entry.ownerText(ref.watch(unitFormatterProvider)),
+        AsyncData(shown.pages),
+      ),
     );
   }
 
