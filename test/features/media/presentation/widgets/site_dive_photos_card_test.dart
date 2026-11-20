@@ -275,7 +275,12 @@ void main() {
     final finder = find.byType(MediaThumbnailTile);
     final tile = tester.widget<MediaThumbnailTile>(finder);
     expect(tile.targetSize, mediaThumbnailDecodeTarget(tester.getSize(finder)));
-    expect(tile.onImageSize, isNotNull);
+    // A photo stored 4:3 whose thumbnail decodes portrait is learned and
+    // stored, so the next layout keeps its real shape.
+    tile.onImageSize!(const Size(300, 400));
+    await tester.pump();
+    await tester.pump();
+    expect(shapes.written, ['p0']);
   });
 
   testWidgets('tiles are read-only dive photos', (tester) async {

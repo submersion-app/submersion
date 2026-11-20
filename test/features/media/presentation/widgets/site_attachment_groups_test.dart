@@ -254,6 +254,21 @@ void main() {
     );
   });
 
+  testWidgets('a tile teaches the learned shapes and relays out', (
+    tester,
+  ) async {
+    // Stored 4:3, decoded portrait: a photo kept sideways with an EXIF turn.
+    final shapes = FakeAspectCacheRepository();
+    await pump(tester, [sized('a', 1, 400, 300)], shapes: shapes);
+    tester
+        .widget<MediaThumbnailTile>(find.byType(MediaThumbnailTile))
+        .onImageSize!(const Size(300, 400));
+    await tester.pumpAndSettle();
+    expect(shapes.written, ['a']);
+    final size = tester.getSize(find.byType(MediaThumbnailTile));
+    expect(size.width / size.height, closeTo(0.75, 0.02));
+  });
+
   testWidgets('drag-select covers the tiles between the anchor and the '
       'pointer across uneven tiles', (tester) async {
     await pump(tester, [
