@@ -1352,11 +1352,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_components_totalsSection => 'סה״כ';
 
   @override
-  String equipment_documents_removeError(String error) {
-    return 'לא ניתן להסיר את המסמך: $error';
-  }
-
-  @override
   String get settings_oauth_connect_copyFailed => 'לא ניתן להעתיק את הקישור.';
 
   @override
@@ -4270,17 +4265,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get certifications_currency_history => 'היסטוריה';
-
-  @override
-  String get certifications_currency_deleteEvent_title => 'למחוק את הרשומה?';
-
-  @override
-  String certifications_currency_deleteEvent_content(
-    String event,
-    String date,
-  ) {
-    return 'פעולה זו תסיר את $event שנרשם ב-$date.';
-  }
 
   @override
   String get certifications_currency_eventDialog_title =>
@@ -17217,17 +17201,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_location_return_confirm => 'סימון כהוחזר';
 
   @override
-  String equipment_location_returned(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count פריטים הוחזרו',
-      one: 'פריט אחד הוחזר',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String equipment_location_withBuddy(String name) {
     return 'אצל $name';
   }
@@ -17636,15 +17609,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_serviceDialog_categoryLabel => 'קטגוריה';
 
   @override
-  String get equipment_serviceDialog_snackbar_added => 'רשומת טיפול נוספה';
-
-  @override
   String equipment_serviceDialog_snackbar_error(Object error) {
     return 'שגיאה: $error';
   }
-
-  @override
-  String get equipment_serviceDialog_snackbar_updated => 'רשומת טיפול עודכנה';
 
   @override
   String get equipment_serviceDialog_updateButton => 'עדכן';
@@ -17681,20 +17648,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_service_addButton => 'הוסף';
-
-  @override
-  String get equipment_service_deleteDialog_cancel => 'ביטול';
-
-  @override
-  String get equipment_service_deleteDialog_confirm => 'מחק';
-
-  @override
-  String equipment_service_deleteDialog_content(Object serviceType) {
-    return 'האם אתה בטוח שברצונך למחוק רשומת $serviceType זו?';
-  }
-
-  @override
-  String get equipment_service_deleteDialog_title => 'למחוק רשומת טיפול?';
 
   @override
   String get equipment_service_deleteMenuItem => 'מחק';
@@ -18002,9 +17955,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_scheduleDialog_defaultCurrencyLabel => 'מטבע לפריט זה';
 
   @override
-  String get equipment_service_snackbar_deleted => 'רשומת טיפול נמחקה';
-
-  @override
   String equipment_service_totalCostLabel(String currency) {
     return 'סה\"כ עלות טיפול ($currency)';
   }
@@ -18169,9 +18119,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_snackbar_reactivated => 'הציוד הופעל מחדש';
-
-  @override
-  String get equipment_snackbar_purchased => 'הועבר לציוד הפעיל שלך';
 
   @override
   String get equipment_snackbar_retired => 'הציוד הוצא משימוש';
@@ -19612,28 +19559,6 @@ class AppLocalizationsHe extends AppLocalizations {
       locale: localeName,
       other: '$count תמונות נוספות',
       one: 'תמונה נוספת אחת',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String marineLife_speciesPhotos_importAdded(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count תמונות נוספו',
-      one: 'תמונה אחת נוספה',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String marineLife_speciesPhotos_importSkipped(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count דולגו',
-      one: 'אחת דולגה',
     );
     return '$_temp0';
   }
@@ -34907,26 +34832,8 @@ class AppLocalizationsHe extends AppLocalizations {
       'הוסף צלילות תחילה כדי לקשר תמונות';
 
   @override
-  String get trips_detail_scan_errorLinking =>
-      'לא ניתן לקשר את התמונות. נסו שוב.';
-
-  @override
   String get trips_detail_scan_errorScanning =>
       'לא ניתן לסרוק תמונות. נסו שוב.';
-
-  @override
-  String trips_detail_scan_linkedPhotos(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'קושרו $count תמונות',
-      one: 'קושרה תמונה אחת',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get trips_detail_scan_linkingPhotos => 'מקשר תמונות...';
 
   @override
   String get trips_detail_sectionTitle_notes => 'הערות';
@@ -51866,16 +51773,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get equipment_documents_linkedSubtitle =>
       'גדולים מדי, או בפורמט שמסמכים לא יכולים לשמור';
-
-  @override
-  String get equipment_documents_removeTitle => 'להסיר את המסמך?';
-
-  @override
-  String get equipment_documents_removeContent =>
-      'המסמך יפסיק להיות מצורף לפריט זה. הקובץ המקורי שלך לא ייגע.';
-
-  @override
-  String get equipment_documents_removed => 'המסמך הוסר';
 
   @override
   String equipment_documents_loadError(String error) {

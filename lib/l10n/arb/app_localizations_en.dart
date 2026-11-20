@@ -1359,11 +1359,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_components_totalsSection => 'Total';
 
   @override
-  String equipment_documents_removeError(String error) {
-    return 'Could not remove the document: $error';
-  }
-
-  @override
   String get settings_oauth_connect_copyFailed => 'Could not copy the link.';
 
   @override
@@ -4289,17 +4284,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get certifications_currency_history => 'Currency history';
-
-  @override
-  String get certifications_currency_deleteEvent_title => 'Delete entry?';
-
-  @override
-  String certifications_currency_deleteEvent_content(
-    String event,
-    String date,
-  ) {
-    return 'This removes the $event logged $date.';
-  }
 
   @override
   String get certifications_currency_eventDialog_title =>
@@ -17329,17 +17313,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_location_return_confirm => 'Mark returned';
 
   @override
-  String equipment_location_returned(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count items returned',
-      one: '$count item returned',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String equipment_location_withBuddy(String name) {
     return 'With $name';
   }
@@ -17752,16 +17725,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_serviceDialog_categoryLabel => 'Category';
 
   @override
-  String get equipment_serviceDialog_snackbar_added => 'Service record added';
-
-  @override
   String equipment_serviceDialog_snackbar_error(Object error) {
     return 'Error: $error';
   }
-
-  @override
-  String get equipment_serviceDialog_snackbar_updated =>
-      'Service record updated';
 
   @override
   String get equipment_serviceDialog_updateButton => 'Update';
@@ -17798,20 +17764,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_service_addButton => 'Add';
-
-  @override
-  String get equipment_service_deleteDialog_cancel => 'Cancel';
-
-  @override
-  String get equipment_service_deleteDialog_confirm => 'Delete';
-
-  @override
-  String equipment_service_deleteDialog_content(Object serviceType) {
-    return 'Are you sure you want to delete this $serviceType record?';
-  }
-
-  @override
-  String get equipment_service_deleteDialog_title => 'Delete Service Record?';
 
   @override
   String get equipment_service_deleteMenuItem => 'Delete';
@@ -18123,9 +18075,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Currency for this item';
 
   @override
-  String get equipment_service_snackbar_deleted => 'Service record deleted';
-
-  @override
   String equipment_service_totalCostLabel(String currency) {
     return 'Total Service Cost ($currency)';
   }
@@ -18292,9 +18241,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_snackbar_reactivated => 'Equipment reactivated';
-
-  @override
-  String get equipment_snackbar_purchased => 'Moved to your active gear';
 
   @override
   String get equipment_snackbar_retired => 'Equipment retired';
@@ -19754,28 +19700,6 @@ class AppLocalizationsEn extends AppLocalizations {
       locale: localeName,
       other: '$count more photos',
       one: '$count more photo',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String marineLife_speciesPhotos_importAdded(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count photos added',
-      one: '1 photo added',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String marineLife_speciesPhotos_importSkipped(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count skipped',
-      one: '1 skipped',
     );
     return '$_temp0';
   }
@@ -35191,26 +35115,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Add dives first to link photos';
 
   @override
-  String get trips_detail_scan_errorLinking =>
-      'Couldn\'t link the photos. Try again.';
-
-  @override
   String get trips_detail_scan_errorScanning =>
       'Couldn\'t scan for photos. Try again.';
-
-  @override
-  String trips_detail_scan_linkedPhotos(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'Linked $count photos',
-      one: 'Linked 1 photo',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get trips_detail_scan_linkingPhotos => 'Linking photos...';
 
   @override
   String get trips_detail_sectionTitle_notes => 'Notes';
@@ -52209,16 +52115,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get equipment_documents_linkedSubtitle =>
       'Too large, or a format Documents cannot hold';
-
-  @override
-  String get equipment_documents_removeTitle => 'Remove document?';
-
-  @override
-  String get equipment_documents_removeContent =>
-      'It stops being attached to this item. Your original file is never touched.';
-
-  @override
-  String get equipment_documents_removed => 'Document removed';
 
   @override
   String equipment_documents_loadError(String error) {

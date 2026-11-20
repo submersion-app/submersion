@@ -2108,12 +2108,6 @@ abstract class AppLocalizations {
   /// **'Total'**
   String get equipment_components_totalsSection;
 
-  /// No description provided for @equipment_documents_removeError.
-  ///
-  /// In en, this message translates to:
-  /// **'Could not remove the document: {error}'**
-  String equipment_documents_removeError(String error);
-
   /// No description provided for @settings_oauth_connect_copyFailed.
   ///
   /// In en, this message translates to:
@@ -6637,18 +6631,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Currency history'**
   String get certifications_currency_history;
-
-  /// Title of the dialog confirming a refresher entry deletion
-  ///
-  /// In en, this message translates to:
-  /// **'Delete entry?'**
-  String get certifications_currency_deleteEvent_title;
-
-  /// Body of the dialog confirming a refresher entry deletion
-  ///
-  /// In en, this message translates to:
-  /// **'This removes the {event} logged {date}.'**
-  String certifications_currency_deleteEvent_content(String event, String date);
 
   /// Title of the dialog that logs a refresher or renewal
   ///
@@ -28019,12 +28001,6 @@ abstract class AppLocalizations {
   /// **'Mark returned'**
   String get equipment_location_return_confirm;
 
-  /// Snackbar after gear comes back from a buddy
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, one{{count} item returned} other{{count} items returned}}'**
-  String equipment_location_returned(int count);
-
   /// Title on an item's location card when a buddy has it
   ///
   /// In en, this message translates to:
@@ -28640,23 +28616,11 @@ abstract class AppLocalizations {
   /// **'Category'**
   String get equipment_serviceDialog_categoryLabel;
 
-  /// No description provided for @equipment_serviceDialog_snackbar_added.
-  ///
-  /// In en, this message translates to:
-  /// **'Service record added'**
-  String get equipment_serviceDialog_snackbar_added;
-
   /// No description provided for @equipment_serviceDialog_snackbar_error.
   ///
   /// In en, this message translates to:
   /// **'Error: {error}'**
   String equipment_serviceDialog_snackbar_error(Object error);
-
-  /// No description provided for @equipment_serviceDialog_snackbar_updated.
-  ///
-  /// In en, this message translates to:
-  /// **'Service record updated'**
-  String get equipment_serviceDialog_snackbar_updated;
 
   /// No description provided for @equipment_serviceDialog_updateButton.
   ///
@@ -28729,30 +28693,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add'**
   String get equipment_service_addButton;
-
-  /// No description provided for @equipment_service_deleteDialog_cancel.
-  ///
-  /// In en, this message translates to:
-  /// **'Cancel'**
-  String get equipment_service_deleteDialog_cancel;
-
-  /// No description provided for @equipment_service_deleteDialog_confirm.
-  ///
-  /// In en, this message translates to:
-  /// **'Delete'**
-  String get equipment_service_deleteDialog_confirm;
-
-  /// No description provided for @equipment_service_deleteDialog_content.
-  ///
-  /// In en, this message translates to:
-  /// **'Are you sure you want to delete this {serviceType} record?'**
-  String equipment_service_deleteDialog_content(Object serviceType);
-
-  /// No description provided for @equipment_service_deleteDialog_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Delete Service Record?'**
-  String get equipment_service_deleteDialog_title;
 
   /// No description provided for @equipment_service_deleteMenuItem.
   ///
@@ -29252,12 +29192,6 @@ abstract class AppLocalizations {
   /// **'Currency for this item'**
   String get equipment_scheduleDialog_defaultCurrencyLabel;
 
-  /// No description provided for @equipment_service_snackbar_deleted.
-  ///
-  /// In en, this message translates to:
-  /// **'Service record deleted'**
-  String get equipment_service_snackbar_deleted;
-
   /// No description provided for @equipment_service_totalCostLabel.
   ///
   /// In en, this message translates to:
@@ -29551,12 +29485,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Equipment reactivated'**
   String get equipment_snackbar_reactivated;
-
-  /// No description provided for @equipment_snackbar_purchased.
-  ///
-  /// In en, this message translates to:
-  /// **'Moved to your active gear'**
-  String get equipment_snackbar_purchased;
 
   /// No description provided for @equipment_snackbar_retired.
   ///
@@ -31967,18 +31895,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, one{{count} more photo} other{{count} more photos}}'**
   String marineLife_speciesPhotos_moreLabel(int count);
-
-  /// No description provided for @marineLife_speciesPhotos_importAdded.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =1{1 photo added} other{{count} photos added}}'**
-  String marineLife_speciesPhotos_importAdded(int count);
-
-  /// No description provided for @marineLife_speciesPhotos_importSkipped.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =1{1 skipped} other{{count} skipped}}'**
-  String marineLife_speciesPhotos_importSkipped(int count);
 
   /// No description provided for @marineLife_speciesPhotos_importFailed.
   ///
@@ -56478,29 +56394,11 @@ abstract class AppLocalizations {
   /// **'Add dives first to link photos'**
   String get trips_detail_scan_addDivesFirst;
 
-  /// No description provided for @trips_detail_scan_errorLinking.
-  ///
-  /// In en, this message translates to:
-  /// **'Couldn\'t link the photos. Try again.'**
-  String get trips_detail_scan_errorLinking;
-
   /// No description provided for @trips_detail_scan_errorScanning.
   ///
   /// In en, this message translates to:
   /// **'Couldn\'t scan for photos. Try again.'**
   String get trips_detail_scan_errorScanning;
-
-  /// No description provided for @trips_detail_scan_linkedPhotos.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =1{Linked 1 photo} other{Linked {count} photos}}'**
-  String trips_detail_scan_linkedPhotos(int count);
-
-  /// No description provided for @trips_detail_scan_linkingPhotos.
-  ///
-  /// In en, this message translates to:
-  /// **'Linking photos...'**
-  String get trips_detail_scan_linkingPhotos;
 
   /// No description provided for @trips_detail_sectionTitle_notes.
   ///
@@ -83616,24 +83514,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Too large, or a format Documents cannot hold'**
   String get equipment_documents_linkedSubtitle;
-
-  /// No description provided for @equipment_documents_removeTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Remove document?'**
-  String get equipment_documents_removeTitle;
-
-  /// No description provided for @equipment_documents_removeContent.
-  ///
-  /// In en, this message translates to:
-  /// **'It stops being attached to this item. Your original file is never touched.'**
-  String get equipment_documents_removeContent;
-
-  /// No description provided for @equipment_documents_removed.
-  ///
-  /// In en, this message translates to:
-  /// **'Document removed'**
-  String get equipment_documents_removed;
 
   /// No description provided for @equipment_documents_loadError.
   ///
