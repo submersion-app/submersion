@@ -99,19 +99,54 @@ MediaItem testMediaItem({
   updatedAt: DateTime(2026, 3, 1),
 );
 
-/// The learned-shape store with no database behind it: it starts with
-/// [shapes] and records the ids written to it, in order.
+/// The learned-shape store with no database behind it (issues #4738,
+/// #4739, #4740), shared by every media test that lays media out in
+/// justified rows or drives the learned-shapes notifier. It starts with
+/// [shapes] and records what is written to it, in order.
+///
+/// Implements rather than extends the repository, so a method added to it
+/// fails to compile here instead of reaching the real local cache.
 class FakeAspectCacheRepository implements MediaAspectCacheRepository {
-  FakeAspectCacheRepository([this.shapes = const {}]);
+  FakeAspectCacheRepository([this.shapes = const {}])
+    : fails = false,
+      _load = null;
+
+  /// Fails every read, the way an uninitialized local cache does.
+  FakeAspectCacheRepository.failing()
+    : shapes = const {},
+      fails = true,
+      _load = null;
+
+  /// Serves the shapes [load] completes with, so a test can hold the first
+  /// layout back until it completes.
+  FakeAspectCacheRepository.held(Future<Map<String, LearnedAspect>> load)
+    : shapes = const {},
+      fails = false,
+      _load = load;
 
   final Map<String, LearnedAspect> shapes;
+  final bool fails;
+  final Future<Map<String, LearnedAspect>>? _load;
+
+  /// How many times the shapes were read.
+  int loads = 0;
+
+  /// The ids written, in order.
   final List<String> written = [];
 
+  /// Every batch written, in order.
+  final List<Map<String, LearnedAspect>> writes = [];
+
   @override
-  Future<Map<String, LearnedAspect>> loadAll() async => shapes;
+  Future<Map<String, LearnedAspect>> loadAll() async {
+    loads++;
+    if (fails) throw StateError('Local cache database not initialized.');
+    return _load ?? shapes;
+  }
 
   @override
   Future<void> putAll(Map<String, LearnedAspect> entries) async {
     written.addAll(entries.keys);
+    writes.add(Map.of(entries));
   }
 }

@@ -34,6 +34,8 @@ void main() {
       bool isSelected = false,
       MediaSourceData? resolverData,
       List<Override> overrides = const [],
+      Size? targetSize,
+      ValueChanged<Size>? onImageSize,
     }) async {
       await tester.pumpWidget(
         await mediaTestApp(
@@ -50,6 +52,8 @@ void main() {
                   isSelectionMode: isSelectionMode,
                   isSelected: isSelected,
                   semanticsLabel: 'Tile',
+                  targetSize: targetSize ?? const Size(200, 200),
+                  onImageSize: onImageSize,
                 ),
               ),
             ),
@@ -65,6 +69,28 @@ void main() {
       // No badges for an unselected, unenriched photo.
       expect(find.byIcon(Icons.videocam), findsNothing);
       expect(find.byIcon(Icons.check), findsNothing);
+    });
+
+    testWidgets('decodes at 200 x 200 unless told otherwise', (tester) async {
+      await pumpTile(tester, item: testMediaItem());
+      final view = tester.widget<MediaItemView>(find.byType(MediaItemView));
+      expect(view.targetSize, const Size(200, 200));
+      expect(view.onImageSize, isNull);
+    });
+
+    testWidgets('forwards its decode size and size callback to the view', (
+      tester,
+    ) async {
+      void onImageSize(Size _) {}
+      await pumpTile(
+        tester,
+        item: testMediaItem(),
+        targetSize: const Size(400, 400),
+        onImageSize: onImageSize,
+      );
+      final view = tester.widget<MediaItemView>(find.byType(MediaItemView));
+      expect(view.targetSize, const Size(400, 400));
+      expect(view.onImageSize, same(onImageSize));
     });
 
     testWidgets('an orphaned item still renders through MediaItemView', (
