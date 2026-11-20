@@ -7,6 +7,9 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_new_sitting.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_detail_page.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/twin_set_card.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
@@ -70,6 +73,11 @@ void main() {
     // Details counts no dives or trips for an item not yet stored.
     expect(find.text(l.equipment_detail_divesLabel), findsNothing);
     expect(find.text(l.equipment_detail_tripsLabel), findsNothing);
+    // Nor works out the stored item's header clock from the app's rollup.
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(EquipmentDetailPage)),
+    );
+    expect(container.exists(equipmentRollupClockProvider), isFalse);
   });
 
   testWidgets('Save waits for the first entry, then pops the id', (
