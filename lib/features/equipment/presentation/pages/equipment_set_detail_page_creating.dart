@@ -54,12 +54,19 @@ mixin _EquipmentSetDetailPageCreating
     });
   }
 
+  /// The set and its held writes, in one transaction. A seed made with no
+  /// diver (the profile still being read) takes the one active now, as the
+  /// form does, so the set is never stored ownerless.
   @override
-  Future<EquipmentSet> createRecord(EditSession<EquipmentSet> session) {
-    // Read before the write: the page can be gone by the time it is done.
+  Future<EquipmentSet> createRecord(EditSession<EquipmentSet> session) async {
+    // Read before the first wait: the page can be gone by the end.
     final service = ref.read(equipmentSetEditSaveServiceProvider);
+    final read = ref.read;
+    final set = session.applyTo(session.stored);
+    final diverId =
+        set.diverId ?? await newRecordDiverId(read, record: 'equipment set');
     return service.create(
-      set: session.applyTo(session.stored),
+      set: set.copyWith(diverId: diverId),
       changedCardIds: session.changedCardIds,
       alsoWrite: heldWritesForCreate(session),
     );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_set_detail_page.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 
@@ -46,6 +47,22 @@ void main() {
     final created = await storedSet(tester, id);
     expect(created.name, 'Travel kit');
     expect(created.showFigure, isTrue);
+    expect(created.diverId, 'd1');
+  });
+
+  testWidgets('a set opened before the profile was read is the profile '
+      "active at Save's", (tester) async {
+    final harness = await pumpNewSetPage(tester, diverAtOpen: null);
+    await tester.enterText(nameField(), 'Travel kit');
+    await tester.pumpAndSettle();
+    ProviderScope.containerOf(
+      tester.element(find.byType(EquipmentSetDetailPage)),
+    ).read(newSetPageDiverProvider.notifier).state = 'd1';
+    await tester.pumpAndSettle();
+
+    await save(tester);
+
+    final created = await storedSet(tester, harness.popped! as String);
     expect(created.diverId, 'd1');
   });
 
