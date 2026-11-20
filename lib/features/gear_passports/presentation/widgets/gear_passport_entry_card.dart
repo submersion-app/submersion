@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -11,7 +10,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/gear_passports/domain/services/gear_tag_codec.dart';
 import 'package:submersion/features/gear_passports/domain/services/gear_tag_fit.dart';
 import 'package:submersion/features/gear_passports/domain/services/gear_tag_rules.dart';
-import 'package:submersion/features/gear_passports/presentation/utils/gear_routes.dart';
+import 'package:submersion/features/gear_passports/presentation/utils/open_item_passport.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The detail page's doorway to a gear passport: the QR once the item has a
@@ -30,10 +29,9 @@ class GearPassportEntryCard extends ConsumerWidget {
         ref.watch(serviceRecordsForEquipmentProvider(equipment.id)).value ??
         const <ServiceRecord>[];
     final last = lastServiceDate(records);
-    final location = gearPassportLocation(equipment.id);
     return Card(
       child: InkWell(
-        onTap: () => context.push(location),
+        onTap: () => openItemPassport(context, equipment),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
@@ -75,7 +73,7 @@ class GearPassportEntryCard extends ConsumerWidget {
                 ),
               ),
               TextButton(
-                onPressed: () => context.push(location),
+                onPressed: () => openItemPassport(context, equipment),
                 child: Text(l10n.passport_open),
               ),
             ],

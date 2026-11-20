@@ -155,6 +155,7 @@ const Map<String, ChangeLogClass> changeLogTables = {
   'tank_pressure_series': ChangeLogClass.deleteCopyOnly,
   'tide_records': ChangeLogClass.deleteCopyOnly,
   'dive_health_records': ChangeLogClass.deleteCopyOnly,
+  'equipment_findings': ChangeLogClass.deleteCopyOnly,
   'cached_regions': ChangeLogClass.excluded,
   'change_log_context': ChangeLogClass.excluded,
   'change_log_events': ChangeLogClass.excluded,
@@ -166,7 +167,6 @@ const Map<String, ChangeLogClass> changeLogTables = {
   'dive_derived_metrics': ChangeLogClass.excluded,
   'dive_sensor_summaries': ChangeLogClass.excluded,
   'equipment_condition_reviews': ChangeLogClass.excluded,
-  'equipment_findings': ChangeLogClass.excluded,
   'equipment_service_status': ChangeLogClass.excluded,
   'gps_track_points_local': ChangeLogClass.excluded,
   'local_publish_states': ChangeLogClass.excluded,
@@ -320,6 +320,10 @@ const Map<String, ChangeLogParent> changeLogParents = {
   'equipment_components': ChangeLogParent(
     rootTable: 'equipment',
     column: 'parent_equipment_id',
+  ),
+  'equipment_findings': ChangeLogParent(
+    rootTable: 'equipment',
+    column: 'equipment_id',
   ),
   'equipment_location_moves': ChangeLogParent(
     rootTable: 'equipment',
@@ -534,9 +538,12 @@ const Set<String> changeLogDeviceLocalTables = {'dive_profile_series_history'};
 /// between cylinders, and dismisses safety findings, which are machine rows
 /// the diver changes. Its History entry must revert every one, so
 /// dive_safety_findings is here, limited by [changeLogOptInUpdateColumns].
+/// A gear item's sitting dismisses its condition findings the same way, so
+/// equipment_findings is here too (issue #4527, phase 3).
 const Set<String> changeLogOptInUpdateTables = {
   'dive_profile_series',
   'dive_safety_findings',
+  'equipment_findings',
   'media_enrichment',
   'tank_pressure_series',
 };
@@ -547,6 +554,7 @@ const Set<String> changeLogOptInUpdateTables = {
 /// its other columns.
 const Map<String, Set<String>> changeLogOptInUpdateColumns = {
   'dive_safety_findings': {'dismissed_at'},
+  'equipment_findings': {'dismissed_at'},
 };
 
 /// Whether an opted-in operation keeps the delete copies of [table]'s rows
@@ -563,6 +571,7 @@ bool changeLogOptInKeepsDeletes(String table) =>
 /// out of the entry and is kept only for a revert or a restore.
 const Map<String, Set<String>> changeLogShownMachineColumns = {
   'dive_safety_findings': {'dismissed_at'},
+  'equipment_findings': {'dismissed_at'},
   'tank_pressure_series': {'tank_id'},
 };
 

@@ -16,8 +16,6 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/core/services/logger_service.dart';
-import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/services/trip_day_notes.dart';
 import 'package:submersion/features/trips/presentation/helpers/side_trip_delete_lines.dart';
@@ -26,27 +24,20 @@ import 'package:submersion/features/trips/presentation/helpers/trip_scan_actions
 import 'package:submersion/features/trips/presentation/providers/side_trip_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_routes.dart';
-import 'package:submersion/features/trips/presentation/widgets/dive_assignment_dialog.dart';
 import 'package:submersion/features/trips/presentation/widgets/part_of_trip_link.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_view.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_detail_tabs.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_by_banner.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
-import 'package:submersion/features/documents/domain/entities/document.dart';
-import 'package:submersion/features/documents/presentation/editing/record_document_links_sitting.dart';
-import 'package:submersion/features/trips/data/services/trip_edit_save_service.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_card_slots.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_edit_cards.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_header_card_editor.dart';
-import 'package:submersion/features/trips/presentation/editing/trip_itinerary_sitting.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_overview_card_editors.dart';
-import 'package:submersion/features/trips/presentation/editing/trip_vessel_sitting.dart';
-import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_sitting_host.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
-import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_tabs.dart';
@@ -57,8 +48,6 @@ import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_f
 
 part 'trip_detail_page_editing.dart';
 part 'trip_detail_page_menu.dart';
-
-const _log = LoggerService('TripDetailPage');
 
 /// A trip's page: six tabs under its name. Behind phase 3's switch
 /// ([unlockEditing]) it opens locked and edits in place (issue #4527): its
@@ -109,6 +98,7 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage>
         RecordEditHost<TripDetailPage, Trip>,
         RecordOpenUnlocked<TripDetailPage, Trip>,
         RecordEditTabs<TripDetailPage, Trip>,
+        TripSittingHost<TripDetailPage>,
         _TripDetailPageEditing {
   bool _hasRedirected = false;
 

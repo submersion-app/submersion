@@ -20036,6 +20036,17 @@ class AppLocalizationsHu extends AppLocalizations {
   String get marineLife_speciesPhotos_thumbnailLabel => 'Fajfotó';
 
   @override
+  String marineLife_speciesPhotos_moreLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'még $count fotó',
+      one: 'még $count fotó',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String marineLife_speciesPhotos_importAdded(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -35629,6 +35640,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get trips_detail_dives_empty => 'Még nincsenek merülések ezen az úton';
+
+  @override
+  String get trips_sitting_notSaved => 'Még nincs mentve';
+
+  @override
+  String get trips_sitting_takeOut => 'Kivesz';
 
   @override
   String get trips_detail_dives_errorLoading =>
@@ -63490,6 +63507,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get changeLog_table_safetyFinding => 'Biztonsági megállapítás';
+
+  @override
+  String get changeLog_table_conditionFinding => 'Állapotmegállapítás';
 
   @override
   String get changeLog_table_pressureSeries => 'Nyomásértékek';

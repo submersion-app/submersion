@@ -1,3 +1,4 @@
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/trips/data/repositories/itinerary_day_repository.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -75,6 +76,52 @@ List<ItineraryDay> withDaysAdded(
     ...days,
     for (final d in added)
       if (covered.add(tripDay(d.date))) d,
+  ]..sort((a, b) => a.date.compareTo(b.date));
+}
+
+/// [days] with [date]'s planned dives set to [planned], as the cylinder
+/// board's forecast strip sets them (`ItineraryDayRepository.setPlannedDives`):
+/// every day of that date takes it, a plan of 0 turns a dive day into a rest
+/// day and any other plan (or none) turns a rest day back, other types
+/// keep. A date with no day gets one, numbered from [trip]'s start and typed
+/// dive day (rest day for 0), with an id from [newId]; null on such a date
+/// adds nothing.
+List<ItineraryDay> withPlannedDives(
+  List<ItineraryDay> days,
+  Trip trip,
+  DateTime date,
+  int? planned, {
+  required String Function() newId,
+  required DateTime now,
+}) {
+  final day = tripDay(date);
+  if (days.any((d) => tripDay(d.date) == day)) {
+    final from = planned == 0 ? DayType.diveDay : DayType.rest;
+    final to = planned == 0 ? DayType.rest : DayType.diveDay;
+    return [
+      for (final d in days)
+        if (tripDay(d.date) == day)
+          d.copyWith(
+            plannedDives: planned,
+            dayType: d.dayType == from ? to : d.dayType,
+          )
+        else
+          d,
+    ];
+  }
+  if (planned == null) return days;
+  return [
+    ...days,
+    ItineraryDay(
+      id: newId(),
+      tripId: trip.id,
+      dayNumber: calendarDaysBetween(trip.startDate, day) + 1,
+      date: day,
+      dayType: planned == 0 ? DayType.rest : DayType.diveDay,
+      plannedDives: planned,
+      createdAt: now,
+      updatedAt: now,
+    ),
   ]..sort((a, b) => a.date.compareTo(b.date));
 }
 

@@ -32,7 +32,6 @@ import 'package:submersion/features/marine_life/presentation/editing/species_edi
 import 'package:submersion/features/marine_life/presentation/editing/species_photos_sitting.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
-import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_enqueue_provider.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';

@@ -255,6 +255,21 @@ void main() {
       expect(harness.tagging.tagged, ['p1']);
     });
 
+    testWidgets('the remove button lets a held photo go', (tester) async {
+      final harness = await pumpSpeciesPage(tester);
+      await unlock(tester);
+      await tagOne(tester);
+
+      await tester.tap(find.byKey(const ValueKey('species_pending_remove_p1')));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey('species_pending_remove_p1')),
+        findsNothing,
+      );
+      expect(harness.tagging.tagged, isEmpty);
+    });
+
     testWidgets('Cancel tags nothing', (tester) async {
       final harness = await pumpSpeciesPage(tester);
       await unlock(tester);

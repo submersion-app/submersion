@@ -19101,6 +19101,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get marineLife_speciesPhotos_thumbnailLabel => '物种照片';
 
   @override
+  String marineLife_speciesPhotos_moreLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '还有 $count 张照片',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String marineLife_speciesPhotos_importAdded(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -33703,6 +33713,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trips_detail_dives_empty => '此旅行暂无潜水记录';
+
+  @override
+  String get trips_sitting_notSaved => '尚未保存';
+
+  @override
+  String get trips_sitting_takeOut => '移出';
 
   @override
   String get trips_detail_dives_errorLoading => '无法加载潜水记录';
@@ -59926,6 +59942,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get changeLog_table_safetyFinding => '安全发现';
+
+  @override
+  String get changeLog_table_conditionFinding => '状态发现';
 
   @override
   String get changeLog_table_pressureSeries => '压力读数';

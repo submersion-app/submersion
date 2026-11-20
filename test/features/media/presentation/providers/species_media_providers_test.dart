@@ -73,6 +73,58 @@ void main() {
   });
 
   test(
+    'mediaEntriesForSpeciesProvider refreshes when a tag is added',
+    () async {
+      final container = makeContainer();
+      final sub = container.listen(
+        mediaEntriesForSpeciesProvider('c1'),
+        (_, _) {},
+      );
+      addTearDown(sub.close);
+      expect(
+        await container.read(mediaEntriesForSpeciesProvider('c1').future),
+        isEmpty,
+      );
+
+      await tags.addTag(mediaId: 'p2', speciesId: 'c1');
+
+      final entries = await _eventually(
+        () => container.read(mediaEntriesForSpeciesProvider('c1').future),
+        (v) => v.isNotEmpty,
+      );
+      expect(entries.single.item.id, 'p2');
+    },
+  );
+
+  test(
+    'mediaEntriesForSpeciesProvider refreshes when a site is renamed',
+    () async {
+      await insertTestSite('s1', 'Old Pier');
+      await insertTestDive(id: 'd2', at: DateTime(2024, 2, 10), siteId: 's1');
+      await insertTestMedia(id: 'p3', diveId: 'd2');
+      await tags.addTag(mediaId: 'p3', speciesId: 'c1');
+      final container = makeContainer();
+      final sub = container.listen(
+        mediaEntriesForSpeciesProvider('c1'),
+        (_, _) {},
+      );
+      addTearDown(sub.close);
+      final before = await container.read(
+        mediaEntriesForSpeciesProvider('c1').future,
+      );
+      expect(before.single.siteName, 'Old Pier');
+
+      await insertTestSite('s1', 'New Pier');
+
+      final entries = await _eventually(
+        () => container.read(mediaEntriesForSpeciesProvider('c1').future),
+        (v) => v.single.siteName == 'New Pier',
+      );
+      expect(entries.single.siteName, 'New Pier');
+    },
+  );
+
+  test(
     'speciesTagCandidatesProvider drops a photo once it is tagged',
     () async {
       final container = makeContainer();

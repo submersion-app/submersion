@@ -20074,6 +20074,17 @@ class AppLocalizationsDe extends AppLocalizations {
   String get marineLife_speciesPhotos_thumbnailLabel => 'Artenfoto';
 
   @override
+  String marineLife_speciesPhotos_moreLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count weitere Fotos',
+      one: '$count weiteres Foto',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String marineLife_speciesPhotos_importAdded(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -35724,6 +35735,12 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get trips_detail_dives_empty =>
       'Noch keine Tauchgänge in dieser Reise';
+
+  @override
+  String get trips_sitting_notSaved => 'Noch nicht gespeichert';
+
+  @override
+  String get trips_sitting_takeOut => 'Herausnehmen';
 
   @override
   String get trips_detail_dives_errorLoading =>
@@ -63705,6 +63722,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get changeLog_table_safetyFinding => 'Sicherheitsbefund';
+
+  @override
+  String get changeLog_table_conditionFinding => 'Zustandsbefund';
 
   @override
   String get changeLog_table_pressureSeries => 'Druckwerte';

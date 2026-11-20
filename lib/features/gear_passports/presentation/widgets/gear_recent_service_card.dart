@@ -12,11 +12,20 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// The newest service records, and See all on the detail page, where the
 /// full history lives (gear tag spec 9).
 class GearRecentServiceCard extends ConsumerWidget {
-  const GearRecentServiceCard({super.key, required this.equipmentId});
+  const GearRecentServiceCard({
+    super.key,
+    required this.equipmentId,
+    this.offerSeeAll = true,
+  });
 
   static const int shown = 3;
 
   final String equipmentId;
+
+  /// Whether See all is offered. It opens the item's own page, which would
+  /// be a second sitting on the item while the passport holds one of its
+  /// own (issue #4527).
+  final bool offerSeeAll;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -42,7 +51,7 @@ class GearRecentServiceCard extends ConsumerWidget {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
-                if (records.isNotEmpty)
+                if (offerSeeAll && records.isNotEmpty)
                   TextButton(
                     onPressed: () => context.push('/equipment/$equipmentId'),
                     child: Text(l10n.gearPassport_recent_seeAll),

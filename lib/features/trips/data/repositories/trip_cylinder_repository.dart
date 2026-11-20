@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/data/repositories/trip_cylinder_lin
 import 'package:submersion/features/trips/data/side_trip_sql.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
+import 'package:submersion/features/trips/domain/services/trip_cylinder_append.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart'
     as domain;
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart'
@@ -335,32 +336,18 @@ class TripCylinderRepository {
                   ..addColumns([t.equipmentId, t.sortOrder])
                   ..where(t.tripId.equals(tripId)))
                 .get();
-        final start =
-            board.fold(-1, (end, r) {
-              final order = r.read(t.sortOrder) ?? 0;
-              return order > end ? order : end;
-            }) +
-            1;
-        final onBoard = {for (final r in board) ?r.read(t.equipmentId)};
-        // A tank already on the board is left out, as is a second draft
-        // for one tank in this batch.
-        final fresh = [
-          for (final (i, c) in cylinders.indexed)
-            if (c.equipmentId == null ||
-                (!onBoard.contains(c.equipmentId) &&
-                    cylinders.indexWhere(
-                          (o) => o.equipmentId == c.equipmentId,
-                        ) ==
-                        i))
-              c,
-        ];
-        return [
-          for (final (i, c) in fresh.indexed)
-            await _insertCylinder(
-              c.copyWith(tripId: tripId, sortOrder: start + i),
-              now,
-            ),
-        ];
+        final fresh = cylindersToAppend(
+          [
+            for (final r in board)
+              (
+                equipmentId: r.read(t.equipmentId),
+                sortOrder: r.read(t.sortOrder) ?? 0,
+              ),
+          ],
+          cylinders,
+          tripId: tripId,
+        );
+        return [for (final c in fresh) await _insertCylinder(c, now)];
       });
       if (created.isNotEmpty) SyncEventBus.notifyLocalChange();
       return created;

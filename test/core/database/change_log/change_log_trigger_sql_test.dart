@@ -153,6 +153,15 @@ void main() {
     expect(update, isNot(contains('"engine_version"')));
   });
 
+  test('a condition finding gets the same opt-in update trigger', () {
+    final update = updateTriggerOf('equipment_findings');
+    expect(update, contains('OLD."dismissed_at" IS NOT NEW."dismissed_at"'));
+    expect(update, isNot(contains('"severity"')));
+    expect(update, isNot(contains('"value"')));
+    expect(update, isNot(contains('"engine_version"')));
+    expect(update, contains("substr(o.label, 1, 12) = 'record_edit:'"));
+  });
+
   test('the opt-in clause matches a sitting by its label prefix', () {
     expect(
       updateTriggerOf('dive_profile_series'),

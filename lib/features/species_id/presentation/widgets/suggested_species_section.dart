@@ -13,7 +13,9 @@ import 'package:submersion/features/media/presentation/widgets/media_species_she
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
 import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
+import 'package:submersion/features/species_id/presentation/providers/recorded_nearby_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
+import 'package:submersion/features/species_id/presentation/widgets/recorded_nearby_line.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
@@ -242,14 +244,28 @@ class _SuggestionRow extends ConsumerWidget {
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              // One fish swimming out of a video and back is two tracks,
-              // so a video shows no count (issue #4675).
-              suggestion.count > 1 && !item.isVideo
-                  ? l10n.media_species_suggestedCount(name, suggestion.count)
-                  : name,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  // One fish swimming out of a video and back is two
+                  // tracks, so a video shows no count (issue #4675).
+                  suggestion.count > 1 && !item.isVideo
+                      ? l10n.media_species_suggestedCount(
+                          name,
+                          suggestion.count,
+                        )
+                      : name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                RecordedNearbyLine(
+                  request: nearbyRequestForMedia(item),
+                  gbifKeys: {key},
+                  catalogId: candidate.catalogId,
+                ),
+              ],
             ),
           ),
           Text(percent, style: Theme.of(context).textTheme.bodySmall),
@@ -345,7 +361,18 @@ class SuggestionCropView extends ConsumerWidget {
             ),
             contentPadding: EdgeInsets.zero,
             title: Text(candidateDisplayName(l10n, alternative.candidate)),
-            subtitle: Text(alternative.candidate.scientificName),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(alternative.candidate.scientificName),
+                RecordedNearbyLine(
+                  request: nearbyRequestForMedia(item),
+                  gbifKeys: {alternative.candidate.gbifKey},
+                  catalogId: alternative.candidate.catalogId,
+                ),
+              ],
+            ),
             trailing: SizedBox(
               width: 120,
               child: Row(

@@ -459,7 +459,8 @@ void main() {
   test('the trip edit address redirects with the switch', () {
     final route = _findRouteByName(router.configuration.routes, 'editTrip');
     expect(route?.redirect, same(tripEditRedirect));
-    for (final name in const ['trips', 'tripDetail']) {
+    // The cylinder board has a lock of its own (issue #4527, plan 10).
+    for (final name in const ['trips', 'tripDetail', 'tripCylinders']) {
       final route = _findRouteByName(router.configuration.routes, name);
       expect(route?.onExit, same(confirmLeaveRecordSitting), reason: name);
     }

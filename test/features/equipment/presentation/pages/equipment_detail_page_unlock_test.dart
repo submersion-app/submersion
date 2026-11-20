@@ -18,9 +18,8 @@ import 'package:submersion/features/equipment/domain/constants/equipment_attribu
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_edit_fields.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_sitting_host.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
-import 'package:submersion/features/equipment/presentation/widgets/components_card.dart';
-import 'package:submersion/features/equipment/presentation/widgets/condition_findings_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/exposure_card.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
@@ -81,10 +80,6 @@ void main() {
       expect(find.byIcon(Icons.lock_outline), findsNothing);
       expect(find.byIcon(Icons.edit), findsOneWidget);
       expect(find.byType(RecordCardFade<EquipmentItem>), findsWidgets);
-      final components = tester.widget<ComponentsCard>(
-        find.byType(ComponentsCard),
-      );
-      expect(components.readOnly, isFalse);
     });
 
     testWidgets('locked, no tap writes', (tester) async {
@@ -176,22 +171,16 @@ void main() {
       );
     });
 
-    testWidgets('with the switch on, Components and Condition findings offer '
-        'no action', (tester) async {
+    testWidgets('unlocked, Components acts only in its open card', (
+      tester,
+    ) async {
       await pumpGearPage(tester);
-
-      expect(
-        tester.widget<ComponentsCard>(find.byType(ComponentsCard)).readOnly,
-        isTrue,
-      );
-      expect(
-        tester
-            .widget<ConditionFindingsCard>(find.byType(ConditionFindingsCard))
-            .readOnly,
-        isTrue,
-      );
       await unlock(tester);
       expect(find.text(l.equipment_components_add), findsNothing);
+
+      await openCard(tester, l.equipment_components_title);
+
+      expect(find.text(l.equipment_components_add), findsOneWidget);
     });
 
     testWidgets('Cancel with changes asks first', (tester) async {

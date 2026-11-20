@@ -56,6 +56,7 @@ void main() {
     String equipmentId = 'eq-1',
     String? Function(String text) passportIdOf = cylinderPassportIdOf,
     String Function(AppLocalizations l10n)? invalidText,
+    void Function(String passportId)? onHold,
   }) async {
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
@@ -73,6 +74,7 @@ void main() {
               diverId: 'd1',
               passportIdOf: passportIdOf,
               invalidText: invalidText,
+              onHold: onHold,
             ),
             child: const Text('open'),
           ),
@@ -101,6 +103,45 @@ void main() {
     );
     await tester.pumpAndSettle();
   }
+
+  // Issue #4527: in a gear item's sitting the link is held until Save.
+  group('held', () {
+    testWidgets('a free tag is handed back and nothing is written', (
+      tester,
+    ) async {
+      final held = <String>[];
+      final l10n = await pumpAndOpen(tester, onHold: held.add);
+      await submit(tester, l10n, 'https://submersion.app/c#f=1&p=$pid');
+
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(held, [pid]);
+      final id = await tester.runAsync(
+        () => CylinderPassportRepository().getPassportId('eq-1'),
+      );
+      expect(id, isNull);
+    });
+
+    testWidgets('a tag another cylinder in service holds is refused by name', (
+      tester,
+    ) async {
+      await tester.runAsync(
+        () => CylinderPassportRepository().assignPassportId(
+          equipmentId: 'eq-2',
+          passportId: pid,
+          diverId: 'd1',
+        ),
+      );
+      final held = <String>[];
+      final l10n = await pumpAndOpen(tester, onHold: held.add);
+      await submit(tester, l10n, 'https://submersion.app/c#f=1&p=$pid');
+
+      expect(
+        find.text(l10n.passport_tag_linkInUse('Old Faber')),
+        findsOneWidget,
+      );
+      expect(held, isEmpty);
+    });
+  });
 
   testWidgets('text that is not a tag is refused', (tester) async {
     final l10n = await pumpAndOpen(tester);

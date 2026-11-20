@@ -8,11 +8,13 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/helpers/lightroom_scan_helper.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/scan_results_dialog.dart';
+import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_media_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
@@ -51,8 +53,33 @@ Future<void> scanGalleryForTripPhotos(
   if (!demoSealGuard(context, DemoSealedFeature.mediaImport)) {
     return;
   }
+  final chosen = await chooseTripPhotos(
+    context,
+    ref,
+    trip: trip,
+    dives: () => ref.read(divesForTripProvider(tripId).future),
+  );
+  if (chosen == null || !context.mounted) return;
+  await _importPhotos(context, ref, tripId, chosen);
+}
+
+/// The gallery's photos taken during [trip], found for [dives] (read once
+/// the loading dialog shows), less those stored on it or in [alsoLinked]
+/// (a sitting's held photos), and confirmed by the diver dive by dive: the
+/// photos chosen, by dive, or null when there is nothing to take (said
+/// why). Shared by the menu's scan and a trip page sitting's (issue
+/// #4527).
+Future<Map<Dive, List<AssetInfo>>?> chooseTripPhotos(
+  BuildContext context,
+  WidgetRef ref, {
+  required Trip trip,
+  required Future<List<Dive>> Function() dives,
+  List<MediaItem> alsoLinked = const [],
+}) async {
+  final messenger = ScaffoldMessenger.of(context);
+  final l10n = context.l10n;
   final loading = _LoadingDialog(Navigator.of(context, rootNavigator: true));
-  showDialog(
+  showDialog<void>(
     context: context,
     barrierDismissible: false,
     // canPop:false so a system back can't pop this dialog (barrierDismissible
@@ -65,16 +92,13 @@ Future<void> scanGalleryForTripPhotos(
   );
 
   try {
-    final dives = await ref.read(divesForTripProvider(tripId).future);
-
-    if (dives.isEmpty) {
+    final found = await dives();
+    if (found.isEmpty) {
       loading.dismiss();
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.trips_detail_scan_addDivesFirst)),
-        );
-      }
-      return;
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.trips_detail_scan_addDivesFirst)),
+      );
+      return null;
     }
 
     // From the repository, not mediaForTripProvider: nothing on the trip page
@@ -82,16 +106,16 @@ Future<void> scanGalleryForTripPhotos(
     final linked = await ref
         .read(tripMediaRepositoryProvider)
         .getMediaForTrip(
-          tripId,
+          trip.id,
           diverId: await ref.read(validatedCurrentDiverIdProvider.future),
         );
 
     final photoPickerService = ref.read(photoPickerServiceProvider);
     final result = await TripMediaScanner.scanGalleryForTrip(
-      dives: dives,
+      dives: found,
       tripStartDate: trip.startDate,
       tripEndDate: trip.endDate,
-      linked: linked,
+      linked: [...linked, ...alsoLinked],
       linkedGalleryAssets: ref.read(linkedGalleryAssetsProvider),
       photoPickerService: photoPickerService,
     );
@@ -99,23 +123,20 @@ Future<void> scanGalleryForTripPhotos(
     loading.dismiss(); // Dismiss loading before any further UI.
 
     if (result == null) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.trips_detail_scan_accessDenied)),
-        );
-      }
-      return;
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.trips_detail_scan_accessDenied)),
+      );
+      return null;
     }
 
-    if (!context.mounted) return;
+    if (!context.mounted) return null;
     final dialogResult = await showScanResultsDialog(
       context: context,
       scanResult: result,
     );
 
-    if (dialogResult.confirmed != true || !context.mounted) return;
-
-    await _importPhotos(context, ref, tripId, dialogResult.selectedPhotos);
+    if (dialogResult.confirmed != true) return null;
+    return dialogResult.selectedPhotos;
   } catch (e, stackTrace) {
     _log.error(
       'Failed to scan for trip photos',
@@ -123,11 +144,10 @@ Future<void> scanGalleryForTripPhotos(
       stackTrace: stackTrace,
     );
     loading.dismiss();
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.trips_detail_scan_errorScanning)),
-      );
-    }
+    messenger.showSnackBar(
+      SnackBar(content: Text(l10n.trips_detail_scan_errorScanning)),
+    );
+    return null;
   }
 }
 
@@ -230,19 +250,67 @@ Future<void> scanForTripDives(
   WidgetRef ref,
   Trip trip,
 ) async {
+  final messenger = ScaffoldMessenger.of(context);
+  final l10n = context.l10n;
+  final chosen = await chooseTripDives(
+    context,
+    ref,
+    tripId: trip.id,
+    startDate: trip.startDate,
+    endDate: trip.endDate,
+  );
+  if (chosen == null || !context.mounted) return;
+  final (:candidates, :selectedIds) = chosen;
+  final oldTripIds = candidates
+      .where((c) => selectedIds.contains(c.dive.id) && !c.isUnassigned)
+      .map((c) => c.currentTripId!)
+      .toSet();
+  try {
+    await ref
+        .read(tripListNotifierProvider.notifier)
+        .assignDivesToTrip(selectedIds, trip.id, oldTripIds: oldTripIds);
+    messenger.showSnackBar(
+      SnackBar(content: Text(l10n.trips_diveScan_added(selectedIds.length))),
+    );
+  } catch (e, stackTrace) {
+    _log.error(
+      'Failed to assign scanned dives to the trip',
+      error: e,
+      stackTrace: stackTrace,
+    );
+    messenger.showSnackBar(SnackBar(content: Text(l10n.trips_diveScan_error)));
+  }
+}
+
+/// The dives of the active diver in [startDate] to [endDate] that are not
+/// on trip [tripId] (nor in [exclude]), offered for the diver to choose:
+/// the candidates and the ids chosen, or null when there is nothing to take
+/// (said why). Shared by the menu's scan and a trip page sitting's (issue
+/// #4527).
+Future<({List<DiveCandidate> candidates, List<String> selectedIds})?>
+chooseTripDives(
+  BuildContext context,
+  WidgetRef ref, {
+  required String tripId,
+  required DateTime startDate,
+  required DateTime endDate,
+  Set<String> exclude = const {},
+}) async {
+  final messenger = ScaffoldMessenger.of(context);
+  final l10n = context.l10n;
   final activeDiverId = ref.read(currentDiverIdProvider);
   if (activeDiverId == null) {
     // Both the hero CTA and the overflow item can reach this action; without a
     // diver there's nothing to scan, so tell the user instead of returning
     // silently (an unresponsive-looking tap).
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.l10n.trips_diveScan_noDiver)),
+    messenger.showSnackBar(
+      SnackBar(content: Text(l10n.trips_diveScan_noDiver)),
     );
-    return;
+    return null;
   }
 
   final loading = _LoadingDialog(Navigator.of(context, rootNavigator: true));
-  showDialog(
+  showDialog<void>(
     context: context,
     barrierDismissible: false,
     builder: (_) => const PopScope(
@@ -252,52 +320,35 @@ Future<void> scanForTripDives(
   );
 
   try {
-    final candidates = await ref
-        .read(tripRepositoryProvider)
-        .findCandidateDivesForTrip(
-          tripId: trip.id,
-          startDate: trip.startDate,
-          endDate: trip.endDate,
-          diverId: activeDiverId,
-        );
+    final candidates = [
+      for (final c
+          in await ref
+              .read(tripRepositoryProvider)
+              .findCandidateDivesForTrip(
+                tripId: tripId,
+                startDate: startDate,
+                endDate: endDate,
+                diverId: activeDiverId,
+              ))
+        if (!exclude.contains(c.dive.id)) c,
+    ];
 
     loading.dismiss(); // Dismiss loading before any further UI.
 
     if (candidates.isEmpty) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.trips_diveScan_noMatches)),
-        );
-      }
-      return;
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.trips_diveScan_noMatches)),
+      );
+      return null;
     }
 
-    if (!context.mounted) return;
+    if (!context.mounted) return null;
     final selectedIds = await showDiveAssignmentDialog(
       context: context,
       candidates: candidates,
     );
-
-    if (selectedIds == null || selectedIds.isEmpty || !context.mounted) {
-      return;
-    }
-
-    final oldTripIds = candidates
-        .where((c) => selectedIds.contains(c.dive.id) && !c.isUnassigned)
-        .map((c) => c.currentTripId!)
-        .toSet();
-
-    await ref
-        .read(tripListNotifierProvider.notifier)
-        .assignDivesToTrip(selectedIds, trip.id, oldTripIds: oldTripIds);
-
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(context.l10n.trips_diveScan_added(selectedIds.length)),
-        ),
-      );
-    }
+    if (selectedIds == null || selectedIds.isEmpty) return null;
+    return (candidates: candidates, selectedIds: selectedIds);
   } catch (e, stackTrace) {
     _log.error(
       'Failed to scan for trip dives',
@@ -305,10 +356,7 @@ Future<void> scanForTripDives(
       stackTrace: stackTrace,
     );
     loading.dismiss();
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.trips_diveScan_error)),
-      );
-    }
+    messenger.showSnackBar(SnackBar(content: Text(l10n.trips_diveScan_error)));
+    return null;
   }
 }

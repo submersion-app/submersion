@@ -50,6 +50,7 @@ void main() {
     WidgetTester tester, {
     TripCylinderEvent? editing,
     MockSettingsNotifier? settings,
+    Future<void> Function(TripCylinderEvent event)? hold,
   }) async {
     tester.view.physicalSize = const Size(800, 1600);
     tester.view.devicePixelRatio = 1.0;
@@ -72,6 +73,7 @@ void main() {
                   context,
                   cylinder: slot,
                   editing: editing,
+                  hold: hold,
                 ),
                 child: const Text('open'),
               ),
@@ -95,6 +97,19 @@ void main() {
     expect(e.kind, TripCylinderEventKind.adjustment);
     expect(e.pressure, 120);
     expect(e.o2Percent, isNull);
+  });
+
+  testWidgets('with hold, Save hands the adjustment back and writes nothing '
+      '(a trip page sitting, issue #4527)', (tester) async {
+    TripCylinderEvent? held;
+    await pumpAndOpen(tester, hold: (event) async => held = event);
+    await tester.enterText(find.byKey(const Key('adjust-pressure')), '120');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(held!.kind, TripCylinderEventKind.adjustment);
+    expect(held!.pressure, 120);
+    expect(await repo.getEventsForCylinder(slot.id), isEmpty);
   });
 
   testWidgets('mark empty records zero, in psi too', (tester) async {

@@ -8,6 +8,7 @@ import 'package:submersion/features/reef/data/services/reef_request_timeout.dart
 import 'package:submersion/features/reef/domain/entities/reef_data_status.dart';
 import 'package:submersion/features/reef/domain/entities/reef_health.dart';
 import 'package:submersion/features/reef/domain/services/bleaching_alert_level.dart';
+import 'package:submersion/features/reef/data/services/reef_failure.dart';
 
 /// Fetches NOAA Coral Reef Watch thermal-stress data via the PacIOOS ERDDAP
 /// server.
@@ -82,7 +83,7 @@ class ReefHealthService {
       return ReefPart.ok(_toHealth(candidates.first));
     } catch (e) {
       developer.log('Reef health fetch failed: $e', name: 'ReefHealthService');
-      return const ReefPart.unavailable();
+      return reefFailure(e);
     }
   }
 

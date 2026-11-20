@@ -12106,6 +12106,14 @@
   "marineLife_speciesPhotos_tagPhotos": "Tag photos",
   "marineLife_speciesPhotos_addPhotos": "Add photos",
   "marineLife_speciesPhotos_thumbnailLabel": "Species photo",
+  "marineLife_speciesPhotos_moreLabel": "{count, plural, one{{count} more photo} other{{count} more photos}}",
+  "@marineLife_speciesPhotos_moreLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "marineLife_speciesPhotos_importAdded": "{count, plural, =1{1 photo added} other{{count} photos added}}",
   "@marineLife_speciesPhotos_importAdded": {
     "placeholders": {
@@ -20921,6 +20929,10 @@
   "@trips_bulkDelete_divesReturnToParents": {"description": "Delete confirmation line when side trips are deleted: their dives move to the larger trips"},
   "trips_detail_dialog_deleteTitle": "Delete Trip?",
   "trips_detail_dives_empty": "No dives in this trip yet",
+  "trips_sitting_notSaved": "Not saved yet",
+  "@trips_sitting_notSaved": {"description": "Marks a dive or photo a trip page holds until Save (issue #4527)"},
+  "trips_sitting_takeOut": "Take out",
+  "@trips_sitting_takeOut": {"description": "Takes a dive or photo added in a trip page sitting back off before Save"},
   "trips_detail_dives_errorLoading": "Unable to load dives",
   "trips_detail_error_loading": "Couldn't load the trip.",
   "trips_detail_dives_unknownSite": "Unknown Site",
@@ -37822,6 +37834,7 @@
   "changeLog_table_settings": "App settings",
   "changeLog_table_diverSettings": "Diver settings",
   "changeLog_table_safetyFinding": "Safety finding",
+  "changeLog_table_conditionFinding": "Condition finding",
   "changeLog_table_pressureSeries": "Pressure readings",
   "changeLog_table_navTrack": "Underwater track",
   "changeLog_history": "History",

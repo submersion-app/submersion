@@ -202,6 +202,24 @@ void main() {
     expect(changeLogOptInKeepsDeletes('dives'), isFalse);
   });
 
+  // A gear item's sitting dismisses its condition findings (issue #4527,
+  // phase 3): logged as the dive's safety findings are, under the item.
+  test('equipment findings are delete copy only, under their item', () {
+    expect(
+      changeLogTables['equipment_findings'],
+      ChangeLogClass.deleteCopyOnly,
+    );
+    final parent = changeLogParents['equipment_findings']!;
+    expect(parent.rootTable, 'equipment');
+    expect(parent.column, 'equipment_id');
+    expect(changeLogOptInUpdateTables, contains('equipment_findings'));
+    expect(changeLogOptInUpdateColumns['equipment_findings'], {'dismissed_at'});
+    expect(changeLogShownMachineColumns['equipment_findings'], {
+      'dismissed_at',
+    });
+    expect(changeLogOptInKeepsDeletes('equipment_findings'), isFalse);
+  });
+
   test('a sitting opts in to machine rows; a free manual label does not', () {
     expect(
       changeLogOptsInMachineRows(

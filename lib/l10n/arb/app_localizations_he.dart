@@ -19657,6 +19657,17 @@ class AppLocalizationsHe extends AppLocalizations {
   String get marineLife_speciesPhotos_thumbnailLabel => 'תמונת מין';
 
   @override
+  String marineLife_speciesPhotos_moreLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count תמונות נוספות',
+      one: 'תמונה נוספת אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String marineLife_speciesPhotos_importAdded(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -34919,6 +34930,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get trips_detail_dives_empty => 'אין עדיין צלילות בטיול זה';
+
+  @override
+  String get trips_sitting_notSaved => 'טרם נשמר';
+
+  @override
+  String get trips_sitting_takeOut => 'הוצא';
 
   @override
   String get trips_detail_dives_errorLoading => 'לא ניתן לטעון צלילות';
@@ -62504,6 +62521,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get changeLog_table_safetyFinding => 'ממצא בטיחות';
+
+  @override
+  String get changeLog_table_conditionFinding => 'ממצא מצב';
 
   @override
   String get changeLog_table_pressureSeries => 'קריאות לחץ';

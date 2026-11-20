@@ -20345,6 +20345,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get marineLife_speciesPhotos_thumbnailLabel => 'صورة النوع';
 
   @override
+  String marineLife_speciesPhotos_moreLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صورة أخرى',
+      many: '$count صورة أخرى',
+      few: '$count صور أخرى',
+      two: 'صورتان أخريان',
+      one: 'صورة أخرى واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String marineLife_speciesPhotos_importAdded(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -36190,6 +36204,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get trips_detail_dives_empty => 'لا توجد غوصات في هذه الرحلة بعد';
+
+  @override
+  String get trips_sitting_notSaved => 'لم يُحفظ بعد';
+
+  @override
+  String get trips_sitting_takeOut => 'إخراج';
 
   @override
   String get trips_detail_dives_errorLoading => 'تعذر تحميل الغوصات';
@@ -64763,6 +64783,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get changeLog_table_safetyFinding => 'نتيجة سلامة';
+
+  @override
+  String get changeLog_table_conditionFinding => 'نتيجة حالة';
 
   @override
   String get changeLog_table_pressureSeries => 'قراءات الضغط';

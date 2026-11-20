@@ -915,6 +915,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'passport',
                     name: 'equipmentPassport',
+                    // A satellite of the item: it may hold a sitting.
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) => PassportPage(
                       equipmentId: state.pathParameters['equipmentId']!,
                       scannedTag: scannedTagFrom(state.extra),
@@ -943,6 +945,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'gear-passport',
                     name: 'gearPassport',
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) => GearPassportPage(
                       equipmentId: state.pathParameters['equipmentId']!,
                       scannedTag: scannedGearTagFrom(state.extra),
@@ -1275,6 +1278,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'cylinders',
                     name: 'tripCylinders',
+                    // The board has a lock of its own (issue #4527): leaving
+                    // its own sitting asks first.
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) => TripCylinderBoardPage(
                       tripId: state.pathParameters['tripId']!,
                     ),

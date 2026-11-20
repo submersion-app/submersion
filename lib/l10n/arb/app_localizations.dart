@@ -32058,6 +32058,12 @@ abstract class AppLocalizations {
   /// **'Species photo'**
   String get marineLife_speciesPhotos_thumbnailLabel;
 
+  /// No description provided for @marineLife_speciesPhotos_moreLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} more photo} other{{count} more photos}}'**
+  String marineLife_speciesPhotos_moreLabel(int count);
+
   /// No description provided for @marineLife_speciesPhotos_importAdded.
   ///
   /// In en, this message translates to:
@@ -56513,6 +56519,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No dives in this trip yet'**
   String get trips_detail_dives_empty;
+
+  /// Marks a dive or photo a trip page holds until Save (issue #4527)
+  ///
+  /// In en, this message translates to:
+  /// **'Not saved yet'**
+  String get trips_sitting_notSaved;
+
+  /// Takes a dive or photo added in a trip page sitting back off before Save
+  ///
+  /// In en, this message translates to:
+  /// **'Take out'**
+  String get trips_sitting_takeOut;
 
   /// No description provided for @trips_detail_dives_errorLoading.
   ///
@@ -100041,6 +100059,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Safety finding'**
   String get changeLog_table_safetyFinding;
+
+  /// No description provided for @changeLog_table_conditionFinding.
+  ///
+  /// In en, this message translates to:
+  /// **'Condition finding'**
+  String get changeLog_table_conditionFinding;
 
   /// No description provided for @changeLog_table_pressureSeries.
   ///

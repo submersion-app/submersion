@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:uuid/uuid.dart';
+
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
@@ -7,6 +9,7 @@ import 'package:submersion/features/equipment/data/repositories/equipment_compon
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_history_rewrite.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_components_sitting.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
@@ -17,15 +20,18 @@ import 'package:submersion/features/equipment/presentation/widgets/service_statu
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/equipment/presentation/widgets/foldable_type_group_rows.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_fold_keys.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 /// Opens the add-components sheet for [parentId]. With [replacing], the
 /// sheet picks one item to take that row's place instead (issue #1487,
 /// replace a part): same candidates, single select, the row keeps its role
-/// and order.
+/// and order. With [editing], the assembly's sitting (issue #4527), the
+/// choice is held there until Save.
 Future<void> showComponentPicker(
   BuildContext context, {
   required String parentId,
   EquipmentComponent? replacing,
+  EditSession<EquipmentItem>? editing,
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -40,6 +46,7 @@ Future<void> showComponentPicker(
         parentId: parentId,
         scrollController: scrollController,
         replacing: replacing,
+        editing: editing,
       ),
     ),
   );
@@ -56,11 +63,16 @@ class ComponentPickerSheet extends ConsumerStatefulWidget {
   /// The template row being replaced, or null when adding.
   final EquipmentComponent? replacing;
 
+  /// The assembly's sitting, which holds the choice until Save: its parts
+  /// are the ones left out.
+  final EditSession<EquipmentItem>? editing;
+
   const ComponentPickerSheet({
     super.key,
     required this.parentId,
     required this.scrollController,
     this.replacing,
+    this.editing,
   });
 
   @override
@@ -79,9 +91,13 @@ class _ComponentPickerSheetState extends ConsumerState<ComponentPickerSheet>
     List<EquipmentItem> active,
     ComponentsIndex index,
   ) {
+    final editing = widget.editing;
+    final parts = editing == null
+        ? null
+        : gearItemComponentsList.current(editing);
     final excluded = <String>{
       widget.parentId,
-      for (final part in index.byParent[widget.parentId] ?? const [])
+      for (final part in parts ?? index.byParent[widget.parentId] ?? const [])
         part.componentEquipmentId,
       ...index.ancestorsOf(widget.parentId),
       ...index.descendantsOf(widget.parentId),
@@ -130,6 +146,11 @@ class _ComponentPickerSheetState extends ConsumerState<ComponentPickerSheet>
       return;
     }
     if (choice == null || !mounted) return;
+    if (widget.editing case final session?) {
+      _hold(session, replacing, choice);
+      Navigator.of(context).pop();
+      return;
+    }
     setState(() => _saving = true);
     final repository = ref.read(equipmentComponentRepositoryProvider);
     final dives = ref.read(diveRepositoryProvider);
@@ -208,6 +229,50 @@ class _ComponentPickerSheetState extends ConsumerState<ComponentPickerSheet>
         });
       }
     }
+  }
+
+  /// Holds the choice in the assembly's [session], with the answer to
+  /// "Update past dives?" for each part it brings in.
+  void _hold(
+    EditSession<EquipmentItem> session,
+    EquipmentComponent? replacing,
+    AssemblyHistoryChoice choice,
+  ) {
+    final parts = gearItemComponentsList.current(session);
+    if (parts == null) return;
+    final items = {
+      for (final item
+          in ref.read(activeEquipmentProvider).value ?? const <EquipmentItem>[])
+        item.id: item,
+    };
+    final ids = _selected.toList();
+    for (final id in ids) {
+      rememberPartAnswer(session, id, choice);
+    }
+    if (replacing != null) {
+      final newId = ids.single;
+      gearItemComponentsList.set(session, [
+        for (final p in parts)
+          p.id == replacing.id
+              ? p.copyWith(componentEquipmentId: newId, component: items[newId])
+              : p,
+      ]);
+      return;
+    }
+    final now = DateTime.now();
+    gearItemComponentsList.set(session, [
+      ...parts,
+      for (final (i, id) in ids.indexed)
+        EquipmentComponent(
+          id: const Uuid().v4(),
+          parentEquipmentId: widget.parentId,
+          componentEquipmentId: id,
+          sortOrder: parts.length + i,
+          createdAt: now,
+          updatedAt: now,
+          component: items[id],
+        ),
+    ]);
   }
 
   @override

@@ -20,7 +20,11 @@ import 'package:submersion/features/equipment/domain/entities/service_kind.dart'
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_card_ids.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_passport_sitting.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 
 import '../../../../helpers/fake_nfc.dart';
 import '../../../../helpers/mock_providers.dart';
@@ -82,6 +86,7 @@ void main() {
     Future<void> Function(BuildContext)? onPrintLabel,
     CylinderFill? newest,
     Future<CylinderFill?> Function()? loadNewest,
+    EditSession<EquipmentItem>? editing,
   }) async {
     final overrides = await getBaseOverrides(nfcTagService: nfc);
     await tester.pumpWidget(
@@ -102,6 +107,7 @@ void main() {
             equipment: tank,
             scannedTag: scanned,
             onPrintLabel: onPrintLabel,
+            editing: editing,
           ),
         ),
       ),
@@ -109,6 +115,36 @@ void main() {
     await tester.pumpAndSettle();
     return AppLocalizations.of(tester.element(find.byType(PassportTagCard)));
   }
+
+  // Issue #4527: in the gear item's sitting a link waits for Save.
+  testWidgets('in a sitting Link existing tag holds the tag', (tester) async {
+    final session = EditSession(tank);
+    addTearDown(session.dispose);
+    const other = '11111111-2222-4333-8444-555555555555';
+    final l10n = await pump(tester, editing: session);
+
+    await tester.tap(find.text(l10n.passport_tag_linkExisting));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('linkTag_input')),
+      'https://submersion.app/c#f=1&p=$other',
+    );
+    await tester.tap(
+      find.descendant(
+        of: find.byType(FilledButton),
+        matching: find.text(l10n.passport_tag_linkExisting),
+      ),
+    );
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 50)),
+    );
+    await tester.pumpAndSettle();
+
+    expect(passportIdInSitting(session, pid), other);
+    expect(session.changedCardIds, {GearItemCardId.passportTag.name});
+    expect(find.byType(RecordChangedDot), findsOneWidget);
+    expect(find.text(l10n.passport_tag_linked), findsNothing);
+  });
 
   ServiceRecord record(String kindId, DateTime date) => ServiceRecord(
     id: 'r-$kindId-${date.millisecondsSinceEpoch}',

@@ -19,11 +19,20 @@ class TripFillForecastStrip extends ConsumerStatefulWidget {
     required this.tripId,
     required this.days,
     required this.units,
+    this.hold,
+    this.readOnly = false,
   });
 
   final String tripId;
   final List<FillForecastDay> days;
   final UnitFormatter units;
+
+  /// Where a day's planned dives go instead of the repository: a trip's
+  /// sitting, which writes them to its itinerary at Save (issue #4527).
+  final Future<void> Function(DateTime date, int? plannedDives)? hold;
+
+  /// A board that edits in place and is locked: the days only show.
+  final bool readOnly;
 
   @override
   ConsumerState<TripFillForecastStrip> createState() =>
@@ -36,13 +45,18 @@ class _TripFillForecastStripState extends ConsumerState<TripFillForecastStrip> {
   bool _saving = false;
 
   Future<void> _edit(FillForecastDay day) async {
-    if (_saving) return;
+    if (_saving || widget.readOnly) return;
     final result = await showTripDayPlanDialog(
       context,
       day: day,
       dateLabel: widget.units.formatWeekdayMonthDay(day.date),
     );
     if (result == null || !mounted) return;
+    final hold = widget.hold;
+    if (hold != null) {
+      await hold(day.date, result.plannedDives);
+      return;
+    }
     setState(() => _saving = true);
     try {
       await ref
@@ -107,7 +121,9 @@ class _TripFillForecastStripState extends ConsumerState<TripFillForecastStrip> {
                     '${widget.units.formatWeekdayMonthDay(day.date)} · '
                     '${l10n.trips_cylinders_forecast_plannedDives(day.plannedDives)}',
                   ),
-                  onPressed: _saving ? null : () => _edit(day),
+                  onPressed: _saving || widget.readOnly
+                      ? null
+                      : () => _edit(day),
                 ),
             ],
           ),
