@@ -56,6 +56,8 @@ void main() {
     await pumpNewBuddyPage(tester);
 
     expect(find.byType(BuddyGearSection), findsNothing);
+    // Nor in the strip: lending needs a buddy that exists.
+    expect(find.text(l.buddies_editCard_gear), findsNothing);
   });
 
   testWidgets('Save waits for the first entry', (tester) async {
