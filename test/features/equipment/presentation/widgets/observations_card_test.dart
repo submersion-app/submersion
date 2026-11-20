@@ -299,6 +299,26 @@ void main() {
     expect(find.text('Save'), findsOneWidget);
     expect(find.widgetWithText(TextField, 'Cold water'), findsOneWidget);
   });
+
+  testWidgets('the open card\'s Add opens a new check-in in the editor', (
+    tester,
+  ) async {
+    final session = EditSession(reg);
+    addTearDown(session.dispose);
+    // No database here: the list starts empty, read.
+    gearItemCheckInsList.loadNone(session);
+    await pump(
+      tester,
+      const [],
+      card: ObservationsCard(equipment: reg, editing: session),
+    );
+
+    await tester.tap(find.text('Add check-in'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Save'), findsOneWidget);
+    expect(find.widgetWithText(TextField, 'Cold water'), findsNothing);
+  });
 }
 
 class _FakeRepo implements EquipmentObservationRepository {
