@@ -58,15 +58,27 @@ class VideoFrames {
   VideoFrames() = default;
 
   bool Seek(int64_t ms);
+  // The decoder's buffer layout (coded size and stride), read from its
+  // current output type; again whenever the decoder changes that type.
+  bool ReadLayout();
   // Reads frames until one is shown at or after [ms].
   std::optional<Frame> ReadTo(int64_t ms, int max_side, FrameError* error);
-  Frame Convert(IMFSample* sample, int64_t ms, int max_side) const;
+  // The frame turned and scaled as the player shows it; an error, never a
+  // blank frame, when its buffer cannot be read or is not the layout
+  // expected.
+  std::optional<Frame> Convert(IMFSample* sample, int64_t ms, int max_side,
+                               FrameError* error) const;
 
   Microsoft::WRL::ComPtr<IMFSourceReader> reader_;
   DWORD stream_ = 0;
-  int width_ = 0;   // Decoded (stored) size.
+  int width_ = 0;   // Stored picture size, before rotation (the container's).
   int height_ = 0;
-  int stride_ = 0;  // Bytes a row of the decoded frame; negative is bottom-up.
+  // The decoder's buffer: its coded size, which can be padded past the
+  // picture (1080 rows decode into 1088), and the bytes a row; a negative
+  // stride is bottom-up.
+  int coded_width_ = 0;
+  int coded_height_ = 0;
+  int stride_ = 0;
   int rotation_ = 0;
   int64_t duration_ms_ = 0;
   int64_t position_ms_ = -1;  // The last frame read, or -1 before any.

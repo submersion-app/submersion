@@ -80,24 +80,16 @@ std::optional<VideoFrames> VideoFrames::Open(const std::string& path,
     *error = {"decode_failed", Hr("the video cannot be decoded to RGB", hr)};
     return std::nullopt;
   }
-  ComPtr<IMFMediaType> current;
-  video.reader_->GetCurrentMediaType(video.stream_, &current);
-  UINT32 width = 0, height = 0;
-  MFGetAttributeSize(current.Get(), MF_MT_FRAME_SIZE, &width, &height);
-  if (width == 0 || height == 0) {
+  if (!video.ReadLayout()) {
     *error = {"decode_failed", "the video has no frame size"};
     return std::nullopt;
   }
-  video.width_ = static_cast<int>(width);
-  video.height_ = static_cast<int>(height);
-  UINT32 stride = 0;
-  if (SUCCEEDED(current->GetUINT32(MF_MT_DEFAULT_STRIDE, &stride))) {
-    video.stride_ = static_cast<int>(static_cast<INT32>(stride));
-  } else {
-    LONG computed = 0;
-    MFGetStrideForBitmapInfoHeader(MFVideoFormat_RGB32.Data1, width, &computed);
-    video.stride_ = static_cast<int>(computed);
-  }
+  // The picture's size is the container's, as the player shows it; the
+  // decoder's own can be padded past it.
+  UINT32 width = 0, height = 0;
+  MFGetAttributeSize(native.Get(), MF_MT_FRAME_SIZE, &width, &height);
+  video.width_ = width > 0 ? static_cast<int>(width) : video.coded_width_;
+  video.height_ = height > 0 ? static_cast<int>(height) : video.coded_height_;
 
   PROPVARIANT duration;
   PropVariantInit(&duration);
@@ -144,6 +136,25 @@ std::optional<Frame> VideoFrames::FrameAt(int64_t ms, int max_side,
   return ReadTo(ms, max_side, error);
 }
 
+bool VideoFrames::ReadLayout() {
+  ComPtr<IMFMediaType> current;
+  if (FAILED(reader_->GetCurrentMediaType(stream_, &current))) return false;
+  UINT32 width = 0, height = 0;
+  MFGetAttributeSize(current.Get(), MF_MT_FRAME_SIZE, &width, &height);
+  if (width == 0 || height == 0) return false;
+  coded_width_ = static_cast<int>(width);
+  coded_height_ = static_cast<int>(height);
+  UINT32 stride = 0;
+  if (SUCCEEDED(current->GetUINT32(MF_MT_DEFAULT_STRIDE, &stride))) {
+    stride_ = static_cast<int>(static_cast<INT32>(stride));
+  } else {
+    LONG computed = 0;
+    MFGetStrideForBitmapInfoHeader(MFVideoFormat_RGB32.Data1, width, &computed);
+    stride_ = static_cast<int>(computed);
+  }
+  return true;
+}
+
 bool VideoFrames::Seek(int64_t ms) {
   PROPVARIANT position;
   PropVariantInit(&position);
@@ -169,16 +180,22 @@ std::optional<Frame> VideoFrames::ReadTo(int64_t ms, int max_side,
       return std::nullopt;
     }
     if (flags & MF_SOURCE_READERF_ENDOFSTREAM) return std::nullopt;
+    if ((flags & MF_SOURCE_READERF_CURRENTMEDIATYPECHANGED) && !ReadLayout()) {
+      *error = {"decode_failed", "the decoder's new frame layout is unreadable"};
+      return std::nullopt;
+    }
     if (!sample) continue;
     const int64_t at = Ms(time);
     position_ms_ = at;
     // Frames before the time asked are decoded but not looked at.
     if (at < ms) continue;
-    return Convert(sample.Get(), at, max_side);
+    return Convert(sample.Get(), at, max_side, error);
   }
 }
 
-Frame VideoFrames::Convert(IMFSample* sample, int64_t ms, int max_side) const {
+std::optional<Frame> VideoFrames::Convert(IMFSample* sample, int64_t ms,
+                                          int max_side,
+                                          FrameError* error) const {
   Frame frame;
   frame.ms = ms;
   const int shown_w = shown_width(), shown_h = shown_height();
@@ -189,7 +206,12 @@ Frame VideoFrames::Convert(IMFSample* sample, int64_t ms, int max_side) const {
   frame.rgba.assign(static_cast<size_t>(frame.width) * frame.height * 4, 0);
 
   ComPtr<IMFMediaBuffer> buffer;
-  if (FAILED(sample->ConvertToContiguousBuffer(&buffer))) return frame;
+  if (FAILED(sample->ConvertToContiguousBuffer(&buffer))) {
+    *error = {"decode_failed", "a frame's buffer could not be read"};
+    return std::nullopt;
+  }
+  DWORD length = 0;
+  buffer->GetCurrentLength(&length);
   BYTE* row0 = nullptr;
   LONG pitch = 0;
   ComPtr<IMF2DBuffer> buffer2d;
@@ -199,10 +221,32 @@ Frame VideoFrames::Convert(IMFSample* sample, int64_t ms, int max_side) const {
       SUCCEEDED(buffer2d->Lock2D(&row0, &pitch))) {
     locked2d = true;
   } else {
-    DWORD length = 0;
-    if (FAILED(buffer->Lock(&data, nullptr, &length))) return frame;
+    if (FAILED(buffer->Lock(&data, nullptr, &length))) {
+      *error = {"decode_failed", "a frame's buffer could not be locked"};
+      return std::nullopt;
+    }
     pitch = stride_;
-    row0 = pitch < 0 ? data + static_cast<size_t>(height_ - 1) * -pitch : data;
+    row0 = pitch < 0
+               ? data + static_cast<size_t>(coded_height_ - 1) * -pitch
+               : data;
+  }
+  auto unlock = [&] {
+    if (locked2d) {
+      buffer2d->Unlock2D();
+    } else {
+      buffer->Unlock();
+    }
+  };
+  // Never read past the decoder's buffer: a row shorter than the picture,
+  // a picture larger than the coded frame or a buffer shorter than its
+  // rows fails the frame instead.
+  const size_t row_bytes = static_cast<size_t>(pitch < 0 ? -pitch : pitch);
+  if (row_bytes < static_cast<size_t>(width_) * 4 ||
+      coded_width_ < width_ || coded_height_ < height_ ||
+      static_cast<size_t>(length) < row_bytes * static_cast<size_t>(coded_height_)) {
+    unlock();
+    *error = {"decode_failed", "unexpected decoded frame layout"};
+    return std::nullopt;
   }
 
   // Each output pixel averages the stored pixels under it, taken out of the
@@ -249,11 +293,7 @@ Frame VideoFrames::Convert(IMFSample* sample, int64_t ms, int max_side) const {
     }
   }
 
-  if (locked2d) {
-    buffer2d->Unlock2D();
-  } else {
-    buffer->Unlock();
-  }
+  unlock();
   return frame;
 }
 
