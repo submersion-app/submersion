@@ -13,15 +13,28 @@ void main() {
       img.encodePng(img.Image(width: width, height: height));
 
   testWidgets('applies EXIF orientation', (tester) async {
-    // Stored 40 wide and 20 high, to be shown turned a quarter (6).
+    // Stored 40 wide and 20 high, to be shown turned a quarter clockwise
+    // (6): its red left edge is shown along the top, as the viewer shows it,
+    // so boxes land on the fish where the diver sees it.
     final stored = img.Image(width: 40, height: 20);
+    img.fillRect(
+      stored,
+      x1: 0,
+      y1: 0,
+      x2: 9,
+      y2: 19,
+      color: img.ColorRgb8(255, 0, 0),
+    );
     stored.exif.imageIfd.orientation = 6;
-    final jpeg = img.encodeJpg(stored);
+    final jpeg = img.encodeJpg(stored, quality: 100);
 
     final decoded = await tester.runAsync(() => decodeForAnalysis(jpeg));
 
     expect((decoded!.width, decoded.height), (20, 40));
     expect(decoded.bytes, hasLength(20 * 40 * 4));
+    int red(int x, int y) => decoded.bytes[(y * decoded.width + x) * 4];
+    expect(red(10, 4), greaterThan(200), reason: 'the red edge is on top');
+    expect(red(10, 35), lessThan(50), reason: 'not at the bottom');
   });
 
   testWidgets('caps the longer side at 4096', (tester) async {

@@ -354,6 +354,7 @@ void main() {
   });
 
   test('Android, Windows and Linux get the ONNX engine', () async {
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
     for (final platform in [
       TargetPlatform.android,
       TargetPlatform.windows,

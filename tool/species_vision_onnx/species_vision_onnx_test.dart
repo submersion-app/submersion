@@ -19,9 +19,12 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/features/species_id/data/engines/onnx/flutter_image_decoder.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/onnx_worker.dart';
+import 'package:submersion/features/species_id/data/engines/onnx/pipeline/onnx_pipeline.dart';
+import 'package:submersion/features/species_id/data/engines/onnx/pipeline/pixels.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/scoring_line.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
+import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 
 void main() {
   final requestPath = Platform.environment['SPECIES_VISION_REQUEST'];
@@ -45,6 +48,19 @@ void main() {
         final worker = await OnnxWorker.spawn(
           ortLibraryPath: request['ortLibrary'] as String?,
         );
+        // A run that fails on the worker's last device closes the models;
+        // they are loaded again, once, so one failure costs one photo, not
+        // the rest of the run.
+        Future<PipelineResult> analyze(RgbaImage image) async {
+          try {
+            return await worker.analyze(image);
+          } on VisionEngineException catch (e) {
+            if (e.code != VisionEngineException.notLoaded) rethrow;
+            await worker.load(models);
+            return worker.analyze(image);
+          }
+        }
+
         final out = File(request['out']! as String).openWrite();
         try {
           await worker.load(models);
@@ -53,7 +69,7 @@ void main() {
               final image = await decodeForAnalysis(
                 File(path).readAsBytesSync(),
               );
-              final result = await worker.analyze(image);
+              final result = await analyze(image);
               out.writeln(
                 scoringLine(path, result, withDetectorBoxes: withDetectorBoxes),
               );
