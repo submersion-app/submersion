@@ -134,13 +134,13 @@ void main() {
     await eventually(ids, ['m-there', 'm-here']);
   });
 
-  test('the strip reads at most kSiteDivePhotoStripLimit items', () async {
-    for (var i = 0; i <= kSiteDivePhotoStripLimit; i++) {
+  test('the preview reads at most kSiteDivePhotoPreviewLimit items', () async {
+    for (var i = 0; i <= kSiteDivePhotoPreviewLimit; i++) {
       await media('m$i', 'here');
     }
     final items = await container.read(
       recentMediaFromDivesAtSiteProvider('S').future,
     );
-    expect(items, hasLength(kSiteDivePhotoStripLimit));
+    expect(items, hasLength(kSiteDivePhotoPreviewLimit));
   });
 }

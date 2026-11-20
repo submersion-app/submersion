@@ -41,7 +41,7 @@ const double _kThumbnailSliderWidth = 140;
 
 /// Width of the slider in the thumbnail size menu: wider than the inline
 /// one, so the stops are easier to hit with a thumb.
-const double _kThumbnailMenuSliderWidth = 240;
+const double kMediaThumbnailMenuSliderWidth = 240;
 
 /// Narrowest row that holds the inline thumbnail size slider (issue #3297):
 /// three icon buttons, the four segments, the slider, and 8dp to spare.
@@ -137,21 +137,7 @@ class MediaLibraryToolbar extends ConsumerWidget {
                 icon: const Icon(Icons.sort, size: 20),
                 visualDensity: VisualDensity.compact,
                 tooltip: l10n.media_library_sort_title,
-                onPressed: () {
-                  final sort = ref.read(mediaLibrarySortProvider);
-                  showSortBottomSheet<MediaSortField>(
-                    context: context,
-                    title: l10n.media_library_sort_title,
-                    currentField: sort.field,
-                    currentDirection: sort.direction,
-                    fields: MediaSortField.values,
-                    getFieldDisplayName: (field) => field.localizedName(l10n),
-                    getFieldIcon: (field) => field.icon,
-                    onSortChanged: (field, direction) => ref
-                        .read(mediaLibrarySortProvider.notifier)
-                        .setSort(field, direction),
-                  );
-                },
+                onPressed: () => showMediaLibrarySortSheet(context, ref),
               ),
             // The map cannot show a selection, so it does not offer one.
             if (canSelect && mode != MediaLibraryViewMode.map)
@@ -164,7 +150,7 @@ class MediaLibraryToolbar extends ConsumerWidget {
               ),
             const Spacer(),
             if (sizable && inlineSlider)
-              const _ThumbnailSizeSlider(width: _kThumbnailSliderWidth),
+              const MediaThumbnailSizeSlider(width: _kThumbnailSliderWidth),
             if (sizable && !inlineSlider) const _ThumbnailSizeButton(),
             if (compactModes)
               _ViewModeMenuButton(
@@ -195,9 +181,31 @@ class MediaLibraryToolbar extends ConsumerWidget {
   }
 }
 
+/// The library's sort sheet, over the sort the library and the focused
+/// galleries share (issue #4741).
+void showMediaLibrarySortSheet(BuildContext context, WidgetRef ref) {
+  final l10n = context.l10n;
+  final sort = ref.read(mediaLibrarySortProvider);
+  showSortBottomSheet<MediaSortField>(
+    context: context,
+    title: l10n.media_library_sort_title,
+    currentField: sort.field,
+    currentDirection: sort.direction,
+    fields: MediaSortField.values,
+    getFieldDisplayName: (field) => field.localizedName(l10n),
+    getFieldIcon: (field) => field.icon,
+    onSortChanged: (field, direction) =>
+        ref.read(mediaLibrarySortProvider.notifier).setSort(field, direction),
+  );
+}
+
 /// Seven stops from the smallest thumbnails to two across (issue #3297).
-class _ThumbnailSizeSlider extends ConsumerWidget {
-  const _ThumbnailSizeSlider({required this.width});
+/// Shared with the focused galleries' menu (issue #4741).
+class MediaThumbnailSizeSlider extends ConsumerWidget {
+  const MediaThumbnailSizeSlider({
+    super.key,
+    this.width = kMediaThumbnailMenuSliderWidth,
+  });
 
   final double width;
 
@@ -242,7 +250,9 @@ class _ThumbnailSizeButton extends StatelessWidget {
       menuChildren: const [
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 8),
-          child: _ThumbnailSizeSlider(width: _kThumbnailMenuSliderWidth),
+          child: MediaThumbnailSizeSlider(
+            width: kMediaThumbnailMenuSliderWidth,
+          ),
         ),
       ],
       builder: (context, controller, _) => IconButton(

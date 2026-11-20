@@ -228,6 +228,13 @@ class _MediaConsoleScaffoldState extends ConsumerState<MediaConsoleScaffold>
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             PaneHeaderBar(
+              // Opened over another page (a site's or buddy's photo card,
+              // issue #4741): the way back, as a phone's app bar shows it.
+              // The same test the app bar uses, so the main menu's Media,
+              // the page itself, shows none.
+              leading: (ModalRoute.of(context)?.impliesAppBarDismissal ?? false)
+                  ? const BackButton()
+                  : null,
               title: headerTitle.build(context, SectionHeaderSlot.pane, null),
               titleWidth: headerTitle.paneTitleWidth?.call(context),
               // The pane bar draws its own rule under the tabs.

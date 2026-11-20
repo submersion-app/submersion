@@ -8,9 +8,12 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart' show StateProvider;
+import 'package:submersion/features/media/data/repositories/media_aspect_cache_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/media_unlink_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/presentation/helpers/media_layout_aspect.dart';
+import 'package:submersion/features/media/presentation/providers/media_learned_aspect_provider.dart';
 import 'package:submersion/features/media/domain/entities/site_attachment_category.dart';
 import 'package:submersion/features/media/presentation/pages/site_media_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
@@ -70,6 +73,15 @@ class _RecordingSiteMediaNotifier extends SiteMediaListNotifier {
   }
 }
 
+/// No learned shapes, and no database behind them.
+class _NoShapesRepository implements MediaAspectCacheRepository {
+  @override
+  Future<Map<String, LearnedAspect>> loadAll() async => const {};
+
+  @override
+  Future<void> putAll(Map<String, LearnedAspect> entries) async {}
+}
+
 void main() {
   final photoA = testMediaItem(
     id: 'm1',
@@ -107,6 +119,9 @@ void main() {
     );
     return mediaTestApp(
       overrides: [
+        mediaAspectCacheRepositoryProvider.overrideWithValue(
+          _NoShapesRepository(),
+        ),
         mediaForSiteProvider('site-1').overrideWith((ref) {
           if (loadAttachments != null) return loadAttachments(ref);
           if (pendingAttachments != null) return pendingAttachments;
@@ -258,7 +273,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byType(MediaThumbnailTile).at(1));
+      // Documents lead the preview (issue #4741).
+      await tester.tap(find.byType(MediaThumbnailTile).first);
       await tester.pumpAndSettle();
 
       expect(opened.map((m) => m.id), ['doc-1']);
@@ -549,7 +565,7 @@ void main() {
 
   // Issue #1039: categories, large cards and the new bulk actions.
   group('categories', () {
-    testWidgets('categorized attachments render under headings', (
+    testWidgets('the preview lumps categories; selecting shows the groups', (
       tester,
     ) async {
       await tester.pumpWidget(
@@ -560,6 +576,12 @@ void main() {
           ],
         ),
       );
+      await tester.pumpAndSettle();
+      // Issue #4741: one preview, no headings, until a selection needs them.
+      expect(find.text('Underwater (1)'), findsNothing);
+      expect(find.byType(MediaThumbnailTile), findsNWidgets(2));
+
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
       await tester.pumpAndSettle();
       expect(find.text('Underwater (1)'), findsOneWidget);
       expect(find.text('Uncategorized (1)'), findsOneWidget);

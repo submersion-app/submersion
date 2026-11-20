@@ -16,8 +16,9 @@ void main() {
     // The dive photos card that replaced the Site Media group (#4502).
     l10n.media_siteDivePhotos_title,
     l10n.media_siteDivePhotos_titleWithCount(3),
-    l10n.media_siteDivePhotos_showAll,
-    l10n.media_siteDivePhotos_showLess,
+    // The +N cover on its two-row preview (#4741).
+    l10n.media_justifiedPreview_moreCount(3),
+    l10n.media_justifiedPreview_showAllInMedia,
     l10n.media_siteMediaSection_divePhotoLabel,
     l10n.media_siteMediaSection_unlinkSelectedTitle(2),
     l10n.media_siteMediaSection_unlinkSelectedContent(2),

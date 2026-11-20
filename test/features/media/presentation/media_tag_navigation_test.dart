@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
 import 'package:submersion/features/media/presentation/media_tag_navigation.dart';
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
 
@@ -128,5 +129,87 @@ void main() {
     expect(find.text('VIEWER'), findsOneWidget);
     expect(asked, [false]);
     expect(container.read(mediaLibraryFilterProvider).tagIds, isEmpty);
+  });
+
+  // A card on another section's page (the site's +N, the buddy's photos)
+  // opens the library over that page, so Back returns to it (issue #4741).
+  group('opened from another section', () {
+    late ProviderContainer container;
+    late GoRouter router;
+
+    Future<void> pumpSite(WidgetTester tester) async {
+      container = ProviderContainer();
+      addTearDown(container.dispose);
+      router = GoRouter(
+        initialLocation: '/sites/s1',
+        routes: [
+          GoRoute(
+            path: '/sites/s1',
+            builder: (context, _) => Scaffold(
+              body: Consumer(
+                builder: (context, ref, _) => TextButton(
+                  onPressed: () => openMediaWithFilter(
+                    context,
+                    ref,
+                    const MediaLibraryFilter(siteId: 's1'),
+                  ),
+                  child: const Text('SITE'),
+                ),
+              ),
+            ),
+          ),
+          GoRoute(
+            path: '/media',
+            builder: (context, _) => Scaffold(
+              appBar: AppBar(title: const Text('LIBRARY')),
+              body: Consumer(
+                builder: (context, ref, _) => TextButton(
+                  onPressed: () => openMediaWithTag(context, ref, 'wreck'),
+                  child: const Text('tag chip'),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp.router(routerConfig: router),
+        ),
+      );
+      await tester.tap(find.text('SITE'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('pushes the library, and Back returns to the site', (
+      tester,
+    ) async {
+      await pumpSite(tester);
+
+      expect(find.text('LIBRARY'), findsOneWidget);
+      expect(container.read(mediaLibraryFilterProvider).siteId, 's1');
+      expect(find.byType(BackButton), findsOneWidget);
+
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
+      expect(find.text('SITE'), findsOneWidget);
+      expect(find.text('LIBRARY'), findsNothing);
+    });
+
+    testWidgets('a second open from the library does not stack another', (
+      tester,
+    ) async {
+      await pumpSite(tester);
+
+      await tester.tap(find.text('tag chip'));
+      await tester.pumpAndSettle();
+      expect(container.read(mediaLibraryFilterProvider).tagIds, {'wreck'});
+
+      // One Back, straight to the site.
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
+      expect(find.text('SITE'), findsOneWidget);
+    });
   });
 }

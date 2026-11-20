@@ -22,26 +22,8 @@ extension SectionNavigation on BuildContext {
   ///
   /// Pushes when [location] is not already on the stack. When it is, walks
   /// back to the existing page instead of stacking a second copy of it.
-  void pushOrReturnTo(String location) {
-    final router = GoRouter.of(this);
-    if (!_stackContains(
-      router.routerDelegate.currentConfiguration.matches,
-      location,
-    )) {
-      router.push(location);
-      return;
-    }
-
-    // Bounded: each iteration pops one page, and the guard keeps a router
-    // state we did not anticipate from spinning rather than failing visibly.
-    for (var guard = 0; guard < 32; guard++) {
-      final matches = router.routerDelegate.currentConfiguration.matches;
-      if (matches.isEmpty) return;
-      if (_leafLocation(matches.last) == location) return;
-      if (!router.canPop()) return;
-      router.pop();
-    }
-  }
+  void pushOrReturnTo(String location) =>
+      pushOrReturnToOn(GoRouter.of(this), location);
 
   /// Change this page's own URL (selection, mode, view) without discarding
   /// the pages under it.
@@ -76,6 +58,29 @@ extension SectionNavigation on BuildContext {
     ).read(appExitGuardProvider);
     if (!await guard.mayLeave() || !mounted) return;
     navigate();
+  }
+}
+
+/// [SectionNavigation.pushOrReturnTo] on [router], for a caller whose own
+/// context may be gone by the time it navigates: a sheet that pops itself
+/// first reads the router before it does.
+void pushOrReturnToOn(GoRouter router, String location) {
+  if (!_stackContains(
+    router.routerDelegate.currentConfiguration.matches,
+    location,
+  )) {
+    router.push(location);
+    return;
+  }
+
+  // Bounded: each iteration pops one page, and the guard keeps a router
+  // state we did not anticipate from spinning rather than failing visibly.
+  for (var guard = 0; guard < 32; guard++) {
+    final matches = router.routerDelegate.currentConfiguration.matches;
+    if (matches.isEmpty) return;
+    if (_leafLocation(matches.last) == location) return;
+    if (!router.canPop()) return;
+    router.pop();
   }
 }
 

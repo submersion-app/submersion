@@ -19692,10 +19692,12 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get media_siteDivePhotos_showAll => '显示全部';
+  String media_justifiedPreview_moreCount(int count) {
+    return '+$count';
+  }
 
   @override
-  String get media_siteDivePhotos_showLess => '收起';
+  String get media_justifiedPreview_showAllInMedia => '在媒体中查看全部';
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {

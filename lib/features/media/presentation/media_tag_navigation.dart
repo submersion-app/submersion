@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
 
@@ -14,6 +15,11 @@ import 'package:submersion/features/media/presentation/providers/media_library_p
 /// would leave both on screen. So every pageless route above the router's
 /// page (the sheet, the viewer) is popped first. The router is read before,
 /// because [context] and [ref] belong to the sheet.
+///
+/// From another section's page (a site's or a buddy's photo card) the
+/// library opens over that page, so Back returns to it (issue #4741); from
+/// a library already on the stack it goes back to that one rather than
+/// stacking a second ([pushOrReturnToOn]).
 ///
 /// The filter is replaced rather than merged: a leftover site, trip or date
 /// bound would hide some of what was asked for. The library's active filter
@@ -44,7 +50,7 @@ void openMediaWithFilter(
     return;
   }
   ref.read(mediaLibraryFilterProvider.notifier).state = filter;
-  router.go('/media');
+  pushOrReturnToOn(router, '/media');
 }
 
 /// Opens the media library showing only the photos and videos tagged

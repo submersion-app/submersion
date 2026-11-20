@@ -21021,10 +21021,12 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get media_siteDivePhotos_showAll => 'إظهار الكل';
+  String media_justifiedPreview_moreCount(int count) {
+    return '+$count';
+  }
 
   @override
-  String get media_siteDivePhotos_showLess => 'إظهار أقل';
+  String get media_justifiedPreview_showAllInMedia => 'عرض الكل في الوسائط';
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {

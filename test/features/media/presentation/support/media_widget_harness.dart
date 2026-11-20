@@ -3,10 +3,13 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
+import 'package:submersion/core/providers/provider.dart' show StateNotifier;
+import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -50,6 +53,45 @@ Future<Widget> mediaTestApp({
       home: home,
     ),
   );
+}
+
+/// [mediaTestApp] on a [router], for widgets that navigate with go_router,
+/// such as the cards that open the filtered library (issue #4741).
+Future<Widget> mediaTestRouterApp({
+  required GoRouter router,
+  List<Override> overrides = const [],
+  MediaSourceData? resolverData,
+}) async {
+  final base = await getBaseOverrides();
+  return ProviderScope(
+    overrides: [
+      ...base,
+      mediaResolverOverride(resolverData: resolverData),
+      ...overrides,
+    ],
+    child: MaterialApp.router(
+      locale: const Locale('en'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      routerConfig: router,
+    ),
+  );
+}
+
+/// A library notifier holding [state] and reading nothing, for a widget
+/// that pages through library rows with no database behind it.
+class SeededMediaLibraryNotifier extends StateNotifier<MediaLibraryState>
+    implements MediaLibraryNotifier {
+  SeededMediaLibraryNotifier([super.state = const MediaLibraryState()]);
+
+  @override
+  Future<void> loadFirstPage() async {}
+
+  @override
+  Future<void> loadMore() async {}
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /// The registry override [mediaTestApp] installs, for tests that build their

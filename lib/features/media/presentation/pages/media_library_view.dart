@@ -4,16 +4,12 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_launcher.dart';
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
-import 'package:submersion/features/media/presentation/widgets/media_library_grid.dart';
+import 'package:submersion/features/media/presentation/widgets/media_library_gallery.dart';
 import 'package:submersion/features/media/presentation/widgets/media_selection_bar.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_active_filter_chips.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_toolbar.dart';
 import 'package:submersion/features/media/presentation/widgets/media_map_content.dart';
-import 'package:submersion/features/media/presentation/widgets/media_library_grouped_list.dart';
-import 'package:submersion/features/media/presentation/widgets/media_library_groupers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_missing_banner.dart';
-import 'package:submersion/features/media/presentation/widgets/media_thumbnail_row_height_builder.dart';
-import 'package:submersion/features/media/presentation/widgets/media_thumbnail_wheel_zoom.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
@@ -141,75 +137,31 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
     // The map runs its own unpaged query and owns its loading, empty and
     // error states; the grid's page one must not stand in for them.
     if (mode == MediaLibraryViewMode.map) return const MediaMapContent();
-    if (state.isLoading && state.entries.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (state.entries.isEmpty) {
-      // Under a filter, empty means nothing matches it, not an empty
-      // library; with the cleanup filters (issue #4148) it is the finished
-      // state. So a read that failed must not pass for either.
-      final message = state.error != null
-          ? context.l10n.media_diveMediaSection_errorLoading
-          : filter.health == MediaHealthFilter.missing
-          ? context.l10n.media_missing_empty
-          : filter.isEmpty
-          ? context.l10n.media_library_empty
-          : context.l10n.media_library_emptyFiltered;
-      return Center(child: Text(message));
-    }
-    void loadMore() =>
-        ref.read(mediaLibraryNotifierProvider.notifier).loadMore();
-
-    // The grouped modes load pages already ordered by group (issue #4268),
-    // so each group here is one run of rows. The viewer pages through what
-    // the gallery shows, so it gets the groups' order (issue #4146).
-    final groups = switch (mode) {
-      MediaLibraryViewMode.byDive => groupByDive(state.entries),
-      MediaLibraryViewMode.timeline => groupByTimeline(state.entries),
-      MediaLibraryViewMode.grid || MediaLibraryViewMode.map => null,
-    };
-
-    void handleTap(MediaLibraryEntry entry) {
-      if (selection.isActive) {
-        _selection.toggle(entry.item.id);
-      } else {
-        final shown = groups == null
-            ? state.entries
-            : [for (final group in groups) ...group.entries];
-        _openViewer(context, shown, entry);
-      }
-    }
-
-    final checkedIds = selection.checkedIds;
-
-    // One size for all three thumbnail views, from the toolbar's slider or
-    // the mouse wheel with Ctrl held (issue #3297).
-    return MediaThumbnailWheelZoom(
-      child: MediaThumbnailRowHeightBuilder(
-        builder: (context, rowHeight) => switch (mode) {
-          MediaLibraryViewMode.grid => MediaLibraryGrid(
-            entries: state.entries,
-            hasMore: state.hasMore,
-            onLoadMore: loadMore,
-            onTileTap: (entry, index) => handleTap(entry),
-            rowHeight: rowHeight,
-            selectedIds: checkedIds,
-            isSelectionMode: selection.isActive,
-          ),
-          MediaLibraryViewMode.byDive ||
-          MediaLibraryViewMode.timeline => MediaLibraryGroupedList(
-            groups: groups!,
-            hasMore: state.hasMore,
-            onLoadMore: loadMore,
-            onTileTap: handleTap,
-            rowHeight: rowHeight,
-            selectedIds: checkedIds,
-            isSelectionMode: selection.isActive,
-          ),
-          // Returned above, before the grid's paged-state guards.
-          MediaLibraryViewMode.map => const MediaMapContent(),
-        },
-      ),
+    // Under a filter, empty means nothing matches it, not an empty library;
+    // with the cleanup filters (issue #4148) it is the finished state. So a
+    // read that failed must not pass for either.
+    final emptyMessage = state.error != null
+        ? context.l10n.media_diveMediaSection_errorLoading
+        : filter.health == MediaHealthFilter.missing
+        ? context.l10n.media_missing_empty
+        : filter.isEmpty
+        ? context.l10n.media_library_empty
+        : context.l10n.media_library_emptyFiltered;
+    return MediaLibraryGallery(
+      state: state,
+      mode: mode,
+      emptyMessage: emptyMessage,
+      onLoadMore: () =>
+          ref.read(mediaLibraryNotifierProvider.notifier).loadMore(),
+      onTileTap: (entry, shown) {
+        if (selection.isActive) {
+          _selection.toggle(entry.item.id);
+        } else {
+          _openViewer(context, shown, entry);
+        }
+      },
+      selectedIds: selection.checkedIds,
+      isSelectionMode: selection.isActive,
     );
   }
 }

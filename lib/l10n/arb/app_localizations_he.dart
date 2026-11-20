@@ -20268,10 +20268,12 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get media_siteDivePhotos_showAll => 'הצג הכול';
+  String media_justifiedPreview_moreCount(int count) {
+    return '+$count';
+  }
 
   @override
-  String get media_siteDivePhotos_showLess => 'הצג פחות';
+  String get media_justifiedPreview_showAllInMedia => 'הצג הכול במדיה';
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {

@@ -20411,10 +20411,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get media_siteDivePhotos_showAll => 'Show all';
+  String media_justifiedPreview_moreCount(int count) {
+    return '+$count';
+  }
 
   @override
-  String get media_siteDivePhotos_showLess => 'Show less';
+  String get media_justifiedPreview_showAllInMedia => 'Show all in Media';
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {

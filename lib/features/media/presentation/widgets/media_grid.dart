@@ -70,6 +70,14 @@ class MediaThumbnailTile extends StatelessWidget {
   final bool isSelected;
   final String semanticsLabel;
 
+  /// The size the thumbnail is resolved and decoded at. A justified tile
+  /// asks for its own size's bucket (`mediaThumbnailDecodeTarget`).
+  final Size targetSize;
+
+  /// Called with the thumbnail's decoded size, which is how a justified
+  /// layout learns a photo's displayed shape (issue #4738).
+  final ValueChanged<Size>? onImageSize;
+
   const MediaThumbnailTile({
     super.key,
     required this.item,
@@ -77,6 +85,8 @@ class MediaThumbnailTile extends StatelessWidget {
     required this.isSelectionMode,
     required this.isSelected,
     required this.semanticsLabel,
+    this.targetSize = const Size(200, 200),
+    this.onImageSize,
   });
 
   @override
@@ -98,8 +108,9 @@ class MediaThumbnailTile extends StatelessWidget {
             MediaItemView(
               item: item,
               thumbnail: true,
-              targetSize: const Size(200, 200),
+              targetSize: targetSize,
               fit: BoxFit.cover,
+              onImageSize: onImageSize,
             ),
 
             // Dimming overlay for unselected items in selection mode

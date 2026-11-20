@@ -18,6 +18,7 @@ class PaneHeaderBar extends StatelessWidget {
     this.actions = const [],
     this.titleWidth,
     this.bottom,
+    this.leading,
   });
 
   /// How far in from the bar's leading edge [title] starts: the bar's own
@@ -32,6 +33,11 @@ class PaneHeaderBar extends StatelessWidget {
 
   /// A row under the title row at the bar's full width, such as a tab strip.
   final Widget? bottom;
+
+  /// Before the title, on its row: a back button where the pane's page was
+  /// opened over another (issue #4741). The tab strip in [bottom] keeps the
+  /// full width.
+  final Widget? leading;
 
   @override
   Widget build(BuildContext context) {
@@ -50,11 +56,25 @@ class PaneHeaderBar extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            child: SectionHeaderRows(
-              title: title,
-              titleWidth: titleWidth,
-              actions: actions,
-            ),
+            child: switch (leading) {
+              null => SectionHeaderRows(
+                title: title,
+                titleWidth: titleWidth,
+                actions: actions,
+              ),
+              final leading => Row(
+                children: [
+                  leading,
+                  Expanded(
+                    child: SectionHeaderRows(
+                      title: title,
+                      titleWidth: titleWidth,
+                      actions: actions,
+                    ),
+                  ),
+                ],
+              ),
+            },
           ),
           ?bottom,
         ],

@@ -56,9 +56,9 @@ final mediaCountFromDivesAtSiteProvider = FutureProvider.family<int, String>((
 });
 
 /// Every media item from the dives logged at the site, chronological, for
-/// the dive photos card's Show all grid and the site viewer. Read in one
-/// statement and only while one of them is open; the card's strip reads
-/// [recentMediaFromDivesAtSiteProvider] and the page
+/// the site viewer. Read in one statement and only while the viewer is open;
+/// the dive photos card reads [recentMediaFromDivesAtSiteProvider] and the
+/// page
 /// [mediaCountFromDivesAtSiteProvider] instead.
 ///
 /// Takes the whole media tick, enrichment included, because the viewer shows
@@ -76,12 +76,14 @@ final flatMediaFromDivesAtSiteProvider = FutureProvider.autoDispose
           .getMediaFromDivesAtSite(siteId);
     });
 
-/// Most photos the strip on the site's dive photos card reads: enough to fill
-/// one row on a wide desktop card. The card shows as many as fit.
-const int kSiteDivePhotoStripLimit = 12;
+/// Most photos the site's dive photos card reads: enough to fill its two
+/// justified rows on a wide desktop card even with narrow portrait tiles
+/// (issue #4741). The card shows as many as fit; +N counts the rest.
+const int kSiteDivePhotoPreviewLimit = 48;
 
-/// The newest [kSiteDivePhotoStripLimit] media items from the dives logged at
-/// the site, for the strip on the site's dive photos card (issue #4502).
+/// The newest [kSiteDivePhotoPreviewLimit] media items from the dives logged
+/// at the site, for the preview on the site's dive photos card (issues #4502,
+/// #4741).
 ///
 /// Takes the same ticks as [flatMediaFromDivesAtSiteProvider], for the same
 /// reasons: the viewer it opens shows the enrichment, and which dives belong
@@ -98,7 +100,7 @@ final recentMediaFromDivesAtSiteProvider = FutureProvider.autoDispose
           .watch(siteDiveMediaRepositoryProvider)
           .getRecentMediaFromDivesAtSite(
             siteId,
-            limit: kSiteDivePhotoStripLimit,
+            limit: kSiteDivePhotoPreviewLimit,
           );
     });
 

@@ -624,4 +624,71 @@ void main() {
       }
     });
   });
+
+  // Opened over another page, such as a site's photo card (issue #4741), the
+  // desktop pane bar offers the way back the phone's app bar does.
+  group('back', () {
+    Widget console() => MediaConsoleScaffold(
+      headerTitle: plainHeaderTitle('Media'),
+      selected: MediaConsoleSection.library,
+      onSelect: (_) {},
+      onAction: (_) {},
+      child: const SizedBox.expand(key: _contentKey),
+    );
+
+    Widget app(Widget home) => ProviderScope(
+      child: MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: home,
+      ),
+    );
+
+    testWidgets('desktop: no back button where the console is the page', (
+      tester,
+    ) async {
+      setWidth(tester, _desktopWidth);
+      await tester.pumpWidget(app(console()));
+      expect(find.byType(BackButton), findsNothing);
+    });
+
+    testWidgets('desktop: opened over another page, back returns to it', (
+      tester,
+    ) async {
+      setWidth(tester, _desktopWidth);
+      await tester.pumpWidget(
+        app(
+          Builder(
+            builder: (context) => Scaffold(
+              body: TextButton(
+                onPressed: () => Navigator.of(
+                  context,
+                ).push(MaterialPageRoute<void>(builder: (_) => console())),
+                child: const Text('SITE'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('SITE'));
+      await tester.pumpAndSettle();
+
+      final back = find.descendant(
+        of: find.byType(PaneHeaderBar),
+        matching: find.byType(BackButton),
+      );
+      expect(back, findsOneWidget);
+      // Before the title, on the title's row.
+      expect(
+        tester.getCenter(back).dx,
+        lessThan(tester.getTopLeft(find.text('Media')).dx),
+      );
+
+      await tester.tap(back);
+      await tester.pumpAndSettle();
+      expect(find.text('SITE'), findsOneWidget);
+      expect(find.byType(MediaConsoleScaffold), findsNothing);
+    });
+  });
 }

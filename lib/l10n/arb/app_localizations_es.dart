@@ -20713,10 +20713,12 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get media_siteDivePhotos_showAll => 'Mostrar todo';
+  String media_justifiedPreview_moreCount(int count) {
+    return '+$count';
+  }
 
   @override
-  String get media_siteDivePhotos_showLess => 'Mostrar menos';
+  String get media_justifiedPreview_showAllInMedia => 'Ver todo en Multimedia';
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {

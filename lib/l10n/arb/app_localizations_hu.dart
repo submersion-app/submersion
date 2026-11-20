@@ -20654,10 +20654,13 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get media_siteDivePhotos_showAll => 'Összes megjelenítése';
+  String media_justifiedPreview_moreCount(int count) {
+    return '+$count';
+  }
 
   @override
-  String get media_siteDivePhotos_showLess => 'Kevesebb megjelenítése';
+  String get media_justifiedPreview_showAllInMedia =>
+      'Összes megjelenítése a Médiában';
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {

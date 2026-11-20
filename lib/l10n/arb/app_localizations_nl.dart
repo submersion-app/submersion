@@ -20592,10 +20592,12 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get media_siteDivePhotos_showAll => 'Alles tonen';
+  String media_justifiedPreview_moreCount(int count) {
+    return '+$count';
+  }
 
   @override
-  String get media_siteDivePhotos_showLess => 'Minder tonen';
+  String get media_justifiedPreview_showAllInMedia => 'Alles tonen in Media';
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {

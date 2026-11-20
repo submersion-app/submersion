@@ -32880,17 +32880,17 @@ abstract class AppLocalizations {
   /// **'Photos from dives ({count})'**
   String media_siteDivePhotos_titleWithCount(int count);
 
-  /// No description provided for @media_siteDivePhotos_showAll.
+  /// Over the last thumbnail of a media preview on a detail card: how many more items there are than are shown.
   ///
   /// In en, this message translates to:
-  /// **'Show all'**
-  String get media_siteDivePhotos_showAll;
+  /// **'+{count}'**
+  String media_justifiedPreview_moreCount(int count);
 
-  /// No description provided for @media_siteDivePhotos_showLess.
+  /// Screen reader label of the +N thumbnail on a media preview; opens the Media section filtered to the same items. Media is the section's name in the navigation.
   ///
   /// In en, this message translates to:
-  /// **'Show less'**
-  String get media_siteDivePhotos_showLess;
+  /// **'Show all in Media'**
+  String get media_justifiedPreview_showAllInMedia;
 
   /// No description provided for @media_siteMediaSection_unlinkSelectedTitle.
   ///

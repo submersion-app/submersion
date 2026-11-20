@@ -1,22 +1,30 @@
 import 'package:flutter/material.dart';
+
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter_settings.dart';
 
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/services/site_attachment_layout.dart';
+import 'package:submersion/features/media/presentation/helpers/media_layout_aspect.dart';
 import 'package:submersion/features/media/presentation/helpers/site_attachment_labels.dart';
+import 'package:submersion/features/media/presentation/providers/media_learned_aspect_provider.dart';
+import 'package:submersion/features/media/presentation/providers/media_thumbnail_scale_provider.dart';
+import 'package:submersion/features/media/presentation/widgets/justified_media_grid.dart';
+import 'package:submersion/features/media/presentation/widgets/justified_media_preview.dart';
 import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import 'package:submersion/features/media/presentation/widgets/site_attachment_large_card.dart';
+import 'package:submersion/features/media/presentation/widgets/site_attachment_preview.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/widgets/drag_select_grid_view.dart';
 
 /// A site's attachments in category groups (issue #1039): a heading per
 /// group when anything is categorized, the group's large cards, then its
-/// tiles in a grid.
+/// tiles in justified rows that keep each one's shape (issue #4741).
 ///
 /// Every grid and card reports to the one id-based [selection], so a
 /// selection can span groups.
-class SiteAttachmentGroups extends StatelessWidget {
+class SiteAttachmentGroups extends ConsumerWidget {
   const SiteAttachmentGroups({
     super.key,
     required this.layout,
@@ -38,7 +46,10 @@ class SiteAttachmentGroups extends StatelessWidget {
   final void Function(MediaItem)? onEditDetails;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final learned =
+        ref.watch(mediaLearnedAspectsProvider).value ??
+        const <String, LearnedAspect>{};
     final children = <Widget>[];
     for (final group in layout.groups) {
       if (children.isNotEmpty) children.add(const SizedBox(height: 16));
@@ -80,7 +91,7 @@ class SiteAttachmentGroups extends StatelessWidget {
         );
       }
       if (group.tiles.isNotEmpty) {
-        children.add(_tileGrid(context, group));
+        children.add(_tileGrid(context, ref, group, learned));
       }
     }
     return Column(
@@ -89,11 +100,43 @@ class SiteAttachmentGroups extends StatelessWidget {
     );
   }
 
-  Widget _tileGrid(BuildContext context, SiteAttachmentGroup group) {
+  Widget _tileGrid(
+    BuildContext context,
+    WidgetRef ref,
+    SiteAttachmentGroup group,
+    Map<String, LearnedAspect> learned,
+  ) {
     final tiles = group.tiles;
     final groupIds = {for (final t in tiles) t.id};
-    return DragSelectGridView<MediaItem>(
+    final ratios = [
+      for (final t in tiles)
+        clampMediaAspect(mediaRawAspect(t, learned: learned[t.id])),
+    ];
+    final aspects = ref.read(mediaLearnedAspectsProvider.notifier);
+    return LayoutBuilder(
       key: ValueKey('tiles-${group.category?.storageKey ?? 'none'}'),
+      builder: (context, constraints) {
+        final table = JustifiedMediaTable.build(
+          sections: [JustifiedSection(headerExtents: const [], ratios: ratios)],
+          paneWidth: constraints.maxWidth,
+          targetHeight: kSiteAttachmentRowHeight,
+          gap: kJustifiedPreviewGap,
+          inset: 0,
+        );
+        return _dragSelectGrid(context, tiles, groupIds, table, aspects);
+      },
+    );
+  }
+
+  Widget _dragSelectGrid(
+    BuildContext context,
+    List<MediaItem> tiles,
+    Set<String> groupIds,
+    JustifiedMediaTable table,
+    MediaLearnedAspectsNotifier aspects,
+  ) {
+    final cellOfId = {for (var i = 0; i < tiles.length; i++) tiles[i].id: i};
+    return DragSelectGridView<MediaItem>(
       items: tiles,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -125,17 +168,17 @@ class SiteAttachmentGroups extends StatelessWidget {
       // grid follows the controller back out via startInSelectionMode.
       onSelectionModeChanged: (_) {},
       onItemTap: (index) => onOpen(tiles[index]),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-      ),
+      gridDelegate: JustifiedMediaGridDelegate(table),
       itemBuilder: (context, item, isSelected) => MediaThumbnailTile(
         item: item,
         settings: settings,
         isSelectionMode: isSelectionMode,
         isSelected: isSelected,
         semanticsLabel: context.l10n.media_diveMediaSection_thumbnailLabel,
+        targetSize: mediaThumbnailDecodeTarget(
+          table.rectOf(cellOfId[item.id] ?? 0).size,
+        ),
+        onImageSize: (size) => aspects.report(item, size),
       ),
     );
   }
