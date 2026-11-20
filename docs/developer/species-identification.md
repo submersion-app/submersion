@@ -109,7 +109,11 @@ itself (`chooseHardwareDevices`) and never hands Windows' software renderer,
 the Microsoft Basic Render Driver, to an engine: that ends the process, and
 ONNX Runtime's own prefer-GPU policy does it on a PC without a display driver
 (`docs/design/findings/2026-11-20-windows-ml-unpackaged.md`). A vendor engine
-that is not on the PC is fetched once, as part of the pack's download.
+that is not on the PC is fetched once, as part of the pack's download; an
+installed one is prepared again at each launch, which downloads nothing. A
+device that ends the app while the models open is skipped from then on
+(`device_crash_guard.dart`: the hardware engine first, then DirectML, never
+the processor), so one bad driver cannot make the app close at every launch.
 
 Devices need 8 GB at launch (`androidMinimumMemoryBytes` and
 `pcMinimumMemoryBytes` in `device_memory.dart`, 6.5 GiB as reported). A build

@@ -9,6 +9,7 @@ import 'package:submersion_vision/windows_ml.dart';
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/species_id/data/engines/onnx/device_crash_guard.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/device_memory.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/device_memory_io.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/flutter_image_decoder.dart';
@@ -63,6 +64,7 @@ class OnnxVisionEngine
     Future<OnnxWorkerHandle> Function()? worker,
     WorkerSpawner spawnWorker = _spawnOnnxWorker,
     HardwareEngines? hardware,
+    DeviceCrashGuard? crashGuard,
     Future<RgbaImage> Function(Uint8List encoded)? decode,
     DeviceMemory? deviceMemory,
     bool ignoreFloor = marineLifeIgnoreFloor,
@@ -79,6 +81,11 @@ class OnnxVisionEngine
                ? WindowsMlEngines(const WinMlCatalog())
                : const NoHardwareEngines()),
        _spawnWorker = spawnWorker,
+       _crashGuard =
+           crashGuard ??
+           ((platform ?? defaultTargetPlatform) == TargetPlatform.windows
+               ? DeviceCrashGuard.forThisDevice()
+               : null),
        _customWorker = worker,
        _decode = decode ?? decodeForAnalysis,
        _frames = frames ?? const ChannelFrameReader(),
@@ -100,6 +107,12 @@ class OnnxVisionEngine
   final bool _onnxPlatforms;
   final HardwareEngines _hardware;
   final WorkerSpawner _spawnWorker;
+
+  /// On Windows, keeps a device that ended the app from being tried again.
+  final DeviceCrashGuard? _crashGuard;
+
+  /// The devices the running worker was started with, for [_crashGuard].
+  List<OrtDevice> _workerDevices = const [OrtDevice.cpu];
   final Future<OnnxWorkerHandle> Function()? _customWorker;
   final _log = LoggerService.forClass(OnnxVisionEngine);
   final Future<RgbaImage> Function(Uint8List encoded) _decode;
@@ -153,7 +166,15 @@ class OnnxVisionEngine
   Future<void> load(VisionModels models) => _serial(() async {
     if (_loaded == models) return;
     _loaded = null;
-    final device = await _fromWorker((await _workerHandle()).load(models));
+    final worker = await _workerHandle();
+    final guard = _customWorker == null ? _crashGuard : null;
+    await guard?.loading(_workerDevices);
+    final String? device;
+    try {
+      device = await _fromWorker(worker.load(models));
+    } finally {
+      await guard?.loaded();
+    }
     _log.info('Marine life models open on ${device ?? 'an unknown device'}');
     _loaded = models;
     _observe();
@@ -372,9 +393,14 @@ class OnnxVisionEngine
         intraOpThreads: threads,
       );
     }
+    const wanted = [OrtDevice.hardware, OrtDevice.directMl, OrtDevice.cpu];
+    final devices = await _crashGuard?.devicesFor(wanted) ?? wanted;
+    _workerDevices = devices;
     return _spawnWorker(
-      devices: const [OrtDevice.hardware, OrtDevice.directMl, OrtDevice.cpu],
-      providerLibraries: await _hardware.readyProviderLibraries(),
+      devices: devices,
+      providerLibraries: devices.contains(OrtDevice.hardware)
+          ? await _hardware.readyProviderLibraries()
+          : const [],
       intraOpThreads: threads,
     );
   }
@@ -392,6 +418,7 @@ class OnnxVisionEngine
     if (!_runsHere || !_onWindows) return false;
     final arrived = await _hardware.fetchEngine();
     if (arrived) {
+      await _crashGuard?.reset();
       await _serial(() async {
         _loaded = null;
         _dropWorker();

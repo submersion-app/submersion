@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion_vision/onnx_runtime.dart';
 
+import 'package:submersion/features/species_id/data/engines/onnx/device_crash_guard.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/hardware_engines.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/onnx_vision_engine.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/onnx_worker.dart';
@@ -12,6 +15,8 @@ import 'package:submersion/features/species_id/domain/entities/media_identificat
 import 'package:submersion/features/species_id/domain/entities/video_detections.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
 import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
+
+import '../../../../helpers/temp_dir.dart';
 
 /// Engines a test sets up, recording what the engine asks of them.
 class FakeHardware implements HardwareEngines {
@@ -95,11 +100,14 @@ void main() {
   late List<ProviderLibrary> seenLibraries;
   late int spawns;
 
+  late Directory guardDir;
+
   OnnxVisionEngine engine(TargetPlatform platform, HardwareEngines hardware) {
     final e = OnnxVisionEngine(
       platform: platform,
       onnxPlatforms: true,
       hardware: hardware,
+      crashGuard: DeviceCrashGuard(guardDir),
       spawnWorker:
           ({
             required List<OrtDevice> devices,
@@ -116,10 +124,12 @@ void main() {
     return e;
   }
 
-  setUp(() {
+  setUp(() async {
     seenDevices = const [];
     seenLibraries = const [];
     spawns = 0;
+    guardDir = await Directory.systemTemp.createTemp('device_guard');
+    addTearDown(() => deleteTempDir(guardDir));
   });
 
   test('on Windows the models try a hardware engine, then DirectML, then '
@@ -181,5 +191,50 @@ void main() {
     expect(await source.offersEngineToFetch(), isFalse);
     expect(await source.fetchEngine(), isFalse);
     expect(hardware.asked, isEmpty);
+  });
+
+  group('a load the app did not come back from', () {
+    const all = [OrtDevice.hardware, OrtDevice.directMl, OrtDevice.cpu];
+
+    test('drops the hardware engine the next time', () async {
+      // As if the app ended while the models opened on these devices.
+      await DeviceCrashGuard(guardDir).loading(all);
+
+      await engine(TargetPlatform.windows, FakeHardware()).load(_models);
+
+      expect(seenDevices, [OrtDevice.directMl, OrtDevice.cpu]);
+    });
+
+    test('a second one drops DirectML too, never the processor', () async {
+      final guard = DeviceCrashGuard(guardDir);
+      await guard.loading(all);
+      expect(await guard.devicesFor(all), [OrtDevice.directMl, OrtDevice.cpu]);
+      await guard.loading(const [OrtDevice.directMl, OrtDevice.cpu]);
+      expect(await guard.devicesFor(all), [OrtDevice.cpu]);
+      await guard.loading(const [OrtDevice.cpu]);
+      expect(await guard.devicesFor(all), [OrtDevice.cpu]);
+    });
+
+    test('a load that finishes leaves every device for the next one', () async {
+      await engine(TargetPlatform.windows, FakeHardware()).load(_models);
+      await engine(TargetPlatform.windows, FakeHardware()).load(_models);
+
+      expect(seenDevices, all);
+    });
+
+    test('a newly fetched engine gets another chance', () async {
+      await DeviceCrashGuard(guardDir).loading(all);
+      final e = engine(
+        TargetPlatform.windows,
+        FakeHardware(fetched: const [_nv]),
+      );
+      await e.load(_models);
+      expect(seenDevices, isNot(contains(OrtDevice.hardware)));
+
+      await e.fetchEngine();
+      await e.load(_models);
+
+      expect(seenDevices, all);
+    });
   });
 }
