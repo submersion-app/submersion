@@ -101,7 +101,7 @@ class _CourseListPageState extends ConsumerState<CourseListPage>
             },
           ),
           summaryBuilder: (context) => const CourseSummaryWidget(),
-          // Behind phase 3's switch, the page opened unlocked (issue #4527).
+          // The page opened unlocked (issue #4527).
           editBuilder: (context, courseId, onSaved, onCancel) => courseEditPane(
             context,
             courseId,
@@ -109,7 +109,7 @@ class _CourseListPageState extends ConsumerState<CourseListPage>
             onCancel,
             onDeleted: () => context.go(GoRouterState.of(context).uri.path),
           ),
-          // Behind phase 3's switch, the page on a new course (plan 11).
+          // The page on a new course (plan 11).
           createBuilder: (context, onSaved, onCancel) =>
               newCoursePane(context, onSaved, onCancel),
           selectedId: ref.watch(highlightedCourseIdProvider),
@@ -216,7 +216,7 @@ class _CourseListPageState extends ConsumerState<CourseListPage>
           },
         ),
         summaryBuilder: (context) => const CourseSummaryWidget(),
-        // Behind phase 3's switch, the page opened unlocked (issue #4527).
+        // The page opened unlocked (issue #4527).
         editBuilder: (context, courseId, onSaved, onCancel) => courseEditPane(
           context,
           courseId,
@@ -224,7 +224,7 @@ class _CourseListPageState extends ConsumerState<CourseListPage>
           onCancel,
           onDeleted: () => context.go(GoRouterState.of(context).uri.path),
         ),
-        // Behind phase 3's switch, the page on a new course (plan 11).
+        // The page on a new course (plan 11).
         createBuilder: (context, onSaved, onCancel) =>
             newCoursePane(context, onSaved, onCancel),
         floatingActionButton: fab,

@@ -220,9 +220,8 @@ class _TripListPageState extends ConsumerState<TripListPage>
   }
 }
 
-/// The pane's edit, open at the section the URL names (#2880): behind
-/// phase 3's switch the trip page opened unlocked (issue #4527), else the
-/// edit form.
+/// The pane's edit, open at the section the URL names (#2880): the trip
+/// page opened unlocked (issue #4527).
 Widget _buildEditPane(
   BuildContext context,
   String tripId,

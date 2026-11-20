@@ -133,7 +133,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
             },
           ),
           summaryBuilder: (context) => const EquipmentSummaryWidget(),
-          // The item's page opened unlocked, behind phase 3's switch.
+          // The item's page opened unlocked.
           editBuilder: (context, id, onSaved, onCancel) => gearItemEditPane(
             context,
             id,
@@ -141,7 +141,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
             onCancel,
             onDeleted: () => context.go('/equipment'),
           ),
-          // Behind phase 3's switch, the page on a new item (plan 11).
+          // The page on a new item (plan 11).
           createBuilder: (context, onSaved, onCancel) =>
               newGearItemPane(context, onSaved, onCancel),
           selectedId: ref.watch(highlightedEquipmentIdProvider),
@@ -438,7 +438,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
         },
       ),
       summaryBuilder: (context) => const EquipmentSummaryWidget(),
-      // The item's page opened unlocked, behind phase 3's switch.
+      // The item's page opened unlocked.
       editBuilder: (context, id, onSaved, onCancel) => gearItemEditPane(
         context,
         id,
@@ -446,7 +446,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
         onCancel,
         onDeleted: () => context.go('/equipment'),
       ),
-      // Behind phase 3's switch, the page on a new item (plan 11).
+      // The page on a new item (plan 11).
       createBuilder: (context, onSaved, onCancel) =>
           newGearItemPane(context, onSaved, onCancel),
       floatingActionButton: FloatingActionButton.extended(
@@ -470,8 +470,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
             toggleBuilder: _buildSectionToggle,
           ),
       detailBuilder: (context, id) => EquipmentSetDetailPage(setId: id),
-      // Behind phase 3's switch, `&mode=edit` opens the set page unlocked
-      // (issue #4527); without it the pane has no edit mode.
+      // `&mode=edit` opens the set page unlocked (issue #4527).
       editBuilder: equipmentSetsPaneEditBuilder(),
       summaryBuilder: (context) => _buildSetsSummary(context),
       mobileDetailRoute: (id) => '/equipment/sets/$id',

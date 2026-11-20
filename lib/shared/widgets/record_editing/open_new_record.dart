@@ -10,19 +10,15 @@ import 'package:go_router/go_router.dart';
 ///
 /// [idOf] reads the id from what the page popped: the id itself by
 /// default, for a type whose page pops the record
-/// (`RecordCreating.newRecordResult`) the record's. Without [openCreated]
-/// (phase 3's switch off, where the address opens the form) it only
-/// pushes, as the openers did before.
+/// (`RecordCreating.newRecordResult`) the record's.
 Future<void> openNewRecord(
   BuildContext context, {
   required String newLocation,
   required String Function(String id) recordLocation,
   Object? extra,
   String? Function(Object? popped) idOf = poppedId,
-  bool openCreated = true,
 }) async {
   final popped = await context.push<Object?>(newLocation, extra: extra);
-  if (!openCreated) return;
   final id = idOf(popped);
   if (id == null || id.isEmpty || !context.mounted) return;
   await context.push(recordLocation(id));

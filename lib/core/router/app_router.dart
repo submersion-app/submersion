@@ -765,7 +765,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'new',
                 name: 'newEquipment',
                 onExit: confirmLeaveRecordSitting,
-                // Behind phase 3's switch, the item page opened on a new
+                // The item page opened on a new
                 // item or a clone (issue #4527, plan 11).
                 builder: (context, state) =>
                     newGearItemPage(state.uri.queryParameters),
@@ -780,7 +780,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     path: 'new',
                     name: 'newEquipmentSet',
                     onExit: confirmLeaveRecordSitting,
-                    // Behind phase 3's switch, the set page opened on a new
+                    // The set page opened on a new
                     // set or a set page's Clone (issues #2156, #4527).
                     builder: (context, state) => newEquipmentSetPage(
                       cloneFromId: state.uri.queryParameters['cloneFrom'],
@@ -955,7 +955,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 // buddy_picker_navigation_render_test.dart).
                 parentNavigatorKey: rootNavigatorKey,
                 onExit: confirmLeaveRecordSitting,
-                // Behind phase 3's switch, the buddy page opened on a new
+                // The buddy page opened on a new
                 // buddy (issue #4527, plan 11).
                 builder: (context, state) => newBuddyPage(state.extra),
               ),
@@ -1033,7 +1033,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'new',
                 name: 'newCertification',
                 onExit: confirmLeaveRecordSitting,
-                // Behind phase 3's switch, the certification page opened on
+                // The certification page opened on
                 // a new certification (issue #4527, plan 11).
                 builder: (context, state) => newCertificationPage(),
               ),
@@ -1076,7 +1076,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'new',
                 name: 'newDocument',
                 onExit: confirmLeaveRecordSitting,
-                // Behind phase 3's switch, the document page opened on a
+                // The document page opened on a
                 // new document (issue #4527, plan 11).
                 builder: (context, state) =>
                     newDocumentPage(state.uri.queryParameters),
@@ -1113,7 +1113,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'new',
                 name: 'newCourse',
                 onExit: confirmLeaveRecordSitting,
-                // Behind phase 3's switch, the course page opened on a new
+                // The course page opened on a new
                 // course (issue #4527, plan 11).
                 builder: (context, state) => newCoursePage(),
               ),
@@ -1161,7 +1161,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'new',
                 name: 'newDiveCenter',
                 onExit: confirmLeaveRecordSitting,
-                // Behind phase 3's switch, the centre page opened on a new
+                // The centre page opened on a new
                 // centre (issue #4527, plan 11).
                 builder: (context, state) => newDiveCenterPage(),
               ),
@@ -1208,7 +1208,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 name: 'newTrip',
                 onExit: confirmLeaveRecordSitting,
                 // Selected dives can arrive as a prefilled draft (#3658).
-                // Behind phase 3's switch, the trip page opened on a new
+                // The trip page opened on a new
                 // trip (issue #4527).
                 builder: (context, state) => newTripPage(state.extra),
               ),
@@ -2309,7 +2309,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'new',
                 name: 'newSpecies',
                 onExit: confirmLeaveRecordSitting,
-                // Behind phase 3's switch, the species page opened on a new
+                // The species page opened on a new
                 // species (issue #4527, plan 11).
                 builder: (context, state) => newSpeciesPage(),
               ),

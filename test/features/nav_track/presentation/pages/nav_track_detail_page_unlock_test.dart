@@ -261,13 +261,10 @@ void main() {
     PopupMenuItem<String> item(WidgetTester tester, String key) =>
         tester.widget<PopupMenuItem<String>>(find.byKey(ValueKey(key)));
 
-    testWidgets('the menu offers no Rename or Unlink with the switch on', (
-      tester,
-    ) async {
+    testWidgets('the menu offers no Unlink', (tester) async {
       await pumpNavTrackPage(tester);
       await openMenu(tester);
 
-      expect(find.text(l.navTrack_detail_menuRename), findsNothing);
       expect(find.text(l.navTrack_common_unlink), findsNothing);
     });
 

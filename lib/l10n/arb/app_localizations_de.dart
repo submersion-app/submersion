@@ -1577,20 +1577,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_sets_defaultBadge => 'Standard';
 
   @override
-  String get equipment_setDetail_hideFigure => 'Taucherfigur ausblenden';
-
-  @override
-  String get equipment_setDetail_showFigure => 'Taucherfigur anzeigen';
-
-  @override
-  String get equipment_setDetail_setAsDefault => 'Als Standard festlegen';
-
-  @override
-  String equipment_setDetail_setAsDefaultSnackbar(String name) {
-    return '\"$name\" ist jetzt dein Standard-Set';
-  }
-
-  @override
   String get equipment_setDetail_geofencesTitle => 'Geofences';
 
   @override
@@ -3391,9 +3377,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get buddies_action_clearSearch => 'Suche löschen';
 
   @override
-  String get buddies_action_edit => 'Tauchpartner bearbeiten';
-
-  @override
   String get buddies_action_importFromContacts => 'Aus Kontakten importieren';
 
   @override
@@ -4476,12 +4459,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String certifications_detail_status_expiresOn(Object date) {
     return 'Läuft ab am $date';
   }
-
-  @override
-  String get certifications_detail_tooltip_edit => 'Zertifizierung bearbeiten';
-
-  @override
-  String get certifications_detail_tooltip_editShort => 'Bearbeiten';
 
   @override
   String get certifications_detail_tooltip_moreOptions => 'Weitere Optionen';
@@ -6050,9 +6027,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get courses_action_deleteRequirement => 'Anforderung löschen';
 
   @override
-  String get courses_action_edit => 'Kurs bearbeiten';
-
-  @override
   String get courses_action_editRequirement => 'Anforderung bearbeiten';
 
   @override
@@ -6113,14 +6087,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get courses_dialog_deleteTitle => 'Kurs löschen?';
-
-  @override
-  String get courses_dialog_markCompletedMessage =>
-      'Dies markiert den Kurs als abgeschlossen mit dem heutigen Datum. Fortfahren?';
-
-  @override
-  String get courses_dialog_markCompletedTitle =>
-      'Als abgeschlossen markieren?';
 
   @override
   String get courses_empty_button => 'Ersten Ausbildungskurs hinzufügen';
@@ -7445,9 +7411,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveCenters_tooltip_clearSearch => 'Suche löschen';
-
-  @override
-  String get diveCenters_tooltip_edit => 'Tauchcenter bearbeiten';
 
   @override
   String get diveCenters_tooltip_fitAllCenters => 'Alle Center anpassen';
@@ -16505,12 +16468,6 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get equipment_detail_editTooltip => 'Ausrüstung bearbeiten';
-
-  @override
-  String get equipment_detail_editTooltipShort => 'Bearbeiten';
-
-  @override
   String equipment_detail_errorMessage(Object error) {
     return 'Fehler: $error';
   }
@@ -18417,9 +18374,6 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get equipment_setDetail_addEquipmentButton => 'Ausrüstung hinzufügen';
-
-  @override
   String get equipment_setDetail_deleteDialog_cancel => 'Abbrechen';
 
   @override
@@ -18434,9 +18388,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_setDetail_deleteMenuItem => 'Löschen';
-
-  @override
-  String get equipment_setDetail_editTooltip => 'Set bearbeiten';
 
   @override
   String get equipment_setDetail_emptySet => 'Keine Ausrüstung in diesem Set';
@@ -19798,9 +19749,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get marineLife_speciesDetail_divesLabel => 'Tauchgänge';
 
   @override
-  String get marineLife_speciesDetail_editTooltip => 'Art bearbeiten';
-
-  @override
   String marineLife_speciesDetail_errorPrefix(Object error) {
     return 'Fehler: $error';
   }
@@ -20138,17 +20086,6 @@ class AppLocalizationsDe extends AppLocalizations {
       locale: localeName,
       other: '$count Fotos markieren',
       one: '1 Foto markieren',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String marineLife_tagPicker_tagged(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count Fotos markiert',
-      one: '1 Foto markiert',
     );
     return '$_temp0';
   }
@@ -35816,12 +35753,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trips_detail_tab_checklist => 'Checkliste';
 
   @override
-  String get trips_detail_tooltip_edit => 'Reise bearbeiten';
-
-  @override
-  String get trips_detail_tooltip_editShort => 'Bearbeiten';
-
-  @override
   String get trips_detail_tooltip_moreOptions => 'Weitere Optionen';
 
   @override
@@ -36020,14 +35951,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Bitte gib einen Reisenamen ein';
 
   @override
-  String get trips_gallery_accessDenied =>
-      'Zugriff auf Fotobibliothek verweigert';
-
-  @override
-  String get trips_gallery_addDivesFirst =>
-      'Füge zuerst Tauchgänge hinzu, um Fotos zu verknüpfen';
-
-  @override
   String get trips_gallery_appBar_title => 'Reisefotos';
 
   @override
@@ -36054,36 +35977,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trips_gallery_empty_title => 'Keine Fotos in dieser Reise';
 
   @override
-  String get trips_gallery_errorLinking =>
-      'Die Fotos konnten nicht verknüpft werden. Versuche es erneut.';
-
-  @override
-  String get trips_gallery_errorScanning =>
-      'Die Fotos konnten nicht gescannt werden. Versuche es erneut.';
-
-  @override
   String get trips_gallery_error_loading =>
       'Die Fotos konnten nicht geladen werden.';
 
   @override
-  String trips_gallery_linkedPhotos(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count Fotos verknüpft',
-      one: '$count Foto verknüpft',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get trips_gallery_linkingPhotos => 'Fotos werden verknüpft...';
-
-  @override
   String get trips_gallery_tooltip_scan => 'Gerätegalerie durchsuchen';
-
-  @override
-  String get trips_gallery_tripNotFound => 'Reise nicht gefunden';
 
   @override
   String get trips_list_button_retry => 'Erneut versuchen';
@@ -39188,16 +39086,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get gpsTrack_editCard_nameHint => 'Name des Tracks';
 
   @override
-  String get gpsTrack_action_trim => 'Zuschneiden...';
-
-  @override
   String get gpsTrack_action_split => 'Teilen...';
 
   @override
   String get gpsTrack_action_resetTrim => 'Zuschnitt zurücksetzen';
-
-  @override
-  String get gpsTrack_edit_applyTrim => 'Zuschnitt übernehmen';
 
   @override
   String get gpsTrack_edit_confirmSplit => 'Hier teilen';
@@ -59403,9 +59295,6 @@ class AppLocalizationsDe extends AppLocalizations {
       ' (grobe Bathymetrie: nur Landkonflikte geprüft)';
 
   @override
-  String get navTrack_detail_renameTrackTitle => 'Track umbenennen';
-
-  @override
   String get navTrack_detail_deleteTrackTitle => 'Track löschen?';
 
   @override
@@ -59426,9 +59315,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get navTrack_detail_defaultTrackTitle => 'Unterwasser-Track';
-
-  @override
-  String get navTrack_detail_menuRename => 'Umbenennen';
 
   @override
   String get navTrack_detail_menuChangeDive => 'Tauchgang ändern';

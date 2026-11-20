@@ -79,7 +79,6 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('gps-track-overflow')));
     await tester.pumpAndSettle();
 
-    expect(find.text(l.gpsTrack_action_trim), findsNothing);
     expect(find.text(l.gpsTrack_action_resetTrim), findsNothing);
     expect(harness.save.calls, isEmpty);
     expect(find.byType(RecordEditBar), findsNothing);

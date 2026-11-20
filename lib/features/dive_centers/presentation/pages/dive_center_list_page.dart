@@ -112,7 +112,7 @@ class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage>
           },
         ),
         summaryBuilder: (context) => const DiveCenterSummaryWidget(),
-        // Behind phase 3's switch, the page opened unlocked (issue #4527).
+        // The page opened unlocked (issue #4527).
         editBuilder: (context, centerId, onSaved, onCancel) =>
             diveCenterEditPane(
               context,
@@ -121,7 +121,7 @@ class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage>
               onCancel,
               onDeleted: () => context.go(GoRouterState.of(context).uri.path),
             ),
-        // Behind phase 3's switch, the page on a new centre (plan 11).
+        // The page on a new centre (plan 11).
         createBuilder: (context, onSaved, onCancel) =>
             newDiveCenterPane(context, onSaved, onCancel),
         mapContent: DiveCenterMapContent(
@@ -246,7 +246,7 @@ class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage>
                 onDetailsTap: (centerId) =>
                     context.push('/dive-centers/$centerId'),
               ),
-          // Behind phase 3's switch, the page opened unlocked (issue #4527).
+          // The page opened unlocked (issue #4527).
           editBuilder: (context, centerId, onSaved, onCancel) =>
               diveCenterEditPane(
                 context,
@@ -255,7 +255,7 @@ class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage>
                 onCancel,
                 onDeleted: () => context.go(GoRouterState.of(context).uri.path),
               ),
-          // Behind phase 3's switch, the page on a new centre (plan 11).
+          // The page on a new centre (plan 11).
           createBuilder: (context, onSaved, onCancel) =>
               newDiveCenterPane(context, onSaved, onCancel),
           floatingActionButton: fab,

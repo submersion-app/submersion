@@ -162,14 +162,10 @@ void main() {
     expect((await storedSet(tester)).name, 'Cold water');
   });
 
-  testWidgets('with the switch on the menu has no Set as default or Show '
-      'figure', (tester) async {
+  testWidgets('the menu offers Clone while locked', (tester) async {
     await pumpSetPage(tester);
     await openMenu(tester);
 
-    expect(find.text(l.equipment_setDetail_showFigure), findsNothing);
-    expect(find.text(l.equipment_setDetail_hideFigure), findsNothing);
-    expect(find.text(l.equipment_setDetail_setAsDefault), findsNothing);
     expect(find.text(l.equipment_menu_clone), findsOneWidget);
   });
 
@@ -313,12 +309,6 @@ void main() {
     expect(find.text(l.equipment_setDetail_noGeofences), findsOneWidget);
     expect(find.byTooltip(l.recordEdit_editCardTooltip(members)), findsOne);
     expect(find.byTooltip(l.recordEdit_editCardTooltip(geofences)), findsOne);
-  });
-
-  testWidgets('the empty Members card has no Add Equipment button with the '
-      'switch on', (tester) async {
-    await pumpSetPage(tester, setId: 's2');
-    expect(find.text(l.equipment_setDetail_addEquipmentButton), findsNothing);
   });
 
   testWidgets('Cancel with changes asks first', (tester) async {

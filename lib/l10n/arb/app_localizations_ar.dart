@@ -1622,20 +1622,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_sets_defaultBadge => 'افتراضي';
 
   @override
-  String get equipment_setDetail_hideFigure => 'إخفاء رسم الغواص';
-
-  @override
-  String get equipment_setDetail_showFigure => 'إظهار رسم الغواص';
-
-  @override
-  String get equipment_setDetail_setAsDefault => 'تعيين كافتراضي';
-
-  @override
-  String equipment_setDetail_setAsDefaultSnackbar(String name) {
-    return 'أصبحت \"$name\" الآن مجموعتك الافتراضية';
-  }
-
-  @override
   String get equipment_setDetail_geofencesTitle => 'الأسوار الجغرافية';
 
   @override
@@ -3478,9 +3464,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddies_action_clearSearch => 'مسح البحث';
 
   @override
-  String get buddies_action_edit => 'تعديل الرفيق';
-
-  @override
   String get buddies_action_importFromContacts => 'استيراد من جهات الاتصال';
 
   @override
@@ -4587,12 +4570,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String certifications_detail_status_expiresOn(Object date) {
     return 'تنتهي الصلاحية في $date';
   }
-
-  @override
-  String get certifications_detail_tooltip_edit => 'تعديل الشهادة';
-
-  @override
-  String get certifications_detail_tooltip_editShort => 'تعديل';
 
   @override
   String get certifications_detail_tooltip_moreOptions => 'خيارات إضافية';
@@ -6156,9 +6133,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get courses_action_deleteRequirement => 'حذف المتطلب';
 
   @override
-  String get courses_action_edit => 'تعديل الدورة';
-
-  @override
   String get courses_action_editRequirement => 'تعديل المتطلب';
 
   @override
@@ -6218,13 +6192,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get courses_dialog_deleteTitle => 'حذف الدورة؟';
-
-  @override
-  String get courses_dialog_markCompletedMessage =>
-      'سيتم وضع علامة على الدورة كمكتملة بتاريخ اليوم. هل تريد المتابعة؟';
-
-  @override
-  String get courses_dialog_markCompletedTitle => 'وضع علامة كمكتمل؟';
 
   @override
   String get courses_empty_button => 'أضف أول دورة تدريبية';
@@ -7561,9 +7528,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveCenters_tooltip_clearSearch => 'مسح البحث';
-
-  @override
-  String get diveCenters_tooltip_edit => 'تعديل مركز الغوص';
 
   @override
   String get diveCenters_tooltip_fitAllCenters => 'ملاءمة جميع المراكز';
@@ -16731,12 +16695,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get equipment_detail_editTooltip => 'تعديل المعدات';
-
-  @override
-  String get equipment_detail_editTooltipShort => 'تعديل';
-
-  @override
   String equipment_detail_errorMessage(Object error) {
     return 'خطأ: $error';
   }
@@ -18713,9 +18671,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get equipment_setDetail_addEquipmentButton => 'إضافة معدات';
-
-  @override
   String get equipment_setDetail_deleteDialog_cancel => 'إلغاء';
 
   @override
@@ -18730,9 +18685,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_setDetail_deleteMenuItem => 'حذف';
-
-  @override
-  String get equipment_setDetail_editTooltip => 'تعديل المجموعة';
 
   @override
   String get equipment_setDetail_emptySet => 'لا توجد معدات في هذه المجموعة';
@@ -20072,9 +20024,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get marineLife_speciesDetail_divesLabel => 'الغوصات';
 
   @override
-  String get marineLife_speciesDetail_editTooltip => 'تعديل النوع';
-
-  @override
   String marineLife_speciesDetail_errorPrefix(Object error) {
     return 'خطأ: $error';
   }
@@ -20424,20 +20373,6 @@ class AppLocalizationsAr extends AppLocalizations {
       few: 'وسم $count صور',
       two: 'وسم صورتين',
       one: 'وسم صورة واحدة',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String marineLife_tagPicker_tagged(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'تم وسم $count صورة',
-      many: 'تم وسم $count صورة',
-      few: 'تم وسم $count صور',
-      two: 'تم وسم صورتين',
-      one: 'تم وسم صورة واحدة',
     );
     return '$_temp0';
   }
@@ -36288,12 +36223,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_detail_tab_checklist => 'قائمة التحقق';
 
   @override
-  String get trips_detail_tooltip_edit => 'تعديل الرحلة';
-
-  @override
-  String get trips_detail_tooltip_editShort => 'تعديل';
-
-  @override
   String get trips_detail_tooltip_moreOptions => 'خيارات إضافية';
 
   @override
@@ -36500,12 +36429,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_edit_validation_nameRequired => 'يرجى إدخال اسم الرحلة';
 
   @override
-  String get trips_gallery_accessDenied => 'تم رفض الوصول إلى مكتبة الصور';
-
-  @override
-  String get trips_gallery_addDivesFirst => 'أضف غوصات أولًا لربط الصور';
-
-  @override
   String get trips_gallery_appBar_title => 'صور الرحلة';
 
   @override
@@ -36535,37 +36458,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_gallery_empty_title => 'لا توجد صور في هذه الرحلة';
 
   @override
-  String get trips_gallery_errorLinking => 'تعذّر ربط الصور. حاول مرة أخرى.';
-
-  @override
-  String get trips_gallery_errorScanning =>
-      'تعذّر البحث عن الصور. حاول مرة أخرى.';
-
-  @override
   String get trips_gallery_error_loading => 'تعذّر تحميل الصور.';
 
   @override
-  String trips_gallery_linkedPhotos(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'تم ربط $count صورة',
-      many: 'تم ربط $count صورة',
-      few: 'تم ربط $count صور',
-      two: 'تم ربط صورتين',
-      one: 'تم ربط صورة واحدة',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get trips_gallery_linkingPhotos => 'جارٍ ربط الصور...';
-
-  @override
   String get trips_gallery_tooltip_scan => 'مسح معرض الجهاز';
-
-  @override
-  String get trips_gallery_tripNotFound => 'الرحلة غير موجودة';
 
   @override
   String get trips_list_button_retry => 'إعادة المحاولة';
@@ -39791,16 +39687,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gpsTrack_editCard_nameHint => 'اسم المسار';
 
   @override
-  String get gpsTrack_action_trim => 'اقتصاص...';
-
-  @override
   String get gpsTrack_action_split => 'تقسيم...';
 
   @override
   String get gpsTrack_action_resetTrim => 'إلغاء الاقتصاص';
-
-  @override
-  String get gpsTrack_edit_applyTrim => 'تطبيق الاقتصاص';
 
   @override
   String get gpsTrack_edit_confirmSplit => 'قسّم هنا';
@@ -60349,9 +60239,6 @@ class AppLocalizationsAr extends AppLocalizations {
       ' (قياس أعماق منخفض الدقة: تم فحص تعارضات اليابسة فقط)';
 
   @override
-  String get navTrack_detail_renameTrackTitle => 'إعادة تسمية المسار';
-
-  @override
   String get navTrack_detail_deleteTrackTitle => 'حذف المسار؟';
 
   @override
@@ -60371,9 +60258,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get navTrack_detail_defaultTrackTitle => 'مسار تحت الماء';
-
-  @override
-  String get navTrack_detail_menuRename => 'إعادة التسمية';
 
   @override
   String get navTrack_detail_menuChangeDive => 'تغيير الغطسة';

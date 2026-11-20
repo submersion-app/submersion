@@ -851,17 +851,6 @@
   "equipment_geofenceEditor_noCenter": "Choose a center point",
   "equipment_geofenceEditor_save": "Save geofence",
   "equipment_sets_defaultBadge": "Default",
-  "equipment_setDetail_hideFigure": "Hide diver figure",
-  "equipment_setDetail_showFigure": "Show diver figure",
-  "equipment_setDetail_setAsDefault": "Set as default",
-  "equipment_setDetail_setAsDefaultSnackbar": "\"{name}\" is now your default set",
-  "@equipment_setDetail_setAsDefaultSnackbar": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
   "equipment_setDetail_geofencesTitle": "Geofences",
   "equipment_setDetail_noGeofences": "No geofences",
   "formatter_duration_minutes": "{minutes}m",
@@ -1964,7 +1953,6 @@
   "buddyCard_detail_received": "Received {date}",
   "@buddyCard_detail_received": {"placeholders": {"date": {"type": "String"}}},
   "buddies_action_clearSearch": "Clear search",
-  "buddies_action_edit": "Edit buddy",
   "buddies_action_importFromContacts": "Import from Contacts",
   "buddies_action_moreOptions": "More options",
   "buddies_action_retry": "Retry",
@@ -2790,8 +2778,6 @@
   "certifications_detail_status_expiredOn": "Expired on {date}",
   "certifications_detail_status_expiresInDays": "Expires in {days} days",
   "certifications_detail_status_expiresOn": "Expires on {date}",
-  "certifications_detail_tooltip_edit": "Edit certification",
-  "certifications_detail_tooltip_editShort": "Edit",
   "certifications_detail_tooltip_moreOptions": "More options",
   "certifications_ecardStack_empty_subtitle": "Add your first certification to see it here",
   "certifications_ecardStack_empty_title": "No certifications yet",
@@ -3708,7 +3694,6 @@
   "courses_action_addRequirement": "Add requirement",
   "courses_action_create": "Create Course",
   "courses_action_deleteRequirement": "Delete requirement",
-  "courses_action_edit": "Edit course",
   "courses_action_editRequirement": "Edit requirement",
   "courses_action_exportTrainingLog": "Export Training Log",
   "courses_action_markCompleted": "Mark as Completed",
@@ -3727,8 +3712,6 @@
   "courses_dialog_complete": "Complete",
   "courses_dialog_deleteMessage": "Are you sure you want to delete {name}? This action cannot be undone.",
   "courses_dialog_deleteTitle": "Delete Course?",
-  "courses_dialog_markCompletedMessage": "This will mark the course as completed with today's date. Continue?",
-  "courses_dialog_markCompletedTitle": "Mark as Completed?",
   "courses_empty_button": "Add Your First Training Course",
   "courses_empty_noCompleted": "No completed courses",
   "courses_empty_noInProgress": "No courses in progress",
@@ -4501,7 +4484,6 @@
   "diveCenters_title_import": "Import Dive Center",
   "diveCenters_tooltip_addNew": "Add a new dive center",
   "diveCenters_tooltip_clearSearch": "Clear search",
-  "diveCenters_tooltip_edit": "Edit dive center",
   "diveCenters_tooltip_fitAllCenters": "Fit All Centers",
   "diveCenters_tooltip_listView": "List View",
   "diveCenters_tooltip_mapView": "Map View",
@@ -9937,8 +9919,6 @@
   "equipment_detail_durationYearsMonthsSingularSingular": "{years} year, {months} month",
   "equipment_detail_durationYearsPlural": "{years} years",
   "equipment_detail_durationYearsSingular": "{years} year",
-  "equipment_detail_editTooltip": "Edit Equipment",
-  "equipment_detail_editTooltipShort": "Edit",
   "equipment_detail_errorMessage": "Error: {error}",
   "equipment_detail_errorTitle": "Error",
   "equipment_detail_installedInLabel": "Installed in",
@@ -10987,13 +10967,11 @@
   "equipment_scheduleDialog_defaultCurrencyLabel": "Currency for this item",
   "equipment_service_snackbar_deleted": "Service record deleted",
   "equipment_service_totalCostLabel": "Total Service Cost ({currency})",
-  "equipment_setDetail_addEquipmentButton": "Add Equipment",
   "equipment_setDetail_deleteDialog_cancel": "Cancel",
   "equipment_setDetail_deleteDialog_confirm": "Delete",
   "equipment_setDetail_deleteDialog_content": "Are you sure you want to delete this equipment set? The equipment items in the set will not be deleted.",
   "equipment_setDetail_deleteDialog_title": "Delete Equipment Set",
   "equipment_setDetail_deleteMenuItem": "Delete",
-  "equipment_setDetail_editTooltip": "Edit Set",
   "equipment_setDetail_emptySet": "No equipment in this set",
   "equipment_setDetail_equipmentInSetTitle": "Equipment in This Set",
   "equipment_setDetail_errorMessage": "Error: {error}",
@@ -12004,7 +11982,6 @@
   "marineLife_speciesDetail_depthRangeTitle": "Depth Range",
   "marineLife_speciesDetail_descriptionTitle": "Description",
   "marineLife_speciesDetail_divesLabel": "Dives",
-  "marineLife_speciesDetail_editTooltip": "Edit species",
   "marineLife_speciesDetail_errorPrefix": "Error: {error}",
   "marineLife_speciesDetail_noSightings": "No sightings recorded yet",
   "marineLife_speciesDetail_notFound": "Species not found",
@@ -12144,14 +12121,6 @@
   "marineLife_tagPicker_selectAll": "Select all",
   "marineLife_tagPicker_confirm": "{count, plural, =1{Tag 1 photo} other{Tag {count} photos}}",
   "@marineLife_tagPicker_confirm": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "marineLife_tagPicker_tagged": "{count, plural, =1{Tagged 1 photo} other{Tagged {count} photos}}",
-  "@marineLife_tagPicker_tagged": {
     "placeholders": {
       "count": {
         "type": "int"
@@ -14137,7 +14106,6 @@
       }
     }
   },
-
   "plannerCanvas_follow_empty": "No logged dives yet",
   "plannerCanvas_follow_noTissues": "No profile data on that dive — surface interval set without tissue seeding",
   "plannerCanvas_link_action": "Link to a logged dive",
@@ -14254,7 +14222,6 @@
       }
     }
   },
-
   "plannerSeries_loggedDiveNumber": "Dive #{number}",
   "@plannerSeries_loggedDiveNumber": {
     "description": "A logged dive by its number in the log",
@@ -20939,8 +20906,6 @@
   "trips_detail_stat_totalRuntime": "Total Runtime",
   "trips_detail_stat_totalDives": "Total Dives",
   "trips_detail_tab_checklist": "Checklist",
-  "trips_detail_tooltip_edit": "Edit trip",
-  "trips_detail_tooltip_editShort": "Edit",
   "trips_detail_tooltip_moreOptions": "More options",
   "trips_detail_tooltip_viewOnMap": "View on Map",
   "trips_diveScan_addButton": "{count, plural, =1{Add 1 Dive} other{Add {count} Dives}}",
@@ -21037,20 +21002,13 @@
   "trips_edit_snackBar_errorSaving": "Couldn't save the trip. Try again.",
   "trips_edit_snackBar_updated": "Trip updated successfully",
   "trips_edit_validation_nameRequired": "Please enter a trip name",
-  "trips_gallery_accessDenied": "Photo library access denied",
-  "trips_gallery_addDivesFirst": "Add dives first to link photos",
   "trips_gallery_appBar_title": "Trip Photos",
   "trips_gallery_diveSection_photoCount": "{count, plural, =1{photo} other{photos}}",
   "trips_gallery_diveSection_title": "Dive #{number} - {site}",
   "trips_gallery_empty_subtitle": "Tap the camera icon to scan your gallery",
   "trips_gallery_empty_title": "No photos in this trip",
-  "trips_gallery_errorLinking": "Couldn't link the photos. Try again.",
-  "trips_gallery_errorScanning": "Couldn't scan for photos. Try again.",
   "trips_gallery_error_loading": "Couldn't load the photos.",
-  "trips_gallery_linkedPhotos": "{count, plural, =1{Linked 1 photo} other{Linked {count} photos}}",
-  "trips_gallery_linkingPhotos": "Linking photos...",
   "trips_gallery_tooltip_scan": "Scan device gallery",
-  "trips_gallery_tripNotFound": "Trip not found",
   "trips_list_button_retry": "Retry",
   "trips_list_countdown": "{days, plural, =0{Starting today} =1{In 1 day} other{In {days} days}}",
   "@trips_list_countdown": {
@@ -21793,13 +21751,6 @@
       },
       "site": {
         "type": "Object"
-      }
-    }
-  },
-  "@trips_gallery_linkedPhotos": {
-    "placeholders": {
-      "count": {
-        "type": "int"
       }
     }
   },
@@ -23777,10 +23728,8 @@
   "@gpsTrack_editCard_nameHint": {
     "description": "Placeholder of the name field on a GPS track page unlocked for editing; also shown, faded, on the header of an unnamed track while unlocked."
   },
-  "gpsTrack_action_trim": "Trim...",
   "gpsTrack_action_split": "Split...",
   "gpsTrack_action_resetTrim": "Reset trim",
-  "gpsTrack_edit_applyTrim": "Apply trim",
   "gpsTrack_edit_confirmSplit": "Split here",
   "gpsTrack_edit_splitWarning": "Splitting creates two tracks and removes the original. This cannot be undone.",
   "gpsTrack_edit_cancel": "Cancel",
@@ -25872,7 +25821,6 @@
   "settings_connectedAccounts_status_signedIn": "Signed in",
   "settings_connectedAccounts_status_unavailable": "Unavailable on this device",
   "settings_connectedAccounts_disconnectDevice": "Sign out on this device",
-
   "settings_connectedAccounts_rename": "Rename",
   "settings_connectedAccounts_renameTitle": "Rename account",
   "settings_connectedAccounts_renameField": "Name",
@@ -35561,7 +35509,6 @@
     }
   },
   "navTrack_terrain_coarsePart": " (coarse bathymetry: only land conflicts checked)",
-  "navTrack_detail_renameTrackTitle": "Rename track",
   "navTrack_detail_deleteTrackTitle": "Delete track?",
   "navTrack_detail_deleteMessage": "This cannot be undone.",
   "navTrack_editCard_dive": "Dive",
@@ -35581,7 +35528,6 @@
     "description": "A card's title on a record page unlocked for editing, and in History's list of the cards an edit changed."
   },
   "navTrack_detail_defaultTrackTitle": "Underwater track",
-  "navTrack_detail_menuRename": "Rename",
   "navTrack_detail_menuChangeDive": "Change dive",
   "navTrack_detail_menuChangeSite": "Change site",
   "navTrack_detail_menuChangeDevice": "Change device",

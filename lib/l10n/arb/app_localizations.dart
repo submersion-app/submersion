@@ -2462,30 +2462,6 @@ abstract class AppLocalizations {
   /// **'Default'**
   String get equipment_sets_defaultBadge;
 
-  /// No description provided for @equipment_setDetail_hideFigure.
-  ///
-  /// In en, this message translates to:
-  /// **'Hide diver figure'**
-  String get equipment_setDetail_hideFigure;
-
-  /// No description provided for @equipment_setDetail_showFigure.
-  ///
-  /// In en, this message translates to:
-  /// **'Show diver figure'**
-  String get equipment_setDetail_showFigure;
-
-  /// No description provided for @equipment_setDetail_setAsDefault.
-  ///
-  /// In en, this message translates to:
-  /// **'Set as default'**
-  String get equipment_setDetail_setAsDefault;
-
-  /// No description provided for @equipment_setDetail_setAsDefaultSnackbar.
-  ///
-  /// In en, this message translates to:
-  /// **'\"{name}\" is now your default set'**
-  String equipment_setDetail_setAsDefaultSnackbar(String name);
-
   /// No description provided for @equipment_setDetail_geofencesTitle.
   ///
   /// In en, this message translates to:
@@ -5212,12 +5188,6 @@ abstract class AppLocalizations {
   /// **'Clear search'**
   String get buddies_action_clearSearch;
 
-  /// No description provided for @buddies_action_edit.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit buddy'**
-  String get buddies_action_edit;
-
   /// No description provided for @buddies_action_importFromContacts.
   ///
   /// In en, this message translates to:
@@ -6832,18 +6802,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Expires on {date}'**
   String certifications_detail_status_expiresOn(Object date);
-
-  /// No description provided for @certifications_detail_tooltip_edit.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit certification'**
-  String get certifications_detail_tooltip_edit;
-
-  /// No description provided for @certifications_detail_tooltip_editShort.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit'**
-  String get certifications_detail_tooltip_editShort;
 
   /// No description provided for @certifications_detail_tooltip_moreOptions.
   ///
@@ -9444,12 +9402,6 @@ abstract class AppLocalizations {
   /// **'Delete requirement'**
   String get courses_action_deleteRequirement;
 
-  /// No description provided for @courses_action_edit.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit course'**
-  String get courses_action_edit;
-
   /// No description provided for @courses_action_editRequirement.
   ///
   /// In en, this message translates to:
@@ -9557,18 +9509,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete Course?'**
   String get courses_dialog_deleteTitle;
-
-  /// No description provided for @courses_dialog_markCompletedMessage.
-  ///
-  /// In en, this message translates to:
-  /// **'This will mark the course as completed with today\'s date. Continue?'**
-  String get courses_dialog_markCompletedMessage;
-
-  /// No description provided for @courses_dialog_markCompletedTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Mark as Completed?'**
-  String get courses_dialog_markCompletedTitle;
 
   /// No description provided for @courses_empty_button.
   ///
@@ -11680,12 +11620,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear search'**
   String get diveCenters_tooltip_clearSearch;
-
-  /// No description provided for @diveCenters_tooltip_edit.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit dive center'**
-  String get diveCenters_tooltip_edit;
 
   /// No description provided for @diveCenters_tooltip_fitAllCenters.
   ///
@@ -26456,18 +26390,6 @@ abstract class AppLocalizations {
   /// **'{years} year'**
   String equipment_detail_durationYearsSingular(Object years);
 
-  /// No description provided for @equipment_detail_editTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit Equipment'**
-  String get equipment_detail_editTooltip;
-
-  /// No description provided for @equipment_detail_editTooltipShort.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit'**
-  String get equipment_detail_editTooltipShort;
-
   /// No description provided for @equipment_detail_errorMessage.
   ///
   /// In en, this message translates to:
@@ -29342,12 +29264,6 @@ abstract class AppLocalizations {
   /// **'Total Service Cost ({currency})'**
   String equipment_service_totalCostLabel(String currency);
 
-  /// No description provided for @equipment_setDetail_addEquipmentButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Add Equipment'**
-  String get equipment_setDetail_addEquipmentButton;
-
   /// No description provided for @equipment_setDetail_deleteDialog_cancel.
   ///
   /// In en, this message translates to:
@@ -29377,12 +29293,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete'**
   String get equipment_setDetail_deleteMenuItem;
-
-  /// No description provided for @equipment_setDetail_editTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit Set'**
-  String get equipment_setDetail_editTooltip;
 
   /// No description provided for @equipment_setDetail_emptySet.
   ///
@@ -31632,12 +31542,6 @@ abstract class AppLocalizations {
   /// **'Dives'**
   String get marineLife_speciesDetail_divesLabel;
 
-  /// No description provided for @marineLife_speciesDetail_editTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit species'**
-  String get marineLife_speciesDetail_editTooltip;
-
   /// No description provided for @marineLife_speciesDetail_errorPrefix.
   ///
   /// In en, this message translates to:
@@ -32111,12 +32015,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{Tag 1 photo} other{Tag {count} photos}}'**
   String marineLife_tagPicker_confirm(int count);
-
-  /// No description provided for @marineLife_tagPicker_tagged.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =1{Tagged 1 photo} other{Tagged {count} photos}}'**
-  String marineLife_tagPicker_tagged(int count);
 
   /// No description provided for @marineLife_tagPicker_diveLabel.
   ///
@@ -56640,18 +56538,6 @@ abstract class AppLocalizations {
   /// **'Checklist'**
   String get trips_detail_tab_checklist;
 
-  /// No description provided for @trips_detail_tooltip_edit.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit trip'**
-  String get trips_detail_tooltip_edit;
-
-  /// No description provided for @trips_detail_tooltip_editShort.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit'**
-  String get trips_detail_tooltip_editShort;
-
   /// No description provided for @trips_detail_tooltip_moreOptions.
   ///
   /// In en, this message translates to:
@@ -56958,18 +56844,6 @@ abstract class AppLocalizations {
   /// **'Please enter a trip name'**
   String get trips_edit_validation_nameRequired;
 
-  /// No description provided for @trips_gallery_accessDenied.
-  ///
-  /// In en, this message translates to:
-  /// **'Photo library access denied'**
-  String get trips_gallery_accessDenied;
-
-  /// No description provided for @trips_gallery_addDivesFirst.
-  ///
-  /// In en, this message translates to:
-  /// **'Add dives first to link photos'**
-  String get trips_gallery_addDivesFirst;
-
   /// No description provided for @trips_gallery_appBar_title.
   ///
   /// In en, this message translates to:
@@ -57000,47 +56874,17 @@ abstract class AppLocalizations {
   /// **'No photos in this trip'**
   String get trips_gallery_empty_title;
 
-  /// No description provided for @trips_gallery_errorLinking.
-  ///
-  /// In en, this message translates to:
-  /// **'Couldn\'t link the photos. Try again.'**
-  String get trips_gallery_errorLinking;
-
-  /// No description provided for @trips_gallery_errorScanning.
-  ///
-  /// In en, this message translates to:
-  /// **'Couldn\'t scan for photos. Try again.'**
-  String get trips_gallery_errorScanning;
-
   /// No description provided for @trips_gallery_error_loading.
   ///
   /// In en, this message translates to:
   /// **'Couldn\'t load the photos.'**
   String get trips_gallery_error_loading;
 
-  /// No description provided for @trips_gallery_linkedPhotos.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =1{Linked 1 photo} other{Linked {count} photos}}'**
-  String trips_gallery_linkedPhotos(int count);
-
-  /// No description provided for @trips_gallery_linkingPhotos.
-  ///
-  /// In en, this message translates to:
-  /// **'Linking photos...'**
-  String get trips_gallery_linkingPhotos;
-
   /// No description provided for @trips_gallery_tooltip_scan.
   ///
   /// In en, this message translates to:
   /// **'Scan device gallery'**
   String get trips_gallery_tooltip_scan;
-
-  /// No description provided for @trips_gallery_tripNotFound.
-  ///
-  /// In en, this message translates to:
-  /// **'Trip not found'**
-  String get trips_gallery_tripNotFound;
 
   /// No description provided for @trips_list_button_retry.
   ///
@@ -61434,12 +61278,6 @@ abstract class AppLocalizations {
   /// **'Track name'**
   String get gpsTrack_editCard_nameHint;
 
-  /// No description provided for @gpsTrack_action_trim.
-  ///
-  /// In en, this message translates to:
-  /// **'Trim...'**
-  String get gpsTrack_action_trim;
-
   /// No description provided for @gpsTrack_action_split.
   ///
   /// In en, this message translates to:
@@ -61451,12 +61289,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reset trim'**
   String get gpsTrack_action_resetTrim;
-
-  /// No description provided for @gpsTrack_edit_applyTrim.
-  ///
-  /// In en, this message translates to:
-  /// **'Apply trim'**
-  String get gpsTrack_edit_applyTrim;
 
   /// No description provided for @gpsTrack_edit_confirmSplit.
   ///
@@ -93313,12 +93145,6 @@ abstract class AppLocalizations {
   /// **' (coarse bathymetry: only land conflicts checked)'**
   String get navTrack_terrain_coarsePart;
 
-  /// No description provided for @navTrack_detail_renameTrackTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Rename track'**
-  String get navTrack_detail_renameTrackTitle;
-
   /// No description provided for @navTrack_detail_deleteTrackTitle.
   ///
   /// In en, this message translates to:
@@ -93360,12 +93186,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Underwater track'**
   String get navTrack_detail_defaultTrackTitle;
-
-  /// No description provided for @navTrack_detail_menuRename.
-  ///
-  /// In en, this message translates to:
-  /// **'Rename'**
-  String get navTrack_detail_menuRename;
 
   /// No description provided for @navTrack_detail_menuChangeDive.
   ///

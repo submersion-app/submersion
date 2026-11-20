@@ -1577,21 +1577,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_sets_defaultBadge => 'Alapértelmezett';
 
   @override
-  String get equipment_setDetail_hideFigure => 'Búvárfigura elrejtése';
-
-  @override
-  String get equipment_setDetail_showFigure => 'Búvárfigura megjelenítése';
-
-  @override
-  String get equipment_setDetail_setAsDefault =>
-      'Beállítás alapértelmezettként';
-
-  @override
-  String equipment_setDetail_setAsDefaultSnackbar(String name) {
-    return 'A(z) \"$name\" mostantól az alapértelmezett készleted';
-  }
-
-  @override
   String get equipment_setDetail_geofencesTitle => 'Geokerítések';
 
   @override
@@ -3383,9 +3368,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get buddies_action_clearSearch => 'Keresés törlése';
 
   @override
-  String get buddies_action_edit => 'Búvártárs szerkesztése';
-
-  @override
   String get buddies_action_importFromContacts => 'Importálás névjegyekből';
 
   @override
@@ -4462,12 +4444,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String certifications_detail_status_expiresOn(Object date) {
     return 'Lejár $date-kor';
   }
-
-  @override
-  String get certifications_detail_tooltip_edit => 'Képesítés szerkesztése';
-
-  @override
-  String get certifications_detail_tooltip_editShort => 'Szerkesztés';
 
   @override
   String get certifications_detail_tooltip_moreOptions => 'További lehetőségek';
@@ -6036,9 +6012,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get courses_action_deleteRequirement => 'Követelmény törlése';
 
   @override
-  String get courses_action_edit => 'Tanfolyam szerkesztése';
-
-  @override
   String get courses_action_editRequirement => 'Követelmény szerkesztése';
 
   @override
@@ -6098,13 +6071,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get courses_dialog_deleteTitle => 'Tanfolyam törlése?';
-
-  @override
-  String get courses_dialog_markCompletedMessage =>
-      'Ez befejezettként jelöli meg a tanfolyamot a mai dátummal. Folytatod?';
-
-  @override
-  String get courses_dialog_markCompletedTitle => 'Megjelölés befejezettként?';
 
   @override
   String get courses_empty_button => 'Első képzési tanfolyam hozzáadása';
@@ -7426,9 +7392,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveCenters_tooltip_clearSearch => 'Keresés törlése';
-
-  @override
-  String get diveCenters_tooltip_edit => 'Búvárközpont szerkesztése';
 
   @override
   String get diveCenters_tooltip_fitAllCenters => 'Összes központ mutatása';
@@ -16472,12 +16435,6 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get equipment_detail_editTooltip => 'Felszerelés szerkesztése';
-
-  @override
-  String get equipment_detail_editTooltipShort => 'Szerkesztés';
-
-  @override
   String equipment_detail_errorMessage(Object error) {
     return 'Hiba: $error';
   }
@@ -18376,9 +18333,6 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get equipment_setDetail_addEquipmentButton => 'Felszerelés hozzáadása';
-
-  @override
   String get equipment_setDetail_deleteDialog_cancel => 'Mégse';
 
   @override
@@ -18394,9 +18348,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_setDetail_deleteMenuItem => 'Törlés';
-
-  @override
-  String get equipment_setDetail_editTooltip => 'Csoport szerkesztése';
 
   @override
   String get equipment_setDetail_emptySet =>
@@ -19763,9 +19714,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get marineLife_speciesDetail_divesLabel => 'Merülések';
 
   @override
-  String get marineLife_speciesDetail_editTooltip => 'Faj szerkesztése';
-
-  @override
   String marineLife_speciesDetail_errorPrefix(Object error) {
     return 'Hiba: $error';
   }
@@ -20100,17 +20048,6 @@ class AppLocalizationsHu extends AppLocalizations {
       locale: localeName,
       other: '$count fotó címkézése',
       one: '1 fotó címkézése',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String marineLife_tagPicker_tagged(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count fotó címkézve',
-      one: '1 fotó címkézve',
     );
     return '$_temp0';
   }
@@ -35720,12 +35657,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_detail_tab_checklist => 'Ellenőrzőlista';
 
   @override
-  String get trips_detail_tooltip_edit => 'Út szerkesztése';
-
-  @override
-  String get trips_detail_tooltip_editShort => 'Szerkesztés';
-
-  @override
   String get trips_detail_tooltip_moreOptions => 'Több lehetőség';
 
   @override
@@ -35918,14 +35849,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Kérem, adja meg az út nevét';
 
   @override
-  String get trips_gallery_accessDenied =>
-      'Fotógalériához való hozzáférés megtagadva';
-
-  @override
-  String get trips_gallery_addDivesFirst =>
-      'Előbb adjon hozzá merüléseket a fotók csatolásához';
-
-  @override
   String get trips_gallery_appBar_title => 'Útifotók';
 
   @override
@@ -35952,35 +35875,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_gallery_empty_title => 'Nincsenek fotók ezen az úton';
 
   @override
-  String get trips_gallery_errorLinking =>
-      'Nem sikerült csatolni a fotókat. Próbáld újra.';
-
-  @override
-  String get trips_gallery_errorScanning =>
-      'Nem sikerült fotókat keresni. Próbáld újra.';
-
-  @override
   String get trips_gallery_error_loading => 'Nem sikerült betölteni a fotókat.';
 
   @override
-  String trips_gallery_linkedPhotos(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count fotó csatolva',
-      one: '$count fotó csatolva',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get trips_gallery_linkingPhotos => 'Fotók csatolása...';
-
-  @override
   String get trips_gallery_tooltip_scan => 'Eszköz galéria átnézés';
-
-  @override
-  String get trips_gallery_tripNotFound => 'Út nem található';
 
   @override
   String get trips_list_button_retry => 'Újrapróba';
@@ -39068,16 +38966,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get gpsTrack_editCard_nameHint => 'Nyomvonal neve';
 
   @override
-  String get gpsTrack_action_trim => 'Vágás...';
-
-  @override
   String get gpsTrack_action_split => 'Felosztás...';
 
   @override
   String get gpsTrack_action_resetTrim => 'Vágás visszaállítása';
-
-  @override
-  String get gpsTrack_edit_applyTrim => 'Vágás alkalmazása';
 
   @override
   String get gpsTrack_edit_confirmSplit => 'Felosztás itt';
@@ -59214,9 +59106,6 @@ class AppLocalizationsHu extends AppLocalizations {
       ' (durva batimetria: csak a szárazföldi ütközések ellenőrizve)';
 
   @override
-  String get navTrack_detail_renameTrackTitle => 'Nyomvonal átnevezése';
-
-  @override
   String get navTrack_detail_deleteTrackTitle => 'Nyomvonal törlése?';
 
   @override
@@ -59236,9 +59125,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get navTrack_detail_defaultTrackTitle => 'Víz alatti nyomvonal';
-
-  @override
-  String get navTrack_detail_menuRename => 'Átnevezés';
 
   @override
   String get navTrack_detail_menuChangeDive => 'Merülés módosítása';
