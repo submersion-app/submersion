@@ -78,6 +78,15 @@ void main() {
       );
     });
 
+    test('a query scored NaN is no box', () {
+      expect(
+        read([
+          ([0.5, 0.5, 0.2, 0.2], [double.nan]),
+        ]),
+        isEmpty,
+      );
+    });
+
     test('scores a query by its best class', () {
       final boxes = read([
         ([0.5, 0.5, 0.2, 0.2], [0.1, 0.8]),
@@ -141,6 +150,15 @@ void main() {
         maxBoxes: 8,
       );
     }
+
+    test('an anchor scored NaN is no box', () {
+      expect(
+        read([
+          ([0.4, 0.4, 0.2, 0.2], double.nan),
+        ]),
+        isEmpty,
+      );
+    });
 
     test('takes a box out of the letterbox into the image', () {
       final boxes = read([

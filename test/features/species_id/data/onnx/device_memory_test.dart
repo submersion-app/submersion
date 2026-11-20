@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/features/species_id/data/engines/onnx/device_memory.dart';
@@ -63,6 +65,16 @@ void main() {
       expect(reading.availableBytes, 2109876 * 1024);
       expect(reading.lowMemory, isNull);
       expect(reading.neuralCountedBytes, isNull);
+    });
+
+    test('a /proc it may not read gives an empty reading, not an '
+        'error', () async {
+      final reading = await ProcDeviceMemory(
+        read: (path) async => throw FileSystemException('denied', path),
+      ).reading();
+      expect(reading.footprintBytes, 0);
+      expect(reading.footprintPeakBytes, isNull);
+      expect(reading.availableBytes, isNull);
     });
 
     test('on Android the system state gives what is available and low '

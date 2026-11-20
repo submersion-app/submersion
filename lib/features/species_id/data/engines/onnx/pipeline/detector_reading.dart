@@ -78,7 +78,8 @@ List<PipelineBox> readRfdetr({
       best = math.max(best, logits[q * classes + c]);
     }
     final score = _float32(1 / (1 + math.exp(-best)));
-    if (score < threshold) continue;
+    // Written so NaN, which no comparison passes, is dropped too.
+    if (!(score >= threshold)) continue;
     final cx = boxes[q * 4], cy = boxes[q * 4 + 1];
     final w = boxes[q * 4 + 2], h = boxes[q * 4 + 3];
     final box = _clamped(cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2, score);
@@ -113,7 +114,7 @@ List<PipelineBox> readYolo({
     for (var c = 4; c < channels; c++) {
       score = math.max(score, output[c * anchors + a]);
     }
-    if (score < threshold) continue;
+    if (!(score >= threshold)) continue;
     final cx = output[a], cy = output[anchors + a];
     final w = output[2 * anchors + a], h = output[3 * anchors + a];
     final box = _clamped(

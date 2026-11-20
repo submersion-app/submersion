@@ -112,13 +112,21 @@ class ChannelFrameReader implements FrameReader {
     }
   }
 
+  /// The frame in [reply]; a reply whose pixels do not fill its size is a
+  /// decode failure here, rather than an index error in the worker.
   static RgbaImage _image(Map<Object?, Object?> reply) {
     final rgba = reply['rgba'];
-    return RgbaImage(
-      _int(reply['width']),
-      _int(reply['height']),
-      rgba is Uint8List ? rgba : Uint8List(0),
-    );
+    final width = _int(reply['width']), height = _int(reply['height']);
+    if (width <= 0 ||
+        height <= 0 ||
+        rgba is! Uint8List ||
+        rgba.length != width * height * 4) {
+      throw const VisionEngineException(
+        'decode_failed',
+        'the frame reader returned a frame of the wrong size',
+      );
+    }
+    return RgbaImage(width, height, rgba);
   }
 
   static int _int(Object? v) => v is num ? v.toInt() : 0;

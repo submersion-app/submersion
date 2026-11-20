@@ -106,6 +106,28 @@ void main() {
     expect(state.availableBytes, 2147483648);
   });
 
+  test(
+    'a frame whose pixels do not fill its size is a decode failure',
+    () async {
+      final decodeFailed = throwsA(
+        isA<VisionEngineException>().having(
+          (e) => e.code,
+          'code',
+          'decode_failed',
+        ),
+      );
+      answer(
+        (call) => {'ms': 0, 'width': 2, 'height': 1, 'rgba': Uint8List(4)},
+      );
+      await expectLater(
+        reader.next(1, atOrAfterMs: 0, maxSide: 960),
+        decodeFailed,
+      );
+      answer((call) => {'width': 2, 'height': 1});
+      await expectLater(reader.frameAt(1, 0, maxSide: 4096), decodeFailed);
+    },
+  );
+
   test('a platform failure becomes an engine failure with its code', () async {
     messenger.setMockMethodCallHandler(channel, (call) async {
       throw PlatformException(code: 'decode_failed', message: 'no video track');

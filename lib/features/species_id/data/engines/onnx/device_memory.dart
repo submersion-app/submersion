@@ -58,24 +58,33 @@ class ProcDeviceMemory implements DeviceMemory {
 
   @override
   Future<int?> totalBytes() async {
-    try {
-      return parseMemTotal(await _read('/proc/meminfo'));
-    } on FileSystemException {
-      return null;
-    }
+    final meminfo = await _readOrNull('/proc/meminfo');
+    return meminfo == null ? null : parseMemTotal(meminfo);
   }
 
   @override
   Future<VisionMemory> reading() async {
-    final status = parseProcStatus(await _read('/proc/self/status'));
+    final status = parseProcStatus(
+      await _readOrNull('/proc/self/status') ?? '',
+    );
     final system = await _systemState?.call();
+    final meminfo = system == null ? await _readOrNull('/proc/meminfo') : null;
     return VisionMemory(
       footprintBytes: status.rss ?? 0,
       footprintPeakBytes: status.hwm,
       availableBytes:
           system?.availableBytes ??
-          parseMemAvailable(await _read('/proc/meminfo')),
+          (meminfo == null ? null : parseMemAvailable(meminfo)),
       lowMemory: system?.lowMemory,
     );
+  }
+
+  /// [path]'s text, or null where the system will not let it be read.
+  Future<String?> _readOrNull(String path) async {
+    try {
+      return await _read(path);
+    } on FileSystemException {
+      return null;
+    }
   }
 }
