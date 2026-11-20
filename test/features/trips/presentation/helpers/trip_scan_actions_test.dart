@@ -21,6 +21,7 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/media/data/services/media_import_service.dart';
 import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
+import 'package:submersion/features/media/presentation/helpers/media_hold.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_dives_sitting.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_photos_sitting.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_scan_in_sitting.dart';
@@ -472,6 +473,53 @@ void main() {
 
       expect([for (final m in heldTripPhotos(session)) m.id], ['row-p1']);
       expect(session.changedCardIds, contains('photos'));
+    });
+
+    testWidgets('a second Scan photos counts the photos the sitting holds '
+        'as linked, not new', (tester) async {
+      final session = _tripSitting();
+      addTearDown(session.dispose);
+      final photo = AssetInfo(
+        id: 'p1',
+        type: AssetType.image,
+        createDateTime: DateTime(2026, 3, 26, 10, 10),
+        width: 4032,
+        height: 3024,
+      );
+      addMediaToSitting(session, [
+        HeldMediaRow((
+          item: MediaItem(
+            id: 'row-p1',
+            diveId: 'd1',
+            platformAssetId: 'p1',
+            mediaType: MediaType.photo,
+            takenAt: DateTime.utc(2026, 3, 26, 10, 10),
+            createdAt: DateTime.utc(2026, 3, 26),
+            updatedAt: DateTime.utc(2026, 3, 26),
+          ),
+          enrichment: null,
+        )),
+      ]);
+      await pumpActionButton(tester, [
+        divesForTripProvider('trip-1').overrideWith((ref) async => [dive]),
+        tripMediaRepositoryProvider.overrideWithValue(
+          _FixedTripMediaRepository(const []),
+        ),
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+        photoPickerServiceProvider.overrideWithValue(_GrantedPicker([photo])),
+        linkedGalleryAssetsProvider.overrideWithValue(
+          LinkedGalleryAssets(
+            resolve: (item) async => ResolutionResult(
+              localAssetId: item.platformAssetId,
+              status: ResolutionStatus.resolved,
+            ),
+          ),
+        ),
+      ], (context, ref) => scanTripPhotosInSitting(context, ref, session));
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('All photos already linked'), findsOneWidget);
     });
 
     testWidgets('Scan photos reports denied photo access and holds nothing', (

@@ -489,4 +489,31 @@ void main() {
     await writes.deleteChecklist(paper.id);
     expect(await checklists.getChecklistsForTrip('t1'), hasLength(1));
   });
+
+  test("a section deleted with its items moved takes another device's item "
+      'stored there meanwhile along, and one deleted with them takes it '
+      'too', () async {
+    final session = await open();
+    final writes = writesOf(session);
+    final docs = (await writes.findOrCreateSectionId('c1', 'Docs'))!;
+    await writes.deleteSection('s1', moveItemsToSectionId: docs);
+    await items.createItem(
+      TripChecklistItem(
+        id: 'other',
+        checklistId: 'c1',
+        title: 'Fins',
+        sectionId: 's1',
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      ),
+    );
+
+    await save(session);
+
+    final stored = await items.getByChecklistId('c1');
+    expect(
+      {for (final i in stored) i.id: i.sectionId},
+      {'i1': docs, 'other': docs},
+    );
+  });
 }

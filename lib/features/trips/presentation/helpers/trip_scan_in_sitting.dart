@@ -11,6 +11,7 @@ import 'package:submersion/features/media/presentation/helpers/media_hold.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_dives_sitting.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_photos_sitting.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_scan_actions.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -68,6 +69,8 @@ Future<void> scanTripPhotosInSitting(
     ref,
     trip: session.working,
     dives: () => _sittingDives(ref, session),
+    // Photos held already are not new: a second scan offers only the rest.
+    alsoLinked: heldTripPhotos(session),
   );
   if (chosen == null) return;
   try {

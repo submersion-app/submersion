@@ -26,11 +26,17 @@ class TripChecklistsHeld {
     this.checklists = const [],
     this.sections = const [],
     this.items = const [],
+    this.itemsMovedOnDelete = const {},
   });
 
   final List<TripChecklist> checklists;
   final List<TripChecklistSection> sections;
   final List<TripChecklistItem> items;
+
+  /// Where each section deleted in the sitting sent its items, by section
+  /// id: what its delete at Save does with an item stored there meanwhile
+  /// (another device's). Absent, they go with it.
+  final Map<String, String> itemsMovedOnDelete;
 
   /// [checklistId]'s items, in their order.
   List<TripChecklistItem> itemsOf(String checklistId) => [
@@ -48,10 +54,12 @@ class TripChecklistsHeld {
     List<TripChecklist>? checklists,
     List<TripChecklistSection>? sections,
     List<TripChecklistItem>? items,
+    Map<String, String>? itemsMovedOnDelete,
   }) => TripChecklistsHeld(
     checklists: checklists ?? this.checklists,
     sections: sections ?? this.sections,
     items: items ?? this.items,
+    itemsMovedOnDelete: itemsMovedOnDelete ?? this.itemsMovedOnDelete,
   );
 
   /// [checklist] added at the end.
@@ -86,6 +94,7 @@ class TripChecklistsHeld {
 
   /// The checklist gone, with its sections and items.
   TripChecklistsHeld withoutChecklist(String id) => TripChecklistsHeld(
+    itemsMovedOnDelete: itemsMovedOnDelete,
     checklists: [
       for (final c in checklists)
         if (c.id != id) c,
@@ -213,6 +222,7 @@ class TripChecklistsHeld {
     String? moveItemsToSectionId,
   }) => TripChecklistsHeld(
     checklists: checklists,
+    itemsMovedOnDelete: {...itemsMovedOnDelete, id: ?moveItemsToSectionId},
     sections: [
       for (final s in sections)
         if (s.id != id) s,
@@ -272,7 +282,8 @@ class TripChecklistsHeld {
       other is TripChecklistsHeld &&
       listEquals(other.checklists, checklists) &&
       listEquals(other.sections, sections) &&
-      listEquals(other.items, items);
+      listEquals(other.items, items) &&
+      mapEquals(other.itemsMovedOnDelete, itemsMovedOnDelete);
 
   @override
   int get hashCode => Object.hash(
@@ -387,7 +398,14 @@ Future<bool> writeTripChecklists({
         !isChecklist.containsKey(s.checklistId)) {
       continue;
     }
-    await items.deleteSection(s.id);
+    // As the diver chose: an item stored there meanwhile (another
+    // device's) follows the section's items to where they went, or goes
+    // with it; never into a section that is gone itself.
+    final movedTo = current.itemsMovedOnDelete[s.id];
+    await items.deleteSection(
+      s.id,
+      moveItemsToSectionId: isSection.containsKey(movedTo) ? movedTo : null,
+    );
     wrote = true;
   }
   for (final c in loaded.checklists) {

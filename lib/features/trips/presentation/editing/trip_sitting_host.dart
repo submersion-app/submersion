@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
@@ -7,6 +9,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/editing/record_document_links_sitting.dart';
 import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
+import 'package:submersion/features/media/presentation/helpers/offer_site_review_after_import.dart';
 import 'package:submersion/features/trips/data/services/trip_edit_save_service.dart';
 import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -182,6 +185,9 @@ mixin TripSittingHost<W extends ConsumerStatefulWidget>
             count: (asked?.count ?? 0) + scanned.dives.length,
             oldTripIds: {...?asked?.oldTripIds, ...scanned.oldTripIds},
           );
+    // The dives the sitting's photos go to: once they are linked, the site
+    // review the menu's photo scan offers is offered for them.
+    final photoDiveIds = {for (final p in heldTripPhotos(session)) ?p.diveId};
     final service = ref.read(tripEditSaveServiceProvider);
     // The profile acting now, which the update checks before it writes the
     // Everyone flag; the sitting never changes that flag on the row itself,
@@ -228,6 +234,18 @@ mixin TripSittingHost<W extends ConsumerStatefulWidget>
       }
       messenger?.showSnackBar(
         SnackBar(content: Text(l10n.trips_diveScan_added(assigned.count))),
+      );
+    }
+    if (photoDiveIds.isNotEmpty && mounted) {
+      // Best effort, as after the menu's scan: nothing it does fails the
+      // Save, and the page does not wait for it to lock.
+      unawaited(
+        offerSiteReviewAfterImport(
+          context,
+          ref,
+          photoDiveIds,
+          messenger: messenger,
+        ),
       );
     }
   }

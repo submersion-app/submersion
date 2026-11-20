@@ -26,6 +26,28 @@ mixin _TripCylinderBoardEditing
   @override
   List<AddStripEntry> addStripEntries(Trip working) => const [];
 
+  /// Redraws the held board when its forecast next changes by the clock
+  /// alone (the fill deadline, or midnight), as the stored forecast's
+  /// provider refreshes itself.
+  Timer? _forecastTick;
+
+  void _tickForecastAt(DateTime now, FillForecast? forecast) {
+    _forecastTick?.cancel();
+    if (forecast == null) return;
+    _forecastTick = Timer(
+      fillForecastNextRefresh(now, forecast).difference(now),
+      () {
+        if (mounted) setState(() {});
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _forecastTick?.cancel();
+    super.dispose();
+  }
+
   /// The board of [states], drawn by the page.
   Widget _body({
     required List<TripCylinderState> states,
@@ -66,12 +88,17 @@ mixin _TripCylinderBoardEditing
           date,
           planned,
           newId: _uuid.v4,
-          now: DateTime.now(),
+          now: clock.now(),
         ),
       );
     }
 
-    final logged = ref.watch(tripDiveRoundsTodayProvider(widget.tripId));
+    final logged = ref.watch(
+      tripDiveRoundsOnProvider((
+        tripId: widget.tripId,
+        day: tripDay(clock.now()),
+      )),
+    );
     final centers =
         ref.watch(allDiveCentersProvider).value ?? const <DiveCenter>[];
     return ListenableBuilder(
@@ -103,6 +130,7 @@ mixin _TripCylinderBoardEditing
                 center: centers.where((c) => c.id == centerId).firstOrNull,
                 now: now,
               );
+        _tickForecastAt(now, forecast);
         return _body(
           states: states,
           look: look,

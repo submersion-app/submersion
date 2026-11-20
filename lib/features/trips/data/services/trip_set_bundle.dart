@@ -1,11 +1,8 @@
-import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
-import 'package:submersion/features/checklists/data/repositories/trip_checklists_repository.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
 import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_config_item.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_tank.dart';
 import 'package:submersion/features/equipment/domain/entities/set_bundle.dart';
-import 'package:submersion/features/trips/data/repositories/trip_cylinder_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 
 /// What became of a set's lead when the set was added to a trip.
@@ -83,34 +80,11 @@ bool _near(double? a, double? b, double tolerance) =>
 /// titled [leadTitle] on the trip's checklist. With several checklists
 /// [pickChecklist] chooses one (null backs out); with none the lead is
 /// left off, since a trip's packing list holds only gear items.
-Future<TripSetBundleResult> applySetBundleToTrip({
-  required SetBundle bundle,
-  required String tripId,
-  required String leadTitle,
-  required TripCylinderRepository cylinders,
-  required TripChecklistsRepository checklists,
-  required TripChecklistRepository items,
-  required Future<String?> Function(List<TripChecklist> checklists)
-  pickChecklist,
-  required DateTime now,
-}) => applySetBundle(
-  bundle: bundle,
-  tripId: tripId,
-  leadTitle: leadTitle,
-  slots: () => cylinders.getCylindersForTrip(tripId),
-  appendSlots: (drafts) => cylinders.appendCylinders(tripId, drafts),
-  checklists: () => checklists.getChecklistsForTrip(tripId),
-  itemsOf: items.getByChecklistId,
-  createItem: items.createItem,
-  pickChecklist: pickChecklist,
-  now: now,
-);
-
-/// [applySetBundleToTrip] over whatever holds the trip's board and
-/// checklists: the repositories, or a trip page's editing sitting (issue
-/// #4527), read through [slots], [checklists] and [itemsOf] and written
-/// through [appendSlots] (which answers the slots it added) and
-/// [createItem].
+///
+/// Whatever holds the trip's board and checklists (the repositories, or a
+/// trip page's editing sitting, issue #4527) is read through [slots],
+/// [checklists] and [itemsOf] and written through [appendSlots] (which
+/// answers the slots it added) and [createItem].
 Future<TripSetBundleResult> applySetBundle({
   required SetBundle bundle,
   required String tripId,

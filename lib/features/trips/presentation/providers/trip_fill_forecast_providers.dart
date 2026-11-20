@@ -101,14 +101,15 @@ FillForecast? tripFillForecastOf({
   );
 }
 
-/// The dive rounds of [tripId] logged today, for a forecast worked out from
-/// a sitting. Refreshes when dives change.
-final tripDiveRoundsTodayProvider = FutureProvider.autoDispose
-    .family<int, String>((ref, tripId) async {
+/// The dive rounds of a trip logged on [day] (its calendar day), for a
+/// forecast worked out from a sitting: keyed by the day, so asking on the
+/// next day reads the next day's count. Refreshes when dives change.
+final tripDiveRoundsOnProvider = FutureProvider.autoDispose
+    .family<int, ({String tripId, DateTime day})>((ref, key) async {
       ref.invalidateSelfWhen(
         ref.watch(diveRepositoryProvider).watchDivesChanges(),
       );
       return ref
           .watch(tripCylinderRepositoryProvider)
-          .countTripDiveRoundsOn(tripId, clock.now());
+          .countTripDiveRoundsOn(key.tripId, key.day);
     });

@@ -448,6 +448,8 @@ class HeldTripGearWrites implements TripGearWrites {
 
   @override
   Future<List<TripCylinder>> appendCylinders(List<TripCylinder> drafts) async {
+    // Before the board is read nothing can be held.
+    if (heldCylindersOf(session, board) == null) return const [];
     final (next, added) = _board.withSlotsAppended(drafts, session.stored.id);
     if (added.isNotEmpty) board.set(session, [next]);
     return added;

@@ -306,4 +306,23 @@ void main() {
       expect(session.changedCardIds, isEmpty);
     },
   );
+
+  test(
+    'adding tanks before the board is read holds nothing and says so',
+    () async {
+      final session = EditSession<Trip>((await trips.getTripById('t1'))!);
+
+      final added = await writesOf(session).appendCylinders([
+        tripCylinderDraftFromEquipment(
+          tank,
+          tripId: 't1',
+          sortOrder: 0,
+          now: at,
+        ),
+      ]);
+
+      expect(added, isEmpty);
+      expect(session.changedCardIds, isEmpty);
+    },
+  );
 }

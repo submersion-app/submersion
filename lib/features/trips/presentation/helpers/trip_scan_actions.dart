@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/helpers/lightroom_scan_helper.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
@@ -63,7 +64,8 @@ Future<void> scanGalleryForTripPhotos(
 }
 
 /// The gallery's photos taken during [trip], found for [dives] (read once
-/// the loading dialog shows) and confirmed by the diver dive by dive: the
+/// the loading dialog shows), less those stored on it or in [alsoLinked]
+/// (a sitting's held photos), and confirmed by the diver dive by dive: the
 /// photos chosen, by dive, or null when there is nothing to take (said
 /// why). Shared by the menu's scan and a trip page sitting's (issue
 /// #4527).
@@ -72,6 +74,7 @@ Future<Map<Dive, List<AssetInfo>>?> chooseTripPhotos(
   WidgetRef ref, {
   required Trip trip,
   required Future<List<Dive>> Function() dives,
+  List<MediaItem> alsoLinked = const [],
 }) async {
   final messenger = ScaffoldMessenger.of(context);
   final l10n = context.l10n;
@@ -114,7 +117,7 @@ Future<Map<Dive, List<AssetInfo>>?> chooseTripPhotos(
       dives: found,
       tripStartDate: trip.startDate,
       tripEndDate: trip.endDate,
-      linked: linked,
+      linked: [...linked, ...alsoLinked],
       linkedGalleryAssets: ref.read(linkedGalleryAssetsProvider),
       photoPickerService: photoPickerService,
     );
