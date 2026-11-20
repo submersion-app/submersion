@@ -156,12 +156,18 @@ class DashboardPage extends ConsumerWidget {
                     const SliverToBoxAdapter(child: DemoModeDashboardCard()),
                     SliverPadding(
                       padding: const EdgeInsets.all(12),
-                      sliver: visible.isEmpty
+                      // The first-dive panel cannot be hidden, so an empty
+                      // log keeps the grid even with every panel off.
+                      sliver: visible.isEmpty && !noDives
                           ? const SliverToBoxAdapter(child: _AllHiddenState())
                           : DashboardGrid(
                               rows: rows,
                               panelBuilder: _panel,
                               rowHeight: rowHeight,
+                              leadingFirst:
+                                  rows.isEmpty ||
+                                  rows.first.panels.first !=
+                                      HomePanelType.keyNumbers,
                               leading: noDives
                                   ? SizedBox(
                                       height: homeRowHeight(

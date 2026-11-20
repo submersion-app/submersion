@@ -7,6 +7,7 @@ import 'package:submersion/features/dashboard/presentation/providers/gauge_provi
 import 'package:submersion/features/dashboard/presentation/widgets/home_header_bar.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -45,12 +46,17 @@ Future<void> _pump(
   Future<DashboardGauges> Function()? gauges,
   Locale locale = const Locale('en'),
   double textScale = 1,
+  Set<String> hiddenChips = const {},
 }) async {
   tester.view.physicalSize = Size(width, 800);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
   _gaugeBuilds = 0;
-  final overrides = await getBaseOverrides();
+  final overrides = await getBaseOverrides(
+    settingsNotifier: MockSettingsNotifier(
+      AppSettings(hiddenHomeChips: hiddenChips),
+    ),
+  );
   final router = GoRouter(
     routes: [
       GoRoute(
@@ -207,5 +213,42 @@ void main() {
       textScale: 2,
     );
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('phone: with every light hidden the strip claims nothing', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      width: 390,
+      gauges: () async => const DashboardGauges(
+        hasGear: true,
+        insurance: null,
+        noFlyStatus: null,
+        daysSinceLastDive: null,
+      ),
+      hiddenChips: {for (final t in HomeChipType.values) t.name},
+    );
+    expect(find.text('All clear'), findsNothing);
+  });
+
+  testWidgets('phone: the sheet lists warnings before quiet lights', (
+    tester,
+  ) async {
+    await _pump(tester, width: 390);
+    await tester.tap(find.text('3 all clear'));
+    await tester.pumpAndSettle();
+    final sheet = find.byType(BottomSheet);
+    final backup = tester.getTopLeft(
+      find.descendant(of: sheet, matching: find.textContaining('Backup')),
+    );
+    final insurance = tester.getTopLeft(
+      find.descendant(of: sheet, matching: find.text('Insurance OK')),
+    );
+    expect(
+      backup.dy < insurance.dy ||
+          (backup.dy == insurance.dy && backup.dx < insurance.dx),
+      isTrue,
+    );
   });
 }

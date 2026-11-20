@@ -35,7 +35,9 @@ enum HomeLightTone { neutral, ok, warn, alert }
 /// as data, so the header can lay lights out differently by width.
 @immutable
 class HomeStatusLight {
-  final HomeChipType type;
+  /// The chip type this light speaks for; null for the strip's own pills
+  /// (the retry and the all-clear count), which are not chips.
+  final HomeChipType? type;
   final HomeLightTone tone;
   final String label;
   final IconData icon;
@@ -51,7 +53,7 @@ class HomeStatusLight {
   final VoidCallback? onLongPress;
 
   const HomeStatusLight({
-    required this.type,
+    this.type,
     required this.tone,
     required this.label,
     required this.icon,

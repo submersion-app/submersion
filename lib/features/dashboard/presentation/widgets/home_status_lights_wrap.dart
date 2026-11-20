@@ -26,17 +26,14 @@ class HomeStatusLightsWrap extends ConsumerWidget {
       data: (g) {
         final lights = buildHomeStatusLights(context, ref, g, hidden);
         if (lights.isEmpty) return const SizedBox.shrink();
-        // Alert chips lead; everything else keeps its declaration order.
-        final ordered = [for (var i = 0; i < lights.length; i++) (i, lights[i])]
-          ..sort((a, b) {
-            int key(HomeStatusLight l) => l.tone == HomeLightTone.alert ? 0 : 1;
-            final byTone = key(a.$2) - key(b.$2);
-            return byTone != 0 ? byTone : a.$1 - b.$1;
-          });
+        // The same order as the header and the phone strip.
         return Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: [for (final e in ordered) HomeLightChip(e.$2)],
+          children: [
+            for (final light in orderLightsBySeverity(lights))
+              HomeLightChip(light),
+          ],
         );
       },
       loading: () => const SizedBox(height: 40),
@@ -44,7 +41,6 @@ class HomeStatusLightsWrap extends ConsumerWidget {
         alignment: Alignment.centerLeft,
         child: HomeLightChip(
           HomeStatusLight(
-            type: HomeChipType.sync,
             icon: Icons.refresh,
             label: context.l10n.dashboard_gauges_retry,
             tone: HomeLightTone.neutral,

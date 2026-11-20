@@ -15,8 +15,10 @@ class DashboardGrid extends StatelessWidget {
   final Widget Function(HomePanelType panel) panelBuilder;
   final double Function(HomeRow row) rowHeight;
 
-  /// Shown as a row of its own after the first row (the first-dive panel).
+  /// Shown as a row of its own (the first-dive panel): after the first row
+  /// when that row is the key numbers, otherwise at the top.
   final Widget? leading;
+  final bool leadingFirst;
   final double spacing;
 
   const DashboardGrid({
@@ -24,6 +26,7 @@ class DashboardGrid extends StatelessWidget {
     required this.panelBuilder,
     required this.rowHeight,
     this.leading,
+    this.leadingFirst = false,
     this.spacing = 8,
     super.key,
   });
@@ -31,6 +34,14 @@ class DashboardGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final children = <Widget>[];
+    Widget leadingRow() => _GridRow(
+      key: const ValueKey<String>('home-grid-leading'),
+      bottomGap: spacing,
+      child: leading!,
+    );
+    if (leading != null && (leadingFirst || rows.isEmpty)) {
+      children.add(leadingRow());
+    }
     for (final (i, row) in rows.indexed) {
       children.add(
         _GridRow(
@@ -55,14 +66,8 @@ class DashboardGrid extends StatelessWidget {
           ),
         ),
       );
-      if (i == 0 && leading != null) {
-        children.add(
-          _GridRow(
-            key: const ValueKey<String>('home-grid-leading'),
-            bottomGap: spacing,
-            child: leading!,
-          ),
-        );
+      if (i == 0 && leading != null && !leadingFirst) {
+        children.add(leadingRow());
       }
     }
     return SliverList.list(children: children);

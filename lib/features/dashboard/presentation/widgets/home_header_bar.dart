@@ -32,7 +32,6 @@ List<HomeStatusLight>? _watchLights(BuildContext context, WidgetRef ref) {
 /// tapping it loads them again.
 HomeStatusLight _retryLight(BuildContext context, WidgetRef ref) =>
     HomeStatusLight(
-      type: HomeChipType.sync,
       icon: Icons.refresh,
       label: context.l10n.dashboard_gauges_retry,
       tone: HomeLightTone.neutral,
@@ -142,14 +141,14 @@ class HomeHeaderBar extends ConsumerWidget {
                   const SizedBox(width: 8),
                   FilledButton.icon(
                     onPressed: () => _logDive(context),
-                    style: _compactButton(context, FilledButton.styleFrom),
+                    style: _compactButton(context),
                     icon: const Icon(Icons.add, size: 16),
                     label: Text(l10n.dashboard_quickActions_logDive),
                   ),
                   const SizedBox(width: 6),
                   OutlinedButton(
                     onPressed: () => context.push('/planning/dive-planner'),
-                    style: _compactButton(context, OutlinedButton.styleFrom),
+                    style: _compactButton(context),
                     child: Text(l10n.dashboard_quickActions_planDive),
                   ),
                 ],
@@ -169,22 +168,17 @@ class HomeHeaderBar extends ConsumerWidget {
 const double _labelledWidth = 900;
 
 /// Text buttons in the bar: drawn small to suit a slim bar, with the
-/// default padded tap target keeping the hit area at 48 points.
-ButtonStyle _compactButton(
-  BuildContext context,
-  ButtonStyle Function({
-    VisualDensity? visualDensity,
-    EdgeInsetsGeometry? padding,
-    TextStyle? textStyle,
-  })
-  styleFrom,
-) => styleFrom(
+/// default padded tap target keeping the hit area at 48 points. A partial
+/// style, merged by the button over its defaults; the text style comes from
+/// the theme so the preset's typeface carries through.
+ButtonStyle _compactButton(BuildContext context) => ButtonStyle(
   visualDensity: VisualDensity.compact,
-  padding: const EdgeInsets.symmetric(horizontal: 12),
-  // From the theme, so the preset's typeface carries through.
-  textStyle: Theme.of(
-    context,
-  ).textTheme.labelLarge?.copyWith(fontSize: 13, fontWeight: FontWeight.w600),
+  padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 12)),
+  textStyle: WidgetStatePropertyAll(
+    Theme.of(
+      context,
+    ).textTheme.labelLarge?.copyWith(fontSize: 13, fontWeight: FontWeight.w600),
+  ),
 );
 
 /// Icon buttons in the bar reach the 44-point minimum hit area.
@@ -334,10 +328,10 @@ class HomeStatusStrip extends ConsumerWidget {
       final split = splitForPhone(lights);
       children = [
         for (final light in split.attention) HomeLightChip(light, dense: true),
-        if (split.clear > 0 || split.attention.isEmpty)
+        // Nothing to vouch for when every light is hidden.
+        if (lights.isNotEmpty && (split.clear > 0 || split.attention.isEmpty))
           HomeLightChip(
             HomeStatusLight(
-              type: HomeChipType.sync,
               icon: Icons.check_circle_outline,
               label: split.attention.isEmpty
                   ? l10n.dashboard_header_allClear

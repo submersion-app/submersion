@@ -1565,7 +1565,7 @@ void main() {
   });
 
   group('alert ordering', () {
-    testWidgets('alert chips lead, everything else keeps source order', (
+    testWidgets('alerts lead, then warnings, then the rest in source order', (
       tester,
     ) async {
       await pumpStrip(
@@ -1596,10 +1596,10 @@ void main() {
       expect(chipLabels(tester), [
         'Regulator service overdue',
         'Teric service due in 20d',
+        'No backup yet',
         'Insurance OK',
         'No-fly 0:00',
         'Last dive 12d ago',
-        'No backup yet',
       ]);
     });
 

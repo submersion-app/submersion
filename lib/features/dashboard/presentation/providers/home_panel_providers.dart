@@ -83,11 +83,14 @@ final homeAveragesProvider =
       ref.invalidateSelfWhen(localDayChanges());
       final diverId = ref.watch(currentDiverIdProvider);
       final since = homeWindowStart(clock.now());
-      final series = await ref.watch(homeSacSeriesProvider.future);
-      final averages = await repository.getAveragesSince(
+      // Started together: the two reads do not depend on each other.
+      final seriesF = ref.watch(homeSacSeriesProvider.future);
+      final averagesF = repository.getAveragesSince(
         diverId: diverId,
         since: since,
       );
+      final series = await seriesF;
+      final averages = await averagesF;
       // Series dates are the wall clock flagged UTC, as in the SQL window.
       final sinceUtc = DateTime.utc(since.year, since.month, since.day);
       return (

@@ -287,6 +287,45 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('no dives and every panel hidden still offers a first dive', (
+    tester,
+  ) async {
+    await pumpHome(
+      tester,
+      dives: 0,
+      settings: AppSettings(
+        homePanelOrder: [for (final p in HomePanelType.values) p.name],
+        hiddenHomePanels: {for (final p in HomePanelType.values) p.name},
+      ),
+    );
+    expect(find.byType(FirstDivePanel, skipOffstage: false), findsOneWidget);
+  });
+
+  testWidgets('with key numbers hidden the first-dive panel leads', (
+    tester,
+  ) async {
+    final layout = homeLayoutForPreset(
+      HomeLayoutPreset.balanced,
+    ).withPanelEnabled(HomePanelType.keyNumbers, false);
+    await pumpHome(
+      tester,
+      dives: 0,
+      settings: AppSettings(
+        homePanelOrder: layout.orderNames,
+        hiddenHomePanels: layout.hiddenNames,
+      ),
+    );
+    final first = tester.getRect(find.byType(FirstDivePanel));
+    final dives = tester.getRect(
+      find.byType(RecentDivesPanel, skipOffstage: false),
+    );
+    expect(first.top, lessThan(dives.top));
+    expect(
+      tester.getRect(find.text('ACTIVITY, 12 MONTHS')).top,
+      greaterThan(first.top),
+    );
+  });
+
   testWidgets('a diver with no dives sees the first-dive panel', (
     tester,
   ) async {
