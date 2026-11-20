@@ -41,9 +41,12 @@ bool lightroomUiEnabled = false;
 /// the settings page, analysing photos as they are opened, and suggested
 /// species in the photo viewer.
 ///
-/// On wherever an engine runs (iPhone, iPad and Mac) and hidden on the web,
-/// Android, Windows and Linux, which have no engine yet. It asks
-/// [visionEngineRuns], as `ChannelVisionEngine` does, on every read, so the UI
+/// On wherever an engine runs and hidden on the web. Core ML runs on
+/// iPhone, iPad and Mac; the ONNX engine on Android, Windows and Linux runs
+/// only in a build passing `--dart-define=MARINE_LIFE_ID_ONNX=true` until
+/// its pack is published (piece 3,
+/// docs/design/specs/2026-11-19-marine-life-identification-3-other-platforms-design.md).
+/// It asks [visionEngineRuns], as the engines do, on every read, so the UI
 /// never offers it on a platform with no engine. See
 /// docs/design/specs/2026-11-18-marine-life-release-gate-design.md.
 ///
@@ -70,10 +73,47 @@ const _marineLifeIdDefine = bool.fromEnvironment(
 );
 bool? _marineLifeIdOverride;
 
-/// Whether the on-device vision engine (Core ML) runs on [platform]: iPhone,
-/// iPad and Mac, and never in a browser, where Safari on a Mac still reports
-/// macOS. [marineLifeIdEnabled] and `ChannelVisionEngine` both ask this, so
-/// the UI and the engine cannot disagree about where it runs.
-bool visionEngineRuns(TargetPlatform platform, {bool web = kIsWeb}) =>
+/// Whether an on-device vision engine runs on [platform]: Core ML on iPhone,
+/// iPad and Mac ([coreMlRuns]), and the ONNX engine on Android, Windows and
+/// Linux when [onnx] (the `MARINE_LIFE_ID_ONNX` define) is on; never in a
+/// browser, where Safari on a Mac still reports macOS.
+/// [marineLifeIdEnabled] and the engines all ask this, so the UI and the
+/// engine cannot disagree about where it runs.
+bool visionEngineRuns(
+  TargetPlatform platform, {
+  bool web = kIsWeb,
+  bool onnx = marineLifeOnnxPlatforms,
+}) =>
+    coreMlRuns(platform, web: web) ||
+    (!web &&
+        onnx &&
+        (platform == TargetPlatform.android ||
+            platform == TargetPlatform.windows ||
+            platform == TargetPlatform.linux));
+
+/// Whether the Core ML engine runs on [platform]: iPhone, iPad and Mac, never
+/// in a browser.
+bool coreMlRuns(TargetPlatform platform, {bool web = kIsWeb}) =>
     !web &&
     (platform == TargetPlatform.iOS || platform == TargetPlatform.macOS);
+
+/// Whether videos are scanned on [platform]: everywhere an engine can run
+/// but Linux, where the app has no video player, and the web.
+bool visionVideoRuns(TargetPlatform platform, {bool web = kIsWeb}) =>
+    !web &&
+    (platform == TargetPlatform.iOS ||
+        platform == TargetPlatform.macOS ||
+        platform == TargetPlatform.android ||
+        platform == TargetPlatform.windows);
+
+/// Turns the ONNX engine's platforms (Android, Windows, Linux) on. Off until
+/// the pack carries ONNX models and the Android floor has been measured.
+const bool marineLifeOnnxPlatforms = bool.fromEnvironment(
+  'MARINE_LIFE_ID_ONNX',
+);
+
+/// Lifts the ONNX engine's memory floor, for the build that measures a 6 GB
+/// phone only. No released build sets it.
+const bool marineLifeIgnoreFloor = bool.fromEnvironment(
+  'MARINE_LIFE_ID_IGNORE_FLOOR',
+);
