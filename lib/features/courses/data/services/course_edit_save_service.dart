@@ -36,6 +36,28 @@ class CourseEditSaveService {
     alsoWrite: alsoWrite,
     alsoWriteIsAChange: alsoWriteIsAChange,
   );
+
+  /// Creates [course], a new course's sitting (issue #4527, phase 3, plan
+  /// 11), keeping its id: the row, then [alsoWrite], the sitting's held
+  /// writes (earned certifications, which can move a certification off
+  /// another course, documents), in one transaction and one History entry
+  /// naming [changedCardIds]. If any of them throws nothing is left.
+  /// Throws [StateError] when [course] has no id, or one a stored course
+  /// has.
+  Future<Course> create({
+    required Course course,
+    required Iterable<String> changedCardIds,
+    Future<void> Function()? alsoWrite,
+  }) => createRecordSitting<Course>(
+    table: 'courses',
+    recordId: course.id,
+    changedCardIds: changedCardIds,
+    isStored: () async => await _courses.getCourseById(course.id) != null,
+    insert: () => _courses.createCourse(course),
+    alsoWrite: alsoWrite,
+    readBack: () => _courses.getCourseById(course.id),
+    created: course,
+  );
 }
 
 final courseEditSaveServiceProvider = Provider<CourseEditSaveService>(

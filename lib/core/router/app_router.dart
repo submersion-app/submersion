@@ -1139,7 +1139,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newCourse',
-                builder: (context, state) => const CourseEditPage(),
+                onExit: confirmLeaveRecordSitting,
+                // Behind phase 3's switch, the course page opened on a new
+                // course (issue #4527, plan 11).
+                builder: (context, state) => newCoursePage(),
               ),
               GoRoute(
                 path: ':courseId',

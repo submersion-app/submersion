@@ -243,4 +243,80 @@ void main() {
 
     await expectLater(save(session), throwsStateError);
   });
+
+  /// A new course's sitting (issue #4527, phase 3, plan 11).
+  group('create', () {
+    domain.Course fresh({String id = 'n1'}) => domain.Course(
+      id: id,
+      diverId: 'd',
+      name: 'Nitrox',
+      agency: 'padi',
+      startDate: DateTime(2026, 5, 1),
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+
+    test('creates the course with its id, as one History entry', () async {
+      final created = await service.create(
+        course: fresh(),
+        changedCardIds: const ['status', 'details'],
+      );
+
+      expect(created.id, 'n1');
+      expect((await stored('n1')).name, 'Nitrox');
+      final ops = await operations();
+      expect(ops, hasLength(1));
+      expect(ops.single['source'], 'manual');
+      expect(ops.single['label'], 'record_edit:courses:n1:details,status');
+    });
+
+    test('held writes run after the row, in the same entry', () async {
+      domain.Course? seen;
+      await service.create(
+        course: fresh(),
+        changedCardIds: const ['earnedCertifications'],
+        alsoWrite: () async {
+          seen = await courses.getCourseById('n1');
+          await courses.setCourseCertifications('n1', const []);
+        },
+      );
+
+      expect(seen?.name, 'Nitrox');
+      expect(await operations(), hasLength(1));
+    });
+
+    test('a held write that throws leaves nothing', () async {
+      await expectLater(
+        service.create(
+          course: fresh(),
+          changedCardIds: const ['status'],
+          alsoWrite: () async => throw StateError('refused'),
+        ),
+        throwsStateError,
+      );
+
+      expect(await courses.getCourseById('n1'), isNull);
+      expect(await operations(), isEmpty);
+    });
+
+    test('an empty id or one already stored is refused', () async {
+      await expectLater(
+        service.create(
+          course: fresh(id: ''),
+          changedCardIds: const [],
+        ),
+        throwsStateError,
+      );
+      await expectLater(
+        service.create(
+          course: fresh(id: 'k1'),
+          changedCardIds: const [],
+        ),
+        throwsStateError,
+      );
+
+      expect((await stored()).name, 'Rescue');
+      expect(await operations(), isEmpty);
+    });
+  });
 }

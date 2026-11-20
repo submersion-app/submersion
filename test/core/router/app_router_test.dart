@@ -7,6 +7,8 @@ import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page
 import 'package:submersion/features/buddies/presentation/pages/buddy_edit_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_detail_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_edit_page.dart';
+import 'package:submersion/features/courses/presentation/pages/course_detail_page.dart';
+import 'package:submersion/features/courses/presentation/pages/course_edit_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_detail_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_page.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
@@ -582,6 +584,15 @@ void main() {
       router.configuration.routes,
       'newCertification',
     );
+    expect(route?.onExit, same(confirmLeaveRecordSitting));
+  });
+
+  test('a new course opens the page with the switch on', () {
+    final page = newCoursePage(unlockEditing: true);
+    expect(page, isA<CourseDetailPage>());
+    expect((page as CourseDetailPage).newCourse, isTrue);
+    expect(newCoursePage(unlockEditing: false), isA<CourseEditPage>());
+    final route = _findRouteByName(router.configuration.routes, 'newCourse');
     expect(route?.onExit, same(confirmLeaveRecordSitting));
   });
 

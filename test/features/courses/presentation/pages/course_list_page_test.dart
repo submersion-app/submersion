@@ -8,6 +8,7 @@ import 'package:submersion/features/courses/domain/constants/course_field.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/pages/course_detail_page.dart';
 import 'package:submersion/features/courses/presentation/pages/course_edit_page.dart';
+import 'package:submersion/features/courses/presentation/pages/course_edit_routes.dart';
 import 'package:submersion/features/courses/presentation/pages/course_list_page.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/courses/presentation/widgets/course_list_content.dart';
@@ -626,5 +627,76 @@ void main() {
 
       expect(find.byType(CourseEditPage), findsOneWidget);
     });
+  });
+
+  // A new course opens on the course page behind the phase 3 switch (issue
+  // #4527, phase 3, plan 11).
+  testWidgets("the pane's new course is the page with the switch on", (
+    tester,
+  ) async {
+    void onSaved(String id) {}
+    void onCancel() {}
+    late BuildContext context;
+    await tester.pumpWidget(
+      Builder(
+        builder: (c) {
+          context = c;
+          return const SizedBox.shrink();
+        },
+      ),
+    );
+    final page =
+        newCoursePane(context, onSaved, onCancel, unlockEditing: true)
+            as CourseDetailPage;
+    expect(page.embedded, isTrue);
+    expect(page.newCourse, isTrue);
+    expect(page.onCreated, same(onSaved));
+    expect(
+      newCoursePane(context, onSaved, onCancel, unlockEditing: false),
+      isA<CourseEditPage>(),
+    );
+  });
+
+  testWidgets('Add on a phone opens the new course once created', (
+    tester,
+  ) async {
+    final router = GoRouter(
+      initialLocation: '/courses',
+      routes: [
+        GoRoute(
+          path: '/courses',
+          builder: (context, _) => Scaffold(
+            body: TextButton(
+              onPressed: () => openNewCourse(context, unlockEditing: true),
+              child: const Text('add'),
+            ),
+          ),
+          routes: [
+            GoRoute(
+              path: 'new',
+              builder: (context, _) => Scaffold(
+                body: TextButton(
+                  onPressed: () => context.pop('n1'),
+                  child: const Text('NEW'),
+                ),
+              ),
+            ),
+            GoRoute(
+              path: ':id',
+              builder: (_, state) =>
+                  Text('COURSE ${state.pathParameters['id']}'),
+            ),
+          ],
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+    await tester.tap(find.text('add'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('NEW'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('COURSE n1'), findsOneWidget);
   });
 }

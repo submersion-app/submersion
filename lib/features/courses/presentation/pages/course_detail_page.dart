@@ -7,6 +7,8 @@ import 'package:submersion/features/connections/domain/entities/connection_kind.
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/presentation/widgets/open_in_connections.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
+import 'package:submersion/features/courses/presentation/editing/course_new_sitting.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
@@ -43,12 +45,14 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_fade.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
+import 'package:submersion/shared/widgets/record_editing/record_creating.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
 import 'package:submersion/shared/widgets/record_editing/record_open_unlocked.dart';
 import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 import 'package:submersion/shared/widgets/record_editing/record_pane_row.dart';
 import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
+part 'course_detail_page_creating.dart';
 part 'course_detail_page_editing.dart';
 part 'course_detail_page_sections.dart';
 
@@ -71,6 +75,15 @@ class CourseDetailPage extends ConsumerStatefulWidget {
   /// edit returns to the course in view.
   final VoidCallback? onSittingEnded;
 
+  /// A new course (issue #4527, phase 3, plan 11).
+  final bool newCourse;
+
+  /// The pane's own: given the new course's id once created.
+  final void Function(String courseId)? onCreated;
+
+  /// The pane's own: told when a new course's page leaves uncreated.
+  final VoidCallback? onCreateCancelled;
+
   const CourseDetailPage({
     super.key,
     required this.courseId,
@@ -79,7 +92,23 @@ class CourseDetailPage extends ConsumerStatefulWidget {
     this.unlockEditing = kUnlockRecordEditing,
     this.openUnlocked = false,
     this.onSittingEnded,
-  });
+  }) : newCourse = false,
+       onCreated = null,
+       onCreateCancelled = null;
+
+  /// A new course's page, unlocked whatever the switch: only the switch's
+  /// openers build it.
+  const CourseDetailPage.newCourse({
+    super.key,
+    this.embedded = false,
+    this.onCreated,
+    this.onCreateCancelled,
+  }) : newCourse = true,
+       courseId = '',
+       onDeleted = null,
+       unlockEditing = true,
+       openUnlocked = false,
+       onSittingEnded = null;
 
   @override
   ConsumerState<CourseDetailPage> createState() => _CourseDetailPageState();
@@ -89,7 +118,9 @@ class _CourseDetailPageState extends ConsumerState<CourseDetailPage>
     with
         RecordEditHost<CourseDetailPage, Course>,
         RecordOpenUnlocked<CourseDetailPage, Course>,
-        _CourseDetailPageEditing {
+        _CourseDetailPageEditing,
+        RecordCreating<CourseDetailPage, Course>,
+        _CourseDetailPageCreating {
   @override
   void dispose() {
     disposeEditing();
@@ -99,6 +130,16 @@ class _CourseDetailPageState extends ConsumerState<CourseDetailPage>
   @override
   Widget build(BuildContext context) {
     ref.watch(certificationCatalogSyncProvider);
+    if (isCreating) {
+      final seed = newRecordSeed;
+      return newRecordWaiting(context) ??
+          _CourseDetailContent(
+            course: shownRecord(seed!),
+            stored: seed,
+            embedded: widget.embedded,
+            host: this,
+          );
+    }
     final courseAsync = ref.watch(courseByIdProvider(widget.courseId));
     if (hostsEditing) followStored(courseByIdProvider(widget.courseId));
 
@@ -191,6 +232,9 @@ class _CourseDetailContent extends ConsumerWidget {
 
   bool get _editing => host != null;
 
+  /// A course not yet created: what it cannot have yet is left out.
+  bool get _creating => host?.isCreating ?? false;
+
   /// [child] as the card [id] where the page edits in place.
   Widget _framed(CourseCardId id, Widget child, {double topGap = 0}) =>
       host?._framed(id, child, topGap: topGap) ?? child;
@@ -231,8 +275,11 @@ class _CourseDetailContent extends ConsumerWidget {
           // Earned certifications, one row each (#2515)
           _buildCertificationSection(context, ref),
 
-          // Requirement tracker. Carries its own top gap.
-          if (_editing)
+          // Requirement tracker. Carries its own top gap. Its progress and
+          // creditable dives read the stored course (plan 11, Question 9).
+          if (_creating)
+            const SizedBox.shrink()
+          else if (_editing)
             _framed(
               CourseCardId.requirements,
               CourseRequirementsSection(
@@ -246,7 +293,12 @@ class _CourseDetailContent extends ConsumerWidget {
             CourseRequirementsSection(courseId: course.id),
 
           // Training dives: set from the dive's side.
-          if (_editing) _calculated(trainingDives) else trainingDives,
+          if (_creating)
+            const SizedBox.shrink()
+          else if (_editing)
+            _calculated(trainingDives)
+          else
+            trainingDives,
           const SizedBox(height: 16),
 
           if (course.notes.isNotEmpty || _shows(CourseCardId.notes)) ...[
@@ -377,6 +429,8 @@ class _CourseDetailContent extends ConsumerWidget {
 
   /// The overflow menu shared by the standalone and embedded headers.
   Widget _buildMoreMenu(BuildContext context, WidgetRef ref) {
+    // Nothing acts on a course not yet created (plan 11, call 3).
+    if (_creating) return const SizedBox.shrink();
     return PopupMenuButton<String>(
       tooltip: context.l10n.courses_action_moreOptions,
       onSelected: (value) {
