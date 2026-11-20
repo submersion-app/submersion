@@ -26,6 +26,7 @@ import 'package:submersion/features/equipment/presentation/editing/gear_item_sit
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_fade.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
@@ -103,6 +104,13 @@ class _PassportPageState extends ConsumerState<PassportPage>
 
   @override
   List<AddStripEntry> addStripEntries(EquipmentItem working) => const [];
+
+  /// Only the lists this page's cards hold.
+  @override
+  void onSittingStart(
+    EditSession<EquipmentItem> session,
+    ProviderContainer container,
+  ) => loadGearPassportSitting(session);
 
   @override
   void dispose() {
@@ -239,8 +247,9 @@ class _PassportPageState extends ConsumerState<PassportPage>
           ),
           // The dives this cylinder was used on (issue #2650), with its
           // own gap so a cylinder never used leaves none. Faded only while
-          // it shows something: an empty card draws nothing to label.
-          if (passportId != null) _usageCard(passportId),
+          // it shows something: an empty card draws nothing to label. The
+          // stored passport's: a tag linked in the sitting is not its yet.
+          if (stored != null) _usageCard(stored),
           const SizedBox(height: 16),
           _framed(
             _tagCard,

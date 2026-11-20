@@ -25,6 +25,7 @@ import 'package:submersion/features/equipment/presentation/editing/gear_item_sit
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_fade.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
@@ -99,6 +100,13 @@ class _GearPassportPageState extends ConsumerState<GearPassportPage>
 
   @override
   List<AddStripEntry> addStripEntries(EquipmentItem working) => const [];
+
+  /// Only the lists this page's cards hold.
+  @override
+  void onSittingStart(
+    EditSession<EquipmentItem> session,
+    ProviderContainer container,
+  ) => loadGearPassportSitting(session);
 
   @override
   void dispose() {
@@ -209,12 +217,11 @@ class _GearPassportPageState extends ConsumerState<GearPassportPage>
   /// one is open.
   Widget _body(EquipmentItem equipment) {
     final session = hostsEditing ? maybeEditController?.session : null;
-    // See all opens the item's own page: not while this page holds a
-    // sitting of its own on the item (Call 10).
-    final ownSitting =
-        hostsEditing &&
-        widget.joined == null &&
-        (maybeEditController?.isUnlocked ?? false);
+    // See all opens the item's own page: not while this page is in a
+    // sitting on the item, its own or the item page's it joined, which
+    // would put a second page of the item over it (Call 10).
+    final inSitting =
+        hostsEditing && (maybeEditController?.isUnlocked ?? false);
     Widget calculated(Widget child) => RecordCardFade<EquipmentItem>(
       reason: RecordCardFadeReason.calculated,
       child: child,
@@ -246,7 +253,7 @@ class _GearPassportPageState extends ConsumerState<GearPassportPage>
           calculated(
             GearRecentServiceCard(
               equipmentId: equipment.id,
-              offerSeeAll: !ownSitting,
+              offerSeeAll: !inSitting,
             ),
           ),
           const SizedBox(height: 16),

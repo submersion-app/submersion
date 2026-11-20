@@ -14,6 +14,8 @@ import 'package:submersion/features/cylinder_passports/domain/entities/passport_
 import 'package:submersion/features/cylinder_passports/presentation/pages/passport_page.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_entry_card.dart';
+import 'package:submersion/features/gear_passports/presentation/pages/gear_passport_page.dart';
+import 'package:submersion/features/gear_passports/presentation/widgets/gear_passport_entry_card.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/shared/widgets/record_editing/record_satellite_bar.dart';
@@ -299,6 +301,40 @@ void main() {
         ),
       );
       expect(left, isEmpty);
+    });
+
+    testWidgets('See all is hidden on a gear passport joined to the item '
+        "page's sitting", (tester) async {
+      final at = DateTime(2026, 3, 3);
+      await pumpGearPage(
+        tester,
+        extraOverrides: [
+          passportIdProvider('g1').overrideWith((ref) async => 'pp'),
+          serviceClockStatusesProvider(
+            'g1',
+          ).overrideWith((ref) async => const <ServiceClockStatus>[]),
+          serviceRecordsForEquipmentProvider('g1').overrideWith(
+            (ref) async => [
+              ServiceRecord(
+                id: 'r1',
+                equipmentId: 'g1',
+                serviceCategory: ServiceCategory.annual,
+                serviceDate: at,
+                createdAt: at,
+                updatedAt: at,
+              ),
+            ],
+          ),
+        ],
+      );
+      await unlock(tester);
+      await tester.ensureVisible(find.byType(GearPassportEntryCard));
+      await tester.tap(find.byType(GearPassportEntryCard));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(GearPassportPage), findsOneWidget);
+      expect(find.byType(RecordSatelliteBar), findsOneWidget);
+      expect(find.text(l.gearPassport_recent_seeAll), findsNothing);
     });
 
     testWidgets('from a locked item page the passport has its own lock', (

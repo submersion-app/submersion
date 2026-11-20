@@ -17,8 +17,15 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_card_ids.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_check_ins_sitting.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_fills_sitting.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_header_editor.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_passport_sitting.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_service_sitting.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -60,6 +67,7 @@ void main() {
     WidgetTester tester, {
     bool unlockEditing = true,
     RecordEditController<EquipmentItem>? joined,
+    List<PassportUsageDive> usage = const [],
   }) async {
     await tester.runAsync(() async {
       await EquipmentRepository().createEquipment(tank);
@@ -96,7 +104,7 @@ void main() {
           ).overrideWith((ref) async => stored.passportId),
           passportUsageProvider(
             stored.passportId,
-          ).overrideWith((ref) async => const <PassportUsageDive>[]),
+          ).overrideWith((ref) async => usage),
           fillsForEquipmentProvider('c1').overrideWith((ref) async => [stored]),
           tiedFillsProvider('c1').overrideWith((ref) async => const {}),
           tripCopyFillIdsProvider('c1').overrideWith((ref) async => const {}),
@@ -197,6 +205,48 @@ void main() {
 
     // The empty Usage card draws nothing, so it has no label to float.
     expect(find.text(l.recordEdit_calculated), findsOneWidget);
+  });
+
+  EditSession<EquipmentItem> sessionOf(WidgetTester tester) =>
+      RecordEditScope.maybeOf<EquipmentItem>(
+        tester.element(find.byType(RecordCardFrame<EquipmentItem>).first),
+      )!.session!;
+
+  testWidgets('alone, its sitting reads only what its cards hold', (
+    tester,
+  ) async {
+    await pump(tester);
+    await tester.tap(find.byIcon(Icons.lock_outline));
+    await tester.pumpAndSettle();
+
+    final session = sessionOf(tester);
+    expect(gearItemFillsList.loaded(session), isNotNull);
+    expect(gearItemClocksList.loaded(session), isNotNull);
+    expect(gearItemTagsList.loaded(session), isNull);
+    expect(gearItemCheckInsList.loaded(session), isNull);
+  });
+
+  testWidgets('a tag linked in the sitting leaves the Usage card on the '
+      'stored passport', (tester) async {
+    await pump(
+      tester,
+      usage: [
+        PassportUsageDive(diveId: 'd1', dateTime: DateTime.utc(2026, 9, 1)),
+      ],
+    );
+    await tester.tap(find.byIcon(Icons.lock_outline));
+    await tester.pumpAndSettle();
+    expect(find.text(l.passport_usage_ownTitle(1)), findsOneWidget);
+
+    holdPassportTag(
+      sessionOf(tester),
+      '11111111-2222-4333-8444-555555555555',
+      stored: stored.passportId,
+      repository: CylinderPassportRepository(),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text(l.passport_usage_ownTitle(1)), findsOneWidget);
   });
 
   testWidgets('alone: a change, then Cancel asks and writes nothing', (

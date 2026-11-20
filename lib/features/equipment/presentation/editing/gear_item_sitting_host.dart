@@ -167,6 +167,19 @@ void loadGearItemSitting(
   loadGearItemFills(session);
 }
 
+/// Reads what a passport's cards hold, for a passport that holds a sitting
+/// of its own: its clocks (and the service records Log service adds to),
+/// moves, trips and fills. The item page's other lists stay unread; their
+/// held writes are never made from a passport. A passport that joins the
+/// item page's sitting uses what the item page read.
+void loadGearPassportSitting(EditSession<EquipmentItem> session) {
+  gearItemClocksList.load(session);
+  gearItemServiceRecordsList.load(session);
+  gearItemMovesList.load(session);
+  gearItemTripsList.load(session);
+  loadGearItemFills(session);
+}
+
 /// What a saved sitting still has to do outside the database: uploads and
 /// the remote deletes the unlinks held. Read before the follow-ups run.
 List<Future<void> Function()> gearItemAfterCommit(
