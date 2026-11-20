@@ -346,12 +346,21 @@ class _MoreOverlay extends StatelessWidget {
         onTap: onTap,
         child: ColoredBox(
           color: Colors.black.withValues(alpha: 0.5),
-          child: Center(
-            child: Text(
-              '+$count',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(color: Colors.white),
+          child: Padding(
+            padding: const EdgeInsets.all(4),
+            // A tall photo can leave the last tile narrower than a
+            // three-digit count: scale it down rather than wrap it.
+            child: Center(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  '+$count',
+                  maxLines: 1,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(color: Colors.white),
+                ),
+              ),
             ),
           ),
         ),

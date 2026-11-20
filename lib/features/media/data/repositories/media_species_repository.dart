@@ -303,9 +303,12 @@ class MediaSpeciesRepository {
               _db.mediaEnrichment,
               _db.mediaEnrichment.mediaId.equalsExp(m.id),
             ),
-            leftOuterJoin(d, d.id.equalsExp(m.diveId)),
-            leftOuterJoin(s, s.id.equalsExp(d.siteId)),
+            // Only the three columns an entry carries: a dive row is wide,
+            // and DISTINCT compares every column selected.
+            leftOuterJoin(d, d.id.equalsExp(m.diveId), useColumns: false),
+            leftOuterJoin(s, s.id.equalsExp(d.siteId), useColumns: false),
           ])
+          ..addColumns([d.diveNumber, d.diveDateTime, s.name])
           ..where(
             _db.mediaSpecies.speciesId.equals(speciesId) &
                 _diverScope(diverId) &
@@ -316,17 +319,17 @@ class MediaSpeciesRepository {
           ..orderBy([OrderingTerm.desc(m.takenAt), OrderingTerm.asc(m.id)]);
     final rows = await query.get();
     return rows.map((row) {
-      final dive = row.readTableOrNull(d);
+      final diveDateTime = row.read(d.diveDateTime);
       return MediaLibraryEntry(
         item: mediaItemFromRow(
           row.readTable(m),
           row.readTableOrNull(_db.mediaEnrichment),
         ),
-        diveNumber: dive?.diveNumber,
-        diveDateTime: dive == null
+        diveNumber: row.read(d.diveNumber),
+        diveDateTime: diveDateTime == null
             ? null
-            : wallClockUtcFromMillis(dive.diveDateTime),
-        siteName: row.readTableOrNull(s)?.name,
+            : wallClockUtcFromMillis(diveDateTime),
+        siteName: row.read(s.name),
       );
     }).toList();
   }

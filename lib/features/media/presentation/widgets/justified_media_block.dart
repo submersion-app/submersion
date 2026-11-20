@@ -125,9 +125,9 @@ class JustifiedMediaBlock extends StatelessWidget {
           child: Stack(
             children: [
               for (var i = 0; i < visible; i++)
-                Positioned.fromRect(
-                  rect: place(table.rectOf(i)),
-                  child: cellBuilder(
+                _positioned(
+                  place(table.rectOf(i)),
+                  cellBuilder(
                     context,
                     JustifiedBlockCell(
                       index: i,
@@ -140,6 +140,20 @@ class JustifiedMediaBlock extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  /// [child] at [rect], keyed after the child's own key when it has a local
+  /// one. A Stack matches its children by their keys, so a keyed tile keeps
+  /// its state, and its decoded thumbnail, when the order shifts around it.
+  /// The slot's key wraps the child's rather than repeating it, so a finder
+  /// for the child's key still finds only the child.
+  static Widget _positioned(Rect rect, Widget child) {
+    final key = child.key;
+    return Positioned.fromRect(
+      key: key is LocalKey ? ValueKey<LocalKey>(key) : null,
+      rect: rect,
+      child: child,
     );
   }
 }

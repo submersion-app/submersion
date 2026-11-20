@@ -47,6 +47,28 @@ Future<List<JustifiedBlockCell>> _pump(
   return cells;
 }
 
+/// Counts how often a tile's state is created, to tell a kept tile from a
+/// rebuilt one.
+class _Counted extends StatefulWidget {
+  const _Counted({super.key, required this.created});
+
+  final List<Key?> created;
+
+  @override
+  State<_Counted> createState() => _CountedState();
+}
+
+class _CountedState extends State<_Counted> {
+  @override
+  void initState() {
+    super.initState();
+    widget.created.add(widget.key);
+  }
+
+  @override
+  Widget build(BuildContext context) => const SizedBox.expand();
+}
+
 Rect _rect(WidgetTester tester, int index) =>
     tester.getRect(find.byKey(ValueKey('cell-$index')));
 
@@ -161,5 +183,38 @@ void main() {
     // An open row keeps its shapes; in RTL it starts at the right edge.
     expect(_rect(tester, 0).right, closeTo(616, 0.01));
     expect(_rect(tester, 1).right, closeTo(_rect(tester, 0).left - 4, 0.01));
+  });
+
+  testWidgets('a keyed tile keeps its state when the order shifts', (
+    tester,
+  ) async {
+    final created = <Key?>[];
+    Future<void> pumpIds(List<String> ids) => tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: Align(
+          alignment: Alignment.topLeft,
+          child: SizedBox(
+            width: 616,
+            child: JustifiedMediaBlock(
+              ratios: List.filled(ids.length, 1.0),
+              rowHeight: 150,
+              gap: 4,
+              cellBuilder: (context, cell) =>
+                  _Counted(key: ValueKey(ids[cell.index]), created: created),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await pumpIds(['a', 'b', 'c']);
+    expect(created, hasLength(3));
+
+    // A new photo arrives first: the three already shown keep their state.
+    await pumpIds(['new', 'a', 'b', 'c']);
+
+    expect(created, hasLength(4));
+    expect(created.last, const ValueKey('new'));
   });
 }

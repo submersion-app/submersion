@@ -3,10 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/media/data/repositories/media_aspect_cache_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
-import 'package:submersion/features/media/presentation/helpers/media_layout_aspect.dart';
 import 'package:submersion/features/media/presentation/pages/species_photo_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_learned_aspect_provider.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
@@ -14,23 +12,6 @@ import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import 'package:submersion/features/media/presentation/widgets/species_photos_section.dart';
 
 import '../support/media_widget_harness.dart';
-
-class _NoShapesRepository implements MediaAspectCacheRepository {
-  _NoShapesRepository([this.shapes = const {}]);
-
-  final Map<String, LearnedAspect> shapes;
-
-  /// Every id written, in order.
-  final List<String> written = [];
-
-  @override
-  Future<Map<String, LearnedAspect>> loadAll() async => shapes;
-
-  @override
-  Future<void> putAll(Map<String, LearnedAspect> entries) async {
-    written.addAll(entries.keys);
-  }
-}
 
 MediaItem _photo(String id, {int width = 600, int height = 600}) =>
     testMediaItem(id: id, diveId: 'd1').copyWith(width: width, height: height);
@@ -60,7 +41,7 @@ Future<void> _pump(
   Widget Function(MediaItem item)? pendingOverlay,
   bool browser = false,
   double width = 800,
-  _NoShapesRepository? shapes,
+  FakeAspectCacheRepository? shapes,
 }) async {
   tester.view.physicalSize = Size(width, 3000);
   tester.view.devicePixelRatio = 1;
@@ -86,7 +67,7 @@ Future<void> _pump(
           'sp_x',
         ).overrideWith((ref) async => [for (final e in entries) e.item]),
         mediaAspectCacheRepositoryProvider.overrideWithValue(
-          shapes ?? _NoShapesRepository(),
+          shapes ?? FakeAspectCacheRepository(),
         ),
         if (browser)
           deviceCapabilitiesProvider.overrideWithValue(DeviceCapabilities.web),
@@ -300,7 +281,7 @@ void main() {
     await _pump(
       tester,
       [_entry('p1')],
-      shapes: _NoShapesRepository({
+      shapes: FakeAspectCacheRepository({
         'p1': (ratio: 0.5, width: 600, height: 600),
       }),
     );
@@ -333,7 +314,7 @@ void main() {
   ) async {
     // Both are stored 3:2 and decode as the harness's 1x1 PNG, a shape that
     // differs enough to be learned.
-    final shapes = _NoShapesRepository();
+    final shapes = FakeAspectCacheRepository();
     await _pump(
       tester,
       [_entry('stored', width: 900, height: 600)],
@@ -390,5 +371,20 @@ void main() {
     );
     expect(viewer.initialMediaId, 'p9');
     semantics.dispose();
+  });
+
+  testWidgets('+N stays on one line on a narrow tile', (tester) async {
+    // 1:3 photos are about 52 px wide at 390: seven a row, 21 shown, and
+    // a three-digit count left over.
+    await _pump(tester, [
+      for (var i = 0; i < 125; i++) _entry('t$i', width: 600, height: 1800),
+    ], width: 390);
+
+    final tile = _tileRect(tester, 't20');
+    final count = tester.getRect(find.text('+104'));
+    expect(tile.width, lessThan(60));
+    expect(count.width, lessThanOrEqualTo(tile.width));
+    // One line of the count, not the number broken across two.
+    expect(count.height, lessThan(30));
   });
 }
