@@ -38,6 +38,10 @@ class TripChecklistRepository {
   Stream<void> watchTripChecklistSectionChanges() =>
       _sections.watchTripChecklistSectionChanges();
 
+  /// Every section of every checklist of [tripId], in one read.
+  Future<List<domain.TripChecklistSection>> getSectionsForTrip(String tripId) =>
+      _sections.getSectionsForTrip(tripId);
+
   Future<List<domain.TripChecklistSection>> getSectionsForChecklist(
     String checklistId,
   ) => _sections.getSectionsForChecklist(checklistId);

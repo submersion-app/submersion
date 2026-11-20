@@ -25,6 +25,7 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_drafts.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_checklists_sitting.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_cylinder_events_sitting.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_gear_sitting.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/sitting_list.dart';
@@ -273,4 +274,36 @@ void main() {
     expect(slot.id, isNotEmpty);
     expect(slot.label, 'Rental 1');
   });
+
+  test('a slot moved and moved back is no change, gaps and all', () async {
+    await cylinders.createCylinders([
+      for (final (id, order) in [('a', 0), ('b', 3)])
+        TripCylinder(
+          id: id,
+          tripId: 't1',
+          label: id,
+          sortOrder: order,
+          createdAt: at,
+          updatedAt: at,
+        ),
+    ]);
+    final session = await open();
+    final hold = TripBoardHold(session: session, board: board);
+
+    await hold.reorder(['b', 'a']);
+    expect(session.changedCardIds, {'cylinders'});
+    await hold.reorder(['a', 'b']);
+
+    expect(session.changedCardIds, isEmpty);
+  });
+
+  test(
+    'packing before the packed gear is read holds nothing and says so',
+    () async {
+      final session = EditSession<Trip>((await trips.getTripById('t1'))!);
+
+      expect(await writesOf(session).pack([wing]), 0);
+      expect(session.changedCardIds, isEmpty);
+    },
+  );
 }

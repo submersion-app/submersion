@@ -60,10 +60,17 @@ class TripGalleryPage extends ConsumerWidget {
       return _scaffold(context, ref, null);
     }
     // Followed, so the Scan goes when the sitting ends underneath.
+    // A Consumer of its own, so the media watched are watched by the
+    // element that rebuilds with the sitting.
     return ListenableBuilder(
       listenable: sitting,
-      builder: (context, _) =>
-          _scaffold(context, ref, sitting.isUnlocked ? sitting.session : null),
+      builder: (context, _) => Consumer(
+        builder: (context, ref, _) => _scaffold(
+          context,
+          ref,
+          sitting.isUnlocked ? sitting.session : null,
+        ),
+      ),
     );
   }
 

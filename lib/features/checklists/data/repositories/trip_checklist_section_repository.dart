@@ -23,6 +23,31 @@ class TripChecklistSectionRepository {
   Stream<void> watchTripChecklistSectionChanges() =>
       _db.tableUpdates(TableUpdateQuery.onTable(_db.tripChecklistSections));
 
+  /// Every section of every checklist of [tripId], in one read, each
+  /// checklist's in their order.
+  Future<List<domain.TripChecklistSection>> getSectionsForTrip(
+    String tripId,
+  ) async {
+    final rows =
+        await (_db.select(_db.tripChecklistSections).join([
+                innerJoin(
+                  _db.tripChecklists,
+                  _db.tripChecklists.id.equalsExp(
+                    _db.tripChecklistSections.checklistId,
+                  ),
+                ),
+              ])
+              ..where(_db.tripChecklists.tripId.equals(tripId))
+              ..orderBy([
+                OrderingTerm.asc(_db.tripChecklistSections.sortOrder),
+              ]))
+            .get();
+    return [
+      for (final r in rows)
+        _mapSectionRow(r.readTable(_db.tripChecklistSections)),
+    ];
+  }
+
   Future<List<domain.TripChecklistSection>> getSectionsForChecklist(
     String checklistId,
   ) async {

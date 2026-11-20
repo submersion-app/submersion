@@ -9,6 +9,18 @@ import 'package:submersion/features/checklists/domain/entities/trip_checklist_se
 int nextSortOrder(Iterable<int> taken) =>
     taken.fold<int>(-1, (highest, o) => o > highest ? o : highest) + 1;
 
+/// The sort orders to hand rows laid out anew, by position: the values
+/// [taken] already held, smallest first, so rows moved and moved back end
+/// with the values they had (an editing sitting then holds no change,
+/// issue #4527). Where two rows share a value (two devices added one
+/// offline) the positions themselves are used, so the order stays plain.
+List<int> reorderedSortOrders(Iterable<int> taken) {
+  final sorted = [...taken]..sort();
+  return sorted.toSet().length == sorted.length
+      ? sorted
+      : [for (var i = 0; i < sorted.length; i++) i];
+}
+
 /// The section of [known] titled [trimmedTitle], compared
 /// case-insensitively, as the item editor's picker matches; null for no
 /// title or no match.

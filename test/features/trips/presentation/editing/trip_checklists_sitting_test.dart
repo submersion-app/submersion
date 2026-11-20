@@ -330,4 +330,36 @@ void main() {
     );
     expect(session.changedCardIds, isEmpty);
   });
+
+  test('sections made in a sitting keep the order they were given', () async {
+    final session = await open();
+    final writes = writesOf(session);
+    await writes.createSection(checklistId: 'c1', title: 'A');
+    await writes.createSection(checklistId: 'c1', title: 'B');
+    final held = heldChecklistsOf(session, list)!.sectionsOf('c1');
+    final a = held.firstWhere((s) => s.title == 'A').id;
+    final b = held.firstWhere((s) => s.title == 'B').id;
+    await writes.reorderSections('c1', ['s1', b, a]);
+
+    await save(session);
+
+    expect(
+      [for (final s in await items.getSectionsForChecklist('c1')) s.title],
+      ['Gear', 'B', 'A'],
+    );
+  });
+
+  test('a checklist moved and moved back is no change, gaps and all', () async {
+    await checklists.createChecklist(tripId: 't1', name: 'Gone', id: 'c2');
+    await checklists.createChecklist(tripId: 't1', name: 'Paperwork', id: 'c3');
+    await checklists.deleteChecklist('c2');
+    final session = await open();
+    final writes = writesOf(session);
+
+    await writes.reorderChecklists(['c3', 'c1']);
+    expect(session.changedCardIds, {'checklists'});
+    await writes.reorderChecklists(['c1', 'c3']);
+
+    expect(session.changedCardIds, isEmpty);
+  });
 }

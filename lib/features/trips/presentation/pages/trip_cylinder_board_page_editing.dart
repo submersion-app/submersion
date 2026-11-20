@@ -29,6 +29,7 @@ mixin _TripCylinderBoardEditing
   /// The board of [states], drawn by the page.
   Widget _body({
     required List<TripCylinderState> states,
+    required BoardLook look,
     required FillForecast? forecast,
     required bool readOnly,
     TripBoardHold? hold,
@@ -47,7 +48,7 @@ mixin _TripCylinderBoardEditing
   /// The board as [session] holds it, drawn as it changes: its slots'
   /// states and ledger folded from the held fills, and the forecast from
   /// the held days and the working trip (plan 10, Question 8).
-  Widget heldBoard(EditSession<Trip> session) {
+  Widget heldBoard(EditSession<Trip> session, BoardLook look) {
     final board = tripCylindersList(
       cylinders: ref.read(tripCylinderRepositoryProvider),
       copier: ref.read(tripFillPassportCopierProvider),
@@ -104,6 +105,7 @@ mixin _TripCylinderBoardEditing
               );
         return _body(
           states: states,
+          look: look,
           forecast: forecast,
           readOnly: false,
           hold: hold,

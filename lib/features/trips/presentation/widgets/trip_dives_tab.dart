@@ -32,9 +32,13 @@ class TripDivesTab extends ConsumerWidget {
     final slots = TripCardSlotsScope.maybeOf(context);
     final session = slots?.session;
     if (session == null) return _build(context, ref, slots, null);
+    // A Consumer of its own, so what the list watches is watched by the
+    // element that rebuilds with the sitting.
     return ListenableBuilder(
       listenable: session,
-      builder: (context, _) => _build(context, ref, slots, session),
+      builder: (context, _) => Consumer(
+        builder: (context, ref, _) => _build(context, ref, slots, session),
+      ),
     );
   }
 

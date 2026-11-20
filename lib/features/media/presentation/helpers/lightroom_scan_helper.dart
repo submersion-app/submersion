@@ -123,40 +123,5 @@ Future<void> runLightroomScanInSitting(
   BuildContext context,
   WidgetRef ref,
   EditSession<Dive> session,
-) async {
-  final account = await ref.read(lightroomAccountProvider.future);
-  if (account == null || !context.mounted) return;
-  final state = ref.read(lightroomConnectorStateProvider(account.id));
-  final service = ref.read(lightroomScanServiceProvider);
-  final messenger = ScaffoldMessenger.of(context);
-  final l10n = context.l10n;
-
-  messenger.showSnackBar(
-    SnackBar(content: Text(l10n.settings_lightroom_scan_running)),
-  );
-  try {
-    final scan = await service.prepareForDive(
-      account: account,
-      dive: session.working,
-      state: state,
-    );
-    await state.setLastError(null);
-    messenger.hideCurrentSnackBar();
-    if (scan.rows.isEmpty) {
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.media_diveScan_noPhotosFound)),
-      );
-      return;
-    }
-    // A sitting that ended while the catalog was read takes nothing.
-    if (session.isDisposed || session.isFrozen) return;
-    addMediaToSitting(session, [for (final r in scan.rows) HeldMediaRow(r)]);
-  } on Exception catch (e) {
-    final message = e is CloudStorageException
-        ? e.displayMessage
-        : e.toString();
-    await state.setLastError(message);
-    messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(SnackBar(content: Text(message)));
-  }
-}
+) =>
+    runLightroomScanForDivesInSitting(context, ref, session, [session.working]);

@@ -12,7 +12,8 @@ import 'package:submersion/shared/widgets/record_editing/record_satellite.dart';
 /// a lock of its own while it is locked. Otherwise by its address, as
 /// always.
 Future<void> openTripCylinderBoard(BuildContext context, String tripId) {
-  if (TripCardSlotsScope.maybeOf(context) == null) {
+  // Read, not depended on: this runs from a tap.
+  if (context.getInheritedWidgetOfExactType<TripCardSlotsScope>() == null) {
     return context.push('/trips/$tripId/cylinders');
   }
   return pushRecordSatellite<Trip, void>(

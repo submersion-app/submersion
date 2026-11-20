@@ -48,6 +48,10 @@ List<String> reorderedIds(List<String> ids, int oldIndex, int newIndex) {
   return next;
 }
 
+/// What the board draws with: dive centre names by id, and the diver's
+/// units.
+typedef BoardLook = ({Map<String, String> centerNames, UnitFormatter units});
+
 /// The trip's cylinder board: every slot with its state (reorderable) or
 /// the ledger of every fill and adjustment, with actions to add slots and
 /// to fill several at once.
@@ -91,6 +95,14 @@ class _TripCylinderBoardPageState extends ConsumerState<TripCylinderBoardPage>
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final tripId = widget.tripId;
+    // Watched here, in the page's build, and handed down: the held board is
+    // drawn by a builder that rebuilds on its own.
+    final centers =
+        ref.watch(allDiveCentersProvider).value ?? const <DiveCenter>[];
+    final look = (
+      centerNames: {for (final c in centers) c.id: c.name},
+      units: ref.watch(unitFormatterProvider),
+    );
     if (!hostsEditing) {
       final statesAsync = ref.watch(tripCylinderStatesProvider(tripId));
       final states = statesAsync.value ?? const <TripCylinderState>[];
@@ -99,7 +111,7 @@ class _TripCylinderBoardPageState extends ConsumerState<TripCylinderBoardPage>
           title: Text(l10n.trips_cylinders_title),
           actions: _actions(states, ready: statesAsync.hasValue),
         ),
-        body: _storedBody(statesAsync, readOnly: false),
+        body: _storedBody(statesAsync, look, readOnly: false),
       );
     }
     followStored(tripByIdProvider(tripId));
@@ -122,9 +134,10 @@ class _TripCylinderBoardPageState extends ConsumerState<TripCylinderBoardPage>
       content: session == null
           ? _storedBody(
               ref.watch(tripCylinderStatesProvider(tripId)),
+              look,
               readOnly: true,
             )
-          : heldBoard(session),
+          : heldBoard(session, look),
     );
   }
 
@@ -175,7 +188,8 @@ class _TripCylinderBoardPageState extends ConsumerState<TripCylinderBoardPage>
   /// The board as stored: written at once, or ([readOnly]) only shown, on
   /// a locked board that edits in place.
   Widget _storedBody(
-    AsyncValue<List<TripCylinderState>> statesAsync, {
+    AsyncValue<List<TripCylinderState>> statesAsync,
+    BoardLook look, {
     required bool readOnly,
   }) {
     final l10n = context.l10n;
@@ -188,6 +202,7 @@ class _TripCylinderBoardPageState extends ConsumerState<TripCylinderBoardPage>
     }
     return _body(
       states: states,
+      look: look,
       forecast: ref.watch(tripFillForecastProvider(widget.tripId)).value,
       readOnly: readOnly,
     );
@@ -199,6 +214,7 @@ class _TripCylinderBoardPageState extends ConsumerState<TripCylinderBoardPage>
   @override
   Widget _body({
     required List<TripCylinderState> states,
+    required BoardLook look,
     required FillForecast? forecast,
     required bool readOnly,
     TripBoardHold? hold,
@@ -207,10 +223,7 @@ class _TripCylinderBoardPageState extends ConsumerState<TripCylinderBoardPage>
   }) {
     final l10n = context.l10n;
     final tripId = widget.tripId;
-    final centers =
-        ref.watch(allDiveCentersProvider).value ?? const <DiveCenter>[];
-    final centerNames = {for (final c in centers) c.id: c.name};
-    final units = ref.watch(unitFormatterProvider);
+    final (:centerNames, :units) = look;
     if (states.isEmpty) {
       return Center(
         child: Column(

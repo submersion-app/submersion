@@ -70,13 +70,16 @@ class TripChecklistsHeld {
     ],
   );
 
-  /// The checklists laid out in [orderedIds]' order, each at its position.
+  /// The checklists laid out in [orderedIds]' order, taking the sort
+  /// orders they hold in that order ([reorderedSortOrders]).
   TripChecklistsHeld withChecklistsReordered(List<String> orderedIds) {
     final byId = {for (final c in checklists) c.id: c};
+    final listed = [for (final id in orderedIds) ?byId[id]];
+    final orders = reorderedSortOrders([for (final c in listed) c.sortOrder]);
     return copyWith(
       checklists: [
-        for (var i = 0; i < orderedIds.length; i++)
-          if (byId[orderedIds[i]] case final c?) c.copyWith(sortOrder: i),
+        for (var i = 0; i < listed.length; i++)
+          listed[i].copyWith(sortOrder: orders[i]),
       ],
     );
   }
@@ -182,15 +185,16 @@ class TripChecklistsHeld {
     ],
   );
 
-  /// The checklist's sections laid out in [orderedIds]' order, each at its
-  /// position.
+  /// The checklist's sections laid out in [orderedIds]' order, taking the
+  /// sort orders they hold in that order ([reorderedSortOrders]).
   TripChecklistsHeld withSectionsReordered(
     String checklistId,
     List<String> orderedIds,
   ) {
-    final position = {
-      for (var i = 0; i < orderedIds.length; i++) orderedIds[i]: i,
-    };
+    final position = _positions(orderedIds, {
+      for (final s in sections)
+        if (s.checklistId == checklistId) s.id: s.sortOrder,
+    });
     return copyWith(
       sections: [
         for (final s in sections)
@@ -223,16 +227,18 @@ class TripChecklistsHeld {
   );
 
   /// [itemId] moved to [targetSectionId], and the checklist's items laid
-  /// out in [orderedIds]' order, each at its position.
+  /// out in [orderedIds]' order, taking the sort orders they hold in that
+  /// order ([reorderedSortOrders]).
   TripChecklistsHeld withItemMoved({
     required String checklistId,
     required String itemId,
     required String? targetSectionId,
     required List<String> orderedIds,
   }) {
-    final position = {
-      for (var i = 0; i < orderedIds.length; i++) orderedIds[i]: i,
-    };
+    final position = _positions(orderedIds, {
+      for (final i in items)
+        if (i.checklistId == checklistId) i.id: i.sortOrder,
+    });
     return copyWith(
       items: [
         for (final i in items)
@@ -245,6 +251,20 @@ class TripChecklistsHeld {
             ),
       ],
     );
+  }
+
+  /// The sort order each of [orderedIds] (of [held], ids to sort orders)
+  /// takes, laid out in that order.
+  static Map<String, int> _positions(
+    List<String> orderedIds,
+    Map<String, int> held,
+  ) {
+    final listed = [
+      for (final id in orderedIds)
+        if (held.containsKey(id)) id,
+    ];
+    final orders = reorderedSortOrders([for (final id in listed) held[id]!]);
+    return {for (var i = 0; i < listed.length; i++) listed[i]: orders[i]};
   }
 
   @override
@@ -278,9 +298,9 @@ SittingList<Trip, TripChecklistsHeld> tripChecklistsList({
     return [
       TripChecklistsHeld(
         checklists: stored,
-        sections: [
-          for (final c in stored) ...await items.getSectionsForChecklist(c.id),
-        ],
+        sections: stored.isEmpty
+            ? const []
+            : await items.getSectionsForTrip(trip.id),
         items: await items.getAllItemsForTrip(trip.id),
       ),
     ];
@@ -322,7 +342,11 @@ Future<bool> writeTripChecklists({
       wrote = true;
     }
   }
-  for (final s in current.sections) {
+  // Per checklist, in their held order: new sections are numbered as they
+  // are made, so that order is the one they keep.
+  for (final s in [
+    for (final c in current.checklists) ...current.sectionsOf(c.id),
+  ]) {
     final was = wasSection[s.id];
     if (was == null) {
       await items.createSection(

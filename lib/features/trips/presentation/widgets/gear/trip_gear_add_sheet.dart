@@ -165,9 +165,7 @@ Future<void> showTripGearAddSheet(
         tripId: trip.id,
         existing: slots,
         rentalOnly: true,
-        hold: writes is RepositoryTripGearWrites
-            ? null
-            : writes.createCylinders,
+        hold: writes.createCylinders,
       );
   }
 }

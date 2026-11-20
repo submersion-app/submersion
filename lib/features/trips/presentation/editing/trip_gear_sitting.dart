@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/text/text_sort.dart';
+import 'package:submersion/features/checklists/domain/services/checklist_rows.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/trips/data/repositories/trip_cylinder_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_equipment_repository.dart';
@@ -151,13 +152,17 @@ class TripCylindersHeld {
     },
   );
 
-  /// The board laid out in [orderedIds]' order, each slot at its position.
+  /// The board laid out in [orderedIds]' order, the slots taking the sort
+  /// orders they hold in that order ([reorderedSortOrders]), so a slot moved
+  /// and moved back is no change.
   TripCylindersHeld withSlotsReordered(List<String> orderedIds) {
     final byId = {for (final s in slots) s.id: s};
+    final listed = [for (final id in orderedIds) ?byId[id]];
+    final orders = reorderedSortOrders([for (final s in listed) s.sortOrder]);
     return copyWith(
       slots: [
-        for (var i = 0; i < orderedIds.length; i++)
-          if (byId[orderedIds[i]] case final s?) s.copyWith(sortOrder: i),
+        for (var i = 0; i < listed.length; i++)
+          listed[i].copyWith(sortOrder: orders[i]),
       ],
     );
   }
@@ -417,7 +422,9 @@ class HeldTripGearWrites implements TripGearWrites {
 
   @override
   Future<int> pack(List<EquipmentItem> items) async {
-    final current = packed.current(session) ?? const <EquipmentItem>[];
+    final current = packed.current(session);
+    // Before the packed gear is read nothing can be held.
+    if (current == null) return 0;
     final have = {for (final i in current) i.id};
     final added = [
       for (final i in items)

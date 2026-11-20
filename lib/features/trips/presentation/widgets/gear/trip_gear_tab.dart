@@ -141,22 +141,27 @@ class TripGearTab extends ConsumerWidget {
           }
           return const Center(child: CircularProgressIndicator.adaptive());
         }
-        return _buildGear(
-          context,
-          ref,
-          gear: gear,
-          states: held.states,
-          writes: HeldTripGearWrites(
-            session: editing,
-            packed: packed,
-            board: board,
-          ),
-          lead: (
-            checklists: () async =>
-                heldChecklistsOf(editing, checklists)?.checklists ?? const [],
-            itemsOf: (id) async =>
-                heldChecklistsOf(editing, checklists)?.itemsOf(id) ?? const [],
-            createItem: checklistWrites.createItem,
+        // A Consumer of its own, so what the gear watches is watched by the
+        // element that rebuilds with the held lists.
+        return Consumer(
+          builder: (context, ref, _) => _buildGear(
+            context,
+            ref,
+            gear: gear,
+            states: held.states,
+            writes: HeldTripGearWrites(
+              session: editing,
+              packed: packed,
+              board: board,
+            ),
+            lead: (
+              checklists: () async =>
+                  heldChecklistsOf(editing, checklists)?.checklists ?? const [],
+              itemsOf: (id) async =>
+                  heldChecklistsOf(editing, checklists)?.itemsOf(id) ??
+                  const [],
+              createItem: checklistWrites.createItem,
+            ),
           ),
         );
       },

@@ -278,6 +278,10 @@ class FakeTripChecklistItems implements TripChecklistRepository {
   ) async => held.sectionsOf(checklistId);
 
   @override
+  Future<List<TripChecklistSection>> getSectionsForTrip(String tripId) async =>
+      held.sections;
+
+  @override
   Future<List<TripChecklistItem>> getByChecklistId(String checklistId) async =>
       held.itemsOf(checklistId);
 

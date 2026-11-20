@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/trips/data/services/trip_fill_passport_copy.dart';
+import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_cylinder_events_sitting.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_gear_sitting.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_itinerary_sitting.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_cylinder_board_page.dart';
 import 'package:submersion/features/trips/presentation/widgets/cylinders/trip_cylinder_slot_card.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
@@ -155,5 +158,63 @@ void main() {
     expect(find.byType(TripCylinderBoardPage), findsOneWidget);
     expect(find.byIcon(Icons.lock_outline), findsWidgets);
     expect(find.text(l.common_action_done), findsNothing);
+  });
+
+  testWidgets("a day's planned dives set on the strip are the itinerary "
+      'day the sitting holds: the forecast follows before Save, and Save '
+      'writes that day once', (tester) async {
+    final june1 = ItineraryDay(
+      id: 'i1',
+      tripId: 't1',
+      dayNumber: 1,
+      date: DateTime(2030, 6, 1),
+      dayType: DayType.diveDay,
+      createdAt: at,
+      updatedAt: at,
+    );
+    final harness = await pumpTripPage(
+      tester,
+      board: board,
+      days: [june1],
+      wrap: (_) =>
+          const TripCylinderBoardPage(tripId: 't1', unlockEditing: true),
+    );
+    await tester.tap(find.byIcon(Icons.lock_outline));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('forecast-day-0')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('plan-more')));
+    await tester.pump();
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(FilledButton),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final session = RecordEditScope.maybeOf<Trip>(
+      tester.element(find.byType(TripCylinderSlotCard)),
+    )!.session!;
+    final held = tripItineraryDays().current(session)!;
+    expect(held.single.id, 'i1');
+    expect(held.single.plannedDives, 1);
+    // The forecast reads the held day: its chip shows a plan of its own.
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('forecast-day-0')),
+        matching: find.byIcon(Icons.edit_calendar),
+      ),
+      findsOneWidget,
+    );
+    expect(harness.itinerary.updated, isEmpty);
+
+    await tester.tap(find.text(l.forms_save));
+    await tester.pumpAndSettle();
+
+    expect(harness.save.calls.single.cards, {'itineraryDays'});
+    expect(harness.itinerary.updated.single.plannedDives, 1);
+    expect(harness.itinerary.saved, isEmpty);
   });
 }

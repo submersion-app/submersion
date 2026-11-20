@@ -107,4 +107,9 @@ void main() {
     expect(rows.items.single.sectionId, 's1');
     expect(rows.items.single.sortOrder, 8);
   });
+
+  test('reorderedSortOrders keeps the values held, or positions on a tie', () {
+    expect(reorderedSortOrders([5, 0, 2]), [0, 2, 5]);
+    expect(reorderedSortOrders([1, 1, 4]), [0, 1, 2]);
+  });
 }
