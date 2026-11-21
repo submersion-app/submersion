@@ -49,11 +49,19 @@ class _CertificationDetailsCardEditorState
   // A name that only repeats the agency and level (the old form filled it
   // in until 2026-08) shows blank, so the hint offers the derived title
   // instead of repeating it.
-  late final _title = _bindText<String>(
-    widget.session,
-    certificationTitleField,
-    (v) => _repeatsCredentials(_session.working.copyWith(name: v)) ? '' : v,
+  late final _title = FieldTextBinding<Certification, String>(
+    session: widget.session,
+    field: certificationTitleField,
+    format: (v) =>
+        _repeatsCredentials(_session.working.copyWith(name: v)) ? '' : v,
+    parse: FieldValue<String>.new,
+    onEdited: () => _titleTyped = true,
   );
+
+  /// Whether the diver has typed in the title in this sitting. Typing the
+  /// stored text back is no change to the sitting, so the value alone
+  /// cannot tell.
+  bool _titleTyped = false;
   late final _cardNumber = _bindText<String?>(
     widget.session,
     certificationCardNumberField,
@@ -84,7 +92,9 @@ class _CertificationDetailsCardEditorState
     final stored = _session.stored;
     final title = _session.valueOf(certificationTitleField);
     final follows =
-        (title == stored.name || title.isEmpty) && _repeatsCredentials(stored);
+        !_titleTyped &&
+        (title == stored.name || title.isEmpty) &&
+        _repeatsCredentials(stored);
     _session.set(certificationCredentialsField, rows);
     if (!follows) return;
     final repeats = _repeatsCredentials(
@@ -184,9 +194,7 @@ class _CertificationDetailsCardEditorState
     // which can arrive, or change on a sync, after the editor opens. A title
     // typed in this sitting is left as typed.
     ref.listen(certificationCatalogSyncProvider, (_, _) {
-      if (_session.valueOf(certificationTitleField) == _session.stored.name) {
-        _title.reformat();
-      }
+      if (!_titleTyped) _title.reformat();
     });
     final l10n = context.l10n;
     return ListenableBuilder(

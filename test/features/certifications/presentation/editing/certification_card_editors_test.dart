@@ -356,6 +356,29 @@ void main() {
       expect(titleText(tester), isEmpty);
     });
 
+    // Typing the stored text is no change to the sitting, but it is the
+    // diver's title now.
+    testWidgets('the stored text typed back stays when the level changes', (
+      tester,
+    ) async {
+      final session = EditSession(derived());
+      addTearDown(session.dispose);
+      await pumpEditor(
+        tester,
+        CertificationDetailsCardEditor(session: session),
+      );
+
+      await tester.enterText(
+        find.byKey(const ValueKey('cert-edit-title')),
+        'PADI : Open Water',
+      );
+      await tester.pumpAndSettle();
+      await pickLevel(tester, 'Advanced Open Water');
+
+      expect(session.working.name, 'PADI : Open Water');
+      expect(titleText(tester), 'PADI : Open Water');
+    });
+
     // Only a title shown blank follows the credentials: one the diver can
     // see is theirs, even while a level picked on the way repeats it.
     testWidgets('a custom title shown stays when the level passes through '
