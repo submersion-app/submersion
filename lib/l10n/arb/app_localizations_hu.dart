@@ -7550,6 +7550,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ezek a merülések ugyanattól a búvárszámítógéptől származnak, ezért így nem vonhatók össze.';
 
   @override
+  String get diveLog_combine_duplicateHint =>
+      'Ezen merülések egyike már benne van a másikban, ugyanaz a merülőszámítógép rögzítette. A nyers adatai a másik merülés forrásaként megmaradnak, semmi sem másolódik kétszer.';
+
+  @override
   String get diveLog_consolidate_noProfileFallback =>
       'Az egyik felvételnek nincs összevethető mélységprofilja, ezért a kezdete az elsődleges számítógépéhez igazodik.';
 

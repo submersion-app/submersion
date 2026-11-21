@@ -7567,6 +7567,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Diese Tauchgänge stammen vom selben Tauchcomputer und können auf diese Weise nicht zusammengeführt werden.';
 
   @override
+  String get diveLog_combine_duplicateHint =>
+      'Einer dieser Tauchgänge ist bereits im anderen enthalten, aufgezeichnet vom selben Tauchcomputer. Seine Rohdaten bleiben als Quelle des anderen Tauchgangs erhalten, nichts wird doppelt kopiert.';
+
+  @override
   String get diveLog_consolidate_noProfileFallback =>
       'Eine Aufzeichnung hat kein Tiefenprofil zum Abgleichen, daher wird ihr Anfang an dem des primären Computers ausgerichtet.';
 

@@ -12,6 +12,8 @@ import 'package:submersion/features/dive_log/data/repositories/profile_series_re
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart'
+    as codec;
 import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
@@ -878,6 +880,177 @@ void main() {
             startsWith('sameComputer'),
           ),
         ),
+      );
+    });
+
+    group('a copy of a stretch of the target by the same computer', () {
+      // A 48-minute dive sampled every 10 s, and its second half as the
+      // computer logged it on a second entry: samples from 1300 s on, on that
+      // entry's own clock.
+      domain.DiveProfilePoint point(int t) => domain.DiveProfilePoint(
+        timestamp: t,
+        depth: t == 0 || t >= 2880 ? 0 : 8 + 6 * (1 + (t ~/ 10) % 7) / 7,
+      );
+      final whole = [for (var t = 0; t <= 2880; t += 10) point(t)];
+      final secondHalf = [
+        for (var t = 1300; t <= 2880; t += 10)
+          domain.DiveProfilePoint(timestamp: t - 1300, depth: point(t).depth),
+      ];
+
+      Future<void> seedSplitDive() async {
+        await seedDive(
+          'whole',
+          entry: DateTime.utc(2026, 4, 10, 19, 52),
+          runtimeMin: 48,
+          computerId: 'comp-x',
+          profile: whole,
+        );
+        await seedDataSource(
+          'src-whole',
+          diveId: 'whole',
+          computerId: 'comp-x',
+          rawData: Uint8List.fromList([1, 2, 3]),
+        );
+        await seedDive(
+          'half',
+          entry: DateTime.utc(
+            2026,
+            4,
+            10,
+            19,
+            52,
+          ).add(const Duration(seconds: 1300)),
+          runtimeMin: 26,
+          computerId: 'comp-x',
+          profile: secondHalf,
+        );
+        await seedDataSource(
+          'src-half',
+          diveId: 'half',
+          computerId: 'comp-x',
+          rawData: Uint8List.fromList([9, 9, 9]),
+        );
+      }
+
+      test('folds in for its raw bytes, repeats nothing the target holds and '
+          'is undone like any consolidation', () async {
+        await seedSplitDive();
+        // The target already has the stretch's safety stop; the copy repeats
+        // it two seconds off, and also holds a bookmark the target lacks.
+        await seedEvent(
+          'ev-whole',
+          diveId: 'whole',
+          timestamp: 1500,
+          eventType: 'safetyStopStart',
+        );
+        await seedEvent(
+          'ev-half-same',
+          diveId: 'half',
+          timestamp: 198,
+          eventType: 'safetyStopStart',
+        );
+        await seedEvent(
+          'ev-half-new',
+          diveId: 'half',
+          timestamp: 400,
+          eventType: 'bookmark',
+        );
+        await seedTag('tag-half', diveId: 'half', tagId: 'tag-1');
+        final seriesBefore = (await profileSeries.getSeriesForDive(
+          'whole',
+        )).length;
+
+        final outcome = await service.apply(
+          targetDiveId: 'whole',
+          secondaryDiveIds: ['half'],
+        );
+
+        // The copy's dive is gone.
+        final dives = await db.select(db.dives).get();
+        expect(dives.map((d) => d.id), ['whole']);
+
+        // Its raw bytes survive as a non-primary source, placed on the
+        // target's clock; the target's own source is untouched.
+        final sources = await (db.select(
+          db.diveDataSources,
+        )..where((r) => r.diveId.equals('whole'))).get();
+        expect(sources, hasLength(2));
+        final own = sources.singleWhere((r) => r.id == 'src-whole');
+        expect(own.isPrimary, isTrue);
+        expect(own.rawData, [1, 2, 3]);
+        final carried = sources.singleWhere((r) => r.id != 'src-whole');
+        expect(carried.isPrimary, isFalse);
+        expect(carried.rawData, [9, 9, 9]);
+        expect(carried.timeOffsetSeconds, 1300);
+
+        // No second copy of the profile, and no repeated safety stop, but the
+        // bookmark and the tag are the target's now.
+        expect(
+          (await profileSeries.getSeriesForDive('whole')).length,
+          seriesBefore,
+        );
+        final events = await (db.select(
+          db.diveProfileEvents,
+        )..where((e) => e.diveId.equals('whole'))).get();
+        expect(events.map((e) => e.eventType).toList()..sort(), [
+          'bookmark',
+          'safetyStopStart',
+        ]);
+        final tags = await (db.select(
+          db.diveTags,
+        )..where((t) => t.diveId.equals('whole'))).get();
+        expect(tags.map((t) => t.tagId), ['tag-1']);
+
+        // Undo brings the copy back with its own raw bytes.
+        await service.undo(outcome.snapshot);
+        expect((await db.select(db.dives).get()).map((d) => d.id).toSet(), {
+          'whole',
+          'half',
+        });
+        final restored = await (db.select(
+          db.diveDataSources,
+        )..where((r) => r.diveId.equals('half'))).get();
+        expect(restored.single.rawData, [9, 9, 9]);
+      });
+
+      test(
+        'is still refused when its depths differ from the target\'s',
+        () async {
+          await seedSplitDive();
+          // Same computer, same place in time, but not the same samples.
+          await db.customStatement(
+            'DELETE FROM dive_profile_series '
+            "WHERE dive_id = 'half'",
+          );
+          await profileSeries.insertSeries(
+            diveId: 'half',
+            computerId: 'comp-x',
+            isPrimary: true,
+            samples: [
+              for (final p in secondHalf)
+                codec.ProfileSample(
+                  timestamp: p.timestamp,
+                  depth: p.depth == 0 ? 0 : p.depth + 4,
+                ),
+            ],
+            now: 1000,
+          );
+
+          await expectLater(
+            () => service.apply(
+              targetDiveId: 'whole',
+              secondaryDiveIds: ['half'],
+            ),
+            throwsA(
+              isA<ArgumentError>().having(
+                (e) => e.message.toString(),
+                'message',
+                contains('sameComputer'),
+              ),
+            ),
+          );
+          expect((await db.select(db.dives).get()).length, 2);
+        },
       );
     });
 

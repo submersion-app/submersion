@@ -2571,6 +2571,7 @@
   "diveLog_consolidate_error_generic": "无法合并这些潜水。未做任何更改。",
   "diveLog_consolidate_error_notOverlapping": "这些潜水在时间上不重叠，因此无法合并为同一次潜水。",
   "diveLog_consolidate_error_sameComputer": "这些潜水来自同一台潜水电脑，无法以这种方式合并。",
+  "diveLog_combine_duplicateHint": "其中一次潜水已包含在另一次潜水中,由同一台潜水电脑记录。其原始数据将作为另一次潜水的数据源保留,不会重复复制。",
   "diveLog_consolidate_selectPrimary": "主潜水电脑",
   "diveLog_consolidate_snackbar": "潜水已作为附加电脑合并。",
   "diveLog_consolidate_undoError": "无法撤消合并。",

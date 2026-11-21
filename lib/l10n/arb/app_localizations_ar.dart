@@ -7697,6 +7697,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'هاتان الغوصتان من نفس كمبيوتر الغوص ولا يمكن دمجهما بهذه الطريقة.';
 
   @override
+  String get diveLog_combine_duplicateHint =>
+      'إحدى هاتين الغطستين مضمّنة بالفعل في الأخرى، وقد سجّلها حاسوب الغوص نفسه. تُحفظ بياناتها الخام كمصدر للغطسة الأخرى، دون نسخ أي شيء مرتين.';
+
+  @override
   String get diveLog_consolidate_noProfileFallback =>
       'أحد السجلات لا يحتوي على ملف عمق للمطابقة، لذا تتم محاذاة بدايته مع بداية الأساسي.';
 

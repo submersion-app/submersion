@@ -7175,6 +7175,10 @@ class AppLocalizationsZh extends AppLocalizations {
       '这些潜水来自同一台潜水电脑，无法以这种方式合并。';
 
   @override
+  String get diveLog_combine_duplicateHint =>
+      '其中一次潜水已包含在另一次潜水中,由同一台潜水电脑记录。其原始数据将作为另一次潜水的数据源保留,不会重复复制。';
+
+  @override
   String get diveLog_consolidate_noProfileFallback =>
       '有一条记录没有可供匹配的深度剖面，因此将其开始时间与主电脑对齐。';
 

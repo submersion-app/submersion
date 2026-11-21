@@ -7569,6 +7569,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Esses mergulhos são do mesmo computador de mergulho e não podem ser mesclados dessa forma.';
 
   @override
+  String get diveLog_combine_duplicateHint =>
+      'Um destes mergulhos já está contido no outro, registado pelo mesmo computador de mergulho. Os seus dados brutos são mantidos como fonte do outro mergulho, sem copiar nada duas vezes.';
+
+  @override
   String get diveLog_consolidate_noProfileFallback =>
       'Um registro não tem perfil de profundidade para comparar, então o início dele é alinhado com o do principal.';
 

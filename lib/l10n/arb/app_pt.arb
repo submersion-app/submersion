@@ -2487,6 +2487,7 @@
   "diveLog_consolidate_error_generic": "Não foi possível mesclar os mergulhos. Nada foi alterado.",
   "diveLog_consolidate_error_notOverlapping": "Esses mergulhos não se sobrepõem no tempo, portanto não podem ser mesclados como o mesmo mergulho.",
   "diveLog_consolidate_error_sameComputer": "Esses mergulhos são do mesmo computador de mergulho e não podem ser mesclados dessa forma.",
+  "diveLog_combine_duplicateHint": "Um destes mergulhos já está contido no outro, registado pelo mesmo computador de mergulho. Os seus dados brutos são mantidos como fonte do outro mergulho, sem copiar nada duas vezes.",
   "diveLog_consolidate_selectPrimary": "Computador de mergulho principal",
   "diveLog_consolidate_snackbar": "Mergulho mesclado como computador adicional.",
   "diveLog_consolidate_undoError": "Não foi possível desfazer a mesclagem.",

@@ -526,6 +526,62 @@ void main() {
         expect(find.text('Keep as one dive with both computers'), findsNothing);
       },
     );
+
+    testWidgets(
+      'a same-computer copy of a stretch of the other dive can be combined and '
+      'says its raw data is kept',
+      (tester) async {
+        final whole = _reef();
+        // The second half of the same dive, re-downloaded from the same
+        // computer as its own entry: same samples, clock restarted at 0.
+        final secondHalf = [
+          for (final p in whole)
+            if (p.timestamp >= 1300)
+              domain.DiveProfilePoint(
+                timestamp: p.timestamp - 1300,
+                depth: p.depth,
+              ),
+        ];
+        await pumpCombineDialog(
+          tester,
+          dives: [
+            diveAt(
+              'a',
+              DateTime.utc(2026, 7, 1, 9),
+              runtimeMin: 48,
+              diveComputerSerial: 'same-serial',
+              profile: whole,
+            ),
+            diveAt(
+              'b',
+              DateTime.utc(2026, 7, 1, 9, 21, 40),
+              runtimeMin: 26,
+              diveComputerSerial: 'same-serial',
+              profile: secondHalf,
+            ),
+          ],
+        );
+
+        expect(
+          find.textContaining('already contained in the other'),
+          findsOneWidget,
+        );
+        expect(
+          find.text('Keep as one dive with both computers'),
+          findsOneWidget,
+        );
+        expect(find.textContaining("can't be merged this way"), findsNothing);
+      },
+    );
+
+    testWidgets('two different computers show no copy hint', (tester) async {
+      await pumpCombineDialog(tester, dives: consolidatableDives());
+
+      expect(
+        find.textContaining('already contained in the other'),
+        findsNothing,
+      );
+    });
   });
 
   group('opened for a duplicate finding (consolidateOnly)', () {

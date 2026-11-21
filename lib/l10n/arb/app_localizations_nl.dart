@@ -7517,6 +7517,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Deze duiken zijn afkomstig van dezelfde duikcomputer en kunnen op deze manier niet worden samengevoegd.';
 
   @override
+  String get diveLog_combine_duplicateHint =>
+      'Een van deze duiken zit al in de andere, opgenomen door dezelfde duikcomputer. De ruwe gegevens blijven bewaard als bron van de andere duik, er wordt niets dubbel gekopieerd.';
+
+  @override
   String get diveLog_consolidate_noProfileFallback =>
       'Een registratie heeft geen diepteprofiel om te vergelijken, dus het begin wordt uitgelijnd met dat van de primaire computer.';
 

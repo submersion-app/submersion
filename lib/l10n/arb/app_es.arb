@@ -2487,6 +2487,7 @@
   "diveLog_consolidate_error_generic": "No se pudieron fusionar las inmersiones. No se realizó ningún cambio.",
   "diveLog_consolidate_error_notOverlapping": "Estas inmersiones no se superponen en el tiempo, por lo que no se pueden fusionar como la misma inmersión.",
   "diveLog_consolidate_error_sameComputer": "Estas inmersiones son del mismo ordenador de buceo y no se pueden fusionar de esta manera.",
+  "diveLog_combine_duplicateHint": "Una de estas inmersiones ya está contenida en la otra, registrada por el mismo ordenador de buceo. Sus datos en bruto se conservan como fuente de la otra inmersión, sin copiar nada dos veces.",
   "diveLog_consolidate_selectPrimary": "Ordenador de buceo principal",
   "diveLog_consolidate_snackbar": "Inmersión fusionada como ordenador adicional.",
   "diveLog_consolidate_undoError": "No se pudo deshacer la fusión.",

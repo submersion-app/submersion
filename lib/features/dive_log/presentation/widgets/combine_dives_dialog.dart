@@ -559,6 +559,15 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
                     const SizedBox(height: 16),
                     _modeSelector(),
                   ],
+                  if (ready.duplicateIds.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      context.l10n.diveLog_combine_duplicateHint,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
                   if (ready.realignedIds.isNotEmpty) ...[
                     const SizedBox(height: 16),
                     ConsolidationAlignmentControls(

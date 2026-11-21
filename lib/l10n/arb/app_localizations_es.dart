@@ -7568,6 +7568,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Estas inmersiones son del mismo ordenador de buceo y no se pueden fusionar de esta manera.';
 
   @override
+  String get diveLog_combine_duplicateHint =>
+      'Una de estas inmersiones ya está contenida en la otra, registrada por el mismo ordenador de buceo. Sus datos en bruto se conservan como fuente de la otra inmersión, sin copiar nada dos veces.';
+
+  @override
   String get diveLog_consolidate_noProfileFallback =>
       'Un registro no tiene perfil de profundidad para comparar, así que su inicio se alinea con el del principal.';
 
