@@ -9,6 +9,8 @@ import 'package:photo_view/photo_view_gallery.dart';
 import 'package:submersion/features/media/presentation/widgets/video_controls_bar.dart';
 import 'package:video_player/video_player.dart';
 
+import 'package:submersion/features/species_id/presentation/widgets/video_analysed_stretches.dart';
+
 import 'video_controls_bar_test_harness.dart';
 
 void main() {
@@ -579,5 +581,32 @@ void main() {
     expect(controller.value.position, const Duration(seconds: 20));
     await finishBar(tester, controller);
     semantics.dispose();
+  });
+
+  testWidgets('the analysed stretches sit under the played part (issue '
+      '#4825)', (tester) async {
+    useBarPlatform();
+    final controller = await readyController();
+    await tester.pumpWidget(
+      barApp(VideoControlsBar(controller: controller, mediaId: 'm1')),
+    );
+    await tester.pump();
+    final stack = tester.widget<Stack>(
+      find
+          .ancestor(
+            of: find.byType(VideoAnalysedStretches),
+            matching: find.byType(Stack),
+          )
+          .first,
+    );
+    final stretchesAt = stack.children.indexWhere(
+      (c) => c is VideoAnalysedStretches,
+    );
+    final playedAt = stack.children.indexWhere(
+      (c) => c is FractionallySizedBox,
+    );
+    expect(stretchesAt, greaterThan(0));
+    expect(stretchesAt, lessThan(playedAt));
+    await finishBar(tester, controller);
   });
 }

@@ -8,6 +8,7 @@ import 'package:submersion/features/media/presentation/helpers/elapsed_time_form
 import 'package:submersion/features/media/presentation/helpers/playhead_glide.dart';
 import 'package:submersion/features/media/presentation/widgets/people_tags/video_tag_marks.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/species_id/presentation/widgets/video_analysed_stretches.dart';
 
 /// Video playback controls: elapsed time, a scrub bar, and total time.
 ///
@@ -405,6 +406,12 @@ class _VideoControlsBarState extends State<VideoControlsBar>
                                         ),
                                         borderRadius: BorderRadius.circular(2),
                                       ),
+                                    ),
+                                    // Analysed for marine life (#4825)
+                                    VideoAnalysedStretches(
+                                      mediaId: widget.mediaId,
+                                      duration: duration,
+                                      width: width,
                                     ),
                                     // Progress track
                                     FractionallySizedBox(
