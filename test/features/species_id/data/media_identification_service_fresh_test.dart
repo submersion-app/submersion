@@ -16,6 +16,7 @@ import 'package:submersion/features/species_id/data/services/identification_crop
 import 'package:submersion/features/species_id/data/services/media_identification_service.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/video_detections.dart';
+import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 
 import '../../../helpers/temp_dir.dart';
 import 'fake_vision_engine.dart';
@@ -227,6 +228,17 @@ void main() {
       await service.request(photo('m1'), fresh: true);
       final still = (await identifications.forMedia('m1')).single;
       expect(still.decision, IdentificationDecision.rejected);
+    });
+
+    test('a photo whose analysis fails keeps its dismissals', () async {
+      await service.request(photo('m1'));
+      final first = (await identifications.forMedia('m1')).single;
+      await service.reject('m1', [first.id]);
+      engine.failure = const VisionEngineException('analysis_failed');
+      await service.request(photo('m1'), fresh: true);
+      final still = (await identifications.forMedia('m1')).single;
+      expect(still.decision, IdentificationDecision.rejected);
+      expect(still.reopened, isFalse);
     });
 
     test('asked for in a logbook since closed writes nothing', () async {

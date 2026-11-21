@@ -59,6 +59,14 @@ void main() {
     expect(m.found, 2);
   });
 
+  test('part analysed with nothing found says so, not that it was never '
+      'analysed', () {
+    final m = model(MediaAnalysisState.partial);
+    expect(m.line, LabelsStatusLine.found);
+    expect(m.found, 0);
+    expect(m.action, AnalyseAction.analyse);
+  });
+
   test('analysed says how many, nothing included', () {
     expect(model(MediaAnalysisState.analysed).line, LabelsStatusLine.found);
     expect(model(MediaAnalysisState.analysed).found, 0);

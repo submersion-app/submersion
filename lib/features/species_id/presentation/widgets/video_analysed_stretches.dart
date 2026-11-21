@@ -13,25 +13,19 @@ class VideoAnalysedStretches extends ConsumerWidget {
   const VideoAnalysedStretches({
     super.key,
     required this.mediaId,
-    required this.duration,
     required this.width,
   });
 
   final String mediaId;
-
-  /// The video's length as the player has it, for a scan that has none.
-  final Duration duration;
   final double width;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (!marineLifeIdEnabled) return const SizedBox.shrink();
     final stretches = ref.watch(videoScanStretchesProvider(mediaId)).value;
+    // Null too for a scan with no length, so there is always one here.
     if (stretches == null) return const SizedBox.shrink();
-    final total = stretches.durationMs > 0
-        ? stretches.durationMs
-        : duration.inMilliseconds;
-    if (total <= 0) return const SizedBox.shrink();
+    final total = stretches.durationMs;
     double at(int ms) => width * (ms / total).clamp(0.0, 1.0);
     final colour = Theme.of(context).colorScheme.tertiary;
     return IgnorePointer(

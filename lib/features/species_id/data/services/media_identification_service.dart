@@ -595,11 +595,10 @@ class MediaIdentificationService {
       job.outcome = RunItemOutcome.unreadable;
       return;
     }
-    // Dismissals come back only for a photo that is looked at again.
-    if (job.fresh) {
-      final reopened = await _reopen(job, stored);
-      if (reopened == null) return;
-      stored = reopened;
+    // Another logbook opened while the photo was read: not worth analysing.
+    if (_databaseGeneration() != generation) {
+      job.outcome = RunItemOutcome.skipped;
+      return;
     }
     final VisionAnalysis analysis;
     try {
@@ -648,6 +647,13 @@ class MediaIdentificationService {
           pack.pack.manifest.naming,
         ),
       );
+    }
+    // Dismissals come back only for a photo that was looked at again: an
+    // analysis or naming that failed leaves them as they were.
+    if (job.fresh) {
+      final reopened = await _reopen(job, stored);
+      if (reopened == null) return;
+      stored = reopened;
     }
     final carried = carryDecisions(previous: stored, fresh: fresh);
     final manifest = pack.pack.manifest;

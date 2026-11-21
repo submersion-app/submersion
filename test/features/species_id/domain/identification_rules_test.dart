@@ -7,84 +7,14 @@ import 'package:submersion/features/species_id/domain/entities/species_pack_mani
 import 'package:submersion/features/species_id/domain/services/species_namer.dart';
 import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
 
-final _now = DateTime.utc(2026, 11, 17, 12);
-final _earlier = DateTime.utc(2026, 11, 1);
-
-const _parrotfish = PackCandidate(
-  gbifKey: 1,
-  scientificName: 'Scarus vetula',
-  commonName: 'Queen Parrotfish',
-  category: SpeciesCategory.fish,
-  catalogId: 'sp_queen_parrotfish',
-);
-const _chromis = PackCandidate(
-  gbifKey: 2,
-  scientificName: 'Chromis multilineata',
-  commonName: 'Brown Chromis',
-  category: SpeciesCategory.fish,
-);
-const _tang = PackCandidate(
-  gbifKey: 3,
-  scientificName: 'Acanthurus coeruleus',
-  commonName: 'Blue Tang',
-  category: SpeciesCategory.fish,
-  catalogId: 'sp_blue_tang',
-);
-
-MediaIdentification _id(
-  String id, {
-  List<(PackCandidate, double)> candidates = const [(_parrotfish, 0.9)],
-  bool suggestable = true,
-  IdentificationDecision decision = IdentificationDecision.undecided,
-  String? decidedSpeciesId,
-  IdentificationBox box = const IdentificationBox(
-    x: 0.1,
-    y: 0.1,
-    width: 0.2,
-    height: 0.2,
-  ),
-}) => MediaIdentification(
-  id: id,
-  mediaId: 'm1',
-  box: box,
-  boxPixelWidth: 200,
-  boxPixelHeight: 150,
-  detectorScore: 0.8,
-  openScore: 0.5,
-  candidates: [
-    for (final (c, s) in candidates) NamedCandidate(candidate: c, score: s),
-  ],
-  locationLimited: true,
-  suggestable: suggestable,
-  decision: decision,
-  decidedSpeciesId: decidedSpeciesId,
-  decidedAt: decision == IdentificationDecision.undecided ? null : _earlier,
-  createdAt: _earlier,
-);
-
-MediaIdentificationRun _run({
-  String pack = '2026.11.1',
-  String detector = 'det-a',
-  String classifier = 'clf-a',
-  int? cell = 1462,
-}) => MediaIdentificationRun(
-  mediaId: 'm1',
-  packVersion: pack,
-  detectorId: detector,
-  classifierId: classifier,
-  locationCell: cell,
-  analysedAt: _earlier,
-  imageWidth: 4000,
-  imageHeight: 3000,
-  detectionCount: 1,
-);
+import 'identification_rules_fixtures.dart';
 
 void main() {
   group('candidateMatches', () {
     test('by catalogue id', () {
       expect(
         candidateMatches(
-          _parrotfish,
+          parrotfish,
           const TaggedSpecies(speciesId: 'sp_queen_parrotfish'),
         ),
         isTrue,
@@ -94,7 +24,7 @@ void main() {
     test('by scientific name, ignoring case and spaces', () {
       expect(
         candidateMatches(
-          _chromis,
+          chromis,
           const TaggedSpecies(
             speciesId: 'uuid-1',
             scientificName: '  chromis MULTILINEATA ',
@@ -108,7 +38,7 @@ void main() {
         'scientific name', () {
       expect(
         candidateMatches(
-          _parrotfish,
+          parrotfish,
           const TaggedSpecies(
             speciesId: 'uuid-2',
             scientificName: 'Scarus vetula',
@@ -121,7 +51,7 @@ void main() {
     test('nothing in common is no match', () {
       expect(
         candidateMatches(
-          _tang,
+          tang,
           const TaggedSpecies(speciesId: 'uuid-3', scientificName: 'X y'),
         ),
         isFalse,
@@ -133,20 +63,20 @@ void main() {
     test('an undecided identification becomes accepted when its species is '
         'tagged', () {
       final changed = reconcileDecisions(
-        [_id('a')],
+        [ruleId('a')],
         [const TaggedSpecies(speciesId: 'sp_queen_parrotfish')],
-        now: _now,
+        now: ruleNow,
       );
       expect(changed.single.id, 'a');
       expect(changed.single.decision, IdentificationDecision.accepted);
       expect(changed.single.decidedSpeciesId, 'sp_queen_parrotfish');
-      expect(changed.single.decidedAt, _now);
+      expect(changed.single.decidedAt, ruleNow);
     });
 
     test('a lower-ranked candidate matching still accepts', () {
       final changed = reconcileDecisions(
         [
-          _id('a', candidates: [(_parrotfish, 0.6), (_chromis, 0.3)]),
+          ruleId('a', candidates: [(parrotfish, 0.6), (chromis, 0.3)]),
         ],
         [
           const TaggedSpecies(
@@ -154,7 +84,7 @@ void main() {
             scientificName: 'Chromis multilineata',
           ),
         ],
-        now: _now,
+        now: ruleNow,
       );
       expect(changed.single.decision, IdentificationDecision.accepted);
       expect(changed.single.decidedSpeciesId, 'uuid-1');
@@ -164,11 +94,11 @@ void main() {
         'it lower', () {
       final changed = reconcileDecisions(
         [
-          _id('a', candidates: [(_parrotfish, 0.8), (_chromis, 0.1)]),
-          _id('b', candidates: [(_chromis, 0.7), (_parrotfish, 0.2)]),
+          ruleId('a', candidates: [(parrotfish, 0.8), (chromis, 0.1)]),
+          ruleId('b', candidates: [(chromis, 0.7), (parrotfish, 0.2)]),
         ],
         [const TaggedSpecies(speciesId: 'sp_queen_parrotfish')],
-        now: _now,
+        now: ruleNow,
       );
       expect(changed.map((i) => i.id), ['a']);
     });
@@ -176,11 +106,11 @@ void main() {
     test('every fish named first as the tagged species is accepted', () {
       final changed = reconcileDecisions(
         [
-          _id('a', candidates: [(_parrotfish, 0.8)]),
-          _id('b', candidates: [(_parrotfish, 0.6)]),
+          ruleId('a', candidates: [(parrotfish, 0.8)]),
+          ruleId('b', candidates: [(parrotfish, 0.6)]),
         ],
         [const TaggedSpecies(speciesId: 'sp_queen_parrotfish')],
-        now: _now,
+        now: ruleNow,
       );
       expect(changed.map((i) => i.id), unorderedEquals(['a', 'b']));
     });
@@ -189,11 +119,11 @@ void main() {
         'highest', () {
       final changed = reconcileDecisions(
         [
-          _id(
+          ruleId(
             'a',
-            candidates: [(_parrotfish, 0.6), (_tang, 0.1), (_chromis, 0.05)],
+            candidates: [(parrotfish, 0.6), (tang, 0.1), (chromis, 0.05)],
           ),
-          _id('b', candidates: [(_parrotfish, 0.5), (_chromis, 0.3)]),
+          ruleId('b', candidates: [(parrotfish, 0.5), (chromis, 0.3)]),
         ],
         [
           const TaggedSpecies(
@@ -201,7 +131,7 @@ void main() {
             scientificName: 'Chromis multilineata',
           ),
         ],
-        now: _now,
+        now: ruleNow,
       );
       expect(changed.map((i) => i.id), ['b']);
       expect(changed.single.decidedSpeciesId, 'uuid-1');
@@ -211,7 +141,7 @@ void main() {
         'lower match', () {
       final changed = reconcileDecisions(
         [
-          _id('a', candidates: [(_parrotfish, 0.6), (_chromis, 0.3)]),
+          ruleId('a', candidates: [(parrotfish, 0.6), (chromis, 0.3)]),
         ],
         [
           const TaggedSpecies(
@@ -220,7 +150,7 @@ void main() {
           ),
           const TaggedSpecies(speciesId: 'sp_queen_parrotfish'),
         ],
-        now: _now,
+        now: ruleNow,
       );
       expect(changed.single.decidedSpeciesId, 'sp_queen_parrotfish');
     });
@@ -229,24 +159,24 @@ void main() {
         'rejected', () {
       final changed = reconcileDecisions(
         [
-          _id(
+          ruleId(
             'a',
             decision: IdentificationDecision.accepted,
             decidedSpeciesId: 'sp_queen_parrotfish',
           ),
         ],
         const [],
-        now: _now,
+        now: ruleNow,
       );
       expect(changed.single.decision, IdentificationDecision.rejected);
-      expect(changed.single.decidedAt, _now);
+      expect(changed.single.decidedAt, ruleNow);
     });
 
     test('a rejected identification never changes', () {
       final changed = reconcileDecisions(
-        [_id('a', decision: IdentificationDecision.rejected)],
+        [ruleId('a', decision: IdentificationDecision.rejected)],
         [const TaggedSpecies(speciesId: 'sp_queen_parrotfish')],
-        now: _now,
+        now: ruleNow,
       );
       expect(changed, isEmpty);
     });
@@ -254,15 +184,15 @@ void main() {
     test('nothing that already agrees with the tags is returned', () {
       final changed = reconcileDecisions(
         [
-          _id('a'),
-          _id(
+          ruleId('a'),
+          ruleId(
             'b',
             decision: IdentificationDecision.accepted,
             decidedSpeciesId: 'sp_blue_tang',
           ),
         ],
         [const TaggedSpecies(speciesId: 'sp_blue_tang')],
-        now: _now,
+        now: ruleNow,
       );
       expect(changed, isEmpty);
     });
@@ -271,10 +201,10 @@ void main() {
   group('reconcileDecisions on a video (issue #4675)', () {
     MediaIdentification fish(
       String id, {
-      List<(PackCandidate, double)> candidates = const [(_parrotfish, 0.9)],
+      List<(PackCandidate, double)> candidates = const [(parrotfish, 0.9)],
       bool suggestable = true,
       String? claim,
-    }) => _id(id, candidates: candidates, suggestable: suggestable).copyWith(
+    }) => ruleId(id, candidates: candidates, suggestable: suggestable).copyWith(
       startMs: () => 0,
       endMs: () => 2000,
       claimedSpeciesId: () => claim,
@@ -283,14 +213,10 @@ void main() {
     test('a claim accepts its track when its species is tagged', () {
       final changed = reconcileDecisions(
         [
-          fish(
-            'a',
-            candidates: [(_chromis, 0.9)],
-            claim: 'sp_queen_parrotfish',
-          ),
+          fish('a', candidates: [(chromis, 0.9)], claim: 'sp_queen_parrotfish'),
         ],
         [const TaggedSpecies(speciesId: 'sp_queen_parrotfish')],
-        now: _now,
+        now: ruleNow,
       );
       expect(changed.single.decision, IdentificationDecision.accepted);
       expect(changed.single.decidedSpeciesId, 'sp_queen_parrotfish');
@@ -305,14 +231,14 @@ void main() {
             scientificName: 'Gramma loreto',
           ),
         ],
-        now: _now,
+        now: ruleNow,
       );
       expect(changed.single.decidedSpeciesId, 'own-7');
     });
 
     test('a claim with no tag stays undecided', () {
       expect(
-        reconcileDecisions([fish('a', claim: 'own-7')], const [], now: _now),
+        reconcileDecisions([fish('a', claim: 'own-7')], const [], now: ruleNow),
         isEmpty,
       );
     });
@@ -320,14 +246,14 @@ void main() {
     test('a claimed track takes its claim, not the name rules', () {
       final changed = reconcileDecisions(
         [
-          fish('a', candidates: [(_parrotfish, 0.9)], claim: 'sp_blue_tang'),
-          fish('b', candidates: [(_parrotfish, 0.8)]),
+          fish('a', candidates: [(parrotfish, 0.9)], claim: 'sp_blue_tang'),
+          fish('b', candidates: [(parrotfish, 0.8)]),
         ],
         [
           const TaggedSpecies(speciesId: 'sp_queen_parrotfish'),
           const TaggedSpecies(speciesId: 'sp_blue_tang'),
         ],
-        now: _now,
+        now: ruleNow,
       );
       final byId = {for (final c in changed) c.id: c.decidedSpeciesId};
       expect(byId['a'], 'sp_blue_tang');
@@ -338,10 +264,10 @@ void main() {
       final changed = reconcileDecisions(
         [
           fish('dot', suggestable: false, claim: 'sp_blue_tang'),
-          fish('other', candidates: [(_parrotfish, 0.7), (_tang, 0.2)]),
+          fish('other', candidates: [(parrotfish, 0.7), (tang, 0.2)]),
         ],
         [const TaggedSpecies(speciesId: 'sp_blue_tang')],
-        now: _now,
+        now: ruleNow,
       );
       expect(changed.map((i) => i.id), ['dot']);
     });
@@ -351,7 +277,7 @@ void main() {
         reconcileDecisions(
           [fish('a', suggestable: false)],
           [const TaggedSpecies(speciesId: 'sp_queen_parrotfish')],
-          now: _now,
+          now: ruleNow,
         ),
         isEmpty,
       );
@@ -362,10 +288,10 @@ void main() {
         [
           fish(
             'weak',
-            candidates: [(_tang, 0.5), (_chromis, 0.4)],
+            candidates: [(tang, 0.5), (chromis, 0.4)],
             suggestable: false,
           ),
-          fish('named', candidates: [(_tang, 0.8), (_chromis, 0.1)]),
+          fish('named', candidates: [(tang, 0.8), (chromis, 0.1)]),
         ],
         [
           const TaggedSpecies(
@@ -373,16 +299,16 @@ void main() {
             scientificName: 'Chromis multilineata',
           ),
         ],
-        now: _now,
+        now: ruleNow,
       );
       expect(changed.map((i) => i.id), ['named']);
     });
 
     test('photos still accept a best name that is not suggestable', () {
       final changed = reconcileDecisions(
-        [_id('a', suggestable: false)],
+        [ruleId('a', suggestable: false)],
         [const TaggedSpecies(speciesId: 'sp_queen_parrotfish')],
-        now: _now,
+        now: ruleNow,
       );
       expect(changed.single.decision, IdentificationDecision.accepted);
     });
@@ -390,11 +316,11 @@ void main() {
     test('decisionsAsShown applies held tags in memory', () {
       final stored = [
         fish('a'),
-        fish('b', candidates: [(_chromis, 0.9)]),
+        fish('b', candidates: [(chromis, 0.9)]),
       ];
       final shown = decisionsAsShown(stored, [
         const TaggedSpecies(speciesId: 'sp_queen_parrotfish'),
-      ], now: _now);
+      ], now: ruleNow);
       expect(shown.map((i) => i.id), ['a', 'b']);
       expect(shown[0].decision, IdentificationDecision.accepted);
       expect(shown[1].decision, IdentificationDecision.undecided);
@@ -405,37 +331,37 @@ void main() {
   group('groupSuggestions', () {
     test('merges detections of one species, keeping the best crop', () {
       final suggestions = groupSuggestions([
-        _id('a', candidates: [(_parrotfish, 0.7)]),
-        _id('b', candidates: [(_parrotfish, 0.9), (_tang, 0.05)]),
-        _id('c', candidates: [(_parrotfish, 0.8)]),
+        ruleId('a', candidates: [(parrotfish, 0.7)]),
+        ruleId('b', candidates: [(parrotfish, 0.9), (tang, 0.05)]),
+        ruleId('c', candidates: [(parrotfish, 0.8)]),
       ], const []);
 
       expect(suggestions, hasLength(1));
       final s = suggestions.single;
-      expect(s.top.candidate, _parrotfish);
+      expect(s.top.candidate, parrotfish);
       expect(s.score, 0.9);
       expect(s.count, 3);
       expect(s.cropIdentificationId, 'b');
       expect(s.identificationIds, unorderedEquals(['a', 'b', 'c']));
-      expect(s.alternatives.map((c) => c.candidate), [_parrotfish, _tang]);
+      expect(s.alternatives.map((c) => c.candidate), [parrotfish, tang]);
     });
 
     test('best score first', () {
       final suggestions = groupSuggestions([
-        _id('a', candidates: [(_chromis, 0.6)]),
-        _id('b', candidates: [(_tang, 0.95)]),
+        ruleId('a', candidates: [(chromis, 0.6)]),
+        ruleId('b', candidates: [(tang, 0.95)]),
       ], const []);
-      expect(suggestions.map((s) => s.top.candidate), [_tang, _chromis]);
+      expect(suggestions.map((s) => s.top.candidate), [tang, chromis]);
     });
 
     test('at most three alternatives', () {
       final suggestions = groupSuggestions([
-        _id(
+        ruleId(
           'a',
           candidates: [
-            (_parrotfish, 0.7),
-            (_tang, 0.1),
-            (_chromis, 0.1),
+            (parrotfish, 0.7),
+            (tang, 0.1),
+            (chromis, 0.1),
             (
               const PackCandidate(
                 gbifKey: 9,
@@ -454,7 +380,7 @@ void main() {
     test('a tagged species is not suggested', () {
       expect(
         groupSuggestions(
-          [_id('a')],
+          [ruleId('a')],
           [const TaggedSpecies(speciesId: 'sp_queen_parrotfish')],
         ),
         isEmpty,
@@ -463,7 +389,7 @@ void main() {
 
     test('a detection that is not suggestable is not suggested', () {
       expect(
-        groupSuggestions([_id('a', suggestable: false)], const []),
+        groupSuggestions([ruleId('a', suggestable: false)], const []),
         isEmpty,
       );
     });
@@ -471,7 +397,7 @@ void main() {
     test('a decided detection is not suggested', () {
       expect(
         groupSuggestions([
-          _id('a', decision: IdentificationDecision.rejected),
+          ruleId('a', decision: IdentificationDecision.rejected),
         ], const []),
         isEmpty,
       );
@@ -502,270 +428,39 @@ void main() {
     });
 
     test('nothing changed does nothing', () {
-      expect(decide(run: _run()), RefreshAction.none);
+      expect(decide(run: ruleRun()), RefreshAction.none);
     });
 
     test('a missing crop analyses', () {
-      expect(decide(run: _run(), crops: false), RefreshAction.analyse);
+      expect(decide(run: ruleRun(), crops: false), RefreshAction.analyse);
     });
 
     test('a different detector or classifier analyses', () {
-      expect(decide(run: _run(), detector: 'det-b'), RefreshAction.analyse);
-      expect(decide(run: _run(), classifier: 'clf-b'), RefreshAction.analyse);
+      expect(decide(run: ruleRun(), detector: 'det-b'), RefreshAction.analyse);
+      expect(
+        decide(run: ruleRun(), classifier: 'clf-b'),
+        RefreshAction.analyse,
+      );
     });
 
     test('a new pack version with the same models renames', () {
-      expect(decide(run: _run(), pack: '2026.12.1'), RefreshAction.rename);
+      expect(decide(run: ruleRun(), pack: '2026.12.1'), RefreshAction.rename);
     });
 
     test('a different cell renames, including gaining or losing one', () {
-      expect(decide(run: _run(), cell: 1463), RefreshAction.rename);
-      expect(decide(run: _run(cell: null), cell: 1462), RefreshAction.rename);
-      expect(decide(run: _run(), cell: null), RefreshAction.rename);
+      expect(decide(run: ruleRun(), cell: 1463), RefreshAction.rename);
+      expect(
+        decide(run: ruleRun(cell: null), cell: 1462),
+        RefreshAction.rename,
+      );
+      expect(decide(run: ruleRun(), cell: null), RefreshAction.rename);
     });
 
     test('renaming without embeddings analyses instead', () {
       expect(
-        decide(run: _run(), pack: '2026.12.1', embeddings: false),
+        decide(run: ruleRun(), pack: '2026.12.1', embeddings: false),
         RefreshAction.analyse,
       );
-    });
-  });
-
-  group('carryDecisions', () {
-    const overlapping = IdentificationBox(
-      x: 0.12,
-      y: 0.1,
-      width: 0.2,
-      height: 0.2,
-    );
-    const elsewhere = IdentificationBox(
-      x: 0.7,
-      y: 0.7,
-      width: 0.2,
-      height: 0.2,
-    );
-
-    test('a fresh detection over a rejected one of the same species carries '
-        'the rejection and replaces it', () {
-      final result = carryDecisions(
-        previous: [_id('old', decision: IdentificationDecision.rejected)],
-        fresh: [_id('new', box: overlapping)],
-      );
-      expect(result.insert.single.id, 'new');
-      expect(result.insert.single.decision, IdentificationDecision.rejected);
-      expect(result.insert.single.decidedAt, _earlier);
-      expect(result.deleteIds, ['old']);
-      expect(result.keep, isEmpty);
-    });
-
-    test('a fresh detection of another species over a rejected one stays '
-        'undecided', () {
-      final result = carryDecisions(
-        previous: [_id('old', decision: IdentificationDecision.rejected)],
-        fresh: [
-          _id('new', box: overlapping, candidates: [(_tang, 0.9)]),
-        ],
-      );
-      expect(result.insert.single.decision, IdentificationDecision.undecided);
-      expect(result.keep.single.id, 'old');
-      expect(result.deleteIds, isEmpty);
-    });
-
-    test('a decided row no fresh detection matches is kept', () {
-      final result = carryDecisions(
-        previous: [_id('old', decision: IdentificationDecision.accepted)],
-        fresh: [_id('new', box: elsewhere)],
-      );
-      expect(result.keep.single.id, 'old');
-      expect(result.insert.single.decision, IdentificationDecision.undecided);
-    });
-
-    test('old undecided rows are replaced', () {
-      final result = carryDecisions(
-        previous: [_id('old')],
-        fresh: [_id('new', box: overlapping)],
-      );
-      expect(result.deleteIds, ['old']);
-      expect(result.insert.single.id, 'new');
-      expect(result.insert.single.decision, IdentificationDecision.undecided);
-    });
-
-    test('one decided row is carried to one fresh detection only', () {
-      final result = carryDecisions(
-        previous: [_id('old', decision: IdentificationDecision.rejected)],
-        fresh: [
-          _id('n1', box: overlapping),
-          _id('n2', box: overlapping),
-        ],
-      );
-      expect(result.insert.map((i) => i.decision), [
-        IdentificationDecision.rejected,
-        IdentificationDecision.undecided,
-      ]);
-    });
-
-    test('a decided match keeps the name the diver gave it', () {
-      final result = carryDecisions(
-        previous: [
-          _id(
-            'old',
-            decision: IdentificationDecision.accepted,
-            decidedSpeciesId: 'sp_x',
-          ).copyWith(claimedSpeciesId: () => 'sp_x'),
-        ],
-        fresh: [_id('new', box: overlapping)],
-      );
-      expect(result.insert.single.decision, IdentificationDecision.accepted);
-      expect(result.insert.single.claimedSpeciesId, 'sp_x');
-    });
-
-    group('a reopened detection (issue #4825)', () {
-      final reopened = _id('old').copyWith(decidedAt: _earlier);
-
-      test('is carried to the fresh detection of the same animal', () {
-        final result = carryDecisions(
-          previous: [reopened],
-          fresh: [_id('new', box: overlapping)],
-        );
-        expect(result.insert.single.decision, IdentificationDecision.undecided);
-        expect(result.insert.single.decidedAt, _earlier);
-        expect(result.insert.single.reopened, isTrue);
-        expect(result.deleteIds, ['old']);
-        expect(result.keep, isEmpty);
-      });
-
-      test('is dropped when the fresh run does not find it again', () {
-        final result = carryDecisions(
-          previous: [reopened],
-          fresh: [_id('new', box: elsewhere)],
-        );
-        expect(result.deleteIds, ['old']);
-        expect(result.keep, isEmpty);
-        expect(result.insert.single.reopened, isFalse);
-      });
-
-      test('is not carried to an animal the app names differently', () {
-        final result = carryDecisions(
-          previous: [reopened],
-          fresh: [
-            _id('new', box: overlapping, candidates: [(_tang, 0.9)]),
-          ],
-        );
-        expect(result.insert.single.reopened, isFalse);
-        expect(result.deleteIds, ['old']);
-      });
-    });
-
-    group('a name the diver gave a detection, not yet tagged', () {
-      final claimed = _id('old').copyWith(claimedSpeciesId: () => 'sp_x');
-
-      test('is carried by overlap alone, whatever the app now calls it', () {
-        final result = carryDecisions(
-          previous: [claimed],
-          fresh: [
-            _id('new', box: overlapping, candidates: [(_tang, 0.9)]),
-          ],
-        );
-        expect(result.insert.single.id, 'new');
-        expect(result.insert.single.claimedSpeciesId, 'sp_x');
-        expect(result.deleteIds, ['old']);
-        expect(result.keep, isEmpty);
-      });
-
-      test('goes to the fresh detection that overlaps it most', () {
-        const closer = IdentificationBox(
-          x: 0.1,
-          y: 0.1,
-          width: 0.2,
-          height: 0.2,
-        );
-        final result = carryDecisions(
-          previous: [claimed],
-          fresh: [
-            _id('n1', box: overlapping),
-            _id('n2', box: closer),
-          ],
-        );
-        expect(result.insert.map((i) => i.claimedSpeciesId), [null, 'sp_x']);
-      });
-
-      test('is kept as it is when no fresh detection overlaps it', () {
-        final result = carryDecisions(
-          previous: [claimed],
-          fresh: [_id('new', box: elsewhere)],
-        );
-        expect(result.keep.single.id, 'old');
-        expect(result.keep.single.claimedSpeciesId, 'sp_x');
-        expect(result.deleteIds, isEmpty);
-        expect(result.insert.single.claimedSpeciesId, isNull);
-      });
-
-      test('on a reopened row is carried by overlap too, still reopened', () {
-        final result = carryDecisions(
-          previous: [claimed.copyWith(decidedAt: _earlier)],
-          fresh: [
-            _id('new', box: overlapping, candidates: [(_tang, 0.9)]),
-          ],
-        );
-        expect(result.insert.single.claimedSpeciesId, 'sp_x');
-        expect(result.insert.single.reopened, isTrue);
-        expect(result.deleteIds, ['old']);
-      });
-
-      test('never takes the fresh detection a decision was carried to', () {
-        final result = carryDecisions(
-          previous: [
-            _id('gone', decision: IdentificationDecision.rejected),
-            claimed,
-          ],
-          fresh: [_id('new', box: overlapping)],
-        );
-        expect(result.insert.single.decision, IdentificationDecision.rejected);
-        expect(result.insert.single.claimedSpeciesId, isNull);
-        expect(result.keep.single.id, 'old');
-      });
-    });
-  });
-
-  group('reopenDismissed (issue #4825)', () {
-    final later = DateTime.utc(2026, 11, 21);
-
-    test('turns a dismissal into an undecided row that remembers it', () {
-      final changed = reopenDismissed([
-        _id('a', decision: IdentificationDecision.rejected),
-        _id('b'),
-        _id('c', decision: IdentificationDecision.accepted),
-      ], now: later);
-      expect(changed.map((i) => i.id), ['a']);
-      expect(changed.single.decision, IdentificationDecision.undecided);
-      expect(changed.single.decidedAt, later);
-      expect(changed.single.reopened, isTrue);
-      expect(changed.single.saidByDiver, isTrue);
-    });
-
-    test('a reopened row names no species: it was dismissed, not tagged', () {
-      final changed = reopenDismissed([
-        _id(
-          'a',
-          decision: IdentificationDecision.rejected,
-          decidedSpeciesId: 'sp_x',
-        ),
-      ], now: later);
-      expect(changed.single.decidedSpeciesId, isNull);
-      expect(changed.single.reopened, isTrue);
-    });
-
-    test('an ordinary undecided row is neither reopened nor said', () {
-      expect(_id('b').reopened, isFalse);
-      expect(_id('b').saidByDiver, isFalse);
-    });
-
-    test('a reopened row is offered again as a suggestion', () {
-      final changed = reopenDismissed([
-        _id('a', decision: IdentificationDecision.rejected),
-      ], now: later);
-      expect(groupSuggestions(changed, const []), hasLength(1));
     });
   });
 

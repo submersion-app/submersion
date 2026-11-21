@@ -430,7 +430,6 @@ class _VideoControlsBarState extends State<VideoControlsBar>
                                     // Analysed for marine life (#4825)
                                     VideoAnalysedStretches(
                                       mediaId: widget.mediaId,
-                                      duration: duration,
                                       width: width,
                                     ),
                                     // Progress track

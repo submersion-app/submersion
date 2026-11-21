@@ -8,6 +8,7 @@ import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/presentation/widgets/media_viewer_toolbar.dart';
 import 'package:submersion/features/species_id/domain/entities/label_mode.dart';
 import 'package:submersion/features/species_id/domain/services/labels_menu_model.dart';
@@ -22,10 +23,12 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// analysed. Read while the toolbar builds, so it follows them.
 ({void Function(BuildContext anchor)? onPressed, bool on, ToolbarRing? ring})
 marineLifeLabelsAction(WidgetRef ref, MediaItem item, GeoPoint? location) {
+  // A Lightroom-linked video is only its poster here, never scanned.
   final applies =
       marineLifeIdEnabled &&
       (item.mediaType == MediaType.photo ||
           (item.mediaType == MediaType.video &&
+              item.sourceType != MediaSourceType.serviceConnector &&
               visionVideoRuns(defaultTargetPlatform)));
   final on = ref.watch(labelModeProvider) != LabelMode.off;
   if (!applies) return (onPressed: null, on: on, ring: null);
@@ -94,6 +97,11 @@ Future<void> showMarineLifeLabelsMenu(
     progress: ref.read(mediaIdentificationProgressProvider(item.id)).value,
   );
   final mode = ref.read(labelModeProvider);
+  // Held now: the toolbar (and the ref with it) can go while the menu is
+  // open, when the controls hide or the page moves on, and the pick must
+  // still count.
+  final modes = ref.read(labelModeProvider.notifier);
+  final service = ref.read(mediaIdentificationServiceProvider);
   CheckedPopupMenuItem<_Pick> modeItem(
     String key,
     _Pick pick,
@@ -141,8 +149,7 @@ Future<void> showMarineLifeLabelsMenu(
       ),
     ],
   );
-  if (picked == null || !anchor.mounted) return;
-  final modes = ref.read(labelModeProvider.notifier);
+  if (picked == null) return;
   switch (picked) {
     case _Pick.names:
       await modes.setMode(LabelMode.names);
@@ -152,14 +159,12 @@ Future<void> showMarineLifeLabelsMenu(
       await modes.setMode(LabelMode.off);
     case _Pick.analyse:
       unawaited(
-        ref
-            .read(mediaIdentificationServiceProvider)
-            .request(
-              item,
-              location: location,
-              byHand: true,
-              fresh: model.action == AnalyseAction.analyseAgain,
-            ),
+        service.request(
+          item,
+          location: location,
+          byHand: true,
+          fresh: model.action == AnalyseAction.analyseAgain,
+        ),
       );
   }
 }

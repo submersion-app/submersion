@@ -126,8 +126,12 @@ final mediaAnalysisStatusProvider = FutureProvider.autoDispose
             .where((mediaId) => mediaId == item.id),
       );
       final installed = await ref.watch(installedSpeciesPackProvider.future);
-      final (run, rows) = await repository.forMediaWithRun(item.id);
-      final found = rows
+      // Rows are only counted, so a video's track paths are not decoded.
+      final (runs, stored) = await repository.forMediaIdsWithRuns([
+        item.id,
+      ], withPaths: false);
+      final run = runs[item.id];
+      final found = (stored[item.id] ?? const <MediaIdentification>[])
           .where((i) => i.decision != IdentificationDecision.rejected)
           .length;
       if (installed == null) {

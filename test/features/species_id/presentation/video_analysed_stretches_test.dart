@@ -15,11 +15,7 @@ void main() {
     addTearDown(resetMarineLifeIdEnabled);
   });
 
-  Future<void> pump(
-    WidgetTester tester,
-    ScanStretches? stretches, {
-    Duration duration = const Duration(seconds: 25),
-  }) async {
+  Future<void> pump(WidgetTester tester, ScanStretches? stretches) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -27,17 +23,13 @@ void main() {
             'v1',
           ).overrideWith((ref) async => stretches),
         ],
-        child: MaterialApp(
+        child: const MaterialApp(
           home: Align(
             alignment: Alignment.topLeft,
             child: SizedBox(
               width: 250,
               height: 4,
-              child: VideoAnalysedStretches(
-                mediaId: 'v1',
-                duration: duration,
-                width: 250,
-              ),
+              child: VideoAnalysedStretches(mediaId: 'v1', width: 250),
             ),
           ),
         ),
@@ -61,16 +53,6 @@ void main() {
     expect(stretch(tester, 0).right, closeTo(100, 0.01));
     expect(stretch(tester, 15000).left, closeTo(150, 0.01));
     expect(stretch(tester, 15000).right, closeTo(200, 0.01));
-  });
-
-  testWidgets('uses the player\'s length when the scan has none', (
-    tester,
-  ) async {
-    await pump(tester, (
-      scanned: ScannedRanges.of([(startMs: 0, endMs: 5000)]),
-      durationMs: 0,
-    ), duration: const Duration(seconds: 10));
-    expect(stretch(tester, 0).right, closeTo(125, 0.01));
   });
 
   testWidgets('draws nothing once the scan is complete', (tester) async {

@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/species_id/domain/entities/label_mode.dart';
 import 'package:submersion/features/species_id/presentation/providers/label_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
@@ -18,10 +19,16 @@ import 'species_id_fakes.dart';
 void main() {
   late RecordingIdentificationService service;
 
+  /// Whether the button stays up: the viewer hides its controls, toolbar
+  /// and all, a few seconds into a playing video.
+  late ValueNotifier<bool> toolbarUp;
+
   setUp(() {
     marineLifeIdEnabled = true;
     addTearDown(resetMarineLifeIdEnabled);
     service = RecordingIdentificationService();
+    toolbarUp = ValueNotifier(true);
+    addTearDown(toolbarUp.dispose);
   });
 
   Future<void> open(
@@ -59,31 +66,38 @@ void main() {
             shown.id,
           ).overrideWith((ref) => Stream.value(progress)),
         ],
-        child: Consumer(
-          builder: (context, ref, _) {
-            // The viewer's toolbar keeps these read while it shows.
-            if (warm) {
-              ref.watch(
-                mediaAnalysisStatusProvider(AnalysisTarget(shown, null)),
-              );
-            }
-            ref
-              ..watch(mediaIdentificationBusyProvider(shown.id))
-              ..watch(mediaIdentificationProgressProvider(shown.id));
-            return Center(
-              child: Builder(
-                builder: (anchor) => TextButton(
-                  onPressed: () => showMarineLifeLabelsMenu(
-                    anchor,
-                    ref,
-                    item: shown,
-                    location: null,
-                  ),
-                  child: const Text('labels'),
-                ),
-              ),
-            );
-          },
+        child: ValueListenableBuilder<bool>(
+          valueListenable: toolbarUp,
+          builder: (context, up, _) => up
+              ? Consumer(
+                  builder: (context, ref, _) {
+                    // The viewer's toolbar keeps these read while it shows.
+                    if (warm) {
+                      ref.watch(
+                        mediaAnalysisStatusProvider(
+                          AnalysisTarget(shown, null),
+                        ),
+                      );
+                    }
+                    ref
+                      ..watch(mediaIdentificationBusyProvider(shown.id))
+                      ..watch(mediaIdentificationProgressProvider(shown.id));
+                    return Center(
+                      child: Builder(
+                        builder: (anchor) => TextButton(
+                          onPressed: () => showMarineLifeLabelsMenu(
+                            anchor,
+                            ref,
+                            item: shown,
+                            location: null,
+                          ),
+                          child: const Text('labels'),
+                        ),
+                      ),
+                    );
+                  },
+                )
+              : const SizedBox.shrink(),
         ),
       ),
     );
@@ -134,7 +148,7 @@ void main() {
       'from the start', (tester) async {
     await open(tester, state: MediaAnalysisState.partial, found: 0);
     expect(find.text('Analyse'), findsOneWidget);
-    expect(find.text('Not analysed yet'), findsOneWidget);
+    expect(find.text('Nothing found'), findsOneWidget);
     await tester.tap(entry('analyse'));
     await tester.pumpAndSettle();
     expect(service.byHand, [true]);
@@ -176,11 +190,110 @@ void main() {
     expect(find.text('3 found'), findsOneWidget);
   });
 
+  group('when the toolbar hides under the open menu', () {
+    testWidgets('a mode picked is still the one in force', (tester) async {
+      await open(tester);
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(ValueListenableBuilder<bool>).first),
+      );
+      toolbarUp.value = false;
+      await tester.pump();
+      await tester.tap(entry('all_life'));
+      await tester.pumpAndSettle();
+      expect(container.read(labelModeProvider), LabelMode.allLife);
+    });
+
+    testWidgets('Analyse again is still asked for', (tester) async {
+      await open(tester);
+      toolbarUp.value = false;
+      await tester.pump();
+      await tester.tap(entry('analyse'));
+      await tester.pumpAndSettle();
+      expect(service.requested, ['m1']);
+      expect(service.fresh, [true]);
+    });
+  });
+
   testWidgets('the status line cannot be picked', (tester) async {
     await open(tester);
     expect(
       tester.widget<PopupMenuItem<Object>>(entry('status')).enabled,
       isFalse,
     );
+  });
+
+  group('the toolbar action', () {
+    /// Whether the toolbar offers the labels menu on [item].
+    Future<bool> offered(WidgetTester tester, MediaItem item) async {
+      final overrides = await getBaseOverrides();
+      bool? result;
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            ...overrides,
+            mediaIdentificationServiceProvider.overrideWithValue(service),
+            mediaAnalysisStatusProvider(
+              AnalysisTarget(item, null),
+            ).overrideWith(
+              (ref) async => (state: MediaAnalysisState.analysed, found: 0),
+            ),
+            mediaIdentificationBusyProvider(
+              item.id,
+            ).overrideWith((ref) => Stream.value(false)),
+            mediaIdentificationProgressProvider(
+              item.id,
+            ).overrideWith((ref) => Stream.value(null)),
+          ],
+          child: Consumer(
+            builder: (context, ref, _) {
+              result =
+                  marineLifeLabelsAction(ref, item, null).onPressed != null;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return result!;
+    }
+
+    testWidgets('is offered on a photo', (tester) async {
+      expect(await offered(tester, testMediaItem(id: 'p1')), isTrue);
+    });
+
+    testWidgets('is offered on a video', (tester) async {
+      expect(
+        await offered(
+          tester,
+          testMediaItem(id: 'v1', mediaType: MediaType.video),
+        ),
+        isTrue,
+      );
+    });
+
+    testWidgets('is not offered on a Lightroom-linked video: only its '
+        'poster is on the device, so it can never be scanned', (tester) async {
+      expect(
+        await offered(
+          tester,
+          testMediaItem(
+            id: 'v1',
+            mediaType: MediaType.video,
+            sourceType: MediaSourceType.serviceConnector,
+          ),
+        ),
+        isFalse,
+      );
+    });
+
+    testWidgets('is offered on a Lightroom-linked photo', (tester) async {
+      expect(
+        await offered(
+          tester,
+          testMediaItem(id: 'p1', sourceType: MediaSourceType.serviceConnector),
+        ),
+        isTrue,
+      );
+    });
   });
 }

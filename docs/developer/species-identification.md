@@ -649,10 +649,15 @@ Issue #4825, spec
   on a part-scanned video) or, once the item is up to date, Analyse again
   (`request(fresh: true)`). The dive card's Check again is a fresh run
   (`DiveSpeciesRun.start(fresh: true)`, `requestFromRun(fresh: true)`).
-- **A fresh request** reopens the item's dismissals first
-  (`reopenDismissed`: undecided, `decidedAt` kept, so `reopened` is true),
-  then analyses the photo or scans the video from 0 whatever the refresh
-  rules say. A reopened row is carried through later analyses like a
+  A Lightroom-linked video gets no labels action: only its poster is on the
+  device. The menu's status line says what was found on any item looked
+  at, even in part ("Nothing found" included); "Not analysed yet" is only
+  for one never looked at.
+- **A fresh request** analyses the photo or scans the video from 0
+  whatever the refresh rules say, and reopens the item's dismissals
+  (`reopenDismissed`: undecided, `decidedAt` kept, so `reopened` is true):
+  a photo's once its new analysis is in hand, so one whose analysis fails
+  keeps them, and a video's once its file opens. A reopened row is carried through later analyses like a
   decision, and `identificationsToApply` never takes it; nothing is
   auto-applied after a fresh request at all. The fresh flag is consumed when
   the fresh start is stored, so a job put back in the queue resumes.

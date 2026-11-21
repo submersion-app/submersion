@@ -73,8 +73,9 @@ LabelsMenuModel labelsMenuModel({
   final line = switch (state) {
     MediaAnalysisState.noModel => LabelsStatusLine.noModel,
     MediaAnalysisState.notAnalysed => LabelsStatusLine.notAnalysed,
-    MediaAnalysisState.partial =>
-      found == 0 ? LabelsStatusLine.notAnalysed : LabelsStatusLine.found,
+    // Looked at, even if only in part: what was found so far, nothing
+    // included.
+    MediaAnalysisState.partial ||
     MediaAnalysisState.analysed => LabelsStatusLine.found,
   };
   return (
