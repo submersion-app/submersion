@@ -6,6 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/certification_agencies/presentation/widgets/certification_agency_dropdown.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/editing/certification_card_editors.dart';
+import 'package:submersion/features/certifications/presentation/widgets/certification_option.dart';
+import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -14,6 +16,8 @@ import '../../../../helpers/test_app.dart';
 /// Each certification card editor sets only its own card's values (issue
 /// #4527, phase 3).
 void main() {
+  final l = AppLocalizationsEn();
+
   Certification cert() => Certification(
     id: 'c1',
     name: 'My card',
@@ -56,6 +60,96 @@ void main() {
     expect(session.working.cardNumber, '456');
     expect(session.working.name, 'X');
     expect(session.working.additionalCredentials, hasLength(1));
+  });
+
+  String textOf(WidgetTester tester, String key) =>
+      tester.widget<TextField>(find.byKey(ValueKey(key))).controller!.text;
+
+  Finder levelField(int i) =>
+      find.byType(DropdownButtonFormField<CertificationOption>).at(i);
+
+  testWidgets('Details opens on the stored values, under the title\'s label '
+      'and helper', (tester) async {
+    final session = EditSession(cert());
+    addTearDown(session.dispose);
+    await pumpEditor(tester, CertificationDetailsCardEditor(session: session));
+
+    expect(textOf(tester, 'cert-edit-title'), 'My card');
+    expect(textOf(tester, 'cert-edit-card-number'), '123');
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('cert-edit-agency-0')),
+        matching: find.text('PADI'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: levelField(0), matching: find.text('Open Water')),
+      findsOneWidget,
+    );
+    expect(find.text(l.certifications_edit_label_title), findsOneWidget);
+    expect(find.text(l.certifications_edit_helper_title), findsOneWidget);
+  });
+
+  testWidgets('one recognition has no remove button; adding one gives each '
+      'row its own', (tester) async {
+    final session = EditSession(cert());
+    addTearDown(session.dispose);
+    await pumpEditor(tester, CertificationDetailsCardEditor(session: session));
+    final remove = find.byTooltip(l.certifications_edit_removeRecognition);
+
+    expect(find.byKey(const ValueKey('cert-edit-agency-1')), findsNothing);
+    expect(remove, findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('cert-edit-add-recognition')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('cert-edit-agency-1')), findsOneWidget);
+    expect(remove, findsNWidgets(2));
+  });
+
+  testWidgets('a stored card with two recognitions shows a row each', (
+    tester,
+  ) async {
+    final session = EditSession(
+      cert().copyWith(
+        additionalCredentials: const [
+          CertificationCredential(agency: 'ssi', level: 'nitrox'),
+        ],
+      ),
+    );
+    addTearDown(session.dispose);
+    await pumpEditor(tester, CertificationDetailsCardEditor(session: session));
+
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('cert-edit-agency-1')),
+        matching: find.text('SSI'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: levelField(1), matching: find.text('Nitrox')),
+      findsOneWidget,
+    );
+    expect(session.isDirty, isFalse);
+  });
+
+  testWidgets('a new certification\'s title stays blank when a level is '
+      'picked', (tester) async {
+    final session = EditSession(Certification.empty());
+    addTearDown(session.dispose);
+    await pumpEditor(tester, CertificationDetailsCardEditor(session: session));
+    expect(textOf(tester, 'cert-edit-title'), isEmpty);
+
+    await tester.tap(levelField(0));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Open Water').last);
+    await tester.pumpAndSettle();
+
+    expect(session.working.level, 'openWater');
+    expect(session.working.name, isEmpty);
+    expect(textOf(tester, 'cert-edit-title'), isEmpty);
   });
 
   // A stored name that only repeats the agency and level (the old form
@@ -165,6 +259,23 @@ void main() {
 
     expect(session.changedCardIds, {'cardPhotos'});
     expect(session.working.photoFront, [5]);
+  });
+
+  testWidgets('Dates sets the issue date from the picker', (tester) async {
+    final session = EditSession(
+      cert().copyWith(issueDate: DateTime(2024, 3, 10)),
+    );
+    addTearDown(session.dispose);
+    await pumpEditor(tester, CertificationDatesCardEditor(session: session));
+
+    await tester.tap(find.byKey(const ValueKey('cert-edit-issue-date')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('15'));
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+
+    expect(session.changedCardIds, {'dates'});
+    expect(session.working.issueDate, DateTime(2024, 3, 15));
   });
 
   testWidgets('Dates clears an expiry as a change of Dates', (tester) async {
