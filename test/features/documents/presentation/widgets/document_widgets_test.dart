@@ -188,6 +188,12 @@ void main() {
     for (final label in insuranceOnly) {
       expect(find.text(label), findsNothing, reason: label);
     }
+    expect(find.text(l.documents_field_expiryDate), findsOneWidget);
+
+    // A certification card's expiry lives on its certification.
+    await t.pumpWidget(form(DocumentType.certificationCard));
+    expect(find.text(l.documents_field_issueDate), findsOneWidget);
+    expect(find.text(l.documents_field_expiryDate), findsNothing);
   });
 
   testWidgets('viewer shows a Word page as a file tile with Open with', (

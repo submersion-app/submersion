@@ -302,16 +302,17 @@ void main() {
       await service.create(
         buddy: fresh(),
         changedCardIds: const ['certifications'],
-        alsoWrite: () =>
-            CertificationRepository().replaceBuddyCertifications('n1', [
-              domain.Certification(
-                id: '',
-                name: 'Open Water',
-                agency: 'padi',
-                createdAt: DateTime(2026),
-                updatedAt: DateTime(2026),
-              ),
-            ]),
+        alsoWrite: () => CertificationRepository().createCertification(
+          domain.Certification(
+            id: '',
+            buddyId: 'n1',
+            name: 'Open Water',
+            agency: 'padi',
+            createdAt: DateTime(2026),
+            updatedAt: DateTime(2026),
+          ),
+          notify: false,
+        ),
       );
 
       final certs = await CertificationRepository().getCertificationsByBuddy(

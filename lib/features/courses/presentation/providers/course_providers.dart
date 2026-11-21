@@ -327,19 +327,6 @@ class CourseListNotifier extends StateNotifier<AsyncValue<List<Course>>> {
     _ref.invalidate(completedCoursesProvider);
   }
 
-  Future<Course> addCourse(Course course) async {
-    // Get fresh validated diver ID before creating
-    final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
-
-    // Always set diverId to the current validated diver for new items
-    final courseWithDiver = validatedId != null
-        ? course.copyWith(diverId: validatedId)
-        : course;
-    final newCourse = await _repository.createCourse(courseWithDiver);
-    await refresh();
-    return newCourse;
-  }
-
   Future<void> updateCourse(Course course) async {
     await _repository.updateCourse(course);
     await refresh();

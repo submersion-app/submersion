@@ -110,6 +110,14 @@ void main() {
 
     expect(find.byKey(const ValueKey('cert-edit-agency-1')), findsOneWidget);
     expect(remove, findsNWidgets(2));
+
+    await tester.tap(remove.last);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('cert-edit-agency-1')), findsNothing);
+    expect(remove, findsNothing);
+    expect(session.working.additionalCredentials, isEmpty);
+    expect(session.working.level, 'openWater');
   });
 
   testWidgets('a stored card with two recognitions shows a row each', (

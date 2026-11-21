@@ -36,13 +36,13 @@ import '../../../../helpers/test_database.dart';
 // wherever the dialog/sheet actually are.
 //
 // A go_router push does temporarily elide the dialog/sheet from the render
-// tree while the new-buddy page (fully opaque) covers them -- confirmed via a
-// NavigatorObserver to be Flutter's standard "don't paint/build routes
-// fully covered by an opaque route" behavior, NOT a pop: the DialogRoute is
-// never popped or removed, and reappears with its state intact as soon as
-// the covering route is popped. These tests assert on that full round
-// trip -- the real proof the fix works, rather than just checking router
-// config.
+// tree while the new-buddy page (fully opaque) covers them. A
+// NavigatorObserver confirmed this is Flutter's standard "don't paint/build
+// routes fully covered by an opaque route" behavior, NOT a pop: the
+// DialogRoute is never popped or removed, and reappears with its state
+// intact as soon as the covering route is popped. These tests assert on
+// that full round trip: the real proof the fix works, rather than just
+// checking router config.
 
 /// Mirrors DiveEditPage._bulkAddBuddies: an AlertDialog hosting BuddyPicker,
 /// opened via showDialog's default useRootNavigator: true.

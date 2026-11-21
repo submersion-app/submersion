@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -16,13 +17,9 @@ Uint8List _jpeg(int width, int height) {
   return Uint8List.fromList(img.encodeJpg(image, quality: 90));
 }
 
-/// The result of one card photo pick, run from a button with the platform
-/// picker replaced by [pick].
-class _Pick {
-  int calls = 0;
-  bool done = false;
-  Uint8List? photo;
-}
+/// One card photo pick: whether the platform picker was reached, and what
+/// the pick returned.
+typedef _Pick = ({Future<void> reached, Future<Uint8List?> photo});
 
 /// Pumps a button that picks a card photo through [pick], as the card
 /// photos editor does.
@@ -30,7 +27,8 @@ Future<_Pick> _pump(
   WidgetTester tester,
   Future<({Uint8List bytes, String name})?> Function(ImageSource) pick,
 ) async {
-  final result = _Pick();
+  final reached = Completer<void>();
+  final photo = Completer<Uint8List?>();
   await tester.pumpWidget(
     testApp(
       overrides: await getBaseOverrides(),
@@ -38,16 +36,15 @@ Future<_Pick> _pump(
       child: Scaffold(
         body: Builder(
           builder: (context) => TextButton(
-            onPressed: () async {
-              result.photo = await pickCertificationCardPhoto(
+            onPressed: () => photo.complete(
+              pickCertificationCardPhoto(
                 context,
                 pickOverride: (source) {
-                  result.calls++;
+                  reached.complete();
                   return pick(source);
                 },
-              );
-              result.done = true;
-            },
+              ),
+            ),
             child: const Text('pick'),
           ),
         ),
@@ -55,25 +52,37 @@ Future<_Pick> _pump(
     ),
   );
   await tester.pump();
-  return result;
+  return (reached: reached.future, photo: photo.future);
 }
 
-/// Opens the source sheet, chooses Gallery, and settles the encode.
-Future<void> _pickFromGallery(WidgetTester tester, _Pick result) async {
+/// Opens the source sheet, chooses Gallery, and waits for the encode, which
+/// runs on a real isolate: what the pick returned.
+Future<Uint8List?> _pickFromGallery(WidgetTester tester, _Pick pick) async {
   await tester.tap(find.text('pick'));
   await tester.pumpAndSettle();
   await tester.tap(find.text('Choose from Gallery'));
+  await tester.pump();
 
-  // runAsync: the encode runs on a real isolate via compute, which fakeAsync
-  // cannot drive.
-  for (var i = 0; i < 100 && !result.done; i++) {
+  // The pick's own steps run in the test's fake zone and its encode on a
+  // real isolate, so real waits (runAsync) alternate with pumps. A loaded
+  // runner can take seconds over the encode: the bound is generous, and
+  // the wait ends as soon as the pick does.
+  Uint8List? photo;
+  var done = false;
+  unawaited(
+    pick.photo.then((p) {
+      photo = p;
+      done = true;
+    }),
+  );
+  for (var i = 0; i < 500 && !done; i++) {
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 20)),
     );
     await tester.pump();
   }
-  await tester.pump();
-  expect(result.done, isTrue, reason: 'the pick finished');
+  expect(done, isTrue, reason: 'the pick finished');
+  return photo;
 }
 
 /// A certification card photo is picked, then encoded to the stored size,
@@ -82,13 +91,16 @@ void main() {
   final l = AppLocalizationsEn();
 
   testWidgets('a cancelled pick returns no photo', (tester) async {
-    final result = await _pump(tester, (source) async => null);
+    final pick = await _pump(tester, (source) async => null);
 
-    await _pickFromGallery(tester, result);
+    final photo = await _pickFromGallery(tester, pick);
 
     // The override was reached and its null return handled cleanly.
-    expect(result.calls, 1);
-    expect(result.photo, isNull);
+    var reached = false;
+    unawaited(pick.reached.then((_) => reached = true));
+    await tester.pump();
+    expect(reached, isTrue);
+    expect(photo, isNull);
     expect(tester.takeException(), isNull);
   });
 
@@ -96,14 +108,14 @@ void main() {
       'size', (tester) async {
     // Larger than the 2000px ceiling: image_picker's own caps are ignored on
     // desktop, so the pick must route the bytes through the codec.
-    final result = await _pump(
+    final pick = await _pump(
       tester,
       (source) async => (bytes: _jpeg(2400, 1500), name: 'card.jpg'),
     );
 
-    await _pickFromGallery(tester, result);
+    final photo = await _pickFromGallery(tester, pick);
 
-    final decoded = img.decodeImage(result.photo!)!;
+    final decoded = img.decodeImage(photo!)!;
     expect(decoded.width, 2000);
     expect(decoded.height, 1250);
   });
@@ -111,15 +123,15 @@ void main() {
   testWidgets('an undecodable pick says so and returns no photo', (
     tester,
   ) async {
-    final result = await _pump(
+    final pick = await _pump(
       tester,
       (source) async =>
           (bytes: Uint8List.fromList([0, 1, 2, 3, 4]), name: 'broken.jpg'),
     );
 
-    await _pickFromGallery(tester, result);
+    final photo = await _pickFromGallery(tester, pick);
 
-    expect(result.photo, isNull);
+    expect(photo, isNull);
     expect(find.text(l.profilePhoto_error_undecodable), findsOneWidget);
     expect(tester.takeException(), isNull);
   });

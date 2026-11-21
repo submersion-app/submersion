@@ -117,17 +117,29 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('an insurance has Front and Back slots; a permit has none', (
-    tester,
-  ) async {
+  testWidgets('an insurance and a certification card have Front and Back '
+      'slots; a permit has none', (tester) async {
     await pump(tester);
     expect(find.text(l.documents_pages_front), findsNothing);
     expect(find.text(l.documents_pages_back), findsNothing);
 
-    session.set(documentTypeField, DocumentType.insurance);
-    await tester.pumpAndSettle();
-    expect(find.text(l.documents_pages_front), findsOneWidget);
-    expect(find.text(l.documents_pages_back), findsOneWidget);
+    for (final type in [
+      DocumentType.insurance,
+      DocumentType.certificationCard,
+    ]) {
+      session.set(documentTypeField, type);
+      await tester.pumpAndSettle();
+      expect(
+        find.text(l.documents_pages_front),
+        findsOneWidget,
+        reason: '$type',
+      );
+      expect(
+        find.text(l.documents_pages_back),
+        findsOneWidget,
+        reason: '$type',
+      );
+    }
   });
 
   testWidgets('card faces are kept Front then Back, whatever order they are '
