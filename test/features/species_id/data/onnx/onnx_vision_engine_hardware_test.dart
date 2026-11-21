@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -60,7 +61,13 @@ class QuietWorker implements OnnxWorkerHandle {
   Future<String?> load(VisionModels models) async => 'cpu';
 
   @override
-  Future<PipelineResult> analyze(RgbaImage image) => throw UnimplementedError();
+  Future<PipelineResult> analyze(RgbaImage image) async => const PipelineResult(
+    analysis: VisionAnalysis(imageWidth: 1, imageHeight: 1, detections: []),
+    detectorBoxes: [[]],
+    mergedBoxes: [],
+    detectMs: 0,
+    embedMs: [],
+  );
 
   @override
   Future<List<PipelineBox>> detect(RgbaImage frame) =>
@@ -110,6 +117,7 @@ void main() {
       onnxPlatforms: true,
       hardware: hardware,
       crashGuard: DeviceCrashGuard(guardDir),
+      decode: (bytes) async => RgbaImage(1, 1, Uint8List(4)),
       spawnWorker:
           ({
             required List<OrtDevice> devices,
@@ -221,14 +229,29 @@ void main() {
       expect(await guard.devicesFor(all), [OrtDevice.directMl, OrtDevice.cpu]);
     });
 
-    test('a load that completes clears a single strike', () async {
+    test('a run that returns clears a single strike', () async {
       endedOn(OrtDevice.hardware);
-      await engine(TargetPlatform.windows, FakeHardware()).load(_models);
+      final first = engine(TargetPlatform.windows, FakeHardware());
+      await first.load(_models);
+      await first.analyze(bytes: Uint8List(1));
       endedOn(OrtDevice.hardware);
 
       await engine(TargetPlatform.windows, FakeHardware()).load(_models);
 
       expect(seenDevices, all);
+    });
+
+    test('a crash on the first run after a load that completed is still '
+        'skipped at the second', () async {
+      // The engine opens fine and ends the app on its first run, every
+      // launch: the completed load must not clear the strike.
+      endedOn(OrtDevice.hardware);
+      await engine(TargetPlatform.windows, FakeHardware()).load(_models);
+      endedOn(OrtDevice.hardware);
+
+      await engine(TargetPlatform.windows, FakeHardware()).load(_models);
+
+      expect(seenDevices, [OrtDevice.directMl, OrtDevice.cpu]);
     });
 
     test('the processor is never skipped', () async {
@@ -256,7 +279,7 @@ void main() {
       note.opening(OrtDevice.hardware);
       note.finished();
       expect(await guard.devicesFor(all), all);
-      await guard.loaded();
+      await guard.ranSafely();
       await guard.forgive(OrtDevice.hardware);
     });
 

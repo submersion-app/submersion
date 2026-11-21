@@ -114,6 +114,9 @@ class OnnxVisionEngine
   /// On Windows, keeps a device that ended the app from being tried again.
   final DeviceCrashGuard? _crashGuard;
 
+  /// Whether a run has returned on the current worker ([_ran]).
+  bool _ranOnWorker = false;
+
   final Future<OnnxWorkerHandle> Function()? _customWorker;
   final _log = LoggerService.forClass(OnnxVisionEngine);
   final Future<RgbaImage> Function(Uint8List encoded) _decode;
@@ -169,8 +172,6 @@ class OnnxVisionEngine
     _loaded = null;
     final device = await _fromWorker((await _workerHandle()).load(models));
     _log.info('Marine life models open on ${device ?? 'an unknown device'}');
-    // The app got through a load: a single strike was not a crash.
-    if (_customWorker == null) await _crashGuard?.loaded();
     _loaded = models;
     _observe();
   });
@@ -186,7 +187,7 @@ class OnnxVisionEngine
       }
       final encoded = bytes ?? await _readPhoto(path!);
       final image = await _decode(encoded);
-      final result = await _fromWorker((await _workerHandle()).analyze(image));
+      final result = await _ran((await _workerHandle()).analyze(image));
       return result.analysis;
     });
   }
@@ -251,7 +252,7 @@ class OnnxVisionEngine
           while (next <= frame.ms) {
             next += sampleIntervalMs;
           }
-          final boxes = await _fromWorker(worker.detect(frame.image));
+          final boxes = await _ran(worker.detect(frame.image));
           frames.add(
             FrameDetections(
               ms: frame.ms,
@@ -310,7 +311,7 @@ class OnnxVisionEngine
             crops.add(null);
             continue;
           }
-          crops.add(await _fromWorker(worker.cropAndEmbed(image, moment.box)));
+          crops.add(await _ran(worker.cropAndEmbed(image, moment.box)));
         }
         if (moments.isNotEmpty && unread == moments.length) {
           throw const VisionEngineException(
@@ -380,6 +381,7 @@ class OnnxVisionEngine
   /// DirectML, then the processor (design section 2a); elsewhere they run
   /// on the processor.
   Future<OnnxWorkerHandle> _spawnDefault() async {
+    _ranOnWorker = false;
     final threads = onnxThreadsFor(HostPlatform.numberOfProcessors);
     if (!_onWindows) {
       return _spawnWorker(
@@ -430,6 +432,19 @@ class OnnxVisionEngine
       if (identical(_worker, spawning)) _worker = null;
       rethrow;
     }
+  }
+
+  /// [call]'s answer, from a run of the models. The first run that returns
+  /// on a worker tells the crash guard the app got past the opens and first
+  /// runs it was noting; a completed load is not enough, since a first run
+  /// comes after it.
+  Future<T> _ran<T>(Future<T> call) async {
+    final result = await _fromWorker(call);
+    if (!_ranOnWorker) {
+      _ranOnWorker = true;
+      if (_customWorker == null) await _crashGuard?.ranSafely();
+    }
+    return result;
   }
 
   /// [call]'s answer. A worker that answers `not_loaded` has closed its

@@ -19,8 +19,9 @@ import 'package:submersion/features/species_id/data/engines/onnx/onnx_worker_cor
 /// when the next worker starts means the app ended meanwhile, and the device
 /// it names takes a strike. Closing the app or a power cut during a load
 /// does the same, so one strike is forgiven: a device is skipped from its
-/// second strike in a row on, and a load that completes clears a single
-/// strike. The processor is never skipped. A newly fetched engine clears the
+/// second strike in a row on, and a run that returns clears a single strike
+/// (a completed load does not, since a first run comes after it). The
+/// processor is never skipped. A newly fetched engine clears the
 /// hardware engine's strikes. Every failure to read or write here is
 /// ignored: the guard only ever removes devices, so losing its notes costs
 /// at most another try.
@@ -75,8 +76,10 @@ class DeviceCrashGuard {
     return left.isEmpty ? const [OrtDevice.cpu] : left;
   }
 
-  /// A load completed: a device with a single strike is trusted again.
-  Future<void> loaded() async {
+  /// A run returned on the worker: the app got past the opens and first
+  /// runs it was noting, so a device with a single strike is trusted again.
+  /// A completed load is not enough, since a first run comes after it.
+  Future<void> ranSafely() async {
     final strikes = await _readStrikes();
     final kept = {
       for (final entry in strikes.entries)

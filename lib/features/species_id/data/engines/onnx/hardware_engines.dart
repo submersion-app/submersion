@@ -70,11 +70,12 @@ class WindowsMlEngines implements HardwareEngines {
 
   @override
   Future<bool> fetchEngine() async {
-    final deadline = DateTime.now().add(fetchTimeout);
+    // Elapsed time, not the wall clock, which a clock change can move.
+    final clock = Stopwatch()..start();
     var anyReady = false;
     for (final engine in await _engines()) {
       if (engine.state != WinMlReadyState.notPresent) continue;
-      final left = deadline.difference(DateTime.now());
+      final left = fetchTimeout - clock.elapsed;
       if (left <= Duration.zero) {
         _log.warning('No time left to fetch Windows ML engine ${engine.name}');
         break;
