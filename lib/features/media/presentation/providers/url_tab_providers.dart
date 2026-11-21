@@ -31,6 +31,7 @@ import 'package:submersion/features/media/data/services/network_credentials_serv
 import 'package:submersion/features/media/data/services/network_fetch_pipeline.dart';
 import 'package:submersion/features/media/data/services/network_url_resolver.dart';
 import 'package:submersion/features/media/data/services/url_metadata_extractor.dart';
+import 'package:submersion/features/media/data/synology/synology_share_sessions.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/utils/url_validator.dart';
 import 'package:submersion/features/media/domain/entities/extracted_metadata.dart';
@@ -296,6 +297,7 @@ final Provider<NetworkCredentialsService> networkCredentialsServiceProvider =
       (ref) => NetworkCredentialsService(
         repository: ref.watch(networkCredentialsRepositoryProvider),
         storage: ref.watch(flutterSecureStorageProvider),
+        synologySessions: ref.watch(synologyShareSessionsProvider),
         onCredentialsChanged: () {
           // Through the container: this provider's own ref cannot invalidate
           // something that depends on it.
@@ -304,6 +306,13 @@ final Provider<NetworkCredentialsService> networkCredentialsServiceProvider =
         },
       ),
     );
+
+/// The one set of Synology Photos share sessions for the app. One instance
+/// matters: every login to a share ends the session the previous one opened,
+/// so two holders would keep knocking each other out.
+final synologyShareSessionsProvider = Provider<SynologyShareSessions>(
+  (ref) => SynologyShareSessions(client: ref.watch(httpClientProvider)),
+);
 
 /// Headers for painting [url]: `null` when its host has no saved credentials.
 ///

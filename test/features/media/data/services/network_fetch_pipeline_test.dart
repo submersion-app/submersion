@@ -265,6 +265,26 @@ void main() {
       // The manifest's takenAt wins over the extracted one.
       expect(resolved.single.takenAt, entry.takenAt);
     });
+
+    test('an entry marked complete skips extraction without GPS', () async {
+      final entry = ManifestEntry(
+        entryKey: 'k-complete',
+        url: 'https://nas.example.com/original.jpg',
+        takenAt: DateTime.utc(2024, 6, 1, 12),
+        width: 800,
+        height: 600,
+        metadataComplete: true,
+      );
+      final extractor = _StubExtractor(results: const {});
+      final pipeline = NetworkFetchPipeline(db: db, extractor: extractor);
+
+      final resolved = await pipeline.resolveManifestEntries([entry]);
+
+      expect(extractor.calls, isEmpty);
+      expect(resolved.single.result, isNull);
+      expect(resolved.single.failed, isFalse);
+      expect(resolved.single.takenAt, entry.takenAt);
+    });
   });
 
   group('insertResolved', () {

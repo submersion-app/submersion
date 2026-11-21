@@ -102,7 +102,15 @@ class ManifestTabShowingPreview extends ManifestTabState {
 class ManifestTabError extends ManifestTabState {
   final String url;
   final String message;
-  const ManifestTabError({required this.url, required this.message});
+
+  /// The source asked for credentials (HTTP 401, or a share without a
+  /// saved password), so the panel can offer to enter them.
+  final bool unauthorized;
+  const ManifestTabError({
+    required this.url,
+    required this.message,
+    this.unauthorized = false,
+  });
 }
 
 /// In flight: the user tapped Import and we are awaiting the commit /
@@ -150,7 +158,11 @@ class ManifestTabNotifier extends StateNotifier<ManifestTabState> {
         final reason = outcome.unauthorized
             ? 'Unauthorized — sign in via Settings → Network Sources'
             : outcome.message;
-        state = ManifestTabError(url: trimmed, message: reason);
+        state = ManifestTabError(
+          url: trimmed,
+          message: reason,
+          unauthorized: outcome.unauthorized,
+        );
     }
   }
 
@@ -178,7 +190,11 @@ class ManifestTabNotifier extends StateNotifier<ManifestTabState> {
         final reason = outcome.unauthorized
             ? 'Unauthorized — sign in via Settings → Network Sources'
             : outcome.message;
-        state = ManifestTabError(url: current.url, message: reason);
+        state = ManifestTabError(
+          url: current.url,
+          message: reason,
+          unauthorized: outcome.unauthorized,
+        );
       case ManifestFetchNotModified():
         // 304 → re-show the existing preview but with the new override
         // marker recorded.

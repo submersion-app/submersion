@@ -24,7 +24,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/features/media/data/services/network_credentials_service.dart';
 import 'package:submersion/features/media/data/services/network_import_targets.dart';
+import 'package:submersion/features/media/data/synology/synology_share_link.dart';
 import 'package:submersion/features/media/domain/entities/import_candidate.dart';
 import 'package:submersion/features/media/presentation/pages/media_import_review_page.dart';
 import 'package:submersion/features/media/presentation/providers/manifest_tab_providers.dart';
@@ -238,7 +240,12 @@ class _Body extends ConsumerWidget {
         );
       case ManifestTabFetching():
         return const Center(child: CircularProgressIndicator());
-      case ManifestTabError(:final message):
+      case ManifestTabError(:final url, :final message, :final unauthorized):
+        final uri = Uri.tryParse(url);
+        final share = unauthorized && uri != null
+            ? SynologyShareLink.tryParseShareLink(uri)
+            : null;
+        if (share != null) return _SynologyPasswordForm(url: url, share: share);
         return Align(
           alignment: Alignment.topLeft,
           // TODO(media): l10n
@@ -375,6 +382,100 @@ class _SubscribeRow extends StatelessWidget {
       if (option.seconds == seconds) return option.seconds;
     }
     return 86400;
+  }
+}
+
+/// Asks for a Synology Photos share's password when fetching its link was
+/// refused, saves it for the NAS host and fetches again.
+class _SynologyPasswordForm extends ConsumerStatefulWidget {
+  const _SynologyPasswordForm({required this.url, required this.share});
+
+  final String url;
+  final SynologyShareLink share;
+
+  @override
+  ConsumerState<_SynologyPasswordForm> createState() =>
+      _SynologyPasswordFormState();
+}
+
+class _SynologyPasswordFormState extends ConsumerState<_SynologyPasswordForm> {
+  final TextEditingController _password = TextEditingController();
+  bool _saving = false;
+
+  @override
+  void dispose() {
+    _password.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final password = _password.text;
+    if (password.isEmpty || _saving) return;
+    setState(() => _saving = true);
+    try {
+      await ref
+          .read(networkCredentialsServiceProvider)
+          .save(
+            hostname: widget.share.origin.host,
+            authType: kSynologyShareAuthType,
+            password: password,
+            // TODO(media): l10n
+            displayName: 'Synology Photos share',
+          );
+      await ref.read(manifestTabProvider.notifier).fetch(widget.url);
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // TODO(media): l10n
+          Text(
+            'This Synology Photos share needs its password.',
+            style: theme.textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 4),
+          // TODO(media): l10n
+          Text(
+            'It is kept in this device\'s keychain and never synced.',
+            style: theme.textTheme.bodySmall,
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            key: const Key('synologySharePassword'),
+            controller: _password,
+            obscureText: true,
+            autofocus: true,
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) => _save(),
+            decoration: const InputDecoration(
+              // TODO(media): l10n
+              labelText: 'Share password',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 12),
+          FilledButton.icon(
+            key: const Key('synologySharePasswordSave'),
+            icon: _saving
+                ? const SizedBox.square(
+                    dimension: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.lock_open),
+            // TODO(media): l10n
+            label: const Text('Save password and fetch'),
+            onPressed: _saving ? null : _save,
+          ),
+        ],
+      ),
+    );
   }
 }
 

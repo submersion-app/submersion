@@ -24,18 +24,32 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/secure_storage/fallback_secure_storage.dart';
 import 'package:submersion/features/media/data/repositories/network_credentials_repository.dart';
+import 'package:submersion/features/media/data/synology/synology_api.dart';
+import 'package:submersion/features/media/data/synology/synology_share_link.dart';
+import 'package:submersion/features/media/data/synology/synology_share_sessions.dart';
+
+/// Auth type for a Synology Photos share password. Requests to the share's
+/// API carry a session cookie instead of a static header; see
+/// [NetworkCredentialsService.headersFor].
+const String kSynologyShareAuthType = 'synologyShare';
 
 class NetworkCredentialsService {
   NetworkCredentialsService({
     required NetworkCredentialsRepository repository,
     required FlutterSecureStorage storage,
     void Function()? onCredentialsChanged,
+    SynologyShareSessions? synologySessions,
   }) : _repo = repository,
        _storage = FallbackSecureStorage(storage),
-       _onCredentialsChanged = onCredentialsChanged;
+       _onCredentialsChanged = onCredentialsChanged,
+       _synologySessions = synologySessions;
 
   final NetworkCredentialsRepository _repo;
   final FallbackSecureStorage _storage;
+
+  /// Opens sessions for hosts whose secret is a Synology share password.
+  /// Without it such a secret yields no headers.
+  final SynologyShareSessions? _synologySessions;
 
   /// Called after [save] or [delete] changes a host's secret, so holders of
   /// an earlier [headersFor] result can ask again.
@@ -43,18 +57,18 @@ class NetworkCredentialsService {
 
   final _log = LoggerService.forClass(NetworkCredentialsService);
 
-  /// Per-process cache of resolved (hostname -> headers) so repeated
+  /// Per-process cache of decoded secrets (hostname -> secret) so repeated
   /// `headersFor` calls during a single bulk-import or scan don't hit
   /// the keychain on every URL. A null value records that the host has no
   /// credentials, which is most hosts. This service is the only writer of
   /// these secrets, so an entry stays valid until [save] or [delete] replaces
   /// it. A failed keychain read records nothing.
-  final Map<String, Map<String, String>?> _headerCache = {};
+  final Map<String, _StoredSecret?> _secretCache = {};
 
   /// The keychain lookup under way for each host, shared by everyone who asks
   /// before it finishes. Removing an entry disowns that lookup: see
   /// [_invalidate].
-  final Map<String, Future<Map<String, String>?>> _lookups = {};
+  final Map<String, Future<_StoredSecret?>> _lookups = {};
 
   /// The last keychain change queued for each host. See [_changeKeychain].
   final Map<String, Future<void>> _keychainChanges = {};
@@ -63,7 +77,8 @@ class NetworkCredentialsService {
 
   /// Persists credentials for [hostname]. For `basic` auth, both
   /// [username] and [password] are required. For `bearer` auth, [token]
-  /// is required. Throws [ArgumentError] for any other combination.
+  /// is required. For [kSynologyShareAuthType], [password] is required.
+  /// Throws [ArgumentError] for any other combination.
   ///
   /// The Drift row carries non-secret metadata (auth type, display name,
   /// last-used timestamp) while the actual secret blob is JSON-encoded
@@ -83,6 +98,10 @@ class NetworkCredentialsService {
     } else if (authType == 'bearer') {
       if (token == null) {
         throw ArgumentError('Bearer auth requires token');
+      }
+    } else if (authType == kSynologyShareAuthType) {
+      if (password == null || password.isEmpty) {
+        throw ArgumentError('A Synology share requires its password');
       }
     } else {
       throw ArgumentError('Unsupported authType: $authType');
@@ -117,12 +136,49 @@ class NetworkCredentialsService {
   /// field deletes the offending key (so the user is prompted to re-enter
   /// credentials) and returns `null` rather than letting the exception
   /// propagate into network fetches and break URL/manifest imports.
-  Future<Map<String, String>?> headersFor(Uri uri) {
-    final host = uri.host;
-    if (_headerCache.containsKey(host)) return Future.value(_headerCache[host]);
+  ///
+  /// A host holding a Synology share password answers with the share's
+  /// session headers, and only for that share's URLs: see
+  /// [_synologyHeaders].
+  Future<Map<String, String>?> headersFor(Uri uri) async {
+    final secret = await _secretFor(uri.host);
+    return switch (secret) {
+      null => null,
+      _HeaderSecret(:final headers) => headers,
+      _SynologyShareSecret(:final password) => _synologyHeaders(uri, password),
+    };
+  }
+
+  /// The Synology share password saved for [host], or null when the host has
+  /// no credentials or credentials of another type.
+  Future<String?> synologySharePassword(String host) async {
+    final secret = await _secretFor(host);
+    return secret is _SynologyShareSecret ? secret.password : null;
+  }
+
+  /// Session headers for a share URL. A failing login yields no headers
+  /// rather than an exception: callers treat a missing header as "fetch
+  /// without credentials", and the share then answers with its own error.
+  Future<Map<String, String>?> _synologyHeaders(
+    Uri uri,
+    String password,
+  ) async {
+    final sessions = _synologySessions;
+    final link = SynologyShareLink.tryParseAny(uri);
+    if (sessions == null || link == null) return null;
+    try {
+      return await sessions.headersFor(link, password);
+    } on SynologyShareException catch (e) {
+      _log.warning('No Synology share session for ${uri.host}: ${e.kind}');
+      return null;
+    }
+  }
+
+  Future<_StoredSecret?> _secretFor(String host) {
+    if (_secretCache.containsKey(host)) return Future.value(_secretCache[host]);
     final running = _lookups[host];
     if (running != null) return running;
-    late final Future<Map<String, String>?> lookup;
+    late final Future<_StoredSecret?> lookup;
     // _lookUp reaches its first await before anything asks isCurrent, by which
     // time the lookup is assigned and registered.
     lookup = _lookUp(host, isCurrent: () => identical(_lookups[host], lookup));
@@ -132,18 +188,18 @@ class NetworkCredentialsService {
   /// Reads and decodes [host]'s secret. Once [isCurrent] turns false the
   /// credentials changed during the read, so what was read must neither be
   /// cached nor act on the key, which now holds a newer secret.
-  Future<Map<String, String>?> _lookUp(
+  Future<_StoredSecret?> _lookUp(
     String host, {
     required bool Function() isCurrent,
   }) async {
     try {
       final raw = await _storage.read(key: _keyPrefix + host);
-      final headers = raw == null ? null : _decodeHeaders(raw);
-      if (!isCurrent()) return headers;
-      if (raw != null && headers == null) await _removeBlob(host, raw);
-      if (isCurrent()) _headerCache[host] = headers;
-      if (headers != null) await _touchLastUsed(host);
-      return headers;
+      final secret = raw == null ? null : _decodeSecret(raw);
+      if (!isCurrent()) return secret;
+      if (raw != null && secret == null) await _removeBlob(host, raw);
+      if (isCurrent()) _secretCache[host] = secret;
+      if (secret != null) await _touchLastUsed(host);
+      return secret;
     } finally {
       if (isCurrent()) _lookups.remove(host);
     }
@@ -180,14 +236,20 @@ class NetworkCredentialsService {
     }
   }
 
-  /// The header map a stored secret [raw] stands for, or null when it is
+  /// The secret a stored blob [raw] stands for, or null when it is
   /// malformed or from a stale schema.
-  static Map<String, String>? _decodeHeaders(String raw) {
+  static _StoredSecret? _decodeSecret(String raw) {
     final Object? decoded;
     try {
       decoded = jsonDecode(raw);
     } on FormatException {
       return null;
+    }
+    if (decoded case {
+      'authType': kSynologyShareAuthType,
+      'password': final String password,
+    } when password.isNotEmpty) {
+      return _SynologyShareSecret(password);
     }
     final authorization = switch (decoded) {
       {
@@ -200,7 +262,7 @@ class NetworkCredentialsService {
       _ => null,
     };
     if (authorization == null) return null;
-    return Map.unmodifiable({'Authorization': authorization});
+    return _HeaderSecret(Map.unmodifiable({'Authorization': authorization}));
   }
 
   /// `lastUsedAt` is display metadata, so failing to record it must not cost
@@ -218,7 +280,7 @@ class NetworkCredentialsService {
   /// Disowning a running lookup keeps later callers from joining a read that
   /// predates the change, and keeps that read out of the cache.
   void _invalidate(String hostname) {
-    _headerCache.remove(hostname);
+    _secretCache.remove(hostname);
     _lookups.remove(hostname);
     _onCredentialsChanged?.call();
   }
@@ -249,4 +311,23 @@ class NetworkCredentialsService {
   /// so users can rename a credential without re-typing username/password.
   Future<void> updateDisplayName(String id, String? displayName) =>
       _repo.updateDisplayName(id, displayName);
+}
+
+/// A host's decoded keychain secret.
+sealed class _StoredSecret {
+  const _StoredSecret();
+}
+
+/// Basic or bearer credentials: the same headers on every request.
+class _HeaderSecret extends _StoredSecret {
+  const _HeaderSecret(this.headers);
+
+  final Map<String, String> headers;
+}
+
+/// A Synology share password: headers come from a session that changes.
+class _SynologyShareSecret extends _StoredSecret {
+  const _SynologyShareSecret(this.password);
+
+  final String password;
 }
