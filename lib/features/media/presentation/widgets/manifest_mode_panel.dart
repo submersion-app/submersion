@@ -24,8 +24,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/media/data/services/dive_link_matcher.dart';
 import 'package:submersion/features/media/data/services/network_credentials_service.dart';
 import 'package:submersion/features/media/data/services/network_import_targets.dart';
+import 'package:submersion/features/media/data/synology/synology_album_source.dart';
 import 'package:submersion/features/media/data/synology/synology_share_link.dart';
 import 'package:submersion/features/media/domain/entities/import_candidate.dart';
 import 'package:submersion/features/media/presentation/pages/media_import_review_page.dart';
@@ -75,6 +79,11 @@ class _ManifestModePanelState extends ConsumerState<ManifestModePanel> {
   /// the snackbar and the pushed review fire correctly across the async
   /// gap, and bails out via `mounted` if the user navigated away.
   Future<void> _commit() async {
+    final current = ref.read(manifestTabProvider);
+    if (current is ManifestTabShowingPreview &&
+        SynologyShareLink.tryParseShareLink(Uri.parse(current.url)) != null) {
+      return _commitShare();
+    }
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
     String? committedSubscriptionId;
@@ -162,6 +171,78 @@ class _ManifestModePanelState extends ConsumerState<ManifestModePanel> {
     );
   }
 
+  /// Imports a Synology Photos share the way its subscription polls it: only
+  /// photos with a confident dive match are linked, the rest wait for a
+  /// later poll (or a dive that does not exist yet).
+  ///
+  /// A shared album easily holds hundreds of photos. The review page asks for
+  /// one suggestion per row and rebuilds as each arrives, which does not
+  /// scale to that, and nobody wants to tick hundreds of rows by hand.
+  Future<void> _commitShare() async {
+    final messenger = ScaffoldMessenger.of(context);
+    String? committedSubscriptionId;
+    List<String>? committedMediaIds;
+    var skipped = 0;
+    var subscribe = false;
+
+    await ref
+        .read(manifestTabProvider.notifier)
+        .commit(
+          onCommit: (preview) async {
+            final pipeline = ref.read(networkFetchPipelineProvider);
+            final resolved = await pipeline.resolveManifestEntries(
+              preview.result.entries,
+            );
+            final decided = await requestsForConfidentMatches(
+              resolved,
+              DiveLinkMatcher(diveRepository: ref.read(diveRepositoryProvider)),
+              diverId: ref.read(currentDiverIdProvider),
+            );
+            final created = await ref
+                .read(manifestSubscriptionRepositoryProvider)
+                .createSubscription(
+                  manifestUrl: preview.url,
+                  format: preview.formatOverride ?? preview.result.format,
+                  pollIntervalSeconds: preview.pollIntervalSeconds,
+                  isActive: preview.subscribe,
+                );
+            committedSubscriptionId = created.id;
+            subscribe = preview.subscribe;
+            committedMediaIds = await pipeline.insertResolved(
+              decided.requests,
+              subscriptionId: created.id,
+            );
+            skipped = decided.skipped;
+          },
+        );
+
+    if (!mounted) return;
+    final ids = committedMediaIds;
+    final subId = committedSubscriptionId;
+    if (ids == null || subId == null) return;
+    messenger.showSnackBar(
+      SnackBar(
+        // TODO(media): l10n, pluralization
+        content: Text(
+          'Linked ${ids.length} photos to dives. '
+          '$skipped without a matching dive'
+          '${subscribe ? ' are checked again on the next poll.' : '.'}',
+        ),
+        duration: const Duration(seconds: 8),
+        persist: false,
+        action: SnackBarAction(
+          // TODO(media): l10n
+          label: 'Undo',
+          onPressed: () => _undoCommit(
+            mediaIds: ids,
+            subscriptionId: subId,
+            deleteSubscription: !subscribe,
+          ),
+        ),
+      ),
+    );
+  }
+
   /// Reverses a prior [_commit]: deletes each inserted [MediaItem] row,
   /// and (for one-shot imports only) deletes the sentinel subscription
   /// row. When the user opted into a real subscription (`Subscribe` ON),
@@ -240,12 +321,19 @@ class _Body extends ConsumerWidget {
         );
       case ManifestTabFetching():
         return const Center(child: CircularProgressIndicator());
-      case ManifestTabError(:final url, :final message, :final unauthorized):
+      case ManifestTabError(
+        :final url,
+        :final message,
+        :final unauthorized,
+        :final detail,
+      ):
         final uri = Uri.tryParse(url);
         final share = unauthorized && uri != null
             ? SynologyShareLink.tryParseShareLink(uri)
             : null;
-        if (share != null) return _SynologyPasswordForm(url: url, share: share);
+        if (share != null) {
+          return _SynologyPasswordForm(url: url, share: share, reason: detail);
+        }
         return Align(
           alignment: Alignment.topLeft,
           // TODO(media): l10n
@@ -388,10 +476,17 @@ class _SubscribeRow extends StatelessWidget {
 /// Asks for a Synology Photos share's password when fetching its link was
 /// refused, saves it for the NAS host and fetches again.
 class _SynologyPasswordForm extends ConsumerStatefulWidget {
-  const _SynologyPasswordForm({required this.url, required this.share});
+  const _SynologyPasswordForm({
+    required this.url,
+    required this.share,
+    this.reason,
+  });
 
   final String url;
   final SynologyShareLink share;
+
+  /// Why the share refused: no password yet, or a rejected one.
+  final String? reason;
 
   @override
   ConsumerState<_SynologyPasswordForm> createState() =>
@@ -440,6 +535,17 @@ class _SynologyPasswordFormState extends ConsumerState<_SynologyPasswordForm> {
             'This Synology Photos share needs its password.',
             style: theme.textTheme.bodyMedium,
           ),
+          if (widget.reason != null &&
+              widget.reason != kSynologyPasswordMissingMessage) ...[
+            const SizedBox(height: 4),
+            Text(
+              widget.reason!,
+              key: const Key('synologySharePasswordError'),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.error,
+              ),
+            ),
+          ],
           const SizedBox(height: 4),
           // TODO(media): l10n
           Text(

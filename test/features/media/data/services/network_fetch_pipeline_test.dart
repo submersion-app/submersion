@@ -318,6 +318,31 @@ void main() {
       expect(row.isOrphaned, isFalse);
     });
 
+    test('a manifest entry stores its original file name', () async {
+      await insertDiveRow('d1');
+      final pipeline = NetworkFetchPipeline(
+        db: db,
+        extractor: _StubExtractor(results: const {}),
+      );
+      final resolved = await pipeline.resolveManifestEntries([
+        ManifestEntry(
+          entryKey: 'k-name',
+          url: 'https://nas.example.com/original',
+          takenAt: DateTime.utc(2024, 6, 1, 12),
+          metadataComplete: true,
+          filename: 'P1.JPG',
+        ),
+      ]);
+
+      final ids = await pipeline.insertResolved([
+        NetworkInsertRequest(media: resolved.single, diveId: 'd1'),
+      ], subscriptionId: null);
+
+      final row = await rowOf(ids.single);
+      expect(row.originalFilename, 'P1.JPG');
+      expect(row.caption, isNull);
+    });
+
     // A sitting draws a held web photo before Save under the id the row
     // is then written with, so a choice made on it (a gear item's cover,
     // issue #4527) names the row Save writes.

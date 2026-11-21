@@ -9,6 +9,10 @@ import 'package:submersion/features/media/data/synology/synology_api.dart';
 import 'package:submersion/features/media/data/synology/synology_share_link.dart';
 import 'package:submersion/features/media/data/synology/synology_share_sessions.dart';
 
+/// Failure message when no password is stored for a share yet, as opposed to
+/// a stored password the share rejected.
+const String kSynologyPasswordMissingMessage = 'This share needs its password';
+
 /// Reads a shared Synology Photos album as if it were a manifest feed, so the
 /// subscription poller and the manifest panel need no Synology branch.
 ///
@@ -54,7 +58,7 @@ class SynologyAlbumSource {
     if (password == null || password.isEmpty) {
       return const ManifestFetchFailure(
         statusCode: 401,
-        message: 'This share needs its password',
+        message: kSynologyPasswordMissingMessage,
       );
     }
     try {
@@ -262,6 +266,7 @@ SynologyMappedEntries synologyEntriesFrom(
         height: photo.height,
         mediaType: 'photo',
         metadataComplete: true,
+        filename: photo.filename,
       ),
   ];
   return (entries: entries, warnings: warnings);
@@ -273,6 +278,7 @@ class _Photo {
     required this.time,
     required this.filesize,
     required this.cacheKey,
+    this.filename,
     this.width,
     this.height,
   });
@@ -281,6 +287,7 @@ class _Photo {
   final int time;
   final int filesize;
   final String cacheKey;
+  final String? filename;
   final int? width;
   final int? height;
 
@@ -310,6 +317,7 @@ class _Photo {
       time: time,
       filesize: filesize,
       cacheKey: cacheKey,
+      filename: raw['filename'] is String ? raw['filename'] as String : null,
       width: dimension('width'),
       height: dimension('height'),
     );

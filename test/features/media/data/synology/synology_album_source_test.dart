@@ -132,6 +132,8 @@ void main() {
     expect(entry.height, 3000);
     expect(entry.mediaType, 'photo');
     expect(entry.metadataComplete, isTrue);
+    expect(entry.filename, 'P41197.JPG');
+    expect(entry.caption, isNull);
     expect(
       Uri.parse(entry.url),
       _link.originalUri(id: 41197, cacheKey: '41197_1781199161'),

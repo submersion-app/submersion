@@ -675,6 +675,67 @@ void main() {
     // ID is preserved across the patch.
     expect(rows.single.id, firstRow.id);
   });
+
+  test('a missing file name is filled in, a known one kept', () async {
+    final sub = await subscriptions.createSubscription(
+      manifestUrl: 'https://feed.example.com/m.json',
+      format: ManifestFormat.json,
+      pollIntervalSeconds: 3600,
+    );
+    final fetcher = _StaticFetcher({
+      'https://feed.example.com/m.json': ManifestFetchSuccess(
+        parsed: _parsed([_entry('k1', 'https://feed.example.com/p1.jpg')]),
+        etag: null,
+        lastModified: null,
+      ),
+    });
+    final poller = SubscriptionPoller(
+      subscriptions: subscriptions,
+      mediaRepo: mediaRepo,
+      fetchService: fetcher,
+      pipeline: pipeline,
+      diveLinkMatcher: matcher,
+    );
+    final t0 = DateTime.utc(2024, 4, 27, 10, 0, 0);
+    await poller.pollAllDue(t0);
+    expect(
+      (await mediaRepo.getAllBySubscription(sub.id)).single.originalFilename,
+      isNull,
+    );
+
+    ManifestFetchSuccess named(String name) => ManifestFetchSuccess(
+      parsed: _parsed([
+        ManifestEntry(
+          entryKey: 'k1',
+          url: 'https://feed.example.com/p1.jpg',
+          takenAt: DateTime.utc(2024, 6, 1, 12, 0, 0),
+          latitude: 1.0,
+          longitude: 2.0,
+          width: 800,
+          height: 600,
+          caption: 'cap',
+          filename: name,
+        ),
+      ]),
+      etag: null,
+      lastModified: null,
+    );
+
+    fetcher._outcomes['https://feed.example.com/m.json'] = named('P1.JPG');
+    await poller.pollAllDue(t0.add(const Duration(hours: 2)));
+    expect(
+      (await mediaRepo.getAllBySubscription(sub.id)).single.originalFilename,
+      'P1.JPG',
+    );
+
+    // A rename at the source does not overwrite the stored name.
+    fetcher._outcomes['https://feed.example.com/m.json'] = named('renamed.jpg');
+    await poller.pollAllDue(t0.add(const Duration(hours: 4)));
+    expect(
+      (await mediaRepo.getAllBySubscription(sub.id)).single.originalFilename,
+      'P1.JPG',
+    );
+  });
 }
 
 /// Re-confirms an ALREADY orphaned row immediately after the poller has

@@ -195,6 +195,9 @@ class SubscriptionPoller {
         width: entry.width ?? existingRow.width,
         height: entry.height ?? existingRow.height,
         durationSeconds: entry.durationSeconds ?? existingRow.durationSeconds,
+        // Filled in when the row has none (rows from before the feed sent
+        // one); a name the row already carries is left alone.
+        originalFilename: existingRow.originalFilename ?? entry.filename,
       );
       if (patched != existingRow) {
         await mediaRepo.updateMedia(patched);

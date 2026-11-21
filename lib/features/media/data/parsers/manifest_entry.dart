@@ -54,6 +54,11 @@ class ManifestEntry extends Equatable {
   /// shares) would otherwise download every original on the first import.
   final bool metadataComplete;
 
+  /// The original file name, when the source knows it. Named in the import
+  /// review and stored as the row's original file name; unlike [caption] it
+  /// is not a user-facing caption.
+  final String? filename;
+
   const ManifestEntry({
     required this.entryKey,
     required this.url,
@@ -67,6 +72,7 @@ class ManifestEntry extends Equatable {
     this.durationSeconds,
     this.mediaType,
     this.metadataComplete = false,
+    this.filename,
   });
 
   @override
@@ -83,6 +89,7 @@ class ManifestEntry extends Equatable {
     durationSeconds,
     mediaType,
     metadataComplete,
+    filename,
   ];
 
   @override

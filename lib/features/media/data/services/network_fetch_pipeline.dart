@@ -198,6 +198,7 @@ class NetworkFetchPipeline {
               height: Value(entry?.height ?? result?.height),
               durationSeconds: Value(entry?.durationSeconds),
               caption: Value(entry?.caption),
+              originalFilename: Value(entry?.filename),
               isOrphaned: Value(media.failed),
               lastVerifiedAt: Value(media.failed ? null : nowMillis),
               createdAt: nowMillis,

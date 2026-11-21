@@ -106,10 +106,15 @@ class ManifestTabError extends ManifestTabState {
   /// The source asked for credentials (HTTP 401, or a share without a
   /// saved password), so the panel can offer to enter them.
   final bool unauthorized;
+
+  /// The source's own reason, kept when [message] replaces it with a
+  /// generic hint (e.g. "needs its password" vs "did not accept it").
+  final String? detail;
   const ManifestTabError({
     required this.url,
     required this.message,
     this.unauthorized = false,
+    this.detail,
   });
 }
 
@@ -162,6 +167,7 @@ class ManifestTabNotifier extends StateNotifier<ManifestTabState> {
           url: trimmed,
           message: reason,
           unauthorized: outcome.unauthorized,
+          detail: outcome.message,
         );
     }
   }
@@ -194,6 +200,7 @@ class ManifestTabNotifier extends StateNotifier<ManifestTabState> {
           url: current.url,
           message: reason,
           unauthorized: outcome.unauthorized,
+          detail: outcome.message,
         );
       case ManifestFetchNotModified():
         // 304 → re-show the existing preview but with the new override
