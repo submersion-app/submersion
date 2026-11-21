@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/shared/widgets/forms/discard_dialog.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/tab_visibility.dart';
 
 /// Ends a sitting without saving, asking first when it has unsaved changes.
 ///
@@ -53,7 +54,12 @@ class RecordEditLeaveGuard<T> extends StatelessWidget {
       listenable: controller,
       child: child,
       builder: (context, child) => PopScope(
-        canPop: !controller.isDirty && !controller.isBusy,
+        // A kept-alive tab that is hidden (Training, Media and Documents)
+        // lets Back through: the tab on screen answers it, and the page
+        // leaves with this one's sitting, as the old forms did (#3437).
+        canPop:
+            !controller.isBusy &&
+            (!controller.isDirty || !TabVisibility.isVisible(context)),
         onPopInvokedWithResult: (didPop, _) async {
           if (didPop) {
             controller.lock();
