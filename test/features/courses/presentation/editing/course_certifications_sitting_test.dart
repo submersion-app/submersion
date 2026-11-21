@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
+import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_multi_select_field.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/change_log/data/services/change_log_revert_service.dart';
@@ -16,6 +19,17 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/test_database.dart';
+
+/// The certification list, its state set by the test.
+class _CertListNotifier extends StateNotifier<AsyncValue<List<Certification>>>
+    implements CertificationListNotifier {
+  _CertListNotifier(List<Certification> certs) : super(AsyncValue.data(certs));
+
+  void put(List<Certification> certs) => state = AsyncValue.data(certs);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
 
 /// A course's earned certifications held in its page's sitting (issue
 /// #4527, phase 3), written at Save in the sitting's one entry.
@@ -210,5 +224,53 @@ void main() {
 
     expect(find.byType(LinearProgressIndicator), findsNothing);
     expect(find.byType(CertificationMultiSelectField), findsOneWidget);
+  });
+
+  testWidgets('a certification created after the sheet opened is held when '
+      'the sheet reports it (#4809)', (tester) async {
+    late EditSession<Course> session;
+    late List<Certification> before;
+    late Certification created;
+    await tester.runAsync(() async {
+      session = EditSession(await stored());
+      await courseCertificationsList.load(session);
+      before = await certifications.getAllCertifications();
+      await DatabaseService.instance.database.customStatement(
+        "INSERT INTO certifications (id, diver_id, name, agency, "
+        "created_at, updated_at) VALUES ('c5', 'd', 'Deep', 'padi', 0, 0)",
+      );
+      created = (await certifications.getCertificationById('c5'))!;
+    });
+    addTearDown(session.dispose);
+    final list = _CertListNotifier(before);
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...await getBaseOverrides(),
+          certificationListNotifierProvider.overrideWith((ref) => list),
+        ],
+        child: Scaffold(
+          body: CourseEarnedCertificationsEditor(session: session),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    // What the sheet holds: the field's callback as it was when it opened.
+    final reportFromSheet = tester
+        .widget<CertificationMultiSelectField>(
+          find.byType(CertificationMultiSelectField),
+        )
+        .onChanged;
+    // The new certification's page saved it and the list read it again.
+    list.put([...before, created]);
+    await tester.pump();
+
+    reportFromSheet(['c5']);
+
+    expect(
+      [for (final c in courseCertificationsList.current(session)!) c.id],
+      ['c5'],
+    );
   });
 }

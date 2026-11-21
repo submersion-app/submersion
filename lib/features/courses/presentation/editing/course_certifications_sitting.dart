@@ -116,10 +116,18 @@ class _CourseEarnedCertificationsEditorState
               courseId: _session.stored.id,
               selectedCertificationIds: [for (final c in current) c.id],
               onChanged: (ids) {
-                if (_session.isDisposed) return;
+                if (_session.isDisposed || !mounted) return;
+                // Read as the sheet reports, not as the field was built:
+                // a certification created from the sheet (#4809) is only
+                // in the list read since.
                 final byId = {
-                  for (final c in current) c.id: c,
-                  for (final c in all) c.id: c,
+                  for (final c
+                      in courseCertificationsList.current(_session) ?? current)
+                    c.id: c,
+                  for (final c
+                      in ref.read(certificationListNotifierProvider).value ??
+                          all)
+                    c.id: c,
                 };
                 courseCertificationsList.set(_session, [
                   for (final id in ids) ?byId[id],
