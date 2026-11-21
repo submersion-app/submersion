@@ -200,6 +200,38 @@ void main() {
     expect(nav.location, '/sites');
   });
 
+  testWidgets(
+    "the sites map's attribution opens, and the map itself opens the sites",
+    (tester) async {
+      final nav = await pumpPanel(
+        tester,
+        const RecentSitesPanel(),
+        overrides: [
+          recentSitesProvider.overrideWith(
+            (ref) async => const [
+              RecentSitePin(
+                siteName: 'Salt Pier',
+                latitude: 12.08,
+                longitude: -68.28,
+              ),
+            ],
+          ),
+        ],
+      );
+      await tester.pump(const Duration(milliseconds: 100));
+      // The tile credit starts folded into an info button, which must take
+      // its own tap rather than pass it to the panel.
+      await tester.tap(find.byTooltip('Attributions'));
+      await tester.pump();
+      expect(find.textContaining('OpenStreetMap'), findsOneWidget);
+      expect(nav.location, isNull);
+
+      await tester.tapAt(tester.getCenter(find.byType(RecentSitesPanel)));
+      await tester.pumpAndSettle();
+      expect(nav.location, '/sites');
+    },
+  );
+
   testWidgets('a video in recent media carries its badge', (tester) async {
     await pumpPanel(
       tester,

@@ -23,6 +23,12 @@ class GearServicePanel extends ConsumerWidget {
     final l10n = context.l10n;
     final bars = ref.watch(homeGearServiceProvider);
     final list = bars.value ?? const <GearServiceBar>[];
+    // Only gear with a service schedule has a clock, so an empty list is
+    // either no gear at all or gear with no schedule yet.
+    final hasGear = ref.watch(homeHasGearProvider).value ?? false;
+    final emptyText = hasGear
+        ? l10n.equipment_serviceClocks_empty
+        : l10n.dashboard_panel_noGear;
     final max = homeWidthTierOf(context) == HomeWidthTier.phone ? 3 : 5;
     bool any(ServiceClockSeverity s) => list.any((b) => b.status.severity == s);
     // The list narrowed to the bars' worst severity; with nothing due, the
@@ -34,10 +40,14 @@ class GearServicePanel extends ConsumerWidget {
         : null;
     return HomePanel(
       title: l10n.dashboard_panel_gearService,
-      semanticsValue: list.isEmpty
-          ? l10n.dashboard_panel_noGear
+      // Nothing is said until the clocks have loaded: the empty text read
+      // out while loading, or after a failed read, would be untrue.
+      semanticsValue: !bars.hasValue
+          ? ''
+          : list.isEmpty
+          ? emptyText
           : '${list.first.itemName} ${gearRemainingText(l10n, list.first.status)}',
-      onTap: bars.hasValue && list.isEmpty
+      onTap: bars.hasValue && list.isEmpty && !hasGear
           ? () => context.push('/equipment/new')
           : due != null
           ? () => openEquipmentWithServiceDue(context, ref, due)
@@ -52,7 +62,7 @@ class GearServicePanel extends ConsumerWidget {
       child: HomePanelAsync<List<GearServiceBar>>(
         value: bars,
         isEmpty: (b) => b.isEmpty,
-        emptyText: l10n.dashboard_panel_noGear,
+        emptyText: emptyText,
         builder: (b) => Column(
           mainAxisSize: MainAxisSize.min,
           children: [

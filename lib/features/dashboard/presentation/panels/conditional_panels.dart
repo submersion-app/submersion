@@ -383,7 +383,10 @@ class RecentSitesPanel extends ConsumerWidget {
         : null;
     return HomePanel(
       title: context.l10n.dashboard_recentSites_title,
-      semanticsValue: pins.map((p) => p.siteName ?? '').join(', '),
+      semanticsValue: [
+        for (final p in pins)
+          if (p.siteName?.isNotEmpty ?? false) p.siteName!,
+      ].join(', '),
       onTap: () => context.push('/sites'),
       padding: EdgeInsets.zero,
       child: DeferUntilPainted(
@@ -392,41 +395,44 @@ class RecentSitesPanel extends ConsumerWidget {
           color: background,
           child: const SizedBox.expand(),
         ),
-        child: IgnorePointer(
-          child: LockedMapScrollPassthrough(
-            child: FlutterMap(
-              key: ValueKey(Object.hashAllUnordered(points)),
-              options: MapOptions(
-                initialCenter: points.first,
-                initialZoom: 11,
-                initialCameraFit: fit,
-                backgroundColor: background,
-                interactionOptions: const InteractionOptions(
-                  flags: InteractiveFlag.none,
-                ),
+        // Not behind an IgnorePointer: the attribution starts folded into
+        // an info button, which has to stay tappable for the tile sources'
+        // credit to be readable. A tap anywhere else on the locked map opens
+        // the sites, as the rest of the panel does.
+        child: LockedMapScrollPassthrough(
+          child: FlutterMap(
+            key: ValueKey(Object.hashAllUnordered(points)),
+            options: MapOptions(
+              initialCenter: points.first,
+              initialZoom: 11,
+              initialCameraFit: fit,
+              backgroundColor: background,
+              interactionOptions: const InteractionOptions(
+                flags: InteractiveFlag.none,
               ),
-              children: [
-                submersionTileLayer(ref),
-                MarkerLayer(
-                  markers: [
-                    for (final p in pins)
-                      Marker(
-                        point: LatLng(p.latitude, p.longitude),
-                        width: 14,
-                        height: 14,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: scheme.error,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
-                          ),
+              onTap: (_, _) => context.push('/sites'),
+            ),
+            children: [
+              submersionTileLayer(ref),
+              MarkerLayer(
+                markers: [
+                  for (final p in pins)
+                    Marker(
+                      point: LatLng(p.latitude, p.longitude),
+                      width: 14,
+                      height: 14,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: scheme.error,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
                         ),
                       ),
-                  ],
-                ),
-                const MapAttribution(),
-              ],
-            ),
+                    ),
+                ],
+              ),
+              const MapAttribution(),
+            ],
           ),
         ),
       ),

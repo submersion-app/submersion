@@ -149,6 +149,56 @@ extension InsightsRepositoryHome on InsightsRepository {
     }
   }
 
+  /// The diver's deepest dive in [year], with its site's name, or the dive's
+  /// own name when it has no site: the Home deepest tile names that dive and
+  /// opens it. Null when no dive that year has a depth. Ties go to the
+  /// newest dive.
+  Future<({String id, String? site})?> getDeepestDiveOfYear(
+    int year, {
+    String? diverId,
+  }) async {
+    try {
+      // The same half-open, wall-clock-as-UTC range as getYearStats, so the
+      // tile's dive is the one whose depth the year stats report.
+      final startMs = DateTime.utc(year).millisecondsSinceEpoch;
+      final endMs = DateTime.utc(year + 1).millisecondsSinceEpoch;
+      final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
+      final row = await _db
+          .customSelect(
+            '''
+        SELECT
+          d.id AS id,
+          COALESCE(NULLIF(TRIM(ds.name), ''), NULLIF(TRIM(d.name), '')) AS site
+        FROM dives d
+        LEFT JOIN dive_sites ds ON ds.id = d.site_id
+        WHERE d.dive_date_time >= ? AND d.dive_date_time < ?
+          AND d.max_depth IS NOT NULL
+        $diverFilter${DiveStatsScope.and(alias: 'd')}
+        ORDER BY d.max_depth DESC, d.dive_date_time DESC
+        LIMIT 1
+        ''',
+            variables: [
+              Variable<int>(startMs),
+              Variable<int>(endMs),
+              if (diverId != null) Variable<String>(diverId),
+            ],
+          )
+          .getSingleOrNull();
+      if (row == null) return null;
+      return (
+        id: row.read<String>('id'),
+        site: row.readNullable<String>('site'),
+      );
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get the deepest dive of the year',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// How many species the diver saw for the first time on or after [since].
   Future<int> getSpeciesFirstSeenSince({
     String? diverId,

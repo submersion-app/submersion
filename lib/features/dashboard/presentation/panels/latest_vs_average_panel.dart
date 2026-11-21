@@ -85,10 +85,8 @@ class LatestVsAveragePanel extends ConsumerWidget {
     }
     final point = series.where((p) => p.diveId == dive.id).firstOrNull;
     if (point != null) {
-      String fmt(double v) =>
-          (sacLane ? units.convertSac(v) : units.convertRmv(v)).toStringAsFixed(
-            1,
-          );
+      // With its unit and the unit's own precision, as the depth row has.
+      String fmt(double v) => sacLane ? units.formatSac(v) : units.formatRmv(v);
       rows.add(
         HomeBarRow(
           label: sacLane ? l10n.dashboard_panel_sac : l10n.dashboard_panel_rmv,

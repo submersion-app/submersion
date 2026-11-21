@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -125,12 +127,51 @@ void main() {
       final nav = await pumpPanel(
         tester,
         const GearServicePanel(),
-        overrides: [homeGearServiceProvider.overrideWith((ref) async => [])],
+        overrides: [
+          homeGearServiceProvider.overrideWith((ref) async => []),
+          homeHasGearProvider.overrideWith((ref) async => false),
+        ],
       );
       expect(find.text('Add gear to track its service'), findsOneWidget);
       await tester.tap(find.byType(GearServicePanel));
       await tester.pumpAndSettle();
       expect(nav.location, '/equipment/new');
+    });
+
+    testWidgets('gear with no service schedule is not told to add gear', (
+      tester,
+    ) async {
+      final nav = await pumpPanel(
+        tester,
+        const GearServicePanel(),
+        overrides: [
+          homeGearServiceProvider.overrideWith((ref) async => []),
+          homeHasGearProvider.overrideWith((ref) async => true),
+        ],
+      );
+      expect(find.text('Add gear to track its service'), findsNothing);
+      expect(find.text('No service clocks'), findsOneWidget);
+      await tester.tap(find.byType(GearServicePanel));
+      await tester.pumpAndSettle();
+      expect(nav.location, '/equipment');
+    });
+
+    testWidgets('says nothing to a screen reader while loading', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await pumpPanel(
+        tester,
+        const GearServicePanel(),
+        overrides: [
+          homeGearServiceProvider.overrideWith(
+            (ref) => Completer<List<GearServiceBar>>().future,
+          ),
+          homeHasGearProvider.overrideWith((ref) async => false),
+        ],
+      );
+      expect(find.bySemanticsLabel('Gear service'), findsOneWidget);
+      semantics.dispose();
     });
 
     testWidgets('a long gear name stays on one line at phone width', (
@@ -212,6 +253,57 @@ void main() {
         find.text(documentTypeLabel(l10n, DocumentType.permit)),
         findsOneWidget,
       );
+    });
+
+    testWidgets('an item due today is not drawn as lapsed', (tester) async {
+      final now = DateTime.now();
+      await pumpPanel(
+        tester,
+        const ComingDuePanel(),
+        overrides: [
+          homeComingDueProvider.overrideWith(
+            (ref) async => [
+              ComingDueItem(
+                kind: ComingDueKind.certification,
+                id: 'old',
+                name: 'Lapsed',
+                due: DateTime(now.year, now.month, now.day - 1),
+              ),
+              ComingDueItem(
+                kind: ComingDueKind.document,
+                id: 'p',
+                name: 'Passport',
+                due: DateTime(now.year, now.month, now.day),
+                documentType: DocumentType.permit,
+              ),
+            ],
+          ),
+        ],
+      );
+      final error = Theme.of(
+        tester.element(find.byType(ComingDuePanel)),
+      ).colorScheme.error;
+      Color? iconColor(IconData icon) =>
+          tester.widget<Icon>(find.byIcon(icon)).color;
+      expect(iconColor(Icons.card_membership_outlined), error);
+      expect(iconColor(Icons.folder_copy_outlined), isNot(error));
+    });
+
+    testWidgets('says nothing to a screen reader while loading', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await pumpPanel(
+        tester,
+        const ComingDuePanel(),
+        overrides: [
+          homeComingDueProvider.overrideWith(
+            (ref) => Completer<List<ComingDueItem>>().future,
+          ),
+        ],
+      );
+      expect(find.bySemanticsLabel('Coming due'), findsOneWidget);
+      semantics.dispose();
     });
 
     testWidgets('nothing due says so', (tester) async {

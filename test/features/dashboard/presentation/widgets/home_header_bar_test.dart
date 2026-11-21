@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +8,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/gauge_providers.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/home_header_bar.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/home_light_chip.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -202,6 +204,57 @@ void main() {
       expect(size.width, greaterThanOrEqualTo(44), reason: '$finder');
       expect(size.height, greaterThanOrEqualTo(44), reason: '$finder');
     }
+  });
+
+  testWidgets('a light can be tapped just above its pill', (tester) async {
+    await _pump(
+      tester,
+      width: 1280,
+      gauges: () async => throw StateError('boom'),
+    );
+    final before = _gaugeBuilds;
+    final label = tester.getRect(
+      find.text('Status unavailable - tap to retry'),
+    );
+    // Above the drawn pill, but inside the 44-point tap target.
+    await tester.tapAt(Offset(label.center.dx, label.top - 8));
+    await tester.pump();
+    await tester.pump();
+    expect(_gaugeBuilds, greaterThan(before));
+  });
+
+  testWidgets('every light is at least 44 high to tap', (tester) async {
+    for (final width in [1280.0, 390.0]) {
+      await _pump(tester, width: width);
+      final chips = find.byType(HomeLightChip);
+      expect(chips, findsWidgets, reason: '$width');
+      for (final element in chips.evaluate()) {
+        expect(
+          element.size!.height,
+          greaterThanOrEqualTo(44),
+          reason: '$width',
+        );
+      }
+    }
+  });
+
+  testWidgets('a mouse can drag the lights along when they overflow', (
+    tester,
+  ) async {
+    await _pump(tester, width: 820, textScale: 2);
+    final scrollable = find.descendant(
+      of: find.byType(HomeHeaderBar),
+      matching: find.byType(Scrollable),
+    );
+    final position = tester.state<ScrollableState>(scrollable).position;
+    expect(position.maxScrollExtent, greaterThan(0));
+    await tester.dragFrom(
+      tester.getCenter(scrollable),
+      const Offset(-200, 0),
+      kind: PointerDeviceKind.mouse,
+    );
+    await tester.pumpAndSettle();
+    expect(position.pixels, greaterThan(0));
   });
 
   testWidgets('German at text scale 2 fits the bar at 800 wide', (

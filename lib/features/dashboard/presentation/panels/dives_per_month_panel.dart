@@ -23,7 +23,8 @@ class DivesPerMonthPanel extends ConsumerWidget {
     );
     return HomePanel(
       title: l10n.dashboard_panel_divesPerMonth,
-      semanticsValue: '$total',
+      // Said only once loaded: a total of 0 while loading would be untrue.
+      semanticsValue: months.hasValue ? '$total' : '',
       onTap: () => context.push('/insights'),
       child: HomePanelAsync<List<MonthCount>>(
         value: months,

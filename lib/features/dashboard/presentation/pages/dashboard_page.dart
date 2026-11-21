@@ -246,6 +246,7 @@ class DashboardPage extends ConsumerWidget {
     // Reads the documents itself, so it is not reached through the gauges.
     ref.invalidate(homeComingDueProvider);
     ref.invalidate(homeNewSpeciesThisYearProvider);
+    ref.invalidate(homeDeepestThisYearProvider);
     ref.invalidate(homeKeyNumbersProvider);
   }
 }

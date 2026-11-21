@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -12,6 +13,7 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import 'panel_harness.dart';
 
 final _full = HomeKeyNumbers(
   careerDives: 412,
@@ -273,5 +275,127 @@ void main() {
   ) async {
     await _pump(tester, width: 1280);
     expect(find.text('checklist 6/14 · Bonaire'), findsOneWidget);
+  });
+
+  testWidgets('RMV in cuft a minute keeps two places', (tester) async {
+    await _pump(
+      tester,
+      width: 1280,
+      settings: const AppSettings(volumeUnit: VolumeUnit.cubicFeet),
+      numbers: const HomeKeyNumbers(
+        careerDives: 30,
+        careerTimeSeconds: 30 * 3600,
+        avgSac: 16,
+        avgSacChange: -0.85,
+      ),
+    );
+    // 16 L/min is 0.565 cuft/min, and -0.85 L/min is -0.030.
+    expect(find.text('0.57 cuft/min'), findsOneWidget);
+    expect(find.text('-0.03 vs previous 10'), findsOneWidget);
+  });
+
+  testWidgets('SAC in psi a minute shows whole numbers', (tester) async {
+    await _pump(
+      tester,
+      width: 1280,
+      settings: const AppSettings(pressureUnit: PressureUnit.psi),
+      numbers: const HomeKeyNumbers(
+        careerDives: 30,
+        careerTimeSeconds: 30 * 3600,
+        avgSac: 1.2,
+        sacLane: GasConsumptionLane.sac,
+      ),
+    );
+    expect(find.text('17 psi/min'), findsOneWidget);
+  });
+
+  testWidgets('decimals follow the locale', (tester) async {
+    final previous = Intl.defaultLocale;
+    Intl.defaultLocale = 'de';
+    addTearDown(() => Intl.defaultLocale = previous);
+    await _pump(
+      tester,
+      width: 1280,
+      numbers: const HomeKeyNumbers(
+        careerDives: 30,
+        careerTimeSeconds: 8 * 3600 + 30 * 60,
+        deepestThisYear: 42.1,
+      ),
+    );
+    expect(find.text('42,1 m'), findsOneWidget);
+    expect(find.text('8,5 h'), findsOneWidget);
+  });
+
+  testWidgets('nothing logged this year leaves the year lines out', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      width: 1280,
+      numbers: const HomeKeyNumbers(
+        careerDives: 30,
+        careerTimeSeconds: 30 * 3600,
+        divesThisYear: 0,
+        timeThisYearSeconds: 0,
+      ),
+    );
+    expect(find.textContaining('this year'), findsNothing);
+  });
+
+  testWidgets('the last dive tile gives its site and date', (tester) async {
+    await _pump(
+      tester,
+      width: 1280,
+      numbers: HomeKeyNumbers(
+        careerDives: 30,
+        careerTimeSeconds: 30 * 3600,
+        daysSinceLastDive: 12,
+        lastDiveId: 'd30',
+        lastDiveSite: 'Salt Pier',
+        lastDiveDate: DateTime(2026, 11, 9),
+      ),
+    );
+    expect(find.textContaining('Salt Pier · '), findsOneWidget);
+  });
+
+  testWidgets('the deepest tile names its dive and opens it', (tester) async {
+    final nav = await pumpPanel(
+      tester,
+      const KeyNumbersPanel(),
+      width: 1280,
+      overrides: [
+        homeKeyNumbersProvider.overrideWith(
+          (ref) async => const HomeKeyNumbers(
+            careerDives: 30,
+            careerTimeSeconds: 30 * 3600,
+            deepestThisYear: 42,
+            deepestLastYear: 38,
+            deepestDiveId: 'd400',
+            deepestDiveSite: 'Blue Hole',
+          ),
+        ),
+      ],
+    );
+    expect(find.text('Blue Hole'), findsOneWidget);
+    await tester.tap(find.text('DEEPEST THIS YEAR'));
+    await tester.pumpAndSettle();
+    expect(nav.location, '/dives/d400');
+  });
+
+  testWidgets('time under opens the dive list', (tester) async {
+    final nav = await pumpPanel(
+      tester,
+      const KeyNumbersPanel(),
+      width: 1280,
+      overrides: [
+        homeKeyNumbersProvider.overrideWith(
+          (ref) async =>
+              const HomeKeyNumbers(careerDives: 30, careerTimeSeconds: 108000),
+        ),
+      ],
+    );
+    await tester.tap(find.text('TIME UNDER'));
+    await tester.pumpAndSettle();
+    expect(nav.location, '/dives');
   });
 }

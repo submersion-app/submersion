@@ -26,7 +26,12 @@ class SacTrendPanel extends ConsumerWidget {
         sac ? units.convertSac(p.value) : units.convertRmv(p.value),
     ];
     final unit = sac ? units.sacSymbol : units.rmvSymbol;
-    final latest = shown.isEmpty ? null : shown.last.toStringAsFixed(1);
+    // Spoken with its unit, at the unit's own precision.
+    final latest = points.isEmpty
+        ? null
+        : sac
+        ? units.formatSac(points.last.value)
+        : units.formatRmv(points.last.value);
     return HomePanel(
       title: sac
           ? l10n.dashboard_panel_sacTrend
@@ -34,7 +39,7 @@ class SacTrendPanel extends ConsumerWidget {
       trailing: points.isEmpty
           ? null
           : '${l10n.dashboard_panel_lastDives(points.length)} · $unit',
-      semanticsValue: latest == null ? '' : '$latest $unit',
+      semanticsValue: latest ?? '',
       onTap: () => context.push('/insights'),
       child: HomePanelAsync<List<TrendDataPoint>>(
         value: series,

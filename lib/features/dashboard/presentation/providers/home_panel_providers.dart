@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:clock/clock.dart';
 
 import 'package:submersion/core/constants/gas_consumption_display.dart';
@@ -28,9 +30,15 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 // than the repository itself: those follow the Insights page's filter, and a
 // filter set there must not change Home's numbers.
 
-/// The window the activity calendar and the averages cover.
-DateTime homeWindowStart(DateTime now) =>
-    DateTime(now.year - 1, now.month, now.day + 1);
+/// The first day of the [months] months ending today, the window the
+/// activity calendar and the averages cover: the day after the same date
+/// [months] months back. The day is clamped to that month's length, so 31
+/// August looks back to 28 February and starts on 1 March, not on 4 March.
+DateTime homeWindowStart(DateTime now, {int months = 12}) {
+  final back = DateTime(now.year, now.month - months);
+  final lastDay = DateTime(back.year, back.month + 1, 0).day;
+  return DateTime(back.year, back.month, math.min(now.day, lastDay) + 1);
+}
 
 /// Dives per calendar day over the last twelve months.
 final homeActivityDaysProvider = FutureProvider<Map<DateTime, int>>((
@@ -186,6 +194,14 @@ final homeGearServiceProvider = FutureProvider<List<GearServiceBar>>((
   return gearServiceBars(clocks);
 });
 
+/// Whether the diver has any active gear, scheduled for service or not: the
+/// gear service panel tells "no gear" from "no service schedules" by it,
+/// since only scheduled gear has a clock.
+final homeHasGearProvider = FutureProvider<bool>((ref) async {
+  final clocks = await ref.watch(activeEquipmentClocksProvider.future);
+  return clocks.isNotEmpty;
+});
+
 /// Gear services, insurance, certifications and documents coming due.
 ///
 /// Documents are read in full rather than taken from the status lights,
@@ -270,6 +286,20 @@ final homeNewSpeciesThisYearProvider = FutureProvider<int>((ref) async {
   );
 });
 
+/// The deepest dive this calendar year, which the deepest tile names by its
+/// site and opens.
+final homeDeepestThisYearProvider =
+    FutureProvider<({String id, String? site})?>((ref) async {
+      final repository = ref.watch(insightsRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchInsightsChanges());
+      // The year is read once per build, so New Year must rebuild it too.
+      ref.invalidateSelfWhen(localDayChanges());
+      return repository.getDeepestDiveOfYear(
+        clock.now().year,
+        diverId: ref.watch(currentDiverIdProvider),
+      );
+    });
+
 /// Everything the key numbers panel shows. Each source refreshes itself, so
 /// this rebuilds whenever one of them does.
 final homeKeyNumbersProvider = FutureProvider<HomeKeyNumbers>((ref) async {
@@ -286,13 +316,19 @@ final homeKeyNumbersProvider = FutureProvider<HomeKeyNumbers>((ref) async {
   final checklistF = ref.watch(homeTripChecklistProvider.future);
   final speciesF = ref.watch(homeSpeciesCountProvider.future);
   final newSpeciesF = ref.watch(homeNewSpeciesThisYearProvider.future);
+  final deepestF = ref.watch(homeDeepestThisYearProvider.future);
 
   // Only the career totals are essential: any other source failing leaves
   // its tile out instead of turning every tile into an error.
   Future<T?> optional<T>(Future<T> f) async {
     try {
       return await f;
-    } catch (_) {
+    } catch (e, stackTrace) {
+      _log.error(
+        'A key number source failed; its tile is left out',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return null;
     }
   }
@@ -307,6 +343,7 @@ final homeKeyNumbersProvider = FutureProvider<HomeKeyNumbers>((ref) async {
   final checklist = await optional(checklistF);
   final species = await optional(speciesF);
   final newSpecies = await optional(newSpeciesF);
+  final deepest = await optional(deepestF);
 
   final sacValues = [for (final p in sac) p.value];
   final last10 = sacValues.length <= 10
@@ -330,12 +367,15 @@ final homeKeyNumbersProvider = FutureProvider<HomeKeyNumbers>((ref) async {
     daysSinceLastDive: latest == null ? null : days,
     lastDiveId: latest?.id,
     lastDiveSite: latest?.site?.name ?? latest?.name,
+    lastDiveDate: latest?.effectiveEntryTime,
     avgSac: avgSac,
     avgSacChange: avgSac != null && prevSac != null ? avgSac - prevSac : null,
     sacSeries: sacValues,
     sacLane: lane,
     deepestThisYear: year?.current.maxDepth,
     deepestLastYear: year?.previous.maxDepth,
+    deepestDiveId: deepest?.id,
+    deepestDiveSite: deepest?.site,
     nextTrip: trip,
     tripChecklistDone: checklist != null && checklist.trip.id == trip?.id
         ? checklist.done

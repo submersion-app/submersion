@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/home_status_lights.dart';
 
+/// The height every dense pill can be tapped across: the header's 44-point
+/// minimum, though the pill is drawn smaller.
+const double homeLightMinHitHeight = 44;
+
 /// One status light drawn as a pill: tinted by its tone, with its icon and
 /// label, and tappable for its action.
 class HomeLightChip extends StatelessWidget {
@@ -36,7 +40,7 @@ class HomeLightChip extends StatelessWidget {
     final textStyle = dense
         ? Theme.of(context).textTheme.labelSmall
         : Theme.of(context).textTheme.labelMedium;
-    return InkWell(
+    final chip = InkWell(
       onTap: light.onTap,
       onLongPress: light.onLongPress,
       borderRadius: BorderRadius.circular(999),
@@ -66,6 +70,20 @@ class HomeLightChip extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+    if (!dense) return chip;
+    // Drawn small for the slim header, but tappable across 44 points of
+    // height, as every control in the bar is: a tap just above or below the
+    // pill still reaches it. On the pill itself its own ink wins the tap.
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      excludeFromSemantics: true,
+      onTap: light.onTap,
+      onLongPress: light.onLongPress,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: homeLightMinHitHeight),
+        child: Align(widthFactor: 1, heightFactor: 1, child: chip),
       ),
     );
   }

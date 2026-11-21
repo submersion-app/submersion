@@ -227,6 +227,7 @@ class HomeKeyNumbers {
   final int? daysSinceLastDive;
   final String? lastDiveId;
   final String? lastDiveSite;
+  final DateTime? lastDiveDate;
 
   /// Mean SAC (or RMV) over the last ten dives with one, in metric units of
   /// [sacLane], and its change against the ten before.
@@ -237,6 +238,11 @@ class HomeKeyNumbers {
 
   final double? deepestThisYear;
   final double? deepestLastYear;
+
+  /// The dive [deepestThisYear] comes from, and its site (or name), so the
+  /// tile can name it and open it.
+  final String? deepestDiveId;
+  final String? deepestDiveSite;
 
   final Trip? nextTrip;
   final int? tripChecklistDone;
@@ -257,12 +263,15 @@ class HomeKeyNumbers {
     this.daysSinceLastDive,
     this.lastDiveId,
     this.lastDiveSite,
+    this.lastDiveDate,
     this.avgSac,
     this.avgSacChange,
     this.sacSeries = const [],
     this.sacLane = GasConsumptionLane.rmv,
     this.deepestThisYear,
     this.deepestLastYear,
+    this.deepestDiveId,
+    this.deepestDiveSite,
     this.nextTrip,
     this.tripChecklistDone,
     this.tripChecklistTotal,

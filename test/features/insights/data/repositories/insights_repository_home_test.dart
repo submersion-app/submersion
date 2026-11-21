@@ -43,6 +43,8 @@ void main() {
     double avgDepth = 10,
     int? startPressure,
     double? volume,
+    String? siteId,
+    String? name,
   }) async {
     await db
         .into(db.dives)
@@ -50,6 +52,8 @@ void main() {
           DivesCompanion(
             id: Value(id),
             diverId: Value(diverId),
+            siteId: Value(siteId),
+            name: Value(name),
             diveDateTime: Value(start),
             maxDepth: Value(maxDepth),
             avgDepth: Value(avgDepth),
@@ -260,6 +264,46 @@ void main() {
         ('French angelfish', 1),
       ]);
     });
+  });
+
+  group('getDeepestDiveOfYear', () {
+    test('names the deepest dive of the year by its site', () async {
+      await db
+          .into(db.diveSites)
+          .insert(
+            const DiveSitesCompanion(
+              id: Value('hole'),
+              name: Value('Blue Hole'),
+              createdAt: Value(0),
+              updatedAt: Value(0),
+            ),
+          );
+      await dive('shallow', start: utc(2026, 2, 1), maxDepth: 18);
+      await dive('deep', start: utc(2026, 3, 1), maxDepth: 42, siteId: 'hole');
+      await dive('older', start: utc(2025, 6, 1), maxDepth: 60);
+
+      expect(await repository.getDeepestDiveOfYear(2026), (
+        id: 'deep',
+        site: 'Blue Hole',
+      ));
+    });
+
+    test(
+      'takes the dive name without a site; null for an empty year',
+      () async {
+        await dive(
+          'named',
+          start: utc(2026, 4, 1),
+          maxDepth: 25,
+          name: 'Night drift',
+        );
+        expect(await repository.getDeepestDiveOfYear(2026), (
+          id: 'named',
+          site: 'Night drift',
+        ));
+        expect(await repository.getDeepestDiveOfYear(2024), isNull);
+      },
+    );
   });
 
   test('year stats carry the average maximum depth', () async {

@@ -1,7 +1,10 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dashboard/presentation/home_layout.dart';
 import 'package:submersion/features/dashboard/presentation/home_panels.dart';
@@ -122,13 +125,15 @@ class KeyNumbersPanel extends ConsumerWidget {
   ) {
     final l10n = context.l10n;
     final units = ref.watch(unitFormatterProvider);
-    // One decimal, dropped when it is zero: 42.1 and 30, not 30.0.
+    // One decimal, dropped when it is zero: 42.1 and 30, not 30.0. In the
+    // locale's own decimal separator, as the comparison lines are.
     String depth(double m) {
       final v = units.convertDepth(m);
       final rounded = (v * 10).round() / 10;
-      return rounded == rounded.roundToDouble()
-          ? rounded.toStringAsFixed(0)
-          : rounded.toStringAsFixed(1);
+      return formatFixedForDisplay(
+        rounded,
+        rounded == rounded.roundToDouble() ? 0 : 1,
+      );
     }
 
     switch (tile) {
@@ -137,7 +142,9 @@ class KeyNumbersPanel extends ConsumerWidget {
           title: l10n.dashboard_key_dives,
           value: '${n.careerDives}',
           unit: '',
-          comparison: n.divesThisYear == null
+          // Nothing logged yet this year says nothing, as with species: a
+          // "+0" in the accent colour would read as growth.
+          comparison: (n.divesThisYear ?? 0) == 0
               ? null
               : l10n.dashboard_key_countThisYear(n.divesThisYear!),
           highlight: true,
@@ -153,64 +160,81 @@ class KeyNumbersPanel extends ConsumerWidget {
           value: hours,
           highlight: true,
           unit: l10n.dashboard_key_hoursUnit,
-          comparison: yearSeconds == null
+          comparison: (yearSeconds ?? 0) == 0
               ? null
-              : l10n.dashboard_key_hoursThisYear(_hours(yearSeconds)),
+              : l10n.dashboard_key_hoursThisYear(_hours(yearSeconds!)),
           semantics: '$hours ${l10n.dashboard_key_hoursUnit}',
-          onTap: () => context.push('/insights'),
+          onTap: () => context.push('/dives'),
         );
       case HomeKeyNumber.lastDive:
         final days = n.daysSinceLastDive!;
+        final lastDate = n.lastDiveDate;
+        // Its site and date; either may be missing.
+        final where = [
+          n.lastDiveSite?.trim() ?? '',
+          if (lastDate != null) units.formatDate(lastDate),
+        ].where((part) => part.isNotEmpty).join(' · ');
         return _Tile(
           title: l10n.dashboard_key_lastDive,
           value: '$days',
           unit: l10n.dashboard_key_daysUnit(days),
-          comparison: n.lastDiveSite,
+          comparison: where.isEmpty ? null : where,
           semantics: '$days ${l10n.dashboard_key_daysUnit(days)}',
           onTap: () => context.push('/dives/${n.lastDiveId}'),
         );
       case HomeKeyNumber.avgSac:
         final sac = n.sacLane == GasConsumptionLane.sac;
-        final value = sac
-            ? units.convertSac(n.avgSac!)
-            : units.convertRmv(n.avgSac!);
+        double convert(double v) =>
+            sac ? units.convertSac(v) : units.convertRmv(v);
+        // The unit's own precision, as everywhere else SAC and RMV show:
+        // whole psi a minute, and two places for cuft a minute, whose values
+        // sit below one.
+        final decimals = sac ? units.sacDecimals : units.rmvDecimals;
+        final value = formatFixedForDisplay(convert(n.avgSac!), decimals);
         final change = n.avgSacChange;
         // Rounded before the sign is chosen, so a change too small to show
         // reads 0.0 rather than +0.0 or -0.0.
+        final scale = math.pow(10, decimals);
         final shownChange = change == null
             ? null
-            : ((sac ? units.convertSac(change) : units.convertRmv(change)) * 10)
-                      .round() /
-                  10;
+            : (convert(change) * scale).round() / scale;
         final changeText = shownChange == null
             ? null
             : shownChange == 0
-            ? 0.0.toStringAsFixed(1)
-            : (shownChange > 0 ? '+' : '') + shownChange.toStringAsFixed(1);
+            ? formatFixedForDisplay(0, decimals)
+            : (shownChange > 0 ? '+' : '') +
+                  formatFixedForDisplay(shownChange, decimals);
         final unit = sac ? units.sacSymbol : units.rmvSymbol;
         return _Tile(
           title: sac ? l10n.dashboard_key_avgSac : l10n.dashboard_key_avgRmv,
-          value: value.toStringAsFixed(1),
+          value: value,
           unit: unit,
           comparison: changeText == null
               ? null
               : l10n.dashboard_key_vsPrevious(changeText),
           series: n.sacSeries,
-          semantics: '${value.toStringAsFixed(1)} $unit',
+          semantics: '$value $unit',
           onTap: () => context.push('/insights'),
         );
       case HomeKeyNumber.deepestThisYear:
+        final deepestId = n.deepestDiveId;
         return _Tile(
           title: l10n.dashboard_key_deepestThisYear,
           value: depth(n.deepestThisYear!),
           unit: units.depthSymbol,
-          comparison: n.deepestLastYear == null
-              ? null
-              : l10n.dashboard_key_lastYear(
-                  units.formatDepth(n.deepestLastYear),
-                ),
+          // The dive's site; last year's deepest when it has neither a site
+          // nor a name.
+          comparison:
+              n.deepestDiveSite ??
+              (n.deepestLastYear == null
+                  ? null
+                  : l10n.dashboard_key_lastYear(
+                      units.formatDepth(n.deepestLastYear),
+                    )),
           semantics: units.formatDepth(n.deepestThisYear),
-          onTap: () => context.push('/insights'),
+          onTap: () => context.push(
+            deepestId == null ? '/insights' : '/dives/$deepestId',
+          ),
         );
       case HomeKeyNumber.nextTrip:
         final trip = n.nextTrip!;
@@ -260,10 +284,12 @@ class KeyNumbersPanel extends ConsumerWidget {
 }
 
 /// Hours from [seconds]: a decimal under ten, so a first 45-minute dive is
-/// not "0", and whole hours from there.
+/// not "0", and whole hours from there. In the locale's decimal separator.
 String _hours(int seconds) {
   final exact = seconds / 3600;
-  return exact < 10 ? exact.toStringAsFixed(1) : exact.floor().toString();
+  return exact < 10
+      ? formatFixedForDisplay(exact, 1)
+      : exact.floor().toString();
 }
 
 /// One number tile: title, value with its unit, a comparison line, and a

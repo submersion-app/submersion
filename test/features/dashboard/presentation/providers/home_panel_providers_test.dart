@@ -1,6 +1,8 @@
 import 'package:clock/clock.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/dashboard/presentation/home_panels.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
@@ -17,6 +19,7 @@ ProviderContainer _container({
   List<Dive> recent = const [],
   bool gaugesFail = false,
   int species = 0,
+  ({String id, String? site})? deepest,
 }) {
   final container = ProviderContainer(
     overrides: [
@@ -57,6 +60,7 @@ ProviderContainer _container({
       homeTripChecklistProvider.overrideWith((ref) async => null),
       homeSpeciesCountProvider.overrideWith((ref) async => species),
       homeNewSpeciesThisYearProvider.overrideWith((ref) async => 0),
+      homeDeepestThisYearProvider.overrideWith((ref) async => deepest),
     ],
   );
   addTearDown(container.dispose);
@@ -99,6 +103,41 @@ void main() {
     ).read(homeKeyNumbersProvider.future);
     expect(n.careerDives, 12);
     expect(n.nextTrip, isNull);
+  });
+
+  test('a failing optional source is logged', () async {
+    final captured = <LogEntry>[];
+    final sub = LoggerService.logStream.listen(captured.add);
+    addTearDown(sub.cancel);
+    await _container(gaugesFail: true).read(homeKeyNumbersProvider.future);
+    await pumpEventQueue();
+    expect(
+      captured.where(
+        (e) => e.level == LogLevel.error && e.message.contains('key number'),
+      ),
+      isNotEmpty,
+    );
+  });
+
+  test('the deepest tile gets its dive and the last dive its date', () async {
+    final n = await _container(
+      deepest: (id: 'd9', site: 'Blue Hole'),
+      recent: [Dive(id: 'd12', dateTime: DateTime(2026, 11, 9, 10))],
+    ).read(homeKeyNumbersProvider.future);
+    expect(n.deepestDiveId, 'd9');
+    expect(n.deepestDiveSite, 'Blue Hole');
+    expect(n.lastDiveDate, DateTime(2026, 11, 9, 10));
+  });
+
+  test('the window start keeps to the month it lands in', () {
+    // 31 August six months back is 28 February, so the window opens on
+    // 1 March; a leap day a year back opens on 1 March too.
+    expect(
+      homeWindowStart(DateTime(2026, 8, 31), months: 6),
+      DateTime(2026, 3, 1),
+    );
+    expect(homeWindowStart(DateTime(2028, 2, 29)), DateTime(2027, 3, 1));
+    expect(homeWindowStart(DateTime(2026, 11, 21)), DateTime(2025, 11, 22));
   });
 
   test('no change is claimed with fewer than ten earlier dives', () async {

@@ -20,7 +20,7 @@ class ActivityCalendarPanel extends ConsumerWidget {
     final months = phone ? 6 : 12;
     final now = clock.now();
     final to = DateTime(now.year, now.month, now.day);
-    final from = DateTime(now.year, now.month - months, now.day + 1);
+    final from = homeWindowStart(now, months: months);
     final days = ref.watch(homeActivityDaysProvider);
     final shown = {
       for (final e in (days.value ?? const <DateTime, int>{}).entries)
@@ -31,7 +31,8 @@ class ActivityCalendarPanel extends ConsumerWidget {
     return HomePanel(
       title: l10n.dashboard_panel_activity(months),
       trailing: days.hasValue ? summary : null,
-      semanticsValue: summary,
+      // Said only once loaded: "0 dives" while loading would be untrue.
+      semanticsValue: days.hasValue ? summary : '',
       onTap: () => context.push('/dives'),
       child: HomePanelAsync<Map<DateTime, int>>(
         value: days,

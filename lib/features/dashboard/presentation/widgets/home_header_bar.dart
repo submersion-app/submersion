@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/platform/device_capabilities.dart';
@@ -38,6 +39,28 @@ HomeStatusLight _retryLight(BuildContext context, WidgetRef ref) =>
       onTap: () => ref.invalidate(dashboardGaugesProvider),
     );
 
+/// A horizontal run of lights that a mouse can drag as well as a finger:
+/// on desktop the lights can run past the end of the bar, and Material
+/// drag-scrolls a horizontal list with a mouse only when told to.
+Widget _lightsScroller(BuildContext context, List<Widget> children) =>
+    ScrollConfiguration(
+      behavior: ScrollConfiguration.of(
+        context,
+      ).copyWith(dragDevices: PointerDeviceKind.values.toSet()),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            for (final c in children)
+              Padding(
+                padding: const EdgeInsetsDirectional.only(end: 6),
+                child: c,
+              ),
+          ],
+        ),
+      ),
+    );
+
 void _logDive(BuildContext context) => showAddDiveBottomSheet(
   context: context,
   // Push, not go: sub-pages stay poppable so Back returns to Home (#647).
@@ -73,18 +96,9 @@ class HomeHeaderBar extends ConsumerWidget {
         );
       }
       if (lights == null) return const SizedBox.shrink();
-      return SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            for (final light in lights)
-              Padding(
-                padding: const EdgeInsetsDirectional.only(end: 6),
-                child: HomeLightChip(light, dense: true),
-              ),
-          ],
-        ),
-      );
+      return _lightsScroller(context, [
+        for (final light in lights) HomeLightChip(light, dense: true),
+      ]);
     }
 
     return Material(
@@ -345,27 +359,18 @@ class HomeStatusStrip extends ConsumerWidget {
     }
     // Loading, or every light hidden: no empty bordered bar under the header.
     if (children.isEmpty) return const SizedBox.shrink();
+    // No vertical padding: each pill's 44-point tap target already spaces
+    // the strip.
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         border: Border(
           bottom: BorderSide(color: theme.colorScheme.outlineVariant),
         ),
       ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            for (final c in children)
-              Padding(
-                padding: const EdgeInsetsDirectional.only(end: 6),
-                child: c,
-              ),
-          ],
-        ),
-      ),
+      child: _lightsScroller(context, children),
     );
   }
 

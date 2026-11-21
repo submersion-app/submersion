@@ -74,7 +74,8 @@ class RecentDivesPanel extends ConsumerWidget {
       title: l10n.dashboard_panel_recentDives,
       semanticsValue: [
         for (final d in dives.value ?? const <Dive>[])
-          d.site?.name ?? d.name ?? '',
+          if ((d.site?.name ?? d.name ?? '').isNotEmpty)
+            d.site?.name ?? d.name ?? '',
       ].join(', '),
       onTap: () => context.push('/dives'),
       fit: HomePanelFit.clip,

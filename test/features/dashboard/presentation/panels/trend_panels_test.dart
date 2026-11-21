@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/units.dart';
@@ -56,6 +58,24 @@ void main() {
       expect(nav.location, '/dives');
     });
 
+    testWidgets('says no count to a screen reader while loading', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await pumpPanel(
+        tester,
+        const ActivityCalendarPanel(),
+        width: 800,
+        overrides: [
+          homeActivityDaysProvider.overrideWith(
+            (ref) => Completer<Map<DateTime, int>>().future,
+          ),
+        ],
+      );
+      expect(find.bySemanticsLabel('Activity, 12 months'), findsOneWidget);
+      semantics.dispose();
+    });
+
     testWidgets('a phone shows six months', (tester) async {
       await pumpPanel(
         tester,
@@ -107,6 +127,21 @@ void main() {
     });
   });
 
+  testWidgets('dives per month says no total while loading', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await pumpPanel(
+      tester,
+      const DivesPerMonthPanel(),
+      overrides: [
+        homeMonthlyDivesProvider.overrideWith(
+          (ref) => Completer<List<MonthCount>>().future,
+        ),
+      ],
+    );
+    expect(find.bySemanticsLabel('Dives per month'), findsOneWidget);
+    semantics.dispose();
+  });
+
   testWidgets('dives per month with no dives in the year says so', (
     tester,
   ) async {
@@ -146,6 +181,25 @@ void main() {
         overrides: [homeSacSeriesProvider.overrideWith((ref) async => [])],
       );
       expect(find.text('No dives with gas data yet'), findsOneWidget);
+    });
+
+    testWidgets("reads the latest value in the diver's unit", (tester) async {
+      final semantics = tester.ensureSemantics();
+      await pumpPanel(
+        tester,
+        const SacTrendPanel(),
+        settings: const AppSettings(volumeUnit: VolumeUnit.cubicFeet),
+        overrides: [
+          homeSacSeriesProvider.overrideWith(
+            (ref) async => [
+              TrendDataPoint(date: DateTime(2026), value: 14),
+              TrendDataPoint(date: DateTime(2026, 2), value: 16),
+            ],
+          ),
+        ],
+      );
+      expect(find.bySemanticsLabel('RMV trend, 0.57 cuft/min'), findsOneWidget);
+      semantics.dispose();
     });
   });
 

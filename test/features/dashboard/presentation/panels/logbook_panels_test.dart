@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/courses/presentation/providers/course_requirement_providers.dart';
 import 'package:submersion/features/dashboard/presentation/panels/conditional_panels.dart';
 import 'package:submersion/features/dashboard/presentation/panels/first_dive_panel.dart';
@@ -19,6 +20,7 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import 'panel_harness.dart';
 
@@ -380,6 +382,81 @@ void main() {
     final data = tester.getSemantics(row).getSemanticsData();
     expect(data.hasAction(SemanticsAction.tap), isTrue);
     expect(data.flagsCollection.isButton, isTrue);
+    handle.dispose();
+  });
+  testWidgets("latest vs average shows gas in the diver's unit", (
+    tester,
+  ) async {
+    await pumpPanel(
+      tester,
+      const LatestVsAveragePanel(),
+      settings: const AppSettings(volumeUnit: VolumeUnit.cubicFeet),
+      overrides: [
+        recentDivesProvider.overrideWith((ref) async => _dives),
+        homeAveragesProvider.overrideWith(
+          (ref) async => (
+            averages: const HomeAverages(
+              maxDepth: null,
+              runtimeSeconds: null,
+              diveCount: 0,
+            ),
+            sac: 18.0,
+          ),
+        ),
+        homeSacSeriesProvider.overrideWith(
+          (ref) async => [
+            TrendDataPoint(
+              date: DateTime(2026, 11, 8),
+              value: 16,
+              diveId: 'd3',
+            ),
+          ],
+        ),
+      ],
+    );
+    // 16 and 18 L/min are 0.57 and 0.64 cuft/min, at RMV's two places.
+    expect(find.text('0.57 cuft/min · avg 0.64 cuft/min'), findsOneWidget);
+  });
+
+  testWidgets('the latest profile leaves out a missing site', (tester) async {
+    await pumpPanel(
+      tester,
+      const LatestProfilePanel(),
+      overrides: [
+        homeLatestProfileProvider.overrideWith(
+          (ref) async => (
+            dive: Dive(
+              id: 'x',
+              dateTime: DateTime.utc(2026, 11, 8, 10),
+              runtime: const Duration(minutes: 41),
+              maxDepth: 18.2,
+            ),
+            points: [(0.0, 0.0), (600.0, 18.2), (2460.0, 0.0)],
+          ),
+        ),
+      ],
+    );
+    expect(find.text("18.2m · 41'"), findsOneWidget);
+  });
+
+  testWidgets('an unnamed recent dive adds no empty name to the label', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    await pumpPanel(
+      tester,
+      const RecentDivesPanel(),
+      width: 900,
+      overrides: [
+        recentDivesProvider.overrideWith(
+          (ref) async => [
+            _dives.first,
+            Dive(id: 'x', dateTime: DateTime.utc(2026, 11, 1, 10)),
+          ],
+        ),
+      ],
+    );
+    expect(find.bySemanticsLabel('Recent dives, Salt Pier'), findsOneWidget);
     handle.dispose();
   });
 }

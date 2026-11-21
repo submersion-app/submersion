@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -26,6 +27,12 @@ String comingDueName(AppLocalizations l10n, ComingDueItem item) {
       : item.name;
 }
 
+/// Whether [item] has lapsed by [today] (a local midnight): its due day is
+/// over. An item due today is still valid today, as the status lights and
+/// the document reminders count it, so it is not drawn as lapsed.
+bool comingDueLapsed(ComingDueItem item, DateTime today) =>
+    DateTime(item.due.year, item.due.month, item.due.day).isBefore(today);
+
 IconData _icon(ComingDueKind kind) => switch (kind) {
   ComingDueKind.gear => Icons.build_outlined,
   ComingDueKind.insurance => Icons.health_and_safety_outlined,
@@ -45,10 +52,15 @@ class ComingDuePanel extends ConsumerWidget {
     final units = ref.watch(unitFormatterProvider);
     final items = ref.watch(homeComingDueProvider);
     final first = items.value?.firstOrNull;
-    final now = DateTime.now();
+    final now = clock.now();
+    final today = DateTime(now.year, now.month, now.day);
     return HomePanel(
       title: l10n.dashboard_panel_comingDue,
-      semanticsValue: first == null
+      // Nothing is said until the items have loaded: "nothing due" read out
+      // while loading, or after a failed read, would be untrue.
+      semanticsValue: !items.hasValue
+          ? ''
+          : first == null
           ? l10n.dashboard_panel_nothingDue
           : '${comingDueName(l10n, first)} ${units.formatDate(first.due)}',
       onTap: first == null ? null : () => context.push(comingDueRoute(first)),
@@ -70,7 +82,7 @@ class ComingDuePanel extends ConsumerWidget {
                       Icon(
                         _icon(item.kind),
                         size: 14,
-                        color: item.due.isBefore(now)
+                        color: comingDueLapsed(item, today)
                             ? theme.colorScheme.error
                             : theme.colorScheme.onSurfaceVariant,
                       ),
