@@ -475,6 +475,19 @@ void main() {
       }
     });
 
+    test('a tagged copy with no end pressure still blanks the dive', () {
+      // The copy-reading rule (#2661) drops a copy with no end pressure,
+      // but the dive stays a Hydrotank dive.
+      final tagged = hydro(60, tankId: 'a', end: null);
+      final copy = dive(60, tankId: 'b', end: 150);
+      for (final uses in [
+        [tagged, copy],
+        [copy, tagged],
+      ]) {
+        expect(fold(events: [fill(0)], uses: uses).pressure, isNull);
+      }
+    });
+
     test('a later fill, correction or ordinary dive reads again', () {
       expect(
         fold(events: [fill(0), fill(120)], uses: [hydro(60)]).pressure,
