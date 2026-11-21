@@ -32,12 +32,30 @@ class DatabaseMigrationService {
   static const Duration _infoQueryTimeout = Duration(seconds: 5);
   static const Duration _checkpointTimeout = Duration(seconds: 10);
   static const String _alreadyHere = 'Database is already at this location';
+  static const String _cannotCompare =
+      'Could not tell whether the selected folder is the one the database is '
+      'already in, so nothing was changed. Check that both folders can be '
+      'reached and try again.';
 
   /// Whether [folderPath] is the folder the open database lives in, under
-  /// any name (see [isSameFolder]). Nothing may open or copy the live file
-  /// through a second name for it (issue #4834).
-  Future<bool> _isCurrentFolder(String currentPath, String folderPath) =>
-      isSameFolder(p.dirname(currentPath), folderPath);
+  /// any name (see [compareFolders]). Nothing may open or copy the live file
+  /// through a second name for it (issue #4834), so callers about to do
+  /// either treat [FolderIdentity.unknown] as a refusal.
+  Future<FolderIdentity> _compareToCurrent(
+    String currentPath,
+    String folderPath,
+  ) => compareFolders(p.dirname(currentPath), folderPath);
+
+  /// The refusal for a move or copy into [folderPath], or null when it is
+  /// safe to go ahead because the folder is certainly another one.
+  Future<MigrationResult?> _refuseUnlessElsewhere(
+    String currentPath,
+    String folderPath,
+  ) async => switch (await _compareToCurrent(currentPath, folderPath)) {
+    FolderIdentity.same => MigrationResult.failure(_alreadyHere),
+    FolderIdentity.unknown => MigrationResult.failure(_cannotCompare),
+    FolderIdentity.different => null,
+  };
 
   Future<T> _withTimeout<T>(
     Future<T> future,
@@ -65,7 +83,8 @@ class DatabaseMigrationService {
 
     try {
       final currentPath = await _dbService.databasePath;
-      if (await _isCurrentFolder(currentPath, folderPath)) {
+      final identity = await _compareToCurrent(currentPath, folderPath);
+      if (identity == FolderIdentity.same) {
         return await getCurrentDatabaseInfo();
       }
 
@@ -82,10 +101,15 @@ class DatabaseMigrationService {
         buddyCount: 0,
       );
 
-      try {
-        counts = await _fetchDatabaseCounts(dbPath);
-      } catch (e) {
-        // Could not read database, but file exists
+      // Opened only when it is certainly another file: an unknown identity
+      // may be the live database under a second name (issue #4834), so it is
+      // described from its file alone, like one that cannot be read.
+      if (identity == FolderIdentity.different) {
+        try {
+          counts = await _fetchDatabaseCounts(dbPath);
+        } catch (e) {
+          // Could not read database, but file exists
+        }
       }
 
       return ExistingDatabaseInfo(
@@ -183,9 +207,8 @@ class DatabaseMigrationService {
 
     // Don't migrate onto the database itself, however the folder is named:
     // the copy would overwrite the very file it reads from.
-    if (await _isCurrentFolder(currentPath, folderPath)) {
-      return MigrationResult.failure(_alreadyHere);
-    }
+    final refusal = await _refuseUnlessElsewhere(currentPath, folderPath);
+    if (refusal != null) return refusal;
 
     // Verify destination folder is writable
     if (!await _locationService.verifyFolderAccessible(folderPath)) {
@@ -296,7 +319,11 @@ class DatabaseMigrationService {
     );
 
     // Don't migrate if already at default, however either folder is named
-    if (await _isCurrentFolder(currentPath, defaultDir)) {
+    final identity = await _compareToCurrent(currentPath, defaultDir);
+    if (identity == FolderIdentity.unknown) {
+      return MigrationResult.failure(_cannotCompare);
+    }
+    if (identity == FolderIdentity.same) {
       // Just update config
       await _locationService.saveStorageConfig(
         const StorageConfig(mode: StorageLocationMode.appDefault),
@@ -488,9 +515,11 @@ class DatabaseMigrationService {
     DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.databaseFile);
     // This is essentially the same as migrateToCustomFolder,
     // but it will overwrite the existing database
-    if (await _isCurrentFolder(await _dbService.databasePath, folderPath)) {
-      return MigrationResult.failure(_alreadyHere);
-    }
+    final refusal = await _refuseUnlessElsewhere(
+      await _dbService.databasePath,
+      folderPath,
+    );
+    if (refusal != null) return refusal;
     final newPath = p.join(
       folderPath,
       DatabaseLocationService.databaseFilename,

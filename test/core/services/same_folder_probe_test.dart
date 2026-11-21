@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -17,7 +18,7 @@ void main() {
   tearDown(() => root.delete(recursive: true));
 
   test('one spelling of a folder is the same folder', () async {
-    expect(await isSameFolder(folder, folder), isTrue);
+    expect(await compareFolders(folder, folder), FolderIdentity.same);
   });
 
   test(
@@ -28,23 +29,45 @@ void main() {
       final alias = p.join(root.path, 'alias');
       await Link(alias).create(folder);
 
-      expect(await isSameFolder(folder, alias), isTrue);
-      expect(await isSameFolder(alias, folder), isTrue);
+      expect(await compareFolders(folder, alias), FolderIdentity.same);
+      expect(await compareFolders(alias, folder), FolderIdentity.same);
     },
   );
 
-  test('two different folders are not the same folder', () async {
+  test('two different folders are different', () async {
     final other = p.join(root.path, 'other');
     await Directory(other).create();
 
-    expect(await isSameFolder(folder, other), isFalse);
+    expect(await compareFolders(folder, other), FolderIdentity.different);
   });
 
-  test('a folder that cannot be reached is not the same folder', () async {
+  test('a first folder that cannot be written is unknown, not different: '
+      'nothing proves the second is another folder', () async {
     final missing = p.join(root.path, 'missing');
 
-    expect(await isSameFolder(missing, folder), isFalse);
-    expect(await isSameFolder(folder, missing), isFalse);
+    expect(await compareFolders(missing, folder), FolderIdentity.unknown);
+  });
+
+  test('a second folder that is not there is different', () async {
+    final missing = p.join(root.path, 'missing');
+
+    expect(await compareFolders(folder, missing), FolderIdentity.different);
+  });
+
+  test('a look-up that never answers is unknown once the time is up, and '
+      'the marker is still cleared away', () async {
+    final alias = p.join(root.path, 'alias');
+    await Link(alias).create(folder);
+
+    final result = await compareFolders(
+      folder,
+      alias,
+      timeout: const Duration(milliseconds: 50),
+      exists: (_) => Completer<bool>().future,
+    );
+
+    expect(result, FolderIdentity.unknown);
+    expect(Directory(folder).listSync(), isEmpty);
   });
 
   test('leaves nothing behind in either folder', () async {
@@ -53,8 +76,8 @@ void main() {
     final other = p.join(root.path, 'other');
     await Directory(other).create();
 
-    await isSameFolder(folder, alias);
-    await isSameFolder(folder, other);
+    await compareFolders(folder, alias);
+    await compareFolders(folder, other);
 
     expect(Directory(folder).listSync(), isEmpty);
     expect(Directory(other).listSync(), isEmpty);

@@ -325,6 +325,30 @@ void main() {
       expect(one.read<int>('v'), 1);
     });
 
+    test('a move refuses when it cannot tell whether the folder is the current '
+        'one, rather than risk opening or copying the live file under a second '
+        'name', () async {
+      final service = await initServiceAt(p.join(root.path, 'default'));
+      final targetDir = p.join(root.path, 'target');
+      await Directory(targetDir).create(recursive: true);
+      // No marker can be written beside the live dive log, so the folders
+      // cannot be compared.
+      await Process.run('chmod', ['555', currentDir]);
+      try {
+        final moved = await service.migrateToCustomFolder(targetDir);
+        final replaced = await service.replaceExistingDatabase(targetDir);
+
+        for (final result in [moved, replaced]) {
+          expect(result.success, isFalse);
+          expect(result.errorMessage, contains('Could not tell'));
+        }
+        expect(DatabaseService.instance.currentPath, currentPath);
+        expect(location.savedConfig, isNull);
+      } finally {
+        await Process.run('chmod', ['755', currentDir]);
+      }
+    }, skip: Platform.isWindows ? 'chmod is POSIX only' : false);
+
     test('switchToExistingDatabase moves the stored folder to the name the '
         'diver picked', () async {
       final service = await initWithAlias();
