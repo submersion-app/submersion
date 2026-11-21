@@ -299,6 +299,32 @@ void main() {
       expect(location.savedConfig, isNull);
     });
 
+    test('migrateToDefault does not copy the dive log onto itself when the '
+        'default folder is the current one under another name', () async {
+      // Here the alias is the DEFAULT folder, and the live log is in it.
+      aliasDir = p.join(root.path, 'alias');
+      await Link(aliasDir).create(currentDir);
+      location = _FakeLocation(currentPath: currentPath, defaultDir: aliasDir);
+      await DatabaseService.instance.initialize(locationService: location);
+      await DatabaseService.instance.database
+          .customSelect('SELECT 1')
+          .getSingle();
+      final service = DatabaseMigrationService(
+        DatabaseService.instance,
+        location,
+      );
+
+      final result = await service.migrateToDefault();
+
+      expect(result.success, isTrue, reason: result.errorMessage);
+      expect(backupsIn(currentDir), isEmpty);
+      expect(location.savedConfig?.mode, StorageLocationMode.appDefault);
+      final one = await DatabaseService.instance.database
+          .customSelect('SELECT 1 AS v')
+          .getSingle();
+      expect(one.read<int>('v'), 1);
+    });
+
     test('switchToExistingDatabase moves the stored folder to the name the '
         'diver picked', () async {
       final service = await initWithAlias();

@@ -295,8 +295,8 @@ class DatabaseMigrationService {
       DatabaseLocationService.databaseFilename,
     );
 
-    // Don't migrate if already at default
-    if (currentPath == newPath) {
+    // Don't migrate if already at default, however either folder is named
+    if (await _isCurrentFolder(currentPath, defaultDir)) {
       // Just update config
       await _locationService.saveStorageConfig(
         const StorageConfig(mode: StorageLocationMode.appDefault),
