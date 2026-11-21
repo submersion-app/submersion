@@ -75,23 +75,42 @@ class CourseMultiSelectField extends ConsumerWidget {
   }
 }
 
+/// What the course checklist closes with when the diver asks for a new
+/// course: its opener creates it, so the course comes back to be chosen.
+enum _CourseSheetExit { newCourse }
+
 /// Opens the course checklist. Each toggle reaches [onChanged] at once, so
-/// closing the sheet by dragging keeps the selection.
+/// closing the sheet by dragging keeps the selection. A course created from
+/// it is chosen with the rest (#4809): the sheet closes, the new course
+/// opens on its own page, and once it is saved its id reaches [onChanged]
+/// added to the selection the sheet left. The future answers after that.
 Future<void> showCourseMultiPickerSheet(
   BuildContext context, {
   required List<String> selectedCourseIds,
   required ValueChanged<List<String>> onChanged,
-}) {
-  return showModalBottomSheet<void>(
+}) async {
+  var latest = selectedCourseIds;
+  final exit = await showModalBottomSheet<_CourseSheetExit>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
     showDragHandle: true,
     builder: (_) => CourseMultiPickerSheet(
       selectedCourseIds: selectedCourseIds,
-      onChanged: onChanged,
+      onChanged: (ids) {
+        latest = ids;
+        onChanged(ids);
+      },
     ),
   );
+  if (exit != _CourseSheetExit.newCourse || !context.mounted) return;
+  final id = await context.push<String>('/courses/new');
+  if (id == null || id.isEmpty || !context.mounted) return;
+  onChanged([
+    for (final other in latest)
+      if (other != id) other,
+    id,
+  ]);
 }
 
 /// The checklist of the diver's courses: in-progress first, then by start
@@ -125,10 +144,9 @@ class _CourseMultiPickerSheetState
     widget.onChanged(next);
   }
 
-  void _createCourse() {
-    Navigator.of(context).pop();
-    context.push('/courses/new');
-  }
+  /// Closes the sheet asking its opener for a new course, which
+  /// [showCourseMultiPickerSheet] creates and chooses.
+  void _createCourse() => Navigator.of(context).pop(_CourseSheetExit.newCourse);
 
   @override
   Widget build(BuildContext context) {

@@ -37591,6 +37591,12 @@ abstract class AppLocalizations {
   /// **'Drag items to reorder the sidebar. Home always stays at the top.'**
   String get settings_navCustomization_descriptionDesktop;
 
+  /// Note on the navigation layout page, shown on both the phone and desktop tabs: the layout is a per-device setting that does not sync to the user's other devices (#2947, #4454).
+  ///
+  /// In en, this message translates to:
+  /// **'Saved on this device only. Your other devices keep their own layout.'**
+  String get settings_navCustomization_deviceOnlyNote;
+
   /// Segmented-button label for editing the phone navigation order.
   ///
   /// In en, this message translates to:

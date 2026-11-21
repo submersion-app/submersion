@@ -23774,6 +23774,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Húzza az elemeket az oldalsáv átrendezéséhez. A Kezdőlap mindig felül marad.';
 
   @override
+  String get settings_navCustomization_deviceOnlyNote =>
+      'Csak ezen az eszközön van mentve. A többi eszköze megtartja a saját elrendezését.';
+
+  @override
   String get settings_navCustomization_scopePhone => 'Telefon';
 
   @override

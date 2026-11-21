@@ -24228,6 +24228,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'اسحب العناصر لإعادة ترتيب الشريط الجانبي. تبقى الصفحة الرئيسية دائمًا في الأعلى.';
 
   @override
+  String get settings_navCustomization_deviceOnlyNote =>
+      'يُحفظ على هذا الجهاز فقط. تحتفظ أجهزتك الأخرى بتخطيطها الخاص.';
+
+  @override
   String get settings_navCustomization_scopePhone => 'الهاتف';
 
   @override

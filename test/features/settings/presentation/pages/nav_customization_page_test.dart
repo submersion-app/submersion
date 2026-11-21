@@ -196,6 +196,29 @@ void main() {
       );
     });
 
+    group('the layout stays on this device (#4454)', () {
+      const note =
+          'Saved on this device only. Your other devices keep their own '
+          'layout.';
+
+      testWidgets('the phone tab says so', (tester) async {
+        await pumpPage(tester);
+        expect(find.text(note), findsOneWidget);
+      });
+
+      testWidgets('the desktop tab says so', (tester) async {
+        await pumpPage(tester, wide: true);
+        expect(find.text(note), findsOneWidget);
+      });
+
+      testWidgets('switching tabs keeps it', (tester) async {
+        await pumpPage(tester);
+        await tester.tap(find.text('Desktop'));
+        await tester.pumpAndSettle();
+        expect(find.text(note), findsOneWidget);
+      });
+    });
+
     testWidgets('shows pinned Home and More rows on the phone scope', (
       tester,
     ) async {

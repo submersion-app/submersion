@@ -6582,6 +6582,7 @@
   "settings_navCustomization_title": "Navigáció elrendezése",
   "settings_navCustomization_description": "Húzza az elemeket az átrendezéshez. A legfelső elemek az alsó navigációs sávban jelennek meg; hogy hány, az a képernyő méretétől függ, nem a tájolásától.",
   "settings_navCustomization_descriptionDesktop": "Húzza az elemeket az oldalsáv átrendezéséhez. A Kezdőlap mindig felül marad.",
+  "settings_navCustomization_deviceOnlyNote": "Csak ezen az eszközön van mentve. A többi eszköze megtartja a saját elrendezését.",
   "settings_navCustomization_scopePhone": "Telefon",
   "settings_navCustomization_scopeDesktop": "Asztali",
   "settings_navCustomization_alwaysHideLabels_title": "Címkék mindig elrejtve",

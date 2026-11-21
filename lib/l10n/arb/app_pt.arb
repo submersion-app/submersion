@@ -6708,6 +6708,7 @@
   "settings_navCustomization_title": "Layout de navegação",
   "settings_navCustomization_description": "Arraste os itens para reordená-los. Os primeiros aparecem na barra de navegação inferior; quantos depende do tamanho da tela, não da orientação.",
   "settings_navCustomization_descriptionDesktop": "Arraste os itens para reordenar a barra lateral. O Início fica sempre no topo.",
+  "settings_navCustomization_deviceOnlyNote": "Guardado apenas neste dispositivo. Os seus outros dispositivos mantêm o próprio layout.",
   "settings_navCustomization_scopePhone": "Telefone",
   "settings_navCustomization_scopeDesktop": "Computador",
   "settings_navCustomization_alwaysHideLabels_title": "Ocultar sempre os rótulos",
