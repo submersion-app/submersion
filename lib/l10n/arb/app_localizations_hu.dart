@@ -16865,17 +16865,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_edit_appBar_cloneTitle => 'Felszerelés duplikálása';
 
   @override
-  String get equipment_edit_appBar_editTitle => 'Felszerelés szerkesztése';
-
-  @override
   String get equipment_edit_appBar_newTitle => 'Új felszerelés';
-
-  @override
-  String get equipment_edit_appBar_saveButton => 'Mentés';
-
-  @override
-  String get equipment_edit_appBar_saveTooltip =>
-      'Felszerelés változásainak mentése';
 
   @override
   String get equipment_edit_brandLabel => 'Márka';
@@ -16894,52 +16884,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Összes értesítés kikapcsolása ehhez az elemhez';
 
   @override
-  String get equipment_edit_discardDialog_content =>
-      'Mentetlen változásai vannak. Biztosan el akar távozni?';
-
-  @override
-  String get equipment_edit_discardDialog_discard => 'Eldobás';
-
-  @override
-  String get equipment_edit_discardDialog_keepEditing =>
-      'Szerkesztés folytatása';
-
-  @override
-  String get equipment_edit_discardDialog_title => 'Változások eldobása?';
-
-  @override
-  String get equipment_edit_embeddedHeader_cancelButton => 'Mégse';
-
-  @override
-  String get equipment_edit_embeddedHeader_editTitle =>
-      'Felszerelés szerkesztése';
-
-  @override
-  String get equipment_edit_embeddedHeader_newTitle => 'Új felszerelés';
-
-  @override
-  String get equipment_edit_embeddedHeader_saveButton => 'Mentés';
-
-  @override
-  String get equipment_edit_embeddedHeader_saveTooltip_edit =>
-      'Felszerelés változásainak mentése';
-
-  @override
-  String get equipment_edit_embeddedHeader_saveTooltip_new =>
-      'Új felszerelés hozzáadása';
-
-  @override
-  String equipment_edit_errorMessage(Object error) {
-    return 'Hiba: $error';
-  }
-
-  @override
-  String get equipment_edit_errorTitle => 'Hiba';
-
-  @override
-  String get equipment_edit_loadingTitle => 'Betöltés...';
-
-  @override
   String get equipment_edit_modelLabel => 'Modell';
 
   @override
@@ -16952,28 +16896,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_edit_nameValidation => 'Kérem adjon meg egy nevet';
 
   @override
-  String get equipment_edit_notFoundMessage =>
-      'Ez a felszerelés már nem létezik.';
-
-  @override
-  String get equipment_edit_notFoundTitle => 'Felszerelés nem található';
-
-  @override
   String get equipment_edit_notesHint =>
       'További megjegyzések a felszerelésről...';
 
   @override
   String get equipment_edit_notesLabel => 'Megjegyzések';
-
-  @override
-  String get equipment_edit_notificationsSubtitle =>
-      'Globális értesítési beállítások felülbírálása ehhez az elemhez';
-
-  @override
-  String get equipment_edit_notificationsTitle => 'Értesítések (opcionális)';
-
-  @override
-  String get equipment_edit_purchaseDateLabel => 'Vásárlás dátuma';
 
   @override
   String get equipment_edit_purchaseInfoTitle => 'Vásárlási információk';
@@ -16998,14 +16925,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_edit_serialNumberLabel => 'Sorozatszám';
-
-  @override
-  String get equipment_edit_snackbar_added => 'Felszerelés hozzáadva';
-
-  @override
-  String equipment_edit_snackbar_error(Object error) {
-    return 'Hiba a felszerelés mentésekor: $error';
-  }
 
   @override
   String get equipment_edit_snackbar_hiddenByView =>
@@ -17488,16 +17407,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Helyenként egy fejléc, csak ezen az oldalon';
 
   @override
-  String get equipment_edit_locationLabel => 'Hely';
-
-  @override
-  String get equipment_edit_locationNone => 'Nincs megadva';
-
-  @override
-  String get equipment_edit_locationFailed =>
-      'Mentve, de a helyét nem sikerült beállítani. Az elemen az Áthelyezés gombbal állíthatod be.';
-
-  @override
   String get equipment_locations_title => 'Helyek';
 
   @override
@@ -17595,13 +17504,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String equipment_clone_nameCopy(String name) {
     return '$name (másolat)';
   }
-
-  @override
-  String get equipment_clone_partialCopy =>
-      'Duplikálva, de néhány szervizintervallumot, csoportot vagy dokumentumot nem sikerült átmásolni.';
-
-  @override
-  String get equipment_clone_snackbar_cloned => 'Felszerelés duplikálva';
 
   @override
   String get equipment_menu_clone => 'Duplikálás';
@@ -18234,9 +18136,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Előbb adjon hozzá felszerelést a csoport létrehozása előtt.';
 
   @override
-  String get equipment_setEdit_appBar_editTitle => 'Csoport szerkesztése';
-
-  @override
   String get equipment_setEdit_appBar_newTitle => 'Új felszerelés csoport';
 
   @override
@@ -18255,12 +18154,6 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get equipment_setEdit_errorTitle => 'Hiba';
-
-  @override
-  String get equipment_setEdit_loadingTitle => 'Betöltés...';
-
-  @override
   String get equipment_setEdit_nameHint => 'pl. Meleg vízi felszerelés';
 
   @override
@@ -18274,44 +18167,8 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nem érhető el felszerelés';
 
   @override
-  String get equipment_setEdit_notFoundMessage =>
-      'Ez a felszerelés csoport már nem létezik.';
-
-  @override
-  String get equipment_setEdit_notFoundTitle => 'Csoport nem található';
-
-  @override
-  String get equipment_setEdit_saveTooltip_edit =>
-      'Felszerelés csoport változásainak mentése';
-
-  @override
-  String get equipment_setEdit_saveTooltip_new =>
-      'Új felszerelés csoport létrehozása';
-
-  @override
   String get equipment_setEdit_selectEquipmentSubtitle =>
       'Válassza ki a csoportba felveendő felszereléseket.';
-
-  @override
-  String get equipment_setEdit_selectEquipmentTitle =>
-      'Felszerelés kiválasztása';
-
-  @override
-  String get equipment_setEdit_snackbar_created =>
-      'Felszerelés csoport létrehozva';
-
-  @override
-  String get equipment_setEdit_snackbar_cloned =>
-      'Felszerelés csoport duplikálva';
-
-  @override
-  String equipment_setEdit_snackbar_error(Object error) {
-    return 'Hiba a felszerelés csoport mentésekor: $error';
-  }
-
-  @override
-  String get equipment_setEdit_snackbar_updated =>
-      'Felszerelés csoport frissítve';
 
   @override
   String get equipment_sets_appBar_title => 'Felszerelés csoportok';
@@ -41020,9 +40877,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diverProfile_bodyWeight_title => 'Testsúly';
-
-  @override
-  String get equipment_edit_advanced_title => 'Speciális';
 
   @override
   String get planner_gearWeights_accept => 'Használat tervezett súlyként';

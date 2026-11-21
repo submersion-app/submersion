@@ -16679,16 +16679,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_edit_appBar_cloneTitle => 'Clone Equipment';
 
   @override
-  String get equipment_edit_appBar_editTitle => 'Edit Equipment';
-
-  @override
   String get equipment_edit_appBar_newTitle => 'New Equipment';
-
-  @override
-  String get equipment_edit_appBar_saveButton => 'Save';
-
-  @override
-  String get equipment_edit_appBar_saveTooltip => 'Save equipment changes';
 
   @override
   String get equipment_edit_brandLabel => 'Brand';
@@ -16707,50 +16698,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Turn off all notifications for this item';
 
   @override
-  String get equipment_edit_discardDialog_content =>
-      'You have unsaved changes. Are you sure you want to leave?';
-
-  @override
-  String get equipment_edit_discardDialog_discard => 'Discard';
-
-  @override
-  String get equipment_edit_discardDialog_keepEditing => 'Keep Editing';
-
-  @override
-  String get equipment_edit_discardDialog_title => 'Discard Changes?';
-
-  @override
-  String get equipment_edit_embeddedHeader_cancelButton => 'Cancel';
-
-  @override
-  String get equipment_edit_embeddedHeader_editTitle => 'Edit Equipment';
-
-  @override
-  String get equipment_edit_embeddedHeader_newTitle => 'New Equipment';
-
-  @override
-  String get equipment_edit_embeddedHeader_saveButton => 'Save';
-
-  @override
-  String get equipment_edit_embeddedHeader_saveTooltip_edit =>
-      'Save equipment changes';
-
-  @override
-  String get equipment_edit_embeddedHeader_saveTooltip_new =>
-      'Add new equipment';
-
-  @override
-  String equipment_edit_errorMessage(Object error) {
-    return 'Error: $error';
-  }
-
-  @override
-  String get equipment_edit_errorTitle => 'Error';
-
-  @override
-  String get equipment_edit_loadingTitle => 'Loading...';
-
-  @override
   String get equipment_edit_modelLabel => 'Model';
 
   @override
@@ -16763,28 +16710,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_edit_nameValidation => 'Please enter a name';
 
   @override
-  String get equipment_edit_notFoundMessage =>
-      'This equipment item no longer exists.';
-
-  @override
-  String get equipment_edit_notFoundTitle => 'Equipment Not Found';
-
-  @override
   String get equipment_edit_notesHint =>
       'Additional notes about this equipment...';
 
   @override
   String get equipment_edit_notesLabel => 'Notes';
-
-  @override
-  String get equipment_edit_notificationsSubtitle =>
-      'Override global notification settings for this item';
-
-  @override
-  String get equipment_edit_notificationsTitle => 'Notifications (Optional)';
-
-  @override
-  String get equipment_edit_purchaseDateLabel => 'Purchase Date';
 
   @override
   String get equipment_edit_purchaseInfoTitle => 'Purchase Information';
@@ -16809,14 +16739,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_edit_serialNumberLabel => 'Serial Number';
-
-  @override
-  String get equipment_edit_snackbar_added => 'Equipment added';
-
-  @override
-  String equipment_edit_snackbar_error(Object error) {
-    return 'Error saving equipment: $error';
-  }
 
   @override
   String get equipment_edit_snackbar_hiddenByView =>
@@ -17295,16 +17217,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'One heading per place, on this page only';
 
   @override
-  String get equipment_edit_locationLabel => 'Location';
-
-  @override
-  String get equipment_edit_locationNone => 'Not set';
-
-  @override
-  String get equipment_edit_locationFailed =>
-      'Saved, but its location could not be set. Use Move on the item to set it.';
-
-  @override
   String get equipment_locations_title => 'Locations';
 
   @override
@@ -17401,13 +17313,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String equipment_clone_nameCopy(String name) {
     return '$name (copy)';
   }
-
-  @override
-  String get equipment_clone_partialCopy =>
-      'Cloned, but some service clocks, sets or documents could not be copied.';
-
-  @override
-  String get equipment_clone_snackbar_cloned => 'Equipment cloned';
 
   @override
   String get equipment_menu_clone => 'Clone';
@@ -18028,9 +17933,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Add equipment first before creating a set.';
 
   @override
-  String get equipment_setEdit_appBar_editTitle => 'Edit Set';
-
-  @override
   String get equipment_setEdit_appBar_newTitle => 'New Equipment Set';
 
   @override
@@ -18048,12 +17950,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get equipment_setEdit_errorTitle => 'Error';
-
-  @override
-  String get equipment_setEdit_loadingTitle => 'Loading...';
-
-  @override
   String get equipment_setEdit_nameHint => 'e.g., Warm Water Setup';
 
   @override
@@ -18066,38 +17962,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_setEdit_noEquipmentAvailable => 'No equipment available';
 
   @override
-  String get equipment_setEdit_notFoundMessage =>
-      'This equipment set no longer exists.';
-
-  @override
-  String get equipment_setEdit_notFoundTitle => 'Set Not Found';
-
-  @override
-  String get equipment_setEdit_saveTooltip_edit => 'Save equipment set changes';
-
-  @override
-  String get equipment_setEdit_saveTooltip_new => 'Create new equipment set';
-
-  @override
   String get equipment_setEdit_selectEquipmentSubtitle =>
       'Choose the equipment items to include in this set.';
-
-  @override
-  String get equipment_setEdit_selectEquipmentTitle => 'Select Equipment';
-
-  @override
-  String get equipment_setEdit_snackbar_created => 'Equipment set created';
-
-  @override
-  String get equipment_setEdit_snackbar_cloned => 'Equipment set cloned';
-
-  @override
-  String equipment_setEdit_snackbar_error(Object error) {
-    return 'Error saving equipment set: $error';
-  }
-
-  @override
-  String get equipment_setEdit_snackbar_updated => 'Equipment set updated';
 
   @override
   String get equipment_sets_appBar_title => 'Equipment Sets';
@@ -40560,9 +40426,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diverProfile_bodyWeight_title => 'Body Weight';
-
-  @override
-  String get equipment_edit_advanced_title => 'Advanced';
 
   @override
   String get planner_gearWeights_accept => 'Use as planned weight';

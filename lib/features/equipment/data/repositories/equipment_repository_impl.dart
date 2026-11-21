@@ -663,7 +663,7 @@ class EquipmentRepository {
   ///
   /// The tag links are clockless children of the item: only the junction
   /// rows are marked pending, never the row again (#1769). Sync hears of the
-  /// save once, after it commits.
+  /// save once, after it commits. The demo data seeder creates gear so.
   Future<EquipmentItem> createEquipmentWithTags(
     EquipmentItem equipment,
     List<String> tagIds,
@@ -679,25 +679,6 @@ class EquipmentRepository {
     });
     SyncEventBus.notifyLocalChange();
     return created;
-  }
-
-  /// Rewrites [equipment]'s row and makes its tags exactly [tagIds]
-  /// (issue #1942), in one transaction. The edit page is the only caller:
-  /// it holds the whole entity and the tags the diver saw. [updateEquipment]
-  /// itself never touches tags, because partially built entities reach it.
-  Future<void> updateEquipmentWithTags(
-    EquipmentItem equipment,
-    List<String> tagIds,
-  ) async {
-    await transaction(() async {
-      await updateEquipment(equipment, notify: false);
-      await EquipmentTagRepository().replaceTags(
-        equipment.id,
-        tagIds,
-        notify: false,
-      );
-    });
-    SyncEventBus.notifyLocalChange();
   }
 
   /// Splits a dying item's attachments (issue #1517): rows only this item

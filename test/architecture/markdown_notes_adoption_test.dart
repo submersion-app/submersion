@@ -64,12 +64,8 @@ void main() {
     // A gear item's Notes card edited in place (issue #4527).
     'lib/features/equipment/presentation/editing/gear_item_edit_cards.dart':
         'MarkdownNotesField(',
-    'lib/features/equipment/presentation/pages/equipment_edit_page.dart':
-        'MarkdownNotesField(',
     // An equipment set's description edited in place (issue #4527).
     'lib/features/equipment/presentation/editing/equipment_set_card_editors.dart':
-        'MarkdownNotesField(',
-    'lib/features/equipment/presentation/pages/equipment_set_edit_page.dart':
         'MarkdownNotesField(',
     'lib/features/equipment/presentation/widgets/equipment_location_edit_dialog.dart':
         'MarkdownNotesField(',

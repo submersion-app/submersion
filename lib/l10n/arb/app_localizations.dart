@@ -26957,29 +26957,11 @@ abstract class AppLocalizations {
   /// **'Clone Equipment'**
   String get equipment_edit_appBar_cloneTitle;
 
-  /// No description provided for @equipment_edit_appBar_editTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit Equipment'**
-  String get equipment_edit_appBar_editTitle;
-
   /// No description provided for @equipment_edit_appBar_newTitle.
   ///
   /// In en, this message translates to:
   /// **'New Equipment'**
   String get equipment_edit_appBar_newTitle;
-
-  /// No description provided for @equipment_edit_appBar_saveButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Save'**
-  String get equipment_edit_appBar_saveButton;
-
-  /// No description provided for @equipment_edit_appBar_saveTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Save equipment changes'**
-  String get equipment_edit_appBar_saveTooltip;
 
   /// No description provided for @equipment_edit_brandLabel.
   ///
@@ -27011,84 +26993,6 @@ abstract class AppLocalizations {
   /// **'Turn off all notifications for this item'**
   String get equipment_edit_disableRemindersSubtitle;
 
-  /// No description provided for @equipment_edit_discardDialog_content.
-  ///
-  /// In en, this message translates to:
-  /// **'You have unsaved changes. Are you sure you want to leave?'**
-  String get equipment_edit_discardDialog_content;
-
-  /// No description provided for @equipment_edit_discardDialog_discard.
-  ///
-  /// In en, this message translates to:
-  /// **'Discard'**
-  String get equipment_edit_discardDialog_discard;
-
-  /// No description provided for @equipment_edit_discardDialog_keepEditing.
-  ///
-  /// In en, this message translates to:
-  /// **'Keep Editing'**
-  String get equipment_edit_discardDialog_keepEditing;
-
-  /// No description provided for @equipment_edit_discardDialog_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Discard Changes?'**
-  String get equipment_edit_discardDialog_title;
-
-  /// No description provided for @equipment_edit_embeddedHeader_cancelButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Cancel'**
-  String get equipment_edit_embeddedHeader_cancelButton;
-
-  /// No description provided for @equipment_edit_embeddedHeader_editTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit Equipment'**
-  String get equipment_edit_embeddedHeader_editTitle;
-
-  /// No description provided for @equipment_edit_embeddedHeader_newTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'New Equipment'**
-  String get equipment_edit_embeddedHeader_newTitle;
-
-  /// No description provided for @equipment_edit_embeddedHeader_saveButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Save'**
-  String get equipment_edit_embeddedHeader_saveButton;
-
-  /// No description provided for @equipment_edit_embeddedHeader_saveTooltip_edit.
-  ///
-  /// In en, this message translates to:
-  /// **'Save equipment changes'**
-  String get equipment_edit_embeddedHeader_saveTooltip_edit;
-
-  /// No description provided for @equipment_edit_embeddedHeader_saveTooltip_new.
-  ///
-  /// In en, this message translates to:
-  /// **'Add new equipment'**
-  String get equipment_edit_embeddedHeader_saveTooltip_new;
-
-  /// No description provided for @equipment_edit_errorMessage.
-  ///
-  /// In en, this message translates to:
-  /// **'Error: {error}'**
-  String equipment_edit_errorMessage(Object error);
-
-  /// No description provided for @equipment_edit_errorTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Error'**
-  String get equipment_edit_errorTitle;
-
-  /// No description provided for @equipment_edit_loadingTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Loading...'**
-  String get equipment_edit_loadingTitle;
-
   /// No description provided for @equipment_edit_modelLabel.
   ///
   /// In en, this message translates to:
@@ -27113,18 +27017,6 @@ abstract class AppLocalizations {
   /// **'Please enter a name'**
   String get equipment_edit_nameValidation;
 
-  /// No description provided for @equipment_edit_notFoundMessage.
-  ///
-  /// In en, this message translates to:
-  /// **'This equipment item no longer exists.'**
-  String get equipment_edit_notFoundMessage;
-
-  /// No description provided for @equipment_edit_notFoundTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Equipment Not Found'**
-  String get equipment_edit_notFoundTitle;
-
   /// No description provided for @equipment_edit_notesHint.
   ///
   /// In en, this message translates to:
@@ -27136,24 +27028,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Notes'**
   String get equipment_edit_notesLabel;
-
-  /// No description provided for @equipment_edit_notificationsSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Override global notification settings for this item'**
-  String get equipment_edit_notificationsSubtitle;
-
-  /// No description provided for @equipment_edit_notificationsTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Notifications (Optional)'**
-  String get equipment_edit_notificationsTitle;
-
-  /// No description provided for @equipment_edit_purchaseDateLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Purchase Date'**
-  String get equipment_edit_purchaseDateLabel;
 
   /// No description provided for @equipment_edit_purchaseInfoTitle.
   ///
@@ -27196,18 +27070,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Serial Number'**
   String get equipment_edit_serialNumberLabel;
-
-  /// No description provided for @equipment_edit_snackbar_added.
-  ///
-  /// In en, this message translates to:
-  /// **'Equipment added'**
-  String get equipment_edit_snackbar_added;
-
-  /// No description provided for @equipment_edit_snackbar_error.
-  ///
-  /// In en, this message translates to:
-  /// **'Error saving equipment: {error}'**
-  String equipment_edit_snackbar_error(Object error);
 
   /// Snackbar after saving equipment that the list's current filter hides, e.g. a Wanted item under the default view
   ///
@@ -27899,24 +27761,6 @@ abstract class AppLocalizations {
   /// **'One heading per place, on this page only'**
   String get equipment_arrange_groupByLocationSubtitle;
 
-  /// Label of the optional place picker on the new equipment form
-  ///
-  /// In en, this message translates to:
-  /// **'Location'**
-  String get equipment_edit_locationLabel;
-
-  /// Shown in the new equipment form's location picker when none is chosen
-  ///
-  /// In en, this message translates to:
-  /// **'Not set'**
-  String get equipment_edit_locationNone;
-
-  /// Shown after a new item saved but its chosen first location failed to save
-  ///
-  /// In en, this message translates to:
-  /// **'Saved, but its location could not be set. Use Move on the item to set it.'**
-  String get equipment_edit_locationFailed;
-
   /// Title of the page listing places where gear is kept
   ///
   /// In en, this message translates to:
@@ -28096,18 +27940,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name} (copy)'**
   String equipment_clone_nameCopy(String name);
-
-  /// Shown after a clone saved but copying some of the original's service clocks, equipment sets or documents failed
-  ///
-  /// In en, this message translates to:
-  /// **'Cloned, but some service clocks, sets or documents could not be copied.'**
-  String get equipment_clone_partialCopy;
-
-  /// Shown after a cloned equipment item is saved
-  ///
-  /// In en, this message translates to:
-  /// **'Equipment cloned'**
-  String get equipment_clone_snackbar_cloned;
 
   /// Equipment detail menu action that opens a new item pre-filled from this one
   ///
@@ -29084,12 +28916,6 @@ abstract class AppLocalizations {
   /// **'Add equipment first before creating a set.'**
   String get equipment_setEdit_addEquipmentFirst;
 
-  /// No description provided for @equipment_setEdit_appBar_editTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit Set'**
-  String get equipment_setEdit_appBar_editTitle;
-
   /// No description provided for @equipment_setEdit_appBar_newTitle.
   ///
   /// In en, this message translates to:
@@ -29120,18 +28946,6 @@ abstract class AppLocalizations {
   /// **'Error: {error}'**
   String equipment_setEdit_errorMessage(Object error);
 
-  /// No description provided for @equipment_setEdit_errorTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Error'**
-  String get equipment_setEdit_errorTitle;
-
-  /// No description provided for @equipment_setEdit_loadingTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Loading...'**
-  String get equipment_setEdit_loadingTitle;
-
   /// No description provided for @equipment_setEdit_nameHint.
   ///
   /// In en, this message translates to:
@@ -29156,65 +28970,11 @@ abstract class AppLocalizations {
   /// **'No equipment available'**
   String get equipment_setEdit_noEquipmentAvailable;
 
-  /// No description provided for @equipment_setEdit_notFoundMessage.
-  ///
-  /// In en, this message translates to:
-  /// **'This equipment set no longer exists.'**
-  String get equipment_setEdit_notFoundMessage;
-
-  /// No description provided for @equipment_setEdit_notFoundTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Set Not Found'**
-  String get equipment_setEdit_notFoundTitle;
-
-  /// No description provided for @equipment_setEdit_saveTooltip_edit.
-  ///
-  /// In en, this message translates to:
-  /// **'Save equipment set changes'**
-  String get equipment_setEdit_saveTooltip_edit;
-
-  /// No description provided for @equipment_setEdit_saveTooltip_new.
-  ///
-  /// In en, this message translates to:
-  /// **'Create new equipment set'**
-  String get equipment_setEdit_saveTooltip_new;
-
   /// No description provided for @equipment_setEdit_selectEquipmentSubtitle.
   ///
   /// In en, this message translates to:
   /// **'Choose the equipment items to include in this set.'**
   String get equipment_setEdit_selectEquipmentSubtitle;
-
-  /// No description provided for @equipment_setEdit_selectEquipmentTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Select Equipment'**
-  String get equipment_setEdit_selectEquipmentTitle;
-
-  /// No description provided for @equipment_setEdit_snackbar_created.
-  ///
-  /// In en, this message translates to:
-  /// **'Equipment set created'**
-  String get equipment_setEdit_snackbar_created;
-
-  /// Shown after a cloned equipment set is saved
-  ///
-  /// In en, this message translates to:
-  /// **'Equipment set cloned'**
-  String get equipment_setEdit_snackbar_cloned;
-
-  /// No description provided for @equipment_setEdit_snackbar_error.
-  ///
-  /// In en, this message translates to:
-  /// **'Error saving equipment set: {error}'**
-  String equipment_setEdit_snackbar_error(Object error);
-
-  /// No description provided for @equipment_setEdit_snackbar_updated.
-  ///
-  /// In en, this message translates to:
-  /// **'Equipment set updated'**
-  String get equipment_setEdit_snackbar_updated;
 
   /// No description provided for @equipment_sets_appBar_title.
   ///
@@ -64289,12 +64049,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Body Weight'**
   String get diverProfile_bodyWeight_title;
-
-  /// No description provided for @equipment_edit_advanced_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Advanced'**
-  String get equipment_edit_advanced_title;
 
   /// No description provided for @planner_gearWeights_accept.
   ///

@@ -10300,39 +10300,18 @@
   "equipment_detail_wasInstalledInLabel": "Was installed in",
   "equipment_edit_appBar_cloneTitle": "Clone Equipment",
   "@equipment_edit_appBar_cloneTitle": {"description": "Title of the equipment form when it is pre-filled to clone an existing item"},
-  "equipment_edit_appBar_editTitle": "Edit Equipment",
   "equipment_edit_appBar_newTitle": "New Equipment",
-  "equipment_edit_appBar_saveButton": "Save",
-  "equipment_edit_appBar_saveTooltip": "Save equipment changes",
   "equipment_edit_brandLabel": "Brand",
   "equipment_edit_clearDate": "Clear Date",
   "equipment_edit_currencyLabel": "Currency",
   "equipment_edit_disableReminders": "Disable Reminders",
   "equipment_edit_disableRemindersSubtitle": "Turn off all notifications for this item",
-  "equipment_edit_discardDialog_content": "You have unsaved changes. Are you sure you want to leave?",
-  "equipment_edit_discardDialog_discard": "Discard",
-  "equipment_edit_discardDialog_keepEditing": "Keep Editing",
-  "equipment_edit_discardDialog_title": "Discard Changes?",
-  "equipment_edit_embeddedHeader_cancelButton": "Cancel",
-  "equipment_edit_embeddedHeader_editTitle": "Edit Equipment",
-  "equipment_edit_embeddedHeader_newTitle": "New Equipment",
-  "equipment_edit_embeddedHeader_saveButton": "Save",
-  "equipment_edit_embeddedHeader_saveTooltip_edit": "Save equipment changes",
-  "equipment_edit_embeddedHeader_saveTooltip_new": "Add new equipment",
-  "equipment_edit_errorMessage": "Error: {error}",
-  "equipment_edit_errorTitle": "Error",
-  "equipment_edit_loadingTitle": "Loading...",
   "equipment_edit_modelLabel": "Model",
   "equipment_edit_nameHint": "e.g., My Primary Regulator",
   "equipment_edit_nameLabel": "Name *",
   "equipment_edit_nameValidation": "Please enter a name",
-  "equipment_edit_notFoundMessage": "This equipment item no longer exists.",
-  "equipment_edit_notFoundTitle": "Equipment Not Found",
   "equipment_edit_notesHint": "Additional notes about this equipment...",
   "equipment_edit_notesLabel": "Notes",
-  "equipment_edit_notificationsSubtitle": "Override global notification settings for this item",
-  "equipment_edit_notificationsTitle": "Notifications (Optional)",
-  "equipment_edit_purchaseDateLabel": "Purchase Date",
   "equipment_edit_purchaseInfoTitle": "Purchase Information",
   "equipment_edit_purchasePriceLabel": "Purchase Price",
   "equipment_edit_expectedPriceLabel": "Expected Price",
@@ -10340,8 +10319,6 @@
   "equipment_edit_reminderDays": "{days} days",
   "equipment_edit_selectDate": "Select Date",
   "equipment_edit_serialNumberLabel": "Serial Number",
-  "equipment_edit_snackbar_added": "Equipment added",
-  "equipment_edit_snackbar_error": "Error saving equipment: {error}",
   "equipment_edit_snackbar_hiddenByView": "Saved, but the current list view hides it",
   "equipment_edit_snackbar_showAction": "Show",
   "equipment_edit_snackbar_updated": "Equipment updated",
@@ -10561,12 +10538,6 @@
   "@equipment_arrange_groupByLocation": {"description": "Switch on the Equipment page's sort sheet grouping the list under one heading per place"},
   "equipment_arrange_groupByLocationSubtitle": "One heading per place, on this page only",
   "@equipment_arrange_groupByLocationSubtitle": {"description": "Subtitle of the group by location switch"},
-  "equipment_edit_locationLabel": "Location",
-  "@equipment_edit_locationLabel": {"description": "Label of the optional place picker on the new equipment form"},
-  "equipment_edit_locationNone": "Not set",
-  "@equipment_edit_locationNone": {"description": "Shown in the new equipment form's location picker when none is chosen"},
-  "equipment_edit_locationFailed": "Saved, but its location could not be set. Use Move on the item to set it.",
-  "@equipment_edit_locationFailed": {"description": "Shown after a new item saved but its chosen first location failed to save"},
   "equipment_locations_title": "Locations",
   "@equipment_locations_title": {"description": "Title of the page listing places where gear is kept"},
   "equipment_locations_empty": "No places yet. Add one to start tracking where your gear is.",
@@ -10623,10 +10594,6 @@
   "equipment_list_sortTooltip": "Sort",
   "equipment_clone_nameCopy": "{name} (copy)",
   "@equipment_clone_nameCopy": {"description": "Name a cloned equipment item starts with; name is the original item's name", "placeholders": {"name": {"type": "String"}}},
-  "equipment_clone_partialCopy": "Cloned, but some service clocks, sets or documents could not be copied.",
-  "@equipment_clone_partialCopy": {"description": "Shown after a clone saved but copying some of the original's service clocks, equipment sets or documents failed"},
-  "equipment_clone_snackbar_cloned": "Equipment cloned",
-  "@equipment_clone_snackbar_cloned": {"description": "Shown after a cloned equipment item is saved"},
   "equipment_menu_clone": "Clone",
   "@equipment_menu_clone": {"description": "Equipment detail menu action that opens a new item pre-filled from this one"},
   "equipment_menu_delete": "Delete",
@@ -10898,30 +10865,17 @@
   "equipment_setDetail_notFoundTitle": "Set Not Found",
   "equipment_setDetail_snackbar_deleted": "Equipment set deleted",
   "equipment_setEdit_addEquipmentFirst": "Add equipment first before creating a set.",
-  "equipment_setEdit_appBar_editTitle": "Edit Set",
   "equipment_setEdit_appBar_newTitle": "New Equipment Set",
   "equipment_setEdit_appBar_cloneTitle": "Clone Equipment Set",
   "@equipment_setEdit_appBar_cloneTitle": {"description": "Title of the equipment set form when it is pre-filled to clone an existing set"},
   "equipment_setEdit_descriptionHint": "Optional description...",
   "equipment_setEdit_descriptionLabel": "Description",
   "equipment_setEdit_errorMessage": "Error: {error}",
-  "equipment_setEdit_errorTitle": "Error",
-  "equipment_setEdit_loadingTitle": "Loading...",
   "equipment_setEdit_nameHint": "e.g., Warm Water Setup",
   "equipment_setEdit_nameLabel": "Set Name *",
   "equipment_setEdit_nameValidation": "Please enter a name",
   "equipment_setEdit_noEquipmentAvailable": "No equipment available",
-  "equipment_setEdit_notFoundMessage": "This equipment set no longer exists.",
-  "equipment_setEdit_notFoundTitle": "Set Not Found",
-  "equipment_setEdit_saveTooltip_edit": "Save equipment set changes",
-  "equipment_setEdit_saveTooltip_new": "Create new equipment set",
   "equipment_setEdit_selectEquipmentSubtitle": "Choose the equipment items to include in this set.",
-  "equipment_setEdit_selectEquipmentTitle": "Select Equipment",
-  "equipment_setEdit_snackbar_created": "Equipment set created",
-  "equipment_setEdit_snackbar_cloned": "Equipment set cloned",
-  "@equipment_setEdit_snackbar_cloned": {"description": "Shown after a cloned equipment set is saved"},
-  "equipment_setEdit_snackbar_error": "Error saving equipment set: {error}",
-  "equipment_setEdit_snackbar_updated": "Equipment set updated",
   "equipment_sets_appBar_title": "Equipment Sets",
   "equipment_sets_emptyState_createFirstButton": "Create Your First Set",
   "equipment_sets_emptyState_description": "Create equipment sets to quickly add commonly used combinations of equipment to your dives.",
@@ -11055,23 +11009,9 @@
       }
     }
   },
-  "@equipment_edit_errorMessage": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
   "@equipment_edit_reminderDays": {
     "placeholders": {
       "days": {
-        "type": "Object"
-      }
-    }
-  },
-  "@equipment_edit_snackbar_error": {
-    "placeholders": {
-      "error": {
         "type": "Object"
       }
     }
@@ -11139,13 +11079,6 @@
     }
   },
   "@equipment_setEdit_errorMessage": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
-  "@equipment_setEdit_snackbar_error": {
     "placeholders": {
       "error": {
         "type": "Object"
@@ -25301,7 +25234,6 @@
   "diveLog_edit_weightFeedback_under": "Underweighted",
   "diverProfile_bodyWeight_empty": "Not recorded",
   "diverProfile_bodyWeight_title": "Body Weight",
-  "equipment_edit_advanced_title": "Advanced",
   "planner_gearWeights_accept": "Use as planned weight",
   "planner_gearWeights_addGear": "Add gear",
   "planner_gearWeights_empty": "Add gear to predict your weighting",

@@ -69,13 +69,9 @@ final exempt = <String, String>{
     '$gear/equipment_repository_impl.dart:$method':
         'a shortcut for a status change, which equipment covers through '
         'updateEquipment',
-  for (final method in const [
-    'createEquipmentWithTags',
-    'updateEquipmentWithTags',
-  ])
-    '$gear/equipment_repository_impl.dart:$method':
-        'the edit page\'s save, which equipment covers as fields and a tags '
-        'relation',
+  '$gear/equipment_repository_impl.dart:createEquipmentWithTags':
+      'the demo data seeder\'s create, which equipment covers as fields and '
+      'a tags relation',
   '$gear/dive_sensor_summary_repository.dart:*':
       'a summary derived from dives, recomputed when they change',
   '$gear/equipment_service_status_repository.dart:*':

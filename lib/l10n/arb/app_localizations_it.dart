@@ -16924,17 +16924,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get equipment_edit_appBar_cloneTitle => 'Duplica attrezzatura';
 
   @override
-  String get equipment_edit_appBar_editTitle => 'Modifica attrezzatura';
-
-  @override
   String get equipment_edit_appBar_newTitle => 'Nuova attrezzatura';
-
-  @override
-  String get equipment_edit_appBar_saveButton => 'Salva';
-
-  @override
-  String get equipment_edit_appBar_saveTooltip =>
-      'Salva modifiche attrezzatura';
 
   @override
   String get equipment_edit_brandLabel => 'Marca';
@@ -16953,51 +16943,6 @@ class AppLocalizationsIt extends AppLocalizations {
       'Disattiva tutte le notifiche per questo articolo';
 
   @override
-  String get equipment_edit_discardDialog_content =>
-      'Hai modifiche non salvate. Sei sicuro di voler uscire?';
-
-  @override
-  String get equipment_edit_discardDialog_discard => 'Scarta';
-
-  @override
-  String get equipment_edit_discardDialog_keepEditing =>
-      'Continua a modificare';
-
-  @override
-  String get equipment_edit_discardDialog_title => 'Scartare le modifiche?';
-
-  @override
-  String get equipment_edit_embeddedHeader_cancelButton => 'Annulla';
-
-  @override
-  String get equipment_edit_embeddedHeader_editTitle => 'Modifica attrezzatura';
-
-  @override
-  String get equipment_edit_embeddedHeader_newTitle => 'Nuova attrezzatura';
-
-  @override
-  String get equipment_edit_embeddedHeader_saveButton => 'Salva';
-
-  @override
-  String get equipment_edit_embeddedHeader_saveTooltip_edit =>
-      'Salva modifiche attrezzatura';
-
-  @override
-  String get equipment_edit_embeddedHeader_saveTooltip_new =>
-      'Aggiungi nuova attrezzatura';
-
-  @override
-  String equipment_edit_errorMessage(Object error) {
-    return 'Errore: $error';
-  }
-
-  @override
-  String get equipment_edit_errorTitle => 'Errore';
-
-  @override
-  String get equipment_edit_loadingTitle => 'Caricamento...';
-
-  @override
   String get equipment_edit_modelLabel => 'Modello';
 
   @override
@@ -17010,28 +16955,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get equipment_edit_nameValidation => 'Inserisci un nome';
 
   @override
-  String get equipment_edit_notFoundMessage =>
-      'Questa attrezzatura non esiste più.';
-
-  @override
-  String get equipment_edit_notFoundTitle => 'Attrezzatura non trovata';
-
-  @override
   String get equipment_edit_notesHint =>
       'Note aggiuntive su questa attrezzatura...';
 
   @override
   String get equipment_edit_notesLabel => 'Note';
-
-  @override
-  String get equipment_edit_notificationsSubtitle =>
-      'Sovrascrivi le impostazioni globali delle notifiche per questo articolo';
-
-  @override
-  String get equipment_edit_notificationsTitle => 'Notifiche (opzionale)';
-
-  @override
-  String get equipment_edit_purchaseDateLabel => 'Data di acquisto';
 
   @override
   String get equipment_edit_purchaseInfoTitle => 'Informazioni acquisto';
@@ -17056,14 +16984,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_edit_serialNumberLabel => 'Numero di serie';
-
-  @override
-  String get equipment_edit_snackbar_added => 'Attrezzatura aggiunta';
-
-  @override
-  String equipment_edit_snackbar_error(Object error) {
-    return 'Errore nel salvataggio dell\'attrezzatura: $error';
-  }
 
   @override
   String get equipment_edit_snackbar_hiddenByView =>
@@ -17544,16 +17464,6 @@ class AppLocalizationsIt extends AppLocalizations {
       'Un\'intestazione per luogo, solo in questa pagina';
 
   @override
-  String get equipment_edit_locationLabel => 'Posizione';
-
-  @override
-  String get equipment_edit_locationNone => 'Non impostata';
-
-  @override
-  String get equipment_edit_locationFailed =>
-      'Salvato, ma non è stato possibile impostarne la posizione. Usa Sposta sull\'elemento per impostarla.';
-
-  @override
   String get equipment_locations_title => 'Posizioni';
 
   @override
@@ -17654,13 +17564,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String equipment_clone_nameCopy(String name) {
     return '$name (copia)';
   }
-
-  @override
-  String get equipment_clone_partialCopy =>
-      'Duplicata, ma non è stato possibile copiare alcune scadenze di manutenzione, set o documenti.';
-
-  @override
-  String get equipment_clone_snackbar_cloned => 'Attrezzatura duplicata';
 
   @override
   String get equipment_menu_clone => 'Duplica';
@@ -18303,9 +18206,6 @@ class AppLocalizationsIt extends AppLocalizations {
       'Aggiungi prima dell\'attrezzatura prima di creare un set.';
 
   @override
-  String get equipment_setEdit_appBar_editTitle => 'Modifica set';
-
-  @override
   String get equipment_setEdit_appBar_newTitle => 'Nuovo set di attrezzatura';
 
   @override
@@ -18324,12 +18224,6 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get equipment_setEdit_errorTitle => 'Errore';
-
-  @override
-  String get equipment_setEdit_loadingTitle => 'Caricamento...';
-
-  @override
   String get equipment_setEdit_nameHint => 'es. Configurazione acque calde';
 
   @override
@@ -18343,42 +18237,8 @@ class AppLocalizationsIt extends AppLocalizations {
       'Nessuna attrezzatura disponibile';
 
   @override
-  String get equipment_setEdit_notFoundMessage =>
-      'Questo set di attrezzatura non esiste più.';
-
-  @override
-  String get equipment_setEdit_notFoundTitle => 'Set non trovato';
-
-  @override
-  String get equipment_setEdit_saveTooltip_edit =>
-      'Salva modifiche al set di attrezzatura';
-
-  @override
-  String get equipment_setEdit_saveTooltip_new =>
-      'Crea nuovo set di attrezzatura';
-
-  @override
   String get equipment_setEdit_selectEquipmentSubtitle =>
       'Scegli gli articoli di attrezzatura da includere in questo set.';
-
-  @override
-  String get equipment_setEdit_selectEquipmentTitle => 'Seleziona attrezzatura';
-
-  @override
-  String get equipment_setEdit_snackbar_created => 'Set di attrezzatura creato';
-
-  @override
-  String get equipment_setEdit_snackbar_cloned =>
-      'Set di attrezzatura duplicato';
-
-  @override
-  String equipment_setEdit_snackbar_error(Object error) {
-    return 'Errore nel salvataggio del set di attrezzatura: $error';
-  }
-
-  @override
-  String get equipment_setEdit_snackbar_updated =>
-      'Set di attrezzatura aggiornato';
 
   @override
   String get equipment_sets_appBar_title => 'Set di attrezzatura';
@@ -41262,9 +41122,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diverProfile_bodyWeight_title => 'Peso corporeo';
-
-  @override
-  String get equipment_edit_advanced_title => 'Avanzate';
 
   @override
   String get planner_gearWeights_accept => 'Usa come zavorra pianificata';

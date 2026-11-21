@@ -16921,17 +16921,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get equipment_edit_appBar_cloneTitle => 'Duplicar Equipamento';
 
   @override
-  String get equipment_edit_appBar_editTitle => 'Editar Equipamento';
-
-  @override
   String get equipment_edit_appBar_newTitle => 'Novo Equipamento';
-
-  @override
-  String get equipment_edit_appBar_saveButton => 'Salvar';
-
-  @override
-  String get equipment_edit_appBar_saveTooltip =>
-      'Salvar alterações do equipamento';
 
   @override
   String get equipment_edit_brandLabel => 'Marca';
@@ -16950,50 +16940,6 @@ class AppLocalizationsPt extends AppLocalizations {
       'Desativar todas as notificações para este item';
 
   @override
-  String get equipment_edit_discardDialog_content =>
-      'Você tem alterações não salvas. Tem certeza de que deseja sair?';
-
-  @override
-  String get equipment_edit_discardDialog_discard => 'Descartar';
-
-  @override
-  String get equipment_edit_discardDialog_keepEditing => 'Continuar Editando';
-
-  @override
-  String get equipment_edit_discardDialog_title => 'Descartar Alterações?';
-
-  @override
-  String get equipment_edit_embeddedHeader_cancelButton => 'Cancelar';
-
-  @override
-  String get equipment_edit_embeddedHeader_editTitle => 'Editar Equipamento';
-
-  @override
-  String get equipment_edit_embeddedHeader_newTitle => 'Novo Equipamento';
-
-  @override
-  String get equipment_edit_embeddedHeader_saveButton => 'Salvar';
-
-  @override
-  String get equipment_edit_embeddedHeader_saveTooltip_edit =>
-      'Salvar alterações do equipamento';
-
-  @override
-  String get equipment_edit_embeddedHeader_saveTooltip_new =>
-      'Adicionar novo equipamento';
-
-  @override
-  String equipment_edit_errorMessage(Object error) {
-    return 'Erro: $error';
-  }
-
-  @override
-  String get equipment_edit_errorTitle => 'Erro';
-
-  @override
-  String get equipment_edit_loadingTitle => 'Carregando...';
-
-  @override
   String get equipment_edit_modelLabel => 'Modelo';
 
   @override
@@ -17006,28 +16952,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get equipment_edit_nameValidation => 'Por favor, insira um nome';
 
   @override
-  String get equipment_edit_notFoundMessage =>
-      'Este item de equipamento não existe mais.';
-
-  @override
-  String get equipment_edit_notFoundTitle => 'Equipamento Não Encontrado';
-
-  @override
   String get equipment_edit_notesHint =>
       'Observações adicionais sobre este equipamento...';
 
   @override
   String get equipment_edit_notesLabel => 'Observações';
-
-  @override
-  String get equipment_edit_notificationsSubtitle =>
-      'Substituir configurações globais de notificação para este item';
-
-  @override
-  String get equipment_edit_notificationsTitle => 'Notificações (Opcional)';
-
-  @override
-  String get equipment_edit_purchaseDateLabel => 'Data de Compra';
 
   @override
   String get equipment_edit_purchaseInfoTitle => 'Informações de Compra';
@@ -17052,14 +16981,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get equipment_edit_serialNumberLabel => 'Número de Série';
-
-  @override
-  String get equipment_edit_snackbar_added => 'Equipamento adicionado';
-
-  @override
-  String equipment_edit_snackbar_error(Object error) {
-    return 'Erro ao salvar equipamento: $error';
-  }
 
   @override
   String get equipment_edit_snackbar_hiddenByView =>
@@ -17541,16 +17462,6 @@ class AppLocalizationsPt extends AppLocalizations {
       'Um título por local, apenas nesta página';
 
   @override
-  String get equipment_edit_locationLabel => 'Localização';
-
-  @override
-  String get equipment_edit_locationNone => 'Não definida';
-
-  @override
-  String get equipment_edit_locationFailed =>
-      'Guardado, mas não foi possível definir a localização. Use Mover no item para a definir.';
-
-  @override
   String get equipment_locations_title => 'Localizações';
 
   @override
@@ -17649,13 +17560,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String equipment_clone_nameCopy(String name) {
     return '$name (cópia)';
   }
-
-  @override
-  String get equipment_clone_partialCopy =>
-      'Duplicado, mas não foi possível copiar alguns prazos de manutenção, conjuntos ou documentos.';
-
-  @override
-  String get equipment_clone_snackbar_cloned => 'Equipamento duplicado';
 
   @override
   String get equipment_menu_clone => 'Duplicar';
@@ -18294,9 +18198,6 @@ class AppLocalizationsPt extends AppLocalizations {
       'Adicione equipamentos primeiro antes de criar um conjunto.';
 
   @override
-  String get equipment_setEdit_appBar_editTitle => 'Editar Conjunto';
-
-  @override
   String get equipment_setEdit_appBar_newTitle =>
       'Novo Conjunto de Equipamentos';
 
@@ -18316,12 +18217,6 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get equipment_setEdit_errorTitle => 'Erro';
-
-  @override
-  String get equipment_setEdit_loadingTitle => 'Carregando...';
-
-  @override
   String get equipment_setEdit_nameHint => 'ex., Configuração para Água Quente';
 
   @override
@@ -18335,44 +18230,8 @@ class AppLocalizationsPt extends AppLocalizations {
       'Nenhum equipamento disponível';
 
   @override
-  String get equipment_setEdit_notFoundMessage =>
-      'Este conjunto de equipamentos não existe mais.';
-
-  @override
-  String get equipment_setEdit_notFoundTitle => 'Conjunto Não Encontrado';
-
-  @override
-  String get equipment_setEdit_saveTooltip_edit =>
-      'Salvar alterações do conjunto de equipamentos';
-
-  @override
-  String get equipment_setEdit_saveTooltip_new =>
-      'Criar novo conjunto de equipamentos';
-
-  @override
   String get equipment_setEdit_selectEquipmentSubtitle =>
       'Escolha os itens de equipamento para incluir neste conjunto.';
-
-  @override
-  String get equipment_setEdit_selectEquipmentTitle =>
-      'Selecionar Equipamentos';
-
-  @override
-  String get equipment_setEdit_snackbar_created =>
-      'Conjunto de equipamentos criado';
-
-  @override
-  String get equipment_setEdit_snackbar_cloned =>
-      'Conjunto de equipamentos duplicado';
-
-  @override
-  String equipment_setEdit_snackbar_error(Object error) {
-    return 'Erro ao salvar conjunto de equipamentos: $error';
-  }
-
-  @override
-  String get equipment_setEdit_snackbar_updated =>
-      'Conjunto de equipamentos atualizado';
 
   @override
   String get equipment_sets_appBar_title => 'Conjuntos de Equipamentos';
@@ -41230,9 +41089,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diverProfile_bodyWeight_title => 'Peso corporal';
-
-  @override
-  String get equipment_edit_advanced_title => 'Avançado';
 
   @override
   String get planner_gearWeights_accept => 'Usar como lastro planejado';
