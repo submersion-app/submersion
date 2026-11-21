@@ -49,9 +49,10 @@ class _GlobalSearchPageState extends ConsumerState<GlobalSearchPage> {
     if (request != null) {
       _text = request.text;
       _override = QueryTextOverride(request.text, commit: true);
-      WidgetsBinding.instance.addPostFrameCallback(
-        (_) => ref.read(globalSearchRequestProvider.notifier).state = null,
-      );
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ref.read(globalSearchRequestProvider.notifier).state = null;
+      });
     }
     // Ctrl+K pressed before the page was up: the field takes the caret once
     // it is built, autofocus or not.

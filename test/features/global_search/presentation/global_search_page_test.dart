@@ -3,27 +3,17 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:submersion/core/accessibility/app_shortcuts.dart';
-import 'package:submersion/core/ui/app_actions.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_error_code.dart';
 import 'package:submersion/core/query/domain/query_errors.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
-import 'package:submersion/core/query/names/name_index.dart';
-import 'package:submersion/core/query/units/unit_prefs.dart';
-import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
-import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_query_providers.dart';
-import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
-import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_query_providers.dart';
 import 'package:submersion/features/courses/presentation/providers/course_query_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_query_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
-import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/global_search/domain/global_search_models.dart';
@@ -33,161 +23,23 @@ import 'package:submersion/features/global_search/presentation/providers/global_
 import 'package:submersion/features/global_search/presentation/providers/global_search_record_providers.dart';
 import 'package:submersion/core/constants/enums.dart' show SpeciesCategory;
 import 'package:submersion/features/marine_life/presentation/providers/species_query_providers.dart';
-import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
-import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
-import 'package:submersion/l10n/arb/app_localizations.dart';
 
-class _StubSettings extends StateNotifier<AppSettings>
-    implements SettingsNotifier {
-  _StubSettings() : super(const AppSettings());
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-final _query = TextNode(['reef']);
-
-GlobalSearchSection _section(GlobalSearchKind kind, int count, {int? total}) =>
-    GlobalSearchSection(
-      kind: kind,
-      total: total ?? count,
-      query: _query,
-      hasList: !const {
-        GlobalSearchKind.equipmentSets,
-        GlobalSearchKind.documents,
-        GlobalSearchKind.divePlans,
-        GlobalSearchKind.gpsTracks,
-        GlobalSearchKind.underwaterRoutes,
-      }.contains(kind),
-      ids: [for (var i = 0; i < count; i++) 'id$i'],
-    );
+import '../helpers/global_search_page_harness.dart';
 
 late SharedPreferences _prefs;
-final _now = DateTime(2026, 10, 30);
+final _query = globalSearchTestQuery;
 
-/// What the Buddies list holds: `Hit 0`, `Hit 1`, and so on.
-final _buddies = [
-  for (var i = 0; i < 10; i++)
-    BuddyWithDiveCount(
-      buddy: Buddy(
-        id: 'id$i',
-        name: 'Hit $i',
-        createdAt: _now,
-        updatedAt: _now,
-      ),
-      diveCount: 0,
-    ),
-];
-
-/// What the equipment sets hold: `Set 0`, `Set 1`, and so on.
-final _sets = [
-  for (var i = 0; i < 10; i++)
-    EquipmentSet(id: 'id$i', name: 'Set $i', createdAt: _now, updatedAt: _now),
-];
-
-/// The list routes See all can land on, each a page naming its address.
-List<RouteBase> _routes() => [
-  GoRoute(path: '/search', builder: (c, s) => const GlobalSearchPage()),
-  for (final path in const [
-    '/dives',
-    '/sites',
-    '/trips',
-    '/equipment',
-    '/buddies',
-    '/dive-centers',
-    '/certifications',
-    '/courses',
-    '/species/manage',
-    '/buddies/:id',
-  ])
-    GoRoute(
-      path: path,
-      builder: (c, s) => Scaffold(body: Text('page ${s.uri.path}')),
-    ),
-];
+GlobalSearchSection _section(GlobalSearchKind kind, int count, {int? total}) =>
+    globalSearchSection(kind, count, total: total);
 
 Widget _app(
   Future<List<GlobalSearchSection>> Function(String text) answer, {
   List<dynamic> overrides = const [],
-  String initialLocation = '/search',
-  bool appShortcuts = false,
-}) {
-  final router = GoRouter(
-    initialLocation: initialLocation,
-    routes: appShortcuts
-        // The app's own shortcuts over every page, as the shell binds them.
-        ? [
-            ShellRoute(
-              builder: (context, state, child) => CallbackShortcuts(
-                bindings: AppShortcuts.globalBindings(context),
-                child: Focus(autofocus: true, child: child),
-              ),
-              routes: _routes(),
-            ),
-          ]
-        : _routes(),
-  );
-  return ProviderScope(
-    overrides: [
-      sharedPreferencesProvider.overrideWithValue(_prefs),
-      settingsProvider.overrideWith((ref) => _StubSettings()),
-      certificationCatalogSyncProvider.overrideWithValue(
-        CertificationCatalog.builtInOnly,
-      ),
-      globalSearchProvider.overrideWith((ref, text) => answer(text)),
-      queryNameIndexProvider.overrideWith((ref) async => NameIndex.empty),
-      queryUnitPrefsProvider.overrideWithValue(kMetricPrefs),
-      globalSearchBuddiesProvider.overrideWith(
-        (ref, key) async => [
-          for (final entry in _buddies)
-            if (globalSearchIdsOf(key).contains(entry.buddy.id)) entry,
-        ],
-      ),
-      globalSearchEquipmentSetsProvider.overrideWith(
-        (ref, key) async => [
-          for (final set in _sets)
-            if (globalSearchIdsOf(key).contains(set.id)) set,
-        ],
-      ),
-      // The other sections stay empty: See all reads the section, not its
-      // rows.
-      globalSearchDivesProvider.overrideWith((ref, key) async => const []),
-      globalSearchSitesProvider.overrideWith((ref, key) async => const []),
-      globalSearchTripsProvider.overrideWith((ref, key) async => const []),
-      globalSearchEquipmentProvider.overrideWith((ref, key) async => const []),
-      globalSearchDiveCentersProvider.overrideWith(
-        (ref, key) async => const [],
-      ),
-      globalSearchCertificationsProvider.overrideWith(
-        (ref, key) async => const [],
-      ),
-      globalSearchCoursesProvider.overrideWith((ref, key) async => const []),
-      globalSearchSpeciesProvider.overrideWith((ref, key) async => const []),
-      ...overrides.cast(),
-    ],
-    child: MaterialApp.router(
-      // The app's own, as lib/app.dart sets them: a tap off the field puts
-      // the keyboard away.
-      actions: appActions(),
-      routerConfig: router,
-      locale: const Locale('en'),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-    ),
-  );
-}
+}) => globalSearchPageApp(answer, prefs: _prefs, overrides: overrides);
 
-Future<void> _search(WidgetTester tester, String text) async {
-  await tester.enterText(
-    find.byKey(const ValueKey('global-search-field')),
-    text,
-  );
-  await tester.pump();
-  await tester.pump(const Duration(milliseconds: 350));
-  await tester.pumpAndSettle();
-}
+Future<void> _search(WidgetTester tester, String text) =>
+    searchGlobally(tester, text);
 
 void main() {
   setUpAll(() async {
@@ -507,188 +359,6 @@ void main() {
     expect(field.focusNode!.hasFocus, isTrue);
     expect(field.controller!.selection.textInside('reef'), 'reef');
     expect(container.read(globalSearchFocusPendingProvider), isFalse);
-  });
-
-  // The keyboard covers the bottom bar there, and Search, a nav destination,
-  // has no back arrow: nothing may bring the keyboard up unasked, and a tap
-  // off the field must put it away (#4813).
-  group('on a phone', () {
-    void usePhone(WidgetTester tester) {
-      tester.view.physicalSize = const Size(390, 844);
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.reset);
-    }
-
-    TextField field(WidgetTester tester) => tester.widget<TextField>(
-      find.byKey(const ValueKey('global-search-field')),
-    );
-
-    testWidgets('arrives with the keyboard down', (tester) async {
-      usePhone(tester);
-      await tester.pumpWidget(_app((_) async => const []));
-      await tester.pumpAndSettle();
-
-      expect(
-        find.text(
-          'Find dives, sites, trips, gear, buddies, documents and more',
-        ),
-        findsOneWidget,
-      );
-      expect(field(tester).focusNode!.hasFocus, isFalse);
-    });
-
-    testWidgets('a request made while the page is up leaves it down', (
-      tester,
-    ) async {
-      usePhone(tester);
-      await tester.pumpWidget(_app((_) async => const []));
-      await tester.pumpAndSettle();
-
-      final container = ProviderScope.containerOf(
-        tester.element(find.byType(GlobalSearchPage)),
-      );
-      container.read(globalSearchRequestProvider.notifier).state =
-          GlobalSearchRequest('wreck');
-      await tester.pump();
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 350));
-      await tester.pumpAndSettle();
-
-      expect(field(tester).controller!.text, 'wreck');
-      expect(field(tester).focusNode!.hasFocus, isFalse);
-    });
-
-    testWidgets('a tap off the field puts the keyboard away', (tester) async {
-      usePhone(tester);
-      await tester.pumpWidget(_app((_) async => const []));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('global-search-field')));
-      await tester.pumpAndSettle();
-      expect(field(tester).focusNode!.hasFocus, isTrue);
-
-      await tester.tap(
-        find.text(
-          'Find dives, sites, trips, gear, buddies, documents and more',
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(field(tester).focusNode!.hasFocus, isFalse);
-    });
-
-    testWidgets('a focus request, from Ctrl+K, still brings the keyboard up', (
-      tester,
-    ) async {
-      usePhone(tester);
-      await tester.pumpWidget(_app((_) async => const []));
-      await tester.pumpAndSettle();
-
-      final container = ProviderScope.containerOf(
-        tester.element(find.byType(GlobalSearchPage)),
-      );
-      container.read(globalSearchFocusPendingProvider.notifier).state = true;
-      await tester.pumpAndSettle();
-
-      expect(field(tester).focusNode!.hasFocus, isTrue);
-    });
-
-    testWidgets('a focus request made before the page opens is taken', (
-      tester,
-    ) async {
-      usePhone(tester);
-      await tester.pumpWidget(
-        _app(
-          (_) async => const [],
-          overrides: [
-            globalSearchFocusPendingProvider.overrideWith((ref) => true),
-          ],
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(field(tester).focusNode!.hasFocus, isTrue);
-      final container = ProviderScope.containerOf(
-        tester.element(find.byType(GlobalSearchPage)),
-      );
-      expect(container.read(globalSearchFocusPendingProvider), isFalse);
-    });
-
-    testWidgets('Ctrl+K from another page opens Search with the caret in', (
-      tester,
-    ) async {
-      usePhone(tester);
-      await tester.pumpWidget(
-        _app(
-          (_) async => const [],
-          initialLocation: '/sites',
-          appShortcuts: true,
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(find.text('page /sites'), findsOneWidget);
-
-      await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
-      await tester.sendKeyEvent(LogicalKeyboardKey.keyK);
-      await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
-      await tester.pumpAndSettle();
-
-      expect(find.byType(GlobalSearchPage), findsOneWidget);
-      expect(field(tester).focusNode!.hasFocus, isTrue);
-      final container = ProviderScope.containerOf(
-        tester.element(find.byType(GlobalSearchPage)),
-      );
-      expect(container.read(globalSearchFocusPendingProvider), isFalse);
-    });
-
-    testWidgets('a focus request made under an open result is kept for Back', (
-      tester,
-    ) async {
-      usePhone(tester);
-      await tester.pumpWidget(
-        _app((_) async => [_section(GlobalSearchKind.buddies, 1)]),
-      );
-      await _search(tester, 'reef');
-      await tester.tap(find.text('Hit 0'));
-      await tester.pumpAndSettle();
-      expect(find.text('page /buddies/id0'), findsOneWidget);
-
-      // Ctrl+K over the record: the request is made, then the app walks back.
-      final container = ProviderScope.containerOf(
-        tester.element(find.text('page /buddies/id0')),
-      );
-      container.read(globalSearchFocusPendingProvider.notifier).state = true;
-      await tester.pump();
-      tester.state<NavigatorState>(find.byType(Navigator).first).pop();
-      await tester.pumpAndSettle();
-
-      expect(find.text('Hit 0'), findsOneWidget);
-      expect(field(tester).focusNode!.hasFocus, isTrue);
-      expect(container.read(globalSearchFocusPendingProvider), isFalse);
-    });
-
-    testWidgets(
-      'a narrow desktop window has no on-screen keyboard, so keeps the focus',
-      (tester) async {
-        usePhone(tester);
-        await tester.pumpWidget(_app((_) async => const []));
-        await tester.pumpAndSettle();
-
-        expect(field(tester).focusNode!.hasFocus, isTrue);
-      },
-      variant: TargetPlatformVariant.only(TargetPlatform.macOS),
-    );
-
-    testWidgets('a tap on a completion keeps the keyboard up', (tester) async {
-      usePhone(tester);
-      await tester.pumpWidget(_app((_) async => const []));
-      await _search(tester, 'expir');
-
-      await tester.tap(find.widgetWithText(ActionChip, 'expiryDate'));
-      await tester.pumpAndSettle();
-
-      expect(field(tester).controller!.text, 'expiryDate');
-      expect(field(tester).focusNode!.hasFocus, isTrue);
-    });
   });
 
   group('See all hands the search to the list', () {

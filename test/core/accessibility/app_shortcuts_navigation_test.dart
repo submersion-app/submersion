@@ -30,6 +30,8 @@ void main() {
     WidgetTester tester, {
     String initialLocation = '/dives',
   }) async {
+    // The bindings keep the container they were built under, process-wide.
+    addTearDown(AppShortcuts.debugReset);
     final router = GoRouter(
       initialLocation: initialLocation,
       routes: [

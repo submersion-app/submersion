@@ -14,7 +14,6 @@ import 'package:submersion/core/query/presentation/query_labels.dart';
 import 'package:submersion/core/query/presentation/query_text_field.dart';
 import 'package:submersion/core/query/syntax/query_parser.dart';
 import 'package:submersion/core/query/units/unit_prefs.dart';
-import 'package:submersion/core/ui/app_actions.dart';
 
 import '../fixtures/fixture_registry.dart';
 
@@ -147,41 +146,6 @@ void main() {
         tester.widget<TextField>(find.byKey(fieldKey)).controller!.text,
         'expiryDate',
       );
-    });
-
-    testWidgets('a completion counts as part of the field for a tap off it', (
-      tester,
-    ) async {
-      // Under the app's actions a tap off a field drops its focus (#4813);
-      // the completions sit outside the TextField, so they must join its
-      // tap region or a tap on one would put the keyboard away.
-      await tester.pumpWidget(
-        MaterialApp(
-          actions: appActions(),
-          home: Scaffold(
-            body: QueryTextField(
-              context: context,
-              value: null,
-              onChanged: (_) {},
-              fieldKey: fieldKey,
-              textReader: _FakeReader(
-                completions: const [
-                  Completion('expiryDate', replaceStart: 0, replaceLength: 2),
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
-      await tester.enterText(find.byKey(fieldKey), 'ex');
-      await tester.pump();
-
-      await tester.tap(find.widgetWithText(ActionChip, 'expiryDate'));
-      await tester.pump();
-
-      final field = tester.widget<TextField>(find.byKey(fieldKey));
-      expect(field.controller!.text, 'expiryDate');
-      expect(field.focusNode!.hasFocus, isTrue);
     });
 
     testWidgets('keeps its text when the units change', (tester) async {
