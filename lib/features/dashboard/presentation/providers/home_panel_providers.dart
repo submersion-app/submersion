@@ -75,30 +75,30 @@ final homeSacSeriesProvider = FutureProvider<List<TrendDataPoint>>((ref) async {
 });
 
 /// Averages over the last twelve months, for "latest dive against average".
-/// SAC is averaged from the series, which already holds the recent dives.
+/// SAC is averaged over every dive with one in the same window, read with a
+/// date filter, not from the trend panel's newest 30.
 final homeAveragesProvider =
     FutureProvider<({HomeAverages averages, double? sac})>((ref) async {
       final repository = ref.watch(insightsRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchInsightsChanges());
       ref.invalidateSelfWhen(localDayChanges());
       final diverId = ref.watch(currentDiverIdProvider);
+      final pressure = ref.watch(homeSacLaneProvider) == GasConsumptionLane.sac;
       final since = homeWindowStart(clock.now());
+      final window = DiveFilterState(startDate: since);
       // Started together: the two reads do not depend on each other.
-      final seriesF = ref.watch(homeSacSeriesProvider.future);
+      final sacF = pressure
+          ? repository.getSacPressurePerDive(diverId: diverId, filter: window)
+          : repository.getSacVolumePerDive(diverId: diverId, filter: window);
       final averagesF = repository.getAveragesSince(
         diverId: diverId,
         since: since,
       );
-      final series = await seriesF;
+      final sac = await sacF;
       final averages = await averagesF;
-      // Series dates are the wall clock flagged UTC, as in the SQL window.
-      final sinceUtc = DateTime.utc(since.year, since.month, since.day);
       return (
         averages: averages,
-        sac: averageOf([
-          for (final p in series)
-            if (!p.date.isBefore(sinceUtc)) p.value,
-        ]),
+        sac: averageOf([for (final p in sac) p.value]),
       );
     });
 
@@ -153,7 +153,11 @@ final homeLatestProfileProvider =
       final dives = await ref.watch(recentDivesProvider.future);
       final newest = dives.firstOrNull;
       if (newest == null) return null;
-      final dive = await ref.watch(diveProvider(newest.id).future) ?? newest;
+      // Null when the newest dive was deleted between the two reads: the
+      // panel collapses until the recent dives catch up, rather than drawing
+      // the stale list copy of a dive that is gone.
+      final dive = await ref.watch(diveProvider(newest.id).future);
+      if (dive == null) return null;
       final profile = dive.profile;
       final times = downsample([
         for (final p in profile) p.timestamp.toDouble(),

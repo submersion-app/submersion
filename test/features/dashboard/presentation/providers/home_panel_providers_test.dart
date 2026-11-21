@@ -6,6 +6,7 @@ import 'package:submersion/features/dashboard/presentation/providers/dashboard_p
 import 'package:submersion/features/dashboard/presentation/providers/gauge_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/home_panel_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/insights/domain/career_totals.dart';
 import 'package:submersion/features/insights/presentation/providers/career_totals_provider.dart';
@@ -113,4 +114,20 @@ void main() {
     ).read(homeKeyNumbersProvider.future);
     expect(n.species, 143);
   });
+
+  test(
+    'a newest dive deleted before its detail read collapses the profile',
+    () async {
+      final container = ProviderContainer(
+        overrides: [
+          recentDivesProvider.overrideWith(
+            (ref) async => [Dive(id: 'gone', dateTime: DateTime(2026))],
+          ),
+          diveProvider.overrideWith((ref, id) async => null),
+        ],
+      );
+      addTearDown(container.dispose);
+      expect(await container.read(homeLatestProfileProvider.future), isNull);
+    },
+  );
 }

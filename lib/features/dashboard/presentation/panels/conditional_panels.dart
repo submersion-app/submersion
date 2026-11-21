@@ -41,23 +41,32 @@ TextStyle? _muted(BuildContext context) => Theme.of(context).textTheme.bodySmall
     ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant);
 
 /// A short row of label and value, for the panels that list a few things.
-Widget _line(BuildContext context, String label, String value) => Padding(
-  padding: const EdgeInsets.symmetric(vertical: 2),
-  child: Row(
-    children: [
-      Expanded(
-        child: Text(
-          label,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: Theme.of(context).textTheme.bodySmall,
+/// With [onTap] the row is its own tap target, opening its own item.
+Widget _line(
+  BuildContext context,
+  String label,
+  String value, {
+  VoidCallback? onTap,
+}) {
+  final row = Padding(
+    padding: const EdgeInsets.symmetric(vertical: 2),
+    child: Row(
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
         ),
-      ),
-      const SizedBox(width: 8),
-      Text(value, style: _muted(context)),
-    ],
-  ),
-);
+        const SizedBox(width: 8),
+        Text(value, style: _muted(context)),
+      ],
+    ),
+  );
+  return onTap == null ? row : InkWell(onTap: onTap, child: row);
+}
 
 /// A dive logged on this date in an earlier year.
 class OnThisDayPanel extends ConsumerWidget {
@@ -106,6 +115,7 @@ class OnThisDayPanel extends ConsumerWidget {
               context,
               other.site?.name ?? other.name ?? '',
               '${other.effectiveEntryTime.year}',
+              onTap: () => context.push('/dives/${other.id}'),
             ),
         ],
       ),
@@ -131,12 +141,16 @@ class ActiveCoursePanel extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           for (final c in courses.take(2))
-            HomeBarRow(
-              label: c.course.name,
-              value: '${c.progress.satisfiedCount} / ${c.progress.totalCount}',
-              fraction: c.progress.totalCount == 0
-                  ? 0
-                  : c.progress.satisfiedCount / c.progress.totalCount,
+            InkWell(
+              onTap: () => context.push('/courses/${c.course.id}'),
+              child: HomeBarRow(
+                label: c.course.name,
+                value:
+                    '${c.progress.satisfiedCount} / ${c.progress.totalCount}',
+                fraction: c.progress.totalCount == 0
+                    ? 0
+                    : c.progress.satisfiedCount / c.progress.totalCount,
+              ),
             ),
         ],
       ),
@@ -171,6 +185,7 @@ class WaitingForDownloadPanel extends ConsumerWidget {
               context,
               dive.site?.name ?? l10n.diveLog_draft_title,
               units.formatDate(dive.effectiveEntryTime),
+              onTap: () => context.push('/dives/${dive.id}'),
             ),
         ],
       ),
@@ -233,12 +248,24 @@ class PreDivePanel extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (showPreDive)
-            _line(context, l10n.dashboard_checklists_preDiveLabel, preDiveText),
+            _line(
+              context,
+              l10n.dashboard_checklists_preDiveLabel,
+              preDiveText,
+              onTap: () => context.push(
+                active != null
+                    ? '/pre-dive-sessions/${active.id}'
+                    : '/pre-dive-sessions',
+              ),
+            ),
           if (trip != null)
-            HomeBarRow(
-              label: l10n.dashboard_checklists_tripLabel(trip.trip.name),
-              value: '${trip.done} / ${trip.total}',
-              fraction: trip.total == 0 ? 0 : trip.done / trip.total,
+            InkWell(
+              onTap: () => context.push('/trips/${trip.trip.id}'),
+              child: HomeBarRow(
+                label: l10n.dashboard_checklists_tripLabel(trip.trip.name),
+                value: '${trip.done} / ${trip.total}',
+                fraction: trip.total == 0 ? 0 : trip.done / trip.total,
+              ),
             ),
         ],
       ),
