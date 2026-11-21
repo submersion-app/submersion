@@ -26555,7 +26555,7 @@ abstract class AppLocalizations {
   /// No description provided for @equipment_serviceClocks_unconfigured.
   ///
   /// In en, this message translates to:
-  /// **'No interval set - tap to configure'**
+  /// **'No interval set'**
   String get equipment_serviceClocks_unconfigured;
 
   /// No description provided for @equipment_serviceClocks_dueOn.

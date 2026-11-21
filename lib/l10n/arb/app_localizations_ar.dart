@@ -16785,8 +16785,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_serviceClocks_empty => 'لا توجد عدادات صيانة';
 
   @override
-  String get equipment_serviceClocks_unconfigured =>
-      'لم يتم تعيين فترة - انقر للإعداد';
+  String get equipment_serviceClocks_unconfigured => 'لم يتم تعيين فترة';
 
   @override
   String equipment_serviceClocks_dueOn(String date) {

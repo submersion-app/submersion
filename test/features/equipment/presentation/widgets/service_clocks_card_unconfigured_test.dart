@@ -11,7 +11,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 void main() {
   final t0 = DateTime(2025, 1, 1);
 
-  testWidgets('an enabled interval-less schedule shows a configure row', (
+  testWidgets('an enabled interval-less schedule says no interval is set', (
     tester,
   ) async {
     final schedule = ServiceSchedule(
@@ -57,6 +57,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('General service'), findsOneWidget);
-    expect(find.text('No interval set - tap to configure'), findsOneWidget);
+    // The card is read-only, so the row only states the fact; clocks are
+    // configured in the open card's editor.
+    expect(find.text('No interval set'), findsOneWidget);
+    expect(find.textContaining('tap to configure'), findsNothing);
   });
 }

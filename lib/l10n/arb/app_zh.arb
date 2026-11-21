@@ -5010,7 +5010,7 @@
   "equipment_serviceClocks_remindersOff": "此装备不提醒",
   "equipment_serviceClocks_paused": "已暂停",
   "equipment_serviceClocks_empty": "暂无维护倒计时",
-  "equipment_serviceClocks_unconfigured": "未设置间隔 - 点按进行配置",
+  "equipment_serviceClocks_unconfigured": "未设置间隔",
   "equipment_serviceClocks_dueOn": "{date} 到期",
   "equipment_serviceClocks_overdueSince": "自 {date} 起逾期",
   "equipment_serviceClocks_countingSince": "自 {date} 起计算",

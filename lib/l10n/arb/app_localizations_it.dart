@@ -16573,7 +16573,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_serviceClocks_unconfigured =>
-      'Nessun intervallo impostato - tocca per configurare';
+      'Nessun intervallo impostato';
 
   @override
   String equipment_serviceClocks_dueOn(String date) {
