@@ -70,6 +70,45 @@ void main() {
     expect(harness.popped, created.id);
   });
 
+  /// Opens the time picker on fill hours row [key] and takes its time.
+  Future<void> pickTime(WidgetTester tester, String key) async {
+    final row = find.byKey(Key(key));
+    await tester.ensureVisible(row);
+    await tester.tap(row);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('fill hours picked on a new centre show and are created', (
+    tester,
+  ) async {
+    final harness = await pumpNewDiveCenterPage(tester);
+    await typeName(tester, 'Blue Planet');
+
+    await pickTime(tester, 'fill-hours-opens');
+    await pickTime(tester, 'fill-hours-closes');
+    expect(find.textContaining('8:00'), findsOneWidget);
+    expect(find.textContaining('5:00'), findsOneWidget);
+    await tapSave(tester);
+
+    final created = harness.save.creates.single.center;
+    expect(created.fillOpensAt, 8 * 60);
+    expect(created.fillClosesAt, 17 * 60);
+  });
+
+  testWidgets('one fill hour alone says so and stops the Save', (tester) async {
+    final harness = await pumpNewDiveCenterPage(tester);
+    await typeName(tester, 'Blue Planet');
+
+    await pickTime(tester, 'fill-hours-opens');
+    expect(find.text(l.diveCenters_fillHours_errorBoth), findsOneWidget);
+    await tapSave(tester);
+
+    expect(harness.save.creates, isEmpty);
+    expect(find.text(l.recordEdit_fixInvalid), findsOneWidget);
+  });
+
   testWidgets('in the pane, Save hands the id to the pane', (tester) async {
     final harness = await pumpNewDiveCenterPage(tester, embedded: true);
     await typeName(tester, 'Blue Planet');
