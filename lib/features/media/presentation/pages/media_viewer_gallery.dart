@@ -65,32 +65,33 @@ class _PhotoGallery extends ConsumerStatefulWidget {
 }
 
 class _PhotoGalleryState extends ConsumerState<_PhotoGallery> {
-  /// Each photo page's zoom, by media id (issue #4825): the labels on a
-  /// photo read it to keep their size on screen. Made when a page is first
-  /// built, and let go once no page shows that photo.
-  final _zooms = <String, PhotoViewController>{};
+  /// Each photo page's zoom, by page index (issue #4825): the labels on a
+  /// photo read it to keep their size on screen. By page, as PhotoView keeps
+  /// its state by page: when the list shifts, a page keeps the controller
+  /// its state listens to. Made when a page is first built, and let go once
+  /// that page is gone.
+  final _zooms = <int, PhotoViewController>{};
 
-  /// How many mounted photo pages show each media id.
-  final _showing = <String, int>{};
+  /// How many mounted photo pages show each page index.
+  final _showing = <int, int>{};
 
-  PhotoViewController _zoomOf(String mediaId) =>
-      _zooms.putIfAbsent(mediaId, PhotoViewController.new);
+  PhotoViewController _zoomOf(int page) =>
+      _zooms.putIfAbsent(page, PhotoViewController.new);
 
-  void _shown(String mediaId) =>
-      _showing[mediaId] = (_showing[mediaId] ?? 0) + 1;
+  void _shown(int page) => _showing[page] = (_showing[page] ?? 0) + 1;
 
-  void _gone(String mediaId) {
-    final left = (_showing[mediaId] ?? 1) - 1;
+  void _gone(int page) {
+    final left = (_showing[page] ?? 1) - 1;
     if (left > 0) {
-      _showing[mediaId] = left;
+      _showing[page] = left;
       return;
     }
-    _showing.remove(mediaId);
-    // After the frame: a page built for the photo again in this frame has
-    // been handed the same controller, and keeps it.
+    _showing.remove(page);
+    // After the frame: a page built again in this frame has been handed
+    // the same controller, and keeps it.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_showing.containsKey(mediaId)) return;
-      _zooms.remove(mediaId)?.dispose();
+      if (_showing.containsKey(page)) return;
+      _zooms.remove(page)?.dispose();
     });
   }
 
@@ -169,12 +170,13 @@ class _PhotoGalleryState extends ConsumerState<_PhotoGallery> {
           // Tag mode owns the gestures; a zoom already set stays, and the
           // editor inside the child maps taps through it.
           disableGestures: people.active,
-          controller: _zoomOf(item.id),
+          controller: _zoomOf(index),
           child: _PhotoItem(
             item: item,
+            page: index,
             showBoxes: widget.showOverlay,
             people: people,
-            zoom: _zoomOf(item.id),
+            zoom: _zoomOf(index),
             isCurrent: index == widget.currentIndex,
             identificationsEditable: widget.identificationsEditable,
             hideIdentifications: widget.hideIdentifications,
@@ -230,13 +232,16 @@ class _PhotoItem extends ConsumerStatefulWidget {
   /// Whether the labels are hidden: while picking a white point.
   final bool hideIdentifications;
 
-  /// The page shows [item], and no longer does: the gallery keeps the
-  /// photo's zoom while a page shows it.
-  final ValueChanged<String> onShown;
-  final ValueChanged<String> onGone;
+  /// The page this is: the gallery keeps the page's zoom while it shows.
+  final int page;
+
+  /// The page is shown, and no longer is.
+  final ValueChanged<int> onShown;
+  final ValueChanged<int> onGone;
 
   const _PhotoItem({
     required this.item,
+    required this.page,
     required this.showBoxes,
     required this.people,
     required this.zoom,
@@ -259,16 +264,16 @@ class _PhotoItemState extends ConsumerState<_PhotoItem> {
   @override
   void initState() {
     super.initState();
-    widget.onShown(widget.item.id);
+    widget.onShown(widget.page);
     _follow(widget.zoom);
   }
 
   @override
   void didUpdateWidget(_PhotoItem oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.item.id != widget.item.id) {
-      widget.onShown(widget.item.id);
-      oldWidget.onGone(oldWidget.item.id);
+    if (oldWidget.page != widget.page) {
+      widget.onShown(widget.page);
+      oldWidget.onGone(oldWidget.page);
     }
     if (oldWidget.zoom != widget.zoom) _follow(widget.zoom);
   }
@@ -285,7 +290,7 @@ class _PhotoItemState extends ConsumerState<_PhotoItem> {
   void dispose() {
     unawaited(_zoomChanges?.cancel());
     _zoom.dispose();
-    widget.onGone(widget.item.id);
+    widget.onGone(widget.page);
     super.dispose();
   }
 

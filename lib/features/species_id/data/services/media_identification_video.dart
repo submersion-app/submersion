@@ -70,15 +70,22 @@ extension _VideoScanning on MediaIdentificationService {
           job.outcome = RunItemOutcome.unreadable;
           return false;
         }
+        // Dismissals come back only for a video that is looked at again.
+        var rows = stored;
+        if (job.fresh) {
+          final reopened = await _reopen(job, stored);
+          if (reopened == null) return false;
+          rows = reopened;
+        }
         // What the diver said about a fish (a decision, or a claim from
         // the frame) is carried to the fresh track of the same fish; the
         // app's own guesses are found again.
         final carry = [
-          for (final i in stored)
+          for (final i in rows)
             if (i.saidByDiver) i,
         ];
         final dropped = [
-          for (final i in stored)
+          for (final i in rows)
             if (!carry.contains(i)) i.id,
         ];
         final start = MediaIdentificationRun(
@@ -92,6 +99,8 @@ extension _VideoScanning on MediaIdentificationService {
           imageHeight: run?.imageHeight ?? 0,
           detectionCount: carry.length,
           scannedMs: 0,
+          // Known already: the analysed stretches show from the start.
+          videoDurationMs: run?.videoDurationMs,
         );
         if (_databaseGeneration() != generation) return false;
         await _identifications.storeRun(

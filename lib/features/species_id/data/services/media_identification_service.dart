@@ -324,7 +324,8 @@ class MediaIdentificationService {
     }
   }
 
-  /// The diver dismissed these suggestions; they do not come back. Never
+  /// The diver dismissed these suggestions; they come back only when the
+  /// diver asks for the item to be analysed again (issue #4825). Never
   /// throws, and writes nothing if another logbook opened while it read.
   Future<void> reject(String mediaId, List<String> identificationIds) async {
     final ids = identificationIds.toSet();
@@ -500,12 +501,7 @@ class MediaIdentificationService {
       final cell = _regionCell(manifest, job.location);
 
       final run = await _identifications.runFor(item.id);
-      var stored = await _identifications.forMedia(item.id);
-      if (job.fresh) {
-        final reopened = await _reopen(job, stored);
-        if (reopened == null) return false;
-        stored = reopened;
-      }
+      final stored = await _identifications.forMedia(item.id);
       // A video's fish kept unnamed at a stop have no crop or embedding
       // yet: the resumed scan names them.
       final named = [
@@ -588,15 +584,22 @@ class MediaIdentificationService {
   Future<void> _analyse(
     LoadedPack pack,
     _Job job,
-    List<MediaIdentification> stored,
+    List<MediaIdentification> storedBefore,
     int? cell,
     int generation,
   ) async {
+    var stored = storedBefore;
     final item = job.item;
     final image = await (job.resolveImage ?? _resolveImage)(item);
     if (image == null) {
       job.outcome = RunItemOutcome.unreadable;
       return;
+    }
+    // Dismissals come back only for a photo that is looked at again.
+    if (job.fresh) {
+      final reopened = await _reopen(job, stored);
+      if (reopened == null) return;
+      stored = reopened;
     }
     final VisionAnalysis analysis;
     try {

@@ -189,6 +189,9 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
     );
     _set(s);
     final looked = <RunAppliedItem>[];
+    // A fresh run asks each item afresh once: one refused for heat or the
+    // background is asked again where it stopped, not from the start.
+    final askedFresh = <String>{};
     // Deleted before the first item, or another logbook opened while its
     // media were read: nothing is looked at.
     var stoppedFor = _generation() != generation
@@ -202,7 +205,8 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
       if (stoppedFor != _Stop.none) break;
       final item = items[index];
       _currentItem = item.id;
-      final outcome = await (fresh ? _requestFresh : _request)(
+      final ask = fresh && askedFresh.add(item.id) ? _requestFresh : _request;
+      final outcome = await ask(
         item,
         mediaLocation(
           item,

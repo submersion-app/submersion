@@ -589,6 +589,22 @@ class VideoIdentificationScan {
           for (final c in carry)
             if (!found.deleteIds.contains(c.id)) c,
         ];
+        // A dismissal brought back that the whole scan has not found again
+        // is only an old guess (issue #4825): it goes. A name the diver gave
+        // it stays theirs.
+        final stale = ranges.isComplete(duration)
+            ? [
+                for (final c in carryLeft)
+                  if (c.reopened && c.claimedSpeciesId == null) c.id,
+              ]
+            : const <String>[];
+        if (stale.isNotEmpty) {
+          deleted = [...deleted, ...stale];
+          carryLeft = [
+            for (final c in carryLeft)
+              if (!stale.contains(c.id)) c,
+          ];
+        }
         // The rows were read above: another logbook may have opened since.
         if (_databaseGeneration() != _generation) return null;
         run = MediaIdentificationRun(
@@ -607,7 +623,8 @@ class VideoIdentificationScan {
                 found.insert.length -
                 unsaid.length -
                 found.deleteIds.length -
-                away.length,
+                away.length -
+                stale.length,
           ),
           scannedMs: ranges.prefixEndMs,
           videoDurationMs: duration,

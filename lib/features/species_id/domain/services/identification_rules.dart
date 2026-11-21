@@ -256,9 +256,34 @@ List<MediaIdentification> reopenDismissed(
   required DateTime now,
 }) => [
   for (final i in stored)
-    if (i.decision == IdentificationDecision.rejected)
-      i.copyWith(decision: IdentificationDecision.undecided, decidedAt: now),
+    if (i.decision == IdentificationDecision.rejected) _reopenedAt(i, now),
 ];
+
+/// [i] undecided again since [now], naming no species: a row a tag was
+/// removed from still names that tag's species.
+MediaIdentification _reopenedAt(MediaIdentification i, DateTime now) =>
+    MediaIdentification(
+      id: i.id,
+      mediaId: i.mediaId,
+      box: i.box,
+      boxPixelWidth: i.boxPixelWidth,
+      boxPixelHeight: i.boxPixelHeight,
+      detectorScore: i.detectorScore,
+      openScore: i.openScore,
+      candidates: i.candidates,
+      locationLimited: i.locationLimited,
+      suggestable: i.suggestable,
+      decision: IdentificationDecision.undecided,
+      decidedAt: now,
+      createdAt: i.createdAt,
+      startMs: i.startMs,
+      endMs: i.endMs,
+      bestMs: i.bestMs,
+      path: i.path,
+      claimedSpeciesId: i.claimedSpeciesId,
+      confident: i.confident,
+      specific: i.specific,
+    );
 
 /// What to store after a photo is analysed again.
 ///
@@ -285,19 +310,22 @@ carryDecisions({
   required List<MediaIdentification> previous,
   required List<MediaIdentification> fresh,
 }) {
-  bool said(MediaIdentification p) =>
-      p.decision != IdentificationDecision.undecided || p.reopened;
+  // A name given from the picture, on a row with no decision (reopened or
+  // not), follows the animal by place.
+  bool claimOnly(MediaIdentification p) =>
+      p.decision == IdentificationDecision.undecided &&
+      p.claimedSpeciesId != null;
   final decided = [
     for (final p in previous)
-      if (said(p)) p,
+      if (p.saidByDiver && !claimOnly(p)) p,
   ];
   final claimed = [
     for (final p in previous)
-      if (!said(p) && p.claimedSpeciesId != null) p,
+      if (claimOnly(p)) p,
   ];
   final deleteIds = [
     for (final p in previous)
-      if (!said(p) && p.claimedSpeciesId == null) p.id,
+      if (!p.saidByDiver) p.id,
   ];
   final carried = <String>{};
   final insert = <MediaIdentification>[];
@@ -336,6 +364,7 @@ carryDecisions({
     }
     insert[best] = insert[best].copyWith(
       claimedSpeciesId: () => claim.claimedSpeciesId,
+      decidedAt: claim.decidedAt,
     );
     deleteIds.add(claim.id);
   }

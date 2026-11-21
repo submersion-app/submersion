@@ -74,7 +74,10 @@ void main() {
       requestFresh: (item, location) async {
         askedFresh.add(item.id);
         await gate?.future;
-        return RunItemOutcome.done;
+        final queue = outcomes[item.id];
+        return queue == null || queue.isEmpty
+            ? RunItemOutcome.done
+            : queue.removeAt(0);
       },
       cancel: (mediaId) => cancelled.add(mediaId),
       applyAll: (items, generation) async {
@@ -324,6 +327,26 @@ void main() {
       expect(state('d1').summary.photos, 2);
       expect(state('d1').summary.videos, 1);
       expect(state('d1').summary.speciesTagged, 0);
+    });
+
+    test('an item refused for heat is asked again where it stopped, not '
+        'from the start', () async {
+      outcomes['v1'] = [RunItemOutcome.tooHot];
+      final finished = run.start('d1', fresh: true);
+      await pumpEventQueue();
+      run.resume('d1');
+      await finished;
+      expect(askedFresh, ['p1', 'p2', 'v1']);
+      expect(asked, ['v1']);
+      expect(applied, isEmpty);
+    });
+
+    test('an item refused in the background is asked again where it '
+        'stopped', () async {
+      outcomes['p2'] = [RunItemOutcome.notForeground];
+      await run.start('d1', fresh: true);
+      expect(askedFresh, ['p1', 'p2', 'v1']);
+      expect(asked, ['p2']);
     });
 
     test('does not make the dive\'s next run fresh', () async {

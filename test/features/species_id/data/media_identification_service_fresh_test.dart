@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/species_id/data/pack/species_pack_store.dart';
 import 'package:submersion/features/species_id/data/repositories/identification_embedding_repository.dart';
@@ -204,6 +205,30 @@ void main() {
       expect(settled, 2);
     });
 
+    test('a photo that cannot be read keeps its dismissals', () async {
+      await service.request(photo('m1'));
+      final first = (await identifications.forMedia('m1')).single;
+      await service.reject('m1', [first.id]);
+      await service.dispose();
+      service = MediaIdentificationService(
+        engine: engine,
+        loadPack: () async => installed,
+        identifications: identifications,
+        embeddings: embeddings,
+        crops: crops,
+        resolveImage: (_) async => null,
+        taggedSpecies: (_) async => tagged,
+        enabled: () => enabled,
+        databaseGeneration: () => generation,
+        now: () => DateTime.utc(2026, 11, 21),
+        newId: () => 'id-${ids++}',
+        idleUnload: const Duration(milliseconds: 50),
+      );
+      await service.request(photo('m1'), fresh: true);
+      final still = (await identifications.forMedia('m1')).single;
+      expect(still.decision, IdentificationDecision.rejected);
+    });
+
     test('asked for in a logbook since closed writes nothing', () async {
       await service.request(photo('m1'));
       final first = (await identifications.forMedia('m1')).single;
@@ -368,6 +393,62 @@ void main() {
       expect(settled, 1);
       await service.request(video(), fresh: true);
       expect(settled, 1);
+    });
+
+    test('a dismissed fish the whole fresh scan does not find again is '
+        'dropped', () async {
+      oneFish();
+      await service.request(video());
+      final first = (await identifications.forMedia('v1')).single;
+      await service.reject('v1', [first.id]);
+
+      engine.videoFrames = {};
+      await service.request(video(), fresh: true);
+      expect((await identifications.runFor('v1'))!.scanComplete, isTrue);
+      expect(await identifications.forMedia('v1'), isEmpty);
+    });
+
+    test('keeps the video\'s length from the start, so the analysed '
+        'stretches show at once', () async {
+      oneFish();
+      await service.request(video());
+      engine.videoGate = Completer<void>();
+      final fresh = service.request(video(), fresh: true);
+      await _until(() => engine.detectCalls.length == 4);
+      final started = (await identifications.runFor('v1'))!;
+      engine.videoGate!.complete();
+      engine.videoGate = null;
+      await fresh;
+      expect(started.scannedMs, 0);
+      expect(started.videoDurationMs, 25000);
+    });
+
+    test('put back, then asked again with a place, is still followed by '
+        'no auto-apply', () async {
+      oneFish();
+      await service.request(video());
+      expect(settled, 1);
+      engine.onEmbedMoments = () => engine.videoGate ??= Completer<void>();
+      final fresh = service.request(video(), fresh: true);
+      await _until(() => engine.detectCalls.length == 5);
+      engine.onEmbedMoments = null;
+      // A photo is asked for, and held while it is analysed.
+      engine.gate = Completer<void>();
+      final other = service.request(photo('m2'));
+      engine.videoGate!.complete();
+      engine.videoGate = null;
+      await _until(() => engine.analysed.contains('/photos/m2.jpeg'));
+      // The place arrives while the fresh scan waits to carry on.
+      final placed = service.request(
+        video(),
+        location: const GeoPoint(12.15, -68.28),
+      );
+      engine.gate!.complete();
+      engine.gate = null;
+      await other;
+      await placed;
+      await fresh;
+      expect(settled, 2);
     });
   });
 }

@@ -701,6 +701,18 @@ void main() {
         expect(result.insert.single.claimedSpeciesId, isNull);
       });
 
+      test('on a reopened row is carried by overlap too, still reopened', () {
+        final result = carryDecisions(
+          previous: [claimed.copyWith(decidedAt: _earlier)],
+          fresh: [
+            _id('new', box: overlapping, candidates: [(_tang, 0.9)]),
+          ],
+        );
+        expect(result.insert.single.claimedSpeciesId, 'sp_x');
+        expect(result.insert.single.reopened, isTrue);
+        expect(result.deleteIds, ['old']);
+      });
+
       test('never takes the fresh detection a decision was carried to', () {
         final result = carryDecisions(
           previous: [
@@ -730,6 +742,18 @@ void main() {
       expect(changed.single.decidedAt, later);
       expect(changed.single.reopened, isTrue);
       expect(changed.single.saidByDiver, isTrue);
+    });
+
+    test('a reopened row names no species: it was dismissed, not tagged', () {
+      final changed = reopenDismissed([
+        _id(
+          'a',
+          decision: IdentificationDecision.rejected,
+          decidedSpeciesId: 'sp_x',
+        ),
+      ], now: later);
+      expect(changed.single.decidedSpeciesId, isNull);
+      expect(changed.single.reopened, isTrue);
     });
 
     test('an ordinary undecided row is neither reopened nor said', () {

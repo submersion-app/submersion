@@ -179,5 +179,5 @@ class _Job {
     resolveVideo,
     this.byHand || byHand,
     this.fresh || fresh,
-  );
+  )..wasFresh = wasFresh;
 }
