@@ -13,9 +13,11 @@ import 'package:submersion/features/query/presentation/providers/query_name_inde
 import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
 import 'package:submersion/features/query/presentation/providers/query_cache_awaits.dart';
 
-/// Bumped by whatever wants the caret in the search field while the page is
-/// already up (Cmd/Ctrl+K pressed on it).
-final globalSearchFocusTickProvider = StateProvider<int>((ref) => 0);
+/// Set by whatever wants the caret in the search field (Cmd/Ctrl+K), and
+/// cleared by the page once it has put it there. Taken on arrival as well as
+/// while the page is up, so the shortcut focuses the field even where the
+/// page does not autofocus it (a phone, #4813).
+final globalSearchFocusPendingProvider = StateProvider<bool>((ref) => false);
 
 /// Text handed to global search from a list's search row (#3882): what the
 /// diver typed there, to search everything for. Compared by identity, so

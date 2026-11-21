@@ -8647,6 +8647,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Questa immersione non ha un profilo da indicare. Inserisci invece l\'orario.';
 
   @override
+  String get diveLog_annotation_brokenLink =>
+      'Il link di un\'annotazione qui è rotto, quindi salvare eliminerebbe l\'annotazione. Ripara il link, oppure eliminalo del tutto per rimuovere l\'annotazione.';
+
+  @override
   String get diveLog_annotation_action_annotate => 'Annota';
 
   @override
@@ -21196,6 +21200,16 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get media_photoViewer_seekVideoLabel => 'Cerca posizione nel video';
+
+  @override
+  String get media_photoViewer_muteVideoLabel => 'Disattiva l\'audio del video';
+
+  @override
+  String get media_photoViewer_unmuteVideoLabel =>
+      'Riattiva l\'audio del video';
+
+  @override
+  String get media_photoViewer_videoVolumeLabel => 'Volume del video';
 
   @override
   String get media_photoViewer_shareTooltip => 'Condividi foto';

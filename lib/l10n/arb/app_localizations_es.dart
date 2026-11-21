@@ -8647,6 +8647,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Esta inmersión no tiene perfil que señalar. Escribe la hora en su lugar.';
 
   @override
+  String get diveLog_annotation_brokenLink =>
+      'El enlace de una anotación está roto aquí, así que guardar eliminaría la anotación. Arregla el enlace o bórralo entero para quitar la anotación.';
+
+  @override
   String get diveLog_annotation_action_annotate => 'Anotar';
 
   @override
@@ -21183,6 +21187,15 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get media_photoViewer_seekVideoLabel => 'Buscar posición del video';
+
+  @override
+  String get media_photoViewer_muteVideoLabel => 'Silenciar vídeo';
+
+  @override
+  String get media_photoViewer_unmuteVideoLabel => 'Activar sonido del vídeo';
+
+  @override
+  String get media_photoViewer_videoVolumeLabel => 'Volumen del vídeo';
 
   @override
   String get media_photoViewer_shareTooltip => 'Compartir foto';

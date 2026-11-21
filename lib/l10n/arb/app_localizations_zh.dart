@@ -8208,6 +8208,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_annotation_noProfile => '此次潜水没有可指向的轮廓。请改为输入时间。';
 
   @override
+  String get diveLog_annotation_brokenLink =>
+      '此处某个标注的链接已损坏，保存会删除该标注。请修复链接，或将其整个删除以移除该标注。';
+
+  @override
   String get diveLog_annotation_action_annotate => '标注';
 
   @override
@@ -20140,6 +20144,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get media_photoViewer_seekVideoLabel => '调整视频位置';
+
+  @override
+  String get media_photoViewer_muteVideoLabel => '静音视频';
+
+  @override
+  String get media_photoViewer_unmuteVideoLabel => '取消视频静音';
+
+  @override
+  String get media_photoViewer_videoVolumeLabel => '视频音量';
 
   @override
   String get media_photoViewer_shareTooltip => '分享照片';

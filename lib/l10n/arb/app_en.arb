@@ -5197,6 +5197,10 @@
   "@diveLog_annotation_noProfile": {
     "description": "Shown on the annotation sheet in place of the small profile when the dive has no profile samples"
   },
+  "diveLog_annotation_brokenLink": "An annotation's link here is broken, so saving would delete the annotation. Mend the link, or delete all of it to remove the annotation.",
+  "@diveLog_annotation_brokenLink": {
+    "description": "Error under the Notes editor when the diver has broken the markup of an annotation link, which Save would read as the annotation removed; Save is held until it is fixed"
+  },
   "diveLog_annotation_action_annotate": "Annotate",
   "@diveLog_annotation_action_annotate": {
     "description": "Primary button of the annotation sheet when the words were selected in the notes"
@@ -12812,6 +12816,9 @@
   "media_photoViewer_playPauseVideoLabel": "Play or pause video",
   "media_photoViewer_previousTooltip": "Previous media",
   "media_photoViewer_seekVideoLabel": "Seek video position",
+  "media_photoViewer_muteVideoLabel": "Mute video",
+  "media_photoViewer_unmuteVideoLabel": "Unmute video",
+  "media_photoViewer_videoVolumeLabel": "Video volume",
   "media_photoViewer_shareTooltip": "Share photo",
   "media_photoViewer_toggleOverlayLabel": "Toggle photo overlay",
   "media_photoViewer_videoFileNotFound": "Video file not found",

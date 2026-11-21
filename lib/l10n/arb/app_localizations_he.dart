@@ -8463,6 +8463,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'לצלילה זו אין פרופיל להצביע עליו. הזינו את הזמן במקום זאת.';
 
   @override
+  String get diveLog_annotation_brokenLink =>
+      'הקישור של אחד הסימונים כאן פגום, ולכן שמירה תמחק את הסימון. תקנו את הקישור, או מחקו אותו כולו כדי להסיר את הסימון.';
+
+  @override
   String get diveLog_annotation_action_annotate => 'סימון';
 
   @override
@@ -20730,6 +20734,15 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get media_photoViewer_seekVideoLabel => 'דלג למיקום בסרטון';
+
+  @override
+  String get media_photoViewer_muteVideoLabel => 'השתק את הסרטון';
+
+  @override
+  String get media_photoViewer_unmuteVideoLabel => 'בטל את השתקת הסרטון';
+
+  @override
+  String get media_photoViewer_videoVolumeLabel => 'עוצמת הקול של הסרטון';
 
   @override
   String get media_photoViewer_shareTooltip => 'שתף תמונה';

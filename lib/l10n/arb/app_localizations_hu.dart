@@ -8623,6 +8623,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ennek a merülésnek nincs profilja, amire mutatni lehetne. Írd be helyette az időt.';
 
   @override
+  String get diveLog_annotation_brokenLink =>
+      'Itt egy jelölés hivatkozása sérült, ezért a mentés törölné a jelölést. Javítsd ki a hivatkozást, vagy töröld teljesen a jelölés eltávolításához.';
+
+  @override
   String get diveLog_annotation_action_annotate => 'Megjelölés';
 
   @override
@@ -21125,6 +21129,16 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get media_photoViewer_seekVideoLabel => 'Videó pozíció keresése';
+
+  @override
+  String get media_photoViewer_muteVideoLabel => 'Videó némítása';
+
+  @override
+  String get media_photoViewer_unmuteVideoLabel =>
+      'Videó némításának feloldása';
+
+  @override
+  String get media_photoViewer_videoVolumeLabel => 'Videó hangereje';
 
   @override
   String get media_photoViewer_shareTooltip => 'Fotó megosztása';

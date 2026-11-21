@@ -354,6 +354,54 @@ void removeSittingAnnotation(EditSession<Dive> session, String id) {
   );
 }
 
+/// Whether Save can settle the annotations with the sitting's notes without
+/// losing one the diver did not remove (#4815). Save reads every annotation
+/// whose link no longer reads as one as removed, so a link edited by hand
+/// (a bracket, a parenthesis or part of its id deleted, or its id changed)
+/// would take its annotation with it. The Notes card holds Save until the
+/// link is mended, or deleted whole, address and all, which removes the
+/// annotation as it always has.
+///
+/// Checked only when Save would settle the annotations: the notes changed,
+/// or an annotation was placed, moved or removed. What counts as damage is
+/// [AnnotationLinkBaseline.damagedBy]'s, against the stored notes, for the
+/// annotations the sitting holds. Notes stored already broken hold nothing
+/// while they are left as they are.
+bool annotationLinksIntact(EditSession<Dive> session) {
+  final notes = session.valueOf(diveNotesField);
+  final held = sittingAnnotations(session);
+  if (notes == session.stored.notes && !(held?.isTouched ?? false)) {
+    return true;
+  }
+  final stored = _baseline(session);
+  final placed = {
+    for (final pin in held?.placed ?? const <PendingAnnotation>[]) pin.id,
+  };
+  final holding = {
+    // Before the read answers, or after it failed, the stored notes' links,
+    // whole or broken, stand for the rows.
+    if (held == null) ...{...stored.linked, ...stored.strayIds},
+    if (held != null)
+      for (final event in held.loaded)
+        if (!held.removed.contains(event.id)) event.id,
+    ...placed,
+  };
+  return stored.damagedBy(notes, holding, placed: placed).isEmpty;
+}
+
+const String _baselineKey = 'annotations.baseline';
+
+/// The stored notes' links and stray addresses, read again only when the
+/// stored notes change: the check runs on every keystroke.
+AnnotationLinkBaseline _baseline(EditSession<Dive> session) {
+  final notes = session.stored.notes;
+  final kept = session.recall<AnnotationLinkBaseline>(_baselineKey);
+  if (kept != null && kept.notes == notes) return kept;
+  final baseline = AnnotationLinkBaseline.of(notes);
+  session.remember(_baselineKey, baseline);
+  return baseline;
+}
+
 /// The earliest and latest second an annotation may fall on: from the
 /// start, to the stored profile's end, else the sitting's runtime, bottom
 /// time or exit, capped as the time sheet caps it today.

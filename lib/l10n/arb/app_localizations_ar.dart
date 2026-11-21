@@ -8784,6 +8784,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا يوجد ملف غوصة للإشارة إليه في هذه الغوصة. أدخل الوقت بدلًا من ذلك.';
 
   @override
+  String get diveLog_annotation_brokenLink =>
+      'رابط أحد التعليقات هنا معطوب، وسيؤدي الحفظ إلى حذف التعليق. أصلح الرابط، أو احذفه بالكامل لإزالة التعليق.';
+
+  @override
   String get diveLog_annotation_action_annotate => 'تعليق';
 
   @override
@@ -21546,6 +21550,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get media_photoViewer_seekVideoLabel => 'تحريك موضع الفيديو';
+
+  @override
+  String get media_photoViewer_muteVideoLabel => 'كتم صوت الفيديو';
+
+  @override
+  String get media_photoViewer_unmuteVideoLabel => 'إلغاء كتم صوت الفيديو';
+
+  @override
+  String get media_photoViewer_videoVolumeLabel => 'مستوى صوت الفيديو';
 
   @override
   String get media_photoViewer_shareTooltip => 'مشاركة الصورة';

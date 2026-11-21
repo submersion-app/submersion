@@ -8665,6 +8665,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Cette plongée n\'a pas de profil à pointer. Saisissez l\'heure à la place.';
 
   @override
+  String get diveLog_annotation_brokenLink =>
+      'Le lien d\'une annotation est cassé ici : enregistrer supprimerait l\'annotation. Réparez le lien, ou supprimez-le entièrement pour retirer l\'annotation.';
+
+  @override
   String get diveLog_annotation_action_annotate => 'Annoter';
 
   @override
@@ -21248,6 +21252,16 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get media_photoViewer_seekVideoLabel =>
       'Déplacer la position de la vidéo';
+
+  @override
+  String get media_photoViewer_muteVideoLabel => 'Couper le son de la vidéo';
+
+  @override
+  String get media_photoViewer_unmuteVideoLabel =>
+      'Rétablir le son de la vidéo';
+
+  @override
+  String get media_photoViewer_videoVolumeLabel => 'Volume de la vidéo';
 
   @override
   String get media_photoViewer_shareTooltip => 'Partager la photo';

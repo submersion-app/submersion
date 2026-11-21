@@ -176,6 +176,173 @@ void main() {
     },
   );
 
+  // Link markup broken by hand (#4815) would read at Save as the
+  // annotation removed, so the Notes card holds Save until it is mended.
+  group('annotationLinksIntact', () {
+    test('a link deleted whole beside a stored break left as it is: a '
+        'removal, as always', () async {
+      final stored = dive.copyWith(
+        notes: '${dive.notes}\n\n[x](annotation:orphan',
+      );
+      final session = EditSession<Dive>(stored);
+      addTearDown(() {
+        if (!session.isDisposed) session.dispose();
+      });
+      loadDiveAnnotations(session, container.read);
+      await session.settled();
+
+      session.set(diveNotesField, 'Calm\n\n[x](annotation:orphan');
+      expect(annotationLinksIntact(session), isTrue);
+    });
+
+    test('a link pasted from elsewhere, to an annotation this dive does not '
+        'hold, loses nothing and is intact', () async {
+      final session = await started();
+      session.set(
+        diveNotesField,
+        '${session.working.notes}\n\n[shark](annotation:from-another-dive)',
+      );
+      expect(annotationLinksIntact(session), isTrue);
+    });
+
+    test('a broken link whose annotation is gone loses nothing and is '
+        'intact', () async {
+      final session = await started();
+      session.set(
+        diveNotesField,
+        '${session.working.notes}\n\n[old](annotation:no-row-for-this',
+      );
+      expect(annotationLinksIntact(session), isTrue);
+    });
+
+    test('an id edited inside a link that still reads as one is not '
+        'intact', () async {
+      final session = await started();
+      session.set(
+        diveNotesField,
+        session.working.notes.replaceFirst(storedId, storedId.substring(0, 8)),
+      );
+      expect(annotationLinksIntact(session), isFalse);
+    });
+
+    test('an id deleted whole, its link left empty, is not intact', () async {
+      final session = await started();
+      session.set(
+        diveNotesField,
+        session.working.notes.replaceFirst(storedId, ''),
+      );
+      expect(annotationLinksIntact(session), isFalse);
+    });
+
+    test('a stored break whose id changes case is a new break', () async {
+      final broken = dive.copyWith(notes: '[a](annotation:ABC');
+      final session = EditSession<Dive>(broken);
+      addTearDown(session.dispose);
+      session.set(diveNotesField, '[a](annotation:abc');
+      expect(annotationLinksIntact(session), isFalse);
+    });
+
+    test('a stored break whose annotation is still held: other edits to the '
+        'notes are held too, untouched notes are not', () async {
+      final notes = dive.notes.substring(0, dive.notes.length - 1);
+      final session = EditSession<Dive>(dive.copyWith(notes: notes));
+      addTearDown(() {
+        if (!session.isDisposed) session.dispose();
+      });
+      loadDiveAnnotations(session, container.read);
+      await session.settled();
+      expect(annotationLinksIntact(session), isTrue);
+
+      session.set(diveNotesField, 'Before. $notes');
+      expect(annotationLinksIntact(session), isFalse);
+
+      // Mended, the link reads again and the notes can be saved.
+      session.set(diveNotesField, 'Before. ${dive.notes}');
+      expect(annotationLinksIntact(session), isTrue);
+    });
+
+    test('a link to an annotation with no row, mended from a stored break, '
+        'is intact', () async {
+      final broken = dive.copyWith(notes: '[a](annotation:gone');
+      final session = EditSession<Dive>(broken);
+      addTearDown(session.dispose);
+      session.set(diveNotesField, '[a](annotation:gone)');
+      expect(annotationLinksIntact(session), isTrue);
+    });
+
+    test('a sitting as opened is intact', () async {
+      final session = await started();
+      expect(annotationLinksIntact(session), isTrue);
+    });
+
+    test('a link that lost its closing parenthesis is not', () async {
+      final session = await started();
+      final notes = session.working.notes;
+      session.set(diveNotesField, notes.substring(0, notes.length - 1));
+      expect(annotationLinksIntact(session), isFalse);
+
+      session.set(diveNotesField, notes);
+      expect(annotationLinksIntact(session), isTrue);
+    });
+
+    test('the link deleted whole, address and all, removes the annotation '
+        'as before', () async {
+      final session = await started();
+      session.set(diveNotesField, 'Calm');
+      expect(annotationLinksIntact(session), isTrue);
+    });
+
+    test('words edited inside the link are intact', () async {
+      final session = await started();
+      session.set(
+        diveNotesField,
+        session.working.notes.replaceFirst('turtle', 'turtle buggy'),
+      );
+      expect(annotationLinksIntact(session), isTrue);
+    });
+
+    test('notes stored already broken do not hold Save while left so, but a '
+        'second break does', () async {
+      // A stored break whose annotation is gone, beside the turtle's link.
+      final broken = dive.copyWith(
+        notes: '${dive.notes}\n\n[x](annotation:gone',
+      );
+      final session = EditSession<Dive>(broken);
+      addTearDown(() {
+        if (!session.isDisposed) session.dispose();
+      });
+      loadDiveAnnotations(session, container.read);
+      await session.settled();
+      expect(annotationLinksIntact(session), isTrue);
+
+      session.set(diveNotesField, '${broken.notes} more');
+      expect(annotationLinksIntact(session), isTrue);
+
+      // The turtle's link loses its closing parenthesis.
+      session.set(
+        diveNotesField,
+        broken.notes.replaceFirst('$storedId)', storedId),
+      );
+      expect(annotationLinksIntact(session), isFalse);
+    });
+
+    test('a stored break mended does not excuse another link broken in the '
+        'same sitting', () async {
+      final broken = dive.copyWith(
+        notes: '[a](annotation:old\n\n[b](annotation:other)',
+      );
+      final session = EditSession<Dive>(broken);
+      addTearDown(session.dispose);
+
+      // The stored break mended, and the other link's parenthesis deleted.
+      session.set(
+        diveNotesField,
+        '[a](annotation:old)\n\n[b](annotation:other',
+      );
+      expect(annotationLinksIntact(session), isFalse);
+    });
+  });
+
   test('limits: the profile end, else the runtime, capped as today', () async {
     final session = await started();
     expect(annotationTimeLimits(session), (min: 0, max: 2400));

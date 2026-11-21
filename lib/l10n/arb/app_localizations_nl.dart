@@ -8593,6 +8593,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Deze duik heeft geen profiel om aan te wijzen. Typ in plaats daarvan de tijd.';
 
   @override
+  String get diveLog_annotation_brokenLink =>
+      'De link van een annotatie is hier kapot, dus opslaan zou de annotatie verwijderen. Herstel de link, of verwijder hem helemaal om de annotatie te verwijderen.';
+
+  @override
   String get diveLog_annotation_action_annotate => 'Annoteren';
 
   @override
@@ -21060,6 +21064,15 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get media_photoViewer_seekVideoLabel => 'Videopositie zoeken';
+
+  @override
+  String get media_photoViewer_muteVideoLabel => 'Video dempen';
+
+  @override
+  String get media_photoViewer_unmuteVideoLabel => 'Dempen van video opheffen';
+
+  @override
+  String get media_photoViewer_videoVolumeLabel => 'Videovolume';
 
   @override
   String get media_photoViewer_shareTooltip => 'Foto delen';

@@ -8646,6 +8646,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Este mergulho não tem perfil para apontar. Digite o tempo em vez disso.';
 
   @override
+  String get diveLog_annotation_brokenLink =>
+      'O link de uma marcação está quebrado aqui, então salvar apagaria a marcação. Conserte o link ou apague-o inteiro para remover a marcação.';
+
+  @override
   String get diveLog_annotation_action_annotate => 'Marcar';
 
   @override
@@ -21193,6 +21197,15 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get media_photoViewer_seekVideoLabel => 'Buscar posição do vídeo';
+
+  @override
+  String get media_photoViewer_muteVideoLabel => 'Silenciar vídeo';
+
+  @override
+  String get media_photoViewer_unmuteVideoLabel => 'Ativar som do vídeo';
+
+  @override
+  String get media_photoViewer_videoVolumeLabel => 'Volume do vídeo';
 
   @override
   String get media_photoViewer_shareTooltip => 'Compartilhar foto';
