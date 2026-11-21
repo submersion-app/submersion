@@ -201,9 +201,14 @@ class _FailingInsightsRepository extends InsightsRepository {
   Future<List<TrendDataPoint>> getSacPressurePerDive({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
+    int? limit,
   }) async {
     if (failing == _Query.sacPerDive) _fail();
-    return super.getSacPressurePerDive(diverId: diverId, filter: filter);
+    return super.getSacPressurePerDive(
+      diverId: diverId,
+      filter: filter,
+      limit: limit,
+    );
   }
 
   @override

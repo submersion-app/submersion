@@ -6319,75 +6319,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get dashboard_activeCourses_title => 'Lopende cursussen';
 
   @override
-  String get dashboard_greeting_afternoon => 'Goedemiddag';
-
-  @override
-  String get dashboard_greeting_evening => 'Goedenavond';
-
-  @override
-  String get dashboard_greeting_morning => 'Goedemorgen';
-
-  @override
-  String dashboard_greeting_withName(Object greeting, Object name) {
-    return '$greeting, $name!';
-  }
-
-  @override
-  String dashboard_greeting_withoutName(Object greeting) {
-    return '$greeting!';
-  }
-
-  @override
-  String get dashboard_hero_divesLoggedOne => '1 duik gelogd';
-
-  @override
-  String dashboard_hero_divesLoggedOther(Object count) {
-    return '$count duiken gelogd';
-  }
-
-  @override
-  String get dashboard_hero_divesTotalOne => '1 duik';
-
-  @override
-  String dashboard_hero_divesTotalOther(Object count) {
-    return '$count duiken';
-  }
-
-  @override
-  String get dashboard_hero_error => 'Klaar om de diepte te verkennen?';
-
-  @override
-  String dashboard_hero_hoursUnderwater(Object hours) {
-    return '$hours uur onder water';
-  }
-
-  @override
-  String get dashboard_hero_loading => 'Uw duikstatistieken laden...';
-
-  @override
-  String dashboard_hero_minutesUnderwater(Object minutes) {
-    return '$minutes minuten onder water';
-  }
-
-  @override
-  String get dashboard_hero_noDives => 'Klaar om uw eerste duik te loggen?';
-
-  @override
-  String get dashboard_hero_diverFallbackName => 'Duiker';
-
-  @override
-  String get dashboard_hero_statDives => 'duiken';
-
-  @override
-  String get dashboard_hero_statHours => 'uur';
-
-  @override
-  String get dashboard_hero_statSites => 'stekken';
-
-  @override
-  String get dashboard_hero_statCountries => 'landen';
-
-  @override
   String get dashboard_gauges_addGear => 'Uitrusting toevoegen';
 
   @override
@@ -6480,13 +6411,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_homeChips_sectionTitle => 'Statuschips';
 
   @override
-  String get settings_homeCards_sectionTitle => 'Startkaarten';
-
-  @override
-  String get settings_homeCards_description =>
-      'Kies welke kaarten op het tabblad Start verschijnen en sleep ze om de volgorde te wijzigen.';
-
-  @override
   String get settings_homeCards_autoHides =>
       'Wordt automatisch verborgen wanneer leeg';
 
@@ -6498,54 +6422,16 @@ class AppLocalizationsNl extends AppLocalizations {
       'Startindeling herstellen?';
 
   @override
-  String get settings_homeCards_resetDialog_message =>
-      'Herstelt de standaardvolgorde van de kaarten en toont ze allemaal weer.';
-
-  @override
   String get settings_homeCards_resetDialog_cancel => 'Annuleren';
 
   @override
   String get settings_homeCards_resetDialog_confirm => 'Herstellen';
 
   @override
-  String get settings_homeCards_card_hero => 'Welkomstkop';
-
-  @override
-  String get settings_homeCards_card_gaugeStrip => 'Statuschips';
-
-  @override
-  String get settings_homeCards_card_preDive => 'Checklists';
-
-  @override
-  String get settings_homeCards_card_recentDives => 'Recente duiken';
-
-  @override
-  String get settings_homeCards_card_quickActions => 'Snelle acties';
-
-  @override
-  String get settings_homeCards_card_milestones => 'Mijlpalen';
-
-  @override
-  String get settings_homeCards_card_photoRibbon => 'Recente media';
-
-  @override
-  String get settings_homeCards_card_onThisDay => 'Op deze dag';
-
-  @override
-  String get settings_homeCards_card_yearInReview => 'Jaaroverzicht';
-
-  @override
-  String get settings_homeCards_card_activeCourses => 'Cursusvoortgang';
-
-  @override
-  String get settings_homeCards_card_recentSitesMap =>
-      'Kaart met recente duikstekken';
-
-  @override
   String get settings_homeCards_card_waitingForDownload => 'Wacht op download';
 
   @override
-  String get dashboard_allHidden_message => 'Alle startkaarten zijn verborgen.';
+  String get dashboard_allHidden_message => 'Geen panelen om te tonen.';
 
   @override
   String get dashboard_allHidden_customize => 'Start aanpassen';
@@ -6672,42 +6558,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String get dashboard_recentSites_title => 'Recente stekken';
 
   @override
-  String get dashboard_yearInReview_title => 'Dit jaar';
-
-  @override
-  String dashboard_yearInReview_divesVs(int count, int previous) {
-    return '$count duiken (vs $previous vorig jaar)';
-  }
-
-  @override
-  String dashboard_yearInReview_hours(String hours) {
-    return '$hours uur onder water';
-  }
-
-  @override
-  String dashboard_yearInReview_maxDepth(String depth) {
-    return 'Diepste: $depth';
-  }
-
-  @override
   String get dashboard_onThisDay_title => 'Op deze dag';
 
   @override
   String dashboard_onThisDay_entry(String year, String site) {
     return '$year - $site';
-  }
-
-  @override
-  String get dashboard_milestones_title => 'Mijlpalen';
-
-  @override
-  String dashboard_milestones_nextDive(int remaining, int milestone) {
-    return 'Nog $remaining duiken tot nr. $milestone';
-  }
-
-  @override
-  String dashboard_milestones_certYears(String name, int years, String month) {
-    return '$name: $years jaar in $month';
   }
 
   @override
@@ -6717,19 +6572,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get dashboard_quickActions_planDive => 'Duik plannen';
 
   @override
-  String get dashboard_quickActions_sectionTitle => 'Snelle acties';
-
-  @override
-  String get dashboard_quickActions_insights => 'Inzichten';
-
-  @override
   String get dashboard_recentDives_empty => 'Nog geen duiken gelogd';
-
-  @override
-  String get dashboard_recentDives_errorLoading => 'Laden van duiken mislukt';
-
-  @override
-  String get dashboard_recentDives_latestProfileTitle => 'Laatste duikprofiel';
 
   @override
   String get dashboard_recentDives_noProfileData =>
@@ -6738,29 +6581,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get dashboard_recentDives_profileLoadError =>
       'Kan het duikprofiel niet laden';
-
-  @override
-  String get dashboard_recentDives_logFirst => 'Log uw eerste duik';
-
-  @override
-  String get dashboard_recentDives_sectionTitle => 'Recente duiken';
-
-  @override
-  String get dashboard_recentDives_viewAll => 'Alles bekijken';
-
-  @override
-  String get dashboard_recentDives_viewAllTooltip => 'Alle duiken bekijken';
-
-  @override
-  String get dashboard_semantics_errorLoadingRecentDives =>
-      'Fout: Laden van recente duiken mislukt';
-
-  @override
-  String get dashboard_semantics_greetingBanner =>
-      'Dashboard begroetingsbanner';
-
-  @override
-  String get dashboard_waitingForDownload_download => 'Nu downloaden';
 
   @override
   String dashboard_waitingForDownload_title(int count) {
@@ -65623,4 +65443,321 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diverProfile_bodyEstimate_note =>
       'Wordt alleen gebruikt om de lichaamssamenstelling te schatten voor de loodvoorspelling.';
+
+  @override
+  String get dashboard_header_more => 'Meer';
+
+  @override
+  String get dashboard_header_allClear => 'Alles in orde';
+
+  @override
+  String dashboard_header_clearCount(int count) {
+    return '$count in orde';
+  }
+
+  @override
+  String get dashboard_header_statusTitle => 'Status';
+
+  @override
+  String get dashboard_panel_loadError => 'Kon dit niet laden';
+
+  @override
+  String get dashboard_key_dives => 'Duiken';
+
+  @override
+  String get dashboard_key_timeUnder => 'Tijd onder water';
+
+  @override
+  String get dashboard_key_lastDive => 'Laatste duik';
+
+  @override
+  String get dashboard_key_avgSac => 'Gem. SAC';
+
+  @override
+  String get dashboard_key_avgRmv => 'Gem. RMV';
+
+  @override
+  String get dashboard_key_deepestThisYear => 'Diepste dit jaar';
+
+  @override
+  String get dashboard_key_nextTrip => 'Volgende reis';
+
+  @override
+  String get dashboard_key_avgDepth => 'Gem. diepte';
+
+  @override
+  String get dashboard_key_species => 'Soorten';
+
+  @override
+  String dashboard_key_countThisYear(int count) {
+    return '+$count dit jaar';
+  }
+
+  @override
+  String dashboard_key_hoursThisYear(String hours) {
+    return '+$hours u dit jaar';
+  }
+
+  @override
+  String get dashboard_key_hoursUnit => 'u';
+
+  @override
+  String dashboard_key_daysUnit(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'dagen',
+      one: 'dag',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_key_vsPrevious(String change) {
+    return '$change t.o.v. vorige 10';
+  }
+
+  @override
+  String dashboard_key_lastYear(String value) {
+    return 'Vorig jaar $value';
+  }
+
+  @override
+  String dashboard_key_tripChecklist(String name, int done, int total) {
+    return 'checklist $done/$total · $name';
+  }
+
+  @override
+  String dashboard_panel_activity(int months) {
+    return 'Activiteit, $months maanden';
+  }
+
+  @override
+  String dashboard_panel_activitySummary(int dives, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives duiken',
+      one: '1 duik',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days dagen',
+      one: '1 dag',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String get dashboard_panel_divesPerMonth => 'Duiken per maand';
+
+  @override
+  String get dashboard_panel_sacTrend => 'SAC-verloop';
+
+  @override
+  String get dashboard_panel_rmvTrend => 'RMV-verloop';
+
+  @override
+  String dashboard_panel_lastDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'laatste $count duiken',
+      one: 'laatste duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashboard_panel_noSac => 'Nog geen duiken met gasgegevens';
+
+  @override
+  String get dashboard_panel_depthMix => 'Diepteverdeling';
+
+  @override
+  String get dashboard_panel_noDives => 'Nog geen duiken';
+
+  @override
+  String get dashboard_panel_gasMix => 'Gasmengsels';
+
+  @override
+  String get dashboard_panel_diveTypes => 'Duiktypes';
+
+  @override
+  String get dashboard_panel_topSites => 'Topduikplaatsen';
+
+  @override
+  String get dashboard_panel_topBuddies => 'Topbuddy\'s';
+
+  @override
+  String get dashboard_panel_noBuddies => 'Nog geen buddy\'s vastgelegd';
+
+  @override
+  String get dashboard_panel_gearService => 'Onderhoud uitrusting';
+
+  @override
+  String get dashboard_panel_noGear =>
+      'Voeg uitrusting toe om het onderhoud bij te houden';
+
+  @override
+  String get dashboard_panel_overdue => 'Achterstallig';
+
+  @override
+  String dashboard_panel_daysLeft(int days) {
+    return '$days d';
+  }
+
+  @override
+  String dashboard_panel_divesLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken',
+      one: '1 duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_panel_hoursLeft(int hours) {
+    return '$hours u';
+  }
+
+  @override
+  String get dashboard_panel_comingDue => 'Binnenkort verlopen';
+
+  @override
+  String get dashboard_panel_nothingDue => 'Niets verloopt het komende jaar';
+
+  @override
+  String dashboard_panel_inDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'over $days dagen',
+      one: 'morgen',
+      zero: 'vandaag',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashboard_panel_tripChecklist => 'Reischecklist';
+
+  @override
+  String get dashboard_panel_latestProfile => 'Laatste profiel';
+
+  @override
+  String get dashboard_panel_latestVsAverage => 'Laatste duik vs gemiddelde';
+
+  @override
+  String dashboard_panel_vsAverage(String value, String average) {
+    return '$value · gem. $average';
+  }
+
+  @override
+  String get dashboard_panel_maxDepth => 'Max. diepte';
+
+  @override
+  String get dashboard_panel_runtime => 'Duur';
+
+  @override
+  String get dashboard_panel_sac => 'SAC';
+
+  @override
+  String get dashboard_panel_rmv => 'RMV';
+
+  @override
+  String get dashboard_panel_recentDives => 'Recente duiken';
+
+  @override
+  String get dashboard_panel_colSite => 'Plek';
+
+  @override
+  String get dashboard_panel_colDate => 'Datum';
+
+  @override
+  String get dashboard_panel_colDepth => 'Diepte';
+
+  @override
+  String get dashboard_panel_colTime => 'Tijd';
+
+  @override
+  String get dashboard_panel_speciesSeen => 'Onlangs geziene soorten';
+
+  @override
+  String dashboard_panel_speciesTotal(int count) {
+    return '$count in totaal';
+  }
+
+  @override
+  String dashboard_panel_onDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken',
+      one: '1 duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashboard_panel_firstDive =>
+      'Leg je eerste duik vast of importeer hem';
+
+  @override
+  String get dashboard_panel_import => 'Importeren';
+
+  @override
+  String get settings_homeLayout_sectionTitle => 'Indeling';
+
+  @override
+  String get settings_homeLayout_description =>
+      'Kies een beginindeling en toon, verberg of versleep daarna de panelen hieronder. Je wijzigingen maken hem aangepast.';
+
+  @override
+  String get settings_homeLayout_balanced => 'Gebalanceerd';
+
+  @override
+  String get settings_homeLayout_ready => 'Klaar';
+
+  @override
+  String get settings_homeLayout_trends => 'Trends';
+
+  @override
+  String get settings_homeLayout_logbook => 'Logboek';
+
+  @override
+  String get settings_homeLayout_replaceTitle => 'Indeling vervangen?';
+
+  @override
+  String settings_homeLayout_replaceMessage(String preset) {
+    return 'Je eigen rangschikking van panelen wordt vervangen door de indeling $preset.';
+  }
+
+  @override
+  String get settings_homeLayout_replace => 'Vervangen';
+
+  @override
+  String get settings_homePanels_sectionTitle => 'Panelen';
+
+  @override
+  String get settings_homePanels_resetMessage =>
+      'Hiermee keert Start terug naar de indeling Gebalanceerd.';
+
+  @override
+  String get settings_homePanels_keyNumbers => 'Kerncijfers';
+
+  @override
+  String settings_homePanels_keyNumbersCount(int shown, int total) {
+    return '$shown van $total';
+  }
+
+  @override
+  String get settings_homePanels_activityCalendar => 'Activiteitenkalender';
+
+  @override
+  String get settings_homeKeyNumbers_description =>
+      'Kies de cijfers bovenaan Start. Een cijfer zonder iets om te tonen wordt weggelaten.';
 }

@@ -58,7 +58,6 @@ Future<void> _changeEverySetting(SettingsNotifier n) {
   const d = AppSettings();
   return Future.wait([
     // Resets first: they would undo the matching setters below.
-    n.resetHomeCards(),
     n.resetProfileMetricColors(),
     n.resetDiveDetailSections(),
     n.resetSiteDetailSections(),
@@ -125,8 +124,8 @@ Future<void> _changeEverySetting(SettingsNotifier n) {
     n.setDeepDiveThresholdM(25),
     n.setHighO2ThresholdPercent(40),
     n.setHomeChipEnabled('depth', false),
-    n.setHomeCardEnabled('stats', false),
-    n.setHomeCardOrder(const ['stats', 'recent']),
+    n.setHomePanelLayout(order: const ['keyNumbers'], hidden: const {}),
+    n.setHiddenHomeKeyNumbers(const {'dives'}),
     n.setSafetyRuleEnabled(SafetyRuleId.values.first, false),
     n.setConditionEngineEnabled(!d.conditionEngineEnabled),
     n.setConditionRuleEnabled(ConditionRuleId.values.first, false),

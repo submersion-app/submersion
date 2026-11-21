@@ -15,25 +15,36 @@ void main() {
     expect(tabFor('/documents/new'), isNull);
   });
 
-  test('no code pushes a Media list root except the Home gauge strip', () {
+  test('no code pushes a Media list root except Home', () {
     // Both list roots build their page under kMediaDocumentsHostPageKey.
     // Pushing a root while a Media host is already on the stack would give
     // the Navigator two pages with one key, which asserts in debug builds.
-    // The Home chips are safe: Home never sits above a Media host.
+    // Home's status lights and its media panel are safe: Home never sits
+    // above a Media host, and a push keeps Back returning to Home.
     // By path (push, pushReplacement, pushOrReturnTo) or by route name
     // (pushNamed, pushReplacementNamed), with or without more arguments.
     final rootPush = RegExp(
       r'''(?:(?:push|pushReplacement|pushOrReturnTo)(?:<[^>]*>)?\(\s*'/(?:media|documents)(?:\?[^']*)?'\s*[,)])'''
       r'''|(?:(?:pushNamed|pushReplacementNamed)(?:<[^>]*>)?\(\s*'(?:media|documents)'\s*[,)])''',
     );
-    final allowed = p.join(
-      'lib',
-      'features',
-      'dashboard',
-      'presentation',
-      'widgets',
-      'gauge_strip.dart',
-    );
+    final allowed = [
+      p.join(
+        'lib',
+        'features',
+        'dashboard',
+        'presentation',
+        'panels',
+        'conditional_panels.dart',
+      ),
+      p.join(
+        'lib',
+        'features',
+        'dashboard',
+        'presentation',
+        'widgets',
+        'home_status_lights.dart',
+      ),
+    ];
     final hits = <String>[];
     for (final entity in Directory('lib').listSync(recursive: true)) {
       if (entity is! File || !entity.path.endsWith('.dart')) continue;
@@ -41,9 +52,10 @@ void main() {
         hits.add(p.normalize(entity.path));
       }
     }
+    hits.sort();
     expect(
       hits,
-      [allowed],
+      allowed,
       reason:
           'A push of a Media list root can stack a second page with '
           'kMediaDocumentsHostPageKey. Use go() or goInPlace() instead.',

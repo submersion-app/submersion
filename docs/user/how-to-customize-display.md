@@ -48,13 +48,15 @@ You chose metric or imperial units when you first set up Submersion. To change t
 
 The Dashboard is the **Home** screen. To choose what it shows, open **Settings > Appearance**, then under **Sections** tap **Home**.
 
-![Home screen settings with Home cards, their drag handles and switches](images/how-to/customize-display/04-home-screen.png)
+![Home screen settings with the layout picker and the panel list, with drag handles and switches](images/how-to/customize-display/04-home-screen.png)
 
-**Choose and order the cards.** Under **Home cards**, turn a card's switch off to hide it, and drag the handle beside a card to move it up or down. Some cards, such as **Milestones** and **On this day**, hide themselves while they have nothing to show.
+**Pick a layout.** Under **Layout**, choose **Balanced**, **Ready**, **Trends** or **Logbook** as a starting point.
 
-**Choose the status chips.** The small chips across the top of the Dashboard, such as **No-fly timer** and **Gear service**, each have a switch under **Status chips**. A safety warning, such as gear that is overdue for service, still shows even if you hid its chip.
+**Choose and order the panels.** Under **Panels**, turn a panel's switch off to hide it, and drag the handle beside a panel to move it up or down. Some panels, such as **On this day** and **Recent media**, hide themselves while they have nothing to show. Tap **Key numbers** to choose the numbers in the row at the top.
 
-Changed too much? **Reset to default** puts the cards back as they were.
+**Choose the status lights.** The lights in the Dashboard's header, such as **No-fly timer** and **Gear service**, each have a switch under **Status chips**. A safety warning, such as gear that is overdue for service, still shows even if you hid its light.
+
+Changed too much? **Reset to default** returns to the Balanced layout.
 
 ## 4. Your dive list
 
@@ -106,7 +108,7 @@ If you sync between devices (see [Set Up Sync, Backups and Photos](how-to-sync-b
 |-----|-----|
 | Colour theme | Light or dark |
 | Units, time and date format | Display size |
-| Dive list layout, fields and card colours | Dashboard cards and status chips |
+| Dive list layout, fields and card colours | Dashboard layout, panels and status lights |
 | | Navigation order and labels |
 
 ## If something goes wrong
